@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vinaduy_crm_source_tree" model="ir.ui.view">
+        <field name="name">vinaduy.crm.source.tree</field>
+        <field name="model">vinaduy.crm.source</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vinaduy_crm_source" model="ir.actions.act_window">
+        <field name="name">Nguồn lead VINADUY</field>
+        <field name="res_model">vinaduy.crm.source</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_vinaduy_crm_source"
+              name="Nguồn lead VINADUY"
+              parent="crm.crm_menu_config"
+              action="action_vinaduy_crm_source"
+              sequence="50"/>
+
+</odoo>

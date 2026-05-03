@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="crm_lead_view_form_inherit_vinaduy" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_id']" position="after">
+                <field name="vinaduy_source_id"/>
+                <field name="project_type"/>
+            </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="OMICall" name="omicall_info">
+                    <group>
+                        <field name="omicall_call_count"/>
+                        <field name="last_omicall_date"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_lead_view_search_inherit_vinaduy" model="ir.ui.view">
+        <field name="name">crm.lead.search.inherit.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_id']" position="after">
+                <field name="vinaduy_source_id"/>
+                <field name="project_type"/>
+            </xpath>
+            <xpath expr="//filter[@name='salesperson']" position="after">
+                <filter string="Nguồn VINADUY" name="group_vinaduy_source"
+                        context="{'group_by': 'vinaduy_source_id'}"/>
+                <filter string="Loại công trình" name="group_project_type"
+                        context="{'group_by': 'project_type'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vinaduy_crm_source_user,vinaduy.crm.source.user,model_vinaduy_crm_source,base.group_user,1,0,0,0
+access_vinaduy_crm_source_manager,vinaduy.crm.source.manager,model_vinaduy_crm_source,sales_team.group_sale_manager,1,1,1,1
