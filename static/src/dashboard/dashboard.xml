@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="vinaduy_crm.Dashboard">
+    <div class="vd-dashboard">
+        <t t-if="state.loading">
+            <div class="vd-loading">⏳ Đang tải dữ liệu...</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="vd-error">❌ Lỗi: <t t-out="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- ===== HEADER ===== -->
+            <div class="vd-header">
+                <div>
+                    <h1>📊 VINADUY — Sales Dashboard</h1>
+                    <div class="vd-subtitle">
+                        Tháng <t t-out="state.data.month"/> · Cập nhật: <t t-out="state.data.today"/>
+                    </div>
+                </div>
+                <div class="vd-stat-summary">
+                    <span class="vd-pill vd-pill-success" t-on-click="() => this.openWon()">
+                        🎉 <strong t-out="state.data.kpi.won"/> đã chốt
+                    </span>
+                    <span class="vd-pill vd-pill-danger" t-on-click="() => this.openOverdue()">
+                        🔴 <strong t-out="state.data.kpi.overdue"/> quá hạn
+                    </span>
+                </div>
+            </div>
+
+            <!-- ===== ROW 1: 4 KPI lớn + GAUGE ===== -->
+            <div class="vd-grid-row1">
+                <div class="vd-card vd-big-num">
+                    <div class="vd-big-label">TỔNG KH</div>
+                    <div class="vd-big-value vd-blue" t-out="state.data.kpi.total_kh"/>
+                    <div class="vd-big-sub" t-att-class="{'vd-up': state.data.kpi.growth_total >= 0, 'vd-down': state.data.kpi.growth_total &lt; 0}">
+                        <t t-if="state.data.kpi.growth_total >= 0">▲ </t><t t-else="">▼ </t>
+                        <t t-out="Math.abs(state.data.kpi.growth_total)"/>% so tháng trước
+                    </div>
+                </div>
+                <div class="vd-card vd-big-num">
+                    <div class="vd-big-label">ĐÀM PHÁN</div>
+                    <div class="vd-big-value vd-purple" t-out="state.data.kpi.damphan"/>
+                </div>
+                <div class="vd-card vd-big-num">
+                    <div class="vd-big-label">HỢP ĐỒNG</div>
+                    <div class="vd-big-value vd-cyan" t-out="state.data.kpi.hopdong"/>
+                </div>
+                <div class="vd-card vd-big-num">
+                    <div class="vd-big-label">CHỐT</div>
+                    <div class="vd-big-value vd-green" t-out="state.data.kpi.won"/>
+                    <div class="vd-big-sub" t-att-class="{'vd-up': state.data.kpi.growth_won >= 0, 'vd-down': state.data.kpi.growth_won &lt; 0}">
+                        <t t-if="state.data.kpi.growth_won >= 0">▲ </t><t t-else="">▼ </t>
+                        <t t-out="Math.abs(state.data.kpi.growth_won)"/>% MoM
+                    </div>
+                </div>
+                <div class="vd-card vd-gauge-card">
+                    <div class="vd-card-title">CONV %</div>
+                    <div class="vd-gauge-wrap">
+                        <canvas t-ref="convGauge"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ROW 2: Trend chart (lớn) + Stages doughnut ===== -->
+            <div class="vd-grid-row2">
+                <div class="vd-card">
+                    <div class="vd-card-title">📈 Xu hướng 12 tháng (Tổng KH + Conv%)</div>
+                    <div class="vd-chart-wrap" style="height: 320px;">
+                        <canvas t-ref="trendChart"/>
+                    </div>
+                </div>
+                <div class="vd-card">
+                    <div class="vd-card-title">🍩 Phân bổ trạng thái KH (click để xem)</div>
+                    <div class="vd-chart-wrap" style="height: 320px;">
+                        <canvas t-ref="stagesChart"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ROW 3: NV Top 10 (horizontal bars) + Sources polarArea ===== -->
+            <div class="vd-grid-row3">
+                <div class="vd-card">
+                    <div class="vd-card-title">👥 Top 10 NV (click cột để xem chi tiết)</div>
+                    <div class="vd-chart-wrap" style="height: 360px;">
+                        <canvas t-ref="usersChart"/>
+                    </div>
+                </div>
+                <div class="vd-card">
+                    <div class="vd-card-title">📅 KH theo nguồn data</div>
+                    <div class="vd-chart-wrap" style="height: 360px;">
+                        <canvas t-ref="sourcesChart"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ROW 4: Threshold CHARTS (click bar → popup detail) ===== -->
+            <div class="vd-grid-row4">
+                <div class="vd-card vd-threshold vd-threshold-good">
+                    <div class="vd-card-title">🟢 NV trên ngưỡng (≥ 2 chốt) — <t t-out="state.data.threshold_above.length"/> NV</div>
+                    <t t-if="state.data.threshold_above.length === 0">
+                        <div class="vd-empty">Chưa có NV nào đạt ngưỡng tháng này</div>
+                    </t>
+                    <div class="vd-chart-wrap" t-else="" style="height: 360px;">
+                        <canvas t-ref="aboveChart"/>
+                    </div>
+                </div>
+                <div class="vd-card vd-threshold vd-threshold-bad">
+                    <div class="vd-card-title">🔴 NV dưới ngưỡng (xếp theo quá hạn) — <t t-out="state.data.threshold_below.length"/> NV</div>
+                    <t t-if="state.data.threshold_below.length === 0">
+                        <div class="vd-empty">Tất cả NV đều đạt ngưỡng 🎉</div>
+                    </t>
+                    <div class="vd-chart-wrap" t-else="" style="height: 360px;">
+                        <canvas t-ref="belowChart"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>

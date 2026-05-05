@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- ============ Tắt rule team-wide gốc của Odoo cho salesman ============
+             Để rule own-only của VINADUY có hiệu lực cứng (NV chỉ thấy KH gán cho chính mình). -->
+        <record id="crm.crm_rule_all_lead" model="ir.rule">
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- ============ NV chỉ thấy KH được gán cho chính mình ============ -->
+        <record id="vinaduy_crm_rule_lead_own_only" model="ir.rule">
+            <field name="name">VINADUY: Salesman chỉ thấy KH của mình</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- ============ Manager xem toàn bộ KH ============ -->
+        <record id="vinaduy_crm_rule_lead_manager_all" model="ir.rule">
+            <field name="name">VINADUY: Manager xem toàn bộ KH</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============ NV chỉ thấy checklist item của KH mình ============ -->
+        <record id="vinaduy_crm_rule_checklist_item_own" model="ir.rule">
+            <field name="name">VINADUY: Salesman chỉ thấy checklist của KH mình</field>
+            <field name="model_id" ref="model_vinaduy_crm_checklist_item"/>
+            <field name="domain_force">[('lead_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="vinaduy_crm_rule_checklist_item_mgr" model="ir.rule">
+            <field name="name">VINADUY: Manager xem toàn bộ checklist</field>
+            <field name="model_id" ref="model_vinaduy_crm_checklist_item"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ============ NV chỉ thấy revert request của mình ============ -->
+        <record id="vinaduy_crm_rule_revert_own" model="ir.rule">
+            <field name="name">VINADUY: Salesman chỉ thấy yêu cầu lùi của mình</field>
+            <field name="model_id" ref="model_vinaduy_crm_revert_request"/>
+            <field name="domain_force">[('requester_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="vinaduy_crm_rule_revert_mgr" model="ir.rule">
+            <field name="name">VINADUY: Manager xem toàn bộ yêu cầu lùi</field>
+            <field name="model_id" ref="model_vinaduy_crm_revert_request"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('sales_team.group_sale_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

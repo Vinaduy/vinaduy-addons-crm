@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="vinaduy_crm.Bonus">
+    <div class="vd-bonus">
+        <t t-if="state.loading">
+            <div class="vd-bn-loading">⏳ Đang tải...</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="vd-bn-error">❌ <t t-out="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- ===== HEADER ===== -->
+            <div class="vd-bn-header">
+                <div class="vd-bn-title">🏆 Bảng thưởng nóng — <t t-out="state.data.period_label"/></div>
+                <div class="vd-bn-month-nav">
+                    <button class="vd-bn-nav-btn" t-on-click="() => this.changeMonth(-1)">← Tháng trước</button>
+                    <button class="vd-bn-nav-btn vd-bn-nav-curr" t-on-click="() => this.changeMonth(0)" t-out="state.data.period_label"/>
+                    <button class="vd-bn-nav-btn" t-on-click="() => this.changeMonth(1)">Tháng sau →</button>
+                </div>
+            </div>
+
+            <!-- ===== Quy tắc thưởng ===== -->
+            <div class="vd-bn-rules">
+                <div class="vd-bn-rule-card">
+                    <div class="vd-bn-rule-icon">🎯</div>
+                    <div>
+                        <div class="vd-bn-rule-label">Ngưỡng tối thiểu</div>
+                        <div class="vd-bn-rule-value">≥ <t t-out="state.data.config.min_contracts"/> HĐ chốt / tháng</div>
+                    </div>
+                </div>
+                <div class="vd-bn-rule-card">
+                    <div class="vd-bn-rule-icon">💰</div>
+                    <div>
+                        <div class="vd-bn-rule-label">Thưởng / HĐ</div>
+                        <div class="vd-bn-rule-value" t-out="formatVND(state.data.config.per_contract)"/>
+                    </div>
+                </div>
+                <div class="vd-bn-rule-card">
+                    <div class="vd-bn-rule-icon">🚀</div>
+                    <div>
+                        <div class="vd-bn-rule-label">Vượt ngưỡng — thưởng thêm / HĐ</div>
+                        <div class="vd-bn-rule-value" t-out="formatVND(state.data.config.extra_per_contract)"/>
+                    </div>
+                </div>
+                <div class="vd-bn-rule-card">
+                    <div class="vd-bn-rule-icon">👥</div>
+                    <div>
+                        <div class="vd-bn-rule-label">Thưởng phòng (≥ <t t-out="state.data.config.team_threshold"/> HĐ)</div>
+                        <div class="vd-bn-rule-value" t-out="formatVND(state.data.config.team_amount)"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== KPI summary ===== -->
+            <div class="vd-bn-kpis">
+                <div class="vd-bn-kpi vd-bn-kpi-total">
+                    <div class="vd-bn-kpi-label">Tổng HĐ chốt</div>
+                    <div class="vd-bn-kpi-value" t-out="state.data.summary.total_won"/>
+                </div>
+                <div class="vd-bn-kpi vd-bn-kpi-personal">
+                    <div class="vd-bn-kpi-label">Thưởng cá nhân</div>
+                    <div class="vd-bn-kpi-value" t-out="formatVND(state.data.summary.total_personal_bonus)"/>
+                </div>
+                <div class="vd-bn-kpi vd-bn-kpi-team">
+                    <div class="vd-bn-kpi-label">Thưởng phòng</div>
+                    <div class="vd-bn-kpi-value" t-out="formatVND(state.data.summary.total_team_bonus)"/>
+                </div>
+                <div class="vd-bn-kpi vd-bn-kpi-grand">
+                    <div class="vd-bn-kpi-label">TỔNG THƯỞNG</div>
+                    <div class="vd-bn-kpi-value" t-out="formatVND(state.data.summary.total_bonus)"/>
+                </div>
+                <div class="vd-bn-kpi vd-bn-kpi-rate">
+                    <div class="vd-bn-kpi-label">NV đạt thưởng</div>
+                    <div class="vd-bn-kpi-value">
+                        <t t-out="state.data.summary.achieved_count"/>/<t t-out="state.data.summary.user_count"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Bảng cá nhân ===== -->
+            <div class="vd-bn-section">
+                <div class="vd-bn-section-header">🏅 Xếp hạng nhân viên</div>
+                <div class="vd-bn-table">
+                    <div class="vd-bn-table-head">
+                        <div>Hạng</div>
+                        <div>Nhân viên</div>
+                        <div>Phòng</div>
+                        <div class="vd-bn-num">HĐ chốt</div>
+                        <div class="vd-bn-num">Trạng thái</div>
+                        <div class="vd-bn-num">Thưởng</div>
+                    </div>
+                    <t t-foreach="state.data.users" t-as="u" t-key="u.id">
+                        <div class="vd-bn-table-row" t-att-class="u.achieved ? 'vd-bn-row-achieved' : ''" t-on-click="() => this.openUserLeads(u.id)">
+                            <div class="vd-bn-rank" t-out="medal(u_index)"/>
+                            <div class="vd-bn-user">
+                                <img class="vd-bn-avatar" t-att-src="u.avatar_url"/>
+                                <span t-out="u.name"/>
+                            </div>
+                            <div class="vd-bn-team" t-out="u.team_name"/>
+                            <div class="vd-bn-num vd-bn-won" t-out="u.won"/>
+                            <div class="vd-bn-num">
+                                <t t-if="u.achieved">
+                                    <span class="vd-bn-badge vd-bn-badge-good">✅ Đạt thưởng</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="vd-bn-badge vd-bn-badge-pending">
+                                        ⏳ Còn <t t-out="u.next_milestone"/> HĐ
+                                    </span>
+                                </t>
+                            </div>
+                            <div class="vd-bn-num vd-bn-bonus" t-out="formatVND(u.bonus)"/>
+                        </div>
+                    </t>
+                    <t t-if="state.data.users.length === 0">
+                        <div class="vd-bn-empty">— Chưa có dữ liệu NV —</div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ===== Bảng team ===== -->
+            <div class="vd-bn-section">
+                <div class="vd-bn-section-header">🏢 Xếp hạng phòng</div>
+                <div class="vd-bn-table">
+                    <div class="vd-bn-table-head vd-bn-table-head-team">
+                        <div>Hạng</div>
+                        <div>Phòng</div>
+                        <div class="vd-bn-num">Số NV</div>
+                        <div class="vd-bn-num">Tổng HĐ</div>
+                        <div class="vd-bn-num">Trạng thái</div>
+                        <div class="vd-bn-num">Thưởng phòng</div>
+                    </div>
+                    <t t-foreach="state.data.teams" t-as="t" t-key="t.id">
+                        <div class="vd-bn-table-row vd-bn-table-row-team" t-att-class="t.achieved ? 'vd-bn-row-achieved' : ''">
+                            <div class="vd-bn-rank" t-out="medal(t_index)"/>
+                            <div class="vd-bn-team-name" t-out="t.name"/>
+                            <div class="vd-bn-num" t-out="t.member_count"/>
+                            <div class="vd-bn-num vd-bn-won" t-out="t.won"/>
+                            <div class="vd-bn-num">
+                                <t t-if="t.achieved">
+                                    <span class="vd-bn-badge vd-bn-badge-good">✅ Đạt thưởng phòng</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="vd-bn-badge vd-bn-badge-pending">
+                                        ⏳ Còn <t t-out="t.next_milestone"/> HĐ
+                                    </span>
+                                </t>
+                            </div>
+                            <div class="vd-bn-num vd-bn-bonus" t-out="formatVND(t.bonus)"/>
+                        </div>
+                    </t>
+                    <t t-if="state.data.teams.length === 0">
+                        <div class="vd-bn-empty">— Chưa có dữ liệu phòng —</div>
+                    </t>
+                </div>
+            </div>
+
+            <div class="vd-bn-footnote">
+                💡 <strong>Cách chỉnh quy tắc thưởng:</strong> Vào <em>Cài đặt → Kỹ thuật → Tham số hệ thống</em> sửa các key:
+                <code>vinaduy_crm.bonus_min_contracts</code>,
+                <code>vinaduy_crm.bonus_per_contract</code>,
+                <code>vinaduy_crm.bonus_extra_per_contract</code>,
+                <code>vinaduy_crm.bonus_team_threshold</code>,
+                <code>vinaduy_crm.bonus_team_amount</code>.
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>

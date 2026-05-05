@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="stage_new" model="crm.stage">
+            <field name="name">Khách mới</field>
+            <field name="sequence">2</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">1</field>
+        </record>
+
+        <record id="stage_potential" model="crm.stage">
+            <field name="name">Có tiềm năng</field>
+            <field name="sequence">3</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">5</field>
+        </record>
+
+        <record id="stage_quoted" model="crm.stage">
+            <field name="name">Báo giá</field>
+            <field name="sequence">4</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">7</field>
+        </record>
+
+        <record id="stage_negotiation" model="crm.stage">
+            <field name="name">Tiềm năng đàm phán</field>
+            <field name="sequence">5</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">10</field>
+        </record>
+
+        <record id="stage_contract" model="crm.stage">
+            <field name="name">Tiềm năng hợp đồng</field>
+            <field name="sequence">6</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">7</field>
+        </record>
+
+        <record id="stage_urgent" model="crm.stage">
+            <field name="name">Tiềm năng gấp</field>
+            <field name="sequence">7</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">3</field>
+        </record>
+
+        <record id="stage_won" model="crm.stage">
+            <field name="name">Chốt</field>
+            <field name="sequence">8</field>
+            <field name="is_won">True</field>
+            <field name="fold">False</field>
+            <field name="sla_days">0</field>
+        </record>
+
+        <record id="stage_no_need" model="crm.stage">
+            <field name="name">Khách không có nhu cầu</field>
+            <field name="sequence">99</field>
+            <field name="is_won">False</field>
+            <field name="fold">False</field>
+            <field name="sla_days">0</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,185 @@
+.o_action_manager:has(.vd-tracker) { overflow-y: auto !important; }
+
+.vd-tracker {
+    padding: 18px;
+    background: #f4f6fa;
+    min-height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    .vd-tr-loading, .vd-tr-error {
+        text-align: center; padding: 60px; font-size: 1.1rem; color: #6c757d;
+    }
+
+    // ===== KPI =====
+    .vd-tr-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px; margin-bottom: 14px;
+    }
+    .vd-tr-kpi {
+        background: white;
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex; align-items: center; gap: 10px;
+        border-left: 4px solid #6c757d;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: transform 0.15s;
+        &:hover { transform: translateY(-2px); }
+    }
+    .vd-tr-kpi-total { border-left-color: #1f1f3a; }
+    .vd-tr-kpi-icon {
+        width: 34px; height: 34px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        background: #1f1f3a22; color: #1f1f3a;
+    }
+    .vd-tr-kpi-value { font-size: 1.3rem; font-weight: 800; line-height: 1; color: #1f1f3a; }
+    .vd-tr-kpi-label {
+        font-size: 0.7rem; font-weight: 600; color: #6c757d;
+        margin-top: 2px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    // ===== Toolbar =====
+    .vd-tr-toolbar {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 10px;
+        background: white; padding: 10px 14px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .vd-tr-info { font-size: 0.9rem; color: #495057; }
+    .vd-tr-search {
+        width: 320px;
+        padding: 8px 14px; border-radius: 24px;
+        border: 1px solid #dee2e6; outline: none;
+        &:focus { border-color: #4096ff; box-shadow: 0 0 0 3px rgba(64, 150, 255, 0.15); }
+    }
+
+    // ===== Section =====
+    .vd-tr-section {
+        background: white; border-radius: 10px;
+        margin-bottom: 12px; overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .vd-tr-section-header {
+        padding: 9px 14px;
+        font-weight: 700; font-size: 0.92rem; color: white;
+        letter-spacing: 0.3px;
+    }
+    .vd-tr-bg-today { background: linear-gradient(90deg, #0dcaf0, #0aa3c2); }
+    .vd-tr-bg-overdue { background: linear-gradient(90deg, #dc3545, #c82333); }
+    .vd-tr-bg-warning { background: linear-gradient(90deg, #fd7e14, #e76800); }
+    .vd-tr-bg-normal { background: linear-gradient(90deg, #6f42c1, #5a3aa8); }
+
+    // ===== Table head =====
+    .vd-tr-table-head {
+        display: grid;
+        grid-template-columns: 230px 1fr 120px 110px;
+        gap: 10px;
+        padding: 8px 14px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-size: 0.72rem; font-weight: 700;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .vd-tr-stages-head { padding-left: 4px; }
+    .vd-tr-deadline-head { text-align: right; }
+
+    // ===== Rows =====
+    .vd-tr-row {
+        display: grid;
+        grid-template-columns: 230px 1fr 120px 110px;
+        gap: 10px; padding: 10px 14px;
+        align-items: center;
+        border-bottom: 1px solid #f0f2f5;
+        cursor: pointer;
+        transition: background 0.15s;
+        &:hover { background: #f8f9fa; }
+        &:last-child { border-bottom: none; }
+    }
+    .vd-tr-row-overdue { border-left: 4px solid #dc3545; background: #fff5f5; padding-left: 10px; }
+    .vd-tr-row-warning { border-left: 4px solid #fd7e14; background: #fff8e6; padding-left: 10px; }
+    .vd-tr-row-today { border-left: 4px solid #0dcaf0; background: #f0fbff; padding-left: 10px; }
+    .vd-tr-deadline-today { color: #0aa3c2; }
+
+    // ===== Quick action buttons =====
+    .vd-tr-actions {
+        display: flex; gap: 4px; justify-content: flex-end;
+    }
+    .vd-tr-btn {
+        border: 1px solid #dee2e6;
+        background: white;
+        border-radius: 6px;
+        padding: 5px 9px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: all 0.15s;
+        &:hover { background: #f0f2f5; border-color: #1f1f3a; transform: translateY(-1px); }
+    }
+    .vd-tr-btn-call:hover { background: #d4edda; border-color: #198754; }
+    .vd-tr-btn-next:hover { background: #cfe2ff; border-color: #0d6efd; }
+    .vd-tr-btn-postpone:hover { background: #fff3cd; border-color: #fd7e14; }
+
+    .vd-tr-row-main { min-width: 0; }
+    .vd-tr-name {
+        font-weight: 700; font-size: 0.92rem; color: #1f1f3a;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        margin-bottom: 3px;
+    }
+    .vd-tr-meta {
+        font-size: 0.76rem; color: #6c757d;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    // ===== Stage badges (giống mẫu xây dựng) =====
+    .vd-tr-stages {
+        display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .vd-tr-stage-pill {
+        display: inline-flex; align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        white-space: nowrap;
+        background: #f0f2f5;
+        color: #6c757d;
+        border: 1px solid transparent;
+    }
+    .vd-tr-stage-pill.vd-tr-stage-done {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+    .vd-tr-stage-pill.vd-tr-stage-current {
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .vd-tr-stage-pill.vd-tr-stage-pending {
+        opacity: 0.55;
+    }
+    .vd-tr-stage-name { font-size: 0.72rem; }
+    .vd-tr-stage-num {
+        font-size: 0.7rem;
+        background: rgba(255,255,255,0.4);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-weight: 700;
+    }
+    .vd-tr-stage-pill.vd-tr-stage-pending .vd-tr-stage-num { background: rgba(0,0,0,0.06); }
+
+    // ===== Deadline =====
+    .vd-tr-deadline {
+        text-align: right;
+        font-size: 0.84rem; font-weight: 600;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+    .vd-tr-deadline-bad { color: #dc3545; }
+    .vd-tr-deadline-warn { color: #fd7e14; }
+}

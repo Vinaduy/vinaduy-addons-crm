@@ -1,42 +1,416 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- ====================== FORM VIEW REFACTOR ====================== -->
     <record id="crm_lead_view_form_inherit_vinaduy" model="ir.ui.view">
         <field name="name">crm.lead.form.inherit.vinaduy</field>
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='source_id']" position="after">
-                <field name="vinaduy_source_id"/>
-                <field name="project_type"/>
+
+            <!-- Banner cảnh báo TO khi lead quá hạn SLA -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger m-0 d-flex align-items-center"
+                     invisible="not sla_overdue or not active"
+                     role="alert"
+                     style="border-radius: 0; font-size: 1.1rem; font-weight: 700; padding: 14px 20px;">
+                    <span style="font-size: 1.6rem; margin-right: 12px;">⚠️</span>
+                    <div class="flex-grow-1">
+                        <div>LEAD ĐÃ QUÁ HẠN SLA — CẦN XỬ LÝ NGAY</div>
+                        <div style="font-size: 0.875rem; font-weight: 400; margin-top: 2px;">
+                            Trạng thái hiện tại quá <field name="sla_days_remaining" widget="integer"/> ngày so với SLA cho phép.
+                        </div>
+                    </div>
+                </div>
             </xpath>
-            <xpath expr="//page[@name='internal_notes']" position="before">
-                <page string="OMICall" name="omicall_info">
-                    <group>
-                        <field name="omicall_call_count"/>
-                        <field name="last_omicall_date"/>
+
+            <!-- Đặt buttons cùng hàng với tên lead (h1) trong oe_title -->
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="after">
+                <div class="vd_title_buttons d-inline-flex flex-wrap gap-2 ms-3 align-items-center">
+                    <button name="%(vinaduy_crm.action_vinaduy_crm_close_wizard)d" type="action"
+                            string="❌ Không có nhu cầu"
+                            class="btn btn-warning"
+                            invisible="stage_id != %(vinaduy_crm.stage_new)d or not active"
+                            context="{'default_lead_id': id, 'default_close_type': 'no_need'}"/>
+                    <button name="action_vinaduy_mark_potential" type="object"
+                            string="✓ Có tiềm năng"
+                            class="btn btn-primary"
+                            invisible="stage_id != %(vinaduy_crm.stage_new)d or not active or not checklist_required_done"/>
+                    <button name="action_vinaduy_save_and_advance" type="object"
+                            string="💾 Chuyển trạng thái tiếp"
+                            class="btn btn-primary"
+                            invisible="stage_id == %(vinaduy_crm.stage_new)d or stage_id == %(vinaduy_crm.stage_won)d or not active"/>
+                    <button name="%(vinaduy_crm.action_vinaduy_crm_close_wizard)d" type="action"
+                            string="🚫 Khách hủy"
+                            class="btn btn-secondary"
+                            invisible="stage_id != %(vinaduy_crm.stage_urgent)d or not active"
+                            context="{'default_lead_id': id, 'default_close_type': 'cancelled'}"/>
+                    <button name="%(vinaduy_crm.action_vinaduy_crm_revert_wizard)d" type="action"
+                            string="🔄 Yêu cầu lùi trạng thái"
+                            class="btn btn-outline-secondary"
+                            invisible="not active"
+                            context="{'default_lead_id': id, 'default_current_stage_id': stage_id}"/>
+                </div>
+            </xpath>
+
+            <!-- HIDE Đạt (Won) / Mất (Lost) / Convert / Restore buttons -->
+            <xpath expr="//header/button[@name='action_set_won_rainbowman']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@data-hotkey='l']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@data-hotkey='v']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='toggle_active']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Đổi statusbar_duration → statusbar (bỏ hiển thị "X phút" thời gian)
+                 + KHÓA click vào stage (chỉ chuyển qua nút "Chuyển trạng thái tiếp") -->
+            <xpath expr="//field[@name='stage_id'][1]" position="attributes">
+                <attribute name="widget">statusbar</attribute>
+                <attribute name="options">{'clickable': False, 'fold_field': 'fold'}</attribute>
+            </xpath>
+
+            <!-- ẨN H2 (giá / %) trong title -->
+            <xpath expr="//div[hasclass('oe_title')]/h2" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+
+            <!-- Replace "Lost" ribbon → "Không có nhu cầu" / "Đã hủy" theo lost_reason -->
+            <xpath expr="//widget[@name='web_ribbon']" position="replace">
+                <field name="lost_reason_id" invisible="1"/>
+                <widget name="web_ribbon" title="Không có nhu cầu" bg_color="text-bg-warning"
+                        invisible="active or lost_reason_id != %(vinaduy_crm.lost_reason_not_potential)d"/>
+                <widget name="web_ribbon" title="Đã hủy" bg_color="text-bg-dark"
+                        invisible="active or lost_reason_id != %(vinaduy_crm.lost_reason_cancelled)d"/>
+                <widget name="web_ribbon" title="Đã đóng" bg_color="text-bg-secondary"
+                        invisible="active or lost_reason_id == %(vinaduy_crm.lost_reason_not_potential)d or lost_reason_id == %(vinaduy_crm.lost_reason_cancelled)d"/>
+                <widget name="web_ribbon" title="Đã chốt" bg_color="text-bg-success"
+                        invisible="probability &lt; 100"/>
+            </xpath>
+
+            <!-- ẨN PARTNER GROUPS -->
+            <xpath expr="//group[@name='opportunity_partner']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='lead_partner']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ẨN GROUPS user_id/date_deadline/priority/tag/properties -->
+            <xpath expr="//group[@name='lead_priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lead_properties']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_deadline']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group/field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ============ HIDE NOTEBOOK MẶC ĐỊNH (sẽ thêm tab riêng) ============ -->
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ============ THÊM NỘI DUNG TRƯỚC NOTEBOOK ============ -->
+            <xpath expr="//notebook" position="before">
+                <!-- Top: 2 cột Liên hệ + Checklist -->
+                <group>
+                    <group string="📞 Liên hệ khách hàng">
+                        <field name="phone" placeholder="Số điện thoại" required="1"/>
+                        <field name="vd_callback_date"
+                               required="stage_id != %(vinaduy_crm.stage_new)d"
+                               invisible="stage_id == %(vinaduy_crm.stage_new)d"/>
+                        <field name="vinaduy_source_id" required="1"/>
+                        <field name="vinaduy_source_code" invisible="1"/>
+                        <field name="vd_source_other"
+                               required="vinaduy_source_code == 'khac'"
+                               invisible="vinaduy_source_code != 'khac'"
+                               placeholder="Vd: Báo chí, Sự kiện, Giới thiệu..."/>
+                        <field name="vd_close_reason"
+                               placeholder="Bắt buộc khi đóng lead"
+                               invisible="active and stage_id != %(vinaduy_crm.stage_no_need)d and stage_id != %(vinaduy_crm.stage_urgent)d"/>
+                        <field name="user_id" widget="many2one_avatar_user" string="Nhân viên phụ trách" required="1"/>
                     </group>
-                </page>
+                    <group string="✓ Checklist công việc"
+                           name="vinaduy_checklist_group"
+                           invisible="stage_id == %(vinaduy_crm.stage_new)d">
+                        <div colspan="2" class="d-flex flex-wrap align-items-center" style="gap: 12px; padding: 4px 0;">
+                            <span class="text-muted" style="white-space: nowrap;">Tiến độ:</span>
+                            <field name="checklist_progress" readonly="1" nolabel="1" class="fw-bold" style="white-space: nowrap; width: auto;"/>
+                            <field name="checklist_required_done" readonly="1" nolabel="1" widget="boolean_toggle" style="width: auto;"/>
+                            <span invisible="not checklist_required_done" class="badge text-bg-success" style="white-space: nowrap;">✓ Đủ điều kiện</span>
+                        </div>
+                        <field name="vd_new_substage" readonly="1" invisible="not vd_new_substage"/>
+                        <field name="checklist_item_ids" nolabel="1" colspan="2"
+                               domain="[('done', '=', False)]">
+                            <list editable="bottom" decoration-warning="required==True" create="false" delete="false">
+                                <field name="name" string="Việc cần làm"/>
+                                <field name="required" optional="hide"/>
+                                <field name="done" widget="boolean_toggle" string="Hoàn thành"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+
+                <!-- Tabs: Khai thác thông tin + Hành trình -->
+                <notebook>
+                    <page string="📋 Khai thác thông tin khách hàng" name="vd_customer_info" autofocus="autofocus">
+                        <group>
+                            <group string="🏠 Thông tin xây dựng">
+                                <field name="vd_address" placeholder="Vd: Thường Xuân, Thanh Hoá"/>
+                                <field name="vd_timeframe"/>
+                                <field name="vd_area" placeholder="Vd: 5x10"/>
+                                <field name="vd_house_type"/>
+                                <field name="vd_floors" placeholder="Vd: 2 hoặc 3.5"/>
+                            </group>
+                            <group string="📐 Đất + Tài chính">
+                                <field name="vd_land_type"/>
+                                <field name="vd_position" placeholder="Vd: ĐƯỜNG XE TẢI - Có chỗ tập kết vật tư"/>
+                                <field name="company_currency" invisible="1"/>
+                                <field name="vd_budget" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                                <field name="vd_land_cert"/>
+                                <field name="project_type"/>
+                            </group>
+                        </group>
+                        <group string="🛏️ Công năng">
+                            <field name="vd_functions" nolabel="1" placeholder="Vd: 1 Khách - 1 Bếp - 3 Phòng Ngủ - 2 WC - 1 Phòng thờ"/>
+                        </group>
+                    </page>
+                    <page string="🛤 Hành trình chuyển trạng thái" name="vd_stage_history">
+                        <field name="vd_stage_history_ids" nolabel="1" readonly="1">
+                            <list create="false" delete="false" edit="false" default_order="id desc">
+                                <field name="create_date" string="Thời gian"/>
+                                <field name="old_value_char" string="Từ trạng thái"/>
+                                <field name="new_value_char" string="Sang trạng thái"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
             </xpath>
         </field>
     </record>
 
+    <!-- ====================== QUICK CREATE FORM (nút + Mới trên kanban) ====================== -->
+    <record id="quick_create_opportunity_form_inherit_vinaduy" model="ir.ui.view">
+        <field name="name">crm.lead.quick_create.inherit.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.quick_create_opportunity_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='email_from']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='expected_revenue']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="placeholder">Vd: VINADUY - Anh Tuấn HCM - T5/26</attribute>
+                <attribute name="string">Tên KH / Mã lead</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="placeholder">Vd: 0901234567</attribute>
+                <attribute name="string">Số điện thoại</attribute>
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="after">
+                <field name="vinaduy_source_id" string="Nguồn data" required="1"/>
+                <field name="vinaduy_source_code" invisible="1"/>
+                <field name="vd_source_other" string="Mô tả nguồn"
+                       required="vinaduy_source_code == 'khac'"
+                       invisible="vinaduy_source_code != 'khac'"
+                       placeholder="Vd: Báo chí, Sự kiện..."/>
+                <field name="vd_callback_date" string="Ngày gọi lại"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ====================== SEARCH VIEW (chỉ thêm filters VINADUY) ====================== -->
     <record id="crm_lead_view_search_inherit_vinaduy" model="ir.ui.view">
         <field name="name">crm.lead.search.inherit.vinaduy</field>
         <field name="model">crm.lead</field>
-        <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='source_id']" position="after">
+            <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vinaduy_source_id"/>
                 <field name="project_type"/>
+                <field name="vd_callback_date"/>
             </xpath>
+
+            <xpath expr="//filter[@name='assigned_to_me']" position="after">
+                <separator/>
+                <filter string="🔴 Quá hạn SLA" name="sla_overdue"
+                        domain="[('sla_overdue', '=', True), ('active', '=', True)]"/>
+                <filter string="🟡 Sắp hết hạn (≤ 2 ngày)" name="sla_warning"
+                        domain="[('sla_overdue', '=', False),
+                                ('sla_deadline', '!=', False),
+                                ('sla_deadline', '&lt;=', (context_today() + relativedelta(days=2)).strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="📞 Cần gọi hôm nay" name="callback_today"
+                        domain="[('vd_callback_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('vd_callback_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="📞 Cần gọi tuần này" name="callback_week"
+                        domain="[('vd_callback_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('vd_callback_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d 23:59:59'))]"/>
+                <separator/>
+                <filter string="✅ Đủ điều kiện chuyển" name="checklist_done"
+                        domain="[('checklist_required_done', '=', True)]"/>
+                <filter string="📅 Tạo hôm nay" name="created_today"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="📅 Tạo tuần này" name="created_week"
+                        domain="[('create_date', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="📅 Tạo tháng này" name="created_month"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-01 00:00:00'))]"/>
+            </xpath>
+
             <xpath expr="//filter[@name='salesperson']" position="after">
-                <filter string="Nguồn VINADUY" name="group_vinaduy_source"
+                <filter string="Nguồn data" name="group_vinaduy_source"
                         context="{'group_by': 'vinaduy_source_id'}"/>
                 <filter string="Loại công trình" name="group_project_type"
                         context="{'group_by': 'project_type'}"/>
             </xpath>
         </field>
+    </record>
+
+    <!-- ====== LIST VIEW (tinh chỉnh: cảnh báo overdue, sắp xếp theo ưu tiên) ====== -->
+    <record id="crm_case_tree_view_oppor_inherit_vinaduy" model="ir.ui.view">
+        <field name="name">crm.lead.list.inherit.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+        <field name="arch" type="xml">
+            <!-- Bổ sung field cần thiết -->
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">sla_overdue desc, sla_deadline asc, create_date desc</attribute>
+                <attribute name="decoration-danger">sla_overdue == True</attribute>
+                <attribute name="decoration-warning">sla_overdue == False and sla_days_remaining &lt;= 2 and sla_days_remaining &gt; 0</attribute>
+                <attribute name="decoration-success">stage_id.is_won == True</attribute>
+                <attribute name="decoration-muted">active == False</attribute>
+            </xpath>
+
+            <!-- Ẩn các field không cần -->
+            <xpath expr="//field[@name='email_from']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='contact_name']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='expected_revenue']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+
+            <!-- Show phone always -->
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+
+            <!-- Thêm các field VINADUY -->
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="vinaduy_source_id" string="Nguồn" optional="show"/>
+                <field name="vd_callback_date" string="Gọi lại" optional="show" widget="remaining_days" options="{'allow_order': '1'}"/>
+                <field name="sla_deadline" string="Deadline SLA" optional="show" widget="remaining_days" options="{'allow_order': '1'}"/>
+                <field name="sla_overdue" column_invisible="True"/>
+                <field name="sla_days_remaining" column_invisible="True"/>
+                <field name="checklist_progress" string="Việc cần làm" optional="show"/>
+                <field name="vd_close_reason" string="Lý do đóng" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ====== KANBAN ====== -->
+    <record id="crm_case_kanban_view_leads_inherit_vinaduy" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.inherit.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//templates" position="before">
+                <field name="phone"/>
+                <field name="sla_overdue"/>
+                <field name="sla_days_remaining"/>
+                <field name="checklist_progress"/>
+                <field name="checklist_required_done"/>
+                <field name="stage_entry_date"/>
+                <field name="vd_callback_date"/>
+                <field name="user_id"/>
+                <field name="vd_close_reason"/>
+                <field name="active"/>
+            </xpath>
+            <!-- ẨN: ⭐⭐⭐ priority + 🕐 activity icons trong footer kanban -->
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <t t-if="record.user_id.raw_value">
+                    <div t-if="record.phone.raw_value" class="text-muted small">
+                        📞 <field name="phone"/>
+                    </div>
+                    <div t-if="record.stage_entry_date.raw_value" class="text-muted small">
+                        🗓️ Ngày tạo: <field name="stage_entry_date"/>
+                    </div>
+                    <div t-if="record.vd_callback_date.raw_value" class="text-muted small">
+                        📅 Gọi lại: <field name="vd_callback_date"/>
+                    </div>
+                    <div class="text-muted small fw-bold" style="white-space: normal;">
+                        👤 <field name="user_id"/>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1" style="gap: 6px;">
+                        <span t-if="record.sla_overdue.raw_value"
+                              class="badge text-bg-danger"
+                              style="white-space: nowrap;">
+                            ⚠️ Đã hết hạn
+                        </span>
+                        <span t-elif="record.sla_days_remaining.raw_value > 0"
+                              class="badge text-bg-info"
+                              style="white-space: nowrap;">
+                            ⏰ Còn <t t-out="Math.round(record.sla_days_remaining.raw_value)"/> ngày
+                        </span>
+                        <span t-else="" class="badge text-bg-secondary"
+                              style="white-space: nowrap;">Chi tiết</span>
+                        <small class="text-muted" style="white-space: nowrap;">
+                            ✔ <field name="checklist_progress"/> công việc
+                        </small>
+                    </div>
+                    <div t-if="record.vd_close_reason.raw_value" class="mt-1 small text-warning fw-bold" style="white-space: normal;">
+                        ⚠️ Lý do đóng: <field name="vd_close_reason"/>
+                    </div>
+                    <div class="mt-1 text-end">
+                        <a type="open" class="btn btn-sm btn-link p-0">📋 Xem chi tiết →</a>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="text-muted small">
+                        <em>👤 Chưa gán nhân viên</em>
+                    </div>
+                    <div class="mt-1 text-end">
+                        <a type="open" class="btn btn-sm btn-link p-0">📋 Xem chi tiết →</a>
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ====== ACTION: bỏ default filter "My Pipeline" ====== -->
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+        <field name="context">{
+            'default_type': 'opportunity'
+        }</field>
     </record>
 
 </odoo>

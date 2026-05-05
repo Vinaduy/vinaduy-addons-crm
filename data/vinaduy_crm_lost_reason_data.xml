@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="lost_reason_not_potential" model="crm.lost.reason">
+            <field name="name">Không tiềm năng</field>
+        </record>
+
+        <record id="lost_reason_cancelled" model="crm.lost.reason">
+            <field name="name">Hủy</field>
+        </record>
+
+    </data>
+</odoo>

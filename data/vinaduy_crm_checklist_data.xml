@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ========== Stage: Khách mới (4 items workflow) ========== -->
+        <record id="checklist_new_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Đã gọi điện/tư vấn sơ bộ</field>
+            <field name="stage_id" ref="stage_new"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_new_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Chưa có phương án chi tiết</field>
+            <field name="stage_id" ref="stage_new"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_new_3" model="vinaduy.crm.checklist.template">
+            <field name="name">Chưa gửi báo giá</field>
+            <field name="stage_id" ref="stage_new"/>
+            <field name="sequence">30</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_new_4" model="vinaduy.crm.checklist.template">
+            <field name="name">Trưởng nhóm đã duyệt báo giá</field>
+            <field name="stage_id" ref="stage_new"/>
+            <field name="sequence">40</field>
+            <field name="required">True</field>
+        </record>
+
+        <!-- ========== Stage: Có tiềm năng (giữ nguyên) ========== -->
+        <record id="checklist_potential_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Khảo sát nhu cầu chi tiết</field>
+            <field name="stage_id" ref="stage_potential"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_potential_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Thu thập thông tin dự án bổ sung</field>
+            <field name="stage_id" ref="stage_potential"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+
+        <!-- ========== Stage: Báo giá (5 items) ========== -->
+        <record id="checklist_quoted_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Đã gửi báo giá</field>
+            <field name="stage_id" ref="stage_quoted"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_quoted_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Khách đã phản hồi ít nhất 1 lần sau khi xem báo giá</field>
+            <field name="stage_id" ref="stage_quoted"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_quoted_3" model="vinaduy.crm.checklist.template">
+            <field name="name">Có trao đổi qua lại sau khi xem báo giá</field>
+            <field name="stage_id" ref="stage_quoted"/>
+            <field name="sequence">30</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_quoted_4" model="vinaduy.crm.checklist.template">
+            <field name="name">Trưởng nhóm đã duyệt</field>
+            <field name="stage_id" ref="stage_quoted"/>
+            <field name="sequence">40</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_quoted_5" model="vinaduy.crm.checklist.template">
+            <field name="name">Báo với PGĐ Mai</field>
+            <field name="stage_id" ref="stage_quoted"/>
+            <field name="sequence">50</field>
+            <field name="required">True</field>
+        </record>
+
+        <!-- ========== Stage: Tiềm năng đàm phán (5 items) ========== -->
+        <record id="checklist_negotiation_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Khách đã có yêu cầu về điều khoản hoặc yêu cầu điều chỉnh</field>
+            <field name="stage_id" ref="stage_negotiation"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_negotiation_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Đã gửi hợp đồng</field>
+            <field name="stage_id" ref="stage_negotiation"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_negotiation_3" model="vinaduy.crm.checklist.template">
+            <field name="name">Khách đã xác nhận xem hợp đồng</field>
+            <field name="stage_id" ref="stage_negotiation"/>
+            <field name="sequence">30</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_negotiation_4" model="vinaduy.crm.checklist.template">
+            <field name="name">Trưởng nhóm đã duyệt</field>
+            <field name="stage_id" ref="stage_negotiation"/>
+            <field name="sequence">40</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_negotiation_5" model="vinaduy.crm.checklist.template">
+            <field name="name">Báo với GĐ Du</field>
+            <field name="stage_id" ref="stage_negotiation"/>
+            <field name="sequence">50</field>
+            <field name="required">True</field>
+        </record>
+
+        <!-- ========== Stage: Tiềm năng hợp đồng (5 items) ========== -->
+        <record id="checklist_contract_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Khách đã xem hợp đồng</field>
+            <field name="stage_id" ref="stage_contract"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_contract_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Có phản hồi sau khi xem hợp đồng (thắc mắc - thương lượng)</field>
+            <field name="stage_id" ref="stage_contract"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_contract_3" model="vinaduy.crm.checklist.template">
+            <field name="name">Có thời gian xây nhà cụ thể</field>
+            <field name="stage_id" ref="stage_contract"/>
+            <field name="sequence">30</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_contract_4" model="vinaduy.crm.checklist.template">
+            <field name="name">Tài chính khớp hoặc chênh nhỏ</field>
+            <field name="stage_id" ref="stage_contract"/>
+            <field name="sequence">40</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_contract_5" model="vinaduy.crm.checklist.template">
+            <field name="name">Trưởng nhóm đã duyệt</field>
+            <field name="stage_id" ref="stage_contract"/>
+            <field name="sequence">50</field>
+            <field name="required">True</field>
+        </record>
+
+        <!-- ========== Stage: Tiềm năng gấp ========== -->
+        <record id="checklist_urgent_1" model="vinaduy.crm.checklist.template">
+            <field name="name">Khách đồng ý ký trong 7 ngày</field>
+            <field name="stage_id" ref="stage_urgent"/>
+            <field name="sequence">10</field>
+            <field name="required">True</field>
+        </record>
+        <record id="checklist_urgent_2" model="vinaduy.crm.checklist.template">
+            <field name="name">Đặt cọc / ký hợp đồng</field>
+            <field name="stage_id" ref="stage_urgent"/>
+            <field name="sequence">20</field>
+            <field name="required">True</field>
+        </record>
+
+    </data>
+</odoo>

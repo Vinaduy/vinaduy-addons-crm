@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="team_hcm1" model="crm.team">
+            <field name="name">HCM1</field>
+            <field name="sequence">10</field>
+            <field name="color">1</field>
+        </record>
+
+        <record id="team_hcm2" model="crm.team">
+            <field name="name">HCM2</field>
+            <field name="sequence">20</field>
+            <field name="color">2</field>
+        </record>
+
+        <record id="team_hcm3" model="crm.team">
+            <field name="name">HCM3</field>
+            <field name="sequence">30</field>
+            <field name="color">3</field>
+        </record>
+
+        <record id="team_hn" model="crm.team">
+            <field name="name">HN</field>
+            <field name="sequence">40</field>
+            <field name="color">4</field>
+        </record>
+
+    </data>
+</odoo>

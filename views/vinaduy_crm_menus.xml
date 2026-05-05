@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu "Khách đã đóng" đã bỏ — leads đóng giờ nằm trong stage "Khách không có nhu cầu" trong Pipeline -->
+</odoo>

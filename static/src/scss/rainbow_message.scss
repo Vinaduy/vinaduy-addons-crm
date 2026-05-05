@@ -1,0 +1,12 @@
+// Tăng size + căn giữa cho text trong rainbow_man hiệu ứng
+.o_reward {
+    .o_reward_msg {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        padding: 12px 32px !important;
+        line-height: 1.4 !important;
+        letter-spacing: 0.3px !important;
+    }
+}

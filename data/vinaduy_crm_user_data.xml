@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ====================== HCM1 (5 NV) ====================== -->
+        <record id="user_yen_tran" model="res.users">
+            <field name="name">Trần Thị Ngọc Yến</field>
+            <field name="login">tranthingocyen0810@gmail.com</field>
+            <field name="email">tranthingocyen0810@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_thi_nguyen" model="res.users">
+            <field name="name">Nguyễn Thiên Thi</field>
+            <field name="login">hcmkd08@gmail.com</field>
+            <field name="email">hcmkd08@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_hau_vo" model="res.users">
+            <field name="name">Võ Văn Hậu</field>
+            <field name="login">hcmkd02@gmail.com</field>
+            <field name="email">hcmkd02@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_anh_vu" model="res.users">
+            <field name="name">Vũ Thị Anh</field>
+            <field name="login">hcmkd22@gmail.com</field>
+            <field name="email">hcmkd22@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_khang_huynh" model="res.users">
+            <field name="name">Huỳnh Trần Vinh Khang</field>
+            <field name="login">hcmkd18@gmail.com</field>
+            <field name="email">hcmkd18@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+
+        <!-- ====================== HCM2 (7 NV) ====================== -->
+        <record id="user_thao_mai" model="res.users">
+            <field name="name">Mai Thị Thao</field>
+            <field name="login">hcmkd21@gmail.com</field>
+            <field name="email">hcmkd21@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_minh_bui" model="res.users">
+            <field name="name">Bùi Quang Minh</field>
+            <field name="login">hcmkd20@gmail.com</field>
+            <field name="email">hcmkd20@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_khoi_le" model="res.users">
+            <field name="name">Lê Gia Khôi</field>
+            <field name="login">hcmkd14@gmail.com</field>
+            <field name="email">hcmkd14@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_nguyen_do" model="res.users">
+            <field name="name">Đỗ Hoài Thảo Nguyên</field>
+            <field name="login">hcmkd13@gmail.com</field>
+            <field name="email">hcmkd13@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_hung_le" model="res.users">
+            <field name="name">Lê Xuân Hưng</field>
+            <field name="login">hcmkd12@gmail.com</field>
+            <field name="email">hcmkd12@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_khang_ngo" model="res.users">
+            <field name="name">Ngô Huỳnh Khang</field>
+            <field name="login">hcmkd07@gmail.com</field>
+            <field name="email">hcmkd07@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_sen_tran" model="res.users">
+            <field name="name">Trần Mứt Sen</field>
+            <field name="login">hcmkd03@gmail.com</field>
+            <field name="email">hcmkd03@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+
+        <!-- ====================== HCM3 (2 NV) ====================== -->
+        <record id="user_thy_truong" model="res.users">
+            <field name="name">Trương Huỳnh Thy</field>
+            <field name="login">hcmkd19@gmail.com</field>
+            <field name="email">hcmkd19@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_oanh_nguyen" model="res.users">
+            <field name="name">Nguyễn Thị Trâm Oanh</field>
+            <field name="login">hcmkd16@gmail.com</field>
+            <field name="email">hcmkd16@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+
+        <!-- ====================== HN (5 NV) ====================== -->
+        <record id="user_anh_huynh" model="res.users">
+            <field name="name">Huỳnh Phương Anh</field>
+            <field name="login">kdhn4.vinaduy@gmail.com</field>
+            <field name="email">kdhn4.vinaduy@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_trang_tao" model="res.users">
+            <field name="name">Tào Thị Trang</field>
+            <field name="login">kdhn2.vinaduy@gmail.com</field>
+            <field name="email">kdhn2.vinaduy@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_hau_lam" model="res.users">
+            <field name="name">Lâm Văn Hậu</field>
+            <field name="login">kdhn6.vinaduy@gmail.com</field>
+            <field name="email">kdhn6.vinaduy@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_tuyet_dang" model="res.users">
+            <field name="name">Đặng Thị Tuyết</field>
+            <field name="login">kdhanoi121@gmail.com</field>
+            <field name="email">kdhanoi121@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+        <record id="user_kien_tran" model="res.users">
+            <field name="name">Trần Văn Kiên</field>
+            <field name="login">tranvankien10121991@gmail.com</field>
+            <field name="email">tranvankien10121991@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+        </record>
+
+        <!-- ====================== LEADERSHIP (4 Trưởng Nhóm + 1 Quản Lý) ====================== -->
+        <record id="user_leader_hcm1" model="res.users">
+            <field name="name">Trưởng Nhóm HCM1</field>
+            <field name="login">vinaduyql1@gmail.com</field>
+            <field name="email">vinaduyql1@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_manager')])]"/>
+        </record>
+        <record id="user_leader_hcm2" model="res.users">
+            <field name="name">Trưởng Nhóm HCM2</field>
+            <field name="login">vinaduyql2@gmail.com</field>
+            <field name="email">vinaduyql2@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_manager')])]"/>
+        </record>
+        <record id="user_leader_hcm3" model="res.users">
+            <field name="name">Trưởng Nhóm HCM3</field>
+            <field name="login">vinaduyql3@gmail.com</field>
+            <field name="email">vinaduyql3@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_manager')])]"/>
+        </record>
+        <record id="user_leader_hn" model="res.users">
+            <field name="name">Trưởng Nhóm HN</field>
+            <field name="login">vinaduyql5@gmail.com</field>
+            <field name="email">vinaduyql5@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_manager')])]"/>
+        </record>
+        <record id="user_manager_vinaduy" model="res.users">
+            <field name="name">VINADUY - Quản Lý</field>
+            <field name="login">sale.vinaduy@gmail.com</field>
+            <field name="email">sale.vinaduy@gmail.com</field>
+            <field name="password">vinaduy123</field>
+            <field name="lang">vi_VN</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_manager')])]"/>
+        </record>
+
+    </data>
+</odoo>

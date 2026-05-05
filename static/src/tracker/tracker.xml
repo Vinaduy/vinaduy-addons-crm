@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="vinaduy_crm.Tracker">
+    <div class="vd-tracker">
+        <t t-if="state.loading">
+            <div class="vd-tr-loading">⏳ Đang tải...</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="vd-tr-error">❌ <t t-out="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- ===== KPI CARDS top ===== -->
+            <div class="vd-tr-kpis">
+                <div class="vd-tr-kpi vd-tr-kpi-total">
+                    <div class="vd-tr-kpi-icon">📁</div>
+                    <div>
+                        <div class="vd-tr-kpi-value" t-out="state.data.total"/>
+                        <div class="vd-tr-kpi-label">Tổng KH</div>
+                    </div>
+                </div>
+                <t t-foreach="state.data.stages_kpi" t-as="s" t-key="s.id">
+                    <div class="vd-tr-kpi" t-attf-style="border-left-color: {{ stageColor(s.name) }};">
+                        <div class="vd-tr-kpi-icon" t-attf-style="background: {{ stageColor(s.name) }}22; color: {{ stageColor(s.name) }};">●</div>
+                        <div>
+                            <div class="vd-tr-kpi-value" t-attf-style="color: {{ stageColor(s.name) }};" t-out="s.count"/>
+                            <div class="vd-tr-kpi-label" t-out="s.name"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- ===== TOOLBAR ===== -->
+            <div class="vd-tr-toolbar">
+                <div class="vd-tr-info">
+                    <strong t-out="state.data.total"/> khách hàng
+                    <t t-if="state.data.is_manager"> · 👁️ Quản lý xem tất cả</t>
+                    <t t-else=""> · 👤 <t t-out="state.data.user_name"/></t>
+                </div>
+                <input type="text" class="vd-tr-search" placeholder="🔍 Tìm tên, SĐT, NV, trạng thái..." t-model="state.search"/>
+            </div>
+
+            <!-- ===== SECTION: HÔM NAY (callback hôm nay) ===== -->
+            <t t-if="filterBySearch(state.data.today || []).length > 0">
+                <div class="vd-tr-section">
+                    <div class="vd-tr-section-header vd-tr-bg-today">
+                        🔔 HÔM NAY — cần gọi lại (<t t-out="filterBySearch(state.data.today).length"/>)
+                    </div>
+                    <div class="vd-tr-table-head">
+                        <div>Khách hàng</div>
+                        <div class="vd-tr-stages-head">Tiến trình các trạng thái</div>
+                        <div class="vd-tr-deadline-head">Lịch hẹn</div>
+                        <div class="vd-tr-deadline-head">Hành động</div>
+                    </div>
+                    <t t-foreach="filterBySearch(state.data.today)" t-as="l" t-key="l.id">
+                        <t t-call="vinaduy_crm.TrackerRow">
+                            <t t-set="urgency_class" t-value="'vd-tr-row-today'"/>
+                            <t t-set="deadline_class" t-value="'vd-tr-deadline-today'"/>
+                            <t t-set="deadline_text">📞 <t t-out="l.callback or 'Hôm nay'"/></t>
+                            <t t-set="show_actions" t-value="true"/>
+                        </t>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ===== SECTION: QUÁ HẠN ===== -->
+            <t t-if="filterBySearch(state.data.overdue).length > 0">
+                <div class="vd-tr-section">
+                    <div class="vd-tr-section-header vd-tr-bg-overdue">
+                        🔴 QUÁ HẠN — cần xử lý ngay (<t t-out="filterBySearch(state.data.overdue).length"/>)
+                    </div>
+                    <div class="vd-tr-table-head">
+                        <div>Khách hàng</div>
+                        <div class="vd-tr-stages-head">Tiến trình các trạng thái</div>
+                        <div class="vd-tr-deadline-head">SLA còn</div>
+                        <div class="vd-tr-deadline-head">Ngày tạo</div>
+                    </div>
+                    <t t-foreach="filterBySearch(state.data.overdue)" t-as="l" t-key="l.id">
+                        <t t-call="vinaduy_crm.TrackerRow">
+                            <t t-set="urgency_class" t-value="'vd-tr-row-overdue'"/>
+                            <t t-set="deadline_class" t-value="'vd-tr-deadline-bad'"/>
+                            <t t-set="deadline_text">⚠️ Quá <t t-out="l.overdue_days"/> ngày</t>
+                            <t t-set="show_actions" t-value="false"/>
+                        </t>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ===== SECTION: SẮP HẾT HẠN ===== -->
+            <t t-if="filterBySearch(state.data.warning).length > 0">
+                <div class="vd-tr-section">
+                    <div class="vd-tr-section-header vd-tr-bg-warning">
+                        🟡 SẮP HẾT HẠN — còn ≤ 2 ngày (<t t-out="filterBySearch(state.data.warning).length"/>)
+                    </div>
+                    <div class="vd-tr-table-head">
+                        <div>Khách hàng</div>
+                        <div class="vd-tr-stages-head">Tiến trình các trạng thái</div>
+                        <div class="vd-tr-deadline-head">SLA còn</div>
+                        <div class="vd-tr-deadline-head">Ngày tạo</div>
+                    </div>
+                    <t t-foreach="filterBySearch(state.data.warning)" t-as="l" t-key="l.id">
+                        <t t-call="vinaduy_crm.TrackerRow">
+                            <t t-set="urgency_class" t-value="'vd-tr-row-warning'"/>
+                            <t t-set="deadline_class" t-value="'vd-tr-deadline-warn'"/>
+                            <t t-set="deadline_text">⏰ Còn <t t-out="l.sla_remaining"/> ngày</t>
+                            <t t-set="show_actions" t-value="false"/>
+                        </t>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ===== SECTION: BÌNH THƯỜNG ===== -->
+            <div class="vd-tr-section">
+                <div class="vd-tr-section-header vd-tr-bg-normal">
+                    📋 KHÁCH ĐANG XỬ LÝ (<t t-out="filterBySearch(state.data.normal).length"/>)
+                </div>
+                <div class="vd-tr-table-head">
+                    <div>Khách hàng</div>
+                    <div class="vd-tr-stages-head">Tiến trình các trạng thái</div>
+                    <div class="vd-tr-deadline-head">SLA còn</div>
+                    <div class="vd-tr-deadline-head">Ngày tạo</div>
+                </div>
+                <t t-foreach="filterBySearch(state.data.normal)" t-as="l" t-key="l.id">
+                    <t t-call="vinaduy_crm.TrackerRow">
+                        <t t-set="urgency_class" t-value="''"/>
+                        <t t-set="deadline_class" t-value="''"/>
+                        <t t-set="deadline_text">
+                            <t t-if="l.sla_remaining > 0">⏰ Còn <t t-out="l.sla_remaining"/> ngày</t>
+                            <t t-else="">—</t>
+                        </t>
+                        <t t-set="show_actions" t-value="false"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </div>
+</t>
+
+<!-- ====== ROW TEMPLATE ====== -->
+<t t-name="vinaduy_crm.TrackerRow">
+    <div class="vd-tr-row" t-att-class="urgency_class" t-on-click="() => this.openLead(l.id)">
+        <!-- Cột tên KH -->
+        <div class="vd-tr-row-main">
+            <div class="vd-tr-name" t-out="l.name"/>
+            <div class="vd-tr-meta">
+                📞 <t t-out="l.phone or '—'"/>
+                · 👤 <t t-out="l.user_name or 'Chưa gán'"/>
+                <t t-if="l.source"> · <t t-out="l.source"/></t>
+            </div>
+        </div>
+        <!-- Cột tiến trình stage badges -->
+        <div class="vd-tr-stages">
+            <t t-foreach="l.stage_badges" t-as="b" t-key="b_index">
+                <div class="vd-tr-stage-pill"
+                     t-att-class="'vd-tr-stage-' + b.state"
+                     t-attf-style="{{ b.state === 'current' ? 'background: ' + stageColor(b.name) + '; color: white;' : '' }}"
+                     t-attf-title="{{ b.name }}: {{ b.done }}/{{ b.total }}">
+                    <span class="vd-tr-stage-name" t-out="b.short"/>
+                    <span class="vd-tr-stage-num">
+                        <t t-out="b.done"/>/<t t-out="b.total"/>
+                    </span>
+                </div>
+            </t>
+        </div>
+        <!-- Cột deadline -->
+        <div class="vd-tr-deadline" t-att-class="deadline_class">
+            <t t-out="deadline_text"/>
+        </div>
+        <!-- Cột ngày tạo / quick actions -->
+        <t t-if="show_actions">
+            <div class="vd-tr-actions">
+                <button class="vd-tr-btn vd-tr-btn-call" t-on-click="(ev) => this.callPhone(ev, l.phone)" title="Gọi điện">📞</button>
+                <button class="vd-tr-btn vd-tr-btn-next" t-on-click="(ev) => this.advanceStage(ev, l.id)" title="Chuyển stage tiếp theo">➡️</button>
+                <button class="vd-tr-btn vd-tr-btn-postpone" t-on-click="(ev) => this.postponeCallback(ev, l.id, 1)" title="Dời 1 ngày">⏭️</button>
+            </div>
+        </t>
+        <t t-else="">
+            <div class="vd-tr-deadline" t-out="l.create_date"/>
+        </t>
+    </div>
+</t>
+
+</templates>

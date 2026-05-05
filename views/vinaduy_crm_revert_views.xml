@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ WIZARD: form gửi yêu cầu lùi trạng thái ============ -->
+    <record id="view_vinaduy_crm_revert_wizard_form" model="ir.ui.view">
+        <field name="name">vinaduy.crm.revert.wizard.form</field>
+        <field name="model">vinaduy.crm.revert.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu lùi trạng thái">
+                <sheet>
+                    <group>
+                        <field name="lead_id" readonly="1"/>
+                        <field name="current_stage_id" readonly="1"/>
+                        <field name="current_sequence" invisible="1"/>
+                        <field name="to_stage_id"/>
+                    </group>
+                    <group string="Lý do (bắt buộc)">
+                        <field name="reason" nolabel="1" placeholder="Vd: Khách yêu cầu xem lại báo giá, cần thương lượng lại..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_submit" type="object" string="📤 Gửi yêu cầu" class="btn-primary"/>
+                    <button special="cancel" string="Hủy" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vinaduy_crm_revert_wizard" model="ir.actions.act_window">
+        <field name="name">Yêu cầu lùi trạng thái</field>
+        <field name="res_model">vinaduy.crm.revert.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Wizard: nhập lý do đóng lead -->
+    <record id="view_vinaduy_crm_close_wizard_form" model="ir.ui.view">
+        <field name="name">vinaduy.crm.close.wizard.form</field>
+        <field name="model">vinaduy.crm.close.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Lý do đóng lead">
+                <sheet>
+                    <field name="lead_id" invisible="1"/>
+                    <field name="close_type" invisible="1"/>
+                    <group string="Vui lòng nhập lý do đóng lead (bắt buộc)">
+                        <field name="reason" nolabel="1"
+                               placeholder="Vd: Khách đã có nhà rồi, Không đủ ngân sách, Khách không phản hồi..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="✅ Xác nhận đóng lead" class="btn-primary"/>
+                    <button special="cancel" string="Hủy" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vinaduy_crm_close_wizard" model="ir.actions.act_window">
+        <field name="name">Đóng lead</field>
+        <field name="res_model">vinaduy.crm.close.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ============ MODEL: Yêu cầu lùi trạng thái ============ -->
+    <record id="view_vinaduy_crm_revert_request_tree" model="ir.ui.view">
+        <field name="name">vinaduy.crm.revert.request.tree</field>
+        <field name="model">vinaduy.crm.revert.request</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="state=='pending'" decoration-success="state=='approved'" decoration-danger="state=='rejected'">
+                <field name="create_date" string="Thời gian"/>
+                <field name="lead_id"/>
+                <field name="requester_id"/>
+                <field name="from_stage_id"/>
+                <field name="to_stage_id"/>
+                <field name="reason"/>
+                <field name="state" widget="badge"/>
+                <field name="approver_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vinaduy_crm_revert_request_form" model="ir.ui.view">
+        <field name="name">vinaduy.crm.revert.request.form</field>
+        <field name="model">vinaduy.crm.revert.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" type="object" string="✅ Duyệt"
+                            class="btn-success" invisible="state != 'pending'"
+                            groups="sales_team.group_sale_manager"/>
+                    <button name="action_reject" type="object" string="❌ Từ chối"
+                            class="btn-danger" invisible="state != 'pending'"
+                            groups="sales_team.group_sale_manager"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="requester_id"/>
+                            <field name="from_stage_id"/>
+                            <field name="to_stage_id"/>
+                        </group>
+                        <group>
+                            <field name="approver_id"/>
+                            <field name="approver_note"/>
+                        </group>
+                    </group>
+                    <group string="Lý do">
+                        <field name="reason" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vinaduy_crm_revert_request_search" model="ir.ui.view">
+        <field name="name">vinaduy.crm.revert.request.search</field>
+        <field name="model">vinaduy.crm.revert.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="lead_id"/>
+                <field name="requester_id"/>
+                <filter string="Chờ duyệt" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Đã duyệt" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="Từ chối" name="rejected" domain="[('state','=','rejected')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Người yêu cầu" name="group_requester" context="{'group_by': 'requester_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vinaduy_crm_revert_request" model="ir.actions.act_window">
+        <field name="name">Yêu cầu lùi trạng thái</field>
+        <field name="res_model">vinaduy.crm.revert.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+
+    <menuitem id="menu_vinaduy_crm_revert_request"
+              name="🔄 Yêu cầu lùi trạng thái"
+              parent="crm.crm_menu_config"
+              action="action_vinaduy_crm_revert_request"
+              sequence="80"
+              groups="sales_team.group_sale_manager"/>
+
+</odoo>

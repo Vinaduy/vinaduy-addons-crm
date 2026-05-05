@@ -1,0 +1,170 @@
+.o_action_manager:has(.vd-dashboard) {
+    overflow-y: auto !important;
+}
+
+.vd-dashboard {
+    padding: 20px;
+    background: #f4f6fa;
+    min-height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    .vd-loading, .vd-error {
+        text-align: center; padding: 80px;
+        font-size: 1.2rem; color: #6c757d;
+    }
+
+    // ============ HEADER ============
+    .vd-header {
+        display: flex; justify-content: space-between; align-items: center;
+        background: linear-gradient(135deg, #1f1f3a, #2d3561);
+        color: white; padding: 22px 26px; border-radius: 12px;
+        margin-bottom: 18px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+
+        h1 { margin: 0 0 4px 0; font-size: 1.6rem; font-weight: 700; }
+        .vd-subtitle { font-size: 0.86rem; opacity: 0.85; }
+        .vd-stat-summary { display: flex; gap: 10px; }
+    }
+    .vd-pill {
+        padding: 8px 16px; border-radius: 24px;
+        font-weight: 600; font-size: 0.9rem; cursor: pointer;
+        -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+        transition: all 0.2s;
+        &:hover { transform: translateY(-2px); }
+        &.vd-pill-success { background: rgba(25, 135, 84, 0.85); color: white; }
+        &.vd-pill-danger { background: rgba(220, 53, 69, 0.85); color: white; }
+    }
+
+    // ============ CARDS BASE ============
+    .vd-card {
+        background: white;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eef0f4;
+    }
+    .vd-card-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    // ============ GRID LAYOUTS ============
+    .vd-grid-row1 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) 220px;
+        gap: 14px; margin-bottom: 16px;
+        @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
+    }
+    .vd-grid-row2,
+    .vd-grid-row3,
+    .vd-grid-row4 {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 16px; margin-bottom: 16px;
+        @media (max-width: 1100px) { grid-template-columns: 1fr; }
+    }
+
+    // ============ BIG KPI NUMBER CARDS ============
+    .vd-big-num {
+        position: relative;
+        overflow: hidden;
+        background: white;
+
+        &::before {
+            content: "";
+            position: absolute; left: 0; bottom: 0; right: 0; height: 60%;
+            background-image:
+                linear-gradient(180deg, transparent, rgba(64, 150, 255, 0.07));
+            pointer-events: none;
+        }
+    }
+    .vd-big-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .vd-big-value {
+        font-size: 2.4rem;
+        font-weight: 800;
+        line-height: 1.1;
+        &.vd-blue { color: #1677ff; }
+        &.vd-purple { color: #6f42c1; }
+        &.vd-cyan { color: #0a8aa8; }
+        &.vd-green { color: #198754; }
+        &.vd-red { color: #dc3545; }
+        &.vd-orange { color: #fd7e14; }
+    }
+    .vd-big-sub {
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-top: 6px;
+        &.vd-up { color: #198754; }
+        &.vd-down { color: #dc3545; }
+    }
+
+    // ============ GAUGE CARD ============
+    .vd-gauge-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 14px;
+    }
+    .vd-gauge-wrap {
+        width: 100%;
+        height: 130px;
+        position: relative;
+    }
+
+    // ============ CHART WRAP ============
+    .vd-chart-wrap {
+        position: relative;
+        width: 100%;
+    }
+
+    // ============ TABLES ============
+    .vd-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+        thead th {
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 8px 10px;
+            border-bottom: 2px solid #e9ecef;
+            text-align: left;
+        }
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        tbody tr.vd-row-clickable {
+            cursor: pointer;
+            transition: background 0.15s;
+            &:hover { background: #f8f9fa; }
+        }
+    }
+    .vd-cell-red:not(.vd-zero) { color: #dc3545; font-weight: 700; }
+    .vd-cell-green { color: #198754; font-weight: 700; }
+    .vd-zero { color: #ced4da; }
+
+    // ============ THRESHOLD ============
+    .vd-threshold-good { border-top: 4px solid #198754; }
+    .vd-threshold-bad { border-top: 4px solid #dc3545; }
+    .vd-empty {
+        padding: 16px;
+        text-align: center;
+        color: #9ca3af;
+        font-style: italic;
+        font-size: 0.88rem;
+    }
+}

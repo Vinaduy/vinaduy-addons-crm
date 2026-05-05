@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ PIVOT VIEW ============ -->
+    <record id="view_vinaduy_crm_lead_pivot" model="ir.ui.view">
+        <field name="name">crm.lead.pivot.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <pivot string="Báo cáo CRM">
+                <field name="user_id" type="row"/>
+                <field name="stage_id" type="col"/>
+                <field name="id" string="Số KH" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ============ GRAPH VIEW ============ -->
+    <record id="view_vinaduy_crm_lead_graph" model="ir.ui.view">
+        <field name="name">crm.lead.graph.vinaduy</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <graph string="Báo cáo CRM" type="bar" stacked="0">
+                <field name="user_id"/>
+                <field name="stage_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ============ ACTION: Tổng quan KPI tháng ============ -->
+    <record id="action_vinaduy_report_kpi" model="ir.actions.act_window">
+        <field name="name">📊 Tổng quan tháng hiện tại</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">pivot,graph,list,kanban</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_vinaduy_crm_lead_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_vinaduy_crm_lead_graph')}),
+            (0, 0, {'view_mode': 'list'}),
+            (0, 0, {'view_mode': 'kanban'})
+        ]"/>
+        <field name="domain">[('create_date','&gt;=', context_today().strftime('%Y-%m-01 00:00:00'))]</field>
+        <field name="context">{'search_default_group_stage': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Báo cáo tháng hiện tại</p>
+            <p>Pivot: KH theo NV × Stage. Graph: số liệu theo NV.</p>
+        </field>
+    </record>
+
+    <!-- ============ ACTION: Conv% theo NV ============ -->
+    <record id="action_vinaduy_report_conv_by_user" model="ir.actions.act_window">
+        <field name="name">📈 Hiệu suất NV (Conv%)</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'search_default_group_user': 1,
+            'pivot_measures': ['__count'],
+            'pivot_row_groupby': ['user_id'],
+            'pivot_column_groupby': ['stage_id']
+        }</field>
+    </record>
+
+    <!-- ============ ACTION: KH quá hạn (overdue) ============ -->
+    <record id="action_vinaduy_report_overdue" model="ir.actions.act_window">
+        <field name="name">🔴 KH quá hạn SLA</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,kanban,graph,pivot</field>
+        <field name="domain">[('sla_overdue','=',True), ('active','=',True)]</field>
+        <field name="context">{'search_default_group_user': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tốt! Không có KH nào quá hạn</p>
+            <p>Đây là danh sách KH đã quá hạn SLA — cần xử lý ngay.</p>
+        </field>
+    </record>
+
+    <!-- ============ ACTION: KH theo nguồn data ============ -->
+    <record id="action_vinaduy_report_by_source" model="ir.actions.act_window">
+        <field name="name">📅 KH theo Nguồn data</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'search_default_group_vinaduy_source': 1,
+            'graph_view_ref': 'vinaduy_crm.view_vinaduy_crm_lead_graph'
+        }</field>
+    </record>
+
+    <!-- ============ ACTION: Yêu cầu lùi trạng thái (đã có nhưng đặt vào menu báo cáo) ============ -->
+    <record id="action_vinaduy_report_revert" model="ir.actions.act_window">
+        <field name="name">🔄 Yêu cầu lùi trạng thái (chờ duyệt)</field>
+        <field name="res_model">vinaduy.crm.revert.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state','=','pending')]</field>
+    </record>
+
+    <!-- Client action: VINADUY Dashboard (custom OWL) -->
+    <record id="action_vinaduy_dashboard_owl" model="ir.actions.client">
+        <field name="name">📊 VINADUY Dashboard</field>
+        <field name="tag">vinaduy_dashboard</field>
+    </record>
+
+    <menuitem id="menu_vinaduy_dashboard_owl"
+              name="🎯 VINADUY Dashboard"
+              parent="crm.crm_menu_report"
+              action="action_vinaduy_dashboard_owl"
+              sequence="15"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- Client action: VINADUY Tracker (cho NV theo dõi KH hàng ngày) -->
+    <record id="action_vinaduy_tracker" model="ir.actions.client">
+        <field name="name">📋 Theo dõi khách hàng</field>
+        <field name="tag">vinaduy_tracker</field>
+    </record>
+
+    <menuitem id="menu_vinaduy_tracker"
+              name="📋 Theo dõi khách hàng"
+              parent="crm.crm_menu_root"
+              action="action_vinaduy_tracker"
+              sequence="5"/>
+
+    <!-- Client action: VINADUY Bonus (Bảng thưởng tháng) -->
+    <record id="action_vinaduy_bonus" model="ir.actions.client">
+        <field name="name">🏆 Bảng thưởng tháng</field>
+        <field name="tag">vinaduy_bonus</field>
+    </record>
+
+    <menuitem id="menu_vinaduy_bonus"
+              name="🏆 Bảng thưởng tháng"
+              parent="crm.crm_menu_report"
+              action="action_vinaduy_bonus"
+              sequence="16"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- Yêu cầu lùi trạng thái — chỉ admin/manager (giữ lại vì đây là tính năng riêng) -->
+    <menuitem id="menu_vinaduy_report_revert"
+              name="🔄 Yêu cầu lùi trạng thái"
+              parent="crm.crm_menu_report"
+              action="action_vinaduy_report_revert"
+              sequence="24"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- ẨN các submenu báo cáo mặc định Odoo (Forecast/Pipeline/Lead/Activities) -->
+    <record id="crm.crm_menu_forecast" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="crm.crm_opportunity_report_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="crm.crm_opportunity_report_menu_lead" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="crm.crm_activity_report_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+</odoo>

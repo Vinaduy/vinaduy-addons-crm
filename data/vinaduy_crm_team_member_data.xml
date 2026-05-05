@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- HCM1 -->
+        <record id="member_yen_tran" model="crm.team.member">
+            <field name="user_id" ref="user_yen_tran"/>
+            <field name="crm_team_id" ref="team_hcm1"/>
+        </record>
+        <record id="member_thi_nguyen" model="crm.team.member">
+            <field name="user_id" ref="user_thi_nguyen"/>
+            <field name="crm_team_id" ref="team_hcm1"/>
+        </record>
+        <record id="member_hau_vo" model="crm.team.member">
+            <field name="user_id" ref="user_hau_vo"/>
+            <field name="crm_team_id" ref="team_hcm1"/>
+        </record>
+        <record id="member_anh_vu" model="crm.team.member">
+            <field name="user_id" ref="user_anh_vu"/>
+            <field name="crm_team_id" ref="team_hcm1"/>
+        </record>
+        <record id="member_khang_huynh" model="crm.team.member">
+            <field name="user_id" ref="user_khang_huynh"/>
+            <field name="crm_team_id" ref="team_hcm1"/>
+        </record>
+
+        <!-- HCM2 -->
+        <record id="member_thao_mai" model="crm.team.member">
+            <field name="user_id" ref="user_thao_mai"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_minh_bui" model="crm.team.member">
+            <field name="user_id" ref="user_minh_bui"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_khoi_le" model="crm.team.member">
+            <field name="user_id" ref="user_khoi_le"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_nguyen_do" model="crm.team.member">
+            <field name="user_id" ref="user_nguyen_do"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_hung_le" model="crm.team.member">
+            <field name="user_id" ref="user_hung_le"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_khang_ngo" model="crm.team.member">
+            <field name="user_id" ref="user_khang_ngo"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+        <record id="member_sen_tran" model="crm.team.member">
+            <field name="user_id" ref="user_sen_tran"/>
+            <field name="crm_team_id" ref="team_hcm2"/>
+        </record>
+
+        <!-- HCM3 -->
+        <record id="member_thy_truong" model="crm.team.member">
+            <field name="user_id" ref="user_thy_truong"/>
+            <field name="crm_team_id" ref="team_hcm3"/>
+        </record>
+        <record id="member_oanh_nguyen" model="crm.team.member">
+            <field name="user_id" ref="user_oanh_nguyen"/>
+            <field name="crm_team_id" ref="team_hcm3"/>
+        </record>
+
+        <!-- HN -->
+        <record id="member_anh_huynh" model="crm.team.member">
+            <field name="user_id" ref="user_anh_huynh"/>
+            <field name="crm_team_id" ref="team_hn"/>
+        </record>
+        <record id="member_trang_tao" model="crm.team.member">
+            <field name="user_id" ref="user_trang_tao"/>
+            <field name="crm_team_id" ref="team_hn"/>
+        </record>
+        <record id="member_hau_lam" model="crm.team.member">
+            <field name="user_id" ref="user_hau_lam"/>
+            <field name="crm_team_id" ref="team_hn"/>
+        </record>
+        <record id="member_tuyet_dang" model="crm.team.member">
+            <field name="user_id" ref="user_tuyet_dang"/>
+            <field name="crm_team_id" ref="team_hn"/>
+        </record>
+        <record id="member_kien_tran" model="crm.team.member">
+            <field name="user_id" ref="user_kien_tran"/>
+            <field name="crm_team_id" ref="team_hn"/>
+        </record>
+
+        <!-- TEAM LEADERS (set as user_id of team) -->
+        <record id="team_hcm1" model="crm.team">
+            <field name="user_id" ref="user_leader_hcm1"/>
+        </record>
+        <record id="team_hcm2" model="crm.team">
+            <field name="user_id" ref="user_leader_hcm2"/>
+        </record>
+        <record id="team_hcm3" model="crm.team">
+            <field name="user_id" ref="user_leader_hcm3"/>
+        </record>
+        <record id="team_hn" model="crm.team">
+            <field name="user_id" ref="user_leader_hn"/>
+        </record>
+
+    </data>
+</odoo>

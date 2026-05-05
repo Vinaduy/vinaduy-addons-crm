@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ CHECKLIST TEMPLATE (admin config) ============ -->
+
+    <record id="view_vinaduy_crm_checklist_template_tree" model="ir.ui.view">
+        <field name="name">vinaduy.crm.checklist.template.tree</field>
+        <field name="model">vinaduy.crm.checklist.template</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="stage_id"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="required"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vinaduy_crm_checklist_template_form" model="ir.ui.view">
+        <field name="name">vinaduy.crm.checklist.template.form</field>
+        <field name="model">vinaduy.crm.checklist.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="stage_id"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="required"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Mô tả">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vinaduy_crm_checklist_template_search" model="ir.ui.view">
+        <field name="name">vinaduy.crm.checklist.template.search</field>
+        <field name="model">vinaduy.crm.checklist.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="stage_id"/>
+                <filter string="Bắt buộc" name="required" domain="[('required','=',True)]"/>
+                <filter string="Đã ẩn" name="inactive" domain="[('active','=',False)]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vinaduy_crm_checklist_template" model="ir.actions.act_window">
+        <field name="name">Việc cần làm theo trạng thái</field>
+        <field name="res_model">vinaduy.crm.checklist.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_stage': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo việc cần làm cho từng trạng thái</p>
+            <p>Khi khách hàng vào trạng thái nào, các việc cần làm sẽ tự động sinh ra. Phải hoàn thành các việc bắt buộc để chuyển sang trạng thái tiếp theo.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_vinaduy_crm_checklist_template"
+              name="Checklist mẫu"
+              parent="crm.crm_menu_config"
+              action="action_vinaduy_crm_checklist_template"
+              sequence="60"/>
+
+    <!-- ============ CHECKLIST ITEM (per lead) ============ -->
+
+    <record id="view_vinaduy_crm_checklist_item_tree" model="ir.ui.view">
+        <field name="name">vinaduy.crm.checklist.item.tree</field>
+        <field name="model">vinaduy.crm.checklist.item</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-success="done==True" decoration-warning="required==True and done==False">
+                <field name="stage_id"/>
+                <field name="sequence"/>
+                <field name="name"/>
+                <field name="required"/>
+                <field name="done" widget="boolean_toggle"/>
+                <field name="done_by" optional="show"/>
+                <field name="done_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============ INHERIT CRM LEAD FORM — add Checklist tab ============ -->
+
+    <record id="crm_lead_view_form_inherit_vinaduy_checklist" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.vinaduy.checklist</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="Checklist" name="vinaduy_checklist">
+                    <group>
+                        <field name="checklist_progress" readonly="1"/>
+                        <field name="checklist_required_done" readonly="1"/>
+                    </group>
+                    <field name="checklist_item_ids" context="{'default_lead_id': id}">
+                        <list editable="bottom" decoration-success="done==True" decoration-warning="required==True and done==False">
+                            <field name="stage_id"/>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="required"/>
+                            <field name="done" widget="boolean_toggle"/>
+                            <field name="done_by" optional="show"/>
+                            <field name="done_date" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,3 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_vinaduy_crm_source_user,vinaduy.crm.source.user,model_vinaduy_crm_source,base.group_user,1,0,0,0
 access_vinaduy_crm_source_manager,vinaduy.crm.source.manager,model_vinaduy_crm_source,sales_team.group_sale_manager,1,1,1,1
+access_vinaduy_crm_checklist_template_user,vinaduy.crm.checklist.template.user,model_vinaduy_crm_checklist_template,base.group_user,1,0,0,0
+access_vinaduy_crm_checklist_template_mgr,vinaduy.crm.checklist.template.manager,model_vinaduy_crm_checklist_template,sales_team.group_sale_manager,1,1,1,1
+access_vinaduy_crm_checklist_item_user,vinaduy.crm.checklist.item.user,model_vinaduy_crm_checklist_item,sales_team.group_sale_salesman,1,1,1,1
+access_vinaduy_crm_checklist_item_mgr,vinaduy.crm.checklist.item.manager,model_vinaduy_crm_checklist_item,sales_team.group_sale_manager,1,1,1,1
+access_mail_tracking_value_user,mail.tracking.value.user,mail.model_mail_tracking_value,base.group_user,1,0,0,0
+access_ir_model_fields_user,ir.model.fields.user,base.model_ir_model_fields,base.group_user,1,0,0,0
+access_revert_request_user,vinaduy.crm.revert.request.user,model_vinaduy_crm_revert_request,sales_team.group_sale_salesman,1,1,1,0
+access_revert_request_mgr,vinaduy.crm.revert.request.mgr,model_vinaduy_crm_revert_request,sales_team.group_sale_manager,1,1,1,1
+access_revert_wizard,vinaduy.crm.revert.wizard,model_vinaduy_crm_revert_wizard,base.group_user,1,1,1,1
+access_close_wizard,vinaduy.crm.close.wizard,model_vinaduy_crm_close_wizard,base.group_user,1,1,1,1
+access_dashboard,vinaduy.crm.dashboard,model_vinaduy_crm_dashboard,sales_team.group_sale_manager,1,0,0,0
