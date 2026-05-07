@@ -33,7 +33,20 @@
                                 <span>Hẹn gọi lại hôm nay</span>
                                 <span class="fw-bold text-warning"><t t-esc="state.kpi.callback_today"/></span>
                             </div>
-                            <div t-if="!state.kpi.new_today and !state.kpi.callback_today"
+                            <hr class="my-2" t-if="state.kpi.calls_today"/>
+                            <div t-if="state.kpi.calls_today" class="d-flex justify-content-between">
+                                <span><i class="fa fa-phone"/> Đã gọi hôm nay</span>
+                                <span class="fw-bold text-info"><t t-esc="state.kpi.calls_today"/></span>
+                            </div>
+                            <div t-if="state.kpi.calls_today" class="d-flex justify-content-between small text-muted">
+                                <span>↳ Đã nghe máy</span>
+                                <span><t t-esc="state.kpi.calls_answered_today"/></span>
+                            </div>
+                            <div t-if="state.kpi.recordings_today" class="d-flex justify-content-between small text-muted">
+                                <span>↳ Có ghi âm</span>
+                                <span><t t-esc="state.kpi.recordings_today"/></span>
+                            </div>
+                            <div t-if="!state.kpi.new_today and !state.kpi.callback_today and !state.kpi.calls_today"
                                  class="text-muted">Không có việc khẩn hôm nay.</div>
                         </div>
                     </div>

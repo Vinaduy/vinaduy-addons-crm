@@ -214,6 +214,12 @@ class VdCrmLead(models.Model):
         today_start = fields.Datetime.to_datetime(today)
         today_end = today_start + timedelta(days=1)
 
+        Call = self.env['stringee.call']
+        call_today_domain = [
+            ('user_id', '=', user.id),
+            ('create_date', '>=', today_start),
+            ('create_date', '<', today_end),
+        ]
         kpi = {
             'total': self.search_count(domain_user),
             'new_today': self.search_count(domain_user + [
@@ -226,6 +232,13 @@ class VdCrmLead(models.Model):
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
             ]),
+            'calls_today': Call.search_count(call_today_domain),
+            'calls_answered_today': Call.search_count(
+                call_today_domain + [('state', 'in', ['answered', 'ended']), ('duration', '>', 0)],
+            ),
+            'recordings_today': Call.search_count(
+                call_today_domain + [('recording_attachment_id', '!=', False)],
+            ),
         }
 
         now = fields.Datetime.now()

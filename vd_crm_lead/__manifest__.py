@@ -12,6 +12,7 @@
         'views/vd_crm_stage_views.xml',
         'views/vd_crm_lead_views.xml',
         'views/vd_crm_dashboard_views.xml',
+        'views/stringee_call_views.xml',
         'views/menus.xml',
     ],
     'assets': {

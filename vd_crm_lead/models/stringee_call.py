@@ -8,6 +8,21 @@ class StringeeCall(models.Model):
     _inherit = 'stringee.call'
 
     lead_id = fields.Many2one('vd.crm.lead', string='Khách hàng', ondelete='set null', index=True)
+    lead_stage_name = fields.Char(related='lead_id.stage_id.name', string='Stage KH')
+    lead_probability = fields.Float(related='lead_id.probability', string='Tỉ lệ chốt')
+
+    def action_open_lead(self):
+        self.ensure_one()
+        if not self.lead_id:
+            from odoo.exceptions import UserError
+            raise UserError("Cuộc gọi này chưa được link với khách hàng nào.")
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'vd.crm.lead',
+            'res_id': self.lead_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -22,14 +37,33 @@ class StringeeCall(models.Model):
         return result
 
     def _sync_lead_activity(self):
-        """Push call info back to the matched lead so the dashboard can rank it."""
+        """Push call info back to the matched lead so the dashboard can rank it.
+
+        For inbound calls from numbers we've never seen, auto-create a 'Khách mới'
+        lead so the call doesn't fall on the floor. Outbound calls without a match
+        are left unlinked — they were placed manually and the agent owns linking.
+        """
+        Lead = self.env['vd.crm.lead']
         for call in self:
             lead = call.lead_id
-            if not lead and call.callee_number:
-                lead = self.env['vd.crm.lead'].search(
-                    [('phone', '=', call.callee_number), ('user_id', '=', call.user_id.id or self.env.user.id)],
-                    limit=1, order='create_date desc',
-                )
+            phone = call.callee_number if call.direction == 'outbound' else call.caller_number
+            if not lead and phone:
+                # First try same-user match (avoids stealing leads across agents)
+                lead = Lead.search([
+                    ('phone', '=', phone),
+                    ('user_id', '=', call.user_id.id or self.env.user.id),
+                ], limit=1, order='create_date desc')
+                # Fall back to any user
+                if not lead:
+                    lead = Lead.search([('phone', '=', phone)], limit=1, order='create_date desc')
+                if not lead and call.direction == 'inbound':
+                    lead = Lead.create({
+                        'name': f'KH gọi đến {phone}',
+                        'phone': phone,
+                        'user_id': call.user_id.id or False,
+                        'stage_id': self.env.ref('vd_crm_lead.stage_new').id,
+                        'notes': 'Tự động tạo từ cuộc gọi đến.',
+                    })
                 if lead:
                     call.with_context(skip_sync=True).lead_id = lead.id
             if not lead:
