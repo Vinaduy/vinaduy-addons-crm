@@ -202,7 +202,7 @@
                     <div class="o_vd_popup_banner">
                         <i class="fa fa-microphone"/>
                         Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
-                        <span class="text-muted ms-2">— hover vào tên trường để xem kịch bản</span>
+                        <span class="text-muted ms-2">— hỏi theo gợi ý mờ trong từng ô</span>
                     </div>
 
                     <div class="o_vd_pf_grid">
@@ -211,34 +211,41 @@
                         <div class="o_vd_pf_section">
                             <div class="o_vd_pf_section_title">📍 Vị trí &amp; đất</div>
 
-                            <div class="o_vd_pf" title='Hỏi: "Anh/chị xây ở tỉnh / thành nào ạ?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_province_id">Tỉnh / Thành</label>
                                 <field name="vd_intake_province_id" nolabel="1"
+                                       placeholder="Anh/chị xây ở tỉnh / thành nào ạ?"
                                        options="{'no_create': True, 'no_open': True}"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Khu vực huyện / quận / TP nào?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_district">Huyện / Quận</label>
-                                <field name="vd_intake_district" nolabel="1" placeholder="vd: Quận 1"/>
+                                <field name="vd_intake_district" nolabel="1"
+                                       placeholder="Khu vực huyện / quận / TP nào?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Cho em xin số nhà, tên đường, phường ạ?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_address">Địa chỉ chi tiết</label>
-                                <field name="vd_intake_address" nolabel="1" placeholder="Số nhà, đường, phường"/>
+                                <field name="vd_intake_address" nolabel="1"
+                                       placeholder="Cho em xin số nhà, tên đường, phường?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Mặt tiền hay trong hẻm? Đường vào có thuận lợi xe vận chuyển không?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_position">Vị trí</label>
-                                <field name="vd_intake_position" nolabel="1"/>
+                                <field name="vd_intake_position" nolabel="1"
+                                       placeholder="Mặt tiền hay trong hẻm? Đường có thuận lợi xe?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Đất là sổ đỏ thổ cư hay nông nghiệp / phân lô?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_land_type">Loại đất</label>
-                                <field name="vd_intake_land_type" nolabel="1"/>
+                                <field name="vd_intake_land_type" nolabel="1"
+                                       placeholder="Đất sổ đỏ thổ cư hay nông nghiệp / phân lô?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Đất đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
-                                <field name="vd_intake_dimensions" nolabel="1"/>
+                                <field name="vd_intake_dimensions" nolabel="1"
+                                       placeholder="Đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Tổng diện tích đất / sàn xây dựng?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_area">Diện tích</label>
-                                <field name="vd_intake_area" nolabel="1" placeholder="vd: 5x20m"/>
+                                <field name="vd_intake_area" nolabel="1"
+                                       placeholder="Tổng diện tích đất / sàn xây dựng? (vd: 5x20m)"/>
                             </div>
                         </div>
 
@@ -246,34 +253,39 @@
                         <div class="o_vd_pf_section">
                             <div class="o_vd_pf_section_title">🏠 Công trình</div>
 
-                            <div class="o_vd_pf" title='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, biệt thự…?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_house_type">Kiểu nhà</label>
-                                <field name="vd_intake_house_type" nolabel="1"/>
+                                <field name="vd_intake_house_type" nolabel="1"
+                                       placeholder="Mái bằng, mái thái, biệt thự…?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Quy mô bao nhiêu tầng ạ?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_floors">Số tầng</label>
-                                <field name="vd_intake_floors" nolabel="1" placeholder="vd: 2,5 tầng"/>
+                                <field name="vd_intake_floors" nolabel="1"
+                                       placeholder="Quy mô bao nhiêu tầng? (vd: 2,5 tầng)"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Cần bao nhiêu phòng ngủ, có thang máy / sân thượng không?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_function">Công năng</label>
-                                <field name="vd_intake_function" nolabel="1" placeholder="3PN + 2WC + bếp"/>
+                                <field name="vd_intake_function" nolabel="1"
+                                       placeholder="Bao nhiêu PN, có thang máy / sân thượng? (vd: 3PN+2WC)"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Anh/chị dự kiến khởi công khi nào?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_timeline">Thời gian</label>
-                                <field name="vd_intake_timeline" nolabel="1"/>
+                                <field name="vd_intake_timeline" nolabel="1"
+                                       placeholder="Anh/chị dự kiến khởi công khi nào?"/>
                             </div>
-                            <div class="o_vd_pf" title='Hỏi: "Anh/chị dự kiến đầu tư khoảng bao nhiêu?"'>
+                            <div class="o_vd_pf">
                                 <label for="vd_intake_budget">Ngân sách dự kiến</label>
-                                <field name="vd_intake_budget" nolabel="1"/>
+                                <field name="vd_intake_budget" nolabel="1"
+                                       placeholder="Anh/chị dự kiến đầu tư khoảng bao nhiêu?"/>
                             </div>
                         </div>
 
                     </div>
 
-                    <div class="o_vd_pf o_vd_pf_notes" title='Hỏi: "Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"'>
+                    <div class="o_vd_pf o_vd_pf_notes">
                         <label for="vd_intake_function_notes">📝 Ghi chú công năng</label>
                         <field name="vd_intake_function_notes" nolabel="1"
-                               placeholder="Yêu cầu đặc biệt từng phòng…"/>
+                               placeholder="Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"/>
                     </div>
                 </sheet>
                 <footer>
