@@ -62,7 +62,6 @@
                             </button>
                             <field name="vd_active_call_state" invisible="1"/>
                             <field name="vd_active_call_answer_time" invisible="1"/>
-                            <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                         </div>
 
                         <!-- CENTER: customer info -->
@@ -95,6 +94,23 @@
                             <field name="call_count" nolabel="1" readonly="1"/>
                         </span>
                     </button>
+                </div>
+
+                <!-- FLOATING CALL BUTTON — bottom-right corner with status -->
+                <div class="o_vd_call_fab">
+                    <button name="action_call" type="object"
+                            class="o_vd_phone_btn o_vd_phone_btn_call"
+                            title="Gọi qua Stringee"
+                            invisible="vd_in_call or (not phone and not mobile)">
+                        <i class="fa fa-phone"/>
+                    </button>
+                    <button name="action_hangup_active" type="object"
+                            class="o_vd_phone_btn o_vd_phone_btn_hangup"
+                            title="Cúp máy"
+                            invisible="not vd_in_call">
+                        <i class="fa fa-phone"/>
+                    </button>
+                    <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                 </div>
             </xpath>
 
