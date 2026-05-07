@@ -1,7 +1,11 @@
 """Extend stringee.call with a back-link to the (standard) crm.lead, and update
 lead activity stats when a call reaches a terminal state.
 """
+import logging
+
 from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class StringeeCall(models.Model):
@@ -31,10 +35,31 @@ class StringeeCall(models.Model):
         return records
 
     def write(self, vals):
+        old_states = {c.id: c.state for c in self} if 'state' in vals else {}
         result = super().write(vals)
         if {'state', 'duration', 'callee_number'} & vals.keys():
             self._sync_lead_activity()
+        if 'state' in vals:
+            for c in self:
+                if old_states.get(c.id) != c.state:
+                    c._broadcast_state()
         return result
+
+    def _broadcast_state(self):
+        """Push bus.bus notification so any open lead form auto-refreshes UI."""
+        self.ensure_one()
+        partner = self.user_id.partner_id if self.user_id else False
+        if not partner:
+            return
+        try:
+            self.env['bus.bus']._sendone(partner, 'vd_stringee_call_state', {
+                'call_id': self.id,
+                'lead_id': self.lead_id.id if self.lead_id else False,
+                'state': self.state,
+                'answer_time': fields.Datetime.to_string(self.answer_time) if self.answer_time else False,
+            })
+        except Exception:
+            _logger.warning("Bus push failed for call %s", self.id, exc_info=True)
 
     def _sync_lead_activity(self):
         """Push call info back to the matched lead so the dashboard can rank it.
