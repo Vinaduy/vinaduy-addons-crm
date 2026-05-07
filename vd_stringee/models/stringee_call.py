@@ -41,29 +41,27 @@ _STATE_RANK = {
 _TERMINAL_STATES = {'ended', 'no_answer', 'busy', 'declined', 'failed', 'cancelled'}
 
 
-def _to_e164(num, default_country='84'):
-    """Normalise a phone number to E.164 (`+<country><national>`).
+def _to_stringee_number(num, default_country='84'):
+    """Normalise a phone number for Stringee REST: digits only, with country code, NO '+' prefix.
+
+    Stringee rejects '+' prefix (returns FROM_NUMBER_OR_TO_NUMBER_INVALID_FORMAT).
 
     Vietnamese conventions handled:
-    - "0xxxxxxxxx"   → "+84xxxxxxxxx"  (strip leading 0)
-    - "84xxxxxxxxx"  → "+84xxxxxxxxx"
-    - "+84..."       → unchanged
-    - other digits → assume default country, prepend "+<cc>"
+    - "0xxxxxxxxx"   → "84xxxxxxxxx"  (strip leading 0, prepend 84)
+    - "84xxxxxxxxx"  → "84xxxxxxxxx"  (already country-coded)
+    - "+84..."       → "84..."        (strip +)
+    - bare local digits → prepend default country code
     """
     if not num:
         return ''
-    s = str(num).strip()
-    has_plus = s.startswith('+')
-    digits = re.sub(r'\D', '', s)
+    digits = re.sub(r'\D', '', str(num))
     if not digits:
         return ''
-    if has_plus:
-        return '+' + digits
     if digits.startswith(default_country):
-        return '+' + digits
+        return digits
     if digits.startswith('0'):
-        return '+' + default_country + digits[1:]
-    return '+' + default_country + digits
+        return default_country + digits[1:]
+    return default_country + digits
 
 
 class StringeeCall(models.Model):
@@ -180,8 +178,8 @@ class StringeeCall(models.Model):
         if not self.callee_number:
             raise UserError(_('Thiếu số đến.'))
         Param = self.env['ir.config_parameter'].sudo()
-        from_number = _to_e164(Param.get_param('vd_stringee.from_number'))
-        callee_e164 = _to_e164(self.callee_number)
+        from_number = _to_stringee_number(Param.get_param('vd_stringee.from_number'))
+        callee_e164 = _to_stringee_number(self.callee_number)
         record = (Param.get_param('vd_stringee.record_calls') or 'True') in ('True', 'true', '1')
         if not from_number:
             raise UserError(_('Chưa cấu hình "From Number".'))
