@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_vd_crm_dashboard" model="ir.actions.client">
-        <field name="name">Dashboard</field>
+        <field name="name">Dashboard NV</field>
         <field name="tag">vd_crm_lead.dashboard</field>
     </record>
 </odoo>

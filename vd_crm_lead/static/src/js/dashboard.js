@@ -41,7 +41,7 @@ export class VdCrmDashboard extends Component {
 
     async loadDashboard() {
         this.state.loading = true;
-        const data = await this.orm.call("vd.crm.lead", "dashboard_data", []);
+        const data = await this.orm.call("crm.lead", "dashboard_data", []);
         Object.assign(this.state, data);
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
             || data.stages.find((s) => !s.is_lost)
@@ -55,7 +55,7 @@ export class VdCrmDashboard extends Component {
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
         this.state.leadsLoading = true;
-        this.state.leads = await this.orm.call("vd.crm.lead", "dashboard_leads", [stageId]);
+        this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", [stageId]);
         this.state.leadsLoading = false;
     }
 
@@ -66,7 +66,7 @@ export class VdCrmDashboard extends Component {
     openLead(leadId) {
         this.action.doAction({
             type: "ir.actions.act_window",
-            res_model: "vd.crm.lead",
+            res_model: "crm.lead",
             res_id: leadId,
             views: [[false, "form"]],
             target: "current",

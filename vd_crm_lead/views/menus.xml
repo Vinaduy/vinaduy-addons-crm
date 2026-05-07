@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_vd_crm_root" name="CRM" sequence="20"/>
-
-    <menuitem id="menu_vd_crm_dashboard" name="Dashboard"
-              parent="menu_vd_crm_root" action="action_vd_crm_dashboard" sequence="5"/>
-
-    <menuitem id="menu_vd_crm_leads" name="Khách hàng"
-              parent="menu_vd_crm_root" action="action_vd_crm_lead" sequence="10"/>
-
-    <menuitem id="menu_vd_crm_config" name="Cấu hình"
-              parent="menu_vd_crm_root" sequence="90"
-              groups="base.group_system"/>
-
-    <menuitem id="menu_vd_crm_stages" name="Trạng thái"
-              parent="menu_vd_crm_config" action="action_vd_crm_stage" sequence="10"/>
+    <!-- Add "Dashboard NV" menu under standard CRM app, before Pipeline -->
+    <menuitem id="menu_vd_crm_dashboard"
+              name="Dashboard NV"
+              parent="crm.crm_menu_root"
+              action="action_vd_crm_dashboard"
+              sequence="1"/>
 </odoo>

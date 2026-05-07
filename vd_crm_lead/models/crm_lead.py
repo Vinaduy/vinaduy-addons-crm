@@ -1,94 +1,64 @@
-"""Lead (khách hàng) model.
+"""Extend Odoo's standard crm.lead with our activity tracking + heuristic probability.
 
-Probability is a heuristic — not a real prediction. It blends a stage base with
-activity modifiers so the dashboard surfaces "warm" leads first. Tune the
-constants in `_compute_probability` if the field over- or under-estimates.
+Probability formula (overrides standard):
+    probability = stage.default_probability ± activity modifiers
+        +10  if KH nghe máy ≤ 3 ngày
+        +5   if KH nghe máy ≤ 7 ngày
+        −15  if KH im ắng ≥ 30 ngày
+        +5   if hẹn gọi lại trong 3 ngày tới
+        −10  if no_answer_streak == 2
+        −20  if no_answer_streak ≥ 3
+    Clamp [0, 100]; if stage.is_won → 100; if stage.is_lost → 0.
 """
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
-class VdCrmLead(models.Model):
-    _name = 'vd.crm.lead'
-    _description = 'Khách hàng / Lead'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'priority desc, callback_date asc, create_date desc'
+class CrmLead(models.Model):
+    _inherit = 'crm.lead'
 
-    name = fields.Char(string='Tên khách hàng', required=True, tracking=True)
-    phone = fields.Char(index=True, tracking=True)
-    email = fields.Char()
-    address = fields.Char()
-    notes = fields.Text(string='Ghi chú')
-
-    user_id = fields.Many2one(
-        'res.users', string='NV phụ trách',
-        default=lambda self: self.env.user, tracking=True, index=True,
-    )
-    stage_id = fields.Many2one(
-        'vd.crm.stage', string='Trạng thái',
-        default=lambda self: self._default_stage(), tracking=True, index=True, required=True,
-        group_expand='_read_group_stage_ids',
-    )
-    stage_code = fields.Char(related='stage_id.code', store=True, index=True)
-    stage_is_won = fields.Boolean(related='stage_id.is_won', store=True)
-    stage_is_lost = fields.Boolean(related='stage_id.is_lost', store=True)
-
+    # Custom fields not in standard
     callback_date = fields.Datetime(string='Hẹn gọi lại lúc', tracking=True)
-    expected_close_date = fields.Date(string='Dự kiến chốt')
-    expected_revenue = fields.Monetary(string='Doanh thu dự kiến', currency_field='currency_id')
-    currency_id = fields.Many2one(
-        'res.currency', default=lambda self: self.env.company.currency_id,
-    )
-
-    priority = fields.Selection([
-        ('0', 'Bình thường'),
-        ('1', 'Cao'),
-        ('2', 'Khẩn'),
-    ], default='0', string='Ưu tiên')
-    color = fields.Integer(default=0)
-    active = fields.Boolean(default=True)
-
-    # Activity stats (denormalised from stringee.call for dashboard speed)
     last_call_date = fields.Datetime(string='Lần gọi gần nhất', readonly=True)
     last_answered_date = fields.Datetime(string='Lần nghe máy gần nhất', readonly=True)
-    call_count = fields.Integer(string='Số lần gọi', default=0, readonly=True)
     no_answer_streak = fields.Integer(
         string='Số lần không nghe liên tiếp', default=0, readonly=True,
         help='Reset về 0 khi KH nghe máy.',
     )
+    call_count = fields.Integer(string='Số lần gọi', default=0, readonly=True)
     call_ids = fields.One2many('stringee.call', 'lead_id', string='Lịch sử gọi')
 
-    # Heuristic close rate — base from stage + activity modifiers
+    # Convenience related fields for stage flags
+    stage_code = fields.Char(related='stage_id.code', store=True, index=True)
+    stage_is_won = fields.Boolean(related='stage_id.is_won', store=True)
+    stage_is_lost = fields.Boolean(related='stage_id.is_lost', store=True)
+
+    # Override standard probability with our heuristic
     probability = fields.Float(
-        string='Tỉ lệ chốt (%)',
-        compute='_compute_probability', store=True,
-        help='Stage base ± activity modifiers (recent call +, long silence -, no-answer streak -).',
+        compute='_compute_probability', store=True, readonly=False,
+        copy=False, group_operator='avg', tracking=True,
+    )
+    automated_probability = fields.Float(  # Standard PLS field — keep but unused
+        compute='_compute_probability_unused', store=False,
     )
 
-    is_overdue_callback = fields.Boolean(compute='_compute_flags', search='_search_overdue_callback')
+    # Computed flags (no store — computed on read)
+    is_overdue_callback = fields.Boolean(
+        compute='_compute_flags', search='_search_overdue_callback',
+    )
     is_today_callback = fields.Boolean(compute='_compute_flags')
     is_stale = fields.Boolean(
         compute='_compute_flags',
         help='Chưa gọi trong 14 ngày kể từ khi tạo / lần gọi cuối.',
     )
 
-    # ---------- Defaults & group expand ----------
-
-    @api.model
-    def _default_stage(self):
-        return self.env['vd.crm.stage'].search([('code', '=', 'new')], limit=1) \
-               or self.env['vd.crm.stage'].search([], limit=1, order='sequence')
-
-    @api.model
-    def _read_group_stage_ids(self, stages, domain):
-        return self.env['vd.crm.stage'].search([], order='sequence')
-
     # ---------- Computes ----------
 
     @api.depends(
         'stage_id', 'stage_id.default_probability', 'stage_id.is_won', 'stage_id.is_lost',
-        'last_call_date', 'last_answered_date', 'no_answer_streak', 'callback_date',
+        'last_answered_date', 'no_answer_streak', 'callback_date',
     )
     def _compute_probability(self):
         now = fields.Datetime.now()
@@ -119,12 +89,13 @@ class VdCrmLead(models.Model):
             elif rec.no_answer_streak == 2:
                 modifier -= 10
 
-            value = base + modifier
-            if value < 0:
-                value = 0.0
-            elif value > 100:
-                value = 100.0
+            value = max(0.0, min(100.0, base + modifier))
             rec.probability = value
+
+    def _compute_probability_unused(self):
+        # Disable Odoo's PLS — we own probability.
+        for rec in self:
+            rec.automated_probability = 0.0
 
     @api.depends('callback_date', 'last_call_date', 'create_date')
     def _compute_flags(self):
@@ -155,20 +126,28 @@ class VdCrmLead(models.Model):
             ('stage_is_won', '=', False),
             ('stage_is_lost', '=', False),
         ]
-        if match:
-            return domain
-        return ['!'] + domain
+        return domain if match else ['!'] + domain
+
+    # ---------- Stage transition: auto-archive on lost ----------
+
+    def write(self, vals):
+        result = super().write(vals)
+        if 'stage_id' in vals:
+            for rec in self:
+                if rec.stage_is_lost and rec.active:
+                    rec.with_context(skip_lost_archive=True).active = False
+        return result
 
     # ---------- Actions ----------
 
     def action_call(self):
         """Place an outbound call via vd_stringee, link the call back to this lead."""
         self.ensure_one()
-        if not self.phone:
-            from odoo.exceptions import UserError
-            raise UserError("Khách hàng chưa có số điện thoại.")
+        phone = self.phone or self.mobile
+        if not phone:
+            raise UserError(_('Khách hàng chưa có số điện thoại.'))
         call = self.env['stringee.call'].make_call(
-            callee_number=self.phone,
+            callee_number=phone,
             user_id=self.env.user.id,
         )
         call.write({'lead_id': self.id})
@@ -180,31 +159,24 @@ class VdCrmLead(models.Model):
             'target': 'new',
         }
 
-    def action_open_dashboard(self):
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'vd_crm_lead.dashboard',
-        }
-
     # ---------- Dashboard data ----------
 
     @api.model
     def dashboard_data(self, user_id=None):
-        """Return everything the dashboard renders in one round-trip."""
+        """Single-payload data for the OWL dashboard."""
         user = self.env['res.users'].browse(user_id) if user_id else self.env.user
         domain_user = [('user_id', '=', user.id)]
 
-        Stage = self.env['vd.crm.stage']
+        Stage = self.env['crm.stage']
         stages = Stage.search([], order='sequence')
         stage_payload = []
         for st in stages:
             count = self.search_count(domain_user + [('stage_id', '=', st.id)])
             stage_payload.append({
                 'id': st.id,
-                'code': st.code,
+                'code': st.code or '',
                 'name': st.name,
                 'count': count,
-                'color': st.color,
                 'is_won': st.is_won,
                 'is_lost': st.is_lost,
                 'default_probability': st.default_probability,
@@ -213,6 +185,9 @@ class VdCrmLead(models.Model):
         today = fields.Date.context_today(self)
         today_start = fields.Datetime.to_datetime(today)
         today_end = today_start + timedelta(days=1)
+        now = fields.Datetime.now()
+        stale_threshold = now - timedelta(days=14)
+        active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
         Call = self.env['stringee.call']
         call_today_domain = [
@@ -220,17 +195,16 @@ class VdCrmLead(models.Model):
             ('create_date', '>=', today_start),
             ('create_date', '<', today_end),
         ]
+
         kpi = {
             'total': self.search_count(domain_user),
             'new_today': self.search_count(domain_user + [
                 ('create_date', '>=', today_start),
                 ('create_date', '<', today_end),
             ]),
-            'callback_today': self.search_count(domain_user + [
+            'callback_today': self.search_count(domain_user + active_only + [
                 ('callback_date', '>=', today_start),
                 ('callback_date', '<', today_end),
-                ('stage_is_won', '=', False),
-                ('stage_is_lost', '=', False),
             ]),
             'calls_today': Call.search_count(call_today_domain),
             'calls_answered_today': Call.search_count(
@@ -240,10 +214,6 @@ class VdCrmLead(models.Model):
                 call_today_domain + [('recording_attachment_id', '!=', False)],
             ),
         }
-
-        now = fields.Datetime.now()
-        stale_threshold = now - timedelta(days=14)
-        active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
         errors = {
             'overdue_callback': self.search_count(domain_user + active_only + [
@@ -284,7 +254,7 @@ class VdCrmLead(models.Model):
         return [{
             'id': l.id,
             'name': l.name,
-            'phone': l.phone,
+            'phone': l.phone or l.mobile or '',
             'probability': round(l.probability, 1),
             'callback_date': fields.Datetime.to_string(l.callback_date) if l.callback_date else '',
             'last_call_date': fields.Datetime.to_string(l.last_call_date) if l.last_call_date else '',

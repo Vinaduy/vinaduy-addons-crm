@@ -1,5 +1,1 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_vd_crm_stage_user,vd.crm.stage user,model_vd_crm_stage,base.group_user,1,0,0,0
-access_vd_crm_stage_admin,vd.crm.stage admin,model_vd_crm_stage,base.group_system,1,1,1,1
-access_vd_crm_lead_user,vd.crm.lead user,model_vd_crm_lead,base.group_user,1,1,1,0
-access_vd_crm_lead_admin,vd.crm.lead admin,model_vd_crm_lead,base.group_system,1,1,1,1
