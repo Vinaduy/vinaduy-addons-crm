@@ -8,8 +8,9 @@
  *   ringing   → "Đang đổ chuông…"   (call started but customer hasn't answered)
  *   in_call   → "Đang gọi · M:SS"   (live timer, ticks every second)
  *
- * Listens to bus channel `vd_stringee_call_state` and reloads the record
- * when a relevant notification arrives, so the UI updates without manual refresh.
+ * Realtime update: subscribes to bus.bus 'vd_stringee_call_state' and reloads
+ * the record when a relevant notification arrives. Also polls every 2s while
+ * a call is active as a safety net in case the bus push is lost.
  */
 import { Component, onMounted, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
@@ -24,16 +25,21 @@ export class VdCallStatusWidget extends Component {
         this.busService = useService("bus_service");
         this.state = useState({ elapsed: 0 });
 
-        this._busHandler = this._onBusNotification.bind(this);
-        this.busService.addEventListener("notification", this._busHandler);
+        // Modern Odoo 18 bus API. Subscribe by type string.
+        this._busCallback = this._onBusMessage.bind(this);
+        this.busService.subscribe("vd_stringee_call_state", this._busCallback);
+        this.busService.start();
 
         onMounted(() => {
             this._tick();
-            this._intervalId = setInterval(() => this._tick(), 1000);
+            this._tickerId = setInterval(() => this._tick(), 1000);
+            // Polling fallback — refresh record every 2s while a call is active.
+            this._pollerId = setInterval(() => this._maybePoll(), 2000);
         });
         onWillUnmount(() => {
-            if (this._intervalId) clearInterval(this._intervalId);
-            this.busService.removeEventListener("notification", this._busHandler);
+            if (this._tickerId) clearInterval(this._tickerId);
+            if (this._pollerId) clearInterval(this._pollerId);
+            this.busService.unsubscribe("vd_stringee_call_state", this._busCallback);
         });
     }
 
@@ -47,12 +53,21 @@ export class VdCallStatusWidget extends Component {
         this.state.elapsed = Math.max(0, Math.floor((Date.now() - start) / 1000));
     }
 
-    _onBusNotification({ detail: notifs }) {
-        const recId = this.props.record.resId;
-        for (const { type, payload } of notifs || []) {
-            if (type === "vd_stringee_call_state" && payload && payload.lead_id === recId) {
-                this.props.record.load();
+    async _maybePoll() {
+        // Only poll when we're showing a transient state — avoids load on idle records.
+        const t = this.statusType;
+        if (t === "ringing" || t === "in_call") {
+            try {
+                await this.props.record.load();
+            } catch (e) {
+                // Record might be unloading; ignore.
             }
+        }
+    }
+
+    _onBusMessage(payload) {
+        if (payload && payload.lead_id === this.props.record.resId) {
+            this.props.record.load();
         }
     }
 
