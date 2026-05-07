@@ -26,6 +26,7 @@
         background-size: 300% 300%;
         animation: vd-bg-shift 8s ease infinite;
         -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;
                 mask-composite: exclude;
         pointer-events: none;
@@ -158,7 +159,8 @@
         display: inline-flex;
         align-items: center;
         background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+                backdrop-filter: blur(8px);
         border: 1px solid rgba(77, 171, 247, 0.3);
         overflow: hidden;
 
