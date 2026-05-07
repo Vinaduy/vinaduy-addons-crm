@@ -13,11 +13,19 @@ Refs:
 import json
 import logging
 import re
+from datetime import timedelta
 
 import requests
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+
+def _phone_field(payload_value):
+    """Extract a phone string from a Stringee payload value that can be str or dict."""
+    if isinstance(payload_value, dict):
+        return payload_value.get('number') or payload_value.get('alias') or ''
+    return payload_value or ''
 
 _logger = logging.getLogger(__name__)
 
@@ -272,30 +280,63 @@ class StringeeCall(models.Model):
 
     @api.model
     def handle_event(self, payload):
-        """Process a webhook event from Stringee. Idempotent."""
+        """Process a webhook event from Stringee. Idempotent.
+
+        Stringee call event payload (we care about):
+            call_id, call_status (created|ringing|answered|ended), event_id,
+            direction (OUTBOUND|INBOUND), from (dict), to (dict),
+            answerDuration, duration, endCallCause, endedBy
+        """
         call_id = payload.get('call_id') or payload.get('callId')
-        event = payload.get('event') or payload.get('signalingState') or payload.get('mediaState')
         if not call_id:
             _logger.warning("Stringee event without call_id: %s", payload)
             return
 
+        # Idempotency: skip if we've seen this exact event_id before
+        event_id = payload.get('event_id')
+        from_phone = _phone_field(payload.get('from') or payload.get('caller'))
+        to_phone = _phone_field(payload.get('to') or payload.get('callee'))
+        is_outbound = (payload.get('direction') or '').upper() == 'OUTBOUND'
+
         rec = self.search([('name', '=', call_id)], limit=1)
+        # If no record yet, try to claim a recent same-direction stub created by
+        # action_callout (before the Stringee callId came back).
+        if not rec and is_outbound and to_phone:
+            stub = self.search([
+                ('callee_number', '=', to_phone),
+                ('name', '=', False),
+                ('direction', '=', 'outbound'),
+                ('create_date', '>', fields.Datetime.now() - timedelta(seconds=60)),
+            ], limit=1, order='create_date desc')
+            if stub:
+                stub.write({'name': call_id})
+                rec = stub
         if not rec:
             rec = self.create({
                 'name': call_id,
-                'direction': 'inbound' if payload.get('direction') == 'inbound' else 'outbound',
-                'caller_number': payload.get('from') or payload.get('caller'),
-                'callee_number': payload.get('to') or payload.get('callee'),
+                'direction': 'outbound' if is_outbound else 'inbound',
+                'caller_number': from_phone,
+                'callee_number': to_phone,
                 'state': 'initiated',
             })
 
-        new_state = self._event_to_state(event, payload)
+        # Skip duplicate event
+        if event_id and rec.raw_events:
+            try:
+                seen = json.loads(rec.raw_events)
+                if any(e.get('event_id') == event_id for e in seen):
+                    return rec
+            except ValueError:
+                pass
+
+        call_status = payload.get('call_status') or ''
+        new_state = self._event_to_state(call_status, payload)
         bumped = self._bump_state(rec.state, new_state)
 
         vals = {}
         if bumped != rec.state:
             vals['state'] = bumped
-        if event in ('answered', 'ANSWERED'):
+        if call_status == 'answered' and not rec.answer_time:
             vals['answer_time'] = fields.Datetime.now()
         if bumped in _TERMINAL_STATES and not rec.end_time:
             vals['end_time'] = fields.Datetime.now()
@@ -304,9 +345,15 @@ class StringeeCall(models.Model):
                 vals['duration'] = int(duration)
             except (TypeError, ValueError):
                 pass
-            cause = payload.get('reason') or payload.get('hangupReason') or payload.get('sipCode')
+            cause = (payload.get('endCallCause') or payload.get('reason')
+                     or payload.get('hangupReason') or payload.get('sipCode'))
             if cause:
                 vals['hangup_cause'] = str(cause)
+        # Repair from/to if they were stored as dict-strings
+        if from_phone and (not rec.caller_number or rec.caller_number.startswith('{')):
+            vals['caller_number'] = from_phone
+        if to_phone and (not rec.callee_number or rec.callee_number.startswith('{')):
+            vals['callee_number'] = to_phone
 
         # Append to raw_events (capped)
         history = []
@@ -337,39 +384,43 @@ class StringeeCall(models.Model):
         return rec
 
     @staticmethod
-    def _event_to_state(event, payload):
-        """Map Stringee event/signalingState to our state."""
-        if not event:
+    def _event_to_state(call_status, payload):
+        """Map Stringee `call_status` → our state.
+
+        Stringee call_status values seen: created, ringing, answered, ended
+        For ended, refine using answerDuration + endCallCause.
+        """
+        if not call_status:
             return None
-        e = str(event).lower()
-        # Stringee SignalingState values: calling, ringing, answered, busy, ended
-        if e in ('calling', 'initiated', 'created'):
+        s = str(call_status).lower()
+        if s in ('created', 'calling', 'initiated'):
             return 'initiated'
-        if e == 'ringing':
+        if s == 'ringing':
             return 'ringing'
-        if e == 'answered':
+        if s == 'answered':
             return 'answered'
-        if e == 'busy':
+        if s == 'busy':
             return 'busy'
-        if e in ('ended', 'end'):
-            # Distinguish based on whether it ever answered
+        if s in ('ended', 'end'):
             answer_dur = payload.get('answerDuration') or payload.get('answer_duration') or 0
+            cause = (payload.get('endCallCause') or '').upper()
             try:
-                if int(answer_dur) <= 0:
-                    sip = str(payload.get('sipCode') or payload.get('sip_code') or '')
-                    if sip in ('486',):
-                        return 'busy'
-                    if sip in ('603',):
-                        return 'declined'
-                    if sip in ('487',):
-                        return 'cancelled'
-                    if sip in ('480', '408'):
-                        return 'no_answer'
-                    return 'no_answer'
+                ans = int(answer_dur)
             except (TypeError, ValueError):
-                pass
+                ans = 0
+            if ans <= 0:
+                if cause == 'BUSY' or 'BUSY' in cause:
+                    return 'busy'
+                if cause in ('DECLINED', 'CALL_REJECT', 'REJECTED'):
+                    return 'declined'
+                if cause in ('CALL_CANCEL', 'CANCEL', 'CANCELLED'):
+                    return 'cancelled'
+                if cause in ('NO_ANSWER', 'TIMEOUT', 'NOT_ANSWER'):
+                    return 'no_answer'
+                # Default: ringing finished without answer
+                return 'no_answer' if cause != 'USER_END_CALL' else 'ended'
             return 'ended'
-        if e in ('failed', 'error'):
+        if s in ('failed', 'error'):
             return 'failed'
         return None
 
