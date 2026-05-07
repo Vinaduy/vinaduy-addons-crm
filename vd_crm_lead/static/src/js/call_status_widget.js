@@ -2,20 +2,25 @@
 /**
  * Call status widget for the lead form.
  *
- * Shows one of 4 states based on `vd_active_call_state` and lead.phone:
- *   idle      → "Sẵn sàng gọi"
- *   no_phone  → "Thiếu SĐT"
- *   ringing   → "Đang đổ chuông…"   (call started but customer hasn't answered)
- *   in_call   → "Đang gọi · M:SS"   (live timer, ticks every second)
+ * State machine on the UI side:
+ *   idle      → "Sẵn sàng gọi"               (no active call)
+ *   no_phone  → "Thiếu SĐT"                  (no phone, no active call)
+ *   ringing   → "Đang đổ chuông…"            (state ∈ {draft, initiated, ringing})
+ *   in_call   → "Đang gọi · M:SS"            (state == answered AND answer_time set)
  *
- * Realtime update: subscribes to bus.bus 'vd_stringee_call_state' and reloads
- * the record when a relevant notification arrives. Also polls every 2s while
- * a call is active as a safety net in case the bus push is lost.
+ * Timer only ticks during in_call. When state moves to a terminal value,
+ * fires a toast (decline / no-answer / busy / etc.) using the message that
+ * the server-side broadcast included.
  */
 import { Component, onMounted, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
+
+const RINGING_STATES = new Set(["draft", "initiated", "ringing"]);
+const TERMINAL_STATES = new Set([
+    "ended", "no_answer", "busy", "declined", "cancelled", "failed",
+]);
 
 export class VdCallStatusWidget extends Component {
     static template = "vd_crm_lead.CallStatusWidget";
@@ -23,17 +28,18 @@ export class VdCallStatusWidget extends Component {
 
     setup() {
         this.busService = useService("bus_service");
+        this.notification = useService("notification");
         this.state = useState({ elapsed: 0 });
+        this._lastSeenState = null;
 
-        // Modern Odoo 18 bus API. Subscribe by type string.
         this._busCallback = this._onBusMessage.bind(this);
         this.busService.subscribe("vd_stringee_call_state", this._busCallback);
         this.busService.start();
 
         onMounted(() => {
+            this._lastSeenState = this.callState;
             this._tick();
             this._tickerId = setInterval(() => this._tick(), 1000);
-            // Polling fallback — refresh record every 2s while a call is active.
             this._pollerId = setInterval(() => this._maybePoll(), 2000);
         });
         onWillUnmount(() => {
@@ -44,31 +50,42 @@ export class VdCallStatusWidget extends Component {
     }
 
     _tick() {
-        const ans = this.props.record.data.vd_active_call_answer_time;
-        if (!ans || this.statusType !== "in_call") {
-            this.state.elapsed = 0;
+        // CRITICAL: timer only runs when state is exactly "answered" AND we
+        // actually have an answer_time. Never count seconds during ringing.
+        const data = this.props.record.data;
+        if (data.vd_active_call_state !== "answered" || !data.vd_active_call_answer_time) {
+            if (this.state.elapsed !== 0) this.state.elapsed = 0;
             return;
         }
+        const ans = data.vd_active_call_answer_time;
         const start = ans.ts ? ans.ts : new Date(ans).getTime();
         this.state.elapsed = Math.max(0, Math.floor((Date.now() - start) / 1000));
     }
 
     async _maybePoll() {
-        // Only poll when we're showing a transient state — avoids load on idle records.
-        const t = this.statusType;
-        if (t === "ringing" || t === "in_call") {
+        // Only poll while there's a transient active call — avoids load on idle records.
+        const s = this.callState;
+        if (RINGING_STATES.has(s) || s === "answered") {
             try {
                 await this.props.record.load();
             } catch (e) {
-                // Record might be unloading; ignore.
+                // record might be unloading
             }
         }
     }
 
     _onBusMessage(payload) {
-        if (payload && payload.lead_id === this.props.record.resId) {
-            this.props.record.load();
+        if (!payload || payload.lead_id !== this.props.record.resId) {
+            return;
         }
+        // Show end-reason toast on transition to terminal
+        if (TERMINAL_STATES.has(payload.state) && payload.terminal_message) {
+            const type = payload.state === "ended" ? "info"
+                       : payload.state === "declined" ? "warning"
+                       : "warning";
+            this.notification.add(payload.terminal_message, { type, sticky: false });
+        }
+        this.props.record.load();
     }
 
     get callState() {
@@ -82,8 +99,10 @@ export class VdCallStatusWidget extends Component {
 
     get statusType() {
         const s = this.callState;
-        if (s === "answered") return "in_call";
-        if (s === "draft" || s === "initiated" || s === "ringing") return "ringing";
+        if (s === "answered" && this.props.record.data.vd_active_call_answer_time) {
+            return "in_call";
+        }
+        if (RINGING_STATES.has(s)) return "ringing";
         if (!this.hasPhone) return "no_phone";
         return "idle";
     }

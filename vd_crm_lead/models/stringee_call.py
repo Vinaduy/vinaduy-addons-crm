@@ -51,15 +51,32 @@ class StringeeCall(models.Model):
         partner = self.user_id.partner_id if self.user_id else False
         if not partner:
             return
+        terminal_msg = self._terminal_message() if self.state in (
+            'ended', 'no_answer', 'busy', 'declined', 'cancelled', 'failed',
+        ) else ''
         try:
             self.env['bus.bus']._sendone(partner, 'vd_stringee_call_state', {
                 'call_id': self.id,
                 'lead_id': self.lead_id.id if self.lead_id else False,
                 'state': self.state,
                 'answer_time': fields.Datetime.to_string(self.answer_time) if self.answer_time else False,
+                'terminal_message': terminal_msg,
             })
         except Exception:
             _logger.warning("Bus push failed for call %s", self.id, exc_info=True)
+
+    def _terminal_message(self):
+        """Vietnamese end-state message shown as a toast on the lead form."""
+        self.ensure_one()
+        mapping = {
+            'declined': 'Khách hàng từ chối cuộc gọi',
+            'busy':     'Máy bận',
+            'no_answer': 'Khách hàng không bắt máy',
+            'cancelled': 'Cuộc gọi bị huỷ',
+            'failed':   'Cuộc gọi thất bại',
+            'ended':    'Cuộc gọi đã kết thúc',
+        }
+        return mapping.get(self.state, '')
 
     def _sync_lead_activity(self):
         """Push call info back to the matched lead so the dashboard can rank it.

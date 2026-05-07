@@ -200,7 +200,9 @@ class StringeeCall(models.Model):
                 'from': {'type': 'external', 'number': from_number, 'alias': from_number},
                 'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
                 'maxConnectTime': -1,
-                'timeout': 25,  # ring max 25s — KH decline hoặc tự dập máy
+                'timeout': 50,        # ring tối đa 50s nếu KH không bắt máy
+                'dialAttempts': 1,    # KHÔNG auto-redial
+                'retries': 0,         # phòng trường hợp Stringee dùng tên khác
                 'eventUrl': f'{base_url}/stringee/event',
             },
         ]
