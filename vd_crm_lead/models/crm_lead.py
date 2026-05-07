@@ -40,28 +40,92 @@ class CrmLead(models.Model):
     vd_has_intake_data = fields.Boolean(compute='_compute_has_intake_data')
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
-    vd_intake_address = fields.Char(string='Địa chỉ')
-    vd_intake_timeline = fields.Char(string='Thời gian')
-    vd_intake_area = fields.Char(string='Diện tích', help='vd: 100m2 hoặc 5x20m')
+    # `help` = kịch bản gợi ý cho NV khi gọi (hiển thị tooltip).
+    vd_intake_address = fields.Char(
+        string='Địa chỉ',
+        help='Hỏi: "Anh/chị cho em xin địa chỉ thi công ở đâu ạ?"',
+    )
+    vd_intake_timeline = fields.Selection([
+        ('chuan_bi', 'Đang chuẩn bị'),
+        ('1-3_thang', '1–3 tháng tới'),
+        ('3-6_thang', '3–6 tháng tới'),
+        ('trong_nam', 'Trong năm nay'),
+        ('nam_sau', 'Năm sau'),
+        ('chua_xd', 'Chưa xác định'),
+    ], string='Thời gian',
+        help='Hỏi: "Anh/chị dự kiến khởi công khi nào?"',
+    )
+    vd_intake_area = fields.Char(
+        string='Diện tích',
+        help='Hỏi: "Tổng diện tích đất / sàn xây dựng?". VD: 100m² hoặc 5x20m',
+    )
     vd_intake_house_type = fields.Selection([
+        ('mai_bang', 'Nhà mái bằng'),
+        ('mai_thai', 'Nhà mái thái'),
+        ('mai_nhat', 'Nhà mái nhật'),
         ('nha_pho', 'Nhà phố'),
         ('biet_thu', 'Biệt thự'),
-        ('chung_cu', 'Chung cư'),
+        ('nha_ong', 'Nhà ống'),
         ('cap_4', 'Nhà cấp 4'),
+        ('tum_mansard', 'Tum / Mansard'),
+        ('chung_cu', 'Chung cư'),
         ('khac', 'Khác'),
-    ], string='Kiểu nhà')
-    vd_intake_floors = fields.Integer(string='Số tầng')
-    vd_intake_function = fields.Char(string='Công năng', help='vd: 3PN + 2WC + bếp + phòng thờ')
-    vd_intake_function_notes = fields.Text(string='Ghi chú công năng')
+    ], string='Kiểu nhà',
+        help='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, biệt thự…?"',
+    )
+    vd_intake_floors = fields.Char(
+        string='Số tầng',
+        help='Hỏi: "Quy mô bao nhiêu tầng ạ?". VD: "2,5 tầng" hoặc "1 trệt 2 lầu"',
+    )
+    vd_intake_function = fields.Char(
+        string='Công năng',
+        help='Hỏi: "Cần bao nhiêu phòng ngủ, có cần thang máy / sân thượng không?"',
+    )
+    vd_intake_function_notes = fields.Text(
+        string='Ghi chú công năng',
+        help='Hỏi: "Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"',
+    )
     vd_intake_land_type = fields.Selection([
-        ('dat_o', 'Đất ở'),
-        ('dat_thuong_mai', 'Đất thương mại / dịch vụ'),
-        ('dat_hon_hop', 'Đất hỗn hợp'),
-        ('dat_khac', 'Khác'),
-    ], string='Loại đất')
-    vd_intake_position = fields.Char(string='Vị trí', help='vd: Mặt tiền đường, hẻm xe hơi, …')
-    vd_intake_budget = fields.Char(string='Ngân sách dự kiến', help='vd: 5–7 tỷ')
-    vd_intake_dimensions = fields.Char(string='Số đo', help='vd: 5m x 20m')
+        ('lien_tho', 'Đất liền thổ'),
+        ('phan_lo', 'Đất phân lô'),
+        ('hon_hop', 'Đất hỗn hợp'),
+        ('nong_nghiep', 'Đất nông nghiệp'),
+        ('quy_hoach', 'Đất quy hoạch'),
+        ('khac', 'Khác'),
+    ], string='Loại đất',
+        help='Hỏi: "Đất là sổ đỏ thổ cư hay nông nghiệp / phân lô?"',
+    )
+    vd_intake_position = fields.Selection([
+        ('mt_lon', 'Mặt tiền đường lớn'),
+        ('mt_nho', 'Mặt tiền đường nhỏ'),
+        ('xe_tai', 'Đường xe tải'),
+        ('hem_xh', 'Hẻm xe hơi'),
+        ('hem_xm', 'Hẻm xe máy'),
+        ('cuoi_hem', 'Cuối hẻm'),
+        ('khac', 'Khác'),
+    ], string='Vị trí',
+        help='Hỏi: "Mặt tiền hay trong hẻm? Đường vào có thuận lợi xe vận chuyển không?"',
+    )
+    vd_intake_budget = fields.Selection([
+        ('duoi_1ty', 'Dưới 1 tỷ'),
+        ('1-3ty', '1–3 tỷ'),
+        ('3-5ty', '3–5 tỷ'),
+        ('5-10ty', '5–10 tỷ'),
+        ('10-20ty', '10–20 tỷ'),
+        ('tren_20ty', 'Trên 20 tỷ'),
+        ('chua_xd', 'Chưa xác định'),
+    ], string='Ngân sách dự kiến',
+        help='Hỏi: "Anh/chị dự kiến đầu tư khoảng bao nhiêu?"',
+    )
+    vd_intake_dimensions = fields.Selection([
+        ('co_so_co_phep', 'Có sổ + có cấp phép'),
+        ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
+        ('chua_co_so', 'Chưa có sổ'),
+        ('dang_xin_phep', 'Đang xin cấp phép'),
+        ('khac', 'Khác'),
+    ], string='Sổ đỏ / cấp phép',
+        help='Hỏi: "Đất đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"',
+    )
 
     # Convenience related fields for stage flags
     stage_code = fields.Char(related='stage_id.code', store=True, index=True)

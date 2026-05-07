@@ -14,6 +14,19 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
+            <!-- Hide Won / Lost buttons in header -->
+            <xpath expr="//header/button[@name='action_set_won_rainbowman']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_set_lost']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide entire smart-button row (No Meeting / Quotations / etc.) -->
+            <xpath expr="//div[@name='button_box']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <!-- Hide all standard notebook pages (Internal Notes / Extra Information) -->
             <xpath expr="//page[@name='internal_notes']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -80,37 +93,66 @@
             <!-- After the contact group, insert the cards -->
             <xpath expr="//notebook" position="before">
 
-                <!-- KHAI THÁC CARD — slides in only when call is active or data already filled -->
-                <div class="o_vd_card o_vd_card_intake"
+                <!-- KHAI THÁC CARD — vertical list, slides in when call active or data filled -->
+                <div class="o_vd_card o_vd_card_intake o_vd_intake_v2"
                      invisible="not vd_in_call and not vd_has_intake_data">
-                    <h5>
-                        <i class="fa fa-check-square-o"/>
-                        Tổng hợp nhu cầu khách hàng
+                    <h5 class="o_vd_intake_title">
+                        ✅ TỔNG HỢP NHU CẦU KHÁCH HÀNG
                     </h5>
                     <div class="alert alert-info py-2" invisible="not vd_in_call">
                         <i class="fa fa-microphone"/>
-                        Đang trong cuộc gọi — điền thông tin khai thác trực tiếp.
+                        Đang gọi — hỏi và điền theo các kịch bản gợi ý dưới đây.
                     </div>
-                    <group>
-                        <group string="Vị trí &amp; đất">
-                            <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP"/>
-                            <field name="vd_intake_position" placeholder="Mặt tiền / hẻm / …"/>
-                            <field name="vd_intake_land_type"/>
-                            <field name="vd_intake_dimensions" placeholder="vd: 5m x 20m"/>
-                            <field name="vd_intake_area" placeholder="vd: 100 m²"/>
-                        </group>
-                        <group string="Công trình">
-                            <field name="vd_intake_house_type"/>
-                            <field name="vd_intake_floors"/>
-                            <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …"/>
-                            <field name="vd_intake_timeline" placeholder="Thời gian khởi công / mua"/>
-                            <field name="vd_intake_budget" placeholder="vd: 5–7 tỷ"/>
-                        </group>
-                    </group>
-                    <group string="Ghi chú công năng">
+
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_address">ĐỊA CHỈ</label>
+                        <field name="vd_intake_address" nolabel="1"
+                               placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_timeline">THỜI GIAN</label>
+                        <field name="vd_intake_timeline" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_area">DIỆN TÍCH</label>
+                        <field name="vd_intake_area" nolabel="1"
+                               placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_house_type">KIỂU NHÀ</label>
+                        <field name="vd_intake_house_type" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_floors">SỐ TẦNG</label>
+                        <field name="vd_intake_floors" nolabel="1"
+                               placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_function">CÔNG NĂNG</label>
+                        <field name="vd_intake_function" nolabel="1"
+                               placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_function_notes">GHI CHÚ CÔNG NĂNG</label>
                         <field name="vd_intake_function_notes" nolabel="1"
-                               placeholder="Yêu cầu đặc biệt về công năng từng phòng…"/>
-                    </group>
+                               placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_land_type">LOẠI ĐẤT</label>
+                        <field name="vd_intake_land_type" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_position">VỊ TRÍ</label>
+                        <field name="vd_intake_position" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_budget">NGÂN SÁCH DỰ KIẾN</label>
+                        <field name="vd_intake_budget" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
+                    <div class="o_vd_intake_row">
+                        <label for="vd_intake_dimensions">SỔ ĐỎ / CẤP PHÉP</label>
+                        <field name="vd_intake_dimensions" nolabel="1" placeholder="Chưa có dữ liệu"/>
+                    </div>
                 </div>
 
                 <!-- LỊCH SỬ GỌI CARD — always visible -->
