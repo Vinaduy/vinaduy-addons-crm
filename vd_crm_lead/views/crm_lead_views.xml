@@ -43,43 +43,21 @@
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
 
-                <!-- 3-column row: [call btn left]  [info centered]  [spacer right] -->
-                <div class="o_vd_info_card">
-                    <div class="o_vd_info_row">
-                        <!-- LEFT: call/hangup button + status text (left-aligned) -->
-                        <div class="o_vd_call_section">
-                            <button name="action_call" type="object"
-                                    class="o_vd_phone_btn o_vd_phone_btn_call"
-                                    title="Gọi qua Stringee"
-                                    invisible="vd_in_call or (not phone and not mobile)">
-                                <i class="fa fa-phone"/>
-                            </button>
-                            <button name="action_hangup_active" type="object"
-                                    class="o_vd_phone_btn o_vd_phone_btn_hangup"
-                                    title="Cúp máy"
-                                    invisible="not vd_in_call">
-                                <i class="fa fa-phone"/>
-                            </button>
-                            <field name="vd_active_call_state" invisible="1"/>
-                            <field name="vd_active_call_answer_time" invisible="1"/>
-                        </div>
-
-                        <!-- CENTER: customer info -->
-                        <div class="o_vd_info_section">
-                            <h1 class="o_vd_lead_name">
-                                <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
-                            </h1>
-                            <span class="o_vd_meta_phone">
-                                <i class="fa fa-phone"/>
-                                <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
-                            </span>
-                            <span class="o_vd_meta_stage">
-                                <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
-                            </span>
-                        </div>
-
-                        <!-- RIGHT: spacer to keep center column truly centered -->
-                        <div class="o_vd_info_spacer"/>
+                <!-- INFO CARD: customer info aligned to the LEFT (no buttons here) -->
+                <div class="o_vd_info_card o_vd_info_left">
+                    <field name="vd_active_call_state" invisible="1"/>
+                    <field name="vd_active_call_answer_time" invisible="1"/>
+                    <div class="o_vd_info_row_left">
+                        <h1 class="o_vd_lead_name">
+                            <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                        </h1>
+                        <span class="o_vd_meta_phone">
+                            <i class="fa fa-phone"/>
+                            <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                        </span>
+                        <span class="o_vd_meta_stage">
+                            <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
+                        </span>
                     </div>
                 </div>
 
