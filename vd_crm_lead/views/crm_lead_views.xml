@@ -14,19 +14,6 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Hide Won / Lost buttons in header -->
-            <xpath expr="//header/button[@name='action_set_won_rainbowman']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//header/button[@name='action_set_lost']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-
-            <!-- Hide entire smart-button row (No Meeting / Quotations / etc.) -->
-            <xpath expr="//div[@name='button_box']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-
             <!-- Hide all standard notebook pages (Internal Notes / Extra Information) -->
             <xpath expr="//page[@name='internal_notes']" position="attributes">
                 <attribute name="invisible">1</attribute>

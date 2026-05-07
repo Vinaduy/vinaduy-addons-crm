@@ -135,7 +135,7 @@ class CrmLead(models.Model):
     # Override standard probability with our heuristic
     probability = fields.Float(
         compute='_compute_probability', store=True, readonly=False,
-        copy=False, group_operator='avg', tracking=True,
+        copy=False, aggregator='avg', tracking=True,
     )
     automated_probability = fields.Float(  # Standard PLS field — keep but unused
         compute='_compute_probability_unused', store=False,

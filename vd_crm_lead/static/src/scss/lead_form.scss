@@ -141,6 +141,20 @@
     h5 i { color: #2b8a3e; }
 }
 
+/* Hide standard CRM lead buttons that don't fit the VD UX:
+   Won / Lost in header, and the smart-button row (Meetings / Quotations / etc).
+   Done via CSS so it survives upstream renames. */
+.o_form_view {
+    .o_form_status_indicator + button[name="action_set_won_rainbowman"],
+    .o_form_status_indicator + button[name="action_set_won"],
+    header button[name="action_set_won_rainbowman"],
+    header button[name="action_set_won"],
+    header button[name="action_set_lost"],
+    .oe_button_box {
+        display: none !important;
+    }
+}
+
 /* Vertical list layout for intake fields (per Image 3 design) */
 .o_vd_intake_v2 {
     .o_vd_intake_title {
