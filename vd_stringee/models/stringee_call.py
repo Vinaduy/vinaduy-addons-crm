@@ -27,6 +27,21 @@ def _phone_field(payload_value):
         return payload_value.get('number') or payload_value.get('alias') or ''
     return payload_value or ''
 
+
+def _digits_only(s):
+    return re.sub(r'\D', '', str(s or ''))
+
+
+def _is_customer_event(payload, callee_number):
+    """True if this Stringee event originates from the customer's PSTN leg
+    (vs the bridge/project-side leg). Stringee call2 in IVR mode fires events
+    on BOTH legs; we only want customer-side state transitions to count."""
+    actor = _digits_only(payload.get('actor'))
+    callee = _digits_only(callee_number)
+    if not actor or not callee:
+        return False
+    return actor.endswith(callee[-9:]) or callee.endswith(actor[-9:])
+
 _logger = logging.getLogger(__name__)
 
 _STRINGEE_API = 'https://api.stringee.com'
@@ -330,13 +345,32 @@ class StringeeCall(models.Model):
 
         call_status = payload.get('call_status') or ''
         new_state = self._event_to_state(call_status, payload)
+
+        # Ignore 'answered' events that don't come from the customer leg.
+        # Stringee call2 (IVR mode) fires duplicate 'answered' events for
+        # the bridge/from-number leg; trusting them would start the timer
+        # before the customer has actually picked up.
+        if new_state == 'answered' and not _is_customer_event(payload, rec.callee_number):
+            _logger.info("Ignored non-customer 'answered' event for call %s (actor=%s)",
+                         rec.name, payload.get('actor'))
+            new_state = None
+
         bumped = self._bump_state(rec.state, new_state)
 
         vals = {}
         if bumped != rec.state:
             vals['state'] = bumped
-        if call_status == 'answered' and not rec.answer_time:
-            vals['answer_time'] = fields.Datetime.now()
+        if (call_status == 'answered'
+                and _is_customer_event(payload, rec.callee_number)
+                and not rec.answer_time):
+            # Use the event's own timestamp so the timer starts from when the
+            # customer actually picked up (not when our webhook handler ran).
+            ts_ms = payload.get('timestamp_ms')
+            if ts_ms:
+                from datetime import datetime
+                vals['answer_time'] = datetime.utcfromtimestamp(int(ts_ms) / 1000)
+            else:
+                vals['answer_time'] = fields.Datetime.now()
         if bumped in _TERMINAL_STATES and not rec.end_time:
             vals['end_time'] = fields.Datetime.now()
             duration = payload.get('duration') or payload.get('answerDuration') or 0
