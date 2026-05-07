@@ -13,7 +13,7 @@
 .o_vd_info_row {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 1.5rem;
     flex-wrap: nowrap;
     white-space: nowrap;
@@ -83,10 +83,10 @@
     }
 }
 
-/* Status text below the info row */
+/* Status text below the info row, centered */
 .o_vd_info_card .o_vd_call_status {
     margin-top: 0.5rem;
-    padding-left: 110px;  // align under the info text, past the phone button
+    text-align: center;
     font-size: 0.9rem;
 }
 
