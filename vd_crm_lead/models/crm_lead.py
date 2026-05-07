@@ -141,22 +141,37 @@ class CrmLead(models.Model):
     # ---------- Actions ----------
 
     def action_call(self):
-        """Place an outbound call via vd_stringee, link the call back to this lead."""
+        """Place an outbound call via vd_stringee. Notifies, doesn't open a modal."""
         self.ensure_one()
         phone = self.phone or self.mobile
         if not phone:
             raise UserError(_('Khách hàng chưa có số điện thoại.'))
-        call = self.env['stringee.call'].make_call(
-            callee_number=phone,
-            user_id=self.env.user.id,
-        )
+
+        # Block accidental double-clicks: refuse if same user has a still-live
+        # call started in the last 30 seconds.
+        Call = self.env['stringee.call']
+        active = Call.search_count([
+            ('user_id', '=', self.env.user.id),
+            ('state', 'in', ['draft', 'initiated', 'ringing', 'answered']),
+            ('create_date', '>', fields.Datetime.now() - timedelta(seconds=30)),
+        ])
+        if active:
+            raise UserError(_(
+                'Bạn đang có 1 cuộc gọi chưa kết thúc. '
+                'Cúp máy cuộc cũ hoặc chờ ít nhất 30s trước khi gọi tiếp.',
+            ))
+
+        call = Call.make_call(callee_number=phone, user_id=self.env.user.id)
         call.write({'lead_id': self.id})
         return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'stringee.call',
-            'res_id': call.id,
-            'view_mode': 'form',
-            'target': 'new',
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Đang gọi'),
+                'message': _('Stringee đang quay số %s') % phone,
+                'type': 'info',
+                'sticky': False,
+            },
         }
 
     # ---------- Dashboard data ----------

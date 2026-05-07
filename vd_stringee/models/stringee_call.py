@@ -195,7 +195,7 @@ class StringeeCall(models.Model):
                 'from': {'type': 'external', 'number': from_number, 'alias': from_number},
                 'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
                 'maxConnectTime': -1,
-                'timeout': 60,
+                'timeout': 90,
                 'eventUrl': f'{base_url}/stringee/event',
             },
         ]
@@ -242,10 +242,13 @@ class StringeeCall(models.Model):
         return rec
 
     def action_hangup(self):
-        """Stop an active call via REST."""
+        """Stop an active call via REST. Idempotent — silent if already ended."""
         self.ensure_one()
+        if self.state in _TERMINAL_STATES:
+            return True
         if not self.name:
-            raise UserError(_('Cuộc gọi chưa có call_id.'))
+            self.write({'state': 'cancelled', 'end_time': fields.Datetime.now()})
+            return True
         try:
             resp = requests.post(
                 f'{_STRINGEE_API}/v1/call2/stop',
@@ -254,14 +257,15 @@ class StringeeCall(models.Model):
                 timeout=_TIMEOUT,
             )
             data = resp.json() if resp.content else {}
-        except Exception as e:
-            _logger.exception("Stringee stop failed")
-            raise UserError(_('Không cúp máy được: %s') % e)
-        if data.get('r') not in (0, 1):  # 1 = call already ended
-            raise UserError(_('Stringee từ chối: %s') % data.get('message'))
-        # Force-end locally so UI updates even if no webhook arrives.
-        if self.state not in _TERMINAL_STATES:
-            self.write({'state': 'ended', 'end_time': fields.Datetime.now()})
+        except Exception:
+            _logger.warning("Stringee stop network error for %s", self.name, exc_info=True)
+            data = {'r': -1}
+        # r=0 ok, r=1 already ended, r=2 not found — all map to "ended" locally.
+        # We log unknown codes but never block the user from continuing.
+        if data.get('r') not in (0, 1, 2):
+            _logger.info("Stringee stop returned r=%s msg=%s for %s",
+                         data.get('r'), data.get('message'), self.name)
+        self.write({'state': 'ended', 'end_time': fields.Datetime.now()})
         return True
 
     # ---------- Webhook handler ----------
