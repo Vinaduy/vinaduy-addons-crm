@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_stringee_root" name="Stringee" sequence="80"/>
+
+    <menuitem id="menu_stringee_calls" name="Lịch sử cuộc gọi"
+              parent="menu_stringee_root" action="action_stringee_call" sequence="10"/>
+</odoo>

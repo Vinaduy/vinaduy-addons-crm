@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.Dashboard">
+        <div class="o_vd_crm_dashboard p-3">
+            <div t-if="state.loading" class="text-center text-muted py-5">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+                <div class="mt-2">Đang tải...</div>
+            </div>
+
+            <div t-else="" class="row g-3">
+                <!-- LEFT COLUMN — user card / today / errors -->
+                <div class="col-lg-3 col-md-4 d-flex flex-column gap-3">
+
+                    <!-- User card -->
+                    <div class="card o_vd_user_card">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger mb-1"><t t-esc="state.user.name"/></h5>
+                            <div class="text-muted small">Tổng số khách</div>
+                            <div class="display-6 fw-bold"><t t-esc="state.kpi.total"/></div>
+                        </div>
+                    </div>
+
+                    <!-- Today's work -->
+                    <div class="card o_vd_today_card">
+                        <div class="card-body">
+                            <h6 class="card-title text-danger">Công việc hôm nay</h6>
+                            <div t-if="state.kpi.new_today" class="d-flex justify-content-between">
+                                <span>KH mới được giao</span>
+                                <span class="fw-bold"><t t-esc="state.kpi.new_today"/></span>
+                            </div>
+                            <div t-if="state.kpi.callback_today" class="d-flex justify-content-between">
+                                <span>Hẹn gọi lại hôm nay</span>
+                                <span class="fw-bold text-warning"><t t-esc="state.kpi.callback_today"/></span>
+                            </div>
+                            <div t-if="!state.kpi.new_today and !state.kpi.callback_today"
+                                 class="text-muted">Không có việc khẩn hôm nay.</div>
+                        </div>
+                    </div>
+
+                    <!-- Error report -->
+                    <div class="card o_vd_errors_card">
+                        <div class="card-body">
+                            <h6 class="card-title text-danger">Báo cáo lỗi</h6>
+                            <ul class="mb-0 ps-3">
+                                <li t-if="state.errors.overdue_callback">
+                                    Quá hạn <strong t-esc="state.errors.overdue_callback"/> KH hẹn gọi lại
+                                </li>
+                                <li t-if="state.errors.new_not_called">
+                                    <strong t-esc="state.errors.new_not_called"/> KH mới chưa gọi
+                                </li>
+                                <li t-if="state.errors.potential_no_quote">
+                                    <strong t-esc="state.errors.potential_no_quote"/> KH tiềm năng chưa báo giá
+                                </li>
+                                <li t-if="state.errors.stale">
+                                    <strong t-esc="state.errors.stale"/> KH chưa được gọi 14+ ngày
+                                </li>
+                                <li t-if="!state.errors.overdue_callback and !state.errors.new_not_called and !state.errors.potential_no_quote and !state.errors.stale"
+                                    class="text-muted list-unstyled">Không có cảnh báo.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- MIDDLE COLUMN — stage tabs -->
+                <div class="col-lg-2 col-md-3">
+                    <div class="d-flex flex-column gap-2 o_vd_stage_tabs">
+                        <button t-foreach="state.stages" t-as="stage" t-key="stage.id"
+                                t-on-click="() => this.selectStage(stage.id)"
+                                t-att-class="'btn text-start o_vd_stage_btn ' + (state.selectedStageId === stage.id ? 'o_active' : '')">
+                            <div class="fw-bold"><t t-esc="stage.name"/></div>
+                            <div class="small d-flex justify-content-between">
+                                <span class="text-muted"><t t-esc="stage.default_probability"/>%</span>
+                                <span class="badge bg-secondary"><t t-esc="stage.count"/></span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN — leads in selected stage -->
+                <div class="col-lg-7 col-md-5">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/>
+                            </h5>
+                            <span t-if="selectedStage" class="badge bg-info">
+                                <t t-esc="selectedStage.count"/> KH
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div t-if="state.leadsLoading" class="text-center text-muted py-3">
+                                <i class="fa fa-spinner fa-spin"/> Đang tải...
+                            </div>
+                            <div t-elif="!state.leads.length" class="text-center text-muted py-4">
+                                Không có khách hàng ở trạng thái này.
+                            </div>
+                            <table t-else="" class="table table-hover mb-0 o_vd_lead_table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên KH</th>
+                                        <th>SĐT</th>
+                                        <th>Tỉ lệ chốt</th>
+                                        <th>Hẹn gọi lại</th>
+                                        <th>Lần gọi cuối</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.leads" t-as="lead" t-key="lead.id"
+                                        t-on-click="() => this.openLead(lead.id)"
+                                        t-att-class="lead.is_overdue_callback ? 'table-warning' : ''"
+                                        style="cursor:pointer">
+                                        <td>
+                                            <strong><t t-esc="lead.name"/></strong>
+                                            <span t-if="lead.priority === '2'" class="badge bg-danger ms-1">!</span>
+                                            <span t-if="lead.is_today_callback" class="badge bg-info ms-1">Hôm nay</span>
+                                            <span t-if="lead.is_stale" class="badge bg-secondary ms-1">Stale</span>
+                                        </td>
+                                        <td><t t-esc="lead.phone"/></td>
+                                        <td style="min-width:140px">
+                                            <div class="progress" style="height:18px">
+                                                <div t-att-class="'progress-bar ' + probabilityClass(lead.probability)"
+                                                     t-att-style="`width:${lead.probability}%`">
+                                                    <t t-esc="lead.probability"/>%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><t t-esc="formatDate(lead.callback_date)"/></td>
+                                        <td><t t-esc="formatDate(lead.last_call_date)"/></td>
+                                        <td>
+                                            <button t-if="lead.phone" class="btn btn-sm btn-success"
+                                                    t-on-click="(ev) => this.callLead(lead, ev)"
+                                                    title="Gọi qua Stringee">
+                                                <i class="fa fa-phone"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

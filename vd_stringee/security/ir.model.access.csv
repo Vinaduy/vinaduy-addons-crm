@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stringee_call_user,stringee.call user,model_stringee_call,base.group_user,1,1,1,0
+access_stringee_call_admin,stringee.call admin,model_stringee_call,base.group_system,1,1,1,1

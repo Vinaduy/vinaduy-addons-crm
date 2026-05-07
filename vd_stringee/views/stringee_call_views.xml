@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stringee_call_list" model="ir.ui.view">
+        <field name="name">stringee.call.list</field>
+        <field name="model">stringee.call</field>
+        <field name="arch" type="xml">
+            <list string="Cuộc gọi" decoration-success="state=='answered'"
+                   decoration-info="state in ('initiated','ringing')"
+                   decoration-warning="state in ('no_answer','busy','declined','cancelled')"
+                   decoration-danger="state=='failed'">
+                <field name="create_date" string="Thời điểm"/>
+                <field name="direction"/>
+                <field name="caller_number"/>
+                <field name="callee_number"/>
+                <field name="user_id"/>
+                <field name="duration" widget="float_time"/>
+                <field name="state" widget="badge"/>
+                <field name="recording_attachment_id" string="Ghi âm" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stringee_call_form" model="ir.ui.view">
+        <field name="name">stringee.call.form</field>
+        <field name="model">stringee.call</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="initiated,ringing,answered,ended"/>
+                    <button name="action_hangup" type="object" string="Cúp máy"
+                            class="btn-danger"
+                            invisible="state in ('ended','no_answer','busy','declined','cancelled','failed')"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                        <h3>Call ID: <field name="name" readonly="1"/></h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="direction"/>
+                            <field name="caller_number"/>
+                            <field name="callee_number"/>
+                            <field name="user_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="start_time"/>
+                            <field name="answer_time"/>
+                            <field name="end_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="hangup_cause"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ghi âm" name="recording">
+                            <group>
+                                <field name="recording_id"/>
+                                <field name="recording_url" widget="url"/>
+                                <field name="recording_attachment_id"/>
+                                <field name="recording_player_url" invisible="1"/>
+                            </group>
+                            <field name="recording_player_url" widget="audio_player" nolabel="1"/>
+                        </page>
+                        <page string="Raw events" name="events"
+                              groups="base.group_system">
+                            <field name="raw_events" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stringee_call_search" model="ir.ui.view">
+        <field name="name">stringee.call.search</field>
+        <field name="model">stringee.call</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="callee_number"/>
+                <field name="caller_number"/>
+                <field name="user_id"/>
+                <field name="name"/>
+                <filter name="answered" string="Đã trả lời" domain="[('state','=','answered')]"/>
+                <filter name="ended" string="Đã kết thúc" domain="[('state','=','ended')]"/>
+                <filter name="no_answer" string="Không nghe" domain="[('state','=','no_answer')]"/>
+                <filter name="failed" string="Lỗi" domain="[('state','=','failed')]"/>
+                <separator/>
+                <filter name="has_recording" string="Có ghi âm"
+                        domain="[('recording_attachment_id','!=',False)]"/>
+                <filter name="my_calls" string="Cuộc gọi của tôi"
+                        domain="[('user_id','=',uid)]"/>
+                <separator/>
+                <filter name="today" string="Hôm nay"
+                        domain="[('create_date','&gt;=',(context_today()).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Trạng thái" context="{'group_by':'state'}"/>
+                    <filter name="group_user" string="Nhân viên" context="{'group_by':'user_id'}"/>
+                    <filter name="group_direction" string="Hướng gọi" context="{'group_by':'direction'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stringee_call" model="ir.actions.act_window">
+        <field name="name">Lịch sử cuộc gọi</field>
+        <field name="res_model">stringee.call</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_stringee_call_search"/>
+    </record>
+
+</odoo>

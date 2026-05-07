@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_stringee" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.vd_stringee</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Stringee" string="Stringee" name="vd_stringee" groups="base.group_system">
+                    <block title="Stringee Telephony" name="stringee_credentials">
+                        <setting id="stringee_api_keys" string="API Keys"
+                                 help="Lấy từ Stringee Portal → Project → API Keys.">
+                            <div class="content-group">
+                                <div class="row mt-2">
+                                    <label for="stringee_api_key_sid" class="col-3 col-form-label"/>
+                                    <field name="stringee_api_key_sid" class="col-9" placeholder="SK..."/>
+                                </div>
+                                <div class="row mt-2">
+                                    <label for="stringee_api_key_secret" class="col-3 col-form-label"/>
+                                    <field name="stringee_api_key_secret" class="col-9" password="True"/>
+                                </div>
+                                <div class="row mt-2">
+                                    <label for="stringee_project_id" class="col-3 col-form-label"/>
+                                    <field name="stringee_project_id" class="col-9"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="stringee_dialer" string="Dialer"
+                                 help="Số PSTN dùng làm Caller ID khi gọi ra.">
+                            <div class="content-group">
+                                <div class="row mt-2">
+                                    <label for="stringee_from_number" class="col-3 col-form-label"/>
+                                    <field name="stringee_from_number" class="col-9" placeholder="+842871098xxx"/>
+                                </div>
+                                <div class="row mt-2">
+                                    <field name="stringee_record_calls"/>
+                                    <label for="stringee_record_calls"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="stringee_webhook_info" string="Webhook URLs"
+                                 help="Khai báo trong Stringee Portal → Project → Phone Numbers / Project Settings.">
+                            <div class="content-group">
+                                <div class="row mt-2">
+                                    <field name="stringee_webhook_base_url" readonly="1" class="col-12"/>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <div>• Answer URL: <code>{Base URL}/stringee/answer</code></div>
+                                    <div>• Event URL: <code>{Base URL}/stringee/event</code></div>
+                                    <div>• Recording event: <code>{Base URL}/stringee/recording_event</code></div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

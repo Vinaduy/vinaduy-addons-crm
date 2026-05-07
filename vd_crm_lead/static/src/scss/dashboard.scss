@@ -1,0 +1,49 @@
+.o_vd_crm_dashboard {
+    background: #f6f7f9;
+    min-height: 100vh;
+
+    .o_vd_user_card {
+        border-left: 4px solid #dc3545;
+    }
+    .o_vd_today_card {
+        border-left: 4px solid #fd7e14;
+    }
+    .o_vd_errors_card {
+        border-left: 4px solid #dc3545;
+        ul li {
+            padding: 0.15rem 0;
+            color: #c92a2a;
+        }
+    }
+
+    .o_vd_stage_tabs {
+        position: sticky;
+        top: 1rem;
+        .o_vd_stage_btn {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease;
+            &:hover {
+                background: #f1f3f5;
+                border-color: #adb5bd;
+            }
+            &.o_active {
+                background: #e7f5ff;
+                border-color: #228be6;
+                color: #1864ab;
+            }
+        }
+    }
+
+    .o_vd_lead_table {
+        thead th {
+            background: #f1f3f5;
+            border-bottom: 2px solid #dee2e6;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+    }
+}
