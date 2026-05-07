@@ -43,9 +43,27 @@
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
 
-                <div class="o_vd_call_dock">
-                    <!-- LEFT: phone buttons -->
-                    <div class="o_vd_call_left">
+                <!-- INFO CARD: clean, just name + phone + stage -->
+                <div class="o_vd_info_card">
+                    <h1 class="o_vd_lead_name">
+                        <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                    </h1>
+                    <div class="o_vd_lead_meta">
+                        <span class="o_vd_meta_phone">
+                            <i class="fa fa-phone"/>
+                            <field name="phone" widget="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                        </span>
+                        <span class="o_vd_meta_sep">·</span>
+                        <span class="o_vd_meta_stage">
+                            <field name="stage_id" widget="selection"
+                                   options="{'no_create': True, 'no_open': True}" nolabel="1"/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ACTION DOCK: big call button + menu bar (history, etc.) -->
+                <div class="o_vd_action_dock">
+                    <div class="o_vd_call_btn_wrap">
                         <button name="action_call" type="object"
                                 class="o_vd_phone_btn o_vd_phone_btn_call"
                                 title="Gọi qua Stringee"
@@ -58,24 +76,6 @@
                                 invisible="not vd_in_call">
                             <i class="fa fa-phone"/>
                         </button>
-                    </div>
-
-                    <!-- CENTER: name + phone + stage -->
-                    <div class="o_vd_call_center">
-                        <h1 class="o_vd_lead_name">
-                            <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
-                        </h1>
-                        <div class="o_vd_lead_meta">
-                            <span class="o_vd_meta_phone">
-                                <i class="fa fa-phone"/>
-                                <field name="phone" widget="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
-                            </span>
-                            <span class="o_vd_meta_sep">·</span>
-                            <span class="o_vd_meta_stage">
-                                <field name="stage_id" widget="selection"
-                                       options="{'no_create': True, 'no_open': True}" nolabel="1"/>
-                            </span>
-                        </div>
                         <div class="o_vd_call_status">
                             <div class="text-danger fw-bold" invisible="not vd_in_call">
                                 <i class="fa fa-circle"/> Đang trong cuộc gọi…
@@ -89,8 +89,17 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT: spacer (kept for symmetric centering) -->
-                    <div class="o_vd_call_right_spacer"/>
+                    <div class="o_vd_action_menu">
+                        <field name="call_count" invisible="1"/>
+                        <button name="action_view_calls" type="object"
+                                class="btn btn-sm btn-outline-info o_vd_menu_btn">
+                            <i class="fa fa-history me-1"/>
+                            Lịch sử cuộc gọi
+                            <span class="badge bg-info ms-2">
+                                <field name="call_count" nolabel="1" readonly="1"/>
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </xpath>
 
@@ -164,18 +173,6 @@
                     </div>
                 </div>
 
-                <!-- LỊCH SỬ GỌI — small button only, opens modal on click -->
-                <div class="o_vd_history_bar" invisible="call_count == 0">
-                    <field name="call_count" invisible="1"/>
-                    <button name="action_view_calls" type="object"
-                            class="btn btn-sm btn-outline-info o_vd_history_btn">
-                        <i class="fa fa-history me-1"/>
-                        Xem lịch sử cuộc gọi
-                        <span class="badge bg-info ms-2" style="vertical-align: middle">
-                            <field name="call_count" nolabel="1" readonly="1"/>
-                        </span>
-                    </button>
-                </div>
             </xpath>
         </field>
     </record>

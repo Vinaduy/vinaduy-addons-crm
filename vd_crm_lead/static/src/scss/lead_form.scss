@@ -1,5 +1,121 @@
 /* Big circular call/hangup buttons + intake panel for crm.lead form */
 
+/* Customer info card — clean: just name + phone + stage, NO buttons */
+.o_vd_info_card {
+    text-align: center;
+    padding: 1.5rem 1.5rem 1.25rem;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1rem;
+
+    .o_vd_lead_name {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin: 0 0 0.6rem;
+        color: #1a1a1a;
+        line-height: 1.2;
+
+        .o_field_widget,
+        .o_field_widget input {
+            font-size: inherit;
+            font-weight: inherit;
+            text-align: center;
+        }
+        .o_field_widget input {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            padding: 0.1rem 0.3rem;
+            &:focus {
+                outline: 2px solid #4dabf7;
+                outline-offset: 2px;
+                border-radius: 4px;
+            }
+        }
+    }
+
+    .o_vd_lead_meta {
+        font-size: 1rem;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+
+        .o_vd_meta_phone i { color: #339af0; margin-right: 0.3rem; }
+        .o_vd_meta_sep { color: #ced4da; }
+        .o_vd_meta_stage select {
+            font-weight: 600;
+            color: #1864ab;
+            background: #e7f5ff;
+            border-color: #4dabf7;
+            border-radius: 6px;
+            padding: 0.2rem 0.6rem;
+        }
+        .o_field_widget input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            color: inherit;
+            font-size: inherit;
+            min-width: 140px;
+            width: auto;
+        }
+    }
+}
+
+/* Action dock — big call button + small action menu (history, etc.) */
+.o_vd_action_dock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+
+    .o_vd_call_btn_wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .o_vd_action_menu {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-top: 0.75rem;
+        border-top: 1px dashed #dee2e6;
+        width: 100%;
+
+        .o_vd_menu_btn {
+            border-radius: 999px;
+            padding: 0.4rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            &:hover {
+                background: #339af0;
+                color: #fff;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(51, 154, 240, 0.25);
+            }
+            .badge {
+                font-size: 0.75rem;
+            }
+        }
+    }
+}
+
+/* Old call_dock kept for backwards-compat (some elements may still reference) */
 .o_vd_call_dock {
     display: flex;
     align-items: center;
