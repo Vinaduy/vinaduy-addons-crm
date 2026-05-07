@@ -162,22 +162,19 @@ class StringeeCall(models.Model):
 
     @api.model
     def _scco_actions(self, record=True, event_url=None):
-        """Build SCCO actions list returned by /stringee/answer.
+        """Build SCCO actions list per Stringee docs.
 
-        - `record` with `stringeeRecord:true` stores MP3 server-side on Stringee
-          (downloadable later via REST). Without `stringeeRecord` the action is a
-          no-op for our purposes.
-        - `connect` is added by the caller depending on call type.
+        Spec: https://developer.stringee.com/docs/scco/record
+        Valid fields: action, eventUrl, format (mp3|wav), recordStereo.
+        Stringee stores recording server-side automatically; download via
+        GET /v1/call/recording/{call_id} after webhook arrives at eventUrl.
         """
         actions = []
         if record:
-            actions.append({
-                'action': 'record',
-                'format': 'mp3',
-                'stringeeRecord': True,
-                'trim': 'trim-silence',
-                **({'eventUrl': event_url} if event_url else {}),
-            })
+            action = {'action': 'record', 'format': 'mp3'}
+            if event_url:
+                action['eventUrl'] = event_url
+            actions.append(action)
         return actions
 
     # ---------- Outbound (REST callout) ----------
