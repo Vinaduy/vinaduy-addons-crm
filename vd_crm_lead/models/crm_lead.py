@@ -37,6 +37,8 @@ class CrmLead(models.Model):
         compute='_compute_active_call', search='_search_active_call',
     )
     vd_in_call = fields.Boolean(compute='_compute_active_call')
+    vd_active_call_state = fields.Char(compute='_compute_active_call')
+    vd_active_call_answer_time = fields.Datetime(compute='_compute_active_call')
     vd_has_intake_data = fields.Boolean(compute='_compute_has_intake_data')
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
@@ -226,7 +228,7 @@ class CrmLead(models.Model):
         for rec in self:
             rec.vd_has_intake_data = any(rec[f] for f in self._intake_data_fields)
 
-    @api.depends('call_ids', 'call_ids.state')
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.answer_time')
     def _compute_active_call(self):
         Call = self.env['stringee.call']
         active_states = ('draft', 'initiated', 'ringing', 'answered')
@@ -237,6 +239,8 @@ class CrmLead(models.Model):
             ], limit=1, order='create_date desc')
             rec.vd_active_call_id = call
             rec.vd_in_call = bool(call)
+            rec.vd_active_call_state = call.state if call else False
+            rec.vd_active_call_answer_time = call.answer_time if call else False
 
     def _search_active_call(self, operator, value):
         if operator not in ('=', '!='):

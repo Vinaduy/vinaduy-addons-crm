@@ -17,7 +17,9 @@
     'assets': {
         'web.assets_backend': [
             'vd_crm_lead/static/src/js/dashboard.js',
+            'vd_crm_lead/static/src/js/call_status_widget.js',
             'vd_crm_lead/static/src/xml/dashboard.xml',
+            'vd_crm_lead/static/src/xml/call_status_widget.xml',
             'vd_crm_lead/static/src/scss/dashboard.scss',
             'vd_crm_lead/static/src/scss/lead_form.scss',
         ],

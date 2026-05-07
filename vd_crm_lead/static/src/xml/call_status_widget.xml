@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.CallStatusWidget">
+        <div class="o_vd_call_status">
+            <div t-if="statusType === 'idle'" class="text-muted small">
+                <i class="fa fa-check-circle"/> Sẵn sàng gọi
+            </div>
+            <div t-elif="statusType === 'no_phone'" class="text-muted small">
+                <i class="fa fa-exclamation-triangle"/> Thiếu SĐT
+            </div>
+            <div t-elif="statusType === 'ringing'" class="text-info fw-bold o_vd_status_ringing">
+                <i class="fa fa-bell"/> Đang đổ chuông…
+            </div>
+            <div t-elif="statusType === 'in_call'" class="text-danger fw-bold o_vd_status_incall">
+                <i class="fa fa-circle"/> Đang gọi
+                <span class="o_vd_call_timer ms-2"><t t-esc="formatted"/></span>
+            </div>
+        </div>
+    </t>
+
+</templates>

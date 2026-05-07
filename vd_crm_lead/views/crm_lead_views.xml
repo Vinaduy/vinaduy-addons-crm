@@ -60,17 +60,9 @@
                                     invisible="not vd_in_call">
                                 <i class="fa fa-phone"/>
                             </button>
-                            <div class="o_vd_call_status">
-                                <div class="text-danger fw-bold" invisible="not vd_in_call">
-                                    <i class="fa fa-circle"/> Đang gọi…
-                                </div>
-                                <div class="text-muted small" invisible="vd_in_call or phone or mobile">
-                                    Thiếu SĐT
-                                </div>
-                                <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
-                                    Sẵn sàng gọi
-                                </div>
-                            </div>
+                            <field name="vd_active_call_state" invisible="1"/>
+                            <field name="vd_active_call_answer_time" invisible="1"/>
+                            <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                         </div>
 
                         <!-- CENTER: customer info -->
