@@ -250,7 +250,7 @@ class StringeeCall(models.Model):
             resp = requests.post(
                 f'{_STRINGEE_API}/v1/call2/stop',
                 headers=self._stringee_headers(),
-                json={'call_id': self.name},
+                json={'callId': self.name},
                 timeout=_TIMEOUT,
             )
             data = resp.json() if resp.content else {}
@@ -259,6 +259,9 @@ class StringeeCall(models.Model):
             raise UserError(_('Không cúp máy được: %s') % e)
         if data.get('r') not in (0, 1):  # 1 = call already ended
             raise UserError(_('Stringee từ chối: %s') % data.get('message'))
+        # Force-end locally so UI updates even if no webhook arrives.
+        if self.state not in _TERMINAL_STATES:
+            self.write({'state': 'ended', 'end_time': fields.Datetime.now()})
         return True
 
     # ---------- Webhook handler ----------
