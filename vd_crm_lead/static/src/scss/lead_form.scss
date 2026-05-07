@@ -1,37 +1,45 @@
 /* Big circular call/hangup buttons + intake panel for crm.lead form */
 
-/* Customer info card — clean: name + phone + stage all on ONE line */
+/* Customer info card — name + phone + stage on ONE row */
 .o_vd_info_card {
-    text-align: center;
-    padding: 1.5rem 1.5rem 1.25rem;
+    padding: 1rem 1.5rem;
     background: #fff;
     border: 1px solid #e9ecef;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     margin-bottom: 1.5rem;
+}
+
+.o_vd_info_row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.75rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 
     .o_vd_lead_name {
-        font-size: 1.7rem;
+        font-size: 1.5rem;
         font-weight: 700;
-        margin: 0 0 0.6rem;
+        margin: 0;
         color: #1a1a1a;
         line-height: 1.2;
 
         .o_field_widget {
-            display: inline-block;
-            width: auto;
-            min-width: 250px;
+            display: inline-block !important;
+            width: auto !important;
+            max-width: none !important;
         }
         .o_field_widget input {
-            font-size: inherit;
-            font-weight: inherit;
-            text-align: center;
-            border: none;
-            background: transparent;
-            box-shadow: none;
-            padding: 0.1rem 0.3rem;
-            width: 100%;
-            min-width: 250px;
+            font-size: inherit !important;
+            font-weight: inherit !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0.1rem 0.3rem !important;
+            width: auto !important;
+            min-width: 320px !important;
+            max-width: none !important;
             &:focus {
                 outline: 2px solid #4dabf7;
                 outline-offset: 2px;
@@ -40,42 +48,34 @@
         }
     }
 
-    .o_vd_lead_meta {
+    .o_vd_meta_phone {
         font-size: 1rem;
         color: #495057;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.6rem;
-        flex-wrap: nowrap;     // ONE line — don't wrap
-        white-space: nowrap;
+        i { color: #339af0; margin-right: 0.4rem; }
 
-        .o_vd_meta_phone i { color: #339af0; margin-right: 0.3rem; }
-        .o_vd_meta_sep { color: #ced4da; }
-
-        // Stage as readonly badge — pill style, not dropdown
-        .o_vd_meta_stage {
-            .o_field_badge {
-                background: #e7f5ff;
-                color: #1864ab;
-                border: 1px solid #4dabf7;
-                font-weight: 600;
-                padding: 0.25rem 0.7rem;
-                border-radius: 999px;
-                font-size: 0.85rem;
-            }
+        .o_field_widget {
+            display: inline-block;
         }
-
         .o_field_widget input {
             border: none;
             background: transparent;
-            text-align: center;
             color: inherit;
             font-size: inherit;
-            min-width: 130px;
+            min-width: 120px;
             width: auto;
             padding: 0;
         }
+    }
+
+    .o_vd_meta_stage .o_field_badge {
+        background: #e7f5ff;
+        color: #1864ab;
+        border: 1px solid #4dabf7;
+        font-weight: 600;
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        display: inline-block;
     }
 }
 

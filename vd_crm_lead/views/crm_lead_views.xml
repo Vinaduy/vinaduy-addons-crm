@@ -43,17 +43,16 @@
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
 
-                <!-- INFO CARD: clean, all on one line -->
+                <!-- INFO CARD: name + phone + stage all on ONE row -->
                 <div class="o_vd_info_card">
-                    <h1 class="o_vd_lead_name">
-                        <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
-                    </h1>
-                    <div class="o_vd_lead_meta">
+                    <div class="o_vd_info_row">
+                        <h1 class="o_vd_lead_name">
+                            <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                        </h1>
                         <span class="o_vd_meta_phone">
                             <i class="fa fa-phone"/>
                             <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
                         </span>
-                        <span class="o_vd_meta_sep">·</span>
                         <span class="o_vd_meta_stage">
                             <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
                         </span>
