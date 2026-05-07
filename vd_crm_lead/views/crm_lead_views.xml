@@ -43,7 +43,7 @@
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
 
-                <!-- INFO CARD: clean, just name + phone + stage -->
+                <!-- INFO CARD: clean, all on one line -->
                 <div class="o_vd_info_card">
                     <h1 class="o_vd_lead_name">
                         <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
@@ -51,55 +51,53 @@
                     <div class="o_vd_lead_meta">
                         <span class="o_vd_meta_phone">
                             <i class="fa fa-phone"/>
-                            <field name="phone" widget="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                            <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
                         </span>
                         <span class="o_vd_meta_sep">·</span>
                         <span class="o_vd_meta_stage">
-                            <field name="stage_id" widget="selection"
-                                   options="{'no_create': True, 'no_open': True}" nolabel="1"/>
+                            <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
                         </span>
                     </div>
                 </div>
 
-                <!-- ACTION DOCK: big call button + menu bar (history, etc.) -->
-                <div class="o_vd_action_dock">
-                    <div class="o_vd_call_btn_wrap">
-                        <button name="action_call" type="object"
-                                class="o_vd_phone_btn o_vd_phone_btn_call"
-                                title="Gọi qua Stringee"
-                                invisible="vd_in_call or (not phone and not mobile)">
-                            <i class="fa fa-phone"/>
-                        </button>
-                        <button name="action_hangup_active" type="object"
-                                class="o_vd_phone_btn o_vd_phone_btn_hangup"
-                                title="Cúp máy"
-                                invisible="not vd_in_call">
-                            <i class="fa fa-phone"/>
-                        </button>
-                        <div class="o_vd_call_status">
-                            <div class="text-danger fw-bold" invisible="not vd_in_call">
-                                <i class="fa fa-circle"/> Đang trong cuộc gọi…
-                            </div>
-                            <div class="text-muted small" invisible="vd_in_call or phone or mobile">
-                                Thiếu số điện thoại
-                            </div>
-                            <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
-                                Sẵn sàng gọi
-                            </div>
+                <!-- BIG CALL BUTTON — standalone, NOT inside any card -->
+                <div class="o_vd_call_standalone">
+                    <button name="action_call" type="object"
+                            class="o_vd_phone_btn o_vd_phone_btn_call"
+                            title="Gọi qua Stringee"
+                            invisible="vd_in_call or (not phone and not mobile)">
+                        <i class="fa fa-phone"/>
+                    </button>
+                    <button name="action_hangup_active" type="object"
+                            class="o_vd_phone_btn o_vd_phone_btn_hangup"
+                            title="Cúp máy"
+                            invisible="not vd_in_call">
+                        <i class="fa fa-phone"/>
+                    </button>
+                    <div class="o_vd_call_status">
+                        <div class="text-danger fw-bold" invisible="not vd_in_call">
+                            <i class="fa fa-circle"/> Đang trong cuộc gọi…
+                        </div>
+                        <div class="text-muted small" invisible="vd_in_call or phone or mobile">
+                            Thiếu số điện thoại
+                        </div>
+                        <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
+                            Sẵn sàng gọi
                         </div>
                     </div>
+                </div>
 
-                    <div class="o_vd_action_menu">
-                        <field name="call_count" invisible="1"/>
-                        <button name="action_view_calls" type="object"
-                                class="btn btn-sm btn-outline-info o_vd_menu_btn">
-                            <i class="fa fa-history me-1"/>
-                            Lịch sử cuộc gọi
-                            <span class="badge bg-info ms-2">
-                                <field name="call_count" nolabel="1" readonly="1"/>
-                            </span>
-                        </button>
-                    </div>
+                <!-- MENU BAR — small action toolbar -->
+                <div class="o_vd_menu_bar">
+                    <field name="call_count" invisible="1"/>
+                    <button name="action_view_calls" type="object"
+                            class="btn btn-sm btn-outline-info o_vd_menu_btn">
+                        <i class="fa fa-history me-1"/>
+                        Lịch sử cuộc gọi
+                        <span class="badge bg-info ms-2">
+                            <field name="call_count" nolabel="1" readonly="1"/>
+                        </span>
+                    </button>
                 </div>
             </xpath>
 
