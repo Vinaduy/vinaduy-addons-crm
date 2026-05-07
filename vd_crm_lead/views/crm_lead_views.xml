@@ -37,13 +37,15 @@
                             <i class="fa fa-phone"/>
                         </button>
                         <div class="o_vd_call_status">
-                            <div t-if="vd_in_call" class="text-danger fw-bold">
+                            <div class="text-danger fw-bold" invisible="not vd_in_call">
                                 <i class="fa fa-circle"/> Đang trong cuộc gọi…
                             </div>
-                            <div t-elif="not phone and not mobile" class="text-muted">
+                            <div class="text-muted" invisible="vd_in_call or phone or mobile">
                                 Thiếu số điện thoại
                             </div>
-                            <div t-else="" class="text-muted">Sẵn sàng gọi</div>
+                            <div class="text-muted" invisible="vd_in_call or (not phone and not mobile)">
+                                Sẵn sàng gọi
+                            </div>
                         </div>
                     </div>
 
