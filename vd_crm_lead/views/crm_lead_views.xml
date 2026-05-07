@@ -68,113 +68,79 @@
                         </div>
                     </div>
 
-                    <!-- Intake summary — visible only when there's data -->
+                    <!-- Intake summary — visible only when there's data; 1-line per item -->
                     <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
                         <div class="o_vd_summary_section_title">
                             <i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC
                         </div>
 
-                        <div class="o_vd_summary_grid">
+                        <div class="o_vd_summary_grid_inline">
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_address">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-map-marker"/> Địa chỉ
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_address" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_province_id">
+                                <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh:</span>
+                                <field name="vd_intake_province_id" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_position">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-location-arrow"/> Vị trí
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_position" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_district">
+                                <span class="o_vd_lbl"><i class="fa fa-map"/> Huyện:</span>
+                                <field name="vd_intake_district" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_land_type">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-th"/> Loại đất
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_address">
+                                <span class="o_vd_lbl"><i class="fa fa-road"/> Địa chỉ:</span>
+                                <field name="vd_intake_address" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_dimensions">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-file-text-o"/> Sổ đỏ / cấp phép
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_position">
+                                <span class="o_vd_lbl"><i class="fa fa-location-arrow"/> Vị trí:</span>
+                                <field name="vd_intake_position" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_area">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-square-o"/> Diện tích
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_area" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_land_type">
+                                <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
+                                <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_house_type">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-home"/> Kiểu nhà
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_dimensions">
+                                <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ:</span>
+                                <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_floors">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-building"/> Số tầng
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_floors" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_area">
+                                <span class="o_vd_lbl"><i class="fa fa-square-o"/> Diện tích:</span>
+                                <field name="vd_intake_area" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_function">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-list"/> Công năng
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_function" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_house_type">
+                                <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
+                                <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_timeline">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-clock-o"/> Thời gian
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_floors">
+                                <span class="o_vd_lbl"><i class="fa fa-building"/> Số tầng:</span>
+                                <field name="vd_intake_floors" readonly="1" nolabel="1"/>
                             </div>
 
-                            <div class="o_vd_summary_item" invisible="not vd_intake_budget">
-                                <div class="o_vd_summary_label">
-                                    <i class="fa fa-money"/> Ngân sách
-                                </div>
-                                <div class="o_vd_summary_value">
-                                    <field name="vd_intake_budget" readonly="1" nolabel="1"/>
-                                </div>
+                            <div class="o_vd_row_inline" invisible="not vd_intake_function">
+                                <span class="o_vd_lbl"><i class="fa fa-list"/> Công năng:</span>
+                                <field name="vd_intake_function" readonly="1" nolabel="1"/>
+                            </div>
+
+                            <div class="o_vd_row_inline" invisible="not vd_intake_timeline">
+                                <span class="o_vd_lbl"><i class="fa fa-clock-o"/> Thời gian:</span>
+                                <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
+                            </div>
+
+                            <div class="o_vd_row_inline" invisible="not vd_intake_budget">
+                                <span class="o_vd_lbl"><i class="fa fa-money"/> Ngân sách:</span>
+                                <field name="vd_intake_budget" readonly="1" nolabel="1"/>
                             </div>
 
                         </div>
 
-                        <div class="o_vd_summary_notes" invisible="not vd_intake_function_notes">
-                            <div class="o_vd_summary_label">
-                                <i class="fa fa-sticky-note-o"/> Ghi chú công năng
-                            </div>
-                            <div class="o_vd_summary_value">
-                                <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
-                            </div>
+                        <div class="o_vd_row_inline o_vd_notes" invisible="not vd_intake_function_notes">
+                            <span class="o_vd_lbl"><i class="fa fa-sticky-note-o"/> Ghi chú:</span>
+                            <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
                         </div>
                     </div>
 
@@ -241,7 +207,9 @@
 
                     <group>
                         <group string="📍 Vị trí &amp; đất">
-                            <field name="vd_intake_address" placeholder="Số nhà, đường, phường…"/>
+                            <field name="vd_intake_province_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="vd_intake_district" placeholder="vd: Quận 1, Huyện Bình Chánh"/>
+                            <field name="vd_intake_address" placeholder="Số nhà, tên đường, phường"/>
                             <field name="vd_intake_position"/>
                             <field name="vd_intake_land_type"/>
                             <field name="vd_intake_dimensions"/>

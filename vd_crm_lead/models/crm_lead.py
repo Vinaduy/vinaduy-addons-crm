@@ -43,9 +43,18 @@ class CrmLead(models.Model):
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
     # `help` = kịch bản gợi ý cho NV khi gọi (hiển thị tooltip).
+    vd_intake_province_id = fields.Many2one(
+        'res.country.state', string='Tỉnh / Thành',
+        domain="[('country_id.code', '=', 'VN')]",
+        help='Hỏi: "Anh/chị xây ở tỉnh / thành nào ạ?"',
+    )
+    vd_intake_district = fields.Char(
+        string='Huyện / Quận',
+        help='Hỏi: "Khu vực huyện / quận / TP nào?"',
+    )
     vd_intake_address = fields.Char(
-        string='Địa chỉ',
-        help='Hỏi: "Anh/chị cho em xin địa chỉ thi công ở đâu ạ?"',
+        string='Số nhà / đường',
+        help='Hỏi: "Cho em xin số nhà, tên đường, phường ạ?"',
     )
     vd_intake_timeline = fields.Selection([
         ('chuan_bi', 'Đang chuẩn bị'),
@@ -217,7 +226,8 @@ class CrmLead(models.Model):
             )
 
     _intake_data_fields = (
-        'vd_intake_address', 'vd_intake_position', 'vd_intake_land_type',
+        'vd_intake_province_id', 'vd_intake_district', 'vd_intake_address',
+        'vd_intake_position', 'vd_intake_land_type',
         'vd_intake_dimensions', 'vd_intake_area', 'vd_intake_house_type',
         'vd_intake_floors', 'vd_intake_function', 'vd_intake_function_notes',
         'vd_intake_timeline', 'vd_intake_budget',
