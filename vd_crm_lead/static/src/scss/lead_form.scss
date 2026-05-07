@@ -93,11 +93,61 @@
     50%      { opacity: 0.35; }
 }
 
-.o_vd_intake_panel {
-    .alert-info {
-        background: #e7f5ff;
-        border-color: #4dabf7;
+/* Card sections — replace standard notebook with elegant cards */
+.o_vd_card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+
+    &:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    h5 {
         color: #1864ab;
-        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 2px solid #e7f5ff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        i { color: #339af0; }
+    }
+
+    .alert-info {
+        background: #fff9db;
+        border-color: #ffd43b;
+        color: #5c3c00;
+        margin-bottom: 1rem;
+        i.fa-microphone { color: #fa5252; animation: vd-blink 1s infinite; }
+    }
+
+    > .o_group {
+        margin-top: 0;
+    }
+}
+
+.o_vd_card_intake {
+    border-left: 4px solid #4dabf7;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fc 100%);
+    animation: vd-slide-down 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+
+    h5 i { color: #2b8a3e; }
+}
+
+@keyframes vd-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

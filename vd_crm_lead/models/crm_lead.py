@@ -37,6 +37,7 @@ class CrmLead(models.Model):
         compute='_compute_active_call', search='_search_active_call',
     )
     vd_in_call = fields.Boolean(compute='_compute_active_call')
+    vd_has_intake_data = fields.Boolean(compute='_compute_has_intake_data')
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
     vd_intake_address = fields.Char(string='Địa chỉ')
@@ -148,6 +149,18 @@ class CrmLead(models.Model):
                 ref_date and (now - ref_date) > stale_after
                 and not rec.stage_is_won and not rec.stage_is_lost,
             )
+
+    _intake_data_fields = (
+        'vd_intake_address', 'vd_intake_position', 'vd_intake_land_type',
+        'vd_intake_dimensions', 'vd_intake_area', 'vd_intake_house_type',
+        'vd_intake_floors', 'vd_intake_function', 'vd_intake_function_notes',
+        'vd_intake_timeline', 'vd_intake_budget',
+    )
+
+    @api.depends(*_intake_data_fields)
+    def _compute_has_intake_data(self):
+        for rec in self:
+            rec.vd_has_intake_data = any(rec[f] for f in self._intake_data_fields)
 
     @api.depends('call_ids', 'call_ids.state')
     def _compute_active_call(self):

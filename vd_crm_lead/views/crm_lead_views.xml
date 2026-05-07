@@ -1,29 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- VD redesigned crm.lead form: single-page, big call/hangup buttons,
-         no flow status bar, inline intake panel for new leads. -->
+    <!-- VD redesigned crm.lead form: card-based, single-page, no chatter, no notebook.
+         Khai thác card slides in only when there's an active call (or already filled). -->
     <record id="crm_lead_view_form_inherit" model="ir.ui.view">
         <field name="name">crm.lead.form.vd</field>
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- Hide the standard stage flow widget in header -->
+            <!-- Hide stage flow widget in header -->
             <xpath expr="//header/field[@name='stage_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Insert custom call dock at the very top of the sheet -->
+            <!-- Hide all standard notebook pages (Internal Notes / Extra Information) -->
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='extra']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Drop the chatter (activity log) -->
+            <xpath expr="//chatter" position="replace"/>
+
+            <!-- Insert call dock + hidden flag fields before the title -->
             <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <field name="vd_in_call" invisible="1"/>
+                <field name="vd_active_call_id" invisible="1"/>
+                <field name="vd_has_intake_data" invisible="1"/>
+                <field name="stage_code" invisible="1"/>
+                <field name="stage_is_won" invisible="1"/>
+                <field name="stage_is_lost" invisible="1"/>
+
                 <div class="o_vd_call_dock">
                     <div class="o_vd_call_left">
-                        <field name="vd_in_call" invisible="1"/>
-                        <field name="vd_active_call_id" invisible="1"/>
-                        <field name="stage_code" invisible="1"/>
-                        <field name="stage_is_won" invisible="1"/>
-                        <field name="stage_is_lost" invisible="1"/>
-
                         <button name="action_call" type="object"
                                 class="o_vd_phone_btn o_vd_phone_btn_call"
                                 title="Gọi qua Stringee"
@@ -48,7 +60,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="o_vd_call_right">
                         <label for="stage_id" string="Trạng thái" class="text-muted small"/>
                         <field name="stage_id" widget="selection"
@@ -61,41 +72,53 @@
                 </div>
             </xpath>
 
-            <!-- Show callback_date prominently next to date_deadline -->
+            <!-- Add callback_date alongside date_deadline -->
             <xpath expr="//field[@name='date_deadline']" position="after">
                 <field name="callback_date"/>
             </xpath>
 
-            <!-- Inline intake panel: opens for stage=new (Khách mới) -->
-            <xpath expr="//page[@name='internal_notes']" position="before">
-                <page string="✅ Tổng hợp nhu cầu KH" name="vd_intake">
-                    <div class="o_vd_intake_panel">
-                        <div class="alert alert-info" invisible="stage_code != 'new'">
-                            <i class="fa fa-info-circle"/>
-                            Khách hàng mới — điền tổng hợp nhu cầu trong / sau cuộc gọi.
-                        </div>
-                        <group>
-                            <group string="Vị trí &amp; đất">
-                                <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP"/>
-                                <field name="vd_intake_position" placeholder="Mặt tiền / hẻm / …"/>
-                                <field name="vd_intake_land_type"/>
-                                <field name="vd_intake_dimensions" placeholder="vd: 5m x 20m"/>
-                                <field name="vd_intake_area" placeholder="vd: 100 m²"/>
-                            </group>
-                            <group string="Công trình">
-                                <field name="vd_intake_house_type"/>
-                                <field name="vd_intake_floors"/>
-                                <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …"/>
-                                <field name="vd_intake_timeline" placeholder="Thời gian khởi công / mua"/>
-                                <field name="vd_intake_budget" placeholder="vd: 5–7 tỷ"/>
-                            </group>
-                        </group>
-                        <group string="Ghi chú công năng">
-                            <field name="vd_intake_function_notes" nolabel="1" placeholder="Yêu cầu đặc biệt về công năng từng phòng…"/>
-                        </group>
+            <!-- After the contact group, insert the cards -->
+            <xpath expr="//notebook" position="before">
+
+                <!-- KHAI THÁC CARD — slides in only when call is active or data already filled -->
+                <div class="o_vd_card o_vd_card_intake"
+                     invisible="not vd_in_call and not vd_has_intake_data">
+                    <h5>
+                        <i class="fa fa-check-square-o"/>
+                        Tổng hợp nhu cầu khách hàng
+                    </h5>
+                    <div class="alert alert-info py-2" invisible="not vd_in_call">
+                        <i class="fa fa-microphone"/>
+                        Đang trong cuộc gọi — điền thông tin khai thác trực tiếp.
                     </div>
-                </page>
-                <page string="Hoạt động gọi" name="vd_calls">
+                    <group>
+                        <group string="Vị trí &amp; đất">
+                            <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP"/>
+                            <field name="vd_intake_position" placeholder="Mặt tiền / hẻm / …"/>
+                            <field name="vd_intake_land_type"/>
+                            <field name="vd_intake_dimensions" placeholder="vd: 5m x 20m"/>
+                            <field name="vd_intake_area" placeholder="vd: 100 m²"/>
+                        </group>
+                        <group string="Công trình">
+                            <field name="vd_intake_house_type"/>
+                            <field name="vd_intake_floors"/>
+                            <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …"/>
+                            <field name="vd_intake_timeline" placeholder="Thời gian khởi công / mua"/>
+                            <field name="vd_intake_budget" placeholder="vd: 5–7 tỷ"/>
+                        </group>
+                    </group>
+                    <group string="Ghi chú công năng">
+                        <field name="vd_intake_function_notes" nolabel="1"
+                               placeholder="Yêu cầu đặc biệt về công năng từng phòng…"/>
+                    </group>
+                </div>
+
+                <!-- LỊCH SỬ GỌI CARD — always visible -->
+                <div class="o_vd_card">
+                    <h5>
+                        <i class="fa fa-phone"/>
+                        Lịch sử cuộc gọi
+                    </h5>
                     <group>
                         <group>
                             <field name="last_call_date" readonly="1"/>
@@ -115,7 +138,7 @@
                             <field name="recording_attachment_id" widget="boolean"/>
                         </list>
                     </field>
-                </page>
+                </div>
             </xpath>
         </field>
     </record>
