@@ -53,7 +53,7 @@ class StringeeJwt(models.AbstractModel):
             'jti': f'{sid}-{uuid.uuid4().hex}',
             'iss': sid,
             'exp': now + _REST_TOKEN_TTL,
-            'rest': True,
+            'rest_api': True,
         })
 
     @api.model
