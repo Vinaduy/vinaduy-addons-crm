@@ -222,95 +222,47 @@
         </field>
     </record>
 
-    <!-- ============ INTAKE POPUP FORM VIEW ============ -->
-    <!-- Opens as a modal when the agent clicks Gọi. Has all 11 intake fields
-         with one-line script hints under each. Save (commits write) closes
-         the dialog and the main form auto-reloads to show the summary. -->
+    <!-- ============ INTAKE POPUP FORM VIEW (compact 2-col) ============ -->
+    <!-- Compact 2-column grid. Each field's `help=` (defined on the model)
+         gives a Vietnamese script hint visible on hovering the ❓ icon next
+         to the label, so the dialog stays small while still providing scripts. -->
     <record id="view_crm_lead_intake_popup" model="ir.ui.view">
         <field name="name">crm.lead.intake.popup</field>
         <field name="model">crm.lead</field>
         <field name="priority">100</field>
         <field name="arch" type="xml">
-            <form string="Khai thác thông tin khách hàng" class="o_vd_intake_popup_form">
+            <form string="Khai thác thông tin" class="o_vd_intake_compact">
                 <sheet>
-                    <div class="alert alert-info py-2 mb-3">
+                    <div class="o_vd_popup_banner">
                         <i class="fa fa-microphone"/>
-                        Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong> —
-                        hỏi và điền thông tin theo kịch bản gợi ý dưới đây.
+                        Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
+                        <span class="text-muted ms-2">— hover ❓ để xem kịch bản hỏi</span>
                     </div>
 
-                    <h4 class="o_vd_popup_section">📍 Vị trí &amp; đất</h4>
+                    <group>
+                        <group string="📍 Vị trí &amp; đất">
+                            <field name="vd_intake_address" placeholder="Số nhà, đường, phường…"/>
+                            <field name="vd_intake_position"/>
+                            <field name="vd_intake_land_type"/>
+                            <field name="vd_intake_dimensions"/>
+                            <field name="vd_intake_area" placeholder="vd: 5x20m / 100m²"/>
+                        </group>
+                        <group string="🏠 Công trình">
+                            <field name="vd_intake_house_type"/>
+                            <field name="vd_intake_floors" placeholder="vd: 2,5 tầng"/>
+                            <field name="vd_intake_function" placeholder="3PN + 2WC + bếp"/>
+                            <field name="vd_intake_timeline"/>
+                            <field name="vd_intake_budget"/>
+                        </group>
+                    </group>
 
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_address" class="o_vd_popup_label">Địa chỉ</label>
-                        <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Anh/chị cho em xin địa chỉ thi công ở đâu ạ?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_position" class="o_vd_popup_label">Vị trí</label>
-                        <field name="vd_intake_position" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Mặt tiền hay trong hẻm? Đường vào có thuận lợi xe vận chuyển không?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_land_type" class="o_vd_popup_label">Loại đất</label>
-                        <field name="vd_intake_land_type" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Đất là sổ đỏ thổ cư hay nông nghiệp / phân lô?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_dimensions" class="o_vd_popup_label">Sổ đỏ / cấp phép</label>
-                        <field name="vd_intake_dimensions" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Đất đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_area" class="o_vd_popup_label">Diện tích</label>
-                        <field name="vd_intake_area" placeholder="vd: 100 m² hoặc 5x20m" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Tổng diện tích đất / sàn xây dựng?"</div>
-                    </div>
-
-                    <h4 class="o_vd_popup_section mt-4">🏠 Công trình</h4>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_house_type" class="o_vd_popup_label">Kiểu nhà</label>
-                        <field name="vd_intake_house_type" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, biệt thự…?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_floors" class="o_vd_popup_label">Số tầng</label>
-                        <field name="vd_intake_floors" placeholder="vd: 2,5 tầng / 1 trệt 2 lầu" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Quy mô bao nhiêu tầng ạ?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_function" class="o_vd_popup_label">Công năng</label>
-                        <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Cần bao nhiêu phòng ngủ, có thang máy / sân thượng không?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_timeline" class="o_vd_popup_label">Thời gian</label>
-                        <field name="vd_intake_timeline" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Anh/chị dự kiến khởi công khi nào?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_budget" class="o_vd_popup_label">Ngân sách dự kiến</label>
-                        <field name="vd_intake_budget" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Anh/chị dự kiến đầu tư khoảng bao nhiêu?"</div>
-                    </div>
-
-                    <div class="o_vd_popup_field">
-                        <label for="vd_intake_function_notes" class="o_vd_popup_label">Ghi chú công năng</label>
-                        <field name="vd_intake_function_notes" placeholder="Yêu cầu đặc biệt về phong thủy / spa / phòng thờ…" nolabel="1"/>
-                        <div class="o_vd_popup_hint">💬 "Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"</div>
-                    </div>
+                    <group>
+                        <field name="vd_intake_function_notes" nolabel="1"
+                               placeholder="📝 Ghi chú công năng — yêu cầu đặc biệt phong thủy, spa, phòng thờ…"/>
+                    </group>
                 </sheet>
                 <footer>
-                    <button string="✓ Lưu thông tin" special="save" class="btn btn-primary"/>
+                    <button string="✓ Lưu" special="save" class="btn btn-primary"/>
                     <button string="Đóng" special="cancel" class="btn btn-secondary"/>
                 </footer>
             </form>
