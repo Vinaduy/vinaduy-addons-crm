@@ -9,8 +9,8 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- Hide stage flow widget in header -->
-            <xpath expr="//header/field[@name='stage_id']" position="attributes">
+            <!-- Hide entire form header (Won / Lost / New Quotation / stage flow / etc.) -->
+            <xpath expr="//header" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
