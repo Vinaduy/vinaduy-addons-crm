@@ -79,16 +79,21 @@
     }
 }
 
-/* Big call button — STANDALONE, no card wrapper */
+/* Big call button — STANDALONE, no card wrapper, LEFT aligned */
 .o_vd_call_standalone {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
     margin: 0.5rem 0 1.25rem;
-    padding: 0;
+    padding-left: 1rem;
     background: transparent;   // NO card background
     border: none;
+
+    .o_vd_call_status {
+        text-align: left;
+        padding-left: 0.5rem;
+    }
 }
 
 /* Small action menu bar — separate row */
