@@ -14,11 +14,9 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Hide all standard notebook pages (Internal Notes / Extra Information) -->
-            <xpath expr="//page[@name='internal_notes']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//page[@name='extra']" position="attributes">
+            <!-- Hide the entire standard notebook (Internal Notes / Extra Information / etc.)
+                 Our content lives in cards outside the notebook. -->
+            <xpath expr="//notebook" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
