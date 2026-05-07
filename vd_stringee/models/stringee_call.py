@@ -156,7 +156,9 @@ class StringeeCall(models.Model):
     def _scco_actions(self, record=True, event_url=None):
         """Build SCCO actions list returned by /stringee/answer.
 
-        - `record` writes MP3, fires recording event to event_url when ready.
+        - `record` with `stringeeRecord:true` stores MP3 server-side on Stringee
+          (downloadable later via REST). Without `stringeeRecord` the action is a
+          no-op for our purposes.
         - `connect` is added by the caller depending on call type.
         """
         actions = []
@@ -164,7 +166,7 @@ class StringeeCall(models.Model):
             actions.append({
                 'action': 'record',
                 'format': 'mp3',
-                'stereo': False,
+                'stringeeRecord': True,
                 'trim': 'trim-silence',
                 **({'eventUrl': event_url} if event_url else {}),
             })
