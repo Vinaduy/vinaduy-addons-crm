@@ -13,10 +13,14 @@
 .o_vd_info_row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1.75rem;
+    justify-content: flex-start;
+    gap: 1.5rem;
     flex-wrap: nowrap;
     white-space: nowrap;
+
+    .o_vd_phone_btn {
+        flex: 0 0 auto;
+    }
 
     .o_vd_lead_name {
         font-size: 1.5rem;
@@ -79,21 +83,11 @@
     }
 }
 
-/* Big call button — STANDALONE, no card wrapper, LEFT aligned */
-.o_vd_call_standalone {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin: 0.5rem 0 1.25rem;
-    padding-left: 1rem;
-    background: transparent;   // NO card background
-    border: none;
-
-    .o_vd_call_status {
-        text-align: left;
-        padding-left: 0.5rem;
-    }
+/* Status text below the info row */
+.o_vd_info_card .o_vd_call_status {
+    margin-top: 0.5rem;
+    padding-left: 110px;  // align under the info text, past the phone button
+    font-size: 0.9rem;
 }
 
 /* Small action menu bar — separate row */
