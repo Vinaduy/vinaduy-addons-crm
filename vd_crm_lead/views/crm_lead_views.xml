@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- VD redesigned crm.lead form: card-based, single-page, no chatter, no notebook.
-         Khai thác card slides in only when there's an active call (or already filled). -->
+    <!-- VD redesigned crm.lead form: summary card + floating call button +
+         intake editing happens in a popup launched from the call button. -->
     <record id="crm_lead_view_form_inherit" model="ir.ui.view">
         <field name="name">crm.lead.form.vd</field>
         <field name="model">crm.lead</field>
@@ -14,27 +14,25 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Hide the entire standard notebook (Internal Notes / Extra Information / etc.)
-                 Our content lives in cards outside the notebook. -->
+            <!-- Hide the entire standard notebook -->
             <xpath expr="//notebook" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Hide standard title (h1 with name) — moved into the call dock -->
+            <!-- Hide standard title (h1 with name) -->
             <xpath expr="//div[hasclass('oe_title')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Hide the main info group (Expected Revenue / Contact / Email / Phone /
-                 Salesperson / Expected Closing / Tags) — replaced by the call dock. -->
+            <!-- Hide the main info group (Expected Revenue / Contact / etc.) -->
             <xpath expr="//sheet/group" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Drop the chatter (activity log) -->
+            <!-- Drop the chatter -->
             <xpath expr="//chatter" position="replace"/>
 
-            <!-- Insert call dock + hidden flag fields before the title -->
+            <!-- All our content goes before the title (which is now hidden) -->
             <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
                 <field name="vd_in_call" invisible="1"/>
                 <field name="vd_active_call_id" invisible="1"/>
@@ -42,24 +40,154 @@
                 <field name="stage_code" invisible="1"/>
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
+                <field name="vd_active_call_state" invisible="1"/>
+                <field name="vd_active_call_answer_time" invisible="1"/>
 
-                <!-- INFO CARD: customer info aligned to the LEFT (no buttons here) -->
-                <div class="o_vd_info_card o_vd_info_left">
-                    <field name="vd_active_call_state" invisible="1"/>
-                    <field name="vd_active_call_answer_time" invisible="1"/>
-                    <div class="o_vd_info_row_left">
-                        <h1 class="o_vd_lead_name">
+                <!-- ============ CUSTOMER SUMMARY CARD ============ -->
+                <div class="o_vd_summary_card">
+
+                    <!-- Banner: stage as colored top strip -->
+                    <div class="o_vd_summary_banner">
+                        <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <!-- Header: name + phone + salesperson -->
+                    <div class="o_vd_summary_header">
+                        <h2 class="o_vd_summary_name">
                             <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
-                        </h1>
-                        <span class="o_vd_meta_phone">
-                            <i class="fa fa-phone"/>
-                            <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
-                        </span>
-                        <span class="o_vd_meta_stage">
-                            <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
-                        </span>
+                        </h2>
+                        <div class="o_vd_summary_meta">
+                            <span class="o_vd_meta_item">
+                                <i class="fa fa-phone"/>
+                                <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                            </span>
+                            <span class="o_vd_meta_item">
+                                <i class="fa fa-user"/>
+                                <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Intake summary — visible only when there's data -->
+                    <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
+                        <div class="o_vd_summary_section_title">
+                            <i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC
+                        </div>
+
+                        <div class="o_vd_summary_grid">
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_address">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-map-marker"/> Địa chỉ
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_address" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_position">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-location-arrow"/> Vị trí
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_position" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_land_type">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-th"/> Loại đất
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_dimensions">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-file-text-o"/> Sổ đỏ / cấp phép
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_area">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-square-o"/> Diện tích
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_area" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_house_type">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-home"/> Kiểu nhà
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_floors">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-building"/> Số tầng
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_floors" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_function">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-list"/> Công năng
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_function" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_timeline">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-clock-o"/> Thời gian
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_summary_item" invisible="not vd_intake_budget">
+                                <div class="o_vd_summary_label">
+                                    <i class="fa fa-money"/> Ngân sách
+                                </div>
+                                <div class="o_vd_summary_value">
+                                    <field name="vd_intake_budget" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="o_vd_summary_notes" invisible="not vd_intake_function_notes">
+                            <div class="o_vd_summary_label">
+                                <i class="fa fa-sticky-note-o"/> Ghi chú công năng
+                            </div>
+                            <div class="o_vd_summary_value">
+                                <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div class="o_vd_summary_empty" invisible="vd_has_intake_data">
+                        <i class="fa fa-info-circle"/>
+                        Chưa có thông tin khai thác. Bấm nút <strong>Gọi</strong> ở góc phải dưới để bắt đầu khai thác khách hàng.
                     </div>
                 </div>
+            </xpath>
+
+            <!-- Lịch sử cuộc gọi menu pill + Floating call FAB inserted before notebook -->
+            <xpath expr="//notebook" position="before">
 
                 <!-- MENU BAR — small action toolbar -->
                 <div class="o_vd_menu_bar">
@@ -74,7 +202,7 @@
                     </button>
                 </div>
 
-                <!-- FLOATING CALL BUTTON — bottom-right corner with status -->
+                <!-- FLOATING CALL BUTTON — bottom-right corner with status pill -->
                 <div class="o_vd_call_fab">
                     <button name="action_call" type="object"
                             class="o_vd_phone_btn o_vd_phone_btn_call"
@@ -91,78 +219,101 @@
                     <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                 </div>
             </xpath>
+        </field>
+    </record>
 
-            <!-- Add callback_date alongside date_deadline -->
-            <xpath expr="//field[@name='date_deadline']" position="after">
-                <field name="callback_date"/>
-            </xpath>
-
-            <!-- After the contact group, insert the cards -->
-            <xpath expr="//notebook" position="before">
-
-                <!-- KHAI THÁC CARD — vertical list, slides in when call active or data filled -->
-                <div class="o_vd_card o_vd_card_intake o_vd_intake_v2"
-                     invisible="not vd_in_call and not vd_has_intake_data">
-                    <h5 class="o_vd_intake_title">
-                        ✅ TỔNG HỢP NHU CẦU KHÁCH HÀNG
-                    </h5>
-                    <div class="alert alert-info py-2" invisible="not vd_in_call">
+    <!-- ============ INTAKE POPUP FORM VIEW ============ -->
+    <!-- Opens as a modal when the agent clicks Gọi. Has all 11 intake fields
+         with one-line script hints under each. Save (commits write) closes
+         the dialog and the main form auto-reloads to show the summary. -->
+    <record id="view_crm_lead_intake_popup" model="ir.ui.view">
+        <field name="name">crm.lead.intake.popup</field>
+        <field name="model">crm.lead</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Khai thác thông tin khách hàng" class="o_vd_intake_popup_form">
+                <sheet>
+                    <div class="alert alert-info py-2 mb-3">
                         <i class="fa fa-microphone"/>
-                        Đang gọi — hỏi và điền theo các kịch bản gợi ý dưới đây.
+                        Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong> —
+                        hỏi và điền thông tin theo kịch bản gợi ý dưới đây.
                     </div>
 
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_address">ĐỊA CHỈ</label>
-                        <field name="vd_intake_address" nolabel="1"
-                               placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_timeline">THỜI GIAN</label>
-                        <field name="vd_intake_timeline" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_area">DIỆN TÍCH</label>
-                        <field name="vd_intake_area" nolabel="1"
-                               placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_house_type">KIỂU NHÀ</label>
-                        <field name="vd_intake_house_type" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_floors">SỐ TẦNG</label>
-                        <field name="vd_intake_floors" nolabel="1"
-                               placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_function">CÔNG NĂNG</label>
-                        <field name="vd_intake_function" nolabel="1"
-                               placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_function_notes">GHI CHÚ CÔNG NĂNG</label>
-                        <field name="vd_intake_function_notes" nolabel="1"
-                               placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_land_type">LOẠI ĐẤT</label>
-                        <field name="vd_intake_land_type" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_position">VỊ TRÍ</label>
-                        <field name="vd_intake_position" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_budget">NGÂN SÁCH DỰ KIẾN</label>
-                        <field name="vd_intake_budget" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                    <div class="o_vd_intake_row">
-                        <label for="vd_intake_dimensions">SỔ ĐỎ / CẤP PHÉP</label>
-                        <field name="vd_intake_dimensions" nolabel="1" placeholder="Chưa có dữ liệu"/>
-                    </div>
-                </div>
+                    <h4 class="o_vd_popup_section">📍 Vị trí &amp; đất</h4>
 
-            </xpath>
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_address" class="o_vd_popup_label">Địa chỉ</label>
+                        <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Anh/chị cho em xin địa chỉ thi công ở đâu ạ?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_position" class="o_vd_popup_label">Vị trí</label>
+                        <field name="vd_intake_position" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Mặt tiền hay trong hẻm? Đường vào có thuận lợi xe vận chuyển không?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_land_type" class="o_vd_popup_label">Loại đất</label>
+                        <field name="vd_intake_land_type" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Đất là sổ đỏ thổ cư hay nông nghiệp / phân lô?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_dimensions" class="o_vd_popup_label">Sổ đỏ / cấp phép</label>
+                        <field name="vd_intake_dimensions" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Đất đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_area" class="o_vd_popup_label">Diện tích</label>
+                        <field name="vd_intake_area" placeholder="vd: 100 m² hoặc 5x20m" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Tổng diện tích đất / sàn xây dựng?"</div>
+                    </div>
+
+                    <h4 class="o_vd_popup_section mt-4">🏠 Công trình</h4>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_house_type" class="o_vd_popup_label">Kiểu nhà</label>
+                        <field name="vd_intake_house_type" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, biệt thự…?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_floors" class="o_vd_popup_label">Số tầng</label>
+                        <field name="vd_intake_floors" placeholder="vd: 2,5 tầng / 1 trệt 2 lầu" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Quy mô bao nhiêu tầng ạ?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_function" class="o_vd_popup_label">Công năng</label>
+                        <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Cần bao nhiêu phòng ngủ, có thang máy / sân thượng không?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_timeline" class="o_vd_popup_label">Thời gian</label>
+                        <field name="vd_intake_timeline" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Anh/chị dự kiến khởi công khi nào?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_budget" class="o_vd_popup_label">Ngân sách dự kiến</label>
+                        <field name="vd_intake_budget" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Anh/chị dự kiến đầu tư khoảng bao nhiêu?"</div>
+                    </div>
+
+                    <div class="o_vd_popup_field">
+                        <label for="vd_intake_function_notes" class="o_vd_popup_label">Ghi chú công năng</label>
+                        <field name="vd_intake_function_notes" placeholder="Yêu cầu đặc biệt về phong thủy / spa / phòng thờ…" nolabel="1"/>
+                        <div class="o_vd_popup_hint">💬 "Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"</div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="✓ Lưu thông tin" special="save" class="btn btn-primary"/>
+                    <button string="Đóng" special="cancel" class="btn btn-secondary"/>
+                </footer>
+            </form>
         </field>
     </record>
 

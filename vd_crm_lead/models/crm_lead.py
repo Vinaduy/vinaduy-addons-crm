@@ -271,15 +271,14 @@ class CrmLead(models.Model):
     # ---------- Actions ----------
 
     def action_call(self):
-        """Place an outbound call. Stays on the same form (no modal/notification)."""
+        """Place an outbound call AND open the intake popup so the agent can
+        fill the customer brief during the conversation."""
         self.ensure_one()
         phone = self.phone or self.mobile
         if not phone:
             raise UserError(_('Khách hàng chưa có số điện thoại.'))
 
         Call = self.env['stringee.call']
-        # Block accidental double-clicks: refuse if same user has a still-live
-        # call started in the last 30 seconds.
         active = Call.search_count([
             ('user_id', '=', self.env.user.id),
             ('state', 'in', ['draft', 'initiated', 'ringing', 'answered']),
@@ -293,9 +292,21 @@ class CrmLead(models.Model):
 
         call = Call.make_call(callee_number=phone, user_id=self.env.user.id)
         call.write({'lead_id': self.id})
-        # Reload current form so vd_in_call flips to True and the UI swaps
-        # the Gọi button for the Cúp máy button.
-        return True
+
+        intake_view = self.env.ref(
+            'vd_crm_lead.view_crm_lead_intake_popup', raise_if_not_found=False,
+        )
+        if not intake_view:
+            return True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Khai thác — %s') % (self.name or ''),
+            'res_model': 'crm.lead',
+            'res_id': self.id,
+            'views': [(intake_view.id, 'form')],
+            'target': 'new',
+            'context': {'dialog_size': 'medium'},
+        }
 
     def action_hangup_active(self):
         """End the lead's currently active call. Stays on the same form."""
