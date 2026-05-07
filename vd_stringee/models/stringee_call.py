@@ -12,6 +12,7 @@ Refs:
 """
 import json
 import logging
+import re
 
 import requests
 
@@ -38,6 +39,31 @@ _STATE_RANK = {
     'cancelled': 9,
 }
 _TERMINAL_STATES = {'ended', 'no_answer', 'busy', 'declined', 'failed', 'cancelled'}
+
+
+def _to_e164(num, default_country='84'):
+    """Normalise a phone number to E.164 (`+<country><national>`).
+
+    Vietnamese conventions handled:
+    - "0xxxxxxxxx"   → "+84xxxxxxxxx"  (strip leading 0)
+    - "84xxxxxxxxx"  → "+84xxxxxxxxx"
+    - "+84..."       → unchanged
+    - other digits → assume default country, prepend "+<cc>"
+    """
+    if not num:
+        return ''
+    s = str(num).strip()
+    has_plus = s.startswith('+')
+    digits = re.sub(r'\D', '', s)
+    if not digits:
+        return ''
+    if has_plus:
+        return '+' + digits
+    if digits.startswith(default_country):
+        return '+' + digits
+    if digits.startswith('0'):
+        return '+' + default_country + digits[1:]
+    return '+' + default_country + digits
 
 
 class StringeeCall(models.Model):
@@ -154,17 +180,20 @@ class StringeeCall(models.Model):
         if not self.callee_number:
             raise UserError(_('Thiếu số đến.'))
         Param = self.env['ir.config_parameter'].sudo()
-        from_number = (Param.get_param('vd_stringee.from_number') or '').strip()
+        from_number = _to_e164(Param.get_param('vd_stringee.from_number'))
+        callee_e164 = _to_e164(self.callee_number)
         record = (Param.get_param('vd_stringee.record_calls') or 'True') in ('True', 'true', '1')
         if not from_number:
             raise UserError(_('Chưa cấu hình "From Number".'))
+        if not callee_e164:
+            raise UserError(_('Số gọi đến không hợp lệ.'))
         base_url = (Param.get_param('web.base.url') or '').rstrip('/')
 
         actions = self._scco_actions(record=record, event_url=f'{base_url}/stringee/recording_event') + [
             {
                 'action': 'connect',
                 'from': {'type': 'external', 'number': from_number, 'alias': from_number},
-                'to': [{'type': 'external', 'number': self.callee_number, 'alias': self.callee_number}],
+                'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
                 'maxConnectTime': -1,
                 'timeout': 60,
                 'eventUrl': f'{base_url}/stringee/event',
@@ -172,7 +201,7 @@ class StringeeCall(models.Model):
         ]
         body = {
             'from': {'type': 'external', 'number': from_number, 'alias': from_number},
-            'to': [{'type': 'external', 'number': self.callee_number, 'alias': self.callee_number}],
+            'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
             'actions': actions,
         }
         try:
