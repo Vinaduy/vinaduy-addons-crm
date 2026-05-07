@@ -200,7 +200,7 @@ class StringeeCall(models.Model):
                 'from': {'type': 'external', 'number': from_number, 'alias': from_number},
                 'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
                 'maxConnectTime': -1,
-                'timeout': 90,
+                'timeout': 25,  # ring max 25s — KH decline hoặc tự dập máy
                 'eventUrl': f'{base_url}/stringee/event',
             },
         ]
@@ -401,20 +401,25 @@ class StringeeCall(models.Model):
         if s in ('ended', 'end'):
             answer_dur = payload.get('answerDuration') or payload.get('answer_duration') or 0
             cause = (payload.get('endCallCause') or '').upper()
+            ended_by = (payload.get('endedBy') or '').upper()
             try:
                 ans = int(answer_dur)
             except (TypeError, ValueError):
                 ans = 0
             if ans <= 0:
+                # Never answered. Distinguish by cause when possible.
                 if cause == 'BUSY' or 'BUSY' in cause:
                     return 'busy'
-                if cause in ('DECLINED', 'CALL_REJECT', 'REJECTED'):
+                if cause in ('DECLINED', 'CALL_REJECT', 'REJECTED', 'CALLEE_REJECT'):
                     return 'declined'
-                if cause in ('CALL_CANCEL', 'CANCEL', 'CANCELLED'):
+                if cause in ('CALL_CANCEL', 'CANCEL', 'CANCELLED', 'REST_API_STOP'):
                     return 'cancelled'
                 if cause in ('NO_ANSWER', 'TIMEOUT', 'NOT_ANSWER'):
                     return 'no_answer'
-                # Default: ringing finished without answer
+                # When endedBy=EXTERNAL with no clear cause, customer hung up
+                # while ringing → treat as declined.
+                if ended_by == 'EXTERNAL':
+                    return 'declined'
                 return 'no_answer' if cause != 'USER_END_CALL' else 'ended'
             return 'ended'
         if s in ('failed', 'error'):
