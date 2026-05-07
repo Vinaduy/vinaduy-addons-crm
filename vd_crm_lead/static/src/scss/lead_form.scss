@@ -3,38 +3,91 @@
 .o_vd_call_dock {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1rem;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 12px;
     border: 1px solid #dee2e6;
 
     .o_vd_call_left {
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
-        gap: 1.25rem;
+    }
+
+    .o_vd_call_right_spacer {
+        flex: 0 0 92px;  // matches phone-button width so center column truly centers
+    }
+
+    .o_vd_call_center {
+        flex: 1;
+        text-align: center;
+
+        .o_vd_lead_name {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 0 0 0.4rem;
+            color: #1a1a1a;
+            line-height: 1.2;
+
+            .o_field_widget,
+            .o_field_widget input {
+                font-size: inherit;
+                font-weight: inherit;
+                text-align: center;
+            }
+            .o_field_widget input {
+                border: none;
+                background: transparent;
+                box-shadow: none;
+                padding: 0.1rem 0.3rem;
+                &:focus {
+                    outline: 2px solid #4dabf7;
+                    outline-offset: 2px;
+                    border-radius: 4px;
+                }
+            }
+        }
+
+        .o_vd_lead_meta {
+            font-size: 1rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+
+            .o_vd_meta_phone i { color: #339af0; margin-right: 0.3rem; }
+            .o_vd_meta_sep { color: #ced4da; }
+            .o_vd_meta_stage select {
+                font-weight: 600;
+                color: #1864ab;
+                background: #e7f5ff;
+                border-color: #4dabf7;
+                border-radius: 6px;
+                padding: 0.2rem 0.6rem;
+            }
+            .o_field_widget input {
+                border: none;
+                background: transparent;
+                text-align: center;
+                color: inherit;
+                font-size: inherit;
+                min-width: 140px;
+                width: auto;
+            }
+        }
     }
 
     .o_vd_call_status {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        margin-top: 0.4rem;
         i.fa-circle {
             color: #dc3545;
             animation: vd-blink 1s infinite;
             margin-right: 0.25rem;
-        }
-    }
-
-    .o_vd_call_right {
-        min-width: 240px;
-        text-align: right;
-
-        .o_field_widget[name='stage_id'] {
-            width: 100%;
-            select {
-                font-weight: 600;
-            }
         }
     }
 }

@@ -20,6 +20,17 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
+            <!-- Hide standard title (h1 with name) — moved into the call dock -->
+            <xpath expr="//div[hasclass('oe_title')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide the main info group (Expected Revenue / Contact / Email / Phone /
+                 Salesperson / Expected Closing / Tags) — replaced by the call dock. -->
+            <xpath expr="//sheet/group" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <!-- Drop the chatter (activity log) -->
             <xpath expr="//chatter" position="replace"/>
 
@@ -33,6 +44,7 @@
                 <field name="stage_is_lost" invisible="1"/>
 
                 <div class="o_vd_call_dock">
+                    <!-- LEFT: phone buttons -->
                     <div class="o_vd_call_left">
                         <button name="action_call" type="object"
                                 class="o_vd_phone_btn o_vd_phone_btn_call"
@@ -46,27 +58,39 @@
                                 invisible="not vd_in_call">
                             <i class="fa fa-phone"/>
                         </button>
+                    </div>
+
+                    <!-- CENTER: name + phone + stage -->
+                    <div class="o_vd_call_center">
+                        <h1 class="o_vd_lead_name">
+                            <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                        </h1>
+                        <div class="o_vd_lead_meta">
+                            <span class="o_vd_meta_phone">
+                                <i class="fa fa-phone"/>
+                                <field name="phone" widget="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                            </span>
+                            <span class="o_vd_meta_sep">·</span>
+                            <span class="o_vd_meta_stage">
+                                <field name="stage_id" widget="selection"
+                                       options="{'no_create': True, 'no_open': True}" nolabel="1"/>
+                            </span>
+                        </div>
                         <div class="o_vd_call_status">
                             <div class="text-danger fw-bold" invisible="not vd_in_call">
                                 <i class="fa fa-circle"/> Đang trong cuộc gọi…
                             </div>
-                            <div class="text-muted" invisible="vd_in_call or phone or mobile">
+                            <div class="text-muted small" invisible="vd_in_call or phone or mobile">
                                 Thiếu số điện thoại
                             </div>
-                            <div class="text-muted" invisible="vd_in_call or (not phone and not mobile)">
+                            <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
                                 Sẵn sàng gọi
                             </div>
                         </div>
                     </div>
-                    <div class="o_vd_call_right">
-                        <label for="stage_id" string="Trạng thái" class="text-muted small"/>
-                        <field name="stage_id" widget="selection"
-                               options="{'no_create': True, 'no_open': True}"/>
-                        <div class="o_vd_prob mt-2">
-                            <span class="small text-muted">Tỉ lệ chốt</span>
-                            <field name="probability" widget="progressbar"/>
-                        </div>
-                    </div>
+
+                    <!-- RIGHT: spacer (kept for symmetric centering) -->
+                    <div class="o_vd_call_right_spacer"/>
                 </div>
             </xpath>
 
