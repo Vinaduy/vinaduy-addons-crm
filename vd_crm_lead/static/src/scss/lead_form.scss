@@ -1,0 +1,103 @@
+/* Big circular call/hangup buttons + intake panel for crm.lead form */
+
+.o_vd_call_dock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+
+    .o_vd_call_left {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .o_vd_call_status {
+        font-size: 0.95rem;
+        i.fa-circle {
+            color: #dc3545;
+            animation: vd-blink 1s infinite;
+            margin-right: 0.25rem;
+        }
+    }
+
+    .o_vd_call_right {
+        min-width: 240px;
+        text-align: right;
+
+        .o_field_widget[name='stage_id'] {
+            width: 100%;
+            select {
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+.o_vd_phone_btn {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-size: 38px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+        line-height: 1;
+    }
+    &:hover { transform: scale(1.06); }
+    &:active { transform: scale(0.94); }
+    &:focus { outline: none; }
+}
+
+.o_vd_phone_btn_call {
+    background: #28a745;
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    animation: vd-pulse-green 2s infinite;
+}
+
+.o_vd_phone_btn_hangup {
+    background: #dc3545;
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    animation: vd-pulse-red 0.9s infinite;
+
+    i {
+        transform: rotate(135deg);  // phone-slash visual without extra icon
+    }
+}
+
+@keyframes vd-pulse-green {
+    0%   { box-shadow: 0 0 0 0   rgba(40, 167, 69, 0.55); }
+    60%  { box-shadow: 0 0 0 22px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(40, 167, 69, 0); }
+}
+
+@keyframes vd-pulse-red {
+    0%   { box-shadow: 0 0 0 0   rgba(220, 53, 69, 0.6); }
+    60%  { box-shadow: 0 0 0 28px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(220, 53, 69, 0); }
+}
+
+@keyframes vd-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+
+.o_vd_intake_panel {
+    .alert-info {
+        background: #e7f5ff;
+        border-color: #4dabf7;
+        color: #1864ab;
+        font-size: 0.95rem;
+    }
+}

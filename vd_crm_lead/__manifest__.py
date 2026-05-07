@@ -19,6 +19,7 @@
             'vd_crm_lead/static/src/js/dashboard.js',
             'vd_crm_lead/static/src/xml/dashboard.xml',
             'vd_crm_lead/static/src/scss/dashboard.scss',
+            'vd_crm_lead/static/src/scss/lead_form.scss',
         ],
     },
     'post_init_hook': '_post_init_hook',

@@ -30,6 +30,22 @@ class CrmLead(models.Model):
     call_count = fields.Integer(string='Số lần gọi', default=0, readonly=True)
     call_ids = fields.One2many('stringee.call', 'lead_id', string='Lịch sử gọi')
 
+    # Live call indicator — computed (not stored), used by form to toggle
+    # Gọi/Cúp máy buttons. Cheap query: looks for any non-terminal call.
+    vd_active_call_id = fields.Many2one(
+        'stringee.call', string='Cuộc gọi đang hoạt động',
+        compute='_compute_active_call', search='_search_active_call',
+    )
+    vd_in_call = fields.Boolean(compute='_compute_active_call')
+
+    # Khai thác thông tin (lead intake) — visible on stage=new
+    vd_intake_need = fields.Text(string='Nhu cầu khách')
+    vd_intake_budget = fields.Char(string='Ngân sách dự kiến')
+    vd_intake_timeline = fields.Char(string='Thời gian khởi công / mua')
+    vd_intake_decision_maker = fields.Char(string='Người quyết định')
+    vd_intake_source = fields.Char(string='Nguồn khách')
+    vd_intake_notes = fields.Text(string='Ghi chú khai thác')
+
     # Convenience related fields for stage flags
     stage_code = fields.Char(related='stage_id.code', store=True, index=True)
     stage_is_won = fields.Boolean(related='stage_id.is_won', store=True)
@@ -117,6 +133,23 @@ class CrmLead(models.Model):
                 and not rec.stage_is_won and not rec.stage_is_lost,
             )
 
+    @api.depends('call_ids', 'call_ids.state')
+    def _compute_active_call(self):
+        Call = self.env['stringee.call']
+        active_states = ('draft', 'initiated', 'ringing', 'answered')
+        for rec in self:
+            call = Call.search([
+                ('lead_id', '=', rec.id),
+                ('state', 'in', active_states),
+            ], limit=1, order='create_date desc')
+            rec.vd_active_call_id = call
+            rec.vd_in_call = bool(call)
+
+    def _search_active_call(self, operator, value):
+        if operator not in ('=', '!='):
+            raise ValueError("Unsupported operator")
+        return [('call_ids.state', 'in', ('draft', 'initiated', 'ringing', 'answered'))]
+
     def _search_overdue_callback(self, operator, value):
         if operator not in ('=', '!='):
             raise ValueError("Unsupported operator")
@@ -141,15 +174,15 @@ class CrmLead(models.Model):
     # ---------- Actions ----------
 
     def action_call(self):
-        """Place an outbound call via vd_stringee. Notifies, doesn't open a modal."""
+        """Place an outbound call. Stays on the same form (no modal/notification)."""
         self.ensure_one()
         phone = self.phone or self.mobile
         if not phone:
             raise UserError(_('Khách hàng chưa có số điện thoại.'))
 
+        Call = self.env['stringee.call']
         # Block accidental double-clicks: refuse if same user has a still-live
         # call started in the last 30 seconds.
-        Call = self.env['stringee.call']
         active = Call.search_count([
             ('user_id', '=', self.env.user.id),
             ('state', 'in', ['draft', 'initiated', 'ringing', 'answered']),
@@ -158,21 +191,21 @@ class CrmLead(models.Model):
         if active:
             raise UserError(_(
                 'Bạn đang có 1 cuộc gọi chưa kết thúc. '
-                'Cúp máy cuộc cũ hoặc chờ ít nhất 30s trước khi gọi tiếp.',
+                'Cúp máy cuộc cũ trước khi gọi tiếp.',
             ))
 
         call = Call.make_call(callee_number=phone, user_id=self.env.user.id)
         call.write({'lead_id': self.id})
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Đang gọi'),
-                'message': _('Stringee đang quay số %s') % phone,
-                'type': 'info',
-                'sticky': False,
-            },
-        }
+        # Reload current form so vd_in_call flips to True and the UI swaps
+        # the Gọi button for the Cúp máy button.
+        return True
+
+    def action_hangup_active(self):
+        """End the lead's currently active call. Stays on the same form."""
+        self.ensure_one()
+        if self.vd_active_call_id:
+            self.vd_active_call_id.action_hangup()
+        return True
 
     # ---------- Dashboard data ----------
 

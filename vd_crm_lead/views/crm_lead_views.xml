@@ -1,21 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Form: add Gọi button + activity panel + callback_date + custom probability -->
+    <!-- VD redesigned crm.lead form: single-page, big call/hangup buttons,
+         no flow status bar, inline intake panel for new leads. -->
     <record id="crm_lead_view_form_inherit" model="ir.ui.view">
         <field name="name">crm.lead.form.vd</field>
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//header" position="inside">
-                <button name="action_call" type="object" string="Gọi qua Stringee"
-                        class="btn-success" icon="fa-phone"
-                        invisible="not phone and not mobile"/>
+
+            <!-- Hide the standard stage flow widget in header -->
+            <xpath expr="//header/field[@name='stage_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
+
+            <!-- Insert custom call dock at the very top of the sheet -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="o_vd_call_dock">
+                    <div class="o_vd_call_left">
+                        <field name="vd_in_call" invisible="1"/>
+                        <field name="vd_active_call_id" invisible="1"/>
+                        <field name="stage_code" invisible="1"/>
+                        <field name="stage_is_won" invisible="1"/>
+                        <field name="stage_is_lost" invisible="1"/>
+
+                        <button name="action_call" type="object"
+                                class="o_vd_phone_btn o_vd_phone_btn_call"
+                                title="Gọi qua Stringee"
+                                invisible="vd_in_call or (not phone and not mobile)">
+                            <i class="fa fa-phone"/>
+                        </button>
+                        <button name="action_hangup_active" type="object"
+                                class="o_vd_phone_btn o_vd_phone_btn_hangup"
+                                title="Cúp máy"
+                                invisible="not vd_in_call">
+                            <i class="fa fa-phone"/>
+                        </button>
+                        <div class="o_vd_call_status">
+                            <div t-if="vd_in_call" class="text-danger fw-bold">
+                                <i class="fa fa-circle"/> Đang trong cuộc gọi…
+                            </div>
+                            <div t-elif="not phone and not mobile" class="text-muted">
+                                Thiếu số điện thoại
+                            </div>
+                            <div t-else="" class="text-muted">Sẵn sàng gọi</div>
+                        </div>
+                    </div>
+
+                    <div class="o_vd_call_right">
+                        <label for="stage_id" string="Trạng thái" class="text-muted small"/>
+                        <field name="stage_id" widget="selection"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <div class="o_vd_prob mt-2">
+                            <span class="small text-muted">Tỉ lệ chốt</span>
+                            <field name="probability" widget="progressbar"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- Show callback_date prominently next to date_deadline -->
             <xpath expr="//field[@name='date_deadline']" position="after">
                 <field name="callback_date"/>
             </xpath>
+
+            <!-- Inline intake panel: opens for stage=new (Khách mới) -->
             <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="Khai thác KH" name="vd_intake"
+                      invisible="stage_code != 'new' and not vd_intake_need and not vd_intake_budget">
+                    <div class="o_vd_intake_panel">
+                        <div class="alert alert-info" invisible="stage_code != 'new'">
+                            <i class="fa fa-info-circle"/>
+                            Khách hàng mới — điền thông tin khai thác trong / sau cuộc gọi để chuyển sang stage tiếp theo.
+                        </div>
+                        <group>
+                            <group>
+                                <field name="vd_intake_source"/>
+                                <field name="vd_intake_decision_maker"/>
+                                <field name="vd_intake_budget"/>
+                                <field name="vd_intake_timeline"/>
+                            </group>
+                            <group>
+                                <field name="vd_intake_need" placeholder="Khách cần gì? Quy mô? Yêu cầu đặc biệt?"/>
+                                <field name="vd_intake_notes" placeholder="Ghi chú khác..."/>
+                            </group>
+                        </group>
+                    </div>
+                </page>
                 <page string="Hoạt động gọi" name="vd_calls">
                     <group>
                         <group>
