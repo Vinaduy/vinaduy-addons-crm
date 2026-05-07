@@ -57,10 +57,45 @@
 .o_vd_info_row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
+    gap: 1rem;
     flex-wrap: nowrap;
     white-space: nowrap;
+
+    /* LEFT — call button + status, left-aligned, fixed width */
+    .o_vd_call_section {
+        flex: 0 0 140px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+
+        .o_vd_call_status {
+            text-align: left;
+            font-size: 0.85rem;
+            i.fa-circle {
+                color: #dc3545;
+                animation: vd-blink 1s infinite;
+                margin-right: 0.25rem;
+            }
+        }
+    }
+
+    /* CENTER — customer info, truly centered */
+    .o_vd_info_section {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    /* RIGHT — invisible spacer, same width as left, keeps center centered */
+    .o_vd_info_spacer {
+        flex: 0 0 140px;
+    }
 
     .o_vd_phone_btn {
         flex: 0 0 auto;

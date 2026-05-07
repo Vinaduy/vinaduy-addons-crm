@@ -43,42 +43,52 @@
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
 
-                <!-- INFO ROW: big call button + name + phone + stage badge — ALL on one line -->
+                <!-- 3-column row: [call btn left]  [info centered]  [spacer right] -->
                 <div class="o_vd_info_card">
                     <div class="o_vd_info_row">
-                        <button name="action_call" type="object"
-                                class="o_vd_phone_btn o_vd_phone_btn_call"
-                                title="Gọi qua Stringee"
-                                invisible="vd_in_call or (not phone and not mobile)">
-                            <i class="fa fa-phone"/>
-                        </button>
-                        <button name="action_hangup_active" type="object"
-                                class="o_vd_phone_btn o_vd_phone_btn_hangup"
-                                title="Cúp máy"
-                                invisible="not vd_in_call">
-                            <i class="fa fa-phone"/>
-                        </button>
-                        <h1 class="o_vd_lead_name">
-                            <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
-                        </h1>
-                        <span class="o_vd_meta_phone">
-                            <i class="fa fa-phone"/>
-                            <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
-                        </span>
-                        <span class="o_vd_meta_stage">
-                            <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
-                        </span>
-                    </div>
-                    <div class="o_vd_call_status">
-                        <div class="text-danger fw-bold" invisible="not vd_in_call">
-                            <i class="fa fa-circle"/> Đang trong cuộc gọi…
+                        <!-- LEFT: call/hangup button + status text (left-aligned) -->
+                        <div class="o_vd_call_section">
+                            <button name="action_call" type="object"
+                                    class="o_vd_phone_btn o_vd_phone_btn_call"
+                                    title="Gọi qua Stringee"
+                                    invisible="vd_in_call or (not phone and not mobile)">
+                                <i class="fa fa-phone"/>
+                            </button>
+                            <button name="action_hangup_active" type="object"
+                                    class="o_vd_phone_btn o_vd_phone_btn_hangup"
+                                    title="Cúp máy"
+                                    invisible="not vd_in_call">
+                                <i class="fa fa-phone"/>
+                            </button>
+                            <div class="o_vd_call_status">
+                                <div class="text-danger fw-bold" invisible="not vd_in_call">
+                                    <i class="fa fa-circle"/> Đang gọi…
+                                </div>
+                                <div class="text-muted small" invisible="vd_in_call or phone or mobile">
+                                    Thiếu SĐT
+                                </div>
+                                <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
+                                    Sẵn sàng gọi
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-muted small" invisible="vd_in_call or phone or mobile">
-                            Thiếu số điện thoại
+
+                        <!-- CENTER: customer info -->
+                        <div class="o_vd_info_section">
+                            <h1 class="o_vd_lead_name">
+                                <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                            </h1>
+                            <span class="o_vd_meta_phone">
+                                <i class="fa fa-phone"/>
+                                <field name="phone" placeholder="0xxxxxxxxx" nolabel="1"/>
+                            </span>
+                            <span class="o_vd_meta_stage">
+                                <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
+                            </span>
                         </div>
-                        <div class="text-muted small" invisible="vd_in_call or (not phone and not mobile)">
-                            Sẵn sàng gọi
-                        </div>
+
+                        <!-- RIGHT: spacer to keep center column truly centered -->
+                        <div class="o_vd_info_spacer"/>
                     </div>
                 </div>
 
