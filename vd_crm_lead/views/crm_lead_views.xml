@@ -68,24 +68,30 @@
 
             <!-- Inline intake panel: opens for stage=new (Khách mới) -->
             <xpath expr="//page[@name='internal_notes']" position="before">
-                <page string="Khai thác KH" name="vd_intake"
-                      invisible="stage_code != 'new' and not vd_intake_need and not vd_intake_budget">
+                <page string="✅ Tổng hợp nhu cầu KH" name="vd_intake">
                     <div class="o_vd_intake_panel">
                         <div class="alert alert-info" invisible="stage_code != 'new'">
                             <i class="fa fa-info-circle"/>
-                            Khách hàng mới — điền thông tin khai thác trong / sau cuộc gọi để chuyển sang stage tiếp theo.
+                            Khách hàng mới — điền tổng hợp nhu cầu trong / sau cuộc gọi.
                         </div>
                         <group>
-                            <group>
-                                <field name="vd_intake_source"/>
-                                <field name="vd_intake_decision_maker"/>
-                                <field name="vd_intake_budget"/>
-                                <field name="vd_intake_timeline"/>
+                            <group string="Vị trí &amp; đất">
+                                <field name="vd_intake_address" placeholder="Số nhà, đường, phường, quận, TP"/>
+                                <field name="vd_intake_position" placeholder="Mặt tiền / hẻm / …"/>
+                                <field name="vd_intake_land_type"/>
+                                <field name="vd_intake_dimensions" placeholder="vd: 5m x 20m"/>
+                                <field name="vd_intake_area" placeholder="vd: 100 m²"/>
                             </group>
-                            <group>
-                                <field name="vd_intake_need" placeholder="Khách cần gì? Quy mô? Yêu cầu đặc biệt?"/>
-                                <field name="vd_intake_notes" placeholder="Ghi chú khác..."/>
+                            <group string="Công trình">
+                                <field name="vd_intake_house_type"/>
+                                <field name="vd_intake_floors"/>
+                                <field name="vd_intake_function" placeholder="3PN + 2WC + bếp + …"/>
+                                <field name="vd_intake_timeline" placeholder="Thời gian khởi công / mua"/>
+                                <field name="vd_intake_budget" placeholder="vd: 5–7 tỷ"/>
                             </group>
+                        </group>
+                        <group string="Ghi chú công năng">
+                            <field name="vd_intake_function_notes" nolabel="1" placeholder="Yêu cầu đặc biệt về công năng từng phòng…"/>
                         </group>
                     </div>
                 </page>

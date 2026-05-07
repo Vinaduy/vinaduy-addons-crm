@@ -38,13 +38,29 @@ class CrmLead(models.Model):
     )
     vd_in_call = fields.Boolean(compute='_compute_active_call')
 
-    # Khai thác thông tin (lead intake) — visible on stage=new
-    vd_intake_need = fields.Text(string='Nhu cầu khách')
-    vd_intake_budget = fields.Char(string='Ngân sách dự kiến')
-    vd_intake_timeline = fields.Char(string='Thời gian khởi công / mua')
-    vd_intake_decision_maker = fields.Char(string='Người quyết định')
-    vd_intake_source = fields.Char(string='Nguồn khách')
-    vd_intake_notes = fields.Text(string='Ghi chú khai thác')
+    # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
+    vd_intake_address = fields.Char(string='Địa chỉ')
+    vd_intake_timeline = fields.Char(string='Thời gian')
+    vd_intake_area = fields.Char(string='Diện tích', help='vd: 100m2 hoặc 5x20m')
+    vd_intake_house_type = fields.Selection([
+        ('nha_pho', 'Nhà phố'),
+        ('biet_thu', 'Biệt thự'),
+        ('chung_cu', 'Chung cư'),
+        ('cap_4', 'Nhà cấp 4'),
+        ('khac', 'Khác'),
+    ], string='Kiểu nhà')
+    vd_intake_floors = fields.Integer(string='Số tầng')
+    vd_intake_function = fields.Char(string='Công năng', help='vd: 3PN + 2WC + bếp + phòng thờ')
+    vd_intake_function_notes = fields.Text(string='Ghi chú công năng')
+    vd_intake_land_type = fields.Selection([
+        ('dat_o', 'Đất ở'),
+        ('dat_thuong_mai', 'Đất thương mại / dịch vụ'),
+        ('dat_hon_hop', 'Đất hỗn hợp'),
+        ('dat_khac', 'Khác'),
+    ], string='Loại đất')
+    vd_intake_position = fields.Char(string='Vị trí', help='vd: Mặt tiền đường, hẻm xe hơi, …')
+    vd_intake_budget = fields.Char(string='Ngân sách dự kiến', help='vd: 5–7 tỷ')
+    vd_intake_dimensions = fields.Char(string='Số đo', help='vd: 5m x 20m')
 
     # Convenience related fields for stage flags
     stage_code = fields.Char(related='stage_id.code', store=True, index=True)
