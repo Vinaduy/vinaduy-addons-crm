@@ -300,6 +300,19 @@ class CrmLead(models.Model):
             self.vd_active_call_id.action_hangup()
         return True
 
+    def action_view_calls(self):
+        """Open call history for this lead in a modal dialog."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Lịch sử cuộc gọi — %s') % (self.name or ''),
+            'res_model': 'stringee.call',
+            'view_mode': 'list,form',
+            'domain': [('lead_id', '=', self.id)],
+            'target': 'new',
+            'context': {'default_lead_id': self.id, 'create': False},
+        }
+
     # ---------- Dashboard data ----------
 
     @api.model

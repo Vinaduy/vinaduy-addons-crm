@@ -194,6 +194,25 @@
     h5 i { color: #2b8a3e; }
 }
 
+/* History button bar — small button to open call history modal */
+.o_vd_history_bar {
+    text-align: center;
+    margin: 1rem 0;
+
+    .o_vd_history_btn {
+        border-radius: 999px;
+        padding: 0.4rem 1.1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        &:hover {
+            background: #339af0;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(51, 154, 240, 0.25);
+        }
+    }
+}
+
 /* Hide standard CRM lead buttons that don't fit the VD UX:
    Won / Lost in header, and the smart-button row (Meetings / Quotations / etc).
    Done via CSS so it survives upstream renames. */

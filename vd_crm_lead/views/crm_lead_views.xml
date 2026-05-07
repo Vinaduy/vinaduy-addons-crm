@@ -164,31 +164,17 @@
                     </div>
                 </div>
 
-                <!-- LỊCH SỬ GỌI CARD — always visible -->
-                <div class="o_vd_card">
-                    <h5>
-                        <i class="fa fa-phone"/>
-                        Lịch sử cuộc gọi
-                    </h5>
-                    <group>
-                        <group>
-                            <field name="last_call_date" readonly="1"/>
-                            <field name="last_answered_date" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="call_count" readonly="1"/>
-                            <field name="no_answer_streak" readonly="1"/>
-                        </group>
-                    </group>
-                    <field name="call_ids" readonly="1">
-                        <list>
-                            <field name="create_date"/>
-                            <field name="direction"/>
-                            <field name="state" widget="badge"/>
-                            <field name="duration" widget="float_time"/>
-                            <field name="recording_attachment_id" widget="boolean"/>
-                        </list>
-                    </field>
+                <!-- LỊCH SỬ GỌI — small button only, opens modal on click -->
+                <div class="o_vd_history_bar" invisible="call_count == 0">
+                    <field name="call_count" invisible="1"/>
+                    <button name="action_view_calls" type="object"
+                            class="btn btn-sm btn-outline-info o_vd_history_btn">
+                        <i class="fa fa-history me-1"/>
+                        Xem lịch sử cuộc gọi
+                        <span class="badge bg-info ms-2" style="vertical-align: middle">
+                            <field name="call_count" nolabel="1" readonly="1"/>
+                        </span>
+                    </button>
                 </div>
             </xpath>
         </field>
