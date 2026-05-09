@@ -270,13 +270,47 @@ class CrmLead(models.Model):
 
     # ---------- Stage transition: auto-archive on lost ----------
 
+    def _vd_check_user_permissions(self, vals):
+        """Enforce per-user toggles set in CRM → Cấu hình → Phân quyền NV.
+        Bypassed for: superuser (uid=1), system admin, sales manager.
+        """
+        user = self.env.user
+        if user.id == 1 or user.has_group('base.group_system') \
+                or user.has_group('sales_team.group_sale_manager'):
+            return
+        if not user.vd_can_edit_lead:
+            raise UserError(_(
+                'Bạn không có quyền sửa khách hàng. '
+                'Liên hệ Admin để mở quyền "Sửa khách".'
+            ))
+        if 'user_id' in vals and not user.vd_can_transfer_lead:
+            new_user = vals.get('user_id')
+            for rec in self:
+                if rec.user_id.id != new_user:
+                    raise UserError(_(
+                        'Bạn không có quyền chuyển khách sang nhân viên khác. '
+                        'Liên hệ Admin để mở quyền "Chuyển khách cho NV khác".'
+                    ))
+
     def write(self, vals):
+        self._vd_check_user_permissions(vals)
         result = super().write(vals)
         if 'stage_id' in vals:
             for rec in self:
                 if rec.stage_is_lost and rec.active:
                     rec.with_context(skip_lost_archive=True).active = False
         return result
+
+    def unlink(self):
+        user = self.env.user
+        if user.id != 1 and not user.has_group('base.group_system') \
+                and not user.has_group('sales_team.group_sale_manager'):
+            if not user.vd_can_delete_lead:
+                raise UserError(_(
+                    'Bạn không có quyền xoá khách hàng. '
+                    'Liên hệ Admin để mở quyền "Xoá khách".'
+                ))
+        return super().unlink()
 
     # ---------- Actions ----------
 

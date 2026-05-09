@@ -9,6 +9,10 @@
                 <field name="name"/>
                 <field name="login"/>
                 <field name="vd_crm_role"/>
+                <field name="vd_can_edit_lead" widget="boolean_toggle" optional="show"/>
+                <field name="vd_can_delete_lead" widget="boolean_toggle" optional="show"/>
+                <field name="vd_can_transfer_lead" widget="boolean_toggle" optional="show"/>
+                <field name="vd_can_see_all_menus" widget="boolean_toggle" optional="show"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -21,28 +25,38 @@
             <form string="Phân quyền CRM" create="0">
                 <sheet>
                     <group>
-                        <group>
+                        <group string="Thông tin user">
                             <field name="name" readonly="1"/>
                             <field name="login" readonly="1"/>
                             <field name="active"/>
                         </group>
-                        <group>
+                        <group string="Vai trò chính">
                             <field name="vd_crm_role"/>
+                            <field name="vd_can_see_all_menus" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Quyền thao tác trên khách hàng">
+                        <group>
+                            <field name="vd_can_edit_lead" widget="boolean_toggle"/>
+                            <field name="vd_can_delete_lead" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="vd_can_transfer_lead" widget="boolean_toggle"/>
                         </group>
                     </group>
                     <div class="text-muted mt-3">
-                        <p><strong>Giải thích 3 vai trò:</strong></p>
+                        <p><strong>Hướng dẫn:</strong></p>
                         <ul>
-                            <li><b>Nhân viên:</b> chỉ xem/sửa/xoá KH có "NV phụ trách" = chính họ.
-                                Menu hệ thống bị ẩn — chỉ thấy CRM + Mail.</li>
-                            <li><b>Trưởng phòng:</b> xem/sửa/xoá tất cả KH của mọi NV. Vẫn không có quyền hệ thống
-                                (không thấy Settings, Apps, Users…).</li>
-                            <li><b>Admin:</b> toàn quyền hệ thống — cấu hình, phân quyền, tất cả module.</li>
-                            <li><b>Không có quyền CRM:</b> không vào được module CRM.</li>
+                            <li><b>Vai trò</b> — chọn 1 trong 4: Admin / Trưởng phòng / Nhân viên / Không có quyền.</li>
+                            <li><b>Xem toàn bộ menu</b> — bật để user thấy tất cả module Odoo
+                                (kế toán, tuyển dụng…). Tắt → chỉ CRM + Mail.</li>
+                            <li><b>Sửa khách</b> — tắt → user chỉ ĐỌC, không lưu được thay đổi nào.</li>
+                            <li><b>Xoá khách</b> — tắt → không xoá được KH.</li>
+                            <li><b>Chuyển khách cho NV khác</b> — tắt → không đổi được "NV phụ trách".</li>
                         </ul>
                         <p class="text-warning small">
-                            <i class="fa fa-info-circle"/> Khi đổi sang NV/Trưởng phòng, các quyền thừa
-                            (kế toán, tuyển dụng, web designer…) sẽ tự động được gỡ.
+                            <i class="fa fa-info-circle"/> Các giới hạn trên CHỈ áp dụng cho Nhân viên và Trưởng phòng.
+                            Admin luôn có toàn quyền (bypass mọi giới hạn).
                         </p>
                     </div>
                 </sheet>

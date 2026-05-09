@@ -59,6 +59,38 @@ class ResUsers(models.Model):
              'Khi đổi sang NV/TP, các group thừa (kế toán, tuyển dụng, web…) sẽ tự được gỡ.',
     )
 
+    # Granular permission toggles — only enforced for non-admin/non-manager users.
+    # Default values mirror the typical NV: can edit own KH, cannot delete/transfer,
+    # menu is trimmed to CRM + Mail.
+    vd_can_edit_lead = fields.Boolean(
+        string='Sửa khách', default=True,
+        help='Cho phép user này sửa thông tin khách hàng. '
+             'Tắt → chỉ đọc, không lưu được thay đổi.',
+    )
+    vd_can_delete_lead = fields.Boolean(
+        string='Xoá khách', default=False,
+        help='Cho phép user này xoá khách hàng khỏi hệ thống.',
+    )
+    vd_can_transfer_lead = fields.Boolean(
+        string='Chuyển khách cho NV khác', default=False,
+        help='Cho phép user này đổi "NV phụ trách" của khách hàng. '
+             'Tắt → KH đã gán cho user này thì không thể chuyển sang NV khác.',
+    )
+    vd_can_see_all_menus = fields.Boolean(
+        string='Xem toàn bộ menu', default=False,
+        inverse='_inverse_vd_can_see_all_menus',
+        help='Bật → user thấy tất cả menu (kế toán, tuyển dụng, web…) như Odoo mặc định. '
+             'Tắt → chỉ thấy CRM + Mail (giao diện sạch).',
+    )
+
+    def _inverse_vd_can_see_all_menus(self):
+        # Toggling this flag re-runs the role inverse so noisy groups are
+        # re-stripped (off) or restored to default Odoo set (on, no-op since
+        # we never re-add groups we don't know belonged to user — admin must
+        # add them manually if needed).
+        for u in self:
+            u._inverse_vd_crm_role()
+
     @api.model
     def _vd_role_groups(self):
         """Return refs to the 3 sales-related groups."""
@@ -99,8 +131,9 @@ class ResUsers(models.Model):
             for grp_key in ('sale_manager', 'sale_all_leads', 'sale_salesman', 'system'):
                 ops.append((3, g[grp_key].id))
 
-            # Strip noisy groups for non-admin roles
-            if u.vd_crm_role in ('nv', 'tp', 'none'):
+            # Strip noisy groups for non-admin roles, unless user has the
+            # "see all menus" override.
+            if u.vd_crm_role in ('nv', 'tp', 'none') and not u.vd_can_see_all_menus:
                 for xmlid in NOISY_GROUPS:
                     grp = self.env.ref(xmlid, raise_if_not_found=False)
                     if grp:
