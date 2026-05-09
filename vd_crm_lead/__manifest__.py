@@ -12,6 +12,7 @@
         'views/crm_lead_views.xml',
         'views/crm_dashboard_views.xml',
         'views/stringee_call_views.xml',
+        'views/res_users_views.xml',
         'views/menus.xml',
     ],
     'assets': {
