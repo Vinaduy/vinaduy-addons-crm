@@ -26,6 +26,10 @@ export class VdCrmDashboard extends Component {
         this.state = useState({
             loading: true,
             user: { id: 0, name: "" },
+            is_manager: false,
+            users: [],
+            // 0 = "Tất cả NV" (manager view); otherwise the chosen user's id.
+            selectedUserId: 0,
             kpi: {},
             errors: {},
             stages: [],
@@ -41,21 +45,41 @@ export class VdCrmDashboard extends Component {
 
     async loadDashboard() {
         this.state.loading = true;
-        const data = await this.orm.call("crm.lead", "dashboard_data", []);
+        const userParam = this.state.selectedUserId || "all";
+        const [data, users] = await Promise.all([
+            this.orm.call("crm.lead", "dashboard_data", [userParam]),
+            this.state.users.length
+                ? Promise.resolve(this.state.users)
+                : this.orm.call("crm.lead", "dashboard_users", []),
+        ]);
         Object.assign(this.state, data);
+        this.state.users = users;
+        this.state.selectedUserId = data.selected_user_id || 0;
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
             || data.stages.find((s) => !s.is_lost)
             || data.stages[0];
         if (firstActive) {
             await this.selectStage(firstActive.id);
+        } else {
+            this.state.leads = [];
+            this.state.selectedStageId = null;
         }
         this.state.loading = false;
+    }
+
+    async onUserChange(ev) {
+        const val = ev.target.value;
+        this.state.selectedUserId = val === "all" ? 0 : parseInt(val, 10);
+        await this.loadDashboard();
     }
 
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
         this.state.leadsLoading = true;
-        this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", [stageId]);
+        const userParam = this.state.selectedUserId || "all";
+        this.state.leads = await this.orm.call(
+            "crm.lead", "dashboard_leads", [stageId, userParam],
+        );
         this.state.leadsLoading = false;
     }
 

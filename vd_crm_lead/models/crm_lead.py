@@ -341,16 +341,58 @@ class CrmLead(models.Model):
     # ---------- Dashboard data ----------
 
     @api.model
+    def _dashboard_is_manager(self):
+        # Sales Manager (or technical admin) sees every salesperson's leads.
+        return (
+            self.env.user.has_group('sales_team.group_sale_manager')
+            or self.env.user.has_group('base.group_system')
+        )
+
+    @api.model
+    def _dashboard_resolve_scope(self, user_id):
+        """Return (scope_user, scope_domain_lead, scope_domain_call).
+
+        - Non-manager: always scoped to themselves regardless of `user_id`.
+        - Manager + user_id falsy/'all': no user filter (all salespeople).
+        - Manager + user_id int: scoped to that user.
+        """
+        is_manager = self._dashboard_is_manager()
+        if not is_manager:
+            user = self.env.user
+            return user, [('user_id', '=', user.id)], [('user_id', '=', user.id)]
+        if not user_id or user_id == 'all':
+            return None, [], []
+        target = self.env['res.users'].browse(int(user_id))
+        return target, [('user_id', '=', target.id)], [('user_id', '=', target.id)]
+
+    @api.model
+    def dashboard_users(self):
+        """List salespeople for the manager dropdown. Returns [] for non-managers."""
+        if not self._dashboard_is_manager():
+            return []
+        # Distinct users that own at least one lead — keeps dropdown short
+        # even when there are many inactive accounts in the system.
+        self.env.cr.execute("""
+            SELECT DISTINCT u.id, COALESCE(p.name, u.login) AS name
+            FROM res_users u
+            JOIN res_partner p ON p.id = u.partner_id
+            JOIN crm_lead l ON l.user_id = u.id
+            WHERE u.active = TRUE
+            ORDER BY name
+        """)
+        return [{'id': r[0], 'name': r[1]} for r in self.env.cr.fetchall()]
+
+    @api.model
     def dashboard_data(self, user_id=None):
         """Single-payload data for the OWL dashboard."""
-        user = self.env['res.users'].browse(user_id) if user_id else self.env.user
-        domain_user = [('user_id', '=', user.id)]
+        scope_user, lead_scope, call_scope = self._dashboard_resolve_scope(user_id)
+        is_manager = self._dashboard_is_manager()
 
         Stage = self.env['crm.stage']
         stages = Stage.search([], order='sequence')
         stage_payload = []
         for st in stages:
-            count = self.search_count(domain_user + [('stage_id', '=', st.id)])
+            count = self.search_count(lead_scope + [('stage_id', '=', st.id)])
             stage_payload.append({
                 'id': st.id,
                 'code': st.code or '',
@@ -369,19 +411,18 @@ class CrmLead(models.Model):
         active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
         Call = self.env['stringee.call']
-        call_today_domain = [
-            ('user_id', '=', user.id),
+        call_today_domain = call_scope + [
             ('create_date', '>=', today_start),
             ('create_date', '<', today_end),
         ]
 
         kpi = {
-            'total': self.search_count(domain_user),
-            'new_today': self.search_count(domain_user + [
+            'total': self.search_count(lead_scope),
+            'new_today': self.search_count(lead_scope + [
                 ('create_date', '>=', today_start),
                 ('create_date', '<', today_end),
             ]),
-            'callback_today': self.search_count(domain_user + active_only + [
+            'callback_today': self.search_count(lead_scope + active_only + [
                 ('callback_date', '>=', today_start),
                 ('callback_date', '<', today_end),
             ]),
@@ -395,29 +436,36 @@ class CrmLead(models.Model):
         }
 
         errors = {
-            'overdue_callback': self.search_count(domain_user + active_only + [
+            'overdue_callback': self.search_count(lead_scope + active_only + [
                 ('callback_date', '<', now),
             ]),
-            'new_not_called': self.search_count(domain_user + [
+            'new_not_called': self.search_count(lead_scope + [
                 ('stage_id.code', '=', 'new'),
                 ('call_count', '=', 0),
             ]),
-            'potential_no_quote': self.search_count(domain_user + [
+            'potential_no_quote': self.search_count(lead_scope + [
                 ('stage_id.code', '=', 'potential'),
             ]),
             'stale': (
-                self.search_count(domain_user + active_only + [
+                self.search_count(lead_scope + active_only + [
                     ('last_call_date', '<', stale_threshold),
                 ])
-                + self.search_count(domain_user + active_only + [
+                + self.search_count(lead_scope + active_only + [
                     ('last_call_date', '=', False),
                     ('create_date', '<', stale_threshold),
                 ])
             ),
         }
 
+        if scope_user:
+            user_payload = {'id': scope_user.id, 'name': scope_user.name}
+        else:
+            user_payload = {'id': 0, 'name': 'Tất cả nhân viên'}
+
         return {
-            'user': {'id': user.id, 'name': user.name},
+            'user': user_payload,
+            'is_manager': is_manager,
+            'selected_user_id': scope_user.id if scope_user else 0,
             'kpi': kpi,
             'errors': errors,
             'stages': stage_payload,
@@ -425,11 +473,11 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=80):
-        user = self.env['res.users'].browse(user_id) if user_id else self.env.user
-        leads = self.search([
-            ('user_id', '=', user.id),
-            ('stage_id', '=', stage_id),
-        ], limit=limit, order='probability desc, callback_date asc, create_date desc')
+        _scope_user, lead_scope, _call_scope = self._dashboard_resolve_scope(user_id)
+        leads = self.search(
+            lead_scope + [('stage_id', '=', stage_id)],
+            limit=limit, order='probability desc, callback_date asc, create_date desc',
+        )
         return [{
             'id': l.id,
             'name': l.name,
@@ -443,4 +491,5 @@ class CrmLead(models.Model):
             'is_stale': l.is_stale,
             'priority': l.priority,
             'expected_revenue': l.expected_revenue,
+            'salesperson': l.user_id.name or '',
         } for l in leads]

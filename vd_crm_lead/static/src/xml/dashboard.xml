@@ -12,6 +12,24 @@
                 <!-- LEFT COLUMN — user card / today / errors -->
                 <div class="col-lg-3 col-md-4 d-flex flex-column gap-3">
 
+                    <!-- Manager NV picker — only for sales managers / system admins -->
+                    <div t-if="state.is_manager" class="card o_vd_user_picker">
+                        <div class="card-body py-2">
+                            <label class="small text-muted mb-1">Xem dashboard của:</label>
+                            <select class="form-select form-select-sm"
+                                    t-on-change="(ev) => this.onUserChange(ev)">
+                                <option value="all" t-att-selected="!state.selectedUserId">
+                                    Tất cả nhân viên
+                                </option>
+                                <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                        t-att-value="u.id"
+                                        t-att-selected="state.selectedUserId === u.id">
+                                    <t t-esc="u.name"/>
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- User card -->
                     <div class="card o_vd_user_card">
                         <div class="card-body">
@@ -113,6 +131,7 @@
                                 <thead>
                                     <tr>
                                         <th>Tên KH</th>
+                                        <th t-if="state.is_manager and !state.selectedUserId">NV phụ trách</th>
                                         <th>SĐT</th>
                                         <th>Tỉ lệ chốt</th>
                                         <th>Hẹn gọi lại</th>
@@ -130,6 +149,9 @@
                                             <span t-if="lead.priority === '2'" class="badge bg-danger ms-1">!</span>
                                             <span t-if="lead.is_today_callback" class="badge bg-info ms-1">Hôm nay</span>
                                             <span t-if="lead.is_stale" class="badge bg-secondary ms-1">Stale</span>
+                                        </td>
+                                        <td t-if="state.is_manager and !state.selectedUserId" class="text-muted small">
+                                            <t t-esc="lead.salesperson"/>
                                         </td>
                                         <td><t t-esc="lead.phone"/></td>
                                         <td style="min-width:140px">
