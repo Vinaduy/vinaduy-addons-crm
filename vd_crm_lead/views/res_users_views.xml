@@ -31,13 +31,19 @@
                         </group>
                     </group>
                     <div class="text-muted mt-3">
-                        <p><strong>Giải thích quyền:</strong></p>
+                        <p><strong>Giải thích 3 vai trò:</strong></p>
                         <ul>
-                            <li><b>NV thường:</b> chỉ xem / sửa / xoá KH có "NV phụ trách" = chính họ.</li>
-                            <li><b>NV xem tất cả KH:</b> xem được KH của mọi NV, nhưng chỉ sửa được KH của mình.</li>
-                            <li><b>Quản trị CRM:</b> xem / sửa / xoá toàn bộ KH của mọi NV.</li>
+                            <li><b>Nhân viên:</b> chỉ xem/sửa/xoá KH có "NV phụ trách" = chính họ.
+                                Menu hệ thống bị ẩn — chỉ thấy CRM + Mail.</li>
+                            <li><b>Trưởng phòng:</b> xem/sửa/xoá tất cả KH của mọi NV. Vẫn không có quyền hệ thống
+                                (không thấy Settings, Apps, Users…).</li>
+                            <li><b>Admin:</b> toàn quyền hệ thống — cấu hình, phân quyền, tất cả module.</li>
                             <li><b>Không có quyền CRM:</b> không vào được module CRM.</li>
                         </ul>
+                        <p class="text-warning small">
+                            <i class="fa fa-info-circle"/> Khi đổi sang NV/Trưởng phòng, các quyền thừa
+                            (kế toán, tuyển dụng, web designer…) sẽ tự động được gỡ.
+                        </p>
                     </div>
                 </sheet>
             </form>
@@ -61,7 +67,7 @@
               name="Phân quyền nhân viên"
               parent="crm.crm_menu_config"
               action="action_vd_crm_user_roles"
-              groups="base.group_system,sales_team.group_sale_manager"
+              groups="base.group_system"
               sequence="50"/>
 
 </odoo>
