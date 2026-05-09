@@ -388,11 +388,17 @@ class CrmLead(models.Model):
         scope_user, lead_scope, call_scope = self._dashboard_resolve_scope(user_id)
         is_manager = self._dashboard_is_manager()
 
+        # Manager view crosses record rules (e.g. "Sales: own documents only").
+        # `sudo()` is safe here because _dashboard_resolve_scope already gates
+        # who can pass `user_id`/`'all'` — non-managers are forced to their own scope.
+        Lead = self.sudo() if is_manager else self
+        Call = self.env['stringee.call'].sudo() if is_manager else self.env['stringee.call']
+
         Stage = self.env['crm.stage']
         stages = Stage.search([], order='sequence')
         stage_payload = []
         for st in stages:
-            count = self.search_count(lead_scope + [('stage_id', '=', st.id)])
+            count = Lead.search_count(lead_scope + [('stage_id', '=', st.id)])
             stage_payload.append({
                 'id': st.id,
                 'code': st.code or '',
@@ -410,19 +416,18 @@ class CrmLead(models.Model):
         stale_threshold = now - timedelta(days=14)
         active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
-        Call = self.env['stringee.call']
         call_today_domain = call_scope + [
             ('create_date', '>=', today_start),
             ('create_date', '<', today_end),
         ]
 
         kpi = {
-            'total': self.search_count(lead_scope),
-            'new_today': self.search_count(lead_scope + [
+            'total': Lead.search_count(lead_scope),
+            'new_today': Lead.search_count(lead_scope + [
                 ('create_date', '>=', today_start),
                 ('create_date', '<', today_end),
             ]),
-            'callback_today': self.search_count(lead_scope + active_only + [
+            'callback_today': Lead.search_count(lead_scope + active_only + [
                 ('callback_date', '>=', today_start),
                 ('callback_date', '<', today_end),
             ]),
@@ -436,21 +441,21 @@ class CrmLead(models.Model):
         }
 
         errors = {
-            'overdue_callback': self.search_count(lead_scope + active_only + [
+            'overdue_callback': Lead.search_count(lead_scope + active_only + [
                 ('callback_date', '<', now),
             ]),
-            'new_not_called': self.search_count(lead_scope + [
+            'new_not_called': Lead.search_count(lead_scope + [
                 ('stage_id.code', '=', 'new'),
                 ('call_count', '=', 0),
             ]),
-            'potential_no_quote': self.search_count(lead_scope + [
+            'potential_no_quote': Lead.search_count(lead_scope + [
                 ('stage_id.code', '=', 'potential'),
             ]),
             'stale': (
-                self.search_count(lead_scope + active_only + [
+                Lead.search_count(lead_scope + active_only + [
                     ('last_call_date', '<', stale_threshold),
                 ])
-                + self.search_count(lead_scope + active_only + [
+                + Lead.search_count(lead_scope + active_only + [
                     ('last_call_date', '=', False),
                     ('create_date', '<', stale_threshold),
                 ])
@@ -474,7 +479,8 @@ class CrmLead(models.Model):
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=80):
         _scope_user, lead_scope, _call_scope = self._dashboard_resolve_scope(user_id)
-        leads = self.search(
+        Lead = self.sudo() if self._dashboard_is_manager() else self
+        leads = Lead.search(
             lead_scope + [('stage_id', '=', stage_id)],
             limit=limit, order='probability desc, callback_date asc, create_date desc',
         )
