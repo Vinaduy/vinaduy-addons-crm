@@ -490,54 +490,9 @@
                     </div>
                     <div class="o_vd_quote_body">
 
-                        <!-- ============ TÓM TẮT INFO TỪ KHAI THÁC SẼ ĐƯA VÀO PDF ============ -->
-                        <div class="o_vd_quote_intake_summary">
-                            <div class="o_vd_qis_head">
-                                <i class="fa fa-clipboard-list"/>
-                                <span>Thông tin khai thác sẽ đưa vào file PDF báo giá</span>
-                            </div>
-                            <div class="o_vd_qis_grid">
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">👤 Khách hàng:</span>
-                                    <field name="name" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">📞 SĐT:</span>
-                                    <field name="phone" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">📍 Địa chỉ:</span>
-                                    <span><field name="vd_intake_district" readonly="1" nolabel="1"/>, <field name="vd_intake_province_id" readonly="1" nolabel="1"/></span>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">🏠 Kiểu nhà:</span>
-                                    <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">🧱 Loại móng:</span>
-                                    <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">🏛️ Loại mái:</span>
-                                    <field name="vd_intake_roof_type" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">📐 Diện tích sàn:</span>
-                                    <span><field name="vd_intake_area_m2" readonly="1" nolabel="1"/> m²</span>
-                                </div>
-                                <div class="o_vd_qis_item">
-                                    <span class="o_vd_qis_lbl">🏢 Số tầng:</span>
-                                    <field name="vd_intake_floors_num" readonly="1" nolabel="1"/>
-                                </div>
-                                <div class="o_vd_qis_item o_vd_qis_highlight">
-                                    <span class="o_vd_qis_lbl">💰 Đơn giá ước tính:</span>
-                                    <field name="vd_intake_estimate" widget="monetary"
-                                           options="{'currency_field': 'vd_currency_vnd_id'}"
-                                           readonly="1" nolabel="1"/>
-                                </div>
-                            </div>
-                        </div>
                         <!-- Layout 2 cột: Form bên trái + Preview PDF bên phải -->
+                        <!-- (Block "Thông tin khai thác sẽ đưa vào file PDF" đã bỏ —
+                             panel Khách chốt bên trái đã hiển thị đầy đủ data, tránh trùng lặp.) -->
                         <div class="o_vd_quote_layout">
                             <div class="o_vd_quote_form_col">
                                 <div class="o_vd_quote_field">
