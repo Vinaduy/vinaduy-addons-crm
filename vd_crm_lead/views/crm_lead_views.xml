@@ -568,10 +568,10 @@
                     </div><!-- /.o_vd_intake_popup_overlay -->
 
                     <!-- ============ WORKFLOW BUTTONS — chuyển stage ============
-                         Nằm CUỐI summary card (sau intake summary) — vị trí
-                         tự nhiên: NV xem khai thác xong → quyết định chuyển bước. -->
+                         Chỉ hiện ở stage 'lead' (Hoàn tất khai thác) và 'lost' (lý do hủy)
+                         → ẩn ở quote/negotiate/won/created để tránh khoảng trống dư. -->
                     <div class="o_vd_workflow_bar"
-                         invisible="stage_code in ['won']">
+                         invisible="stage_code not in ['lead', 'lost']">
                         <!-- Hoàn tất khai thác → Báo giá -->
                         <button name="action_finish_intake_to_quote" type="object"
                                 class="btn btn-success o_vd_wf_btn"

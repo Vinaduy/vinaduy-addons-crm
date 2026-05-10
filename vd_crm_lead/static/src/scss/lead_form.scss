@@ -416,7 +416,7 @@
     }
 
     .o_vd_quote_body {
-        padding: 0.85rem 1rem 1rem;
+        padding: 0.5rem 1rem 0.6rem;     /* gọn hơn: top/bottom giảm */
     }
 
     .o_vd_quote_grid {
@@ -428,15 +428,22 @@
 
     .o_vd_quote_field {
         display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        margin-bottom: 0.55rem;
+        flex-direction: row;             /* INLINE: label và input cùng dòng */
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 0.4rem;            /* gap nhỏ hơn (0.55→0.4) */
 
         > label {
-            font-size: 0.78rem;
+            flex: 0 0 auto;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #2b8a3e;
             margin: 0;
+            white-space: nowrap;
+        }
+        > .o_field_widget,
+        > field {
+            flex: 1 1 auto;
         }
         > .o_field_widget {
             width: 100% !important;
@@ -2102,38 +2109,39 @@
     }
 }
 
-/* ============ Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG ============ */
+/* ============ Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG (compact 1 dòng) ============ */
 .o_vd_call_stats_box {
-    margin: 0.7rem 0 0.4rem;
-    padding: 0.7rem 0.85rem;
+    margin: 0.5rem 0 0.3rem;
+    padding: 0.4rem 0.7rem;
     background: linear-gradient(135deg, #eef5ff 0%, #f8fafd 100%);
     border: 1px solid #c8dcf5;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(20, 30, 70, 0.05);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(20, 30, 70, 0.04);
 }
 .o_vd_call_stats_row {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.6rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;            /* dải đều inline */
 }
 .o_vd_call_stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.4rem 0.55rem;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(76, 110, 245, 0.18);
+    display: inline-flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0;
+    background: transparent;
+    border: none;
 
     .o_vd_cs_lbl {
-        font-size: 0.7rem;
+        font-size: 0.78rem;
         font-weight: 600;
         color: #5c7299;
-        margin-bottom: 0.2rem;
+        margin: 0;
         white-space: nowrap;
     }
     .o_vd_cs_val {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 800;
         color: #1864ab;
         line-height: 1;
@@ -2186,7 +2194,7 @@
 
 /* ============ BẢNG BREAKDOWN BÁO GIÁ (trong panel báo giá chi tiết) ============ */
 .o_vd_quote_breakdown_wrap {
-    margin: 0.6rem 0 0.8rem;
+    margin: 0.25rem 0 0.5rem;       /* gọn hơn (0.6→0.25, 0.8→0.5) */
     overflow-x: auto;
 }
 
