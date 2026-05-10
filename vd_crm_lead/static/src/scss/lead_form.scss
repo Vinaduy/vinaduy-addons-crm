@@ -1317,29 +1317,11 @@
     }
 }
 
-/* ============ EXPANDED SHEET — FORCE wider, escape Odoo container constraints ============
-   - Sheet min-width 1280px → đủ chỗ cho form + bubble không bị nén
-   - max-width none + width 100% → dùng full vùng content có sẵn
-   - margin/padding 0 → không phí chỗ ở mép sheet
-   - Parent .o_form_sheet_bg cho phép horizontal scroll nếu viewport quá hẹp */
+/* ============ EXPANDED SHEET — DISABLED ============
+   Popup khai thác giờ là overlay position:fixed (không cần widen sheet).
+   Giữ class .o_vd_sheet_expanded vô hại để JS toggle vẫn không gây side-effect. */
 .o_form_sheet.o_vd_sheet_expanded {
-    /* Force sheet RỘNG: tối thiểu 1400px → đủ chỗ cho form (~1100px) + bubble (240px) */
-    min-width: 1400px !important;
-    max-width: none !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    transition: min-width 0.25s ease;
-}
-.o_form_sheet_bg:has(.o_form_sheet.o_vd_sheet_expanded),
-.o_form_view:has(.o_form_sheet.o_vd_sheet_expanded) > .o_form_sheet_bg {
-    max-width: none !important;
-    overflow-x: auto !important;
-}
-
-/* CRITICAL: bỏ max-width 720px của summary_card khi expanded → form mới
-   dùng được full width của sheet. Container này wrap toàn bộ inline content. */
-.o_form_sheet.o_vd_sheet_expanded .o_vd_summary_card {
-    max-width: none !important;
+    min-width: 0 !important;
 }
 
 .o_vd_intake_full {
@@ -1536,10 +1518,10 @@
     }
 }
 
-/* ===== 2-COLUMN LAYOUT (LEFT 30% / RIGHT 70%) =====
-   LEFT: THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT (xếp dọc trong cùng 1 cột)
+/* ===== 2-COLUMN LAYOUT (50/50 cố định, responsive) =====
+   LEFT: BẢNG CHÍNH = THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT (gộp vào 1 panel)
    RIGHT: ĐÀM PHÁN + HỢP ĐỒNG (xếp dọc)
-   Mobile/tablet (<1200px): tự stack dọc full-width.
+   Mobile/tablet (<992px): tự stack dọc full-width.
 */
 .o_vd_layout_grid {
     display: block; /* fallback cho mobile */
@@ -1552,35 +1534,166 @@
     width: 100%;
 }
 
-.o_vd_layout_left {
-    /* Spacing giữa summary card và quote panel khi xếp dọc */
-    .o_vd_summary_card + .o_vd_quote_panel,
-    .o_vd_summary_card + * + .o_vd_quote_panel {
-        margin-top: 1rem;
-    }
-}
-
-@media (min-width: 1200px) {
-    /* Desktop: chia 2 cột — trái 30%, phải còn lại */
+@media (min-width: 992px) {
+    /* Tablet+ desktop: chia 2 cột 50/50 cố định */
     .o_vd_layout_grid {
         display: grid;
-        grid-template-columns: 30% 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 1rem;
         align-items: start;
     }
     .o_vd_layout_left,
     .o_vd_layout_right {
-        min-width: 0; /* tránh overflow grid item */
+        min-width: 0;       /* tránh overflow grid item */
+        max-width: 100%;
     }
 }
 
-/* Override CSS cũ của summary + quote panel — giờ luôn block, full width
-   (trong cột chứa của nó). */
+/* Override CSS cũ — full width trong cột chứa */
 .o_vd_layout_left .o_vd_summary_card,
-.o_vd_layout_left .o_vd_quote_panel {
+.o_vd_layout_left .o_vd_quote_panel,
+.o_vd_layout_right .o_vd_negotiate_panel,
+.o_vd_layout_right .o_vd_contract_panel {
     display: block;
     width: 100%;
     max-width: 100%;
+}
+
+/* ===== BẢNG CHÍNH — gộp summary + quote thành 1 visual panel =====
+   Outer container có 1 border + shadow chung; inner panel bị strip border/shadow
+   để trông như 2 section của cùng 1 panel (chia bởi divider mờ). */
+.o_vd_main_panel {
+    background: #fff;
+    border: 1px solid #e3e8ef;
+    border-radius: 16px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 12px 32px -16px rgba(77, 171, 247, 0.18);
+    overflow: hidden;
+    margin: 0 0 1.5rem;
+
+    /* Strip wrapping của 2 panel con — chúng giờ là 2 section. */
+    .o_vd_summary_card,
+    .o_vd_quote_panel {
+        margin: 0 !important;
+        border: none !important;
+        border-left: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+    .o_vd_summary_card:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    /* Divider mờ giữa 2 section */
+    .o_vd_summary_card + .o_vd_quote_panel {
+        border-top: 1px dashed #e3e8ef !important;
+    }
+}
+
+/* ===== POPUP KHAI THÁC — overlay nằm phía bên phải màn hình =====
+   width 45vw (90% của nửa phải), căn giữa nửa phải bằng cách
+   right: 2.5vw → khoảng cách mép phải = (50vw - 45vw)/2 = 2.5vw.
+   Mobile: full width. */
+.o_vd_intake_popup_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    pointer-events: none;       /* để click xuyên qua vùng trống bên trái */
+
+    .o_vd_intake_popup_backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.18);
+        pointer-events: auto;   /* nhận click backdrop nếu cần */
+        animation: vd-popup-fade-in 0.18s ease-out;
+    }
+
+    .o_vd_intake_popup_panel {
+        position: absolute;
+        top: 60px;
+        right: 2.5vw;
+        width: 45vw;
+        max-width: none;
+        height: calc(100vh - 80px);
+        max-height: calc(100vh - 80px);
+        background: #fff;
+        border: 1px solid #d8e2f0;
+        border-radius: 14px;
+        box-shadow:
+            0 24px 64px -8px rgba(15, 23, 42, 0.35),
+            0 8px 24px rgba(15, 23, 42, 0.18);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem 1.25rem 1.25rem;
+        pointer-events: auto;
+        animation: vd-popup-slide-in 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+        margin-top: 0 !important;
+        padding-top: 1rem !important;
+        border-top: none !important;
+    }
+}
+
+/* Nút X góc trên phải của popup */
+.o_vd_popup_close_btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #f1f3f5;
+    color: #495057;
+    font-size: 0.95rem;
+    line-height: 32px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: #fa5252;
+        color: #fff;
+        transform: rotate(90deg);
+    }
+    i { line-height: inherit; }
+}
+
+@keyframes vd-popup-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes vd-popup-slide-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Mobile / tablet: popup chiếm gần full màn hình */
+@media (max-width: 991px) {
+    .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
+        top: 50px;
+        right: 2.5vw;
+        left: 2.5vw;
+        width: auto;
+        height: calc(100vh - 70px);
+        max-height: calc(100vh - 70px);
+    }
+}
+
+/* Trong popup: form + bubble luôn xếp DỌC (popup không đủ rộng cho 2 cột) */
+.o_vd_intake_popup_panel .o_vd_intake_layout {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+}
+.o_vd_intake_popup_panel .o_vd_intake_sidebar {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
 }
 
 .o_vd_intake_compact {

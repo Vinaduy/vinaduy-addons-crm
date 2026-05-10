@@ -46,7 +46,7 @@ class CrmLead(models.Model):
     # bong bóng kịch bản). Mặc định False; bật khi NV bấm Gọi hoặc nút "Mở
     # khai thác". Tắt khi NV bấm "Lưu & Hoàn tất".
     vd_intake_open = fields.Boolean(
-        string='Mở phiếu khai thác', default=False, copy=False,
+        string='Thông tin tư vấn', default=False, copy=False,
     )
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)

@@ -54,17 +54,18 @@
                 <!-- Workflow buttons giờ nằm BÊN TRONG summary card, sau intake summary -->
 
                 <!-- ============ 2-COLUMN LAYOUT WRAPPER ============
-                     LEFT (30%): THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT
-                     RIGHT (rest): ĐÀM PHÁN + HỢP ĐỒNG
-                     Mobile/tablet (<1200px): tự stack dọc full-width. -->
+                     LEFT (50%): "BẢNG CHÍNH" — gộp THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT
+                     RIGHT (50%): ĐÀM PHÁN + HỢP ĐỒNG
+                     Mobile/tablet (<992px): tự stack dọc full-width. -->
                 <div class="o_vd_layout_grid">
                 <div class="o_vd_layout_left">
+                <!-- BẢNG CHÍNH — gộp summary + quote thành 1 visual panel. -->
+                <div class="o_vd_main_panel">
 
                 <!-- ============ CUSTOMER SUMMARY CARD ============
-                     Có 2 chế độ:
-                     - vd_intake_open=False → block .o_vd_intake_summary (compact)
-                     - vd_intake_open=True  → block .o_vd_intake_full (form 2 cột)
-                     CSS dùng :has() để widen o_form_sheet khi mở rộng. -->
+                     Compact summary luôn hiện. Form khai thác mở ra dạng POPUP
+                     bên phải khi vd_intake_open=True (xem .o_vd_intake_popup_overlay
+                     ở cuối layout grid). -->
                 <div class="o_vd_summary_card">
 
                     <!-- Banner: tiêu đề tĩnh "THÔNG TIN KHÁCH HÀNG"
@@ -91,16 +92,17 @@
                         </div>
                     </div>
 
-                    <!-- ============ COMPACT SUMMARY MODE — visible khi vd_intake_open=False
+                    <!-- ============ COMPACT SUMMARY MODE — luôn hiện
                          Highlight 3 thông tin quan trọng (Ngân sách / Diện tích / Thời gian)
-                         + Ước tính + badge trạng thái. Info phụ ở dưới (compact grid). -->
-                    <div class="o_vd_intake_summary" invisible="vd_intake_open">
+                         + Ước tính + badge trạng thái. Info phụ ở dưới (compact grid).
+                         Form khai thác giờ mở ở popup overlay → không cần ẩn summary. -->
+                    <div class="o_vd_intake_summary">
                         <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
                             <div class="o_vd_summary_section_title">
                                 <span><i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC</span>
                                 <button name="action_open_intake_inline" type="object"
                                         class="btn btn-sm btn-outline-primary o_vd_open_intake_btn">
-                                    <i class="fa fa-edit"/> Mở phiếu khai thác
+                                    <i class="fa fa-edit"/> Thông tin tư vấn
                                 </button>
                             </div>
 
@@ -266,15 +268,22 @@
                             hoặc bấm
                             <button name="action_open_intake_inline" type="object"
                                     class="btn btn-sm btn-outline-primary o_vd_open_intake_btn">
-                                <i class="fa fa-edit"/> Mở phiếu khai thác
+                                <i class="fa fa-edit"/> Thông tin tư vấn
                             </button>
                             để khai thác thủ công.
                         </div>
                     </div>
 
-                    <!-- ============ EXPANDED INTAKE MODE — visible khi vd_intake_open=True
-                         2 cột: trái = form fields, phải = bong bóng kịch bản tư vấn (sticky). -->
-                    <div class="o_vd_intake_full o_vd_intake_compact" invisible="not vd_intake_open">
+                    <!-- ============ POPUP KHAI THÁC ============
+                         Khi vd_intake_open=True → overlay nằm phía bên phải màn hình
+                         (45vw, ≈ 90% nửa phải). Có dấu X góc trên để đóng. -->
+                    <div class="o_vd_intake_popup_overlay" invisible="not vd_intake_open">
+                        <div class="o_vd_intake_popup_backdrop"/>
+                        <div class="o_vd_intake_full o_vd_intake_compact o_vd_intake_popup_panel">
+                        <button name="action_close_intake_inline" type="object"
+                                class="o_vd_popup_close_btn" title="Đóng">
+                            <i class="fa fa-times"/>
+                        </button>
                         <div class="o_vd_popup_banner" invisible="not vd_in_call">
                             <i class="fa fa-microphone"/>
                             Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
@@ -452,13 +461,14 @@
                                     name="action_save_intake_done" type="object"
                                     class="btn btn-primary o_vd_btn_save"/>
                         </div>
-                    </div>
+                        </div><!-- /.o_vd_intake_popup_panel -->
+                    </div><!-- /.o_vd_intake_popup_overlay -->
 
                     <!-- ============ WORKFLOW BUTTONS — chuyển stage ============
                          Nằm CUỐI summary card (sau intake summary) — vị trí
                          tự nhiên: NV xem khai thác xong → quyết định chuyển bước. -->
                     <div class="o_vd_workflow_bar"
-                         invisible="stage_code in ['won'] or vd_intake_open">
+                         invisible="stage_code in ['won']">
                         <!-- Hoàn tất khai thác → Báo giá -->
                         <button name="action_finish_intake_to_quote" type="object"
                                 class="btn btn-success o_vd_wf_btn"
@@ -491,7 +501,7 @@
                 <!-- ============================================================
                      💰 PANEL BÁO GIÁ — visible khi stage = quote/negotiate/won
                      ============================================================ -->
-                <div class="o_vd_quote_panel" invisible="stage_code not in ['quote', 'negotiate', 'won'] or vd_intake_open">
+                <div class="o_vd_quote_panel" invisible="stage_code not in ['quote', 'negotiate', 'won']">
                     <div class="o_vd_quote_head">
                         <i class="fa fa-money"/>
                         <span>Báo giá chi tiết</span>
@@ -647,13 +657,14 @@
                     </div>
                 </div>
 
+                </div><!-- /.o_vd_main_panel -->
                 </div><!-- /.o_vd_layout_left -->
                 <div class="o_vd_layout_right">
 
                 <!-- ============================================================
                      🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate
                      ============================================================ -->
-                <div class="o_vd_negotiate_panel" invisible="stage_code != 'negotiate' or vd_intake_open">
+                <div class="o_vd_negotiate_panel" invisible="stage_code != 'negotiate'">
                     <div class="o_vd_nego_head">
                         <i class="fa fa-handshake-o"/>
                         <span>Đàm phán + Ép cọc 50tr</span>
@@ -705,7 +716,7 @@
                 <!-- ============================================================
                      🏆 PANEL HỢP ĐỒNG — visible khi đã ký
                      ============================================================ -->
-                <div class="o_vd_contract_panel" invisible="not vd_contract_signed or vd_intake_open">
+                <div class="o_vd_contract_panel" invisible="not vd_contract_signed">
                     <div class="o_vd_contract_head">
                         <i class="fa fa-trophy"/>
                         <span>Hợp đồng đã ký 🎉</span>
