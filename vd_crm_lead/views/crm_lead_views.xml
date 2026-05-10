@@ -53,6 +53,13 @@
 
                 <!-- Workflow buttons giờ nằm BÊN TRONG summary card, sau intake summary -->
 
+                <!-- ============ 2-COLUMN LAYOUT WRAPPER ============
+                     LEFT (30%): THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT
+                     RIGHT (rest): ĐÀM PHÁN + HỢP ĐỒNG
+                     Mobile/tablet (<1200px): tự stack dọc full-width. -->
+                <div class="o_vd_layout_grid">
+                <div class="o_vd_layout_left">
+
                 <!-- ============ CUSTOMER SUMMARY CARD ============
                      Có 2 chế độ:
                      - vd_intake_open=False → block .o_vd_intake_summary (compact)
@@ -640,6 +647,9 @@
                     </div>
                 </div>
 
+                </div><!-- /.o_vd_layout_left -->
+                <div class="o_vd_layout_right">
+
                 <!-- ============================================================
                      🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate
                      ============================================================ -->
@@ -713,6 +723,9 @@
                         </div>
                     </div>
                 </div>
+
+                </div><!-- /.o_vd_layout_right -->
+                </div><!-- /.o_vd_layout_grid -->
 
             </xpath>
 

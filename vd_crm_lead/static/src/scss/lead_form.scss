@@ -1536,20 +1536,51 @@
     }
 }
 
-/* ===== STAGE = quote/negotiate/won → summary + quote panel xếp DỌC, full width =====
-   (Trước đây xếp song song bằng inline-block — đổi thành block để KH và báo giá
-   hiển thị full width, dễ đọc hơn.) */
-.o_form_sheet:has(.o_vd_intake_summary):has(.o_vd_quote_panel:not([style*="display: none"])) {
-    .o_vd_summary_card,
-    .o_vd_quote_panel {
-        display: block;
-        width: 100%;
-    }
+/* ===== 2-COLUMN LAYOUT (LEFT 30% / RIGHT 70%) =====
+   LEFT: THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT (xếp dọc trong cùng 1 cột)
+   RIGHT: ĐÀM PHÁN + HỢP ĐỒNG (xếp dọc)
+   Mobile/tablet (<1200px): tự stack dọc full-width.
+*/
+.o_vd_layout_grid {
+    display: block; /* fallback cho mobile */
+    width: 100%;
 }
-@media (min-width: 1200px) {
-    .o_vd_summary_card:has(.o_vd_intake_summary) + .o_vd_quote_panel {
+
+.o_vd_layout_left,
+.o_vd_layout_right {
+    display: block;
+    width: 100%;
+}
+
+.o_vd_layout_left {
+    /* Spacing giữa summary card và quote panel khi xếp dọc */
+    .o_vd_summary_card + .o_vd_quote_panel,
+    .o_vd_summary_card + * + .o_vd_quote_panel {
         margin-top: 1rem;
     }
+}
+
+@media (min-width: 1200px) {
+    /* Desktop: chia 2 cột — trái 30%, phải còn lại */
+    .o_vd_layout_grid {
+        display: grid;
+        grid-template-columns: 30% 1fr;
+        gap: 1rem;
+        align-items: start;
+    }
+    .o_vd_layout_left,
+    .o_vd_layout_right {
+        min-width: 0; /* tránh overflow grid item */
+    }
+}
+
+/* Override CSS cũ của summary + quote panel — giờ luôn block, full width
+   (trong cột chứa của nó). */
+.o_vd_layout_left .o_vd_summary_card,
+.o_vd_layout_left .o_vd_quote_panel {
+    display: block;
+    width: 100%;
+    max-width: 100%;
 }
 
 .o_vd_intake_compact {
