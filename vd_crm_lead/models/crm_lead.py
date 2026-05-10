@@ -518,7 +518,7 @@ class CrmLead(models.Model):
         'vd_intake_car_access', 'vd_intake_estimate', 'vd_quote_price',
     )
     def _compute_quote_breakdown_html(self):
-        Pricing = self.env['vd.pricing']
+        Pricing = self.env['vd.pricing.region']
         for rec in self:
             area = rec.vd_intake_area_m2 or 0
             floors = rec.vd_intake_floors_num or 1.0
