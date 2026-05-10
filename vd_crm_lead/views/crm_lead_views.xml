@@ -399,11 +399,48 @@
                                 <div class="o_vd_hero_card o_vd_hero_budget">
                                     <div class="o_vd_hero_head">
                                         <span class="o_vd_hero_icon">💰</span>
-                                        <span class="o_vd_hero_title">NGÂN SÁCH (VNĐ)</span>
+                                        <span class="o_vd_hero_title">CHI PHÍ BÁO GIÁ</span>
                                     </div>
-                                    <field name="vd_intake_budget_amount" widget="monetary"
-                                           options="{'currency_field': 'vd_currency_vnd_id'}"
-                                           nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                                    <!-- Auto-computed price (đơn giá × diện tích × tầng + móng + mái) -->
+                                    <div class="o_vd_budget_row o_vd_budget_auto">
+                                        <span class="o_vd_budget_lbl">Phần mềm tính:</span>
+                                        <span class="o_vd_budget_val">
+                                            <field name="vd_intake_estimate"
+                                                   widget="monetary"
+                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
+                                                   readonly="1" nolabel="1"/>
+                                        </span>
+                                    </div>
+                                    <!-- Manual entry — Ngân sách dự kiến của KH -->
+                                    <div class="o_vd_budget_row o_vd_budget_manual">
+                                        <span class="o_vd_budget_lbl">Ngân sách dự kiến:</span>
+                                        <field name="vd_intake_budget_amount" widget="monetary"
+                                               options="{'currency_field': 'vd_currency_vnd_id'}"
+                                               nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                                    </div>
+                                    <!-- Comparison: chênh lệch ngân sách vs estimate -->
+                                    <div class="o_vd_budget_compare"
+                                         invisible="not vd_intake_budget_amount or not vd_intake_estimate">
+                                        <field name="vd_intake_budget_status" invisible="1"/>
+                                        <div class="o_vd_budget_diff o_vd_budget_diff_fit"
+                                             invisible="vd_intake_budget_status != 'fit'">
+                                            ✅ Ngân sách phù hợp với báo giá
+                                        </div>
+                                        <div class="o_vd_budget_diff o_vd_budget_diff_warn"
+                                             invisible="vd_intake_budget_status != 'warn'">
+                                            ⚖️ Chênh lệch nhẹ:
+                                            <field name="vd_intake_gap" widget="monetary"
+                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
+                                                   readonly="1" nolabel="1"/>
+                                        </div>
+                                        <div class="o_vd_budget_diff o_vd_budget_diff_over"
+                                             invisible="vd_intake_budget_status != 'over'">
+                                            ⚠️ Chênh lệch lớn:
+                                            <field name="vd_intake_gap" widget="monetary"
+                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
+                                                   readonly="1" nolabel="1"/>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

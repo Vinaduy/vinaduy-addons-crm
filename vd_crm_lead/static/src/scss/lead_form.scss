@@ -2206,7 +2206,7 @@
     i { color: #ffffff !important; }
 }
 
-/* ===== Right column cards (THỜI GIAN + NGÂN SÁCH) — compact, không quá to ===== */
+/* ===== Right column cards (THỜI GIAN + CHI PHÍ BÁO GIÁ) — compact ===== */
 .o_vd_intake_popup_panel .o_vd_hero_col_right {
     .o_vd_hero_card {
         padding: 0.55rem 0.7rem 0.65rem !important;
@@ -2224,13 +2224,88 @@
         font-size: 0.9rem !important;
         padding: 0.4rem 0.6rem !important;
     }
-    /* Card NGÂN SÁCH input: monetary widget với currency symbol */
-    .o_vd_hero_budget .o_field_widget {
-        padding: 0 !important;       /* override 0.1rem 0.6rem để input có chỗ */
+}
+
+/* ===== CHI PHÍ BÁO GIÁ — 2 dòng (auto + manual) + comparison ===== */
+.o_vd_hero_budget {
+    .o_vd_budget_row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.4rem;
+        padding: 0.25rem 0;
+
+        .o_vd_budget_lbl {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #5c3700;
+            white-space: nowrap;
+        }
+        .o_vd_budget_val {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0b3d77;
+        }
     }
-    .o_vd_hero_budget .o_field_widget input {
-        padding: 0.45rem 0.6rem !important;
-        font-size: 1rem !important;
+    .o_vd_budget_auto {
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 6px;
+        padding: 0.3rem 0.5rem !important;
+        margin-bottom: 0.25rem;
+        border: 1px dashed rgba(138, 90, 0, 0.35);
+    }
+    .o_vd_budget_manual {
+        /* Manual entry input full width */
+        .o_field_widget {
+            flex: 1 1 auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            border: 1.5px solid #fab005 !important;
+            border-radius: 6px !important;
+        }
+        .o_field_widget input {
+            padding: 0.32rem 0.5rem !important;
+            font-size: 0.92rem !important;
+            font-weight: 700 !important;
+            color: #0b3d77 !important;
+        }
+    }
+    .o_vd_budget_compare {
+        margin-top: 0.4rem;
+        padding-top: 0.4rem;
+        border-top: 1px dashed rgba(138, 90, 0, 0.35);
+    }
+    .o_vd_budget_diff {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.55rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border-radius: 6px;
+        flex-wrap: wrap;
+
+        .o_field_widget,
+        .o_field_widget input {
+            font-weight: 700;
+            font-size: 0.85rem;
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+    }
+    .o_vd_budget_diff_fit {
+        background: rgba(43, 138, 62, 0.15);
+        color: #0b5d1e;
+    }
+    .o_vd_budget_diff_warn {
+        background: rgba(245, 159, 0, 0.18);
+        color: #8a5a00;
+    }
+    .o_vd_budget_diff_over {
+        background: rgba(201, 42, 42, 0.18);
+        color: #c92a2a;
     }
 }
 
@@ -2251,13 +2326,25 @@
     position: relative;
     width: 100%;
 }
+/* Khi dropdown mở → elevate hero_time card lên trên budget card phía dưới */
+.o_vd_intake_popup_panel .o_vd_hero_time {
+    position: relative;
+    z-index: 1;
+}
+.o_vd_intake_popup_panel .o_vd_hero_time:has(.o_vd_tlc_open) {
+    z-index: 100;
+}
+.o_vd_intake_popup_panel .o_vd_hero_budget {
+    position: relative;
+    z-index: 0;
+}
 .o_vd_tlc_bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.3rem;
-    min-height: 32px;
-    padding: 0.3rem 1.7rem 0.3rem 0.55rem;
+    gap: 0.35rem;
+    min-height: 56px;            /* TO hơn — fit 3 pills (32→56) */
+    padding: 0.4rem 1.7rem 0.4rem 0.55rem;
     background: rgba(255, 255, 255, 0.85);
     border: 1.5px solid #b197fc;
     border-radius: 8px;
