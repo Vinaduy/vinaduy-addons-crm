@@ -345,15 +345,17 @@ function attachReadableHint(input) {
     if (!input || input.dataset.vdReadable === "1") return;
     input.dataset.vdReadable = "1";
 
-    // Đặt hint ngay dưới hero card (sau .o_field_widget hoặc trong card)
-    const card = input.closest(".o_vd_hero_card") || input.closest(".o_vd_pf");
-    if (!card) return;
+    // Ưu tiên append vào row .o_vd_budget_manual (ngay sau input ngân sách dự kiến).
+    // Fallback: hero_card hoặc pf row.
+    const manualRow = input.closest(".o_vd_budget_manual");
+    const target = manualRow || input.closest(".o_vd_hero_card") || input.closest(".o_vd_pf");
+    if (!target) return;
 
-    let hint = card.querySelector(".o_vd_readable_hint");
+    let hint = target.querySelector(":scope > .o_vd_readable_hint");
     if (!hint) {
         hint = document.createElement("div");
         hint.className = "o_vd_readable_hint";
-        card.appendChild(hint);
+        target.appendChild(hint);
     }
 
     const update = () => {

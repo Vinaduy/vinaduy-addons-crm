@@ -1696,24 +1696,28 @@
 
     .o_vd_intake_popup_panel {
         position: absolute;
-        top: 142px;       /* ngang mép trên summary card "THÔNG TIN KHÁCH HÀNG" (navbar + breadcrumb + sheet padding) */
-        right: 2.5vw;
-        width: 45vw;
+        /* 3 cạnh trên/phải/dưới CHẠM mép trình duyệt; mép trái giữ vị trí cũ
+           (left = 100vw - width 45vw - margin 2.5vw = 52.5vw). */
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 52.5vw;
+        width: auto;
         max-width: none;
-        height: calc(100vh - 162px);
-        max-height: calc(100vh - 162px);
+        height: 100vh;
+        max-height: 100vh;
         background: #fff;
-        border: 1px solid #d8e2f0;
-        border-radius: 14px;
-        box-shadow:
-            0 24px 64px -8px rgba(15, 23, 42, 0.35),
-            0 8px 24px rgba(15, 23, 42, 0.18);
-        overflow: hidden;             /* header/footer fix, body scroll */
-        padding: 0;                   /* header + body + footer tự handle padding */
+        /* Bỏ border 3 cạnh chạm mép, chỉ giữ border trái */
+        border: none;
+        border-left: 1px solid #d8e2f0;
+        /* Bo góc chỉ bên trái */
+        border-radius: 14px 0 0 14px;
+        box-shadow: -8px 0 32px -4px rgba(15, 23, 42, 0.25);
+        overflow: hidden;
+        padding: 0;
         pointer-events: auto;
         animation: vd-popup-slide-in 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
         margin-top: 0 !important;
-        border-top: none !important;
         display: flex;
         flex-direction: column;
     }
@@ -1806,12 +1810,14 @@
 /* Mobile / tablet: popup chiếm gần full màn hình */
 @media (max-width: 991px) {
     .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
-        top: 80px;
-        right: 2.5vw;
-        left: 2.5vw;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 8vw;
         width: auto;
-        height: calc(100vh - 100px);
-        max-height: calc(100vh - 100px);
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 14px 0 0 14px;
     }
 }
 
@@ -2226,14 +2232,14 @@
     }
 }
 
-/* ===== CHI PHÍ BÁO GIÁ — 2 dòng (auto + manual) + comparison ===== */
+/* ===== CHI PHÍ BÁO GIÁ — 2 dòng (auto + manual): label TRÊN, ô số tiền DƯỚI ===== */
 .o_vd_hero_budget {
     .o_vd_budget_row {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.4rem;
-        padding: 0.25rem 0;
+        flex-direction: column;        /* label trên, value dưới */
+        align-items: stretch;
+        gap: 0.2rem;
+        padding: 0.3rem 0;
 
         .o_vd_budget_lbl {
             font-size: 0.72rem;
@@ -2242,20 +2248,20 @@
             white-space: nowrap;
         }
         .o_vd_budget_val {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #0b3d77;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            padding: 0.35rem 0.55rem;
+            border: 1px dashed rgba(138, 90, 0, 0.35);
         }
     }
     .o_vd_budget_auto {
-        background: rgba(255, 255, 255, 0.4);
-        border-radius: 6px;
-        padding: 0.3rem 0.5rem !important;
-        margin-bottom: 0.25rem;
-        border: 1px dashed rgba(138, 90, 0, 0.35);
+        margin-bottom: 0.3rem;
     }
     .o_vd_budget_manual {
-        /* Manual entry input full width */
+        /* Manual entry input full width — đứng dưới label */
         .o_field_widget {
             flex: 1 1 auto !important;
             margin: 0 !important;
@@ -2263,12 +2269,30 @@
             background: #fff !important;
             border: 1.5px solid #fab005 !important;
             border-radius: 6px !important;
+            width: 100% !important;
         }
         .o_field_widget input {
-            padding: 0.32rem 0.5rem !important;
-            font-size: 0.92rem !important;
+            padding: 0.42rem 0.55rem !important;
+            font-size: 1rem !important;
             font-weight: 700 !important;
             color: #0b3d77 !important;
+            width: 100% !important;
+        }
+        /* "≈ 2 tỷ đồng" hint — ngay sau input ngân sách dự kiến, compact */
+        .o_vd_readable_hint {
+            margin-top: 0.3rem !important;
+            padding: 0.18rem 0.5rem !important;
+            font-size: 0.72rem !important;
+            font-style: italic;
+            color: #5c3700 !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-radius: 999px !important;
+            border: 1px dashed rgba(138, 90, 0, 0.35) !important;
+            width: fit-content !important;
+            text-align: left !important;
+            margin-left: 0 !important;
+            margin-right: auto !important;
+            display: block !important;
         }
     }
     .o_vd_budget_compare {
