@@ -279,7 +279,7 @@ class CrmLead(models.Model):
         ('4', '4'),
         ('5', '5'),
         ('tum', 'Tum'),
-    ], string='Số tầng (chip)',
+    ], string='Số tầng',
         help='Chọn nhanh số tầng dạng thẻ. Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng.')
 
     vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))

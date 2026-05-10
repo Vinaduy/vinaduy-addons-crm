@@ -312,7 +312,7 @@
                             <div class="o_vd_hero_card o_vd_hero_area">
                                 <div class="o_vd_hero_head">
                                     <span class="o_vd_hero_icon">🏗️</span>
-                                    <span class="o_vd_hero_title">THÔNG TIN XÂY DỰNG</span>
+                                    <span class="o_vd_hero_title">THÔNG TIN CÔNG TRÌNH</span>
                                 </div>
                                     <div class="o_vd_dims_row">
                                         <div class="o_vd_dim_pair">
@@ -409,7 +409,8 @@
                             </div>
                         </div>
 
-                        <!-- Main intake fields — 1 cột (Ô tô vào giờ là dropdown, đứng cùng nhóm) -->
+                        <!-- ===== BẢNG THÔNG TIN ĐỊA LÝ / KHU VỰC ===== -->
+                        <div class="o_vd_intake_geo_panel">
                         <div class="o_vd_pf_grid">
                             <div class="o_vd_pf">
                                 <label for="vd_intake_car_access_select">Ô tô vào</label>
@@ -462,6 +463,7 @@
                                        placeholder="Anh/chị có yêu cầu đặc biệt nào về phong thủy, ánh sáng, phòng thờ… không ạ?"/>
                             </div>
                         </div>
+                        </div><!-- /.o_vd_intake_geo_panel -->
 
                             </div>
                             <!-- ============ SIDEBAR — bong bóng kịch bản tư vấn (sticky bên phải) ============ -->
@@ -492,12 +494,6 @@
                                             <field name="vd_intake_consult_script" widget="html" readonly="1" nolabel="1"/>
                                         </div>
                                     </div>
-                                </div>
-                                <!-- Empty state — chưa có dữ liệu để gợi ý -->
-                                <div class="o_vd_bubble_hint"
-                                     invisible="vd_intake_estimate or vd_intake_timeline_status not in ['ok', 'unknown', False]">
-                                    <i class="fa fa-lightbulb-o"/>
-                                    <span>Nhập <b>diện tích, tầng, móng, mái, ngân sách, thời gian</b> bên trái — kịch bản tư vấn sẽ hiện tại đây.</span>
                                 </div>
                             </div>
                         </div>

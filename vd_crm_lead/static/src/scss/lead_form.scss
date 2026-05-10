@@ -1614,12 +1614,12 @@
 
     .o_vd_intake_popup_panel {
         position: absolute;
-        top: 100px;       /* ngang mép trên summary card "THÔNG TIN KHÁCH HÀNG" */
+        top: 142px;       /* ngang mép trên summary card "THÔNG TIN KHÁCH HÀNG" (navbar + breadcrumb + sheet padding) */
         right: 2.5vw;
         width: 45vw;
         max-width: none;
-        height: calc(100vh - 120px);
-        max-height: calc(100vh - 120px);
+        height: calc(100vh - 162px);
+        max-height: calc(100vh - 162px);
         background: #fff;
         border: 1px solid #d8e2f0;
         border-radius: 14px;
@@ -2010,6 +2010,20 @@
     display: flex;
     flex-direction: column;
     gap: 0.05rem;          /* sát hơn (0.2→0.05) */
+}
+
+/* ============ BẢNG ĐỊA LÝ / KHU VỰC ============
+   Wrap các trường (Ô tô vào, Tỉnh, Huyện, Vị trí, Loại đất, Sổ đỏ, Công năng, Ghi chú)
+   vào 1 panel có border + spacing rõ với card "THÔNG TIN CÔNG TRÌNH" phía trên. */
+.o_vd_intake_popup_panel .o_vd_intake_geo_panel {
+    margin-top: 1rem;       /* khoảng cách với card xây dựng phía trên */
+    padding: 0.7rem 0.85rem 0.85rem;
+    background: #fff;
+    border: 1px solid #d8e2f0;
+    border-radius: 12px;
+    box-shadow:
+        0 1px 3px rgba(20, 30, 70, 0.04),
+        0 6px 18px -8px rgba(76, 110, 245, 0.12);
 }
 
 .o_vd_intake_compact {
