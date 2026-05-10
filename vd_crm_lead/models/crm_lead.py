@@ -370,6 +370,21 @@ class CrmLead(models.Model):
     )
     vd_quote_preview_pdf_name = fields.Char(default='preview_baogia.pdf', copy=False)
 
+    # Toggle preview inline: NV bấm 👁️ Xem PDF preview để hiện/ẩn cột preview.
+    # Default False = preview ẩn, panel báo giá chỉ chiếm 1 cột (form gọn hơn).
+    vd_quote_show_preview = fields.Boolean(
+        string='Hiển thị preview PDF',
+        default=False, copy=False,
+    )
+
+    def action_toggle_quote_preview(self):
+        """Toggle preview inline. Lần đầu bật + chưa có PDF → auto generate."""
+        self.ensure_one()
+        if not self.vd_quote_show_preview and not self.vd_quote_preview_pdf:
+            self.action_refresh_quote_preview()
+        self.vd_quote_show_preview = not self.vd_quote_show_preview
+        return True
+
     def action_refresh_quote_preview(self):
         """🔄 Generate file PDF merged + lưu vào field Binary để widget
         pdf_viewer embed inline. Ưu tiên render từ template upload."""

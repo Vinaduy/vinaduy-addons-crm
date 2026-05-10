@@ -499,6 +499,16 @@
             border: none;
             display: inline-block;
         }
+
+        .o_vd_banner_title {
+            margin: 0;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
     }
 
     .o_vd_summary_header {
@@ -1526,17 +1536,19 @@
     }
 }
 
-/* ===== Khi STAGE = quote/negotiate/won + collapsed → summary + quote panel SONG SONG ===== */
+/* ===== STAGE = quote/negotiate/won → summary + quote panel xếp DỌC, full width =====
+   (Trước đây xếp song song bằng inline-block — đổi thành block để KH và báo giá
+   hiển thị full width, dễ đọc hơn.) */
 .o_form_sheet:has(.o_vd_intake_summary):has(.o_vd_quote_panel:not([style*="display: none"])) {
     .o_vd_summary_card,
     .o_vd_quote_panel {
-        display: inline-block;
-        vertical-align: top;
+        display: block;
+        width: 100%;
     }
 }
 @media (min-width: 1200px) {
     .o_vd_summary_card:has(.o_vd_intake_summary) + .o_vd_quote_panel {
-        margin-top: 0;
+        margin-top: 1rem;
     }
 }
 
@@ -3430,6 +3442,12 @@
     grid-template-columns: 1fr 1.4fr;
     gap: 1.5rem;
     margin-bottom: 1rem;
+
+    /* Khi NV ẩn preview (cột preview có style="display: none" do invisible="not show"),
+       grid tự collapse về 1 cột để form chiếm full width. */
+    &:has(.o_vd_quote_preview_col[style*="display: none"]) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .o_vd_quote_form_col {

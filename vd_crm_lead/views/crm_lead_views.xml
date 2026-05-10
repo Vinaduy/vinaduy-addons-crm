@@ -60,9 +60,11 @@
                      CSS dùng :has() để widen o_form_sheet khi mở rộng. -->
                 <div class="o_vd_summary_card">
 
-                    <!-- Banner: stage as colored top strip -->
+                    <!-- Banner: tiêu đề tĩnh "THÔNG TIN KHÁCH HÀNG"
+                         (trước đây hiển thị stage badge — đã đổi thành tiêu đề
+                         cố định, in đậm, trắng, không bo tròn). -->
                     <div class="o_vd_summary_banner">
-                        <field name="stage_id" widget="badge" readonly="1" nolabel="1"/>
+                        <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
                     </div>
 
                     <!-- Header: name + phone + salesperson -->
@@ -546,13 +548,19 @@
                                      vd_quote_material, vd_quote_payment_schedule, vd_quote_notes
                                      đã bỏ khỏi UI — auto-default trong model. -->
                             </div>
-                            <div class="o_vd_quote_preview_col">
+                            <field name="vd_quote_show_preview" invisible="1"/>
+                            <div class="o_vd_quote_preview_col" invisible="not vd_quote_show_preview">
                                 <div class="o_vd_qpc_head">
                                     <i class="fa fa-file-pdf-o"/>
                                     <span>Preview file PDF báo giá (toàn bộ trang)</span>
                                     <button name="action_refresh_quote_preview" type="object"
                                             class="btn btn-sm btn-warning ms-auto">
                                         <i class="fa fa-refresh me-1"/>🔄 Cập nhật preview
+                                    </button>
+                                    <button name="action_toggle_quote_preview" type="object"
+                                            class="btn btn-sm btn-secondary ms-2"
+                                            title="Đóng preview">
+                                        <i class="fa fa-times"/>
                                     </button>
                                 </div>
                                 <!-- pdf_viewer widget — embed PDF inline (toàn bộ trang),
@@ -575,11 +583,22 @@
                             </div>
                         </div>
 
-                        <!-- 4 nút: Xem trước / Tải PDF ngay / Lưu version / Chốt -->
+                        <!-- 4 nút: Xem PDF inline (toggle) / Tải PDF ngay / Lưu version / Chốt -->
                         <div class="o_vd_quote_actions">
+                            <button name="action_toggle_quote_preview" type="object"
+                                    class="btn btn-primary"
+                                    invisible="vd_quote_show_preview">
+                                <i class="fa fa-eye me-1"/>👁️ Xem PDF preview
+                            </button>
+                            <button name="action_toggle_quote_preview" type="object"
+                                    class="btn btn-secondary"
+                                    invisible="not vd_quote_show_preview">
+                                <i class="fa fa-eye-slash me-1"/>🙈 Ẩn PDF preview
+                            </button>
                             <button name="action_preview_quote_now" type="object"
-                                    class="btn btn-primary">
-                                <i class="fa fa-eye me-1"/>👁️ Xem trước (mở tab mới)
+                                    class="btn btn-outline-primary"
+                                    title="Mở PDF trong tab mới (full screen)">
+                                <i class="fa fa-external-link me-1"/>↗️ Mở tab mới
                             </button>
                             <button name="action_download_quote_now" type="object"
                                     class="btn btn-success">
