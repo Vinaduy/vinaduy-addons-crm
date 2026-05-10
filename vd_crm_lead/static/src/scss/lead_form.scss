@@ -1594,6 +1594,88 @@
     }
 }
 
+/* ============ BUTTON "Thông tin tư vấn" — TO, NỔI BẬT, ĐẶT CUỐI HÀNG META ============ */
+.o_vd_summary_meta {
+    /* Cho meta_item co lại để button đẩy về cuối hàng */
+    align-items: center !important;
+
+    .o_vd_open_intake_btn_main {
+        margin-left: auto !important;     /* đẩy nút sang phải tận cùng */
+        display: inline-flex !important;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 1.05rem !important;
+        border: none !important;
+        border-radius: 999px !important;
+        background: linear-gradient(135deg, #1864ab 0%, #4dabf7 100%) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 0.3px;
+        box-shadow:
+            0 6px 16px rgba(24, 100, 171, 0.35),
+            0 2px 4px rgba(24, 100, 171, 0.25);
+        cursor: pointer;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+        animation: vd-pulse-call 2.5s ease-in-out infinite;
+
+        i.fa-phone-square {
+            font-size: 1.15rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+        }
+        &:hover {
+            background: linear-gradient(135deg, #4dabf7 0%, #1864ab 100%) !important;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow:
+                0 10px 22px rgba(24, 100, 171, 0.45),
+                0 4px 8px rgba(24, 100, 171, 0.35);
+            animation: none;
+        }
+        &:active {
+            transform: translateY(0) scale(0.98);
+        }
+    }
+}
+
+@keyframes vd-pulse-call {
+    0%, 100% { box-shadow: 0 6px 16px rgba(24, 100, 171, 0.35), 0 2px 4px rgba(24, 100, 171, 0.25), 0 0 0 0 rgba(77, 171, 247, 0.6); }
+    50%      { box-shadow: 0 6px 16px rgba(24, 100, 171, 0.35), 0 2px 4px rgba(24, 100, 171, 0.25), 0 0 0 8px rgba(77, 171, 247, 0); }
+}
+
+/* ============ BUTTON "KH không có nhu cầu" — outline mờ, đẩy phải ============ */
+.o_vd_workflow_bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.o_vd_wf_btn_no_demand {
+    margin-left: auto !important;        /* đẩy về góc phải */
+    color: #868e96 !important;
+    border-color: #ced4da !important;
+    background: #fff !important;
+    font-size: 0.82rem !important;
+    padding: 0.32rem 0.85rem !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    opacity: 0.85;
+    transition: all 0.15s ease;
+
+    &:hover {
+        opacity: 1;
+        color: #c92a2a !important;
+        border-color: #fa5252 !important;
+        background: #fff5f5 !important;
+    }
+}
+
+/* Row inline gộp Tỉnh / Huyện span đầy đủ width */
+.o_vd_row_inline_wide {
+    grid-column: 1 / -1 !important;       /* span full width nếu grid */
+}
+
 /* ===== POPUP KHAI THÁC — overlay nằm phía bên phải màn hình =====
    width 45vw (90% của nửa phải), căn giữa nửa phải bằng cách
    right: 2.5vw → khoảng cách mép phải = (50vw - 45vw)/2 = 2.5vw.

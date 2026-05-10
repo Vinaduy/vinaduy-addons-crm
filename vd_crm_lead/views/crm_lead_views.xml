@@ -75,7 +75,7 @@
                         <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
                     </div>
 
-                    <!-- Header: name + phone + salesperson -->
+                    <!-- Header: name + phone + salesperson + nút "Thông tin tư vấn" (icon ☎ to, nổi bật, ở cuối hàng) -->
                     <div class="o_vd_summary_header">
                         <h2 class="o_vd_summary_name">
                             <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
@@ -89,6 +89,11 @@
                                 <i class="fa fa-user"/>
                                 <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
                             </span>
+                            <button name="action_open_intake_inline" type="object"
+                                    class="o_vd_open_intake_btn_main">
+                                <i class="fa fa-phone-square"/>
+                                <span>Thông tin tư vấn</span>
+                            </button>
                         </div>
                     </div>
 
@@ -98,13 +103,6 @@
                          Form khai thác giờ mở ở popup overlay → không cần ẩn summary. -->
                     <div class="o_vd_intake_summary">
                         <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
-                            <div class="o_vd_summary_section_title">
-                                <span><i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC</span>
-                                <button name="action_open_intake_inline" type="object"
-                                        class="btn btn-sm btn-outline-primary o_vd_open_intake_btn">
-                                    <i class="fa fa-edit"/> Thông tin tư vấn
-                                </button>
-                            </div>
 
                             <!-- 3 HERO CARDS NỔI BẬT — Ngân sách + Diện tích + Thời gian -->
                             <div class="o_vd_summary_hero_grid">
@@ -182,26 +180,14 @@
 
                             <!-- Info phụ — LUÔN hiện ĐẦY ĐỦ field, dù trống ("—") -->
                             <div class="o_vd_summary_grid_inline">
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_province_id">
+                                <!-- Tỉnh + Huyện gộp chung 1 trường: "Tỉnh / Huyện" -->
+                                <div class="o_vd_row_inline o_vd_row_inline_wide">
+                                    <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh / Huyện:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_province_id and not vd_intake_district">
                                         <field name="vd_intake_province_id" readonly="1" nolabel="1"/>
+                                        <span invisible="not vd_intake_district"> / <field name="vd_intake_district" readonly="1" nolabel="1"/></span>
                                     </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_province_id">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-map"/> Huyện:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_district">
-                                        <field name="vd_intake_district" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_district">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-location-arrow"/> Vị trí:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_position">
-                                        <field name="vd_intake_position" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_position">—</span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_province_id or vd_intake_district">—</span>
                                 </div>
                                 <div class="o_vd_row_inline">
                                     <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
@@ -433,11 +419,6 @@
                                        options="{'no_open': True}"/>
                             </div>
                             <div class="o_vd_pf">
-                                <label for="vd_intake_position">Vị trí</label>
-                                <field name="vd_intake_position" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Vị trí công trình là mặt tiền hay trong hẻm ạ?"/>
-                            </div>
-                            <div class="o_vd_pf">
                                 <label for="vd_intake_land_type">Loại đất</label>
                                 <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
                                        placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
@@ -523,12 +504,12 @@
                             ✅ Hoàn tất khai thác → Báo giá
                         </button>
 
-                        <!-- KH KHÔNG có nhu cầu → wizard nhập lý do (link nhỏ ở phải) -->
+                        <!-- KH KHÔNG có nhu cầu → wizard nhập lý do (outline mờ, ở góc phải) -->
                         <button name="action_mark_no_demand" type="object"
-                                class="btn btn-link o_vd_wf_btn_secondary"
+                                class="btn btn-sm btn-outline-secondary o_vd_wf_btn_no_demand"
                                 invisible="stage_code in ['won', 'lost']">
                             <i class="fa fa-times-circle me-1"/>
-                            ❌ KH không có nhu cầu
+                            KH không có nhu cầu
                         </button>
 
                         <!-- Lý do hủy — hiển thị khi stage = lost -->
