@@ -1685,15 +1685,101 @@
     }
 }
 
-/* Trong popup: form + bubble luôn xếp DỌC (popup không đủ rộng cho 2 cột) */
-.o_vd_intake_popup_panel .o_vd_intake_layout {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
+/* ============ Trong popup: STACK DỌC, full-width ============
+   Drop grid layout hoàn toàn → main + sidebar = 2 block stack dọc.
+   Override mọi grid-column / position cũ. */
+.o_vd_intake_popup_panel {
+    .o_vd_intake_layout {
+        display: block !important;
+        grid-template-columns: none !important;
+        gap: 0 !important;
+    }
+    .o_vd_intake_main,
+    .o_vd_intake_sidebar {
+        display: block !important;
+        grid-column: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        position: static !important;
+        margin: 0 !important;
+    }
+    .o_vd_intake_main {
+        margin-bottom: 1rem !important;
+    }
+
+    /* Hero grid: 3 cột trên popup ≥ 700px, 1 cột nếu hẹp hơn */
+    .o_vd_hero_grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+
+    /* Tech grid: 2 cột để label/input có chỗ thở (trước đây 5 cột → chen chúc) */
+    .o_vd_tech_grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.6rem 1rem !important;
+        align-items: end !important;
+    }
+    .o_vd_tech_field {
+        min-width: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
+    .o_vd_tech_field input,
+    .o_vd_tech_field select,
+    .o_vd_tech_field .o_field_widget,
+    .o_vd_tech_field .o_vd_select_dd input {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Main fields: 1 cột full width, input giãn theo popup */
+    .o_vd_pf_grid {
+        display: block !important;
+    }
+    .o_vd_pf {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        width: 100% !important;
+        max-width: none !important;
+        gap: 0.55rem !important;
+    }
+    .o_vd_pf > label {
+        flex: 0 0 130px !important;
+        max-width: 130px !important;
+    }
+    .o_vd_pf > .o_field_widget,
+    .o_vd_pf > .o_field_widget input,
+    .o_vd_pf > .o_field_widget select,
+    .o_vd_pf > .o_field_widget textarea {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+    .o_vd_pf > .o_field_widget textarea {
+        min-height: 60px !important;
+    }
 }
-.o_vd_intake_popup_panel .o_vd_intake_sidebar {
-    position: static !important;
-    width: 100% !important;
-    max-width: none !important;
+
+/* Popup hẹp (mobile / tablet): tech grid 1 cột, hero 1 cột */
+@media (max-width: 767px) {
+    .o_vd_intake_popup_panel {
+        .o_vd_hero_grid,
+        .o_vd_tech_grid {
+            grid-template-columns: 1fr !important;
+        }
+        .o_vd_pf {
+            flex-wrap: wrap !important;
+        }
+        .o_vd_pf > label {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
 }
 
 .o_vd_intake_compact {
