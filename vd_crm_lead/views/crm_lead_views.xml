@@ -106,16 +106,29 @@
 
                             <!-- 3 HERO CARDS NỔI BẬT — Ngân sách + Diện tích + Thời gian -->
                             <div class="o_vd_summary_hero_grid">
-                                <!-- Ngân sách + badge trạng thái so với ước tính -->
+                                <!-- CHI PHÍ BÁO GIÁ — PM tính + NS dự kiến + badge -->
                                 <div class="o_vd_summary_hero o_vd_hero_budget_sum">
                                     <div class="o_vd_sum_hero_head">
                                         <span class="o_vd_sum_hero_icon">💰</span>
-                                        <span class="o_vd_sum_hero_label">Ngân sách</span>
+                                        <span class="o_vd_sum_hero_label">Chi phí báo giá</span>
                                     </div>
-                                    <div class="o_vd_sum_hero_value">
-                                        <field name="vd_intake_budget_amount" widget="monetary"
-                                               options="{'currency_field': 'vd_currency_vnd_id'}"
-                                               readonly="1" nolabel="1"/>
+                                    <div class="o_vd_sum_budget_lines">
+                                        <div class="o_vd_sum_budget_line">
+                                            <span class="o_vd_sum_budget_lbl">PM tính:</span>
+                                            <span class="o_vd_sum_budget_val o_vd_sum_budget_auto">
+                                                <field name="vd_intake_estimate" widget="monetary"
+                                                       options="{'currency_field': 'vd_currency_vnd_id'}"
+                                                       readonly="1" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                        <div class="o_vd_sum_budget_line">
+                                            <span class="o_vd_sum_budget_lbl">NS dự kiến:</span>
+                                            <span class="o_vd_sum_budget_val o_vd_sum_budget_manual">
+                                                <field name="vd_intake_budget_amount" widget="monetary"
+                                                       options="{'currency_field': 'vd_currency_vnd_id'}"
+                                                       readonly="1" nolabel="1"/>
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="o_vd_sum_budget_badge o_vd_badge_fit"
                                          invisible="vd_intake_budget_status != 'fit'">
@@ -130,18 +143,34 @@
                                         ⚠️ Chênh lớn (≥ 300tr)
                                     </div>
                                 </div>
-                                <!-- Diện tích -->
+                                <!-- DIỆN TÍCH / SÀN — diện tích × tầng (+ tum) cùng 1 dòng | dòng 2: móng + nhà -->
                                 <div class="o_vd_summary_hero o_vd_hero_area_sum">
                                     <div class="o_vd_sum_hero_head">
                                         <span class="o_vd_sum_hero_icon">📐</span>
                                         <span class="o_vd_sum_hero_label">Diện tích / sàn</span>
                                     </div>
-                                    <div class="o_vd_sum_hero_value">
+                                    <div class="o_vd_sum_hero_value o_vd_sum_area_inline">
                                         <field name="vd_intake_area_m2" readonly="1" nolabel="1"/>
                                         <span class="o_vd_sum_unit">m²</span>
+                                        <span class="o_vd_sum_area_x" invisible="not vd_intake_floors_num">
+                                            × <field name="vd_intake_floors_num" readonly="1" nolabel="1"/> tầng
+                                        </span>
+                                        <span class="o_vd_sum_area_tum" invisible="not vd_intake_has_tum">
+                                            <field name="vd_intake_has_tum" invisible="1"/>+ Tum
+                                        </span>
                                     </div>
-                                    <div class="o_vd_sum_hero_sub" invisible="not vd_intake_floors_num">
-                                        × <field name="vd_intake_floors_num" readonly="1" nolabel="1"/> tầng
+                                    <div class="o_vd_sum_area_extra">
+                                        <span class="o_vd_sum_area_lbl"><i class="fa fa-cubes"/> Móng:</span>
+                                        <span class="o_vd_sum_area_v" invisible="not vd_intake_foundation_type">
+                                            <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
+                                        </span>
+                                        <span class="o_vd_sum_area_v_empty" invisible="vd_intake_foundation_type">—</span>
+                                        <span class="o_vd_sum_area_sep">|</span>
+                                        <span class="o_vd_sum_area_lbl"><i class="fa fa-home"/> Nhà:</span>
+                                        <span class="o_vd_sum_area_v" invisible="not vd_intake_house_type">
+                                            <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
+                                        </span>
+                                        <span class="o_vd_sum_area_v_empty" invisible="vd_intake_house_type">—</span>
                                     </div>
                                 </div>
                                 <!-- Thời gian -->
@@ -168,22 +197,11 @@
                                 </div>
                             </div>
 
-                            <!-- Ước tính lớn — full width -->
-                            <div class="o_vd_summary_estimate" invisible="not vd_intake_estimate">
-                                <span class="o_vd_sum_est_label">📊 Ước tính giá:</span>
-                                <span class="o_vd_sum_est_value">
-                                    <field name="vd_intake_estimate" widget="monetary"
-                                           options="{'currency_field': 'vd_currency_vnd_id'}"
-                                           readonly="1" nolabel="1"/>
-                                </span>
-                            </div>
-
-                            <!-- Info phụ — 3 dòng gọn:
+                            <!-- Info phụ — 2 dòng gọn (Kiểu nhà + Loại móng đã chuyển vào card Diện tích):
                                  R1: Tỉnh/Huyện (wide)
-                                 R2: Kiểu nhà / Loại móng / Loại đất
-                                 R3: Sổ đỏ/cấp phép / Ô tô vào / Công năng -->
+                                 R2: Loại đất / Sổ đỏ / Ô tô vào
+                                 R3: Công năng (wide) -->
                             <div class="o_vd_summary_grid_inline">
-                                <!-- R1: Tỉnh + Huyện (wide span all 3 cols) -->
                                 <div class="o_vd_row_inline o_vd_row_inline_wide">
                                     <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh / Huyện:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_province_id and not vd_intake_district">
@@ -192,21 +210,6 @@
                                     </span>
                                     <span class="o_vd_val_empty" invisible="vd_intake_province_id or vd_intake_district">—</span>
                                 </div>
-                                <!-- R2 -->
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_house_type">
-                                        <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_house_type">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-cubes"/> Loại móng:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_foundation_type">
-                                        <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_foundation_type">—</span>
-                                </div>
                                 <div class="o_vd_row_inline">
                                     <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_land_type">
@@ -214,7 +217,6 @@
                                     </span>
                                     <span class="o_vd_val_empty" invisible="vd_intake_land_type">—</span>
                                 </div>
-                                <!-- R3 -->
                                 <div class="o_vd_row_inline">
                                     <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_dimensions">
@@ -227,7 +229,7 @@
                                     <span style="color:#c92a2a;font-weight:600;" invisible="vd_intake_car_access">Không</span>
                                     <span style="color:#2b8a3e;font-weight:600;" invisible="not vd_intake_car_access">Có</span>
                                 </div>
-                                <div class="o_vd_row_inline">
+                                <div class="o_vd_row_inline o_vd_row_inline_wide">
                                     <span class="o_vd_lbl"><i class="fa fa-list-ul"/> Công năng:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_function">
                                         <field name="vd_intake_function" readonly="1" nolabel="1"/>
@@ -576,9 +578,7 @@
                     </div>
                     <div class="o_vd_quote_body">
 
-                        <!-- Layout 2 cột: Form bên trái + Preview PDF bên phải -->
-                        <!-- (Block "Thông tin khai thác sẽ đưa vào file PDF" đã bỏ —
-                             panel Khách chốt bên trái đã hiển thị đầy đủ data, tránh trùng lặp.) -->
+                        <!-- Form chỉ còn 1 trường: Chọn template -->
                         <div class="o_vd_quote_layout">
                             <div class="o_vd_quote_form_col">
                                 <div class="o_vd_quote_field">
@@ -588,47 +588,47 @@
                                            options="{'no_create': False, 'no_create_edit': False}"
                                            placeholder="— Chọn từ danh sách —"/>
                                 </div>
-                                <div class="o_vd_quote_field">
-                                    <label for="vd_quote_price">💵 Giá báo cho KH (auto = ước tính, sửa được)</label>
-                                    <field name="vd_quote_price" widget="monetary"
-                                           options="{'currency_field': 'vd_currency_vnd_id'}"
-                                           readonly="vd_quote_locked" nolabel="1"/>
-                                </div>
-                                <!-- Field thừa ẩn đi: vd_quote_date, vd_quote_valid_until,
-                                     vd_quote_material, vd_quote_payment_schedule, vd_quote_notes
-                                     đã bỏ khỏi UI — auto-default trong model. -->
                             </div>
                             <field name="vd_quote_show_preview" invisible="1"/>
-                            <div class="o_vd_quote_preview_col" invisible="not vd_quote_show_preview">
-                                <div class="o_vd_qpc_head">
-                                    <i class="fa fa-file-pdf-o"/>
-                                    <span>Preview file PDF báo giá (toàn bộ trang)</span>
-                                    <button name="action_refresh_quote_preview" type="object"
-                                            class="btn btn-sm btn-warning ms-auto">
-                                        <i class="fa fa-refresh me-1"/>🔄 Cập nhật preview
-                                    </button>
+                        </div>
+
+                        <!-- ============ POPUP PREVIEW PDF ============
+                             Khi vd_quote_show_preview=True → overlay nằm phía bên phải màn hình (giống popup THÔNG TIN TƯ VẤN). -->
+                        <div class="o_vd_intake_popup_overlay o_vd_quote_popup_overlay" invisible="not vd_quote_show_preview">
+                            <div class="o_vd_intake_popup_backdrop"/>
+                            <div class="o_vd_intake_popup_panel o_vd_quote_popup_panel">
+                                <!-- HEADER: tiêu đề + X đóng -->
+                                <div class="o_vd_popup_header">
+                                    <h3 class="o_vd_popup_title">
+                                        <i class="fa fa-file-pdf-o"/> PREVIEW BÁO GIÁ PDF
+                                    </h3>
                                     <button name="action_toggle_quote_preview" type="object"
-                                            class="btn btn-sm btn-secondary ms-2"
-                                            title="Đóng preview">
+                                            class="o_vd_popup_close_btn" title="Đóng">
                                         <i class="fa fa-times"/>
                                     </button>
                                 </div>
-                                <!-- pdf_viewer widget — embed PDF inline (toàn bộ trang),
-                                     dùng PDF.js của Odoo, scroll qua từng trang được. -->
-                                <div invisible="not vd_quote_preview_pdf">
-                                    <field name="vd_quote_preview_pdf"
-                                           widget="pdf_viewer"
-                                           filename="vd_quote_preview_pdf_name"
-                                           nolabel="1"/>
-                                    <field name="vd_quote_preview_pdf_name" invisible="1"/>
-                                </div>
-                                <!-- Chưa có file PDF → hint bấm Refresh -->
-                                <div invisible="vd_quote_preview_pdf"
-                                     style="padding:2rem;text-align:center;color:#92400e;background:#fff;border-radius:8px;border:2px dashed #fbbf24;">
-                                    <i class="fa fa-file-pdf-o" style="font-size:3rem;display:block;margin-bottom:0.7rem;color:#fbbf24;"/>
-                                    <h4>Chưa có preview PDF</h4>
-                                    <p>Bấm <b>"🔄 Cập nhật preview"</b> ở trên để generate file PDF báo giá đầy đủ trang (kết hợp template upload + data KH).</p>
-                                    <p class="text-muted"><small>File PDF sẽ giữ NGUYÊN 100% các trang của template (logo, ảnh, format) — chỉ trang BẢNG BÁO GIÁ CHI TIẾT thay data theo từng KH.</small></p>
+                                <!-- BODY scrollable — embed PDF -->
+                                <div class="o_vd_popup_body">
+                                    <div class="o_vd_qpc_actions">
+                                        <button name="action_refresh_quote_preview" type="object"
+                                                class="btn btn-sm btn-warning">
+                                            <i class="fa fa-refresh me-1"/>🔄 Cập nhật preview
+                                        </button>
+                                    </div>
+                                    <div invisible="not vd_quote_preview_pdf">
+                                        <field name="vd_quote_preview_pdf"
+                                               widget="pdf_viewer"
+                                               filename="vd_quote_preview_pdf_name"
+                                               nolabel="1"/>
+                                        <field name="vd_quote_preview_pdf_name" invisible="1"/>
+                                    </div>
+                                    <div invisible="vd_quote_preview_pdf"
+                                         style="padding:2rem;text-align:center;color:#92400e;background:#fff;border-radius:8px;border:2px dashed #fbbf24;margin-top:1rem;">
+                                        <i class="fa fa-file-pdf-o" style="font-size:3rem;display:block;margin-bottom:0.7rem;color:#fbbf24;"/>
+                                        <h4>Chưa có preview PDF</h4>
+                                        <p>Bấm <b>"🔄 Cập nhật preview"</b> ở trên để generate file PDF báo giá đầy đủ trang (kết hợp template + data KH).</p>
+                                        <p class="text-muted"><small>File PDF giữ NGUYÊN 100% các trang của template (logo, ảnh, format) — chỉ trang BẢNG BÁO GIÁ CHI TIẾT thay data theo từng KH.</small></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

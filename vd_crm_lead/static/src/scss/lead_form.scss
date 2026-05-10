@@ -2092,6 +2092,107 @@
     }
 }
 
+/* ============ SUMMARY HERO — CHI PHÍ BÁO GIÁ (2 dòng compact) ============ */
+.o_vd_hero_budget_sum {
+    .o_vd_sum_budget_lines {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        margin: 0.3rem 0 0.4rem;
+    }
+    .o_vd_sum_budget_line {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        line-height: 1.2;
+    }
+    .o_vd_sum_budget_lbl {
+        flex: 0 0 70px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #5c3700;
+        opacity: 0.85;
+    }
+    .o_vd_sum_budget_val {
+        flex: 1 1 auto;
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: #0b3d77;
+        white-space: nowrap;
+        .o_field_widget { font-weight: inherit; color: inherit; font-size: inherit; }
+    }
+    .o_vd_sum_budget_auto { color: #d9480f; }       /* Phần mềm tính → cam */
+    .o_vd_sum_budget_manual { color: #0b3d77; }     /* NS dự kiến → xanh */
+}
+
+/* ============ SUMMARY HERO — DIỆN TÍCH (1 dòng = m² × tầng + tum) ============ */
+.o_vd_hero_area_sum {
+    .o_vd_sum_area_inline {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.35rem;
+    }
+    .o_vd_sum_area_x {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #0b5d1e;
+        opacity: 0.85;
+    }
+    .o_vd_sum_area_tum {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #2b8a3e, #51cf66);
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+    }
+    .o_vd_sum_area_extra {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.3rem;
+        margin-top: 0.4rem;
+        padding-top: 0.35rem;
+        border-top: 1px dashed rgba(0, 0, 0, 0.1);
+        font-size: 0.78rem;
+
+        .o_vd_sum_area_lbl {
+            font-weight: 600;
+            color: #0b5d1e;
+            i { margin-right: 0.2rem; }
+        }
+        .o_vd_sum_area_v {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .o_vd_sum_area_v_empty {
+            color: #adb5bd;
+            font-style: italic;
+        }
+        .o_vd_sum_area_sep {
+            color: #adb5bd;
+            margin: 0 0.15rem;
+        }
+    }
+}
+
+/* ============ POPUP PREVIEW BÁO GIÁ — reuse intake popup style ============ */
+.o_vd_quote_popup_overlay {
+    /* Already inherits .o_vd_intake_popup_overlay positioning */
+}
+.o_vd_quote_popup_panel {
+    /* Đổi gradient header sang xanh lá (theo theme báo giá) */
+    .o_vd_popup_header {
+        background: linear-gradient(135deg, #2b8a3e 0%, #51cf66 100%) !important;
+        border-bottom-color: #2f9e44 !important;
+    }
+    .o_vd_qpc_actions {
+        margin-bottom: 0.8rem;
+    }
+}
+
 /* Per-floor area list — mỗi tầng 1 dòng, SÁT NHAU */
 .o_vd_floor_area_list {
     margin-top: 0.2rem;
