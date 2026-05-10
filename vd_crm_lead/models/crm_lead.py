@@ -175,15 +175,9 @@ class CrmLead(models.Model):
         ('mai_bang', 'Nhà mái bằng'),
         ('mai_thai', 'Nhà mái thái'),
         ('mai_nhat', 'Nhà mái nhật'),
-        ('nha_pho', 'Nhà phố'),
-        ('biet_thu', 'Biệt thự'),
         ('nha_ong', 'Nhà ống'),
-        ('cap_4', 'Nhà cấp 4'),
-        ('tum_mansard', 'Tum / Mansard'),
-        ('chung_cu', 'Chung cư'),
-        ('khac', 'Khác (mô tả thêm)'),
     ], string='Kiểu nhà',
-        help='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, biệt thự…?"',
+        help='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, mái nhật, nhà ống?"',
     )
     vd_intake_house_type_other = fields.Char(
         string='Mô tả kiểu nhà khác',
@@ -305,9 +299,17 @@ class CrmLead(models.Model):
         if self.vd_intake_floors_select or self.vd_intake_has_tum:
             self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
 
+        n = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
+        # CLEAR diện tích các tầng vượt số tầng đã chọn (tránh count tầng ẩn vào tổng)
+        for i in range(n + 1, 8):
+            fname = f'vd_intake_floor_{i}_m2'
+            if self[fname]:
+                self[fname] = 0.0
+        if not self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
+            self.vd_intake_floor_tum_m2 = 0.0
+
         # Auto-fill diện tích từng tầng từ L×R (chỉ điền nếu trường tầng đang trống)
         area = self.vd_intake_area_m2 or 0.0
-        n = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
         if area > 0:
             for i in range(1, n + 1):
                 fname = f'vd_intake_floor_{i}_m2'
@@ -338,18 +340,18 @@ class CrmLead(models.Model):
     )
 
     @api.depends(
+        'vd_intake_floors_select',
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
         'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
         'vd_intake_floor_7_m2', 'vd_intake_has_tum', 'vd_intake_floor_tum_m2',
     )
     def _compute_total_m2(self):
+        """Sum chỉ các tầng đang được chọn (1..N) + Tum nếu has_tum."""
         for rec in self:
-            total = (
-                (rec.vd_intake_floor_1_m2 or 0) + (rec.vd_intake_floor_2_m2 or 0)
-                + (rec.vd_intake_floor_3_m2 or 0) + (rec.vd_intake_floor_4_m2 or 0)
-                + (rec.vd_intake_floor_5_m2 or 0) + (rec.vd_intake_floor_6_m2 or 0)
-                + (rec.vd_intake_floor_7_m2 or 0)
-            )
+            n = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
+            total = 0.0
+            for i in range(1, n + 1):
+                total += rec[f'vd_intake_floor_{i}_m2'] or 0
             if rec.vd_intake_has_tum:
                 total += rec.vd_intake_floor_tum_m2 or 0
             rec.vd_intake_total_m2 = total

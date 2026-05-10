@@ -204,13 +204,6 @@
                                     <span class="o_vd_val_empty" invisible="vd_intake_foundation_type">—</span>
                                 </div>
                                 <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-home"/> Loại mái:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_roof_type">
-                                        <field name="vd_intake_roof_type" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_roof_type">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
                                     <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_land_type">
                                         <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
@@ -334,12 +327,6 @@
                                             <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
                                                    placeholder="Kiểu nhà nào?"/>
                                         </div>
-                                        <div class="o_vd_pf_compact">
-                                            <label for="vd_intake_roof_type">Loại mái</label>
-                                            <field name="vd_intake_roof_type" widget="vd_selection_dropdown" nolabel="1"
-                                                   placeholder="Loại mái cụ thể"
-                                                   options="{'filter_field': 'vd_intake_house_type', 'filter_map': {'mai_bang': ['mai_bang'], 'mai_thai': ['mai_thai_kdt', 'mai_thai_cdt'], 'mai_nhat': ['mai_nhat_kdt', 'mai_nhat_cdt'], 'nha_pho': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'biet_thu': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'nha_ong': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'cap_4': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'tum_mansard': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt'], 'chung_cu': ['mai_bang', 'thong_tang'], 'khac': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m']}}"/>
-                                        </div>
                                     </div>
 
                                     <!-- ===== Số tầng — chip selector (1-7) + Tum toggle riêng ===== -->
@@ -453,11 +440,6 @@
                                 <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
                                 <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
                                        placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
-                            </div>
-                            <div class="o_vd_pf" invisible="vd_intake_house_type != 'khac'">
-                                <label for="vd_intake_house_type_other">↳ Mô tả kiểu nhà khác</label>
-                                <field name="vd_intake_house_type_other" nolabel="1"
-                                       placeholder="Mô tả kiểu nhà KH muốn xây (vd: nhà gác lửng, nhà container...)"/>
                             </div>
                             <div class="o_vd_pf">
                                 <label for="vd_intake_function">Công năng</label>

@@ -2194,8 +2194,43 @@
         font-size: 0.65rem !important;        /* 0.82 → 0.65 (-20%) */
         letter-spacing: 0.4px !important;
     }
-    .o_vd_popup_title {
-        font-size: 0.82rem !important;        /* 1.0 → 0.82 */
+}
+
+/* ===== POPUP HEADER TITLE — to bằng banner "THÔNG TIN KHÁCH HÀNG", trắng đậm ===== */
+.o_vd_popup_header .o_vd_popup_title {
+    color: #ffffff !important;
+    font-size: 1.05rem !important;             /* khớp với .o_vd_banner_title */
+    font-weight: 800 !important;
+    letter-spacing: 1px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    i { color: #ffffff !important; }
+}
+
+/* ===== Right column cards (THỜI GIAN + NGÂN SÁCH) — compact, không quá to ===== */
+.o_vd_intake_popup_panel .o_vd_hero_col_right {
+    .o_vd_hero_card {
+        padding: 0.55rem 0.7rem 0.65rem !important;
+    }
+    .o_vd_hero_card .o_vd_hero_head {
+        margin-bottom: 0.35rem !important;
+        padding-bottom: 0.3rem !important;
+    }
+    /* Input lớn rõ ràng — chiếm full chiều ngang */
+    .o_vd_hero_card > .o_field_widget {
+        width: 100% !important;
+    }
+    .o_vd_hero_card > .o_field_widget input,
+    .o_vd_hero_card > .o_field_widget .o_input {
+        font-size: 0.9rem !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+    /* Card NGÂN SÁCH input: monetary widget với currency symbol */
+    .o_vd_hero_budget .o_field_widget {
+        padding: 0 !important;       /* override 0.1rem 0.6rem để input có chỗ */
+    }
+    .o_vd_hero_budget .o_field_widget input {
+        padding: 0.45rem 0.6rem !important;
+        font-size: 1rem !important;
     }
 }
 
