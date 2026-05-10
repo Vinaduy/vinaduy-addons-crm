@@ -328,6 +328,23 @@ class CrmLead(models.Model):
             if ok and rec.vd_intake_roof_type not in ok:
                 rec.vd_intake_roof_type = False
     vd_intake_car_access = fields.Boolean(string='Ô tô vào được', default=True)
+    # Selection mirror cho UI dropdown (sync 2 chiều với Boolean ở trên)
+    vd_intake_car_access_select = fields.Selection([
+        ('co', 'Có'),
+        ('khong', 'Không'),
+    ], string='Ô tô vào',
+        compute='_compute_car_access_select',
+        inverse='_inverse_car_access_select',
+        store=True)
+
+    @api.depends('vd_intake_car_access')
+    def _compute_car_access_select(self):
+        for rec in self:
+            rec.vd_intake_car_access_select = 'co' if rec.vd_intake_car_access else 'khong'
+
+    def _inverse_car_access_select(self):
+        for rec in self:
+            rec.vd_intake_car_access = (rec.vd_intake_car_access_select == 'co')
     vd_intake_budget_amount = fields.Monetary(
         string='Ngân sách KH (VNĐ)', currency_field='vd_currency_vnd_id',
         help='NV gõ số tiền cụ thể KH dự kiến (VD: 2_000_000_000). '
