@@ -2094,6 +2094,144 @@
     gap: 0.05rem;          /* sát hơn (0.2→0.05) */
 }
 
+/* ===== TUM CHIP (toggle riêng cạnh chips Số tầng 1-7) ===== */
+.o_vd_tum_chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.7rem;
+    margin-left: 0.4rem;
+    border: 1.5px dashed #fab005;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #8a5a00;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    &:hover {
+        background: #ffe066;
+        color: #5c3700;
+        border-style: solid;
+        transform: translateY(-1px);
+    }
+}
+.o_vd_tum_chip_active {
+    background: linear-gradient(135deg, #f59f00 0%, #fab005 100%) !important;
+    color: #fff !important;
+    border-color: #f59f00 !important;
+    border-style: solid !important;
+    box-shadow: 0 3px 10px rgba(245, 159, 0, 0.4) !important;
+    &:hover {
+        color: #fff !important;
+        background: linear-gradient(135deg, #fab005 0%, #f59f00 100%) !important;
+    }
+}
+
+/* ============================================================
+   GLOBAL FONT-SIZE REDUCTION ~30% — chữ to đang xuống dòng
+   ============================================================ */
+
+/* Summary card (THÔNG TIN KHÁCH HÀNG) — reduce title + hero labels/values */
+.o_vd_summary_card {
+    .o_vd_summary_banner .o_vd_banner_title {
+        font-size: 1.05rem !important;       /* 1.5 → 1.05 (-30%) */
+        letter-spacing: 1px !important;
+    }
+    .o_vd_summary_header .o_vd_summary_name {
+        font-size: 1rem !important;          /* 1.4 → 1.0 (-28%) */
+    }
+}
+
+/* Summary hero cards (Ngân sách / Diện tích / Thời gian khởi công) */
+.o_vd_summary_hero {
+    .o_vd_sum_hero_icon { font-size: 0.95rem !important; }      /* 1.2 → 0.95 */
+    .o_vd_sum_hero_label {
+        font-size: 0.62rem !important;        /* 0.78 → 0.62 (-20%) */
+        letter-spacing: 0.3px !important;
+    }
+    .o_vd_sum_hero_value { font-size: 0.95rem !important; }     /* 1.35 → 0.95 */
+    .o_vd_sum_hero_sub { font-size: 0.7rem !important; }
+    .o_vd_sum_unit { font-size: 0.6rem !important; }
+}
+
+/* Popup hero card titles (THÔNG TIN CÔNG TRÌNH / THỜI GIAN / NGÂN SÁCH (VNĐ)) */
+.o_vd_intake_popup_panel {
+    .o_vd_hero_card .o_vd_hero_icon { font-size: 0.95rem !important; }
+    .o_vd_hero_card .o_vd_hero_title {
+        font-size: 0.65rem !important;        /* 0.82 → 0.65 (-20%) */
+        letter-spacing: 0.4px !important;
+    }
+    .o_vd_popup_title {
+        font-size: 0.82rem !important;        /* 1.0 → 0.82 */
+    }
+}
+
+/* Info phụ (Tỉnh/Huyện, Kiểu nhà, Loại móng, Ô tô vào, Công năng) — chữ nhỏ hơn */
+.o_vd_summary_card {
+    .o_vd_row_inline,
+    .o_vd_summary_long_row {
+        font-size: 0.75rem !important;
+        .o_vd_lbl,
+        .o_vd_val,
+        .o_vd_val_empty,
+        .o_field_widget { font-size: inherit !important; }
+    }
+}
+
+/* ===== TIMELINE CHIPS (multi-select max 3) ===== */
+.o_vd_timeline_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.2rem 0;
+}
+.o_vd_tl_chip {
+    display: inline-block;
+    padding: 0.22rem 0.7rem;
+    border: 1.5px solid #845ef7;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #4c2889;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+
+    &:hover:not(.o_vd_tl_chip_disabled) {
+        background: #b197fc;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+}
+.o_vd_tl_chip_active {
+    background: linear-gradient(135deg, #5f3dc4, #845ef7) !important;
+    color: #fff !important;
+    border-color: #5f3dc4 !important;
+    box-shadow: 0 3px 10px rgba(95, 61, 196, 0.35) !important;
+    &:hover { color: #fff !important; }
+}
+.o_vd_tl_chip_disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    &:hover { transform: none; }
+}
+.o_vd_tl_hint {
+    width: 100%;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: #5c3700;
+    background: rgba(255, 245, 200, 0.75);
+    border: 1px dashed #fab005;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    i { margin-right: 0.25rem; color: #fab005; }
+}
+
 /* ============ BẢNG ĐỊA LÝ / KHU VỰC ============
    Wrap các trường (Ô tô vào, Tỉnh, Huyện, Vị trí, Loại đất, Sổ đỏ, Công năng, Ghi chú)
    vào 1 panel có border + spacing rõ với card "THÔNG TIN CÔNG TRÌNH" phía trên. */

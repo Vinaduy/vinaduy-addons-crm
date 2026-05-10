@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdTimelineChips">
+        <div class="o_vd_timeline_chips">
+            <t t-foreach="options" t-as="opt" t-key="opt">
+                <button type="button"
+                        class="o_vd_tl_chip"
+                        t-att-class="{
+                            'o_vd_tl_chip_active': isSelected(opt),
+                            'o_vd_tl_chip_disabled': isDisabled(opt),
+                        }"
+                        t-att-disabled="isDisabled(opt) ? 'disabled' : null"
+                        t-on-click.prevent.stop="() => this.onChipClick(opt)">
+                    <t t-esc="opt"/>
+                </button>
+            </t>
+            <div class="o_vd_tl_hint" t-if="isMaxed()">
+                <i class="fa fa-info-circle"/> Đã chọn tối đa 3 — bỏ chọn 1 thẻ để chọn thẻ khác.
+            </div>
+        </div>
+    </t>
+
+</templates>

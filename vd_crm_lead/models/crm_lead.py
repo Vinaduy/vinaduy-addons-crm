@@ -271,29 +271,54 @@ class CrmLead(models.Model):
         help='Vd: 2.5 tầng (2 tầng + tum). Auto sync từ vd_intake_floors_select.',
     )
 
-    # ===== Chip selector cho Số tầng =====
+    # ===== Chip selector cho Số tầng (1-7) — tum giờ là toggle riêng =====
     vd_intake_floors_select = fields.Selection([
         ('1', '1'),
         ('2', '2'),
         ('3', '3'),
         ('4', '4'),
         ('5', '5'),
-        ('tum', 'Tum'),
+        ('6', '6'),
+        ('7', '7'),
+        ('tum', 'Tum (legacy)'),  # giữ cho backward compat, UI không show
     ], string='Số tầng',
-        help='Chọn nhanh số tầng dạng thẻ. Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng.')
+        help='Chọn số tầng dạng thẻ (1-7). Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng. Tum là toggle riêng (vd_intake_has_tum).')
+
+    # Tum optional toggle — chỉ chọn khi đã chọn số tầng. Tum là tầng trên cùng.
+    vd_intake_has_tum = fields.Boolean(
+        string='Có tầng tum',
+        help='Tum là tầng trên cùng (≈ 15-30m²). Bắt buộc đã chọn số tầng (1-7) trước.',
+    )
 
     vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
     vd_intake_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1))
     vd_intake_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1))
     vd_intake_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1))
     vd_intake_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1))
+    vd_intake_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1))
+    vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
     vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
 
-    @api.onchange('vd_intake_floors_select')
+    @api.onchange('vd_intake_floors_select', 'vd_intake_has_tum')
     def _onchange_floors_select(self):
-        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, 'tum': 1.5}
-        if self.vd_intake_floors_select:
-            self.vd_intake_floors_num = mapping.get(self.vd_intake_floors_select, 1.0)
+        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0, 'tum': 0.0}
+        base = mapping.get(self.vd_intake_floors_select, 0.0) if self.vd_intake_floors_select else 0.0
+        # Nếu select == 'tum' (legacy) → coi như 1 + tum
+        if self.vd_intake_floors_select == 'tum':
+            base = 1.0
+            self.vd_intake_has_tum = True
+        if self.vd_intake_floors_select or self.vd_intake_has_tum:
+            self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
+
+    def action_toggle_tum(self):
+        """Toggle tầng tum on/off (chip button)."""
+        self.ensure_one()
+        self.vd_intake_has_tum = not self.vd_intake_has_tum
+        # Sync lại floors_num
+        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0}
+        base = mapping.get(self.vd_intake_floors_select, 0.0)
+        self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
+        return True
     vd_intake_foundation_type = fields.Selection([
         ('don', 'Móng đơn'),
         ('bang', 'Móng băng'),
