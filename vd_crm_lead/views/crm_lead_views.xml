@@ -351,7 +351,7 @@
 
                                     <!-- ===== Số tầng — chip selector ===== -->
                                     <div class="o_vd_floors_row">
-                                        <label class="o_vd_floors_lbl">Số tầng</label>
+                                        <label for="vd_intake_floors_select" class="o_vd_floors_lbl o_form_label">Số tầng</label>
                                         <field name="vd_intake_floors_select" widget="radio"
                                                options="{'horizontal': True}"
                                                class="o_vd_floors_chips" nolabel="1"/>
