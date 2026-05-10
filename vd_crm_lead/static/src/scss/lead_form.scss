@@ -1756,12 +1756,12 @@
         margin-bottom: 1rem !important;
     }
 
-    /* ===== HERO 2-COL =====
-       LEFT: Diện tích/sàn (lớn, chứa các trường tech bên trong)
+    /* ===== HERO 2-COL — TRÁI 70% / PHẢI 30% =====
+       LEFT: THÔNG TIN XÂY DỰNG (lớn, chứa kích thước + tech + chip số tầng + per-floor m²)
        RIGHT: stack — Thời gian (trên) + Ngân sách (dưới) */
     .o_vd_hero_grid_2col {
         display: grid !important;
-        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+        grid-template-columns: 7fr 3fr !important;       /* 70% / 30% */
         gap: 0.7rem !important;
         align-items: stretch !important;
     }
@@ -1896,6 +1896,123 @@
             max-width: 100px !important;
         }
     }
+}
+
+/* ============ FIX z-index dropdown trong popup ============
+   .o_vd_select_dd_menu phải nổi lên trên các .o_vd_pf bên dưới
+   (cùng nằm trong .o_vd_popup_body có overflow:auto). */
+.o_vd_intake_popup_panel .o_vd_select_dd_menu {
+    z-index: 9999 !important;
+}
+/* Đảm bảo wrapper select không bị parent stacking context "khoá" — bật stacking
+   context riêng để z-index của menu hoạt động ổn định */
+.o_vd_intake_popup_panel .o_vd_select_dd--open {
+    position: relative;
+    z-index: 9000;
+}
+/* Field rows phía dưới popup body — không tạo stacking context, để menu phủ lên */
+.o_vd_intake_popup_panel .o_vd_pf,
+.o_vd_intake_popup_panel .o_vd_pf_grid,
+.o_vd_intake_popup_panel .o_vd_pf_compact {
+    z-index: auto !important;
+}
+
+/* ============ CHIP SELECTOR cho "Số tầng" ============ */
+.o_vd_floors_row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.35rem 0;
+    margin-top: 0.3rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    padding-top: 0.55rem;
+
+    > .o_vd_floors_lbl {
+        flex: 0 0 80px;
+        max-width: 80px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.7);
+        margin: 0;
+    }
+    > .o_field_widget {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+.o_vd_floors_chips {
+    /* Owl radio widget: render thành các .o_radio_item (input + label) */
+    .o_field_radio,
+    > .o_field_widget {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.35rem !important;
+    }
+    /* Hỗ trợ cả wrapper class 'o_horizontal' / 'o_vertical' của Odoo */
+    &, .o_horizontal, .o_vertical {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.35rem !important;
+        flex-direction: row !important;
+    }
+    /* Mỗi option = 1 chip */
+    .o_radio_item {
+        display: inline-flex !important;
+        margin: 0 !important;
+        flex: 0 0 auto !important;
+        position: relative;
+    }
+    /* Ẩn input radio gốc (giữ accessible bằng peer/sibling) */
+    input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+    }
+    /* Style label như chip pill */
+    label {
+        display: inline-block !important;
+        padding: 0.3rem 0.85rem !important;
+        margin: 0 !important;
+        border: 1.5px solid #51cf66 !important;
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: #0b5d1e !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        line-height: 1.2 !important;
+        user-select: none;
+    }
+    label:hover {
+        background: #51cf66 !important;
+        color: #fff !important;
+        transform: translateY(-1px);
+    }
+    /* Active chip — input checked */
+    input[type="radio"]:checked + label {
+        background: linear-gradient(135deg, #2b8a3e, #51cf66) !important;
+        color: #fff !important;
+        border-color: #2b8a3e !important;
+        box-shadow: 0 3px 10px rgba(43, 138, 62, 0.35);
+    }
+    input[type="radio"]:focus-visible + label {
+        outline: 2px dashed #4c6ef5;
+        outline-offset: 2px;
+    }
+}
+
+/* Per-floor area list — mỗi tầng 1 dòng, padding gọn */
+.o_vd_floor_area_list {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 }
 
 .o_vd_intake_compact {

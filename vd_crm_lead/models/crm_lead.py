@@ -268,8 +268,32 @@ class CrmLead(models.Model):
             # Nếu user đã nhập area_m2 thủ công và 1 trong 2 dim trống → giữ nguyên
     vd_intake_floors_num = fields.Float(
         string='Số tầng', digits=(10, 1), default=1.0,
-        help='Vd: 2.5 tầng (2 tầng + tum).',
+        help='Vd: 2.5 tầng (2 tầng + tum). Auto sync từ vd_intake_floors_select.',
     )
+
+    # ===== Chip selector cho Số tầng =====
+    vd_intake_floors_select = fields.Selection([
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5'),
+        ('tum', 'Tum'),
+    ], string='Số tầng (chip)',
+        help='Chọn nhanh số tầng dạng thẻ. Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng.')
+
+    vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
+    vd_intake_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1))
+    vd_intake_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1))
+    vd_intake_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1))
+    vd_intake_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1))
+    vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
+
+    @api.onchange('vd_intake_floors_select')
+    def _onchange_floors_select(self):
+        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, 'tum': 1.5}
+        if self.vd_intake_floors_select:
+            self.vd_intake_floors_num = mapping.get(self.vd_intake_floors_select, 1.0)
     vd_intake_foundation_type = fields.Selection([
         ('don', 'Móng đơn'),
         ('bang', 'Móng băng'),
