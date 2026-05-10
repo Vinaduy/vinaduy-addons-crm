@@ -1,5 +1,464 @@
 /* Big circular call/hangup buttons + intake panel for crm.lead form */
 
+/* ============================================================
+   PANEL BÁO GIÁ (xanh dương) — visible khi stage >= quote
+   ============================================================ */
+.o_vd_quote_panel {
+    margin: 0 0 1rem;
+    background: linear-gradient(180deg, #fff 0%, #f0f9ff 100%);
+    border: 2px solid #4dabf7;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px -4px rgba(77, 171, 247, 0.25);
+    overflow: hidden;
+    max-width: 1080px;
+
+    .o_vd_quote_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #1864ab, #4dabf7);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        i { font-size: 1.1rem; }
+        .o_vd_lock_badge {
+            margin-left: auto;
+            background: #fff;
+            color: #c92a2a;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+    }
+    .o_vd_quote_body {
+        padding: 0.85rem 1rem 1rem;
+    }
+    .o_vd_quote_grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr 1fr;
+        gap: 0.6rem 0.85rem;
+        margin-bottom: 0.6rem;
+    }
+    .o_vd_quote_field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        margin-bottom: 0.5rem;
+        > label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #1864ab;
+            margin: 0;
+        }
+        > .o_field_widget {
+            width: 100% !important;
+            input, textarea, select {
+                width: 100% !important;
+                font-size: 0.88rem !important;
+                padding: 0.32rem 0.55rem !important;
+                border: 1px solid #cfd8e3 !important;
+                border-radius: 6px !important;
+                background: #fff !important;
+            }
+            textarea { min-height: 50px; }
+        }
+    }
+    .o_vd_quote_actions {
+        margin: 0.5rem 0;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        .btn { font-weight: 600; padding: 0.45rem 1rem; border-radius: 6px; }
+    }
+    .o_vd_quote_history {
+        margin-top: 0.8rem;
+        padding-top: 0.7rem;
+        border-top: 1px dashed #cfd8e3;
+        .o_vd_history_head {
+            font-weight: 700;
+            color: #1864ab;
+            margin-bottom: 0.4rem;
+            font-size: 0.88rem;
+        }
+        .o_list_view {
+            font-size: 0.85rem;
+            background: #fff;
+            border-radius: 6px;
+        }
+    }
+}
+
+/* ============================================================
+   PANEL ĐÀM PHÁN (cam) — visible khi stage = negotiate
+   ============================================================ */
+.o_vd_negotiate_panel {
+    margin: 0 0 1rem;
+    background: linear-gradient(180deg, #fff 0%, #fff8e6 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px -4px rgba(245, 158, 11, 0.25);
+    overflow: hidden;
+    max-width: 1080px;
+
+    .o_vd_nego_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #d97706, #fbbf24);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        i { font-size: 1.1rem; }
+        .o_vd_nego_status_badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.95);
+            color: #92400e;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+    }
+    .o_vd_nego_script {
+        margin: 0.85rem 1rem 0;
+        padding: 0.7rem 0.9rem;
+        background: rgba(245,158,11,0.1);
+        border-left: 4px solid #f59e0b;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #5c3700;
+        b { color: #c92a2a; }
+    }
+    .o_vd_nego_actions {
+        margin: 0.85rem 1rem 1rem;
+        padding: 0.7rem 0.9rem;
+        background: #fff;
+        border: 1px dashed #fbbf24;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        .btn { font-weight: 600; }
+    }
+    .alert {
+        margin: 0.7rem 1rem 0;
+        font-size: 0.88rem;
+    }
+}
+
+/* ============================================================
+   PANEL HỢP ĐỒNG (xanh lá) — đã ký
+   ============================================================ */
+.o_vd_contract_panel {
+    margin: 0 0 1rem;
+    background: linear-gradient(180deg, #fff 0%, #ecfdf5 100%);
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px -4px rgba(16, 185, 129, 0.3);
+    overflow: hidden;
+    max-width: 1080px;
+
+    .o_vd_contract_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #047857, #10b981);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .o_vd_contract_body {
+        padding: 0.85rem 1rem 1rem;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .o_vd_contract_row {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.92rem;
+        .o_vd_contract_lbl {
+            font-weight: 700;
+            color: #047857;
+        }
+        .o_field_widget {
+            font-weight: 700;
+            color: #064e3b;
+            display: inline;
+        }
+    }
+}
+
+/* ============================================================
+   WORKFLOW BUTTONS — Hoàn tất khai thác / Khách hủy
+   Vị trí: CUỐI summary card, sau intake summary (NV xem xong → bấm chuyển)
+   ============================================================ */
+.o_vd_summary_card .o_vd_workflow_bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.7rem 1.25rem 0.85rem;
+    background: linear-gradient(180deg, #fafbff 0%, #eef4ff 100%);
+    border-top: 1px dashed #c8dcf5;
+    flex-wrap: wrap;
+
+    .o_vd_wf_btn {
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 0.5rem 1.1rem;
+        border-radius: 8px;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 2px 6px rgba(43, 138, 62, 0.18);
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(43, 138, 62, 0.3);
+        }
+    }
+
+    /* Nút "KH KHÔNG có nhu cầu" — link nhỏ, ít nổi (ít dùng hơn) */
+    .o_vd_wf_btn_secondary {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #868e96;
+        text-decoration: none;
+        padding: 0.3rem 0.7rem;
+        border-radius: 5px;
+        background: transparent;
+        border: 1px solid transparent;
+        transition: all 0.15s;
+        &:hover {
+            color: #c92a2a;
+            background: #fff5f5;
+            border-color: #ffd8d8;
+            text-decoration: none;
+        }
+    }
+
+    .o_vd_lost_box {
+        flex: 1 1 100%;
+        margin-top: 0.4rem;
+        padding: 0.55rem 0.85rem;
+        background: #fff5f5;
+        border-left: 4px solid #fa5252;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        color: #5c0f0f;
+        i { color: #fa5252; margin-right: 0.4rem; }
+        strong { color: #c92a2a; margin-right: 0.3rem; }
+        .o_field_widget { display: inline; }
+        .o_vd_lost_date { color: #868e96; font-size: 0.78rem; margin-left: 0.3rem; }
+    }
+}
+
+/* ============================================================
+   INLINE INTAKE PANEL (thay popup) — NẰM TRONG customer card,
+   giữ nguyên thiết kế đẹp như popup cũ.
+   ============================================================ */
+.o_vd_summary_card .o_vd_intake_panel {
+    margin: 0;
+    border: none;
+    border-top: 2px dashed #e9ecef;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+    max-width: 100%;
+}
+
+.o_vd_intake_panel {
+    margin: 1rem 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(20, 30, 70, 0.05);
+    overflow: hidden;
+    max-width: 1080px;
+
+    .o_vd_intake_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 100%);
+        color: #fff;
+
+        .o_vd_intake_title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+
+            i { font-size: 1.1rem; }
+            .o_vd_intake_stage {
+                font-weight: 400;
+                font-size: 0.85rem;
+                opacity: 0.9;
+                .o_field_widget,
+                .o_field_badge {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: #fff;
+                    padding: 0.1rem 0.5rem;
+                    border-radius: 10px;
+                    font-size: 0.78rem;
+                }
+            }
+            .o_vd_intake_locked {
+                background: rgba(255, 200, 50, 0.95);
+                color: #5c3700;
+                font-size: 0.72rem;
+                font-weight: 600;
+                padding: 0.15rem 0.55rem;
+                border-radius: 10px;
+                margin-left: 0.5rem;
+            }
+        }
+
+        .o_vd_toggle_btn {
+            font-size: 0.82rem;
+            padding: 0.3rem 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            color: #1864ab;
+            transition: transform 0.15s;
+            &:hover { transform: scale(1.04); background: #fff; }
+        }
+    }
+
+    .o_vd_intake_body {
+        padding: 0.85rem 1rem 1rem;
+        background: #f8fafd;
+    }
+
+    .o_vd_intake_actions {
+        margin-top: 0.7rem;
+        text-align: right;
+    }
+
+    /* Empty / quick state khi panel collapsed */
+    .o_vd_intake_empty {
+        padding: 1rem 1.25rem;
+        color: #868e96;
+        font-style: italic;
+        i { color: #4dabf7; margin-right: 0.4rem; }
+    }
+    .o_vd_intake_quick {
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+
+        .o_vd_quick_chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            background: #e7f5ff;
+            border: 1px solid #c8dcf5;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            color: #1864ab;
+            font-weight: 500;
+            .o_field_widget, span { font-weight: 600; color: #0b3d77; }
+        }
+    }
+}
+
+/* ============================================================
+   PANEL BÁO GIÁ — chỉ hiện khi stage_show_quote
+   ============================================================ */
+.o_vd_quote_panel {
+    margin: 0 0 1.5rem;
+    background: linear-gradient(180deg, #fff 0%, #f8fafd 100%);
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #2b8a3e;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(43, 138, 62, 0.08);
+    overflow: hidden;
+    max-width: 1080px;
+
+    .o_vd_quote_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #2b8a3e 0%, #51cf66 100%);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+
+        i { font-size: 1.1rem; }
+        .o_vd_quote_stage {
+            font-weight: 400;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-left: 0.3rem;
+            .o_field_badge,
+            .o_field_widget {
+                background: rgba(255, 255, 255, 0.2);
+                color: #fff;
+                padding: 0.1rem 0.5rem;
+                border-radius: 10px;
+                font-size: 0.78rem;
+            }
+        }
+    }
+
+    .o_vd_quote_body {
+        padding: 0.85rem 1rem 1rem;
+    }
+
+    .o_vd_quote_grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .o_vd_quote_field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-bottom: 0.55rem;
+
+        > label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #2b8a3e;
+            margin: 0;
+        }
+        > .o_field_widget {
+            width: 100% !important;
+            input, textarea, select {
+                width: 100% !important;
+                font-size: 0.88rem !important;
+                padding: 0.35rem 0.6rem !important;
+                border: 1px solid #d8dee8 !important;
+                border-radius: 6px !important;
+                background: #fff !important;
+                &:focus {
+                    border-color: #2b8a3e !important;
+                    box-shadow: 0 0 0 2px rgba(43, 138, 62, 0.18) !important;
+                    outline: none !important;
+                }
+            }
+            textarea { min-height: 50px; }
+        }
+    }
+}
+
+
 /* ============ SUMMARY CARD (main lead form) — left-aligned, max-width ============ */
 .o_vd_summary_card {
     position: relative;
@@ -11,7 +470,7 @@
         0 12px 32px -16px rgba(77, 171, 247, 0.15);
     overflow: hidden;
     margin: 0 0 1.5rem;
-    max-width: 720px;       // dồn về bên trái, không full-width
+    max-width: 1100px;       // rộng đủ chỗ hero cards + info đầy đủ
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     &:hover {
@@ -98,37 +557,70 @@
             margin-bottom: 0.6rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 0.4rem;
             padding-bottom: 0.35rem;
             border-bottom: 1px dashed #e9ecef;
-            i { color: #339af0; }
+
+            > span:first-child {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                i { color: #339af0; }
+            }
+
+            .o_vd_summary_hint {
+                text-transform: none;
+                font-weight: 400;
+                font-size: 0.72rem;
+                letter-spacing: 0;
+                color: #868e96;
+                font-style: italic;
+            }
         }
 
-        /* Compact 2-col grid; each cell is a single-line `Label: value` row */
+        /* Inline chip "Chưa khai thác" trong nhãn hint */
+        .o_vd_missing_chip {
+            display: inline-block;
+            background: #fff4e6;
+            color: #d9480f;
+            border: 1px dashed #ffa94d;
+            padding: 0.05rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-style: normal;
+            margin: 0 0.15rem;
+        }
+
+        /* Compact 2-col grid; mỗi cell = 1 dòng [Label: input editable] */
         .o_vd_summary_grid_inline {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.1rem 1.5rem;
+            gap: 0.15rem 1.2rem;
         }
 
         .o_vd_row_inline {
-            display: flex;
+            display: flex !important;
+            flex-wrap: nowrap !important;        /* STRICT 1 dòng */
             align-items: center;
             gap: 0.5rem;
-            padding: 0.22rem 0.1rem;
+            padding: 0.3rem 0.45rem;
             border-bottom: 1px dotted #f1f3f5;
             font-size: 0.88rem;
             line-height: 1.3;
-            white-space: nowrap;
+            border-radius: 5px;
             overflow: hidden;
-            text-overflow: ellipsis;
+            transition: background-color 0.15s;
 
             &:last-child { border-bottom: none; }
+            &:hover, &:focus-within { background: #f1f7ff; }
 
             .o_vd_lbl {
                 color: #6c757d;
                 font-weight: 600;
                 flex: 0 0 auto;
+                white-space: nowrap;
                 i {
                     color: #4dabf7;
                     font-size: 0.85rem;
@@ -136,25 +628,115 @@
                 }
             }
 
+            /* Ô nhập width cố định, chống dropdown phình */
             > .o_field_widget {
                 color: #1a1a1a;
                 font-weight: 500;
+                flex: 0 0 160px !important;
+                max-width: 160px !important;
+                min-width: 0 !important;
+                overflow: hidden;
+
+                /* Mọi inner wrapper ép full width */
+                > *,
+                .o_input_dropdown,
+                .o-autocomplete,
+                .o-autocomplete--input {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                }
+
+                input, select, textarea, .o_input {
+                    font-size: 0.85rem !important;
+                    padding: 0.18rem 0.4rem !important;
+                    line-height: 1.3 !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    border: 1px solid transparent !important;
+                    background: transparent !important;
+                    border-radius: 4px;
+                    transition: border-color 0.15s, background 0.15s;
+
+                    &:hover { border-color: #dee2e6 !important; background: #fff !important; }
+                    &:focus {
+                        border-color: #4c6ef5 !important;
+                        background: #fff !important;
+                        box-shadow: 0 0 0 2px rgba(76, 110, 245, 0.15) !important;
+                        outline: none !important;
+                    }
+                }
+
+                /* CHẶN HOÀN TOÀN placeholder lọt vào dropdown / input */
+                input::placeholder,
+                textarea::placeholder,
+                .o-autocomplete--input::placeholder { color: transparent !important; }
+            }
+
+            /* Hint "⚠ Chưa khai thác" — MẶC ĐỊNH ẨN, chỉ hiện khi field empty */
+            > .o_vd_row_hint {
+                display: none;
+                flex: 1 1 0;
+                min-width: 0;
+                font-size: 0.78rem;
+                font-style: italic;
+                color: #d9480f;
+                white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                padding-left: 0.3rem;
+                font-weight: 500;
+            }
+
+            /* Field TRỐNG → hiện hint + highlight cam */
+            &:has(.o_field_empty) {
+                background: linear-gradient(90deg, #fff8f0 0%, transparent 100%);
+                border-bottom-color: #ffe8cc;
+
+                .o_vd_lbl { color: #d9480f; }
+                .o_vd_lbl i { color: #ff922b; }
+
+                > .o_field_widget {
+                    input, select {
+                        border-color: #ffd8a8 !important;
+                        border-style: dashed !important;
+                        background: #fffbf5 !important;
+                    }
+                }
+
+                > .o_vd_row_hint { display: inline-block; }
+            }
+
+            /* Field ĐÃ ĐIỀN → ẩn hint, viền xanh lá nhẹ */
+            &:not(:has(.o_field_empty)) > .o_field_widget input,
+            &:not(:has(.o_field_empty)) > .o_field_widget select {
+                border-color: #b2f2bb !important;
+                background: #f4fff4 !important;
             }
         }
 
         .o_vd_notes {
-            margin-top: 0.5rem;
-            padding: 0.5rem 0.75rem;
+            margin-top: 0.6rem;
+            padding: 0.55rem 0.75rem;
             background: #fffbe6;
             border-left: 3px solid #fab005;
             border-radius: 6px;
             white-space: normal;
+            align-items: flex-start;
 
-            .o_vd_lbl { color: #d9480f; }
+            .o_vd_lbl { color: #d9480f; padding-top: 0.2rem; }
             > .o_field_widget {
                 white-space: pre-wrap;
+                textarea {
+                    min-height: 32px;
+                    background: #fff !important;
+                    border: 1px solid #ffe066 !important;
+                }
+            }
+
+            &:has(.o_field_empty) {
+                background: #fff8f0;
+                border-left-color: #ff922b;
             }
         }
     }
@@ -167,116 +749,1360 @@
         background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
 
         i { color: #4dabf7; margin-right: 0.4rem; }
+
+        .o_vd_open_intake_btn {
+            color: #4c6ef5;
+            font-weight: 600;
+            padding: 0.1rem 0.4rem;
+            text-decoration: underline;
+            i { color: #4c6ef5; margin-right: 0.2rem; }
+            &:hover { color: #364fc7; }
+        }
     }
 }
 
-/* ============ INTAKE POPUP — ultra compact, 1 line / field, hidden hints ============ */
-.modal-dialog:has(.o_vd_intake_compact) {
-    max-width: 720px;
+/* ============================================================
+   DEFENSIVE — đảm bảo MỌI input/textarea trong popup khai thác
+   LUÔN nhập được, không bị block bởi overlay nào.
+   ============================================================ */
+.o_vd_intake_compact input:not([type="checkbox"]):not([type="radio"]):not([readonly]),
+.o_vd_intake_compact textarea:not([readonly]) {
+    pointer-events: auto !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    cursor: text !important;
+    z-index: 1;
+    position: relative;
+}
+.o_vd_intake_compact input[type="checkbox"] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
 
-.modal .o_vd_intake_compact {
-    .o_form_sheet { padding: 0.75rem 1rem !important; }
+/* ============================================================
+   CLEAR (×) BUTTON — gắn tự động cho mọi input trong popup
+   (BỎ textarea — gây bug visual ellipse + textarea có resize handle)
+   ============================================================ */
+.o_vd_intake_compact {
+    .o_field_widget {
+        position: relative;
+    }
 
-    .o_vd_popup_banner {
-        background: linear-gradient(90deg, #fff5f5 0%, #fff9db 100%);
-        border-left: 4px solid #fab005;
-        padding: 0.5rem 0.85rem;
-        margin-bottom: 0.7rem;
+    .o_vd_clear_btn {
+        /* Reset Bootstrap/Odoo button defaults */
+        all: unset;
+        box-sizing: border-box !important;
+        position: absolute !important;
+        right: 6px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        display: none;
+        width: 18px !important;
+        min-width: 18px !important;
+        max-width: 18px !important;
+        height: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        flex: 0 0 18px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 14px !important;
+        text-align: center !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        background: rgba(108, 117, 125, 0.55) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        z-index: 5 !important;
+        transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease !important;
+        opacity: 0.7;
+        text-decoration: none !important;
+        outline: none !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+    }
+    .o_vd_clear_btn:hover {
+        background: #fa5252 !important;
+        opacity: 1 !important;
+        transform: translateY(-50%) scale(1.15) !important;
+    }
+    .o_vd_clear_btn:active {
+        transform: translateY(-50%) scale(0.92) !important;
+    }
+    .o_vd_clear_btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Textarea — clear button ở góc trên phải */
+    .o_field_widget:has(textarea) > .o_vd_clear_btn,
+    .o_field_widget:has(> textarea) .o_vd_clear_btn {
+        top: 8px !important;
+        right: 8px !important;
+        transform: none !important;
+    }
+    .o_field_widget:has(textarea) > .o_vd_clear_btn:hover {
+        transform: scale(1.15) !important;
+    }
+    .o_field_widget:has(textarea) > .o_vd_clear_btn:active {
+        transform: scale(0.92) !important;
+    }
+
+    /* Hero card monetary — màu nâu vàng matching theme */
+    .o_vd_hero_budget .o_vd_clear_btn {
+        right: 8px !important;
+        background: rgba(138, 90, 0, 0.55) !important;
+    }
+    .o_vd_hero_budget .o_vd_clear_btn:hover {
+        background: #c92a2a !important;
+    }
+}
+
+/* ============================================================
+   READABLE HINT — hiển thị số tiền dưới dạng chữ ("≈ 2 tỷ đồng")
+   bên dưới input, real-time khi user gõ.
+   ============================================================ */
+.o_vd_readable_hint {
+    margin-top: 0.45rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-style: italic;
+    text-align: center;
+    color: #c92a2a;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+    line-height: 1.3;
+    display: none;
+    animation: vd-section-in 0.2s ease-out;
+}
+
+.o_vd_hero_budget .o_vd_readable_hint {
+    color: #5c3700;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px dashed rgba(138, 90, 0, 0.35);
+}
+
+/* ============================================================
+   TIMELINE ALERT — cảnh báo thời gian khởi công gấp
+   ============================================================ */
+.o_vd_timeline_alert {
+    margin: 0 0 0.85rem;
+    animation: vd-section-in 0.35s ease-out;
+
+    > .o_field_widget {
+        width: 100% !important;
+        display: block !important;
+    }
+}
+
+/* ============================================================
+   DIMS ROW — Chiều dài × Chiều rộng = Diện tích (auto-calc)
+   Popup rộng 920px → fit gọn trên 1 dòng:
+       [Dài] × [Rộng] = [Total] m²
+   ============================================================ */
+.o_vd_dims_row {
+    display: grid;
+    grid-template-columns: 1fr 18px 1fr 18px 1fr auto;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    /* Bao layout pair + total trong 1 hàng — để hero card không bị nhồi */
+
+    /* Wrapper grid items — bỏ flex/grid con, chỉ kế thừa grid cha */
+    .o_vd_dim_pair { display: contents; }
+    .o_vd_dim_total_row { display: contents; }
+
+    .o_vd_dim_input {
+        width: 100% !important;
+        > input {
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            padding: 0.42rem 0.4rem !important;
+            border: 1.5px solid rgba(81, 207, 102, 0.55) !important;
+            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #0b5d1e !important;
+            transition: all 0.18s ease;
+            box-shadow: 0 1px 3px rgba(43, 138, 62, 0.08);
+        }
+        > input:hover {
+            border-color: rgba(43, 138, 62, 0.7) !important;
+        }
+        > input:focus {
+            border-color: #2b8a3e !important;
+            box-shadow: 0 0 0 3px rgba(43, 138, 62, 0.22),
+                        0 2px 8px rgba(43, 138, 62, 0.18) !important;
+            outline: none !important;
+            background: #fff !important;
+        }
+        > input::placeholder {
+            color: rgba(20, 80, 30, 0.4) !important;
+            font-weight: 400 !important;
+            font-style: italic !important;
+            font-size: 0.9rem !important;
+        }
+        > input.vd-dim-empty {
+            color: rgba(20, 80, 30, 0.42) !important;
+            font-style: italic !important;
+            font-weight: 400 !important;
+        }
+    }
+
+    .o_vd_dim_total {
+        width: 100% !important;
+        /* readonly Float trong Odoo render là <span> chứ không phải <input>.
+           Style cả input lẫn span để to bằng các ô dài/rộng. */
+        > input,
+        > span,
+        > .o_field_widget {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            text-align: center !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            padding: 0.42rem 0.4rem !important;
+            background: linear-gradient(135deg, #2b8a3e, #51cf66) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: default !important;
+            box-shadow: 0 3px 8px rgba(43, 138, 62, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            line-height: 1.3 !important;
+        }
+        /* Empty state - nhạt hơn */
+        > input.vd-dim-empty,
+        &.vd-dim-empty > span {
+            opacity: 0.55;
+            background: linear-gradient(135deg, #51cf66, #8ce99a) !important;
+        }
+    }
+
+    .o_vd_dims_sep,
+    .o_vd_dims_eq {
+        font-weight: 800;
+        color: #2b8a3e;
+        font-size: 1.15rem;
+        line-height: 1;
+        text-align: center;
+        opacity: 0.7;
+    }
+    .o_vd_dims_unit {
+        font-weight: 700;
+        color: #0b5d1e;
+        font-size: 0.92rem;
+        line-height: 1;
+        margin-left: 0.2rem;
+    }
+}
+
+/* ============================================================
+   VD SELECTION DROPDOWN — custom widget thay native <select>
+   Behaviour giống Many2one autocomplete:
+     - Empty: <input> với placeholder mờ italic native
+     - Click → custom dropdown div (KHÔNG có dòng kịch bản nào)
+     - Chọn option → input hiển thị label, dropdown đóng
+   ============================================================ */
+.o_vd_select_dd {
+    position: relative;
+    width: 100%;
+
+    .o_vd_select_dd_input {
+        width: 100% !important;
+        padding-right: 40px !important;
+        cursor: pointer;
+        background: #fff !important;
+        border: 1px solid #d8dee8 !important;
+        border-radius: 6px !important;
+        font-size: 0.85rem !important;
+        padding: 0.3rem 0.55rem !important;
+        line-height: 1.3 !important;
+        transition: border-color 0.15s, box-shadow 0.15s;
+
+        &:focus, &:hover { border-color: #4c6ef5 !important; outline: none !important; }
+        &::placeholder {
+            color: #aab2bd !important;
+            font-style: italic !important;
+            opacity: 1 !important;
+            font-size: 0.82rem !important;
+        }
+    }
+
+    .o_vd_select_dd_arrow {
+        position: absolute;
+        right: 10px; top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        pointer-events: none;
+        font-size: 0.85rem;
+        transition: transform 0.2s;
+    }
+    &.o_vd_select_dd--open .o_vd_select_dd_arrow {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .o_vd_select_dd_clear {
+        position: absolute;
+        right: 26px; top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #adb5bd;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0 4px;
+        cursor: pointer;
+        z-index: 2;
+        &:hover { color: #fa5252; }
+    }
+
+    .o_vd_select_dd_menu {
+        position: absolute;
+        top: 100%; left: 0;
+        z-index: 1050;
+        min-width: 100%;
+        max-width: 360px;
+        max-height: 280px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #dee2e6;
         border-radius: 6px;
+        box-shadow: 0 6px 20px rgba(20, 30, 70, 0.18);
+        margin-top: 2px;
+        padding: 4px 0;
+    }
+
+    .o_vd_select_dd_item {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background 0.1s;
+
+        &:hover { background: #f1f7ff; color: #1864ab; }
+        &.o_vd_select_dd_item--active {
+            background: #e7f5ff;
+            color: #1864ab;
+            font-weight: 600;
+        }
+    }
+
+    .o_vd_select_dd_empty {
+        padding: 0.6rem 0.7rem;
+        font-size: 0.82rem;
+        color: #868e96;
+        font-style: italic;
+        i { color: #adb5bd; margin-right: 0.3rem; }
+    }
+}
+
+/* Hero card override: input chữ to + đậm hơn cho 3 card nổi bật */
+.o_vd_hero_card .o_vd_select_dd .o_vd_select_dd_input {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 2.2rem 0.45rem 0.7rem !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    &::placeholder { font-size: 0.85rem !important; font-weight: 400 !important; }
+}
+
+/* ============================================================
+   SELECT WITH HINT — script overlay mờ, KHÔNG vào dropdown listbox
+   - <field> Selection: KHÔNG dùng placeholder= (vì native select biến nó
+     thành <option value=""> xuất hiện trong dropdown).
+   - Wrap field bằng <div class="o_vd_select_with_hint"> + <span class="o_vd_select_hint">.
+   - CSS: hint position absolute đè lên select. Khi select có giá trị
+     (.o_field_widget KHÔNG có class .o_field_empty) → ẩn hint qua :has().
+   ============================================================ */
+.o_vd_select_with_hint {
+    position: relative;
+    width: 100%;
+
+    > .o_field_widget {
+        width: 100% !important;
+        position: relative;
+        z-index: 1;
+        select { width: 100% !important; }
+    }
+
+    > .o_vd_select_hint {
+        position: absolute;
+        left: 0; right: 24px;             /* chừa chỗ cho mũi tên dropdown */
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #aab2bd;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 0.82rem;
+        line-height: 1.3;
+        padding: 0 0.55rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        z-index: 2;
+        opacity: 1;
+        transition: opacity 0.15s;
+    }
+
+    /* Khi user chọn giá trị (select.value khác "false"/empty) → ẩn hint.
+       JS trong intake_select_fix.js sẽ toggle attribute data-vd-has-value=1
+       trên wrapper. CSS-only fallback dùng :has(select) với option đã chọn. */
+    &[data-has-value="1"] > .o_vd_select_hint,
+    &:has(.o_field_widget:not(.o_field_empty)) > .o_vd_select_hint {
+        display: none;
+    }
+
+    /* Hero card override: hint to hơn + màu hợp với background */
+    .o_vd_hero_card &,
+    .o_vd_hero_card > & {
+        > .o_vd_select_hint {
+            font-size: 0.85rem;
+            padding: 0 0.7rem;
+        }
+    }
+}
+
+/* Hero card có nền vàng/xanh/tím — hint cần màu phù hợp */
+.o_vd_hero_budget .o_vd_select_with_hint > .o_vd_select_hint { color: rgba(80, 60, 0, 0.55); }
+.o_vd_hero_area .o_vd_select_with_hint > .o_vd_select_hint { color: rgba(20, 80, 30, 0.55); }
+.o_vd_hero_time .o_vd_select_with_hint > .o_vd_select_hint { color: rgba(60, 30, 130, 0.55); }
+
+/* ============ ẨN TRIỆT ĐỂ option PLACEHOLDER trong Selection field ============
+ *
+ * Odoo 18 TỰ RENDER <option> đầu tiên cho Selection field bất kể có placeholder
+ * hay không. Value của option này = stringify(false) = "false" (string), không
+ * phải "" như mình tưởng. Phải target đúng selector:
+ *
+ *   <select>
+ *     <option value="false">{placeholder}</option>   ← đây — phải ẩn
+ *     <option value="\"don\"">Móng đơn</option>
+ *     ...
+ *   </select>
+ */
+.o_vd_intake_compact select option[value="false"],
+.o_vd_intake_compact select option:first-child:not([value^="\""]),
+.o_vd_hero_card select option[value="false"],
+.o_vd_hero_card select option:first-child:not([value^="\""]) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* ============ WRAPPER + OVERLAY cho <select> trong popup khai thác ============
+ * JS bao mỗi <select> bằng .o_vd_select_wrap, thêm <span.vd-overlay> chứa
+ * placeholder text. Native select có option rỗng đã text="" + hidden, nên closed
+ * select hiển thị BLANK. Overlay span hiển thị placeholder mờ italic ĐÈ LÊN.
+ * Khi user chọn → JS thêm .has-value → overlay ẩn, native text hiện. */
+.o_vd_select_wrap {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+.o_vd_select_wrap > select {
+    width: 100% !important;
+    position: relative;
+    z-index: 1;
+}
+.o_vd_select_wrap > .vd-overlay {
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #aab2bd;
+    font-style: italic;
+    font-weight: 400;
+    padding: 0 0.55rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 2;
+}
+.o_vd_select_wrap.has-value > .vd-overlay {
+    display: none;
+}
+/* Hero card overlay text — to hơn 1 chút */
+.o_vd_hero_card .o_vd_select_wrap > .vd-overlay {
+    font-size: 0.85rem;
+    padding: 0 0.7rem;
+}
+/* Tech grid overlay — nhỏ hơn */
+.o_vd_tech_field .o_vd_select_wrap > .vd-overlay {
+    font-size: 0.78rem;
+    padding: 0 0.4rem;
+}
+
+/* ============ INTAKE POPUP — 1 dòng / field, kịch bản mờ luôn hiện ============ */
+@keyframes vd-popup-in {
+    0%   { opacity: 0; transform: translateY(40px) scale(0.92); }
+    60%  { opacity: 1; transform: translateY(-6px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes vd-section-in {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes vd-banner-shine {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes vd-pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(76, 110, 245, 0.5); }
+    70%  { box-shadow: 0 0 0 14px rgba(76, 110, 245, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 110, 245, 0); }
+}
+@keyframes vd-icon-bounce {
+    0%, 100% { transform: scale(1) rotate(-8deg); }
+    50%      { transform: scale(1.18) rotate(8deg); }
+}
+@keyframes vd-section-icon-spin {
+    0%   { transform: rotate(0); }
+    25%  { transform: rotate(-12deg); }
+    75%  { transform: rotate(12deg); }
+    100% { transform: rotate(0); }
+}
+
+.modal-dialog:has(.o_vd_intake_compact) {
+    max-width: 920px;            /* mở rộng để 3 hero card + dims thoáng đẹp */
+}
+
+.modal-dialog:has(.o_vd_intake_compact) .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow:
+        0 28px 70px -16px rgba(76, 110, 245, 0.45),
+        0 10px 24px rgba(20, 30, 70, 0.18);
+    overflow: hidden;
+    animation: vd-popup-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-dialog:has(.o_vd_intake_compact) .modal-header {
+    background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 100%);
+    color: #fff;
+    padding: 0.65rem 1.1rem;
+    border-bottom: none;
+
+    .modal-title,
+    .o_form_view_title,
+    h4, h5 { color: #fff !important; font-weight: 600; font-size: 0.95rem !important; }
+
+    .btn-close,
+    button[aria-label="Close"] {
+        filter: brightness(0) invert(1);
+        opacity: 0.85;
+        &:hover { opacity: 1; }
+    }
+}
+
+/* ============ EXPANDED SHEET — FORCE wider, escape Odoo container constraints ============
+   - Sheet min-width 1280px → đủ chỗ cho form + bubble không bị nén
+   - max-width none + width 100% → dùng full vùng content có sẵn
+   - margin/padding 0 → không phí chỗ ở mép sheet
+   - Parent .o_form_sheet_bg cho phép horizontal scroll nếu viewport quá hẹp */
+.o_form_sheet.o_vd_sheet_expanded {
+    /* Force sheet RỘNG: tối thiểu 1400px → đủ chỗ cho form (~1100px) + bubble (240px) */
+    min-width: 1400px !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    transition: min-width 0.25s ease;
+}
+.o_form_sheet_bg:has(.o_form_sheet.o_vd_sheet_expanded),
+.o_form_view:has(.o_form_sheet.o_vd_sheet_expanded) > .o_form_sheet_bg {
+    max-width: none !important;
+    overflow-x: auto !important;
+}
+
+/* CRITICAL: bỏ max-width 720px của summary_card khi expanded → form mới
+   dùng được full width của sheet. Container này wrap toàn bộ inline content. */
+.o_form_sheet.o_vd_sheet_expanded .o_vd_summary_card {
+    max-width: none !important;
+}
+
+.o_vd_intake_full {
+    .o_vd_intake_layout {
+        display: grid;
+        /* CHIA ĐỀU: form 50% + bubble 50% */
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: flex-start;
+        position: relative;
+    }
+    .o_vd_intake_main {
+        min-width: 0;
+        grid-column: 1;
+    }
+    .o_vd_intake_sidebar {
+        grid-column: 2;
+        min-width: 0;
+        position: sticky;
+        top: 12px;
+        align-self: flex-start;
+        width: 100%;
+        max-width: none;
+        margin-top: 0;
+        z-index: auto;
+    }
+}
+
+/* Viewport hẹp (< 900px): bỏ force min-width, xếp dọc, bubble xuống dưới */
+@media (max-width: 899px) {
+    .o_form_sheet.o_vd_sheet_expanded {
+        min-width: 0 !important;
+    }
+    .o_vd_intake_full .o_vd_intake_layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .o_vd_intake_full .o_vd_intake_sidebar {
+        position: static;
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* ===== Bubble sections — gộp Timeline + Budget vào 1 bubble compact ===== */
+.o_vd_consult_bubble {
+    .o_vd_bubble_section {
+        padding: 0.6rem 0.7rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        & + .o_vd_bubble_section { margin-top: 0.5rem; }
+    }
+    .o_vd_bubble_timeline {
+        background: rgba(255, 245, 245, 0.85);
+        border-left: 3px solid #fa5252;
+        b { color: #c92a2a; }
+    }
+    .o_vd_bubble_budget {
+        background: rgba(255, 255, 255, 0.85);
+    }
+    .o_vd_bubble_amount_row {
+        margin-bottom: 0.4rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px dashed #fab005;
+        background: transparent;
+    }
+}
+
+/* ===== Bong bóng kịch bản tư vấn (sidebar bubble) ===== */
+.o_vd_consult_bubble {
+    position: relative;
+    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+    border: 2px solid #ffd43b;
+    border-radius: 14px;
+    padding: 0.85rem 1rem 1rem;
+    box-shadow:
+        0 6px 20px rgba(250, 176, 5, 0.25),
+        0 2px 6px rgba(0, 0, 0, 0.06);
+    /* KHÔNG dùng animation — Owl re-render khi gõ field sẽ restart animation
+       → bubble flicker opacity 0/1 → trông như bubble chỉ hiện khi ngừng gõ. */
+
+    .o_vd_bubble_arrow {
+        position: absolute;
+        left: -10px;
+        top: 24px;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 12px solid #ffd43b;
+        &::after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: -8px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 10px solid #fff9db;
+        }
+    }
+    .o_vd_bubble_head {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.55rem;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px dashed #fab005;
+    }
+    .o_vd_bubble_icon { font-size: 1.2rem; }
+    .o_vd_bubble_title {
+        font-weight: 700;
         font-size: 0.88rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #5c3700;
+    }
+    .o_vd_bubble_amount_row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.55rem;
+        padding: 0.4rem 0.55rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        .o_vd_bubble_lbl {
+            font-size: 0.78rem;
+            color: #5c3700;
+            font-weight: 600;
+        }
+        .o_vd_bubble_amount {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #c92a2a;
+            .o_field_widget { color: inherit; font-weight: inherit; }
+        }
+    }
+    .o_vd_bubble_script {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #1a1a1a;
+        b { font-weight: 700; }
+        i { color: #495057; }
+    }
+}
+
+.o_vd_bubble_hint {
+    background: #f8fafd;
+    border: 1px dashed #c8dcf5;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    color: #495057;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    text-align: center;
+
+    i.fa { color: #fab005; font-size: 1.4rem; display: block; margin-bottom: 0.35rem; }
+    b { color: #1864ab; }
+}
+
+@keyframes vd-bubble-pop {
+    0%   { opacity: 0; transform: scale(0.85) translateX(20px); }
+    100% { opacity: 1; transform: scale(1) translateX(0); }
+}
+
+/* Nút "Đóng (chưa lưu)" link cuối save bar */
+.o_vd_btn_close_intake {
+    color: #868e96 !important;
+    text-decoration: none !important;
+    margin-right: auto !important;
+    font-size: 0.85rem !important;
+
+    &:hover {
+        color: #495057 !important;
+        text-decoration: underline !important;
+    }
+}
+
+/* Nút "Mở phiếu khai thác" trong summary — nổi bật */
+.o_vd_open_intake_btn {
+    font-weight: 600 !important;
+    border-color: #4c6ef5 !important;
+    color: #4c6ef5 !important;
+    transition: all 0.15s ease !important;
+
+    &:hover {
+        background: #4c6ef5 !important;
+        color: #fff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(76, 110, 245, 0.25);
+    }
+}
+
+/* ===== Khi STAGE = quote/negotiate/won + collapsed → summary + quote panel SONG SONG ===== */
+.o_form_sheet:has(.o_vd_intake_summary):has(.o_vd_quote_panel:not([style*="display: none"])) {
+    .o_vd_summary_card,
+    .o_vd_quote_panel {
+        display: inline-block;
+        vertical-align: top;
+    }
+}
+@media (min-width: 1200px) {
+    .o_vd_summary_card:has(.o_vd_intake_summary) + .o_vd_quote_panel {
+        margin-top: 0;
+    }
+}
+
+.o_vd_intake_compact {
+    /* Inline mode: nằm INLINE trong summary card. */
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed #d8e2f0;
+
+    /* ----- Banner — 1 dòng compact ----- */
+    .o_vd_popup_banner {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        background: linear-gradient(90deg, #fff9db 0%, #ffe8cc 100%);
+        border: 1px solid #ffd8a8;
+        padding: 0.4rem 0.7rem;
+        margin-bottom: 0.55rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #5c3700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         i.fa-microphone {
             color: #fa5252;
-            animation: vd-blink 1s infinite;
-            margin-right: 0.4rem;
+            font-size: 1rem;
+            animation: vd-icon-bounce 1.4s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        strong {
+            color: #d9480f;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+        .o_vd_banner_sub {
+            color: #846100;
+            font-style: italic;
+            font-size: 0.78rem;
+            margin-left: 0.15rem;
+        }
+
+        /* Nuốt input phone wrapper — chỉ hiện text */
+        .o_field_widget {
+            display: inline !important;
+            input { all: unset; font: inherit; color: inherit; }
         }
     }
 
+    /* ===== 3 CARD NỔI BẬT — Ngân sách + Diện tích + Thời gian ===== */
+    .o_vd_hero_grid {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr 1fr;       /* card Diện tích rộng hơn 10% — chứa dims_row */
+        gap: 0.7rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .o_vd_hero_card {
+        position: relative;
+        padding: 0.75rem 1rem 0.85rem;
+        border-radius: 14px;
+        border: 2px solid transparent;
+        background: #fff;
+        box-shadow:
+            0 2px 8px rgba(20, 30, 70, 0.06),
+            0 12px 28px -10px rgba(76, 110, 245, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 4px 14px rgba(20, 30, 70, 0.08),
+                0 18px 38px -10px rgba(76, 110, 245, 0.32);
+        }
+
+        .o_vd_hero_head {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-bottom: 0.55rem;
+        }
+        .o_vd_hero_icon {
+            font-size: 1.35rem;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        .o_vd_hero_title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        /* Input của hero — to hơn các field thường */
+        > .o_field_widget {
+            display: block !important;
+            width: 100% !important;
+
+            input, select, .o_input {
+                width: 100% !important;
+                font-size: 0.95rem !important;
+                font-weight: 600 !important;
+                padding: 0.45rem 0.7rem !important;
+                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                border-radius: 8px !important;
+                background: rgba(255, 255, 255, 0.85) !important;
+                transition: all 0.15s;
+
+                &:focus {
+                    outline: none !important;
+                    border-color: #fff !important;
+                    background: #fff !important;
+                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5) !important;
+                }
+            }
+            input::placeholder,
+            select option[value=""],
+            .o-autocomplete--input::placeholder {
+                color: rgba(80, 60, 0, 0.55) !important;
+                font-style: italic !important;
+                font-weight: 400 !important;
+                font-size: 0.85rem !important;
+            }
+        }
+
+        /* Card 1 — NGÂN SÁCH (vàng/cam) */
+        &.o_vd_hero_budget {
+            background: linear-gradient(135deg, #fff9db 0%, #ffe066 100%);
+            border-color: #fab005;
+            .o_vd_hero_title { color: #8a5a00; }
+            .o_vd_hero_icon { filter: drop-shadow(0 2px 4px rgba(250, 176, 5, 0.4)); }
+
+            /* Monetary widget — render <span class="o_currency_symbol"> + <input>.
+               Đảm bảo text giá trị ĐẬM ĐEN, nền trắng OPAQUE, currency symbol đẹp. */
+            .o_field_monetary,
+            > .o_field_widget {
+                display: flex !important;
+                align-items: center;
+                gap: 0.3rem;
+                background: #fff !important;
+                border: 1.5px solid #fab005 !important;
+                border-radius: 8px;
+                padding: 0.1rem 0.6rem;
+                box-shadow: 0 2px 6px rgba(250, 176, 5, 0.25);
+
+                .o_currency,
+                .o_currency_symbol,
+                > span {
+                    color: #8a5a00 !important;
+                    font-weight: 700 !important;
+                    font-size: 1rem !important;
+                    flex: 0 0 auto;
+                    background: transparent !important;
+                    border: none !important;
+                    padding: 0 !important;
+                    line-height: 1.4;
+                }
+
+                input,
+                .o_input {
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    color: #0b3d77 !important;
+                    font-weight: 700 !important;
+                    font-size: 1.05rem !important;
+                    padding: 0.4rem 0.2rem !important;
+                    width: 100% !important;
+                    flex: 1 1 auto;
+                    min-width: 0 !important;
+                    &:focus {
+                        outline: none !important;
+                        box-shadow: none !important;
+                    }
+                    &::placeholder {
+                        color: rgba(80, 60, 0, 0.5) !important;
+                        font-style: italic !important;
+                        font-weight: 400 !important;
+                    }
+                }
+            }
+        }
+
+        /* Card 2 — DIỆN TÍCH (xanh ngọc) */
+        &.o_vd_hero_area {
+            background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%);
+            border-color: #51cf66;
+            .o_vd_hero_title { color: #0b5d1e; }
+            .o_vd_hero_icon { filter: drop-shadow(0 2px 4px rgba(81, 207, 102, 0.4)); }
+
+            > .o_field_widget input::placeholder {
+                color: rgba(20, 80, 30, 0.55) !important;
+            }
+        }
+
+        /* Card 3 — THỜI GIAN (tím lavender) */
+        &.o_vd_hero_time {
+            background: linear-gradient(135deg, #e5dbff 0%, #b197fc 100%);
+            border-color: #845ef7;
+            .o_vd_hero_title { color: #4c2889; }
+            .o_vd_hero_icon { filter: drop-shadow(0 2px 4px rgba(132, 94, 247, 0.4)); }
+
+            > .o_field_widget input::placeholder {
+                color: rgba(60, 30, 130, 0.55) !important;
+            }
+        }
+    }
+
+    /* ===== Tech grid — căn giữa, các ô đều ===== */
+    .o_vd_tech_grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 0.7rem 1rem;
+        margin-bottom: 0.85rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(180deg, #f8f9ff 0%, #eef4ff 100%);
+        border: 1px dashed #c8dcf5;
+        border-radius: 10px;
+
+        .o_vd_tech_field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 130px;
+            flex: 1 1 130px;
+            max-width: 200px;
+
+            > label {
+                font-size: 0.74rem;
+                font-weight: 600;
+                color: #1864ab;
+                margin: 0;
+                white-space: nowrap;
+                text-align: center;
+            }
+            > .o_field_widget {
+                width: 100% !important;
+                /* CHỈ override input thường — KHÔNG đụng checkbox/radio */
+                input:not([type="checkbox"]):not([type="radio"]),
+                select {
+                    font-size: 0.85rem !important;
+                    padding: 0.32rem 0.5rem !important;
+                    border: 1px solid #d8dee8 !important;
+                    border-radius: 6px !important;
+                    background: #fff !important;
+                }
+                /* Checkbox để native browser render — đảm bảo click được */
+                input[type="checkbox"] {
+                    width: 18px !important;
+                    height: 18px !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    cursor: pointer !important;
+                    accent-color: #4c6ef5;
+                }
+            }
+
+            &.o_vd_tech_inline {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+                padding-bottom: 0.4rem;       /* căn ngang với input của fields khác */
+                min-width: auto;
+                flex: 0 0 auto;
+                > .o_field_widget {
+                    width: auto !important;
+                    flex: 0 0 auto;
+                }
+                > label {
+                    padding: 0;
+                    font-size: 0.85rem;
+                    color: #343a40;
+                    text-transform: none;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    /* ===== Panel ước tính + kịch bản ===== */
+    .o_vd_estimate_panel {
+        margin-bottom: 0.7rem;
+        padding: 0.7rem 0.9rem 0.8rem;
+        background: linear-gradient(135deg, #fff9db 0%, #ffe066 100%);
+        border: 2px solid #fab005;
+        border-radius: 12px;
+        box-shadow: 0 4px 14px rgba(250, 176, 5, 0.25);
+
+        .o_vd_estimate_head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.82rem;
+            color: #5c3700;
+            border-bottom: 1px dashed #fab005;
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
+
+            .o_vd_estimate_amount {
+                font-size: 1.15rem;
+                color: #c92a2a;
+                letter-spacing: 0;
+                .o_field_widget,
+                .o_monetary {
+                    color: inherit;
+                    font-weight: 700;
+                }
+            }
+        }
+        .o_vd_estimate_script {
+            font-size: 0.88rem;
+            line-height: 1.45;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 0.55rem 0.7rem;
+            .o_field_widget { font-size: inherit; }
+            b { font-weight: 700; }
+        }
+    }
+
+    /* ----- Grid 1 CỘT ----- */
     .o_vd_pf_grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.4rem 1.5rem;
+        grid-template-columns: 1fr;       /* 1 CỘT DUY NHẤT */
+        gap: 0.18rem 0;
     }
 
-    .o_vd_pf_section_title {
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #1864ab;
-        padding-bottom: 0.3rem;
-        margin-bottom: 0.4rem;
-        border-bottom: 2px solid #e7f5ff;
-    }
-
-    /* o_vd_pf = popup field row — STRICT 1 LINE */
+    /* ============================================================
+       Mỗi field = 1 dòng: [Label cố định] [Input + placeholder mờ]
+       ============================================================ */
     .o_vd_pf {
-        display: flex;
+        display: flex !important;
+        flex-wrap: nowrap !important;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.22rem 0;
+        gap: 0.55rem;
+        padding: 0.18rem 0.3rem;
+        border-radius: 5px;
         position: relative;
+        transition: background 0.15s ease;
+
+        &:hover,
+        &:focus-within { background: #eef3ff; }
 
         > label {
-            flex: 0 0 110px;
+            flex: 0 0 130px;
+            max-width: 130px;
             margin: 0;
-            font-size: 0.83rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #495057;
+            color: #343a40;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             line-height: 1.3;
         }
+        &:focus-within > label { color: #1864ab; }
 
+        /* Input — flex 1 để ăn hết phần còn lại, placeholder hiển thị thoải mái */
         > .o_field_widget {
-            flex: 1;
-            min-width: 0;
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            max-width: none !important;
+
+            > *,
+            .o_input_dropdown,
+            .o-autocomplete,
+            .o-autocomplete--input {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
 
             input,
             select,
-            textarea {
-                font-size: 0.88rem !important;
-                padding: 0.22rem 0.5rem !important;
+            textarea,
+            .o_input {
+                font-size: 0.85rem !important;
+                padding: 0.3rem 0.6rem !important;
                 line-height: 1.3 !important;
                 width: 100% !important;
-                max-width: 100% !important;
+                background: #fff !important;
+                border: 1px solid #dde3ec !important;
+                border-radius: 6px !important;
+                transition: border-color 0.15s, box-shadow 0.15s;
+
+                &:hover { border-color: #adb5bd !important; }
+                &:focus {
+                    border-color: #4c6ef5 !important;
+                    box-shadow: 0 0 0 2px rgba(76, 110, 245, 0.18) !important;
+                    outline: none !important;
+                }
             }
 
-            /* Faded inline script hint — placeholder text stays visible
-               until the agent starts typing, then auto-hides */
+            /* PLACEHOLDER = KỊCH BẢN GỢI Ý — hiển thị MỜ Ý nhị bên trong ô */
             input::placeholder,
-            textarea::placeholder {
-                color: #adb5bd;
-                font-style: italic;
-                font-size: 0.85rem;
-                opacity: 1;
+            textarea::placeholder,
+            .o-autocomplete--input::placeholder {
+                color: #aab2bd !important;
+                font-style: italic !important;
+                opacity: 1 !important;
+                font-size: 0.8rem !important;
             }
-            select { color: #1a1a1a; }
-            select:invalid,
-            select option[value=""] { color: #adb5bd; font-style: italic; }
+
+            /* Field đã điền → viền xanh nhạt báo "OK" */
+            &:not(.o_field_empty) {
+                input, select {
+                    border-color: #b2f2bb !important;
+                    background: #f4fff4 !important;
+                }
+                select { color: #1a1a1a !important; font-style: normal !important; font-weight: normal !important; }
+            }
+
+            /* ===== SELECTION (dropdown <select>) TRỐNG → text mờ italic giống placeholder input ===== */
+            &.o_field_empty select,
+            &.o_field_empty .o_input {
+                color: #aab2bd !important;
+                font-style: italic !important;
+                font-weight: 400 !important;
+            }
+
+            /* Option đang chọn empty trong dropdown */
+            select:has(option:checked[value=""]),
+            select:has(option:checked:not([value])) {
+                color: #aab2bd !important;
+                font-style: italic !important;
+            }
+
+            /* Option [value=""] (placeholder option) hiển thị mờ trong list khi mở dropdown */
+            select option[value=""],
+            select option:not([value]) {
+                color: #aab2bd !important;
+                font-style: italic !important;
+            }
+
+            /* Các option có value (lựa chọn thật) hiển thị bình thường */
+            select option:not([value=""]):not([value]) {
+                color: #1a1a1a !important;
+                font-style: normal !important;
+            }
         }
 
-        /* Hide Odoo's native ❓ help icon — script lives inline as placeholder */
-        .o-tooltip-help,
+        /* Ẩn icon ❓ tooltip Odoo */
+        sup,
         sup.o_tooltip_help,
-        .o_field_help { display: none !important; }
+        .o-tooltip-help,
+        .o_form_label_help,
+        .o_field_help,
+        label .fa-question-circle,
+        label[for] > sup { display: none !important; }
     }
 
+    /* ----- Ghi chú = textarea cuối, span full row ----- */
     .o_vd_pf_notes {
-        margin-top: 0.6rem;
-        padding-top: 0.5rem;
+        margin-top: 0.35rem;
+        padding-top: 0.4rem;
         border-top: 1px dashed #e9ecef;
         align-items: flex-start;
 
-        > label { padding-top: 0.3rem; }
+        > label {
+            padding-top: 0.35rem;
+            color: #1864ab;
+        }
         > .o_field_widget textarea {
-            min-height: 40px;
+            min-height: 38px !important;
             resize: vertical;
         }
     }
 
+    /* ----- Footer & nút Lưu ----- */
     .modal-footer, .o_form_buttons_view {
-        padding: 0.5rem 1rem;
+        padding: 0.55rem 1.1rem;
+        background: #fff;
+        border-top: 1px solid #e9ecf3;
+    }
+
+    /* Inline save bar — thay cho modal-footer khi popup chuyển ra ngoài form */
+    .o_vd_inline_save_bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.85rem;
+        padding-top: 0.7rem;
+        border-top: 1px dashed #c8dcf5;
+    }
+
+    .o_vd_btn_save {
+        position: relative;
+        background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 50%, #b197fc 100%) !important;
+        background-size: 200% 100% !important;
+        border: none !important;
+        font-weight: 600 !important;
+        padding: 0.55rem 1.4rem !important;
+        font-size: 0.92rem !important;
+        border-radius: 8px !important;
+        box-shadow:
+            0 4px 14px rgba(76, 110, 245, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, background-position 0.4s ease !important;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -75%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.6s ease;
+        }
+
+        &:hover {
+            transform: translateY(-2px) scale(1.02);
+            background-position: 100% 0 !important;
+            box-shadow:
+                0 8px 22px rgba(76, 110, 245, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+            &::before { left: 125%; }
+        }
+        &:active {
+            transform: translateY(0) scale(0.98);
+        }
+    }
+}
+
+/* ============ RAINBOW_MAN CELEBRATION OVERLAY — customize Odoo's effect ============ */
+.o_reward {
+    .o_reward_msg_content {
+        background: linear-gradient(135deg, #ffffff 0%, #fff9db 100%) !important;
+        border: 2px solid #ffd43b !important;
+        border-radius: 16px !important;
+        padding: 1rem 1.5rem !important;
+        box-shadow:
+            0 12px 40px rgba(250, 176, 5, 0.35),
+            0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        font-size: 1rem !important;
+        color: #1a1a1a !important;
+        animation: vd-popup-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 480px;
+        line-height: 1.5;
+    }
+    .o_reward_rainbow,
+    img.o_reward_rainbow_man {
+        animation: vd-icon-bounce 1.2s ease-in-out infinite;
+        filter: drop-shadow(0 8px 16px rgba(76, 110, 245, 0.35));
+    }
+}
+
+/* Trên màn hình nhỏ: dồn về 1 cột, kịch bản xuống dòng dưới */
+@media (max-width: 900px) {
+    .o_vd_intake_compact {
+        .o_vd_pf_grid { grid-template-columns: 1fr; }
+        .o_vd_pf {
+            flex-wrap: wrap;
+            > .o_field_widget { flex: 1; }
+            .o_vd_pf_script {
+                flex: 0 0 100%;
+                white-space: normal;
+                padding-left: 110px;
+                margin-top: 0.1rem;
+            }
+        }
     }
 }
 
@@ -994,5 +2820,893 @@
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+/* ============================================================
+   POLISH — căn chỉnh đẹp đều, không cắt chữ, info quan trọng to/rõ
+   ============================================================ */
+
+/* Hero cards: stretch để 3 card cùng chiều cao, không lệch */
+.o_vd_intake_compact .o_vd_hero_grid {
+    align-items: stretch !important;
+}
+.o_vd_intake_compact .o_vd_hero_card {
+    display: flex !important;
+    flex-direction: column !important;
+}
+.o_vd_intake_compact .o_vd_hero_card > .o_field_widget {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Readable hint "≈ 1 tỷ" — tránh overlap input, đặt sticky bên dưới gọn gàng */
+.o_vd_intake_compact .o_vd_hero_budget {
+    padding-bottom: 0.6rem !important;
+}
+.o_vd_intake_compact .o_vd_hero_budget .o_vd_readable_hint {
+    margin-top: 0.5rem !important;
+    padding: 0.25rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-radius: 999px !important;
+    width: fit-content !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    border: 1px solid rgba(138, 90, 0, 0.3) !important;
+}
+
+/* Bubble — phóng to amount + làm rõ visual hierarchy */
+.o_vd_consult_bubble .o_vd_bubble_amount_row {
+    padding: 0.55rem 0.7rem !important;
+    margin-bottom: 0.6rem !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-radius: 8px !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_head {
+    font-size: 1.05rem !important;
+    padding: 0.55rem 0 0.6rem !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_title {
+    font-size: 1rem !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_amount_row .o_vd_bubble_lbl {
+    font-size: 1.05rem !important;
+    color: #5c3700 !important;
+    font-weight: 700 !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_amount_row .o_vd_bubble_amount {
+    font-size: 1.85rem !important;        /* TO HƠN — số tiền nổi bật */
+    font-weight: 900 !important;
+    color: #c92a2a !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.5px !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_amount_row .o_vd_bubble_amount .o_field_widget,
+.o_vd_consult_bubble .o_vd_bubble_amount_row .o_vd_bubble_amount input {
+    font-size: inherit !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_section {
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    padding: 0.85rem 1rem !important;
+}
+/* Bold trong text — to hơn cho dễ đọc */
+.o_vd_consult_bubble .o_vd_bubble_section b {
+    font-size: 1.1rem !important;
+    line-height: 1.35 !important;
+}
+
+/* HEADING ĐẦU SECTION (✅ NGÂN SÁCH PHÙ HỢP / ⚠️ CHÊNH LỚN / ⏰ HƠI GẤP)
+   = full-width BANNER cực nổi bật, NV nhìn 1 phát thấy NGAY trạng thái */
+.o_vd_consult_bubble .o_vd_bubble_section > b:first-child,
+.o_vd_consult_bubble .o_vd_bubble_section > p:first-child > b:first-child {
+    display: block !important;
+    width: auto !important;
+    font-size: 1.4rem !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    padding: 0.6rem 1rem !important;
+    margin: -0.5rem -0.5rem 0.7rem !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    line-height: 1.3 !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+    border: 2px solid currentColor !important;
+}
+/* Background banner theo màu chữ inline (Python set color qua style) */
+.o_vd_consult_bubble .o_vd_bubble_section > b:first-child[style*="2b8a3e"] {
+    background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%) !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_section > b:first-child[style*="1864ab"] {
+    background: linear-gradient(135deg, #d0ebff 0%, #74c0fc 100%) !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_section > b:first-child[style*="c92a2a"] {
+    background: linear-gradient(135deg, #ffe3e3 0%, #ff8787 100%) !important;
+    animation: vd-warn-pulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes vd-warn-pulse {
+    0%, 100% { box-shadow: 0 3px 10px rgba(201, 42, 42, 0.25); }
+    50%      { box-shadow: 0 3px 18px rgba(201, 42, 42, 0.55); }
+}
+
+/* ===== FLASH EFFECTS — gây sự chú ý mạnh khi value compute thay đổi ===== */
+
+/* General flash — cho sections, badges (background flash + scale + glow) */
+.vd-flash-update {
+    animation: vd-flash-wow 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+@keyframes vd-flash-wow {
+    0% {
+        background-color: rgba(255, 215, 0, 0.95) !important;
+        transform: scale(1.08) !important;
+        box-shadow:
+            0 0 0 6px rgba(255, 215, 0, 0.7),
+            0 0 32px 12px rgba(255, 193, 7, 0.6) !important;
+    }
+    35% {
+        background-color: rgba(255, 215, 0, 0.55) !important;
+        transform: scale(1.04) !important;
+        box-shadow:
+            0 0 0 3px rgba(255, 215, 0, 0.4),
+            0 0 20px 8px rgba(255, 193, 7, 0.4) !important;
+    }
+    70% {
+        background-color: rgba(255, 215, 0, 0.2) !important;
+        transform: scale(1.01) !important;
+    }
+    100% {
+        background-color: transparent !important;
+        transform: scale(1) !important;
+        box-shadow: none !important;
+    }
+}
+
+/* AMOUNT flash — DRAMATIC: scale lớn + đổi màu + glow + bounce */
+.vd-flash-amount {
+    animation: vd-flash-amount-wow 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    display: inline-block !important;
+    transform-origin: center !important;
+}
+@keyframes vd-flash-amount-wow {
+    0% {
+        transform: scale(1);
+        text-shadow: none;
+    }
+    15% {
+        transform: scale(1.55) rotate(-3deg);
+        text-shadow:
+            0 0 20px rgba(250, 176, 5, 0.95),
+            0 0 40px rgba(255, 193, 7, 0.7),
+            0 4px 8px rgba(0, 0, 0, 0.3);
+        filter: brightness(1.3);
+    }
+    30% {
+        transform: scale(1.3) rotate(2deg);
+        text-shadow:
+            0 0 16px rgba(250, 176, 5, 0.7),
+            0 0 30px rgba(255, 193, 7, 0.5);
+        filter: brightness(1.2);
+    }
+    55% {
+        transform: scale(1.15) rotate(-1deg);
+        text-shadow: 0 0 10px rgba(250, 176, 5, 0.5);
+        filter: brightness(1.1);
+    }
+    80% {
+        transform: scale(1.05) rotate(0);
+        text-shadow: 0 0 5px rgba(250, 176, 5, 0.3);
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        text-shadow: none;
+        filter: none;
+    }
+}
+
+/* RIPPLE — cho banner cảnh báo: vòng tròn loang ra từ center */
+.vd-ripple-burst {
+    position: relative !important;
+    overflow: visible !important;
+}
+.vd-ripple-burst::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.6);
+    transform: translate(-50%, -50%);
+    animation: vd-ripple-out 1.2s ease-out;
+    pointer-events: none;
+    z-index: -1;
+}
+@keyframes vd-ripple-out {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 0.95;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        width: 220%;
+        height: 220%;
+        opacity: 0;
+    }
+}
+
+/* SHAKE cho banner cảnh báo critical (chỉ khi value lớn thay đổi) */
+.vd-shake-alert {
+    animation: vd-shake-strong 0.6s ease-in-out !important;
+}
+@keyframes vd-shake-strong {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    10%      { transform: translateX(-6px) rotate(-2deg); }
+    25%      { transform: translateX(6px) rotate(2deg); }
+    40%      { transform: translateX(-4px) rotate(-1.5deg); }
+    55%      { transform: translateX(4px) rotate(1.5deg); }
+    70%      { transform: translateX(-2px) rotate(-0.8deg); }
+    85%      { transform: translateX(2px) rotate(0.8deg); }
+}
+.o_vd_consult_bubble .o_vd_bubble_section u {
+    text-decoration: none !important;
+    font-weight: 700 !important;
+    color: #1864ab !important;
+    display: inline-block !important;
+    margin-top: 0.35rem !important;
+}
+.o_vd_consult_bubble .o_vd_bubble_section i {
+    font-style: italic !important;
+    color: #343a40 !important;
+}
+
+/* Tech grid — 5 fields trên 1 hàng, label nằm trên input compact */
+.o_vd_intake_compact .o_vd_tech_grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) auto !important;
+    gap: 0.7rem 1rem !important;
+    align-items: end !important;
+}
+.o_vd_intake_compact .o_vd_tech_field {
+    min-width: 0 !important;
+    max-width: none !important;
+}
+.o_vd_intake_compact .o_vd_tech_field > label {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.25rem !important;
+}
+.o_vd_intake_compact .o_vd_tech_field input,
+.o_vd_intake_compact .o_vd_tech_field select,
+.o_vd_intake_compact .o_vd_tech_field .o_vd_select_dd input {
+    font-size: 0.88rem !important;
+    padding: 0.35rem 0.55rem !important;
+}
+
+/* Main fields (.o_vd_pf): label rộng hơn để không truncate */
+.o_vd_intake_compact .o_vd_pf > label {
+    flex: 0 0 110px !important;
+    max-width: 110px !important;
+    font-size: 0.86rem !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+.o_vd_intake_compact .o_vd_pf > .o_field_widget input,
+.o_vd_intake_compact .o_vd_pf > .o_field_widget select,
+.o_vd_intake_compact .o_vd_pf > .o_field_widget textarea {
+    font-size: 0.88rem !important;
+    padding: 0.35rem 0.7rem !important;
+}
+
+/* Save bar inline — căn giữa button to rõ */
+.o_vd_intake_compact .o_vd_inline_save_bar {
+    padding: 0.85rem 0 !important;
+    gap: 1rem !important;
+}
+.o_vd_intake_compact .o_vd_btn_save {
+    font-size: 0.95rem !important;
+    padding: 0.65rem 1.5rem !important;
+}
+
+/* ============================================================
+   SUMMARY HERO CARDS — 3 ô nổi bật trong chế độ tóm tắt
+   (Ngân sách / Diện tích / Thời gian) + Ước tính lớn
+   ============================================================ */
+.o_vd_summary_hero_grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 0.75rem 0 0.85rem;
+}
+
+.o_vd_summary_hero {
+    position: relative;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .o_vd_sum_hero_head {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 0.45rem;
+    }
+    .o_vd_sum_hero_icon { font-size: 1.2rem; line-height: 1; }
+    .o_vd_sum_hero_label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.85;
+    }
+    .o_vd_sum_hero_value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.2;
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+
+        .o_field_widget {
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+        }
+        .o_vd_sum_unit {
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+    }
+    .o_vd_sum_hero_value_text {
+        font-size: 1.15rem;
+    }
+    .o_vd_sum_hero_sub {
+        font-size: 0.78rem;
+        opacity: 0.7;
+        margin-top: 0.2rem;
+    }
+}
+
+/* Card Ngân sách - vàng/cam */
+.o_vd_hero_budget_sum {
+    background: linear-gradient(135deg, #fff9db 0%, #ffe066 100%);
+    border-color: #fab005;
+    .o_vd_sum_hero_label { color: #8a5a00; }
+    .o_vd_sum_hero_value { color: #5c3700; }
+}
+
+/* Card Diện tích - xanh ngọc */
+.o_vd_hero_area_sum {
+    background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%);
+    border-color: #51cf66;
+    .o_vd_sum_hero_label { color: #0b5d1e; }
+    .o_vd_sum_hero_value { color: #0a3c14; }
+    .o_vd_sum_unit { color: #0b5d1e; }
+}
+
+/* Card Thời gian - tím lavender */
+.o_vd_hero_time_sum {
+    background: linear-gradient(135deg, #e5dbff 0%, #b197fc 100%);
+    border-color: #845ef7;
+    .o_vd_sum_hero_label { color: #4c2889; }
+    .o_vd_sum_hero_value { color: #2d1561; }
+}
+
+/* ===== Badges trạng thái ngân sách / thời gian ===== */
+.o_vd_sum_budget_badge,
+.o_vd_sum_time_badge {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+.o_vd_badge_fit {
+    background: #d3f9d8;
+    color: #0b5d1e;
+    border: 1px solid #51cf66;
+}
+.o_vd_badge_warn {
+    background: #fff3bf;
+    color: #5c3700;
+    border: 1px solid #fab005;
+}
+.o_vd_badge_over {
+    background: #ffe3e3;
+    color: #862e2e;
+    border: 1px solid #fa5252;
+    animation: vd-pulse-badge 1.8s ease-in-out infinite;
+}
+
+@keyframes vd-pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.45); }
+    50%      { box-shadow: 0 0 0 6px rgba(250, 82, 82, 0); }
+}
+
+/* ===== Ước tính lớn — full width row ===== */
+.o_vd_summary_estimate {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.7rem 1rem;
+    margin-bottom: 0.85rem;
+    background: linear-gradient(90deg, #fff9db 0%, #fff3bf 100%);
+    border: 2px solid #fab005;
+    border-radius: 10px;
+
+    .o_vd_sum_est_label {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #5c3700;
+    }
+    .o_vd_sum_est_value {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #c92a2a;
+        .o_field_widget {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
+    }
+}
+
+/* Responsive: viewport hẹp → hero grid 1 cột */
+@media (max-width: 720px) {
+    .o_vd_summary_hero_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== Summary info grid — 3 cột compact, hiển thị đầy đủ field ===== */
+.o_vd_summary_grid_inline {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.4rem 1rem !important;
+    margin-bottom: 0.5rem;
+}
+
+.o_vd_summary_long_row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    margin-top: 0.4rem;
+    background: #f8fafd;
+    border-radius: 6px;
+    border-left: 3px solid #4dabf7;
+
+    .o_vd_lbl {
+        flex: 0 0 auto;
+        font-weight: 600;
+        color: #1864ab;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        i { margin-right: 0.3rem; }
+    }
+    .o_field_widget,
+    > field {
+        flex: 1 1 auto;
+        font-size: 0.9rem;
+        color: #1a1a1a;
+        white-space: normal;
+        word-break: break-word;
+    }
+}
+
+/* Responsive: viewport hẹp → grid info 2 cột */
+@media (max-width: 900px) {
+    .o_vd_summary_grid_inline {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+@media (max-width: 600px) {
+    .o_vd_summary_grid_inline {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Field trống trong summary — hiển thị dấu "—" mờ italic */
+.o_vd_val_empty {
+    color: #adb5bd !important;
+    font-style: italic !important;
+    font-size: 0.85rem !important;
+}
+.o_vd_val {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+/* ============================================================
+   QUOTE INTAKE SUMMARY — read-only data từ khai thác sẽ vào PDF
+   ============================================================ */
+.o_vd_quote_intake_summary {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px dashed #0ea5e9;
+    border-radius: 10px;
+
+    .o_vd_qis_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dashed #0ea5e9;
+        font-weight: 700;
+        color: #0369a1;
+        font-size: 0.92rem;
+        i { color: #0ea5e9; }
+    }
+
+    .o_vd_qis_grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem 1.2rem;
+    }
+
+    .o_vd_qis_item {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        padding: 0.3rem 0.5rem;
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 6px;
+        font-size: 0.85rem;
+
+        .o_vd_qis_lbl {
+            font-weight: 600;
+            color: #0369a1;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        .o_field_widget,
+        > field,
+        > span {
+            color: #0c1729;
+            font-weight: 500;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+    }
+
+    .o_vd_qis_highlight {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+        border: 1px solid #fbbf24;
+
+        .o_vd_qis_lbl { color: #92400e !important; }
+        .o_field_widget,
+        > field,
+        > span {
+            color: #c92a2a !important;
+            font-weight: 800 !important;
+            font-size: 0.95rem !important;
+        }
+    }
+}
+
+@media (max-width: 1100px) {
+    .o_vd_quote_intake_summary .o_vd_qis_grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 700px) {
+    .o_vd_quote_intake_summary .o_vd_qis_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   QUOTE PANEL — layout 2 cột: form (trái) + preview PDF (phải)
+   ============================================================ */
+.o_vd_quote_layout {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.o_vd_quote_form_col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.o_vd_quote_preview_col {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px dashed #f59e0b;
+    border-radius: 10px;
+    padding: 0.7rem;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 1rem;
+
+    .o_vd_qpc_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dashed #f59e0b;
+        font-weight: 700;
+        color: #92400e;
+        font-size: 0.92rem;
+        i { color: #d97706; }
+    }
+    .o_field_html {
+        max-width: 100%;
+        background: #fff;
+        border-radius: 6px;
+    }
+}
+
+@media (max-width: 1300px) {
+    .o_vd_quote_layout {
+        grid-template-columns: 1fr;
+    }
+    .o_vd_quote_preview_col {
+        position: static;
+        max-height: none;
+    }
+}
+
+/* Help block cho template upload (Jinja placeholders guide) */
+.o_vd_quote_help {
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+
+    details summary {
+        cursor: pointer;
+        padding: 0.4rem 0.6rem;
+        background: #e0f2fe;
+        border: 1px dashed #0284c7;
+        border-radius: 6px;
+        font-weight: 600;
+        color: #0369a1;
+        list-style: none;
+        &::-webkit-details-marker { display: none; }
+        &::before {
+            content: "▶ ";
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+    }
+    details[open] summary::before {
+        content: "▼ ";
+    }
+    .o_vd_quote_help_body {
+        padding: 0.6rem 0.8rem;
+        background: #f0f9ff;
+        border-left: 3px solid #0ea5e9;
+        margin-top: 0.4rem;
+        border-radius: 4px;
+        line-height: 1.5;
+
+        ul { padding-left: 1.2rem; margin: 0.4rem 0; }
+        li { margin-bottom: 0.2rem; }
+        code {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.05rem 0.3rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            border: 1px solid #fde68a;
+        }
+    }
+}
+
+/* ============================================================
+   CONFIRM DIALOG — wow hơn (gradient, animation pop-in, big buttons)
+   Áp dụng cho mọi .o_dialog của Odoo. Risk affect form modals,
+   nhưng visual upgrade là đáng để có UX tốt hơn.
+   ============================================================ */
+.o_dialog .modal-content,
+.modal .modal-content {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow:
+        0 25px 60px -15px rgba(76, 110, 245, 0.45),
+        0 10px 30px -10px rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden;
+    animation: vd-dialog-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafd 100%) !important;
+}
+
+@keyframes vd-dialog-pop-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(-30px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.o_dialog .modal-header,
+.modal .modal-header {
+    background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 50%, #b197fc 100%) !important;
+    background-size: 200% 100% !important;
+    animation: vd-bg-shift 8s ease infinite;
+    color: #fff !important;
+    padding: 1.1rem 1.4rem !important;
+    border-bottom: none !important;
+    position: relative;
+}
+.o_dialog .modal-header::before,
+.modal .modal-header::before {
+    content: "✨";
+    position: absolute;
+    top: 50%;
+    right: 4rem;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    opacity: 0.4;
+    animation: vd-icon-bounce 1.6s ease-in-out infinite;
+}
+
+.o_dialog .modal-title,
+.modal .modal-title {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    color: #fff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.o_dialog .modal-header .btn-close,
+.modal .modal-header .btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.85 !important;
+    transition: transform 0.2s, opacity 0.2s !important;
+    &:hover {
+        opacity: 1 !important;
+        transform: rotate(90deg) scale(1.15) !important;
+    }
+}
+
+.o_dialog .modal-body,
+.modal .modal-body {
+    padding: 1.5rem 1.4rem !important;
+    font-size: 1.05rem !important;
+    line-height: 1.6 !important;
+    color: #212529 !important;
+    background: #fff;
+}
+
+.o_dialog .modal-footer,
+.modal .modal-footer {
+    padding: 1rem 1.4rem !important;
+    background: linear-gradient(180deg, #f8fafd 0%, #eef4ff 100%) !important;
+    border-top: 1px solid #e9ecef !important;
+    gap: 0.6rem;
+}
+
+/* Buttons trong dialog — to + gradient + bounce on hover */
+.o_dialog .modal-footer .btn,
+.modal .modal-footer .btn {
+    padding: 0.6rem 1.4rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: transform 0.15s ease, box-shadow 0.2s ease !important;
+    border: none !important;
+    min-width: 100px;
+}
+.o_dialog .modal-footer .btn-primary,
+.modal .modal-footer .btn-primary {
+    background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.35) !important;
+    &:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 8px 20px rgba(76, 110, 245, 0.5) !important;
+        background: linear-gradient(135deg, #364fc7 0%, #4c6ef5 100%) !important;
+    }
+    &:active {
+        transform: translateY(0) scale(0.97);
+    }
+}
+.o_dialog .modal-footer .btn-secondary,
+.modal .modal-footer .btn-secondary {
+    background: #fff !important;
+    color: #495057 !important;
+    border: 2px solid #ced4da !important;
+    &:hover {
+        background: #fff5f5 !important;
+        color: #c92a2a !important;
+        border-color: #fa5252 !important;
+        transform: translateY(-1px);
+    }
+}
+
+/* Backdrop tối hơn cho dramatic effect */
+.modal-backdrop.show {
+    opacity: 0.6 !important;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #000 100%) !important;
+}
+
+/* ============================================================
+   PREVIEW WIZARD POPUP — fullscreen, PDF chiếm gần hết màn hình
+   ============================================================ */
+.modal:has(.o_vd_preview_wizard_form) {
+    .modal-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        height: 95vh !important;
+        max-height: 95vh !important;
+        margin: 2.5vh auto !important;
+    }
+    .modal-content {
+        height: 100% !important;
+        background: #1a1a2e !important;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #1864ab 0%, #4dabf7 100%) !important;
+        padding: 0.75rem 1.2rem !important;
+    }
+    .modal-body {
+        flex: 1 1 auto;
+        padding: 0 !important;
+        overflow: hidden;
+        background: #1a1a2e !important;
+    }
+    .modal-footer {
+        flex: 0 0 auto;
+        padding: 0.6rem 1.2rem !important;
+        background: linear-gradient(180deg, #2c2c4a 0%, #1a1a2e 100%) !important;
+        border-top: 1px solid #444 !important;
+    }
+}
+
+.o_vd_preview_wizard_form {
+    .o_form_sheet_bg, .o_form_sheet {
+        background: #1a1a2e !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+    .o_vd_preview_wizard_body {
+        height: calc(95vh - 130px);   /* trừ header + footer */
+        width: 100%;
+        background: #525659;          /* màu nền của PDF.js */
+    }
+    .o_field_pdf_viewer,
+    .o_pdf_viewer,
+    iframe {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 80vh !important;
+        border: none !important;
     }
 }

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_pricing_region_tree" model="ir.ui.view">
+        <field name="name">vd.pricing.region.tree</field>
+        <field name="model">vd.pricing.region</field>
+        <field name="arch" type="xml">
+            <list string="Đơn giá xây dựng">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="san_75_oto" string="Sàn ≥75 / có ô tô (đ)" widget="monetary"/>
+                <field name="tho_lon" string="Trọn gói ≥70 (đ/m²)" widget="monetary"/>
+                <field name="mong_bang_lon" string="Móng băng ≥70 (%)"/>
+                <field name="mai_thai_cdt" string="Mái thái CĐT (%)"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_pricing_region_form" model="ir.ui.view">
+        <field name="name">vd.pricing.region.form</field>
+        <field name="model">vd.pricing.region</field>
+        <field name="arch" type="xml">
+            <form string="Đơn giá xây dựng theo vùng">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="vd: Miền Bắc"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="note" placeholder="Ghi chú nội bộ"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="🏗️ MÓNG (% × DT × đơn giá sàn)">
+                            <group>
+                                <group string="≥ 70m²">
+                                    <field name="mong_don_lon"/>
+                                    <field name="mong_bang_lon"/>
+                                    <field name="mong_coc_lon"/>
+                                </group>
+                                <group string="&lt; 70m²">
+                                    <field name="mong_don_nho"/>
+                                    <field name="mong_bang_nho"/>
+                                    <field name="mong_coc_nho"/>
+                                </group>
+                            </group>
+                            <group string="Phụ phí móng (cộng vào TỔNG, %)">
+                                <field name="pct_mong_coc"/>
+                                <field name="pct_mong_bang"/>
+                            </group>
+                        </page>
+
+                        <page string="🪨 SÀN (đ/m²)">
+                            <group>
+                                <group string="Ô tô vào được">
+                                    <field name="san_75_oto" string="≥ 75m²"/>
+                                    <field name="san_65_oto" string="65 – 75m²"/>
+                                    <field name="san_50_oto" string="50 – 65m²"/>
+                                    <field name="san_40_oto" string="40 – 50m²"/>
+                                    <field name="san_lt40_oto" string="&lt; 40m²"/>
+                                </group>
+                                <group string="Ô tô KHÔNG vào được">
+                                    <field name="san_75_kxe" string="≥ 75m²"/>
+                                    <field name="san_65_kxe" string="65 – 75m²"/>
+                                    <field name="san_50_kxe" string="50 – 65m²"/>
+                                    <field name="san_40_kxe" string="40 – 50m²"/>
+                                    <field name="san_lt40_kxe" string="&lt; 40m²"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="📦 XÂY THÔ TRỌN GÓI (đ/m²)">
+                            <group>
+                                <field name="tho_lon" string="≥ 70m²"/>
+                                <field name="tho_nho" string="&lt; 70m²"/>
+                            </group>
+                        </page>
+
+                        <page string="🏠 MÁI (% × DT mái × đơn giá sàn)">
+                            <group>
+                                <group string="Mái cố định">
+                                    <field name="mai_bang"/>
+                                    <field name="mai_nhat_kdt"/>
+                                    <field name="mai_nhat_cdt"/>
+                                    <field name="mai_thai_kdt"/>
+                                    <field name="mai_thai_cdt"/>
+                                    <field name="thong_tang"/>
+                                </group>
+                                <group string="Mái khác">
+                                    <field name="mai_trang_tri"/>
+                                    <field name="mai_trang_tri_dt"/>
+                                    <field name="mai_ton_1m"/>
+                                    <field name="mai_ton_2m"/>
+                                    <field name="mai_ton_3m"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_pricing_region" model="ir.actions.act_window">
+        <field name="name">Đơn giá xây dựng</field>
+        <field name="res_model">vd.pricing.region</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Quản lý đơn giá xây dựng theo 3 vùng: Bắc, Trung, Nam.
+            </p>
+            <p>Bảng giá này dùng để tự động ước tính ngân sách trong popup khai thác.</p>
+        </field>
+    </record>
+
+</odoo>

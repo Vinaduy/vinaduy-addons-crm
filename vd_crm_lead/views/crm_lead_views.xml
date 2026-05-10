@@ -42,8 +42,22 @@
                 <field name="stage_is_lost" invisible="1"/>
                 <field name="vd_active_call_state" invisible="1"/>
                 <field name="vd_active_call_answer_time" invisible="1"/>
+                <field name="company_currency" invisible="1"/>
+                <field name="vd_currency_vnd_id" invisible="1"/>
+                <field name="vd_quote_locked" invisible="1"/>
+                <field name="vd_quote_version_count" invisible="1"/>
+                <field name="vd_contract_signed" invisible="1"/>
+                <field name="vd_negotiate_status" invisible="1"/>
+                <field name="vd_intake_open" invisible="1"/>
+                <field name="vd_intake_budget_status" invisible="1"/>
 
-                <!-- ============ CUSTOMER SUMMARY CARD ============ -->
+                <!-- Workflow buttons giờ nằm BÊN TRONG summary card, sau intake summary -->
+
+                <!-- ============ CUSTOMER SUMMARY CARD ============
+                     Có 2 chế độ:
+                     - vd_intake_open=False → block .o_vd_intake_summary (compact)
+                     - vd_intake_open=True  → block .o_vd_intake_full (form 2 cột)
+                     CSS dùng :has() để widen o_form_sheet khi mở rộng. -->
                 <div class="o_vd_summary_card">
 
                     <!-- Banner: stage as colored top strip -->
@@ -68,88 +82,664 @@
                         </div>
                     </div>
 
-                    <!-- Intake summary — visible only when there's data; 1-line per item -->
-                    <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
-                        <div class="o_vd_summary_section_title">
-                            <i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC
+                    <!-- ============ COMPACT SUMMARY MODE — visible khi vd_intake_open=False
+                         Highlight 3 thông tin quan trọng (Ngân sách / Diện tích / Thời gian)
+                         + Ước tính + badge trạng thái. Info phụ ở dưới (compact grid). -->
+                    <div class="o_vd_intake_summary" invisible="vd_intake_open">
+                        <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
+                            <div class="o_vd_summary_section_title">
+                                <span><i class="fa fa-clipboard-list"/> THÔNG TIN KHAI THÁC</span>
+                                <button name="action_open_intake_inline" type="object"
+                                        class="btn btn-sm btn-outline-primary o_vd_open_intake_btn">
+                                    <i class="fa fa-edit"/> Mở phiếu khai thác
+                                </button>
+                            </div>
+
+                            <!-- 3 HERO CARDS NỔI BẬT — Ngân sách + Diện tích + Thời gian -->
+                            <div class="o_vd_summary_hero_grid">
+                                <!-- Ngân sách + badge trạng thái so với ước tính -->
+                                <div class="o_vd_summary_hero o_vd_hero_budget_sum">
+                                    <div class="o_vd_sum_hero_head">
+                                        <span class="o_vd_sum_hero_icon">💰</span>
+                                        <span class="o_vd_sum_hero_label">Ngân sách</span>
+                                    </div>
+                                    <div class="o_vd_sum_hero_value">
+                                        <field name="vd_intake_budget_amount" widget="monetary"
+                                               options="{'currency_field': 'vd_currency_vnd_id'}"
+                                               readonly="1" nolabel="1"/>
+                                    </div>
+                                    <div class="o_vd_sum_budget_badge o_vd_badge_fit"
+                                         invisible="vd_intake_budget_status != 'fit'">
+                                        ✅ Phù hợp
+                                    </div>
+                                    <div class="o_vd_sum_budget_badge o_vd_badge_warn"
+                                         invisible="vd_intake_budget_status != 'warn'">
+                                        ⚖️ Chênh nhẹ (dưới 300tr)
+                                    </div>
+                                    <div class="o_vd_sum_budget_badge o_vd_badge_over"
+                                         invisible="vd_intake_budget_status != 'over'">
+                                        ⚠️ Chênh lớn (≥ 300tr)
+                                    </div>
+                                </div>
+                                <!-- Diện tích -->
+                                <div class="o_vd_summary_hero o_vd_hero_area_sum">
+                                    <div class="o_vd_sum_hero_head">
+                                        <span class="o_vd_sum_hero_icon">📐</span>
+                                        <span class="o_vd_sum_hero_label">Diện tích / sàn</span>
+                                    </div>
+                                    <div class="o_vd_sum_hero_value">
+                                        <field name="vd_intake_area_m2" readonly="1" nolabel="1"/>
+                                        <span class="o_vd_sum_unit">m²</span>
+                                    </div>
+                                    <div class="o_vd_sum_hero_sub" invisible="not vd_intake_floors_num">
+                                        × <field name="vd_intake_floors_num" readonly="1" nolabel="1"/> tầng
+                                    </div>
+                                </div>
+                                <!-- Thời gian -->
+                                <div class="o_vd_summary_hero o_vd_hero_time_sum">
+                                    <div class="o_vd_sum_hero_head">
+                                        <span class="o_vd_sum_hero_icon">📅</span>
+                                        <span class="o_vd_sum_hero_label">Thời gian khởi công</span>
+                                    </div>
+                                    <div class="o_vd_sum_hero_value o_vd_sum_hero_value_text">
+                                        <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
+                                    </div>
+                                    <div class="o_vd_sum_time_badge o_vd_badge_fit"
+                                         invisible="vd_intake_timeline_status != 'ok'">
+                                        ✅ Đủ thời gian
+                                    </div>
+                                    <div class="o_vd_sum_time_badge o_vd_badge_warn"
+                                         invisible="vd_intake_timeline_status != 'warn'">
+                                        ⏰ Hơi gấp
+                                    </div>
+                                    <div class="o_vd_sum_time_badge o_vd_badge_over"
+                                         invisible="vd_intake_timeline_status != 'critical'">
+                                        ⏰ Quá gấp
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ước tính lớn — full width -->
+                            <div class="o_vd_summary_estimate" invisible="not vd_intake_estimate">
+                                <span class="o_vd_sum_est_label">📊 Ước tính giá:</span>
+                                <span class="o_vd_sum_est_value">
+                                    <field name="vd_intake_estimate" widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           readonly="1" nolabel="1"/>
+                                </span>
+                            </div>
+
+                            <!-- Info phụ — LUÔN hiện ĐẦY ĐỦ field, dù trống ("—") -->
+                            <div class="o_vd_summary_grid_inline">
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_province_id">
+                                        <field name="vd_intake_province_id" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_province_id">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-map"/> Huyện:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_district">
+                                        <field name="vd_intake_district" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_district">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-location-arrow"/> Vị trí:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_position">
+                                        <field name="vd_intake_position" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_position">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_house_type">
+                                        <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_house_type">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-cubes"/> Loại móng:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_foundation_type">
+                                        <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_foundation_type">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-home"/> Loại mái:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_roof_type">
+                                        <field name="vd_intake_roof_type" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_roof_type">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_land_type">
+                                        <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_land_type">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ/cấp phép:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_dimensions">
+                                        <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_dimensions">—</span>
+                                </div>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-car"/> Ô tô vào:</span>
+                                    <span style="color:#c92a2a;font-weight:600;" invisible="vd_intake_car_access">Không</span>
+                                    <span style="color:#2b8a3e;font-weight:600;" invisible="not vd_intake_car_access">Có</span>
+                                </div>
+                            </div>
+
+                            <!-- Công năng + Ghi chú (dài, span full width) — LUÔN hiện -->
+                            <div class="o_vd_summary_long_row">
+                                <span class="o_vd_lbl"><i class="fa fa-list-ul"/> Công năng:</span>
+                                <span class="o_vd_val" invisible="not vd_intake_function">
+                                    <field name="vd_intake_function" readonly="1" nolabel="1"/>
+                                </span>
+                                <span class="o_vd_val_empty" invisible="vd_intake_function">— (chưa khai thác)</span>
+                            </div>
+                            <div class="o_vd_summary_long_row">
+                                <span class="o_vd_lbl"><i class="fa fa-sticky-note-o"/> Ghi chú công năng:</span>
+                                <span class="o_vd_val" invisible="not vd_intake_function_notes">
+                                    <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
+                                </span>
+                                <span class="o_vd_val_empty" invisible="vd_intake_function_notes">— (chưa khai thác)</span>
+                            </div>
                         </div>
-
-                        <div class="o_vd_summary_grid_inline">
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_province_id">
-                                <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh:</span>
-                                <field name="vd_intake_province_id" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_district">
-                                <span class="o_vd_lbl"><i class="fa fa-map"/> Huyện:</span>
-                                <field name="vd_intake_district" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_address">
-                                <span class="o_vd_lbl"><i class="fa fa-road"/> Địa chỉ:</span>
-                                <field name="vd_intake_address" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_position">
-                                <span class="o_vd_lbl"><i class="fa fa-location-arrow"/> Vị trí:</span>
-                                <field name="vd_intake_position" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_land_type">
-                                <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
-                                <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_dimensions">
-                                <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ:</span>
-                                <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_area">
-                                <span class="o_vd_lbl"><i class="fa fa-square-o"/> Diện tích:</span>
-                                <field name="vd_intake_area" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_house_type">
-                                <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
-                                <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_floors">
-                                <span class="o_vd_lbl"><i class="fa fa-building"/> Số tầng:</span>
-                                <field name="vd_intake_floors" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_function">
-                                <span class="o_vd_lbl"><i class="fa fa-list"/> Công năng:</span>
-                                <field name="vd_intake_function" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_timeline">
-                                <span class="o_vd_lbl"><i class="fa fa-clock-o"/> Thời gian:</span>
-                                <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
-                            </div>
-
-                            <div class="o_vd_row_inline" invisible="not vd_intake_budget">
-                                <span class="o_vd_lbl"><i class="fa fa-money"/> Ngân sách:</span>
-                                <field name="vd_intake_budget" readonly="1" nolabel="1"/>
-                            </div>
-
-                        </div>
-
-                        <div class="o_vd_row_inline o_vd_notes" invisible="not vd_intake_function_notes">
-                            <span class="o_vd_lbl"><i class="fa fa-sticky-note-o"/> Ghi chú:</span>
-                            <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
+                        <!-- Empty state -->
+                        <div class="o_vd_summary_empty" invisible="vd_has_intake_data">
+                            <i class="fa fa-info-circle"/>
+                            Chưa có thông tin khai thác. Bấm nút <strong>Gọi</strong> ở góc phải dưới để bắt đầu khai thác,
+                            hoặc bấm
+                            <button name="action_open_intake_inline" type="object"
+                                    class="btn btn-sm btn-outline-primary o_vd_open_intake_btn">
+                                <i class="fa fa-edit"/> Mở phiếu khai thác
+                            </button>
+                            để khai thác thủ công.
                         </div>
                     </div>
 
-                    <!-- Empty state -->
-                    <div class="o_vd_summary_empty" invisible="vd_has_intake_data">
-                        <i class="fa fa-info-circle"/>
-                        Chưa có thông tin khai thác. Bấm nút <strong>Gọi</strong> ở góc phải dưới để bắt đầu khai thác khách hàng.
+                    <!-- ============ EXPANDED INTAKE MODE — visible khi vd_intake_open=True
+                         2 cột: trái = form fields, phải = bong bóng kịch bản tư vấn (sticky). -->
+                    <div class="o_vd_intake_full o_vd_intake_compact" invisible="not vd_intake_open">
+                        <div class="o_vd_popup_banner" invisible="not vd_in_call">
+                            <i class="fa fa-microphone"/>
+                            Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
+                            <span class="o_vd_banner_sub">— gợi ý kịch bản hiện mờ trong từng ô</span>
+                        </div>
+
+                        <div class="o_vd_intake_layout">
+                            <div class="o_vd_intake_main">
+
+                        <!-- 3 hero cards: Ngân sách + Diện tích + Thời gian -->
+                        <div class="o_vd_hero_grid">
+                            <div class="o_vd_hero_card o_vd_hero_budget">
+                                <div class="o_vd_hero_head">
+                                    <span class="o_vd_hero_icon">💰</span>
+                                    <span class="o_vd_hero_title">Ngân sách (VNĐ)</span>
+                                </div>
+                                <field name="vd_intake_budget_amount" widget="monetary"
+                                       options="{'currency_field': 'vd_currency_vnd_id'}"
+                                       nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                            </div>
+                            <div class="o_vd_hero_card o_vd_hero_area">
+                                <div class="o_vd_hero_head">
+                                    <span class="o_vd_hero_icon">📐</span>
+                                    <span class="o_vd_hero_title">Diện tích / sàn</span>
+                                </div>
+                                <div class="o_vd_dims_row">
+                                    <div class="o_vd_dim_pair">
+                                        <field name="vd_intake_length_m" nolabel="1"
+                                               class="o_vd_dim_input" placeholder="Dài"/>
+                                        <span class="o_vd_dims_sep">×</span>
+                                        <field name="vd_intake_width_m" nolabel="1"
+                                               class="o_vd_dim_input" placeholder="Rộng"/>
+                                    </div>
+                                    <div class="o_vd_dim_total_row">
+                                        <span class="o_vd_dims_eq">=</span>
+                                        <field name="vd_intake_area_m2" nolabel="1"
+                                               class="o_vd_dim_total" readonly="1"/>
+                                        <span class="o_vd_dims_unit">m²</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_vd_hero_card o_vd_hero_time">
+                                <field name="vd_intake_timeline_status" invisible="1"/>
+                                <div class="o_vd_hero_head">
+                                    <span class="o_vd_hero_icon">📅</span>
+                                    <span class="o_vd_hero_title">Thời gian</span>
+                                </div>
+                                <field name="vd_intake_timeline" nolabel="1"
+                                       placeholder="Khởi công tháng nào ạ? (gõ → gợi ý)"/>
+                            </div>
+                        </div>
+
+                        <!-- Tech grid: tầng | móng | KIỂU NHÀ → LOẠI MÁI (cascade) | ô tô -->
+                        <div class="o_vd_tech_grid">
+                            <div class="o_vd_tech_field">
+                                <label for="vd_intake_floors_num">Số tầng</label>
+                                <field name="vd_intake_floors_num" nolabel="1"
+                                       placeholder="vd: 2.5"/>
+                            </div>
+                            <div class="o_vd_tech_field">
+                                <label for="vd_intake_foundation_type">Loại móng</label>
+                                <field name="vd_intake_foundation_type" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Móng gì?"/>
+                            </div>
+                            <div class="o_vd_tech_field">
+                                <label for="vd_intake_house_type">Kiểu nhà</label>
+                                <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Kiểu nhà nào?"/>
+                            </div>
+                            <div class="o_vd_tech_field">
+                                <label for="vd_intake_roof_type">Loại mái</label>
+                                <field name="vd_intake_roof_type" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Loại mái cụ thể"
+                                       options="{'filter_field': 'vd_intake_house_type', 'filter_map': {'mai_bang': ['mai_bang'], 'mai_thai': ['mai_thai_kdt', 'mai_thai_cdt'], 'mai_nhat': ['mai_nhat_kdt', 'mai_nhat_cdt'], 'nha_pho': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'biet_thu': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'nha_ong': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'cap_4': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'tum_mansard': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt'], 'chung_cu': ['mai_bang', 'thong_tang'], 'khac': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m']}}"/>
+                            </div>
+                            <div class="o_vd_tech_field o_vd_tech_inline">
+                                <field name="vd_intake_car_access" nolabel="1"/>
+                                <label for="vd_intake_car_access">Ô tô vào được</label>
+                            </div>
+                        </div>
+
+                        <!-- Main intake fields — 1 cột -->
+                        <div class="o_vd_pf_grid">
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_province_id">Tỉnh / Thành</label>
+                                <field name="vd_intake_province_id" nolabel="1"
+                                       placeholder="Dạ, anh/chị đang xây dựng ở tỉnh / thành phố nào ạ?"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                            </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_district">Huyện / Quận</label>
+                                <field name="vd_intake_district" nolabel="1"
+                                       placeholder="Anh/chị cho em xin huyện / quận ở khu vực nào ạ?"
+                                       domain="[('state_id', '=', vd_intake_province_id)]"
+                                       context="{'default_state_id': vd_intake_province_id}"
+                                       options="{'no_open': True}"/>
+                            </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_position">Vị trí</label>
+                                <field name="vd_intake_position" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Vị trí công trình là mặt tiền hay trong hẻm ạ?"/>
+                            </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_land_type">Loại đất</label>
+                                <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
+                            </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
+                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
+                            </div>
+                            <div class="o_vd_pf" invisible="vd_intake_house_type != 'khac'">
+                                <label for="vd_intake_house_type_other">↳ Mô tả kiểu nhà khác</label>
+                                <field name="vd_intake_house_type_other" nolabel="1"
+                                       placeholder="Mô tả kiểu nhà KH muốn xây (vd: nhà gác lửng, nhà container...)"/>
+                            </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_function">Công năng</label>
+                                <field name="vd_intake_function" nolabel="1"
+                                       placeholder="Anh/chị cần bao nhiêu phòng ngủ, có cần thang máy không ạ?"/>
+                            </div>
+                            <div class="o_vd_pf o_vd_pf_notes">
+                                <label for="vd_intake_function_notes">Ghi chú</label>
+                                <field name="vd_intake_function_notes" nolabel="1"
+                                       placeholder="Anh/chị có yêu cầu đặc biệt nào về phong thủy, ánh sáng, phòng thờ… không ạ?"/>
+                            </div>
+                        </div>
+
+                            </div>
+                            <!-- ============ SIDEBAR — bong bóng kịch bản tư vấn (sticky bên phải) ============ -->
+                            <div class="o_vd_intake_sidebar">
+                                <!-- Bubble tư vấn — gộp Timeline alert + Estimate + Gap script -->
+                                <div class="o_vd_consult_bubble"
+                                     invisible="not vd_intake_estimate and vd_intake_timeline_status in ['ok', 'unknown', False]">
+                                    <div class="o_vd_bubble_arrow"/>
+                                    <div class="o_vd_bubble_head">
+                                        <span class="o_vd_bubble_icon">💬</span>
+                                        <span class="o_vd_bubble_title">Kịch bản tư vấn</span>
+                                    </div>
+                                    <!-- Phần 1: Timeline alert (chỉ khi gấp / sai) -->
+                                    <div class="o_vd_bubble_section o_vd_bubble_timeline"
+                                         invisible="vd_intake_timeline_status in ['ok', 'unknown', False]">
+                                        <field name="vd_intake_timeline_alert" widget="html" readonly="1" nolabel="1"/>
+                                    </div>
+                                    <!-- Phần 2: Ước tính + chênh lệch (chỉ khi có estimate) -->
+                                    <div class="o_vd_bubble_section o_vd_bubble_budget" invisible="not vd_intake_estimate">
+                                        <div class="o_vd_bubble_amount_row">
+                                            <span class="o_vd_bubble_lbl">📊 Ước tính:</span>
+                                            <span class="o_vd_bubble_amount">
+                                                <field name="vd_intake_estimate" widget="monetary"
+                                                       options="{'currency_field': 'vd_currency_vnd_id'}" readonly="1" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                        <div class="o_vd_bubble_script">
+                                            <field name="vd_intake_consult_script" widget="html" readonly="1" nolabel="1"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Empty state — chưa có dữ liệu để gợi ý -->
+                                <div class="o_vd_bubble_hint"
+                                     invisible="vd_intake_estimate or vd_intake_timeline_status not in ['ok', 'unknown', False]">
+                                    <i class="fa fa-lightbulb-o"/>
+                                    <span>Nhập <b>diện tích, tầng, móng, mái, ngân sách, thời gian</b> bên trái — kịch bản tư vấn sẽ hiện tại đây.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nút Lưu + Đóng inline — kích hoạt rainbow_man chúc mừng + auto chuyển stage -->
+                        <div class="o_vd_inline_save_bar">
+                            <button name="action_close_intake_inline" type="object"
+                                    string="✕ Đóng (chưa lưu)"
+                                    class="btn btn-link o_vd_btn_close_intake"/>
+                            <button string="🎉 Lưu &amp; Chuyển sang BÁO GIÁ"
+                                    name="action_save_intake_done" type="object"
+                                    class="btn btn-primary o_vd_btn_save"/>
+                        </div>
+                    </div>
+
+                    <!-- ============ WORKFLOW BUTTONS — chuyển stage ============
+                         Nằm CUỐI summary card (sau intake summary) — vị trí
+                         tự nhiên: NV xem khai thác xong → quyết định chuyển bước. -->
+                    <div class="o_vd_workflow_bar"
+                         invisible="stage_code in ['won'] or vd_intake_open">
+                        <!-- Hoàn tất khai thác → Báo giá -->
+                        <button name="action_finish_intake_to_quote" type="object"
+                                class="btn btn-success o_vd_wf_btn"
+                                invisible="stage_code in ['quote', 'negotiate', 'won', 'lost'] or not vd_has_intake_data"
+                                confirm="🎉 Bạn xác nhận Khách hàng có nhu cầu thực sự và muốn chuyển sang giai đoạn Báo giá?">
+                            <i class="fa fa-arrow-circle-right me-1"/>
+                            ✅ Hoàn tất khai thác → Báo giá
+                        </button>
+
+                        <!-- KH KHÔNG có nhu cầu → wizard nhập lý do (link nhỏ ở phải) -->
+                        <button name="action_mark_no_demand" type="object"
+                                class="btn btn-link o_vd_wf_btn_secondary"
+                                invisible="stage_code in ['won', 'lost']">
+                            <i class="fa fa-times-circle me-1"/>
+                            ❌ KH không có nhu cầu
+                        </button>
+
+                        <!-- Lý do hủy — hiển thị khi stage = lost -->
+                        <div class="o_vd_lost_box" invisible="stage_code != 'lost'">
+                            <i class="fa fa-info-circle"/>
+                            <strong>Lý do hủy:</strong>
+                            <field name="vd_lost_reason" readonly="1" nolabel="1"/>
+                            <span class="o_vd_lost_date" invisible="not vd_lost_date">
+                                (lúc <field name="vd_lost_date" readonly="1" nolabel="1"/>)
+                            </span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- ============================================================
+                     💰 PANEL BÁO GIÁ — visible khi stage = quote/negotiate/won
+                     ============================================================ -->
+                <div class="o_vd_quote_panel" invisible="stage_code not in ['quote', 'negotiate', 'won'] or vd_intake_open">
+                    <div class="o_vd_quote_head">
+                        <i class="fa fa-money"/>
+                        <span>Báo giá chi tiết</span>
+                        <span class="o_vd_lock_badge" invisible="not vd_quote_locked">🔒 ĐÃ CHỐT</span>
+                    </div>
+                    <div class="o_vd_quote_body">
+
+                        <!-- ============ TÓM TẮT INFO TỪ KHAI THÁC SẼ ĐƯA VÀO PDF ============ -->
+                        <div class="o_vd_quote_intake_summary">
+                            <div class="o_vd_qis_head">
+                                <i class="fa fa-clipboard-list"/>
+                                <span>Thông tin khai thác sẽ đưa vào file PDF báo giá</span>
+                            </div>
+                            <div class="o_vd_qis_grid">
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">👤 Khách hàng:</span>
+                                    <field name="name" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">📞 SĐT:</span>
+                                    <field name="phone" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">📍 Địa chỉ:</span>
+                                    <span><field name="vd_intake_district" readonly="1" nolabel="1"/>, <field name="vd_intake_province_id" readonly="1" nolabel="1"/></span>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">🏠 Kiểu nhà:</span>
+                                    <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">🧱 Loại móng:</span>
+                                    <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">🏛️ Loại mái:</span>
+                                    <field name="vd_intake_roof_type" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">📐 Diện tích sàn:</span>
+                                    <span><field name="vd_intake_area_m2" readonly="1" nolabel="1"/> m²</span>
+                                </div>
+                                <div class="o_vd_qis_item">
+                                    <span class="o_vd_qis_lbl">🏢 Số tầng:</span>
+                                    <field name="vd_intake_floors_num" readonly="1" nolabel="1"/>
+                                </div>
+                                <div class="o_vd_qis_item o_vd_qis_highlight">
+                                    <span class="o_vd_qis_lbl">💰 Đơn giá ước tính:</span>
+                                    <field name="vd_intake_estimate" widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Layout 2 cột: Form bên trái + Preview PDF bên phải -->
+                        <div class="o_vd_quote_layout">
+                            <div class="o_vd_quote_form_col">
+                                <div class="o_vd_quote_field">
+                                    <label for="vd_quote_template_id">📄 Chọn template có sẵn</label>
+                                    <field name="vd_quote_template_id" nolabel="1"
+                                           readonly="vd_quote_locked"
+                                           options="{'no_create': False, 'no_create_edit': False}"
+                                           placeholder="— Chọn từ danh sách —"/>
+                                </div>
+                                <div class="o_vd_quote_field">
+                                    <label for="vd_quote_template_upload">📤 Hoặc upload file mới từ máy</label>
+                                    <field name="vd_quote_template_upload"
+                                           filename="vd_quote_template_upload_name"
+                                           readonly="vd_quote_locked" nolabel="1"/>
+                                    <field name="vd_quote_template_upload_name" invisible="1"/>
+                                    <div class="o_vd_quote_help">
+                                        <details>
+                                            <summary>📝 Cách tạo template .docx có placeholder (click)</summary>
+                                            <div class="o_vd_quote_help_body">
+                                                <p>Mở file .docx trong Word, gõ các placeholder Jinja (dùng <code>{{...}}</code>) vào vị trí cần điền data:</p>
+                                                <ul>
+                                                    <li><code>{{kh_name}}</code> — Tên KH</li>
+                                                    <li><code>{{kh_phone}}</code> — SĐT</li>
+                                                    <li><code>{{kh_address}}</code> — Địa chỉ</li>
+                                                    <li><code>{{today}}</code> — Ngày tạo</li>
+                                                    <li><code>{{house_type}}</code> — Kiểu nhà</li>
+                                                    <li><code>{{foundation}}</code> — Loại móng</li>
+                                                    <li><code>{{roof}}</code> — Loại mái</li>
+                                                    <li><code>{{area}}</code> — Diện tích sàn (m²)</li>
+                                                    <li><code>{{floors}}</code> — Số tầng</li>
+                                                    <li><code>{{total_floor_area}}</code> — Tổng DT sàn × tầng</li>
+                                                    <li><code>{{unit_price}}</code> — Đơn giá sàn (đ/m²)</li>
+                                                    <li><code>{{found_pct}}</code> / <code>{{found_cost}}</code> — % móng / chi phí móng</li>
+                                                    <li><code>{{floor_cost}}</code> — Chi phí sàn</li>
+                                                    <li><code>{{roof_pct}}</code> / <code>{{roof_cost}}</code> — % mái / chi phí mái</li>
+                                                    <li><code>{{total_price}}</code> — Tổng tiền</li>
+                                                    <li><code>{{tt1}}</code>, <code>{{tt2}}</code>, <code>{{tt3}}</code>, <code>{{tt4}}</code> — 4 đợt thanh toán (30/30/30/10%)</li>
+                                                </ul>
+                                                <p class="text-muted"><i>Khi NV bấm "Tải báo giá" → bên em tự thay placeholder bằng data thực tế, giữ nguyên ảnh/logo/format file gốc.</i></p>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                                <div class="o_vd_quote_field">
+                                    <label for="vd_quote_price">💵 Giá báo cho KH (auto = ước tính, sửa được)</label>
+                                    <field name="vd_quote_price" widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           readonly="vd_quote_locked" nolabel="1"/>
+                                </div>
+                                <!-- Field thừa ẩn đi: vd_quote_date, vd_quote_valid_until,
+                                     vd_quote_material, vd_quote_payment_schedule, vd_quote_notes
+                                     đã bỏ khỏi UI — auto-default trong model. -->
+                            </div>
+                            <div class="o_vd_quote_preview_col">
+                                <div class="o_vd_qpc_head">
+                                    <i class="fa fa-file-pdf-o"/>
+                                    <span>Preview file PDF báo giá (toàn bộ trang)</span>
+                                    <button name="action_refresh_quote_preview" type="object"
+                                            class="btn btn-sm btn-warning ms-auto">
+                                        <i class="fa fa-refresh me-1"/>🔄 Cập nhật preview
+                                    </button>
+                                </div>
+                                <!-- pdf_viewer widget — embed PDF inline (toàn bộ trang),
+                                     dùng PDF.js của Odoo, scroll qua từng trang được. -->
+                                <div invisible="not vd_quote_preview_pdf">
+                                    <field name="vd_quote_preview_pdf"
+                                           widget="pdf_viewer"
+                                           filename="vd_quote_preview_pdf_name"
+                                           nolabel="1"/>
+                                    <field name="vd_quote_preview_pdf_name" invisible="1"/>
+                                </div>
+                                <!-- Chưa có file PDF → hint bấm Refresh -->
+                                <div invisible="vd_quote_preview_pdf"
+                                     style="padding:2rem;text-align:center;color:#92400e;background:#fff;border-radius:8px;border:2px dashed #fbbf24;">
+                                    <i class="fa fa-file-pdf-o" style="font-size:3rem;display:block;margin-bottom:0.7rem;color:#fbbf24;"/>
+                                    <h4>Chưa có preview PDF</h4>
+                                    <p>Bấm <b>"🔄 Cập nhật preview"</b> ở trên để generate file PDF báo giá đầy đủ trang (kết hợp template upload + data KH).</p>
+                                    <p class="text-muted"><small>File PDF sẽ giữ NGUYÊN 100% các trang của template (logo, ảnh, format) — chỉ trang BẢNG BÁO GIÁ CHI TIẾT thay data theo từng KH.</small></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4 nút: Xem trước / Tải PDF ngay / Lưu version / Chốt -->
+                        <div class="o_vd_quote_actions">
+                            <button name="action_preview_quote_now" type="object"
+                                    class="btn btn-primary">
+                                <i class="fa fa-eye me-1"/>👁️ Xem trước (mở tab mới)
+                            </button>
+                            <button name="action_download_quote_now" type="object"
+                                    class="btn btn-success">
+                                <i class="fa fa-download me-1"/>📥 Tải báo giá PDF
+                            </button>
+                            <button name="action_save_quote_version" type="object"
+                                    class="btn btn-info"
+                                    invisible="vd_quote_locked"
+                                    confirm="💾 Bạn muốn lưu báo giá hiện tại thành một phiên bản mới (lưu lịch sử, không tự động tải về)?">
+                                <i class="fa fa-save me-1"/>💾 Lưu version (history)
+                            </button>
+                            <button name="action_lock_quote_to_negotiate" type="object"
+                                    class="btn btn-warning"
+                                    invisible="vd_quote_locked"
+                                    confirm="🔒 Bạn chắc chắn CHỐT báo giá cuối cùng? Lead sẽ tự động chuyển sang giai đoạn Đàm phán và bạn không thể chỉnh sửa báo giá nữa.">
+                                <i class="fa fa-lock me-1"/>🔒 Chốt báo giá → Đàm phán
+                            </button>
+                        </div>
+
+                        <!-- Lịch sử versions -->
+                        <div class="o_vd_quote_history" invisible="vd_quote_version_count == 0">
+                            <div class="o_vd_history_head">
+                                📜 Lịch sử báo giá (<field name="vd_quote_version_count" readonly="1" nolabel="1"/> phiên bản)
+                            </div>
+                            <field name="vd_quote_version_ids" nolabel="1" readonly="1">
+                                <list string="Versions" decoration-success="state == 'locked'">
+                                    <field name="version_no" string="V"/>
+                                    <field name="create_date" string="Lưu lúc"/>
+                                    <field name="create_uid" string="NV"/>
+                                    <field name="quote_price" widget="monetary" options="{'currency_field': 'currency_id'}" string="Giá báo"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'locked'"/>
+                                    <field name="changes_log" string="Thay đổi" optional="show"/>
+                                    <button name="action_view_pdf" type="object"
+                                            class="btn btn-sm btn-outline-primary" string="📥 Tải PDF" icon="fa-download"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </list>
+                            </field>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate
+                     ============================================================ -->
+                <div class="o_vd_negotiate_panel" invisible="stage_code != 'negotiate' or vd_intake_open">
+                    <div class="o_vd_nego_head">
+                        <i class="fa fa-handshake-o"/>
+                        <span>Đàm phán + Ép cọc 50tr</span>
+                        <span class="o_vd_nego_status_badge"
+                              invisible="not vd_negotiate_deadline">
+                            Deadline: <field name="vd_negotiate_deadline" readonly="1" nolabel="1"/>
+                        </span>
+                    </div>
+
+                    <!-- Cảnh báo deadline -->
+                    <div class="alert alert-danger" role="alert"
+                         invisible="vd_negotiate_status != 'overdue'">
+                        ⚠️ <b>QUÁ HẠN ĐÀM PHÁN</b> — cần escalate ngay! KH có dấu hiệu trượt deal.
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="vd_negotiate_status != 'warn'">
+                        ⏰ <b>SẮP QUÁ HẠN</b> — còn ≤ 2 ngày. Push KH chốt cọc ngay!
+                    </div>
+
+                    <!-- Kịch bản ép cọc -->
+                    <div class="o_vd_nego_script">
+                        <b>💬 Kịch bản tư vấn ép cọc:</b><br/>
+                        <i>"Anh/chị ơi, để bên em chính thức giữ giá vật liệu (đang tăng từng tuần),
+                        đặt lịch tổ thợ + sắp xếp khởi công đúng thời gian anh/chị mong muốn —
+                        công ty em yêu cầu KH cọc tối thiểu <b>50 triệu</b> trong vòng 7 ngày kể từ ngày báo giá.
+                        Sau 7 ngày bên em không thể giữ giá + lịch khởi công nữa ạ.
+                        Anh/chị tiện hôm nào ghé văn phòng ký HĐ + chuyển khoản cọc?"</i>
+                    </div>
+
+                    <!-- Buttons tạo activity nhắc gọi -->
+                    <div class="o_vd_nego_actions" invisible="vd_contract_signed">
+                        <span class="me-2">📞 Nhắc NV gọi lại sau:</span>
+                        <button name="action_create_negotiate_activity" type="object"
+                                class="btn btn-sm btn-outline-primary"
+                                context="{'days_offset': 1}">1 ngày</button>
+                        <button name="action_create_negotiate_activity" type="object"
+                                class="btn btn-sm btn-outline-primary"
+                                context="{'days_offset': 3}">3 ngày</button>
+                        <button name="action_create_negotiate_activity" type="object"
+                                class="btn btn-sm btn-outline-primary"
+                                context="{'days_offset': 7}">7 ngày</button>
+                        <button name="action_sign_contract" type="object"
+                                class="btn btn-success ms-3">
+                            <i class="fa fa-pencil me-1"/>✍️ KH ĐỒNG Ý → Ký HĐ + nhận cọc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     🏆 PANEL HỢP ĐỒNG — visible khi đã ký
+                     ============================================================ -->
+                <div class="o_vd_contract_panel" invisible="not vd_contract_signed or vd_intake_open">
+                    <div class="o_vd_contract_head">
+                        <i class="fa fa-trophy"/>
+                        <span>Hợp đồng đã ký 🎉</span>
+                    </div>
+                    <div class="o_vd_contract_body">
+                        <div class="o_vd_contract_row">
+                            <span class="o_vd_contract_lbl">📅 Ngày ký:</span>
+                            <field name="vd_contract_sign_date" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="o_vd_contract_row">
+                            <span class="o_vd_contract_lbl">💰 Tiền cọc đã nhận:</span>
+                            <field name="vd_contract_deposit" widget="monetary"
+                                   options="{'currency_field': 'vd_currency_vnd_id'}"
+                                   readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+                </div>
+
             </xpath>
 
             <!-- Lịch sử cuộc gọi menu pill + Floating call FAB inserted before notebook -->
@@ -188,113 +778,7 @@
         </field>
     </record>
 
-    <!-- ============ INTAKE POPUP FORM VIEW (ultra compact, hidden hints) ============ -->
-    <!-- Each row = 1 line (label + field inline). Each row has title= so the
-         Vietnamese script hint shows as a native browser tooltip on hover —
-         no clutter in the dialog itself. -->
-    <record id="view_crm_lead_intake_popup" model="ir.ui.view">
-        <field name="name">crm.lead.intake.popup</field>
-        <field name="model">crm.lead</field>
-        <field name="priority">100</field>
-        <field name="arch" type="xml">
-            <form string="Khai thác thông tin" class="o_vd_intake_compact">
-                <sheet>
-                    <div class="o_vd_popup_banner">
-                        <i class="fa fa-microphone"/>
-                        Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
-                        <span class="text-muted ms-2">— hỏi theo gợi ý mờ trong từng ô</span>
-                    </div>
-
-                    <div class="o_vd_pf_grid">
-
-                        <!-- Cột 1: Vị trí & đất -->
-                        <div class="o_vd_pf_section">
-                            <div class="o_vd_pf_section_title">📍 Vị trí &amp; đất</div>
-
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_province_id">Tỉnh / Thành</label>
-                                <field name="vd_intake_province_id" nolabel="1"
-                                       placeholder="Anh/chị xây ở tỉnh / thành nào ạ?"
-                                       options="{'no_create': True, 'no_open': True}"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_district">Huyện / Quận</label>
-                                <field name="vd_intake_district" nolabel="1"
-                                       placeholder="Khu vực huyện / quận / TP nào?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_address">Địa chỉ chi tiết</label>
-                                <field name="vd_intake_address" nolabel="1"
-                                       placeholder="Cho em xin số nhà, tên đường, phường?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_position">Vị trí</label>
-                                <field name="vd_intake_position" nolabel="1"
-                                       placeholder="Mặt tiền hay trong hẻm? Đường có thuận lợi xe?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_land_type">Loại đất</label>
-                                <field name="vd_intake_land_type" nolabel="1"
-                                       placeholder="Đất sổ đỏ thổ cư hay nông nghiệp / phân lô?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
-                                <field name="vd_intake_dimensions" nolabel="1"
-                                       placeholder="Đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_area">Diện tích</label>
-                                <field name="vd_intake_area" nolabel="1"
-                                       placeholder="Tổng diện tích đất / sàn xây dựng? (vd: 5x20m)"/>
-                            </div>
-                        </div>
-
-                        <!-- Cột 2: Công trình -->
-                        <div class="o_vd_pf_section">
-                            <div class="o_vd_pf_section_title">🏠 Công trình</div>
-
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_house_type">Kiểu nhà</label>
-                                <field name="vd_intake_house_type" nolabel="1"
-                                       placeholder="Mái bằng, mái thái, biệt thự…?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_floors">Số tầng</label>
-                                <field name="vd_intake_floors" nolabel="1"
-                                       placeholder="Quy mô bao nhiêu tầng? (vd: 2,5 tầng)"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_function">Công năng</label>
-                                <field name="vd_intake_function" nolabel="1"
-                                       placeholder="Bao nhiêu PN, có thang máy / sân thượng? (vd: 3PN+2WC)"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_timeline">Thời gian</label>
-                                <field name="vd_intake_timeline" nolabel="1"
-                                       placeholder="Anh/chị dự kiến khởi công khi nào?"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_budget">Ngân sách dự kiến</label>
-                                <field name="vd_intake_budget" nolabel="1"
-                                       placeholder="Anh/chị dự kiến đầu tư khoảng bao nhiêu?"/>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="o_vd_pf o_vd_pf_notes">
-                        <label for="vd_intake_function_notes">📝 Ghi chú công năng</label>
-                        <field name="vd_intake_function_notes" nolabel="1"
-                               placeholder="Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"/>
-                    </div>
-                </sheet>
-                <footer>
-                    <button string="✓ Lưu" special="save" class="btn btn-primary"/>
-                    <button string="Đóng" special="cancel" class="btn btn-secondary"/>
-                </footer>
-            </form>
-        </field>
-    </record>
+    <!-- ============ POPUP ĐÃ BỎ — toàn bộ content giờ inline trên lead form ============ -->
 
     <!-- Stage form: add code, default_probability, is_lost -->
     <record id="crm_stage_view_form_inherit" model="ir.ui.view">

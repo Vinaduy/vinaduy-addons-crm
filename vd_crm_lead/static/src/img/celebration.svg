@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <radialGradient id="cloudGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#e7f5ff" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="faceGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fff9c4"/>
+      <stop offset="100%" stop-color="#ffd43b"/>
+    </radialGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Cầu vồng — 7 vòng cung -->
+  <g fill="none" stroke-linecap="round" stroke-width="11" transform="translate(120 165)">
+    <path d="M -100 0 A 100 100 0 0 1 100 0" stroke="#fa5252">
+      <animate attributeName="stroke-dasharray" from="0 320" to="320 0" dur="0.9s" fill="freeze"/>
+    </path>
+    <path d="M -88 0 A 88 88 0 0 1 88 0" stroke="#fd7e14">
+      <animate attributeName="stroke-dasharray" from="0 280" to="280 0" dur="0.9s" begin="0.08s" fill="freeze"/>
+    </path>
+    <path d="M -76 0 A 76 76 0 0 1 76 0" stroke="#fab005">
+      <animate attributeName="stroke-dasharray" from="0 240" to="240 0" dur="0.9s" begin="0.16s" fill="freeze"/>
+    </path>
+    <path d="M -64 0 A 64 64 0 0 1 64 0" stroke="#51cf66">
+      <animate attributeName="stroke-dasharray" from="0 205" to="205 0" dur="0.9s" begin="0.24s" fill="freeze"/>
+    </path>
+    <path d="M -52 0 A 52 52 0 0 1 52 0" stroke="#22b8cf">
+      <animate attributeName="stroke-dasharray" from="0 165" to="165 0" dur="0.9s" begin="0.32s" fill="freeze"/>
+    </path>
+    <path d="M -40 0 A 40 40 0 0 1 40 0" stroke="#4c6ef5">
+      <animate attributeName="stroke-dasharray" from="0 130" to="130 0" dur="0.9s" begin="0.40s" fill="freeze"/>
+    </path>
+    <path d="M -28 0 A 28 28 0 0 1 28 0" stroke="#cc5de8">
+      <animate attributeName="stroke-dasharray" from="0 90" to="90 0" dur="0.9s" begin="0.48s" fill="freeze"/>
+    </path>
+  </g>
+
+  <!-- Mây trái -->
+  <g transform="translate(28 158)" filter="url(#softShadow)">
+    <ellipse cx="0" cy="6" rx="22" ry="12" fill="url(#cloudGrad)"/>
+    <ellipse cx="-14" cy="0" rx="14" ry="10" fill="url(#cloudGrad)"/>
+    <ellipse cx="12" cy="-2" rx="13" ry="11" fill="url(#cloudGrad)"/>
+  </g>
+  <!-- Mây phải -->
+  <g transform="translate(212 158)" filter="url(#softShadow)">
+    <ellipse cx="0" cy="6" rx="22" ry="12" fill="url(#cloudGrad)"/>
+    <ellipse cx="-12" cy="-2" rx="13" ry="11" fill="url(#cloudGrad)"/>
+    <ellipse cx="14" cy="0" rx="14" ry="10" fill="url(#cloudGrad)"/>
+  </g>
+
+  <!-- Mặt cười — bouncy -->
+  <g transform="translate(120 88)" filter="url(#softShadow)">
+    <animateTransform attributeName="transform" type="translate"
+                      values="120 110; 120 88; 120 92; 120 88"
+                      keyTimes="0; 0.6; 0.8; 1"
+                      dur="0.9s" fill="freeze"/>
+    <!-- Glow halo -->
+    <circle r="48" fill="#fff3bf" opacity="0.45">
+      <animate attributeName="r" values="48;52;48" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Mặt vàng -->
+    <circle r="42" fill="url(#faceGrad)" stroke="#f59f00" stroke-width="2"/>
+    <!-- Má hồng -->
+    <circle cx="-22" cy="6" r="6" fill="#ff8787" opacity="0.55"/>
+    <circle cx="22" cy="6" r="6" fill="#ff8787" opacity="0.55"/>
+    <!-- Mắt cười -->
+    <path d="M -16 -8 q 6 -7 12 0" fill="none" stroke="#212529" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M 4 -8 q 6 -7 12 0" fill="none" stroke="#212529" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Miệng cười toe toét -->
+    <path d="M -16 8 q 16 18 32 0" fill="#c92a2a" stroke="#212529" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Răng -->
+    <path d="M -10 12 L 10 12 L 10 16 q -10 6 -20 0 Z" fill="#fff"/>
+  </g>
+
+  <!-- Confetti chấm bay -->
+  <g>
+    <circle cx="40" cy="40" r="4" fill="#fa5252">
+      <animate attributeName="cy" values="40;200;40" dur="2.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <rect x="200" y="30" width="6" height="6" fill="#22b8cf" transform="rotate(20 203 33)">
+      <animate attributeName="y" values="30;200;30" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <circle cx="180" cy="60" r="3" fill="#51cf66">
+      <animate attributeName="cy" values="60;220;60" dur="2.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="2.8s" repeatCount="indefinite"/>
+    </circle>
+    <rect x="60" y="20" width="5" height="5" fill="#fab005" transform="rotate(45 62 22)">
+      <animate attributeName="y" values="20;200;20" dur="3.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="3.2s" repeatCount="indefinite"/>
+    </rect>
+    <circle cx="120" cy="20" r="3" fill="#cc5de8">
+      <animate attributeName="cy" values="20;180;20" dur="2.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="2.4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

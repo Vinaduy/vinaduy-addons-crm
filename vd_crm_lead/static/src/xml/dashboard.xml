@@ -15,7 +15,33 @@
                     <!-- User card -->
                     <div class="card o_vd_user_card">
                         <div class="card-body">
-                            <h5 class="card-title text-danger mb-1"><t t-esc="state.user.name"/></h5>
+                            <div class="d-flex align-items-start justify-content-between mb-1">
+                                <h5 class="card-title text-danger mb-0">
+                                    <i t-if="state.user.is_all" class="fa fa-users me-1"/>
+                                    <i t-else="" class="fa fa-user-circle me-1"/>
+                                    <t t-esc="state.user.name"/>
+                                </h5>
+                                <span t-if="state.is_manager" class="badge bg-primary" title="Bạn đang xem với quyền quản lý">
+                                    <i class="fa fa-shield"/> Manager
+                                </span>
+                            </div>
+
+                            <!-- Dropdown chọn NV — chỉ hiển thị cho manager -->
+                            <div t-if="state.is_manager" class="mb-2 mt-2">
+                                <label class="form-label small text-muted mb-1">Xem dashboard của:</label>
+                                <select class="form-select form-select-sm o_vd_user_picker"
+                                        t-on-change="(ev) => this.onChangeUser(ev)">
+                                    <option value="all" t-att-selected="state.user.is_all">
+                                        🌐 Tất cả nhân viên
+                                    </option>
+                                    <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                            t-att-value="u.id"
+                                            t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
+                                        <t t-esc="u.name"/>
+                                    </option>
+                                </select>
+                            </div>
+
                             <div class="text-muted small">Tổng số khách</div>
                             <div class="display-6 fw-bold"><t t-esc="state.kpi.total"/></div>
                         </div>
@@ -114,6 +140,7 @@
                                     <tr>
                                         <th>Tên KH</th>
                                         <th>SĐT</th>
+                                        <th t-if="state.is_manager">NV phụ trách</th>
                                         <th>Tỉ lệ chốt</th>
                                         <th>Hẹn gọi lại</th>
                                         <th>Lần gọi cuối</th>
@@ -132,6 +159,12 @@
                                             <span t-if="lead.is_stale" class="badge bg-secondary ms-1">Stale</span>
                                         </td>
                                         <td><t t-esc="lead.phone"/></td>
+                                        <td t-if="state.is_manager" class="small">
+                                            <span t-if="lead.user_name" class="badge bg-light text-dark border">
+                                                <i class="fa fa-user me-1"/><t t-esc="lead.user_name"/>
+                                            </span>
+                                            <span t-else="" class="text-muted fst-italic">Chưa giao</span>
+                                        </td>
                                         <td style="min-width:140px">
                                             <div class="progress" style="height:18px">
                                                 <div t-att-class="'progress-bar ' + probabilityClass(lead.probability)"

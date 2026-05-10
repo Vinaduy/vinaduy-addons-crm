@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_quote_template_tree" model="ir.ui.view">
+        <field name="name">vd.quote.template.tree</field>
+        <field name="model">vd.quote.template</field>
+        <field name="arch" type="xml">
+            <list string="Template báo giá">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="file_name"/>
+                <field name="description"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_quote_template_form" model="ir.ui.view">
+        <field name="name">vd.quote.template.form</field>
+        <field name="model">vd.quote.template</field>
+        <field name="arch" type="xml">
+            <form string="Template báo giá">
+                <header>
+                    <button name="action_create_placeholder_version" type="object"
+                            class="btn-primary"
+                            string="🔧 Tạo template có placeholder (cho file Lệ Chi)"
+                            help="Convert file mẫu Lệ Chi thành phiên bản có {{KH_NAME}}, {{TODAY}}, {{ADDRESS}}, {{TOTAL_PRICE}}... Sau đó upload lại file này làm template chuẩn — work 100% với mọi KH."/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Vd: BG nhà mái ngói móng đơn 2025"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="file_attachment" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>
+                            <field name="quote_page_index"/>
+                            <field name="active"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="description" placeholder="Áp dụng cho loại nhà nào, vùng nào..."/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <b>📄 Cách hoạt động:</b><br/>
+                        • Upload file PDF mẫu (vd: 16 trang, có logo + ảnh + format chuẩn của VINADUY)<br/>
+                        • Đặt <b>"Trang báo giá"</b> = số thứ tự trang chứa BẢNG BÁO GIÁ CHI TIẾT (mặc định = 3)<br/>
+                        • Khi NV bấm "Tải báo giá" → hệ thống <b>giữ NGUYÊN 100%</b> các trang khác,
+                          chỉ thay duy nhất trang này bằng data của KH (Khách Hàng, Ngày, Địa Chỉ,
+                          breakdown table với giá tự động).<br/>
+                        • Output: file PDF đầy đủ trang giống hệt template, chỉ trang báo giá đổi data.
+                    </div>
+                    <separator string="Ghi chú nội bộ"/>
+                    <field name="note" placeholder="Lưu ý khi sử dụng template này..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_quote_template" model="ir.actions.act_window">
+        <field name="name">Template báo giá</field>
+        <field name="res_model">vd.quote.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload các file template báo giá (.docx/.xlsx/.pdf/.png...).</p>
+            <p>NV chọn template phù hợp khi lập báo giá cho từng KH.</p>
+        </field>
+    </record>
+
+</odoo>

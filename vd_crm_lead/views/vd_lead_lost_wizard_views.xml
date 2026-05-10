@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_lead_lost_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.lost.wizard.form</field>
+        <field name="model">vd.lead.lost.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Khách hàng KHÔNG có nhu cầu">
+                <field name="lead_id" invisible="1"/>
+
+                <div class="alert alert-warning" role="alert" style="margin-bottom: 0.85rem;">
+                    <i class="fa fa-exclamation-triangle"/>
+                    Bạn sắp đánh dấu <b><field name="lead_name" readonly="1" nolabel="1"/></b>
+                    là <b>Khách hủy</b>. Vui lòng ghi lý do để team có dữ liệu phân tích.
+                </div>
+
+                <group>
+                    <field name="reason_category" widget="radio" options="{'horizontal': False}"/>
+                </group>
+                <group>
+                    <field name="reason_detail" placeholder="VD: KH bảo đang khó khăn tài chính, đợi vợ về cuối tháng quyết định lại..."/>
+                </group>
+                <group>
+                    <field name="callback_3m"/>
+                </group>
+
+                <footer>
+                    <button name="action_confirm_lost" type="object" string="✓ Xác nhận hủy"
+                            class="btn-danger"/>
+                    <button special="cancel" string="Đóng" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

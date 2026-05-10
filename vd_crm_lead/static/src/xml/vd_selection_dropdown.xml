@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdSelectionDropdown">
+        <div class="o_vd_select_dd" t-ref="root" t-att-class="{ 'o_vd_select_dd--open': state.open, 'o_vd_select_dd--has-value': hasValue }">
+            <input type="text"
+                   class="o_input o_vd_select_dd_input"
+                   t-att-placeholder="props.placeholder"
+                   t-att-value="state.open ? state.search : (hasValue ? currentLabel : '')"
+                   t-att-readonly="!state.open"
+                   autocomplete="off"
+                   t-on-click="() => this.toggleOpen()"
+                   t-on-input="(ev) => this.onSearchInput(ev)"
+                   t-on-keydown="(ev) => this.onSearchKeydown(ev)"/>
+
+            <button t-if="hasValue and !props.readonly" type="button"
+                    class="o_vd_select_dd_clear"
+                    title="Xoá"
+                    t-on-click="(ev) => this.clearValue(ev)">
+                ×
+            </button>
+
+            <i class="fa fa-caret-down o_vd_select_dd_arrow"/>
+
+            <div t-if="state.open" class="o_vd_select_dd_menu">
+                <t t-if="filteredOptions.length === 0">
+                    <div class="o_vd_select_dd_empty">
+                        <i class="fa fa-info-circle"/> Không có lựa chọn nào khớp
+                    </div>
+                </t>
+                <t t-else="">
+                    <div t-foreach="filteredOptions" t-as="opt" t-key="opt[0]"
+                         class="o_vd_select_dd_item"
+                         t-att-class="{ 'o_vd_select_dd_item--active': opt[0] === currentValue }"
+                         t-on-mousedown.prevent="() => this.selectOption(opt[0])">
+                        <t t-esc="opt[1]"/>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

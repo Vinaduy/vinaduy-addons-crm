@@ -25,7 +25,11 @@ export class VdCrmDashboard extends Component {
 
         this.state = useState({
             loading: true,
-            user: { id: 0, name: "" },
+            user: { id: 0, name: "", is_all: false },
+            is_manager: false,
+            current_user_id: 0,
+            selected_user_id: 0,   // 0 = "all"
+            users: [],             // [{id, name, login}] — NV để manager chọn
             kpi: {},
             errors: {},
             stages: [],
@@ -36,26 +40,44 @@ export class VdCrmDashboard extends Component {
 
         onWillStart(async () => {
             await this.loadDashboard();
+            // Manager có thêm dropdown chọn NV — load danh sách NV 1 lần
+            if (this.state.is_manager) {
+                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
+            }
         });
     }
 
     async loadDashboard() {
         this.state.loading = true;
-        const data = await this.orm.call("crm.lead", "dashboard_data", []);
+        const args = this.state.selected_user_id ? [this.state.selected_user_id] : [];
+        const data = await this.orm.call("crm.lead", "dashboard_data", args);
         Object.assign(this.state, data);
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
             || data.stages.find((s) => !s.is_lost)
             || data.stages[0];
         if (firstActive) {
             await this.selectStage(firstActive.id);
+        } else {
+            this.state.leads = [];
+            this.state.selectedStageId = null;
         }
         this.state.loading = false;
+    }
+
+    async onChangeUser(ev) {
+        const val = ev.target.value;
+        this.state.selected_user_id = val === "all" ? 0 : parseInt(val, 10);
+        await this.loadDashboard();
     }
 
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
         this.state.leadsLoading = true;
-        this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", [stageId]);
+        const args = [stageId];
+        if (this.state.selected_user_id) {
+            args.push(this.state.selected_user_id);
+        }
+        this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", args);
         this.state.leadsLoading = false;
     }
 

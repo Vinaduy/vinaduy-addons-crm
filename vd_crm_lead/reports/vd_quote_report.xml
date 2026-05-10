@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_vd_quote_report" model="ir.actions.report">
+        <field name="name">Bảng báo giá VINADUY</field>
+        <field name="model">vd.quote.version</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">vd_crm_lead.report_vd_quote_template</field>
+        <field name="report_file">vd_crm_lead.report_vd_quote_template</field>
+        <field name="binding_model_id" ref="model_vd_quote_version"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_us"/>
+    </record>
+
+    <!-- ============================================================
+         FILE BÁO GIÁ ĐẦY ĐỦ — 4 TRANG (giống template VINADUY thật):
+         • Trang 1: BẢNG BÁO GIÁ CHI TIẾT (DATA động theo KH)
+         • Trang 2: VẬT LIỆU CHÍNH SỬ DỤNG (cố định)
+         • Trang 3: TIẾN ĐỘ THANH TOÁN + BẢO HÀNH (cố định + tiền tự tính)
+         • Trang 4: PHẠM VI CÔNG VIỆC + ĐIỀU KHOẢN + CHỮ KÝ (cố định + tên KH)
+         ============================================================ -->
+    <template id="report_vd_quote_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+
+                    <!-- ============ TRANG 1: BÁO GIÁ CHI TIẾT (data động) ============ -->
+                    <div class="page" style="font-family:'Times New Roman',serif;color:#1a1a1a;font-size:12pt;position:relative;page-break-after:always;">
+                        <div style="position:absolute;top:0;right:0;width:140px;height:120px;overflow:hidden;pointer-events:none;">
+                            <div style="position:absolute;top:-30px;right:-30px;width:170px;height:170px;background:linear-gradient(135deg,#fb923c 0%,#fed7aa 100%);transform:rotate(45deg);opacity:0.85;"/>
+                            <div style="position:absolute;top:50px;right:-20px;width:80px;height:120px;background:linear-gradient(180deg,#1864ab 0%,#4dabf7 100%);transform:rotate(20deg);opacity:0.8;"/>
+                        </div>
+                        <table style="width:100%;border:none;margin-bottom:0.8rem;">
+                            <tr>
+                                <td style="width:22%;vertical-align:middle;padding-right:0.6rem;">
+                                    <div style="background:#fff;border:2px solid #1864ab;border-radius:8px;padding:0.5rem 0.9rem;display:inline-block;text-align:center;">
+                                        <span style="font-weight:900;font-size:24pt;color:#fa5252;font-style:italic;letter-spacing:-1px;">V</span><span style="font-weight:900;font-size:24pt;color:#1864ab;letter-spacing:1px;">INADUY</span>
+                                    </div>
+                                </td>
+                                <td style="vertical-align:middle;text-align:center;background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);border-radius:6px;padding:1rem 0.5rem;">
+                                    <span style="color:#fff;font-size:22pt;font-weight:700;letter-spacing:2px;">BẢNG BÁO GIÁ CHI TIẾT</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <ul style="padding-left:1.5rem;margin:1rem 0 1.2rem;line-height:1.7;font-size:11.5pt;">
+                            <li><b>VINADUY</b> xin gửi tới quý Khách hàng bảng báo giá chi tiết xây nhà trọn gói nhà ở dân dụng</li>
+                            <li>Bảng báo giá được áp dụng với mẫu nhà <b style="color:#c92a2a;text-transform:uppercase;"><t t-esc="o.house_type_label or 'NHÀ DÂN DỤNG'"/></b></li>
+                            <li>Kết cấu móng được sử dụng là hệ <b style="color:#c92a2a;text-transform:uppercase;"><t t-esc="o.foundation_label or 'MÓNG ĐƠN'"/></b></li>
+                        </ul>
+                        <table style="width:55%;border-collapse:collapse;margin-bottom:1rem;font-size:11.5pt;">
+                            <tr><td style="padding:0.5rem 0.8rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;width:40%;">Khách Hàng</td><td style="padding:0.5rem 0.8rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="o.kh_name or '—'"/></td></tr>
+                            <tr><td style="padding:0.5rem 0.8rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;">Ngày tạo</td><td style="padding:0.5rem 0.8rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="o.create_date.strftime('%d/%m/%Y') if o.create_date else ''"/></td></tr>
+                            <tr><td style="padding:0.5rem 0.8rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;">Địa Chỉ</td><td style="padding:0.5rem 0.8rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="o.kh_address or '—'"/></td></tr>
+                        </table>
+                        <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:11.5pt;">
+                            <thead>
+                                <tr style="background:#5c8fb8;color:#fff;">
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;"><t t-esc="o.foundation_label or 'Móng'"/></td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="'{:.0f} M2 x {:.0f}%'.format(o.area_m2 or 0, o.found_pct or 0)"/></td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.san_unit_price or 0).replace(',', '.')"/> VNĐ</td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.found_cost or 0).replace(',', '.')"/> VNĐ</td>
+                                    <td rowspan="3" style="padding:0.55rem 0.8rem;border:1px solid #1864ab;background:#fff;text-align:center;font-weight:700;font-size:14pt;color:#1a1a1a;vertical-align:middle;">
+                                        <t t-esc="'{:,.0f}'.format(o.quote_price or o.estimate_total or 0).replace(',', '.')"/> VNĐ
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt</td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="'{:.0f}'.format(o.area_m2 or 0)"/></td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.san_unit_price or 0).replace(',', '.')"/> VNĐ</td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.floor_cost or 0).replace(',', '.')"/> VNĐ</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;"><t t-esc="o.roof_label or 'Mái'"/></td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="'{:.0f} M2 x {:.0f}%'.format(o.area_m2 or 0, o.roof_pct or 0)"/></td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.san_unit_price or 0).replace(',', '.')"/> VNĐ</td>
+                                    <td style="padding:0.55rem 0.8rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="'{:,.0f}'.format(o.roof_cost or 0).replace(',', '.')"/> VNĐ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="text-align:right;margin-top:5rem;">
+                            <div style="display:inline-block;border:3px solid #c92a2a;border-radius:50%;padding:1.5rem 1.8rem;color:#c92a2a;font-weight:700;line-height:1.3;text-align:center;">
+                                <div style="font-size:8pt;">M.S.D.N: 0109446258 - C.T.C.P</div>
+                                <div style="font-size:13pt;margin:0.3rem 0;">CÔNG TY<br/>CỔ PHẦN<br/>VINADUY</div>
+                                <div style="font-size:8pt;">★ THÀNH PHỐ HÀ NỘI ★</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============ TRANG 2: VẬT LIỆU CHÍNH SỬ DỤNG ============ -->
+                    <div class="page" style="font-family:'Times New Roman',serif;color:#1a1a1a;font-size:12pt;page-break-after:always;">
+                        <h2 style="background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);color:#fff;padding:0.7rem 1.2rem;border-radius:6px;text-align:center;letter-spacing:2px;">📋 VẬT LIỆU CHÍNH SỬ DỤNG</h2>
+                        <table style="width:100%;border-collapse:collapse;margin-top:1.5rem;font-size:11.5pt;">
+                            <thead>
+                                <tr style="background:#5c8fb8;color:#fff;">
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:left;width:30%;">Hạng mục</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:left;">Vật liệu sử dụng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Xi măng</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Xi măng Hà Tiên / Vicem PCB40</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Cốt thép</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Thép Hòa Phát / Việt Nhật / Pomina</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Gạch xây</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Gạch Tuynel loại 1 (8 lỗ A1)</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Cát đá</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Cát vàng / cát đen + đá 1×2 sạch</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Gạch lát nền</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Đồng Tâm / Prime / Viglacera 60×60</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Sơn nước</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Dulux / Jotun / Mykolor (sơn nội + ngoại)</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Cửa chính</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Cửa thép vân gỗ / cửa nhôm Xingfa</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Cửa sổ</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Nhôm Xingfa kính cường lực 8mm</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Thiết bị vệ sinh</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Inax / Toto / American Standard</td></tr>
+                                <tr><td style="padding:0.6rem;border:1px solid #93c5fd;font-weight:700;background:#fff7ed;">Điện</td><td style="padding:0.6rem;border:1px solid #93c5fd;">Dây Cadivi + công tắc Panasonic / Schneider</td></tr>
+                            </tbody>
+                        </table>
+                        <div style="margin-top:1.5rem;padding:0.8rem 1rem;background:#fff8e1;border-left:4px solid #fbc02d;font-size:11pt;">
+                            <b>Ghi chú:</b> Vật liệu thực tế có thể thay đổi theo lựa chọn của Khách hàng. VINADUY sẽ tư vấn cụ thể trong buổi khảo sát + ký HĐ.
+                        </div>
+                    </div>
+
+                    <!-- ============ TRANG 3: TIẾN ĐỘ THANH TOÁN + BẢO HÀNH ============ -->
+                    <div class="page" style="font-family:'Times New Roman',serif;color:#1a1a1a;font-size:12pt;page-break-after:always;">
+                        <h2 style="background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);color:#fff;padding:0.7rem 1.2rem;border-radius:6px;text-align:center;letter-spacing:2px;">💸 TIẾN ĐỘ THANH TOÁN</h2>
+                        <table style="width:100%;border-collapse:collapse;margin:1.5rem 0 2rem;font-size:11.5pt;">
+                            <thead>
+                                <tr style="background:#5c8fb8;color:#fff;">
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:center;width:12%;">Đợt</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:left;">Mô tả</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:center;width:12%;">Tỷ lệ</th>
+                                    <th style="padding:0.6rem;border:1px solid #1864ab;text-align:right;width:25%;">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;font-weight:700;">Đợt 1</td><td style="padding:0.55rem;border:1px solid #93c5fd;">Khi ký Hợp đồng</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;">30%</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:right;font-weight:700;"><t t-esc="'{:,.0f}'.format((o.quote_price or o.estimate_total or 0) * 0.30).replace(',', '.')"/> VNĐ</td></tr>
+                                <tr><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;font-weight:700;">Đợt 2</td><td style="padding:0.55rem;border:1px solid #93c5fd;">Khi hoàn thành phần móng</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;">30%</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:right;font-weight:700;"><t t-esc="'{:,.0f}'.format((o.quote_price or o.estimate_total or 0) * 0.30).replace(',', '.')"/> VNĐ</td></tr>
+                                <tr><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;font-weight:700;">Đợt 3</td><td style="padding:0.55rem;border:1px solid #93c5fd;">Khi hoàn thành phần thô</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;">30%</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:right;font-weight:700;"><t t-esc="'{:,.0f}'.format((o.quote_price or o.estimate_total or 0) * 0.30).replace(',', '.')"/> VNĐ</td></tr>
+                                <tr><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;font-weight:700;">Đợt 4</td><td style="padding:0.55rem;border:1px solid #93c5fd;">Khi bàn giao công trình</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:center;">10%</td><td style="padding:0.55rem;border:1px solid #93c5fd;text-align:right;font-weight:700;"><t t-esc="'{:,.0f}'.format((o.quote_price or o.estimate_total or 0) * 0.10).replace(',', '.')"/> VNĐ</td></tr>
+                                <tr style="background:#dbeafe;"><td colspan="3" style="padding:0.7rem;border:1px solid #1864ab;text-align:right;font-weight:800;">TỔNG CỘNG:</td><td style="padding:0.7rem;border:1px solid #1864ab;text-align:right;font-weight:900;font-size:14pt;color:#c92a2a;"><t t-esc="'{:,.0f}'.format(o.quote_price or o.estimate_total or 0).replace(',', '.')"/> VNĐ</td></tr>
+                            </tbody>
+                        </table>
+                        <h2 style="background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);color:#fff;padding:0.7rem 1.2rem;border-radius:6px;text-align:center;letter-spacing:2px;">🛡️ CHẾ ĐỘ BẢO HÀNH</h2>
+                        <ul style="padding-left:2rem;line-height:2;margin-top:1.5rem;font-size:11.5pt;">
+                            <li><b>Phần kết cấu</b> (móng, cột, dầm, sàn): bảo hành <b style="color:#c92a2a;">10 năm</b></li>
+                            <li><b>Phần thô</b> (xây tô, chống thấm, mái): bảo hành <b style="color:#c92a2a;">5 năm</b></li>
+                            <li><b>Phần hoàn thiện</b> (sơn, gạch, cửa, thiết bị): bảo hành <b style="color:#c92a2a;">2 năm</b></li>
+                            <li><b>Hệ thống điện nước</b>: bảo hành <b style="color:#c92a2a;">3 năm</b></li>
+                        </ul>
+                    </div>
+
+                    <!-- ============ TRANG 4: PHẠM VI CV + ĐIỀU KHOẢN + CHỮ KÝ ============ -->
+                    <div class="page" style="font-family:'Times New Roman',serif;color:#1a1a1a;font-size:12pt;">
+                        <h2 style="background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);color:#fff;padding:0.7rem 1.2rem;border-radius:6px;text-align:center;letter-spacing:2px;">📐 PHẠM VI CÔNG VIỆC TRỌN GÓI</h2>
+                        <ul style="padding-left:2rem;line-height:2;margin-top:1.5rem;margin-bottom:2rem;font-size:11.5pt;">
+                            <li>Thiết kế kiến trúc + kết cấu + điện nước (bản vẽ kỹ thuật chi tiết)</li>
+                            <li>Xin giấy phép xây dựng (nếu KH yêu cầu — phụ phí riêng)</li>
+                            <li>Thi công phần móng (đào đất, cốp pha, đổ bê tông)</li>
+                            <li>Thi công phần thô (cột, dầm, sàn, xây tô, chống thấm, mái)</li>
+                            <li>Thi công phần hoàn thiện (sơn, gạch, cửa, trần, lan can)</li>
+                            <li>Lắp đặt hệ thống điện + nước âm tường</li>
+                            <li>Lắp đặt thiết bị vệ sinh + đèn + công tắc</li>
+                            <li>Vệ sinh công trình + bàn giao chìa khóa</li>
+                        </ul>
+                        <h2 style="background:linear-gradient(180deg,#5c8fb8 0%,#1864ab 100%);color:#fff;padding:0.7rem 1.2rem;border-radius:6px;text-align:center;letter-spacing:2px;">📋 ĐIỀU KHOẢN CHUNG</h2>
+                        <ul style="padding-left:2rem;line-height:2;margin-top:1.5rem;margin-bottom:2rem;font-size:11.5pt;">
+                            <li>Báo giá có hiệu lực <b>30 ngày</b> kể từ ngày phát hành</li>
+                            <li>Giá trên đã bao gồm <b>VAT 10%</b> + công vận chuyển vật liệu</li>
+                            <li>Tiến độ thi công dự kiến: <b>4-6 tháng</b> tùy quy mô</li>
+                            <li>Phát sinh chi phí (nếu có) sẽ được thông báo + thống nhất bằng văn bản</li>
+                            <li>Hai bên cùng ký Phụ lục Hợp đồng nếu có thay đổi thiết kế</li>
+                        </ul>
+                        <table style="width:100%;margin-top:3rem;font-size:11pt;">
+                            <tr>
+                                <td style="text-align:center;width:50%;vertical-align:top;">
+                                    <div style="font-weight:700;margin-bottom:0.4rem;">ĐẠI DIỆN KHÁCH HÀNG</div>
+                                    <div style="font-size:10pt;font-style:italic;color:#666;">(Ký, ghi rõ họ tên)</div>
+                                    <div style="height:90px;"/>
+                                    <div style="font-weight:700;"><t t-esc="o.kh_name or '...........................'"/></div>
+                                </td>
+                                <td style="text-align:center;width:50%;vertical-align:top;">
+                                    <div style="font-weight:700;margin-bottom:0.4rem;">ĐẠI DIỆN VINADUY</div>
+                                    <div style="font-size:10pt;font-style:italic;color:#666;">(Ký, đóng dấu)</div>
+                                    <div style="height:90px;display:flex;align-items:center;justify-content:center;">
+                                        <div style="display:inline-block;border:3px solid #c92a2a;border-radius:50%;padding:1rem 1.2rem;color:#c92a2a;font-weight:700;line-height:1.2;text-align:center;">
+                                            <div style="font-size:8pt;">M.S.D.N: 0109446258</div>
+                                            <div style="font-size:11pt;">CÔNG TY<br/>CỔ PHẦN<br/>VINADUY</div>
+                                            <div style="font-size:8pt;">★ HÀ NỘI ★</div>
+                                        </div>
+                                    </div>
+                                    <div style="font-weight:700;">CÔNG TY CP VINADUY</div>
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="text-align:center;margin-top:2rem;padding-top:0.8rem;border-top:1px dashed #ccc;font-size:10pt;color:#666;">
+                            ☎ Hotline: <b>1900 9999 46 — 024 99999 868</b> &#160;|&#160; ✉ vinaduy@vinaduy.com
+                        </div>
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

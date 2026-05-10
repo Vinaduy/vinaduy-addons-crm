@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Single-page báo giá chi tiết — KHỚP layout trang 3 file mẫu Lệ Chi.
+         Dùng để splice vào template PDF 16 trang (thay duy nhất trang 3). -->
+    <record id="action_vd_quote_single_page_report" model="ir.actions.report">
+        <field name="name">Báo giá chi tiết (1 trang)</field>
+        <field name="model">crm.lead</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">vd_crm_lead.report_vd_quote_single_page</field>
+        <field name="report_file">vd_crm_lead.report_vd_quote_single_page</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <template id="report_vd_quote_single_page">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="ctx" t-value="o._build_quote_context()"/>
+                <t t-set="house_lbl" t-value="dict(o._fields['vd_intake_house_type'].selection).get(o.vd_intake_house_type, 'NHÀ DÂN DỤNG') or 'NHÀ DÂN DỤNG'"/>
+                <t t-set="found_lbl" t-value="dict(o._fields['vd_intake_foundation_type'].selection).get(o.vd_intake_foundation_type, 'MÓNG ĐƠN') or 'MÓNG ĐƠN'"/>
+                <t t-set="roof_lbl" t-value="dict(o._fields['vd_intake_roof_type'].selection).get(o.vd_intake_roof_type, 'Mái') or 'Mái'"/>
+                <t t-set="addr" t-value="', '.join(filter(None, [o.vd_intake_district.name if o.vd_intake_district else '', o.vd_intake_province_id.name if o.vd_intake_province_id else '']))"/>
+                <div class="page" style="font-family:'DejaVu Sans','Liberation Sans',Arial,sans-serif;color:#1a1a1a;font-size:10pt;padding:0.5cm;page-break-inside:avoid;">
+                    <!-- HEADER -->
+                    <table style="width:100%;border:none;margin-bottom:0.6rem;">
+                        <tr>
+                            <td style="width:22%;vertical-align:middle;padding-right:0.4rem;">
+                                <div style="background:#fff;border:2px solid #1864ab;border-radius:6px;padding:0.4rem 0.7rem;display:inline-block;text-align:center;">
+                                    <span style="font-weight:900;font-size:18pt;color:#fa5252;font-style:italic;">V</span><span style="font-weight:900;font-size:18pt;color:#1864ab;letter-spacing:1px;">INADUY</span>
+                                </div>
+                            </td>
+                            <td style="vertical-align:middle;text-align:center;background:#1864ab;border-radius:5px;padding:0.7rem 0.4rem;">
+                                <span style="color:#fff;font-size:17pt;font-weight:700;letter-spacing:1.5px;">BẢNG BÁO GIÁ CHI TIẾT</span>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- INTRO BULLETS -->
+                    <ul style="padding-left:1.2rem;margin:0.5rem 0 0.7rem;line-height:1.5;font-size:10pt;">
+                        <li><b>VINADUY</b> xin gửi tới quý Khách hàng bảng báo giá chi tiết xây nhà trọn gói nhà ở dân dụng</li>
+                        <li>Bảng báo giá được áp dụng với mẫu nhà <b style="color:#c92a2a;text-transform:uppercase;"><t t-esc="house_lbl"/></b></li>
+                        <li>Kết cấu móng được sử dụng là hệ <b style="color:#c92a2a;text-transform:uppercase;"><t t-esc="found_lbl"/></b></li>
+                    </ul>
+                    <!-- KH INFO -->
+                    <table style="width:55%;border-collapse:collapse;margin-bottom:0.6rem;font-size:10pt;">
+                        <tr><td style="padding:0.35rem 0.6rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;width:40%;">Khách Hàng</td><td style="padding:0.35rem 0.6rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="o.partner_name or o.contact_name or o.name or '—'"/></td></tr>
+                        <tr><td style="padding:0.35rem 0.6rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;">Ngày tạo</td><td style="padding:0.35rem 0.6rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="ctx.get('today', '')"/></td></tr>
+                        <tr><td style="padding:0.35rem 0.6rem;background:#dbeafe;font-weight:700;border:1px solid #93c5fd;">Địa Chỉ</td><td style="padding:0.35rem 0.6rem;background:#fff;border:1px solid #93c5fd;"><t t-esc="addr or '—'"/></td></tr>
+                    </table>
+                    <!-- PRICING -->
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:0.6rem;font-size:10pt;">
+                        <thead>
+                            <tr style="background:#5c8fb8;color:#fff;">
+                                <th style="padding:0.45rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
+                                <th style="padding:0.45rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
+                                <th style="padding:0.45rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
+                                <th style="padding:0.45rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
+                                <th style="padding:0.45rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;"><t t-esc="found_lbl"/></td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
+                                <td rowspan="3" style="padding:0.4rem 0.6rem;border:1px solid #1864ab;background:#fff;text-align:center;font-weight:700;font-size:12pt;color:#1a1a1a;vertical-align:middle;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('total_floor_area', '0')"/></td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('floor_cost', '0')"/> VNĐ</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;"><t t-esc="roof_lbl"/></td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('area', '0')"/> M2 x <t t-esc="ctx.get('roof_pct', '0')"/>%</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.4rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('roof_cost', '0')"/> VNĐ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Dấu mộc + Hotline -->
+                    <table style="width:100%;border:none;margin-top:1rem;">
+                        <tr>
+                            <td style="vertical-align:bottom;font-size:9pt;color:#1864ab;font-weight:700;">
+                                ☎ 1900 9999 46 — 024 99999 868
+                            </td>
+                            <td style="text-align:right;vertical-align:bottom;">
+                                <div style="display:inline-block;border:2px solid #c92a2a;border-radius:50%;padding:0.7rem 0.85rem;color:#c92a2a;font-weight:700;line-height:1.2;text-align:center;">
+                                    <div style="font-size:6pt;">M.S.D.N: 0109446258 - C.T.C.P</div>
+                                    <div style="font-size:9pt;margin:0.15rem 0;">CÔNG TY<br/>CỔ PHẦN<br/>VINADUY</div>
+                                    <div style="font-size:6pt;">★ THÀNH PHỐ HÀ NỘI ★</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

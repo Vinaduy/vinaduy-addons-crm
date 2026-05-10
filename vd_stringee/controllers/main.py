@@ -8,11 +8,20 @@
 """
 import json
 import logging
+import time
+
+from psycopg2 import errors as pg_errors
 
 from odoo import http
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
+
+# Lỗi PostgreSQL có thể RETRY an toàn (race condition giữa concurrent updates).
+_RETRYABLE_PG_ERRORS = (
+    pg_errors.SerializationFailure,
+    pg_errors.DeadlockDetected,
+)
 
 
 def _read_payload():
@@ -29,6 +38,46 @@ def _read_payload():
         except ValueError:
             pass
     return dict(request.httprequest.values.items())
+
+
+def _run_with_retry(label, fn, *, max_attempts=4, base_delay=0.1):
+    """Chạy ``fn()`` với retry exponential khi gặp SerializationFailure /
+    DeadlockDetected.
+
+    Stringee gửi nhiều webhook event (created → ringing → ended) cách nhau ~ms
+    cho cùng 1 call_id. 2 process Odoo cùng UPDATE 1 record → PostgreSQL ném
+    SerializationFailure. Vì handler idempotent (chỉ ghi state mới), retry an
+    toàn — vài ms là đủ để process khác commit xong.
+
+    Trả về kết quả của ``fn()`` hoặc None nếu thất bại sau ``max_attempts``.
+    """
+    cr = request.env.cr
+    for attempt in range(max_attempts):
+        try:
+            result = fn()
+            cr.commit()
+            return result
+        except _RETRYABLE_PG_ERRORS as e:
+            cr.rollback()
+            # Reset env cache (records bị invalidate sau rollback)
+            request.env.clear()
+            if attempt < max_attempts - 1:
+                delay = base_delay * (2 ** attempt)  # 0.1, 0.2, 0.4, 0.8s
+                _logger.info(
+                    "[Stringee %s] PG retryable error (attempt %d/%d), retry in %.2fs: %s",
+                    label, attempt + 1, max_attempts, delay, type(e).__name__,
+                )
+                time.sleep(delay)
+                continue
+            _logger.warning(
+                "[Stringee %s] giving up after %d retries: %s",
+                label, max_attempts, e,
+            )
+        except Exception:
+            cr.rollback()
+            _logger.exception("[Stringee %s] handler failed (non-retryable)", label)
+            return None
+    return None
 
 
 class StringeeController(http.Controller):
@@ -89,24 +138,25 @@ class StringeeController(http.Controller):
     def event(self, **kwargs):
         payload = _read_payload()
         _logger.info("[Stringee event] %s", payload)
-        try:
-            request.env['stringee.call'].sudo().handle_event(payload)
-            request.env.cr.commit()
-        except Exception:
-            _logger.exception("Stringee event handler failed")
+
+        def _do():
+            return request.env['stringee.call'].sudo().handle_event(payload)
+
+        _run_with_retry('event', _do)
         return request.make_response('OK', headers=[('Content-Type', 'text/plain')])
 
     @http.route('/stringee/recording_event', type='http', auth='public', methods=['GET', 'POST'], csrf=False)
     def recording_event(self, **kwargs):
         payload = _read_payload()
         _logger.info("[Stringee recording] %s", payload)
-        try:
+
+        def _do():
             rec = request.env['stringee.call'].sudo().handle_event(payload)
             if rec and not rec.recording_attachment_id:
                 rec._download_recording()
-            request.env.cr.commit()
-        except Exception:
-            _logger.exception("Stringee recording handler failed")
+            return rec
+
+        _run_with_retry('recording', _do)
         return request.make_response('OK', headers=[('Content-Type', 'text/plain')])
 
     # ----- Browser → server (authenticated) -----

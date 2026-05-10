@@ -6,4 +6,20 @@
               parent="crm.crm_menu_root"
               action="action_vd_crm_dashboard"
               sequence="1"/>
+
+    <!-- ⚙️ Cấu hình → Đơn giá xây dựng (chỉ admin / sales manager) -->
+    <menuitem id="menu_vd_pricing_region"
+              name="Đơn giá xây dựng"
+              parent="crm.crm_menu_config"
+              action="action_vd_pricing_region"
+              sequence="50"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- ⚙️ Cấu hình → Template báo giá -->
+    <menuitem id="menu_vd_quote_template"
+              name="Template báo giá"
+              parent="crm.crm_menu_config"
+              action="action_vd_quote_template"
+              sequence="55"
+              groups="sales_team.group_sale_manager"/>
 </odoo>

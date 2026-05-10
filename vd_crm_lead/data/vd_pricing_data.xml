@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- noupdate=1 → admin sửa giá qua UI sẽ KHÔNG bị reset khi upgrade module -->
+
+        <record id="pricing_bac" model="vd.pricing.region">
+            <field name="name">Miền Bắc</field>
+            <field name="code">bac</field>
+            <field name="sequence">10</field>
+            <field name="mong_don_lon">30</field>
+            <field name="mong_don_nho">35</field>
+            <field name="mong_bang_lon">40</field>
+            <field name="mong_bang_nho">45</field>
+            <field name="mong_coc_lon">40</field>
+            <field name="mong_coc_nho">45</field>
+            <field name="san_75_oto">6600000</field>
+            <field name="san_75_kxe">7100000</field>
+            <field name="san_65_oto">6800000</field>
+            <field name="san_65_kxe">7400000</field>
+            <field name="san_50_oto">7100000</field>
+            <field name="san_50_kxe">7700000</field>
+            <field name="san_40_oto">7400000</field>
+            <field name="san_40_kxe">7900000</field>
+            <field name="san_lt40_oto">7700000</field>
+            <field name="san_lt40_kxe">8300000</field>
+            <field name="tho_lon">5000000</field>
+            <field name="tho_nho">5200000</field>
+        </record>
+
+        <record id="pricing_trung" model="vd.pricing.region">
+            <field name="name">Miền Trung</field>
+            <field name="code">trung</field>
+            <field name="sequence">20</field>
+            <field name="mong_don_lon">35</field>
+            <field name="mong_don_nho">40</field>
+            <field name="mong_bang_lon">45</field>
+            <field name="mong_bang_nho">50</field>
+            <field name="mong_coc_lon">45</field>
+            <field name="mong_coc_nho">50</field>
+            <field name="san_75_oto">6600000</field>
+            <field name="san_75_kxe">7100000</field>
+            <field name="san_65_oto">6800000</field>
+            <field name="san_65_kxe">7400000</field>
+            <field name="san_50_oto">7100000</field>
+            <field name="san_50_kxe">7700000</field>
+            <field name="san_40_oto">7400000</field>
+            <field name="san_40_kxe">7900000</field>
+            <field name="san_lt40_oto">7700000</field>
+            <field name="san_lt40_kxe">8300000</field>
+            <field name="tho_lon">5000000</field>
+            <field name="tho_nho">5200000</field>
+        </record>
+
+        <record id="pricing_nam" model="vd.pricing.region">
+            <field name="name">Miền Nam</field>
+            <field name="code">nam</field>
+            <field name="sequence">30</field>
+            <field name="mong_don_lon">40</field>
+            <field name="mong_don_nho">45</field>
+            <field name="mong_bang_lon">50</field>
+            <field name="mong_bang_nho">55</field>
+            <field name="mong_coc_lon">50</field>
+            <field name="mong_coc_nho">55</field>
+            <field name="san_75_oto">6600000</field>
+            <field name="san_75_kxe">7100000</field>
+            <field name="san_65_oto">6800000</field>
+            <field name="san_65_kxe">7400000</field>
+            <field name="san_50_oto">7100000</field>
+            <field name="san_50_kxe">7700000</field>
+            <field name="san_40_oto">7400000</field>
+            <field name="san_40_kxe">7900000</field>
+            <field name="san_lt40_oto">7700000</field>
+            <field name="san_lt40_kxe">8300000</field>
+            <field name="tho_lon">5000000</field>
+            <field name="tho_nho">5200000</field>
+        </record>
+
+    </data>
+</odoo>
