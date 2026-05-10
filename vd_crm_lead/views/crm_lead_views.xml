@@ -276,14 +276,24 @@
 
                     <!-- ============ POPUP KHAI THÁC ============
                          Khi vd_intake_open=True → overlay nằm phía bên phải màn hình
-                         (45vw, ≈ 90% nửa phải). Có dấu X góc trên để đóng. -->
+                         (45vw, ≈ 90% nửa phải). Có header tiêu đề + X đóng. -->
                     <div class="o_vd_intake_popup_overlay" invisible="not vd_intake_open">
                         <div class="o_vd_intake_popup_backdrop"/>
                         <div class="o_vd_intake_full o_vd_intake_compact o_vd_intake_popup_panel">
-                        <button name="action_close_intake_inline" type="object"
-                                class="o_vd_popup_close_btn" title="Đóng">
-                            <i class="fa fa-times"/>
-                        </button>
+
+                        <!-- ===== HEADER: tiêu đề + X đóng ===== -->
+                        <div class="o_vd_popup_header">
+                            <h3 class="o_vd_popup_title">
+                                <i class="fa fa-clipboard-list"/> THÔNG TIN TƯ VẤN
+                            </h3>
+                            <button name="action_close_intake_inline" type="object"
+                                    class="o_vd_popup_close_btn" title="Đóng">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+
+                        <!-- ===== BODY: scrollable content ===== -->
+                        <div class="o_vd_popup_body">
                         <div class="o_vd_popup_banner" invisible="not vd_in_call">
                             <i class="fa fa-microphone"/>
                             Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
@@ -293,76 +303,85 @@
                         <div class="o_vd_intake_layout">
                             <div class="o_vd_intake_main">
 
-                        <!-- 3 hero cards: Ngân sách + Diện tích + Thời gian -->
-                        <div class="o_vd_hero_grid">
-                            <div class="o_vd_hero_card o_vd_hero_budget">
-                                <div class="o_vd_hero_head">
-                                    <span class="o_vd_hero_icon">💰</span>
-                                    <span class="o_vd_hero_title">Ngân sách (VNĐ)</span>
-                                </div>
-                                <field name="vd_intake_budget_amount" widget="monetary"
-                                       options="{'currency_field': 'vd_currency_vnd_id'}"
-                                       nolabel="1" placeholder="Vd: 2,000,000,000"/>
-                            </div>
+                        <!-- ===== HERO 2-COL =====
+                             LEFT: Diện tích/sàn (lớn) — chứa kích thước + Số tầng/Móng/Kiểu nhà/Mái
+                             RIGHT (top): Thời gian
+                             RIGHT (bottom): Ngân sách (VNĐ) -->
+                        <div class="o_vd_hero_grid_2col">
+                            <!-- LEFT — Diện tích / Sàn (mở rộng chứa các trường tech) -->
                             <div class="o_vd_hero_card o_vd_hero_area">
                                 <div class="o_vd_hero_head">
                                     <span class="o_vd_hero_icon">📐</span>
-                                    <span class="o_vd_hero_title">Diện tích / sàn</span>
+                                    <span class="o_vd_hero_title">DIỆN TÍCH / SÀN</span>
                                 </div>
-                                <div class="o_vd_dims_row">
-                                    <div class="o_vd_dim_pair">
-                                        <field name="vd_intake_length_m" nolabel="1"
-                                               class="o_vd_dim_input" placeholder="Dài"/>
-                                        <span class="o_vd_dims_sep">×</span>
-                                        <field name="vd_intake_width_m" nolabel="1"
-                                               class="o_vd_dim_input" placeholder="Rộng"/>
+                                    <div class="o_vd_dims_row">
+                                        <div class="o_vd_dim_pair">
+                                            <field name="vd_intake_length_m" nolabel="1"
+                                                   class="o_vd_dim_input" placeholder="Dài"/>
+                                            <span class="o_vd_dims_sep">×</span>
+                                            <field name="vd_intake_width_m" nolabel="1"
+                                                   class="o_vd_dim_input" placeholder="Rộng"/>
+                                        </div>
+                                        <div class="o_vd_dim_total_row">
+                                            <span class="o_vd_dims_eq">=</span>
+                                            <field name="vd_intake_area_m2" nolabel="1"
+                                                   class="o_vd_dim_total" readonly="1"/>
+                                            <span class="o_vd_dims_unit">m²</span>
+                                        </div>
                                     </div>
-                                    <div class="o_vd_dim_total_row">
-                                        <span class="o_vd_dims_eq">=</span>
-                                        <field name="vd_intake_area_m2" nolabel="1"
-                                               class="o_vd_dim_total" readonly="1"/>
-                                        <span class="o_vd_dims_unit">m²</span>
+                                    <!-- Tech fields embedded — mỗi trường 1 dòng, sát nhau -->
+                                    <div class="o_vd_hero_tech_list">
+                                        <div class="o_vd_pf_compact">
+                                            <label for="vd_intake_floors_num">Số tầng</label>
+                                            <field name="vd_intake_floors_num" nolabel="1"
+                                                   placeholder="vd: 2.5"/>
+                                        </div>
+                                        <div class="o_vd_pf_compact">
+                                            <label for="vd_intake_foundation_type">Loại móng</label>
+                                            <field name="vd_intake_foundation_type" widget="vd_selection_dropdown" nolabel="1"
+                                                   placeholder="Móng gì?"/>
+                                        </div>
+                                        <div class="o_vd_pf_compact">
+                                            <label for="vd_intake_house_type">Kiểu nhà</label>
+                                            <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
+                                                   placeholder="Kiểu nhà nào?"/>
+                                        </div>
+                                        <div class="o_vd_pf_compact">
+                                            <label for="vd_intake_roof_type">Loại mái</label>
+                                            <field name="vd_intake_roof_type" widget="vd_selection_dropdown" nolabel="1"
+                                                   placeholder="Loại mái cụ thể"
+                                                   options="{'filter_field': 'vd_intake_house_type', 'filter_map': {'mai_bang': ['mai_bang'], 'mai_thai': ['mai_thai_kdt', 'mai_thai_cdt'], 'mai_nhat': ['mai_nhat_kdt', 'mai_nhat_cdt'], 'nha_pho': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'biet_thu': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'nha_ong': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'cap_4': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'tum_mansard': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt'], 'chung_cu': ['mai_bang', 'thong_tang'], 'khac': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m']}}"/>
+                                        </div>
                                     </div>
-                                </div>
                             </div>
-                            <div class="o_vd_hero_card o_vd_hero_time">
-                                <field name="vd_intake_timeline_status" invisible="1"/>
-                                <div class="o_vd_hero_head">
-                                    <span class="o_vd_hero_icon">📅</span>
-                                    <span class="o_vd_hero_title">Thời gian</span>
+
+                            <!-- RIGHT — Stack: Thời gian (trên) + Ngân sách (dưới) -->
+                            <div class="o_vd_hero_col_right">
+                                <div class="o_vd_hero_card o_vd_hero_time">
+                                    <field name="vd_intake_timeline_status" invisible="1"/>
+                                    <div class="o_vd_hero_head">
+                                        <span class="o_vd_hero_icon">📅</span>
+                                        <span class="o_vd_hero_title">THỜI GIAN</span>
+                                    </div>
+                                    <field name="vd_intake_timeline" nolabel="1"
+                                           placeholder="Khởi công tháng nào ạ? (gõ → gợi ý)"/>
                                 </div>
-                                <field name="vd_intake_timeline" nolabel="1"
-                                       placeholder="Khởi công tháng nào ạ? (gõ → gợi ý)"/>
+                                <div class="o_vd_hero_card o_vd_hero_budget">
+                                    <div class="o_vd_hero_head">
+                                        <span class="o_vd_hero_icon">💰</span>
+                                        <span class="o_vd_hero_title">NGÂN SÁCH (VNĐ)</span>
+                                    </div>
+                                    <field name="vd_intake_budget_amount" widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Tech grid: tầng | móng | KIỂU NHÀ → LOẠI MÁI (cascade) | ô tô -->
-                        <div class="o_vd_tech_grid">
-                            <div class="o_vd_tech_field">
-                                <label for="vd_intake_floors_num">Số tầng</label>
-                                <field name="vd_intake_floors_num" nolabel="1"
-                                       placeholder="vd: 2.5"/>
-                            </div>
-                            <div class="o_vd_tech_field">
-                                <label for="vd_intake_foundation_type">Loại móng</label>
-                                <field name="vd_intake_foundation_type" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Móng gì?"/>
-                            </div>
-                            <div class="o_vd_tech_field">
-                                <label for="vd_intake_house_type">Kiểu nhà</label>
-                                <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Kiểu nhà nào?"/>
-                            </div>
-                            <div class="o_vd_tech_field">
-                                <label for="vd_intake_roof_type">Loại mái</label>
-                                <field name="vd_intake_roof_type" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Loại mái cụ thể"
-                                       options="{'filter_field': 'vd_intake_house_type', 'filter_map': {'mai_bang': ['mai_bang'], 'mai_thai': ['mai_thai_kdt', 'mai_thai_cdt'], 'mai_nhat': ['mai_nhat_kdt', 'mai_nhat_cdt'], 'nha_pho': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'biet_thu': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'nha_ong': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'cap_4': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m'], 'tum_mansard': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt'], 'chung_cu': ['mai_bang', 'thong_tang'], 'khac': ['mai_bang', 'mai_nhat_kdt', 'mai_nhat_cdt', 'mai_thai_kdt', 'mai_thai_cdt', 'thong_tang', 'mai_trang_tri', 'mai_trang_tri_dt', 'mai_ton_1m', 'mai_ton_2m', 'mai_ton_3m']}}"/>
-                            </div>
-                            <div class="o_vd_tech_field o_vd_tech_inline">
-                                <field name="vd_intake_car_access" nolabel="1"/>
-                                <label for="vd_intake_car_access">Ô tô vào được</label>
-                            </div>
+                        <!-- Ô tô vào được — riêng 1 dòng (các trường tech khác đã chuyển vào card Diện tích) -->
+                        <div class="o_vd_car_inline">
+                            <field name="vd_intake_car_access" nolabel="1"/>
+                            <label for="vd_intake_car_access">Ô tô vào được</label>
                         </div>
 
                         <!-- Main intake fields — 1 cột -->
@@ -452,11 +471,10 @@
                             </div>
                         </div>
 
-                        <!-- Nút Lưu + Đóng inline — kích hoạt rainbow_man chúc mừng + auto chuyển stage -->
-                        <div class="o_vd_inline_save_bar">
-                            <button name="action_close_intake_inline" type="object"
-                                    string="✕ Đóng (chưa lưu)"
-                                    class="btn btn-link o_vd_btn_close_intake"/>
+                        </div><!-- /.o_vd_popup_body -->
+
+                        <!-- ===== FOOTER sticky: button Lưu góc phải dưới ===== -->
+                        <div class="o_vd_popup_footer">
                             <button string="🎉 Lưu &amp; Chuyển sang BÁO GIÁ"
                                     name="action_save_intake_done" type="object"
                                     class="btn btn-primary o_vd_btn_save"/>

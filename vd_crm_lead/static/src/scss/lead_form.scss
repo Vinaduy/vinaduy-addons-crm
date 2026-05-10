@@ -1626,35 +1626,58 @@
         box-shadow:
             0 24px 64px -8px rgba(15, 23, 42, 0.35),
             0 8px 24px rgba(15, 23, 42, 0.18);
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 1rem 1.25rem 1.25rem;
+        overflow: hidden;             /* header/footer fix, body scroll */
+        padding: 0;                   /* header + body + footer tự handle padding */
         pointer-events: auto;
         animation: vd-popup-slide-in 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
         margin-top: 0 !important;
-        padding-top: 1rem !important;
         border-top: none !important;
+        display: flex;
+        flex-direction: column;
     }
 }
 
-/* Nút X góc trên phải của popup */
-.o_vd_popup_close_btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 32px;
-    height: 32px;
+/* ============ POPUP HEADER (tiêu đề + X) ============ */
+.o_vd_popup_header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 1.1rem;
+    background: linear-gradient(135deg, #4c6ef5 0%, #748ffc 100%);
+    color: #fff;
+    border-bottom: 1px solid #364fc7;
+    box-shadow: 0 2px 8px rgba(76, 110, 245, 0.25);
+
+    .o_vd_popup_title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        i { font-size: 1.05rem; }
+    }
+}
+
+/* Nút X — nằm trong header, không floating nữa */
+.o_vd_popup_header .o_vd_popup_close_btn {
+    position: static;
+    width: 30px;
+    height: 30px;
     padding: 0;
     border: none;
     border-radius: 50%;
-    background: #f1f3f5;
-    color: #495057;
-    font-size: 0.95rem;
-    line-height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 30px;
     text-align: center;
     cursor: pointer;
-    z-index: 5;
     transition: all 0.15s ease;
+    flex: 0 0 auto;
 
     &:hover {
         background: #fa5252;
@@ -1662,6 +1685,31 @@
         transform: rotate(90deg);
     }
     i { line-height: inherit; }
+}
+
+/* ============ POPUP BODY (scrollable) ============ */
+.o_vd_popup_body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem 1.25rem;
+}
+
+/* ============ POPUP FOOTER (sticky bottom-right) ============ */
+.o_vd_popup_footer {
+    flex: 0 0 auto;
+    padding: 0.7rem 1.1rem;
+    background: #f8fafd;
+    border-top: 1px solid #e3e8ef;
+    display: flex;
+    justify-content: flex-end;       /* button góc phải dưới cùng */
+    align-items: center;
+
+    .o_vd_btn_save {
+        font-size: 0.95rem;
+        padding: 0.55rem 1.4rem;
+        font-weight: 600;
+    }
 }
 
 @keyframes vd-popup-fade-in {
@@ -1708,31 +1756,96 @@
         margin-bottom: 1rem !important;
     }
 
-    /* Hero grid: 3 cột trên popup ≥ 700px, 1 cột nếu hẹp hơn */
-    .o_vd_hero_grid {
+    /* ===== HERO 2-COL =====
+       LEFT: Diện tích/sàn (lớn, chứa các trường tech bên trong)
+       RIGHT: stack — Thời gian (trên) + Ngân sách (dưới) */
+    .o_vd_hero_grid_2col {
         display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 0.6rem !important;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+        gap: 0.7rem !important;
+        align-items: stretch !important;
+    }
+    .o_vd_hero_col_right {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.7rem !important;
+        min-width: 0 !important;
+    }
+    .o_vd_hero_col_right .o_vd_hero_card {
+        flex: 1 1 auto;
     }
 
-    /* Tech grid: 2 cột để label/input có chỗ thở (trước đây 5 cột → chen chúc) */
-    .o_vd_tech_grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 0.6rem 1rem !important;
-        align-items: end !important;
-    }
-    .o_vd_tech_field {
+    /* Hero card: tiêu đề viết HOA + có border-bottom mờ ngăn cách body */
+    .o_vd_hero_card {
+        display: flex !important;
+        flex-direction: column !important;
         min-width: 0 !important;
-        max-width: none !important;
-        width: 100% !important;
     }
-    .o_vd_tech_field input,
-    .o_vd_tech_field select,
-    .o_vd_tech_field .o_field_widget,
-    .o_vd_tech_field .o_vd_select_dd input {
-        width: 100% !important;
-        max-width: 100% !important;
+    .o_vd_hero_card .o_vd_hero_head {
+        padding-bottom: 0.4rem !important;
+        margin-bottom: 0.55rem !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    .o_vd_hero_card .o_vd_hero_title {
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* ===== Tech list trong card Diện tích — mỗi trường 1 dòng, sát nhau ===== */
+    .o_vd_hero_tech_list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-top: 0.55rem;
+        padding-top: 0.55rem;
+        border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .o_vd_pf_compact {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        padding: 0.15rem 0 !important;
+
+        > label {
+            flex: 0 0 80px !important;
+            max-width: 80px !important;
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            color: rgba(0, 0, 0, 0.7) !important;
+            margin: 0 !important;
+        }
+        > .o_field_widget {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            width: auto !important;
+            max-width: none !important;
+        }
+        > .o_field_widget input,
+        > .o_field_widget select {
+            width: 100% !important;
+            max-width: 100% !important;
+            font-size: 0.85rem !important;
+            padding: 0.3rem 0.55rem !important;
+            border: 1px solid rgba(0, 0, 0, 0.12) !important;
+            border-radius: 5px !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+        }
+    }
+
+    /* Ô tô vào — checkbox riêng 1 dòng */
+    .o_vd_car_inline {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.2rem;
+        margin: 0.5rem 0 0.7rem;
+        > label {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+        }
     }
 
     /* Main fields: 1 cột full width, input giãn theo popup */
@@ -1765,11 +1878,10 @@
     }
 }
 
-/* Popup hẹp (mobile / tablet): tech grid 1 cột, hero 1 cột */
+/* Popup hẹp (mobile / tablet): hero 1 cột, pf wrap label */
 @media (max-width: 767px) {
     .o_vd_intake_popup_panel {
-        .o_vd_hero_grid,
-        .o_vd_tech_grid {
+        .o_vd_hero_grid_2col {
             grid-template-columns: 1fr !important;
         }
         .o_vd_pf {
@@ -1778,6 +1890,10 @@
         .o_vd_pf > label {
             flex: 0 0 100% !important;
             max-width: 100% !important;
+        }
+        .o_vd_pf_compact > label {
+            flex: 0 0 100px !important;
+            max-width: 100px !important;
         }
     }
 }
