@@ -178,9 +178,12 @@
                                 </span>
                             </div>
 
-                            <!-- Info phụ — LUÔN hiện ĐẦY ĐỦ field, dù trống ("—") -->
+                            <!-- Info phụ — 3 dòng gọn:
+                                 R1: Tỉnh/Huyện (wide)
+                                 R2: Kiểu nhà / Loại móng / Loại đất
+                                 R3: Sổ đỏ/cấp phép / Ô tô vào / Công năng -->
                             <div class="o_vd_summary_grid_inline">
-                                <!-- Tỉnh + Huyện gộp chung 1 trường: "Tỉnh / Huyện" -->
+                                <!-- R1: Tỉnh + Huyện (wide span all 3 cols) -->
                                 <div class="o_vd_row_inline o_vd_row_inline_wide">
                                     <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh / Huyện:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_province_id and not vd_intake_district">
@@ -189,6 +192,7 @@
                                     </span>
                                     <span class="o_vd_val_empty" invisible="vd_intake_province_id or vd_intake_district">—</span>
                                 </div>
+                                <!-- R2 -->
                                 <div class="o_vd_row_inline">
                                     <span class="o_vd_lbl"><i class="fa fa-home"/> Kiểu nhà:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_house_type">
@@ -210,8 +214,9 @@
                                     </span>
                                     <span class="o_vd_val_empty" invisible="vd_intake_land_type">—</span>
                                 </div>
+                                <!-- R3 -->
                                 <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ/cấp phép:</span>
+                                    <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ:</span>
                                     <span class="o_vd_val" invisible="not vd_intake_dimensions">
                                         <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
                                     </span>
@@ -222,22 +227,13 @@
                                     <span style="color:#c92a2a;font-weight:600;" invisible="vd_intake_car_access">Không</span>
                                     <span style="color:#2b8a3e;font-weight:600;" invisible="not vd_intake_car_access">Có</span>
                                 </div>
-                            </div>
-
-                            <!-- Công năng + Ghi chú (dài, span full width) — LUÔN hiện -->
-                            <div class="o_vd_summary_long_row">
-                                <span class="o_vd_lbl"><i class="fa fa-list-ul"/> Công năng:</span>
-                                <span class="o_vd_val" invisible="not vd_intake_function">
-                                    <field name="vd_intake_function" readonly="1" nolabel="1"/>
-                                </span>
-                                <span class="o_vd_val_empty" invisible="vd_intake_function">— (chưa khai thác)</span>
-                            </div>
-                            <div class="o_vd_summary_long_row">
-                                <span class="o_vd_lbl"><i class="fa fa-sticky-note-o"/> Ghi chú công năng:</span>
-                                <span class="o_vd_val" invisible="not vd_intake_function_notes">
-                                    <field name="vd_intake_function_notes" readonly="1" nolabel="1"/>
-                                </span>
-                                <span class="o_vd_val_empty" invisible="vd_intake_function_notes">— (chưa khai thác)</span>
+                                <div class="o_vd_row_inline">
+                                    <span class="o_vd_lbl"><i class="fa fa-list-ul"/> Công năng:</span>
+                                    <span class="o_vd_val" invisible="not vd_intake_function">
+                                        <field name="vd_intake_function" readonly="1" nolabel="1"/>
+                                    </span>
+                                    <span class="o_vd_val_empty" invisible="vd_intake_function">—</span>
+                                </div>
                             </div>
                         </div>
                         <!-- Empty state -->
@@ -591,40 +587,6 @@
                                            readonly="vd_quote_locked"
                                            options="{'no_create': False, 'no_create_edit': False}"
                                            placeholder="— Chọn từ danh sách —"/>
-                                </div>
-                                <div class="o_vd_quote_field">
-                                    <label for="vd_quote_template_upload">📤 Hoặc upload file mới từ máy</label>
-                                    <field name="vd_quote_template_upload"
-                                           filename="vd_quote_template_upload_name"
-                                           readonly="vd_quote_locked" nolabel="1"/>
-                                    <field name="vd_quote_template_upload_name" invisible="1"/>
-                                    <div class="o_vd_quote_help">
-                                        <details>
-                                            <summary>📝 Cách tạo template .docx có placeholder (click)</summary>
-                                            <div class="o_vd_quote_help_body">
-                                                <p>Mở file .docx trong Word, gõ các placeholder Jinja (dùng <code>{{...}}</code>) vào vị trí cần điền data:</p>
-                                                <ul>
-                                                    <li><code>{{kh_name}}</code> — Tên KH</li>
-                                                    <li><code>{{kh_phone}}</code> — SĐT</li>
-                                                    <li><code>{{kh_address}}</code> — Địa chỉ</li>
-                                                    <li><code>{{today}}</code> — Ngày tạo</li>
-                                                    <li><code>{{house_type}}</code> — Kiểu nhà</li>
-                                                    <li><code>{{foundation}}</code> — Loại móng</li>
-                                                    <li><code>{{roof}}</code> — Loại mái</li>
-                                                    <li><code>{{area}}</code> — Diện tích sàn (m²)</li>
-                                                    <li><code>{{floors}}</code> — Số tầng</li>
-                                                    <li><code>{{total_floor_area}}</code> — Tổng DT sàn × tầng</li>
-                                                    <li><code>{{unit_price}}</code> — Đơn giá sàn (đ/m²)</li>
-                                                    <li><code>{{found_pct}}</code> / <code>{{found_cost}}</code> — % móng / chi phí móng</li>
-                                                    <li><code>{{floor_cost}}</code> — Chi phí sàn</li>
-                                                    <li><code>{{roof_pct}}</code> / <code>{{roof_cost}}</code> — % mái / chi phí mái</li>
-                                                    <li><code>{{total_price}}</code> — Tổng tiền</li>
-                                                    <li><code>{{tt1}}</code>, <code>{{tt2}}</code>, <code>{{tt3}}</code>, <code>{{tt4}}</code> — 4 đợt thanh toán (30/30/30/10%)</li>
-                                                </ul>
-                                                <p class="text-muted"><i>Khi NV bấm "Tải báo giá" → bên em tự thay placeholder bằng data thực tế, giữ nguyên ảnh/logo/format file gốc.</i></p>
-                                            </div>
-                                        </details>
-                                    </div>
                                 </div>
                                 <div class="o_vd_quote_field">
                                     <label for="vd_quote_price">💵 Giá báo cho KH (auto = ước tính, sửa được)</label>

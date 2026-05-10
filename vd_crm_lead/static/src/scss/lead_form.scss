@@ -603,11 +603,11 @@
             margin: 0 0.15rem;
         }
 
-        /* Compact 2-col grid; mỗi cell = 1 dòng [Label: input editable] */
+        /* Compact 3-col grid; mỗi cell = 1 dòng [Label: value] */
         .o_vd_summary_grid_inline {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.15rem 1.2rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.15rem 0.8rem;
         }
 
         .o_vd_row_inline {

@@ -51,6 +51,50 @@
                           breakdown table với giá tự động).<br/>
                         • Output: file PDF đầy đủ trang giống hệt template, chỉ trang báo giá đổi data.
                     </div>
+
+                    <separator string="📝 Hướng dẫn tạo template .docx có placeholder"/>
+                    <div class="alert alert-secondary" role="alert">
+                        <p>Mở file <b>.docx</b> trong Word, gõ các placeholder Jinja (dùng <code>{{...}}</code>) vào vị trí cần điền data tự động:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <b>👤 Thông tin khách hàng:</b>
+                                <ul class="mb-2">
+                                    <li><code>{{kh_name}}</code> — Tên KH</li>
+                                    <li><code>{{kh_phone}}</code> — SĐT</li>
+                                    <li><code>{{kh_address}}</code> — Địa chỉ</li>
+                                    <li><code>{{today}}</code> — Ngày tạo báo giá</li>
+                                </ul>
+                                <b>🏠 Thông tin công trình:</b>
+                                <ul class="mb-2">
+                                    <li><code>{{house_type}}</code> — Kiểu nhà</li>
+                                    <li><code>{{foundation}}</code> — Loại móng</li>
+                                    <li><code>{{roof}}</code> — Loại mái</li>
+                                    <li><code>{{area}}</code> — Diện tích sàn (m²)</li>
+                                    <li><code>{{floors}}</code> — Số tầng</li>
+                                    <li><code>{{total_floor_area}}</code> — Tổng DT sàn × tầng</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <b>💵 Đơn giá &amp; chi phí:</b>
+                                <ul class="mb-2">
+                                    <li><code>{{unit_price}}</code> — Đơn giá sàn (đ/m²)</li>
+                                    <li><code>{{found_pct}}</code> / <code>{{found_cost}}</code> — % móng / chi phí móng</li>
+                                    <li><code>{{floor_cost}}</code> — Chi phí sàn</li>
+                                    <li><code>{{roof_pct}}</code> / <code>{{roof_cost}}</code> — % mái / chi phí mái</li>
+                                    <li><code>{{total_price}}</code> — Tổng tiền báo giá</li>
+                                </ul>
+                                <b>💰 Đợt thanh toán (30 / 30 / 30 / 10%):</b>
+                                <ul class="mb-2">
+                                    <li><code>{{tt1}}</code> — Đợt 1</li>
+                                    <li><code>{{tt2}}</code> — Đợt 2</li>
+                                    <li><code>{{tt3}}</code> — Đợt 3</li>
+                                    <li><code>{{tt4}}</code> — Đợt 4</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0"><i>💡 Khi NV bấm "Tải báo giá" → hệ thống tự thay placeholder bằng data thực tế của KH, giữ nguyên ảnh/logo/format file gốc.</i></p>
+                    </div>
+
                     <separator string="Ghi chú nội bộ"/>
                     <field name="note" placeholder="Lưu ý khi sử dụng template này..."/>
                 </sheet>
