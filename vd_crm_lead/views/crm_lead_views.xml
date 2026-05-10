@@ -75,10 +75,17 @@
                         <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
                     </div>
 
-                    <!-- Header: name + phone + salesperson + nút "Thông tin tư vấn" (icon ☎ to, nổi bật, ở cuối hàng) -->
+                    <!-- Header:
+                         Dòng 1: Tên KH + nút "Thông tin tư vấn" (icon ☎, nổi bật)
+                         Dòng 2: Phone + Salesperson + nút "KH không có nhu cầu" (mờ, phải) -->
                     <div class="o_vd_summary_header">
                         <h2 class="o_vd_summary_name">
                             <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
+                            <button name="action_open_intake_inline" type="object"
+                                    class="o_vd_open_intake_btn_main">
+                                <i class="fa fa-phone-square"/>
+                                <span>Thông tin tư vấn</span>
+                            </button>
                         </h2>
                         <div class="o_vd_summary_meta">
                             <span class="o_vd_meta_item">
@@ -89,10 +96,11 @@
                                 <i class="fa fa-user"/>
                                 <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
                             </span>
-                            <button name="action_open_intake_inline" type="object"
-                                    class="o_vd_open_intake_btn_main">
-                                <i class="fa fa-phone-square"/>
-                                <span>Thông tin tư vấn</span>
+                            <button name="action_mark_no_demand" type="object"
+                                    class="btn btn-sm btn-outline-secondary o_vd_wf_btn_no_demand"
+                                    invisible="stage_code in ['won', 'lost']">
+                                <i class="fa fa-times-circle me-1"/>
+                                KH không có nhu cầu
                             </button>
                         </div>
                     </div>
@@ -160,13 +168,13 @@
                                         </span>
                                     </div>
                                     <div class="o_vd_sum_area_extra">
-                                        <span class="o_vd_sum_area_lbl"><i class="fa fa-cubes"/> Móng:</span>
+                                        <span class="o_vd_sum_area_lbl" title="Loại móng"><i class="fa fa-cubes"/></span>
                                         <span class="o_vd_sum_area_v" invisible="not vd_intake_foundation_type">
                                             <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
                                         </span>
                                         <span class="o_vd_sum_area_v_empty" invisible="vd_intake_foundation_type">—</span>
                                         <span class="o_vd_sum_area_sep">|</span>
-                                        <span class="o_vd_sum_area_lbl"><i class="fa fa-home"/> Nhà:</span>
+                                        <span class="o_vd_sum_area_lbl" title="Kiểu nhà"><i class="fa fa-home"/></span>
                                         <span class="o_vd_sum_area_v" invisible="not vd_intake_house_type">
                                             <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
                                         </span>
@@ -547,14 +555,6 @@
                             ✅ Hoàn tất khai thác → Báo giá
                         </button>
 
-                        <!-- KH KHÔNG có nhu cầu → wizard nhập lý do (outline mờ, ở góc phải) -->
-                        <button name="action_mark_no_demand" type="object"
-                                class="btn btn-sm btn-outline-secondary o_vd_wf_btn_no_demand"
-                                invisible="stage_code in ['won', 'lost']">
-                            <i class="fa fa-times-circle me-1"/>
-                            KH không có nhu cầu
-                        </button>
-
                         <!-- Lý do hủy — hiển thị khi stage = lost -->
                         <div class="o_vd_lost_box" invisible="stage_code != 'lost'">
                             <i class="fa fa-info-circle"/>
@@ -589,66 +589,14 @@
                                            placeholder="— Chọn từ danh sách —"/>
                                 </div>
                             </div>
-                            <field name="vd_quote_show_preview" invisible="1"/>
                         </div>
 
-                        <!-- ============ POPUP PREVIEW PDF ============
-                             Khi vd_quote_show_preview=True → overlay nằm phía bên phải màn hình (giống popup THÔNG TIN TƯ VẤN). -->
-                        <div class="o_vd_intake_popup_overlay o_vd_quote_popup_overlay" invisible="not vd_quote_show_preview">
-                            <div class="o_vd_intake_popup_backdrop"/>
-                            <div class="o_vd_intake_popup_panel o_vd_quote_popup_panel">
-                                <!-- HEADER: tiêu đề + X đóng -->
-                                <div class="o_vd_popup_header">
-                                    <h3 class="o_vd_popup_title">
-                                        <i class="fa fa-file-pdf-o"/> PREVIEW BÁO GIÁ PDF
-                                    </h3>
-                                    <button name="action_toggle_quote_preview" type="object"
-                                            class="o_vd_popup_close_btn" title="Đóng">
-                                        <i class="fa fa-times"/>
-                                    </button>
-                                </div>
-                                <!-- BODY scrollable — embed PDF -->
-                                <div class="o_vd_popup_body">
-                                    <div class="o_vd_qpc_actions">
-                                        <button name="action_refresh_quote_preview" type="object"
-                                                class="btn btn-sm btn-warning">
-                                            <i class="fa fa-refresh me-1"/>🔄 Cập nhật preview
-                                        </button>
-                                    </div>
-                                    <div invisible="not vd_quote_preview_pdf">
-                                        <field name="vd_quote_preview_pdf"
-                                               widget="pdf_viewer"
-                                               filename="vd_quote_preview_pdf_name"
-                                               nolabel="1"/>
-                                        <field name="vd_quote_preview_pdf_name" invisible="1"/>
-                                    </div>
-                                    <div invisible="vd_quote_preview_pdf"
-                                         style="padding:2rem;text-align:center;color:#92400e;background:#fff;border-radius:8px;border:2px dashed #fbbf24;margin-top:1rem;">
-                                        <i class="fa fa-file-pdf-o" style="font-size:3rem;display:block;margin-bottom:0.7rem;color:#fbbf24;"/>
-                                        <h4>Chưa có preview PDF</h4>
-                                        <p>Bấm <b>"🔄 Cập nhật preview"</b> ở trên để generate file PDF báo giá đầy đủ trang (kết hợp template + data KH).</p>
-                                        <p class="text-muted"><small>File PDF giữ NGUYÊN 100% các trang của template (logo, ảnh, format) — chỉ trang BẢNG BÁO GIÁ CHI TIẾT thay data theo từng KH.</small></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4 nút: Xem PDF inline (toggle) / Tải PDF ngay / Lưu version / Chốt -->
+                        <!-- 3 nút: Xem file báo giá / Tải PDF / Lưu version / Chốt -->
                         <div class="o_vd_quote_actions">
-                            <button name="action_toggle_quote_preview" type="object"
-                                    class="btn btn-primary"
-                                    invisible="vd_quote_show_preview">
-                                <i class="fa fa-eye me-1"/>👁️ Xem PDF preview
-                            </button>
-                            <button name="action_toggle_quote_preview" type="object"
-                                    class="btn btn-secondary"
-                                    invisible="not vd_quote_show_preview">
-                                <i class="fa fa-eye-slash me-1"/>🙈 Ẩn PDF preview
-                            </button>
                             <button name="action_preview_quote_now" type="object"
-                                    class="btn btn-outline-primary"
+                                    class="btn btn-primary"
                                     title="Mở PDF trong tab mới (full screen)">
-                                <i class="fa fa-external-link me-1"/>↗️ Mở tab mới
+                                <i class="fa fa-external-link me-1"/>👁️ Xem file báo giá
                             </button>
                             <button name="action_download_quote_now" type="object"
                                     class="btn btn-success">

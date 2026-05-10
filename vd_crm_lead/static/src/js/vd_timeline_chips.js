@@ -73,8 +73,15 @@ export class VdTimelineChips extends Component {
         return this.selectedSet.size >= MAX_PICK;
     }
 
+    /** "Chưa xác định" mutex với mọi chip khác:
+     *  - Đã chọn "Chưa xác định" → các chip khác disable
+     *  - Đã chọn chip khác → "Chưa xác định" disable */
     isDisabled(label) {
-        return !this.isSelected(label) && this.isMaxed();
+        const sel = this.selectedSet;
+        if (this.isSelected(label)) return false;
+        if (label === "Chưa xác định" && sel.size > 0) return true;
+        if (label !== "Chưa xác định" && sel.has("Chưa xác định")) return true;
+        return this.isMaxed();
     }
 
     toggleOpen(ev) {

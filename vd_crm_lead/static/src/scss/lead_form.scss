@@ -1594,9 +1594,19 @@
     }
 }
 
-/* ============ BUTTON "Thông tin tư vấn" — TO, NỔI BẬT, ĐẶT CUỐI HÀNG META ============ */
+/* ============ BUTTON "Thông tin tư vấn" — TO, NỔI BẬT, ĐẶT CUỐI DÒNG TÊN KH ============ */
+.o_vd_summary_name {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+
+    > .o_field_widget {
+        flex: 0 1 auto;
+    }
+}
+.o_vd_summary_name,
 .o_vd_summary_meta {
-    /* Cho meta_item co lại để button đẩy về cuối hàng */
     align-items: center !important;
 
     .o_vd_open_intake_btn_main {
