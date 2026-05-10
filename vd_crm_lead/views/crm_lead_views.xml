@@ -245,6 +245,32 @@
                                     <span class="o_vd_val_empty" invisible="vd_intake_function">—</span>
                                 </div>
                             </div>
+
+                            <!-- ===== Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG ===== -->
+                            <div class="o_vd_call_stats_box">
+                                <div class="o_vd_call_stats_row">
+                                    <div class="o_vd_call_stat o_vd_call_stat_total">
+                                        <span class="o_vd_cs_lbl">📞 Tổng cuộc gọi</span>
+                                        <span class="o_vd_cs_val"><field name="call_count" readonly="1" nolabel="1"/></span>
+                                    </div>
+                                    <div class="o_vd_call_stat o_vd_call_stat_yes">
+                                        <span class="o_vd_cs_lbl">✅ Nghe máy</span>
+                                        <span class="o_vd_cs_val"><field name="vd_call_answered_count" readonly="1" nolabel="1"/></span>
+                                    </div>
+                                    <div class="o_vd_call_stat o_vd_call_stat_no">
+                                        <span class="o_vd_cs_lbl">❌ Không nghe</span>
+                                        <span class="o_vd_cs_val"><field name="vd_call_not_answered_count" readonly="1" nolabel="1"/></span>
+                                    </div>
+                                </div>
+                                <div class="o_vd_call_rating_row" invisible="not vd_lead_call_rating">
+                                    <span class="o_vd_cr_lbl">⭐ Đánh giá:</span>
+                                    <field name="vd_lead_call_rating" invisible="1"/>
+                                    <span class="o_vd_cr_badge o_vd_cr_high" invisible="vd_lead_call_rating != 'high'">🔥 Nghe máy cao</span>
+                                    <span class="o_vd_cr_badge o_vd_cr_low" invisible="vd_lead_call_rating != 'low'">⚖️ Nghe máy thấp</span>
+                                    <span class="o_vd_cr_badge o_vd_cr_none" invisible="vd_lead_call_rating != 'none'">🚫 Không nghe máy</span>
+                                    <span class="o_vd_cr_badge o_vd_cr_unreachable" invisible="vd_lead_call_rating != 'unreachable'">📵 Thuê bao</span>
+                                </div>
+                            </div>
                         </div>
                         <!-- Empty state -->
                         <div class="o_vd_summary_empty" invisible="vd_has_intake_data">
@@ -589,6 +615,12 @@
                                            placeholder="— Chọn từ danh sách —"/>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Bảng báo giá chi tiết (breakdown) — data từ Thông tin tư vấn -->
+                        <div class="o_vd_quote_breakdown_wrap">
+                            <field name="vd_quote_breakdown_html" widget="html"
+                                   readonly="1" nolabel="1" sanitize="false"/>
                         </div>
 
                         <!-- 3 nút: Xem file báo giá / Tải PDF / Lưu version / Chốt -->

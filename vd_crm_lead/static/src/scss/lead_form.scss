@@ -2102,6 +2102,94 @@
     }
 }
 
+/* ============ Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG ============ */
+.o_vd_call_stats_box {
+    margin: 0.7rem 0 0.4rem;
+    padding: 0.7rem 0.85rem;
+    background: linear-gradient(135deg, #eef5ff 0%, #f8fafd 100%);
+    border: 1px solid #c8dcf5;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(20, 30, 70, 0.05);
+}
+.o_vd_call_stats_row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+.o_vd_call_stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0.55rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(76, 110, 245, 0.18);
+
+    .o_vd_cs_lbl {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #5c7299;
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+    }
+    .o_vd_cs_val {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1864ab;
+        line-height: 1;
+        .o_field_widget { font-size: inherit; font-weight: inherit; color: inherit; }
+    }
+}
+.o_vd_call_stat_yes .o_vd_cs_val { color: #2b8a3e; }
+.o_vd_call_stat_no .o_vd_cs_val { color: #c92a2a; }
+
+.o_vd_call_rating_row {
+    margin-top: 0.55rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #c8dcf5;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    .o_vd_cr_lbl {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #495057;
+    }
+    .o_vd_cr_badge {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.2rem 0.7rem;
+        border-radius: 999px;
+    }
+    .o_vd_cr_high {
+        background: linear-gradient(135deg, #2b8a3e, #51cf66);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(43, 138, 62, 0.3);
+    }
+    .o_vd_cr_low {
+        background: linear-gradient(135deg, #f59f00, #fab005);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(245, 159, 0, 0.3);
+    }
+    .o_vd_cr_none {
+        background: linear-gradient(135deg, #c92a2a, #fa5252);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(201, 42, 42, 0.3);
+    }
+    .o_vd_cr_unreachable {
+        background: linear-gradient(135deg, #495057, #868e96);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(73, 80, 87, 0.3);
+    }
+}
+
+/* ============ BẢNG BREAKDOWN BÁO GIÁ (trong panel báo giá chi tiết) ============ */
+.o_vd_quote_breakdown_wrap {
+    margin: 0.6rem 0 0.8rem;
+    overflow-x: auto;
+}
+
 /* ============ SUMMARY HERO — CHI PHÍ BÁO GIÁ (2 dòng compact) ============ */
 .o_vd_hero_budget_sum {
     .o_vd_sum_budget_lines {

@@ -30,6 +30,46 @@ class CrmLead(models.Model):
     call_count = fields.Integer(string='Số lần gọi', default=0, readonly=True)
     call_ids = fields.One2many('stringee.call', 'lead_id', string='Lịch sử gọi')
 
+    # ===== Thống kê cuộc gọi + đánh giá KH tiềm năng =====
+    vd_call_answered_count = fields.Integer(
+        string='Số lần nghe máy', compute='_compute_call_stats', store=False,
+    )
+    vd_call_not_answered_count = fields.Integer(
+        string='Số lần không nghe', compute='_compute_call_stats', store=False,
+    )
+    vd_lead_call_rating = fields.Selection([
+        ('high', 'Nghe máy cao'),
+        ('low', 'Nghe máy thấp'),
+        ('none', 'Không nghe máy'),
+        ('unreachable', 'Thuê bao'),
+    ], string='Đánh giá KH tiềm năng', compute='_compute_call_stats', store=False)
+
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.duration', 'call_count')
+    def _compute_call_stats(self):
+        for rec in self:
+            answered = 0
+            not_answered = 0
+            unreachable = 0
+            for c in rec.call_ids:
+                if c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0):
+                    answered += 1
+                elif c.state in ('busy', 'failed'):
+                    unreachable += 1
+                else:
+                    not_answered += 1
+            rec.vd_call_answered_count = answered
+            rec.vd_call_not_answered_count = not_answered + unreachable
+
+            total = answered + not_answered + unreachable
+            if total == 0:
+                rec.vd_lead_call_rating = False
+            elif answered == 0 and unreachable >= max(1, total // 2):
+                rec.vd_lead_call_rating = 'unreachable'
+            elif answered == 0:
+                rec.vd_lead_call_rating = 'none'
+            else:
+                rec.vd_lead_call_rating = 'high' if (answered / total) >= 0.5 else 'low'
+
     # Live call indicator — computed (not stored), used by form to toggle
     # Gọi/Cúp máy buttons. Cheap query: looks for any non-terminal call.
     vd_active_call_id = fields.Many2one(
@@ -464,6 +504,92 @@ class CrmLead(models.Model):
         string='Preview báo giá (HTML)', compute='_compute_quote_preview_html',
         store=False, sanitize=False,
     )
+
+    # BẢNG BREAKDOWN — chỉ pricing table (Móng / Tầng trệt / Mái), nhúng trong quote panel
+    vd_quote_breakdown_html = fields.Html(
+        string='Bảng báo giá chi tiết (breakdown)',
+        compute='_compute_quote_breakdown_html',
+        store=False, sanitize=False,
+    )
+
+    @api.depends(
+        'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
+        'vd_intake_house_type', 'vd_intake_roof_type', 'vd_intake_region',
+        'vd_intake_car_access', 'vd_intake_estimate', 'vd_quote_price',
+    )
+    def _compute_quote_breakdown_html(self):
+        Pricing = self.env['vd.pricing']
+        for rec in self:
+            area = rec.vd_intake_area_m2 or 0
+            floors = rec.vd_intake_floors_num or 1.0
+            if not area:
+                rec.vd_quote_breakdown_html = (
+                    '<div style="padding:0.7rem;text-align:center;color:#868e96;'
+                    'background:#f8f9fa;border:1px dashed #ced4da;border-radius:6px;">'
+                    '<i>Chưa có dữ liệu — cần Diện tích, Số tầng, Loại móng để tính breakdown.</i></div>'
+                )
+                continue
+            pricing = Pricing.search([('code', '=', rec.vd_intake_region)], limit=1) if rec.vd_intake_region else None
+            if not pricing:
+                rec.vd_quote_breakdown_html = (
+                    '<div style="padding:0.7rem;text-align:center;color:#92400e;'
+                    'background:#fffbeb;border:1px dashed #fbbf24;border-radius:6px;">'
+                    '<i>Chưa cấu hình pricing region — bảng breakdown chưa hiển thị.</i></div>'
+                )
+                continue
+
+            san_unit = rec._get_san_unit_price(pricing, area, rec.vd_intake_car_access)
+            found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, area >= 70)
+            roof_pct = rec._get_roof_pct(pricing, rec.vd_intake_roof_type)
+            found_cost = area * (found_pct / 100.0) * san_unit
+            floor_cost = area * floors * san_unit
+            roof_cost = area * (roof_pct / 100.0) * san_unit
+            total = found_cost + floor_cost + roof_cost
+
+            found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
+                rec.vd_intake_foundation_type, 'Móng đơn'
+            ) or 'Móng'
+            roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
+                rec.vd_intake_roof_type, 'Mái'
+            ) or 'Mái'
+
+            def fmt(n):
+                return f'{n:,.0f}'.replace(',', '.')
+
+            rec.vd_quote_breakdown_html = f'''
+<table class="o_vd_quote_breakdown_tbl" style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:0.5rem 0;">
+    <thead>
+        <tr style="background:#5c8fb8;color:#fff;">
+            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
+            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
+            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
+            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
+            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {found_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(found_cost)} VNĐ</td>
+            <td rowspan="3" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;color:#1864ab;vertical-align:middle;">{fmt(total)} VNĐ</td>
+        </tr>
+        <tr>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt × {floors:g}</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f}</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(floor_cost)} VNĐ</td>
+        </tr>
+        <tr>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {roof_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(roof_cost)} VNĐ</td>
+        </tr>
+    </tbody>
+</table>
+'''.strip()
 
     # PREVIEW PDF — Binary field + widget="pdf_viewer" hiển thị inline
     # NV bấm "🔄 Cập nhật preview" → generate file → embed PDF reader
