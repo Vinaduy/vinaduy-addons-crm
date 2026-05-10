@@ -315,6 +315,13 @@
                                             <span class="o_vd_dims_unit">m²</span>
                                         </div>
                                     </div>
+                                    <!-- Tổng diện tích các tầng (sum) — hiện khi có data -->
+                                    <div class="o_vd_total_row" invisible="not vd_intake_total_m2">
+                                        <span class="o_vd_total_lbl">Tổng các tầng:</span>
+                                        <field name="vd_intake_total_m2" nolabel="1"
+                                               class="o_vd_total_value" readonly="1"/>
+                                        <span class="o_vd_total_unit">m²</span>
+                                    </div>
                                     <!-- Tech fields embedded — mỗi trường 1 dòng, sát nhau -->
                                     <div class="o_vd_hero_tech_list">
                                         <div class="o_vd_pf_compact">

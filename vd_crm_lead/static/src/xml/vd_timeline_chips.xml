@@ -2,21 +2,42 @@
 <templates xml:space="preserve">
 
     <t t-name="vd_crm_lead.VdTimelineChips">
-        <div class="o_vd_timeline_chips">
-            <t t-foreach="options" t-as="opt" t-key="opt">
-                <button type="button"
-                        class="o_vd_tl_chip"
-                        t-att-class="{
-                            'o_vd_tl_chip_active': isSelected(opt),
-                            'o_vd_tl_chip_disabled': isDisabled(opt),
-                        }"
-                        t-att-disabled="isDisabled(opt) ? 'disabled' : null"
-                        t-on-click.prevent.stop="() => this.onChipClick(opt)">
-                    <t t-esc="opt"/>
-                </button>
-            </t>
-            <div class="o_vd_tl_hint" t-if="isMaxed()">
-                <i class="fa fa-info-circle"/> Đã chọn tối đa 3 — bỏ chọn 1 thẻ để chọn thẻ khác.
+        <div class="o_vd_timeline_chips" t-ref="root" t-att-class="{ 'o_vd_tlc_open': state.open }">
+            <!-- Bar gọn: hiển thị chips đã chọn (hoặc placeholder) — bấm để mở danh sách -->
+            <div class="o_vd_tlc_bar" t-on-click.prevent.stop="toggleOpen">
+                <t t-if="selectedOrdered.length === 0">
+                    <span class="o_vd_tlc_placeholder">Bấm để chọn thời gian khởi công…</span>
+                </t>
+                <t t-else="">
+                    <t t-foreach="selectedOrdered" t-as="lbl" t-key="lbl">
+                        <span class="o_vd_tlc_pill">
+                            <t t-esc="lbl"/>
+                            <button type="button" class="o_vd_tlc_pill_x"
+                                    t-on-click.prevent.stop="(ev) => this.onRemoveSelected(lbl, ev)"
+                                    title="Bỏ chọn">×</button>
+                        </span>
+                    </t>
+                </t>
+                <i class="fa fa-caret-down o_vd_tlc_caret"/>
+            </div>
+
+            <!-- Dropdown panel: tất cả options, click để toggle -->
+            <div class="o_vd_tlc_dropdown" t-if="state.open">
+                <t t-foreach="options" t-as="opt" t-key="opt">
+                    <button type="button"
+                            class="o_vd_tl_chip"
+                            t-att-class="{
+                                'o_vd_tl_chip_active': isSelected(opt),
+                                'o_vd_tl_chip_disabled': isDisabled(opt),
+                            }"
+                            t-att-disabled="isDisabled(opt) ? 'disabled' : null"
+                            t-on-click.prevent.stop="(ev) => this.onChipClick(opt, ev)">
+                        <t t-esc="opt"/>
+                    </button>
+                </t>
+                <div class="o_vd_tl_hint" t-if="isMaxed()">
+                    <i class="fa fa-info-circle"/> Đã chọn tối đa 3 — bỏ chọn 1 thẻ để chọn thẻ khác.
+                </div>
             </div>
         </div>
     </t>

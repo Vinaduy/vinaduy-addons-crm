@@ -280,7 +280,6 @@ class CrmLead(models.Model):
         ('5', '5'),
         ('6', '6'),
         ('7', '7'),
-        ('tum', 'Tum (legacy)'),  # giữ cho backward compat, UI không show
     ], string='Số tầng',
         help='Chọn số tầng dạng thẻ (1-7). Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng. Tum là toggle riêng (vd_intake_has_tum).')
 
@@ -299,16 +298,23 @@ class CrmLead(models.Model):
     vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
     vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
 
-    @api.onchange('vd_intake_floors_select', 'vd_intake_has_tum')
+    @api.onchange('vd_intake_floors_select', 'vd_intake_has_tum', 'vd_intake_area_m2')
     def _onchange_floors_select(self):
-        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0, 'tum': 0.0}
+        mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0}
         base = mapping.get(self.vd_intake_floors_select, 0.0) if self.vd_intake_floors_select else 0.0
-        # Nếu select == 'tum' (legacy) → coi như 1 + tum
-        if self.vd_intake_floors_select == 'tum':
-            base = 1.0
-            self.vd_intake_has_tum = True
         if self.vd_intake_floors_select or self.vd_intake_has_tum:
             self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
+
+        # Auto-fill diện tích từng tầng từ L×R (chỉ điền nếu trường tầng đang trống)
+        area = self.vd_intake_area_m2 or 0.0
+        n = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
+        if area > 0:
+            for i in range(1, n + 1):
+                fname = f'vd_intake_floor_{i}_m2'
+                if not self[fname]:
+                    self[fname] = area
+            if self.vd_intake_has_tum and not self.vd_intake_floor_tum_m2:
+                self.vd_intake_floor_tum_m2 = area
 
     def action_toggle_tum(self):
         """Toggle tầng tum on/off (chip button)."""
@@ -318,7 +324,35 @@ class CrmLead(models.Model):
         mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0}
         base = mapping.get(self.vd_intake_floors_select, 0.0)
         self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
+        # Auto-fill tum area từ area_m2 nếu vừa bật
+        if self.vd_intake_has_tum and self.vd_intake_area_m2 and not self.vd_intake_floor_tum_m2:
+            self.vd_intake_floor_tum_m2 = self.vd_intake_area_m2
         return True
+
+    # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
+    vd_intake_total_m2 = fields.Float(
+        string='Tổng diện tích sàn',
+        digits=(10, 1),
+        compute='_compute_total_m2', store=True,
+        help='Sum of all floor m² inputs (Tầng 1..7 + Tum nếu có).',
+    )
+
+    @api.depends(
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2', 'vd_intake_has_tum', 'vd_intake_floor_tum_m2',
+    )
+    def _compute_total_m2(self):
+        for rec in self:
+            total = (
+                (rec.vd_intake_floor_1_m2 or 0) + (rec.vd_intake_floor_2_m2 or 0)
+                + (rec.vd_intake_floor_3_m2 or 0) + (rec.vd_intake_floor_4_m2 or 0)
+                + (rec.vd_intake_floor_5_m2 or 0) + (rec.vd_intake_floor_6_m2 or 0)
+                + (rec.vd_intake_floor_7_m2 or 0)
+            )
+            if rec.vd_intake_has_tum:
+                total += rec.vd_intake_floor_tum_m2 or 0
+            rec.vd_intake_total_m2 = total
     vd_intake_foundation_type = fields.Selection([
         ('don', 'Móng đơn'),
         ('bang', 'Móng băng'),

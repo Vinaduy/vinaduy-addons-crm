@@ -2026,13 +2026,13 @@
     > .o_field_widget {
         display: flex !important;
         flex-wrap: wrap !important;
-        gap: 0.35rem !important;
+        gap: 0.2rem !important;       /* sát hơn để 7 chips + Tum vừa 1 hàng */
     }
     /* Hỗ trợ cả wrapper class 'o_horizontal' / 'o_vertical' của Odoo */
     &, .o_horizontal, .o_vertical {
         display: flex !important;
         flex-wrap: wrap !important;
-        gap: 0.35rem !important;
+        gap: 0.2rem !important;
         flex-direction: row !important;
     }
     /* Mỗi option = 1 chip */
@@ -2050,21 +2050,23 @@
         width: 0;
         height: 0;
     }
-    /* Style label như chip pill — gọn */
+    /* Style label như chip pill — siêu gọn */
     label {
         display: inline-block !important;
-        padding: 0.18rem 0.7rem !important;       /* gọn hơn */
+        padding: 0.12rem 0.5rem !important;        /* nhỏ hơn nữa */
         margin: 0 !important;
         border: 1.5px solid #51cf66 !important;
         border-radius: 999px !important;
         background: rgba(255, 255, 255, 0.85) !important;
-        font-size: 0.78rem !important;
+        font-size: 0.76rem !important;
         font-weight: 600 !important;
         color: #0b5d1e !important;
         cursor: pointer !important;
         transition: all 0.15s ease !important;
         line-height: 1.2 !important;
         user-select: none;
+        min-width: 22px;
+        text-align: center;
     }
     label:hover {
         background: #51cf66 !important;
@@ -2094,17 +2096,17 @@
     gap: 0.05rem;          /* sát hơn (0.2→0.05) */
 }
 
-/* ===== TUM CHIP (toggle riêng cạnh chips Số tầng 1-7) ===== */
+/* ===== TUM CHIP (toggle riêng cạnh chips Số tầng 1-7) — match green theme ===== */
 .o_vd_tum_chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.18rem 0.7rem;
-    margin-left: 0.4rem;
-    border: 1.5px dashed #fab005;
+    padding: 0.15rem 0.6rem;
+    margin-left: 0.25rem;
+    border: 1.5px dashed #51cf66;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.7);
-    color: #8a5a00;
-    font-size: 0.78rem;
+    background: rgba(255, 255, 255, 0.85);
+    color: #0b5d1e;
+    font-size: 0.76rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -2112,21 +2114,49 @@
     white-space: nowrap;
 
     &:hover {
-        background: #ffe066;
-        color: #5c3700;
+        background: #51cf66;
+        color: #fff;
         border-style: solid;
         transform: translateY(-1px);
     }
 }
 .o_vd_tum_chip_active {
-    background: linear-gradient(135deg, #f59f00 0%, #fab005 100%) !important;
+    background: linear-gradient(135deg, #2b8a3e, #51cf66) !important;
     color: #fff !important;
-    border-color: #f59f00 !important;
+    border-color: #2b8a3e !important;
     border-style: solid !important;
-    box-shadow: 0 3px 10px rgba(245, 159, 0, 0.4) !important;
+    box-shadow: 0 3px 10px rgba(43, 138, 62, 0.3) !important;
     &:hover {
         color: #fff !important;
-        background: linear-gradient(135deg, #fab005 0%, #f59f00 100%) !important;
+    }
+}
+
+/* Tổng diện tích sàn row — hiển thị khi có per-floor input */
+.o_vd_total_row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    font-size: 0.85rem;
+
+    .o_vd_total_lbl {
+        font-weight: 600;
+        color: #0b5d1e;
+    }
+    .o_vd_total_value {
+        font-weight: 700;
+        color: #0b5d1e;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 0.15rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid #51cf66;
+        font-size: 0.95rem;
+    }
+    .o_vd_total_unit {
+        font-size: 0.8rem;
+        color: #495057;
     }
 }
 
@@ -2181,12 +2211,86 @@
     }
 }
 
-/* ===== TIMELINE CHIPS (multi-select max 3) ===== */
+/* ===== TIMELINE CHIPS (multi-select dropdown, max 3) ===== */
 .o_vd_timeline_chips {
+    position: relative;
+    width: 100%;
+}
+.o_vd_tlc_bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    padding: 0.2rem 0;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 32px;
+    padding: 0.3rem 1.7rem 0.3rem 0.55rem;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1.5px solid #b197fc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+
+    &:hover {
+        border-color: #845ef7;
+        background: #fff;
+    }
+    .o_vd_tlc_placeholder {
+        color: #adb5bd;
+        font-style: italic;
+        font-size: 0.78rem;
+        font-weight: 400;
+    }
+    .o_vd_tlc_caret {
+        position: absolute;
+        right: 0.55rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #845ef7;
+        font-size: 0.85rem;
+        transition: transform 0.15s ease;
+    }
+}
+.o_vd_tlc_open .o_vd_tlc_bar .o_vd_tlc_caret {
+    transform: translateY(-50%) rotate(180deg);
+}
+.o_vd_tlc_pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.12rem 0.4rem 0.12rem 0.55rem;
+    background: linear-gradient(135deg, #5f3dc4, #845ef7);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    .o_vd_tlc_pill_x {
+        all: unset;
+        cursor: pointer;
+        font-size: 0.95rem;
+        line-height: 1;
+        padding: 0 0.18rem;
+        opacity: 0.85;
+        &:hover { opacity: 1; color: #ffd6d6; }
+    }
+}
+.o_vd_tlc_dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #b197fc;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(76, 110, 245, 0.18);
+    padding: 0.55rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    max-height: 260px;
+    overflow-y: auto;
+    animation: vd-popup-fade-in 0.15s ease-out;
 }
 .o_vd_tl_chip {
     display: inline-block;

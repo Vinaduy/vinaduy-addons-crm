@@ -1,15 +1,16 @@
 /** @odoo-module **/
 /**
- * Multi-select chip widget cho "Thời gian khởi công".
+ * Multi-select chip widget cho "Thời gian khởi công" — DROPDOWN style.
  * Stored value: Char field — comma-separated DISPLAY LABELS.
  * Vd: "Tháng 6/2026,Đầu 2027"
  *
+ * Mặc định: Hiển thị bar gọn (chỉ chips đã chọn). Click bar → mở danh sách.
  * Max 3 chips. Click chip = toggle.
  *
  * Dùng: <field name="vd_intake_timeline" widget="vd_timeline_chips"/>
  */
 
-import { Component, useState } from "@odoo/owl";
+import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
@@ -37,7 +38,15 @@ export class VdTimelineChips extends Component {
     static props = { ...standardFieldProps };
 
     setup() {
-        this.state = useState({});
+        this.state = useState({ open: false });
+        this.rootRef = useRef("root");
+        this._onDocClick = (ev) => {
+            if (this.rootRef.el && !this.rootRef.el.contains(ev.target)) {
+                this.state.open = false;
+            }
+        };
+        onMounted(() => document.addEventListener("click", this._onDocClick, true));
+        onWillUnmount(() => document.removeEventListener("click", this._onDocClick, true));
     }
 
     get options() {
@@ -49,6 +58,11 @@ export class VdTimelineChips extends Component {
         return new Set(
             raw.split(SEP).map((s) => s.trim()).filter((s) => s.length > 0)
         );
+    }
+
+    get selectedOrdered() {
+        const sel = this.selectedSet;
+        return TIMELINE_OPTIONS.filter((o) => sel.has(o));
     }
 
     isSelected(label) {
@@ -63,7 +77,13 @@ export class VdTimelineChips extends Component {
         return !this.isSelected(label) && this.isMaxed();
     }
 
-    onChipClick(label) {
+    toggleOpen(ev) {
+        ev.stopPropagation();
+        this.state.open = !this.state.open;
+    }
+
+    onChipClick(label, ev) {
+        ev.stopPropagation();
         const sel = this.selectedSet;
         if (sel.has(label)) {
             sel.delete(label);
@@ -73,7 +93,14 @@ export class VdTimelineChips extends Component {
             }
             sel.add(label);
         }
-        // Sort selected theo thứ tự xuất hiện trong TIMELINE_OPTIONS để output ổn định
+        const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
+        this.props.record.update({ [this.props.name]: ordered.join(SEP) });
+    }
+
+    onRemoveSelected(label, ev) {
+        ev.stopPropagation();
+        const sel = this.selectedSet;
+        sel.delete(label);
         const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
         this.props.record.update({ [this.props.name]: ordered.join(SEP) });
     }
@@ -81,7 +108,7 @@ export class VdTimelineChips extends Component {
 
 export const vdTimelineChipsField = {
     component: VdTimelineChips,
-    displayName: "Thời gian khởi công (chip multi-select)",
+    displayName: "Thời gian khởi công (chip multi-select dropdown)",
     supportedTypes: ["char"],
 };
 
