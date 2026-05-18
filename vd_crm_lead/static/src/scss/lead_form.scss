@@ -133,6 +133,137 @@
         color: #5c3700;
         b { color: #c92a2a; }
     }
+
+    /* ===== Section title chung cho các block trong negotiate panel ===== */
+    .o_vd_nego_section_title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #92400e;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 0.45rem;
+        display: flex;
+        align-items: center;
+        i.fa { color: #f59e0b; margin-right: 0.3rem; }
+    }
+
+    /* ===== CHECKLIST tiến độ ===== */
+    .o_vd_nego_checklist {
+        margin: 0.85rem 1rem 0;
+        padding: 0.7rem 0.9rem;
+        background: #fff;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+
+        .o_vd_nego_chk_grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.35rem 1rem;
+        }
+
+        .o_vd_nego_chk_item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            font-size: 0.85rem;
+            color: #1f2a44;
+            cursor: pointer;
+            padding: 0.25rem 0.4rem;
+            border-radius: 6px;
+            transition: background 0.15s ease;
+            &:hover { background: #fffbeb; }
+
+            input[type="checkbox"] {
+                margin: 0;
+                width: 16px;
+                height: 16px;
+                accent-color: #2b8a3e;
+                cursor: pointer;
+            }
+
+            &.o_vd_nego_chk_final {
+                grid-column: 1 / -1;
+                background: #d3f9d8;
+                border: 1px solid #51cf66;
+                font-weight: 700;
+                color: #2b8a3e;
+                padding: 0.4rem 0.55rem;
+                &:hover { background: #b2f2bb; }
+            }
+        }
+    }
+
+    /* ===== GHI CHÚ ĐÀM PHÁN ===== */
+    .o_vd_nego_notes_wrap {
+        margin: 0.7rem 1rem 0;
+        padding: 0.7rem 0.9rem;
+        background: #fff;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+
+        textarea.o_input {
+            width: 100% !important;
+            min-height: 60px !important;
+            padding: 0.45rem 0.6rem !important;
+            font-size: 0.85rem !important;
+            border: 1px solid #fcd34d !important;
+            border-radius: 6px !important;
+            background: #fffef5 !important;
+            &:focus { border-color: #f59e0b !important; outline: none !important; }
+        }
+    }
+
+    /* ===== TIPS COLLAPSIBLE ===== */
+    .o_vd_nego_tips {
+        margin: 0.7rem 1rem 0;
+        padding: 0;
+        background: rgba(245,158,11,0.07);
+        border-left: 3px solid #fcd34d;
+        border-radius: 6px;
+        font-size: 0.85rem;
+
+        summary {
+            padding: 0.5rem 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #92400e;
+            list-style: none;
+            -webkit-user-select: none;
+            user-select: none;
+            &:hover { background: rgba(245,158,11,0.12); }
+            &::-webkit-details-marker { display: none; }
+            &::before {
+                content: '▶';
+                display: inline-block;
+                margin-right: 0.4rem;
+                font-size: 0.7rem;
+                transition: transform 0.15s ease;
+            }
+        }
+        &[open] summary::before { transform: rotate(90deg); }
+
+        .o_vd_nego_tips_body {
+            padding: 0.3rem 0.8rem 0.7rem;
+            ul {
+                margin: 0; padding-left: 1.2rem;
+                li { margin-bottom: 0.35rem; line-height: 1.45; color: #5c3700; }
+                b { color: #c92a2a; }
+            }
+        }
+    }
+
+    /* Callback label inline với buttons */
+    .o_vd_nego_callback_lbl {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #92400e;
+        margin-right: 0.3rem;
+        margin-left: 0.5rem;
+    }
+    .o_vd_nego_sign_btn {
+        margin-left: auto;
+    }
     .o_vd_nego_actions {
         margin: 0.85rem 1rem 1rem;
         padding: 0.7rem 0.9rem;
@@ -1525,45 +1656,162 @@
     }
 }
 
-/* ===== 2-COLUMN LAYOUT (50/50 cố định, responsive) =====
-   LEFT: BẢNG CHÍNH = THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT (gộp vào 1 panel)
-   RIGHT: ĐÀM PHÁN + HỢP ĐỒNG (xếp dọc)
-   Mobile/tablet (<992px): tự stack dọc full-width.
-*/
-.o_vd_layout_grid {
-    display: block; /* fallback cho mobile */
-    width: 100%;
-}
+/* ===== COMPACT AUDIO PILL — nút play tròn + duration mm:ss + link download ===== */
+.o_vd_audio_pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem 0.25rem 0.3rem;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    min-width: 100px;
+    transition: all 0.15s ease;
 
-.o_vd_layout_left,
-.o_vd_layout_right {
-    display: block;
-    width: 100%;
-}
-
-@media (min-width: 992px) {
-    /* Tablet+ desktop: chia 2 cột 50/50 cố định */
-    .o_vd_layout_grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 1rem;
-        align-items: start;
+    &.o_vd_audio_pill_playing {
+        background: #dbeafe;
+        border-color: #93c5fd;
+        box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.25);
     }
-    .o_vd_layout_left,
-    .o_vd_layout_right {
-        min-width: 0;       /* tránh overflow grid item */
-        max-width: 100%;
+
+    .o_vd_audio_play_btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #1e3a8a;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 0.78rem;
+        line-height: 1;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+        &:active {
+            transform: scale(0.95);
+        }
+        i.fa-play {
+            margin-left: 2px;  /* visual center của icon play */
+        }
+    }
+
+    .o_vd_audio_time {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #1e3a8a;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .o_vd_audio_dl_link {
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.78rem;
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+        line-height: 1;
+        transition: all 0.15s ease;
+        margin-left: 0.15rem;
+
+        &:hover {
+            color: #1971c2;
+            background: rgba(25, 113, 194, 0.1);
+        }
     }
 }
 
-/* Override CSS cũ — full width trong cột chứa */
-.o_vd_layout_left .o_vd_summary_card,
-.o_vd_layout_left .o_vd_quote_panel,
+/* ===== FIT TOÀN TRANG — sheet full-width tới sát LỀ PHẢI ===== */
+/* 1. Nuke mọi max-width/padding của Odoo form wrappers cho lead form */
+.o_form_view .o_form_sheet_bg,
+.o_action_manager .o_form_view .o_form_sheet_bg {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin: 0 !important;
+}
+.o_form_view .o_form_sheet,
+.o_action_manager .o_form_view .o_form_sheet {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0.75rem !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* 2. Grid 2-col CHIA ĐỀU 50/50 — LEFT (KH + Báo giá) | RIGHT (Đàm phán + HĐ) */
+div.o_vd_layout_grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 1rem !important;
+    align-items: start !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 3. Đàm phán + Hợp đồng — sát LỀ PHẢI tuyệt đối, không bị margin của panel chặn */
 .o_vd_layout_right .o_vd_negotiate_panel,
 .o_vd_layout_right .o_vd_contract_panel {
-    display: block;
-    width: 100%;
-    max-width: 100%;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* 4. RIGHT col sticky — đàm phán/hợp đồng dính top khi scroll left content dài */
+@media (min-width: 992px) {
+    div.o_vd_layout_right {
+        position: sticky !important;
+        top: 0.5rem !important;
+        align-self: start !important;
+    }
+}
+div.o_vd_layout_left,
+div.o_vd_layout_right {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+/* Panel chính — fit cell, không center auto */
+.o_vd_main_panel,
+.o_vd_quote_panel,
+.o_vd_negotiate_panel,
+.o_vd_contract_panel {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    float: none !important;
+    clear: both !important;
+}
+
+/* LEFT cell: panel sát lề TRÁI */
+.o_vd_layout_left .o_vd_main_panel {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+/* RIGHT cell: panel sát lề PHẢI */
+.o_vd_layout_right .o_vd_negotiate_panel,
+.o_vd_layout_right .o_vd_contract_panel {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Summary card bên trong main_panel — không constrain */
+.o_vd_main_panel .o_vd_summary_card {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* ===== BẢNG CHÍNH — gộp summary + quote thành 1 visual panel =====
@@ -1595,8 +1843,9 @@
         transform: none !important;
         box-shadow: none !important;
     }
-    /* Divider mờ giữa 2 section */
-    .o_vd_summary_card + .o_vd_quote_panel {
+    /* Divider mờ ở TOP của quote_panel (luôn fire vì có thể bị chen
+       bởi các div khác giữa summary_card và quote_panel) */
+    .o_vd_quote_panel {
         border-top: 1px dashed #e3e8ef !important;
     }
 }
@@ -1668,23 +1917,134 @@
     flex-wrap: wrap;
     gap: 0.6rem;
 }
+
+/* ============ BUTTON "Hẹn ngày gọi lại" — pill xanh dương nhạt ============
+   Đặt cạnh "KH không có nhu cầu" trong customer header, đồng bộ pill style
+   nhưng dùng tone xanh dương (action positive — schedule), không đỏ. */
+.o_vd_wf_btn_callback {
+    margin-left: auto !important;        /* tự đẩy phải nếu là btn cuối */
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    color: #1864ab !important;
+    border: 1px solid #d0e3ff !important;
+    background: #f0f7ff !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    padding: 0.28rem 0.75rem !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    transition: color 0.15s ease, background 0.15s ease,
+                border-color 0.15s ease, transform 0.12s ease;
+
+    i.fa {
+        font-size: 0.88rem !important;
+        color: inherit !important;
+        margin: 0 !important;
+    }
+
+    .o_vd_wf_btn_callback_lbl {
+        font-weight: 600;
+    }
+
+    /* Chip ngày hiển thị bên phải khi đã có callback_date */
+    .o_vd_wf_callback_chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.08rem 0.45rem;
+        margin-left: 0.15rem;
+        background: #1864ab;
+        color: #fff !important;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        line-height: 1.3;
+
+        /* Field readonly bên trong chip: bỏ mọi style mặc định */
+        .o_field_widget,
+        .o_field_widget > * {
+            background: transparent !important;
+            color: inherit !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+        }
+    }
+
+    &:hover,
+    &:focus {
+        color: #fff !important;
+        background: #1864ab !important;
+        border-color: #1864ab !important;
+        outline: none !important;
+        box-shadow: 0 2px 6px rgba(24, 100, 171, 0.25) !important;
+        transform: translateY(-1px);
+
+        .o_vd_wf_callback_chip {
+            background: #fff;
+            color: #1864ab !important;
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: none !important;
+    }
+}
+
+/* Khi có cả 2 btn (callback + no-demand) thì callback đứng trước, không đẩy phải */
+.o_vd_summary_meta .o_vd_wf_btn_callback + .o_vd_wf_btn_no_demand,
+.o_vd_summary_meta .o_vd_wf_btn_callback {
+    margin-left: auto !important;
+}
+.o_vd_summary_meta .o_vd_wf_btn_callback ~ .o_vd_wf_btn_no_demand {
+    margin-left: 0 !important;        /* btn no-demand đi sát callback */
+}
 .o_vd_wf_btn_no_demand {
     margin-left: auto !important;        /* đẩy về góc phải */
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
     color: #868e96 !important;
-    border-color: #ced4da !important;
-    background: #fff !important;
-    font-size: 0.82rem !important;
-    padding: 0.32rem 0.85rem !important;
-    border-radius: 6px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    padding: 0.28rem 0.7rem !important;
+    border-radius: 999px !important;     /* pill shape */
     box-shadow: none !important;
-    opacity: 0.85;
-    transition: all 0.15s ease;
+    line-height: 1.2 !important;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 
-    &:hover {
-        opacity: 1;
+    i.fa {
+        font-size: 0.85rem !important;
+        color: inherit !important;
+        margin: 0 !important;
+        opacity: 0.85;
+    }
+
+    &:hover,
+    &:focus {
         color: #c92a2a !important;
-        border-color: #fa5252 !important;
         background: #fff5f5 !important;
+        border-color: #ffd6d6 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        i.fa { opacity: 1; }
+    }
+
+    &:active {
+        background: #ffe3e3 !important;
+        border-color: #ffa8a8 !important;
+        color: #a51111 !important;
     }
 }
 
@@ -1713,23 +2073,22 @@
 
     .o_vd_intake_popup_panel {
         position: absolute;
-        /* 3 cạnh trên/phải/dưới CHẠM mép trình duyệt; mép trái giữ vị trí cũ
-           (left = 100vw - width 45vw - margin 2.5vw = 52.5vw). */
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 52.5vw;
-        width: auto;
-        max-width: none;
-        height: 100vh;
-        max-height: 100vh;
+        /* Popup nửa màn hình (50vw) anchor PHẢI. FAB ngoài popup BỊ CHE — nhưng
+           popup có nút CÚP MÁY riêng trong header (xem o_vd_popup_hangup_btn)
+           nên NV không cần đóng popup mới end-call được. */
+        top: 4vh;
+        right: 1.5vw;
+        bottom: auto;
+        left: auto;
+        width: 50vw;
+        max-width: 50vw;
+        min-width: 720px;
+        height: auto;
+        max-height: 96vh;
         background: #fff;
-        /* Bỏ border 3 cạnh chạm mép, chỉ giữ border trái */
-        border: none;
-        border-left: 1px solid #d8e2f0;
-        /* Bo góc chỉ bên trái */
-        border-radius: 14px 0 0 14px;
-        box-shadow: -8px 0 32px -4px rgba(15, 23, 42, 0.25);
+        border: 1px solid #d8e2f0;
+        border-radius: 14px;
+        box-shadow: -8px 8px 32px -4px rgba(15, 23, 42, 0.25);
         overflow: hidden;
         padding: 0;
         pointer-events: auto;
@@ -1765,6 +2124,47 @@
     }
 }
 
+/* Wrapper actions ở góc phải header: chứa nút Cúp máy + X đóng */
+.o_vd_popup_header .o_vd_popup_header_actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 0 0 auto;
+}
+
+/* Nút CÚP MÁY trong popup header — đỏ, nổi bật, chỉ hiện khi vd_in_call */
+.o_vd_popup_hangup_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border: 1.5px solid #fff;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fa5252 0%, #ff6b6b 100%);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-shadow: 0 2px 8px rgba(201, 42, 42, 0.4);
+    line-height: 1.2;
+    white-space: nowrap;
+
+    i.fa {
+        font-size: 0.95rem;
+        transform: rotate(135deg);  /* phone xoay 135° → trông như đang cúp */
+    }
+
+    &:hover {
+        background: linear-gradient(135deg, #e03131 0%, #fa5252 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(201, 42, 42, 0.55);
+    }
+    &:active {
+        transform: translateY(0);
+    }
+}
+
 /* Nút X — nằm trong header, không floating nữa */
 .o_vd_popup_header .o_vd_popup_close_btn {
     position: static;
@@ -1795,7 +2195,7 @@
     flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1rem 1.25rem;
+    padding: 0.55rem 0.9rem;
 }
 
 /* ============ POPUP FOOTER (sticky bottom-right) ============ */
@@ -1827,14 +2227,16 @@
 /* Mobile / tablet: popup chiếm gần full màn hình */
 @media (max-width: 991px) {
     .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 8vw;
+        top: 2vh;
+        right: 2vw;
+        bottom: auto;
+        left: 2vw;
         width: auto;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 14px 0 0 14px;
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        max-height: 96vh;
+        border-radius: 14px;
     }
 }
 
@@ -1897,12 +2299,12 @@
         letter-spacing: 0.5px !important;
     }
 
-    /* ===== Tech list trong card Diện tích — mỗi trường 1 dòng, SÁT NHAU ===== */
+    /* ===== Tech list trong card Diện tích — 2 trường/dòng (Móng | Kiểu nhà) ===== */
     .o_vd_hero_tech_list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;                  /* sát hơn (0.25→0.1) */
-        margin-top: 0.35rem;          /* gọn hơn (0.55→0.35) */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.25rem 0.6rem;
+        margin-top: 0.35rem;
         padding-top: 0.35rem;
         border-top: 1px dashed rgba(0, 0, 0, 0.12);
     }
@@ -1913,8 +2315,9 @@
         padding: 0.05rem 0 !important; /* sát hơn (0.15→0.05) */
 
         > label {
-            flex: 0 0 80px !important;
-            max-width: 80px !important;
+            flex: 0 0 auto !important;          /* width tự co theo text */
+            max-width: none !important;
+            white-space: nowrap !important;     /* KHÔNG cho xuống dòng */
             font-size: 0.76rem !important;
             font-weight: 600 !important;
             color: rgba(0, 0, 0, 0.7) !important;
@@ -1950,9 +2353,15 @@
         margin-bottom: 0 !important;
     }
 
-    /* Main fields: 1 cột full width, input giãn theo popup */
+    /* Geo fields: 2 cột (Ô tô | Tỉnh, Huyện | Loại đất, Sổ đỏ | Công năng).
+       Ghi chú (textarea) span full width nhờ .o_vd_pf_notes. */
     .o_vd_pf_grid {
-        display: block !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.3rem 0.8rem !important;
+    }
+    .o_vd_pf_grid .o_vd_pf_notes {
+        grid-column: 1 / -1 !important;
     }
     .o_vd_pf {
         display: flex !important;
@@ -1963,8 +2372,10 @@
         gap: 0.55rem !important;
     }
     .o_vd_pf > label {
-        flex: 0 0 130px !important;
-        max-width: 130px !important;
+        flex: 0 0 auto !important;          /* width tự co theo text */
+        max-width: none !important;
+        white-space: nowrap !important;     /* KHÔNG cho xuống dòng */
+        padding-right: 0.35rem;
     }
     .o_vd_pf > .o_field_widget,
     .o_vd_pf > .o_field_widget input,
@@ -1996,6 +2407,14 @@
         .o_vd_pf_compact > label {
             flex: 0 0 100px !important;
             max-width: 100px !important;
+        }
+        /* Fallback: grid về 1 cột để tránh chật trên mobile */
+        .o_vd_hero_tech_list,
+        .o_vd_pf_grid {
+            grid-template-columns: 1fr !important;
+        }
+        .o_vd_floor_area_list {
+            grid-template-columns: 1fr 1fr !important;
         }
     }
 }
@@ -2123,6 +2542,15 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.4rem 1.1rem;            /* dải đều inline */
+
+    /* Nút Lịch sử cuộc gọi đẩy về cuối row, sát mép phải */
+    > .o_vd_cr_history_btn {
+        margin-left: auto;
+        font-size: 0.78rem;
+        padding: 0.25rem 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 }
 .o_vd_call_stat {
     display: inline-flex;
@@ -2151,13 +2579,40 @@
 .o_vd_call_stat_yes .o_vd_cs_val { color: #2b8a3e; }
 .o_vd_call_stat_no .o_vd_cs_val { color: #c92a2a; }
 
+/* Box bao ngoài: dùng flex row để stats + rating + history button đều 1 dòng */
+.o_vd_call_stats_box {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1rem;
+}
+.o_vd_call_stats_box > .o_vd_call_stats_row {
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.o_vd_call_stats_box > .o_vd_call_rating_row {
+    flex: 0 0 auto;     /* không stretch, fit content */
+}
+
 .o_vd_call_rating_row {
-    margin-top: 0.55rem;
-    padding-top: 0.5rem;
-    border-top: 1px dashed #c8dcf5;
-    display: flex;
+    /* Bỏ border-top + padding-top → inline với stats row, không xuống dòng riêng */
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+    display: inline-flex;
     align-items: center;
     gap: 0.55rem;
+    flex-wrap: nowrap;
+
+    /* Nút Lịch sử cuộc gọi — đẩy về cuối row */
+    .o_vd_cr_history_btn {
+        margin-left: auto;
+        font-size: 0.78rem;
+        padding: 0.25rem 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
     .o_vd_cr_lbl {
         font-size: 0.78rem;
@@ -2214,11 +2669,12 @@
         line-height: 1.2;
     }
     .o_vd_sum_budget_lbl {
-        flex: 0 0 70px;
+        flex: 0 0 auto;          /* Fit content width — không bị giới hạn 70px gây wrap */
         font-size: 0.7rem;
         font-weight: 600;
         color: #5c3700;
         opacity: 0.85;
+        white-space: nowrap;      /* "PM tính:" + "NS dự kiến:" không xuống dòng */
     }
     .o_vd_sum_budget_val {
         flex: 1 1 auto;
@@ -2299,14 +2755,311 @@
     }
 }
 
-/* Per-floor area list — mỗi tầng 1 dòng, SÁT NHAU */
+/* Per-floor area list — 3 tầng/dòng (Tầng 1 | Tầng 2 | Tầng 3, ...) */
 .o_vd_floor_area_list {
     margin-top: 0.2rem;
     padding-top: 0.25rem;
     border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.2rem 0.6rem;
+}
+
+/* ============ ⚠️ DUPLICATE PHONE WARNING BANNER ============
+   Cảnh báo trùng SĐT — hiện top form, pulse nhẹ thu hút sự chú ý. */
+.o_vd_dup_warn_banner {
     display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    margin: 0 0 0.85rem 0;
+    background: linear-gradient(135deg, #fff8e1 0%, #fff3bf 100%);
+    border: 2px solid #fab005;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(250, 176, 5, 0.2);
+    animation: vd-dup-warn-pulse 2.4s ease-in-out infinite;
+
+    .o_vd_dup_warn_icon {
+        font-size: 1.6rem;
+        flex: 0 0 auto;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+    }
+    .o_vd_dup_warn_content {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .o_vd_dup_warn_title {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #856404;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.15rem;
+    }
+    .o_vd_dup_warn_msg {
+        font-size: 0.88rem;
+        color: #5c3700;
+        line-height: 1.4;
+        strong {
+            font-size: 1rem;
+            color: #c92a2a;
+            font-weight: 800;
+        }
+        .o_field_widget {
+            display: inline;
+            font-weight: 800;
+            color: #c92a2a;
+        }
+    }
+    .o_vd_dup_warn_actions {
+        flex: 0 0 auto;
+        display: flex;
+        gap: 0.4rem;
+
+        .btn {
+            font-size: 0.82rem;
+            padding: 0.35rem 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    }
+}
+@keyframes vd-dup-warn-pulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(250, 176, 5, 0.2); }
+    50%      { box-shadow: 0 2px 16px 2px rgba(250, 176, 5, 0.4); }
+}
+
+/* Rainbow Man notification — chữ to + rộng + dễ đọc */
+.o_reward,
+.o_reward_msg,
+.o_legacy_reward {
+    .o_reward_msg_content,
+    .o_reward_msg,
+    p {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+        max-width: 360px !important;
+        padding: 12px 16px !important;
+        color: #1f2a44 !important;
+    }
+    .o_reward_subtitle {
+        font-size: 1rem !important;
+    }
+}
+/* Bootstrap toast inside rainbow */
+.o_reward .toast-body,
+.o_reward .o_legacy_reward_msg {
+    font-size: 1.1rem !important;
+    line-height: 1.55 !important;
+    padding: 14px 18px !important;
+    max-width: 380px !important;
+    color: #1f2a44 !important;
+}
+
+/* Display công năng — KHÔNG có CSS override, dùng pure inline style
+   trong compute HTML. Section wrapper nhỏ gọn. */
+.o_vd_floor_functions_section {
+    width: 100% !important;
+
+    /* HTML field widget: bỏ wrapper margin/padding mặc định */
+    .o_field_widget[name='vd_intake_floor_functions_html'] {
+        width: 100% !important;
+        > * {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+    }
+}
+
+/* Row chứa display công năng — OVERRIDE constraints của parent
+   .o_vd_row_inline (overflow:hidden + flex-wrap:nowrap) +
+   span full width của grid 3 cột → display có đủ chỗ render tag.
+   Label trên, display full width dưới. */
+.o_vd_floor_func_display_row {
+    flex-direction: column !important;
+    flex-wrap: wrap !important;          /* override nowrap */
+    align-items: stretch !important;
+    gap: 0.15rem !important;
+    overflow: visible !important;        /* override hidden — không cắt chữ */
+    grid-column: 1 / -1 !important;      /* span full 3 cột của grid_inline */
+    width: 100% !important;
+
+    .o_vd_lbl {
+        flex: 0 0 auto;
+        margin-bottom: 0.1rem;
+    }
+    .o_field_widget[name='vd_intake_floor_functions_html'] {
+        flex: 1 1 auto;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        > * {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            overflow: visible !important;
+        }
+    }
+}
+
+/* ===== Công năng từng tầng — m2m dropdown đẹp + gọn =====
+   Mỗi tầng = 1 row inline ngang:
+     [T1 (circle pill nhỏ)] [m2m_tags chip pills...]
+   Khi chưa có tag → input ngang full width
+   Khi có tag → chip pills wrap tự nhiên trong cùng row
+   Padding cực gọn để giảm chiều cao tối đa. */
+.o_vd_floor_function_list {
+    margin-top: 0.3rem !important;
+    padding: 0.4rem 0.55rem 0.5rem !important;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e7f5ff 100%);
+    border: 1px solid #d0e3ff;
+    border-radius: 8px;
+    grid-column: 1 / -1;
+    display: flex !important;
     flex-direction: column;
-    gap: 0.05rem;          /* sát hơn (0.2→0.05) */
+    gap: 0.15rem;
+
+    .o_vd_floor_function_lbl {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #1864ab;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+        padding: 0;
+        text-align: left;
+        opacity: 0.85;
+    }
+
+    /* 2 cột — 2 tầng / dòng. Căn trái (justify-content: start) chứ KHÔNG center. */
+    .o_vd_floor_function_grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.2rem 0.45rem;
+        justify-content: start;
+        align-items: start;
+    }
+
+    .o_vd_floor_function_row {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0;
+        min-height: 0;
+        background: #fff;
+        border: 1px solid #e0ebff;
+        border-radius: 6px;
+        padding: 0.12rem 0.35rem 0.12rem 0.12rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+        &:hover, &:focus-within {
+            border-color: #74c0fc;
+            box-shadow: 0 0 0 2px rgba(116, 192, 252, 0.15);
+        }
+
+        /* Label tròn nhỏ "T1", "T2"... ngắn gọn */
+        .o_vd_floor_function_tag {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 22px;
+            padding: 0 0.45rem;
+            background: linear-gradient(135deg, #1864ab 0%, #339af0 100%);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            border-radius: 999px;
+            line-height: 1;
+            margin: 0;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(24, 100, 171, 0.25);
+
+            &.o_vd_tag_tum {
+                background: linear-gradient(135deg, #2b8a3e 0%, #51cf66 100%);
+                box-shadow: 0 1px 2px rgba(43, 138, 62, 0.25);
+            }
+        }
+
+        /* ===== Color palette override — pastel mềm, contrast cao, dễ đọc =====
+           Override Odoo's default tag colors (quá đậm + chữ trắng khó nhìn). */
+        .o_tag.o_tag_color_0,  .badge.o_tag_color_0  { background:#f1f3f5 !important; color:#212529 !important; }
+        .o_tag.o_tag_color_1,  .badge.o_tag_color_1  { background:#ffe3e3 !important; color:#c92a2a !important; }
+        .o_tag.o_tag_color_2,  .badge.o_tag_color_2  { background:#ffe8cc !important; color:#d9480f !important; }
+        .o_tag.o_tag_color_3,  .badge.o_tag_color_3  { background:#fff3bf !important; color:#856404 !important; }
+        .o_tag.o_tag_color_4,  .badge.o_tag_color_4  { background:#d0ebff !important; color:#1864ab !important; }
+        .o_tag.o_tag_color_5,  .badge.o_tag_color_5  { background:#e5dbff !important; color:#5f3dc4 !important; }
+        .o_tag.o_tag_color_6,  .badge.o_tag_color_6  { background:#fcc2d7 !important; color:#a61e4d !important; }
+        .o_tag.o_tag_color_7,  .badge.o_tag_color_7  { background:#eebefa !important; color:#862e9c !important; }
+        .o_tag.o_tag_color_8,  .badge.o_tag_color_8  { background:#d0e3ff !important; color:#364fc7 !important; }
+        .o_tag.o_tag_color_9,  .badge.o_tag_color_9  { background:#d3f9d8 !important; color:#2b8a3e !important; }
+        .o_tag.o_tag_color_10, .badge.o_tag_color_10 { background:#c5f6fa !important; color:#0c8599 !important; }
+        .o_tag.o_tag_color_11, .badge.o_tag_color_11 { background:#dee2e6 !important; color:#343a40 !important; }
+
+        /* Many2many tags widget: inline chip pills, no border, gọn */
+        .o_field_many2many_tags,
+        .o_field_widget[name$="_function_ids"] {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0 !important;
+
+            /* Wrapper container */
+            > div, > .o_input_dropdown {
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                min-height: 22px !important;
+                box-shadow: none !important;
+                outline: none !important;
+            }
+
+            /* Individual chip pills */
+            .o_tag,
+            .badge {
+                font-size: 0.72rem !important;
+                padding: 0.08rem 0.5rem 0.08rem 0.55rem !important;
+                line-height: 1.25 !important;
+                border-radius: 999px !important;
+                margin: 0.08rem 0.15rem 0.08rem 0 !important;
+                font-weight: 500 !important;
+                border: none !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+            }
+            .o_tag_badge_text {
+                font-size: 0.72rem !important;
+                line-height: 1.25 !important;
+            }
+            /* Remove (×) button — đẹp hơn */
+            .o_delete, .o_tag_close, button.btn-link {
+                opacity: 0.6;
+                margin-left: 0.25rem !important;
+                font-size: 0.7rem !important;
+                &:hover {
+                    opacity: 1;
+                    color: #c92a2a;
+                }
+            }
+            /* Input area — search/add */
+            input {
+                font-size: 0.78rem !important;
+                padding: 0.05rem 0.3rem !important;
+                min-height: 22px !important;
+                border: none !important;
+                background: transparent !important;
+                outline: none !important;
+                color: #495057;
+                &::placeholder {
+                    color: #adb5bd;
+                    font-style: italic;
+                    opacity: 0.7;
+                }
+            }
+        }
+    }
 }
 
 /* ===== TUM CHIP (toggle riêng cạnh chips Số tầng 1-7) — match green theme ===== */
@@ -2503,41 +3256,115 @@
         }
     }
     .o_vd_budget_compare {
-        margin-top: 0.4rem;
-        padding-top: 0.4rem;
-        border-top: 1px dashed rgba(138, 90, 0, 0.35);
+        margin-top: 0.6rem;
+        padding-top: 0.5rem;
+        border-top: 2px dashed rgba(138, 90, 0, 0.4);
     }
+    /* ===== CHÊNH LỆCH — Card đẹp: icon + label nhỏ phía trên, SỐ TIỀN BIG dưới ===== */
     .o_vd_budget_diff {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 0.35rem;
-        padding: 0.35rem 0.55rem;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border-radius: 6px;
-        flex-wrap: wrap;
+        padding: 0.75rem 1rem 0.85rem;
+        border-radius: 14px;
+        border: 2px solid;
+        position: relative;
+        overflow: hidden;
+        line-height: 1.2;
 
-        .o_field_widget,
-        .o_field_widget input {
+        /* Subtle gradient sheen ở góc */
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.35) 100%);
+            pointer-events: none;
+        }
+
+        .o_vd_diff_head {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.82rem;
             font-weight: 700;
-            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            opacity: 0.92;
+            position: relative;     /* nổi trên ::before */
+        }
+        .o_vd_diff_icon {
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+        .o_vd_diff_label {
+            flex: 1 1 auto;
+        }
+
+        /* SỐ TIỀN — căn giữa, font RẤT TO, đậm */
+        .o_field_widget {
+            text-align: center;
+            position: relative;
+        }
+        .o_field_widget,
+        .o_field_widget input,
+        .o_field_widget span {
+            font-weight: 800 !important;
+            font-size: 1.6rem !important;
+            letter-spacing: -0.3px;
             background: transparent !important;
             border: none !important;
             padding: 0 !important;
+            color: inherit !important;
+            text-align: center !important;
+            width: 100% !important;
+            display: block;
         }
     }
+
+    /* FIT (xanh lá) — gradient nhẹ + chỉ 1 dòng (không có amount) */
     .o_vd_budget_diff_fit {
-        background: rgba(43, 138, 62, 0.15);
+        background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%);
         color: #0b5d1e;
+        border-color: #69db7c;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        .o_vd_diff_icon { font-size: 1.15rem; }
+        .o_vd_diff_label {
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+        }
     }
+
+    /* WARN (vàng cam) — chênh lệch nhẹ */
     .o_vd_budget_diff_warn {
-        background: rgba(245, 159, 0, 0.18);
+        background: linear-gradient(135deg, #fff3bf 0%, #ffec99 100%);
         color: #8a5a00;
+        border-color: #ffd43b;
+        box-shadow: 0 4px 12px -2px rgba(245, 159, 0, 0.25);
     }
+
+    /* OVER (đỏ) — chênh lệch lớn, pulse + shadow đỏ */
     .o_vd_budget_diff_over {
-        background: rgba(201, 42, 42, 0.18);
+        background: linear-gradient(135deg, #ffe3e3 0%, #ffc9c9 100%);
         color: #c92a2a;
+        border-color: #ff8787;
+        box-shadow: 0 4px 14px -2px rgba(201, 42, 42, 0.3);
+        animation: vd-budget-pulse 1.6s ease-in-out infinite;
     }
+}
+
+/* Pulse animation cho chênh lệch lớn — thu hút attention */
+@keyframes vd-budget-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 42, 42, 0.35); }
+    50%      { box-shadow: 0 0 0 6px rgba(201, 42, 42, 0); }
 }
 
 /* Info phụ (Tỉnh/Huyện, Kiểu nhà, Loại móng, Ô tô vào, Công năng) — chữ nhỏ hơn */
@@ -2714,33 +3541,36 @@
         display: flex;
         align-items: center;
         gap: 0.55rem;
-        background: linear-gradient(90deg, #fff9db 0%, #ffe8cc 100%);
-        border: 1px solid #ffd8a8;
         padding: 0.4rem 0.7rem;
         margin-bottom: 0.55rem;
         border-radius: 8px;
         font-size: 0.85rem;
-        color: #5c3700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
 
-        i.fa-microphone {
-            color: #fa5252;
+        i.fa {
             font-size: 1rem;
-            animation: vd-icon-bounce 1.4s ease-in-out infinite;
             flex-shrink: 0;
         }
         strong {
-            color: #d9480f;
             font-weight: 700;
             letter-spacing: 0.2px;
         }
         .o_vd_banner_sub {
-            color: #846100;
             font-style: italic;
             font-size: 0.78rem;
             margin-left: 0.15rem;
+            opacity: 0.85;
+        }
+        .o_vd_banner_timer {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-left: 0.3rem;
+        }
+        .o_vd_call_timer_compact {
+            font-variant-numeric: tabular-nums;
+            font-size: 0.95rem;
         }
 
         /* Nuốt input phone wrapper — chỉ hiện text */
@@ -2748,6 +3578,54 @@
             display: inline !important;
             input { all: unset; font: inherit; color: inherit; }
         }
+    }
+
+    /* RINGING — cam, mic nháy */
+    .o_vd_popup_banner_ringing {
+        background: linear-gradient(90deg, #fff9db 0%, #ffe8cc 100%);
+        border: 1px solid #ffd8a8;
+        color: #5c3700;
+        i.fa-microphone {
+            color: #fa5252;
+            animation: vd-icon-bounce 1.4s ease-in-out infinite;
+        }
+        strong { color: #d9480f; }
+        .o_vd_banner_sub { color: #846100; }
+    }
+
+    /* ENDED — xanh dương nhạt, ghi chú cuộc gọi đã xong */
+    .o_vd_popup_banner_ended {
+        background: linear-gradient(90deg, #e7f5ff 0%, #d0ebff 100%);
+        border: 1px solid #74c0fc;
+        color: #1864ab;
+        i.fa-check-circle {
+            color: #1971c2;
+            font-size: 1.05rem;
+        }
+        .o_vd_banner_sub { color: #1864ab; }
+        /* Đối với <field> readonly hiện text-only */
+        > .o_field_widget {
+            font-weight: 700;
+            display: inline !important;
+        }
+    }
+
+    /* IN-CALL — xanh lá, phone chớp đỏ nhẹ → KH đang nghe */
+    .o_vd_popup_banner_incall {
+        background: linear-gradient(90deg, #d3f9d8 0%, #b2f2bb 100%);
+        border: 1px solid #69db7c;
+        color: #0b5d1e;
+        i.fa-phone-alt {
+            color: #2b8a3e;
+            animation: vd-icon-pulse 1.2s ease-in-out infinite;
+        }
+        strong { color: #0b5d1e; }
+        .o_vd_banner_timer { color: #c92a2a; }
+    }
+
+    @keyframes vd-icon-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50%      { transform: scale(1.15); opacity: 0.85; }
     }
 
     /* ===== 3 CARD NỔI BẬT — Ngân sách + Diện tích + Thời gian ===== */
@@ -4259,13 +5137,16 @@
     padding: 0.35rem 0.55rem !important;
 }
 
-/* Main fields (.o_vd_pf): label rộng hơn để không truncate */
+/* Main fields (.o_vd_pf): label width CỐ ĐỊNH 150px để các input căng đều
+   nhau giữa các row. 150px đủ chứa "Sổ đỏ / cấp phép" (label dài nhất). */
 .o_vd_intake_compact .o_vd_pf > label {
-    flex: 0 0 110px !important;
-    max-width: 110px !important;
+    flex: 0 0 150px !important;
+    max-width: 150px !important;
+    white-space: nowrap !important;
     font-size: 0.86rem !important;
     overflow: visible !important;
     text-overflow: clip !important;
+    padding-right: 0.4rem !important;
 }
 .o_vd_intake_compact .o_vd_pf > .o_field_widget input,
 .o_vd_intake_compact .o_vd_pf > .o_field_widget select,
@@ -4877,5 +5758,518 @@
         height: 100% !important;
         min-height: 80vh !important;
         border: none !important;
+    }
+}
+
+/* ============================================================
+   FIT-1-PAGE MODE — popup "Thông tin tư vấn" cố ép content vừa
+   1 viewport (96vh). Override aggressively: nén padding/margin
+   của mọi section, cards, fields. Vẫn giữ overflow-y:auto của
+   .o_vd_popup_body làm safety fallback cho màn rất nhỏ.
+   ============================================================ */
+.o_vd_intake_popup_panel .o_vd_popup_body {
+    /* Baseline shrink toàn bộ popup body ~7% để mọi rem-based size
+       (font + padding khi dùng rem) shrink đồng đều. */
+    font-size: 0.93rem;
+    line-height: 1.35;
+
+    /* === Summary card (KH header + chip buttons) === */
+    .o_vd_summary_card {
+        margin-bottom: 0.4rem !important;
+        .o_vd_summary_banner {
+            padding: 0.35rem 0.7rem !important;
+            margin-bottom: 0.3rem !important;
+        }
+        .o_vd_summary_header {
+            padding: 0.4rem 0.7rem !important;
+            gap: 0.4rem !important;
+        }
+        .o_vd_summary_body {
+            padding: 0.35rem 0.7rem 0.5rem !important;
+            gap: 0.35rem !important;
+        }
+    }
+
+    /* === 3 hero cards (Chi phí / Diện tích / Thời gian) === */
+    .o_vd_summary_hero,
+    .o_vd_summary_hero_grid {
+        gap: 0.45rem !important;
+        margin-bottom: 0.4rem !important;
+        .o_vd_sum_hero_card,
+        .o_vd_hero_card {
+            padding: 0.45rem 0.6rem !important;
+        }
+        .o_vd_sum_hero_head,
+        .o_vd_hero_head {
+            margin-bottom: 0.25rem !important;
+            padding-bottom: 0.2rem !important;
+            gap: 0.3rem !important;
+        }
+    }
+
+    /* === Property fields row (Tỉnh/Huyện, Loại đất, Sổ đỏ, Ô tô, Công năng) === */
+    .o_vd_pf,
+    .o_vd_pf_compact,
+    .o_vd_pf_grid {
+        margin-bottom: 0.25rem !important;
+        padding: 0.2rem 0 !important;
+        gap: 0.35rem !important;
+        min-height: 0 !important;
+    }
+    .o_vd_pf > label,
+    .o_vd_pf_compact > label {
+        padding: 0 !important;
+        margin: 0 !important;
+        line-height: 1.3 !important;
+    }
+
+    /* === Call stats card === */
+    .o_vd_call_stats_box {
+        padding: 0.4rem 0.6rem !important;
+        margin: 0.35rem 0 !important;
+        .o_vd_call_stats_row {
+            gap: 0.5rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        .o_vd_call_stat {
+            padding: 0.25rem 0.45rem !important;
+        }
+        .o_vd_cs_lbl { font-size: 0.78rem !important; }
+        .o_vd_cs_val { font-size: 0.95rem !important; }
+        .o_vd_call_rating_row {
+            margin-top: 0.25rem !important;
+            padding-top: 0.25rem !important;
+        }
+    }
+
+    /* === Báo giá chi tiết panel === */
+    .o_vd_quote_panel {
+        margin-top: 0.4rem !important;
+        .o_vd_quote_head {
+            padding: 0.35rem 0.7rem !important;
+            font-size: 0.95rem !important;
+        }
+        .o_vd_quote_body {
+            padding: 0.5rem 0.7rem !important;
+            gap: 0.4rem !important;
+        }
+        .o_vd_quote_field {
+            margin-bottom: 0.35rem !important;
+        }
+        .o_vd_quote_field label {
+            margin-bottom: 0.15rem !important;
+            font-size: 0.8rem !important;
+        }
+        /* Bảng breakdown — nén padding cell xuống */
+        .o_vd_quote_breakdown_wrap table {
+            margin: 0 !important;
+        }
+        .o_vd_quote_breakdown_wrap table th,
+        .o_vd_quote_breakdown_wrap table td {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.85rem !important;
+            line-height: 1.3 !important;
+        }
+        /* Action buttons row — compact */
+        .o_vd_quote_actions {
+            gap: 0.35rem !important;
+            margin-top: 0.4rem !important;
+            flex-wrap: wrap !important;
+        }
+        .o_vd_quote_actions .btn {
+            padding: 0.3rem 0.65rem !important;
+            font-size: 0.8rem !important;
+            line-height: 1.25 !important;
+        }
+        .o_vd_quote_history_btn_row {
+            margin-top: 0.3rem !important;
+        }
+    }
+
+    /* === Generic shrink cho bất kỳ field/group nào còn sót === */
+    .o_inner_group,
+    .o_group {
+        margin: 0 !important;
+    }
+    .o_inner_group td,
+    .o_inner_group th {
+        padding: 0.15rem 0.35rem !important;
+    }
+}
+
+/* ============================================================
+   POPUP "Lịch sử cuộc gọi" (action_view_calls — per-lead)
+   Selector `:has(.o_list_view)` chỉ target dialog chứa list view
+   (vd popup lịch sử cuộc gọi) — KHÔNG ảnh hưởng các wizard form
+   dialog khác (lost wizard, callback wizard, sign contract...).
+   ============================================================ */
+.o_dialog:has(.o_list_view) .modal-dialog,
+.o_dialog.o_dialog_full_screen .modal-dialog,
+.o_dialog .modal-fullscreen,
+.o_dialog .modal-xl {
+    /* Force 95vw đè max-width default của bootstrap modal */
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 2vh auto !important;
+
+    .modal-content {
+        height: auto !important;
+        min-height: 70vh !important;
+        max-height: 96vh !important;
+    }
+
+    .modal-body {
+        padding: 0.6rem 0.9rem !important;
+        overflow: auto;
+        max-height: calc(96vh - 110px);  /* trừ header + footer của modal */
+    }
+}
+
+/* Cho list của stringee.call trong popup: text không truncate,
+   header column wrap nếu dài. Selector dùng o_list_view ở
+   trong .modal để chỉ tác động tới popup, không scope global. */
+.o_dialog .modal-body .o_list_view .o_list_table {
+    table-layout: auto !important;
+    width: 100% !important;
+
+    /* Header: cho phép wrap "Lịch sử ghi âm" / "NV phụ trách" */
+    thead th {
+        white-space: normal !important;
+        word-break: break-word !important;
+        vertical-align: middle !important;
+        padding: 0.45rem 0.55rem !important;
+        font-size: 0.82rem !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Cell: cho phép wrap text thay vì truncate */
+    tbody td {
+        white-space: normal !important;
+        word-break: break-word !important;
+        padding: 0.45rem 0.55rem !important;
+        font-size: 0.85rem !important;
+        line-height: 1.35 !important;
+        max-width: none !important;
+    }
+
+    /* Cell có .o_field_widget text — override Odoo's text-overflow */
+    tbody td .o_field_widget,
+    tbody td span,
+    tbody td .o_data_cell {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: none !important;
+    }
+
+    /* Cột audio player (recording_attachment_id widget vd_audio_player) —
+       cố định width vừa đủ player, không co dãn */
+    td:has(> .o_field_widget[name='recording_attachment_id']),
+    td:has(.vd-audio-player) {
+        min-width: 220px;
+        max-width: 280px;
+    }
+}
+
+/* ====== Copy Zalo button ====== */
+.o_vd_copy_zalo_btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.5rem !important;
+    padding: 0.4rem 0.85rem !important;
+    border: 1px solid #228be6 !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: #1864ab !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+
+    &:hover {
+        background: #e7f5ff !important;
+        border-color: #1864ab !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(24, 100, 171, 0.2);
+    }
+    i.fa { font-size: 0.8rem; }
+}
+
+
+/* ===== Phát hiện vấn đề KH (negotiation) ===== */
+.o_vd_nego_problems {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.85rem;
+    border: 1px solid #fff3bf;
+}
+.o_vd_nego_suggest_box {
+    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+    border: 1px dashed #ffd43b;
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    margin: 0.65rem 0;
+}
+.o_vd_nego_suggest_lbl {
+    font-size: 0.85rem;
+    color: #846100;
+    margin-bottom: 0.45rem;
+
+    .text-muted { font-size: 0.78rem; }
+}
+.o_vd_nego_problems_select {
+    margin-top: 0.85rem;
+}
+.o_vd_nego_problems_lbl {
+    display: block;
+    font-size: 0.92rem;
+    margin-bottom: 0.4rem;
+    color: #1f2a44;
+}
+.o_vd_nego_problem_tips {
+    margin-top: 0.85rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+
+    summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #c92a2a;
+        padding: 0.2rem 0;
+    }
+}
+
+
+/* ===== Đặt lịch ký HĐ wizard ===== */
+.o_vd_sign_wizard {
+    .o_vd_sign_header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.2rem;
+        background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%);
+        border-radius: 10px;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 2px 6px rgba(43, 138, 62, 0.12);
+    }
+    .o_vd_sign_header_icon {
+        font-size: 2.4rem;
+        flex-shrink: 0;
+        line-height: 1;
+    }
+    .o_vd_sign_header_body {
+        flex: 1;
+        min-width: 0;
+    }
+    .o_vd_sign_header_title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #2b8a3e;
+        margin-bottom: 0.25rem;
+    }
+    .o_vd_sign_header_sub {
+        font-size: 0.92rem;
+        color: #495057;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+    }
+    .o_vd_sign_price {
+        font-weight: 700;
+        color: #c92a2a;
+        background: rgba(255,255,255,0.6);
+        padding: 0.15rem 0.55rem;
+        border-radius: 6px;
+    }
+
+    .o_vd_sign_body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .o_vd_sign_field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #1f2a44;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+
+            span { font-size: 1rem; }
+        }
+
+        input, textarea, .o_field_widget {
+            font-size: 0.95rem !important;
+        }
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+    }
+    .o_vd_sign_btn_confirm {
+        background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        padding: 0.55rem 1.4rem !important;
+        box-shadow: 0 2px 6px rgba(55, 178, 77, 0.35);
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(55, 178, 77, 0.5);
+        }
+    }
+}
+
+/* ===== Panel lịch hẹn ký HĐ (stage=won, chưa ký xong) ===== */
+.o_vd_sign_panel {
+    background: #fff;
+    border-radius: 12px;
+    margin-top: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.o_vd_sign_banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    color: #fff;
+    position: relative;
+
+    &.o_vd_sign_banner_past {
+        background: linear-gradient(135deg, #c92a2a 0%, #fa5252 100%);
+        animation: vd-pulse-past 1.4s ease-in-out infinite;
+    }
+    &.o_vd_sign_banner_today {
+        background: linear-gradient(135deg, #fd7e14 0%, #f76707 100%);
+        animation: vd-pulse-today 2s ease-in-out infinite;
+    }
+    &.o_vd_sign_banner_soon {
+        background: linear-gradient(135deg, #f59f00 0%, #f08c00 100%);
+    }
+    &.o_vd_sign_banner_far {
+        background: linear-gradient(135deg, #2b8a3e 0%, #37b24d 100%);
+    }
+}
+@keyframes vd-pulse-past {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7); }
+    50% { box-shadow: 0 0 0 14px rgba(250, 82, 82, 0); }
+}
+@keyframes vd-pulse-today {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(253, 126, 20, 0.6); }
+    50% { box-shadow: 0 0 0 12px rgba(253, 126, 20, 0); }
+}
+.o_vd_sign_banner_icon {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.o_vd_sign_banner_body {
+    flex: 1;
+    min-width: 0;
+}
+.o_vd_sign_banner_title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 0.3rem;
+}
+.o_vd_sign_banner_countdown {
+    font-size: 1.1rem;
+    font-weight: 700;
+    opacity: 0.95;
+}
+.o_vd_sign_details {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.o_vd_sign_detail_row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+    font-size: 0.95rem;
+
+    .o_vd_sign_detail_lbl {
+        min-width: 130px;
+        font-weight: 600;
+        color: #495057;
+    }
+    .o_field_widget { font-weight: 600; color: #1f2a44; }
+}
+.o_vd_sign_actions {
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+.o_vd_sign_done_btn {
+    background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    padding: 0.55rem 1.4rem !important;
+    box-shadow: 0 2px 6px rgba(55, 178, 77, 0.35);
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(55, 178, 77, 0.5);
+    }
+}
+
+/* ===== Problem tracker (vấn đề KH row-based) ===== */
+.o_vd_problem_tracker {
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.85rem;
+    border: 1px solid #fff3bf;
+
+    .o_vd_problem_open_count {
+        background: #fff5f5;
+        color: #c92a2a;
+        padding: 0.18rem 0.6rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-left: 0.35rem;
+    }
+    .o_vd_problem_all_resolved {
+        color: #2b8a3e;
+        font-weight: 700;
+        margin-left: 0.35rem;
+    }
+
+    .o_list_view {
+        font-size: 0.88rem;
+
+        thead th {
+            background: #fff8e1;
+            font-weight: 700;
+            color: #846100;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.3px;
+        }
+        tbody td.o_field_cell {
+            padding: 0.45rem 0.55rem;
+        }
     }
 }

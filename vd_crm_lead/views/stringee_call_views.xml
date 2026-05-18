@@ -26,14 +26,39 @@
         </field>
     </record>
 
-    <!-- Add lead_id field on stringee.call list -->
+    <!-- Add lead_id field on stringee.call list + button download ghi âm -->
     <record id="view_stringee_call_list_lead" model="ir.ui.view">
         <field name="name">stringee.call.list.lead</field>
         <field name="model">stringee.call</field>
         <field name="inherit_id" ref="vd_stringee.view_stringee_call_list"/>
         <field name="arch" type="xml">
+            <!-- Khi mở popup per-lead (action_view_calls đặt vd_hide_lead_col):
+                 - Direction luôn outbound từ system → ẩn cột direction
+                 - Call ID đã optional="show" sẵn → giữ
+                 - lead_id redundant (tất cả rows = 1 lead) → ẩn theo context
+                 - user_id redundant (per-NV view) → ẩn theo context
+                 - Recording attachment ẩn (chuyển sang audio widget) -->
+            <xpath expr="//field[@name='direction']" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="column_invisible">context.get('vd_hide_lead_col')</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="column_invisible">context.get('vd_hide_user_col')</attribute>
+            </xpath>
             <xpath expr="//field[@name='callee_number']" position="after">
-                <field name="lead_id" optional="show"/>
+                <field name="lead_id" optional="show"
+                       column_invisible="context.get('vd_hide_lead_col')"/>
+            </xpath>
+            <!-- Column ghi âm: audio player INLINE để nghe trực tiếp + nút tải nếu chưa có -->
+            <xpath expr="//field[@name='recording_attachment_id']" position="replace">
+                <field name="recording_attachment_id" string="🎵 Ghi âm"
+                       widget="vd_audio_player"
+                       readonly="1"/>
+                <button name="action_download_recording" type="object"
+                        string="🎵 Tải"
+                        class="btn btn-sm btn-outline-primary"
+                        invisible="recording_attachment_id or state not in ('ended','no_answer','busy','declined','cancelled','failed')"
+                        help="Force-retry tải file ghi âm từ Stringee"/>
             </xpath>
         </field>
     </record>

@@ -50,13 +50,42 @@
                 <field name="vd_negotiate_status" invisible="1"/>
                 <field name="vd_intake_open" invisible="1"/>
                 <field name="vd_intake_budget_status" invisible="1"/>
+                <field name="callback_date" invisible="1"/>
+                <field name="vd_duplicate_count" invisible="1"/>
+
+                <!-- ============ ⚠️ BANNER CẢNH BÁO TRÙNG SĐT ============
+                     Hiện ngay top form khi có lead khác cùng SĐT (chưa won/lost).
+                     Cho phép xem chi tiết + gộp 1 click. -->
+                <div class="o_vd_dup_warn_banner" invisible="vd_duplicate_count == 0">
+                    <div class="o_vd_dup_warn_icon">⚠️</div>
+                    <div class="o_vd_dup_warn_content">
+                        <div class="o_vd_dup_warn_title">
+                            CẢNH BÁO TRÙNG SỐ ĐIỆN THOẠI
+                        </div>
+                        <div class="o_vd_dup_warn_msg">
+                            Có <strong><field name="vd_duplicate_count" readonly="1" nolabel="1"/></strong>
+                            lead khác trùng SĐT với KH này (chưa Won/Lost).
+                            Nên gộp để tránh trùng lặp.
+                        </div>
+                    </div>
+                    <div class="o_vd_dup_warn_actions">
+                        <button name="action_vd_view_duplicates" type="object"
+                                class="btn btn-sm btn-outline-warning">
+                            <i class="fa fa-eye me-1"/>Xem
+                        </button>
+                        <button name="action_vd_merge_duplicates" type="object"
+                                class="btn btn-sm btn-warning"
+                                confirm="🔀 Gộp tất cả lead trùng SĐT vào lead này? Các lead khác sẽ được archive + chuyển call history + ghi chú sang đây.">
+                            <i class="fa fa-compress me-1"/>🔀 Gộp ngay
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Workflow buttons giờ nằm BÊN TRONG summary card, sau intake summary -->
 
-                <!-- ============ 2-COLUMN LAYOUT WRAPPER ============
-                     LEFT (50%): "BẢNG CHÍNH" — gộp THÔNG TIN KHÁCH HÀNG + BÁO GIÁ CHI TIẾT
-                     RIGHT (50%): ĐÀM PHÁN + HỢP ĐỒNG
-                     Mobile/tablet (<992px): tự stack dọc full-width. -->
+                <!-- ============ 2-COLUMN LAYOUT ============
+                     LEFT (sát lề trái): THÔNG TIN KH + BÁO GIÁ CHI TIẾT (dính liền)
+                     RIGHT (sát lề phải): ĐÀM PHÁN + HỢP ĐỒNG -->
                 <div class="o_vd_layout_grid">
                 <div class="o_vd_layout_left">
                 <!-- BẢNG CHÍNH — gộp summary + quote thành 1 visual panel. -->
@@ -86,6 +115,12 @@
                                 <i class="fa fa-phone-square"/>
                                 <span>Thông tin tư vấn</span>
                             </button>
+                            <button name="action_copy_zalo" type="object"
+                                    class="o_vd_copy_zalo_btn"
+                                    title="Copy toàn bộ thông tin KH để dán vào nhóm Zalo">
+                                <i class="fa fa-clipboard"/>
+                                <span>Copy gửi Zalo</span>
+                            </button>
                         </h2>
                         <div class="o_vd_summary_meta">
                             <span class="o_vd_meta_item">
@@ -96,6 +131,18 @@
                                 <i class="fa fa-user"/>
                                 <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
                             </span>
+                            <button name="action_open_callback_wizard" type="object"
+                                    class="btn btn-sm o_vd_wf_btn_callback"
+                                    invisible="stage_code in ['won', 'lost']"
+                                    title="Hẹn ngày gọi lại KH">
+                                <i class="fa fa-calendar-plus-o"/>
+                                <span class="o_vd_wf_btn_callback_lbl">Hẹn gọi lại</span>
+                                <span class="o_vd_wf_callback_chip"
+                                      invisible="not callback_date">
+                                    <field name="callback_date" readonly="1" nolabel="1"
+                                           widget="date"/>
+                                </span>
+                            </button>
                             <button name="action_mark_no_demand" type="object"
                                     class="btn btn-sm btn-outline-secondary o_vd_wf_btn_no_demand"
                                     invisible="stage_code in ['won', 'lost']">
@@ -237,13 +284,18 @@
                                     <span style="color:#c92a2a;font-weight:600;" invisible="vd_intake_car_access">Không</span>
                                     <span style="color:#2b8a3e;font-weight:600;" invisible="not vd_intake_car_access">Có</span>
                                 </div>
-                                <div class="o_vd_row_inline o_vd_row_inline_wide">
-                                    <span class="o_vd_lbl"><i class="fa fa-list-ul"/> Công năng:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_function">
-                                        <field name="vd_intake_function" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_function">—</span>
+                            </div>
+                            <!-- Công năng từng tầng — đặt NGOÀI summary_grid_inline
+                                 để KHÔNG bị parent constraint (3-col grid + overflow:hidden).
+                                 Render full width clean. -->
+                            <div class="o_vd_floor_functions_section"
+                                 invisible="not vd_intake_floor_functions_html"
+                                 style="margin-top:8px;padding:6px 10px;background:#f0f7ff;border-radius:6px;width:100%;">
+                                <div style="font-size:11px;font-weight:700;color:#1864ab;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">
+                                    <i class="fa fa-list-ul"/> Công năng từng tầng
                                 </div>
+                                <field name="vd_intake_floor_functions_html"
+                                       widget="html" readonly="1" nolabel="1" sanitize="false"/>
                             </div>
 
                             <!-- ===== Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG ===== -->
@@ -261,6 +313,15 @@
                                         <span class="o_vd_cs_lbl">❌ Không nghe</span>
                                         <span class="o_vd_cs_val"><field name="vd_call_not_answered_count" readonly="1" nolabel="1"/></span>
                                     </div>
+                                    <!-- Nút Lịch sử cuộc gọi LUÔN hiện trong card (cùng row với stats) -->
+                                    <button name="action_view_calls" type="object"
+                                            class="btn btn-sm btn-outline-info o_vd_cr_history_btn">
+                                        <i class="fa fa-history me-1"/>
+                                        Lịch sử cuộc gọi
+                                        <span class="badge bg-info ms-1" invisible="not call_count">
+                                            <field name="call_count" nolabel="1" readonly="1"/>
+                                        </span>
+                                    </button>
                                 </div>
                                 <div class="o_vd_call_rating_row" invisible="not vd_lead_call_rating">
                                     <span class="o_vd_cr_lbl">⭐ Đánh giá:</span>
@@ -292,23 +353,52 @@
                         <div class="o_vd_intake_popup_backdrop"/>
                         <div class="o_vd_intake_full o_vd_intake_compact o_vd_intake_popup_panel">
 
-                        <!-- ===== HEADER: tiêu đề + X đóng ===== -->
+                        <!-- ===== HEADER: tiêu đề + nút cúp máy + X đóng ===== -->
                         <div class="o_vd_popup_header">
                             <h3 class="o_vd_popup_title">
                                 <i class="fa fa-clipboard-list"/> THÔNG TIN TƯ VẤN
                             </h3>
-                            <button name="action_close_intake_inline" type="object"
-                                    class="o_vd_popup_close_btn" title="Đóng">
-                                <i class="fa fa-times"/>
-                            </button>
+                            <div class="o_vd_popup_header_actions">
+                                <!-- Nút CÚP MÁY trong popup — chỉ hiện khi đang có cuộc gọi.
+                                     NV có thể cúp máy mà không cần đóng popup. -->
+                                <button name="action_hangup_active" type="object"
+                                        class="o_vd_popup_hangup_btn"
+                                        title="Cúp máy / Kết thúc cuộc gọi"
+                                        invisible="not vd_in_call">
+                                    <i class="fa fa-phone"/>
+                                    <span>Cúp máy</span>
+                                </button>
+                                <button name="action_close_intake_inline" type="object"
+                                        class="o_vd_popup_close_btn" title="Đóng">
+                                    <i class="fa fa-times"/>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- ===== BODY: scrollable content ===== -->
                         <div class="o_vd_popup_body">
-                        <div class="o_vd_popup_banner" invisible="not vd_in_call">
+                        <!-- Banner state RINGING: chưa bắt máy -->
+                        <div class="o_vd_popup_banner o_vd_popup_banner_ringing"
+                             invisible="vd_active_call_state not in ['draft', 'initiated', 'ringing']">
                             <i class="fa fa-microphone"/>
                             Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
-                            <span class="o_vd_banner_sub">— gợi ý kịch bản hiện mờ trong từng ô</span>
+                            <span class="o_vd_banner_sub">— đợi KH bắt máy, gợi ý kịch bản hiện mờ trong từng ô</span>
+                        </div>
+                        <!-- Banner state IN-CALL: KH đã bắt máy, đếm giây -->
+                        <div class="o_vd_popup_banner o_vd_popup_banner_incall"
+                             invisible="vd_active_call_state != 'answered' or not vd_active_call_answer_time">
+                            <i class="fa fa-phone-alt"/>
+                            Đang trong cuộc gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
+                            <span class="o_vd_banner_timer">
+                                · <field name="vd_in_call" widget="vd_call_timer" nolabel="1"/>
+                            </span>
+                        </div>
+                        <!-- Banner state ENDED: cuộc gọi đã kết thúc (visible 5 phút) -->
+                        <div class="o_vd_popup_banner o_vd_popup_banner_ended"
+                             invisible="not vd_last_call_end_msg or vd_in_call">
+                            <i class="fa fa-check-circle"/>
+                            <field name="vd_last_call_end_msg" readonly="1" nolabel="1"/>
+                            <span class="o_vd_banner_sub">— nhập thông tin KH đã trao đổi để chuyển sang BÁO GIÁ</span>
                         </div>
 
                         <div class="o_vd_intake_layout">
@@ -456,21 +546,28 @@
                                         <field name="vd_intake_budget_status" invisible="1"/>
                                         <div class="o_vd_budget_diff o_vd_budget_diff_fit"
                                              invisible="vd_intake_budget_status != 'fit'">
-                                            ✅ Ngân sách phù hợp với báo giá
+                                            <span class="o_vd_diff_icon">✅</span>
+                                            <span class="o_vd_diff_label">Ngân sách phù hợp với báo giá</span>
                                         </div>
                                         <div class="o_vd_budget_diff o_vd_budget_diff_warn"
                                              invisible="vd_intake_budget_status != 'warn'">
-                                            ⚖️ Chênh lệch nhẹ:
+                                            <div class="o_vd_diff_head">
+                                                <span class="o_vd_diff_icon">⚖️</span>
+                                                <span class="o_vd_diff_label">Chênh lệch nhẹ</span>
+                                            </div>
                                             <field name="vd_intake_gap" widget="monetary"
                                                    options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1"/>
+                                                   readonly="1" nolabel="1" class="o_vd_diff_amount"/>
                                         </div>
                                         <div class="o_vd_budget_diff o_vd_budget_diff_over"
                                              invisible="vd_intake_budget_status != 'over'">
-                                            ⚠️ Chênh lệch lớn:
+                                            <div class="o_vd_diff_head">
+                                                <span class="o_vd_diff_icon">⚠️</span>
+                                                <span class="o_vd_diff_label">Chênh lệch lớn</span>
+                                            </div>
                                             <field name="vd_intake_gap" widget="monetary"
                                                    options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1"/>
+                                                   readonly="1" nolabel="1" class="o_vd_diff_amount"/>
                                         </div>
                                     </div>
                                 </div>
@@ -480,18 +577,19 @@
                         <!-- ===== BẢNG THÔNG TIN ĐỊA LÝ / KHU VỰC ===== -->
                         <div class="o_vd_intake_geo_panel">
                         <div class="o_vd_pf_grid">
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_car_access_select">Ô tô vào</label>
-                                <field name="vd_intake_car_access" invisible="1"/>
-                                <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Có / Không"/>
-                            </div>
+                            <!-- Row 1: Tỉnh | Sổ đỏ -->
                             <div class="o_vd_pf">
                                 <label for="vd_intake_province_id">Tỉnh / Thành</label>
                                 <field name="vd_intake_province_id" nolabel="1"
                                        placeholder="Dạ, anh/chị đang xây dựng ở tỉnh / thành phố nào ạ?"
                                        options="{'no_create': True, 'no_open': True}"/>
                             </div>
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
+                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
+                            </div>
+                            <!-- Row 2: Huyện | Loại đất -->
                             <div class="o_vd_pf">
                                 <label for="vd_intake_district">Huyện / Quận</label>
                                 <field name="vd_intake_district" nolabel="1"
@@ -505,55 +603,101 @@
                                 <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
                                        placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
                             </div>
+                            <!-- Row 3: Ô tô vào (Công năng cũ đã bỏ — giờ dùng
+                                 multi-tag per-floor ở dưới) -->
                             <div class="o_vd_pf">
-                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
-                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
+                                <label for="vd_intake_car_access_select">Ô tô vào</label>
+                                <field name="vd_intake_car_access" invisible="1"/>
+                                <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Có / Không"/>
                             </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_function">Công năng</label>
-                                <field name="vd_intake_function" nolabel="1"
-                                       placeholder="Anh/chị cần bao nhiêu phòng ngủ, có cần thang máy không ạ?"/>
+                            <!-- Công năng từng tầng — m2m dropdown chip pills.
+                                 Mỗi tầng = 1 row gọn: [Tầng N] [dropdown chip] -->
+                            <div class="o_vd_pf o_vd_pf_notes o_vd_floor_function_list"
+                                 invisible="not vd_intake_floors_select and not vd_intake_has_tum">
+                                <div class="o_vd_floor_function_lbl">Công năng từng tầng</div>
+                                <div class="o_vd_floor_function_grid">
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7']">
+                                        <span class="o_vd_floor_function_tag">T1</span>
+                                        <field name="vd_intake_floor_1_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['2', '3', '4', '5', '6', '7']">
+                                        <span class="o_vd_floor_function_tag">T2</span>
+                                        <field name="vd_intake_floor_2_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['3', '4', '5', '6', '7']">
+                                        <span class="o_vd_floor_function_tag">T3</span>
+                                        <field name="vd_intake_floor_3_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['4', '5', '6', '7']">
+                                        <span class="o_vd_floor_function_tag">T4</span>
+                                        <field name="vd_intake_floor_4_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['5', '6', '7']">
+                                        <span class="o_vd_floor_function_tag">T5</span>
+                                        <field name="vd_intake_floor_5_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select not in ['6', '7']">
+                                        <span class="o_vd_floor_function_tag">T6</span>
+                                        <field name="vd_intake_floor_6_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="vd_intake_floors_select != '7'">
+                                        <span class="o_vd_floor_function_tag">T7</span>
+                                        <field name="vd_intake_floor_7_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                    <div class="o_vd_floor_function_row"
+                                         invisible="not vd_intake_has_tum">
+                                        <span class="o_vd_floor_function_tag o_vd_tag_tum">Tum</span>
+                                        <field name="vd_intake_floor_tum_function_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                               nolabel="1"
+                                               placeholder="+ thêm công năng..."/>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="o_vd_pf o_vd_pf_notes">
-                                <label for="vd_intake_function_notes">Ghi chú</label>
-                                <field name="vd_intake_function_notes" nolabel="1"
-                                       placeholder="Anh/chị có yêu cầu đặc biệt nào về phong thủy, ánh sáng, phòng thờ… không ạ?"/>
-                            </div>
+                            <!-- Ghi chú chung đã bỏ theo yêu cầu — chỉ giữ
+                                 multi-tag per-floor ở trên. -->
                         </div>
                         </div><!-- /.o_vd_intake_geo_panel -->
 
                             </div>
-                            <!-- ============ SIDEBAR — bong bóng kịch bản tư vấn (sticky bên phải) ============ -->
-                            <div class="o_vd_intake_sidebar">
-                                <!-- Bubble tư vấn — gộp Timeline alert + Estimate + Gap script -->
-                                <div class="o_vd_consult_bubble"
-                                     invisible="not vd_intake_estimate and vd_intake_timeline_status in ['ok', 'unknown', False]">
-                                    <div class="o_vd_bubble_arrow"/>
-                                    <div class="o_vd_bubble_head">
-                                        <span class="o_vd_bubble_icon">💬</span>
-                                        <span class="o_vd_bubble_title">Kịch bản tư vấn</span>
-                                    </div>
-                                    <!-- Phần 1: Timeline alert (chỉ khi gấp / sai) -->
-                                    <div class="o_vd_bubble_section o_vd_bubble_timeline"
-                                         invisible="vd_intake_timeline_status in ['ok', 'unknown', False]">
-                                        <field name="vd_intake_timeline_alert" widget="html" readonly="1" nolabel="1"/>
-                                    </div>
-                                    <!-- Phần 2: Ước tính + chênh lệch (chỉ khi có estimate) -->
-                                    <div class="o_vd_bubble_section o_vd_bubble_budget" invisible="not vd_intake_estimate">
-                                        <div class="o_vd_bubble_amount_row">
-                                            <span class="o_vd_bubble_lbl">📊 Ước tính:</span>
-                                            <span class="o_vd_bubble_amount">
-                                                <field name="vd_intake_estimate" widget="monetary"
-                                                       options="{'currency_field': 'vd_currency_vnd_id'}" readonly="1" nolabel="1"/>
-                                            </span>
-                                        </div>
-                                        <div class="o_vd_bubble_script">
-                                            <field name="vd_intake_consult_script" widget="html" readonly="1" nolabel="1"/>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Sidebar "Kịch bản tư vấn" đã bỏ theo yêu cầu user -->
                         </div>
 
                         </div><!-- /.o_vd_popup_body -->
@@ -595,6 +739,8 @@
 
                 <!-- ============================================================
                      💰 PANEL BÁO GIÁ — visible khi stage = quote/negotiate/won
+                     Đặt NGAY DƯỚI summary card, BÊN TRONG main_panel để 2 bảng
+                     dính liền nhau (CSS strip border/shadow của panel con).
                      ============================================================ -->
                 <div class="o_vd_quote_panel" invisible="stage_code not in ['quote', 'negotiate', 'won']">
                     <div class="o_vd_quote_head">
@@ -646,26 +792,13 @@
                                     confirm="🔒 Bạn chắc chắn CHỐT báo giá cuối cùng? Lead sẽ tự động chuyển sang giai đoạn Đàm phán và bạn không thể chỉnh sửa báo giá nữa.">
                                 <i class="fa fa-lock me-1"/>🔒 Chốt báo giá → Đàm phán
                             </button>
-                        </div>
-
-                        <!-- Lịch sử versions -->
-                        <div class="o_vd_quote_history" invisible="vd_quote_version_count == 0">
-                            <div class="o_vd_history_head">
-                                📜 Lịch sử báo giá (<field name="vd_quote_version_count" readonly="1" nolabel="1"/> phiên bản)
-                            </div>
-                            <field name="vd_quote_version_ids" nolabel="1" readonly="1">
-                                <list string="Versions" decoration-success="state == 'locked'">
-                                    <field name="version_no" string="V"/>
-                                    <field name="create_date" string="Lưu lúc"/>
-                                    <field name="create_uid" string="NV"/>
-                                    <field name="quote_price" widget="monetary" options="{'currency_field': 'currency_id'}" string="Giá báo"/>
-                                    <field name="state" widget="badge" decoration-success="state == 'locked'"/>
-                                    <field name="changes_log" string="Thay đổi" optional="show"/>
-                                    <button name="action_view_pdf" type="object"
-                                            class="btn btn-sm btn-outline-primary" string="📥 Tải PDF" icon="fa-download"/>
-                                    <field name="currency_id" invisible="1"/>
-                                </list>
-                            </field>
+                            <!-- Nút lịch sử báo giá — gộp vào cùng row actions, không tách dòng riêng -->
+                            <button name="action_view_quote_history" type="object"
+                                    class="btn btn-outline-secondary btn-sm o_vd_quote_history_btn"
+                                    invisible="vd_quote_version_count == 0">
+                                <i class="fa fa-history me-1"/>
+                                📜 Xem lịch sử (<field name="vd_quote_version_count" readonly="1" nolabel="1"/> bản)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -679,8 +812,8 @@
                      ============================================================ -->
                 <div class="o_vd_negotiate_panel" invisible="stage_code != 'negotiate'">
                     <div class="o_vd_nego_head">
-                        <i class="fa fa-handshake-o"/>
-                        <span>Đàm phán + Ép cọc 50tr</span>
+                        <i class="fa fa-exclamation-triangle"/>
+                        <span>Vấn đề</span>
                         <span class="o_vd_nego_status_badge"
                               invisible="not vd_negotiate_deadline">
                             Deadline: <field name="vd_negotiate_deadline" readonly="1" nolabel="1"/>
@@ -697,19 +830,75 @@
                         ⏰ <b>SẮP QUÁ HẠN</b> — còn ≤ 2 ngày. Push KH chốt cọc ngay!
                     </div>
 
-                    <!-- Kịch bản ép cọc -->
-                    <div class="o_vd_nego_script">
-                        <b>💬 Kịch bản tư vấn ép cọc:</b><br/>
-                        <i>"Anh/chị ơi, để bên em chính thức giữ giá vật liệu (đang tăng từng tuần),
-                        đặt lịch tổ thợ + sắp xếp khởi công đúng thời gian anh/chị mong muốn —
-                        công ty em yêu cầu KH cọc tối thiểu <b>50 triệu</b> trong vòng 7 ngày kể từ ngày báo giá.
-                        Sau 7 ngày bên em không thể giữ giá + lịch khởi công nữa ạ.
-                        Anh/chị tiện hôm nào ghé văn phòng ký HĐ + chuyển khoản cọc?"</i>
+                    <!-- ===== ROW-BASED PROBLEM TRACKER =====
+                         Mỗi vấn đề 1 dòng: tên + cách xử lý + tiến độ.
+                         NV BẮT BUỘC xử lý từng vấn đề để đẩy KH đến ký HĐ. -->
+                    <div class="o_vd_problem_tracker" invisible="vd_contract_signed">
+                        <div class="o_vd_nego_section_title">
+                            <i class="fa fa-list-check me-1"/>
+                            Vấn đề KH gặp phải —
+                            <span invisible="vd_lead_problem_open_count == 0"
+                                  class="o_vd_problem_open_count">
+                                <field name="vd_lead_problem_open_count" readonly="1" nolabel="1"/>
+                                vấn đề chưa xử lý
+                            </span>
+                            <span invisible="vd_lead_problem_open_count != 0"
+                                  class="o_vd_problem_all_resolved">
+                                ✅ Tất cả vấn đề đã giải quyết — sẵn sàng ký HĐ
+                            </span>
+                        </div>
+                        <field name="vd_lead_problem_ids" nolabel="1">
+                            <list editable="bottom" decoration-danger="status == 'open'"
+                                  decoration-warning="status == 'in_progress'"
+                                  decoration-success="status == 'resolved'">
+                                <field name="sequence" widget="handle"/>
+                                <field name="name" placeholder="Vd: KH đòi giảm 50tr, KH chưa xem được ngày khởi công..."/>
+                                <field name="nv_handling" placeholder="Cách xử lý + tiến độ: gọi KH 3 lần, đề xuất giảm 20tr nếu cọc trong tuần này..."/>
+                                <field name="status" widget="badge"
+                                       decoration-danger="status == 'open'"
+                                       decoration-warning="status == 'in_progress'"
+                                       decoration-success="status == 'resolved'"/>
+                                <field name="is_default" column_invisible="True"/>
+                                <field name="code" column_invisible="True"/>
+                                <button name="unlink" type="object" icon="fa-trash"
+                                        invisible="is_default"
+                                        confirm="Xoá vấn đề này khỏi danh sách?"/>
+                            </list>
+                        </field>
                     </div>
 
-                    <!-- Buttons tạo activity nhắc gọi -->
+                    <!-- ===== GHI CHÚ ĐÀM PHÁN — NV note linh hoạt ===== -->
+                    <div class="o_vd_nego_notes_wrap" invisible="vd_contract_signed">
+                        <label for="vd_negotiate_notes" class="o_vd_nego_section_title">
+                            <i class="fa fa-sticky-note-o me-1"/> Ghi chú đàm phán — yêu cầu KH, điều khoản đặc biệt...
+                        </label>
+                        <field name="vd_negotiate_notes" nolabel="1"
+                               placeholder="Vd: KH yêu cầu sửa móng từ Móng băng → Móng cọc. Đề nghị bớt 30tr nếu cọc trong tuần này..."/>
+                    </div>
+
+                    <!-- ===== TIPS GỢI Ý — collapsible, mặc định ẩn ===== -->
+                    <details class="o_vd_nego_tips">
+                        <summary>💬 Tips gợi ý (click xem)</summary>
+                        <div class="o_vd_nego_tips_body">
+                            <ul>
+                                <li><b>Giữ giá vật liệu:</b> "Hiện vật liệu tăng từng tuần, công ty em chỉ giữ giá trong 7 ngày kể từ ngày báo giá."</li>
+                                <li><b>Đặt lịch khởi công:</b> "Để sắp xếp tổ thợ đúng thời điểm anh/chị mong, em cần KH cọc trước để công ty huy động nhân sự."</li>
+                                <li><b>Cọc 50tr tối thiểu:</b> "Cọc 50tr là khoản đảm bảo cho việc giữ giá + lịch + vật tư. Sau khi ký HĐ, cọc được trừ vào đợt 1."</li>
+                                <li><b>Xử lý từ chối:</b> Nếu KH yêu cầu giảm giá → mở khoá báo giá, thương lượng item cụ thể (vật liệu thay thế, bớt hạng mục), KHÔNG giảm tổng arbitrary.</li>
+                                <li><b>Close:</b> "Anh/chị tiện hôm nào ghé văn phòng ký HĐ + chuyển khoản cọc ạ?"</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <!-- ===== ACTION TOOLBOX ===== -->
                     <div class="o_vd_nego_actions" invisible="vd_contract_signed">
-                        <span class="me-2">📞 Nhắc NV gọi lại sau:</span>
+                        <button name="action_unlock_quote_for_edit" type="object"
+                                class="btn btn-outline-warning btn-sm"
+                                invisible="not vd_quote_locked"
+                                confirm="🔓 KH yêu cầu sửa báo giá? Mở khóa để chỉnh sửa. Sau khi sửa xong cần Lưu version mới + Chốt lại để giữ giá.">
+                            <i class="fa fa-unlock me-1"/>🔓 Mở khóa sửa báo giá
+                        </button>
+                        <span class="o_vd_nego_callback_lbl">📞 Hẹn gọi lại:</span>
                         <button name="action_create_negotiate_activity" type="object"
                                 class="btn btn-sm btn-outline-primary"
                                 context="{'days_offset': 1}">1 ngày</button>
@@ -720,14 +909,71 @@
                                 class="btn btn-sm btn-outline-primary"
                                 context="{'days_offset': 7}">7 ngày</button>
                         <button name="action_sign_contract" type="object"
-                                class="btn btn-success ms-3">
-                            <i class="fa fa-pencil me-1"/>✍️ KH ĐỒNG Ý → Ký HĐ + nhận cọc
+                                class="btn btn-success o_vd_nego_sign_btn">
+                            <i class="fa fa-pencil me-1"/>✍️ KH ĐỒNG Ý → Ký HĐ
                         </button>
                     </div>
                 </div>
 
                 <!-- ============================================================
-                     🏆 PANEL HỢP ĐỒNG — visible khi đã ký
+                     📅 PANEL LỊCH HẸN KÝ HĐ — stage=won nhưng chưa ký xong
+                     ============================================================ -->
+                <div class="o_vd_sign_panel" invisible="stage_code != 'won' or vd_contract_signed">
+                    <!-- BANNER REMINDER LỚN — màu theo urgency -->
+                    <div t-att-class="'o_vd_sign_banner o_vd_sign_banner_' + (vd_planned_sign_urgency or 'far')">
+                        <div class="o_vd_sign_banner_icon">
+                            <span invisible="vd_planned_sign_urgency != 'past'">🚨</span>
+                            <span invisible="vd_planned_sign_urgency != 'today'">🔥</span>
+                            <span invisible="vd_planned_sign_urgency != 'soon'">⏰</span>
+                            <span invisible="vd_planned_sign_urgency != 'far'">📅</span>
+                        </div>
+                        <div class="o_vd_sign_banner_body">
+                            <div class="o_vd_sign_banner_title">
+                                <span invisible="vd_planned_sign_urgency != 'past'">LỊCH HẸN KÝ HĐ ĐÃ QUÁ HẠN!</span>
+                                <span invisible="vd_planned_sign_urgency != 'today'">HÔM NAY ĐI KÝ HĐ VỚI KH!</span>
+                                <span invisible="vd_planned_sign_urgency != 'soon'">SẮP ĐẾN LỊCH KÝ HĐ</span>
+                                <span invisible="vd_planned_sign_urgency != 'far'">ĐÃ ĐẶT LỊCH KÝ HĐ</span>
+                            </div>
+                            <div class="o_vd_sign_banner_countdown">
+                                <field name="vd_planned_sign_countdown" readonly="1" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chi tiết lịch hẹn -->
+                    <div class="o_vd_sign_details">
+                        <div class="o_vd_sign_detail_row">
+                            <span class="o_vd_sign_detail_lbl">🗓️ Ngày giờ ký:</span>
+                            <field name="vd_planned_sign_date" readonly="1" nolabel="1" widget="datetime"/>
+                        </div>
+                        <div class="o_vd_sign_detail_row" invisible="not vd_planned_sign_location">
+                            <span class="o_vd_sign_detail_lbl">📍 Địa điểm:</span>
+                            <field name="vd_planned_sign_location" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="o_vd_sign_detail_row" invisible="not vd_planned_sign_note">
+                            <span class="o_vd_sign_detail_lbl">📝 Ghi chú:</span>
+                            <field name="vd_planned_sign_note" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+
+                    <!-- Nút xác nhận đã ký xong -->
+                    <div class="o_vd_sign_actions">
+                        <button name="action_mark_contract_signed" type="object"
+                                class="btn btn-success o_vd_sign_done_btn"
+                                confirm="Xác nhận đã ký HĐ với KH? Hành động này sẽ đánh dấu lead = đã ký chính thức.">
+                            <i class="fa fa-check-circle me-2"/>
+                            🏆 Đã ký HĐ xong
+                        </button>
+                        <button name="action_sign_contract" type="object"
+                                class="btn btn-outline-secondary"
+                                title="Đổi lịch hẹn ký">
+                            <i class="fa fa-calendar me-1"/> Đổi lịch
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     🏆 PANEL HỢP ĐỒNG — visible khi đã ký xong chính thức
                      ============================================================ -->
                 <div class="o_vd_contract_panel" invisible="not vd_contract_signed">
                     <div class="o_vd_contract_head">
@@ -739,7 +985,7 @@
                             <span class="o_vd_contract_lbl">📅 Ngày ký:</span>
                             <field name="vd_contract_sign_date" readonly="1" nolabel="1"/>
                         </div>
-                        <div class="o_vd_contract_row">
+                        <div class="o_vd_contract_row" invisible="not vd_contract_deposit">
                             <span class="o_vd_contract_lbl">💰 Tiền cọc đã nhận:</span>
                             <field name="vd_contract_deposit" widget="monetary"
                                    options="{'currency_field': 'vd_currency_vnd_id'}"
@@ -753,21 +999,9 @@
 
             </xpath>
 
-            <!-- Lịch sử cuộc gọi menu pill + Floating call FAB inserted before notebook -->
+            <!-- Floating call FAB inserted before notebook
+                 (Lịch sử cuộc gọi button đã được chuyển vào o_vd_call_rating_row) -->
             <xpath expr="//notebook" position="before">
-
-                <!-- MENU BAR — small action toolbar -->
-                <div class="o_vd_menu_bar">
-                    <field name="call_count" invisible="1"/>
-                    <button name="action_view_calls" type="object"
-                            class="btn btn-sm btn-outline-info o_vd_menu_btn">
-                        <i class="fa fa-history me-1"/>
-                        Lịch sử cuộc gọi
-                        <span class="badge bg-info ms-2">
-                            <field name="call_count" nolabel="1" readonly="1"/>
-                        </span>
-                    </button>
-                </div>
 
                 <!-- FLOATING CALL BUTTON — bottom-right corner with status pill -->
                 <div class="o_vd_call_fab">
@@ -790,6 +1024,31 @@
     </record>
 
     <!-- ============ POPUP ĐÃ BỎ — toàn bộ content giờ inline trên lead form ============ -->
+
+    <!-- ============ LIST VIEW: vd.quote.version (cho popup lịch sử báo giá) ============ -->
+    <record id="view_vd_quote_version_list" model="ir.ui.view">
+        <field name="name">vd.quote.version.list</field>
+        <field name="model">vd.quote.version</field>
+        <field name="arch" type="xml">
+            <list string="Lịch sử báo giá"
+                  decoration-success="state == 'locked'"
+                  default_order="version_no desc"
+                  create="false">
+                <field name="version_no" string="V"/>
+                <field name="create_date" string="Lưu lúc"/>
+                <field name="create_uid" string="NV"/>
+                <field name="quote_price" widget="monetary"
+                       options="{'currency_field': 'currency_id'}" string="Giá báo"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'locked'"/>
+                <field name="changes_log" string="Thay đổi"/>
+                <button name="action_view_pdf" type="object"
+                        class="btn btn-sm btn-outline-primary"
+                        string="📥 Tải PDF" icon="fa-download"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
 
     <!-- Stage form: add code, default_probability, is_lost -->
     <record id="crm_stage_view_form_inherit" model="ir.ui.view">

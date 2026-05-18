@@ -380,10 +380,70 @@ function attachReadableHint(input) {
 
 function attachReadableHintAll() {
     try {
-        // Áp dụng cho ngân sách (số tiền lớn, khó đọc)
-        document.querySelectorAll(".o_vd_hero_budget input").forEach(attachReadableHint);
+        // Bỏ readable hint theo yêu cầu user — XOÁ existing hints + KHÔNG attach mới
+        document.querySelectorAll(".o_vd_readable_hint").forEach((el) => el.remove());
     } catch (e) {
         console.warn("[VD intake] attachReadableHintAll skipped:", e);
+    }
+}
+
+// ----- Live thousand separator: gõ tới đâu chèn dấu phẩy tới đó -----
+function attachLiveSeparator(input) {
+    if (!input || input.dataset.vdLiveSep === "1") return;
+    input.dataset.vdLiveSep = "1";
+
+    const formatLive = (val) => {
+        const s = String(val || "");
+        // Tách phần thập phân (nếu có) — dùng dấu chấm cuối cùng
+        const lastDot = s.lastIndexOf(".");
+        let intPart, decPart;
+        if (lastDot >= 0) {
+            intPart = s.slice(0, lastDot).replace(/[^\d]/g, "");
+            decPart = s.slice(lastDot + 1).replace(/[^\d]/g, "");
+        } else {
+            intPart = s.replace(/[^\d]/g, "");
+            decPart = "";
+        }
+        if (!intPart && !decPart && lastDot < 0) return "";
+        // Format phần nguyên với dấu phẩy ngàn
+        const intFmt = intPart ? intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0";
+        return lastDot >= 0 ? `${intFmt}.${decPart}` : intFmt;
+    };
+
+    input.addEventListener("input", (e) => {
+        const oldVal = input.value;
+        const oldCaret = input.selectionStart || 0;
+        // Đếm số digit (và dấu chấm thập phân) trước caret để khôi phục vị trí
+        const digitsBefore = oldVal.slice(0, oldCaret).replace(/[^\d.]/g, "").length;
+
+        const newVal = formatLive(oldVal);
+        if (newVal === oldVal) return;
+        input.value = newVal;
+
+        // Restore caret: đặt sau ký tự thứ N digits-or-dot từ trái
+        let count = 0;
+        let newCaret = newVal.length;
+        for (let i = 0; i < newVal.length; i++) {
+            if (count >= digitsBefore) {
+                newCaret = i;
+                break;
+            }
+            if (/[\d.]/.test(newVal[i])) count++;
+        }
+        try {
+            input.setSelectionRange(newCaret, newCaret);
+        } catch (_) {}
+    });
+}
+
+function attachLiveSeparatorAll() {
+    try {
+        // Áp dụng cho TẤT CẢ input của ngân sách + monetary trong popup intake
+        document.querySelectorAll(
+            ".o_vd_hero_budget input, .o_vd_budget_manual input"
+        ).forEach(attachLiveSeparator);
+    } catch (e) {
+        console.warn("[VD intake] attachLiveSeparatorAll skipped:", e);
     }
 }
 
@@ -399,7 +459,8 @@ function schedule() {
         fadeZeroDims();
         attachClearAll();
         attachZeroFocusAll();
-        attachReadableHintAll();
+        attachReadableHintAll();        // chỉ XOÁ hint cũ, không tạo mới
+        attachLiveSeparatorAll();        // gõ tới đâu phân cách số tới đó
         clearZeroDisplays();
     });
 }

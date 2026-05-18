@@ -87,46 +87,150 @@ class StringeeController(http.Controller):
     def answer_url(self, **kwargs):
         """Return SCCO actions for an inbound or Web-SDK-initiated call.
 
-        Stringee passes from/to/callId as query string. We connect to whatever
-        number was dialled and record by default.
+        ⚠️ DOUBLE-CALL + MIC FIX:
+        Stringee fetches answer_url cho MỌI call routed qua project — bao gồm cả
+        call originated từ Web SDK (StringeeCall2 trên browser).
+
+        Vấn đề:
+        - Web SDK call cần SCCO `connect` action để Stringee biết cách bridge
+          browser audio → PSTN. KHÔNG có connect → mic không stream tới KH
+          (lỗi 1-way audio).
+        - Nhưng connect kiểu `from external → to external` sẽ tạo PSTN leg riêng
+          → KH bị reo 2 cuộc (double-call).
+
+        Giải pháp đúng — connect với `from: internal user_id`:
+        - Tells Stringee: dùng audio stream của user (browser WebRTC) làm `from`,
+          bridge sang external PSTN ở `to`.
+        - Stringee KHÔNG dial PSTN riêng cho `from` → không double-call.
+        - Audio bridge giữ nguyên → mic NV stream tới KH được.
+
+        Phân loại:
+        - `from` match `res_users.stringee_user_id` → Web SDK → connect internal→external.
+        - REST callout (stringee.call existing, direction=outbound) → KHÔNG thêm
+          connect (body đã có rồi, thêm sẽ double).
+        - PSTN inbound (`from` là phone) → connect external→external như cũ.
         """
         params = dict(request.httprequest.values.items())
         call_id = params.get('callId') or params.get('call_id')
-        from_num = params.get('from')
-        to_num = params.get('to')
+        from_num = (params.get('from') or '').strip()
+        to_num = (params.get('to') or '').strip()
 
         Param = request.env['ir.config_parameter'].sudo()
         record = (Param.get_param('vd_stringee.record_calls') or 'True') in ('True', 'true', '1')
         base_url = (Param.get_param('web.base.url') or '').rstrip('/')
         from_number = (Param.get_param('vd_stringee.from_number') or '').strip()
 
-        # Pre-create record so the next webhook can find it.
-        if call_id:
-            Call = request.env['stringee.call'].sudo()
-            existing = Call.search([('name', '=', call_id)], limit=1)
-            if not existing:
-                Call.create({
-                    'name': call_id,
-                    'caller_number': from_num,
-                    'callee_number': to_num,
-                    'direction': 'outbound',
-                    'state': 'initiated',
-                })
+        Call = request.env['stringee.call'].sudo()
+        existing = Call.search([('name', '=', call_id)], limit=1) if call_id else Call.browse()
 
-        actions = request.env['stringee.call'].sudo()._scco_actions(
+        # === RACE FIX: fallback lookup by callee_number ===
+        # Khi Stringee fetch answer_url SONG SONG với callout API → Odoo chưa kịp
+        # write call_id (name) xuống DB → existing rỗng → misclassify thành Web SDK
+        # → thêm SCCO connect → double-call.
+        # Fallback: tìm theo (callee_number=to_num, direction=outbound,
+        # create_date < 60s) — action_callout đã pre-commit record này.
+        if not existing and to_num:
+            from datetime import datetime, timedelta
+            recent_threshold = datetime.utcnow() - timedelta(seconds=60)
+            existing = Call.search([
+                ('callee_number', 'in', [to_num, '+%s' % to_num.lstrip('+')]),
+                ('direction', '=', 'outbound'),
+                ('create_date', '>=', recent_threshold),
+                ('state', 'in', ['draft', 'initiated', 'ringing']),
+            ], limit=1, order='create_date desc')
+            if existing and call_id and not existing.name:
+                # Stamp call_id ngay để webhook tiếp theo lookup theo name match
+                existing.write({'name': call_id})
+
+        is_rest_outbound = bool(existing) and existing.direction == 'outbound'
+
+        # Web SDK detect: JS pass hotline number làm fromNumber (per Stringee
+        # Web SDK doc: "fromNumber = số đã mua cho app-to-phone"). Khi từ
+        # match hotline → đây là Web SDK call từ browser.
+        # Fallback: `from` cũng có thể là stringee_user_id (legacy or fallback).
+        is_web_sdk_origin = False
+        if from_num and not is_rest_outbound:
+            if from_num == from_number:
+                is_web_sdk_origin = True
+            else:
+                user_match = request.env['res.users'].sudo().search([
+                    ('stringee_user_id', '=', from_num),
+                ], limit=1)
+                is_web_sdk_origin = bool(user_match)
+
+        # Pre-create record để webhook tiếp theo find được.
+        if call_id and not existing:
+            Call.create({
+                'name': call_id,
+                'caller_number': from_num,
+                'callee_number': to_num,
+                'direction': 'outbound' if (is_rest_outbound or is_web_sdk_origin) else 'inbound',
+                'state': 'initiated',
+            })
+
+        # SCCO record action standalone.
+        actions = Call._scco_actions(
             record=record, event_url=f'{base_url}/stringee/recording_event',
         )
-        # Connect to PSTN: the dialled number is `to`. If the call origin is a
-        # Stringee user (Web SDK), we still bridge to PSTN; from_number sets caller ID.
-        if to_num:
-            actions.append({
+
+        # Build connect action — đúng theo Stringee SCCO docs + sample đối tác:
+        # https://developer.stringee.com/docs/server/stringee-call-control-object
+        # - `to` là OBJECT (không phải array)
+        # - `to.alias` rỗng
+        # - `peerToPeerCall: false` (cần để record work)
+        # - `timeout: 30` + `continueOnFail: true` (per partner sample)
+        # - KHÔNG có maxConnectTime, eventUrl (set ở project level)
+        def _build_connect(from_endpoint, to_number):
+            action = {
                 'action': 'connect',
-                'from': {'type': 'external', 'number': from_number or from_num, 'alias': from_number or from_num},
-                'to': [{'type': 'external', 'number': to_num, 'alias': to_num}],
-                'maxConnectTime': -1,
-                'timeout': 60,
-                'eventUrl': f'{base_url}/stringee/event',
-            })
+                'to': {'type': 'external', 'number': to_number, 'alias': ''},
+                'peerToPeerCall': False,
+                'timeout': 30,
+                'continueOnFail': True,
+            }
+            if from_endpoint is not None:
+                action['from'] = from_endpoint
+            return action
+
+        if to_num:
+            if is_rest_outbound:
+                # === HYBRID BRIDGE: REST dial KH PSTN xong → connect to internal NV ===
+                # KH bắt máy → answer_url được gọi. Ta thêm SCCO connect to=internal:
+                # NV's stringee_user_id để Stringee ring browser NV (incomingcall2).
+                # Browser auto-answer → bridge audio KH ↔ NV.
+                nv_sui = (existing.user_id.stringee_user_id or '').strip() if existing else ''
+                if nv_sui:
+                    actions.append({
+                        'action': 'connect',
+                        'to': {'type': 'internal', 'number': nv_sui, 'alias': ''},
+                        'peerToPeerCall': False,
+                        'timeout': 30,
+                        'continueOnFail': True,
+                    })
+                # Nếu NV không có stringee_user_id → KHÔNG add connect (giữ flow cũ,
+                # KH bắt máy nhưng không nghe được, sẽ tự ngắt sau vài giây).
+            elif is_web_sdk_origin:
+                # === STRINGEE FLOW 2: App-to-Phone (theo official docs) ===
+                # https://developer.stringee.com/docs/call-api-overview
+                # SCCO connect: from={type:internal, number:hotline}
+                #               to=  {type:external, number:customer}
+                # Browser StringeeCall2 đã init call, answer_url bridge audio.
+                actions.append(_build_connect(
+                    {'type': 'internal', 'number': from_number, 'alias': from_number},
+                    to_num,
+                ))
+            else:
+                # PSTN inbound (KH gọi vào hotline) hoặc unknown origin.
+                actions.append(_build_connect(
+                    {'type': 'external', 'number': from_number or from_num, 'alias': from_number or from_num},
+                    to_num,
+                ))
+
+        _logger.info(
+            "[Stringee answer_url] callId=%s from=%s to=%s rest_out=%s web_sdk=%s actions=%s",
+            call_id, from_num, to_num, is_rest_outbound, is_web_sdk_origin,
+            json.dumps(actions, ensure_ascii=False),
+        )
 
         return request.make_response(
             json.dumps(actions, ensure_ascii=False),
@@ -176,14 +280,53 @@ class StringeeController(http.Controller):
             'state': rec.state,
         }
 
+    @http.route('/stringee/heartbeat', type='json', auth='user')
+    def heartbeat(self, ok=False, r_code=None, message='', userId=''):
+        """Browser JS ping sau event `authen` để confirm Stringee đã connect.
+        Dùng cho debug — verify browser thật sự online với Stringee."""
+        user = request.env.user
+        _logger.info(
+            "[Stringee heartbeat] uid=%s login=%s authen_ok=%s r=%s msg=%r sui=%r",
+            user.id, user.login, ok, r_code, message, userId,
+        )
+        return {'ok': True}
+
     @http.route('/stringee/user_token', type='json', auth='user')
     def user_token(self):
         """Return a short-lived Stringee user token for the current user.
 
-        Empty string if user has no `stringee_user_id` configured.
+        Also returns `from_number` — the hotline number purchased on Stringee,
+        used as fromNumber in StringeeCall2 constructor for App-to-Phone calls.
+
+        Empty string token if user has no `stringee_user_id` configured.
         """
         user = request.env.user
+        Param = request.env['ir.config_parameter'].sudo()
+        from_number = (Param.get_param('vd_stringee.from_number') or '').strip()
+        _logger.info(
+            "[Stringee user_token] called by uid=%s login=%s stringee_user_id=%r from_number=%r",
+            user.id, user.login, user.stringee_user_id, from_number,
+        )
         if not user.stringee_user_id:
-            return {'token': '', 'user_id': '', 'reason': 'no stringee_user_id on user'}
-        token = request.env['stringee.jwt'].sudo().gen_user_token(user.stringee_user_id)
-        return {'token': token, 'user_id': user.stringee_user_id}
+            _logger.warning(
+                "[Stringee user_token] uid=%s login=%s HAS NO stringee_user_id → empty token",
+                user.id, user.login,
+            )
+            return {
+                'token': '', 'user_id': '', 'from_number': from_number,
+                'reason': 'no stringee_user_id on user',
+            }
+        try:
+            token = request.env['stringee.jwt'].sudo().gen_user_token(user.stringee_user_id)
+            _logger.info(
+                "[Stringee user_token] generated token for %s len=%s",
+                user.stringee_user_id, len(token or ''),
+            )
+        except Exception as e:
+            _logger.exception("[Stringee user_token] gen_user_token FAILED: %s", e)
+            raise
+        return {
+            'token': token,
+            'user_id': user.stringee_user_id,
+            'from_number': from_number,
+        }

@@ -2,38 +2,512 @@
 <templates xml:space="preserve">
 
     <t t-name="vd_crm_lead.Dashboard">
-        <div class="o_vd_crm_dashboard p-3">
-            <div t-if="state.loading" class="text-center text-muted py-5">
+        <div class="o_vd_crm_dashboard">
+            <div t-if="state.loading" class="o_vd_dash_loader">
                 <i class="fa fa-spinner fa-spin fa-2x"/>
-                <div class="mt-2">Đang tải...</div>
+                <div class="mt-2">Đang tải dashboard...</div>
             </div>
 
-            <div t-else="" class="row g-3">
-                <!-- LEFT COLUMN — user card / today / errors -->
-                <div class="col-lg-3 col-md-4 d-flex flex-column gap-3">
+            <div t-else="" class="o_vd_dash_container">
 
-                    <!-- User card -->
-                    <div class="card o_vd_user_card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start justify-content-between mb-1">
-                                <h5 class="card-title text-danger mb-0">
-                                    <i t-if="state.user.is_all" class="fa fa-users me-1"/>
-                                    <i t-else="" class="fa fa-user-circle me-1"/>
-                                    <t t-esc="state.user.name"/>
-                                </h5>
-                                <span t-if="state.is_manager" class="badge bg-primary" title="Bạn đang xem với quyền quản lý">
-                                    <i class="fa fa-shield"/> Manager
+                <!-- ============ 🔒 BLOCK BANNER (NV view) ============ -->
+                <div t-if="state.block_status?.is_blocked and !isAdminView" class="o_vd_block_banner">
+                    <div class="o_vd_block_icon">🔒</div>
+                    <div class="o_vd_block_content">
+                        <div class="o_vd_block_title">TẠM DỪNG NHẬN KH MỚI</div>
+                        <div class="o_vd_block_msg">
+                            Bạn có <strong><t t-esc="state.block_status.overdue_count"/></strong> KH quá hạn
+                            (giới hạn <t t-esc="state.block_status.threshold"/>).
+                            <span class="o_vd_block_hint">→ Chăm sóc KH quá hạn để được mở lại.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     ADMIN VIEW — Manager chọn "Tất cả NV": menu dọc + content
+                     ============================================================ -->
+                <div t-if="isAdminView" class="o_vd_admin_layout">
+
+                    <!-- ===== ADMIN MENU (vertical sidebar) ===== -->
+                    <aside class="o_vd_admin_nav">
+                        <div class="o_vd_admin_nav_header">
+                            <div class="o_vd_admin_nav_avatar"><i class="fa fa-shield"/></div>
+                            <div class="o_vd_admin_nav_meta">
+                                <div class="o_vd_admin_nav_name"><t t-esc="state.user.name"/></div>
+                                <div class="o_vd_admin_nav_role">
+                                    <i class="fa fa-cog"/> Admin
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_vd_admin_nav_picker">
+                            <select class="o_vd_user_picker"
+                                    t-on-change="(ev) => this.onChangeUser(ev)">
+                                <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
+                                <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                        t-att-value="u.id"
+                                        t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
+                                    <t t-esc="u.name"/>
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Nút thêm KH thủ công -->
+                        <button class="o_vd_add_lead_btn"
+                                t-on-click="() => this.createNewLead()">
+                            <i class="fa fa-plus me-1"/> Thêm mới
+                        </button>
+
+                        <nav class="o_vd_admin_nav_list">
+                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'overview' ? 'o_active' : '')"
+                                    t-on-click="() => this.selectAdminTab('overview')">
+                                <i class="fa fa-chart-pie"/>
+                                <span>Tổng quan công ty</span>
+                            </button>
+                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'performance' ? 'o_active' : '')"
+                                    t-on-click="() => this.selectAdminTab('performance')">
+                                <i class="fa fa-trophy"/>
+                                <span>Thành tích NV</span>
+                            </button>
+                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'alerts' ? 'o_active' : '')"
+                                    t-on-click="() => this.selectAdminTab('alerts')">
+                                <i class="fa fa-exclamation-triangle"/>
+                                <span>Cảnh báo &amp; KH cần xử lý</span>
+                                <span t-if="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0) > 0"
+                                      class="o_vd_admin_nav_badge">
+                                    <t t-esc="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0)"/>
                                 </span>
+                            </button>
+                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'today' ? 'o_active' : '')"
+                                    t-on-click="() => this.selectAdminTab('today')">
+                                <i class="fa fa-calendar-check-o"/>
+                                <span>Hoạt động hôm nay</span>
+                            </button>
+                        </nav>
+
+                        <div class="o_vd_admin_nav_footer">
+                            <div class="o_vd_admin_nav_kpi">
+                                <span class="o_vd_admin_nav_kpi_lbl">Tổng KH cty</span>
+                                <span class="o_vd_admin_nav_kpi_val"><t t-esc="state.kpi.total or 0"/></span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- ===== ADMIN CONTENT ===== -->
+                    <main class="o_vd_admin_content">
+
+                        <!-- ============== TAB: TỔNG QUAN ============== -->
+                        <div t-if="state.adminTab === 'overview'" class="o_vd_admin_tab">
+                            <div class="o_vd_admin_tab_head">
+                                <h4><i class="fa fa-chart-pie me-2"/> Tổng quan công ty</h4>
+                                <div class="o_vd_admin_tab_sub">Pipeline + KPI toàn công ty — tháng này</div>
                             </div>
 
-                            <!-- Dropdown chọn NV — chỉ hiển thị cho manager -->
-                            <div t-if="state.is_manager" class="mb-2 mt-2">
-                                <label class="form-label small text-muted mb-1">Xem dashboard của:</label>
-                                <select class="form-select form-select-sm o_vd_user_picker"
+                            <!-- KPI top row -->
+                            <div class="o_vd_admin_kpi_row">
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_total">
+                                    <div class="o_vd_admin_kpi_lbl">Tổng KH</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.kpi.total or 0"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_new">
+                                    <div class="o_vd_admin_kpi_lbl">KH mới hôm nay</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.kpi.new_today or 0"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_calls">
+                                    <div class="o_vd_admin_kpi_lbl">Cuộc gọi hôm nay</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.kpi.calls_today or 0"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_won">
+                                    <div class="o_vd_admin_kpi_lbl">HĐ tháng này</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.contracts_month or 0"/></div>
+                                </div>
+                            </div>
+
+                            <!-- Pipeline funnel -->
+                            <div class="o_vd_funnel_section">
+                                <div class="o_vd_section_title">
+                                    <i class="fa fa-filter me-2"/> Pipeline
+                                </div>
+                                <div class="o_vd_funnel">
+                                    <button t-foreach="state.stages" t-as="stage" t-key="stage.id"
+                                            t-on-click="() => this.selectStage(stage.id)"
+                                            t-att-class="'o_vd_funnel_step ' + funnelStepClass(stage) + (state.selectedStageId === stage.id ? ' o_active' : '') + (stage.is_lost ? ' o_vd_funnel_lost' : '')">
+                                        <div class="o_vd_funnel_step_count"><t t-esc="stage.count"/></div>
+                                        <div class="o_vd_funnel_step_name"><t t-esc="stage.name"/></div>
+                                        <div class="o_vd_funnel_step_pct"><t t-esc="stage.default_probability"/>%</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lead table -->
+                            <section class="o_vd_lead_section">
+                                <div class="o_vd_lead_section_head">
+                                    <h5 class="mb-0">
+                                        <t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/>
+                                    </h5>
+                                    <span class="o_vd_lead_count_badge">
+                                        <t t-esc="state.leads.length"/> KH
+                                    </span>
+                                </div>
+                                <div class="o_vd_lead_section_body">
+                                    <t t-call="vd_crm_lead.LeadTableBody"/>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- ============== TAB: THÀNH TÍCH NV ============== -->
+                        <div t-if="state.adminTab === 'performance'" class="o_vd_admin_tab">
+                            <div class="o_vd_admin_tab_head">
+                                <h4><i class="fa fa-trophy me-2"/> Thành tích nhân viên</h4>
+                                <div class="o_vd_admin_tab_sub">
+                                    Click vào 1 NV để xem chi tiết bên phải — thưởng theo cơ cấu chỉ tiêu 2026.
+                                </div>
+                            </div>
+
+                            <!-- Summary cards -->
+                            <div class="o_vd_admin_kpi_row">
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_total">
+                                    <div class="o_vd_admin_kpi_lbl">Tổng NV</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.leaderboard.length"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_won">
+                                    <div class="o_vd_admin_kpi_lbl">HĐ tháng này</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.contracts_month or 0"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_calls">
+                                    <div class="o_vd_admin_kpi_lbl">HĐ năm này</div>
+                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.contracts_year or 0"/></div>
+                                </div>
+                                <div class="o_vd_admin_kpi_card o_vd_kpi_bonus">
+                                    <div class="o_vd_admin_kpi_lbl">Tổng thưởng tháng</div>
+                                    <div class="o_vd_admin_kpi_val">
+                                        <t t-esc="formatVnd(state.performance.leaderboard.reduce((s, r) => s + r.bonus_month, 0))"/>đ
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Leaderboard full -->
+                            <section class="o_vd_leaderboard o_vd_leaderboard_full">
+                                <div class="o_vd_leaderboard_title">
+                                    <i class="fa fa-medal me-1"/> Bảng xếp hạng NV (Tháng này)
+                                </div>
+                                <table class="o_vd_leaderboard_tbl">
+                                    <thead>
+                                        <tr>
+                                            <th class="o_vd_lb_rank">#</th>
+                                            <th>Nhân viên</th>
+                                            <th class="text-center">HĐ Tháng</th>
+                                            <th class="text-center">HĐ Năm</th>
+                                            <th class="text-center">KH đang chăm</th>
+                                            <th class="text-center">% Chỉ tiêu</th>
+                                            <th class="text-end">Thưởng tháng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="state.performance.leaderboard" t-as="row" t-key="row.user_id"
+                                            t-att-class="'o_vd_lb_clickable ' + (row_index === 0 ? 'o_vd_lb_top' : '') + (state.nvDetail?.user?.id === row.user_id ? ' o_vd_lb_active' : '')"
+                                            t-on-click="() => this.openNvDetail(row.user_id)">
+                                            <td class="o_vd_lb_rank">
+                                                <t t-if="row_index === 0">🥇</t>
+                                                <t t-elif="row_index === 1">🥈</t>
+                                                <t t-elif="row_index === 2">🥉</t>
+                                                <t t-else=""><t t-esc="row_index + 1"/></t>
+                                            </td>
+                                            <td class="o_vd_lb_name">
+                                                <i class="fa fa-user-circle me-2 text-muted"/>
+                                                <t t-esc="row.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="o_vd_lb_count">
+                                                    <t t-esc="row.contracts_month"/>
+                                                    <span class="o_vd_lb_target">/<t t-esc="row.target_month"/></span>
+                                                </span>
+                                            </td>
+                                            <td class="text-center"><t t-esc="row.contracts_year or 0"/></td>
+                                            <td class="text-center"><t t-esc="row.active_leads or 0"/></td>
+                                            <td class="text-center">
+                                                <div class="o_vd_lb_bar_wrap">
+                                                    <div t-att-class="'o_vd_lb_bar ' + perfBarClass(row.perf_pct)"
+                                                         t-att-style="`width:${Math.min(row.perf_pct, 100)}%`"/>
+                                                    <span class="o_vd_lb_pct"><t t-esc="row.perf_pct.toFixed(0)"/>%</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end o_vd_lb_bonus">
+                                                <t t-esc="formatVnd(row.bonus_month)"/>đ
+                                            </td>
+                                        </tr>
+                                        <tr t-if="!state.performance.leaderboard.length">
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                Chưa có NV nào — kiểm tra cấu hình group sales.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </section>
+                        </div>
+
+                        <!-- ============== TAB: CẢNH BÁO ============== -->
+                        <div t-if="state.adminTab === 'alerts'" class="o_vd_admin_tab">
+                            <div class="o_vd_admin_tab_head">
+                                <h4><i class="fa fa-exclamation-triangle me-2"/> Cảnh báo &amp; KH cần xử lý</h4>
+                                <div class="o_vd_admin_tab_sub">
+                                    Click 1 thẻ để xem danh sách KH theo loại cảnh báo.
+                                </div>
+                            </div>
+
+                            <!-- Alert cards (clickable) -->
+                            <div class="o_vd_admin_alert_grid">
+                                <button class="o_vd_admin_alert_card o_vd_alert_overdue"
+                                        t-att-class="state.alertFilter === 'overdue_callback' ? 'o_vd_admin_alert_card o_vd_alert_overdue o_active' : 'o_vd_admin_alert_card o_vd_alert_overdue'"
+                                        t-on-click="() => this.openAlertLeads('overdue_callback')">
+                                    <div class="o_vd_admin_alert_num"><t t-esc="state.errors.overdue_callback or 0"/></div>
+                                    <div class="o_vd_admin_alert_lbl">⚠️ KH quá hạn gọi lại</div>
+                                </button>
+                                <button class="o_vd_admin_alert_card o_vd_alert_new"
+                                        t-att-class="state.alertFilter === 'new_not_called' ? 'o_vd_admin_alert_card o_vd_alert_new o_active' : 'o_vd_admin_alert_card o_vd_alert_new'"
+                                        t-on-click="() => this.openAlertLeads('new_not_called')">
+                                    <div class="o_vd_admin_alert_num"><t t-esc="state.errors.new_not_called or 0"/></div>
+                                    <div class="o_vd_admin_alert_lbl">🆕 KH mới chưa gọi</div>
+                                </button>
+                                <button class="o_vd_admin_alert_card o_vd_alert_potential"
+                                        t-att-class="state.alertFilter === 'potential_no_quote' ? 'o_vd_admin_alert_card o_vd_alert_potential o_active' : 'o_vd_admin_alert_card o_vd_alert_potential'"
+                                        t-on-click="() => this.openAlertLeads('potential_no_quote')">
+                                    <div class="o_vd_admin_alert_num"><t t-esc="state.errors.potential_no_quote or 0"/></div>
+                                    <div class="o_vd_admin_alert_lbl">💡 Tiềm năng chưa báo giá</div>
+                                </button>
+                                <button class="o_vd_admin_alert_card o_vd_alert_stale"
+                                        t-att-class="state.alertFilter === 'stale' ? 'o_vd_admin_alert_card o_vd_alert_stale o_active' : 'o_vd_admin_alert_card o_vd_alert_stale'"
+                                        t-on-click="() => this.openAlertLeads('stale')">
+                                    <div class="o_vd_admin_alert_num"><t t-esc="state.errors.stale or 0"/></div>
+                                    <div class="o_vd_admin_alert_lbl">💤 Chưa gọi 14+ ngày</div>
+                                </button>
+                            </div>
+
+                            <!-- Lead list theo cảnh báo đang chọn -->
+                            <section t-if="state.alertFilter"
+                                     class="o_vd_lead_section o_vd_lead_section_alert">
+                                <div class="o_vd_lead_section_head">
+                                    <h5 class="mb-0"><t t-esc="alertTitle"/></h5>
+                                    <span class="o_vd_lead_count_badge">
+                                        <t t-esc="state.leads.length"/> KH
+                                    </span>
+                                    <button class="o_vd_clear_alert_btn"
+                                            t-on-click="() => this.clearAlertFilter()">
+                                        <i class="fa fa-times me-1"/>Bỏ filter
+                                    </button>
+                                </div>
+                                <div class="o_vd_lead_section_body">
+                                    <t t-call="vd_crm_lead.LeadTableBody"/>
+                                </div>
+                            </section>
+                            <div t-else="" class="o_vd_admin_alert_hint">
+                                <i class="fa fa-arrow-up"/> Click 1 thẻ ở trên để xem danh sách KH cần xử lý.
+                            </div>
+                        </div>
+
+                        <!-- ============== TAB: HOẠT ĐỘNG HÔM NAY ============== -->
+                        <div t-if="state.adminTab === 'today'" class="o_vd_admin_tab">
+                            <div class="o_vd_admin_tab_head">
+                                <h4><i class="fa fa-calendar-check-o me-2"/> Hoạt động hôm nay</h4>
+                                <div class="o_vd_admin_tab_sub">Số liệu cập nhật cho toàn công ty trong ngày.</div>
+                            </div>
+
+                            <div class="o_vd_admin_today_grid">
+                                <div class="o_vd_admin_today_card">
+                                    <div class="o_vd_admin_today_icon"><i class="fa fa-user-plus"/></div>
+                                    <div class="o_vd_admin_today_meta">
+                                        <div class="o_vd_admin_today_lbl">KH mới</div>
+                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.new_today or 0"/></div>
+                                    </div>
+                                </div>
+                                <div class="o_vd_admin_today_card">
+                                    <div class="o_vd_admin_today_icon"><i class="fa fa-phone"/></div>
+                                    <div class="o_vd_admin_today_meta">
+                                        <div class="o_vd_admin_today_lbl">Cuộc gọi đã thực hiện</div>
+                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.calls_today or 0"/></div>
+                                    </div>
+                                </div>
+                                <div class="o_vd_admin_today_card">
+                                    <div class="o_vd_admin_today_icon"><i class="fa fa-check-circle"/></div>
+                                    <div class="o_vd_admin_today_meta">
+                                        <div class="o_vd_admin_today_lbl">KH bắt máy</div>
+                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.calls_answered_today or 0"/></div>
+                                    </div>
+                                </div>
+                                <div class="o_vd_admin_today_card">
+                                    <div class="o_vd_admin_today_icon"><i class="fa fa-music"/></div>
+                                    <div class="o_vd_admin_today_meta">
+                                        <div class="o_vd_admin_today_lbl">Ghi âm</div>
+                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.recordings_today or 0"/></div>
+                                    </div>
+                                </div>
+                                <div class="o_vd_admin_today_card o_vd_admin_today_callback"
+                                     t-att-class="state.kpi.callback_today ? 'o_vd_admin_today_card o_vd_admin_today_callback o_vd_attn' : 'o_vd_admin_today_card o_vd_admin_today_callback'">
+                                    <div class="o_vd_admin_today_icon"><i class="fa fa-clock-o"/></div>
+                                    <div class="o_vd_admin_today_meta">
+                                        <div class="o_vd_admin_today_lbl">Hẹn gọi lại hôm nay</div>
+                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.callback_today or 0"/></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_vd_admin_today_hint">
+                                <i class="fa fa-info-circle"/>
+                                Để xem hoạt động chi tiết của từng NV, chọn NV trong dropdown bên trái.
+                            </div>
+                        </div>
+
+                    </main>
+
+                    <!-- ===== NV DETAIL SLIDE-IN PANEL ===== -->
+                    <aside t-if="state.nvDetail" class="o_vd_nv_detail">
+                        <div class="o_vd_nv_detail_head">
+                            <div class="o_vd_nv_detail_avatar"><i class="fa fa-user-circle"/></div>
+                            <div class="o_vd_nv_detail_meta">
+                                <div class="o_vd_nv_detail_name"><t t-esc="state.nvDetail.user?.name or 'NV'"/></div>
+                                <div class="o_vd_nv_detail_sub">Chi tiết thành tích NV</div>
+                            </div>
+                            <button class="o_vd_nv_detail_close"
+                                    t-on-click="() => this.closeNvDetail()"
+                                    title="Đóng">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+
+                        <div t-if="state.nvDetailLoading or state.nvDetail.loading" class="o_vd_nv_detail_loader">
+                            <i class="fa fa-spinner fa-spin"/> Đang tải...
+                        </div>
+                        <div t-else="" class="o_vd_nv_detail_body">
+
+                            <!-- Block status -->
+                            <div t-if="state.nvDetail.block_status?.is_blocked" class="o_vd_nv_detail_block">
+                                🔒 NV đang bị TẠM DỪNG nhận KH mới
+                                (<t t-esc="state.nvDetail.block_status.overdue_count"/> KH quá hạn /
+                                giới hạn <t t-esc="state.nvDetail.block_status.threshold"/>)
+                            </div>
+
+                            <!-- Performance -->
+                            <div class="o_vd_nv_detail_perf">
+                                <div class="o_vd_nv_detail_perf_row">
+                                    <div class="o_vd_nv_detail_perf_lbl">📑 HĐ Tháng</div>
+                                    <div class="o_vd_nv_detail_perf_val">
+                                        <t t-esc="state.nvDetail.performance.contracts_month"/>
+                                        <span class="text-muted">/ <t t-esc="state.nvDetail.performance.target_month"/></span>
+                                    </div>
+                                </div>
+                                <div class="o_vd_nv_detail_perf_bar">
+                                    <div t-att-class="'o_vd_nv_detail_perf_bar_fill ' + perfBarClass(state.nvDetail.performance.perf_pct_month)"
+                                         t-att-style="`width:${Math.min(state.nvDetail.performance.perf_pct_month, 100)}%`"/>
+                                </div>
+
+                                <div class="o_vd_nv_detail_perf_row mt-3">
+                                    <div class="o_vd_nv_detail_perf_lbl">📅 HĐ Năm</div>
+                                    <div class="o_vd_nv_detail_perf_val">
+                                        <t t-esc="state.nvDetail.performance.contracts_year"/>
+                                        <span class="text-muted">/ <t t-esc="state.nvDetail.performance.target_year"/></span>
+                                    </div>
+                                </div>
+                                <div class="o_vd_nv_detail_perf_bar">
+                                    <div t-att-class="'o_vd_nv_detail_perf_bar_fill ' + perfBarClass(state.nvDetail.performance.perf_pct_year)"
+                                         t-att-style="`width:${Math.min(state.nvDetail.performance.perf_pct_year, 100)}%`"/>
+                                </div>
+
+                                <div class="o_vd_nv_detail_bonus">
+                                    <span>💰 Thưởng tháng</span>
+                                    <span class="o_vd_nv_detail_bonus_val">
+                                        <t t-esc="formatVnd(state.nvDetail.performance.bonus_month)"/>đ
+                                    </span>
+                                </div>
+                                <div t-if="state.nvDetail.performance.next_tier_bonus"
+                                     class="o_vd_nv_detail_next_tier">
+                                    🎯 Chốt HĐ #<t t-esc="state.nvDetail.performance.next_tier_at"/>
+                                    → +<t t-esc="formatVnd(state.nvDetail.performance.next_tier_bonus)"/>đ
+                                </div>
+                            </div>
+
+                            <!-- HĐ đã chốt -->
+                            <div t-if="state.nvDetail.performance.closed_contracts.length"
+                                 class="o_vd_nv_detail_section">
+                                <div class="o_vd_nv_detail_section_title">
+                                    🏆 HĐ đã chốt tháng này (<t t-esc="state.nvDetail.performance.closed_contracts.length"/>)
+                                </div>
+                                <table class="o_vd_nv_detail_contracts">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>KH</th>
+                                            <th>Ngày</th>
+                                            <th class="text-end">Giá HĐ</th>
+                                            <th class="text-end">Cộng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="state.nvDetail.performance.closed_contracts" t-as="c" t-key="c.id">
+                                            <td><t t-esc="c_index + 1"/></td>
+                                            <td><t t-esc="c.name"/></td>
+                                            <td><t t-esc="c.date"/></td>
+                                            <td class="text-end"><t t-esc="formatVnd(c.price)"/>đ</td>
+                                            <td class="text-end o_vd_nv_detail_bonus_cell">
+                                                +<t t-esc="formatVnd(bonusTier(c_index + 1))"/>đ
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- KH đang chăm -->
+                            <div t-if="state.nvDetail.active_leads and state.nvDetail.active_leads.length"
+                                 class="o_vd_nv_detail_section">
+                                <div class="o_vd_nv_detail_section_title">
+                                    👥 KH đang chăm (<t t-esc="state.nvDetail.active_leads.length"/>)
+                                </div>
+                                <ul class="o_vd_nv_detail_leads">
+                                    <li t-foreach="state.nvDetail.active_leads" t-as="ld" t-key="ld.id"
+                                        t-on-click="() => this.openLead(ld.id)"
+                                        t-att-class="ld.is_overdue_callback ? 'o_vd_overdue' : ''">
+                                        <div class="o_vd_nv_detail_lead_name">
+                                            <strong><t t-esc="ld.name"/></strong>
+                                            <span t-if="ld.is_overdue_callback" class="o_vd_chip_overdue">Quá hạn</span>
+                                            <span t-if="ld.is_today_callback" class="o_vd_chip_today">Hôm nay</span>
+                                            <span t-if="ld.is_stale" class="o_vd_chip_stale">Stale</span>
+                                        </div>
+                                        <div class="o_vd_nv_detail_lead_meta">
+                                            <span><i class="fa fa-phone me-1"/><t t-esc="ld.phone or '—'"/></span>
+                                            <span><t t-esc="ld.probability"/>%</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </aside>
+
+                </div>
+
+                <!-- ============================================================
+                     NV VIEW — Manager xem 1 NV cụ thể, hoặc bản thân NV
+                     ============================================================ -->
+                <div t-else="" class="o_vd_dash_grid">
+
+                    <!-- ===== SIDEBAR ===== -->
+                    <aside class="o_vd_sidebar_v2">
+
+                        <!-- 1. NV Info card -->
+                        <div class="o_vd_side_card o_vd_side_user">
+                            <div class="o_vd_side_user_top">
+                                <div class="o_vd_side_user_avatar">
+                                    <i t-if="state.user.is_all" class="fa fa-users"/>
+                                    <i t-else="" class="fa fa-user-circle"/>
+                                </div>
+                                <div class="o_vd_side_user_meta">
+                                    <div class="o_vd_side_user_name"><t t-esc="state.user.name"/></div>
+                                    <div t-if="state.is_manager" class="o_vd_side_user_role">
+                                        <i class="fa fa-shield"/> Manager
+                                    </div>
+                                </div>
+                            </div>
+                            <div t-if="state.is_manager" class="o_vd_side_user_picker">
+                                <select class="o_vd_user_picker"
                                         t-on-change="(ev) => this.onChangeUser(ev)">
-                                    <option value="all" t-att-selected="state.user.is_all">
-                                        🌐 Tất cả nhân viên
-                                    </option>
+                                    <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
                                     <option t-foreach="state.users" t-as="u" t-key="u.id"
                                             t-att-value="u.id"
                                             t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
@@ -41,154 +515,351 @@
                                     </option>
                                 </select>
                             </div>
-
-                            <div class="text-muted small">Tổng số khách</div>
-                            <div class="display-6 fw-bold"><t t-esc="state.kpi.total"/></div>
+                            <div class="o_vd_side_user_total">
+                                <span class="o_vd_side_user_total_lbl">Tổng KH</span>
+                                <span class="o_vd_side_user_total_val"><t t-esc="state.kpi.total or 0"/></span>
+                            </div>
+                            <!-- Nút thêm KH thủ công cho NV view -->
+                            <button class="o_vd_add_lead_btn mt-2"
+                                    t-on-click="() => this.createNewLead()">
+                                <i class="fa fa-plus me-1"/> Thêm mới
+                            </button>
                         </div>
-                    </div>
 
-                    <!-- Today's work -->
-                    <div class="card o_vd_today_card">
-                        <div class="card-body">
-                            <h6 class="card-title text-danger">Công việc hôm nay</h6>
-                            <div t-if="state.kpi.new_today" class="d-flex justify-content-between">
-                                <span>KH mới được giao</span>
-                                <span class="fw-bold"><t t-esc="state.kpi.new_today"/></span>
+                        <!-- 2. Performance card (Thành tích + Thưởng) -->
+                        <div class="o_vd_side_card o_vd_side_perf" t-if="state.performance">
+                            <div class="o_vd_side_card_title">
+                                <i class="fa fa-trophy"/> Thành tích &amp; Thưởng
                             </div>
-                            <div t-if="state.kpi.callback_today" class="d-flex justify-content-between">
-                                <span>Hẹn gọi lại hôm nay</span>
-                                <span class="fw-bold text-warning"><t t-esc="state.kpi.callback_today"/></span>
+                            <div class="o_vd_side_perf_grid">
+                                <div class="o_vd_side_perf_item">
+                                    <div class="o_vd_side_perf_lbl">📑 Tháng</div>
+                                    <div class="o_vd_side_perf_val">
+                                        <t t-esc="state.performance.contracts_month"/>
+                                        <span class="o_vd_side_perf_target">/<t t-esc="state.performance.target_month"/></span>
+                                    </div>
+                                    <div class="o_vd_side_perf_bar">
+                                        <div t-att-class="'o_vd_side_perf_bar_fill ' + perfBarClass(state.performance.perf_pct_month)"
+                                             t-att-style="`width:${Math.min(state.performance.perf_pct_month, 100)}%`"/>
+                                    </div>
+                                </div>
+                                <div class="o_vd_side_perf_item">
+                                    <div class="o_vd_side_perf_lbl">📅 Năm</div>
+                                    <div class="o_vd_side_perf_val">
+                                        <t t-esc="state.performance.contracts_year"/>
+                                        <span class="o_vd_side_perf_target">/<t t-esc="state.performance.target_year"/></span>
+                                    </div>
+                                    <div class="o_vd_side_perf_bar">
+                                        <div t-att-class="'o_vd_side_perf_bar_fill ' + perfBarClass(state.performance.perf_pct_year)"
+                                             t-att-style="`width:${Math.min(state.performance.perf_pct_year, 100)}%`"/>
+                                    </div>
+                                </div>
                             </div>
-                            <hr class="my-2" t-if="state.kpi.calls_today"/>
-                            <div t-if="state.kpi.calls_today" class="d-flex justify-content-between">
-                                <span><i class="fa fa-phone"/> Đã gọi hôm nay</span>
-                                <span class="fw-bold text-info"><t t-esc="state.kpi.calls_today"/></span>
+
+                            <!-- Bonus với hover tooltip danh sách HĐ -->
+                            <div class="o_vd_side_perf_bonus o_vd_has_tooltip">
+                                <div class="o_vd_side_perf_bonus_lbl">💰 Thưởng tháng</div>
+                                <div class="o_vd_side_perf_bonus_val">
+                                    <t t-esc="formatVnd(state.performance.bonus_month)"/>đ
+                                </div>
+                                <div class="o_vd_bonus_tooltip"
+                                     t-if="state.performance.closed_contracts and state.performance.closed_contracts.length">
+                                    <div class="o_vd_bonus_tooltip_title">
+                                        <span>💰 Tổng thưởng tháng này</span>
+                                        <span class="o_vd_bonus_tooltip_total">
+                                            <t t-esc="formatVnd(state.performance.bonus_month)"/>đ
+                                        </span>
+                                    </div>
+                                    <table class="o_vd_bonus_tooltip_tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>KH</th>
+                                                <th>Ngày</th>
+                                                <th class="text-end">Giá HĐ</th>
+                                                <th class="text-end o_vd_tt_bonus_col">Cộng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.performance.closed_contracts" t-as="c" t-key="c.id">
+                                                <td><t t-esc="c_index + 1"/></td>
+                                                <td class="o_vd_tt_name"><t t-esc="c.name"/></td>
+                                                <td><t t-esc="c.date"/></td>
+                                                <td class="text-end"><t t-esc="formatVnd(c.price)"/>đ</td>
+                                                <td class="text-end o_vd_tt_bonus_cell">
+                                                    +<t t-esc="formatVnd(bonusTier(c_index + 1))"/>đ
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div t-if="state.kpi.calls_today" class="d-flex justify-content-between small text-muted">
-                                <span>↳ Đã nghe máy</span>
-                                <span><t t-esc="state.kpi.calls_answered_today"/></span>
+                            <div t-if="!state.user.is_all and state.performance.next_tier_bonus"
+                                 class="o_vd_side_perf_hint">
+                                🎯 Chốt HĐ #<t t-esc="state.performance.next_tier_at"/>
+                                → +<t t-esc="formatVnd(state.performance.next_tier_bonus)"/>đ
                             </div>
-                            <div t-if="state.kpi.recordings_today" class="d-flex justify-content-between small text-muted">
-                                <span>↳ Có ghi âm</span>
-                                <span><t t-esc="state.kpi.recordings_today"/></span>
-                            </div>
-                            <div t-if="!state.kpi.new_today and !state.kpi.callback_today and !state.kpi.calls_today"
-                                 class="text-muted">Không có việc khẩn hôm nay.</div>
                         </div>
-                    </div>
 
-                    <!-- Error report -->
-                    <div class="card o_vd_errors_card">
-                        <div class="card-body">
-                            <h6 class="card-title text-danger">Báo cáo lỗi</h6>
-                            <ul class="mb-0 ps-3">
-                                <li t-if="state.errors.overdue_callback">
-                                    Quá hạn <strong t-esc="state.errors.overdue_callback"/> KH hẹn gọi lại
+                        <!-- 3. Today's Activity -->
+                        <div class="o_vd_side_card o_vd_side_today">
+                            <div class="o_vd_side_card_title">
+                                <i class="fa fa-calendar-check-o"/> Hoạt động hôm nay
+                            </div>
+                            <div class="o_vd_side_today_grid">
+                                <div class="o_vd_side_today_item">
+                                    <i class="fa fa-user-plus"/>
+                                    <span class="o_vd_side_today_lbl">Mới</span>
+                                    <span class="o_vd_side_today_val"><t t-esc="state.kpi.new_today or 0"/></span>
+                                </div>
+                                <div class="o_vd_side_today_item">
+                                    <i class="fa fa-phone"/>
+                                    <span class="o_vd_side_today_lbl">Đã gọi</span>
+                                    <span class="o_vd_side_today_val"><t t-esc="state.kpi.calls_today or 0"/></span>
+                                </div>
+                                <div class="o_vd_side_today_item">
+                                    <i class="fa fa-check-circle"/>
+                                    <span class="o_vd_side_today_lbl">Nghe</span>
+                                    <span class="o_vd_side_today_val"><t t-esc="state.kpi.calls_answered_today or 0"/></span>
+                                </div>
+                                <div class="o_vd_side_today_item">
+                                    <i class="fa fa-music"/>
+                                    <span class="o_vd_side_today_lbl">Ghi âm</span>
+                                    <span class="o_vd_side_today_val"><t t-esc="state.kpi.recordings_today or 0"/></span>
+                                </div>
+                                <div class="o_vd_side_today_item o_vd_side_today_callback"
+                                     t-att-class="state.kpi.callback_today ? 'o_vd_side_today_item o_vd_side_today_callback o_vd_side_today_attn' : 'o_vd_side_today_item o_vd_side_today_callback'">
+                                    <i class="fa fa-clock-o"/>
+                                    <span class="o_vd_side_today_lbl">Hẹn gọi lại</span>
+                                    <span class="o_vd_side_today_val"><t t-esc="state.kpi.callback_today or 0"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Alerts -->
+                        <div class="o_vd_side_card o_vd_side_alerts">
+                            <div class="o_vd_side_card_title">
+                                <i class="fa fa-exclamation-triangle"/> Cảnh báo
+                            </div>
+                            <ul class="o_vd_side_alert_list">
+                                <li t-if="state.errors.overdue_callback" class="o_vd_alert_overdue o_vd_alert_clickable"
+                                    t-on-click="() => this.openAlertLeads('overdue_callback')"
+                                    title="Click xem danh sách KH cần gọi gấp">
+                                    <span class="o_vd_alert_num"><t t-esc="state.errors.overdue_callback"/></span>
+                                    <span class="o_vd_alert_text">KH quá hạn gọi lại</span>
+                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
                                 </li>
-                                <li t-if="state.errors.new_not_called">
-                                    <strong t-esc="state.errors.new_not_called"/> KH mới chưa gọi
+                                <li t-if="state.errors.new_not_called" class="o_vd_alert_new o_vd_alert_clickable"
+                                    t-on-click="() => this.openAlertLeads('new_not_called')"
+                                    title="Click xem danh sách KH mới chưa gọi">
+                                    <span class="o_vd_alert_num"><t t-esc="state.errors.new_not_called"/></span>
+                                    <span class="o_vd_alert_text">KH mới chưa gọi</span>
+                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
                                 </li>
-                                <li t-if="state.errors.potential_no_quote">
-                                    <strong t-esc="state.errors.potential_no_quote"/> KH tiềm năng chưa báo giá
+                                <li t-if="state.errors.potential_no_quote" class="o_vd_alert_potential o_vd_alert_clickable"
+                                    t-on-click="() => this.openAlertLeads('potential_no_quote')"
+                                    title="Click xem danh sách">
+                                    <span class="o_vd_alert_num"><t t-esc="state.errors.potential_no_quote"/></span>
+                                    <span class="o_vd_alert_text">KH tiềm năng chưa báo giá</span>
+                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
                                 </li>
-                                <li t-if="state.errors.stale">
-                                    <strong t-esc="state.errors.stale"/> KH chưa được gọi 14+ ngày
+                                <li t-if="state.errors.stale" class="o_vd_alert_stale o_vd_alert_clickable"
+                                    t-on-click="() => this.openAlertLeads('stale')"
+                                    title="Click xem danh sách KH stale">
+                                    <span class="o_vd_alert_num"><t t-esc="state.errors.stale"/></span>
+                                    <span class="o_vd_alert_text">KH chưa gọi 14+ ngày</span>
+                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
                                 </li>
                                 <li t-if="!state.errors.overdue_callback and !state.errors.new_not_called and !state.errors.potential_no_quote and !state.errors.stale"
-                                    class="text-muted list-unstyled">Không có cảnh báo.</li>
+                                    class="o_vd_alert_ok">
+                                    ✓ Không có cảnh báo
+                                </li>
                             </ul>
                         </div>
-                    </div>
+                    </aside>
 
-                </div>
+                    <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
+                    <main class="o_vd_main_v2">
 
-                <!-- MIDDLE COLUMN — stage tabs -->
-                <div class="col-lg-2 col-md-3">
-                    <div class="d-flex flex-column gap-2 o_vd_stage_tabs">
-                        <button t-foreach="state.stages" t-as="stage" t-key="stage.id"
-                                t-on-click="() => this.selectStage(stage.id)"
-                                t-att-class="'btn text-start o_vd_stage_btn ' + (state.selectedStageId === stage.id ? 'o_active' : '')">
-                            <div class="fw-bold"><t t-esc="stage.name"/></div>
-                            <div class="small d-flex justify-content-between">
-                                <span class="text-muted"><t t-esc="stage.default_probability"/>%</span>
-                                <span class="badge bg-secondary"><t t-esc="stage.count"/></span>
+                        <div class="o_vd_funnel_section">
+                            <div class="o_vd_section_title">
+                                <i class="fa fa-filter me-2"/> Pipeline
                             </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- RIGHT COLUMN — leads in selected stage -->
-                <div class="col-lg-7 col-md-5">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/>
-                            </h5>
-                            <span t-if="selectedStage" class="badge bg-info">
-                                <t t-esc="selectedStage.count"/> KH
-                            </span>
+                            <div class="o_vd_funnel">
+                                <button t-foreach="state.stages" t-as="stage" t-key="stage.id"
+                                        t-on-click="() => this.selectStage(stage.id)"
+                                        t-att-class="'o_vd_funnel_step ' + funnelStepClass(stage) + (state.selectedStageId === stage.id ? ' o_active' : '') + (stage.is_lost ? ' o_vd_funnel_lost' : '')">
+                                    <div class="o_vd_funnel_step_count"><t t-esc="stage.count"/></div>
+                                    <div class="o_vd_funnel_step_name"><t t-esc="stage.name"/></div>
+                                    <div class="o_vd_funnel_step_pct"><t t-esc="stage.default_probability"/>%</div>
+                                </button>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
-                            <div t-if="state.leadsLoading" class="text-center text-muted py-3">
-                                <i class="fa fa-spinner fa-spin"/> Đang tải...
+
+                        <section class="o_vd_lead_section"
+                                 t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
+                            <div class="o_vd_lead_section_head">
+                                <h5 class="mb-0">
+                                    <t t-if="state.alertFilter"><t t-esc="alertTitle"/></t>
+                                    <t t-else=""><t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/></t>
+                                </h5>
+                                <span class="o_vd_lead_count_badge">
+                                    <t t-esc="state.leads.length"/> KH
+                                </span>
+                                <button t-if="state.alertFilter" class="o_vd_clear_alert_btn"
+                                        t-on-click="() => this.clearAlertFilter()"
+                                        title="Xoá filter, quay lại pipeline">
+                                    <i class="fa fa-times me-1"/>Bỏ filter
+                                </button>
                             </div>
-                            <div t-elif="!state.leads.length" class="text-center text-muted py-4">
-                                Không có khách hàng ở trạng thái này.
+                            <div class="o_vd_lead_section_body">
+                                <t t-call="vd_crm_lead.LeadTableBody"/>
                             </div>
-                            <table t-else="" class="table table-hover mb-0 o_vd_lead_table">
+                        </section>
+
+                        <!-- LEADERBOARD trong NV view chỉ hiện khi 1 NV cụ thể được chọn
+                             (Manager view với 1 NV) — bỏ leaderboard khỏi NV view của chính NV đó -->
+                        <section class="o_vd_leaderboard"
+                                 t-if="state.is_manager and state.performance and state.performance.leaderboard.length">
+                            <div class="o_vd_leaderboard_title">
+                                <i class="fa fa-medal me-1"/> Bảng xếp hạng NV (Tháng này)
+                            </div>
+                            <table class="o_vd_leaderboard_tbl">
                                 <thead>
                                     <tr>
-                                        <th>Tên KH</th>
-                                        <th>SĐT</th>
-                                        <th t-if="state.is_manager">NV phụ trách</th>
-                                        <th>Tỉ lệ chốt</th>
-                                        <th>Hẹn gọi lại</th>
-                                        <th>Lần gọi cuối</th>
-                                        <th></th>
+                                        <th class="o_vd_lb_rank">#</th>
+                                        <th>Nhân viên</th>
+                                        <th class="text-center">HĐ Tháng</th>
+                                        <th class="text-center">% Chỉ tiêu</th>
+                                        <th class="text-end">Thưởng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr t-foreach="state.leads" t-as="lead" t-key="lead.id"
-                                        t-on-click="() => this.openLead(lead.id)"
-                                        t-att-class="lead.is_overdue_callback ? 'table-warning' : ''"
-                                        style="cursor:pointer">
-                                        <td>
-                                            <strong><t t-esc="lead.name"/></strong>
-                                            <span t-if="lead.priority === '2'" class="badge bg-danger ms-1">!</span>
-                                            <span t-if="lead.is_today_callback" class="badge bg-info ms-1">Hôm nay</span>
-                                            <span t-if="lead.is_stale" class="badge bg-secondary ms-1">Stale</span>
+                                    <tr t-foreach="state.performance.leaderboard" t-as="row" t-key="row.user_id"
+                                        t-att-class="row_index === 0 ? 'o_vd_lb_top' : ''">
+                                        <td class="o_vd_lb_rank">
+                                            <t t-if="row_index === 0">🥇</t>
+                                            <t t-elif="row_index === 1">🥈</t>
+                                            <t t-elif="row_index === 2">🥉</t>
+                                            <t t-else=""><t t-esc="row_index + 1"/></t>
                                         </td>
-                                        <td><t t-esc="lead.phone"/></td>
-                                        <td t-if="state.is_manager" class="small">
-                                            <span t-if="lead.user_name" class="badge bg-light text-dark border">
-                                                <i class="fa fa-user me-1"/><t t-esc="lead.user_name"/>
+                                        <td class="o_vd_lb_name"><t t-esc="row.name"/></td>
+                                        <td class="text-center">
+                                            <span class="o_vd_lb_count">
+                                                <t t-esc="row.contracts_month"/>
+                                                <span class="o_vd_lb_target">/<t t-esc="row.target_month"/></span>
                                             </span>
-                                            <span t-else="" class="text-muted fst-italic">Chưa giao</span>
                                         </td>
-                                        <td style="min-width:140px">
-                                            <div class="progress" style="height:18px">
-                                                <div t-att-class="'progress-bar ' + probabilityClass(lead.probability)"
-                                                     t-att-style="`width:${lead.probability}%`">
-                                                    <t t-esc="lead.probability"/>%
-                                                </div>
+                                        <td class="text-center">
+                                            <div class="o_vd_lb_bar_wrap">
+                                                <div t-att-class="'o_vd_lb_bar ' + perfBarClass(row.perf_pct)"
+                                                     t-att-style="`width:${Math.min(row.perf_pct, 100)}%`"/>
+                                                <span class="o_vd_lb_pct"><t t-esc="row.perf_pct.toFixed(0)"/>%</span>
                                             </div>
                                         </td>
-                                        <td><t t-esc="formatDate(lead.callback_date)"/></td>
-                                        <td><t t-esc="formatDate(lead.last_call_date)"/></td>
-                                        <td>
-                                            <button t-if="lead.phone" class="btn btn-sm btn-success"
-                                                    t-on-click="(ev) => this.callLead(lead, ev)"
-                                                    title="Gọi qua Stringee">
-                                                <i class="fa fa-phone"/>
-                                            </button>
+                                        <td class="text-end o_vd_lb_bonus">
+                                            <t t-esc="formatVnd(row.bonus_month)"/>đ
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
+                        </section>
+                    </main>
                 </div>
             </div>
+        </div>
+    </t>
+
+    <!-- ============================================================
+         Reusable lead table body — dùng chung admin overview + alerts +
+         NV view để tránh duplicate markup.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.LeadTableBody">
+        <div t-if="state.leadsLoading" class="o_vd_table_loader">
+            <i class="fa fa-spinner fa-spin"/> Đang tải...
+        </div>
+        <div t-elif="!state.leads.length" class="o_vd_table_empty">
+            <i class="fa fa-inbox fa-3x text-muted mb-2"/>
+            <div>Không có khách hàng ở trạng thái này.</div>
+        </div>
+
+        <!-- ===== PILL VIEW: chia cột theo nhóm hoặc flex wrap ===== -->
+        <div t-elif="leadGroups" class="o_vd_pill_columns">
+            <div t-foreach="leadGroups" t-as="grp" t-key="grp.key" class="o_vd_pill_column"
+                 t-att-style="`border-left-color:${grp.cssColor}`">
+                <div class="o_vd_pill_col_header" t-att-style="`color:${grp.cssColor}`">
+                    <i t-if="grp.iconClass" t-att-class="grp.iconClass"/>
+                    <span><t t-esc="grp.label"/></span>
+                    <span class="o_vd_pill_col_count"><t t-esc="grp.leads.length"/></span>
+                </div>
+                <div class="o_vd_pill_col_body">
+                    <t t-foreach="grp.leads" t-as="lead" t-key="lead.id">
+                        <t t-call="vd_crm_lead.LeadPill"/>
+                    </t>
+                    <div t-if="!grp.leads.length" class="o_vd_pill_col_empty">—</div>
+                </div>
+            </div>
+        </div>
+        <div t-else="" class="o_vd_won_pills">
+            <t t-foreach="state.leads" t-as="lead" t-key="lead.id">
+                <t t-call="vd_crm_lead.LeadPill"/>
+            </t>
+        </div>
+    </t>
+
+    <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
+    <t t-name="vd_crm_lead.LeadPill">
+        <div t-on-click="() => this.openLead(lead.id)"
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead)">
+                <span class="o_vd_won_pill_icon">
+                    <!-- Stage WON: urgency icon -->
+                    <t t-if="selectedStage and selectedStage.code === 'won'">
+                        <t t-if="lead.contract_signed">🏆</t>
+                        <t t-elif="lead.planned_sign_urgency === 'past'">🚨</t>
+                        <t t-elif="lead.planned_sign_urgency === 'today'">🔥</t>
+                        <t t-elif="lead.planned_sign_urgency === 'soon'">⏰</t>
+                        <t t-elif="lead.planned_sign_urgency === 'far'">📅</t>
+                        <t t-else="">⚠️</t>
+                    </t>
+                    <!-- Stage NEW (và khác): icon nguồn KH -->
+                    <t t-else="">
+                        <i t-if="lead.pancake_platform === 'facebook'"
+                           class="fa fa-facebook o_vd_pill_icon_fb"/>
+                        <svg t-elif="lead.pancake_platform === 'tiktok'"
+                             class="o_vd_pill_icon_tt"
+                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="14" height="14">
+                            <path fill="currentColor" d="M41 16.5c-2.7-.2-5.2-1.2-7.2-2.9-1.3-1.1-2.4-2.5-3.1-4.1-.4-.8-.6-1.7-.7-2.6h-7v25.3c0 2.9-2.3 5.2-5.2 5.2s-5.2-2.3-5.2-5.2 2.3-5.2 5.2-5.2c.5 0 1 .1 1.5.2v-7.1c-.5-.1-1-.1-1.5-.1-6.8 0-12.3 5.5-12.3 12.3S11 44.5 17.8 44.5s12.3-5.5 12.3-12.3V19.6c2.8 2.1 6.4 3.4 10.2 3.4 .2 0 .4 0 .7-.1V16.5z"/>
+                        </svg>
+                        <i t-elif="lead.pancake_platform === 'instagram'"
+                           class="fa fa-instagram o_vd_pill_icon_ig"/>
+                        <i t-else="" class="fa fa-user o_vd_pill_icon_manual"/>
+                    </t>
+                </span>
+                <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
+
+                <!-- TOOLTIP — hover hiện 4 thông tin chính -->
+                <div class="o_vd_won_tooltip">
+                    <div class="o_vd_won_tt_row">
+                        <span class="o_vd_won_tt_lbl">👤 Tên KH:</span>
+                        <span><t t-esc="lead.name"/></span>
+                    </div>
+                    <div class="o_vd_won_tt_row">
+                        <span class="o_vd_won_tt_lbl">📞 SĐT:</span>
+                        <span><t t-esc="lead.phone or '—'"/></span>
+                    </div>
+                    <div class="o_vd_won_tt_row" t-if="selectedStage and selectedStage.code === 'won'">
+                        <span class="o_vd_won_tt_lbl">📍 Địa chỉ ký:</span>
+                        <span><t t-esc="lead.planned_sign_location or '—'"/></span>
+                    </div>
+                    <div class="o_vd_won_tt_row" t-if="state.is_manager and lead.user_name">
+                        <span class="o_vd_won_tt_lbl">👔 NV phụ trách:</span>
+                        <span><t t-esc="lead.user_name"/></span>
+                    </div>
+                    <div class="o_vd_won_tt_row">
+                        <span class="o_vd_won_tt_lbl">💰 Giá trị HĐ:</span>
+                        <span><t t-if="lead.quote_price"><t t-esc="formatVnd(lead.quote_price)"/>đ</t><t t-else="">—</t></span>
+                    </div>
+                </div>
         </div>
     </t>
 

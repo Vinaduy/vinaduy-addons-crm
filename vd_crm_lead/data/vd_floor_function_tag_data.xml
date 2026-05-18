@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate=0 → mỗi lần upgrade module sẽ refresh fit_floors theo file này.
+         NV admin có thể override sau (Settings → Technical) nhưng sẽ bị
+         overwrite khi upgrade. -->
+    <data noupdate="0">
+
+        <!-- ============ TẦNG TRỆT / TẦNG 1 — fit_floors=f1 ============ -->
+        <record id="tag_phong_khach" model="vd.floor.function.tag">
+            <field name="name">🛋️ Phòng khách</field>
+            <field name="sequence">10</field>
+            <field name="color">4</field>
+            <field name="fit_floors">f1</field>
+        </record>
+        <record id="tag_phong_bep" model="vd.floor.function.tag">
+            <field name="name">🍳 Phòng bếp</field>
+            <field name="sequence">11</field>
+            <field name="color">5</field>
+            <field name="fit_floors">f1,f2</field>
+        </record>
+        <record id="tag_phong_an" model="vd.floor.function.tag">
+            <field name="name">🍽️ Phòng ăn</field>
+            <field name="sequence">12</field>
+            <field name="color">5</field>
+            <field name="fit_floors">f1,f2</field>
+        </record>
+        <record id="tag_wc_khach" model="vd.floor.function.tag">
+            <field name="name">🚻 WC khách</field>
+            <field name="sequence">13</field>
+            <field name="color">7</field>
+            <field name="fit_floors">f1</field>
+        </record>
+        <record id="tag_garage" model="vd.floor.function.tag">
+            <field name="name">🚗 Để xe / Garage</field>
+            <field name="sequence">14</field>
+            <field name="color">8</field>
+            <field name="fit_floors">f1</field>
+        </record>
+        <record id="tag_san_truoc" model="vd.floor.function.tag">
+            <field name="name">🌳 Sân trước</field>
+            <field name="sequence">15</field>
+            <field name="color">10</field>
+            <field name="fit_floors">f1</field>
+        </record>
+
+        <!-- ============ TẦNG NGỦ (2-7) — fit_floors=f2..f7 ============ -->
+        <record id="tag_phong_master" model="vd.floor.function.tag">
+            <field name="name">🛏️ Phòng ngủ master</field>
+            <field name="sequence">20</field>
+            <field name="color">1</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_ngu" model="vd.floor.function.tag">
+            <field name="name">🛌 Phòng ngủ thường</field>
+            <field name="sequence">21</field>
+            <field name="color">1</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_ngu_con" model="vd.floor.function.tag">
+            <field name="name">🧒 Phòng ngủ con</field>
+            <field name="sequence">22</field>
+            <field name="color">2</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_wc_chung" model="vd.floor.function.tag">
+            <field name="name">🚿 WC chung</field>
+            <field name="sequence">23</field>
+            <field name="color">7</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_wc_rieng" model="vd.floor.function.tag">
+            <field name="name">🛁 WC riêng (master)</field>
+            <field name="sequence">24</field>
+            <field name="color">7</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_lam_viec" model="vd.floor.function.tag">
+            <field name="name">💼 Phòng làm việc</field>
+            <field name="sequence">25</field>
+            <field name="color">9</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_thay_do" model="vd.floor.function.tag">
+            <field name="name">👗 Phòng thay đồ</field>
+            <field name="sequence">26</field>
+            <field name="color">3</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+
+        <!-- ============ TẦNG TRÊN / GIẢI TRÍ (3-7) ============ -->
+        <record id="tag_phong_tho" model="vd.floor.function.tag">
+            <field name="name">🪔 Phòng thờ</field>
+            <field name="sequence">30</field>
+            <field name="color">6</field>
+            <field name="fit_floors">f3,f4,f5,f6,f7,tum</field>
+        </record>
+        <record id="tag_phong_giai_tri" model="vd.floor.function.tag">
+            <field name="name">🎮 Phòng giải trí</field>
+            <field name="sequence">31</field>
+            <field name="color">4</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_karaoke" model="vd.floor.function.tag">
+            <field name="name">🎤 Phòng karaoke</field>
+            <field name="sequence">32</field>
+            <field name="color">2</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_gym" model="vd.floor.function.tag">
+            <field name="name">💪 Phòng gym</field>
+            <field name="sequence">33</field>
+            <field name="color">1</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_phong_film" model="vd.floor.function.tag">
+            <field name="name">🎬 Phòng chiếu phim</field>
+            <field name="sequence">34</field>
+            <field name="color">8</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+
+        <!-- ============ TUM / SÂN THƯỢNG — fit_floors=tum ============ -->
+        <record id="tag_san_thuong" model="vd.floor.function.tag">
+            <field name="name">☀️ Sân thượng</field>
+            <field name="sequence">40</field>
+            <field name="color">3</field>
+            <field name="fit_floors">tum</field>
+        </record>
+        <record id="tag_san_phoi" model="vd.floor.function.tag">
+            <field name="name">🧺 Sân phơi</field>
+            <field name="sequence">41</field>
+            <field name="color">3</field>
+            <field name="fit_floors">tum,f1</field>
+        </record>
+        <record id="tag_phong_giat" model="vd.floor.function.tag">
+            <field name="name">🧼 Phòng giặt</field>
+            <field name="sequence">42</field>
+            <field name="color">7</field>
+            <field name="fit_floors">tum,f1</field>
+        </record>
+        <record id="tag_kho" model="vd.floor.function.tag">
+            <field name="name">📦 Kho</field>
+            <field name="sequence">43</field>
+            <field name="color">8</field>
+            <field name="fit_floors">all</field>
+        </record>
+        <record id="tag_be_nuoc" model="vd.floor.function.tag">
+            <field name="name">💧 Bể nước mái</field>
+            <field name="sequence">44</field>
+            <field name="color">5</field>
+            <field name="fit_floors">tum</field>
+        </record>
+
+        <!-- ============ CAO CẤP — fit_floors=all (chủ nhà tự chọn tầng) ============ -->
+        <record id="tag_thang_may" model="vd.floor.function.tag">
+            <field name="name">🛗 Thang máy</field>
+            <field name="sequence">50</field>
+            <field name="color">9</field>
+            <field name="fit_floors">all</field>
+        </record>
+        <record id="tag_ho_boi" model="vd.floor.function.tag">
+            <field name="name">🏊 Hồ bơi</field>
+            <field name="sequence">51</field>
+            <field name="color">4</field>
+            <field name="fit_floors">f1,tum</field>
+        </record>
+        <record id="tag_spa" model="vd.floor.function.tag">
+            <field name="name">💆 Phòng spa / xông hơi</field>
+            <field name="sequence">52</field>
+            <field name="color">6</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7</field>
+        </record>
+        <record id="tag_bar" model="vd.floor.function.tag">
+            <field name="name">🍷 Quầy bar / pantry</field>
+            <field name="sequence">53</field>
+            <field name="color">10</field>
+            <field name="fit_floors">f1,tum</field>
+        </record>
+        <record id="tag_phong_doc_sach" model="vd.floor.function.tag">
+            <field name="name">📚 Phòng đọc sách</field>
+            <field name="sequence">54</field>
+            <field name="color">9</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+
+        <!-- ============ HÀNH LANG / CẦU THANG — all ============ -->
+        <record id="tag_cau_thang" model="vd.floor.function.tag">
+            <field name="name">🪜 Cầu thang</field>
+            <field name="sequence">60</field>
+            <field name="color">0</field>
+            <field name="fit_floors">all</field>
+        </record>
+        <record id="tag_hanh_lang" model="vd.floor.function.tag">
+            <field name="name">↔️ Hành lang</field>
+            <field name="sequence">61</field>
+            <field name="color">0</field>
+            <field name="fit_floors">all</field>
+        </record>
+        <record id="tag_giếng_troi" model="vd.floor.function.tag">
+            <field name="name">🌤️ Giếng trời</field>
+            <field name="sequence">62</field>
+            <field name="color">10</field>
+            <field name="fit_floors">all</field>
+        </record>
+        <record id="tag_ban_cong" model="vd.floor.function.tag">
+            <field name="name">🌿 Ban công</field>
+            <field name="sequence">63</field>
+            <field name="color">10</field>
+            <field name="fit_floors">f2,f3,f4,f5,f6,f7</field>
+        </record>
+
+    </data>
+</odoo>

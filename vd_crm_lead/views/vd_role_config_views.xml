@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ LIST VIEW: matrix phân quyền (editable inline) ============ -->
+    <record id="view_vd_crm_role_config_list" model="ir.ui.view">
+        <field name="name">vd.crm.role.config.list</field>
+        <field name="model">vd.crm.role.config</field>
+        <field name="arch" type="xml">
+            <list string="Cấu hình phân quyền CRM"
+                  editable="bottom"
+                  default_order="sequence, id">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="role_code"/>
+                <field name="group_id" options="{'no_create': True}"/>
+                <field name="member_count" string="Số NV"/>
+                <field name="scope" string="Phạm vi"/>
+                <field name="can_read" widget="boolean_toggle" string="👁️ Xem"/>
+                <field name="can_create" widget="boolean_toggle" string="➕ Thêm"/>
+                <field name="can_write" widget="boolean_toggle" string="✏️ Sửa"/>
+                <field name="can_unlink" widget="boolean_toggle" string="🗑️ Xoá"/>
+                <field name="can_reassign_lead" widget="boolean_toggle" string="🔄 Chuyển KH"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============ FORM VIEW ============ -->
+    <record id="view_vd_crm_role_config_form" model="ir.ui.view">
+        <field name="name">vd.crm.role.config.form</field>
+        <field name="model">vd.crm.role.config</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình phân quyền">
+                <header>
+                    <button name="action_view_members" type="object"
+                            string="👥 Xem NV trong vị trí"
+                            class="btn-secondary"
+                            invisible="not group_id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Vd: Nhân viên Sale"/></h1>
+                    </div>
+                    <group>
+                        <group string="📋 Thông tin chung">
+                            <field name="role_code"/>
+                            <field name="group_id" options="{'no_create': True}"/>
+                            <field name="member_count"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="🌐 Phạm vi xem KH">
+                            <field name="scope" widget="radio"/>
+                        </group>
+                    </group>
+
+                    <separator string="⚙️ Quyền CRUD trên Khách Hàng (crm.lead)"/>
+                    <group>
+                        <group>
+                            <field name="can_read" widget="boolean_toggle"/>
+                            <field name="can_create" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="can_write" widget="boolean_toggle"/>
+                            <field name="can_unlink" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <separator string="🔄 Quyền đặc biệt"/>
+                    <group>
+                        <field name="can_reassign_lead" widget="boolean_toggle"/>
+                    </group>
+
+                    <separator string="📝 Ghi chú"/>
+                    <field name="note" placeholder="Ghi chú nội bộ về vị trí này..."/>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <b>💡 Quy tắc kế thừa quyền:</b><br/>
+                        • <b>Trưởng nhóm</b> tự động kế thừa quyền của <b>Nhân viên</b>.<br/>
+                        • <b>Phó GĐ</b> kế thừa <b>Trưởng nhóm + Nhân viên</b>.<br/>
+                        • <b>Admin</b> kế thừa Phó GĐ + có toàn quyền hệ thống Odoo.<br/>
+                        <br/>
+                        <b>📌 Cách gán NV vào vị trí:</b><br/>
+                        Vào <i>Settings → Users &amp; Companies → Users</i>, mở user, chọn tab
+                        <b>"Quyền truy cập"</b>, tick group <b>"VD CRM Phân quyền"</b> tương ứng.<br/>
+                        <br/>
+                        <b>⚠️ Lưu ý:</b> Quyền <b>Xem / Thêm / Sửa / Xoá</b> được áp ở mức <i>ir.model.access</i>
+                        và <i>ir.rule</i> (cấu hình khi cài/upgrade module). Quyền <b>"Chuyển KH"</b> được check
+                        runtime trong code (mỗi khi user save).
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============ ACTION ============ -->
+    <record id="action_vd_crm_role_config" model="ir.actions.act_window">
+        <field name="name">🔐 Phân quyền CRM</field>
+        <field name="res_model">vd.crm.role.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cấu hình phân quyền cho 4 vị trí: Nhân viên / Trưởng nhóm / Phó GĐ / Admin.</p>
+            <p>Định nghĩa rõ ai được <b>Xem / Thêm / Sửa / Xoá</b> KH + ai được <b>chuyển KH</b> cho NV khác.</p>
+            <p>Phạm vi: <b>own</b> = chỉ KH mình | <b>team</b> = team mình | <b>all</b> = tất cả.</p>
+        </field>
+    </record>
+
+    <!-- ============ MENU — chỉ ADMIN thấy ============ -->
+    <menuitem id="menu_vd_crm_role_config"
+              name="🔐 Phân quyền"
+              parent="crm.crm_menu_config"
+              action="action_vd_crm_role_config"
+              sequence="100"
+              groups="vd_crm_lead.vd_crm_group_admin"/>
+</odoo>

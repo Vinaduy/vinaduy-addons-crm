@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ LIST VIEW: Pancake pages ============ -->
+    <record id="view_vd_pancake_page_list" model="ir.ui.view">
+        <field name="name">vd.pancake.page.list</field>
+        <field name="model">vd.pancake.page</field>
+        <field name="arch" type="xml">
+            <list string="Pancake pages">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="platform" widget="badge"/>
+                <field name="page_id"/>
+                <field name="team_id" optional="show"/>
+                <field name="lead_count" string="KH đã nhận"/>
+                <field name="last_event_at" string="Webhook cuối"/>
+                <field name="auto_create_lead" widget="boolean_toggle" string="Tự tạo KH"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============ FORM VIEW ============ -->
+    <record id="view_vd_pancake_page_form" model="ir.ui.view">
+        <field name="name">vd.pancake.page.form</field>
+        <field name="model">vd.pancake.page</field>
+        <field name="arch" type="xml">
+            <form string="Pancake Page">
+                <header>
+                    <button name="action_sync_from_pancake" type="object"
+                            string="🔄 Đồng bộ KH từ Pancake (7 ngày)"
+                            class="btn-primary"
+                            help="Kéo conversations 7 ngày gần nhất từ Pancake REST API → tạo crm.lead cho KH có SĐT. Dùng khi webhook fail hoặc khôi phục data."/>
+                    <button name="action_rotate_secret" type="object"
+                            string="🔄 Sinh lại Webhook Secret"
+                            confirm="Sau khi rotate, URL webhook MỚI phải được cập nhật bên Pancake. Tiếp tục?"
+                            class="btn-warning"/>
+                    <button name="action_view_leads" type="object"
+                            string="👥 Xem KH từ page này"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_leads" type="object"
+                                class="oe_stat_button" icon="fa-users">
+                            <field name="lead_count" widget="statinfo" string="KH"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Đã tắt"
+                            bg_color="bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Vd: Fanpage VINADUY chính"/></h1>
+                    </div>
+                    <group>
+                        <group string="🔌 Pancake credentials">
+                            <field name="platform" widget="radio" options="{'horizontal': True}"/>
+                            <field name="page_id" placeholder="123456789012345 hoặc ttm_xxx"/>
+                            <field name="page_access_token"
+                                   password="True"
+                                   placeholder="EAAxx..."
+                                   help="Lấy ở Pancake → Settings → Tools → Page Access Token"/>
+                            <field name="team_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="⚙️ Trạng thái">
+                            <field name="auto_create_lead" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="last_event_at"/>
+                        </group>
+                    </group>
+
+                    <separator string="🌐 Webhook URL — copy dán vào Pancake"/>
+                    <div class="alert alert-info" role="alert">
+                        <p><b>Cách kết nối Pancake:</b></p>
+                        <ol>
+                            <li>Liên hệ support Pancake → đăng ký nhận webhook cho page <b><field name="page_id" readonly="1" nolabel="1"/></b> (tốn 2 slot/page).</li>
+                            <li>Vào Pancake → Settings → Tools → Webhook → dán URL bên dưới.</li>
+                            <li>Đợi event "messaging" — admin có thể theo dõi <b>Webhook lần cuối</b> ở trên.</li>
+                        </ol>
+                        <p class="mb-0"><b>URL Webhook:</b></p>
+                        <field name="webhook_url" readonly="1" widget="CopyClipboardChar" nolabel="1"/>
+                        <p class="text-muted mt-2 mb-0">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            Pancake KHÔNG ký HMAC → secret trong URL = mật khẩu. Rotate nếu nghi rò rỉ.
+                        </p>
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============ ACTION ============ -->
+    <record id="action_vd_pancake_page" model="ir.actions.act_window">
+        <field name="name">📨 Pancake Pages</field>
+        <field name="res_model">vd.pancake.page</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Thêm Pancake page đầu tiên</p>
+            <p>Mỗi page = 1 record. Webhook tự động đẩy KH mới vào CRM và phân cho NV theo round-robin.</p>
+        </field>
+    </record>
+
+    <!-- ============ LIST VIEW: NV — toggle nhận Pancake ============ -->
+    <record id="view_vd_pancake_users_list" model="ir.ui.view">
+        <field name="name">res.users.vd.pancake.toggle</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <list string="Quản lý đẩy số Pancake cho NV" create="false" delete="false">
+                <field name="name"/>
+                <field name="login"/>
+                <field name="sale_team_id" string="Team"/>
+                <field name="vd_overdue_lead_count" string="KH quá hạn"/>
+                <field name="vd_can_receive_new_leads" widget="boolean_toggle"
+                       string="Nhận KH mới (chung)"/>
+                <field name="vd_can_receive_pancake" widget="boolean_toggle"
+                       string="📨 Nhận từ Pancake"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vd_pancake_users" model="ir.actions.act_window">
+        <field name="name">👥 Đẩy số Pancake cho NV</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_vd_pancake_users_list"/>
+        <field name="domain">[('share', '=', False), ('active', '=', True), ('groups_id', 'in', [ref('sales_team.group_sale_salesman')])]</field>
+        <field name="context">{'search_default_groups_id': ref('sales_team.group_sale_salesman')}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Toggle "📨 Nhận từ Pancake" cho từng NV</p>
+            <p>Khi tắt → round-robin sẽ skip NV này khi có KH mới từ Pancake. KH các kênh khác vẫn nhận bình thường.</p>
+        </field>
+    </record>
+
+    <!-- ============ MENUS — chỉ Admin thấy ============ -->
+    <menuitem id="menu_vd_pancake_root"
+              name="📨 Pancake"
+              parent="crm.crm_menu_config"
+              sequence="110"
+              groups="vd_crm_lead.vd_crm_group_admin"/>
+
+    <menuitem id="menu_vd_pancake_pages"
+              name="Pancake Pages"
+              parent="menu_vd_pancake_root"
+              action="action_vd_pancake_page"
+              sequence="10"
+              groups="vd_crm_lead.vd_crm_group_admin"/>
+
+    <menuitem id="menu_vd_pancake_users"
+              name="Đẩy số cho NV"
+              parent="menu_vd_pancake_root"
+              action="action_vd_pancake_users"
+              sequence="20"
+              groups="vd_crm_lead.vd_crm_group_admin"/>
+</odoo>

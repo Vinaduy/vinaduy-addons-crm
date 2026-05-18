@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.AudioPlayer">
+        <div t-if="audioUrl" class="o_vd_audio_pill" t-on-click.stop=""
+             t-att-class="{ 'o_vd_audio_pill_playing': state.playing }">
+            <audio t-ref="audio" preload="metadata" style="display:none;">
+                <source t-att-src="audioUrl" type="audio/mpeg"/>
+                <source t-att-src="audioUrl" type="audio/wav"/>
+            </audio>
+            <button class="o_vd_audio_play_btn" t-on-click="togglePlay"
+                    t-att-title="state.playing ? 'Tạm dừng' : 'Phát ghi âm'">
+                <i t-if="!state.playing" class="fa fa-play"/>
+                <i t-else="" class="fa fa-pause"/>
+            </button>
+            <span class="o_vd_audio_time"><t t-esc="displayTime"/></span>
+            <a t-att-href="downloadUrl" class="o_vd_audio_dl_link" title="Tải về máy"
+               download="" t-on-click.stop="">
+                <i class="fa fa-download"/>
+            </a>
+        </div>
+        <span t-else="" class="text-muted small">—</span>
+    </t>
+
+</templates>

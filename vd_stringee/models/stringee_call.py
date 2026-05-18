@@ -183,19 +183,44 @@ class StringeeCall(models.Model):
         Valid fields: action, eventUrl, format (mp3|wav), recordStereo.
         Stringee stores recording server-side automatically; download via
         GET /v1/call/recording/{call_id} after webhook arrives at eventUrl.
+
+        ⚠️ Chỉ work nếu project Stringee có ENABLE record feature ở dashboard.
+        Nếu Stringee trả HTTP 400 ở download endpoint → record bị disabled,
+        check Dashboard → Project Settings → Recording.
         """
         actions = []
         if record:
-            action = {'action': 'record', 'format': 'mp3'}
-            if event_url:
-                action['eventUrl'] = event_url
-            actions.append(action)
+            # KHÔNG set eventUrl ở SCCO — Stringee dashboard project đã config
+            # (per partner: "set trên project là được, không cần set vào SCCO").
+            actions.append({
+                'action': 'record',
+                'format': 'mp3',
+                'recordStereo': True,   # ghi 2 kênh riêng (caller/callee)
+            })
         return actions
 
     # ---------- Outbound (REST callout) ----------
 
     def action_callout(self):
-        """Trigger an outbound call via REST. Server-side initiated."""
+        """Trigger an outbound call via REST. Server-side initiated.
+
+        ⚠️ KIẾN TRÚC QUAN TRỌNG (2026-05-15):
+        Stringee `/v1/call2/callout` CHỈ hỗ trợ external→external (PSTN-to-PSTN).
+        Endpoint này KHÔNG bridge được audio với browser. Tested:
+        - `from.type=internal` → Stringee reject "Could not decode POST data"
+        - `from.type=external, to.type=external` + connect external→external
+          → double-call
+        - `from.type=external, to.type=external` + no connect
+          → Stringee IVR auto-end sau 5-9s
+
+        Conclusion: REST callout **không phù hợp cho audio 2 chiều**. Path này
+        chỉ để cho trường hợp NV không có stringee_user_id (no Web SDK
+        access), và sẽ dial KH với hotline làm Caller ID, KH bắt máy nhưng
+        không có ai nói chuyện (sẽ tự ngắt sau vài giây).
+
+        For real audio: dùng action_call() ở crm.lead → return client action
+        → trigger Web SDK call ở browser.
+        """
         self.ensure_one()
         if not self.callee_number:
             raise UserError(_('Thiếu số đến.'))
@@ -209,23 +234,40 @@ class StringeeCall(models.Model):
             raise UserError(_('Số gọi đến không hợp lệ.'))
         base_url = (Param.get_param('web.base.url') or '').rstrip('/')
 
-        actions = self._scco_actions(record=record, event_url=f'{base_url}/stringee/recording_event') + [
-            {
-                'action': 'connect',
-                'from': {'type': 'external', 'number': from_number, 'alias': from_number},
-                'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
-                'maxConnectTime': -1,
-                'timeout': 50,        # ring tối đa 50s nếu KH không bắt máy
-                'dialAttempts': 1,    # KHÔNG auto-redial
-                'retries': 0,         # phòng trường hợp Stringee dùng tên khác
-                'eventUrl': f'{base_url}/stringee/event',
-            },
-        ]
+        # Body callout: CHỈ record (evidence-based decision 2026-05-16):
+        # Đã verify: Stringee project 2705200 KHÔNG support SCCO `connect
+        # to=internal` trong body callout — call tear down ngay tại pickup
+        # (answerDuration=0). Browser NV đã online (heartbeat r=0 SUCCESS)
+        # nhưng Stringee vẫn drop SCCO → đây là Stringee server config.
+        # Giữ chỉ `record` để ít nhất KH có 4-5s sau bắt máy (Stringee IVR
+        # default playback) trước khi auto-end. Cần Stringee support enable
+        # SCCO connect-internal hoặc Web SDK App-to-Phone để có audio bridge.
+        actions = self._scco_actions(
+            record=record, event_url=f'{base_url}/stringee/recording_event',
+        )
         body = {
             'from': {'type': 'external', 'number': from_number, 'alias': from_number},
-            'to': [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
+            'to':   [{'type': 'external', 'number': callee_e164, 'alias': callee_e164}],
             'actions': actions,
         }
+        if record:
+            body['record'] = True
+            body['recordFormat'] = 'mp3'
+            body['eventUrl'] = f'{base_url}/stringee/recording_event'
+        # === RACE FIX: pre-stamp 'initiated' state + commit BEFORE POST ===
+        # Stringee gọi /stringee/answer SONG SONG với việc dial KH, có thể đến
+        # trước khi requests.post() return (network latency). Pre-commit để
+        # controller fallback tìm theo (callee_number + direction=outbound +
+        # create_date < 30s) match được record → biết REST outbound → KHÔNG
+        # thêm SCCO connect → tránh double-call.
+        self.write({'state': 'initiated'})
+        self.env.cr.commit()
+
+        # VERBOSE LOG: SCCO body để verify record action có được gửi không
+        _logger.info(
+            "[Stringee callout] POST /v1/call2/callout body=%s",
+            json.dumps(body, ensure_ascii=False),
+        )
         try:
             resp = requests.post(
                 f'{_STRINGEE_API}/v1/call2/callout',
@@ -239,6 +281,11 @@ class StringeeCall(models.Model):
             self.write({'state': 'failed', 'hangup_cause': f'callout exception: {e}'})
             raise UserError(_('Không gọi được: %s') % e)
 
+        # VERBOSE LOG: full response để biết Stringee accept record action không
+        _logger.info(
+            "[Stringee callout] status=%s response=%s",
+            resp.status_code, json.dumps(data, ensure_ascii=False)[:1000],
+        )
         if resp.status_code != 200 or data.get('r') != 0:
             msg = data.get('message') or f'HTTP {resp.status_code}'
             self.write({'state': 'failed', 'hangup_cause': msg})
@@ -253,11 +300,29 @@ class StringeeCall(models.Model):
 
     @api.model
     def make_call(self, callee_number, partner_id=None, user_id=None):
-        """Create call record and trigger callout. Returns the record."""
+        """Create call record and trigger callout. Returns the record.
+
+        DEDUP: nếu user vừa gọi CÙNG SỐ trong 3 GIÂY (window ngắn để chỉ chặn
+        accidental double-click, không chặn legitimate retry sau khi cúp).
+        Trả về record cũ thay vì tạo mới.
+        """
+        user_id = user_id or self.env.user.id
+        callee_norm = _to_stringee_number(callee_number) or callee_number
+        recent = self.search([
+            ('user_id', '=', user_id),
+            ('callee_number', 'in', list({callee_number, callee_norm, _digits_only(callee_number)})),
+            ('create_date', '>', fields.Datetime.now() - timedelta(seconds=3)),
+        ], limit=1, order='create_date desc')
+        if recent:
+            _logger.info(
+                "Stringee make_call DEDUP (3s): user=%s callee=%s reusing call %s (state=%s)",
+                user_id, callee_number, recent.id, recent.state,
+            )
+            return recent
         rec = self.create({
             'callee_number': callee_number,
             'partner_id': partner_id,
-            'user_id': user_id or self.env.user.id,
+            'user_id': user_id,
             'direction': 'outbound',
         })
         rec.action_callout()
@@ -346,22 +411,50 @@ class StringeeCall(models.Model):
         call_status = payload.get('call_status') or ''
         new_state = self._event_to_state(call_status, payload)
 
-        # Ignore 'answered' events that don't come from the customer leg.
-        # Stringee call2 (IVR mode) fires duplicate 'answered' events for
-        # the bridge/from-number leg; trusting them would start the timer
-        # before the customer has actually picked up.
-        if new_state == 'answered' and not _is_customer_event(payload, rec.callee_number):
-            _logger.info("Ignored non-customer 'answered' event for call %s (actor=%s)",
-                         rec.name, payload.get('actor'))
-            new_state = None
+        # ============ FILTER FALSE-POSITIVE 'answered' EVENTS ============
+        # Stringee đôi khi fire 'answered' KHÔNG phải vì KH bắt máy:
+        #   1. Bridge/from-number leg (IVR mode): actor không phải callee
+        #   2. Voicemail / carrier auto-answer signal: arrival > 25s sau ringing
+        #   3. Event với answerDuration=0 trong cùng payload (rare)
+        # Bỏ qua hết 3 case này để UI không kẹt "Đang gọi" sai.
+        if new_state == 'answered':
+            reasons_to_skip = []
+            # Case 1: không phải customer leg
+            if not _is_customer_event(payload, rec.callee_number):
+                reasons_to_skip.append('not_customer_leg')
+            # Case 2: answered đến QUÁ MUỘN sau ringing (voicemail/carrier)
+            # 25s = typical voicemail timeout. Real customer thường bắt máy < 15s.
+            if rec.start_time:
+                # start_time = create_date của record (set default). Stringee fire
+                # 'ringing' nhanh nên dùng làm anchor đủ chính xác.
+                from datetime import datetime
+                ts_ms = payload.get('timestamp_ms')
+                if ts_ms:
+                    event_dt = datetime.utcfromtimestamp(int(ts_ms) / 1000)
+                    delta = (event_dt - rec.start_time).total_seconds()
+                    if delta > 25:
+                        reasons_to_skip.append(f'late_answered_{delta:.0f}s')
+            # Case 3: payload có answerDuration=0 (sometimes Stringee includes it)
+            ans_dur = payload.get('answerDuration') or payload.get('answer_duration')
+            try:
+                if ans_dur is not None and int(ans_dur) == 0:
+                    reasons_to_skip.append('zero_answer_duration')
+            except (TypeError, ValueError):
+                pass
+            if reasons_to_skip:
+                _logger.info(
+                    "Stringee FALSE-positive 'answered' filtered for call %s (actor=%s reasons=%s)",
+                    rec.name, payload.get('actor'), ','.join(reasons_to_skip),
+                )
+                new_state = None
 
         bumped = self._bump_state(rec.state, new_state)
 
         vals = {}
         if bumped != rec.state:
             vals['state'] = bumped
-        if (call_status == 'answered'
-                and _is_customer_event(payload, rec.callee_number)
+        # Chỉ set answer_time khi new_state thật sự được accept (đã pass tất cả filter)
+        if (new_state == 'answered'
                 and not rec.answer_time):
             # Use the event's own timestamp so the timer starts from when the
             # customer actually picked up (not when our webhook handler ran).
@@ -373,15 +466,35 @@ class StringeeCall(models.Model):
                 vals['answer_time'] = fields.Datetime.now()
         if bumped in _TERMINAL_STATES and not rec.end_time:
             vals['end_time'] = fields.Datetime.now()
-            duration = payload.get('duration') or payload.get('answerDuration') or 0
+            # ⚡ Ưu tiên answerDuration (TALK time — sau khi KH bắt máy).
+            # Nếu = 0 (KH không bắt máy) → fallback duration (ring time).
+            # Stringee `duration` = ring + talk; `answerDuration` = chỉ talk.
             try:
-                vals['duration'] = int(duration)
+                ans_dur = int(payload.get('answerDuration') or 0)
             except (TypeError, ValueError):
-                pass
+                ans_dur = 0
+            try:
+                total_dur = int(payload.get('duration') or 0)
+            except (TypeError, ValueError):
+                total_dur = 0
+            vals['duration'] = ans_dur if ans_dur > 0 else total_dur
             cause = (payload.get('endCallCause') or payload.get('reason')
                      or payload.get('hangupReason') or payload.get('sipCode'))
             if cause:
                 vals['hangup_cause'] = str(cause)
+            # CRITICAL: nếu terminal + KH KHÔNG bắt máy thật (answerDuration=0)
+            # → CLEAR answer_time để UI không tiếp tục đếm giây "Đang gọi 0:XX".
+            # Đây là case Stringee fire fake 'answered' rồi mới ended với 0s.
+            try:
+                real_ans_dur = int(payload.get('answerDuration') or 0)
+            except (TypeError, ValueError):
+                real_ans_dur = 0
+            if real_ans_dur <= 0 and rec.answer_time:
+                vals['answer_time'] = False
+                _logger.info(
+                    "Clear answer_time on terminal for %s (answerDuration=0 → KH chưa bắt máy thật)",
+                    rec.name,
+                )
         # Repair from/to if they were stored as dict-strings
         if from_phone and (not rec.caller_number or rec.caller_number.startswith('{')):
             vals['caller_number'] = from_phone
@@ -465,13 +578,21 @@ class StringeeCall(models.Model):
     # ---------- Recording download ----------
 
     def _download_recording(self):
-        """Download the call's recording from Stringee REST and attach it."""
+        """Download the call's recording from Stringee REST and attach it.
+
+        Endpoint (per official docs):
+            GET https://api.stringee.com/v1/call/recording/{RECORD_ID}
+            Header: X-STRINGEE-AUTH: <JWT REST token>
+        Ref: https://developer.stringee.com/docs/rest-api-reference/call-rest-api-download-recorded-file
+        """
         self.ensure_one()
         if self.recording_attachment_id:
             return self.recording_attachment_id
         if not self.name:
+            _logger.info("Recording download skipped: no call_id for record %s", self.id)
             return False
-        # Stringee accepts call_id at this endpoint; recording_id also works.
+        # Stringee accepts call_id at this endpoint; recording_id (if Stringee
+        # sent a different one via webhook) takes priority.
         rid = self.recording_id or self.name
         url = f'{_STRINGEE_API}/v1/call/recording/{rid}'
         try:
@@ -483,10 +604,33 @@ class StringeeCall(models.Model):
         except Exception:
             _logger.warning("Recording download network error for %s", self.name, exc_info=True)
             return False
-        if resp.status_code != 200 or len(resp.content) < 500:
+        # Stringee response codes:
+        #   200 + audio bytes: OK
+        #   200 nhưng size < 500: recording đang process (chưa sẵn sàng)
+        #   400 (empty/{"r":N}): call_id không có recording (Stringee không record call này)
+        #   401: JWT sai/hết hạn
+        #   404: recording đã bị xoá / hết retention
+        #   429: rate limit (30 req/period) — đợi 'retry-after' header
+        if resp.status_code == 429:
+            retry_after = resp.headers.get('retry-after', '?')
+            _logger.warning(
+                "Recording RATE LIMITED for %s (retry after %ss)",
+                self.name, retry_after,
+            )
+            return False
+        if resp.status_code != 200:
+            ct = resp.headers.get('Content-Type', '')
+            body = resp.text[:500] if 'json' in ct or 'text' in ct else f'<binary {len(resp.content)}B>'
             _logger.info(
-                "Recording not ready for %s (status=%s, size=%s)",
-                self.name, resp.status_code, len(resp.content),
+                "Recording download FAILED for %s: url=%s status=%s body=%s headers=%s",
+                self.name, url, resp.status_code, body,
+                dict((k, resp.headers[k]) for k in resp.headers if k.lower().startswith(('x-', 'stringee', 'retry'))),
+            )
+            return False
+        if len(resp.content) < 500:
+            _logger.info(
+                "Recording NOT READY for %s (size=%sB) — Stringee đang process, retry sau",
+                self.name, len(resp.content),
             )
             return False
         attachment = self.env['ir.attachment'].sudo().create({
@@ -502,20 +646,118 @@ class StringeeCall(models.Model):
             'recording_id': rid,
             'recording_attachment_id': attachment.id,
         })
+        _logger.info("Recording DOWNLOADED for %s: %sB → attachment %s",
+                     self.name, len(resp.content), attachment.id)
         return attachment
+
+    def action_download_recording(self):
+        """🎵 Button: Force-retry download recording từ Stringee.
+        Hiển thị notification nếu fail để user biết lý do."""
+        self.ensure_one()
+        result = self._download_recording()
+        if result:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': '✅ Đã tải bản ghi',
+                    'message': f'File ghi âm của cuộc gọi {self.name} đã được tải về.',
+                    'type': 'success',
+                    'sticky': False,
+                },
+            }
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': '⚠️ Chưa tải được bản ghi',
+                'message': (
+                    'Stringee chưa trả về file ghi âm. Lý do thường gặp:\n'
+                    '• Project chưa bật "Recording" ở Stringee Dashboard\n'
+                    '• Cuộc gọi quá ngắn / không answered → không có recording\n'
+                    '• Recording đang được process (đợi 1-2 phút rồi thử lại)\n'
+                    '• Recording đã hết retention (>30 ngày)'
+                ),
+                'type': 'warning',
+                'sticky': True,
+            },
+        }
 
     @api.model
     def cron_retry_recording_download(self):
-        """Pick up calls whose recording wasn't downloaded yet."""
+        """Retry download chỉ cho calls Stringee đã CONFIRM có recording
+        (recording_url được set bởi webhook). Tránh spam API request cho
+        calls không có recording → đỡ hit rate limit 429."""
         candidates = self.search([
             ('state', 'in', list(_TERMINAL_STATES)),
             ('duration', '>', 0),
-            ('recording_attachment_id', '=', False),
-        ], limit=50, order='create_date desc')
+            ('recording_url', '!=', False),         # Stringee đã thông báo có
+            ('recording_attachment_id', '=', False), # nhưng chưa tải về
+            ('create_date', '>', fields.Datetime.now() - timedelta(days=2)),  # chỉ retry call < 48h
+        ], limit=20, order='create_date desc')
+        _logger.info("Cron retry recording download: %s candidates", len(candidates))
         for rec in candidates:
             try:
                 rec._download_recording()
                 self.env.cr.commit()
             except Exception:
                 _logger.exception("Retry download failed for %s", rec.name)
+                self.env.cr.rollback()
+
+    @api.model
+    def cron_finalize_stale_calls(self):
+        """Chặn UI kẹt khi Stringee không gửi event ended (webhook miss).
+        Stringee SCCO timeout = 50s nên ringing > 70s là bất thường.
+        Call answered > 30 phút mà chưa end là bất thường (cuộc sales thường <15ph).
+
+        Run every 1 minute (xem ir_cron.xml).
+        """
+        now = fields.Datetime.now()
+
+        # (1) Pre-answered states kẹt > 60s → no_answer (Stringee timeout=50 + 10s buffer)
+        ringing_cutoff = now - timedelta(seconds=60)
+        stale_ringing = self.search([
+            ('state', 'in', ['draft', 'initiated', 'ringing']),
+            ('create_date', '<', ringing_cutoff),
+        ], limit=100)
+        for call in stale_ringing:
+            _logger.info(
+                "Stringee stale-RINGING finalize: id=%s name=%s state=%s create=%s",
+                call.id, call.name, call.state, call.create_date,
+            )
+            try:
+                call.write({
+                    'state': 'no_answer',
+                    'end_time': now,
+                    'hangup_cause': 'STALE_AUTO_FINALIZE',
+                })
+                self.env.cr.commit()
+            except Exception:
+                _logger.exception("Stale ringing finalize failed for %s", call.id)
+                self.env.cr.rollback()
+
+        # (2) Answered nhưng không có end_time + answer_time > 10 phút → ended
+        # 10 phút đủ rộng cho cuộc sales thực, đủ ngắn để cleanup UI nhanh.
+        answered_cutoff = now - timedelta(minutes=10)
+        stale_answered = self.search([
+            ('state', '=', 'answered'),
+            ('end_time', '=', False),
+            '|',
+                ('answer_time', '<', answered_cutoff),
+                '&', ('answer_time', '=', False), ('create_date', '<', answered_cutoff),
+        ], limit=100)
+        for call in stale_answered:
+            _logger.info(
+                "Stringee stale-ANSWERED finalize: id=%s name=%s answer=%s create=%s",
+                call.id, call.name, call.answer_time, call.create_date,
+            )
+            try:
+                call.write({
+                    'state': 'ended',
+                    'end_time': now,
+                    'hangup_cause': 'STALE_ANSWERED_AUTO_FINALIZE',
+                })
+                self.env.cr.commit()
+            except Exception:
+                _logger.exception("Stale answered finalize failed for %s", call.id)
                 self.env.cr.rollback()

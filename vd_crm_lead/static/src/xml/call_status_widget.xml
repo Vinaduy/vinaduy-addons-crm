@@ -19,4 +19,9 @@
         </div>
     </t>
 
+    <!-- Compact timer: chỉ hiện "M:SS" tăng dần — dùng inline trong banner -->
+    <t t-name="vd_crm_lead.CallTimer">
+        <span class="o_vd_call_timer_compact"><t t-esc="formatted"/></span>
+    </t>
+
 </templates>

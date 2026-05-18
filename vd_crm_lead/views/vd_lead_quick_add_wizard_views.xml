@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vd_lead_quick_add_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.quick.add.wizard.form</field>
+        <field name="model">vd.lead.quick.add.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Thêm KH mới">
+                <group>
+                    <field name="name" placeholder="Tên KH"/>
+                    <field name="phone" placeholder="SĐT" widget="phone"/>
+                </group>
+                <footer>
+                    <button name="action_create_lead" type="object"
+                            string="Lưu"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Huỷ" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_lead_quick_add_wizard" model="ir.actions.act_window">
+        <field name="name">➕ Thêm KH mới</field>
+        <field name="res_model">vd.lead.quick.add.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

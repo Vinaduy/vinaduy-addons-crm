@@ -22,11 +22,18 @@ export class StringeeDialer extends Component {
         if (!number) {
             return;
         }
+        if (this.state.inCall) {
+            return;
+        }
+        this.state.inCall = true;
         try {
             await this.stringee.call(number);
-            this.state.inCall = true;
         } catch (e) {
             this.notification.add(e.message || "Call failed", { type: "danger" });
+        } finally {
+            // LUÔN reset để button gọi được lần sau. Debounce 3s ở stringee_sdk
+            // sẽ chặn accidental double-click.
+            this.state.inCall = false;
         }
     }
 

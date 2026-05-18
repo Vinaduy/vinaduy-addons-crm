@@ -10,5 +10,15 @@
             <field name="interval_type">minutes</field>
             <field name="active" eval="True"/>
         </record>
+
+        <record id="ir_cron_finalize_stale_calls" model="ir.cron">
+            <field name="name">Stringee: Finalize stale ringing calls</field>
+            <field name="model_id" ref="model_stringee_call"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_finalize_stale_calls()</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">seconds</field>
+            <field name="active" eval="True"/>
+        </record>
     </data>
 </odoo>

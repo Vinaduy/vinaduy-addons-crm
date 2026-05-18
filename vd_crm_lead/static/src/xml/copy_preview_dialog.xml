@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="vd_crm_lead.CopyPreviewDialog">
+        <Dialog title.translate="Preview thông tin gửi Zalo" size="'md'">
+            <div class="o_vd_copy_preview">
+                <div class="text-muted mb-2" style="font-size: 0.85rem;">
+                    📋 Xem trước nội dung sẽ copy. Bấm nút <strong>Copy</strong> bên dưới để paste vào Zalo.
+                </div>
+                <textarea
+                    id="vd_copy_preview_ta"
+                    class="form-control"
+                    readonly="readonly"
+                    style="font-family: 'Segoe UI', sans-serif; font-size: 0.88rem; min-height: 320px; white-space: pre; background: #f8f9fa;"
+                    t-esc="props.text"/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="() => this.onCopy()">
+                    <i class="fa fa-clipboard me-2"/> Copy
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.onCancel()">
+                    Đóng
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

@@ -5,39 +5,57 @@
         <field name="name">vd.contract.sign.wizard.form</field>
         <field name="model">vd.contract.sign.wizard</field>
         <field name="arch" type="xml">
-            <form string="Ký hợp đồng + nhận cọc">
+            <form string="Đặt lịch ký hợp đồng" class="o_vd_sign_wizard">
                 <field name="lead_id" invisible="1"/>
                 <field name="currency_id" invisible="1"/>
 
-                <div class="alert alert-success" role="alert" style="margin-bottom:0.85rem;">
-                    <i class="fa fa-trophy"/>
-                    Ký HĐ với <b><field name="lead_name" readonly="1" nolabel="1"/></b><br/>
-                    💰 Giá báo: <field name="quote_price_display" widget="monetary"
-                                       options="{'currency_field': 'currency_id'}"
-                                       readonly="1" nolabel="1"/>
+                <!-- Header: KH info + giá báo -->
+                <div class="o_vd_sign_header">
+                    <div class="o_vd_sign_header_icon">📅</div>
+                    <div class="o_vd_sign_header_body">
+                        <div class="o_vd_sign_header_title">Đặt lịch đi ký hợp đồng</div>
+                        <div class="o_vd_sign_header_sub">
+                            KH: <b><field name="lead_name" readonly="1" nolabel="1"/></b>
+                            <span class="o_vd_sign_price">
+                                💰 <field name="quote_price_display" widget="monetary"
+                                          options="{'currency_field': 'currency_id'}"
+                                          readonly="1" nolabel="1"/>
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="alert alert-warning" role="alert" style="margin-bottom:0.85rem;">
-                    <b>⚠️ Quy định:</b> Tiền cọc <b>TỐI THIỂU 50.000.000đ</b>.<br/>
-                    <i>Kịch bản: "Anh/chị ơi, để bên em chính thức giữ chỗ + đặt vật liệu +
-                    lên kế hoạch tổ thợ thì cần cọc tối thiểu 50tr theo quy định công ty..."</i>
-                </div>
+                <!-- Form body -->
+                <div class="o_vd_sign_body">
+                    <div class="o_vd_sign_field">
+                        <label for="sign_date">
+                            <span>🗓️</span> Ngày &amp; giờ đi ký
+                        </label>
+                        <field name="sign_date" nolabel="1" widget="datetime"/>
+                    </div>
 
-                <group>
-                    <group>
-                        <field name="sign_date"/>
-                        <field name="deposit_amount" widget="monetary"
-                               options="{'currency_field': 'currency_id'}"/>
-                        <field name="deposit_method" widget="radio"/>
-                    </group>
-                </group>
-                <separator string="Ghi chú nhận cọc"/>
-                <field name="deposit_note" placeholder="Số tài khoản KH chuyển từ, mã giao dịch..."/>
+                    <div class="o_vd_sign_field">
+                        <label for="sign_location">
+                            <span>📍</span> Địa điểm
+                        </label>
+                        <field name="sign_location" nolabel="1"
+                               placeholder="Vd: Nhà KH / VP VINADUY / Quán cafe..."/>
+                    </div>
+
+                    <div class="o_vd_sign_field">
+                        <label for="sign_note">
+                            <span>📝</span> Ghi chú lịch hẹn
+                        </label>
+                        <field name="sign_note" nolabel="1"
+                               placeholder="Vd: KH yêu cầu mang theo bản vẽ chi tiết, hẹn 14h-15h..."/>
+                    </div>
+                </div>
 
                 <footer>
-                    <button name="action_confirm_sign" type="object" string="✓ Xác nhận ký HĐ"
-                            class="btn-success"/>
-                    <button special="cancel" string="Đóng" class="btn-secondary"/>
+                    <button name="action_schedule_sign" type="object"
+                            string="✓ Đặt lịch ngay"
+                            class="btn-primary o_vd_sign_btn_confirm"/>
+                    <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
             </form>
         </field>

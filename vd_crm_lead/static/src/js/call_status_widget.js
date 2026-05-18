@@ -29,8 +29,10 @@ export class VdCallStatusWidget extends Component {
     setup() {
         this.busService = useService("bus_service");
         this.notification = useService("notification");
+        this.orm = useService("orm");
         this.state = useState({ elapsed: 0 });
         this._lastSeenState = null;
+        this._ringStartedAt = null;
 
         this._busCallback = this._onBusMessage.bind(this);
         this.busService.subscribe("vd_stringee_call_state", this._busCallback);
@@ -71,6 +73,25 @@ export class VdCallStatusWidget extends Component {
             } catch (e) {
                 // record might be unloading
             }
+            // SAFETY: nếu kẹt RINGING > 60s (Stringee timeout = 50s + buffer 10s)
+            // → call orm để force finalize (chặn UI kẹt "Đang đổ chuông")
+            if (RINGING_STATES.has(s)) {
+                const ringStart = this._ringStartedAt || Date.now();
+                if (!this._ringStartedAt) this._ringStartedAt = ringStart;
+                if (Date.now() - ringStart > 60_000) {
+                    this._ringStartedAt = null;
+                    try {
+                        await this.orm.call(
+                            "stringee.call", "cron_finalize_stale_calls", [],
+                        );
+                        await this.props.record.load();
+                    } catch (_e) {}
+                }
+            } else {
+                this._ringStartedAt = null;
+            }
+        } else {
+            this._ringStartedAt = null;
         }
     }
 
@@ -116,5 +137,45 @@ export class VdCallStatusWidget extends Component {
 
 registry.category("fields").add("vd_call_status", {
     component: VdCallStatusWidget,
+    supportedTypes: ["char", "boolean", "selection"],
+});
+
+/* ============ COMPACT TIMER: chỉ hiện "M:SS" tăng dần khi đã answered ============
+   Dùng inline trong banner popup hoặc bất kỳ nơi nào muốn chỉ thấy đếm giây. */
+export class VdCallTimerWidget extends Component {
+    static template = "vd_crm_lead.CallTimer";
+    static props = { ...standardFieldProps };
+
+    setup() {
+        this.state = useState({ elapsed: 0 });
+        onMounted(() => {
+            this._tick();
+            this._tickerId = setInterval(() => this._tick(), 1000);
+        });
+        onWillUnmount(() => {
+            if (this._tickerId) clearInterval(this._tickerId);
+        });
+    }
+
+    _tick() {
+        const data = this.props.record.data;
+        if (data.vd_active_call_state !== "answered" || !data.vd_active_call_answer_time) {
+            if (this.state.elapsed !== 0) this.state.elapsed = 0;
+            return;
+        }
+        const ans = data.vd_active_call_answer_time;
+        const start = ans.ts ? ans.ts : new Date(ans).getTime();
+        this.state.elapsed = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    }
+
+    get formatted() {
+        const m = Math.floor(this.state.elapsed / 60);
+        const s = this.state.elapsed % 60;
+        return `${m}:${s.toString().padStart(2, "0")}`;
+    }
+}
+
+registry.category("fields").add("vd_call_timer", {
+    component: VdCallTimerWidget,
     supportedTypes: ["char", "boolean", "selection"],
 });

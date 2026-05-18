@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_lead_callback_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.callback.wizard.form</field>
+        <field name="model">vd.lead.callback.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Hẹn ngày gọi lại">
+                <field name="lead_id" invisible="1"/>
+
+                <div class="alert alert-info" role="alert" style="margin-bottom: 0.85rem;">
+                    <i class="fa fa-calendar-check-o"/>
+                    Hẹn ngày gọi lại cho <b><field name="lead_name" readonly="1" nolabel="1"/></b>.
+                    Hệ thống sẽ nhắc bạn khi đến hạn.
+                </div>
+
+                <div class="alert alert-warning" role="alert"
+                     invisible="not current_callback"
+                     style="margin-bottom: 0.85rem;">
+                    <i class="fa fa-clock-o"/>
+                    Lịch hẹn hiện tại: <b><field name="current_callback" readonly="1" nolabel="1"/></b>
+                    — xác nhận sẽ <b>ghi đè</b>.
+                </div>
+
+                <group>
+                    <field name="quick_preset" widget="radio"
+                           options="{'horizontal': False}"/>
+                </group>
+                <group>
+                    <field name="callback_date"
+                           readonly="quick_preset != 'custom'"
+                           help="Khi chọn preset → tự fill. Chọn 'Tự chọn' để nhập tay."/>
+                </group>
+                <group>
+                    <field name="note"
+                           placeholder="VD: KH bảo gọi sau khi bàn với vợ / chốt báo giá cuối / ép cọc..."/>
+                </group>
+
+                <footer>
+                    <button name="action_confirm_callback" type="object"
+                            string="📅 Lưu lịch hẹn" class="btn-primary"/>
+                    <button name="action_clear_callback" type="object"
+                            string="🗑️ Hủy lịch hẹn hiện tại" class="btn-secondary"
+                            invisible="not current_callback"/>
+                    <button special="cancel" string="Đóng" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

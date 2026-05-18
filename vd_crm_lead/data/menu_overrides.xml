@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <!-- ============ ẨN MENU theo yêu cầu user ============
+         Nav bar trong CRM giờ chỉ hiện: Dashboard NV (+ Configuration cho admin).
+         Ẩn:
+         - "Sales" sub-menu trong CRM root (crm.crm_menu_sales)
+         - "Reporting" sub-menu trong CRM root (crm.crm_menu_report)
+         - "Sales" app root menu (sale.sale_menu_root) — app Bán hàng -->
+
+    <record id="crm.crm_menu_sales" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="crm.crm_menu_report" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="sale.sale_menu_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- ============ ẨN MENU CẤU HÌNH KHÔNG DÙNG ĐẾN (trong CRM > Cấu hình) ============ -->
+
+    <!-- Bộ phận sales + Thành viên bộ phận -->
+    <record id="crm.crm_team_config" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="crm.crm_team_member_config" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Hoạt động (parent — ẩn cả Loại hoạt động + Kế hoạch hoạt động) -->
+    <record id="crm.crm_team_menu_config_activities" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Quy trình → Thẻ -->
+    <record id="crm.menu_crm_lead_categ" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <!-- Quy trình → Lý do mất -->
+    <record id="crm.menu_crm_lost_reason" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Tạo lead (parent — ẩn cả Yêu cầu khai thác lead) -->
+    <record id="crm_iap_mine.crm_menu_lead_generation" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

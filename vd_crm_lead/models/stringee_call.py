@@ -32,6 +32,10 @@ class StringeeCall(models.Model):
     def create(self, vals_list):
         records = super().create(vals_list)
         records._sync_lead_activity()
+        # Push bus notification để FAB widget refresh ngay khi pre-create
+        # placeholder cho Web SDK call (state=initiated → vd_in_call=True)
+        for rec in records:
+            rec._broadcast_state()
         return records
 
     def write(self, vals):

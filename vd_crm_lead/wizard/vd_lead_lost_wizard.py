@@ -77,4 +77,12 @@ class VdLeadLostWizard(models.TransientModel):
                 _("<br/>📅 Đã đặt lịch gọi lại sau 3 tháng.") if self.callback_3m else "",
             ),
         )
-        return {'type': 'ir.actions.act_window_close'}
+        # Reload form parent → stage = Lost hiển thị ngay (không cần F5)
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'crm.lead',
+            'res_id': self.lead_id.id,
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'main',
+        }

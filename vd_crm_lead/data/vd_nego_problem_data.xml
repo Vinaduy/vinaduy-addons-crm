@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 12 vấn đề KH thường gặp trong đàm phán — based on real cases VINADUY -->
+
+    <record id="nego_problem_reference_price" model="vd.nego.problem">
+        <field name="code">reference_price</field>
+        <field name="name">Tham khảo giá</field>
+        <field name="icon">💰</field>
+        <field name="color">3</field>
+        <field name="sequence">10</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH chỉ đang xem giá, chưa quyết định:</b></p>
+            <ul>
+                <li>Hỏi rõ ngân sách tối đa + thời gian khởi công thật.</li>
+                <li>Đề nghị xem mẫu nhà thực tế đã thi công để KH thấy chất lượng.</li>
+                <li>Đưa ra ưu đãi đặt cọc sớm (giữ giá vật liệu 7 ngày).</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_low_budget" model="vd.nego.problem">
+        <field name="code">low_budget</field>
+        <field name="name">Thiếu kinh phí ít</field>
+        <field name="icon">💵</field>
+        <field name="color">4</field>
+        <field name="sequence">20</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH thiếu một phần kinh phí:</b></p>
+            <ul>
+                <li>Đề nghị giảm hạng mục không thiết yếu (vd: thay vật liệu cao cấp bằng phổ thông).</li>
+                <li>Chia nhỏ đợt thanh toán: cọc 50tr + 4 đợt theo tiến độ.</li>
+                <li>Mở khóa báo giá → thương lượng item cụ thể, KHÔNG giảm tổng arbitrary.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_very_low_budget" model="vd.nego.problem">
+        <field name="code">very_low_budget</field>
+        <field name="name">Thiếu kinh phí nhiều</field>
+        <field name="icon">🪙</field>
+        <field name="color">1</field>
+        <field name="sequence">30</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH thiếu ngân sách lớn — khả năng deal khó:</b></p>
+            <ul>
+                <li>Hỏi rõ KH có vay được không / thời gian chuẩn bị thêm tiền.</li>
+                <li>Đề nghị giảm quy mô (vd: bớt tầng, giảm diện tích) để vừa ngân sách.</li>
+                <li>Nếu KH muốn giữ quy mô → hẹn gọi lại sau khi có đủ vốn, KHÔNG ép cọc.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_no_red_book" model="vd.nego.problem">
+        <field name="code">no_red_book</field>
+        <field name="name">Chưa làm được sổ</field>
+        <field name="icon">📜</field>
+        <field name="color">2</field>
+        <field name="sequence">40</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>Đất chưa có sổ đỏ / chưa cấp phép xây dựng:</b></p>
+            <ul>
+                <li>Xác nhận KH đang trong quá trình xin sổ — bao lâu xong?</li>
+                <li>Đề nghị KH ký HĐ tạm + ép cọc, công ty hỗ trợ tư vấn thủ tục sổ.</li>
+                <li>KHÔNG khởi công trước khi có phép xây dựng → giải thích rủi ro pháp lý.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_no_land" model="vd.nego.problem">
+        <field name="code">no_land</field>
+        <field name="name">Chưa mua được đất</field>
+        <field name="icon">🏞️</field>
+        <field name="color">2</field>
+        <field name="sequence">50</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH chưa sở hữu đất:</b></p>
+            <ul>
+                <li>Lưu thông tin, hẹn gọi lại sau 1-2 tháng khi KH có đất.</li>
+                <li>Đề nghị tư vấn thiết kế tham khảo theo lô đất KH đang xem.</li>
+                <li>KHÔNG báo giá chính thức cho đến khi có đất + bản vẽ lô đất.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_land_not_transferred" model="vd.nego.problem">
+        <field name="code">land_not_transferred</field>
+        <field name="name">Chưa sang tên đất</field>
+        <field name="icon">📄</field>
+        <field name="color">2</field>
+        <field name="sequence">60</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>Đất chưa sang tên KH:</b></p>
+            <ul>
+                <li>Hỏi tiến độ sang tên — khi nào hoàn tất.</li>
+                <li>Đề nghị ký HĐ tạm + ép cọc, công ty đợi sang tên xong mới khởi công.</li>
+                <li>Cần giấy ủy quyền / cam kết từ chủ đất hiện tại nếu khởi công trước.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_family_not_agree" model="vd.nego.problem">
+        <field name="code">family_not_agree</field>
+        <field name="name">Gia đình không đồng ý</field>
+        <field name="icon">👨‍👩‍👧</field>
+        <field name="color">5</field>
+        <field name="sequence">70</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>Người quyết định trong gia đình chưa thuận:</b></p>
+            <ul>
+                <li>Hỏi rõ ai là người ra quyết định cuối (vợ/chồng/bố mẹ).</li>
+                <li>Đề nghị gặp trực tiếp người đó để thuyết phục.</li>
+                <li>Gửi tài liệu thuyết phục (mẫu nhà, báo giá chi tiết) để KH chuyển cho gia đình.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_disagree_material" model="vd.nego.problem">
+        <field name="code">disagree_material</field>
+        <field name="name">Không đồng ý vật tư</field>
+        <field name="icon">🧱</field>
+        <field name="color">6</field>
+        <field name="sequence">80</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH muốn đổi vật tư trong báo giá:</b></p>
+            <ul>
+                <li>Mở khóa báo giá → liệt kê chính xác vật tư KH muốn thay.</li>
+                <li>Đưa option upgrade (KH trả thêm) hoặc downgrade (giảm giá tương ứng).</li>
+                <li>Giải thích chất lượng vật tư mặc định, nếu KH vẫn muốn thay → cập nhật báo giá mới.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_bad_date" model="vd.nego.problem">
+        <field name="code">bad_date</field>
+        <field name="name">Không được tuổi / chưa xem ngày</field>
+        <field name="icon">🗓️</field>
+        <field name="color">7</field>
+        <field name="sequence">90</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH xem ngày khởi công theo phong thủy:</b></p>
+            <ul>
+                <li>Hỏi KH đã xem ngày chưa — nếu chưa, gợi ý hẹn 1-2 tuần để KH xem.</li>
+                <li>Đề nghị KH cọc trước để giữ vật liệu + thợ, sẽ khởi công đúng ngày đẹp.</li>
+                <li>Lưu ngày đẹp KH chọn → set callback_date để follow up đúng lúc.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_no_design" model="vd.nego.problem">
+        <field name="code">no_design</field>
+        <field name="name">Chưa chọn được mẫu</field>
+        <field name="icon">🏠</field>
+        <field name="color">8</field>
+        <field name="sequence">100</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH đang phân vân giữa các mẫu nhà:</b></p>
+            <ul>
+                <li>Gửi top 3 mẫu phù hợp với diện tích + ngân sách KH.</li>
+                <li>Đề nghị đến showroom xem mẫu thực tế.</li>
+                <li>Sau khi KH chọn được mẫu → cập nhật báo giá theo mẫu đó.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_undefined" model="vd.nego.problem">
+        <field name="code">undefined</field>
+        <field name="name">Chưa xác định</field>
+        <field name="icon">❓</field>
+        <field name="color">0</field>
+        <field name="sequence">200</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>NV chưa khai thác đủ thông tin để biết KH vướng ở đâu:</b></p>
+            <ul>
+                <li>Gọi lại KH, đặt câu hỏi mở: "Anh/chị còn vướng mắc gì khi chốt dự án này?"</li>
+                <li>Xác định 1 trong các vấn đề bên trên để có giải pháp cụ thể.</li>
+            </ul>
+        ]]></field>
+    </record>
+</odoo>

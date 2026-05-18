@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Seed 4 record cấu hình mặc định cho 4 vị trí -->
+    <record id="role_config_employee" model="vd.crm.role.config">
+        <field name="name">Nhân viên</field>
+        <field name="role_code">employee</field>
+        <field name="group_id" ref="vd_crm_group_employee"/>
+        <field name="sequence">10</field>
+        <field name="scope">own</field>
+        <field name="can_read">True</field>
+        <field name="can_create">True</field>
+        <field name="can_write">True</field>
+        <field name="can_unlink">False</field>
+        <field name="can_reassign_lead">False</field>
+        <field name="note">Chỉ thấy KH được giao. Không được xoá hoặc chuyển KH cho NV khác.</field>
+    </record>
+
+    <record id="role_config_team_leader" model="vd.crm.role.config">
+        <field name="name">Trưởng nhóm</field>
+        <field name="role_code">team_leader</field>
+        <field name="group_id" ref="vd_crm_group_team_leader"/>
+        <field name="sequence">20</field>
+        <field name="scope">team</field>
+        <field name="can_read">True</field>
+        <field name="can_create">True</field>
+        <field name="can_write">True</field>
+        <field name="can_unlink">False</field>
+        <field name="can_reassign_lead">True</field>
+        <field name="note">Thấy KH của cả team, được chuyển KH giữa các NV trong team.</field>
+    </record>
+
+    <record id="role_config_deputy" model="vd.crm.role.config">
+        <field name="name">Phó Giám đốc</field>
+        <field name="role_code">deputy</field>
+        <field name="group_id" ref="vd_crm_group_deputy_director"/>
+        <field name="sequence">30</field>
+        <field name="scope">all</field>
+        <field name="can_read">True</field>
+        <field name="can_create">True</field>
+        <field name="can_write">True</field>
+        <field name="can_unlink">False</field>
+        <field name="can_reassign_lead">True</field>
+        <field name="note">Sửa + chuyển KH liên team + xem toàn bộ + xem báo cáo. KHÔNG được xoá KH (chỉ Admin).</field>
+    </record>
+
+    <record id="role_config_admin" model="vd.crm.role.config">
+        <field name="name">Admin</field>
+        <field name="role_code">admin</field>
+        <field name="group_id" ref="vd_crm_group_admin"/>
+        <field name="sequence">40</field>
+        <field name="scope">all</field>
+        <field name="can_read">True</field>
+        <field name="can_create">True</field>
+        <field name="can_write">True</field>
+        <field name="can_unlink">True</field>
+        <field name="can_reassign_lead">True</field>
+        <field name="note">Toàn quyền hệ thống + cấu hình phân quyền + truy cập menu cấu hình.</field>
+    </record>
+</odoo>

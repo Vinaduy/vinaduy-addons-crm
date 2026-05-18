@@ -1,14 +1,15 @@
-"""Wizard ký hợp đồng + nhập tiền cọc.
-Yêu cầu user: cọc TỐI THIỂU 50.000.000đ. Đây là kịch bản tư vấn (hard
-validation: nếu < 50tr → block save + cho NV gợi ý KH bổ sung)."""
-
+"""Wizard ĐẶT LỊCH ký HĐ — khi KH đồng ý, NV setup ngày đi ký.
+Logic: chỉ schedule, KHÔNG đổi stage. Khi NV thực sự ký xong + có cọc thì
+mới mark lead = won (việc đó qua action riêng).
+"""
+from datetime import timedelta
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 
 
 class VdContractSignWizard(models.TransientModel):
     _name = 'vd.contract.sign.wizard'
-    _description = 'Wizard ký hợp đồng + nhận cọc'
+    _description = 'Wizard đặt lịch ký hợp đồng'
 
     lead_id = fields.Many2one('crm.lead', required=True, ondelete='cascade')
     lead_name = fields.Char(related='lead_id.name', readonly=True)
@@ -17,18 +18,20 @@ class VdContractSignWizard(models.TransientModel):
         currency_field='currency_id',
     )
 
-    sign_date = fields.Date(string='Ngày ký HĐ', default=fields.Date.context_today, required=True)
-    deposit_amount = fields.Monetary(
-        string='Tiền cọc KH chuyển (đ)',
-        currency_field='currency_id', required=True,
-        help='TỐI THIỂU 50.000.000đ. Hệ thống chặn nếu nhập thấp hơn.',
+    sign_date = fields.Datetime(
+        string='Ngày & giờ đi ký',
+        default=lambda self: fields.Datetime.now() + timedelta(days=2),
+        required=True,
+        help='Thời điểm NV hẹn KH đi ký HĐ — hệ thống sẽ remind đúng giờ.',
     )
-    deposit_method = fields.Selection([
-        ('cash', '💵 Tiền mặt'),
-        ('bank', '🏦 Chuyển khoản'),
-        ('card', '💳 Thẻ'),
-    ], string='Phương thức', default='bank', required=True)
-    deposit_note = fields.Text(string='Ghi chú nhận cọc')
+    sign_location = fields.Char(
+        string='Địa điểm ký',
+        placeholder='Vd: Tại nhà KH / VP VINADUY HCM / Quán cafe...',
+    )
+    sign_note = fields.Text(
+        string='Ghi chú lịch hẹn',
+        placeholder='Vd: KH yêu cầu mang theo bản vẽ chi tiết + báo giá v2, hẹn 14h-15h...',
+    )
 
     currency_id = fields.Many2one(
         'res.currency', compute='_compute_vnd_currency',
@@ -39,21 +42,8 @@ class VdContractSignWizard(models.TransientModel):
         for rec in self:
             rec.currency_id = vnd
 
-    @api.constrains('deposit_amount')
-    def _check_min_deposit(self):
-        for rec in self:
-            if rec.deposit_amount < self.env['crm.lead'].VD_MIN_DEPOSIT:
-                raise ValidationError(_(
-                    "Tiền cọc TỐI THIỂU 50.000.000đ. KH cọc %.0fđ là chưa đủ.\n\n"
-                    "💡 Kịch bản tư vấn:\n"
-                    '"Anh/chị ơi, để bên em chính thức giữ chỗ + đặt vật liệu + '
-                    'lên kế hoạch tổ thợ thì cần cọc tối thiểu 50tr theo quy định '
-                    'công ty. Anh/chị có thể chuyển thêm phần còn thiếu trong hôm '
-                    'nay được không ạ?"'
-                ) % rec.deposit_amount)
-
-    def action_confirm_sign(self):
-        """Ghi nhận ký HĐ + cọc → set stage = won."""
+    def action_schedule_sign(self):
+        """KH đồng ý → đặt lịch ký + chuyển stage sang Khách chốt ngay."""
         self.ensure_one()
         won = self.env.ref('vd_crm_lead.stage_won', raise_if_not_found=False) or \
               self.env['crm.stage'].search([('code', '=', 'won')], limit=1)
@@ -61,26 +51,37 @@ class VdContractSignWizard(models.TransientModel):
             raise UserError(_('Không tìm thấy stage "Khách chốt".'))
 
         old_stage = self.lead_id.stage_id.name or ''
-        # Disable tracking để không trigger auto-email lúc đổi stage
+        # Ghi lịch hẹn + chuyển stage + set callback đúng giờ ký
         self.lead_id.with_context(mail_notrack=True, tracking_disable=True).write({
-            'vd_contract_signed': True,
-            'vd_contract_sign_date': self.sign_date,
-            'vd_contract_deposit': self.deposit_amount,
+            'vd_planned_sign_date': self.sign_date,
+            'vd_planned_sign_location': self.sign_location or '',
+            'vd_planned_sign_note': self.sign_note or '',
+            'callback_date': self.sign_date,
             'stage_id': won.id,
         })
-        method_label = dict(self._fields['deposit_method'].selection).get(
-            self.deposit_method, ''
-        )
+
+        loc_html = ('<br/>📍 Địa điểm: <b>%s</b>' % self.sign_location) if self.sign_location else ''
+        note_html = ('<br/>📝 Ghi chú: <i>%s</i>' % self.sign_note) if self.sign_note else ''
         self.lead_id.message_post(subtype_xmlid='mail.mt_note', body=_(
-            "🏆 <b>KÝ HỢP ĐỒNG THÀNH CÔNG</b> ngày <b>%s</b>!<br/>"
-            "Cọc nhận: <b>%s đ</b> (%s)<br/>"
-            "Chuyển từ <i>%s</i> → <b>%s</b>.<br/>"
-            "%s"
+            '🎉 <b>KH ĐỒNG Ý KÝ HĐ</b> — đã đặt lịch + chuyển sang <b>%s</b>!<br/>'
+            '🗓️ Lịch hẹn ký: <b>%s</b>%s%s'
         ) % (
-            self.sign_date.strftime('%d/%m/%Y'),
-            f'{self.deposit_amount:,.0f}'.replace(',', '.'),
-            method_label,
-            old_stage, won.name,
-            f'<i>Ghi chú: {self.deposit_note}</i>' if self.deposit_note else '',
+            won.name,
+            self.sign_date.strftime('%H:%M %d/%m/%Y'),
+            loc_html, note_html,
         ))
-        return {'type': 'ir.actions.act_window_close'}
+
+        # Reload form parent — stage Khách chốt + countdown banner hiện ngay không cần F5
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'crm.lead',
+            'res_id': self.lead_id.id,
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'main',
+            'effect': {
+                'fadeout': 'slow',
+                'message': '🎉 KH đồng ý — đã đặt lịch ký HĐ!',
+                'type': 'rainbow_man',
+            },
+        }

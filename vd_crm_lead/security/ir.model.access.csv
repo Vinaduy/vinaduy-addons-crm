@@ -3,9 +3,21 @@ access_vd_district_user,vd.district user,model_vd_district,base.group_user,1,1,1
 access_vd_district_manager,vd.district manager,model_vd_district,sales_team.group_sale_manager,1,1,1,1
 access_vd_pricing_region_user,vd.pricing.region read,model_vd_pricing_region,base.group_user,1,0,0,0
 access_vd_pricing_region_manager,vd.pricing.region manager,model_vd_pricing_region,sales_team.group_sale_manager,1,1,1,1
+access_vd_floor_function_tag_user,vd.floor.function.tag read,model_vd_floor_function_tag,base.group_user,1,0,0,0
+access_vd_floor_function_tag_manager,vd.floor.function.tag manager,model_vd_floor_function_tag,sales_team.group_sale_manager,1,1,1,1
+access_vd_lead_floor_func_line_user,vd.lead.floor.func.line user,model_vd_lead_floor_func_line,base.group_user,1,1,1,1
 access_vd_lead_lost_wizard_user,vd.lead.lost.wizard,model_vd_lead_lost_wizard,base.group_user,1,1,1,1
+access_vd_lead_callback_wizard_user,vd.lead.callback.wizard,model_vd_lead_callback_wizard,base.group_user,1,1,1,1
 access_vd_contract_sign_wizard_user,vd.contract.sign.wizard,model_vd_contract_sign_wizard,base.group_user,1,1,1,1
 access_vd_quote_template_user,vd.quote.template user,model_vd_quote_template,base.group_user,1,1,1,0
 access_vd_quote_template_manager,vd.quote.template manager,model_vd_quote_template,sales_team.group_sale_manager,1,1,1,1
 access_vd_quote_version_user,vd.quote.version,model_vd_quote_version,base.group_user,1,1,1,1
 access_vd_quote_preview_wizard_user,vd.quote.preview.wizard,model_vd_quote_preview_wizard,base.group_user,1,1,1,1
+access_vd_lead_quick_add_wizard_user,vd.lead.quick.add.wizard,model_vd_lead_quick_add_wizard,base.group_user,1,1,1,1
+access_vd_crm_role_config_read,vd.crm.role.config read,model_vd_crm_role_config,base.group_user,1,0,0,0
+access_vd_crm_role_config_admin,vd.crm.role.config admin,model_vd_crm_role_config,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_nego_problem_user,vd.nego.problem read,model_vd_nego_problem,base.group_user,1,0,0,0
+access_vd_nego_problem_admin,vd.nego.problem admin,model_vd_nego_problem,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_lead_problem_user,vd.lead.problem user,model_vd_lead_problem,base.group_user,1,1,1,1
+access_vd_pancake_page_admin,vd.pancake.page admin,model_vd_pancake_page,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_pancake_page_user,vd.pancake.page read,model_vd_pancake_page,base.group_user,1,0,0,0
