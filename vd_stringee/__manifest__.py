@@ -1,6 +1,6 @@
 {
     'name': 'VD Stringee Connector',
-    'version': '18.0.1.6.7',
+    'version': '18.0.1.6.8',
     'category': 'Productivity/Telephony',
     'summary': 'Stringee integration: REST callout, Web SDK click-to-call, recording download',
     'author': 'VINADUY',

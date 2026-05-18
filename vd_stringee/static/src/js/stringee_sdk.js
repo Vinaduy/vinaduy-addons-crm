@@ -442,12 +442,12 @@ export const stringeeService = {
                     return res;
                 }
 
-                // Web SDK App-to-Phone — per Stringee docs:
-                //   new StringeeCall2(client, fromNumber, toNumber, isVideoCall)
+                // Web SDK App-to-Phone — per Stringee docs (StringeeCall v1):
+                //   new StringeeCall(client, fromNumber, toNumber, isVideoCall)
                 //   fromNumber = số hotline đã mua trên Stringee (84xxx)
                 //   toNumber   = phone number của KH (PSTN)
-                // KHÔNG dùng state.userId làm fromNumber — sẽ làm Stringee
-                // treat call như App-to-App và reject vì không tìm thấy user.
+                // Đổi sang v1 theo yêu cầu đối tác: call thường dùng StringeeCall
+                // thay vì StringeeCall2 (StringeeCall2 cho video / advanced).
                 if (!state.fromNumber) {
                     notification.add(
                         "Chưa cấu hình hotline Stringee (vd_stringee.from_number).",
@@ -455,7 +455,7 @@ export const stringeeService = {
                     );
                     return null;
                 }
-                const call2 = new window.StringeeCall2(
+                const call2 = new window.StringeeCall(
                     client, state.fromNumber, targetNumber, false,
                 );
                 try {
