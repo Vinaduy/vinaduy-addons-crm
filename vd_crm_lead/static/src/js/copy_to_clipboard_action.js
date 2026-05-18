@@ -69,8 +69,39 @@ export class VdCopyPreviewDialog extends Component {
 
 async function vdCopyToClipboard(env, action) {
     const text = action.params?.text || "";
+    const message = action.params?.message || "Đã copy vào clipboard.";
     if (!text) {
         env.services.notification.add("Không có nội dung để copy", { type: "warning" });
+        return false;
+    }
+    // silent mode: copy ngay không hiện popup preview (dùng cho Copy gửi Zalo)
+    if (action.params?.silent) {
+        let ok = false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                ok = true;
+            }
+        } catch (_e) {
+            ok = false;
+        }
+        if (!ok) {
+            // Fallback: tạo textarea ẩn + execCommand
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                ok = document.execCommand("copy");
+            } catch (_e) { /* noop */ }
+            document.body.removeChild(ta);
+        }
+        env.services.notification.add(
+            ok ? message : "Không copy được — trình duyệt chặn clipboard. Bấm lại lần nữa.",
+            { type: ok ? "success" : "warning" },
+        );
         return false;
     }
     env.services.dialog.add(VdCopyPreviewDialog, {

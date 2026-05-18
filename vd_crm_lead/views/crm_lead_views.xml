@@ -126,23 +126,13 @@
                             </span>
                         </div>
                         <div class="o_vd_header_row o_vd_header_row2">
-                            <!-- Copy gửi Zalo: chỉ là text inline, hover hiện preview popover,
-                                 click → copy. Nằm sát trước nút "Thông tin tư vấn". -->
-                            <div class="o_vd_zalo_hover_wrap">
-                                <button name="action_copy_zalo" type="object"
-                                        class="o_vd_copy_zalo_inline"
-                                        title="Hover để xem nội dung — Click để copy">
-                                    <i class="fa fa-clipboard"/>
-                                    <span>Copy gửi Zalo</span>
-                                </button>
-                                <div class="o_vd_zalo_hover_panel">
-                                    <div class="o_vd_zalo_hover_head">
-                                        <i class="fa fa-clipboard"/>
-                                        <span>Thông tin gửi Zalo — bấm để copy</span>
-                                    </div>
-                                    <field name="vd_zalo_copy_text" readonly="1" nolabel="1"/>
-                                </div>
-                            </div>
+                            <!-- "Copy" inline — click trực tiếp copy info Zalo (không popup) -->
+                            <button name="action_copy_zalo" type="object"
+                                    class="o_vd_copy_zalo_inline"
+                                    title="Bấm để copy thông tin KH (Zalo)">
+                                <i class="fa fa-clipboard"/>
+                                <span>Copy</span>
+                            </button>
                             <button name="action_open_intake_inline" type="object"
                                     class="o_vd_open_intake_btn_main">
                                 <i class="fa fa-phone-square"/>
@@ -349,12 +339,14 @@
                                         </span>
                                     </button>
 
-                                    <!-- KH không có nhu cầu — chỉ hiện khi 3 cuộc đầu đều không nghe -->
+                                    <!-- "Hủy" — đổi từ "KH không có nhu cầu", style giống Lịch sử cuộc gọi,
+                                         hiện sau Lịch sử khi 3 cuộc đầu đều không nghe -->
                                     <button name="action_mark_no_demand" type="object"
-                                            class="btn btn-sm btn-outline-secondary o_vd_wf_btn_no_demand o_vd_no_demand_calls"
-                                            invisible="vd_call_not_answered_count &lt; 3 or vd_call_answered_count &gt; 0 or stage_code in ['won', 'lost']">
+                                            class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
+                                            invisible="vd_call_not_answered_count &lt; 3 or vd_call_answered_count &gt; 0 or stage_code in ['won', 'lost']"
+                                            title="KH không có nhu cầu — hủy lead">
                                         <i class="fa fa-times-circle me-1"/>
-                                        KH không có nhu cầu
+                                        Hủy
                                     </button>
                                 </div>
                             </div>

@@ -823,7 +823,7 @@ class CrmLead(models.Model):
             rec.vd_zalo_copy_text = '\n'.join(lines)
 
     def action_copy_zalo(self):
-        """Trả client action JS để copy vd_zalo_copy_text vào clipboard."""
+        """Copy vd_zalo_copy_text vào clipboard — direct (không popup preview)."""
         self.ensure_one()
         return {
             'type': 'ir.actions.client',
@@ -831,6 +831,7 @@ class CrmLead(models.Model):
             'params': {
                 'text': self.vd_zalo_copy_text or '',
                 'message': _('Đã copy thông tin KH vào clipboard. Dán vào Zalo!'),
+                'silent': True,
             },
         }
 
