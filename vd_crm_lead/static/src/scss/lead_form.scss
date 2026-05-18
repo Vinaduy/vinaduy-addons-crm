@@ -15,21 +15,36 @@
     .o_vd_quote_head {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.7rem 1rem;
-        background: linear-gradient(135deg, #1864ab, #4dabf7);
+        gap: 0.6rem;
+        padding: 0.95rem 1.4rem;
+        background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%);
         color: #fff;
-        font-weight: 700;
-        font-size: 1rem;
-        i { font-size: 1.1rem; }
+        font-weight: 800;
+        font-size: 1.4rem;
+        text-transform: uppercase;
+        letter-spacing: 1.8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        line-height: 1.2;
+        justify-content: flex-start;
+        text-align: left;
+        i { font-size: 1.4rem; color: #fff; }
+        > span {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+        }
         .o_vd_lock_badge {
             margin-left: auto;
             background: #fff;
             color: #c92a2a;
-            padding: 0.15rem 0.6rem;
+            padding: 0.2rem 0.7rem;
             border-radius: 12px;
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             font-weight: 700;
+            text-transform: none;
+            letter-spacing: normal;
+            text-shadow: none;
         }
     }
     .o_vd_quote_body {
@@ -105,21 +120,36 @@
     .o_vd_nego_head {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.7rem 1rem;
-        background: linear-gradient(135deg, #d97706, #fbbf24);
+        gap: 0.6rem;
+        padding: 0.95rem 1.4rem;
+        background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%);
         color: #fff;
-        font-weight: 700;
-        font-size: 1rem;
-        i { font-size: 1.1rem; }
+        font-weight: 800;
+        font-size: 1.4rem;
+        text-transform: uppercase;
+        letter-spacing: 1.8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        line-height: 1.2;
+        justify-content: flex-start;
+        text-align: left;
+        i { font-size: 1.4rem; color: #fff; }
+        > span {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+        }
         .o_vd_nego_status_badge {
             margin-left: auto;
             background: rgba(255,255,255,0.95);
             color: #92400e;
-            padding: 0.15rem 0.6rem;
+            padding: 0.2rem 0.7rem;
             border-radius: 12px;
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             font-weight: 700;
+            text-transform: none;
+            letter-spacing: normal;
+            text-shadow: none;
         }
     }
     .o_vd_nego_script {
@@ -522,19 +552,34 @@
     .o_vd_quote_head {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.7rem 1rem;
-        background: linear-gradient(135deg, #2b8a3e 0%, #51cf66 100%);
+        gap: 0.6rem;
+        padding: 0.95rem 1.4rem;
+        background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%);
         color: #fff;
-        font-size: 1rem;
-        font-weight: 600;
+        font-size: 1.4rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        line-height: 1.2;
+        justify-content: flex-start;
+        text-align: left;
 
-        i { font-size: 1.1rem; }
+        i { font-size: 1.4rem; color: #fff; }
+        > span {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+        }
         .o_vd_quote_stage {
             font-weight: 400;
             font-size: 0.85rem;
             opacity: 0.9;
             margin-left: 0.3rem;
+            text-transform: none;
+            letter-spacing: normal;
+            text-shadow: none;
             .o_field_badge,
             .o_field_widget {
                 background: rgba(255, 255, 255, 0.2);
@@ -619,15 +664,14 @@
     }
 
     .o_vd_summary_banner {
-        background: linear-gradient(90deg, #c92a2a 0%, #e8590c 50%, #c92a2a 100%);
-        background-size: 200% 100%;
-        animation: vd-bg-shift 6s linear infinite;
-        padding: 0.6rem 1.5rem;
-        text-align: center;
+        background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%);
+        animation: none;
+        padding: 0.95rem 1.4rem;
+        text-align: left;
 
         .o_field_badge {
             background: rgba(255, 255, 255, 0.95);
-            color: #c92a2a;
+            color: #714B67;
             font-weight: 700;
             font-size: 0.95rem;
             text-transform: uppercase;
@@ -642,10 +686,12 @@
             margin: 0;
             color: #ffffff;
             font-weight: 800;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.8px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+            text-align: left;
+            line-height: 1.2;
         }
     }
 
@@ -3130,11 +3176,11 @@ div.o_vd_layout_right {
    GLOBAL FONT-SIZE REDUCTION ~30% — chữ to đang xuống dòng
    ============================================================ */
 
-/* Summary card (THÔNG TIN KHÁCH HÀNG) — reduce title + hero labels/values */
+/* Summary card (THÔNG TIN KHÁCH HÀNG) — banner title unified with quote/nego heads */
 .o_vd_summary_card {
     .o_vd_summary_banner .o_vd_banner_title {
-        font-size: 1.05rem !important;       /* 1.5 → 1.05 (-30%) */
-        letter-spacing: 1px !important;
+        font-size: 1.4rem !important;        /* unified: khớp 3 panel header */
+        letter-spacing: 1.8px !important;
     }
     .o_vd_summary_header .o_vd_summary_name {
         font-size: 1rem !important;          /* 1.4 → 1.0 (-28%) */
@@ -5777,7 +5823,7 @@ div.o_vd_layout_right {
     .o_vd_summary_card {
         margin-bottom: 0.4rem !important;
         .o_vd_summary_banner {
-            padding: 0.35rem 0.7rem !important;
+            padding: 0.95rem 1.4rem !important;    /* unified với main form */
             margin-bottom: 0.3rem !important;
         }
         .o_vd_summary_header {
@@ -5846,8 +5892,8 @@ div.o_vd_layout_right {
     .o_vd_quote_panel {
         margin-top: 0.4rem !important;
         .o_vd_quote_head {
-            padding: 0.35rem 0.7rem !important;
-            font-size: 0.95rem !important;
+            padding: 0.95rem 1.4rem !important;    /* unified với main form */
+            font-size: 1.4rem !important;
         }
         .o_vd_quote_body {
             padding: 0.5rem 0.7rem !important;
