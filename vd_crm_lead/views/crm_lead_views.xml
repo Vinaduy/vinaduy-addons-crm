@@ -106,8 +106,8 @@
                     </div>
 
                     <!-- Header (2 hàng):
-                         Hàng 1: [Chip tên KH (border + bo tròn, click copy) + phone nhỏ]  ............  [Salesperson — admin bấm để đổi]
-                         Hàng 2: [Hẹn gọi lại + Copy gửi Zalo + KH không có nhu cầu]  ............  [Thông tin tư vấn] -->
+                         Hàng 1: [Chip tên KH (border + bo tròn, click copy) + phone nhỏ]
+                         Hàng 2: [Salesperson (plain, dưới tên KH)] ........ [Copy (hover xem)] [Thông tin tư vấn] -->
                     <div class="o_vd_summary_header">
                         <div class="o_vd_header_row o_vd_header_row1">
                             <button name="action_copy_name" type="object"
@@ -121,18 +121,27 @@
                                     <field name="phone" nolabel="1" readonly="1"/>
                                 </span>
                             </button>
+                        </div>
+                        <div class="o_vd_header_row o_vd_header_row2">
                             <span class="o_vd_header_user" title="Nhân viên phụ trách — bấm để đổi cho NV khác">
                                 <field name="user_id" widget="many2one_avatar_user" nolabel="1"/>
                             </span>
-                        </div>
-                        <div class="o_vd_header_row o_vd_header_row2">
-                            <!-- "Copy" inline — click trực tiếp copy info Zalo (không popup) -->
-                            <button name="action_copy_zalo" type="object"
-                                    class="o_vd_copy_zalo_inline"
-                                    title="Bấm để copy thông tin KH (Zalo)">
-                                <i class="fa fa-clipboard"/>
-                                <span>Copy</span>
-                            </button>
+                            <!-- "Copy": hover → preview panel zalo text; click → copy trực tiếp (no popup) -->
+                            <div class="o_vd_zalo_hover_wrap">
+                                <button name="action_copy_zalo" type="object"
+                                        class="o_vd_copy_zalo_inline"
+                                        title="Hover xem nội dung — Click để copy">
+                                    <i class="fa fa-clipboard"/>
+                                    <span>Copy</span>
+                                </button>
+                                <div class="o_vd_zalo_hover_panel">
+                                    <div class="o_vd_zalo_hover_head">
+                                        <i class="fa fa-clipboard"/>
+                                        <span>Thông tin gửi Zalo</span>
+                                    </div>
+                                    <field name="vd_zalo_copy_text" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
                             <button name="action_open_intake_inline" type="object"
                                     class="o_vd_open_intake_btn_main">
                                 <i class="fa fa-phone-square"/>
@@ -340,10 +349,9 @@
                                     </button>
 
                                     <!-- "Hủy" — đổi từ "KH không có nhu cầu", style giống Lịch sử cuộc gọi,
-                                         hiện sau Lịch sử khi 3 cuộc đầu đều không nghe -->
+                                         luôn hiện sau Lịch sử (không điều kiện) -->
                                     <button name="action_mark_no_demand" type="object"
                                             class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
-                                            invisible="vd_call_not_answered_count &lt; 3 or vd_call_answered_count &gt; 0 or stage_code in ['won', 'lost']"
                                             title="KH không có nhu cầu — hủy lead">
                                         <i class="fa fa-times-circle me-1"/>
                                         Hủy
