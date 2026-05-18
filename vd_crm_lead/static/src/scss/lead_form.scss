@@ -7159,3 +7159,405 @@ $vd-panel-head-radius: 10px;
 .o_vd_call_stats_row > .o_vd_wf_btn_callback {
     margin-left: 0 !important;
 }
+
+/* ============================================================
+   PROBLEM FORM POPUP — bấm vào row vấn đề → mở popup giàu thông tin
+   gồm: 1) Liên hệ KH  2) Khai thác sâu  3) Nỗi sợ + Niềm tin
+        4) Scripts copy-zalo  5) Kết quả & tổng kết
+   Style: section card có border, hover panel cho từng câu hỏi,
+   scripts có copy button kèm preview <pre>.
+   ============================================================ */
+.o_vd_problem_form .o_vd_problem_sheet {
+    background: #fafbff;
+    padding: 1rem 1.2rem 1.5rem !important;
+    max-width: 980px;
+    width: 100%;
+}
+
+.o_vd_problem_form_header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid #e1d4dc;
+    margin-bottom: 0.8rem;
+
+    .o_vd_pf_title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #5d3d54;
+        flex: 1 1 auto;
+
+        .o_field_widget {
+            color: inherit !important;
+            font-size: inherit !important;
+            font-weight: inherit !important;
+        }
+    }
+    .o_field_widget[name='status'] .o_field_badge {
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        padding: 0.35rem 0.85rem !important;
+        border-radius: 999px !important;
+    }
+}
+
+.o_vd_pf_section {
+    background: #fff;
+    border: 1px solid #e1d4dc;
+    border-radius: 10px;
+    padding: 0.75rem 1rem 0.85rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 3px rgba(93, 61, 84, 0.04);
+}
+
+.o_vd_pf_section_head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.65rem;
+    border-bottom: 1px dashed #e9ddd5;
+
+    .o_vd_pf_section_icon { font-size: 1.05rem; }
+    .o_vd_pf_section_title {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #5d3d54;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+/* === Section 1: Contact tracking === */
+.o_vd_pf_contact_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 1.2rem;
+    align-items: center;
+
+    .o_vd_pf_field_inline {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding-top: 0.45rem;
+        border-top: 1px dashed #eee5ec;
+
+        .o_vd_pf_field_lbl {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+        .o_vd_pf_btn_now {
+            font-size: 0.78rem;
+            padding: 0.25rem 0.7rem;
+            white-space: nowrap;
+        }
+    }
+}
+
+/* Checkbox label — pill style nhẹ */
+.o_vd_pf_check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    transition: background 0.12s ease;
+    margin: 0;
+
+    &:hover { background: #f4ecf1; }
+
+    .o_field_widget {
+        display: inline-flex !important;
+        margin: 0 !important;
+    }
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #714B67;
+        cursor: pointer;
+    }
+    span {
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: #1f2a44;
+        line-height: 1.3;
+    }
+}
+
+/* === Section 2: Explore — 4 cards (A B C D) === */
+.o_vd_pf_explore_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.o_vd_pf_explore_card {
+    background: #fdfaf5;
+    border: 1px solid #f0e3d6;
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem 0.7rem;
+
+    .o_vd_pf_explore_card_head {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #714B67;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 0.45rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px dashed #f0e3d6;
+    }
+    .o_vd_pf_explore_hint {
+        font-size: 0.78rem;
+        font-style: italic;
+        color: #846100;
+        background: #fffbeb;
+        border-left: 3px solid #fbbf24;
+        padding: 0.35rem 0.55rem;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+
+        i.fa-quote-left {
+            color: #fbbf24;
+            margin-right: 0.3rem;
+            font-size: 0.7rem;
+        }
+    }
+}
+
+/* Form fields trong popup — gọn, không full width */
+.o_vd_pf_field {
+    margin-bottom: 0.45rem;
+
+    .o_vd_pf_field_lbl {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #5d3d54;
+        margin-bottom: 0.18rem;
+    }
+    .o_field_widget,
+    input, textarea, select {
+        width: 100% !important;
+        font-size: 0.86rem !important;
+        padding: 0.32rem 0.5rem !important;
+        border: 1px solid #e1d4dc !important;
+        border-radius: 6px !important;
+        background: #fff !important;
+        box-shadow: none !important;
+
+        &:focus {
+            border-color: #714B67 !important;
+            outline: 2px solid rgba(113, 75, 103, 0.18) !important;
+        }
+    }
+    textarea {
+        min-height: 48px !important;
+        line-height: 1.4 !important;
+        resize: vertical !important;
+    }
+}
+
+/* === Section 3: Fears + Trust actions === */
+.o_vd_pf_fears_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+.o_vd_pf_fear_col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid;
+
+    .o_vd_pf_col_head {
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 0.35rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px dashed currentColor;
+        opacity: 0.85;
+    }
+}
+.o_vd_pf_fear_col:has(.o_vd_pf_col_head_fear) {
+    background: #fff5f5;
+    border-color: #ffd6d6;
+    .o_vd_pf_col_head { color: #c92a2a; }
+    .o_vd_pf_check:hover { background: #ffe3e3; }
+}
+.o_vd_pf_fear_col:has(.o_vd_pf_col_head_trust) {
+    background: #ebf9f1;
+    border-color: #c3ead4;
+    .o_vd_pf_col_head { color: #2b8a3e; }
+    .o_vd_pf_check:hover { background: #d3f9d8; }
+}
+
+/* === Section 4: Scripts === */
+.o_vd_pf_scripts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.o_vd_pf_script_card {
+    background: #f8fbff;
+    border: 1px solid #d0e3ff;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -2px rgba(24, 100, 171, 0.16);
+    }
+
+    .o_vd_pf_script_head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+    .o_vd_pf_script_tag {
+        flex: 1 1 auto;
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #1864ab;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .o_vd_pf_script_copy {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #1864ab !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 999px !important;
+        padding: 0.22rem 0.65rem !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s ease, transform 0.12s ease,
+                    box-shadow 0.15s ease;
+
+        i.fa { font-size: 0.7rem; }
+
+        &:hover {
+            background: #1971c2 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(24, 100, 171, 0.3);
+        }
+        &:active { transform: translateY(0); }
+    }
+    .o_vd_pf_script_body {
+        background: #fff;
+        border: 1px solid #e7f0fb;
+        border-radius: 6px;
+        padding: 0.5rem 0.65rem;
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 0.74rem;
+        line-height: 1.5;
+        color: #1f2a44;
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+}
+
+/* Variant colors per script */
+.o_vd_pf_script_soft    { border-color: #d3f9d8; background: #f4faf5;
+    .o_vd_pf_script_tag { color: #2b8a3e; }
+    .o_vd_pf_script_copy { background: #2b8a3e !important; &:hover { background: #37b24d !important; } }
+}
+.o_vd_pf_script_explore { border-color: #d0ebff; background: #f5fbff;
+    .o_vd_pf_script_tag { color: #1864ab; }
+}
+.o_vd_pf_script_pain    { border-color: #ffd6d6; background: #fff5f5;
+    .o_vd_pf_script_tag { color: #c92a2a; }
+    .o_vd_pf_script_copy { background: #c92a2a !important; &:hover { background: #e03131 !important; } }
+}
+.o_vd_pf_script_value   { border-color: #ffe8a3; background: #fffaec;
+    .o_vd_pf_script_tag { color: #b35900; }
+    .o_vd_pf_script_copy { background: #b35900 !important; &:hover { background: #d97706 !important; } }
+}
+
+.o_vd_pf_script_reminder {
+    margin-top: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    background: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
+    border: 1px solid #ffd8a8;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #5c3d00;
+    line-height: 1.5;
+
+    i.fa-info-circle {
+        color: #d9480f;
+        margin-right: 0.3rem;
+    }
+    strong { color: #d9480f; }
+    em { color: #1864ab; font-style: normal; font-weight: 600; }
+}
+
+/* === Section 5: Outcome === */
+.o_vd_pf_section_outcome {
+    .o_vd_pf_field:last-child .o_field_widget {
+        /* Radio status — render hàng ngang */
+        display: flex !important;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+}
+
+/* Tips từ catalog — collapsed details */
+.o_vd_pf_tips_details {
+    margin-top: 0.5rem;
+    background: #f8f9fa;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    padding: 0.5rem 0.8rem;
+
+    summary {
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #495057;
+        padding: 0.2rem 0;
+        user-select: none;
+    }
+    .o_field_widget {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #495057;
+        ul { margin: 0.2rem 0 0.2rem 1.1rem; padding: 0; }
+        li { margin-bottom: 0.25rem; }
+        b { color: #714B67; }
+        p { margin: 0 0 0.3rem 0; }
+    }
+}
+
+/* Responsive: 1 column nhỏ <= 720px */
+@media (max-width: 720px) {
+    .o_vd_pf_contact_grid,
+    .o_vd_pf_explore_grid,
+    .o_vd_pf_fears_grid,
+    .o_vd_pf_scripts {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -938,14 +938,274 @@
                                     </t>
                                 </templates>
                             </kanban>
-                            <form>
-                                <sheet>
-                                    <group>
-                                        <field name="tag_id" readonly="1"/>
-                                        <field name="status"/>
-                                        <field name="nv_handling" placeholder="Ghi chú xử lý..."/>
+                            <form class="o_vd_problem_form">
+                                <sheet class="o_vd_problem_sheet">
+                                    <!-- Header gọn: tên vấn đề + status badge -->
+                                    <div class="o_vd_problem_form_header">
+                                        <h2 class="o_vd_pf_title">
+                                            <field name="tag_display" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <field name="status" widget="badge"
+                                               decoration-danger="status == 'open'"
+                                               decoration-warning="status == 'in_progress'"
+                                               decoration-success="status == 'resolved'"/>
+                                        <field name="tag_code" invisible="1"/>
+                                        <field name="tag_id" invisible="1"/>
+                                    </div>
+
+                                    <!-- ===== 1. LIÊN HỆ KH =====
+                                         NV phải tick để xác nhận đã trao đổi vấn đề này với KH -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_contact">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">📞</span>
+                                            <span class="o_vd_pf_section_title">1. ĐÃ LIÊN HỆ KH VỀ VẤN ĐỀ NÀY CHƯA?</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body o_vd_pf_contact_grid">
+                                            <label class="o_vd_pf_check">
+                                                <field name="contact_called"/>
+                                                <span>☎️ Đã gọi điện trao đổi</span>
+                                            </label>
+                                            <label class="o_vd_pf_check">
+                                                <field name="contact_zalo"/>
+                                                <span>💬 Đã nhắn Zalo trao đổi</span>
+                                            </label>
+                                            <div class="o_vd_pf_field_inline">
+                                                <span class="o_vd_pf_field_lbl">Lần liên hệ gần nhất:</span>
+                                                <field name="last_contact_date" nolabel="1"/>
+                                                <button name="action_mark_contacted" type="object"
+                                                        class="btn btn-sm btn-outline-primary o_vd_pf_btn_now">
+                                                    <i class="fa fa-bolt me-1"/>Vừa liên hệ xong
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== 2. KHAI THÁC SÂU (chỉ hiện với Tham khảo giá) =====
+                                         A/B/C/D — 4 cụm câu hỏi NV phải hỏi KH -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_explore"
+                                         invisible="tag_code != 'reference_price'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">🔍</span>
+                                            <span class="o_vd_pf_section_title">2. KHAI THÁC — KH ĐANG SO CÁI GÌ? VỚI AI? ĐẾN ĐÂU?</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_explore_grid">
+                                                <!-- A. ĐỘI NÀO -->
+                                                <div class="o_vd_pf_explore_card">
+                                                    <div class="o_vd_pf_explore_card_head">A. KH ĐANG THAM KHẢO ĐỘI NÀO?</div>
+                                                    <div class="o_vd_pf_explore_hint">
+                                                        <i class="fa fa-quote-left"/>
+                                                        Anh/chị đang tham khảo mấy đơn vị rồi ạ? Nghiêng về công ty hay đội thầu địa phương?
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Số đơn vị KH đang tham khảo</label>
+                                                        <field name="tk_competitor_count" nolabel="1"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Loại đối thủ</label>
+                                                        <field name="tk_competitor_type" nolabel="1"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Tên đối thủ (nếu biết)</label>
+                                                        <field name="tk_competitor_names" nolabel="1"
+                                                               placeholder="Cty A, đội thầu anh B..."/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- B. BAO LÂU -->
+                                                <div class="o_vd_pf_explore_card">
+                                                    <div class="o_vd_pf_explore_card_head">B. THAM KHẢO BAO LÂU RỒI?</div>
+                                                    <div class="o_vd_pf_explore_hint">
+                                                        <i class="fa fa-quote-left"/>
+                                                        Anh/chị tham khảo xây nhà lâu chưa ạ? Đã xem báo giá chi tiết chưa hay mới sơ bộ?
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Mức độ nghiêm túc</label>
+                                                        <field name="tk_duration" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- C. KẾT QUẢ -->
+                                                <div class="o_vd_pf_explore_card">
+                                                    <div class="o_vd_pf_explore_card_head">C. KẾT QUẢ KHÁCH THAM KHẢO ĐẾN ĐÂU?</div>
+                                                    <div class="o_vd_pf_explore_hint">
+                                                        <i class="fa fa-quote-left"/>
+                                                        Hiện tại anh/chị thấy bên nào ổn nhất rồi ạ? Anh/chị đang phân vân nhất điểm gì?
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Bên KH thấy ổn nhất</label>
+                                                        <field name="tk_top_competitor" nolabel="1"
+                                                               placeholder="VD: Cty XYZ vì gần nhà, giá rẻ..."/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Báo giá các bên chênh ~</label>
+                                                        <field name="tk_price_gap" nolabel="1"
+                                                               placeholder="VD: 100-200tr giữa rẻ nhất và đắt nhất"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">KH đang phân vân điểm gì?</label>
+                                                        <field name="tk_concerns" nolabel="1"
+                                                               placeholder="Lăn tăn lớn nhất của KH..."/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- D. ỔN CHƯA -->
+                                                <div class="o_vd_pf_explore_card">
+                                                    <div class="o_vd_pf_explore_card_head">D. KHÁCH ĐÃ THẤY "ỔN" CHƯA?</div>
+                                                    <div class="o_vd_pf_explore_hint">
+                                                        <i class="fa fa-quote-left"/>
+                                                        Anh/chị thấy ổn về giá hay về cách làm việc ạ? Nếu chốt luôn hôm nay thì anh/chị sợ điều gì nhất?
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">Khách thấy "ổn" về gì?</label>
+                                                        <field name="tk_signal" nolabel="1"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <label class="o_vd_pf_field_lbl">⭐ Nếu chốt hôm nay, KH sợ gì nhất?</label>
+                                                        <field name="tk_close_fear" nolabel="1"
+                                                               placeholder="Câu cực quan trọng — lộ nỗi sợ thật"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== 3. PHÂN TÍCH NỖI SỢ + XÂY NIỀM TIN ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_fears"
+                                         invisible="tag_code != 'reference_price'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">⚠️</span>
+                                            <span class="o_vd_pf_section_title">3. NỖI SỢ CỦA KH + HÀNH ĐỘNG XÂY NIỀM TIN</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_fears_grid">
+                                                <div class="o_vd_pf_fear_col">
+                                                    <div class="o_vd_pf_col_head o_vd_pf_col_head_fear">
+                                                        😨 KH có nỗi sợ nào (tick tất cả áp dụng)
+                                                    </div>
+                                                    <label class="o_vd_pf_check"><field name="tk_fear_overrun"/><span>Sợ phát sinh chi phí</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_fear_delay"/><span>Sợ chậm tiến độ</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_fear_material"/><span>Sợ vật tư bị tráo / không đúng</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_fear_quality"/><span>Sợ thi công xấu</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_fear_control"/><span>Sợ không kiểm soát được đội</span></label>
+                                                </div>
+                                                <div class="o_vd_pf_fear_col">
+                                                    <div class="o_vd_pf_col_head o_vd_pf_col_head_trust">
+                                                        🛡️ Mình đã làm gì để xây niềm tin (tick khi xong)
+                                                    </div>
+                                                    <label class="o_vd_pf_check"><field name="tk_action_process"/><span>Đã giải thích quy trình thi công</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_action_portfolio"/><span>Đã cho xem công trình thực tế</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_action_checklist"/><span>Đã cho xem checklist vật tư</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_action_progress"/><span>Đã cho xem tiến độ mẫu</span></label>
+                                                    <label class="o_vd_pf_check"><field name="tk_action_contract"/><span>Đã cho xem hợp đồng mẫu</span></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== 4. SCRIPTS XỬ LÝ — copy & gửi Zalo ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_scripts"
+                                         invisible="tag_code != 'reference_price'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">✍️</span>
+                                            <span class="o_vd_pf_section_title">4. SCRIPTS XỬ LÝ — Bấm "Copy" để gửi Zalo</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_scripts">
+                                                <div class="o_vd_pf_script_card o_vd_pf_script_soft">
+                                                    <div class="o_vd_pf_script_head">
+                                                        <span class="o_vd_pf_script_tag">MẪU 1 — MỀM</span>
+                                                        <button name="action_copy_script_soft" type="object"
+                                                                class="o_vd_pf_script_copy"
+                                                                title="Copy mẫu mềm vào clipboard">
+                                                            <i class="fa fa-clipboard"/> Copy
+                                                        </button>
+                                                    </div>
+                                                    <pre class="o_vd_pf_script_body">Dạ em hiểu ạ — xây nhà là việc lớn, anh/chị tham khảo nhiều bên trước là hoàn toàn hợp lý.
+Quan trọng là mình so đúng thứ để tránh sau này phát sinh hoặc thiếu sót thôi ạ. Em xin phép gửi thêm thông tin để anh/chị có thêm cơ sở so sánh nhé.</pre>
+                                                </div>
+
+                                                <div class="o_vd_pf_script_card o_vd_pf_script_explore">
+                                                    <div class="o_vd_pf_script_head">
+                                                        <span class="o_vd_pf_script_tag">MẪU 2 — KÉO KHAI THÁC</span>
+                                                        <button name="action_copy_script_explore" type="object"
+                                                                class="o_vd_pf_script_copy"
+                                                                title="Copy mẫu kéo khai thác">
+                                                            <i class="fa fa-clipboard"/> Copy
+                                                        </button>
+                                                    </div>
+                                                    <pre class="o_vd_pf_script_body">Anh/chị đang thấy phân vân nhất giữa những điểm nào ạ?
+Em hỗ trợ anh/chị bóc tách chi tiết từng phần luôn để mình dễ so sánh thực tế hơn — tránh trường hợp nhìn tổng giá thấy khác nhau nhưng thực ra là khác vật tư / khác kết cấu.</pre>
+                                                </div>
+
+                                                <div class="o_vd_pf_script_card o_vd_pf_script_pain">
+                                                    <div class="o_vd_pf_script_head">
+                                                        <span class="o_vd_pf_script_tag">MẪU 3 — GÀI NỖI ĐAU</span>
+                                                        <button name="action_copy_script_pain" type="object"
+                                                                class="o_vd_pf_script_copy"
+                                                                title="Copy mẫu gài nỗi đau">
+                                                            <i class="fa fa-clipboard"/> Copy
+                                                        </button>
+                                                    </div>
+                                                    <pre class="o_vd_pf_script_body">Thực ra nhiều khách bên em ban đầu cũng tham khảo giá rất nhiều ạ.
+Nhưng cuối cùng họ quay về vì sợ 3 điều:
+1) Phát sinh chi phí ngoài hợp đồng
+2) Vật tư không đúng cam kết
+3) Không kiểm soát được tiến độ thi công
+Bên em có quy trình xử lý cụ thể cho từng điểm này — em gửi anh/chị xem nhé.</pre>
+                                                </div>
+
+                                                <div class="o_vd_pf_script_card o_vd_pf_script_value">
+                                                    <div class="o_vd_pf_script_head">
+                                                        <span class="o_vd_pf_script_tag">MẪU 4 — KÉO VỀ GIÁ TRỊ</span>
+                                                        <button name="action_copy_script_value" type="object"
+                                                                class="o_vd_pf_script_copy"
+                                                                title="Copy mẫu kéo về giá trị">
+                                                            <i class="fa fa-clipboard"/> Copy
+                                                        </button>
+                                                    </div>
+                                                    <pre class="o_vd_pf_script_body">Nếu chỉ nhìn giá thì luôn có bên rẻ hơn ạ — em không cạnh tranh ở chỗ đó.
+Điều khách hàng bên em quan tâm cuối cùng vẫn là: "Làm xong có đúng như cam kết không?"
+Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến độ công trình thực tế — anh/chị xem rồi mình trao đổi thêm ạ.</pre>
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_pf_script_reminder">
+                                                <i class="fa fa-info-circle"/>
+                                                <strong>NHỚ:</strong> KH "tham khảo giá" KHÔNG đồng nghĩa muốn rẻ nhất.
+                                                Họ muốn AN TOÀN, MINH BẠCH, YÊN TÂM — nhưng chưa đủ niềm tin để xuống tiền.
+                                                Việc của sale là <em>khai thác đúng → hiểu đúng nỗi sợ → giúp KH cảm thấy "đơn vị này hiểu mình và đáng tin hơn"</em>.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== 5. KẾT QUẢ + TỔNG KẾT ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_outcome">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">🎯</span>
+                                            <span class="o_vd_pf_section_title">5. KẾT QUẢ SAU XỬ LÝ</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_field" invisible="tag_code != 'reference_price'">
+                                                <label class="o_vd_pf_field_lbl">Kết quả sau khi xử lý vấn đề</label>
+                                                <field name="tk_outcome" nolabel="1"/>
+                                            </div>
+                                            <div class="o_vd_pf_field">
+                                                <label class="o_vd_pf_field_lbl">📝 Tổng kết / Ghi chú nội bộ</label>
+                                                <field name="nv_handling" nolabel="1"
+                                                       placeholder="KH có chuyển biến gì? Hành động tiếp theo của mình là gì?"/>
+                                            </div>
+                                            <div class="o_vd_pf_field">
+                                                <label class="o_vd_pf_field_lbl">Trạng thái vấn đề</label>
+                                                <field name="status" nolabel="1" widget="radio"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tips gợi ý gốc từ catalog (collapsed) -->
+                                    <details class="o_vd_pf_tips_details">
+                                        <summary>💡 Tips gợi ý gốc từ catalog</summary>
                                         <field name="tag_tip_html" widget="html" readonly="1"/>
-                                    </group>
+                                    </details>
                                 </sheet>
                             </form>
                         </field>
