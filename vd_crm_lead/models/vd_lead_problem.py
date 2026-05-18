@@ -32,6 +32,11 @@ class VdLeadProblem(models.Model):
         string='Thẻ vấn đề', compute='_compute_tag_display', store=False,
         help='Hiển thị "icon name" gộp — dùng cho cột hiển thị trong list view.',
     )
+    tag_tip_html = fields.Html(
+        string='Tips gợi ý',
+        related='tag_id.tip_html', sanitize=False, readonly=True,
+        help='Mẹo xử lý đàm phán theo tag — đọc từ catalog vd.nego.problem.',
+    )
     code = fields.Char(
         string='Mã (built-in)', copy=False,
         help='Mã cho vấn đề mặc định (cost_diff, start_time). Custom row để trống.',

@@ -815,6 +815,34 @@
                     <div class="o_vd_nego_head">
                         <i class="fa fa-exclamation-triangle"/>
                         <span>Vấn đề</span>
+                        <!-- BIG "+" DROPDOWN: hover hiện menu 11 tags, click 1 item tạo row mới -->
+                        <div class="o_vd_problem_picker_dropdown" invisible="vd_contract_signed">
+                            <span class="o_vd_problem_picker_plus" title="Tạo vấn đề mới (hover xem danh sách)">+</span>
+                            <div class="o_vd_problem_picker_menu">
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_low_budget'}">💵 Thiếu kinh phí ít</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_very_low_budget'}">🪙 Thiếu kinh phí nhiều</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_red_book'}">📜 Chưa làm được sổ</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_land'}">🏞️ Chưa mua được đất</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_not_transferred'}">📄 Chưa sang tên đất</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_family_not_agree'}">👨‍👩‍👧 Gia đình không đồng ý</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_disagree_material'}">🧱 Không đồng ý vật tư</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_bad_date'}">🗓️ Không được tuổi / chưa xem ngày</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
+                                <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_undefined'}">❓ Chưa xác định</button>
+                            </div>
+                        </div>
                         <span class="o_vd_nego_status_badge"
                               invisible="not vd_negotiate_deadline">
                             Deadline: <field name="vd_negotiate_deadline" readonly="1" nolabel="1"/>
@@ -831,94 +859,67 @@
                         ⏰ <b>SẮP QUÁ HẠN</b> — còn ≤ 2 ngày. Push KH chốt cọc ngay!
                     </div>
 
-                    <!-- ===== ROW-BASED PROBLEM TRACKER =====
-                         Mỗi vấn đề 1 dòng: tên + cách xử lý + tiến độ.
-                         NV BẮT BUỘC xử lý từng vấn đề để đẩy KH đến ký HĐ. -->
+                    <!-- ===== KANBAN-AS-FLAT-ROWS PROBLEM TRACKER =====
+                         Mỗi card = 1 row flat. Hover card → popover panel slide xuống
+                         chứa Ghi chú (editable) + Tips gợi ý (từ tag catalog). -->
                     <div class="o_vd_problem_tracker" invisible="vd_contract_signed">
-                        <!-- HOVER DROPDOWN "+ Tạo vấn đề" — hover hiện menu, click 1 item tạo row.
-                             Menu render TRƯỚC list để z-index dropdown đè list bên dưới. -->
-                        <div class="o_vd_problem_create_bar">
-                            <div class="o_vd_problem_picker_dropdown">
-                                <span class="o_vd_problem_picker_btn">
-                                    <i class="fa fa-plus-circle"/> Tạo vấn đề
-                                </span>
-                                <div class="o_vd_problem_picker_menu">
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_low_budget'}">💵 Thiếu kinh phí ít</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_very_low_budget'}">🪙 Thiếu kinh phí nhiều</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_red_book'}">📜 Chưa làm được sổ</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_land'}">🏞️ Chưa mua được đất</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_not_transferred'}">📄 Chưa sang tên đất</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_family_not_agree'}">👨‍👩‍👧 Gia đình không đồng ý</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_disagree_material'}">🧱 Không đồng ý vật tư</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_bad_date'}">🗓️ Không được tuổi / chưa xem ngày</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
-                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_undefined'}">❓ Chưa xác định</button>
-                                </div>
-                            </div>
-                            <span invisible="vd_lead_problem_open_count != 0"
-                                  class="o_vd_problem_all_resolved">
-                                ✅ Tất cả vấn đề đã giải quyết — sẵn sàng ký HĐ
-                            </span>
-                        </div>
-                        <field name="vd_lead_problem_ids" nolabel="1">
-                            <list editable="bottom" create="false"
-                                  decoration-danger="status == 'open'"
-                                  decoration-warning="status == 'in_progress'"
-                                  decoration-success="status == 'resolved'">
-                                <field name="sequence" widget="handle"/>
-                                <field name="tag_display" string="Thẻ vấn đề" readonly="1"
-                                       class="o_vd_tag_chip"/>
-                                <field name="status" widget="badge"
-                                       decoration-danger="status == 'open'"
-                                       decoration-warning="status == 'in_progress'"
-                                       decoration-success="status == 'resolved'"/>
-                                <field name="is_default" column_invisible="True"/>
-                                <field name="code" column_invisible="True"/>
-                                <field name="tag_id" column_invisible="True"/>
-                                <field name="name" column_invisible="True"/>
-                                <button name="unlink" type="object" icon="fa-trash"
-                                        title="Xoá vấn đề"
-                                        groups="base.group_system"
-                                        invisible="is_default"
-                                        confirm="Xoá vấn đề này khỏi danh sách?"/>
-                            </list>
+                        <span invisible="vd_lead_problem_open_count != 0"
+                              class="o_vd_problem_all_resolved">
+                            ✅ Tất cả vấn đề đã giải quyết — sẵn sàng ký HĐ
+                        </span>
+                        <field name="vd_lead_problem_ids" nolabel="1" mode="kanban">
+                            <kanban class="o_vd_problem_kanban" records_draggable="0">
+                                <field name="tag_display"/>
+                                <field name="status"/>
+                                <field name="nv_handling"/>
+                                <field name="tag_tip_html"/>
+                                <field name="is_default"/>
+                                <templates>
+                                    <t t-name="kanban-box">
+                                        <div t-attf-class="o_vd_problem_card o_vd_status_#{record.status.raw_value}">
+                                            <div class="o_vd_problem_card_row">
+                                                <span class="o_vd_tag_chip">
+                                                    <field name="tag_display"/>
+                                                </span>
+                                                <field name="status" widget="badge"
+                                                       decoration-danger="status == 'open'"
+                                                       decoration-warning="status == 'in_progress'"
+                                                       decoration-success="status == 'resolved'"/>
+                                                <button name="unlink" type="object"
+                                                        class="o_vd_problem_unlink_btn"
+                                                        groups="base.group_system"
+                                                        confirm="Xoá vấn đề này khỏi danh sách?">
+                                                    <i class="fa fa-trash"/>
+                                                </button>
+                                            </div>
+                                            <div class="o_vd_problem_hover_panel">
+                                                <div class="o_vd_hp_section o_vd_hp_note">
+                                                    <div class="o_vd_hp_label">📝 Ghi chú</div>
+                                                    <field name="nv_handling"
+                                                           placeholder="Ghi chú xử lý cho vấn đề này — KH nói gì, mình đề xuất gì..."/>
+                                                </div>
+                                                <div class="o_vd_hp_section o_vd_hp_tips"
+                                                     t-if="record.tag_tip_html.raw_value">
+                                                    <div class="o_vd_hp_label">💡 Tips gợi ý</div>
+                                                    <field name="tag_tip_html" widget="html" readonly="1"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </templates>
+                            </kanban>
+                            <form>
+                                <sheet>
+                                    <group>
+                                        <field name="tag_id" readonly="1"/>
+                                        <field name="status"/>
+                                        <field name="nv_handling" placeholder="Ghi chú xử lý..."/>
+                                        <field name="tag_tip_html" widget="html" readonly="1"/>
+                                    </group>
+                                </sheet>
+                            </form>
                         </field>
                     </div>
-
-                    <!-- ===== GHI CHÚ ĐÀM PHÁN — NV note linh hoạt ===== -->
-                    <div class="o_vd_nego_notes_wrap" invisible="vd_contract_signed">
-                        <label for="vd_negotiate_notes" class="o_vd_nego_section_title">
-                            <i class="fa fa-sticky-note-o me-1"/> Ghi chú đàm phán — yêu cầu KH, điều khoản đặc biệt...
-                        </label>
-                        <field name="vd_negotiate_notes" nolabel="1"
-                               placeholder="Vd: KH yêu cầu sửa móng từ Móng băng → Móng cọc. Đề nghị bớt 30tr nếu cọc trong tuần này..."/>
-                    </div>
-
-                    <!-- ===== TIPS GỢI Ý — collapsible, mặc định ẩn ===== -->
-                    <details class="o_vd_nego_tips">
-                        <summary>💬 Tips gợi ý (click xem)</summary>
-                        <div class="o_vd_nego_tips_body">
-                            <ul>
-                                <li><b>Giữ giá vật liệu:</b> "Hiện vật liệu tăng từng tuần, công ty em chỉ giữ giá trong 7 ngày kể từ ngày báo giá."</li>
-                                <li><b>Đặt lịch khởi công:</b> "Để sắp xếp tổ thợ đúng thời điểm anh/chị mong, em cần KH cọc trước để công ty huy động nhân sự."</li>
-                                <li><b>Cọc 50tr tối thiểu:</b> "Cọc 50tr là khoản đảm bảo cho việc giữ giá + lịch + vật tư. Sau khi ký HĐ, cọc được trừ vào đợt 1."</li>
-                                <li><b>Xử lý từ chối:</b> Nếu KH yêu cầu giảm giá → mở khoá báo giá, thương lượng item cụ thể (vật liệu thay thế, bớt hạng mục), KHÔNG giảm tổng arbitrary.</li>
-                                <li><b>Close:</b> "Anh/chị tiện hôm nào ghé văn phòng ký HĐ + chuyển khoản cọc ạ?"</li>
-                            </ul>
-                        </div>
-                    </details>
 
                     <!-- ===== ACTION TOOLBOX ===== -->
                     <div class="o_vd_nego_actions" invisible="vd_contract_signed">

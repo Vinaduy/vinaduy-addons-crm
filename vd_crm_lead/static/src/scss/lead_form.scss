@@ -6458,59 +6458,59 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================
-   ⚙️ "+ TẠO VẤN ĐỀ" — HOVER DROPDOWN COMPACT
+   ⚙️ BIG "+" PICKER inside VẤN ĐỀ header — hover hiện 11 tags
    ============================================================ */
-.o_vd_problem_create_bar {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    margin: 0.6rem 1rem 0.4rem;
-    overflow: visible;  /* QUAN TRỌNG: dropdown menu cần thoát ra ngoài */
-    z-index: 50;
+.o_vd_negotiate_panel .o_vd_nego_head {
+    overflow: visible !important;  /* để dropdown thoát ra ngoài header */
 }
 
 .o_vd_problem_picker_dropdown {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.6rem;
     overflow: visible;
 
-    .o_vd_problem_picker_btn {
+    .o_vd_problem_picker_plus {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        background: linear-gradient(135deg, #ff8a00 0%, #ff5e62 100%);
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffb84d 0%, #ff6b6b 100%);
         color: #ffffff;
-        border: none;
-        border-radius: 999px;
-        padding: 0.32rem 0.95rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        box-shadow: 0 2px 8px -2px rgba(255, 94, 98, 0.5);
+        font-size: 1.9rem;
+        font-weight: 700;
+        line-height: 1;
         cursor: pointer;
-        transition: transform 0.12s ease, box-shadow 0.12s ease;
         user-select: none;
+        box-shadow: 0 3px 10px -2px rgba(255, 107, 107, 0.6),
+                    inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
 
-        i {
-            font-size: 0.95rem;
-            line-height: 1;
+        &:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow: 0 5px 16px -2px rgba(255, 107, 107, 0.75);
         }
     }
 
     .o_vd_problem_picker_menu {
         display: none;
         position: absolute;
-        top: calc(100% + 2px);
-        left: 0;
-        min-width: 240px;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 260px;
         background: #ffffff;
         border: 1px solid #ffd5b8;
         border-radius: 10px;
-        box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.25),
-                    0 4px 12px -2px rgba(255, 94, 98, 0.18);
-        padding: 0.35rem;
-        z-index: 1080;            /* trên list bên dưới (Odoo list ~ 10-100) */
+        box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.3),
+                    0 4px 12px -2px rgba(255, 94, 98, 0.2);
+        padding: 0.4rem;
+        z-index: 1080;
 
         .o_vd_picker_item {
             display: block;
@@ -6521,10 +6521,12 @@ $vd-panel-head-radius: 10px;
             color: #3a2533;
             font-size: 0.9rem;
             font-weight: 500;
-            padding: 0.42rem 0.7rem;
+            padding: 0.45rem 0.75rem;
             border-radius: 7px;
             cursor: pointer;
             white-space: nowrap;
+            text-transform: none;
+            letter-spacing: normal;
             transition: background 0.1s ease, color 0.1s ease;
 
             &:hover {
@@ -6534,40 +6536,156 @@ $vd-panel-head-radius: 10px;
         }
     }
 
-    /* Hover trên cả button + menu (menu là child nên hover-on-menu vẫn giữ hover-on-parent).
-       Pseudo padding-top tạo cầu nối giữa button và menu để chuột di chuyển không mất hover. */
     &:hover .o_vd_problem_picker_menu,
     .o_vd_problem_picker_menu:hover {
         display: block;
     }
+}
 
-    &:hover .o_vd_problem_picker_btn {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 14px -2px rgba(255, 94, 98, 0.6);
+/* ============================================================
+   📋 PROBLEM KANBAN (flat-rows style) + HOVER POPOVER
+   ============================================================ */
+.o_vd_problem_tracker {
+    position: relative;
+    margin: 0.6rem 1rem;
+    overflow: visible;
+
+    .o_vd_problem_all_resolved {
+        display: inline-block;
+        color: #2b8a3e;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    /* Kanban container: vertical stack, no card grid */
+    .o_vd_problem_kanban {
+        background: transparent !important;
+        padding: 0 !important;
+
+        .o_kanban_record,
+        .o_kanban_ghost {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            margin: 0 0 0.35rem 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .o_kanban_ghost { display: none !important; }
+        .o_kanban_renderer {
+            display: block !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+    }
+
+    .o_vd_problem_card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid #ebe0e6;
+        border-radius: 8px;
+        padding: 0.5rem 0.85rem;
+        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+        z-index: 1;
+
+        &:hover {
+            border-color: #d9c2d2;
+            box-shadow: 0 4px 14px -3px rgba(93, 61, 84, 0.18);
+            z-index: 10;
+        }
+
+        &.o_vd_status_resolved { background: #f4faf5; }
+        &.o_vd_status_in_progress { background: #fffaf0; }
+    }
+
+    .o_vd_problem_card_row {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+
+        .o_vd_tag_chip,
+        .o_field_widget[name='tag_display'] {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #f7ecf3 0%, #efdee8 100%);
+            color: #5d3d54;
+            border: 1px solid #d9c2d2;
+            border-radius: 999px;
+            padding: 0.22rem 0.85rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+
+        .o_vd_problem_unlink_btn {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 0.25rem 0.4rem;
+            border-radius: 6px;
+            transition: color 0.12s ease, background 0.12s ease;
+
+            &:hover { color: #c92a2a; background: #fff0f0; }
+        }
+    }
+
+    /* Hover popover — slide xuống bên dưới row */
+    .o_vd_problem_hover_panel {
+        display: none;
+        margin-top: 0.5rem;
+        padding: 0.6rem 0.8rem;
+        background: #fff;
+        border-top: 1px dashed #e1d4dc;
+        border-radius: 0 0 8px 8px;
+        animation: vd-hover-fadein 0.15s ease;
+
+        .o_vd_hp_section { margin-bottom: 0.5rem; }
+        .o_vd_hp_section:last-child { margin-bottom: 0; }
+
+        .o_vd_hp_label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #714B67;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 0.25rem;
+        }
+
+        .o_vd_hp_note textarea,
+        .o_vd_hp_note input,
+        .o_vd_hp_note .o_field_widget {
+            width: 100%;
+            min-height: 50px;
+            font-size: 0.88rem;
+            border: 1px solid #e1d4dc;
+            border-radius: 6px;
+            padding: 0.4rem 0.55rem;
+            background: #fafafa;
+        }
+        .o_vd_hp_tips .o_field_widget {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #495057;
+            ul { margin: 0.2rem 0 0.2rem 1rem; padding: 0; }
+            li { margin-bottom: 0.2rem; }
+            b { color: #714B67; }
+        }
+    }
+
+    .o_vd_problem_card:hover .o_vd_problem_hover_panel {
+        display: block;
     }
 }
 
-/* Chip rendering cho cột "Thẻ vấn đề" trong list */
-.o_vd_problem_tracker {
-    /* List parent: cho phép dropdown bên trên đè xuống — không clip */
-    .o_list_renderer { overflow: visible; }
-    .o_field_x2many_list { overflow: visible; }
-
-    td .o_field_widget[name='tag_display'] > span,
-    td .o_field_char[name='tag_display'] {
-        display: inline-flex;
-        align-items: center;
-        background: linear-gradient(135deg, #f7ecf3 0%, #efdee8 100%);
-        color: #5d3d54;
-        border: 1px solid #d9c2d2;
-        border-radius: 999px;
-        padding: 0.22rem 0.85rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        line-height: 1.3;
-        white-space: nowrap;
-        box-shadow: 0 1px 2px rgba(93, 61, 84, 0.08);
-    }
+@keyframes vd-hover-fadein {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 .o_vd_intake_popup_panel .o_vd_summary_card .o_vd_summary_banner .o_vd_banner_title,
 .o_vd_intake_popup_panel .o_vd_quote_panel .o_vd_quote_head,
