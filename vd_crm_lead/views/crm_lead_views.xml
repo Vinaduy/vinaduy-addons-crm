@@ -835,39 +835,62 @@
                          Mỗi vấn đề 1 dòng: tên + cách xử lý + tiến độ.
                          NV BẮT BUỘC xử lý từng vấn đề để đẩy KH đến ký HĐ. -->
                     <div class="o_vd_problem_tracker" invisible="vd_contract_signed">
-                        <!-- Button TẠO VẤN ĐỀ (thay cho dòng "Vấn đề KH gặp phải — N vấn đề chưa xử lý") -->
+                        <!-- HOVER DROPDOWN "+ Tạo vấn đề" — hover hiện menu, click 1 item tạo row.
+                             Menu render TRƯỚC list để z-index dropdown đè list bên dưới. -->
                         <div class="o_vd_problem_create_bar">
-                            <span class="o_vd_problem_picker_btn">
-                                <i class="fa fa-plus"/>
-                                <field name="vd_problem_tag_picker" nolabel="1"
-                                       placeholder="Tạo vấn đề"
-                                       options="{'no_create': True, 'no_open': True}"/>
-                            </span>
+                            <div class="o_vd_problem_picker_dropdown">
+                                <span class="o_vd_problem_picker_btn">
+                                    <i class="fa fa-plus-circle"/> Tạo vấn đề
+                                </span>
+                                <div class="o_vd_problem_picker_menu">
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_low_budget'}">💵 Thiếu kinh phí ít</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_very_low_budget'}">🪙 Thiếu kinh phí nhiều</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_red_book'}">📜 Chưa làm được sổ</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_land'}">🏞️ Chưa mua được đất</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_not_transferred'}">📄 Chưa sang tên đất</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_family_not_agree'}">👨‍👩‍👧 Gia đình không đồng ý</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_disagree_material'}">🧱 Không đồng ý vật tư</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_bad_date'}">🗓️ Không được tuổi / chưa xem ngày</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
+                                    <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                            context="{'tag_xmlid': 'vd_crm_lead.nego_problem_undefined'}">❓ Chưa xác định</button>
+                                </div>
+                            </div>
                             <span invisible="vd_lead_problem_open_count != 0"
                                   class="o_vd_problem_all_resolved">
                                 ✅ Tất cả vấn đề đã giải quyết — sẵn sàng ký HĐ
                             </span>
                         </div>
                         <field name="vd_lead_problem_ids" nolabel="1">
-                            <list editable="bottom" decoration-danger="status == 'open'"
+                            <list editable="bottom" create="false"
+                                  decoration-danger="status == 'open'"
                                   decoration-warning="status == 'in_progress'"
                                   decoration-success="status == 'resolved'">
                                 <field name="sequence" widget="handle"/>
                                 <field name="tag_display" string="Thẻ vấn đề" readonly="1"
-                                       class="o_vd_tag_chip" optional="show"/>
-                                <field name="tag_id" string="Đổi thẻ" optional="hide"
-                                       options="{'no_create': True, 'no_open': True}"/>
-                                <field name="name" string="Tên vấn đề" optional="hide"
-                                       placeholder="Vd: KH đòi giảm 50tr..."/>
-                                <field name="nv_handling" placeholder="Cách xử lý + tiến độ: gọi KH 3 lần, đề xuất giảm 20tr nếu cọc trong tuần này..."/>
+                                       class="o_vd_tag_chip"/>
                                 <field name="status" widget="badge"
                                        decoration-danger="status == 'open'"
                                        decoration-warning="status == 'in_progress'"
                                        decoration-success="status == 'resolved'"/>
                                 <field name="is_default" column_invisible="True"/>
                                 <field name="code" column_invisible="True"/>
+                                <field name="tag_id" column_invisible="True"/>
+                                <field name="name" column_invisible="True"/>
                                 <button name="unlink" type="object" icon="fa-trash"
                                         title="Xoá vấn đề"
+                                        groups="base.group_system"
                                         invisible="is_default"
                                         confirm="Xoá vấn đề này khỏi danh sách?"/>
                             </list>

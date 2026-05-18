@@ -1309,6 +1309,26 @@ class CrmLead(models.Model):
             })]
             self.vd_problem_tag_picker = False
 
+    def action_add_problem_tag(self):
+        """Click 1 item trong dropdown 'Tạo vấn đề' (hover menu) → tạo row mới.
+        XMLid của tag truyền qua context. Server-side create để form auto-reload."""
+        self.ensure_one()
+        tag_xmlid = self.env.context.get('tag_xmlid')
+        if not tag_xmlid:
+            return
+        tag = self.env.ref(tag_xmlid, raise_if_not_found=False)
+        if not tag:
+            return
+        self.env['vd.lead.problem'].create({
+            'lead_id': self.id,
+            'tag_id': tag.id,
+            'name': tag.name,
+            'status': 'open',
+            'sequence': 50,
+            'is_default': False,
+        })
+        return True
+
     def _vd_ensure_default_problems(self):
         """Auto-tạo 2 vấn đề mặc định khi lead vào stage Đàm phán.
         Tên vấn đề ĐỌC TỪ INTAKE DATA — context cụ thể của KH này."""

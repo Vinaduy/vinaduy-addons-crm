@@ -6458,72 +6458,115 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================
-   ⚙️ "+ TẠO VẤN ĐỀ" PICKER + TAG CHIP COLUMN
+   ⚙️ "+ TẠO VẤN ĐỀ" — HOVER DROPDOWN COMPACT
    ============================================================ */
 .o_vd_problem_create_bar {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin: 0.6rem 1rem;
+    gap: 0.7rem;
+    margin: 0.6rem 1rem 0.4rem;
+    overflow: visible;  /* QUAN TRỌNG: dropdown menu cần thoát ra ngoài */
+    z-index: 50;
+}
+
+.o_vd_problem_picker_dropdown {
+    position: relative;
+    display: inline-block;
+    overflow: visible;
 
     .o_vd_problem_picker_btn {
-        position: relative;
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        background: linear-gradient(135deg, #714B67 0%, #875174 100%);
+        background: linear-gradient(135deg, #ff8a00 0%, #ff5e62 100%);
         color: #ffffff;
         border: none;
-        border-radius: 8px;
-        padding: 0.45rem 1.1rem;
-        font-size: 0.92rem;
+        border-radius: 999px;
+        padding: 0.32rem 0.95rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        box-shadow: 0 2px 6px -1px rgba(113, 75, 103, 0.4);
+        letter-spacing: 0.2px;
+        box-shadow: 0 2px 8px -2px rgba(255, 94, 98, 0.5);
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        user-select: none;
 
-        &:hover {
-            background: linear-gradient(135deg, #5d3d54 0%, #714B67 100%);
-            box-shadow: 0 4px 10px -2px rgba(113, 75, 103, 0.5);
-            transform: translateY(-1px);
+        i {
+            font-size: 0.95rem;
+            line-height: 1;
         }
+    }
 
-        i { font-size: 0.85rem; }
-        .o_field_widget {
-            min-width: 180px;
-        }
-        input {
-            background: transparent !important;
-            color: #ffffff !important;
-            border: none !important;
-            padding: 0 !important;
-            font-weight: 600 !important;
-            font-size: 0.92rem !important;
+    .o_vd_problem_picker_menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        min-width: 240px;
+        background: #ffffff;
+        border: 1px solid #ffd5b8;
+        border-radius: 10px;
+        box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.25),
+                    0 4px 12px -2px rgba(255, 94, 98, 0.18);
+        padding: 0.35rem;
+        z-index: 1080;            /* trên list bên dưới (Odoo list ~ 10-100) */
+
+        .o_vd_picker_item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: #3a2533;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.42rem 0.7rem;
+            border-radius: 7px;
             cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.1s ease, color 0.1s ease;
+
+            &:hover {
+                background: linear-gradient(135deg, #fff1e6 0%, #ffe1d6 100%);
+                color: #c64600;
+            }
         }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.95) !important;
-            opacity: 1;
-            font-weight: 600;
-        }
+    }
+
+    /* Hover trên cả button + menu (menu là child nên hover-on-menu vẫn giữ hover-on-parent).
+       Pseudo padding-top tạo cầu nối giữa button và menu để chuột di chuyển không mất hover. */
+    &:hover .o_vd_problem_picker_menu,
+    .o_vd_problem_picker_menu:hover {
+        display: block;
+    }
+
+    &:hover .o_vd_problem_picker_btn {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px -2px rgba(255, 94, 98, 0.6);
     }
 }
 
-/* Tag chip rendering in problem list */
+/* Chip rendering cho cột "Thẻ vấn đề" trong list */
 .o_vd_problem_tracker {
-    .o_list_view td .o_field_widget[name='tag_display'],
-    .o_list_view td.o_data_cell .o_vd_tag_chip {
+    /* List parent: cho phép dropdown bên trên đè xuống — không clip */
+    .o_list_renderer { overflow: visible; }
+    .o_field_x2many_list { overflow: visible; }
+
+    td .o_field_widget[name='tag_display'] > span,
+    td .o_field_char[name='tag_display'] {
         display: inline-flex;
         align-items: center;
-        background: #f3eaf0;
+        background: linear-gradient(135deg, #f7ecf3 0%, #efdee8 100%);
         color: #5d3d54;
         border: 1px solid #d9c2d2;
         border-radius: 999px;
-        padding: 0.18rem 0.7rem;
+        padding: 0.22rem 0.85rem;
         font-size: 0.85rem;
         font-weight: 600;
         line-height: 1.3;
         white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(93, 61, 84, 0.08);
     }
 }
 .o_vd_intake_popup_panel .o_vd_summary_card .o_vd_summary_banner .o_vd_banner_title,
