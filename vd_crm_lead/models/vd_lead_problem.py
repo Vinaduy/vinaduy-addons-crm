@@ -20,9 +20,17 @@ class VdLeadProblem(models.Model):
     lead_id = fields.Many2one(
         'crm.lead', string='KH', required=True, ondelete='cascade', index=True,
     )
+    tag_id = fields.Many2one(
+        'vd.nego.problem', string='Thẻ vấn đề', ondelete='set null',
+        help='Thẻ chọn từ catalog 12 vấn đề mẫu (NV bấm "+ Tạo vấn đề" để pick).',
+    )
     name = fields.Char(
         string='Tên vấn đề', required=True,
-        help='Vd: Chênh lệch chi phí, Thời gian khởi công, KH không đồng ý vật tư...',
+        help='Tự fill từ tag_id khi chọn từ catalog. Có thể custom cho 2 row mặc định.',
+    )
+    tag_display = fields.Char(
+        string='Thẻ vấn đề', compute='_compute_tag_display', store=False,
+        help='Hiển thị "icon name" gộp — dùng cho cột hiển thị trong list view.',
     )
     code = fields.Char(
         string='Mã (built-in)', copy=False,
@@ -44,3 +52,18 @@ class VdLeadProblem(models.Model):
         string='Mặc định', default=False,
         help='True nếu là 1 trong 2 vấn đề mặc định (không cho xoá).',
     )
+
+    @api.depends('tag_id', 'tag_id.icon', 'tag_id.name', 'name')
+    def _compute_tag_display(self):
+        for rec in self:
+            if rec.tag_id:
+                icon = rec.tag_id.icon or '❓'
+                rec.tag_display = f"{icon} {rec.tag_id.name}"
+            else:
+                rec.tag_display = rec.name or ''
+
+    @api.onchange('tag_id')
+    def _onchange_tag_id(self):
+        """Khi NV pick tag → tự fill name từ tag để hiển thị nhất quán."""
+        if self.tag_id:
+            self.name = self.tag_id.name

@@ -814,6 +814,11 @@
                     <div class="o_vd_nego_head">
                         <i class="fa fa-exclamation-triangle"/>
                         <span>Vấn đề</span>
+                        <span class="o_vd_problem_picker_wrap" invisible="vd_contract_signed">
+                            <field name="vd_problem_tag_picker" nolabel="1"
+                                   placeholder="+ Tạo vấn đề (chọn thẻ)"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                        </span>
                         <span class="o_vd_nego_status_badge"
                               invisible="not vd_negotiate_deadline">
                             Deadline: <field name="vd_negotiate_deadline" readonly="1" nolabel="1"/>
@@ -852,7 +857,12 @@
                                   decoration-warning="status == 'in_progress'"
                                   decoration-success="status == 'resolved'">
                                 <field name="sequence" widget="handle"/>
-                                <field name="name" placeholder="Vd: KH đòi giảm 50tr, KH chưa xem được ngày khởi công..."/>
+                                <field name="tag_display" string="Thẻ vấn đề" readonly="1"
+                                       optional="show"/>
+                                <field name="tag_id" string="Đổi thẻ" optional="hide"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="name" string="Tên vấn đề" optional="hide"
+                                       placeholder="Vd: KH đòi giảm 50tr..."/>
                                 <field name="nv_handling" placeholder="Cách xử lý + tiến độ: gọi KH 3 lần, đề xuất giảm 20tr nếu cọc trong tuần này..."/>
                                 <field name="status" widget="badge"
                                        decoration-danger="status == 'open'"

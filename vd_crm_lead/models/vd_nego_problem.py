@@ -6,13 +6,14 @@ Một số vấn đề có rule auto-detect dựa trên intake data (vd_intake_d
 'chua_co_so' → tự suggest 'Chưa làm được sổ'). NV vẫn có thể tick thêm
 manual những vấn đề không suy ra được từ data.
 """
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class VdNegoProblem(models.Model):
     _name = 'vd.nego.problem'
     _description = 'Vấn đề KH trong đàm phán'
     _order = 'sequence, id'
+    _rec_names_search = ['name', 'code']
 
     sequence = fields.Integer(default=10)
     name = fields.Char(string='Tên vấn đề', required=True, translate=True)
@@ -32,3 +33,10 @@ class VdNegoProblem(models.Model):
     _sql_constraints = [
         ('code_uniq', 'unique(code)', 'Mã vấn đề phải duy nhất.'),
     ]
+
+    @api.depends('name', 'icon')
+    def _compute_display_name(self):
+        """Dropdown hiển thị '💰 Tham khảo giá' thay vì chỉ 'Tham khảo giá'."""
+        for rec in self:
+            icon = rec.icon or '❓'
+            rec.display_name = f"{icon} {rec.name}" if rec.name else icon

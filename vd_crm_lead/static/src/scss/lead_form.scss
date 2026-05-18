@@ -139,6 +139,35 @@
             text-transform: uppercase;
             letter-spacing: 1.8px;
         }
+        .o_vd_problem_picker_wrap {
+            margin-left: 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            text-transform: none;
+            letter-spacing: normal;
+            text-shadow: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+
+            .o_field_widget {
+                min-width: 240px;
+            }
+            input {
+                background: rgba(255, 255, 255, 0.95) !important;
+                color: #5d3d54 !important;
+                border: none !important;
+                border-radius: 6px !important;
+                padding: 0.25rem 0.6rem !important;
+                font-weight: 600 !important;
+                font-size: 0.88rem !important;
+                cursor: pointer;
+            }
+            input::placeholder {
+                color: #714B67 !important;
+                opacity: 0.85;
+                font-weight: 700;
+            }
+        }
         .o_vd_nego_status_badge {
             margin-left: auto;
             background: rgba(255,255,255,0.95);

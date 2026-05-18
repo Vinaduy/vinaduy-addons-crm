@@ -1282,6 +1282,10 @@ class CrmLead(models.Model):
         string='Số vấn đề chưa giải quyết',
         compute='_compute_vd_lead_problem_open_count',
     )
+    vd_problem_tag_picker = fields.Many2one(
+        'vd.nego.problem', string='+ Tạo vấn đề',
+        help='Pick 1 thẻ từ catalog để tạo vấn đề mới — chọn xong picker tự reset.',
+    )
 
     @api.depends('vd_lead_problem_ids.status')
     def _compute_vd_lead_problem_open_count(self):
@@ -1289,6 +1293,21 @@ class CrmLead(models.Model):
             rec.vd_lead_problem_open_count = len(
                 rec.vd_lead_problem_ids.filtered(lambda p: p.status != 'resolved')
             )
+
+    @api.onchange('vd_problem_tag_picker')
+    def _onchange_vd_problem_tag_picker(self):
+        """NV chọn 1 thẻ từ dropdown → auto-tạo row vấn đề mới + reset picker.
+        Không cần ép NV bấm 'Add a line' rồi gõ tay."""
+        if self.vd_problem_tag_picker:
+            tag = self.vd_problem_tag_picker
+            self.vd_lead_problem_ids = [(0, 0, {
+                'tag_id': tag.id,
+                'name': tag.name,
+                'status': 'open',
+                'sequence': 50,
+                'is_default': False,
+            })]
+            self.vd_problem_tag_picker = False
 
     def _vd_ensure_default_problems(self):
         """Auto-tạo 2 vấn đề mặc định khi lead vào stage Đàm phán.
