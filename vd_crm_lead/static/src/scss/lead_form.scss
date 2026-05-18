@@ -6731,3 +6731,173 @@ $vd-panel-head-radius: 10px;
 .o_vd_intake_popup_panel .o_vd_negotiate_panel .o_vd_nego_head > span {
     font-size: $vd-panel-head-font-size !important;
 }
+
+/* ============================================================
+   HEADER 2-ROW LAYOUT — refactor 2026-05
+   Row1: [Chip Tên KH (click→copy) + phone nhỏ ở đuôi] ............ [Salesperson]
+   Row2: [Hẹn gọi lại + Copy gửi Zalo + KH không có nhu cầu] ...... [Thông tin tư vấn]
+   ============================================================ */
+.o_vd_summary_card .o_vd_summary_header {
+    padding: 0.7rem 1.1rem 0.65rem !important;
+    border-bottom: 1px solid #f1f3f5;
+
+    .o_vd_header_row {
+        display: flex !important;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .o_vd_header_row1 { margin-bottom: 0.45rem; }
+
+    /* === Chip TÊN KH — viền bo tròn, click để copy ============ */
+    .o_vd_name_chip {
+        display: inline-flex !important;
+        align-items: baseline;
+        gap: 0.4rem;
+        padding: 0.35rem 0.95rem 0.4rem !important;
+        border: 1.5px solid #1864ab !important;
+        border-radius: 999px !important;
+        background: #fff !important;
+        color: #1a1a1a !important;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease,
+                    transform 0.12s ease, box-shadow 0.15s ease;
+        font-weight: 700;
+        font-size: 1rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(24, 100, 171, 0.08);
+
+        .o_vd_name_text {
+            display: inline-flex;
+            align-items: center;
+            .o_field_widget,
+            .o_field_widget > * {
+                font-size: inherit !important;
+                font-weight: inherit !important;
+                color: inherit !important;
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-width: 0 !important;
+                pointer-events: none;
+            }
+        }
+
+        .o_vd_name_phone {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.22rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #1971c2;
+            opacity: 0.95;
+            align-self: flex-start;       /* nằm "trên đuôi tên" — sát mép trên */
+            margin-top: 0.05rem;
+            i { font-size: 0.6rem; }
+            .o_field_widget,
+            .o_field_widget > * {
+                font-size: inherit !important;
+                font-weight: inherit !important;
+                color: inherit !important;
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-width: 0 !important;
+                pointer-events: none;
+            }
+        }
+
+        &:hover {
+            background: #e7f5ff !important;
+            border-color: #1971c2 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(24, 100, 171, 0.22);
+        }
+        &:active { transform: translateY(0); }
+    }
+
+    /* === Salesperson — sát phải hàng 1, click để đổi ============ */
+    .o_vd_header_user {
+        margin-left: auto !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.22rem 0.6rem;
+        border-radius: 999px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #495057;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+            background: #eef3fb;
+            border-color: #c9d6e8;
+        }
+        .o_field_widget,
+        .o_field_widget > * {
+            margin: 0 !important;
+        }
+    }
+
+    /* === Hàng 2: nhóm chip trái ============================ */
+    .o_vd_header_chips {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+    /* override các margin-left:auto cũ — 3 chip nằm sát nhau bên trái */
+    .o_vd_header_chips .o_vd_wf_btn_callback,
+    .o_vd_header_chips .o_vd_copy_zalo_btn,
+    .o_vd_header_chips .o_vd_wf_btn_no_demand {
+        margin-left: 0 !important;
+    }
+
+    /* === Nút "Thông tin tư vấn" — sát phải hàng 2, gradient nổi bật ===
+       (khôi phục style gradient vì mất ancestor .o_vd_summary_name cũ) */
+    .o_vd_header_row2 > .o_vd_open_intake_btn_main {
+        margin-left: auto !important;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 1.05rem !important;
+        border: none !important;
+        border-radius: 999px !important;
+        background: linear-gradient(135deg, #1864ab 0%, #4dabf7 100%) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 0.3px;
+        box-shadow:
+            0 6px 16px rgba(24, 100, 171, 0.35),
+            0 2px 4px rgba(24, 100, 171, 0.25);
+        cursor: pointer;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+        animation: vd-pulse-call 2.5s ease-in-out infinite;
+
+        i.fa-phone-square {
+            font-size: 1.15rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+        }
+        &:hover {
+            background: linear-gradient(135deg, #4dabf7 0%, #1864ab 100%) !important;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow:
+                0 10px 22px rgba(24, 100, 171, 0.45),
+                0 4px 8px rgba(24, 100, 171, 0.35);
+            animation: none;
+        }
+        &:active { transform: translateY(0) scale(0.98); }
+    }
+}

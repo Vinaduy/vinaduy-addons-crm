@@ -834,6 +834,18 @@ class CrmLead(models.Model):
             },
         }
 
+    def action_copy_name(self):
+        """Copy tên KH vào clipboard (dùng từ chip tên trong header form)."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'vd_copy_to_clipboard',
+            'params': {
+                'text': self.name or '',
+                'message': _('Đã copy tên khách hàng vào clipboard.'),
+            },
+        }
+
     @api.depends(
         'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
         'vd_intake_house_type', 'vd_intake_roof_type', 'vd_intake_region',
