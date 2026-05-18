@@ -6649,15 +6649,19 @@ $vd-panel-head-radius: 10px;
         }
     }
 
-    /* HOVER POPOVER — đặt NGAY DƯỚI card, full row-width, KHÔNG expand row.
-       Position absolute → các row khác giữ nguyên vị trí, popover overlay đè
-       row bên dưới (z-index cao). Không ra khỏi viewport theo chiều ngang. */
+    /* HOVER POPOVER — đặt NGAY DƯỚI card, rộng 1/2 row, follow cursor X.
+       Vị trí center popover = --vd-hover-x (set bởi problem_hover_track.js
+       trên mousemove, đã clamp để không tràn 2 mép). Width = --vd-hover-popw
+       (mặc định 50% card, fallback 50% nếu JS chưa kịp set). */
     .o_vd_problem_hover_panel {
         display: none;
         position: absolute;
-        top: calc(100% + 4px);      /* ngay dưới card, không gap quá xa */
-        left: 0;
-        right: 0;                   /* full row width — không bay ra ngoài viewport */
+        top: calc(100% + 4px);
+        left: var(--vd-hover-x, 50%);
+        width: var(--vd-hover-popw, 50%);
+        max-width: 480px;
+        transform: translateX(-50%);
+        right: auto;
         padding: 0.7rem 0.9rem;
         background: #ffffff;
         border: 1px solid #d9c2d2;

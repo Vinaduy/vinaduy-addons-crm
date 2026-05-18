@@ -46,6 +46,7 @@
             'vd_crm_lead/static/src/js/vd_audio_player.js',
             'vd_crm_lead/static/src/js/lead_call_action.js',
             'vd_crm_lead/static/src/js/copy_to_clipboard_action.js',
+            'vd_crm_lead/static/src/js/problem_hover_track.js',
             'vd_crm_lead/static/src/xml/dashboard.xml',
             'vd_crm_lead/static/src/xml/call_status_widget.xml',
             'vd_crm_lead/static/src/xml/vd_selection_dropdown.xml',
