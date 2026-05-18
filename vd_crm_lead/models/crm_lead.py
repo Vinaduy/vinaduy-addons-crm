@@ -1310,8 +1310,8 @@ class CrmLead(models.Model):
             self.vd_problem_tag_picker = False
 
     def action_add_problem_tag(self):
-        """Click 1 item trong dropdown 'Tạo vấn đề' (hover menu) → tạo row mới.
-        XMLid của tag truyền qua context. Server-side create để form auto-reload."""
+        """Click 1 item trong dropdown 'Thêm vấn đề' → tạo row mới.
+        Chặn trùng: nếu lead đã có vấn đề với tag này → notification cảnh báo, không tạo."""
         self.ensure_one()
         tag_xmlid = self.env.context.get('tag_xmlid')
         if not tag_xmlid:
@@ -1319,6 +1319,17 @@ class CrmLead(models.Model):
         tag = self.env.ref(tag_xmlid, raise_if_not_found=False)
         if not tag:
             return
+        if self.vd_lead_problem_ids.filtered(lambda p: p.tag_id.id == tag.id):
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'type': 'warning',
+                    'title': 'Vấn đề đã tồn tại',
+                    'message': f'"{tag.icon or "❓"} {tag.name}" đã có trong danh sách rồi.',
+                    'sticky': False,
+                },
+            }
         self.env['vd.lead.problem'].create({
             'lead_id': self.id,
             'tag_id': tag.id,

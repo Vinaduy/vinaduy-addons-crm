@@ -58,6 +58,11 @@ class VdLeadProblem(models.Model):
         help='True nếu là 1 trong 2 vấn đề mặc định (không cho xoá).',
     )
 
+    _sql_constraints = [
+        ('lead_tag_uniq', 'unique(lead_id, tag_id)',
+         'Mỗi vấn đề chỉ được thêm 1 lần cho 1 KH.'),
+    ]
+
     @api.depends('tag_id', 'tag_id.icon', 'tag_id.name', 'name')
     def _compute_tag_display(self):
         for rec in self:
