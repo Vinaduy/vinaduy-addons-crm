@@ -1219,19 +1219,9 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                 confirm="🔓 KH yêu cầu sửa báo giá? Mở khóa để chỉnh sửa. Sau khi sửa xong cần Lưu version mới + Chốt lại để giữ giá.">
                             <i class="fa fa-unlock me-1"/>🔓 Mở khóa sửa báo giá
                         </button>
-                        <span class="o_vd_nego_callback_lbl">📞 Hẹn gọi lại:</span>
-                        <button name="action_create_negotiate_activity" type="object"
-                                class="btn btn-sm btn-outline-primary"
-                                context="{'days_offset': 1}">1 ngày</button>
-                        <button name="action_create_negotiate_activity" type="object"
-                                class="btn btn-sm btn-outline-primary"
-                                context="{'days_offset': 3}">3 ngày</button>
-                        <button name="action_create_negotiate_activity" type="object"
-                                class="btn btn-sm btn-outline-primary"
-                                context="{'days_offset': 7}">7 ngày</button>
                         <button name="action_sign_contract" type="object"
                                 class="btn btn-success o_vd_nego_sign_btn">
-                            <i class="fa fa-pencil me-1"/>✍️ KH ĐỒNG Ý → Ký HĐ
+                            <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
                         </button>
                     </div>
                 </div>
