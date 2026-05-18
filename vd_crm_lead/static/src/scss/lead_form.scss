@@ -6273,3 +6273,132 @@ div.o_vd_layout_right {
         }
     }
 }
+
+/* ============================================================
+   🔒 FIXED-WIDTH LAYOUT — khóa layout proportions
+   Khi browser zoom 60%-150%, layout KHÔNG reflow/đổi tỷ lệ cột.
+   Form luôn rộng tối thiểu 1600px; nhỏ hơn → horizontal scroll.
+   ============================================================ */
+.o_form_view .o_form_sheet_bg,
+.o_action_manager .o_form_view .o_form_sheet_bg {
+    min-width: 1600px !important;
+}
+.o_form_view .o_form_sheet,
+.o_action_manager .o_form_view .o_form_sheet {
+    min-width: 1600px !important;
+}
+div.o_vd_layout_grid {
+    min-width: 1584px !important;   /* 1600 - padding 16px */
+}
+
+/* ============================================================
+   🎨 UNIFIED PANEL HEADERS — 3 tiêu đề đồng nhất
+   THÔNG TIN KHÁCH HÀNG  /  BÁO GIÁ CHI TIẾT  /  VẤN ĐỀ
+   - Odoo brand purple background (#714B67)
+   - Padding lớn, font 1.4rem, uppercase, căn trái
+   - Letter-spacing rộng, text-shadow nhẹ — chuyên nghiệp
+   Selectors dùng `!important` để override tất cả tầng SCSS phía trên.
+   ============================================================ */
+$vd-panel-head-bg: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%);
+$vd-panel-head-padding: 0.95rem 1.4rem;
+$vd-panel-head-font-size: 1.4rem;
+$vd-panel-head-letter-spacing: 1.8px;
+
+/* === 1. THÔNG TIN KHÁCH HÀNG === */
+.o_vd_summary_card .o_vd_summary_banner {
+    background: $vd-panel-head-bg !important;
+    animation: none !important;
+    padding: $vd-panel-head-padding !important;
+    text-align: left !important;
+}
+.o_vd_summary_card .o_vd_summary_banner .o_vd_banner_title {
+    font-size: $vd-panel-head-font-size !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: $vd-panel-head-letter-spacing !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    text-align: left !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+
+/* === 2. BÁO GIÁ CHI TIẾT === */
+.o_vd_quote_panel .o_vd_quote_head {
+    background: $vd-panel-head-bg !important;
+    padding: $vd-panel-head-padding !important;
+    color: #ffffff !important;
+    font-size: $vd-panel-head-font-size !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: $vd-panel-head-letter-spacing !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    line-height: 1.2 !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 0.6rem !important;
+}
+.o_vd_quote_panel .o_vd_quote_head i {
+    font-size: 1.4rem !important;
+    color: #ffffff !important;
+}
+.o_vd_quote_panel .o_vd_quote_head > span {
+    font-size: $vd-panel-head-font-size !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: $vd-panel-head-letter-spacing !important;
+}
+.o_vd_quote_panel .o_vd_quote_head .o_vd_lock_badge {
+    margin-left: auto !important;
+    font-size: 0.85rem !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    text-shadow: none !important;
+}
+
+/* === 3. VẤN ĐỀ === */
+.o_vd_negotiate_panel .o_vd_nego_head {
+    background: $vd-panel-head-bg !important;
+    padding: $vd-panel-head-padding !important;
+    color: #ffffff !important;
+    font-size: $vd-panel-head-font-size !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: $vd-panel-head-letter-spacing !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    line-height: 1.2 !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 0.6rem !important;
+}
+.o_vd_negotiate_panel .o_vd_nego_head i {
+    font-size: 1.4rem !important;
+    color: #ffffff !important;
+}
+.o_vd_negotiate_panel .o_vd_nego_head > span {
+    font-size: $vd-panel-head-font-size !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: $vd-panel-head-letter-spacing !important;
+}
+.o_vd_negotiate_panel .o_vd_nego_head .o_vd_nego_status_badge {
+    margin-left: auto !important;
+    font-size: 0.85rem !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    text-shadow: none !important;
+}
+
+/* Override popup body shrink — vẫn giữ header to để đồng nhất ở mọi context */
+.o_vd_intake_popup_panel .o_vd_summary_card .o_vd_summary_banner,
+.o_vd_intake_popup_panel .o_vd_quote_panel .o_vd_quote_head,
+.o_vd_intake_popup_panel .o_vd_negotiate_panel .o_vd_nego_head {
+    padding: $vd-panel-head-padding !important;
+}
+.o_vd_intake_popup_panel .o_vd_summary_card .o_vd_summary_banner .o_vd_banner_title,
+.o_vd_intake_popup_panel .o_vd_quote_panel .o_vd_quote_head,
+.o_vd_intake_popup_panel .o_vd_quote_panel .o_vd_quote_head > span,
+.o_vd_intake_popup_panel .o_vd_negotiate_panel .o_vd_nego_head,
+.o_vd_intake_popup_panel .o_vd_negotiate_panel .o_vd_nego_head > span {
+    font-size: $vd-panel-head-font-size !important;
+}
