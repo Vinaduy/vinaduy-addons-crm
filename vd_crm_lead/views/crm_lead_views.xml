@@ -101,6 +101,7 @@
                          (trước đây hiển thị stage badge — đã đổi thành tiêu đề
                          cố định, in đậm, trắng, không bo tròn). -->
                     <div class="o_vd_summary_banner">
+                        <i class="fa fa-user-circle"/>
                         <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
                     </div>
 
@@ -814,11 +815,6 @@
                     <div class="o_vd_nego_head">
                         <i class="fa fa-exclamation-triangle"/>
                         <span>Vấn đề</span>
-                        <span class="o_vd_problem_picker_wrap" invisible="vd_contract_signed">
-                            <field name="vd_problem_tag_picker" nolabel="1"
-                                   placeholder="+ Tạo vấn đề (chọn thẻ)"
-                                   options="{'no_create': True, 'no_open': True}"/>
-                        </span>
                         <span class="o_vd_nego_status_badge"
                               invisible="not vd_negotiate_deadline">
                             Deadline: <field name="vd_negotiate_deadline" readonly="1" nolabel="1"/>
@@ -839,13 +835,13 @@
                          Mỗi vấn đề 1 dòng: tên + cách xử lý + tiến độ.
                          NV BẮT BUỘC xử lý từng vấn đề để đẩy KH đến ký HĐ. -->
                     <div class="o_vd_problem_tracker" invisible="vd_contract_signed">
-                        <div class="o_vd_nego_section_title">
-                            <i class="fa fa-list-check me-1"/>
-                            Vấn đề KH gặp phải —
-                            <span invisible="vd_lead_problem_open_count == 0"
-                                  class="o_vd_problem_open_count">
-                                <field name="vd_lead_problem_open_count" readonly="1" nolabel="1"/>
-                                vấn đề chưa xử lý
+                        <!-- Button TẠO VẤN ĐỀ (thay cho dòng "Vấn đề KH gặp phải — N vấn đề chưa xử lý") -->
+                        <div class="o_vd_problem_create_bar">
+                            <span class="o_vd_problem_picker_btn">
+                                <i class="fa fa-plus"/>
+                                <field name="vd_problem_tag_picker" nolabel="1"
+                                       placeholder="Tạo vấn đề"
+                                       options="{'no_create': True, 'no_open': True}"/>
                             </span>
                             <span invisible="vd_lead_problem_open_count != 0"
                                   class="o_vd_problem_all_resolved">
@@ -858,7 +854,7 @@
                                   decoration-success="status == 'resolved'">
                                 <field name="sequence" widget="handle"/>
                                 <field name="tag_display" string="Thẻ vấn đề" readonly="1"
-                                       optional="show"/>
+                                       class="o_vd_tag_chip" optional="show"/>
                                 <field name="tag_id" string="Đổi thẻ" optional="hide"
                                        options="{'no_create': True, 'no_open': True}"/>
                                 <field name="name" string="Tên vấn đề" optional="hide"
@@ -871,6 +867,7 @@
                                 <field name="is_default" column_invisible="True"/>
                                 <field name="code" column_invisible="True"/>
                                 <button name="unlink" type="object" icon="fa-trash"
+                                        title="Xoá vấn đề"
                                         invisible="is_default"
                                         confirm="Xoá vấn đề này khỏi danh sách?"/>
                             </list>
