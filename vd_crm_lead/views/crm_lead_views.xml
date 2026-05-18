@@ -897,6 +897,7 @@
                                                 </button>
                                             </div>
                                             <div class="o_vd_problem_hover_panel">
+                                                <div class="o_vd_hp_title">📋 CHI TIẾT VẤN ĐỀ</div>
                                                 <div class="o_vd_hp_section o_vd_hp_note">
                                                     <div class="o_vd_hp_label">📝 Ghi chú</div>
                                                     <field name="nv_handling"

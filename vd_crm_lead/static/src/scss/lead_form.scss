@@ -6460,10 +6460,23 @@ $vd-panel-head-radius: 10px;
 /* ============================================================
    ⚙️ "+ THÊM VẤN ĐỀ" — button subtle sát trên kanban, hover xổ menu
    ============================================================ */
+/* QUAN TRỌNG: parents PHẢI có overflow: visible để dropdown menu + hover
+   popover không bị cắt. Trước đây .o_vd_negotiate_panel có overflow: hidden
+   (để border-radius clip) — giờ chuyển border-radius lên head riêng, body
+   không cần clip nữa. */
+.o_vd_negotiate_panel,
+.o_vd_problem_tracker,
+.o_vd_problem_kanban,
+.o_vd_problem_kanban .o_kanban_renderer,
+.o_vd_problem_kanban .o_kanban_record,
+.o_vd_problem_card {
+    overflow: visible !important;
+}
+
 .o_vd_problem_picker_dropdown {
     position: relative;
     display: inline-block;
-    margin: 0.5rem 1rem 0;       /* sát lên trên kanban, lề trái 1rem */
+    margin: 0.5rem 1rem 0;
     overflow: visible;
     z-index: 60;
 
@@ -6484,10 +6497,7 @@ $vd-panel-head-radius: 10px;
         box-shadow: 0 2px 6px -2px rgba(113, 75, 103, 0.4);
         transition: all 0.12s ease;
 
-        i {
-            font-size: 0.78rem;
-            line-height: 1;
-        }
+        i { font-size: 0.78rem; line-height: 1; }
 
         &:hover {
             background: linear-gradient(135deg, #5d3d54 0%, #714B67 100%);
@@ -6498,15 +6508,21 @@ $vd-panel-head-radius: 10px;
     .o_vd_problem_picker_menu {
         display: none;
         position: absolute;
-        top: calc(100% + 4px);
+        top: 100%;                  /* SÁT button — không gap, không mất hover */
         left: 0;
+        margin-top: 0;
+        padding-top: 0.85rem;       /* visual gap nhưng vẫn trong hover area */
+        padding-bottom: 0.4rem;
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
         min-width: 260px;
+        max-height: 460px;
+        overflow-y: auto;           /* scroll khi nhiều items */
         background: #ffffff;
         border: 1px solid #d9c2d2;
         border-radius: 10px;
         box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.25),
                     0 4px 12px -2px rgba(113, 75, 103, 0.18);
-        padding: 0.4rem;
         z-index: 1080;
 
         .o_vd_picker_item {
@@ -6533,6 +6549,7 @@ $vd-panel-head-radius: 10px;
         }
     }
 
+    /* Hover trên button HOẶC trên menu đều giữ menu hiện */
     &:hover .o_vd_problem_picker_menu,
     .o_vd_problem_picker_menu:hover {
         display: block;
@@ -6632,16 +6649,15 @@ $vd-panel-head-radius: 10px;
         }
     }
 
-    /* Hover popover — FLOATING absolute (KHÔNG expand row, các row khác giữ nguyên vị trí) */
+    /* HOVER POPOVER — đặt NGAY DƯỚI card, full row-width, KHÔNG expand row.
+       Position absolute → các row khác giữ nguyên vị trí, popover overlay đè
+       row bên dưới (z-index cao). Không ra khỏi viewport theo chiều ngang. */
     .o_vd_problem_hover_panel {
         display: none;
         position: absolute;
-        top: 50%;
-        left: calc(100% + 12px);
-        transform: translateY(-50%);
-        width: 380px;
-        max-height: 360px;
-        overflow-y: auto;
+        top: calc(100% + 4px);      /* ngay dưới card, không gap quá xa */
+        left: 0;
+        right: 0;                   /* full row width — không bay ra ngoài viewport */
         padding: 0.7rem 0.9rem;
         background: #ffffff;
         border: 1px solid #d9c2d2;
@@ -6650,19 +6666,18 @@ $vd-panel-head-radius: 10px;
                     0 6px 14px -2px rgba(113, 75, 103, 0.18);
         z-index: 1090;
         animation: vd-hover-fadein 0.15s ease;
+        max-height: 320px;
+        overflow-y: auto;
 
-        /* Arrow trỏ về row */
-        &::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: -7px;
-            transform: translateY(-50%) rotate(45deg);
-            width: 12px;
-            height: 12px;
-            background: #ffffff;
-            border-left: 1px solid #d9c2d2;
-            border-bottom: 1px solid #d9c2d2;
+        .o_vd_hp_title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #714B67;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #e1d4dc;
         }
 
         .o_vd_hp_section { margin-bottom: 0.6rem; }
@@ -6681,7 +6696,7 @@ $vd-panel-head-radius: 10px;
         .o_vd_hp_note input,
         .o_vd_hp_note .o_field_widget {
             width: 100%;
-            min-height: 60px;
+            min-height: 55px;
             font-size: 0.88rem;
             border: 1px solid #e1d4dc;
             border-radius: 6px;
@@ -6690,11 +6705,12 @@ $vd-panel-head-radius: 10px;
         }
         .o_vd_hp_tips .o_field_widget {
             font-size: 0.85rem;
-            line-height: 1.4;
+            line-height: 1.45;
             color: #495057;
             ul { margin: 0.2rem 0 0.2rem 1rem; padding: 0; }
             li { margin-bottom: 0.25rem; }
             b { color: #714B67; }
+            p { margin: 0 0 0.3rem 0; }
         }
     }
 
