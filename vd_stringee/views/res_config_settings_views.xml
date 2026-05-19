@@ -66,19 +66,19 @@
                                  help="3 URL khai báo trong Stringee Portal → Project Settings hoặc URL Setting của từng số. Tất cả số dùng chung 3 URL này — controller tự route bằng payload.">
                             <div class="content-group">
                                 <div class="row mt-2">
-                                    <label class="col-4 col-form-label">Base URL</label>
+                                    <label for="stringee_webhook_base_url" string="Base URL" class="col-4 col-form-label"/>
                                     <field name="stringee_webhook_base_url" readonly="1" class="col-8"/>
                                 </div>
                                 <div class="row mt-2">
-                                    <label class="col-4 col-form-label">Answer URL</label>
+                                    <label for="stringee_answer_url" string="Answer URL" class="col-4 col-form-label"/>
                                     <field name="stringee_answer_url" readonly="1" class="col-8"/>
                                 </div>
                                 <div class="row mt-2">
-                                    <label class="col-4 col-form-label">Event URL</label>
+                                    <label for="stringee_event_url" string="Event URL" class="col-4 col-form-label"/>
                                     <field name="stringee_event_url" readonly="1" class="col-8"/>
                                 </div>
                                 <div class="row mt-2">
-                                    <label class="col-4 col-form-label">Recording Event URL</label>
+                                    <label for="stringee_recording_url" string="Recording Event URL" class="col-4 col-form-label"/>
                                     <field name="stringee_recording_url" readonly="1" class="col-8"/>
                                 </div>
                                 <div class="text-muted mt-2 small">
