@@ -1806,6 +1806,12 @@
     padding: 0.75rem !important;
     box-shadow: none !important;
     border: none !important;
+    min-height: 0 !important;   /* Odoo default kéo sheet tới hết viewport → bỏ */
+}
+/* o_form_sheet_bg cũng có min-height mặc định → khử để form co theo content */
+.o_form_view .o_form_sheet_bg,
+.o_action_manager .o_form_view .o_form_sheet_bg {
+    min-height: 0 !important;
 }
 
 /* 2. Grid 2-col CHIA ĐỀU 50/50 — LEFT (KH + Báo giá) | RIGHT (Đàm phán + HĐ) */
