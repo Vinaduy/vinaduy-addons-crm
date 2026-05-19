@@ -4417,6 +4417,95 @@ class CrmLead(models.Model):
                 'detail': 'Phân lại NV hoặc đóng (lost) — KH không liên hệ sẽ tự lạnh đi.',
             })
 
+        # ============ 🆕 KH MỚI / VẤN ĐỀ — grouped by NV (cho customer focus view simplified) ============
+        # Box 1: Khách mới — leads ở stage 'new', active, trong date filter
+        kh_moi_by_nv = []
+        if new_stage:
+            self.env.cr.execute("""
+                SELECT user_id, COUNT(*)
+                FROM crm_lead
+                WHERE stage_id = %s AND active = TRUE
+                  AND create_date >= %s AND create_date < %s
+                  AND user_id IS NOT NULL
+                GROUP BY user_id
+                ORDER BY COUNT(*) DESC
+            """, (new_stage.id, dt_from, dt_to))
+            for uid, cnt in self.env.cr.fetchall():
+                u = ResUsers.browse(uid)
+                if not u.exists():
+                    continue
+                u_leads = self.search([
+                    ('user_id', '=', uid),
+                    ('stage_id', '=', new_stage.id),
+                    ('active', '=', True),
+                    ('create_date', '>=', dt_from),
+                    ('create_date', '<', dt_to),
+                ], order='create_date desc', limit=50)
+                kh_moi_by_nv.append({
+                    'user_id': uid,
+                    'name': _short_name(u.name),
+                    'full_name': u.name,
+                    'team': self._vd_team_label_for(u),
+                    'count': cnt,
+                    'leads': [{
+                        'lead_id': l.id,
+                        'name': l.name or l.partner_name or 'KH',
+                        'phone': l.phone or '',
+                        'hours_ago': int((now - l.create_date).total_seconds() // 3600) if l.create_date else 0,
+                        'call_count': l.call_count or 0,
+                    } for l in u_leads],
+                })
+
+        # Box 2: Khách cần chăm sóc vấn đề — leads có vd.lead.problem status != resolved
+        self.env.cr.execute("""
+            SELECT l.user_id, COUNT(DISTINCT l.id)
+            FROM crm_lead l
+            JOIN vd_lead_problem p ON p.lead_id = l.id
+            WHERE l.active = TRUE
+              AND p.status IN ('open', 'in_progress')
+              AND l.create_date >= %s AND l.create_date < %s
+              AND l.user_id IS NOT NULL
+            GROUP BY l.user_id
+            ORDER BY COUNT(DISTINCT l.id) DESC
+        """, (dt_from, dt_to))
+        kh_van_de_by_nv = []
+        for uid, cnt in self.env.cr.fetchall():
+            u = ResUsers.browse(uid)
+            if not u.exists():
+                continue
+            u_leads = self.search([
+                ('user_id', '=', uid),
+                ('active', '=', True),
+                ('vd_lead_problem_ids.status', 'in', ['open', 'in_progress']),
+                ('create_date', '>=', dt_from),
+                ('create_date', '<', dt_to),
+            ], order='create_date desc', limit=50)
+            lead_list = []
+            for l in u_leads:
+                open_probs = l.vd_lead_problem_ids.filtered(
+                    lambda p: p.status in ('open', 'in_progress')
+                )
+                lead_list.append({
+                    'lead_id': l.id,
+                    'name': l.name or l.partner_name or 'KH',
+                    'phone': l.phone or '',
+                    'problem_count': len(open_probs),
+                    'problems': [{
+                        'name': p.tag_id.name if p.tag_id else (p.name or 'Vấn đề'),
+                        'icon': p.tag_id.icon if p.tag_id else '🔸',
+                        'status': p.status,
+                        'status_label': dict(p._fields['status'].selection).get(p.status, p.status),
+                    } for p in open_probs[:5]],
+                })
+            kh_van_de_by_nv.append({
+                'user_id': uid,
+                'name': _short_name(u.name),
+                'full_name': u.name,
+                'team': self._vd_team_label_for(u),
+                'count': cnt,
+                'leads': lead_list,
+            })
+
         # Low priority insights
         if source_quality:
             best_src = max(source_quality, key=lambda x: x['pct'])
@@ -4439,6 +4528,8 @@ class CrmLead(models.Model):
             'date_to': d_to.isoformat(),
             'generated_at': now.isoformat(),
             'kpi': kpi,
+            'kh_moi_by_nv': kh_moi_by_nv,
+            'kh_van_de_by_nv': kh_van_de_by_nv,
             'urgent': urgent_section,
             'pipeline': pipeline_section,
             'nv_performance': nv_section,
