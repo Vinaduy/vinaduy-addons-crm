@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_stringee_hotline_search" model="ir.ui.view">
+        <field name="name">vd.stringee.hotline.search</field>
+        <field name="model">vd.stringee.hotline</field>
+        <field name="arch" type="xml">
+            <search string="Số tổng đài Stringee">
+                <field name="name"/>
+                <field name="number"/>
+                <field name="team_label"/>
+                <field name="carrier"/>
+                <filter string="Đang hoạt động" name="filter_active" domain="[('active','=',True)]"/>
+                <filter string="Tạm ngưng" name="filter_inactive" domain="[('active','=',False)]"/>
+                <separator/>
+                <filter string="Viettel" name="filter_viettel" domain="[('carrier','=','viettel')]"/>
+                <filter string="MobiFone" name="filter_mobi" domain="[('carrier','=','mobi')]"/>
+                <filter string="Vinaphone" name="filter_vina" domain="[('carrier','=','vina')]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter string="Team" name="groupby_team" context="{'group_by': 'team_label'}"/>
+                    <filter string="Nhà mạng" name="groupby_carrier" context="{'group_by': 'carrier'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_vd_stringee_hotline_tree" model="ir.ui.view">
+        <field name="name">vd.stringee.hotline.tree</field>
+        <field name="model">vd.stringee.hotline</field>
+        <field name="arch" type="xml">
+            <list string="Số tổng đài Stringee" editable="bottom">
+                <field name="team_label"/>
+                <field name="carrier"/>
+                <field name="number"/>
+                <field name="name"/>
+                <field name="user_count" readonly="1"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_stringee_hotline_form" model="ir.ui.view">
+        <field name="name">vd.stringee.hotline.form</field>
+        <field name="model">vd.stringee.hotline</field>
+        <field name="arch" type="xml">
+            <form string="Số tổng đài Stringee">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Vd: HCM1 - Viettel"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="number" placeholder="Vd: 84917690625"/>
+                            <field name="carrier"/>
+                            <field name="team_label" placeholder="HCM1 / HCM2 / HN..."/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="user_count" readonly="1"/>
+                            <field name="note" placeholder="Ghi chú..."/>
+                        </group>
+                    </group>
+                    <separator string="NV đang dùng số này"/>
+                    <field name="user_ids" readonly="1">
+                        <list>
+                            <field name="login"/>
+                            <field name="name"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_stringee_hotline" model="ir.actions.act_window">
+        <field name="name">Số tổng đài Stringee</field>
+        <field name="res_model">vd.stringee.hotline</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1, 'search_default_groupby_team': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Quản lý pool số tổng đài Stringee.</p>
+            <p>Mỗi team có thể có nhiều số (Viettel/MobiFone/Vinaphone) — gán cho từng NV ở form Users.</p>
+        </field>
+    </record>
+
+</odoo>

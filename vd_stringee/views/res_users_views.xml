@@ -9,10 +9,16 @@
                 <page string="Stringee" name="stringee">
                     <group>
                         <field name="stringee_user_id" placeholder="vd_user_001"/>
+                        <field name="stringee_from_number_id"
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="stringee_from_number_display" readonly="1"
+                               invisible="not stringee_from_number_id"/>
                     </group>
                     <p class="text-muted">
-                        ID đã tạo trên Stringee Portal → Project → Users. Để trống nếu NV này
-                        không gọi qua Web SDK.
+                        <b>Stringee User ID</b>: ID đã tạo trên Stringee Portal → Project → Users.
+                        Để trống nếu NV không gọi qua Web SDK.<br/>
+                        <b>Số tổng đài</b>: Hotline NV dùng làm caller-id khi gọi ra (Viettel /
+                        MobiFone / Vinaphone). Để trống → fallback số global config.
                     </p>
                 </page>
             </xpath>

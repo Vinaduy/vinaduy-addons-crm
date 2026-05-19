@@ -121,23 +121,46 @@ class StringeeController(http.Controller):
         base_url = (Param.get_param('web.base.url') or '').rstrip('/')
         from_number = (Param.get_param('vd_stringee.from_number') or '').strip()
 
+        # === Hotline pool: global config + tất cả vd.stringee.hotline ===
+        # Với multi-hotline (mỗi NV 1 số khác nhau theo nhà mạng), từ_num từ
+        # Stringee có thể là BẤT KỲ số nào trong pool — không chỉ global.
+        import re as _re
+        def _digits(s):
+            return _re.sub(r'\D', '', s or '')
+        hotline_digits_set = set()
+        global_digits = _digits(from_number)
+        if global_digits:
+            hotline_digits_set.add(global_digits)
+        for _h in request.env['vd.stringee.hotline'].sudo().search([]):
+            _hd = _digits(_h.number)
+            if _hd:
+                hotline_digits_set.add(_hd)
+
         Call = request.env['stringee.call'].sudo()
         existing = Call.search([('name', '=', call_id)], limit=1) if call_id else Call.browse()
 
         # === Web SDK detect TRƯỚC ===
-        # JS pass hotline number làm fromNumber → from_num match hotline
+        # JS pass hotline number làm fromNumber → from_num match hotline POOL
         # = Web SDK call. Fallback: from_num có thể là stringee_user_id.
         # Detect TRƯỚC khi check existing để KHÔNG misclassify Web SDK
         # placeholder (do action_call tạo trước) thành REST outbound.
         is_web_sdk_origin = False
+        from_num_digits = _digits(from_num)
         if from_num:
-            if from_num == from_number:
+            if from_num_digits and from_num_digits in hotline_digits_set:
                 is_web_sdk_origin = True
             else:
                 user_match = request.env['res.users'].sudo().search([
                     ('stringee_user_id', '=', from_num),
                 ], limit=1)
                 is_web_sdk_origin = bool(user_match)
+
+        # Effective from-number để dùng làm caller-id trong SCCO connect:
+        # nếu from_num match 1 hotline trong pool → dùng chính hotline đó
+        # (NV này dùng số riêng), else fallback global.
+        effective_from = from_number
+        if from_num_digits and from_num_digits in hotline_digits_set:
+            effective_from = from_num_digits
 
         # === Fallback lookup stub by callee suffix-9 (chỉ để STAMP call_id) ===
         # action_call tạo placeholder với callee raw '0348886375', Stringee
@@ -226,14 +249,17 @@ class StringeeController(http.Controller):
                 # SCCO connect: from={type:internal, number:hotline}
                 #               to=  {type:external, number:customer}
                 # Browser StringeeCall2 đã init call, answer_url bridge audio.
+                # Dùng effective_from (matched từ pool hotline NV) thay vì
+                # global → caller-id đúng số NV gọi ra.
                 actions.append(_build_connect(
-                    {'type': 'internal', 'number': from_number, 'alias': from_number},
+                    {'type': 'internal', 'number': effective_from, 'alias': effective_from},
                     to_num,
                 ))
             else:
                 # PSTN inbound (KH gọi vào hotline) hoặc unknown origin.
                 actions.append(_build_connect(
-                    {'type': 'external', 'number': from_number or from_num, 'alias': from_number or from_num},
+                    {'type': 'external', 'number': effective_from or from_num,
+                     'alias': effective_from or from_num},
                     to_num,
                 ))
 
@@ -383,10 +409,18 @@ class StringeeController(http.Controller):
         """
         user = request.env.user
         Param = request.env['ir.config_parameter'].sudo()
-        from_number = (Param.get_param('vd_stringee.from_number') or '').strip()
+        # Ưu tiên hotline assign cho NV → fallback global config.
+        # NV được set hotline riêng (vd Viettel/Mobi/Vina) sẽ caller-id đúng
+        # nhà mạng, KH dễ bắt máy + cước rẻ intra-network.
+        user_hotline = (
+            user.stringee_from_number_id.number
+            if user.stringee_from_number_id else ''
+        )
+        from_number = (user_hotline or Param.get_param('vd_stringee.from_number') or '').strip()
         _logger.info(
-            "[Stringee user_token] called by uid=%s login=%s stringee_user_id=%r from_number=%r",
+            "[Stringee user_token] called by uid=%s login=%s stringee_user_id=%r from_number=%r (user_specific=%s)",
             user.id, user.login, user.stringee_user_id, from_number,
+            bool(user_hotline),
         )
         if not user.stringee_user_id:
             _logger.warning(

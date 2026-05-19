@@ -1,6 +1,6 @@
 {
     'name': 'VD Stringee Connector',
-    'version': '18.0.1.8.0',
+    'version': '18.0.1.9.0',
     'category': 'Productivity/Telephony',
     'summary': 'Stringee integration: REST callout, Web SDK click-to-call, recording download',
     'author': 'VINADUY',
@@ -11,6 +11,7 @@
         'security/ir.model.access.csv',
         'data/ir_cron.xml',
         'views/res_config_settings_views.xml',
+        'views/vd_stringee_hotline_views.xml',
         'views/res_users_views.xml',
         'views/stringee_call_views.xml',
         'views/menus.xml',

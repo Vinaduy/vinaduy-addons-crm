@@ -225,7 +225,14 @@ class StringeeCall(models.Model):
         if not self.callee_number:
             raise UserError(_('Thiếu số đến.'))
         Param = self.env['ir.config_parameter'].sudo()
-        from_number = _to_stringee_number(Param.get_param('vd_stringee.from_number'))
+        # Ưu tiên hotline assign cho NV → fallback global config
+        user_hotline = (
+            self.user_id.stringee_from_number_id.number
+            if (self.user_id and self.user_id.stringee_from_number_id) else ''
+        )
+        from_number = _to_stringee_number(
+            user_hotline or Param.get_param('vd_stringee.from_number')
+        )
         callee_e164 = _to_stringee_number(self.callee_number)
         record = (Param.get_param('vd_stringee.record_calls') or 'True') in ('True', 'true', '1')
         if not from_number:
