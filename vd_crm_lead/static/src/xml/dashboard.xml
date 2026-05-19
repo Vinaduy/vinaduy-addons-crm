@@ -72,17 +72,6 @@
                         </div>
 
                         <nav class="o_vd_admin_nav_list">
-                            <!-- Cảnh báo KH: chỉ KH focus + all -->
-                            <button t-if="showKhSection"
-                                    t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'alerts' ? 'o_active' : '')"
-                                    t-on-click="() => this.selectAdminTab('alerts')">
-                                <i class="fa fa-exclamation-triangle"/>
-                                <span>Khách hàng cần xử lý</span>
-                                <span t-if="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0) > 0"
-                                      class="o_vd_admin_nav_badge">
-                                    <t t-esc="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0)"/>
-                                </span>
-                            </button>
                             <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'today' ? 'o_active' : '')"
                                     t-on-click="() => this.selectAdminTab('today')">
                                 <i class="fa fa-calendar-check-o"/>
