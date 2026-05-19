@@ -4417,9 +4417,41 @@ class CrmLead(models.Model):
                 'detail': 'Phân lại NV hoặc đóng (lost) — KH không liên hệ sẽ tự lạnh đi.',
             })
 
-        # ============ 🆕 KH MỚI / VẤN ĐỀ — grouped by NV (cho customer focus view simplified) ============
+        # ============ 🆕 KH MỚI / VẤN ĐỀ — grouped by TEAM (HCM1/HCM2/HN...) ============
+        # Cấu trúc: list of {team, color, total, nvs: [...]} — render header team + chips bên trong.
+        TEAM_ORDER = ['HN', 'HCM1', 'HCM2', 'HCM3']
+        TEAM_COLOR = {
+            'HN': '#dc2626', 'HCM1': '#16a34a',
+            'HCM2': '#9333ea', 'HCM3': '#d97706',
+        }
+
+        def _group_by_team(nv_list):
+            """nv_list = [{user_id, name, full_name, team, count, leads}]
+            → return [{team, color, total, nvs: [sorted by count desc]}]"""
+            from collections import defaultdict as _dd
+            buckets = _dd(list)
+            for item in nv_list:
+                buckets[item['team']].append(item)
+            # Preserve TEAM_ORDER first, rest alphabetical, KHÁC cuối
+            teams_seen = set(buckets.keys())
+            order = [t for t in TEAM_ORDER if t in teams_seen]
+            others = sorted(t for t in teams_seen if t not in TEAM_ORDER and t != 'KHÁC')
+            order += others
+            if 'KHÁC' in teams_seen:
+                order.append('KHÁC')
+            result = []
+            for team in order:
+                nvs = sorted(buckets[team], key=lambda x: -x['count'])
+                result.append({
+                    'team': team,
+                    'color': TEAM_COLOR.get(team, '#6c757d'),
+                    'total': sum(n['count'] for n in nvs),
+                    'nvs': nvs,
+                })
+            return result
+
         # Box 1: Khách mới — leads ở stage 'new', active, trong date filter
-        kh_moi_by_nv = []
+        kh_moi_flat = []
         if new_stage:
             self.env.cr.execute("""
                 SELECT user_id, COUNT(*)
@@ -4428,7 +4460,6 @@ class CrmLead(models.Model):
                   AND create_date >= %s AND create_date < %s
                   AND user_id IS NOT NULL
                 GROUP BY user_id
-                ORDER BY COUNT(*) DESC
             """, (new_stage.id, dt_from, dt_to))
             for uid, cnt in self.env.cr.fetchall():
                 u = ResUsers.browse(uid)
@@ -4441,7 +4472,7 @@ class CrmLead(models.Model):
                     ('create_date', '>=', dt_from),
                     ('create_date', '<', dt_to),
                 ], order='create_date desc', limit=50)
-                kh_moi_by_nv.append({
+                kh_moi_flat.append({
                     'user_id': uid,
                     'name': _short_name(u.name),
                     'full_name': u.name,
@@ -4455,6 +4486,7 @@ class CrmLead(models.Model):
                         'call_count': l.call_count or 0,
                     } for l in u_leads],
                 })
+        kh_moi_by_team = _group_by_team(kh_moi_flat)
 
         # Box 2: Khách cần chăm sóc vấn đề — leads có vd.lead.problem status != resolved
         self.env.cr.execute("""
@@ -4466,9 +4498,8 @@ class CrmLead(models.Model):
               AND l.create_date >= %s AND l.create_date < %s
               AND l.user_id IS NOT NULL
             GROUP BY l.user_id
-            ORDER BY COUNT(DISTINCT l.id) DESC
         """, (dt_from, dt_to))
-        kh_van_de_by_nv = []
+        kh_van_de_flat = []
         for uid, cnt in self.env.cr.fetchall():
             u = ResUsers.browse(uid)
             if not u.exists():
@@ -4497,7 +4528,7 @@ class CrmLead(models.Model):
                         'status_label': dict(p._fields['status'].selection).get(p.status, p.status),
                     } for p in open_probs[:5]],
                 })
-            kh_van_de_by_nv.append({
+            kh_van_de_flat.append({
                 'user_id': uid,
                 'name': _short_name(u.name),
                 'full_name': u.name,
@@ -4505,6 +4536,7 @@ class CrmLead(models.Model):
                 'count': cnt,
                 'leads': lead_list,
             })
+        kh_van_de_by_team = _group_by_team(kh_van_de_flat)
 
         # Low priority insights
         if source_quality:
@@ -4528,8 +4560,8 @@ class CrmLead(models.Model):
             'date_to': d_to.isoformat(),
             'generated_at': now.isoformat(),
             'kpi': kpi,
-            'kh_moi_by_nv': kh_moi_by_nv,
-            'kh_van_de_by_nv': kh_van_de_by_nv,
+            'kh_moi_by_team': kh_moi_by_team,
+            'kh_van_de_by_team': kh_van_de_by_team,
             'urgent': urgent_section,
             'pipeline': pipeline_section,
             'nv_performance': nv_section,

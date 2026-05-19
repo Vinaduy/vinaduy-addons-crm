@@ -2840,9 +2840,42 @@
     }
 
     /* NV list trong mỗi box */
-    /* NV chips — wrap inline, fit vừa tên */
-    .o_vd_kh_nv_list {
+    /* Group theo team — mỗi team là 1 nhóm có header + chips bên trong */
+    .o_vd_kh_team_list {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+    }
+    .o_vd_kh_team_group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+    .o_vd_kh_team_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.3rem 0.6rem 0.3rem 0.7rem;
+        border-left: 3px solid var(--team-color, #6c757d);
+        background: var(--bs-tertiary-bg, #f8f9fa);
+        border-radius: 4px;
+        font-size: 0.78rem;
+    }
+    .o_vd_kh_team_lbl {
+        font-weight: 800;
+        color: var(--team-color, #1f2a44);
+        letter-spacing: 0.5px;
+    }
+    .o_vd_kh_team_total {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    /* NV chips — wrap inline trong từng team group */
+    .o_vd_kh_nv_list {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;

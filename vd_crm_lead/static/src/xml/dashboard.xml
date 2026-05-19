@@ -142,41 +142,49 @@
                                             Phân theo NV phụ trách · Hover để xem danh sách KH
                                         </div>
                                     </div>
-                                    <div class="o_vd_kh_nv_list">
-                                        <div t-if="!state.analytics.kh_moi_by_nv.length" class="o_vd_kh_empty">
+                                    <div class="o_vd_kh_team_list">
+                                        <div t-if="!state.analytics.kh_moi_by_team.length" class="o_vd_kh_empty">
                                             ✓ Không có KH mới trong khoảng lọc
                                         </div>
-                                        <div t-foreach="state.analytics.kh_moi_by_nv" t-as="nv" t-key="nv.user_id"
-                                             class="o_vd_kh_nv_row">
-                                            <div class="o_vd_kh_nv_head">
-                                                <span class="o_vd_kh_nv_team"><t t-esc="nv.team"/></span>
-                                                <span class="o_vd_kh_nv_name"><t t-esc="nv.name"/></span>
-                                                <span class="o_vd_kh_nv_count"><t t-esc="nv.count"/></span>
+                                        <div t-foreach="state.analytics.kh_moi_by_team" t-as="grp" t-key="grp.team"
+                                             class="o_vd_kh_team_group">
+                                            <div class="o_vd_kh_team_header"
+                                                 t-att-style="`--team-color:${grp.color}`">
+                                                <span class="o_vd_kh_team_lbl"><t t-esc="grp.team"/></span>
+                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/> KH</span>
                                             </div>
-                                            <!-- Popover hiện khi hover -->
-                                            <div class="o_vd_kh_nv_popover">
-                                                <div class="o_vd_kh_popover_head">
-                                                    KH mới của <strong><t t-esc="nv.full_name"/></strong>
-                                                    (<t t-esc="nv.count"/>)
-                                                </div>
-                                                <div class="o_vd_kh_popover_body">
-                                                    <div t-foreach="nv.leads" t-as="ld" t-key="ld.lead_id"
-                                                         class="o_vd_kh_lead_item"
-                                                         t-on-click="() => this.openLead(ld.lead_id)">
-                                                        <div class="o_vd_kh_lead_main">
-                                                            <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                            <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <div class="o_vd_kh_nv_list">
+                                                <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
+                                                     class="o_vd_kh_nv_row">
+                                                    <div class="o_vd_kh_nv_head">
+                                                        <span class="o_vd_kh_nv_name"><t t-esc="nv.name"/></span>
+                                                        <span class="o_vd_kh_nv_count"><t t-esc="nv.count"/></span>
+                                                    </div>
+                                                    <div class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            KH mới của <strong><t t-esc="nv.full_name"/></strong>
+                                                            (<t t-esc="nv.count"/>)
                                                         </div>
-                                                        <div class="o_vd_kh_lead_meta">
-                                                            <span t-if="ld.call_count == 0"
-                                                                  class="o_vd_kh_lead_tag o_vd_kh_tag_red">Chưa gọi</span>
-                                                            <span t-else=""
-                                                                  class="o_vd_kh_lead_tag o_vd_kh_tag_green">
-                                                                Đã gọi <t t-esc="ld.call_count"/>×
-                                                            </span>
-                                                            <span class="o_vd_kh_lead_age">
-                                                                <t t-esc="ld.hours_ago"/>h trước
-                                                            </span>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                                </div>
+                                                                <div class="o_vd_kh_lead_meta">
+                                                                    <span t-if="ld.call_count == 0"
+                                                                          class="o_vd_kh_lead_tag o_vd_kh_tag_red">Chưa gọi</span>
+                                                                    <span t-else=""
+                                                                          class="o_vd_kh_lead_tag o_vd_kh_tag_green">
+                                                                        Đã gọi <t t-esc="ld.call_count"/>×
+                                                                    </span>
+                                                                    <span class="o_vd_kh_lead_age">
+                                                                        <t t-esc="ld.hours_ago"/>h trước
+                                                                    </span>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -193,37 +201,46 @@
                                             Có vấn đề đàm phán chưa giải quyết · Hover để xem vấn đề chi tiết
                                         </div>
                                     </div>
-                                    <div class="o_vd_kh_nv_list">
-                                        <div t-if="!state.analytics.kh_van_de_by_nv.length" class="o_vd_kh_empty">
+                                    <div class="o_vd_kh_team_list">
+                                        <div t-if="!state.analytics.kh_van_de_by_team.length" class="o_vd_kh_empty">
                                             ✓ Không có vấn đề KH nào open
                                         </div>
-                                        <div t-foreach="state.analytics.kh_van_de_by_nv" t-as="nv" t-key="nv.user_id"
-                                             class="o_vd_kh_nv_row">
-                                            <div class="o_vd_kh_nv_head">
-                                                <span class="o_vd_kh_nv_team"><t t-esc="nv.team"/></span>
-                                                <span class="o_vd_kh_nv_name"><t t-esc="nv.name"/></span>
-                                                <span class="o_vd_kh_nv_count o_vd_kh_count_warn">
-                                                    <t t-esc="nv.count"/>
-                                                </span>
+                                        <div t-foreach="state.analytics.kh_van_de_by_team" t-as="grp" t-key="grp.team"
+                                             class="o_vd_kh_team_group">
+                                            <div class="o_vd_kh_team_header"
+                                                 t-att-style="`--team-color:${grp.color}`">
+                                                <span class="o_vd_kh_team_lbl"><t t-esc="grp.team"/></span>
+                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/> KH</span>
                                             </div>
-                                            <div class="o_vd_kh_nv_popover">
-                                                <div class="o_vd_kh_popover_head">
-                                                    KH có vấn đề của <strong><t t-esc="nv.full_name"/></strong>
-                                                    (<t t-esc="nv.count"/>)
-                                                </div>
-                                                <div class="o_vd_kh_popover_body">
-                                                    <div t-foreach="nv.leads" t-as="ld" t-key="ld.lead_id"
-                                                         class="o_vd_kh_lead_item"
-                                                         t-on-click="() => this.openLead(ld.lead_id)">
-                                                        <div class="o_vd_kh_lead_main">
-                                                            <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                            <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <div class="o_vd_kh_nv_list">
+                                                <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
+                                                     class="o_vd_kh_nv_row">
+                                                    <div class="o_vd_kh_nv_head">
+                                                        <span class="o_vd_kh_nv_name"><t t-esc="nv.name"/></span>
+                                                        <span class="o_vd_kh_nv_count o_vd_kh_count_warn">
+                                                            <t t-esc="nv.count"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            KH có vấn đề của <strong><t t-esc="nv.full_name"/></strong>
+                                                            (<t t-esc="nv.count"/>)
                                                         </div>
-                                                        <div class="o_vd_kh_lead_problems">
-                                                            <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                  t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                            </span>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                                </div>
+                                                                <div class="o_vd_kh_lead_problems">
+                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
