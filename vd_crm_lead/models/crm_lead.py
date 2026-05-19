@@ -3851,24 +3851,29 @@ class CrmLead(models.Model):
         return 'KHÁC'
 
     # ============================================================
-    # 📊 ANALYTICS DASHBOARD — BI view cho admin (tab "Tổng quan")
+    # 🧠 SALES INSIGHTS DASHBOARD — admin tab "Tổng quan"
+    # Trả ra insight thực sự để quản lý phòng KD ra quyết định:
+    #   1. 🚨 Cần hành động ngay
+    #   2. 📊 Sức khoẻ pipeline
+    #   3. 🏆 Hiệu suất NV
+    #   4. 🎯 Insight KH
+    #   5. 💡 Gợi ý hành động (system-suggested)
     # ============================================================
     @api.model
     def dashboard_analytics(self, date_from=None, date_to=None):
-        """Single-payload analytics cho admin BI dashboard.
-
-        Returns 5 KPIs + 4 chart datasets (time-series, status donut,
-        conversion-by-region, top NV). Tất cả respect date range filter.
-        Chỉ manager được gọi → NV thường nhận lỗi quyền.
+        """Insight payload cho admin dashboard — thay charts bằng list/table actionable.
+        Chỉ manager được gọi.
         """
         if not self._dashboard_is_manager():
             raise UserError(_('Chỉ Manager / Admin được xem analytics dashboard.'))
 
-        from datetime import datetime, date, timedelta as _td
+        from datetime import timedelta as _td
+        from collections import defaultdict, Counter
         import re
 
         # === Parse date range — fallback 90 ngày gần nhất ===
         today = fields.Date.context_today(self)
+        now = fields.Datetime.now()
         if date_to:
             d_to = fields.Date.from_string(date_to) if isinstance(date_to, str) else date_to
         else:
@@ -3885,222 +3890,556 @@ class CrmLead(models.Model):
             ('create_date', '<', dt_to),
         ]
 
-        # === 5 KPI ===
-        total_deals = self.search_count(date_domain)
-        # Unique customers: distinct phone (bỏ '' / NULL)
-        self.env.cr.execute("""
-            SELECT COUNT(DISTINCT NULLIF(TRIM(phone), ''))
-            FROM crm_lead
-            WHERE create_date >= %s AND create_date < %s
-              AND active = TRUE
-        """, (dt_from, dt_to))
-        unique_customers = self.env.cr.fetchone()[0] or 0
-
-        closed_contracts = self.search_count(date_domain + [
-            ('vd_contract_signed', '=', True),
-        ])
-        active_negotiations = self.search_count(date_domain + [
-            ('stage_is_won', '=', False),
-            ('stage_is_lost', '=', False),
-        ])
-
-        # NV dưới ngưỡng: 3 tháng liên tiếp (90 ngày) 0 HĐ chốt
-        # Chỉ tính NV có lead active trong period → loại NV nghỉ/chưa giao việc
         ResUsers = self.env['res.users']
         sales_users = ResUsers.search([
             ('share', '=', False),
             ('active', '=', True),
             ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
         ])
-        ninety_ago = today - _td(days=90)
-        nv_below = 0
+        sales_user_ids = sales_users.ids
+
+        def _short_name(name):
+            return re.sub(r'^[A-ZĐ]+\d*\s*[-–—]\s*', '', name or '') or (name or 'NV')
+
+        def _team_pretty(label):
+            colors = {'HN': '#dc2626', 'HCM1': '#16a34a', 'HCM2': '#9333ea', 'HCM3': '#d97706'}
+            return {'name': label, 'color': colors.get(label, '#6c757d')}
+
+        # ============ KPI TOP (5) ============
+        total_deals = self.search_count(date_domain)
+        self.env.cr.execute("""
+            SELECT COUNT(DISTINCT NULLIF(TRIM(phone), ''))
+            FROM crm_lead
+            WHERE create_date >= %s AND create_date < %s AND active = TRUE
+        """, (dt_from, dt_to))
+        unique_customers = self.env.cr.fetchone()[0] or 0
+        closed_contracts = self.search_count(date_domain + [('vd_contract_signed', '=', True)])
+        active_negotiations = self.search_count([
+            ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+        ])
+
+        # NV "ngồi không": chưa gọi cuộc nào >2 ngày, nhưng đang có KH active
+        two_days_ago = now - _td(days=2)
+        idle_nv_list = []
         for u in sales_users:
-            has_recent_lead = self.search_count([
+            active_count = self.search_count([
                 ('user_id', '=', u.id),
-                ('create_date', '>=', fields.Datetime.to_datetime(ninety_ago)),
+                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
             ])
-            if not has_recent_lead:
+            if not active_count:
                 continue
-            won_count = self.search_count([
+            recent_calls = self.env['stringee.call'].search_count([
                 ('user_id', '=', u.id),
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', ninety_ago),
+                ('create_date', '>=', two_days_ago),
             ])
-            if won_count == 0:
-                nv_below += 1
+            if recent_calls == 0:
+                last_call = self.env['stringee.call'].search([
+                    ('user_id', '=', u.id),
+                ], order='create_date desc', limit=1)
+                days_idle = ((now - last_call.create_date).days
+                              if last_call else 99)
+                idle_nv_list.append({
+                    'user_id': u.id,
+                    'name': _short_name(u.name),
+                    'full_name': u.name,
+                    'team': self._vd_team_label_for(u),
+                    'days_idle': days_idle,
+                    'active_leads': active_count,
+                    'last_call_date': last_call.create_date.isoformat() if last_call else None,
+                })
+        idle_nv_list.sort(key=lambda x: (-x['days_idle'], -x['active_leads']))
 
         kpi = {
             'total_deals': total_deals,
             'unique_customers': unique_customers,
             'closed_contracts': closed_contracts,
             'active_negotiations': active_negotiations,
-            'nv_below_threshold': nv_below,
+            'idle_nv_count': len(idle_nv_list),
             'conversion_pct': round((closed_contracts / total_deals * 100), 1) if total_deals else 0,
         }
 
-        # === Time-series: deal records per month, stacked by team ===
-        # Group by month + user → tính team label sau ở Python (regex prefix)
+        # ============ 🚨 SECTION 1: CẦN HÀNH ĐỘNG NGAY ============
+        # 1a. Overdue callbacks (top 10)
+        overdue_recs = self.search([
+            ('callback_date', '<', now),
+            ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            ('active', '=', True),
+        ], order='callback_date asc', limit=10)
+        overdue_callbacks = [{
+            'lead_id': r.id,
+            'name': r.name or r.partner_name or 'KH',
+            'phone': r.phone or '',
+            'user_name': _short_name(r.user_id.name) if r.user_id else '—',
+            'team': self._vd_team_label_for(r.user_id) if r.user_id else 'KHÁC',
+            'hours_overdue': int((now - r.callback_date).total_seconds() // 3600) if r.callback_date else 0,
+            'callback_date': r.callback_date.isoformat() if r.callback_date else None,
+        } for r in overdue_recs]
+
+        # 1b. HĐ sắp ký / quá hạn (top 10)
+        pending_signs = self.search([
+            ('vd_planned_sign_date', '!=', False),
+            ('vd_contract_signed', '=', False),
+            ('stage_is_won', '=', True),
+            ('active', '=', True),
+        ], order='vd_planned_sign_date asc', limit=10)
+        pending_signatures = []
+        for r in pending_signs:
+            if not r.vd_planned_sign_date:
+                continue
+            delta = r.vd_planned_sign_date - now
+            days_until = delta.days
+            urgency = (
+                'past' if days_until < 0 else
+                'today' if days_until == 0 else
+                'soon' if days_until <= 2 else
+                'far'
+            )
+            pending_signatures.append({
+                'lead_id': r.id,
+                'name': r.name or r.partner_name or 'KH',
+                'phone': r.phone or '',
+                'user_name': _short_name(r.user_id.name) if r.user_id else '—',
+                'team': self._vd_team_label_for(r.user_id) if r.user_id else 'KHÁC',
+                'planned_sign_date': r.vd_planned_sign_date.isoformat(),
+                'days_until': days_until,
+                'urgency': urgency,
+                'location': r.vd_planned_sign_location or '',
+            })
+
+        # 1c. KH mới chưa gọi cuộc nào
+        Stage = self.env['crm.stage']
+        new_stage = Stage.search([('code', '=', 'new')], limit=1)
+        uncalled_new = []
+        if new_stage:
+            uc_recs = self.search([
+                ('stage_id', '=', new_stage.id),
+                ('call_count', '=', 0),
+                ('create_date', '<', now - _td(hours=6)),  # >6h chưa gọi
+                ('active', '=', True),
+            ], order='create_date asc', limit=10)
+            for r in uc_recs:
+                hours = int((now - r.create_date).total_seconds() // 3600) if r.create_date else 0
+                uncalled_new.append({
+                    'lead_id': r.id,
+                    'name': r.name or r.partner_name or 'KH',
+                    'phone': r.phone or '',
+                    'user_name': _short_name(r.user_id.name) if r.user_id else 'CHƯA PHÂN',
+                    'team': self._vd_team_label_for(r.user_id) if r.user_id else 'KHÁC',
+                    'hours_since_created': hours,
+                })
+
+        urgent_section = {
+            'overdue_callbacks': overdue_callbacks,
+            'overdue_count': self.search_count([
+                ('callback_date', '<', now),
+                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            ]),
+            'idle_nvs': idle_nv_list[:8],
+            'pending_signatures': pending_signatures,
+            'uncalled_new': uncalled_new,
+            'uncalled_count': self.search_count([
+                ('stage_id', '=', new_stage.id if new_stage else False),
+                ('call_count', '=', 0),
+                ('create_date', '<', now - _td(hours=6)),
+            ]) if new_stage else 0,
+        }
+
+        # ============ 📊 SECTION 2: SỨC KHOẺ PIPELINE ============
+        # Funnel: stages new → quote → negotiate → won. Count active leads tại mỗi stage.
+        # Conversion %: cumulative — KH tạo trong period đã reach stage X chưa.
+        funnel_stages = Stage.search([
+            ('code', 'in', ['new', 'quote', 'negotiate', 'won'])
+        ], order='sequence')
+        stage_code_seq = ['new', 'quote', 'negotiate', 'won']
+        stage_seq_map = {s.code: i for i, s in enumerate(funnel_stages) if s.code in stage_code_seq}
+
+        # Count active leads currently at each stage
+        funnel_payload = []
+        funnel_color = {
+            'new': '#2563eb', 'quote': '#d97706',
+            'negotiate': '#9333ea', 'won': '#16a34a',
+        }
+        for st in funnel_stages:
+            c = self.search_count([('stage_id', '=', st.id), ('active', '=', True)])
+            # Average age (days since create_date) of leads at this stage
+            self.env.cr.execute("""
+                SELECT EXTRACT(EPOCH FROM AVG(NOW() - create_date)) / 86400
+                FROM crm_lead WHERE stage_id = %s AND active = TRUE
+            """, (st.id,))
+            avg_days_row = self.env.cr.fetchone()
+            avg_days = round(avg_days_row[0], 1) if avg_days_row and avg_days_row[0] else 0
+            funnel_payload.append({
+                'code': st.code,
+                'name': st.name,
+                'count': c,
+                'avg_days': avg_days,
+                'color': funnel_color.get(st.code or '', '#6c757d'),
+            })
+
+        # Conversion: leads tạo trong period → bao nhiêu đã reach stage tiếp theo
+        # Đếm leads tạo trong period có stage_id sequence >= sequence của stage target
+        conversions = []
+        try:
+            new_seq = funnel_stages.filtered(lambda s: s.code == 'new').sequence or 1
+            quote_seq = funnel_stages.filtered(lambda s: s.code == 'quote').sequence or 2
+            nego_seq = funnel_stages.filtered(lambda s: s.code == 'negotiate').sequence or 3
+            won_seq = funnel_stages.filtered(lambda s: s.code == 'won').sequence or 4
+            def _count_reached(min_seq):
+                return self.search_count(date_domain + [('stage_id.sequence', '>=', min_seq)])
+            n_new = _count_reached(new_seq) or total_deals or 0
+            n_quote = _count_reached(quote_seq)
+            n_nego = _count_reached(nego_seq)
+            n_won = closed_contracts
+            steps = [
+                ('Mới → Báo giá', n_new, n_quote, 'new', 'quote'),
+                ('Báo giá → Đàm phán', n_quote, n_nego, 'quote', 'negotiate'),
+                ('Đàm phán → Chốt', n_nego, n_won, 'negotiate', 'won'),
+            ]
+            for label, frm, to_val, frm_code, to_code in steps:
+                pct = round((to_val / frm * 100), 1) if frm else 0
+                conversions.append({
+                    'label': label,
+                    'from_count': frm, 'to_count': to_val,
+                    'pct': pct,
+                    'from_code': frm_code, 'to_code': to_code,
+                })
+        except Exception:
+            pass
+
+        # Bottleneck: conversion step thấp nhất (ignore 100% = chốt)
+        bottleneck = None
+        if conversions:
+            non_perfect = [c for c in conversions if c['from_count'] > 0]
+            if non_perfect:
+                worst = min(non_perfect, key=lambda x: x['pct'])
+                bottleneck = {
+                    'label': worst['label'],
+                    'pct': worst['pct'],
+                    'hint': (
+                        'Tỉ lệ chuyển thấp — review process / training'
+                        if worst['pct'] < 50 else
+                        'Có thể tối ưu thêm'
+                    ),
+                }
+
+        # Stale leads — >14 ngày không gọi
+        stale_threshold = now - _td(days=14)
+        stale_recs = self.search([
+            ('active', '=', True),
+            ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            '|',
+            ('last_call_date', '<', stale_threshold),
+            '&', ('last_call_date', '=', False), ('create_date', '<', stale_threshold),
+        ], order='last_call_date asc, create_date asc', limit=10)
+        stale_count = self.search_count([
+            ('active', '=', True),
+            ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            '|',
+            ('last_call_date', '<', stale_threshold),
+            '&', ('last_call_date', '=', False), ('create_date', '<', stale_threshold),
+        ])
+        stale_top = []
+        for r in stale_recs:
+            anchor = r.last_call_date or r.create_date
+            days_stale = ((now - anchor).days if anchor else 99)
+            stale_top.append({
+                'lead_id': r.id,
+                'name': r.name or r.partner_name or 'KH',
+                'days_stale': days_stale,
+                'user_name': _short_name(r.user_id.name) if r.user_id else '—',
+                'team': self._vd_team_label_for(r.user_id) if r.user_id else 'KHÁC',
+            })
+
+        # Negotiation problems status (vd.lead.problem)
+        Problem = self.env['vd.lead.problem']
+        prob_total = Problem.search_count([('lead_id.create_date', '>=', dt_from)])
+        prob_open = Problem.search_count([
+            ('lead_id.create_date', '>=', dt_from),
+            ('status', '=', 'open'),
+        ])
+        prob_in_progress = Problem.search_count([
+            ('lead_id.create_date', '>=', dt_from),
+            ('status', '=', 'in_progress'),
+        ])
+        prob_resolved = Problem.search_count([
+            ('lead_id.create_date', '>=', dt_from),
+            ('status', '=', 'resolved'),
+        ])
+        problems = {
+            'total': prob_total,
+            'open': prob_open,
+            'in_progress': prob_in_progress,
+            'resolved': prob_resolved,
+            'open_pct': round((prob_open + prob_in_progress) / prob_total * 100, 1) if prob_total else 0,
+            'resolved_pct': round(prob_resolved / prob_total * 100, 1) if prob_total else 0,
+        }
+
+        pipeline_section = {
+            'funnel': funnel_payload,
+            'conversions': conversions,
+            'bottleneck': bottleneck,
+            'stale_count': stale_count,
+            'stale_top': stale_top,
+            'problems': problems,
+        }
+
+        # ============ 🏆 SECTION 3: HIỆU SUẤT NV ============
+        # Cho mỗi NV active: tính contracts, leads, calls, answered, conversion
+        nv_perf_rows = []
+        Call = self.env['stringee.call']
+        for u in sales_users:
+            uid = u.id
+            u_leads_total = self.search_count([
+                ('user_id', '=', uid), ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+            ])
+            if u_leads_total == 0:
+                continue
+            u_closed = self.search_count([
+                ('user_id', '=', uid),
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', d_from),
+                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
+            ])
+            u_active = self.search_count([
+                ('user_id', '=', uid),
+                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            ])
+            u_calls = Call.search_count([
+                ('user_id', '=', uid),
+                ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+            ])
+            u_answered = Call.search_count([
+                ('user_id', '=', uid),
+                ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+                ('state', 'in', ['answered', 'ended']),
+                ('duration', '>', 0),
+            ])
+            conv_pct = round((u_closed / u_leads_total * 100), 1) if u_leads_total else 0
+            answer_pct = round((u_answered / u_calls * 100), 1) if u_calls else 0
+            nv_perf_rows.append({
+                'user_id': uid,
+                'name': _short_name(u.name),
+                'full_name': u.name,
+                'team': self._vd_team_label_for(u),
+                'leads_total': u_leads_total,
+                'closed': u_closed,
+                'active': u_active,
+                'calls': u_calls,
+                'answered': u_answered,
+                'conversion_pct': conv_pct,
+                'answer_pct': answer_pct,
+            })
+
+        # Top closers (>= 1 HĐ chốt, sort by closed desc)
+        top_closers = sorted(
+            [r for r in nv_perf_rows if r['closed'] > 0],
+            key=lambda x: (-x['closed'], -x['conversion_pct']),
+        )[:5]
+
+        # Need training: leads_total >= 5 nhưng closed = 0
+        need_training = sorted(
+            [r for r in nv_perf_rows if r['leads_total'] >= 5 and r['closed'] == 0],
+            key=lambda x: -x['leads_total'],
+        )[:5]
+
+        # Gọi nhiều chốt ít: calls >= 30 và conversion < 5% và leads_total >= 5
+        high_call_low_close = sorted(
+            [r for r in nv_perf_rows if r['calls'] >= 30 and r['conversion_pct'] < 5 and r['leads_total'] >= 5],
+            key=lambda x: -x['calls'],
+        )[:5]
+
+        # Tỉ lệ bắt máy thấp: calls >= 10 và answer_pct < 40
+        low_answer = sorted(
+            [r for r in nv_perf_rows if r['calls'] >= 10 and r['answer_pct'] < 40],
+            key=lambda x: x['answer_pct'],
+        )[:5]
+
+        nv_section = {
+            'top_closers': top_closers,
+            'need_training': need_training,
+            'high_call_low_close': high_call_low_close,
+            'low_answer': low_answer,
+            'total_nv': len(nv_perf_rows),
+        }
+
+        # ============ 🎯 SECTION 4: INSIGHT KHÁCH HÀNG ============
+        # 4a. Top negotiation problem tags
         self.env.cr.execute("""
-            SELECT date_trunc('month', create_date) AS m,
-                   user_id,
-                   COUNT(*) AS cnt
+            SELECT p.tag_id, COUNT(*)
+            FROM vd_lead_problem p
+            JOIN crm_lead l ON l.id = p.lead_id
+            WHERE l.create_date >= %s AND l.create_date < %s
+              AND p.tag_id IS NOT NULL
+            GROUP BY p.tag_id
+            ORDER BY COUNT(*) DESC
+            LIMIT 8
+        """, (dt_from, dt_to))
+        prob_rows = self.env.cr.fetchall()
+        NegoProblem = self.env['vd.nego.problem']
+        top_problems = []
+        prob_total_with_tag = sum(c for _, c in prob_rows) or 1
+        for tag_id, cnt in prob_rows:
+            tag = NegoProblem.browse(tag_id)
+            top_problems.append({
+                'tag_id': tag_id,
+                'name': tag.name or 'Vấn đề',
+                'icon': tag.icon or '🔸',
+                'count': cnt,
+                'pct': round(cnt / prob_total_with_tag * 100, 1),
+            })
+
+        # 4b. Top lost reasons
+        self.env.cr.execute("""
+            SELECT COALESCE(NULLIF(TRIM(vd_lost_reason), ''), '— không ghi —') AS reason,
+                   COUNT(*)
             FROM crm_lead
             WHERE create_date >= %s AND create_date < %s
-              AND active = TRUE
-            GROUP BY m, user_id
-            ORDER BY m
+              AND stage_id IN (SELECT id FROM crm_stage WHERE is_lost = TRUE)
+            GROUP BY reason
+            ORDER BY COUNT(*) DESC
+            LIMIT 5
         """, (dt_from, dt_to))
-        rows = self.env.cr.fetchall()
-        user_team_cache = {}
-        def _team_of_uid(uid):
-            if uid in user_team_cache:
-                return user_team_cache[uid]
-            u = ResUsers.browse(uid) if uid else None
-            lbl = self._vd_team_label_for(u) if u else 'KHÁC'
-            user_team_cache[uid] = lbl
-            return lbl
+        top_lost = [
+            {'reason': (r[0] or '—')[:200], 'count': r[1]}
+            for r in self.env.cr.fetchall()
+        ]
+        total_lost = sum(r['count'] for r in top_lost) or 1
+        for r in top_lost:
+            r['pct'] = round(r['count'] / total_lost * 100, 1)
 
-        from collections import defaultdict, OrderedDict
-        ts_map = OrderedDict()  # 'YYYY-MM' → {team: count}
-        cur = d_from.replace(day=1)
-        end_month = d_to.replace(day=1)
-        while cur <= end_month:
-            ts_map[cur.strftime('%Y-%m')] = defaultdict(int)
-            # next month
-            cur = (cur.replace(day=28) + _td(days=4)).replace(day=1)
-        teams_set = set()
-        for m_dt, uid, cnt in rows:
-            key = m_dt.strftime('%Y-%m')
-            if key not in ts_map:
-                ts_map[key] = defaultdict(int)
-            team = _team_of_uid(uid)
-            ts_map[key][team] += cnt
-            teams_set.add(team)
-        # Đảm bảo 4 team chính HN/HCM1/HCM2/HCM3 luôn hiện kể cả khi 0
-        for t in ['HN', 'HCM1', 'HCM2', 'HCM3']:
-            teams_set.add(t)
-        team_order = ['HN', 'HCM1', 'HCM2', 'HCM3'] + sorted(t for t in teams_set if t not in ('HN', 'HCM1', 'HCM2', 'HCM3'))
-
-        months_labels = []
-        series = {t: [] for t in team_order}
-        for ym, team_counts in ts_map.items():
-            y, m = ym.split('-')
-            months_labels.append(f'T{int(m)}/{y[-2:]}')
-            for t in team_order:
-                series[t].append(team_counts.get(t, 0))
-
-        time_series = {
-            'months': months_labels,
-            'teams': team_order,
-            'series': series,
+        # 4c. Source quality
+        SOURCE_LABELS = {
+            'facebook': ('📘 Facebook', '#1877f2'),
+            'tiktok':   ('🎵 TikTok', '#000'),
+            'instagram': ('📷 Instagram', '#e4405f'),
+            False:      ('👤 Thủ công', '#6c757d'),
+            None:       ('👤 Thủ công', '#6c757d'),
         }
-
-        # === Status distribution (donut) — stage breakdown trong active leads ===
-        Stage = self.env['crm.stage']
-        active_stages = Stage.search([
-            ('code', 'in', ['quote', 'negotiate', 'won']),
-        ], order='sequence')
-        donut = []
-        donut_color_map = {
-            'quote': '#5b9bd5',       # xanh dương
-            'negotiate': '#a578d8',   # tím
-            'won': '#4caf83',         # xanh lá
-        }
-        for st in active_stages:
-            c = self.search_count(date_domain + [('stage_id', '=', st.id)])
-            if c == 0:
-                continue
-            donut.append({
-                'label': st.name,
-                'code': st.code,
-                'count': c,
-                'color': donut_color_map.get(st.code, '#888'),
+        self.env.cr.execute("""
+            SELECT pancake_platform,
+                   COUNT(*) AS total,
+                   SUM(CASE WHEN vd_contract_signed THEN 1 ELSE 0 END) AS closed
+            FROM crm_lead
+            WHERE create_date >= %s AND create_date < %s AND active = TRUE
+            GROUP BY pancake_platform
+            ORDER BY total DESC
+        """, (dt_from, dt_to))
+        source_quality = []
+        for src, total, closed_cnt in self.env.cr.fetchall():
+            lbl, color = SOURCE_LABELS.get(src) or (f'📌 {src or "—"}', '#6c757d')
+            source_quality.append({
+                'source': src or 'manual',
+                'label': lbl,
+                'color': color,
+                'total': total,
+                'closed': closed_cnt,
+                'pct': round(closed_cnt / total * 100, 1) if total else 0,
             })
-        # Thêm slice "Gấp" = lead có callback_date quá hạn
-        urgent = self.search_count(date_domain + [
-            ('callback_date', '<', fields.Datetime.now()),
-            ('stage_is_won', '=', False),
-            ('stage_is_lost', '=', False),
-        ])
-        if urgent:
-            donut.append({
-                'label': 'Gấp', 'code': 'urgent',
-                'count': urgent, 'color': '#f5a623',
-            })
-        donut_total = sum(d['count'] for d in donut) or 1
-        for d in donut:
-            d['pct'] = round(d['count'] / donut_total * 100)
 
-        # === Conversion by region ===
-        # Build team → user_ids map
+        # 4d. Region performance (HN/HCM1/HCM2/HCM3)
         team_user_ids = defaultdict(list)
         for u in sales_users:
             team_user_ids[self._vd_team_label_for(u)].append(u.id)
-        team_palette = {
-            'HN': '#5b9bd5', 'HCM1': '#4caf83',
-            'HCM2': '#a578d8', 'HCM3': '#f5a623',
-        }
-        conversion_by_region = []
+        region_perf = []
         for team in ['HN', 'HCM1', 'HCM2', 'HCM3']:
             uids = team_user_ids.get(team, [])
             if not uids:
-                conversion_by_region.append({
-                    'region': team, 'closed': 0, 'total': 0,
-                    'pct': 0.0, 'color': team_palette.get(team, '#888'),
+                region_perf.append({
+                    **_team_pretty(team), 'total': 0, 'closed': 0, 'pct': 0,
                 })
                 continue
-            # Unique customers (phone) for region in period
             self.env.cr.execute("""
-                SELECT COUNT(DISTINCT NULLIF(TRIM(phone), ''))
+                SELECT COUNT(*), SUM(CASE WHEN vd_contract_signed THEN 1 ELSE 0 END)
                 FROM crm_lead
                 WHERE user_id = ANY(%s)
-                  AND create_date >= %s AND create_date < %s
-                  AND active = TRUE
+                  AND create_date >= %s AND create_date < %s AND active = TRUE
             """, (uids, dt_from, dt_to))
-            r_total = self.env.cr.fetchone()[0] or 0
-            r_closed = self.search_count([
-                ('user_id', 'in', uids),
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', d_from),
-                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
-            ])
-            pct = round((r_closed / r_total * 100), 1) if r_total else 0.0
-            conversion_by_region.append({
-                'region': team, 'closed': r_closed, 'total': r_total,
-                'pct': pct, 'color': team_palette.get(team, '#888'),
+            row = self.env.cr.fetchone()
+            tot = row[0] or 0
+            cl = row[1] or 0
+            region_perf.append({
+                **_team_pretty(team),
+                'total': tot, 'closed': cl,
+                'pct': round(cl / tot * 100, 1) if tot else 0,
             })
 
-        # === Top NV by closed contracts ===
-        nv_stats = []
-        for u in sales_users:
-            c = self.search_count([
-                ('user_id', '=', u.id),
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', d_from),
-                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
-            ])
-            if c == 0:
-                continue
-            # Tên ngắn: bỏ prefix "HCM1 - "
-            short_name = re.sub(r'^[A-ZĐ]+\d*\s*[-–—]\s*', '', u.name or '')
-            nv_stats.append({
-                'user_id': u.id,
-                'name': short_name or (u.name or 'NV'),
-                'full_name': u.name,
-                'count': c,
-                'team': self._vd_team_label_for(u),
-                'color': team_palette.get(self._vd_team_label_for(u), '#888'),
+        customer_section = {
+            'top_problems': top_problems,
+            'top_lost_reasons': top_lost,
+            'source_quality': source_quality,
+            'region_performance': region_perf,
+        }
+
+        # ============ 💡 SECTION 5: GỢI Ý HÀNH ĐỘNG ============
+        recommendations = []
+        # High priority
+        if urgent_section['overdue_count'] >= 5:
+            recommendations.append({
+                'priority': 'high', 'icon': '🚨',
+                'title': f"{urgent_section['overdue_count']} KH quá hạn callback",
+                'detail': 'Cần phân lại NV khác hoặc thúc NV gọi gấp — KH đợi lâu sẽ trượt deal.',
             })
-        nv_stats.sort(key=lambda x: -x['count'])
-        top_nv = nv_stats[:10]
+        if kpi['idle_nv_count'] >= 1:
+            recommendations.append({
+                'priority': 'high', 'icon': '😴',
+                'title': f"{kpi['idle_nv_count']} NV không gọi cuộc nào trong 2 ngày",
+                'detail': 'Họp 1-on-1 hoặc kiểm tra workload — NV đang ngồi không nhưng KH active còn nhiều.',
+            })
+        if pending_signatures:
+            past_due = [p for p in pending_signatures if p['urgency'] == 'past']
+            if past_due:
+                recommendations.append({
+                    'priority': 'high', 'icon': '⏰',
+                    'title': f"{len(past_due)} lịch ký HĐ đã quá hạn",
+                    'detail': 'Liên hệ KH gấp để xác nhận có ký không — tránh KH lật kèo.',
+                })
+
+        # Medium priority
+        if bottleneck and bottleneck['pct'] < 30:
+            recommendations.append({
+                'priority': 'medium', 'icon': '🔍',
+                'title': f"Bottleneck: {bottleneck['label']} chỉ {bottleneck['pct']}%",
+                'detail': 'Review process tại bước này — đa số KH dừng ở đây, cần training kỹ năng cụ thể.',
+            })
+        if top_problems and len(top_problems) > 0 and top_problems[0]['pct'] >= 30:
+            tp = top_problems[0]
+            recommendations.append({
+                'priority': 'medium', 'icon': tp['icon'],
+                'title': f"Vấn đề '{tp['name']}' xuất hiện {tp['count']} lần ({tp['pct']}%)",
+                'detail': 'Tag này dominant — cân nhắc cải thiện sản phẩm/giá/process để xử lý gốc rễ.',
+            })
+        if stale_count >= 10:
+            recommendations.append({
+                'priority': 'medium', 'icon': '💤',
+                'title': f"{stale_count} KH bị bỏ rơi >14 ngày",
+                'detail': 'Phân lại NV hoặc đóng (lost) — KH không liên hệ sẽ tự lạnh đi.',
+            })
+
+        # Low priority insights
+        if source_quality:
+            best_src = max(source_quality, key=lambda x: x['pct'])
+            worst_src = min([s for s in source_quality if s['total'] >= 5], key=lambda x: x['pct'], default=None)
+            if best_src['total'] >= 5 and best_src['pct'] > 0:
+                recommendations.append({
+                    'priority': 'low', 'icon': '✨',
+                    'title': f"Nguồn {best_src['label']} hiệu quả nhất ({best_src['pct']}%)",
+                    'detail': 'Đầu tư thêm ngân sách marketing cho kênh này.',
+                })
+            if worst_src and worst_src['pct'] < 2 and worst_src['total'] >= 10:
+                recommendations.append({
+                    'priority': 'low', 'icon': '⚠️',
+                    'title': f"Nguồn {worst_src['label']} chốt thấp ({worst_src['pct']}%)",
+                    'detail': 'Review chất lượng SĐT / ad creative — đang đốt tiền không ra deal.',
+                })
 
         return {
             'date_from': d_from.isoformat(),
             'date_to': d_to.isoformat(),
+            'generated_at': now.isoformat(),
             'kpi': kpi,
-            'time_series': time_series,
-            'status_distribution': donut,
-            'conversion_by_region': conversion_by_region,
-            'top_nv': top_nv,
-            'generated_at': fields.Datetime.now().isoformat(),
+            'urgent': urgent_section,
+            'pipeline': pipeline_section,
+            'nv_performance': nv_section,
+            'customer_insights': customer_section,
+            'recommendations': recommendations,
         }

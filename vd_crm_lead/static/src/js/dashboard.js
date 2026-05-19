@@ -9,10 +9,9 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, onWillStart, onMounted, onPatched, onWillUnmount, useState, useRef } from "@odoo/owl";
+import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { loadJS } from "@web/core/assets";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
@@ -55,31 +54,16 @@ export class VdCrmDashboard extends Component {
             analyticsTo: isoDate(today),
         });
 
-        // Refs cho 4 canvas Chart.js — render trong tab overview
-        this.chartRefs = {
-            timeSeries: useRef("chartTimeSeries"),
-            donut: useRef("chartDonut"),
-            conversion: useRef("chartConversion"),
-            topNv: useRef("chartTopNv"),
-        };
-        this._chartInstances = {};
-        this._chartsDirty = false;   // true sau loadAnalytics → onPatched sẽ render
-
         onWillStart(async () => {
             await this.loadDashboard();
             if (this.state.is_manager) {
                 this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
-                // Manager + xem "Tất cả NV" → auto load analytics cho tab overview
+                // Manager + xem "Tất cả NV" → auto load insights cho tab overview
                 if (this.isAdminView && this.state.adminTab === 'overview') {
-                    await loadJS("/web/static/lib/Chart/Chart.js");
                     await this.loadAnalytics();
                 }
             }
         });
-
-        onMounted(() => this._maybeRenderCharts());
-        onPatched(() => this._maybeRenderCharts());
-        onWillUnmount(() => this._destroyAllCharts());
     }
 
     async loadDashboard() {
@@ -117,13 +101,8 @@ export class VdCrmDashboard extends Component {
         this.state.adminTab = tab;
         // Đóng NV detail khi đổi tab
         this.state.nvDetail = null;
-        // Destroy charts khi rời tab overview để tránh memory leak
-        if (tab !== "overview") {
-            this._destroyAllCharts();
-        }
-        // Tab overview = BI analytics — load Chart.js + dashboard_analytics
+        // Tab overview = insights dashboard — load lazily
         if (tab === "overview" && !this.state.analytics) {
-            await loadJS("/web/static/lib/Chart/Chart.js");
             await this.loadAnalytics();
         }
         // Tab "alerts" dùng leads list → load default stage nếu chưa có
@@ -447,9 +426,8 @@ export class VdCrmDashboard extends Component {
                 this.state.analyticsFrom, this.state.analyticsTo,
             ]);
             this.state.analytics = data;
-            this._chartsDirty = true;
         } catch (e) {
-            this.notification.add(e.message || "Lỗi tải analytics", { type: "danger" });
+            this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
         }
         this.state.analyticsLoading = false;
     }
@@ -468,180 +446,6 @@ export class VdCrmDashboard extends Component {
         return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
     }
 
-    _maybeRenderCharts() {
-        if (!this._chartsDirty) return;
-        if (this.state.adminTab !== 'overview') return;
-        if (!this.state.analytics) return;
-        if (typeof window.Chart === 'undefined') return;
-        this._chartsDirty = false;
-        // Defer 2 frames + check canvas có size thật trước khi render
-        // (chart card vừa mount, height từ flex/CSS chưa stable trong frame đầu)
-        const tryRender = (retriesLeft = 5) => {
-            const cv = this.chartRefs.timeSeries.el;
-            if (cv && cv.offsetHeight > 0) {
-                this._renderAllCharts();
-                return;
-            }
-            if (retriesLeft <= 0) {
-                this._renderAllCharts();   // best-effort
-                return;
-            }
-            requestAnimationFrame(() => tryRender(retriesLeft - 1));
-        };
-        requestAnimationFrame(() => tryRender());
-    }
-
-    _destroyAllCharts() {
-        for (const k of Object.keys(this._chartInstances)) {
-            try { this._chartInstances[k].destroy(); } catch (_e) {}
-        }
-        this._chartInstances = {};
-    }
-
-    _renderAllCharts() {
-        this._destroyAllCharts();
-        // Auto-detect theme từ Bootstrap CSS vars của Odoo (light/dark đều bám)
-        const css = getComputedStyle(document.body);
-        const cardBg = (css.getPropertyValue('--bs-body-bg') || '#fff').trim() || '#fff';
-        const tickColor = (css.getPropertyValue('--bs-secondary-color') || '#64748b').trim() || '#64748b';
-        const borderColor = (css.getPropertyValue('--bs-border-color') || '#dee2e6').trim() || '#dee2e6';
-        const gridColor = borderColor;
-        const Chart = window.Chart;
-        const a = this.state.analytics;
-
-        // ===== 1. Time series — stacked bar =====
-        const c1 = this.chartRefs.timeSeries.el;
-        if (c1 && a.time_series && a.time_series.months.length) {
-            const ts = a.time_series;
-            const palette = {
-                'HN': '#5b9bd5', 'HCM1': '#4caf83',
-                'HCM2': '#a578d8', 'HCM3': '#f5a623',
-                'KHÁC': '#94a3b8',
-            };
-            const datasets = ts.teams.map(t => ({
-                label: t,
-                data: ts.series[t] || [],
-                backgroundColor: palette[t] || '#888',
-                borderWidth: 0,
-                borderRadius: 4,
-                stack: 'all',
-            })).filter(d => d.data.some(v => v > 0));
-            this._chartInstances.timeSeries = new Chart(c1, {
-                type: 'bar',
-                data: { labels: ts.months, datasets },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: tickColor, boxWidth: 12 } },
-                        tooltip: { mode: 'index', intersect: false },
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: tickColor } },
-                        y: { stacked: true, grid: { color: gridColor }, ticks: { color: tickColor } },
-                    },
-                },
-            });
-        }
-
-        // ===== 2. Donut — status distribution =====
-        const c2 = this.chartRefs.donut.el;
-        if (c2 && a.status_distribution && a.status_distribution.length) {
-            const sd = a.status_distribution;
-            this._chartInstances.donut = new Chart(c2, {
-                type: 'doughnut',
-                data: {
-                    labels: sd.map(d => `${d.label}: ${d.count} (${d.pct}%)`),
-                    datasets: [{
-                        data: sd.map(d => d.count),
-                        backgroundColor: sd.map(d => d.color),
-                        borderColor: cardBg,
-                        borderWidth: 3,
-                    }],
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    cutout: '62%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: tickColor, boxWidth: 12, padding: 10 },
-                        },
-                    },
-                },
-            });
-        }
-
-        // ===== 3. Conversion by region — horizontal bar =====
-        const c3 = this.chartRefs.conversion.el;
-        if (c3 && a.conversion_by_region && a.conversion_by_region.length) {
-            const cr = a.conversion_by_region;
-            this._chartInstances.conversion = new Chart(c3, {
-                type: 'bar',
-                data: {
-                    labels: cr.map(r => r.region),
-                    datasets: [{
-                        data: cr.map(r => r.pct),
-                        backgroundColor: cr.map(r => r.color),
-                        borderRadius: 4,
-                        borderWidth: 0,
-                    }],
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const row = cr[ctx.dataIndex];
-                                    return ` ${row.closed}/${row.total} · ${row.pct}%`;
-                                },
-                            },
-                        },
-                    },
-                    scales: {
-                        x: { grid: { color: gridColor }, ticks: { color: tickColor, callback: (v) => v + '%' } },
-                        y: { grid: { display: false }, ticks: { color: tickColor, font: { weight: 600 } } },
-                    },
-                },
-            });
-        }
-
-        // ===== 4. Top NV — horizontal bar =====
-        const c4 = this.chartRefs.topNv.el;
-        if (c4 && a.top_nv && a.top_nv.length) {
-            const tn = a.top_nv;
-            this._chartInstances.topNv = new Chart(c4, {
-                type: 'bar',
-                data: {
-                    labels: tn.map(r => r.name),
-                    datasets: [{
-                        data: tn.map(r => r.count),
-                        backgroundColor: tn.map(r => r.color),
-                        borderRadius: 4,
-                        borderWidth: 0,
-                    }],
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => ` ${tn[ctx.dataIndex].full_name}: ${ctx.parsed.x} HĐ`,
-                            },
-                        },
-                    },
-                    scales: {
-                        x: { grid: { color: gridColor }, ticks: { color: tickColor, stepSize: 1 } },
-                        y: { grid: { display: false }, ticks: { color: tickColor } },
-                    },
-                },
-            });
-        }
-    }
 }
 
 registry.category("actions").add("vd_crm_lead.dashboard", VdCrmDashboard);
