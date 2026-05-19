@@ -1531,6 +1531,8 @@
         span:first-of-type, > span {
             flex: 1;
             min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;   /* safety: nếu label dài quá → ... thay vì spill */
         }
 
         &:hover {
@@ -1556,6 +1558,7 @@
         border-radius: 999px;
         min-width: 22px;
         text-align: center;
+        flex-shrink: 0;   /* badge không bị co lại nhường chỗ cho text */
 
         .o_vd_admin_nav_item.o_active & {
             background: #fff;
