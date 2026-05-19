@@ -584,96 +584,8 @@
                             </div>
                         </div>
 
-                        <!-- ============== TAB: THÀNH TÍCH NV ============== -->
-                        <div t-if="state.adminTab === 'performance'" class="o_vd_admin_tab">
-                            <div class="o_vd_admin_tab_head">
-                                <h4><i class="fa fa-trophy me-2"/> Thành tích nhân viên</h4>
-                                <div class="o_vd_admin_tab_sub">
-                                    Click vào 1 NV để xem chi tiết bên phải — thưởng theo cơ cấu chỉ tiêu 2026.
-                                </div>
-                            </div>
-
-                            <!-- Summary cards -->
-                            <div class="o_vd_admin_kpi_row">
-                                <div class="o_vd_admin_kpi_card o_vd_kpi_total">
-                                    <div class="o_vd_admin_kpi_lbl">Tổng NV</div>
-                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.leaderboard.length"/></div>
-                                </div>
-                                <div class="o_vd_admin_kpi_card o_vd_kpi_won">
-                                    <div class="o_vd_admin_kpi_lbl">HĐ tháng này</div>
-                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.contracts_month or 0"/></div>
-                                </div>
-                                <div class="o_vd_admin_kpi_card o_vd_kpi_calls">
-                                    <div class="o_vd_admin_kpi_lbl">HĐ năm này</div>
-                                    <div class="o_vd_admin_kpi_val"><t t-esc="state.performance.contracts_year or 0"/></div>
-                                </div>
-                                <div class="o_vd_admin_kpi_card o_vd_kpi_bonus">
-                                    <div class="o_vd_admin_kpi_lbl">Tổng thưởng tháng</div>
-                                    <div class="o_vd_admin_kpi_val">
-                                        <t t-esc="formatVnd(state.performance.leaderboard.reduce((s, r) => s + r.bonus_month, 0))"/>đ
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Leaderboard full -->
-                            <section class="o_vd_leaderboard o_vd_leaderboard_full">
-                                <div class="o_vd_leaderboard_title">
-                                    <i class="fa fa-medal me-1"/> Bảng xếp hạng NV (Tháng này)
-                                </div>
-                                <table class="o_vd_leaderboard_tbl">
-                                    <thead>
-                                        <tr>
-                                            <th class="o_vd_lb_rank">#</th>
-                                            <th>Nhân viên</th>
-                                            <th class="text-center">HĐ Tháng</th>
-                                            <th class="text-center">HĐ Năm</th>
-                                            <th class="text-center">KH đang chăm</th>
-                                            <th class="text-center">% Chỉ tiêu</th>
-                                            <th class="text-end">Thưởng tháng</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr t-foreach="state.performance.leaderboard" t-as="row" t-key="row.user_id"
-                                            t-att-class="'o_vd_lb_clickable ' + (row_index === 0 ? 'o_vd_lb_top' : '') + (state.nvDetail?.user?.id === row.user_id ? ' o_vd_lb_active' : '')"
-                                            t-on-click="() => this.openNvDetail(row.user_id)">
-                                            <td class="o_vd_lb_rank">
-                                                <t t-if="row_index === 0">🥇</t>
-                                                <t t-elif="row_index === 1">🥈</t>
-                                                <t t-elif="row_index === 2">🥉</t>
-                                                <t t-else=""><t t-esc="row_index + 1"/></t>
-                                            </td>
-                                            <td class="o_vd_lb_name">
-                                                <i class="fa fa-user-circle me-2 text-muted"/>
-                                                <t t-esc="row.name"/>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="o_vd_lb_count">
-                                                    <t t-esc="row.contracts_month"/>
-                                                    <span class="o_vd_lb_target">/<t t-esc="row.target_month"/></span>
-                                                </span>
-                                            </td>
-                                            <td class="text-center"><t t-esc="row.contracts_year or 0"/></td>
-                                            <td class="text-center"><t t-esc="row.active_leads or 0"/></td>
-                                            <td class="text-center">
-                                                <div class="o_vd_lb_bar_wrap">
-                                                    <div t-att-class="'o_vd_lb_bar ' + perfBarClass(row.perf_pct)"
-                                                         t-att-style="`width:${Math.min(row.perf_pct, 100)}%`"/>
-                                                    <span class="o_vd_lb_pct"><t t-esc="row.perf_pct.toFixed(0)"/>%</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-end o_vd_lb_bonus">
-                                                <t t-esc="formatVnd(row.bonus_month)"/>đ
-                                            </td>
-                                        </tr>
-                                        <tr t-if="!state.performance.leaderboard.length">
-                                            <td colspan="7" class="text-center text-muted py-4">
-                                                Chưa có NV nào — kiểm tra cấu hình group sales.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                        </div>
+                        <!-- Tab THÀNH TÍCH NV (performance) đã xoá — bảng xếp hạng được
+                             move logic xuống section 🏆 Hiệu suất NV trong tab Tổng quan. -->
 
                         <!-- ============== TAB: CẢNH BÁO ============== -->
                         <div t-if="state.adminTab === 'alerts'" class="o_vd_admin_tab">
@@ -1147,53 +1059,7 @@
                             </div>
                         </section>
 
-                        <!-- LEADERBOARD trong NV view chỉ hiện khi 1 NV cụ thể được chọn
-                             (Manager view với 1 NV) — bỏ leaderboard khỏi NV view của chính NV đó -->
-                        <section class="o_vd_leaderboard"
-                                 t-if="state.is_manager and state.performance and state.performance.leaderboard.length">
-                            <div class="o_vd_leaderboard_title">
-                                <i class="fa fa-medal me-1"/> Bảng xếp hạng NV (Tháng này)
-                            </div>
-                            <table class="o_vd_leaderboard_tbl">
-                                <thead>
-                                    <tr>
-                                        <th class="o_vd_lb_rank">#</th>
-                                        <th>Nhân viên</th>
-                                        <th class="text-center">HĐ Tháng</th>
-                                        <th class="text-center">% Chỉ tiêu</th>
-                                        <th class="text-end">Thưởng</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="state.performance.leaderboard" t-as="row" t-key="row.user_id"
-                                        t-att-class="row_index === 0 ? 'o_vd_lb_top' : ''">
-                                        <td class="o_vd_lb_rank">
-                                            <t t-if="row_index === 0">🥇</t>
-                                            <t t-elif="row_index === 1">🥈</t>
-                                            <t t-elif="row_index === 2">🥉</t>
-                                            <t t-else=""><t t-esc="row_index + 1"/></t>
-                                        </td>
-                                        <td class="o_vd_lb_name"><t t-esc="row.name"/></td>
-                                        <td class="text-center">
-                                            <span class="o_vd_lb_count">
-                                                <t t-esc="row.contracts_month"/>
-                                                <span class="o_vd_lb_target">/<t t-esc="row.target_month"/></span>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="o_vd_lb_bar_wrap">
-                                                <div t-att-class="'o_vd_lb_bar ' + perfBarClass(row.perf_pct)"
-                                                     t-att-style="`width:${Math.min(row.perf_pct, 100)}%`"/>
-                                                <span class="o_vd_lb_pct"><t t-esc="row.perf_pct.toFixed(0)"/>%</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-end o_vd_lb_bonus">
-                                            <t t-esc="formatVnd(row.bonus_month)"/>đ
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </section>
+                        <!-- Bảng xếp hạng NV đã xoá theo yêu cầu admin. -->
                     </main>
                 </div>
             </div>
