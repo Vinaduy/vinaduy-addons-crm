@@ -4307,21 +4307,23 @@ class CrmLead(models.Model):
         for r in top_lost:
             r['pct'] = round(r['count'] / total_lost * 100, 1)
 
-        # 4c. Source quality
+        # 4c. Source quality — platform lấy từ vd_pancake_page_id.platform
+        # (lead trỏ tới vd.pancake.page, page có cột platform = facebook/tiktok/ig).
+        # Lead không có pancake_page_id → coi là 'manual' (NV nhập tay).
         SOURCE_LABELS = {
             'facebook': ('📘 Facebook', '#1877f2'),
-            'tiktok':   ('🎵 TikTok', '#000'),
+            'tiktok':   ('🎵 TikTok', '#000000'),
             'instagram': ('📷 Instagram', '#e4405f'),
-            False:      ('👤 Thủ công', '#6c757d'),
-            None:       ('👤 Thủ công', '#6c757d'),
+            'manual':   ('👤 Thủ công', '#6c757d'),
         }
         self.env.cr.execute("""
-            SELECT pancake_platform,
+            SELECT COALESCE(p.platform, 'manual') AS src,
                    COUNT(*) AS total,
-                   SUM(CASE WHEN vd_contract_signed THEN 1 ELSE 0 END) AS closed
-            FROM crm_lead
-            WHERE create_date >= %s AND create_date < %s AND active = TRUE
-            GROUP BY pancake_platform
+                   SUM(CASE WHEN l.vd_contract_signed THEN 1 ELSE 0 END) AS closed
+            FROM crm_lead l
+            LEFT JOIN vd_pancake_page p ON p.id = l.vd_pancake_page_id
+            WHERE l.create_date >= %s AND l.create_date < %s AND l.active = TRUE
+            GROUP BY COALESCE(p.platform, 'manual')
             ORDER BY total DESC
         """, (dt_from, dt_to))
         source_quality = []
@@ -4331,9 +4333,9 @@ class CrmLead(models.Model):
                 'source': src or 'manual',
                 'label': lbl,
                 'color': color,
-                'total': total,
-                'closed': closed_cnt,
-                'pct': round(closed_cnt / total * 100, 1) if total else 0,
+                'total': total or 0,
+                'closed': closed_cnt or 0,
+                'pct': round((closed_cnt or 0) / total * 100, 1) if total else 0,
             })
 
         # 4d. Region performance (HN/HCM1/HCM2/HCM3)
