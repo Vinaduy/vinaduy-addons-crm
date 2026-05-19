@@ -229,7 +229,6 @@
                                         <span class="o_vd_an_reco_icon"><t t-esc="r.icon"/></span>
                                         <div class="o_vd_an_reco_body">
                                             <div class="o_vd_an_reco_title"><t t-esc="r.title"/></div>
-                                            <div class="o_vd_an_reco_detail"><t t-esc="r.detail"/></div>
                                         </div>
                                     </div>
                                 </div>
