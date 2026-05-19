@@ -97,7 +97,7 @@
 
                         <!-- ============== TAB: TỔNG QUAN — BI ANALYTICS DASHBOARD ============== -->
                         <div t-if="state.adminTab === 'overview'"
-                             t-att-class="'o_vd_admin_tab o_vd_analytics o_vd_analytics_' + state.analyticsTheme">
+                             class="o_vd_admin_tab o_vd_analytics">
 
                             <!-- ===== Analytics header: date filter + timestamp ===== -->
                             <div class="o_vd_an_topbar">

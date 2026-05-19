@@ -53,7 +53,6 @@ export class VdCrmDashboard extends Component {
             analyticsLoading: false,
             analyticsFrom: isoDate(past),
             analyticsTo: isoDate(today),
-            analyticsTheme: 'dark',    // 'dark' | 'light'
         });
 
         // Refs cho 4 canvas Chart.js — render trong tab overview
@@ -475,8 +474,21 @@ export class VdCrmDashboard extends Component {
         if (!this.state.analytics) return;
         if (typeof window.Chart === 'undefined') return;
         this._chartsDirty = false;
-        // Defer 1 frame để chắc canvas đã mount
-        requestAnimationFrame(() => this._renderAllCharts());
+        // Defer 2 frames + check canvas có size thật trước khi render
+        // (chart card vừa mount, height từ flex/CSS chưa stable trong frame đầu)
+        const tryRender = (retriesLeft = 5) => {
+            const cv = this.chartRefs.timeSeries.el;
+            if (cv && cv.offsetHeight > 0) {
+                this._renderAllCharts();
+                return;
+            }
+            if (retriesLeft <= 0) {
+                this._renderAllCharts();   // best-effort
+                return;
+            }
+            requestAnimationFrame(() => tryRender(retriesLeft - 1));
+        };
+        requestAnimationFrame(() => tryRender());
     }
 
     _destroyAllCharts() {
@@ -488,9 +500,12 @@ export class VdCrmDashboard extends Component {
 
     _renderAllCharts() {
         this._destroyAllCharts();
-        const dark = this.state.analyticsTheme === 'dark';
-        const gridColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-        const tickColor = dark ? '#94a3b8' : '#64748b';
+        // Auto-detect theme từ Bootstrap CSS vars của Odoo (light/dark đều bám)
+        const css = getComputedStyle(document.body);
+        const cardBg = (css.getPropertyValue('--bs-body-bg') || '#fff').trim() || '#fff';
+        const tickColor = (css.getPropertyValue('--bs-secondary-color') || '#64748b').trim() || '#64748b';
+        const borderColor = (css.getPropertyValue('--bs-border-color') || '#dee2e6').trim() || '#dee2e6';
+        const gridColor = borderColor;
         const Chart = window.Chart;
         const a = this.state.analytics;
 
@@ -539,7 +554,7 @@ export class VdCrmDashboard extends Component {
                     datasets: [{
                         data: sd.map(d => d.count),
                         backgroundColor: sd.map(d => d.color),
-                        borderColor: dark ? '#0f1729' : '#fff',
+                        borderColor: cardBg,
                         borderWidth: 3,
                     }],
                 },
