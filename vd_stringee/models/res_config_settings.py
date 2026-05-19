@@ -48,6 +48,7 @@ class ResConfigSettings(models.TransientModel):
         compute='_compute_stringee_hotline_count',
     )
 
+    @api.depends_context('uid')
     def _compute_webhook_urls(self):
         base = (self.env['ir.config_parameter'].sudo()
                 .get_param('web.base.url', '') or '').rstrip('/')
@@ -57,6 +58,7 @@ class ResConfigSettings(models.TransientModel):
             rec.stringee_event_url = f'{base}/stringee/event' if base else ''
             rec.stringee_recording_url = f'{base}/stringee/recording_event' if base else ''
 
+    @api.depends_context('uid')
     def _compute_stringee_hotline_count(self):
         Hotline = self.env['vd.stringee.hotline']
         for rec in self:
