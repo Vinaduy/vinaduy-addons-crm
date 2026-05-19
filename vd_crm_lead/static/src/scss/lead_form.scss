@@ -3642,16 +3642,17 @@ div.o_vd_layout_right {
     }
 
     /* RINGING — cam, mic nháy */
+    /* RINGING — cam đồng bộ với FAB ringing (gradient #ffa94d → #f76707) */
     .o_vd_popup_banner_ringing {
-        background: linear-gradient(90deg, #fff9db 0%, #ffe8cc 100%);
-        border: 1px solid #ffd8a8;
-        color: #5c3700;
-        i.fa-microphone {
-            color: #fa5252;
+        background: linear-gradient(90deg, #fff4e6 0%, #ffd8a8 100%);
+        border: 1px solid #ffa94d;
+        color: #663300;
+        i.fa-bell {
+            color: #f76707;
             animation: vd-icon-bounce 1.4s ease-in-out infinite;
         }
         strong { color: #d9480f; }
-        .o_vd_banner_sub { color: #846100; }
+        .o_vd_banner_sub { color: #663300; }
     }
 
     /* ENDED — xanh dương nhạt, ghi chú cuộc gọi đã xong */
@@ -3671,17 +3672,17 @@ div.o_vd_layout_right {
         }
     }
 
-    /* IN-CALL — xanh lá, phone chớp đỏ nhẹ → KH đang nghe */
+    /* IN-CALL — đỏ đồng bộ với FAB incall (gradient #ff6b6b → #c92a2a) */
     .o_vd_popup_banner_incall {
-        background: linear-gradient(90deg, #d3f9d8 0%, #b2f2bb 100%);
-        border: 1px solid #69db7c;
-        color: #0b5d1e;
-        i.fa-phone-alt {
-            color: #2b8a3e;
+        background: linear-gradient(90deg, #ffe3e3 0%, #ffa8a8 100%);
+        border: 1px solid #ff6b6b;
+        color: #6a1414;
+        i.fa-phone-volume {
+            color: #c92a2a;
             animation: vd-icon-pulse 1.2s ease-in-out infinite;
         }
-        strong { color: #0b5d1e; }
-        .o_vd_banner_timer { color: #c92a2a; }
+        strong { color: #c92a2a; }
+        .o_vd_banner_timer { color: #6a1414; font-weight: 700; }
     }
 
     @keyframes vd-icon-pulse {
@@ -4335,26 +4336,155 @@ div.o_vd_layout_right {
     bottom: 2rem;
     right: 2rem;
     z-index: 1040;
-    display: flex;
+    pointer-events: auto;
+}
+
+/* ============== ALL-IN-ONE call button ==============
+   1 nút TRÒN 92px duy nhất ở mọi state — KHÔNG morph kích thước,
+   CHỈ đổi MÀU (xanh → cam → đỏ). Caption phía dưới nút (Đang đổ chuông…
+   / 0:15) khi đang gọi. */
+.o_vd_call_btn_wrap {
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.6rem;
-    pointer-events: auto;
+    gap: 0.5rem;
+}
 
-    .o_vd_phone_btn {
-        box-shadow:
-            0 0 0 0 rgba(40, 167, 69, 0.7),
-            0 14px 36px -8px rgba(0, 0, 0, 0.35);  // stronger shadow when floating
+.o_vd_call_btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    overflow: visible;
+    transition:
+        background 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    i {
+        font-size: 38px;
+        line-height: 1;
+        position: relative;
+        z-index: 1;
+        color: #fff;            /* FORCE trắng — chống bị override theo theme */
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     }
-    .o_vd_call_status {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 0.35rem 0.85rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        white-space: nowrap;
-        border: 1px solid rgba(0, 0, 0, 0.05);
+    /* fa-phone-volume / fa-phone-slash không có trong Font Awesome 4
+       (Odoo bundle). Dùng fa-phone + rotation/styling thay thế: */
+    .o_vd_icon_hangup {
+        transform: rotate(135deg);   /* trông như nút "cúp máy" */
     }
+    .o_vd_icon_slash {
+        opacity: 0.55;
+        position: relative;
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            top: 50%;
+            border-top: 4px solid #fff;
+            transform: rotate(-45deg);
+            transform-origin: center;
+        }
+    }
+    &:hover:not(:disabled) { transform: scale(1.05); }
+    &:active:not(:disabled) { transform: scale(0.95); }
+    &:focus { outline: none; }
+    &:disabled { cursor: not-allowed; opacity: 0.85; }
+}
+
+/* IDLE — xanh + pulse + float (giữ feel cũ) */
+.o_vd_call_btn_idle {
+    background: linear-gradient(135deg, #2bc467 0%, #20a04a 100%);
+    box-shadow:
+        0 0 0 0 rgba(40, 167, 69, 0.7),
+        0 14px 36px -8px rgba(0, 0, 0, 0.35);
+    animation: vd-pulse-green 2s infinite, vd-float 4s ease-in-out infinite;
+    &::before {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.5), transparent 30%);
+        animation: vd-spin 3s linear infinite;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    &:hover::before { opacity: 1; }
+}
+
+/* NO-PHONE — xám disabled */
+.o_vd_call_btn_no_phone {
+    background: linear-gradient(135deg, #adb5bd 0%, #6c757d 100%);
+    box-shadow: 0 8px 22px -6px rgba(108, 117, 125, 0.45);
+}
+
+/* RINGING — CAM pulse, bell rung — vẫn TRÒN giống idle */
+.o_vd_call_btn_ringing {
+    background: linear-gradient(135deg, #ffa94d 0%, #f76707 100%);
+    box-shadow:
+        0 0 0 0 rgba(247, 103, 7, 0.6),
+        0 14px 36px -8px rgba(0, 0, 0, 0.35);
+    animation: vd-pulse-orange 1.4s infinite;
+    .o_vd_ring_pulse { animation: vd-ring 0.6s ease-in-out infinite; }
+}
+
+/* IN-CALL — ĐỎ pulse mạnh, vẫn TRÒN */
+.o_vd_call_btn_incall {
+    background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+    box-shadow:
+        0 0 0 0 rgba(220, 53, 69, 0.7),
+        0 14px 36px -8px rgba(0, 0, 0, 0.35);
+    animation: vd-pulse-red 0.9s infinite;
+}
+
+/* ===== Caption dưới nút ===== */
+.o_vd_call_caption {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.o_vd_caption_ringing {
+    background: linear-gradient(90deg, #fff4e6 0%, #ffd8a8 100%);
+    color: #c2410c;
+    border: 1px solid #ffa94d;
+    animation: vd-caption-blink 1.2s ease-in-out infinite;
+}
+.o_vd_caption_incall {
+    background: linear-gradient(90deg, #ffe3e3 0%, #ffa8a8 100%);
+    color: #a51111;
+    border: 1px solid #ff6b6b;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.o_vd_caption_no_phone {
+    background: #f1f3f5;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+@keyframes vd-caption-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+}
+
+@keyframes vd-pulse-orange {
+    0%   { box-shadow: 0 0 0 0   rgba(247, 103, 7, 0.5),   0 14px 36px -8px rgba(0,0,0,0.35); }
+    60%  { box-shadow: 0 0 0 22px rgba(247, 103, 7, 0),    0 14px 36px -8px rgba(0,0,0,0.35); }
+    100% { box-shadow: 0 0 0 0   rgba(247, 103, 7, 0),    0 14px 36px -8px rgba(0,0,0,0.35); }
 }
 
 .o_vd_info_row {
@@ -6336,20 +6466,24 @@ div.o_vd_layout_right {
 }
 
 /* ============================================================
-   🔒 FIXED-WIDTH LAYOUT — khóa layout proportions
-   Khi browser zoom 60%-150%, layout KHÔNG reflow/đổi tỷ lệ cột.
-   Form luôn rộng tối thiểu 1600px; nhỏ hơn → horizontal scroll.
+   📐 FLUID-WIDTH LAYOUT — form fit theo mọi màn hình
+   Bỏ min-width cứng để layout co giãn full viewport, không
+   buộc horizontal scroll trên màn hình nhỏ. Tỷ lệ 2 cột giữ
+   nguyên qua grid 1fr 1fr ở .o_vd_layout_grid (xem trên).
    ============================================================ */
 .o_form_view .o_form_sheet_bg,
 .o_action_manager .o_form_view .o_form_sheet_bg {
-    min-width: 1600px !important;
+    min-width: 0 !important;
+    width: 100% !important;
 }
 .o_form_view .o_form_sheet,
 .o_action_manager .o_form_view .o_form_sheet {
-    min-width: 1600px !important;
+    min-width: 0 !important;
+    width: 100% !important;
 }
 div.o_vd_layout_grid {
-    min-width: 1584px !important;   /* 1600 - padding 16px */
+    min-width: 0 !important;
+    width: 100% !important;
 }
 
 /* ============================================================

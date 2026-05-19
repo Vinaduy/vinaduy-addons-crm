@@ -1,20 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+    <!-- 1 nút tròn duy nhất — KHÔNG morph kích thước, chỉ ĐỔI MÀU theo state.
+         Ghi chú hiện DƯỚI nút (Đang đổ chuông… / 0:15) khi đang gọi. -->
     <t t-name="vd_crm_lead.CallStatusWidget">
-        <div class="o_vd_call_status">
-            <div t-if="statusType === 'idle'" class="text-muted small">
-                <i class="fa fa-check-circle"/> Sẵn sàng gọi
+        <div class="o_vd_call_btn_wrap">
+            <button type="button"
+                    class="o_vd_call_btn"
+                    t-att-class="{
+                        'o_vd_call_btn_idle': statusType === 'idle',
+                        'o_vd_call_btn_no_phone': statusType === 'no_phone',
+                        'o_vd_call_btn_ringing': statusType === 'ringing',
+                        'o_vd_call_btn_incall': statusType === 'in_call',
+                    }"
+                    t-att-disabled="statusType === 'no_phone' or state.busy"
+                    t-on-click="onCallClick">
+                <i t-if="statusType === 'idle'" class="fa fa-phone"/>
+                <i t-elif="statusType === 'no_phone'" class="fa fa-phone o_vd_icon_slash"/>
+                <i t-elif="statusType === 'ringing'" class="fa fa-bell o_vd_ring_pulse"/>
+                <i t-elif="statusType === 'in_call'" class="fa fa-phone o_vd_icon_hangup"/>
+            </button>
+            <!-- Ghi chú dưới nút — chỉ hiện khi có call (ringing/in_call) hoặc thiếu SĐT -->
+            <div t-if="statusType === 'ringing'" class="o_vd_call_caption o_vd_caption_ringing">
+                Đang đổ chuông…
             </div>
-            <div t-elif="statusType === 'no_phone'" class="text-muted small">
-                <i class="fa fa-exclamation-triangle"/> Thiếu SĐT
+            <div t-elif="statusType === 'in_call'" class="o_vd_call_caption o_vd_caption_incall">
+                <t t-esc="formatted"/>
             </div>
-            <div t-elif="statusType === 'ringing'" class="text-info fw-bold o_vd_status_ringing">
-                <i class="fa fa-bell"/> Đang đổ chuông…
-            </div>
-            <div t-elif="statusType === 'in_call'" class="text-danger fw-bold o_vd_status_incall">
-                <i class="fa fa-circle"/> Đang gọi
-                <span class="o_vd_call_timer ms-2"><t t-esc="formatted"/></span>
+            <div t-elif="statusType === 'no_phone'" class="o_vd_call_caption o_vd_caption_no_phone">
+                Thiếu SĐT
             </div>
         </div>
     </t>

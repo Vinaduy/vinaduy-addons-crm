@@ -8,28 +8,4 @@
         <div t-else="" class="text-muted">(Chưa có file ghi âm)</div>
     </t>
 
-    <t t-name="vd_stringee.Dialer">
-        <div class="o_stringee_dialer position-relative">
-            <button class="btn btn-link p-2 text-white" t-on-click="toggle" title="Stringee Dialer">
-                <i class="fa fa-phone fa-lg"/>
-            </button>
-            <div t-if="state.open" class="o_stringee_popup shadow rounded bg-white p-3"
-                 style="position:absolute; top:100%; right:0; width:260px; z-index:1050;">
-                <div class="mb-2 fw-bold text-dark">Stringee Dialer</div>
-                <input type="tel" class="form-control mb-2" placeholder="+84..."
-                       t-model="state.number"/>
-                <div class="d-flex gap-2">
-                    <button t-if="!state.inCall" class="btn btn-success flex-fill"
-                            t-on-click="onCall">
-                        <i class="fa fa-phone"/> Gọi
-                    </button>
-                    <button t-if="state.inCall" class="btn btn-danger flex-fill"
-                            t-on-click="onHangup">
-                        <i class="fa fa-phone-slash"/> Cúp máy
-                    </button>
-                </div>
-            </div>
-        </div>
-    </t>
-
 </templates>

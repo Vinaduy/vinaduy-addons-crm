@@ -9,10 +9,11 @@
 import json
 import logging
 import time
+from datetime import timedelta
 
 from psycopg2 import errors as pg_errors
 
-from odoo import http
+from odoo import fields, http
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -123,33 +124,13 @@ class StringeeController(http.Controller):
         Call = request.env['stringee.call'].sudo()
         existing = Call.search([('name', '=', call_id)], limit=1) if call_id else Call.browse()
 
-        # === RACE FIX: fallback lookup by callee_number ===
-        # Khi Stringee fetch answer_url SONG SONG với callout API → Odoo chưa kịp
-        # write call_id (name) xuống DB → existing rỗng → misclassify thành Web SDK
-        # → thêm SCCO connect → double-call.
-        # Fallback: tìm theo (callee_number=to_num, direction=outbound,
-        # create_date < 60s) — action_callout đã pre-commit record này.
-        if not existing and to_num:
-            from datetime import datetime, timedelta
-            recent_threshold = datetime.utcnow() - timedelta(seconds=60)
-            existing = Call.search([
-                ('callee_number', 'in', [to_num, '+%s' % to_num.lstrip('+')]),
-                ('direction', '=', 'outbound'),
-                ('create_date', '>=', recent_threshold),
-                ('state', 'in', ['draft', 'initiated', 'ringing']),
-            ], limit=1, order='create_date desc')
-            if existing and call_id and not existing.name:
-                # Stamp call_id ngay để webhook tiếp theo lookup theo name match
-                existing.write({'name': call_id})
-
-        is_rest_outbound = bool(existing) and existing.direction == 'outbound'
-
-        # Web SDK detect: JS pass hotline number làm fromNumber (per Stringee
-        # Web SDK doc: "fromNumber = số đã mua cho app-to-phone"). Khi từ
-        # match hotline → đây là Web SDK call từ browser.
-        # Fallback: `from` cũng có thể là stringee_user_id (legacy or fallback).
+        # === Web SDK detect TRƯỚC ===
+        # JS pass hotline number làm fromNumber → from_num match hotline
+        # = Web SDK call. Fallback: from_num có thể là stringee_user_id.
+        # Detect TRƯỚC khi check existing để KHÔNG misclassify Web SDK
+        # placeholder (do action_call tạo trước) thành REST outbound.
         is_web_sdk_origin = False
-        if from_num and not is_rest_outbound:
+        if from_num:
             if from_num == from_number:
                 is_web_sdk_origin = True
             else:
@@ -157,6 +138,36 @@ class StringeeController(http.Controller):
                     ('stringee_user_id', '=', from_num),
                 ], limit=1)
                 is_web_sdk_origin = bool(user_match)
+
+        # === Fallback lookup stub by callee suffix-9 (chỉ để STAMP call_id) ===
+        # action_call tạo placeholder với callee raw '0348886375', Stringee
+        # gửi 84348886375 → suffix-9 mới khớp. KHÔNG dùng kết quả này để
+        # override is_web_sdk_origin (vì nó được set ở trên).
+        if not existing and to_num:
+            import re
+            from datetime import datetime, timedelta
+            recent_threshold = datetime.utcnow() - timedelta(seconds=60)
+            to_norm9 = re.sub(r'\D', '', to_num)[-9:]
+            candidates = Call.search([
+                ('direction', '=', 'outbound'),
+                ('create_date', '>=', recent_threshold),
+                ('state', 'in', ['draft', 'initiated', 'ringing']),
+            ], order='create_date desc', limit=20)
+            for cand in candidates:
+                cand_norm9 = re.sub(r'\D', '', cand.callee_number or '')[-9:]
+                if cand_norm9 and cand_norm9 == to_norm9:
+                    existing = cand
+                    if call_id and not existing.name:
+                        existing.write({'name': call_id})
+                    break
+
+        # REST outbound = existing record + KHÔNG phải Web SDK origin.
+        # action_call placeholder cũng có direction='outbound' nhưng KHÔNG
+        # phải REST (browser tự makeCall) → loại trừ bằng is_web_sdk_origin.
+        is_rest_outbound = (
+            bool(existing) and existing.direction == 'outbound'
+            and not is_web_sdk_origin
+        )
 
         # Pre-create record để webhook tiếp theo find được.
         if call_id and not existing:
@@ -279,6 +290,76 @@ class StringeeController(http.Controller):
             'call_id': rec.name,
             'state': rec.state,
         }
+
+    @http.route('/stringee/js_event', type='json', auth='user')
+    def js_event(self, event='', data=None, call_id=''):
+        """JS log events lên server log để debug call flow khi user không mở
+        được DevTools console. Mọi signalingstate/mediastate/error/answer/
+        hangup event đều push qua đây."""
+        _logger.info("[JS-CALL] user=%s call=%s event=%s data=%s",
+                     request.env.user.login, call_id or '', event, data or {})
+        return {'ok': True}
+
+    @http.route('/stringee/finalize_my_active', type='json', auth='user')
+    def finalize_my_active(self, call_id='', hangup_cause='JS_CLIENT_ENDED'):
+        """Khi JS thấy signalingstate terminal (4 BUSY / 5 REJECTED / 6 ENDED),
+        notify server để finalize active call placeholder NGAY — không chờ cron
+        60s. Lý do: placeholder được tạo trước khi Stringee assign call_id, nên
+        Stringee webhook event không match được → record kẹt state='initiated'.
+
+        Effect: set state='ended', end_time=now → trigger compute
+        `vd_active_call_state` trên CRM lead → bus broadcast → UI auto-update
+        (FAB + banner clear, action_call cho phép gọi mới).
+        """
+        Call = request.env['stringee.call'].sudo()
+        user = request.env.user
+        active_states = ('draft', 'initiated', 'ringing', 'answered')
+
+        # Strategy: ưu tiên match theo call_id (Stringee ID) nếu JS gửi.
+        # Fallback: tất cả placeholder ACTIVE của user trong 5 phút gần đây
+        # (chặn risk wipe call cũ kẹt từ session khác cùng user).
+        recent_cutoff = fields.Datetime.now() - timedelta(minutes=5)
+        domain = [('user_id', '=', user.id), ('state', 'in', active_states),
+                  ('create_date', '>', recent_cutoff)]
+        if call_id:
+            # Stringee callId có thể đã được save vào `name` qua event matcher,
+            # hoặc chưa — ta dùng OR để chắc chắn match.
+            records = Call.search(
+                ['|', ('name', '=', call_id), '&'] + domain, limit=5,
+            )
+        else:
+            records = Call.search(domain, limit=5)
+
+        if not records:
+            _logger.info(
+                "[JS-FINALIZE] user=%s call_id=%r → no active placeholder",
+                user.login, call_id,
+            )
+            return {'ok': True, 'finalized': 0}
+
+        now = fields.Datetime.now()
+        for rec in records:
+            try:
+                vals = {
+                    'state': 'ended',
+                    'end_time': now,
+                    'hangup_cause': hangup_cause or 'JS_CLIENT_ENDED',
+                }
+                # Lưu call_id vào name nếu placeholder chưa có — giúp event
+                # webhook đến sau (recording_event…) match đúng record.
+                if call_id and not rec.name:
+                    vals['name'] = call_id
+                rec.write(vals)
+                _logger.info(
+                    "[JS-FINALIZE] user=%s record id=%s name=%r → ended (cause=%s)",
+                    user.login, rec.id, rec.name, hangup_cause,
+                )
+            except Exception:
+                _logger.exception(
+                    "[JS-FINALIZE] failed for record id=%s", rec.id,
+                )
+        request.env.cr.commit()
+        return {'ok': True, 'finalized': len(records)}
 
     @http.route('/stringee/heartbeat', type='json', auth='user')
     def heartbeat(self, ok=False, r_code=None, message='', userId=''):

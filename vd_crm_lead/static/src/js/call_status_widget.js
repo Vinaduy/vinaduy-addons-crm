@@ -30,7 +30,14 @@ export class VdCallStatusWidget extends Component {
         this.busService = useService("bus_service");
         this.notification = useService("notification");
         this.orm = useService("orm");
-        this.state = useState({ elapsed: 0 });
+        this.action = useService("action");
+        this.stringee = useService("stringee");
+        // Subscribe reactive state của Stringee service → khi state.inCall đổi
+        // (instant từ JS), widget tự re-render — KHÔNG cần đợi server bus
+        // / record reload / popup open. Đây chính là single source of truth
+        // ở phía client. Server state vẫn dùng làm fallback cho timer.
+        this.callClientState = useState(this.stringee.state);
+        this.state = useState({ elapsed: 0, busy: false });
         this._lastSeenState = null;
         this._ringStartedAt = null;
 
@@ -51,17 +58,70 @@ export class VdCallStatusWidget extends Component {
         });
     }
 
+    async onCallClick() {
+        if (this.state.busy) return;
+        const st = this.statusType;
+        if (st === "no_phone") {
+            this.notification.add("Lead chưa có SĐT", { type: "warning" });
+            return;
+        }
+        this.state.busy = true;
+        try {
+            if (st === "ringing" || st === "in_call") {
+                // HANGUP — luôn gọi client SDK trước (đảm bảo WebRTC peer
+                // close ngay, k phụ thuộc server link), rồi gọi server để
+                // mark placeholder ended + cleanup recording.
+                try { this.stringee.hangup(); } catch (_e) { /* noop */ }
+                try {
+                    await this.orm.call(
+                        "crm.lead", "action_hangup_active",
+                        [this.props.record.resId],
+                    );
+                } catch (_e) {
+                    // Server có thể fail nếu lead k có vd_active_call_id
+                    // (call từ lead khác) — client hangup đã đủ end call thật.
+                }
+            } else {
+                // IDLE → call qua server action_call (returns client action)
+                const result = await this.orm.call(
+                    "crm.lead", "action_call", [this.props.record.resId],
+                );
+                if (result && typeof result === "object" && result.type) {
+                    await this.action.doAction(result);
+                }
+            }
+        } catch (e) {
+            this.notification.add(
+                e?.data?.message || e?.message || "Lỗi gọi điện",
+                { type: "danger" },
+            );
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
     _tick() {
-        // CRITICAL: timer only runs when state is exactly "answered" AND we
-        // actually have an answer_time. Never count seconds during ringing.
-        const data = this.props.record.data;
-        if (data.vd_active_call_state !== "answered" || !data.vd_active_call_answer_time) {
+        // Timer chỉ chạy khi đang in-call. Ưu tiên client `answerStartedAt`
+        // (instant, từ Stringee SDK code 3 ANSWERED), fallback server
+        // `vd_active_call_answer_time` (cho REST callout / reload page).
+        const isInCall = this.statusType === "in_call";
+        if (!isInCall) {
             if (this.state.elapsed !== 0) this.state.elapsed = 0;
             return;
         }
-        const ans = data.vd_active_call_answer_time;
-        const start = ans.ts ? ans.ts : new Date(ans).getTime();
-        this.state.elapsed = Math.max(0, Math.floor((Date.now() - start) / 1000));
+        let startTs = this.callClientState?.answerStartedAt || 0;
+        if (!startTs) {
+            const ans = this.props.record.data.vd_active_call_answer_time;
+            if (ans) {
+                startTs = ans.ts ? ans.ts : new Date(ans).getTime();
+            }
+        }
+        if (!startTs) {
+            // In-call nhưng chưa có start time → để elapsed=0 (vẫn show 0:00)
+            this.state.elapsed = 0;
+            return;
+        }
+        this.state.elapsed = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
     }
 
     async _maybePoll() {
@@ -119,6 +179,16 @@ export class VdCallStatusWidget extends Component {
     }
 
     get statusType() {
+        // Ưu tiên client reactive state (Stringee service) → đổi NGAY khi
+        // user click hoặc Stringee SDK fire event, KHÔNG cần đợi server.
+        // Server state chỉ dùng làm fallback (vd: REST callout không có
+        // browser session, hoặc reload trang giữa call).
+        const clientStatus = this.callClientState?.callStatus || "";
+        const clientInCall = !!this.callClientState?.inCall;
+        if (clientStatus === "ANSWERED") return "in_call";
+        if (clientInCall) return "ringing";
+
+        // Fallback server state
         const s = this.callState;
         if (s === "answered" && this.props.record.data.vd_active_call_answer_time) {
             return "in_call";

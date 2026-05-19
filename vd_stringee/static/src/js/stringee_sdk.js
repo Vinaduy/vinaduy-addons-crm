@@ -18,6 +18,7 @@
  * Stringee signaling state codes (per SDK docs):
  *   0 CALLING, 1 RINGING, 2 ANSWERED, 3 BUSY, 4 ENDED, 5 ENDED-from-server, 6 BUSY-from-server
  */
+import { reactive } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
 
@@ -43,14 +44,22 @@ function normalizeVnPhone(num, defaultCountry = "84") {
 // Per-number debounce window — chặn accidental double-click trong 3s
 const DEBOUNCE_MS = 3_000;
 
-// Stringee Web SDK signalingstate codes (per official docs):
-// 0=CALLING, 1=RINGING, 2=ANSWERED, 3=BUSY, 4=ENDED, 5=REJECTED, 6=ERROR
+// StringeeCall v1 signalingstate codes — KHÁC v2! Quan sát thực tế từ log:
+//   code=1 raw.reason='Calling'  sipCode=100 Trying          → CALLING
+//   code=2 raw.reason='Ringing'  sipCode=183 Session Progress → RINGING
+//   code=3 raw.reason='Answered' sipCode=200 OK              → ANSWERED
+//   code=4 (chưa quan sát, theo SDK = BUSY)
+//   code=5 (theo SDK = REJECTED)
+//   code=6 raw.reason='Ended'    sipReason='Bye'             → ENDED
+// Trước đây map theo StringeeCall2 (v2) — sai → 3=BUSY → cleanup nhầm khi
+// KH bắt máy thật, 6=ERROR → hiện notif đỏ khi call kết thúc bình thường.
 const SIGNALING_LABEL = {
-    0: 'CALLING', 1: 'RINGING', 2: 'ANSWERED',
-    3: 'BUSY', 4: 'ENDED', 5: 'REJECTED', 6: 'ERROR',
+    0: 'CALLING', 1: 'CALLING', 2: 'RINGING',
+    3: 'ANSWERED', 4: 'BUSY', 5: 'REJECTED', 6: 'ENDED',
 };
-// Codes terminal — call no longer active → hangup + clear state
-const TERMINAL_SIGNALING_CODES = new Set([3, 4, 5, 6]);
+// Codes terminal — call no longer active → cleanup state
+// (KHÔNG gọi lại hangup vì Stringee đã end call rồi.)
+const TERMINAL_SIGNALING_CODES = new Set([4, 5, 6]);
 
 let _sdkPromise = null;
 function loadStringeeSDK() {
@@ -94,7 +103,11 @@ async function fetchToken() {
 export const stringeeService = {
     dependencies: ["notification"],
     async start(env, { notification }) {
-        const state = {
+        // reactive() để widget (systray dialer, form FAB) tự re-render khi
+        // call lifecycle thay đổi — tránh tình trạng popup k đồng bộ với form.
+        // Các field "track-able" (boolean/string/number) được dùng làm
+        // derived state cho UI. currentCall vẫn cần lưu để hangup được call instance.
+        const state = reactive({
             connected: false,
             userId: "",
             fromNumber: "",  // Hotline đã mua trên Stringee — dùng làm fromNumber
@@ -105,7 +118,12 @@ export const stringeeService = {
             inFlight: null,  // promise call() đang chạy — chặn duplicate
             lastCallAt: 0,
             lastCallTo: "",
-        };
+            // === Derived state cho UI (cập nhật trong attachCallEvents) ===
+            inCall: false,        // true khi có call đang active (calling/ringing/answered)
+            callStatus: "",       // CALLING | RINGING | ANSWERED | ""
+            callNumber: "",       // số đang gọi — hiển thị trên UI
+            answerStartedAt: 0,   // timestamp ms — khi KH bắt máy (code 3 ANSWERED)
+        });
 
         // ===================================================================
         // Setup events theo doc: connect, authen, requestnewtoken,
@@ -209,101 +227,153 @@ export const stringeeService = {
         // ===================================================================
         // Setup events trên call instance theo doc — full chain để debug + UX.
         // ===================================================================
+        // Helper: push JS event lên server log (vì user không xem console)
+        function logToServer(event, data, callId) {
+            try {
+                rpc("/stringee/js_event", {
+                    event: event,
+                    data: data || {},
+                    call_id: callId || '',
+                }).catch(() => {});
+            } catch (_e) { /* noop */ }
+        }
+
         function attachCallEvents(call) {
-            // Failsafe: nếu Stringee silent fail (CALL_NOT_ALLOWED, network drop),
-            // không event terminal nào fire → hangup + clear sau 90s.
+            const callId = call && (call.callId || call.id || '');
+            logToServer("attachCallEvents", { customData: call?.customDataFromYourServer }, callId);
+
+            // Failsafe lâu hơn: 120s — KHÔNG hangup nếu call đang active (answered).
+            // Trước đây 45s quá ngắn, nếu KH nói chuyện lâu sẽ bị cắt.
             const failsafe = setTimeout(() => {
                 if (state.currentCall === call) {
-                    console.warn("[VD-STRINGEE] FAILSAFE 45s timeout → hangup + cleanup");
-                    safeHangup(call);
-                    cleanupState();
+                    console.warn("[VD-STRINGEE] FAILSAFE 120s → check state before hangup");
+                    logToServer("failsafe_check", { state: "?" }, callId);
+                    // Không hangup blind — chỉ clear nếu call đã ended thực sự
+                    state.currentCall = null;
+                    state.lastCallTo = "";
+                    state.lastCallAt = 0;
+                    state.inFlight = null;
                 }
-            }, 45_000);
+            }, 120_000);
 
-            // Per Stringee doc step 6: call.hangup(callback) để đóng WebRTC peer
-            // sạch sẽ (KHÔNG chỉ clear state JS — cần báo Stringee server end call).
-            const safeHangup = (c) => {
+            const safeHangup = (c, reason) => {
+                logToServer("safeHangup_invoked", { reason: reason || 'unknown' }, callId);
                 try {
                     if (c && typeof c.hangup === 'function') {
                         c.hangup((res) => {
                             console.log("[VD-STRINGEE] call.hangup res:", res);
+                            logToServer("hangup_callback", { res }, callId);
                         });
                     }
                 } catch (e) {
                     console.warn("[VD-STRINGEE] safeHangup throw:", e?.message || e);
+                    logToServer("hangup_throw", { error: String(e?.message || e) }, callId);
                 }
             };
 
-            // Cleanup state: cho phép call mới ngay sau đó không bị debounce.
-            const cleanupState = () => {
+            const cleanupState = (reason) => {
+                logToServer("cleanupState", { reason: reason || 'unknown' }, callId);
                 clearTimeout(failsafe);
                 state.currentCall = null;
                 state.lastCallTo = "";
                 state.lastCallAt = 0;
                 state.inFlight = null;
+                state.inCall = false;
+                state.callStatus = "";
+                state.callNumber = "";
+                state.answerStartedAt = 0;
+                // CRITICAL: notify server để finalize placeholder record NGAY
+                // (không chờ cron 60s) → CRM lead's vd_active_call_state clear
+                // → FAB + banner UI auto-update via bus broadcast.
+                try {
+                    rpc("/stringee/finalize_my_active", {
+                        call_id: callId || '',
+                        hangup_cause: reason || 'JS_CLIENT_ENDED',
+                    }).catch(() => {});
+                } catch (_e) { /* noop */ }
             };
 
             call.on("addremotestream", (stream) => {
                 console.log("[VD-STRINGEE] addremotestream — KH bắt máy, bind audio");
+                logToServer("addremotestream", {
+                    active: !!stream?.active,
+                    tracks: stream?.getTracks?.()?.length,
+                }, callId);
                 ensureAudioElement().srcObject = stream;
             });
 
-            call.on("addlocalstream", (_stream) => {
+            call.on("addlocalstream", (stream) => {
                 console.log("[VD-STRINGEE] addlocalstream — mic OK");
+                logToServer("addlocalstream", {
+                    active: !!stream?.active,
+                    tracks: stream?.getTracks?.()?.length,
+                }, callId);
             });
 
-            // ===== signalingstate — theo dõi state máy của call =====
-            // Per Stringee Web SDK doc: state codes 0-6
-            // CALLING/RINGING/ANSWERED = active, không hangup
-            // BUSY/ENDED/REJECTED/ERROR = terminal → hangup + cleanup
+            // ===== signalingstate =====
+            // CRITICAL FIX: KHÔNG auto-hangup khi code 4 (ENDED) vì Stringee
+            // ENDED đã có nghĩa = call đã kết thúc → chỉ cleanup state, không
+            // gọi lại hangup() (sẽ tạo USER_END_CALL endedBy=INTERNAL → server
+            // log misleading).
             call.on("signalingstate", (s) => {
                 const code = s && s.code;
                 const label = SIGNALING_LABEL[code] || `UNKNOWN(${code})`;
                 console.log("[VD-STRINGEE] signalingstate:", label, s);
-                if (code === 3) {
+                logToServer("signalingstate", { code, label, raw: s }, callId);
+                if (code === 4) {
                     notification.add("KH bận máy", { type: "warning" });
-                } else if (code === 4) {
-                    notification.add("Cuộc gọi đã kết thúc", { type: "info" });
                 } else if (code === 5) {
                     notification.add("KH từ chối cuộc gọi", { type: "warning" });
                 } else if (code === 6) {
-                    notification.add(
-                        `Cuộc gọi lỗi: ${s?.reason || s?.message || 'unknown'}`,
-                        { type: "danger" },
-                    );
+                    notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                }
+                // Cập nhật derived state cho UI re-render
+                // v1 codes: 0/1=CALLING, 2=RINGING, 3=ANSWERED đều là "in call"
+                if (code === 0 || code === 1 || code === 2 || code === 3) {
+                    state.inCall = true;
+                    state.callStatus = label;
+                    // Stamp answerStartedAt khi vừa transition sang ANSWERED
+                    if (code === 3 && !state.answerStartedAt) {
+                        state.answerStartedAt = Date.now();
+                    }
                 }
                 if (TERMINAL_SIGNALING_CODES.has(code)) {
-                    safeHangup(call);  // explicit hangup per Step 6 docs
-                    cleanupState();
+                    // CHỈ cleanup state, KHÔNG gọi lại hangup
+                    // (Stringee đã end call rồi — không cần hangup lại)
+                    cleanupState(`signalingstate_${label}`);
                 }
             });
 
             call.on("mediastate", (m) => {
                 console.log("[VD-STRINGEE] mediastate:", m);
+                logToServer("mediastate", { raw: m }, callId);
             });
 
             call.on("info", (info) => {
                 console.log("[VD-STRINGEE] info (DTMF/custom):", info);
+                logToServer("info", { raw: info }, callId);
             });
 
             call.on("otherdevice", (data) => {
                 console.log("[VD-STRINGEE] otherdevice:", data);
+                logToServer("otherdevice", { raw: data }, callId);
                 if (data && (data.type === "CALL_STATE" || data.type === "ANSWERED")) {
-                    notification.add("Cuộc gọi đã được xử lý ở thiết bị khác", { type: "info" });
-                    safeHangup(call);
-                    cleanupState();
+                    notification.add("Cuộc gọi đã xử lý ở thiết bị khác", { type: "info" });
+                    cleanupState("otherdevice");
                 }
             });
 
-            // ===== error event — bất kỳ lỗi nào → hangup + notify =====
             call.on("error", (e) => {
                 console.error("[VD-STRINGEE] call.error:", e);
+                logToServer("call_error", {
+                    message: e?.message, code: e?.code, raw: String(e),
+                }, callId);
                 notification.add(
                     `Stringee error: ${e?.message || JSON.stringify(e)}`,
                     { type: "danger", sticky: true },
                 );
-                safeHangup(call);
-                cleanupState();
+                // Error → cleanup nhưng KHÔNG hangup (call có thể đã chết)
+                cleanupState("call_error");
             });
         }
 
@@ -468,17 +538,36 @@ export const stringeeService = {
 
                 attachCallEvents(call2);
                 state.currentCall = call2;
+                // Flip UI ngay (k đợi signalingstate) — user bấm "Gọi" là thấy chuyển sang "Đang gọi…"
+                state.inCall = true;
+                state.callStatus = "CALLING";
+                state.callNumber = targetNumber;
 
                 call2.makeCall((res) => {
+                    console.log("[VD-STRINGEE] makeCall result:", res);
+                    logToServer("makeCall_result", {
+                        r: res?.r, message: res?.message,
+                        callId: res?.callId || call2?.callId,
+                    }, call2?.callId);
                     if (res && res.r !== 0) {
                         notification.add(
                             `Gọi thất bại: ${res.message}`,
                             { type: "danger" },
                         );
-                        // Clear hoàn toàn — cho retry ngay không bị debounce
                         state.currentCall = null;
                         state.lastCallTo = "";
                         state.lastCallAt = 0;
+                        state.inCall = false;
+                        state.callStatus = "";
+                        state.callNumber = "";
+                        state.answerStartedAt = 0;
+                        // Clear server placeholder ngay — không để kẹt block call mới
+                        try {
+                            rpc("/stringee/finalize_my_active", {
+                                call_id: res?.callId || call2?.callId || '',
+                                hangup_cause: `MAKECALL_FAILED_${res?.message || 'UNKNOWN'}`,
+                            }).catch(() => {});
+                        } catch (_e) { /* noop */ }
                     }
                 });
                 return call2;
@@ -497,8 +586,10 @@ export const stringeeService = {
         function hangup() {
             // Per Stringee Web SDK getting-started Step 6:
             // call.hangup(callback) — graceful hangup.
-            // Cleanup state fully để cho phép call mới ngay sau đó không bị debounce.
+            // Cleanup state fully NGAY (không đợi signalingstate ENDED) để
+            // UI chuyển về idle tức thì — user click nút đỏ là thấy đổi xanh.
             const cur = state.currentCall;
+            const callId = cur && (cur.callId || cur.id || '');
             if (cur) {
                 try {
                     cur.hangup((res) => {
@@ -512,6 +603,17 @@ export const stringeeService = {
             state.lastCallTo = "";
             state.lastCallAt = 0;
             state.inFlight = null;
+            state.inCall = false;
+            state.callStatus = "";
+            state.callNumber = "";
+            state.answerStartedAt = 0;
+            // Báo server finalize placeholder + ghi nhận USER_HANGUP_CLICK
+            try {
+                rpc("/stringee/finalize_my_active", {
+                    call_id: callId || '',
+                    hangup_cause: 'USER_HANGUP_CLICK',
+                }).catch(() => {});
+            } catch (_e) { /* noop */ }
         }
 
         return { state, call, hangup, ensureConnected };

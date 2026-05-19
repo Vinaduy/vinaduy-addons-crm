@@ -403,18 +403,18 @@
 
                         <!-- ===== BODY: scrollable content ===== -->
                         <div class="o_vd_popup_body">
-                        <!-- Banner state RINGING: chưa bắt máy -->
+                        <!-- Banner state RINGING — wording + màu đồng bộ với FAB (cam) -->
                         <div class="o_vd_popup_banner o_vd_popup_banner_ringing"
                              invisible="vd_active_call_state not in ['draft', 'initiated', 'ringing']">
-                            <i class="fa fa-microphone"/>
-                            Đang gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
+                            <i class="fa fa-bell"/>
+                            Đang đổ chuông… <strong><field name="phone" readonly="1" nolabel="1"/></strong>
                             <span class="o_vd_banner_sub">— đợi KH bắt máy, gợi ý kịch bản hiện mờ trong từng ô</span>
                         </div>
-                        <!-- Banner state IN-CALL: KH đã bắt máy, đếm giây -->
+                        <!-- Banner state IN-CALL — wording + màu đồng bộ với FAB (đỏ) -->
                         <div class="o_vd_popup_banner o_vd_popup_banner_incall"
                              invisible="vd_active_call_state != 'answered' or not vd_active_call_answer_time">
-                            <i class="fa fa-phone-alt"/>
-                            Đang trong cuộc gọi <strong><field name="phone" readonly="1" nolabel="1"/></strong>
+                            <i class="fa fa-phone-volume"/>
+                            Đang đàm thoại <strong><field name="phone" readonly="1" nolabel="1"/></strong>
                             <span class="o_vd_banner_timer">
                                 · <field name="vd_in_call" widget="vd_call_timer" nolabel="1"/>
                             </span>
@@ -1314,20 +1314,9 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                  (Lịch sử cuộc gọi button đã được chuyển vào o_vd_call_rating_row) -->
             <xpath expr="//notebook" position="before">
 
-                <!-- FLOATING CALL BUTTON — bottom-right corner with status pill -->
+                <!-- FLOATING CALL FAB — đơn nút all-in-one: icon + label + timer
+                     đổi màu/text/icon theo state (idle/ringing/in_call/no_phone) -->
                 <div class="o_vd_call_fab">
-                    <button name="action_call" type="object"
-                            class="o_vd_phone_btn o_vd_phone_btn_call"
-                            title="Gọi qua Stringee"
-                            invisible="vd_in_call or (not phone and not mobile)">
-                        <i class="fa fa-phone"/>
-                    </button>
-                    <button name="action_hangup_active" type="object"
-                            class="o_vd_phone_btn o_vd_phone_btn_hangup"
-                            title="Cúp máy"
-                            invisible="not vd_in_call">
-                        <i class="fa fa-phone"/>
-                    </button>
                     <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                 </div>
             </xpath>

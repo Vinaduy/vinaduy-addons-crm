@@ -2173,15 +2173,39 @@ class CrmLead(models.Model):
 
         Call = self.env['stringee.call']
         user = self.env.user
+        now = fields.Datetime.now()
 
-        # Guard: chỉ block khi THỰC SỰ có call active đang dial/ringing
-        # trong 30s gần đây (đủ để chặn double-click, không quá rộng).
-        # Stuck record cũ (cron Stringee chưa kịp finalize) sẽ KHÔNG block
-        # vì window 30s ngắn hơn cron interval (60s).
+        # === SELF-HEAL: auto-finalize stale placeholders trước khi check ===
+        # Lý do: nếu Stringee reject CALL_NOT_ALLOWED hoặc JS crash giữa chừng,
+        # placeholder kẹt state=initiated mãi → mọi call mới của user bị block
+        # đến khi cron 60s chạy. Self-heal: bất kỳ placeholder >45s mà chưa
+        # answered → coi như stale → mark ended (silent, không broadcast lỗi).
+        # 45s đủ rộng để Stringee event đến (typical 1-3s) trước khi heal,
+        # tránh kill stub trước khi matcher kịp claim call_id.
+        stale_cutoff = now - timedelta(seconds=45)
+        stale_records = Call.sudo().search([
+            ('user_id', '=', user.id),
+            ('state', 'in', ['draft', 'initiated', 'ringing']),
+            ('create_date', '<', stale_cutoff),
+        ])
+        if stale_records:
+            _logger.info(
+                "[VD-CALL] action_call self-heal %d stale placeholders for user %s",
+                len(stale_records), user.login,
+            )
+            stale_records.write({
+                'state': 'no_answer',
+                'end_time': now,
+                'hangup_cause': 'SELF_HEAL_ON_NEW_CALL',
+            })
+            self.env.cr.commit()
+
+        # Guard: chỉ block khi THỰC SỰ có call ACTIVE trong 20s gần đây
+        # (đủ chặn double-click thật, không bị bug stale placeholder).
         active = Call.search_count([
             ('user_id', '=', user.id),
             ('state', 'in', ['draft', 'initiated', 'ringing', 'answered']),
-            ('create_date', '>', fields.Datetime.now() - timedelta(seconds=30)),
+            ('create_date', '>', stale_cutoff),
         ])
         if active:
             _logger.warning("[VD-CALL] action_call REJECT: %s active calls for user %s",

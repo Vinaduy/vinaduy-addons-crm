@@ -373,23 +373,56 @@ class StringeeCall(models.Model):
 
         # Idempotency: skip if we've seen this exact event_id before
         event_id = payload.get('event_id')
-        from_phone = _phone_field(payload.get('from') or payload.get('caller'))
-        to_phone = _phone_field(payload.get('to') or payload.get('callee'))
-        is_outbound = (payload.get('direction') or '').upper() == 'OUTBOUND'
+        from_payload = payload.get('from') or payload.get('caller')
+        to_payload = payload.get('to') or payload.get('callee')
+        from_phone = _phone_field(from_payload)
+        to_phone = _phone_field(to_payload)
+        # Stringee KHÔNG luôn có field `direction` trong payload. Suy ra
+        # từ các tín hiệu khác: to.type='external' = outbound từ App→PSTN,
+        # callCreatedReason='CLIENT_MAKE_CALL' = chắc chắn outbound từ Web SDK.
+        is_outbound = (
+            (payload.get('direction') or '').upper() == 'OUTBOUND'
+            or (isinstance(to_payload, dict) and to_payload.get('type') == 'external')
+            or payload.get('callCreatedReason') == 'CLIENT_MAKE_CALL'
+        )
 
         rec = self.search([('name', '=', call_id)], limit=1)
         # If no record yet, try to claim a recent same-direction stub created by
-        # action_callout (before the Stringee callId came back).
+        # action_callout (before the Stringee callId came back). So sánh callee
+        # bằng SUFFIX 9 chữ số cuối (chấp nhận 0348886375 ≡ 84348886375).
         if not rec and is_outbound and to_phone:
-            stub = self.search([
-                ('callee_number', '=', to_phone),
+            to_norm9 = _digits_only(to_phone)[-9:]
+            recent_cutoff = fields.Datetime.now() - timedelta(seconds=60)
+            candidates = self.search([
                 ('name', '=', False),
                 ('direction', '=', 'outbound'),
-                ('create_date', '>', fields.Datetime.now() - timedelta(seconds=60)),
-            ], limit=1, order='create_date desc')
-            if stub:
-                stub.write({'name': call_id})
-                rec = stub
+                ('create_date', '>', recent_cutoff),
+            ], order='create_date desc', limit=20)
+            _logger.info(
+                "[Stringee matcher] call_id=%s to=%s norm9=%s candidates=%s",
+                call_id, to_phone, to_norm9,
+                [(s.id, s.callee_number, s.state) for s in candidates],
+            )
+            for stub in candidates:
+                stub_norm9 = _digits_only(stub.callee_number)[-9:]
+                if stub_norm9 and stub_norm9 == to_norm9:
+                    vals_claim = {'name': call_id}
+                    # Nếu stub đã bị self-heal trước khi event đến → reset
+                    # state về 'initiated' để event flow bump bình thường
+                    if stub.hangup_cause == 'SELF_HEAL_ON_NEW_CALL':
+                        vals_claim.update({
+                            'state': 'initiated',
+                            'end_time': False,
+                            'hangup_cause': False,
+                        })
+                    stub.write(vals_claim)
+                    rec = stub
+                    _logger.info(
+                        "Stringee claim stub id=%s for call_id=%s (callee %s ≡ %s) state_reset=%s",
+                        stub.id, call_id, stub.callee_number, to_phone,
+                        'SELF_HEAL_ON_NEW_CALL' in vals_claim.values(),
+                    )
+                    break
         if not rec:
             rec = self.create({
                 'name': call_id,
