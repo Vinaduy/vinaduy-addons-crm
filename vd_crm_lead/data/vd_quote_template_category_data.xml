@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 4 nhóm template báo giá mặc định — admin có thể thêm/sửa/xoá qua UI -->
+    <record id="quote_tpl_cat_mai_nhat" model="vd.quote.template.category">
+        <field name="name">Mái Nhật</field>
+        <field name="sequence">10</field>
+        <field name="color">4</field>
+        <field name="description">Template cho nhà mái Nhật (mái thấp, ngang)</field>
+    </record>
+    <record id="quote_tpl_cat_mai_thai" model="vd.quote.template.category">
+        <field name="name">Mái Thái</field>
+        <field name="sequence">20</field>
+        <field name="color">2</field>
+        <field name="description">Template cho nhà mái Thái (dốc, vươn)</field>
+    </record>
+    <record id="quote_tpl_cat_mien_bac" model="vd.quote.template.category">
+        <field name="name">Miền Bắc</field>
+        <field name="sequence">30</field>
+        <field name="color">1</field>
+        <field name="description">Template áp dụng cho KH miền Bắc</field>
+    </record>
+    <record id="quote_tpl_cat_mien_nam" model="vd.quote.template.category">
+        <field name="name">Miền Nam</field>
+        <field name="sequence">40</field>
+        <field name="color">7</field>
+        <field name="description">Template áp dụng cho KH miền Nam</field>
+    </record>
+</odoo>

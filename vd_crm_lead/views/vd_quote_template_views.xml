@@ -1,15 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- ============================================================
+         📁 NHÓM TEMPLATE (Category) — Mái Nhật / Mái Thái / Miền Bắc...
+         ============================================================ -->
+    <record id="view_vd_quote_template_category_tree" model="ir.ui.view">
+        <field name="name">vd.quote.template.category.tree</field>
+        <field name="model">vd.quote.template.category</field>
+        <field name="arch" type="xml">
+            <list string="Nhóm template báo giá" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="template_count" readonly="1"/>
+                <field name="color" widget="color_picker"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_quote_template_category_form" model="ir.ui.view">
+        <field name="name">vd.quote.template.category.form</field>
+        <field name="model">vd.quote.template.category</field>
+        <field name="arch" type="xml">
+            <form string="Nhóm template báo giá">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Vd: Mái Nhật, Mái Thái, Miền Nam..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="description" placeholder="Mô tả ngắn..."/>
+                            <field name="template_count" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_quote_template_category" model="ir.actions.act_window">
+        <field name="name">Nhóm template báo giá</field>
+        <field name="res_model">vd.quote.template.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo nhóm để phân loại template báo giá.</p>
+            <p>Vd: Mái Nhật, Mái Thái, Miền Bắc, Miền Nam...</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         📄 TEMPLATE BÁO GIÁ
+         ============================================================ -->
+    <record id="view_vd_quote_template_search" model="ir.ui.view">
+        <field name="name">vd.quote.template.search</field>
+        <field name="model">vd.quote.template</field>
+        <field name="arch" type="xml">
+            <search string="Template báo giá">
+                <field name="name" string="Tên / mô tả"
+                       filter_domain="['|', ('name','ilike',self), ('description','ilike',self)]"/>
+                <field name="category_id"/>
+                <field name="file_name"/>
+                <filter string="Đang hoạt động" name="filter_active"
+                        domain="[('active','=',True)]"/>
+                <filter string="Ngưng dùng" name="filter_inactive"
+                        domain="[('active','=',False)]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter string="Nhóm template" name="groupby_category"
+                            context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="view_vd_quote_template_tree" model="ir.ui.view">
         <field name="name">vd.quote.template.tree</field>
         <field name="model">vd.quote.template</field>
         <field name="arch" type="xml">
-            <list string="Template báo giá">
+            <list string="Template báo giá" default_order="category_id, sequence">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
+                <field name="category_id" optional="show"/>
                 <field name="file_name"/>
-                <field name="description"/>
+                <field name="description" optional="show"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -32,6 +110,9 @@
                     </div>
                     <group>
                         <group>
+                            <field name="category_id"
+                                   options="{'no_create': False, 'no_create_edit': False}"
+                                   placeholder="— Chọn nhóm (Mái Nhật / Mái Thái / Miền Bắc...) —"/>
                             <field name="file_attachment" filename="file_name"/>
                             <field name="file_name" invisible="1"/>
                             <field name="quote_page_index"/>
@@ -106,9 +187,10 @@
         <field name="name">Template báo giá</field>
         <field name="res_model">vd.quote.template</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_groupby_category': 1, 'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Upload các file template báo giá (.docx/.xlsx/.pdf/.png...).</p>
-            <p>NV chọn template phù hợp khi lập báo giá cho từng KH.</p>
+            <p>NV chọn template phù hợp khi lập báo giá cho từng KH. Phân nhóm theo Mái Nhật, Mái Thái, Miền Bắc, Miền Nam...</p>
         </field>
     </record>
 

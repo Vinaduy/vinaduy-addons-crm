@@ -2,17 +2,50 @@
 NV chọn template từ dropdown trong panel báo giá → có thể download tham khảo
 hoặc tự tạo PDF báo giá Vietnamese-style từ data."""
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+
+class VdQuoteTemplateCategory(models.Model):
+    """Nhóm template báo giá — vd: Mái Nhật / Mái Thái / Miền Bắc / Miền Nam.
+    Admin tự tạo/sửa qua menu Cấu hình → KHÔNG hard-code danh sách."""
+    _name = 'vd.quote.template.category'
+    _description = 'Nhóm template báo giá'
+    _order = 'sequence, name'
+
+    name = fields.Char(string='Tên nhóm', required=True, translate=False)
+    sequence = fields.Integer(default=10)
+    color = fields.Integer(string='Màu', default=0,
+                            help='Mã màu (0-11) cho badge nhóm')
+    description = fields.Char(string='Mô tả ngắn')
+    template_count = fields.Integer(string='Số template',
+                                     compute='_compute_template_count')
+    active = fields.Boolean(default=True)
+
+    _sql_constraints = [
+        ('name_unique', 'unique(name)', 'Tên nhóm template không được trùng.'),
+    ]
+
+    @api.depends()
+    def _compute_template_count(self):
+        Tpl = self.env['vd.quote.template']
+        for rec in self:
+            rec.template_count = Tpl.search_count([('category_id', '=', rec.id)])
 
 
 class VdQuoteTemplate(models.Model):
     _name = 'vd.quote.template'
     _description = 'Template báo giá'
-    _order = 'sequence, id'
+    _order = 'category_id, sequence, id'
 
     name = fields.Char(string='Tên template', required=True,
                         help='Vd: Bảng báo giá nhà mái ngói móng đơn 2025')
+    category_id = fields.Many2one(
+        'vd.quote.template.category', string='Nhóm template',
+        ondelete='set null',
+        help='Nhóm template (vd: Mái Nhật / Mái Thái / Miền Bắc / Miền Nam) '
+             'để dễ tìm + lọc trong dropdown chọn của NV.',
+    )
     description = fields.Text(string='Mô tả',
                                help='Áp dụng cho loại nhà nào, vùng nào, mùa nào...')
     file_attachment = fields.Binary(string='File template', required=True,
@@ -21,6 +54,16 @@ class VdQuoteTemplate(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     note = fields.Text(string='Ghi chú nội bộ')
+
+    # Override display_name của Odoo: thêm prefix [Nhóm] để NV dễ nhận diện
+    # trong dropdown chọn template (vd.quote.template_id Many2one).
+    @api.depends('name', 'category_id.name')
+    def _compute_display_name(self):
+        for rec in self:
+            if rec.category_id:
+                rec.display_name = f'[{rec.category_id.name}] {rec.name or ""}'
+            else:
+                rec.display_name = rec.name or ''
 
     # Cấu hình PDF: trang nào là "BẢNG BÁO GIÁ CHI TIẾT" cần thay data?
     # Mặc định = 3 (giống file mẫu Lệ Chi của VINADUY).
