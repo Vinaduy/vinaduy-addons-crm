@@ -8,6 +8,7 @@
             <xpath expr="//form" position="inside">
                 <app data-string="Stringee" string="Stringee" name="vd_stringee" groups="base.group_system">
                     <block title="Stringee Telephony" name="stringee_credentials">
+
                         <setting id="stringee_api_keys" string="API Keys"
                                  help="Lấy từ Stringee Portal → Project → API Keys.">
                             <div class="content-group">
@@ -25,12 +26,34 @@
                                 </div>
                             </div>
                         </setting>
-                        <setting id="stringee_dialer" string="Dialer"
-                                 help="Số PSTN dùng làm Caller ID khi gọi ra.">
+
+                        <setting id="stringee_hotline_pool" string="Pool số tổng đài (per-NV)"
+                                 help="Mỗi NV được assign 1 số riêng (Viettel/Mobi/Vina). Quản lý qua menu Stringee → Số tổng đài.">
                             <div class="content-group">
                                 <div class="row mt-2">
-                                    <label for="stringee_from_number" class="col-3 col-form-label"/>
-                                    <field name="stringee_from_number" class="col-9" placeholder="+842871098xxx"/>
+                                    <span class="col-7">
+                                        Đã khai báo
+                                        <strong><field name="stringee_hotline_count" readonly="1" nolabel="1" class="d-inline-block" style="width:auto;"/></strong>
+                                        số tổng đài
+                                    </span>
+                                    <button name="action_open_stringee_hotline_pool" type="object"
+                                            class="btn btn-primary col-5">
+                                        <i class="fa fa-list me-1"/> Quản lý pool số tổng đài
+                                    </button>
+                                </div>
+                                <div class="text-muted mt-2 small">
+                                    Thêm số mới: <b>Stringee → Số tổng đài → + Mới</b><br/>
+                                    Assign cho NV: <b>Settings → Users → tab Stringee</b>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="stringee_dialer" string="Fallback &amp; Recording"
+                                 help="Số global dùng khi NV chưa được assign số riêng + bật ghi âm.">
+                            <div class="content-group">
+                                <div class="row mt-2">
+                                    <label for="stringee_from_number" class="col-4 col-form-label"/>
+                                    <field name="stringee_from_number" class="col-8" placeholder="84xxxxxxxxx"/>
                                 </div>
                                 <div class="row mt-2">
                                     <field name="stringee_record_calls"/>
@@ -38,19 +61,33 @@
                                 </div>
                             </div>
                         </setting>
+
                         <setting id="stringee_webhook_info" string="Webhook URLs"
-                                 help="Khai báo trong Stringee Portal → Project → Phone Numbers / Project Settings.">
+                                 help="3 URL khai báo trong Stringee Portal → Project Settings hoặc URL Setting của từng số. Tất cả số dùng chung 3 URL này — controller tự route bằng payload.">
                             <div class="content-group">
                                 <div class="row mt-2">
-                                    <field name="stringee_webhook_base_url" readonly="1" class="col-12"/>
+                                    <label class="col-4 col-form-label">Base URL</label>
+                                    <field name="stringee_webhook_base_url" readonly="1" class="col-8"/>
                                 </div>
-                                <div class="text-muted mt-2">
-                                    <div>• Answer URL: <code>{Base URL}/stringee/answer</code></div>
-                                    <div>• Event URL: <code>{Base URL}/stringee/event</code></div>
-                                    <div>• Recording event: <code>{Base URL}/stringee/recording_event</code></div>
+                                <div class="row mt-2">
+                                    <label class="col-4 col-form-label">Answer URL</label>
+                                    <field name="stringee_answer_url" readonly="1" class="col-8"/>
+                                </div>
+                                <div class="row mt-2">
+                                    <label class="col-4 col-form-label">Event URL</label>
+                                    <field name="stringee_event_url" readonly="1" class="col-8"/>
+                                </div>
+                                <div class="row mt-2">
+                                    <label class="col-4 col-form-label">Recording Event URL</label>
+                                    <field name="stringee_recording_url" readonly="1" class="col-8"/>
+                                </div>
+                                <div class="text-muted mt-2 small">
+                                    <i class="fa fa-info-circle me-1"/>
+                                    Mỗi số mới thêm trên Stringee Dashboard → click <b>URL Setting</b> → paste 3 URL trên.
                                 </div>
                             </div>
                         </setting>
+
                     </block>
                 </app>
             </xpath>
