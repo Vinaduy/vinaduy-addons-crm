@@ -29,6 +29,12 @@ export class VdCrmDashboard extends Component {
         past.setDate(past.getDate() - 90);
         const isoDate = (d) => d.toISOString().slice(0, 10);
 
+        // Focus từ action context: 'customers' | 'employees' | null (all)
+        // Khi user click menu "Kiểm soát KH" → context.vd_focus='customers'
+        // → component render KH-related sections, ẩn NV section
+        const ctx = this.props.action?.context || {};
+        const focus = ctx.vd_focus || null;
+
         this.state = useState({
             loading: true,
             user: { id: 0, name: "", is_all: false },
@@ -44,7 +50,11 @@ export class VdCrmDashboard extends Component {
             leads: [],
             leadsLoading: false,
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
-            adminTab: "overview",  // 'overview' | 'performance' | 'alerts' | 'today'
+            // Focus: section visibility (KPI + cards) điều khiển bằng focus
+            // adminTab giữ default 'overview' cho cả 2 focus — overview tự
+            // adapt content theo state.focus
+            focus: focus,
+            adminTab: "overview",
             nvDetail: null,
             nvDetailLoading: false,
             // ===== ANALYTICS BI (tab overview) =====
@@ -96,6 +106,12 @@ export class VdCrmDashboard extends Component {
     get isAdminView() {
         return this.state.is_manager && !this.state.selected_user_id;
     }
+
+    // Focus helpers: dùng trong XML để show/hide section theo menu vào
+    get isCustomerFocus() { return this.state.focus === 'customers'; }
+    get isEmployeeFocus() { return this.state.focus === 'employees'; }
+    get showKhSection()   { return this.state.focus !== 'employees'; }
+    get showNvSection()   { return this.state.focus !== 'customers'; }
 
     async selectAdminTab(tab) {
         this.state.adminTab = tab;

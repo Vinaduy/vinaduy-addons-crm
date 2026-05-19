@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add "Dashboard NV" menu under standard CRM app, before Pipeline -->
-    <menuitem id="menu_vd_crm_dashboard"
-              name="Dashboard NV"
+    <!-- ============================================================
+         2 menu top-level: Kiểm soát KH + Kiểm soát NV
+         Cùng action class nhưng khác context.vd_focus → component tự
+         render section tương ứng.
+         ============================================================ -->
+    <menuitem id="menu_vd_crm_dashboard_customers"
+              name="Kiểm soát khách hàng"
               parent="crm.crm_menu_root"
-              action="action_vd_crm_dashboard"
+              action="action_vd_crm_dashboard_customers"
               sequence="1"/>
+
+    <menuitem id="menu_vd_crm_dashboard_employees"
+              name="Kiểm soát nhân viên"
+              parent="crm.crm_menu_root"
+              action="action_vd_crm_dashboard_employees"
+              sequence="2"/>
 
     <!-- ⚙️ Cấu hình → Đơn giá xây dựng (chỉ admin / sales manager) -->
     <menuitem id="menu_vd_pricing_region"
