@@ -9,9 +9,10 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onPatched, onWillUnmount, useState, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { loadJS } from "@web/core/assets";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
@@ -22,6 +23,12 @@ export class VdCrmDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.stringee = useService("stringee");
+
+        // === Default date range: 90 ngày gần nhất → hôm nay ===
+        const today = new Date();
+        const past = new Date();
+        past.setDate(past.getDate() - 90);
+        const isoDate = (d) => d.toISOString().slice(0, 10);
 
         this.state = useState({
             loading: true,
@@ -38,20 +45,42 @@ export class VdCrmDashboard extends Component {
             leads: [],
             leadsLoading: false,
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
-            // Tab đang chọn trong vertical menu của admin view.
             adminTab: "overview",  // 'overview' | 'performance' | 'alerts' | 'today'
-            // Slide-in panel chi tiết 1 NV (mở từ tab Thành tích).
-            nvDetail: null,        // null hoặc payload dashboard_data của NV đó
+            nvDetail: null,
             nvDetailLoading: false,
+            // ===== ANALYTICS BI (tab overview) =====
+            analytics: null,           // payload từ dashboard_analytics
+            analyticsLoading: false,
+            analyticsFrom: isoDate(past),
+            analyticsTo: isoDate(today),
+            analyticsTheme: 'dark',    // 'dark' | 'light'
         });
+
+        // Refs cho 4 canvas Chart.js — render trong tab overview
+        this.chartRefs = {
+            timeSeries: useRef("chartTimeSeries"),
+            donut: useRef("chartDonut"),
+            conversion: useRef("chartConversion"),
+            topNv: useRef("chartTopNv"),
+        };
+        this._chartInstances = {};
+        this._chartsDirty = false;   // true sau loadAnalytics → onPatched sẽ render
 
         onWillStart(async () => {
             await this.loadDashboard();
-            // Manager có thêm dropdown chọn NV — load danh sách NV 1 lần
             if (this.state.is_manager) {
                 this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
+                // Manager + xem "Tất cả NV" → auto load analytics cho tab overview
+                if (this.isAdminView && this.state.adminTab === 'overview') {
+                    await loadJS("/web/static/lib/Chart/Chart.js");
+                    await this.loadAnalytics();
+                }
             }
         });
+
+        onMounted(() => this._maybeRenderCharts());
+        onPatched(() => this._maybeRenderCharts());
+        onWillUnmount(() => this._destroyAllCharts());
     }
 
     async loadDashboard() {
@@ -89,8 +118,17 @@ export class VdCrmDashboard extends Component {
         this.state.adminTab = tab;
         // Đóng NV detail khi đổi tab
         this.state.nvDetail = null;
-        // Tab "alerts" hoặc "overview" dùng leads list → load default stage nếu chưa có
-        if ((tab === "overview" || tab === "alerts") && !this.state.leads.length && !this.state.selectedStageId) {
+        // Destroy charts khi rời tab overview để tránh memory leak
+        if (tab !== "overview") {
+            this._destroyAllCharts();
+        }
+        // Tab overview = BI analytics — load Chart.js + dashboard_analytics
+        if (tab === "overview" && !this.state.analytics) {
+            await loadJS("/web/static/lib/Chart/Chart.js");
+            await this.loadAnalytics();
+        }
+        // Tab "alerts" dùng leads list → load default stage nếu chưa có
+        if (tab === "alerts" && !this.state.leads.length && !this.state.selectedStageId) {
             const firstActive = this.state.stages.find((s) => !s.is_lost && s.count > 0)
                 || this.state.stages.find((s) => !s.is_lost)
                 || this.state.stages[0];
@@ -398,6 +436,196 @@ export class VdCrmDashboard extends Component {
     formatDate(s) {
         if (!s) return "";
         return s.replace("T", " ").slice(0, 16);
+    }
+
+    // ============================================================
+    // 📊 ANALYTICS BI — Date filter + 4 Chart.js charts
+    // ============================================================
+    async loadAnalytics() {
+        this.state.analyticsLoading = true;
+        try {
+            const data = await this.orm.call("crm.lead", "dashboard_analytics", [
+                this.state.analyticsFrom, this.state.analyticsTo,
+            ]);
+            this.state.analytics = data;
+            this._chartsDirty = true;
+        } catch (e) {
+            this.notification.add(e.message || "Lỗi tải analytics", { type: "danger" });
+        }
+        this.state.analyticsLoading = false;
+    }
+
+    async onApplyAnalyticsFilter() {
+        await this.loadAnalytics();
+    }
+
+    onAnalyticsDateChange(field, ev) {
+        this.state[field] = ev.target.value;
+    }
+
+    get analyticsNow() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+    }
+
+    _maybeRenderCharts() {
+        if (!this._chartsDirty) return;
+        if (this.state.adminTab !== 'overview') return;
+        if (!this.state.analytics) return;
+        if (typeof window.Chart === 'undefined') return;
+        this._chartsDirty = false;
+        // Defer 1 frame để chắc canvas đã mount
+        requestAnimationFrame(() => this._renderAllCharts());
+    }
+
+    _destroyAllCharts() {
+        for (const k of Object.keys(this._chartInstances)) {
+            try { this._chartInstances[k].destroy(); } catch (_e) {}
+        }
+        this._chartInstances = {};
+    }
+
+    _renderAllCharts() {
+        this._destroyAllCharts();
+        const dark = this.state.analyticsTheme === 'dark';
+        const gridColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        const tickColor = dark ? '#94a3b8' : '#64748b';
+        const Chart = window.Chart;
+        const a = this.state.analytics;
+
+        // ===== 1. Time series — stacked bar =====
+        const c1 = this.chartRefs.timeSeries.el;
+        if (c1 && a.time_series && a.time_series.months.length) {
+            const ts = a.time_series;
+            const palette = {
+                'HN': '#5b9bd5', 'HCM1': '#4caf83',
+                'HCM2': '#a578d8', 'HCM3': '#f5a623',
+                'KHÁC': '#94a3b8',
+            };
+            const datasets = ts.teams.map(t => ({
+                label: t,
+                data: ts.series[t] || [],
+                backgroundColor: palette[t] || '#888',
+                borderWidth: 0,
+                borderRadius: 4,
+                stack: 'all',
+            })).filter(d => d.data.some(v => v > 0));
+            this._chartInstances.timeSeries = new Chart(c1, {
+                type: 'bar',
+                data: { labels: ts.months, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: tickColor, boxWidth: 12 } },
+                        tooltip: { mode: 'index', intersect: false },
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: tickColor } },
+                        y: { stacked: true, grid: { color: gridColor }, ticks: { color: tickColor } },
+                    },
+                },
+            });
+        }
+
+        // ===== 2. Donut — status distribution =====
+        const c2 = this.chartRefs.donut.el;
+        if (c2 && a.status_distribution && a.status_distribution.length) {
+            const sd = a.status_distribution;
+            this._chartInstances.donut = new Chart(c2, {
+                type: 'doughnut',
+                data: {
+                    labels: sd.map(d => `${d.label}: ${d.count} (${d.pct}%)`),
+                    datasets: [{
+                        data: sd.map(d => d.count),
+                        backgroundColor: sd.map(d => d.color),
+                        borderColor: dark ? '#0f1729' : '#fff',
+                        borderWidth: 3,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: tickColor, boxWidth: 12, padding: 10 },
+                        },
+                    },
+                },
+            });
+        }
+
+        // ===== 3. Conversion by region — horizontal bar =====
+        const c3 = this.chartRefs.conversion.el;
+        if (c3 && a.conversion_by_region && a.conversion_by_region.length) {
+            const cr = a.conversion_by_region;
+            this._chartInstances.conversion = new Chart(c3, {
+                type: 'bar',
+                data: {
+                    labels: cr.map(r => r.region),
+                    datasets: [{
+                        data: cr.map(r => r.pct),
+                        backgroundColor: cr.map(r => r.color),
+                        borderRadius: 4,
+                        borderWidth: 0,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const row = cr[ctx.dataIndex];
+                                    return ` ${row.closed}/${row.total} · ${row.pct}%`;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: tickColor, callback: (v) => v + '%' } },
+                        y: { grid: { display: false }, ticks: { color: tickColor, font: { weight: 600 } } },
+                    },
+                },
+            });
+        }
+
+        // ===== 4. Top NV — horizontal bar =====
+        const c4 = this.chartRefs.topNv.el;
+        if (c4 && a.top_nv && a.top_nv.length) {
+            const tn = a.top_nv;
+            this._chartInstances.topNv = new Chart(c4, {
+                type: 'bar',
+                data: {
+                    labels: tn.map(r => r.name),
+                    datasets: [{
+                        data: tn.map(r => r.count),
+                        backgroundColor: tn.map(r => r.color),
+                        borderRadius: 4,
+                        borderWidth: 0,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` ${tn[ctx.dataIndex].full_name}: ${ctx.parsed.x} HĐ`,
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: tickColor, stepSize: 1 } },
+                        y: { grid: { display: false }, ticks: { color: tickColor } },
+                    },
+                },
+            });
+        }
     }
 }
 

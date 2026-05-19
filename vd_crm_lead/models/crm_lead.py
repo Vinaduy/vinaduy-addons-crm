@@ -3849,3 +3849,258 @@ class CrmLead(models.Model):
         if user.sale_team_id and user.sale_team_id.name:
             return user.sale_team_id.name.upper()[:6]
         return 'KHÁC'
+
+    # ============================================================
+    # 📊 ANALYTICS DASHBOARD — BI view cho admin (tab "Tổng quan")
+    # ============================================================
+    @api.model
+    def dashboard_analytics(self, date_from=None, date_to=None):
+        """Single-payload analytics cho admin BI dashboard.
+
+        Returns 5 KPIs + 4 chart datasets (time-series, status donut,
+        conversion-by-region, top NV). Tất cả respect date range filter.
+        Chỉ manager được gọi → NV thường nhận lỗi quyền.
+        """
+        if not self._dashboard_is_manager():
+            raise UserError(_('Chỉ Manager / Admin được xem analytics dashboard.'))
+
+        from datetime import datetime, date, timedelta as _td
+        import re
+
+        # === Parse date range — fallback 90 ngày gần nhất ===
+        today = fields.Date.context_today(self)
+        if date_to:
+            d_to = fields.Date.from_string(date_to) if isinstance(date_to, str) else date_to
+        else:
+            d_to = today
+        if date_from:
+            d_from = fields.Date.from_string(date_from) if isinstance(date_from, str) else date_from
+        else:
+            d_from = d_to - _td(days=90)
+
+        dt_from = fields.Datetime.to_datetime(d_from)
+        dt_to = fields.Datetime.to_datetime(d_to) + _td(days=1)
+        date_domain = [
+            ('create_date', '>=', dt_from),
+            ('create_date', '<', dt_to),
+        ]
+
+        # === 5 KPI ===
+        total_deals = self.search_count(date_domain)
+        # Unique customers: distinct phone (bỏ '' / NULL)
+        self.env.cr.execute("""
+            SELECT COUNT(DISTINCT NULLIF(TRIM(phone), ''))
+            FROM crm_lead
+            WHERE create_date >= %s AND create_date < %s
+              AND active = TRUE
+        """, (dt_from, dt_to))
+        unique_customers = self.env.cr.fetchone()[0] or 0
+
+        closed_contracts = self.search_count(date_domain + [
+            ('vd_contract_signed', '=', True),
+        ])
+        active_negotiations = self.search_count(date_domain + [
+            ('stage_is_won', '=', False),
+            ('stage_is_lost', '=', False),
+        ])
+
+        # NV dưới ngưỡng: 3 tháng liên tiếp (90 ngày) 0 HĐ chốt
+        # Chỉ tính NV có lead active trong period → loại NV nghỉ/chưa giao việc
+        ResUsers = self.env['res.users']
+        sales_users = ResUsers.search([
+            ('share', '=', False),
+            ('active', '=', True),
+            ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
+        ])
+        ninety_ago = today - _td(days=90)
+        nv_below = 0
+        for u in sales_users:
+            has_recent_lead = self.search_count([
+                ('user_id', '=', u.id),
+                ('create_date', '>=', fields.Datetime.to_datetime(ninety_ago)),
+            ])
+            if not has_recent_lead:
+                continue
+            won_count = self.search_count([
+                ('user_id', '=', u.id),
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', ninety_ago),
+            ])
+            if won_count == 0:
+                nv_below += 1
+
+        kpi = {
+            'total_deals': total_deals,
+            'unique_customers': unique_customers,
+            'closed_contracts': closed_contracts,
+            'active_negotiations': active_negotiations,
+            'nv_below_threshold': nv_below,
+            'conversion_pct': round((closed_contracts / total_deals * 100), 1) if total_deals else 0,
+        }
+
+        # === Time-series: deal records per month, stacked by team ===
+        # Group by month + user → tính team label sau ở Python (regex prefix)
+        self.env.cr.execute("""
+            SELECT date_trunc('month', create_date) AS m,
+                   user_id,
+                   COUNT(*) AS cnt
+            FROM crm_lead
+            WHERE create_date >= %s AND create_date < %s
+              AND active = TRUE
+            GROUP BY m, user_id
+            ORDER BY m
+        """, (dt_from, dt_to))
+        rows = self.env.cr.fetchall()
+        user_team_cache = {}
+        def _team_of_uid(uid):
+            if uid in user_team_cache:
+                return user_team_cache[uid]
+            u = ResUsers.browse(uid) if uid else None
+            lbl = self._vd_team_label_for(u) if u else 'KHÁC'
+            user_team_cache[uid] = lbl
+            return lbl
+
+        from collections import defaultdict, OrderedDict
+        ts_map = OrderedDict()  # 'YYYY-MM' → {team: count}
+        cur = d_from.replace(day=1)
+        end_month = d_to.replace(day=1)
+        while cur <= end_month:
+            ts_map[cur.strftime('%Y-%m')] = defaultdict(int)
+            # next month
+            cur = (cur.replace(day=28) + _td(days=4)).replace(day=1)
+        teams_set = set()
+        for m_dt, uid, cnt in rows:
+            key = m_dt.strftime('%Y-%m')
+            if key not in ts_map:
+                ts_map[key] = defaultdict(int)
+            team = _team_of_uid(uid)
+            ts_map[key][team] += cnt
+            teams_set.add(team)
+        # Đảm bảo 4 team chính HN/HCM1/HCM2/HCM3 luôn hiện kể cả khi 0
+        for t in ['HN', 'HCM1', 'HCM2', 'HCM3']:
+            teams_set.add(t)
+        team_order = ['HN', 'HCM1', 'HCM2', 'HCM3'] + sorted(t for t in teams_set if t not in ('HN', 'HCM1', 'HCM2', 'HCM3'))
+
+        months_labels = []
+        series = {t: [] for t in team_order}
+        for ym, team_counts in ts_map.items():
+            y, m = ym.split('-')
+            months_labels.append(f'T{int(m)}/{y[-2:]}')
+            for t in team_order:
+                series[t].append(team_counts.get(t, 0))
+
+        time_series = {
+            'months': months_labels,
+            'teams': team_order,
+            'series': series,
+        }
+
+        # === Status distribution (donut) — stage breakdown trong active leads ===
+        Stage = self.env['crm.stage']
+        active_stages = Stage.search([
+            ('code', 'in', ['quote', 'negotiate', 'won']),
+        ], order='sequence')
+        donut = []
+        donut_color_map = {
+            'quote': '#5b9bd5',       # xanh dương
+            'negotiate': '#a578d8',   # tím
+            'won': '#4caf83',         # xanh lá
+        }
+        for st in active_stages:
+            c = self.search_count(date_domain + [('stage_id', '=', st.id)])
+            if c == 0:
+                continue
+            donut.append({
+                'label': st.name,
+                'code': st.code,
+                'count': c,
+                'color': donut_color_map.get(st.code, '#888'),
+            })
+        # Thêm slice "Gấp" = lead có callback_date quá hạn
+        urgent = self.search_count(date_domain + [
+            ('callback_date', '<', fields.Datetime.now()),
+            ('stage_is_won', '=', False),
+            ('stage_is_lost', '=', False),
+        ])
+        if urgent:
+            donut.append({
+                'label': 'Gấp', 'code': 'urgent',
+                'count': urgent, 'color': '#f5a623',
+            })
+        donut_total = sum(d['count'] for d in donut) or 1
+        for d in donut:
+            d['pct'] = round(d['count'] / donut_total * 100)
+
+        # === Conversion by region ===
+        # Build team → user_ids map
+        team_user_ids = defaultdict(list)
+        for u in sales_users:
+            team_user_ids[self._vd_team_label_for(u)].append(u.id)
+        team_palette = {
+            'HN': '#5b9bd5', 'HCM1': '#4caf83',
+            'HCM2': '#a578d8', 'HCM3': '#f5a623',
+        }
+        conversion_by_region = []
+        for team in ['HN', 'HCM1', 'HCM2', 'HCM3']:
+            uids = team_user_ids.get(team, [])
+            if not uids:
+                conversion_by_region.append({
+                    'region': team, 'closed': 0, 'total': 0,
+                    'pct': 0.0, 'color': team_palette.get(team, '#888'),
+                })
+                continue
+            # Unique customers (phone) for region in period
+            self.env.cr.execute("""
+                SELECT COUNT(DISTINCT NULLIF(TRIM(phone), ''))
+                FROM crm_lead
+                WHERE user_id = ANY(%s)
+                  AND create_date >= %s AND create_date < %s
+                  AND active = TRUE
+            """, (uids, dt_from, dt_to))
+            r_total = self.env.cr.fetchone()[0] or 0
+            r_closed = self.search_count([
+                ('user_id', 'in', uids),
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', d_from),
+                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
+            ])
+            pct = round((r_closed / r_total * 100), 1) if r_total else 0.0
+            conversion_by_region.append({
+                'region': team, 'closed': r_closed, 'total': r_total,
+                'pct': pct, 'color': team_palette.get(team, '#888'),
+            })
+
+        # === Top NV by closed contracts ===
+        nv_stats = []
+        for u in sales_users:
+            c = self.search_count([
+                ('user_id', '=', u.id),
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', d_from),
+                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
+            ])
+            if c == 0:
+                continue
+            # Tên ngắn: bỏ prefix "HCM1 - "
+            short_name = re.sub(r'^[A-ZĐ]+\d*\s*[-–—]\s*', '', u.name or '')
+            nv_stats.append({
+                'user_id': u.id,
+                'name': short_name or (u.name or 'NV'),
+                'full_name': u.name,
+                'count': c,
+                'team': self._vd_team_label_for(u),
+                'color': team_palette.get(self._vd_team_label_for(u), '#888'),
+            })
+        nv_stats.sort(key=lambda x: -x['count'])
+        top_nv = nv_stats[:10]
+
+        return {
+            'date_from': d_from.isoformat(),
+            'date_to': d_to.isoformat(),
+            'kpi': kpi,
+            'time_series': time_series,
+            'status_distribution': donut,
+            'conversion_by_region': conversion_by_region,
+            'top_nv': top_nv,
+            'generated_at': fields.Datetime.now().isoformat(),
+        }
