@@ -29,12 +29,8 @@ export class VdCrmDashboard extends Component {
         past.setDate(past.getDate() - 90);
         const isoDate = (d) => d.toISOString().slice(0, 10);
 
-        // Focus từ action context: 'customers' | 'employees' | null (all)
-        // Khi user click menu "Kiểm soát KH" → context.vd_focus='customers'
-        // → component render KH-related sections, ẩn NV section
-        const ctx = this.props.action?.context || {};
-        const focus = ctx.vd_focus || null;
-
+        // Focus: 'customers' | 'employees' — chuyển qua nút toggle ở sidebar dọc.
+        // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
             user: { id: 0, name: "", is_all: false },
@@ -50,10 +46,8 @@ export class VdCrmDashboard extends Component {
             leads: [],
             leadsLoading: false,
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
-            // Focus: section visibility (KPI + cards) điều khiển bằng focus
-            // adminTab giữ default 'overview' cho cả 2 focus — overview tự
-            // adapt content theo state.focus
-            focus: focus,
+            // Focus điều khiển section visibility — chuyển bằng nút sidebar.
+            focus: "customers",
             adminTab: "overview",
             nvDetail: null,
             nvDetailLoading: false,
@@ -107,11 +101,20 @@ export class VdCrmDashboard extends Component {
         return this.state.is_manager && !this.state.selected_user_id;
     }
 
-    // Focus helpers: dùng trong XML để show/hide section theo menu vào
+    // Focus helpers: dùng trong XML để show/hide section theo nút sidebar
     get isCustomerFocus() { return this.state.focus === 'customers'; }
     get isEmployeeFocus() { return this.state.focus === 'employees'; }
     get showKhSection()   { return this.state.focus !== 'employees'; }
     get showNvSection()   { return this.state.focus !== 'customers'; }
+
+    setFocus(focus) {
+        if (this.state.focus === focus) return;
+        this.state.focus = focus;
+        // Reset về tab overview khi đổi focus — tránh kẹt ở tab đã ẩn (vd
+        // đang ở 'performance' rồi switch sang KH focus mà tab performance bị hide)
+        this.state.adminTab = 'overview';
+        this.state.nvDetail = null;
+    }
 
     async selectAdminTab(tab) {
         this.state.adminTab = tab;

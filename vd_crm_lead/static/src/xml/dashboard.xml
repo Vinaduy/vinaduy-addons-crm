@@ -57,6 +57,20 @@
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
 
+                        <!-- ===== FOCUS TOGGLE: KH / NV — control toàn bộ section visibility ===== -->
+                        <div class="o_vd_admin_focus_toggle">
+                            <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_kh ' + (isCustomerFocus ? 'o_active' : '')"
+                                    t-on-click="() => this.setFocus('customers')">
+                                <span class="o_vd_focus_icon">👥</span>
+                                <span class="o_vd_focus_lbl">Kiểm soát<br/>khách hàng</span>
+                            </button>
+                            <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_nv ' + (isEmployeeFocus ? 'o_active' : '')"
+                                    t-on-click="() => this.setFocus('employees')">
+                                <span class="o_vd_focus_icon">👤</span>
+                                <span class="o_vd_focus_lbl">Kiểm soát<br/>nhân viên</span>
+                            </button>
+                        </div>
+
                         <nav class="o_vd_admin_nav_list">
                             <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'overview' ? 'o_active' : '')"
                                     t-on-click="() => this.selectAdminTab('overview')">
