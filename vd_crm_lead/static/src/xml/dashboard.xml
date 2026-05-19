@@ -72,20 +72,6 @@
                         </div>
 
                         <nav class="o_vd_admin_nav_list">
-                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'overview' ? 'o_active' : '')"
-                                    t-on-click="() => this.selectAdminTab('overview')">
-                                <i class="fa fa-chart-pie"/>
-                                <span t-if="isEmployeeFocus">Nhân viên</span>
-                                <span t-elif="isCustomerFocus">Khách hàng</span>
-                                <span t-else="">Công ty</span>
-                            </button>
-                            <!-- Thành tích nhân viên: chỉ NV focus + all -->
-                            <button t-if="showNvSection"
-                                    t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'performance' ? 'o_active' : '')"
-                                    t-on-click="() => this.selectAdminTab('performance')">
-                                <i class="fa fa-trophy"/>
-                                <span>Thành tích nhân viên</span>
-                            </button>
                             <!-- Cảnh báo KH: chỉ KH focus + all -->
                             <button t-if="showKhSection"
                                     t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'alerts' ? 'o_active' : '')"
