@@ -1453,10 +1453,10 @@
             &:focus { outline: none; border-color: #4c6ef5; }
         }
     }
-    /* ===== Focus toggle KH/NV — 2 nút lớn ngay đầu menu dọc ===== */
+    /* ===== Focus toggle KH/NV — stack dọc, 1 button/dòng, icon + text inline ===== */
     .o_vd_admin_focus_toggle {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 0.4rem;
         margin: 0.6rem 0;
         padding: 0.6rem 0;
@@ -1465,26 +1465,28 @@
     }
     .o_vd_admin_focus_btn {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        padding: 0.6rem 0.35rem;
+        justify-content: flex-start;
+        gap: 0.6rem;
+        padding: 0.65rem 0.85rem;
         border: 2px solid var(--bs-border-color, #dee2e6);
         border-radius: 8px;
         background: var(--bs-tertiary-bg, #f8f9fa);
         color: var(--bs-secondary-color, #6c757d);
-        font-size: 0.72rem;
-        font-weight: 700;
+        font-size: 0.88rem;
+        font-weight: 600;
         line-height: 1.2;
-        text-align: center;
+        text-align: left;
         cursor: pointer;
         transition: all 0.15s ease;
+        width: 100%;
+        white-space: nowrap;
         &:hover { transform: translateY(-1px); border-color: #adb5bd; }
         &.o_active {
             color: #fff;
             border-color: transparent;
-            box-shadow: 0 2px 6px -1px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px -1px rgba(0,0,0,0.25);
         }
         &.o_vd_focus_kh.o_active {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
@@ -1492,8 +1494,8 @@
         &.o_vd_focus_nv.o_active {
             background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
         }
-        .o_vd_focus_icon { font-size: 1.4rem; line-height: 1; }
-        .o_vd_focus_lbl  { font-size: 0.7rem; }
+        .o_vd_focus_icon { font-size: 1.25rem; line-height: 1; flex-shrink: 0; }
+        .o_vd_focus_lbl  { font-size: 0.85rem; }
     }
 
     .o_vd_admin_nav_list {

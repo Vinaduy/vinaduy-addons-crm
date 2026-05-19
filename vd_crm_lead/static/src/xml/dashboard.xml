@@ -57,17 +57,17 @@
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
 
-                        <!-- ===== FOCUS TOGGLE: KH / NV — control toàn bộ section visibility ===== -->
+                        <!-- ===== FOCUS TOGGLE: KH / NV — stack dọc 1 dòng/cái ===== -->
                         <div class="o_vd_admin_focus_toggle">
                             <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_kh ' + (isCustomerFocus ? 'o_active' : '')"
                                     t-on-click="() => this.setFocus('customers')">
                                 <span class="o_vd_focus_icon">👥</span>
-                                <span class="o_vd_focus_lbl">Kiểm soát<br/>khách hàng</span>
+                                <span class="o_vd_focus_lbl">Kiểm soát khách hàng</span>
                             </button>
                             <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_nv ' + (isEmployeeFocus ? 'o_active' : '')"
                                     t-on-click="() => this.setFocus('employees')">
                                 <span class="o_vd_focus_icon">👤</span>
-                                <span class="o_vd_focus_lbl">Kiểm soát<br/>nhân viên</span>
+                                <span class="o_vd_focus_lbl">Kiểm soát nhân viên</span>
                             </button>
                         </div>
 
@@ -75,23 +75,23 @@
                             <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'overview' ? 'o_active' : '')"
                                     t-on-click="() => this.selectAdminTab('overview')">
                                 <i class="fa fa-chart-pie"/>
-                                <span t-if="isEmployeeFocus">Tổng quan nhân viên</span>
-                                <span t-elif="isCustomerFocus">Tổng quan khách hàng</span>
-                                <span t-else="">Tổng quan công ty</span>
+                                <span t-if="isEmployeeFocus">Nhân viên</span>
+                                <span t-elif="isCustomerFocus">Khách hàng</span>
+                                <span t-else="">Công ty</span>
                             </button>
-                            <!-- Thành tích NV: chỉ NV focus + all -->
+                            <!-- Thành tích nhân viên: chỉ NV focus + all -->
                             <button t-if="showNvSection"
                                     t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'performance' ? 'o_active' : '')"
                                     t-on-click="() => this.selectAdminTab('performance')">
                                 <i class="fa fa-trophy"/>
-                                <span>Thành tích NV</span>
+                                <span>Thành tích nhân viên</span>
                             </button>
                             <!-- Cảnh báo KH: chỉ KH focus + all -->
                             <button t-if="showKhSection"
                                     t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'alerts' ? 'o_active' : '')"
                                     t-on-click="() => this.selectAdminTab('alerts')">
                                 <i class="fa fa-exclamation-triangle"/>
-                                <span>Cảnh báo &amp; KH cần xử lý</span>
+                                <span>Cảnh báo &amp; khách hàng cần xử lý</span>
                                 <span t-if="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0) > 0"
                                       class="o_vd_admin_nav_badge">
                                     <t t-esc="(state.errors.overdue_callback or 0) + (state.errors.new_not_called or 0) + (state.errors.potential_no_quote or 0) + (state.errors.stale or 0)"/>
@@ -106,7 +106,7 @@
 
                         <div class="o_vd_admin_nav_footer">
                             <div class="o_vd_admin_nav_kpi">
-                                <span class="o_vd_admin_nav_kpi_lbl">Tổng KH cty</span>
+                                <span class="o_vd_admin_nav_kpi_lbl">Tổng khách hàng công ty</span>
                                 <span class="o_vd_admin_nav_kpi_val"><t t-esc="state.kpi.total or 0"/></span>
                             </div>
                         </div>
