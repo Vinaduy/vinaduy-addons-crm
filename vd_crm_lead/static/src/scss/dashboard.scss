@@ -2890,30 +2890,17 @@
     .o_vd_kh_nv_row {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4 cột đều nhau */
-        gap: 0;
+        gap: 4px;
         align-items: stretch;
-        padding: 0;
-        border-radius: 4px;
+        padding: 4px;
+        border-radius: 0;
         background: transparent;
-        border: 1px solid transparent;
-        transition: all 0.12s ease;
+        border: none;
         cursor: default;
-        overflow: hidden;
-        &:nth-child(odd) {
-            background: var(--bs-tertiary-bg, #f8f9fa);
+        > .o_vd_kh_col_name {
+            padding: 0.45rem 0.6rem;
+            min-height: 28px;
         }
-        &:hover {
-            background: var(--bs-secondary-bg, #e9ecef);
-            border-color: var(--bs-border-color, #dee2e6);
-        }
-        /* Vertical dividers + chiều cao compact (~60% so với cũ) */
-        > .o_vd_kh_col_name,
-        > .o_vd_kh_col_metric {
-            padding: 0.25rem 0.5rem;   /* giảm từ 0.5rem → 0.25rem */
-            min-height: 28px;          /* compact row */
-            border-right: 1px solid var(--bs-border-color, #e9ecef);
-        }
-        > :last-child { border-right: none; }
     }
     .o_vd_kh_col_name {
         display: flex;
@@ -2925,12 +2912,28 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    /* Metric cell = card riêng biệt, fill ô, hover popover */
     .o_vd_kh_col_metric {
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
+        min-height: 32px;
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px -3px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
     }
+    /* Hover viền màu theo loại metric */
+    .o_vd_kh_metric_done:hover     { border-color: #16a34a; background: rgba(22,163,74,0.06); }
+    .o_vd_kh_metric_progress:hover { border-color: #d97706; background: rgba(217,119,6,0.07); }
+    .o_vd_kh_metric_new:hover      { border-color: #2563eb; background: rgba(37,99,235,0.06); }
     /* Metric — số plain, không badge. Màu theo cột để dễ phân biệt. */
     .o_vd_kh_metric_num {
         display: inline-block;
