@@ -3000,8 +3000,9 @@
         position: absolute;
         top: calc(100% + 6px);
         right: 0;
-        width: 420px;
-        max-height: 480px;
+        width: 520px;
+        max-width: 90vw;
+        max-height: 520px;
         flex-direction: column;
         background: var(--bs-body-bg, #fff);
         border: 1px solid var(--bs-border-color, #dee2e6);
@@ -3069,10 +3070,12 @@
     .o_vd_kh_lead_name {
         font-weight: 700;
         color: var(--bs-body-color, inherit);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         flex: 1;
+        min-width: 0;
+        /* cho phép wrap nếu tên dài — không cắt ellipsis */
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.35;
     }
     .o_vd_kh_lead_phone {
         font-size: 0.78rem;

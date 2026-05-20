@@ -170,9 +170,8 @@
                                                     </span>
                                                     <div t-if="nv.resolved_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            🏆 KH đang chốt — gửi HĐ / chốt
-                                                            (<t t-esc="nv.resolved_count"/>) —
-                                                            <strong><t t-esc="nv.full_name"/></strong>
+                                                            ĐANG CHỐT - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.resolved_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
                                                             <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
@@ -194,8 +193,8 @@
                                                     </span>
                                                     <div t-if="nv.in_progress_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            ⏳ KH đang xử lý vấn đề (<t t-esc="nv.in_progress_count"/>)
-                                                            — <strong><t t-esc="nv.full_name"/></strong>
+                                                            ĐANG XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.in_progress_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
                                                             <div t-foreach="nv.in_progress_leads" t-as="ld" t-key="ld.lead_id"
@@ -223,8 +222,8 @@
                                                     </span>
                                                     <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            🆕 KH mới (<t t-esc="nv.new_count"/>)
-                                                            — <strong><t t-esc="nv.full_name"/></strong>
+                                                            KHÁCH MỚI - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.new_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
                                                             <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
@@ -233,14 +232,6 @@
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
                                                                     <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
-                                                                </div>
-                                                                <div class="o_vd_kh_lead_meta">
-                                                                    <span t-if="ld.call_count == 0"
-                                                                          class="o_vd_kh_lead_tag o_vd_kh_tag_red">Chưa gọi</span>
-                                                                    <span t-else=""
-                                                                          class="o_vd_kh_lead_tag o_vd_kh_tag_green">
-                                                                        Đã gọi <t t-esc="ld.call_count"/>×
-                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
