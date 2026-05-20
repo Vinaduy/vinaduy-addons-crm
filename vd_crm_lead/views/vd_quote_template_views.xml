@@ -84,16 +84,86 @@
                 <field name="name" string="Tên / mô tả"
                        filter_domain="['|', ('name','ilike',self), ('description','ilike',self)]"/>
                 <field name="category_id"/>
+                <field name="region_ids"/>
                 <field name="file_name"/>
                 <filter string="Đang hoạt động" name="filter_active"
                         domain="[('active','=',True)]"/>
                 <filter string="Ngưng dùng" name="filter_inactive"
                         domain="[('active','=',False)]"/>
+                <separator/>
+                <filter string="Miền Bắc" name="filter_bac"
+                        domain="[('region_ids.code','=','bac')]"/>
+                <filter string="Miền Trung" name="filter_trung"
+                        domain="[('region_ids.code','=','trung')]"/>
+                <filter string="Miền Nam" name="filter_nam"
+                        domain="[('region_ids.code','=','nam')]"/>
                 <group expand="1" string="Nhóm theo">
+                    <filter string="Vùng miền (folder)" name="groupby_region"
+                            context="{'group_by': 'region_ids'}"/>
                     <filter string="Nhóm template" name="groupby_category"
                             context="{'group_by': 'category_id'}"/>
+                    <filter string="Loại móng" name="groupby_foundation"
+                            context="{'group_by': 'foundation'}"/>
+                    <filter string="Loại mái" name="groupby_roof"
+                            context="{'group_by': 'roof_simple'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <!-- ============ KANBAN VIEW — như folder, group theo vùng ============ -->
+    <record id="view_vd_quote_template_kanban" model="ir.ui.view">
+        <field name="name">vd.quote.template.kanban</field>
+        <field name="model">vd.quote.template</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="region_ids"
+                    class="o_vd_quote_tpl_kanban"
+                    records_draggable="0">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="file_name"/>
+                <field name="category_id"/>
+                <field name="region_ids"/>
+                <field name="foundation"/>
+                <field name="roof_simple"/>
+                <field name="floor_range"/>
+                <field name="active"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_content"
+                             style="display:flex;flex-direction:column;gap:0.4rem;padding:0.7rem;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <i class="fa fa-file-pdf-o" style="color:#dc2626;font-size:1.4rem;"/>
+                                <strong style="flex:1;font-size:0.92rem;line-height:1.25;">
+                                    <field name="name"/>
+                                </strong>
+                            </div>
+                            <div t-if="record.category_id.raw_value"
+                                 style="font-size:0.72rem;color:#6c757d;background:#f1f3f5;padding:0.2rem 0.45rem;border-radius:8px;display:inline-block;width:fit-content;">
+                                📁 <field name="category_id"/>
+                            </div>
+                            <div style="display:flex;gap:0.3rem;flex-wrap:wrap;font-size:0.7rem;">
+                                <span t-if="record.floor_range.raw_value"
+                                      style="background:#dbeafe;color:#1e40af;padding:0.1rem 0.45rem;border-radius:8px;">
+                                    🏢 <field name="floor_range"/>
+                                </span>
+                                <span t-if="record.foundation.raw_value"
+                                      style="background:#fef3c7;color:#92400e;padding:0.1rem 0.45rem;border-radius:8px;">
+                                    🧱 <field name="foundation"/>
+                                </span>
+                                <span t-if="record.roof_simple.raw_value"
+                                      style="background:#fee2e2;color:#991b1b;padding:0.1rem 0.45rem;border-radius:8px;">
+                                    🏠 <field name="roof_simple"/>
+                                </span>
+                            </div>
+                            <div t-if="record.file_name.raw_value"
+                                 style="font-size:0.7rem;color:#94a3b8;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                <field name="file_name"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -205,11 +275,12 @@
     <record id="action_vd_quote_template" model="ir.actions.act_window">
         <field name="name">Template báo giá</field>
         <field name="res_model">vd.quote.template</field>
-        <field name="view_mode">list,form</field>
-        <field name="context">{'search_default_groupby_category': 1, 'search_default_filter_active': 1}</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_groupby_region': 1, 'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Upload các file template báo giá (.docx/.xlsx/.pdf/.png...).</p>
-            <p>NV chọn template phù hợp khi lập báo giá cho từng KH. Phân nhóm theo Mái Nhật, Mái Thái, Miền Bắc, Miền Nam...</p>
+            <p>Mặc định view kanban gom theo vùng (folder). Click vào card template để xem chi tiết / sửa.
+               Phân nhóm con theo 4 chiều: Vùng × Tầng × Móng × Mái.</p>
         </field>
     </record>
 

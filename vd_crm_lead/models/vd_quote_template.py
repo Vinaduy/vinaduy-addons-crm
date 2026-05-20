@@ -102,6 +102,25 @@ class VdQuoteTemplate(models.Model):
     active = fields.Boolean(default=True)
     note = fields.Text(string='Ghi chú nội bộ')
 
+    # Related fields từ category — cho group_by / filter / kanban view
+    region_ids = fields.Many2many(
+        'vd.quote.region',
+        related='category_id.region_ids', store=True,
+        string='Vùng (qua nhóm)',
+    )
+    foundation = fields.Selection(
+        related='category_id.foundation', store=True,
+        string='Móng (qua nhóm)',
+    )
+    roof_simple = fields.Selection(
+        related='category_id.roof_simple', store=True,
+        string='Mái (qua nhóm)',
+    )
+    floor_range = fields.Selection(
+        related='category_id.floor_range', store=True,
+        string='Tầng (qua nhóm)',
+    )
+
     # Override display_name của Odoo: thêm prefix [Nhóm] để NV dễ nhận diện
     # trong dropdown chọn template (vd.quote.template_id Many2one).
     @api.depends('name', 'category_id.name')
