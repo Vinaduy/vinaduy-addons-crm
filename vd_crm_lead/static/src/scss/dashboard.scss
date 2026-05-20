@@ -2874,13 +2874,15 @@
         color: var(--bs-secondary-color, #6c757d);
     }
 
-    /* NV chips — wrap inline trong từng team group */
+    /* NV rows — stack dọc, 1 NV/dòng */
     .o_vd_kh_nv_list {
         display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        align-content: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: stretch;
+    }
+    .o_vd_kh_nv_row {
+        align-self: flex-start;   /* row chỉ rộng vừa content, không full width */
     }
     .o_vd_kh_nv_row {
         position: relative;
