@@ -7,65 +7,30 @@ from odoo.exceptions import UserError
 
 
 class VdQuoteTemplateCategory(models.Model):
-    """Nhóm template báo giá — phân loại 4 chiều:
-    - region: Vùng miền (Bắc/Trung/Nam)
-    - floor_range: Số tầng (1T / 2-4T / 5+T)
-    - foundation: Loại móng (Đơn/Băng/Cọc) — match crm.lead.vd_intake_foundation_type
-    - roof_simple: Loại mái (Bằng/Ngói) — gom từ 11 giá trị mái của lead
+    """Folder template báo giá — chỉ là 1 cái thư mục để gom file.
 
-    Khi NV chọn intake (vùng, tầng, móng, mái) ở lead form, dropdown
-    template auto-filter category match cả 4 chiều.
+    Phân loại chi tiết (foundation/roof/floor/region) nay đã move sang
+    chính template (1 file = 1 record với đầy đủ tag).
+
+    Sau refactor giữ 3 folder phẳng:
+    - BG MB → templates dùng cho Bắc + Trung
+    - BG MN → templates dùng cho Nam
+    - BG - Gói 5T9 → templates gói đặc biệt
     """
     _name = 'vd.quote.template.category'
-    _description = 'Nhóm template báo giá'
+    _description = 'Folder template báo giá'
     _order = 'sequence, name'
 
-    name = fields.Char(string='Tên nhóm', required=True, translate=False)
+    name = fields.Char(string='Tên folder', required=True, translate=False)
     sequence = fields.Integer(default=10)
-    color = fields.Integer(string='Màu', default=0,
-                            help='Mã màu (0-11) cho badge nhóm')
+    color = fields.Integer(string='Màu', default=0)
     description = fields.Char(string='Mô tả ngắn')
-    template_count = fields.Integer(string='Số template',
+    template_count = fields.Integer(string='Số file',
                                      compute='_compute_template_count')
     active = fields.Boolean(default=True)
 
-    # ===== 4 chiều phân loại (auto-filter trên lead) =====
-    # Region: Many2many → 1 category áp dụng cho NHIỀU vùng (vd Bắc+Trung
-    # dùng chung templates). Match với vd_intake_region của lead.
-    region_ids = fields.Many2many(
-        'vd.quote.region',
-        'vd_quote_template_category_region_rel',
-        'category_id', 'region_id',
-        string='Vùng miền',
-        help='Các vùng áp dụng. Vd: chọn Bắc+Trung nếu cùng dùng 1 bộ '
-             'template; chọn Nam nếu Nam dùng template riêng.',
-    )
-    region_codes = fields.Char(
-        string='Region codes', compute='_compute_region_codes',
-        store=True,
-        help='CSV codes (vd "bac,trung") — dùng cho filter nhanh.',
-    )
-    floor_range = fields.Selection([
-        ('1', '1 Tầng'),
-        ('2_4', '2-4 Tầng'),
-        ('5_plus', '5+ Tầng'),
-    ], string='Số tầng',
-       help='Phân loại theo vd_intake_floors_num: 1 / 2-4 / 5+.')
-    foundation = fields.Selection([
-        ('don', 'Móng đơn'),
-        ('bang', 'Móng băng'),
-        ('coc', 'Móng cọc'),
-    ], string='Loại móng',
-       help='Match trực tiếp với vd_intake_foundation_type của lead.')
-    roof_simple = fields.Selection([
-        ('bang', 'Mái bằng'),
-        ('ngoi', 'Mái ngói / nghiêng'),
-    ], string='Loại mái',
-       help='Mái bằng = mai_bang. Mái ngói = các loại nhật/thái/tôn/'
-            'trang trí (gom chung 1 nhóm).')
-
     _sql_constraints = [
-        ('name_unique', 'unique(name)', 'Tên nhóm template không được trùng.'),
+        ('name_unique', 'unique(name)', 'Tên folder không được trùng.'),
     ]
 
     @api.depends()
@@ -73,11 +38,6 @@ class VdQuoteTemplateCategory(models.Model):
         Tpl = self.env['vd.quote.template']
         for rec in self:
             rec.template_count = Tpl.search_count([('category_id', '=', rec.id)])
-
-    @api.depends('region_ids', 'region_ids.code')
-    def _compute_region_codes(self):
-        for rec in self:
-            rec.region_codes = ','.join(sorted(rec.region_ids.mapped('code')))
 
 
 class VdQuoteTemplate(models.Model):
@@ -102,24 +62,32 @@ class VdQuoteTemplate(models.Model):
     active = fields.Boolean(default=True)
     note = fields.Text(string='Ghi chú nội bộ')
 
-    # Related fields từ category — cho group_by / filter / kanban view
+    # ===== 4 chiều phân loại TRỰC TIẾP trên template =====
+    # Trước đây ở category — đã move sang template để mỗi file có tag riêng.
     region_ids = fields.Many2many(
         'vd.quote.region',
-        related='category_id.region_ids', store=True,
-        string='Vùng (qua nhóm)',
+        'vd_quote_template_region_rel',
+        'template_id', 'region_id',
+        string='Vùng miền',
+        help='Vùng áp dụng. Vd: Bắc+Trung dùng chung → chọn cả 2.',
     )
-    foundation = fields.Selection(
-        related='category_id.foundation', store=True,
-        string='Móng (qua nhóm)',
-    )
-    roof_simple = fields.Selection(
-        related='category_id.roof_simple', store=True,
-        string='Mái (qua nhóm)',
-    )
-    floor_range = fields.Selection(
-        related='category_id.floor_range', store=True,
-        string='Tầng (qua nhóm)',
-    )
+    floor_range = fields.Selection([
+        ('1', '1 Tầng'),
+        ('2_4', '2-4 Tầng'),
+        ('5_plus', '5+ Tầng'),
+    ], string='Số tầng',
+       help='Match vd_intake_floors_num của lead.')
+    foundation = fields.Selection([
+        ('don', 'Móng đơn'),
+        ('bang', 'Móng băng'),
+        ('coc', 'Móng cọc'),
+    ], string='Loại móng',
+       help='Match vd_intake_foundation_type của lead.')
+    roof_simple = fields.Selection([
+        ('bang', 'Mái bằng'),
+        ('ngoi', 'Mái ngói / nghiêng'),
+    ], string='Loại mái',
+       help='Mái bằng = mai_bang. Mái ngói = các loại nhật/thái/tôn/trang trí.')
 
     # Override display_name của Odoo: thêm prefix [Nhóm] để NV dễ nhận diện
     # trong dropdown chọn template (vd.quote.template_id Many2one).

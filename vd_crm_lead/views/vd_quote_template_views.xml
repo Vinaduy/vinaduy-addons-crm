@@ -2,20 +2,16 @@
 <odoo>
 
     <!-- ============================================================
-         📁 NHÓM TEMPLATE (Category) — Mái Nhật / Mái Thái / Miền Bắc...
+         📁 FOLDER TEMPLATE (Category) — gọn, chỉ là folder
          ============================================================ -->
     <record id="view_vd_quote_template_category_tree" model="ir.ui.view">
         <field name="name">vd.quote.template.category.tree</field>
         <field name="model">vd.quote.template.category</field>
         <field name="arch" type="xml">
-            <list string="Nhóm template báo giá" editable="bottom">
+            <list string="Folder template" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="region_ids" widget="many2many_tags"
-                       options="{'color_field': 'color'}" optional="show"/>
-                <field name="floor_range" optional="show"/>
-                <field name="foundation" optional="show"/>
-                <field name="roof_simple" optional="show"/>
+                <field name="description"/>
                 <field name="template_count" readonly="1"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
@@ -26,55 +22,31 @@
         <field name="name">vd.quote.template.category.form</field>
         <field name="model">vd.quote.template.category</field>
         <field name="arch" type="xml">
-            <form string="Nhóm template báo giá">
+            <form string="Folder template">
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="name" placeholder="Vd: MB - 1T - Đơn - Bằng"/></h1>
+                        <h1><field name="name" placeholder="Vd: BG MB, BG MN, BG - Gói 5T9"/></h1>
                     </div>
                     <group>
-                        <group string="Phân loại 4 chiều (auto-filter)">
-                            <field name="region_ids" widget="many2many_tags"
-                                   options="{'no_create': True, 'color_field': 'color'}"
-                                   placeholder="— Chọn vùng (có thể nhiều — vd Bắc+Trung dùng chung) —"/>
-                            <field name="floor_range"
-                                   placeholder="— Chọn số tầng —"/>
-                            <field name="foundation"
-                                   placeholder="— Chọn loại móng —"/>
-                            <field name="roof_simple"
-                                   placeholder="— Chọn loại mái —"/>
-                        </group>
-                        <group string="Hiển thị">
-                            <field name="sequence"/>
-                            <field name="color" widget="color_picker"/>
-                            <field name="active"/>
-                            <field name="description" placeholder="Mô tả ngắn..."/>
-                            <field name="template_count" readonly="1"/>
-                        </group>
+                        <field name="description" placeholder="Mô tả ngắn..."/>
+                        <field name="sequence"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active"/>
+                        <field name="template_count" readonly="1"/>
                     </group>
-                    <div class="alert alert-info" role="alert">
-                        <b>📋 Cách phân loại:</b> Mỗi nhóm tag với 4 chiều
-                        (vùng + tầng + móng + mái). Khi NV chọn intake ở form Lead,
-                        dropdown template tự filter category match cả 4 chiều.
-                        Vd: nhóm <b>MB-1T-Đơn-Bằng</b> = template cho KH miền Bắc,
-                        nhà 1 tầng, móng đơn, mái bằng.
-                    </div>
                 </sheet>
             </form>
         </field>
     </record>
 
     <record id="action_vd_quote_template_category" model="ir.actions.act_window">
-        <field name="name">Nhóm template báo giá</field>
+        <field name="name">Folder template báo giá</field>
         <field name="res_model">vd.quote.template.category</field>
         <field name="view_mode">list,form</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Tạo nhóm để phân loại template báo giá.</p>
-            <p>Vd: Mái Nhật, Mái Thái, Miền Bắc, Miền Nam...</p>
-        </field>
     </record>
 
     <!-- ============================================================
-         📄 TEMPLATE BÁO GIÁ
+         📄 TEMPLATE BÁO GIÁ — tag 4 chiều trực tiếp + folder
          ============================================================ -->
     <record id="view_vd_quote_template_search" model="ir.ui.view">
         <field name="name">vd.quote.template.search</field>
@@ -98,27 +70,28 @@
                 <filter string="Miền Nam" name="filter_nam"
                         domain="[('region_ids.code','=','nam')]"/>
                 <group expand="1" string="Nhóm theo">
-                    <filter string="Vùng miền (folder)" name="groupby_region"
-                            context="{'group_by': 'region_ids'}"/>
-                    <filter string="Nhóm template" name="groupby_category"
+                    <filter string="Folder" name="groupby_category"
                             context="{'group_by': 'category_id'}"/>
+                    <filter string="Vùng miền" name="groupby_region"
+                            context="{'group_by': 'region_ids'}"/>
                     <filter string="Loại móng" name="groupby_foundation"
                             context="{'group_by': 'foundation'}"/>
                     <filter string="Loại mái" name="groupby_roof"
                             context="{'group_by': 'roof_simple'}"/>
+                    <filter string="Số tầng" name="groupby_floor"
+                            context="{'group_by': 'floor_range'}"/>
                 </group>
             </search>
         </field>
     </record>
 
-    <!-- ============ KANBAN VIEW — như folder, group theo vùng ============ -->
     <record id="view_vd_quote_template_kanban" model="ir.ui.view">
         <field name="name">vd.quote.template.kanban</field>
         <field name="model">vd.quote.template</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="region_ids"
+            <kanban default_group_by="category_id"
                     class="o_vd_quote_tpl_kanban"
-                    records_draggable="0">
+                    records_draggable="1">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="file_name"/>
@@ -138,10 +111,6 @@
                                     <field name="name"/>
                                 </strong>
                             </div>
-                            <div t-if="record.category_id.raw_value"
-                                 style="font-size:0.72rem;color:#6c757d;background:#f1f3f5;padding:0.2rem 0.45rem;border-radius:8px;display:inline-block;width:fit-content;">
-                                📁 <field name="category_id"/>
-                            </div>
                             <div style="display:flex;gap:0.3rem;flex-wrap:wrap;font-size:0.7rem;">
                                 <span t-if="record.floor_range.raw_value"
                                       style="background:#dbeafe;color:#1e40af;padding:0.1rem 0.45rem;border-radius:8px;">
@@ -154,6 +123,12 @@
                                 <span t-if="record.roof_simple.raw_value"
                                       style="background:#fee2e2;color:#991b1b;padding:0.1rem 0.45rem;border-radius:8px;">
                                     🏠 <field name="roof_simple"/>
+                                </span>
+                            </div>
+                            <div style="display:flex;gap:0.25rem;flex-wrap:wrap;font-size:0.68rem;">
+                                <span t-foreach="record.region_ids.raw_value" t-as="r" t-key="r_index"
+                                      style="background:#e0e7ff;color:#3730a3;padding:0.08rem 0.45rem;border-radius:6px;">
+                                    📍 <t t-esc="record.region_ids.value[r_index]"/>
                                 </span>
                             </div>
                             <div t-if="record.file_name.raw_value"
@@ -175,8 +150,11 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="category_id" optional="show"/>
-                <field name="file_name"/>
-                <field name="description" optional="show"/>
+                <field name="region_ids" widget="many2many_tags" optional="show"/>
+                <field name="floor_range" optional="show"/>
+                <field name="foundation" optional="show"/>
+                <field name="roof_simple" optional="show"/>
+                <field name="file_name" optional="hide"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -190,82 +168,42 @@
                 <header>
                     <button name="action_create_placeholder_version" type="object"
                             class="btn-primary"
-                            string="🔧 Tạo template có placeholder (cho file Lệ Chi)"
-                            help="Convert file mẫu Lệ Chi thành phiên bản có {{KH_NAME}}, {{TODAY}}, {{ADDRESS}}, {{TOTAL_PRICE}}... Sau đó upload lại file này làm template chuẩn — work 100% với mọi KH."/>
+                            string="🔧 Tạo placeholder (cho file Lệ Chi)"
+                            invisible="not file_attachment"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="name" placeholder="Vd: BG nhà mái ngói móng đơn 2025"/></h1>
+                        <h1><field name="name" placeholder="Vd: 1TĐơn - Mái Bằng"/></h1>
                     </div>
                     <group>
-                        <group>
+                        <group string="📁 Folder + File">
                             <field name="category_id"
                                    options="{'no_create': False, 'no_create_edit': False}"
-                                   placeholder="— Chọn nhóm (Mái Nhật / Mái Thái / Miền Bắc...) —"/>
+                                   placeholder="— Chọn folder (BG MB / BG MN / Gói 5T9) —"/>
                             <field name="file_attachment" filename="file_name"/>
                             <field name="file_name" invisible="1"/>
-                            <field name="quote_page_index"/>
                             <field name="active"/>
                             <field name="sequence"/>
                         </group>
-                        <group>
-                            <field name="description" placeholder="Áp dụng cho loại nhà nào, vùng nào..."/>
+                        <group string="🏷 Tag phân loại (auto-filter trên lead)">
+                            <field name="region_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'color_field': 'color'}"
+                                   placeholder="— Chọn vùng (có thể nhiều) —"/>
+                            <field name="floor_range"/>
+                            <field name="foundation"/>
+                            <field name="roof_simple"/>
                         </group>
                     </group>
+                    <group>
+                        <field name="description" placeholder="Áp dụng cho loại nhà nào, vùng nào..."/>
+                        <field name="quote_page_index"/>
+                    </group>
                     <div class="alert alert-info" role="alert">
-                        <b>📄 Cách hoạt động:</b><br/>
-                        • Upload file PDF mẫu (vd: 16 trang, có logo + ảnh + format chuẩn của VINADUY)<br/>
-                        • Đặt <b>"Trang báo giá"</b> = số thứ tự trang chứa BẢNG BÁO GIÁ CHI TIẾT (mặc định = 3)<br/>
-                        • Khi NV bấm "Tải báo giá" → hệ thống <b>giữ NGUYÊN 100%</b> các trang khác,
-                          chỉ thay duy nhất trang này bằng data của KH (Khách Hàng, Ngày, Địa Chỉ,
-                          breakdown table với giá tự động).<br/>
-                        • Output: file PDF đầy đủ trang giống hệt template, chỉ trang báo giá đổi data.
+                        <b>🏷 Tag để auto-filter:</b> Khi NV chọn intake (vùng/tầng/móng/mái) ở form Lead,
+                        dropdown template tự lọc các file có tag match. Tag rỗng = template "chung", luôn hiện.
                     </div>
 
-                    <separator string="📝 Hướng dẫn tạo template .docx có placeholder"/>
-                    <div class="alert alert-secondary" role="alert">
-                        <p>Mở file <b>.docx</b> trong Word, gõ các placeholder Jinja (dùng <code>{{...}}</code>) vào vị trí cần điền data tự động:</p>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <b>👤 Thông tin khách hàng:</b>
-                                <ul class="mb-2">
-                                    <li><code>{{kh_name}}</code> — Tên KH</li>
-                                    <li><code>{{kh_phone}}</code> — SĐT</li>
-                                    <li><code>{{kh_address}}</code> — Địa chỉ</li>
-                                    <li><code>{{today}}</code> — Ngày tạo báo giá</li>
-                                </ul>
-                                <b>🏠 Thông tin công trình:</b>
-                                <ul class="mb-2">
-                                    <li><code>{{house_type}}</code> — Kiểu nhà</li>
-                                    <li><code>{{foundation}}</code> — Loại móng</li>
-                                    <li><code>{{roof}}</code> — Loại mái</li>
-                                    <li><code>{{area}}</code> — Diện tích sàn (m²)</li>
-                                    <li><code>{{floors}}</code> — Số tầng</li>
-                                    <li><code>{{total_floor_area}}</code> — Tổng DT sàn × tầng</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <b>💵 Đơn giá &amp; chi phí:</b>
-                                <ul class="mb-2">
-                                    <li><code>{{unit_price}}</code> — Đơn giá sàn (đ/m²)</li>
-                                    <li><code>{{found_pct}}</code> / <code>{{found_cost}}</code> — % móng / chi phí móng</li>
-                                    <li><code>{{floor_cost}}</code> — Chi phí sàn</li>
-                                    <li><code>{{roof_pct}}</code> / <code>{{roof_cost}}</code> — % mái / chi phí mái</li>
-                                    <li><code>{{total_price}}</code> — Tổng tiền báo giá</li>
-                                </ul>
-                                <b>💰 Đợt thanh toán (30 / 30 / 30 / 10%):</b>
-                                <ul class="mb-2">
-                                    <li><code>{{tt1}}</code> — Đợt 1</li>
-                                    <li><code>{{tt2}}</code> — Đợt 2</li>
-                                    <li><code>{{tt3}}</code> — Đợt 3</li>
-                                    <li><code>{{tt4}}</code> — Đợt 4</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-0"><i>💡 Khi NV bấm "Tải báo giá" → hệ thống tự thay placeholder bằng data thực tế của KH, giữ nguyên ảnh/logo/format file gốc.</i></p>
-                    </div>
-
-                    <separator string="Ghi chú nội bộ"/>
+                    <separator string="📝 Ghi chú nội bộ"/>
                     <field name="note" placeholder="Lưu ý khi sử dụng template này..."/>
                 </sheet>
             </form>
@@ -276,11 +214,11 @@
         <field name="name">Template báo giá</field>
         <field name="res_model">vd.quote.template</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_groupby_region': 1, 'search_default_filter_active': 1}</field>
+        <field name="context">{'search_default_groupby_category': 1, 'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Upload các file template báo giá (.docx/.xlsx/.pdf/.png...).</p>
-            <p>Mặc định view kanban gom theo vùng (folder). Click vào card template để xem chi tiết / sửa.
-               Phân nhóm con theo 4 chiều: Vùng × Tầng × Móng × Mái.</p>
+            <p>View kanban gom theo Folder (như Finder). Mỗi file có tag riêng (vùng/tầng/móng/mái)
+               cho auto-filter khi NV chọn intake ở lead form.</p>
         </field>
     </record>
 

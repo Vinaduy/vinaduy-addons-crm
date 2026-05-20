@@ -755,33 +755,33 @@ class CrmLead(models.Model):
             else:
                 floor_range = False
 
-            # Build domain: chỉ filter những dimension đã set
+            # Build domain: filter trực tiếp trên template (sau refactor 4
+            # chiều move từ category → template). Template chưa tag dimension
+            # luôn hiện (cho phép template legacy / chung không bị ẩn).
             domain = [('active', '=', True)]
-            # Cho phép template không có category luôn hiện (legacy)
-            cat_clauses = []
+            tag_clauses = []
             if rec.vd_intake_region:
-                # region_ids là M2M → check membership qua code
-                cat_clauses.extend([
-                    '|', ('category_id', '=', False),
-                    ('category_id.region_ids.code', '=', rec.vd_intake_region),
+                tag_clauses.extend([
+                    '|', ('region_ids', '=', False),
+                    ('region_ids.code', '=', rec.vd_intake_region),
                 ])
             if rec.vd_intake_foundation_type:
-                cat_clauses.extend([
-                    '|', ('category_id', '=', False),
-                    ('category_id.foundation', '=', rec.vd_intake_foundation_type),
+                tag_clauses.extend([
+                    '|', ('foundation', '=', False),
+                    ('foundation', '=', rec.vd_intake_foundation_type),
                 ])
             if roof_simple:
-                cat_clauses.extend([
-                    '|', ('category_id', '=', False),
-                    ('category_id.roof_simple', '=', roof_simple),
+                tag_clauses.extend([
+                    '|', ('roof_simple', '=', False),
+                    ('roof_simple', '=', roof_simple),
                 ])
             if floor_range:
-                cat_clauses.extend([
-                    '|', ('category_id', '=', False),
-                    ('category_id.floor_range', '=', floor_range),
+                tag_clauses.extend([
+                    '|', ('floor_range', '=', False),
+                    ('floor_range', '=', floor_range),
                 ])
 
-            rec.vd_quote_template_suggested_ids = Tpl.search(domain + cat_clauses)
+            rec.vd_quote_template_suggested_ids = Tpl.search(domain + tag_clauses)
     vd_quote_price = fields.Monetary(
         string='Giá báo cho KH', currency_field='vd_currency_vnd_id',
         compute='_compute_quote_price_default', store=True, readonly=False, copy=False,
