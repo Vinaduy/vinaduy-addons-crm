@@ -128,11 +128,12 @@
                             </div>
 
                             <!-- ============================================================
-                                 🆕 CUSTOMER FOCUS: 1 box thống nhất grouped by team
-                                 Mỗi NV row có 3 metric card (đã xong / đang xử lý / KH mới),
-                                 hover từng card → popover hiện list KH chi tiết.
+                                 🆕 CUSTOMER FOCUS: 2 box side-by-side
+                                 - Box 1 NV: NV row × 3 metric (đã xong / đang xử lý / KH mới)
+                                 - Box 2 KH: flat list KH cần xử lý (in_progress problems)
                                  ============================================================ -->
-                            <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_box">
+                            <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
+                            <div class="o_vd_kh_box">
                                 <div class="o_vd_kh_box_head o_vd_kh_box_head_with_cols">
                                     <div>
                                         <h4>👥 Bảng nhân viên</h4>
@@ -252,11 +253,9 @@
                             </div>
 
                             <!-- ============================================================
-                                 BOX 2: BẢNG KHÁCH HÀNG cần xử lý vấn đề
-                                 Flatten in_progress_leads per team → list rows
-                                 (KH name + phone + NV phụ trách + problem tags)
+                                 BOX 2: BẢNG KHÁCH HÀNG cần xử lý vấn đề (cùng grid với Box 1)
                                  ============================================================ -->
-                            <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_box o_vd_kh_box_kh">
+                            <div class="o_vd_kh_box o_vd_kh_box_kh">
                                 <div class="o_vd_kh_box_head">
                                     <h4>📋 Bảng khách hàng cần xử lý</h4>
                                     <div class="o_vd_kh_box_sub">
@@ -296,6 +295,7 @@
                                     </div>
                                 </div>
                             </div>
+                            </div><!-- /.o_vd_kh_grid -->
 
                             <!-- NV focus: 5 KPI về NV (active/closed/idle/conversion/training) -->
                             <div t-if="state.analytics and isEmployeeFocus" class="o_vd_an_kpi_row">

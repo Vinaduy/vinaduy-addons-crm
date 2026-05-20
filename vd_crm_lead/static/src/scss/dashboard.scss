@@ -2889,21 +2889,30 @@
     }
     .o_vd_kh_nv_row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4 cột đều nhau */
-        gap: 0.5rem;
-        align-items: center;
-        padding: 0.4rem 0.6rem;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr;   /* name rộng hơn, 3 metric đều */
+        gap: 0;
+        align-items: stretch;
+        padding: 0;
         border-radius: 6px;
         background: transparent;
-        border: none;
-        transition: background 0.12s ease;
+        border: 1px solid transparent;
+        transition: all 0.12s ease;
         cursor: default;
+        overflow: hidden;
         &:nth-child(odd) {
             background: var(--bs-tertiary-bg, #f8f9fa);
         }
         &:hover {
             background: var(--bs-secondary-bg, #e9ecef);
+            border-color: var(--bs-border-color, #dee2e6);
         }
+        /* Vertical dividers giữa các cột */
+        > .o_vd_kh_col_name,
+        > .o_vd_kh_col_metric {
+            padding: 0.5rem 0.6rem;
+            border-right: 1px solid var(--bs-border-color, #e9ecef);
+        }
+        > :last-child { border-right: none; }
     }
     .o_vd_kh_col_name {
         display: flex;
@@ -3138,10 +3147,7 @@
     .o_vd_kh_legend_progress { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .o_vd_kh_legend_new      { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
 
-    /* Box 2: Bảng khách hàng — flat list mỗi KH 1 row */
-    .o_vd_kh_box_kh {
-        margin-top: 1rem;
-    }
+    /* Box 2: Bảng khách hàng — flat list mỗi KH 1 row, ở grid 2 col cạnh Box NV */
     .o_vd_kh_box_kh::before {
         background: linear-gradient(90deg, #d97706 0%, #dc2626 100%) !important;
     }
