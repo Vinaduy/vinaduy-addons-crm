@@ -134,15 +134,14 @@
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
                             <div class="o_vd_kh_box">
-                                <div class="o_vd_kh_box_head o_vd_kh_box_head_with_cols">
-                                    <div>
-                                        <h4>👥 Bảng nhân viên</h4>
-                                        <div class="o_vd_kh_box_sub">Hover số để xem danh sách KH chi tiết</div>
-                                    </div>
-                                    <div class="o_vd_kh_col_legend">
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_done">🏆 Đang chốt</span>
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_progress">⏳ Đang xử lý vấn đề</span>
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_new">🆕 Khách mới</span>
+                                <!-- Header row (table-style) — thay cho box_head + legend cũ -->
+                                <div class="o_vd_kh_table_header">
+                                    <div class="o_vd_kh_table_header_sidebar"/>
+                                    <div class="o_vd_kh_table_header_cells">
+                                        <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
                                     </div>
                                 </div>
                                 <div class="o_vd_kh_team_list">

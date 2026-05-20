@@ -3084,30 +3084,44 @@
    📋 Bảng khách hàng + legend cột (bổ sung 2026-05-20)
    ============================================================ */
 .o_vd_analytics {
-    /* Legend header columns (Đã xong / Đang xử lý / KH mới) */
-    .o_vd_kh_box_head_with_cols {
+    /* Table header — row đầu tiên đẹp, gradient theo cột match màu số */
+    .o_vd_kh_table_header {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-        flex-wrap: wrap;
+        align-items: stretch;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
-    .o_vd_kh_col_legend {
-        display: flex;
-        gap: 0.45rem;
-        flex-wrap: wrap;
+    .o_vd_kh_table_header_sidebar {
+        width: 32px;
+        flex-shrink: 0;
+        background: #475569;   /* slate xám đậm để khớp sidebar team */
     }
-    .o_vd_kh_legend_tag {
-        font-size: 0.72rem;
-        font-weight: 700;
-        padding: 0.2rem 0.55rem;
-        border-radius: 6px;
+    .o_vd_kh_table_header_cells {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        min-width: 0;
+    }
+    .o_vd_kh_th {
+        padding: 0.7rem 0.6rem;
+        font-weight: 800;
+        font-size: 0.82rem;
         color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
         white-space: nowrap;
+        letter-spacing: 0.3px;
+        border-right: 1px solid rgba(255,255,255,0.25);
+        &:last-child { border-right: none; }
     }
-    .o_vd_kh_legend_done     { background: linear-gradient(135deg, #16a34a, #15803d); }
-    .o_vd_kh_legend_progress { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .o_vd_kh_legend_new      { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .o_vd_kh_th_name      { background: linear-gradient(135deg, #475569 0%, #334155 100%); justify-content: flex-start; }
+    .o_vd_kh_th_done      { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+    .o_vd_kh_th_progress  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .o_vd_kh_th_new       { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 
     /* Box 2: Bảng khách hàng — flat list mỗi KH 1 row, ở grid 2 col cạnh Box NV */
     .o_vd_kh_box_kh::before {
