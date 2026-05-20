@@ -2949,25 +2949,8 @@
     .o_vd_kh_col_metric:hover .o_vd_kh_nv_popover {
         display: flex;
     }
-    .o_vd_kh_nv_row {
-        position: relative;
-        cursor: pointer;
-        background: var(--bs-tertiary-bg, #f8f9fa);
-        border: 1px solid var(--bs-border-color, #e9ecef);
-        border-radius: 6px;
-        padding: 0.4rem 0.6rem 0.4rem 0.7rem;
-        transition: all 0.15s ease;
-        display: flex;
-
-        &:hover {
-            background: var(--bs-body-bg, #fff);
-            border-color: #adb5bd;
-            box-shadow: 0 4px 14px -3px rgba(0,0,0,0.18);
-            z-index: 5;
-
-            .o_vd_kh_nv_popover { display: flex; }
-        }
-    }
+    /* Legacy .o_vd_kh_nv_row pill chip block (display:flex) đã xoá vì
+       override grid layout của bảng 4 cột — grid styles ở block phía trên */
     .o_vd_kh_nv_head {
         display: flex;
         align-items: center;
