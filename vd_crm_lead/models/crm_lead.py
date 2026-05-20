@@ -1890,11 +1890,13 @@ class CrmLead(models.Model):
 
             total = found_cost + floor_cost + roof_cost
 
-            # Phụ phí móng cọc / móng băng
-            if rec.vd_intake_foundation_type == 'coc':
-                total *= 1 + (pricing.pct_mong_coc / 100.0)
-            elif rec.vd_intake_foundation_type == 'bang':
-                total *= 1 + (pricing.pct_mong_bang / 100.0)
+            # Phụ phí móng (spec 2026-05-20):
+            # - Móng đơn: +pct_mong_don (10%)
+            # - Móng băng / móng cọc: +pct_mong_bang_coc (15%)
+            if rec.vd_intake_foundation_type == 'don':
+                total *= 1 + (pricing.pct_mong_don / 100.0)
+            elif rec.vd_intake_foundation_type in ('bang', 'coc'):
+                total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
 
             # Phụ phí tỉnh vùng cao (+300k/m² × total_floor_area)
             province_name = rec.vd_intake_province_id.name if rec.vd_intake_province_id else None

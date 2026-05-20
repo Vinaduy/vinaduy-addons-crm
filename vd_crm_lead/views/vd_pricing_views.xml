@@ -51,8 +51,8 @@
                                 </group>
                             </group>
                             <group string="Phụ phí móng (cộng vào TỔNG, %)">
-                                <field name="pct_mong_coc"/>
-                                <field name="pct_mong_bang"/>
+                                <field name="pct_mong_don"/>
+                                <field name="pct_mong_bang_coc"/>
                             </group>
                         </page>
 

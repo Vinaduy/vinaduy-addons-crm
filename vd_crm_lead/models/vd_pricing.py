@@ -57,8 +57,11 @@ class VdPricingRegion(models.Model):
     mai_ton_3m = fields.Float(string='Mái tôn 3 mặt (%)', default=20.0)
 
     # ============ HỆ SỐ MÓNG CỘNG THÊM (% trên TOTAL) ============
-    pct_mong_coc = fields.Float(string='Phụ phí móng cọc (%)', default=10.0)
-    pct_mong_bang = fields.Float(string='Phụ phí móng băng (%)', default=15.0)
+    # Cập nhật 2026-05-20: rename + đổi mapping cho đúng spec.
+    # - Móng ĐƠN: +10% (trước đây bị gán nhầm cho móng cọc)
+    # - Móng BĂNG + Móng CỌC: +15% (cả 2 cùng phụ phí)
+    pct_mong_don = fields.Float(string='Phụ phí móng đơn (%)', default=10.0)
+    pct_mong_bang_coc = fields.Float(string='Phụ phí móng băng + cọc (%)', default=15.0)
 
     _sql_constraints = [
         ('code_unique', 'unique(code)', 'Mã vùng phải duy nhất.'),
