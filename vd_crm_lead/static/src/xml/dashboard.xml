@@ -133,10 +133,15 @@
                                  hover từng card → popover hiện list KH chi tiết.
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_box">
-                                <div class="o_vd_kh_box_head">
-                                    <h4>👥 Khách hàng theo nhân viên</h4>
-                                    <div class="o_vd_kh_box_sub">
-                                        3 cột: ĐÃ XONG vấn đề · ĐANG XỬ LÝ · KH MỚI · Hover số để xem KH chi tiết
+                                <div class="o_vd_kh_box_head o_vd_kh_box_head_with_cols">
+                                    <div>
+                                        <h4>👥 Bảng nhân viên</h4>
+                                        <div class="o_vd_kh_box_sub">Hover số để xem danh sách KH chi tiết</div>
+                                    </div>
+                                    <div class="o_vd_kh_col_legend">
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_done">✅ Đã xong</span>
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_progress">⏳ Đang xử lý</span>
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_new">🆕 KH mới</span>
                                     </div>
                                 </div>
                                 <div class="o_vd_kh_team_list">
@@ -150,14 +155,8 @@
                                             <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
                                         </div>
                                         <div class="o_vd_kh_nv_list">
-                                            <!-- Header row: column labels -->
-                                            <div class="o_vd_kh_nv_row o_vd_kh_header_row">
-                                                <div class="o_vd_kh_col_name">Nhân viên</div>
-                                                <div class="o_vd_kh_col_metric">Đã xong</div>
-                                                <div class="o_vd_kh_col_metric">Đang xử lý</div>
-                                                <div class="o_vd_kh_col_metric">KH mới</div>
-                                            </div>
-                                            <!-- NV rows -->
+                                            <!-- NV rows (không có header per team — header chung
+                                                 ở Box head 'Đã xong / Đang xử lý / KH mới') -->
                                             <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
                                                  class="o_vd_kh_nv_row">
                                                 <div class="o_vd_kh_col_name" t-att-title="nv.full_name">
@@ -246,6 +245,52 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ============================================================
+                                 BOX 2: BẢNG KHÁCH HÀNG cần xử lý vấn đề
+                                 Flatten in_progress_leads per team → list rows
+                                 (KH name + phone + NV phụ trách + problem tags)
+                                 ============================================================ -->
+                            <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_box o_vd_kh_box_kh">
+                                <div class="o_vd_kh_box_head">
+                                    <h4>📋 Bảng khách hàng cần xử lý</h4>
+                                    <div class="o_vd_kh_box_sub">
+                                        KH có vấn đề đàm phán đang mở/đang xử lý · Click KH để mở lead form
+                                    </div>
+                                </div>
+                                <div class="o_vd_kh_team_list">
+                                    <t t-set="has_kh_can_xl" t-value="state.analytics.kh_by_team.some(g => g.nvs.some(n => n.in_progress_count > 0))"/>
+                                    <div t-if="!has_kh_can_xl" class="o_vd_kh_empty">
+                                        ✓ Không có KH nào đang có vấn đề cần xử lý
+                                    </div>
+                                    <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team + '_kh'"
+                                         t-att-style="`--team-color:${grp.color}`">
+                                        <t t-set="has_team_kh" t-value="grp.nvs.some(n => n.in_progress_count > 0)"/>
+                                        <div t-if="has_team_kh" class="o_vd_kh_team_group">
+                                            <div class="o_vd_kh_team_sidebar">
+                                                <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                            </div>
+                                            <div class="o_vd_kh_kh_list">
+                                                <t t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id + '_kh'">
+                                                    <div t-foreach="nv.in_progress_leads" t-as="ld" t-key="ld.lead_id"
+                                                         class="o_vd_kh_kh_row"
+                                                         t-on-click="() => this.openLead(ld.lead_id)">
+                                                        <span class="o_vd_kh_kh_name"><t t-esc="ld.name"/></span>
+                                                        <span class="o_vd_kh_kh_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                        <span class="o_vd_kh_kh_nv">NV: <strong><t t-esc="nv.name"/></strong></span>
+                                                        <span class="o_vd_kh_kh_problems">
+                                                            <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                  t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </t>
                                             </div>
                                         </div>
                                     </div>

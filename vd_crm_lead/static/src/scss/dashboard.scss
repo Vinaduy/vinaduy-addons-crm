@@ -2889,33 +2889,20 @@
     }
     .o_vd_kh_nv_row {
         display: grid;
-        grid-template-columns: 1.6fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4 cột đều nhau */
         gap: 0.5rem;
-        align-items: stretch;
-        padding: 0.35rem 0.5rem;
+        align-items: center;
+        padding: 0.4rem 0.6rem;
         border-radius: 6px;
         background: transparent;
         border: none;
         transition: background 0.12s ease;
         cursor: default;
-        &:nth-child(odd):not(.o_vd_kh_header_row) {
+        &:nth-child(odd) {
             background: var(--bs-tertiary-bg, #f8f9fa);
         }
-        &:hover:not(.o_vd_kh_header_row) {
+        &:hover {
             background: var(--bs-secondary-bg, #e9ecef);
-        }
-        &.o_vd_kh_header_row {
-            background: transparent;
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: var(--bs-secondary-color, #6c757d);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0.3rem 0.5rem;
-            border-bottom: 1px solid var(--bs-border-color, #dee2e6);
-            margin-bottom: 0.2rem;
-            > div { text-align: center; }
-            > .o_vd_kh_col_name { text-align: left; }
         }
     }
     .o_vd_kh_col_name {
@@ -3119,5 +3106,93 @@
         &.o_vd_kh_prob_open        { background: rgba(220,38,38,0.12); color: #dc2626; }
         &.o_vd_kh_prob_in_progress { background: rgba(217,119,6,0.15); color: #b45309; }
         &.o_vd_kh_prob_resolved    { background: rgba(22,163,74,0.15); color: #16a34a; }
+    }
+}
+
+/* ============================================================
+   📋 Bảng khách hàng + legend cột (bổ sung 2026-05-20)
+   ============================================================ */
+.o_vd_analytics {
+    /* Legend header columns (Đã xong / Đang xử lý / KH mới) */
+    .o_vd_kh_box_head_with_cols {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .o_vd_kh_col_legend {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+    .o_vd_kh_legend_tag {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 6px;
+        color: #fff;
+        white-space: nowrap;
+    }
+    .o_vd_kh_legend_done     { background: linear-gradient(135deg, #16a34a, #15803d); }
+    .o_vd_kh_legend_progress { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .o_vd_kh_legend_new      { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+    /* Box 2: Bảng khách hàng — flat list mỗi KH 1 row */
+    .o_vd_kh_box_kh {
+        margin-top: 1rem;
+    }
+    .o_vd_kh_box_kh::before {
+        background: linear-gradient(90deg, #d97706 0%, #dc2626 100%) !important;
+    }
+    .o_vd_kh_kh_list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        gap: 0.25rem;
+        min-width: 0;
+    }
+    .o_vd_kh_kh_row {
+        display: grid;
+        grid-template-columns: 1.6fr 1.2fr 1fr 2fr;
+        gap: 0.6rem;
+        align-items: center;
+        padding: 0.45rem 0.65rem;
+        border-radius: 6px;
+        background: var(--bs-tertiary-bg, #f8f9fa);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: background 0.12s ease;
+        &:hover {
+            background: var(--bs-secondary-bg, #e9ecef);
+            transform: translateX(2px);
+        }
+    }
+    .o_vd_kh_kh_name {
+        font-weight: 700;
+        color: var(--bs-body-color, inherit);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .o_vd_kh_kh_phone {
+        font-size: 0.78rem;
+        color: var(--bs-secondary-color, #6c757d);
+        white-space: nowrap;
+    }
+    .o_vd_kh_kh_nv {
+        font-size: 0.78rem;
+        color: var(--bs-secondary-color, #6c757d);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        strong { color: var(--bs-body-color, inherit); }
+    }
+    .o_vd_kh_kh_problems {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        min-width: 0;
     }
 }
