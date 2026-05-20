@@ -30,12 +30,21 @@ class VdQuoteTemplateCategory(models.Model):
     active = fields.Boolean(default=True)
 
     # ===== 4 chiều phân loại (auto-filter trên lead) =====
-    region = fields.Selection([
-        ('bac', 'Miền Bắc'),
-        ('trung', 'Miền Trung'),
-        ('nam', 'Miền Nam'),
-    ], string='Vùng miền',
-       help='Match với vd_intake_region của lead (tự compute từ tỉnh thành).')
+    # Region: Many2many → 1 category áp dụng cho NHIỀU vùng (vd Bắc+Trung
+    # dùng chung templates). Match với vd_intake_region của lead.
+    region_ids = fields.Many2many(
+        'vd.quote.region',
+        'vd_quote_template_category_region_rel',
+        'category_id', 'region_id',
+        string='Vùng miền',
+        help='Các vùng áp dụng. Vd: chọn Bắc+Trung nếu cùng dùng 1 bộ '
+             'template; chọn Nam nếu Nam dùng template riêng.',
+    )
+    region_codes = fields.Char(
+        string='Region codes', compute='_compute_region_codes',
+        store=True,
+        help='CSV codes (vd "bac,trung") — dùng cho filter nhanh.',
+    )
     floor_range = fields.Selection([
         ('1', '1 Tầng'),
         ('2_4', '2-4 Tầng'),
@@ -64,6 +73,11 @@ class VdQuoteTemplateCategory(models.Model):
         Tpl = self.env['vd.quote.template']
         for rec in self:
             rec.template_count = Tpl.search_count([('category_id', '=', rec.id)])
+
+    @api.depends('region_ids', 'region_ids.code')
+    def _compute_region_codes(self):
+        for rec in self:
+            rec.region_codes = ','.join(sorted(rec.region_ids.mapped('code')))
 
 
 class VdQuoteTemplate(models.Model):

@@ -11,7 +11,8 @@
             <list string="Nhóm template báo giá" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="region" optional="show"/>
+                <field name="region_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}" optional="show"/>
                 <field name="floor_range" optional="show"/>
                 <field name="foundation" optional="show"/>
                 <field name="roof_simple" optional="show"/>
@@ -32,8 +33,9 @@
                     </div>
                     <group>
                         <group string="Phân loại 4 chiều (auto-filter)">
-                            <field name="region"
-                                   placeholder="— Chọn vùng (auto-filter theo intake_region) —"/>
+                            <field name="region_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'color_field': 'color'}"
+                                   placeholder="— Chọn vùng (có thể nhiều — vd Bắc+Trung dùng chung) —"/>
                             <field name="floor_range"
                                    placeholder="— Chọn số tầng —"/>
                             <field name="foundation"

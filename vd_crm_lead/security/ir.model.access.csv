@@ -13,6 +13,8 @@ access_vd_quote_template_user,vd.quote.template user,model_vd_quote_template,bas
 access_vd_quote_template_manager,vd.quote.template manager,model_vd_quote_template,sales_team.group_sale_manager,1,1,1,1
 access_vd_quote_template_category_user,vd.quote.template.category read,model_vd_quote_template_category,base.group_user,1,0,0,0
 access_vd_quote_template_category_manager,vd.quote.template.category manager,model_vd_quote_template_category,sales_team.group_sale_manager,1,1,1,1
+access_vd_quote_region_user,vd.quote.region read,model_vd_quote_region,base.group_user,1,0,0,0
+access_vd_quote_region_manager,vd.quote.region manager,model_vd_quote_region,sales_team.group_sale_manager,1,1,1,1
 access_vd_quote_version_user,vd.quote.version,model_vd_quote_version,base.group_user,1,1,1,1
 access_vd_quote_preview_wizard_user,vd.quote.preview.wizard,model_vd_quote_preview_wizard,base.group_user,1,1,1,1
 access_vd_lead_quick_add_wizard_user,vd.lead.quick.add.wizard,model_vd_lead_quick_add_wizard,base.group_user,1,1,1,1

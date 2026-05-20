@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="quote_region_bac" model="vd.quote.region">
+        <field name="code">bac</field>
+        <field name="name">Miền Bắc</field>
+        <field name="sequence">10</field>
+        <field name="color">1</field>
+    </record>
+    <record id="quote_region_trung" model="vd.quote.region">
+        <field name="code">trung</field>
+        <field name="name">Miền Trung</field>
+        <field name="sequence">20</field>
+        <field name="color">3</field>
+    </record>
+    <record id="quote_region_nam" model="vd.quote.region">
+        <field name="code">nam</field>
+        <field name="name">Miền Nam</field>
+        <field name="sequence">30</field>
+        <field name="color">7</field>
+    </record>
+</odoo>

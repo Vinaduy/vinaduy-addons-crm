@@ -3,6 +3,7 @@ from . import vd_district
 from . import vd_pricing
 from . import vd_floor_function_tag
 from . import vd_lead_floor_func_line
+from . import vd_quote_region
 from . import vd_quote_template
 from . import vd_quote_version
 from . import vd_role_config
