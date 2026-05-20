@@ -18,6 +18,7 @@ access_vd_quote_region_manager,vd.quote.region manager,model_vd_quote_region,sal
 access_vd_quote_version_user,vd.quote.version,model_vd_quote_version,base.group_user,1,1,1,1
 access_vd_quote_preview_wizard_user,vd.quote.preview.wizard,model_vd_quote_preview_wizard,base.group_user,1,1,1,1
 access_vd_lead_quick_add_wizard_user,vd.lead.quick.add.wizard,model_vd_lead_quick_add_wizard,base.group_user,1,1,1,1
+access_vd_lead_quick_add_wizard_line_user,vd.lead.quick.add.wizard.line,model_vd_lead_quick_add_wizard_line,base.group_user,1,1,1,1
 access_vd_crm_role_config_read,vd.crm.role.config read,model_vd_crm_role_config,base.group_user,1,0,0,0
 access_vd_crm_role_config_admin,vd.crm.role.config admin,model_vd_crm_role_config,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_nego_problem_user,vd.nego.problem read,model_vd_nego_problem,base.group_user,1,0,0,0

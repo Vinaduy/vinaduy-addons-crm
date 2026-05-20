@@ -4,14 +4,26 @@
         <field name="name">vd.lead.quick.add.wizard.form</field>
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
-            <form string="Thêm KH mới">
-                <group>
-                    <field name="name" placeholder="Tên KH"/>
-                    <field name="phone" placeholder="SĐT" widget="phone"/>
-                </group>
+            <form string="Thêm KH mới (nhập nhiều)">
+                <div class="alert alert-info" role="alert" style="margin-bottom:0.5rem;">
+                    <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Tab/Enter để xuống dòng kế.
+                    Trạng thái để trống = mặc định "Khách mới". Chọn Trạng thái khác để đẩy thẳng vào stage đó.
+                </div>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom" string="Danh sách KH cần thêm">
+                        <field name="sequence" widget="handle"/>
+                        <field name="name" placeholder="Tên KH"/>
+                        <field name="phone" placeholder="0901..." widget="phone"/>
+                        <field name="source"/>
+                        <field name="date"/>
+                        <field name="stage_id"
+                               options="{'no_create': True, 'no_open': True}"
+                               placeholder="(Khách mới)"/>
+                    </list>
+                </field>
                 <footer>
-                    <button name="action_create_lead" type="object"
-                            string="Lưu"
+                    <button name="action_create_leads" type="object"
+                            string="💾 Tạo tất cả"
                             class="btn-primary"/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
@@ -24,5 +36,6 @@
         <field name="res_model">vd.lead.quick.add.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="context">{'default_line_ids': [(0, 0, {}), (0, 0, {}), (0, 0, {})]}</field>
     </record>
 </odoo>
