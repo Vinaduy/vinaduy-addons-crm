@@ -2809,7 +2809,9 @@
         overflow: visible;  /* để popover thoát khung box */
 
         &.o_vd_kh_box_new::before,
-        &.o_vd_kh_box_problem::before {
+        &.o_vd_kh_box_problem::before,
+        &.o_vd_kh_box_done_list::before,
+        &.o_vd_kh_box_kh::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -3151,7 +3153,21 @@
     .o_vd_kh_th_progress  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .o_vd_kh_th_new       { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 
-    /* Box 2: Bảng khách hàng — flat list mỗi KH 1 row, ở grid 2 col cạnh Box NV */
+    /* Right column: 2 box stacked (Đang chốt trên, Vấn đề dưới) */
+    .o_vd_kh_right_col {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+    }
+    .o_vd_kh_right_col > .o_vd_kh_box {
+        min-height: 200px;   /* mỗi box nhỏ hơn full box NV */
+    }
+    /* Box Đang chốt: gradient xanh lá */
+    .o_vd_kh_box_done_list::before {
+        background: linear-gradient(90deg, #16a34a 0%, #15803d 100%) !important;
+    }
+    /* Box Vấn đề: gradient cam-đỏ */
     .o_vd_kh_box_kh::before {
         background: linear-gradient(90deg, #d97706 0%, #dc2626 100%) !important;
     }

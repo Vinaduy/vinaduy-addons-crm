@@ -244,48 +244,89 @@
                             </div>
 
                             <!-- ============================================================
-                                 BOX 2: BẢNG KHÁCH HÀNG cần xử lý vấn đề (cùng grid với Box 1)
+                                 RIGHT COLUMN: 2 box stacked (Đang chốt trên, Vấn đề dưới)
                                  ============================================================ -->
-                            <div class="o_vd_kh_box o_vd_kh_box_kh">
-                                <div class="o_vd_kh_box_head">
-                                    <h4>📋 Bảng khách hàng cần xử lý</h4>
-                                    <div class="o_vd_kh_box_sub">
-                                        KH có vấn đề đàm phán đang mở/đang xử lý · Click KH để mở lead form
+                            <div class="o_vd_kh_right_col">
+
+                                <!-- BOX 2A: Bảng KH ĐANG CHỐT (stage=won, gửi HĐ/chốt) -->
+                                <div class="o_vd_kh_box o_vd_kh_box_done_list">
+                                    <div class="o_vd_kh_box_head">
+                                        <h4>🏆 Khách đang chốt</h4>
+                                        <div class="o_vd_kh_box_sub">
+                                            KH ở giai đoạn gửi HĐ / chốt · Click KH để mở lead form
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="o_vd_kh_team_list">
-                                    <t t-set="has_kh_can_xl" t-value="state.analytics.kh_by_team.some(g => g.nvs.some(n => n.in_progress_count > 0))"/>
-                                    <div t-if="!has_kh_can_xl" class="o_vd_kh_empty">
-                                        ✓ Không có KH nào đang có vấn đề cần xử lý
-                                    </div>
-                                    <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team + '_kh'"
-                                         t-att-style="`--team-color:${grp.color}`">
-                                        <t t-set="has_team_kh" t-value="grp.nvs.some(n => n.in_progress_count > 0)"/>
-                                        <div t-if="has_team_kh" class="o_vd_kh_team_group">
-                                            <div class="o_vd_kh_team_sidebar">
-                                                <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
-                                            </div>
-                                            <div class="o_vd_kh_kh_list">
-                                                <t t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id + '_kh'">
-                                                    <div t-foreach="nv.in_progress_leads" t-as="ld" t-key="ld.lead_id"
-                                                         class="o_vd_kh_kh_row"
-                                                         t-on-click="() => this.openLead(ld.lead_id)">
-                                                        <span class="o_vd_kh_kh_name"><t t-esc="ld.name"/></span>
-                                                        <span class="o_vd_kh_kh_phone">📞 <t t-esc="ld.phone or '—'"/></span>
-                                                        <span class="o_vd_kh_kh_nv">NV: <strong><t t-esc="nv.name"/></strong></span>
-                                                        <span class="o_vd_kh_kh_problems">
-                                                            <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                  t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                </t>
+                                    <div class="o_vd_kh_team_list">
+                                        <t t-set="has_kh_done" t-value="state.analytics.kh_by_team.some(g => g.nvs.some(n => n.resolved_count > 0))"/>
+                                        <div t-if="!has_kh_done" class="o_vd_kh_empty">
+                                            ✓ Không có KH nào ở giai đoạn chốt
+                                        </div>
+                                        <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team + '_done'"
+                                             t-att-style="`--team-color:${grp.color}`">
+                                            <t t-set="has_team_done" t-value="grp.nvs.some(n => n.resolved_count > 0)"/>
+                                            <div t-if="has_team_done" class="o_vd_kh_team_group">
+                                                <div class="o_vd_kh_team_sidebar">
+                                                    <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                                </div>
+                                                <div class="o_vd_kh_kh_list">
+                                                    <t t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id + '_done'">
+                                                        <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
+                                                             class="o_vd_kh_kh_row"
+                                                             t-on-click="() => this.openLead(ld.lead_id)">
+                                                            <span class="o_vd_kh_kh_name"><t t-esc="ld.name"/></span>
+                                                            <span class="o_vd_kh_kh_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                            <span class="o_vd_kh_kh_nv">NV: <strong><t t-esc="nv.name"/></strong></span>
+                                                        </div>
+                                                    </t>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+
+                                <!-- BOX 2B: Bảng KH có VẤN ĐỀ (in_progress problems) -->
+                                <div class="o_vd_kh_box o_vd_kh_box_kh">
+                                    <div class="o_vd_kh_box_head">
+                                        <h4>⏳ Khách có vấn đề</h4>
+                                        <div class="o_vd_kh_box_sub">
+                                            KH có vấn đề đàm phán đang mở / đang xử lý · Click KH để mở lead form
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_kh_team_list">
+                                        <t t-set="has_kh_can_xl" t-value="state.analytics.kh_by_team.some(g => g.nvs.some(n => n.in_progress_count > 0))"/>
+                                        <div t-if="!has_kh_can_xl" class="o_vd_kh_empty">
+                                            ✓ Không có KH nào đang có vấn đề cần xử lý
+                                        </div>
+                                        <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team + '_kh'"
+                                             t-att-style="`--team-color:${grp.color}`">
+                                            <t t-set="has_team_kh" t-value="grp.nvs.some(n => n.in_progress_count > 0)"/>
+                                            <div t-if="has_team_kh" class="o_vd_kh_team_group">
+                                                <div class="o_vd_kh_team_sidebar">
+                                                    <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                                </div>
+                                                <div class="o_vd_kh_kh_list">
+                                                    <t t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id + '_kh'">
+                                                        <div t-foreach="nv.in_progress_leads" t-as="ld" t-key="ld.lead_id"
+                                                             class="o_vd_kh_kh_row"
+                                                             t-on-click="() => this.openLead(ld.lead_id)">
+                                                            <span class="o_vd_kh_kh_name"><t t-esc="ld.name"/></span>
+                                                            <span class="o_vd_kh_kh_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                            <span class="o_vd_kh_kh_nv">NV: <strong><t t-esc="nv.name"/></strong></span>
+                                                            <span class="o_vd_kh_kh_problems">
+                                                                <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                      t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                    <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div><!-- /.o_vd_kh_right_col -->
                             </div><!-- /.o_vd_kh_grid -->
 
                             <!-- NV focus: 5 KPI về NV (active/closed/idle/conversion/training) -->
