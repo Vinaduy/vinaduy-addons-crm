@@ -146,14 +146,15 @@
         <field name="name">vd.quote.template.tree</field>
         <field name="model">vd.quote.template</field>
         <field name="arch" type="xml">
-            <list string="Template báo giá" default_order="category_id, sequence">
+            <list string="Template báo giá" default_order="category_id, sequence"
+                  class="o_vd_quote_tpl_tree">
                 <field name="sequence" widget="handle"/>
-                <field name="name"/>
-                <field name="category_id" optional="show"/>
-                <field name="region_ids" widget="many2many_tags" optional="show"/>
-                <field name="floor_range" optional="show"/>
-                <field name="foundation" optional="show"/>
-                <field name="roof_simple" optional="show"/>
+                <field name="name" string="📄 Tên file"/>
+                <field name="category_id" optional="hide"/>
+                <field name="region_ids" widget="many2many_tags" string="Vùng"/>
+                <field name="floor_range" string="Tầng" optional="show"/>
+                <field name="foundation" string="Móng" optional="show"/>
+                <field name="roof_simple" string="Mái" optional="show"/>
                 <field name="file_name" optional="hide"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
@@ -213,12 +214,11 @@
     <record id="action_vd_quote_template" model="ir.actions.act_window">
         <field name="name">Template báo giá</field>
         <field name="res_model">vd.quote.template</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="context">{'search_default_groupby_category': 1, 'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Upload các file template báo giá (.docx/.xlsx/.pdf/.png...).</p>
-            <p>View kanban gom theo Folder (như Finder). Mỗi file có tag riêng (vùng/tầng/móng/mái)
-               cho auto-filter khi NV chọn intake ở lead form.</p>
+            <p>Mặc định view cây thư mục — gom theo folder, click vào folder để xem files bên trong.</p>
         </field>
     </record>
 

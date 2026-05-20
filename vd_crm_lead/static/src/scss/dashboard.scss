@@ -3251,3 +3251,40 @@
         min-width: 0;
     }
 }
+
+/* ============================================================
+   📁 Folder tree view cho Template báo giá (list view group_by)
+   ============================================================ */
+.o_vd_quote_tpl_tree {
+    /* Group header (category) → icon folder + count badge */
+    .o_group_header {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: #1f2a44;
+        border-top: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+
+        /* Folder icon trước group label */
+        .o_group_name::before {
+            content: "📁 ";
+            margin-right: 0.4rem;
+            font-size: 1rem;
+        }
+        &.o_group_open .o_group_name::before {
+            content: "📂 ";
+        }
+    }
+
+    /* Data rows → icon file PDF trước tên */
+    > tbody > .o_data_row > td.o_data_cell:nth-child(2)::before {
+        content: "📄 ";
+        margin-right: 0.3rem;
+        opacity: 0.7;
+    }
+
+    /* Hover row */
+    > tbody > .o_data_row:hover {
+        background: var(--bs-tertiary-bg, #f1f3f5);
+    }
+}
