@@ -147,11 +147,11 @@
                                             ✓ Không có KH mới trong khoảng lọc
                                         </div>
                                         <div t-foreach="state.analytics.kh_moi_by_team" t-as="grp" t-key="grp.team"
-                                             class="o_vd_kh_team_group">
-                                            <div class="o_vd_kh_team_header"
-                                                 t-att-style="`--team-color:${grp.color}`">
-                                                <span class="o_vd_kh_team_lbl"><t t-esc="grp.team"/></span>
-                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/> KH</span>
+                                             class="o_vd_kh_team_group"
+                                             t-att-style="`--team-color:${grp.color}`">
+                                            <div class="o_vd_kh_team_sidebar">
+                                                <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/></span>
                                             </div>
                                             <div class="o_vd_kh_nv_list">
                                                 <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
@@ -206,11 +206,11 @@
                                             ✓ Không có vấn đề KH nào open
                                         </div>
                                         <div t-foreach="state.analytics.kh_van_de_by_team" t-as="grp" t-key="grp.team"
-                                             class="o_vd_kh_team_group">
-                                            <div class="o_vd_kh_team_header"
-                                                 t-att-style="`--team-color:${grp.color}`">
-                                                <span class="o_vd_kh_team_lbl"><t t-esc="grp.team"/></span>
-                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/> KH</span>
+                                             class="o_vd_kh_team_group"
+                                             t-att-style="`--team-color:${grp.color}`">
+                                            <div class="o_vd_kh_team_sidebar">
+                                                <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                                <span class="o_vd_kh_team_total"><t t-esc="grp.total"/></span>
                                             </div>
                                             <div class="o_vd_kh_nv_list">
                                                 <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"

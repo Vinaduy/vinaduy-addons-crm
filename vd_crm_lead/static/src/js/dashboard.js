@@ -116,6 +116,19 @@ export class VdCrmDashboard extends Component {
         this.state.nvDetail = null;
     }
 
+    // Map code team → tên đầy đủ để hiện ở thanh dọc bên trái nhóm
+    teamFullName(code) {
+        const m = {
+            'HN': 'Hà Nội',
+            'HCM1': 'HCM 1',
+            'HCM2': 'HCM 2',
+            'HCM3': 'HCM 3',
+            'QN': 'QN',
+            'KHÁC': 'Khác',
+        };
+        return m[code] || code;
+    }
+
     async selectAdminTab(tab) {
         this.state.adminTab = tab;
         // Đóng NV detail khi đổi tab
