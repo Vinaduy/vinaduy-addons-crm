@@ -2909,12 +2909,41 @@
     .o_vd_kh_col_name {
         display: flex;
         align-items: center;
+        gap: 0.45rem;
         font-weight: 600;
         font-size: 0.85rem;
         color: var(--bs-body-color, inherit);
         white-space: nowrap;
         overflow: hidden;
+    }
+    .o_vd_kh_col_name_link {
+        cursor: pointer;
+        transition: color 0.12s ease, background 0.12s ease;
+        border-radius: 4px;
+        &:hover {
+            color: var(--bs-primary, #714B67);
+            background: rgba(113, 75, 103, 0.06);
+            .o_vd_kh_nv_link_name { text-decoration: underline; }
+        }
+    }
+    .o_vd_kh_nv_link_name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
         text-overflow: ellipsis;
+    }
+    .o_vd_kh_nv_total_badge {
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.1rem 0.5rem;
+        background: var(--bs-secondary-color, #6c757d);
+        color: #fff;
+        border-radius: 10px;
+        line-height: 1.3;
+        flex-shrink: 0;
+    }
+    .o_vd_kh_col_name_link:hover .o_vd_kh_nv_total_badge {
+        background: var(--bs-primary, #714B67);
     }
     /* Metric cell = card riêng biệt, fill ô, hover popover */
     .o_vd_kh_col_metric {

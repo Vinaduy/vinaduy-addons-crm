@@ -4606,7 +4606,13 @@ class CrmLead(models.Model):
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
             n_new = len(new_leads_qs)
-            if n_resolved + n_in_prog + n_new == 0:
+            # Tổng KH NV quản lý: tất cả lead active gán cho NV (không filter
+            # theo date — total real, không phụ thuộc khoảng lọc)
+            total_managed = self.search_count([
+                ('user_id', '=', u.id),
+                ('active', '=', True),
+            ])
+            if n_resolved + n_in_prog + n_new == 0 and total_managed == 0:
                 continue
 
             nv_unified_flat.append({
@@ -4614,6 +4620,7 @@ class CrmLead(models.Model):
                 'name': _short_name(u.name),
                 'full_name': u.name,
                 'team': self._vd_team_label_for(u),
+                'total_leads': total_managed,
                 'resolved_count': n_resolved,
                 'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
                 'in_progress_count': n_in_prog,

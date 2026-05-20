@@ -159,8 +159,15 @@
                                                  ở Box head 'Đã xong / Đang xử lý / KH mới') -->
                                             <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
                                                  class="o_vd_kh_nv_row">
-                                                <div class="o_vd_kh_col_name" t-att-title="nv.full_name">
-                                                    <t t-esc="nv.name"/>
+                                                <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
+                                                     t-att-title="nv.full_name + ' — Click để xem dashboard'"
+                                                     t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
+                                                    <span class="o_vd_kh_nv_link_name">
+                                                        <t t-esc="nv.name"/>
+                                                    </span>
+                                                    <span t-if="nv.total_leads" class="o_vd_kh_nv_total_badge">
+                                                        <t t-esc="nv.total_leads"/>
+                                                    </span>
                                                 </div>
 
                                                 <!-- Metric 1: Đã xong (resolved problems + stage won) -->

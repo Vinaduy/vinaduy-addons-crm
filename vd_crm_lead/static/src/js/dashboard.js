@@ -116,6 +116,14 @@ export class VdCrmDashboard extends Component {
         this.state.nvDetail = null;
     }
 
+    // Click tên NV trong bảng → switch dashboard sang NV cụ thể đó
+    async selectNvFromDashboard(userId) {
+        if (!userId) return;
+        this.state.selected_user_id = userId;
+        this.state.nvDetail = null;
+        await this.loadDashboard();
+    }
+
     // Map code team → tên đầy đủ để hiện ở thanh dọc bên trái nhóm
     teamFullName(code) {
         const m = {
