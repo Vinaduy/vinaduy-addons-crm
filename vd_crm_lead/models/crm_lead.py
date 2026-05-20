@@ -4570,7 +4570,8 @@ class CrmLead(models.Model):
         # Build NV stats — iterate sales_users for completeness
         nv_unified_flat = []
         for u in sales_users:
-            # Metric 1: ĐÃ XONG = stage 'won' + có problem, tất cả resolved
+            # Metric 1: ĐANG CHỐT = lead ở stage 'won' (đang trong giai đoạn ký HĐ /
+            # chốt — bao gồm cả đã ký lẫn chưa ký). Không yêu cầu vấn đề đã giải quyết.
             resolved_leads = []
             if won_stage:
                 won_leads_qs = self.search([
@@ -4580,11 +4581,7 @@ class CrmLead(models.Model):
                     ('create_date', '>=', dt_from),
                     ('create_date', '<', dt_to),
                 ], order='create_date desc', limit=100)
-                resolved_leads = [
-                    l for l in won_leads_qs
-                    if l.vd_lead_problem_ids
-                    and all(p.status == 'resolved' for p in l.vd_lead_problem_ids)
-                ]
+                resolved_leads = list(won_leads_qs)
 
             # Metric 2: ĐANG XỬ LÝ = có problem status open/in_progress
             in_progress_qs = self.search([

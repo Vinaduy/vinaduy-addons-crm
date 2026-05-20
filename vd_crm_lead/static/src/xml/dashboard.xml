@@ -140,9 +140,9 @@
                                         <div class="o_vd_kh_box_sub">Hover số để xem danh sách KH chi tiết</div>
                                     </div>
                                     <div class="o_vd_kh_col_legend">
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_done">✅ Đã xong</span>
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_progress">⏳ Đang xử lý</span>
-                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_new">🆕 KH mới</span>
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_done">🏆 Đang chốt</span>
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_progress">⏳ Đang xử lý vấn đề</span>
+                                        <span class="o_vd_kh_legend_tag o_vd_kh_legend_new">🆕 Khách mới</span>
                                     </div>
                                 </div>
                                 <div class="o_vd_kh_team_list">
@@ -171,8 +171,9 @@
                                                     </span>
                                                     <div t-if="nv.resolved_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            ✅ KH đã giải quyết xong vấn đề (<t t-esc="nv.resolved_count"/>)
-                                                            — <strong><t t-esc="nv.full_name"/></strong>
+                                                            🏆 KH đang chốt — gửi HĐ / chốt
+                                                            (<t t-esc="nv.resolved_count"/>) —
+                                                            <strong><t t-esc="nv.full_name"/></strong>
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
                                                             <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
