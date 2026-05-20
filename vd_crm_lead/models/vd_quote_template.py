@@ -7,8 +7,15 @@ from odoo.exceptions import UserError
 
 
 class VdQuoteTemplateCategory(models.Model):
-    """Nhóm template báo giá — vd: Mái Nhật / Mái Thái / Miền Bắc / Miền Nam.
-    Admin tự tạo/sửa qua menu Cấu hình → KHÔNG hard-code danh sách."""
+    """Nhóm template báo giá — phân loại 4 chiều:
+    - region: Vùng miền (Bắc/Trung/Nam)
+    - floor_range: Số tầng (1T / 2-4T / 5+T)
+    - foundation: Loại móng (Đơn/Băng/Cọc) — match crm.lead.vd_intake_foundation_type
+    - roof_simple: Loại mái (Bằng/Ngói) — gom từ 11 giá trị mái của lead
+
+    Khi NV chọn intake (vùng, tầng, móng, mái) ở lead form, dropdown
+    template auto-filter category match cả 4 chiều.
+    """
     _name = 'vd.quote.template.category'
     _description = 'Nhóm template báo giá'
     _order = 'sequence, name'
@@ -21,6 +28,32 @@ class VdQuoteTemplateCategory(models.Model):
     template_count = fields.Integer(string='Số template',
                                      compute='_compute_template_count')
     active = fields.Boolean(default=True)
+
+    # ===== 4 chiều phân loại (auto-filter trên lead) =====
+    region = fields.Selection([
+        ('bac', 'Miền Bắc'),
+        ('trung', 'Miền Trung'),
+        ('nam', 'Miền Nam'),
+    ], string='Vùng miền',
+       help='Match với vd_intake_region của lead (tự compute từ tỉnh thành).')
+    floor_range = fields.Selection([
+        ('1', '1 Tầng'),
+        ('2_4', '2-4 Tầng'),
+        ('5_plus', '5+ Tầng'),
+    ], string='Số tầng',
+       help='Phân loại theo vd_intake_floors_num: 1 / 2-4 / 5+.')
+    foundation = fields.Selection([
+        ('don', 'Móng đơn'),
+        ('bang', 'Móng băng'),
+        ('coc', 'Móng cọc'),
+    ], string='Loại móng',
+       help='Match trực tiếp với vd_intake_foundation_type của lead.')
+    roof_simple = fields.Selection([
+        ('bang', 'Mái bằng'),
+        ('ngoi', 'Mái ngói / nghiêng'),
+    ], string='Loại mái',
+       help='Mái bằng = mai_bang. Mái ngói = các loại nhật/thái/tôn/'
+            'trang trí (gom chung 1 nhóm).')
 
     _sql_constraints = [
         ('name_unique', 'unique(name)', 'Tên nhóm template không được trùng.'),

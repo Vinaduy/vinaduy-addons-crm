@@ -11,9 +11,11 @@
             <list string="Nhóm template báo giá" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="description"/>
+                <field name="region" optional="show"/>
+                <field name="floor_range" optional="show"/>
+                <field name="foundation" optional="show"/>
+                <field name="roof_simple" optional="show"/>
                 <field name="template_count" readonly="1"/>
-                <field name="color" widget="color_picker"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -26,19 +28,34 @@
             <form string="Nhóm template báo giá">
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="name" placeholder="Vd: Mái Nhật, Mái Thái, Miền Nam..."/></h1>
+                        <h1><field name="name" placeholder="Vd: MB - 1T - Đơn - Bằng"/></h1>
                     </div>
                     <group>
-                        <group>
+                        <group string="Phân loại 4 chiều (auto-filter)">
+                            <field name="region"
+                                   placeholder="— Chọn vùng (auto-filter theo intake_region) —"/>
+                            <field name="floor_range"
+                                   placeholder="— Chọn số tầng —"/>
+                            <field name="foundation"
+                                   placeholder="— Chọn loại móng —"/>
+                            <field name="roof_simple"
+                                   placeholder="— Chọn loại mái —"/>
+                        </group>
+                        <group string="Hiển thị">
                             <field name="sequence"/>
                             <field name="color" widget="color_picker"/>
                             <field name="active"/>
-                        </group>
-                        <group>
                             <field name="description" placeholder="Mô tả ngắn..."/>
                             <field name="template_count" readonly="1"/>
                         </group>
                     </group>
+                    <div class="alert alert-info" role="alert">
+                        <b>📋 Cách phân loại:</b> Mỗi nhóm tag với 4 chiều
+                        (vùng + tầng + móng + mái). Khi NV chọn intake ở form Lead,
+                        dropdown template tự filter category match cả 4 chiều.
+                        Vd: nhóm <b>MB-1T-Đơn-Bằng</b> = template cho KH miền Bắc,
+                        nhà 1 tầng, móng đơn, mái bằng.
+                    </div>
                 </sheet>
             </form>
         </field>

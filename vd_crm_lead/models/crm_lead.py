@@ -702,11 +702,85 @@ class CrmLead(models.Model):
     )
 
     # ============ BÁO GIÁ — fields working trong panel báo giá ============
+    # Helper Many2many: tự filter template theo intake KH (vùng / tầng / móng / mái)
+    # Dropdown vd_quote_template_id dùng domain id IN suggested_ids để chỉ show
+    # template phù hợp 4 chiều phân loại trên category.
+    vd_quote_template_suggested_ids = fields.Many2many(
+        'vd.quote.template', string='Template gợi ý theo intake',
+        compute='_compute_quote_template_suggested', store=False,
+        help='Auto-filter từ category: region + floor_range + foundation + roof_simple match intake KH.',
+    )
     vd_quote_template_id = fields.Many2one(
         'vd.quote.template', string='Template báo giá',
-        domain="[('active', '=', True)]",
-        help='Admin upload template tham khảo. NV chọn template áp dụng cho KH này.',
+        domain="[('id', 'in', vd_quote_template_suggested_ids)]",
+        help='Auto-filter theo intake KH (vùng/tầng/móng/mái). NV chọn template phù hợp.',
     )
+
+    @api.depends(
+        'vd_intake_region', 'vd_intake_foundation_type',
+        'vd_intake_roof_type', 'vd_intake_floors_num',
+    )
+    def _compute_quote_template_suggested(self):
+        """Compute danh sách template gợi ý dựa trên 4 chiều intake KH.
+
+        Map intake → category dimensions:
+        - region: vd_intake_region (bac/trung/nam) — trực tiếp
+        - foundation: vd_intake_foundation_type (don/bang/coc) — trực tiếp
+        - roof_simple: 'bang' nếu mai_bang, 'ngoi' nếu các loại còn lại
+        - floor_range: '1' / '2_4' / '5_plus' theo vd_intake_floors_num
+
+        Strategy: match all dimensions ĐÃ set của lead. Dimension chưa set
+        thì không filter (cho phép category bất kỳ value match). Template
+        chưa có category cũng luôn hiện (backward compat).
+        """
+        Tpl = self.env['vd.quote.template']
+        for rec in self:
+            # Map intake values → category codes
+            roof_raw = rec.vd_intake_roof_type or ''
+            if roof_raw == 'mai_bang':
+                roof_simple = 'bang'
+            elif roof_raw:
+                roof_simple = 'ngoi'
+            else:
+                roof_simple = False
+
+            floors = int(rec.vd_intake_floors_num or 0)
+            if floors == 1:
+                floor_range = '1'
+            elif 2 <= floors <= 4:
+                floor_range = '2_4'
+                # Float 2.5 (2 tầng + tum) → vẫn coi là 2_4
+            elif floors >= 5:
+                floor_range = '5_plus'
+            else:
+                floor_range = False
+
+            # Build domain: chỉ filter những dimension đã set
+            domain = [('active', '=', True)]
+            # Cho phép template không có category luôn hiện (legacy)
+            cat_clauses = []
+            if rec.vd_intake_region:
+                cat_clauses.append(
+                    '|', ('category_id', '=', False),
+                    ('category_id.region', '=', rec.vd_intake_region)
+                )
+            if rec.vd_intake_foundation_type:
+                cat_clauses.append(
+                    '|', ('category_id', '=', False),
+                    ('category_id.foundation', '=', rec.vd_intake_foundation_type)
+                )
+            if roof_simple:
+                cat_clauses.append(
+                    '|', ('category_id', '=', False),
+                    ('category_id.roof_simple', '=', roof_simple)
+                )
+            if floor_range:
+                cat_clauses.append(
+                    '|', ('category_id', '=', False),
+                    ('category_id.floor_range', '=', floor_range)
+                )
+
+            rec.vd_quote_template_suggested_ids = Tpl.search(domain + cat_clauses)
     vd_quote_price = fields.Monetary(
         string='Giá báo cho KH', currency_field='vd_currency_vnd_id',
         compute='_compute_quote_price_default', store=True, readonly=False, copy=False,
