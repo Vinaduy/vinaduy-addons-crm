@@ -26,16 +26,17 @@ class VdPricingRegion(models.Model):
     mong_coc_nho = fields.Float(string='Móng cọc (<70m², %)', default=45.0)
 
     # ============ ĐƠN GIÁ SÀN (đ/m²) — phụ thuộc DT 1 sàn & ô tô vào được ============
-    san_75_oto = fields.Float(string='Sàn ≥75m² · ô tô vào (đ/m²)', default=6_600_000)
-    san_75_kxe = fields.Float(string='Sàn ≥75m² · ô tô KO vào (đ/m²)', default=7_100_000)
-    san_65_oto = fields.Float(string='Sàn 65–75m² · ô tô vào (đ/m²)', default=6_800_000)
-    san_65_kxe = fields.Float(string='Sàn 65–75m² · ô tô KO vào (đ/m²)', default=7_400_000)
-    san_50_oto = fields.Float(string='Sàn 50–65m² · ô tô vào (đ/m²)', default=7_100_000)
-    san_50_kxe = fields.Float(string='Sàn 50–65m² · ô tô KO vào (đ/m²)', default=7_700_000)
-    san_40_oto = fields.Float(string='Sàn 40–50m² · ô tô vào (đ/m²)', default=7_400_000)
-    san_40_kxe = fields.Float(string='Sàn 40–50m² · ô tô KO vào (đ/m²)', default=7_900_000)
-    san_lt40_oto = fields.Float(string='Sàn <40m² · ô tô vào (đ/m²)', default=7_700_000)
-    san_lt40_kxe = fields.Float(string='Sàn <40m² · ô tô KO vào (đ/m²)', default=8_300_000)
+    # Bảng cập nhật 2026-05-20: cả 3 vùng dùng chung 1 bảng sàn.
+    san_75_oto = fields.Float(string='Sàn ≥75m² · ô tô vào (đ/m²)', default=6_400_000)
+    san_75_kxe = fields.Float(string='Sàn ≥75m² · ô tô KO vào (đ/m²)', default=6_700_000)
+    san_65_oto = fields.Float(string='Sàn 65–75m² · ô tô vào (đ/m²)', default=6_600_000)
+    san_65_kxe = fields.Float(string='Sàn 65–75m² · ô tô KO vào (đ/m²)', default=6_900_000)
+    san_50_oto = fields.Float(string='Sàn 50–65m² · ô tô vào (đ/m²)', default=6_800_000)
+    san_50_kxe = fields.Float(string='Sàn 50–65m² · ô tô KO vào (đ/m²)', default=7_000_000)
+    san_40_oto = fields.Float(string='Sàn 40–50m² · ô tô vào (đ/m²)', default=7_000_000)
+    san_40_kxe = fields.Float(string='Sàn 40–50m² · ô tô KO vào (đ/m²)', default=7_500_000)
+    san_lt40_oto = fields.Float(string='Sàn <40m² · ô tô vào (đ/m²)', default=7_500_000)
+    san_lt40_kxe = fields.Float(string='Sàn <40m² · ô tô KO vào (đ/m²)', default=8_000_000)
 
     # ============ XÂY THÔ TRỌN GÓI (đ/m²) ============
     tho_lon = fields.Float(string='Trọn gói (≥70m², đ/m²)', default=5_000_000)
