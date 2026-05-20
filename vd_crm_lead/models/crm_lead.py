@@ -4494,8 +4494,13 @@ class CrmLead(models.Model):
                 'detail': 'Phân lại NV hoặc đóng (lost) — KH không liên hệ sẽ tự lạnh đi.',
             })
 
-        # ============ 🆕 KH MỚI / VẤN ĐỀ — grouped by TEAM (HCM1/HCM2/HN...) ============
-        # Cấu trúc: list of {team, color, total, nvs: [...]} — render header team + chips bên trong.
+        # ============ 🆕 KH overview — grouped by TEAM, mỗi NV 3 metric ============
+        # Cấu trúc per-team: {team, color, nvs: [{user_id, name, resolved_*, in_progress_*, new_*}]}
+        # 3 metric per NV:
+        # - resolved: stage='won' + tất cả problems status='resolved' (đã giải quyết xong vấn đề
+        #             → đang ở gửi HĐ / chốt)
+        # - in_progress: có ít nhất 1 problem status open/in_progress (đang giải quyết vấn đề)
+        # - new: stage='new' (chưa báo giá chưa tư vấn)
         TEAM_ORDER = ['HN', 'HCM1', 'HCM2', 'HCM3']
         TEAM_COLOR = {
             'HN': '#dc2626', 'HCM1': '#16a34a',
@@ -4527,93 +4532,94 @@ class CrmLead(models.Model):
                 })
             return result
 
-        # Box 1: Khách mới — leads ở stage 'new', active, trong date filter
-        kh_moi_flat = []
-        if new_stage:
-            self.env.cr.execute("""
-                SELECT user_id, COUNT(*)
-                FROM crm_lead
-                WHERE stage_id = %s AND active = TRUE
-                  AND create_date >= %s AND create_date < %s
-                  AND user_id IS NOT NULL
-                GROUP BY user_id
-            """, (new_stage.id, dt_from, dt_to))
-            for uid, cnt in self.env.cr.fetchall():
-                u = ResUsers.browse(uid)
-                if not u.exists():
-                    continue
-                u_leads = self.search([
-                    ('user_id', '=', uid),
-                    ('stage_id', '=', new_stage.id),
+        # ============ NEW: 1 NV → 3 metric (resolved / in_progress / new) ============
+        won_stage = Stage.search([('code', '=', 'won')], limit=1)
+
+        def _ld_basic(l):
+            return {
+                'lead_id': l.id,
+                'name': l.name or l.partner_name or 'KH',
+                'phone': l.phone or '',
+                'hours_ago': int((now - l.create_date).total_seconds() // 3600) if l.create_date else 0,
+                'call_count': l.call_count or 0,
+            }
+
+        def _ld_with_problems(l):
+            open_probs = l.vd_lead_problem_ids.filtered(
+                lambda p: p.status in ('open', 'in_progress')
+            )
+            return {
+                **_ld_basic(l),
+                'problem_count': len(open_probs),
+                'problems': [{
+                    'name': p.tag_id.name if p.tag_id else (p.name or 'Vấn đề'),
+                    'icon': p.tag_id.icon if p.tag_id else '🔸',
+                    'status': p.status,
+                } for p in open_probs[:5]],
+            }
+
+        # Build NV stats — iterate sales_users for completeness
+        nv_unified_flat = []
+        for u in sales_users:
+            # Metric 1: ĐÃ XONG = stage 'won' + có problem, tất cả resolved
+            resolved_leads = []
+            if won_stage:
+                won_leads_qs = self.search([
+                    ('user_id', '=', u.id),
+                    ('stage_id', '=', won_stage.id),
                     ('active', '=', True),
                     ('create_date', '>=', dt_from),
                     ('create_date', '<', dt_to),
-                ], order='create_date desc', limit=50)
-                kh_moi_flat.append({
-                    'user_id': uid,
-                    'name': _short_name(u.name),
-                    'full_name': u.name,
-                    'team': self._vd_team_label_for(u),
-                    'count': cnt,
-                    'leads': [{
-                        'lead_id': l.id,
-                        'name': l.name or l.partner_name or 'KH',
-                        'phone': l.phone or '',
-                        'hours_ago': int((now - l.create_date).total_seconds() // 3600) if l.create_date else 0,
-                        'call_count': l.call_count or 0,
-                    } for l in u_leads],
-                })
-        kh_moi_by_team = _group_by_team(kh_moi_flat)
+                ], order='create_date desc', limit=100)
+                resolved_leads = [
+                    l for l in won_leads_qs
+                    if l.vd_lead_problem_ids
+                    and all(p.status == 'resolved' for p in l.vd_lead_problem_ids)
+                ]
 
-        # Box 2: Khách cần chăm sóc vấn đề — leads có vd.lead.problem status != resolved
-        self.env.cr.execute("""
-            SELECT l.user_id, COUNT(DISTINCT l.id)
-            FROM crm_lead l
-            JOIN vd_lead_problem p ON p.lead_id = l.id
-            WHERE l.active = TRUE
-              AND p.status IN ('open', 'in_progress')
-              AND l.create_date >= %s AND l.create_date < %s
-              AND l.user_id IS NOT NULL
-            GROUP BY l.user_id
-        """, (dt_from, dt_to))
-        kh_van_de_flat = []
-        for uid, cnt in self.env.cr.fetchall():
-            u = ResUsers.browse(uid)
-            if not u.exists():
-                continue
-            u_leads = self.search([
-                ('user_id', '=', uid),
+            # Metric 2: ĐANG XỬ LÝ = có problem status open/in_progress
+            in_progress_qs = self.search([
+                ('user_id', '=', u.id),
                 ('active', '=', True),
                 ('vd_lead_problem_ids.status', 'in', ['open', 'in_progress']),
                 ('create_date', '>=', dt_from),
                 ('create_date', '<', dt_to),
-            ], order='create_date desc', limit=50)
-            lead_list = []
-            for l in u_leads:
-                open_probs = l.vd_lead_problem_ids.filtered(
-                    lambda p: p.status in ('open', 'in_progress')
-                )
-                lead_list.append({
-                    'lead_id': l.id,
-                    'name': l.name or l.partner_name or 'KH',
-                    'phone': l.phone or '',
-                    'problem_count': len(open_probs),
-                    'problems': [{
-                        'name': p.tag_id.name if p.tag_id else (p.name or 'Vấn đề'),
-                        'icon': p.tag_id.icon if p.tag_id else '🔸',
-                        'status': p.status,
-                        'status_label': dict(p._fields['status'].selection).get(p.status, p.status),
-                    } for p in open_probs[:5]],
-                })
-            kh_van_de_flat.append({
-                'user_id': uid,
+            ], order='create_date desc', limit=100)
+
+            # Metric 3: KH MỚI = stage 'new'
+            new_leads_qs = self.env['crm.lead'].browse()
+            if new_stage:
+                new_leads_qs = self.search([
+                    ('user_id', '=', u.id),
+                    ('stage_id', '=', new_stage.id),
+                    ('active', '=', True),
+                    ('create_date', '>=', dt_from),
+                    ('create_date', '<', dt_to),
+                ], order='create_date desc', limit=100)
+
+            n_resolved = len(resolved_leads)
+            n_in_prog = len(in_progress_qs)
+            n_new = len(new_leads_qs)
+            if n_resolved + n_in_prog + n_new == 0:
+                continue
+
+            nv_unified_flat.append({
+                'user_id': u.id,
                 'name': _short_name(u.name),
                 'full_name': u.name,
                 'team': self._vd_team_label_for(u),
-                'count': cnt,
-                'leads': lead_list,
+                'resolved_count': n_resolved,
+                'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
+                'in_progress_count': n_in_prog,
+                'in_progress_leads': [_ld_with_problems(l) for l in in_progress_qs[:50]],
+                'new_count': n_new,
+                'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
             })
-        kh_van_de_by_team = _group_by_team(kh_van_de_flat)
+        kh_by_team = _group_by_team(nv_unified_flat)
+
+        # Backward compat: giữ 2 list cũ (frontend cũ chưa update có thể đọc)
+        kh_moi_by_team = []
+        kh_van_de_by_team = []
 
         # Low priority insights
         if source_quality:
@@ -4639,6 +4645,7 @@ class CrmLead(models.Model):
             'kpi': kpi,
             'kh_moi_by_team': kh_moi_by_team,
             'kh_van_de_by_team': kh_van_de_by_team,
+            'kh_by_team': kh_by_team,
             'urgent': urgent_section,
             'pipeline': pipeline_section,
             'nv_performance': nv_section,
