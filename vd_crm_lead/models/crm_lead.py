@@ -4521,13 +4521,22 @@ class CrmLead(models.Model):
             order += others
             if 'KHÁC' in teams_seen:
                 order.append('KHÁC')
+            def _item_total(item):
+                # Support cả 2 schema: legacy single 'count' và new 3 metrics
+                if 'count' in item:
+                    return item['count']
+                return (
+                    item.get('resolved_count', 0)
+                    + item.get('in_progress_count', 0)
+                    + item.get('new_count', 0)
+                )
             result = []
             for team in order:
-                nvs = sorted(buckets[team], key=lambda x: -x['count'])
+                nvs = sorted(buckets[team], key=lambda x: -_item_total(x))
                 result.append({
                     'team': team,
                     'color': TEAM_COLOR.get(team, '#6c757d'),
-                    'total': sum(n['count'] for n in nvs),
+                    'total': sum(_item_total(n) for n in nvs),
                     'nvs': nvs,
                 })
             return result
