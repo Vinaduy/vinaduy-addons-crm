@@ -10,7 +10,9 @@
                   default_order="sequence, id">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="help_text"/>
+                <field name="help_text" optional="hide"/>
+                <field name="unit_label" placeholder="cái / phòng..."/>
+                <field name="unit_price"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>

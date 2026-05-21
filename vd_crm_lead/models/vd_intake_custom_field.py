@@ -14,10 +14,21 @@ class VdIntakeCustomField(models.Model):
     _order = 'sequence, id'
 
     name = fields.Char(string='Tên trường', required=True,
-                       help='Vd: "Mong muốn KH", "Phong cách yêu thích", "Số phòng ngủ..."')
+                       help='Vd: "Mong muốn KH", "WC", "Cầu thang phụ"...')
     help_text = fields.Char(string='Gợi ý', help='Placeholder/help hiện cho NV.')
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
+    # Nếu trường này có đơn giá > 0 → khi NV nhập số (qty) vào cột tương ứng,
+    # tự tạo dòng phát sinh trong báo giá: name × qty × unit_price.
+    unit_price = fields.Float(
+        string='Đơn giá (VNĐ)', digits=(16, 0),
+        help='Set > 0 nếu trường này tính theo số lượng × đơn giá '
+             '(vd "WC" = 15M/cái). Để 0 nếu chỉ là text ghi chú.',
+    )
+    unit_label = fields.Char(
+        string='Đơn vị',
+        help='Vd "cái", "phòng", "m²" — hiển thị trong báo giá.',
+    )
 
 
 class VdLeadCustomValue(models.Model):
