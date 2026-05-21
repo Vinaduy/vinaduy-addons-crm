@@ -139,9 +139,9 @@
                                     <div class="o_vd_kh_table_header_sidebar"/>
                                     <div class="o_vd_kh_table_header_cells">
                                         <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
                                         <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
                                     </div>
                                 </div>
                                 <div class="o_vd_kh_team_list">
@@ -170,18 +170,18 @@
                                                     </span>
                                                 </div>
 
-                                                <!-- Metric 1: Đã xong (resolved problems + stage won) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_done">
+                                                <!-- Metric 1: KH mới (stage=new) -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
                                                     <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.resolved_count"/>
+                                                        <t t-esc="nv.new_count"/>
                                                     </span>
-                                                    <div t-if="nv.resolved_count" class="o_vd_kh_nv_popover">
+                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            ĐANG CHỐT - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.resolved_count"/>)
+                                                            KHÁCH MỚI - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.new_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
+                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
                                                                  class="o_vd_kh_lead_item"
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
@@ -222,18 +222,18 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Metric 3: KH mới (stage=new) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
+                                                <!-- Metric 3: Đang chốt (resolved problems + stage won) -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_done">
                                                     <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.new_count"/>
+                                                        <t t-esc="nv.resolved_count"/>
                                                     </span>
-                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
+                                                    <div t-if="nv.resolved_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            KHÁCH MỚI - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.new_count"/>)
+                                                            ĐANG CHỐT - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.resolved_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
+                                                            <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
                                                                  class="o_vd_kh_lead_item"
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
