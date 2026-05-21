@@ -26,3 +26,6 @@ access_vd_nego_problem_admin,vd.nego.problem admin,model_vd_nego_problem,vd_crm_
 access_vd_lead_problem_user,vd.lead.problem user,model_vd_lead_problem,base.group_user,1,1,1,1
 access_vd_pancake_page_admin,vd.pancake.page admin,model_vd_pancake_page,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_pancake_page_user,vd.pancake.page read,model_vd_pancake_page,base.group_user,1,0,0,0
+access_vd_intake_custom_field_user,vd.intake.custom.field read,model_vd_intake_custom_field,base.group_user,1,0,0,0
+access_vd_intake_custom_field_admin,vd.intake.custom.field admin,model_vd_intake_custom_field,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_lead_custom_value_user,vd.lead.custom.value user,model_vd_lead_custom_value,base.group_user,1,1,1,1

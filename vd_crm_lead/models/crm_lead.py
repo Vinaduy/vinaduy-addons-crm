@@ -1378,6 +1378,40 @@ class CrmLead(models.Model):
         copy=False,
         help='Tracker từng vấn đề KH gặp + cách NV xử lý + tiến độ.',
     )
+    vd_custom_value_ids = fields.One2many(
+        'vd.lead.custom.value', 'lead_id',
+        string='Trường khai thác tuỳ chọn',
+        copy=False,
+    )
+
+    def _ensure_custom_value_records(self):
+        """Tạo value record rỗng cho mọi custom field active mà lead chưa có.
+        Gọi khi mở form lead → admin add new field thì tất cả lead cũ auto thấy."""
+        Field = self.env['vd.intake.custom.field'].sudo()
+        Value = self.env['vd.lead.custom.value'].sudo()
+        active_fields = Field.search([('active', '=', True)])
+        if not active_fields:
+            return
+        for lead in self:
+            existing_field_ids = set(lead.vd_custom_value_ids.mapped('field_id.id'))
+            missing = active_fields.filtered(lambda f: f.id not in existing_field_ids)
+            for f in missing:
+                Value.create({'lead_id': lead.id, 'field_id': f.id})
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        leads = super().create(vals_list)
+        leads._ensure_custom_value_records()
+        return leads
+
+    def read(self, fields=None, load='_classic_read'):
+        # Lazy-fill khi UI load form (chỉ fill 1 lần / lead / session vì có sql constraint)
+        if fields and 'vd_custom_value_ids' in fields and self.ids:
+            try:
+                self._ensure_custom_value_records()
+            except Exception:
+                pass
+        return super().read(fields, load)
     vd_lead_problem_open_count = fields.Integer(
         string='Số vấn đề chưa giải quyết',
         compute='_compute_vd_lead_problem_open_count',
