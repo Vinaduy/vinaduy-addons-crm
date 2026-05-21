@@ -5,6 +5,8 @@ Mỗi dòng = 1 KH: tên, SĐT, nguồn, ngày, trạng thái.
 Trạng thái rỗng → mặc định 'Khách mới'. Có chọn → lead được đẩy thẳng vào stage đó.
 Auto-assign theo round-robin (leader/admin) hoặc gán cho chính mình (NV).
 """
+from lxml import etree
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -58,6 +60,22 @@ class VdLeadQuickAddWizard(models.TransientModel):
         store=False,
         help='Gõ tên cột mới + Enter để tạo. Đóng và mở lại wizard để thấy cột mới.',
     )
+
+    @api.model
+    def _get_view(self, view_id=None, view_type='form', **options):
+        """Xoá các <field name="extra_N"/> dư khỏi arch khi N > số custom field đang active.
+        Tránh hiện 'Tuỳ chọn N' vô nghĩa trong dropdown ⋮ optional columns."""
+        arch, view = super()._get_view(view_id, view_type, **options)
+        try:
+            n = self.env['vd.intake.custom.field'].sudo().search_count(
+                [('active', '=', True)],
+            )
+            for idx in range(n + 1, 11):
+                for node in arch.xpath(f'//field[@name="extra_{idx}"]'):
+                    node.getparent().remove(node)
+        except Exception:
+            pass
+        return arch, view
 
     @api.onchange('quick_add_field_id')
     def _onchange_quick_add_field_id(self):
@@ -282,7 +300,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     @api.model
     def fields_get(self, allfields=None, attributes=None):
         """Map vd.intake.custom.field config → extra_N column labels.
-        Slot dư giữ label mặc định 'Tuỳ chọn N'; view ẩn bằng optional='hide'."""
+        Field luôn tồn tại để view không crash; slot dư bị xoá khỏi arch trong _get_view."""
         res = super().fields_get(allfields, attributes)
         try:
             cfs = self.env['vd.intake.custom.field'].sudo().search(
