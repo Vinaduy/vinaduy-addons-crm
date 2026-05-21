@@ -50,38 +50,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
         'vd.lead.quick.add.wizard.line', 'wizard_id',
         string='Danh sách KH',
     )
-    # Dropdown để admin chọn/tạo trường tuỳ chọn ngay trong wizard.
-    # Quick-create: gõ tên mới + Enter → tạo vd.intake.custom.field record.
-    # Chọn record có sẵn từ list cũng được.
-    quick_add_field_id = fields.Many2one(
-        'vd.intake.custom.field',
-        string='➕ Thêm cột tuỳ chọn',
-        store=False,
-        help='Gõ tên cột mới rồi Enter để tạo, hoặc chọn cột có sẵn từ danh sách. '
-             'Sau khi chọn/tạo, đóng + mở lại wizard để cột xuất hiện.',
-    )
-
-    @api.onchange('quick_add_field_id')
-    def _onchange_quick_add_field_id(self):
-        """Clear field sau khi chọn — chỉ là shortcut để tạo/chọn config."""
-        if self.quick_add_field_id:
-            # Bump sequence để config mới nằm cuối, sau đó clear
-            field = self.quick_add_field_id
-            if not field.sequence or field.sequence == 10:
-                last = self.env['vd.intake.custom.field'].sudo().search(
-                    [('id', '!=', field.id)],
-                    order='sequence desc, id desc', limit=1,
-                )
-                next_seq = (last.sequence + 1) if last else 1
-                field.sudo().sequence = next_seq
-            self.quick_add_field_id = False
-            return {
-                'warning': {
-                    'title': '✅ Trường đã sẵn sàng',
-                    'message': f'Cột "{field.name}" sẽ xuất hiện trong bảng. '
-                               f'Đóng wizard và mở lại để hiển thị cột mới.',
-                },
-            }
 
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""
@@ -129,33 +97,39 @@ class VdLeadQuickAddWizard(models.TransientModel):
             if line.date:
                 vals['date_open'] = fields.Datetime.to_datetime(line.date)
 
+            # Map intake mirror fields (i_*) → vd_intake_* trên crm.lead
+            intake_vals = {}
+            mirror_map = {
+                'i_house_type': 'vd_intake_house_type',
+                'i_foundation_type': 'vd_intake_foundation_type',
+                'i_floors_select': 'vd_intake_floors_select',
+                'i_area_m2': 'vd_intake_area_m2',
+                'i_floor_1_m2': 'vd_intake_floor_1_m2',
+                'i_floor_2_m2': 'vd_intake_floor_2_m2',
+                'i_floor_3_m2': 'vd_intake_floor_3_m2',
+                'i_floor_4_m2': 'vd_intake_floor_4_m2',
+                'i_floor_5_m2': 'vd_intake_floor_5_m2',
+                'i_floor_6_m2': 'vd_intake_floor_6_m2',
+                'i_floor_7_m2': 'vd_intake_floor_7_m2',
+                'i_floor_tum_m2': 'vd_intake_floor_tum_m2',
+                'i_province_id': 'vd_intake_province_id',
+                'i_district': 'vd_intake_district',
+                'i_dimensions': 'vd_intake_dimensions',
+                'i_land_type': 'vd_intake_land_type',
+                'i_car_access_select': 'vd_intake_car_access_select',
+                'i_budget_amount': 'vd_intake_budget_amount',
+            }
+            for line_fld, lead_fld in mirror_map.items():
+                val = line[line_fld]
+                if val:
+                    intake_vals[lead_fld] = val.id if hasattr(val, 'id') else val
+            # Nếu có Tum thì set vd_intake_has_tum=True
+            if intake_vals.get('vd_intake_floor_tum_m2'):
+                intake_vals['vd_intake_has_tum'] = True
+            vals.update(intake_vals)
+
             lead = Lead.with_context(vd_skip_reassign_check=True).create(vals)
             created |= lead
-
-            # Lưu giá trị các cột tuỳ chọn (extra_1..5) vào vd.lead.custom.value
-            extra_vals = [
-                line.extra_1, line.extra_2, line.extra_3, line.extra_4, line.extra_5,
-            ]
-            if any(extra_vals):
-                CFs = self.env['vd.intake.custom.field'].sudo().search(
-                    [('active', '=', True)], order='sequence, id', limit=5,
-                )
-                Value = self.env['vd.lead.custom.value'].sudo()
-                for idx, val in enumerate(extra_vals):
-                    if not val or idx >= len(CFs):
-                        continue
-                    cf = CFs[idx]
-                    existing = Value.search([
-                        ('lead_id', '=', lead.id), ('field_id', '=', cf.id),
-                    ], limit=1)
-                    if existing:
-                        existing.value = val
-                    else:
-                        Value.create({
-                            'lead_id': lead.id,
-                            'field_id': cf.id,
-                            'value': val,
-                        })
 
         return {
             'type': 'ir.actions.client',
@@ -204,29 +178,47 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         help='Chọn NV phụ trách. Để trống = round-robin (leader) hoặc gán cho chính mình (NV).',
     )
 
-    # 5 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm trường" (vd.intake.custom.field).
-    # Label hiển thị được override dynamic trong fields_get() dựa trên config.
-    extra_1 = fields.Char(string='Tuỳ chọn 1')
-    extra_2 = fields.Char(string='Tuỳ chọn 2')
-    extra_3 = fields.Char(string='Tuỳ chọn 3')
-    extra_4 = fields.Char(string='Tuỳ chọn 4')
-    extra_5 = fields.Char(string='Tuỳ chọn 5')
-
-    @api.model
-    def fields_get(self, allfields=None, attributes=None):
-        """Override label các cột extra_N theo cấu hình admin (sequence asc).
-        Nếu admin cấu hình 2 trường, cột 1+2 mang tên đó, 3-5 còn label mặc định."""
-        res = super().fields_get(allfields, attributes)
-        try:
-            cfs = self.env['vd.intake.custom.field'].sudo().search(
-                [('active', '=', True)], order='sequence, id', limit=5,
-            )
-            for idx, cf in enumerate(cfs, start=1):
-                key = f'extra_{idx}'
-                if key in res:
-                    res[key]['string'] = cf.name
-                    if cf.help_text:
-                        res[key]['help'] = cf.help_text
-        except Exception:
-            pass
-        return res
+    # ===== MIRROR các trường intake từ crm.lead — admin bật tắt qua ⋮ menu =====
+    # Khi NV nhập giá trị → action_create_leads sẽ ghi xuống crm.lead tương ứng.
+    i_house_type = fields.Selection([
+        ('mai_bang', 'Nhà mái bằng'),
+        ('mai_thai', 'Nhà mái thái'),
+        ('mai_nhat', 'Nhà mái nhật'),
+        ('nha_ong', 'Nhà ống'),
+    ], string='Kiểu nhà')
+    i_foundation_type = fields.Selection([
+        ('don', 'Móng đơn'),
+        ('bang', 'Móng băng'),
+        ('coc', 'Móng cọc'),
+    ], string='Loại móng')
+    i_floors_select = fields.Selection([
+        ('1', '1 tầng'), ('2', '2 tầng'), ('3', '3 tầng'),
+        ('4', '4 tầng'), ('5', '5 tầng'), ('6', '6 tầng'), ('7', '7 tầng'),
+    ], string='Số tầng')
+    i_area_m2 = fields.Float(string='Tổng DT đất (m²)', digits=(10, 1))
+    i_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
+    i_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1))
+    i_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1))
+    i_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1))
+    i_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1))
+    i_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1))
+    i_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
+    i_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
+    i_province_id = fields.Many2one('res.country.state', string='Tỉnh/Thành',
+                                    domain="[('country_id.code', '=', 'VN')]")
+    i_district = fields.Many2one('vd.district', string='Huyện/Quận')
+    i_dimensions = fields.Selection([
+        ('co_so_co_phep', 'Có sổ + có phép'),
+        ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
+        ('chua_so', 'Chưa có sổ'),
+    ], string='Sổ đỏ / cấp phép')
+    i_land_type = fields.Selection([
+        ('lien_tho', 'Đất liền thổ'),
+        ('phan_lo', 'Đất phân lô'),
+        ('nong_nghiep', 'Nông nghiệp'),
+    ], string='Loại đất')
+    i_car_access_select = fields.Selection([
+        ('co', 'Có'),
+        ('khong', 'Không'),
+    ], string='Ô tô vào')
+    i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
