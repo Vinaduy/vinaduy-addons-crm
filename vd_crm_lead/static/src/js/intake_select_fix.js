@@ -274,6 +274,8 @@ function attachZeroFocusAll() {
         const selectors = [
             ".o_vd_hero_budget input",
             ".o_vd_dim_input input",
+            ".o_vd_area_dim input",       // Dài/Rộng (đất + nhà) — new grid
+            ".o_vd_area_input input",     // Diện tích đất + nhà — new grid
             ".o_vd_tech_field input[type=number]",
             ".o_vd_tech_field input[type=text]",
         ];
@@ -306,6 +308,8 @@ function clearZeroDisplays() {
         const writableSelectors = [
             ".o_vd_hero_budget input:not([readonly])",
             ".o_vd_dim_input input:not([readonly])",
+            ".o_vd_area_dim input:not([readonly])",      // Dài/Rộng (đất + nhà)
+            ".o_vd_area_input input:not([readonly])",    // Diện tích đất + nhà
             ".o_vd_tech_field input:not([readonly])",
         ];
         document.querySelectorAll(writableSelectors.join(", ")).forEach((input) => {
