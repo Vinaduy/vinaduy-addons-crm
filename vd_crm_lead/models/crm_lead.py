@@ -1873,7 +1873,15 @@ class CrmLead(models.Model):
             if not pricing:
                 continue
 
-            total_floor_area = area * floors
+            # Total floor area: ưu tiên SUM của diện tích từng tầng NV nhập (nếu có).
+            # Fallback area × floors khi NV chưa nhập per-tầng.
+            sum_floor_areas = 0.0
+            n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
+            for i in range(1, n_floors_select + 1):
+                sum_floor_areas += rec['vd_intake_floor_%s_m2' % i] or 0.0
+            if rec.vd_intake_has_tum and rec.vd_intake_floor_tum_m2:
+                sum_floor_areas += rec.vd_intake_floor_tum_m2
+            total_floor_area = sum_floor_areas if sum_floor_areas > 0 else (area * floors)
 
             # ===== Tính chi tiết: Móng + Sàn × tầng + Mái =====
             san_unit = rec._get_san_unit_price(pricing, area, rec.vd_intake_car_access)
@@ -2663,9 +2671,27 @@ class CrmLead(models.Model):
         found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, area >= 70) if pricing else 0
         roof_pct = self._get_roof_pct(pricing, self.vd_intake_roof_type) if pricing else 0
         found_cost = area * (found_pct / 100.0) * san_unit
-        floor_cost = area * floors * san_unit
+        # Tính SÀN dùng SUM diện tích từng tầng NV nhập (nếu có), fallback area×floors
+        sum_floor_areas = 0.0
+        n_floors = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
+        for i in range(1, n_floors + 1):
+            sum_floor_areas += self['vd_intake_floor_%s_m2' % i] or 0.0
+        if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
+            sum_floor_areas += self.vd_intake_floor_tum_m2
+        if sum_floor_areas <= 0:
+            sum_floor_areas = area * floors  # fallback nếu NV chưa nhập per-tầng
+        floor_cost = sum_floor_areas * san_unit
         roof_cost = area * (roof_pct / 100.0) * san_unit
-        total = self.vd_quote_price or self.vd_intake_estimate or 0
+
+        # TỔNG TIỀN báo giá = sum chính xác các dòng + phụ phí móng (đồng bộ với
+        # _compute_intake_estimate). Nếu NV đã chốt giá thủ công thì ưu tiên cái đó.
+        components_total = found_cost + floor_cost + roof_cost
+        if pricing:
+            if self.vd_intake_foundation_type == 'don':
+                components_total *= 1 + (pricing.pct_mong_don / 100.0)
+            elif self.vd_intake_foundation_type in ('bang', 'coc'):
+                components_total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
+        total = self.vd_quote_price or components_total or self.vd_intake_estimate or 0
 
         house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
             self.vd_intake_house_type, 'NHÀ DÂN DỤNG'
