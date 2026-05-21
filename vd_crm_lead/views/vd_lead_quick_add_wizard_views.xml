@@ -8,13 +8,14 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;gap:0.5rem;">
                     <div class="alert alert-info" role="alert" style="margin:0;flex:1;">
                         <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Tab/Enter để xuống dòng kế.
-                        Trạng thái để trống = mặc định "Khách mới". Chọn Trạng thái khác để đẩy thẳng vào stage đó.
+                        Cột tuỳ chọn (1–5) hiển thị label theo cấu hình admin.
                     </div>
                     <button name="%(vd_crm_lead.action_vd_intake_custom_field)d" type="action"
-                            string="+ Thêm trường"
-                            class="btn btn-sm btn-primary"
+                            string="➕ Thêm cột"
+                            class="btn btn-primary"
+                            style="font-weight:700;font-size:1rem;padding:0.45rem 1rem;"
                             groups="vd_crm_lead.vd_crm_group_admin"
-                            help="Tạo trường khai thác tuỳ chọn — NV thấy trong form lead sau khi tạo KH"/>
+                            help="Tạo trường tuỳ chọn → cột mới xuất hiện trong bảng"/>
                 </div>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
@@ -27,6 +28,14 @@
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Auto)"/>
+                        <!-- 5 cột tuỳ chọn — label dynamic từ vd.intake.custom.field
+                             Cột nào không config sẽ hiện tên mặc định "Tuỳ chọn N"
+                             nhưng vẫn editable; chỉ cột có config mới lưu giá trị. -->
+                        <field name="extra_1" optional="show"/>
+                        <field name="extra_2" optional="hide"/>
+                        <field name="extra_3" optional="hide"/>
+                        <field name="extra_4" optional="hide"/>
+                        <field name="extra_5" optional="hide"/>
                     </list>
                 </field>
                 <footer>

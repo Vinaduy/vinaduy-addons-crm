@@ -100,6 +100,31 @@ class VdLeadQuickAddWizard(models.TransientModel):
             lead = Lead.with_context(vd_skip_reassign_check=True).create(vals)
             created |= lead
 
+            # Lưu giá trị các cột tuỳ chọn (extra_1..5) vào vd.lead.custom.value
+            extra_vals = [
+                line.extra_1, line.extra_2, line.extra_3, line.extra_4, line.extra_5,
+            ]
+            if any(extra_vals):
+                CFs = self.env['vd.intake.custom.field'].sudo().search(
+                    [('active', '=', True)], order='sequence, id', limit=5,
+                )
+                Value = self.env['vd.lead.custom.value'].sudo()
+                for idx, val in enumerate(extra_vals):
+                    if not val or idx >= len(CFs):
+                        continue
+                    cf = CFs[idx]
+                    existing = Value.search([
+                        ('lead_id', '=', lead.id), ('field_id', '=', cf.id),
+                    ], limit=1)
+                    if existing:
+                        existing.value = val
+                    else:
+                        Value.create({
+                            'lead_id': lead.id,
+                            'field_id': cf.id,
+                            'value': val,
+                        })
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -146,3 +171,30 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         domain="[('share', '=', False)]",
         help='Chọn NV phụ trách. Để trống = round-robin (leader) hoặc gán cho chính mình (NV).',
     )
+
+    # 5 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm trường" (vd.intake.custom.field).
+    # Label hiển thị được override dynamic trong fields_get() dựa trên config.
+    extra_1 = fields.Char(string='Tuỳ chọn 1')
+    extra_2 = fields.Char(string='Tuỳ chọn 2')
+    extra_3 = fields.Char(string='Tuỳ chọn 3')
+    extra_4 = fields.Char(string='Tuỳ chọn 4')
+    extra_5 = fields.Char(string='Tuỳ chọn 5')
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        """Override label các cột extra_N theo cấu hình admin (sequence asc).
+        Nếu admin cấu hình 2 trường, cột 1+2 mang tên đó, 3-5 còn label mặc định."""
+        res = super().fields_get(allfields, attributes)
+        try:
+            cfs = self.env['vd.intake.custom.field'].sudo().search(
+                [('active', '=', True)], order='sequence, id', limit=5,
+            )
+            for idx, cf in enumerate(cfs, start=1):
+                key = f'extra_{idx}'
+                if key in res:
+                    res[key]['string'] = cf.name
+                    if cf.help_text:
+                        res[key]['help'] = cf.help_text
+        except Exception:
+            pass
+        return res
