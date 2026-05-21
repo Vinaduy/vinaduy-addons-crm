@@ -3064,13 +3064,33 @@ class CrmLead(models.Model):
         if target_idx < 0 or target_idx >= total_pages:
             target_idx = min(2, total_pages - 1)  # fallback page 3 hoặc cuối
 
+        def _force_landscape(p):
+            """Xoay portrait pages 90° để toàn bộ file đồng bộ landscape.
+            pypdf tính effective dimensions = mediabox + rotation tích lũy."""
+            try:
+                rot = (p.rotation or 0) % 360
+                mb = p.mediabox
+                raw_w = float(mb.width)
+                raw_h = float(mb.height)
+                # Effective W/H sau khi áp dụng rotation hiện tại
+                if rot in (90, 270):
+                    eff_w, eff_h = raw_h, raw_w
+                else:
+                    eff_w, eff_h = raw_w, raw_h
+                if eff_h > eff_w:  # portrait → rotate
+                    p.rotate(90)
+            except Exception:
+                pass
+
         writer = PdfWriter()
         for i, page in enumerate(tpl_reader.pages):
             if i == target_idx:
                 # Thay trang này bằng báo giá
                 for new_p in baogia_reader.pages:
+                    _force_landscape(new_p)
                     writer.add_page(new_p)
             else:
+                _force_landscape(page)
                 writer.add_page(page)
 
         # 4. Save merged PDF
