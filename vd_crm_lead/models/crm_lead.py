@@ -612,10 +612,10 @@ class CrmLead(models.Model):
 
     # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
     vd_intake_total_m2 = fields.Float(
-        string='Tổng diện tích sàn',
+        string='Diện tích nhà',
         digits=(10, 1),
-        compute='_compute_total_m2', store=True,
-        help='Sum of all floor m² inputs (Tầng 1..7 + Tum nếu có).',
+        compute='_compute_total_m2', store=True, readonly=False,
+        help='Auto = sum diện tích các tầng. NV có thể gõ tay để override.',
     )
 
     @api.depends(
@@ -625,7 +625,8 @@ class CrmLead(models.Model):
         'vd_intake_floor_7_m2', 'vd_intake_has_tum', 'vd_intake_floor_tum_m2',
     )
     def _compute_total_m2(self):
-        """Sum chỉ các tầng đang được chọn (1..N) + Tum nếu has_tum."""
+        """Sum chỉ các tầng đang được chọn (1..N) + Tum nếu has_tum.
+        NV có thể override bằng cách gõ tay (readonly=False)."""
         for rec in self:
             n = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             total = 0.0
@@ -633,7 +634,10 @@ class CrmLead(models.Model):
                 total += rec[f'vd_intake_floor_{i}_m2'] or 0
             if rec.vd_intake_has_tum:
                 total += rec.vd_intake_floor_tum_m2 or 0
-            rec.vd_intake_total_m2 = total
+            # Chỉ auto-update khi có dữ liệu tầng. Nếu tổng = 0 → giữ giá trị cũ
+            # để NV nhập tay không bị override.
+            if total > 0:
+                rec.vd_intake_total_m2 = total
     vd_intake_foundation_type = fields.Selection([
         ('don', 'Móng đơn'),
         ('bang', 'Móng băng'),
