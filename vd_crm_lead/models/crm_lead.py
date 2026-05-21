@@ -623,19 +623,25 @@ class CrmLead(models.Model):
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
         'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
         'vd_intake_floor_7_m2', 'vd_intake_has_tum', 'vd_intake_floor_tum_m2',
+        'vd_intake_house_length_m', 'vd_intake_house_width_m',
     )
     def _compute_total_m2(self):
-        """Sum chỉ các tầng đang được chọn (1..N) + Tum nếu has_tum.
-        NV có thể override bằng cách gõ tay (readonly=False)."""
+        """Tính Diện tích nhà với độ ưu tiên:
+        1. Sum per-tầng (chính xác nhất nếu NV đã nhập từng tầng)
+        2. House L × W (footprint) khi NV chỉ nhập L+R
+        3. Giữ giá trị NV gõ tay (override) nếu cả 2 trên = 0
+        """
         for rec in self:
+            # Sum per-tầng
             n = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             total = 0.0
             for i in range(1, n + 1):
                 total += rec[f'vd_intake_floor_{i}_m2'] or 0
             if rec.vd_intake_has_tum:
                 total += rec.vd_intake_floor_tum_m2 or 0
-            # Chỉ auto-update khi có dữ liệu tầng. Nếu tổng = 0 → giữ giá trị cũ
-            # để NV nhập tay không bị override.
+            # Fallback L × W nhà nếu không có per-tầng
+            if total <= 0 and rec.vd_intake_house_length_m and rec.vd_intake_house_width_m:
+                total = rec.vd_intake_house_length_m * rec.vd_intake_house_width_m
             if total > 0:
                 rec.vd_intake_total_m2 = total
     vd_intake_foundation_type = fields.Selection([

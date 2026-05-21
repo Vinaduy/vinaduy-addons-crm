@@ -452,7 +452,7 @@
                                                    class="o_vd_area_input"
                                                    placeholder="Vd: 100"/>
                                             <span class="o_vd_area_unit">m²</span>
-                                            <div class="o_vd_area_pair" invisible="not vd_intake_area_m2">
+                                            <div class="o_vd_area_pair">
                                                 <span class="o_vd_area_lbl_sub">Hoặc Dài × Rộng:</span>
                                                 <field name="vd_intake_length_m" nolabel="1"
                                                        class="o_vd_area_dim" placeholder="Dài"/>
