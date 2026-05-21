@@ -56,26 +56,38 @@
                 <div class="page" lang="vi"
                      style="font-family:'DejaVu Sans','Liberation Sans','Noto Sans',Arial,sans-serif;color:#1a1a1a;font-size:10pt;padding:0;margin:0;page-break-inside:avoid;">
 
-                    <!-- ============ HEADER với SLANT decoration ============ -->
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:0.7rem;">
-                        <tr>
-                            <td style="width:18%;vertical-align:middle;padding:0.5rem 0.8rem 0.5rem 0;">
-                                <div style="background:#fff;border:2px solid #1864ab;border-radius:4px;padding:0.45rem 0.7rem;display:inline-block;text-align:center;">
-                                    <span style="font-weight:900;font-size:18pt;color:#fa5252;font-style:italic;">V</span><span style="font-weight:900;font-size:18pt;color:#1864ab;letter-spacing:1px;">INADUY</span>
-                                </div>
-                            </td>
-                            <td style="vertical-align:middle;padding:0;position:relative;">
-                                <!-- Banner xanh với slant decoration đỏ bên phải -->
-                                <div style="background:linear-gradient(90deg,#5c8fb8 0%,#1864ab 100%);padding:0.85rem 0.5rem;text-align:center;border-top-left-radius:4px;border-bottom-left-radius:4px;position:relative;">
-                                    <span style="color:#fff;font-size:17pt;font-weight:800;letter-spacing:2px;">BẢNG BÁO GIÁ CHI TIẾT</span>
-                                </div>
-                            </td>
-                            <td style="width:30px;vertical-align:middle;padding:0;">
-                                <!-- Slant red decoration -->
-                                <div style="background:#dc3545;height:3em;width:30px;clip-path:polygon(0 0, 100% 0, 100% 100%, 30% 100%);"></div>
-                            </td>
-                        </tr>
-                    </table>
+                    <!-- ============ HEADER theo design mẫu VINADUY chuẩn ============
+                         SVG inline để wkhtmltopdf render nét gradient + clip-path -->
+                    <svg width="100%" height="70" viewBox="0 0 1200 70"
+                         preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+                         style="display:block;margin-bottom:0.5rem;">
+                        <defs>
+                            <linearGradient id="vd_blue_banner" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#a8c0d6"/>
+                                <stop offset="50%" stop-color="#5a85ad"/>
+                                <stop offset="100%" stop-color="#a8c0d6"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Blue banner (middle, wide) -->
+                        <rect x="180" y="6" width="970" height="58" fill="url(#vd_blue_banner)"/>
+                        <!-- Orange parallelogram (right slant) -->
+                        <polygon points="1140,6 1200,6 1200,64 1100,64" fill="#ec7a2a"/>
+                        <!-- VINADUY logo card (left) -->
+                        <rect x="8" y="4" width="172" height="62" rx="8" ry="8"
+                              fill="#ffffff" stroke="#2c5f9e" stroke-width="1.5"/>
+                        <text x="94" y="44" text-anchor="middle"
+                              font-family="Arial Black,Arial,sans-serif"
+                              font-style="italic" font-weight="900" font-size="26">
+                            <tspan fill="#e84118">V</tspan><tspan fill="#2c5f9e">INADUY</tspan>
+                        </text>
+                        <!-- Red underline swoosh -->
+                        <path d="M 30 56 Q 90 62 160 54" stroke="#e84118" stroke-width="1.8"
+                              fill="none" stroke-linecap="round"/>
+                        <!-- Banner text -->
+                        <text x="665" y="46" text-anchor="middle"
+                              font-family="Arial,sans-serif" font-weight="400" font-size="26"
+                              letter-spacing="4" fill="#ffffff">BẢNG BÁO GIÁ CHI TIẾT</text>
+                    </svg>
 
                     <!-- ============ INTRO BULLETS ============ -->
                     <ul style="padding-left:1.3rem;margin:0.6rem 0 0.8rem;line-height:1.55;font-size:10pt;list-style-type:'– ';">
@@ -173,27 +185,56 @@
                         </tbody>
                     </table>
 
-                    <!-- ============ FOOTER: Hotline + Dấu mộc tròn đỏ ============ -->
-                    <table style="width:100%;border:none;margin-top:2rem;">
-                        <tr>
-                            <td style="vertical-align:bottom;font-size:10pt;color:#dc3545;font-weight:700;padding-left:0.3rem;">
-                                <span style="font-size:14pt;vertical-align:middle;">📞</span>
-                                <span style="vertical-align:middle;letter-spacing:0.3px;">1900 9999 46 – 024 99999 868</span>
-                            </td>
-                            <td style="text-align:right;vertical-align:bottom;padding-right:0.5rem;">
-                                <!-- Dấu mộc tròn đỏ kiểu chuẩn -->
-                                <div style="display:inline-block;position:relative;">
-                                    <div style="width:120px;height:120px;border:3px solid #dc3545;border-radius:50%;background:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#dc3545;font-weight:700;text-align:center;line-height:1.15;padding:8px;box-sizing:border-box;">
-                                        <div style="font-size:6.5pt;letter-spacing:0.3px;margin-bottom:2px;">M.S.D.N: 0109446258 - C.T.C.P</div>
-                                        <div style="font-size:9pt;font-weight:800;">CÔNG TY</div>
-                                        <div style="font-size:9pt;font-weight:800;">CỔ PHẦN</div>
-                                        <div style="font-size:10pt;font-weight:900;letter-spacing:1px;color:#dc3545;margin:2px 0;">VINADUY</div>
-                                        <div style="font-size:6.5pt;letter-spacing:0.3px;">★ THÀNH PHỐ HÀ NỘI ★</div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    <!-- ============ FOOTER theo design mẫu VINADUY chuẩn ============
+                         SVG: parallelogram xanh nhạt + hotline + dấu mộc tròn + khaki bar -->
+                    <svg width="100%" height="170" viewBox="0 0 1200 170"
+                         preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+                         style="display:block;margin-top:1rem;">
+                        <!-- Parallelogram xanh nhạt bên trái (diagonal cut bên phải) -->
+                        <polygon points="0,10 540,10 420,135 0,135" fill="#e6eef6"/>
+                        <!-- Khaki/tan thin bar đáy -->
+                        <rect x="180" y="155" width="1020" height="6" fill="#c9b48a"/>
+                        <!-- Hotline icon (telephone) + text -->
+                        <g transform="translate(28,150)">
+                            <!-- Phone icon orange -->
+                            <path d="M5 0 C2 0 0 2 0 5 C0 18 12 30 25 30 C28 30 30 28 30 25 L30 21 C30 19 28 17 26 17 L21 17 L18 20 C13 17 13 17 10 12 L13 9 L13 4 C13 2 11 0 9 0 Z"
+                                  fill="#ec7a2a" transform="scale(0.9) translate(0,-22)"/>
+                            <!-- Hotline text -->
+                            <text x="40" y="-2" font-family="Arial,sans-serif"
+                                  font-weight="700" font-size="16" fill="#1a1a1a">
+                                1900 9999 46 – 024 99999 868
+                            </text>
+                        </g>
+                        <!-- Dấu mộc tròn đỏ -->
+                        <g transform="translate(1080,75)">
+                            <circle cx="0" cy="0" r="65" fill="#fff" stroke="#c92a3a" stroke-width="3"/>
+                            <!-- Vòng text MSDN trên đỉnh -->
+                            <defs>
+                                <path id="vd_stamp_arc_top" d="M -52 0 A 52 52 0 0 1 52 0"/>
+                                <path id="vd_stamp_arc_bot" d="M -52 8 A 52 52 0 0 0 52 8"/>
+                            </defs>
+                            <text font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#c92a3a"
+                                  letter-spacing="1">
+                                <textPath href="#vd_stamp_arc_top" startOffset="50%" text-anchor="middle">
+                                    M.S.D.N: 0109446258 - C.T.C.P
+                                </textPath>
+                            </text>
+                            <text font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#c92a3a"
+                                  letter-spacing="1">
+                                <textPath href="#vd_stamp_arc_bot" startOffset="50%" text-anchor="middle">
+                                    ★ THÀNH PHỐ HÀ NỘI ★
+                                </textPath>
+                            </text>
+                            <!-- Center text -->
+                            <text x="0" y="-12" text-anchor="middle" font-family="Arial,sans-serif"
+                                  font-weight="800" font-size="11" fill="#c92a3a">CÔNG TY</text>
+                            <text x="0" y="0" text-anchor="middle" font-family="Arial,sans-serif"
+                                  font-weight="800" font-size="11" fill="#c92a3a">CỔ PHẦN</text>
+                            <text x="0" y="15" text-anchor="middle" font-family="Times New Roman,serif"
+                                  font-style="italic" font-weight="900" font-size="16" fill="#c92a3a"
+                                  letter-spacing="1">VINADUY</text>
+                        </g>
+                    </svg>
 
                 </div>
             </t>
