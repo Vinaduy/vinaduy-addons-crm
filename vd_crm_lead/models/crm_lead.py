@@ -943,7 +943,7 @@ class CrmLead(models.Model):
         }
 
     @api.depends(
-        'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
+        'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
         'vd_intake_house_type', 'vd_intake_roof_type', 'vd_intake_region',
         'vd_intake_car_access', 'vd_intake_estimate', 'vd_quote_price',
         'vd_intake_floors_select', 'vd_intake_has_tum',
@@ -958,13 +958,13 @@ class CrmLead(models.Model):
     def _compute_quote_breakdown_html(self):
         Pricing = self.env['vd.pricing.region']
         for rec in self:
-            area = rec.vd_intake_area_m2 or 0
+            total_m2 = rec.vd_intake_total_m2 or 0.0
             floors = rec.vd_intake_floors_num or 1.0
-            if not area:
+            if not total_m2:
                 rec.vd_quote_breakdown_html = (
                     '<div style="padding:0.7rem;text-align:center;color:#868e96;'
                     'background:#f8f9fa;border:1px dashed #ced4da;border-radius:6px;">'
-                    '<i>Chưa có dữ liệu — cần Diện tích, Số tầng, Loại móng để tính breakdown.</i></div>'
+                    '<i>Chưa có dữ liệu — cần Tổng diện tích sàn, Số tầng, Loại móng để tính breakdown.</i></div>'
                 )
                 continue
             pricing = Pricing.search([('code', '=', rec.vd_intake_region)], limit=1) if rec.vd_intake_region else None
@@ -977,7 +977,6 @@ class CrmLead(models.Model):
                 continue
 
             # Tất cả formula dùng TỔNG DIỆN TÍCH SÀN (vd_intake_total_m2)
-            total_m2 = rec.vd_intake_total_m2 or 0.0
             san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
             found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, total_m2 >= 70)
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
@@ -1015,12 +1014,12 @@ class CrmLead(models.Model):
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(cost)} VNĐ</td>
         </tr>'''
             else:
-                # Fallback: 1 dòng "Tầng trệt × N" như cũ.
-                floor_cost = area * floors * san_unit
+                # Fallback: 1 dòng "Tổng sàn" — dùng total_m2, không phụ thuộc diện tích đất.
+                floor_cost = total_m2 * san_unit
                 floor_rows_html = f'''
         <tr>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt × {floors:g}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f}</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tổng sàn ({floors:g} tầng)</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(floor_cost)} VNĐ</td>
         </tr>'''
@@ -1137,7 +1136,11 @@ class CrmLead(models.Model):
     @api.depends(
         'name', 'phone', 'vd_intake_province_id', 'vd_intake_district',
         'vd_intake_house_type', 'vd_intake_foundation_type', 'vd_intake_roof_type',
-        'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_estimate',
+        'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_estimate',
+        'vd_intake_floors_select', 'vd_intake_has_tum',
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2',
         'vd_intake_region', 'vd_intake_car_access', 'vd_quote_price',
     )
     def _compute_quote_preview_html(self):
@@ -1145,9 +1148,9 @@ class CrmLead(models.Model):
         from datetime import date
         Pricing = self.env['vd.pricing.region']
         for rec in self:
-            area = rec.vd_intake_area_m2 or 0
+            total_m2 = rec.vd_intake_total_m2 or 0.0
             floors = rec.vd_intake_floors_num or 1.0
-            if area <= 0 or not rec.vd_intake_region:
+            if total_m2 <= 0 or not rec.vd_intake_region:
                 rec.vd_quote_preview_html = (
                     '<div style="padding:1rem;text-align:center;color:#868e96;'
                     'font-style:italic;background:#f8f9fa;border:1px dashed #dee2e6;'
@@ -1155,7 +1158,7 @@ class CrmLead(models.Model):
                     '<i class="fa fa-file-pdf-o" style="font-size:2rem;display:block;'
                     'margin-bottom:0.5rem;"></i>'
                     'Chưa đủ thông tin khai thác để preview báo giá.<br/>'
-                    '<small>Cần: tỉnh/thành, diện tích, số tầng, móng, mái.</small>'
+                    '<small>Cần: tỉnh/thành, tổng diện tích sàn, số tầng, móng, mái.</small>'
                     '</div>'
                 )
                 continue
@@ -1166,7 +1169,6 @@ class CrmLead(models.Model):
                 continue
 
             # Tất cả formula dùng TỔNG DIỆN TÍCH SÀN
-            total_m2 = rec.vd_intake_total_m2 or 0.0
             sum_floor_areas = 0.0
             n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             for i in range(1, n_floors_select + 1):
@@ -1937,8 +1939,11 @@ class CrmLead(models.Model):
 
     @api.depends(
         'vd_intake_province_id', 'vd_intake_district',
-        'vd_intake_area_m2', 'vd_intake_length_m', 'vd_intake_width_m',
-        'vd_intake_floors_num',
+        'vd_intake_total_m2', 'vd_intake_floors_num',
+        'vd_intake_floors_select', 'vd_intake_has_tum',
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2',
         'vd_intake_foundation_type', 'vd_intake_roof_type',
         'vd_intake_car_access', 'vd_intake_budget', 'vd_intake_budget_amount',
     )
@@ -1952,17 +1957,9 @@ class CrmLead(models.Model):
             rec.vd_intake_consult_script = ''
             rec.vd_intake_budget_status = 'none'
 
-            area = rec.vd_intake_area_m2 or 0.0
             floors = rec.vd_intake_floors_num or 1.0
-            if area <= 0 or not rec.vd_intake_region:
-                continue
-
-            pricing = Pricing.search([('code', '=', rec.vd_intake_region)], limit=1)
-            if not pricing:
-                continue
-
             # Công thức (2026-05-21 final): TẤT CẢ rows dùng TỔNG DIỆN TÍCH SÀN
-            # (vd_intake_total_m2 = sum per-tầng). KHÔNG dùng Tầng 1 hoặc area đất.
+            # (vd_intake_total_m2 = sum per-tầng). KHÔNG dùng diện tích đất.
             sum_floor_areas = 0.0
             n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             for i in range(1, n_floors_select + 1):
@@ -1970,6 +1967,13 @@ class CrmLead(models.Model):
             if rec.vd_intake_has_tum and rec.vd_intake_floor_tum_m2:
                 sum_floor_areas += rec.vd_intake_floor_tum_m2
             total_floor_area = sum_floor_areas or rec.vd_intake_total_m2 or 0.0
+
+            if total_floor_area <= 0 or not rec.vd_intake_region:
+                continue
+
+            pricing = Pricing.search([('code', '=', rec.vd_intake_region)], limit=1)
+            if not pricing:
+                continue
 
             # ===== Tính chi tiết: Móng + Sàn + Mái — TẤT CẢ × tổng sàn =====
             san_unit = rec._get_san_unit_price(pricing, total_floor_area, rec.vd_intake_car_access)
@@ -2604,26 +2608,23 @@ class CrmLead(models.Model):
         self.ensure_one()
         Pricing = self.env['vd.pricing.region']
         pricing = Pricing.search([('code', '=', self.vd_intake_region or '')], limit=1)
-        # Tính breakdown chi tiết (móng / sàn / mái / phụ phí)
-        san_unit = pricing._get_san_unit_price_or_default(self.vd_intake_area_m2 or 0,
-                                                          self.vd_intake_car_access) if hasattr(pricing, '_get_san_unit_price_or_default') else 0
-        # Use existing method
-        if pricing and self.vd_intake_area_m2:
-            san_unit = self._get_san_unit_price(pricing, self.vd_intake_area_m2,
+        # Tính breakdown chi tiết (móng / sàn / mái / phụ phí) — dùng TỔNG SÀN
+        total_m2 = self.vd_intake_total_m2 or 0.0
+        floors = self.vd_intake_floors_num or 1.0
+        if pricing and total_m2:
+            san_unit = self._get_san_unit_price(pricing, total_m2,
                                                  self.vd_intake_car_access)
             found_pct = self._get_foundation_pct(
-                pricing, self.vd_intake_foundation_type, self.vd_intake_area_m2 >= 70,
+                pricing, self.vd_intake_foundation_type, total_m2 >= 70,
             )
             roof_pct = self._get_roof_pct(pricing, self.vd_intake_roof_type)
         else:
             san_unit = 0; found_pct = 0; roof_pct = 0
 
-        area = self.vd_intake_area_m2 or 0
-        floors = self.vd_intake_floors_num or 1.0
-        total_floor = area * floors
-        found_cost = area * (found_pct / 100.0) * san_unit
-        floor_cost = total_floor * san_unit
-        roof_cost = area * (roof_pct / 100.0) * san_unit
+        area = total_m2
+        found_cost = total_m2 * (found_pct / 100.0) * san_unit
+        floor_cost = total_m2 * san_unit
+        roof_cost = total_m2 * (roof_pct / 100.0) * san_unit
         surcharge = self.vd_intake_estimate - (found_cost + floor_cost + roof_cost) if self.vd_intake_estimate else 0
 
         # Labels (text-readable cho snapshot)
