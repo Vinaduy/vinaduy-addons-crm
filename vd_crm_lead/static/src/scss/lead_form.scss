@@ -1113,6 +1113,123 @@
    Popup rộng 920px → fit gọn trên 1 dòng:
        [Dài] × [Rộng] = [Total] m²
    ============================================================ */
+/* ============================================================
+   GRID 1: 2 hàng Diện tích (đất + nhà) — đều nhau, căn ngang
+   ============================================================ */
+.o_vd_areas_grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(43, 138, 62, 0.18);
+    border-radius: 10px;
+
+    .o_vd_area_row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        min-height: 36px;
+    }
+    .o_vd_area_lbl {
+        font-weight: 700;
+        color: #0b5d1e;
+        font-size: 0.92rem;
+        white-space: nowrap;
+        flex: 0 0 110px;
+    }
+    .o_vd_area_lbl_sub {
+        font-weight: 500;
+        color: rgba(11, 93, 30, 0.7);
+        font-size: 0.82rem;
+        font-style: italic;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+    .o_vd_area_unit {
+        font-weight: 700;
+        color: #2b8a3e;
+        font-size: 0.92rem;
+        flex: 0 0 auto;
+    }
+    .o_vd_area_sep {
+        font-weight: 800;
+        color: #2b8a3e;
+        font-size: 1.05rem;
+        opacity: 0.7;
+        flex: 0 0 auto;
+    }
+    .o_vd_area_input {
+        flex: 0 0 130px;
+        max-width: 130px;
+        > input {
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            padding: 0.45rem 0.4rem !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #0b5d1e !important;
+            border: 2px solid #2b8a3e !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 6px rgba(43, 138, 62, 0.15);
+            transition: all 0.18s ease;
+        }
+        > input:focus {
+            box-shadow: 0 0 0 3px rgba(43, 138, 62, 0.22) !important;
+            outline: none !important;
+            background: #fff !important;
+        }
+    }
+    .o_vd_area_input_readonly > span,
+    .o_vd_area_input_readonly > .o_field_widget {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        padding: 0.45rem 0.4rem !important;
+        background: linear-gradient(135deg, #2b8a3e, #51cf66) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 6px rgba(43, 138, 62, 0.25);
+    }
+    .o_vd_area_pair {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-left: 0.5rem;
+    }
+    .o_vd_area_dim {
+        flex: 1 1 0;
+        min-width: 0;
+        > input {
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            padding: 0.4rem 0.35rem !important;
+            border: 1.5px solid rgba(81, 207, 102, 0.55) !important;
+            border-radius: 7px !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #0b5d1e !important;
+        }
+    }
+    .o_vd_area_hint {
+        margin-left: 0.5rem;
+        font-size: 0.78rem;
+        color: rgba(11, 93, 30, 0.65);
+        font-style: italic;
+        i.fa { margin-right: 0.25rem; }
+    }
+}
+
 .o_vd_dims_row {
     display: flex;
     flex-direction: row;

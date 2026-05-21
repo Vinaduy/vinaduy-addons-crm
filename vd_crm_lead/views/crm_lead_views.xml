@@ -441,32 +441,36 @@
                                     <span class="o_vd_hero_icon">🏗️</span>
                                     <span class="o_vd_hero_title">THÔNG TIN CÔNG TRÌNH</span>
                                 </div>
-                                    <!-- Diện tích đất NHẬP TRƯỚC. Khi đã nhập → mới hiện
-                                         2 ô Dài × Rộng (optional, để NV nhập nếu có hình
-                                         dạng cụ thể). -->
-                                    <div class="o_vd_dims_row">
-                                        <div class="o_vd_dim_total_row">
-                                            <span class="o_vd_dims_lbl">Diện tích đất:</span>
+                                    <!-- ===== GRID 1: 2 hàng diện tích (đều nhau) ===== -->
+                                    <div class="o_vd_areas_grid">
+                                        <!-- Hàng 1: Diện tích đất (input) + Dài × Rộng optional -->
+                                        <div class="o_vd_area_row">
+                                            <span class="o_vd_area_lbl">Diện tích đất:</span>
                                             <field name="vd_intake_area_m2" nolabel="1"
-                                                   class="o_vd_dim_total"
+                                                   class="o_vd_area_input"
                                                    placeholder="Vd: 100"/>
-                                            <span class="o_vd_dims_unit">m²</span>
+                                            <span class="o_vd_area_unit">m²</span>
+                                            <div class="o_vd_area_pair" invisible="not vd_intake_area_m2">
+                                                <span class="o_vd_area_lbl_sub">Hoặc Dài × Rộng:</span>
+                                                <field name="vd_intake_length_m" nolabel="1"
+                                                       class="o_vd_area_dim" placeholder="Dài"/>
+                                                <span class="o_vd_area_sep">×</span>
+                                                <field name="vd_intake_width_m" nolabel="1"
+                                                       class="o_vd_area_dim" placeholder="Rộng"/>
+                                            </div>
                                         </div>
-                                        <div class="o_vd_dim_pair" invisible="not vd_intake_area_m2">
-                                            <span class="o_vd_dims_lbl_sub">Hoặc nhập Dài × Rộng:</span>
-                                            <field name="vd_intake_length_m" nolabel="1"
-                                                   class="o_vd_dim_input" placeholder="Dài"/>
-                                            <span class="o_vd_dims_sep">×</span>
-                                            <field name="vd_intake_width_m" nolabel="1"
-                                                   class="o_vd_dim_input" placeholder="Rộng"/>
+                                        <!-- Hàng 2: Diện tích nhà (= tổng các tầng, auto computed) -->
+                                        <div class="o_vd_area_row">
+                                            <span class="o_vd_area_lbl">Diện tích nhà:</span>
+                                            <field name="vd_intake_total_m2" nolabel="1"
+                                                   class="o_vd_area_input o_vd_area_input_readonly"
+                                                   readonly="1"/>
+                                            <span class="o_vd_area_unit">m²</span>
+                                            <div class="o_vd_area_hint">
+                                                <i class="fa fa-info-circle"/>
+                                                Auto: tổng diện tích các tầng đã nhập bên dưới.
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Tổng diện tích các tầng (sum) — hiện khi có data -->
-                                    <div class="o_vd_total_row" invisible="not vd_intake_total_m2">
-                                        <span class="o_vd_total_lbl">Tổng các tầng:</span>
-                                        <field name="vd_intake_total_m2" nolabel="1"
-                                               class="o_vd_total_value" readonly="1"/>
-                                        <span class="o_vd_total_unit">m²</span>
                                     </div>
                                     <!-- Tech fields embedded — mỗi trường 1 dòng, sát nhau -->
                                     <div class="o_vd_hero_tech_list">
