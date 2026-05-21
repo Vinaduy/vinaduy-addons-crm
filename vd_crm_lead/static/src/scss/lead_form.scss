@@ -6798,14 +6798,16 @@ $vd-panel-head-radius: 10px;
         align-items: center;
         gap: 0.7rem;
 
-        /* Cột tag chip CỐ ĐỊNH width 240px → status badge ở cột tiếp theo
-           align-stack thẳng hàng dọc từ row trên xuống dưới. */
+        /* Cột tag chip — đủ rộng cho text dài như "CHÊNH LỆCH CHI PHÍ",
+           "THỜI GIAN KHỞI CÔNG"... không bị cắt. */
         .o_vd_tag_chip,
         .o_field_widget[name='tag_display'] {
             display: inline-flex;
             align-items: center;
-            flex: 0 0 240px;
-            width: 240px;
+            flex: 0 0 auto;
+            min-width: 240px;
+            max-width: 360px;
+            width: max-content;
             background: linear-gradient(135deg, #f7ecf3 0%, #efdee8 100%);
             color: #5d3d54;
             border: 1px solid #d9c2d2;
@@ -6815,13 +6817,12 @@ $vd-panel-head-radius: 10px;
             font-weight: 600;
             line-height: 1.3;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
-        /* Status badge column — width tối thiểu để các row align dọc */
+        /* Status badge — đủ rộng cho "Chưa xử lý", "Đang xử lý", "Đã xong" */
         > .o_field_widget[name='status'] {
-            flex: 0 0 130px;
-            width: 130px;
+            flex: 0 0 auto;
+            min-width: 130px;
+            width: max-content;
         }
 
         .o_vd_problem_unlink_btn {
@@ -7389,6 +7390,10 @@ $vd-panel-head-radius: 10px;
         font-weight: 700 !important;
         padding: 0.35rem 0.85rem !important;
         border-radius: 999px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: none !important;
     }
 }
 
