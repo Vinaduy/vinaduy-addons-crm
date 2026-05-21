@@ -438,6 +438,16 @@ class CrmLead(models.Model):
             elif not rec.vd_intake_area_m2:
                 rec.vd_intake_area_m2 = 0.0
             # Nếu user đã nhập area_m2 thủ công và 1 trong 2 dim trống → giữ nguyên
+
+    # ===== Kích thước nhà (footprint) — optional, NV nhập riêng nếu khác đất =====
+    vd_intake_house_length_m = fields.Float(
+        string='Chiều dài nhà (m)', digits=(8, 2),
+        help='Chiều dài footprint nhà — có thể khác đất nếu chừa sân vườn.',
+    )
+    vd_intake_house_width_m = fields.Float(
+        string='Chiều rộng nhà (m)', digits=(8, 2),
+        help='Chiều rộng footprint nhà.',
+    )
     vd_intake_floors_num = fields.Float(
         string='Số tầng', digits=(10, 1), default=1.0,
         help='Vd: 2.5 tầng (2 tầng + tum). Auto sync từ vd_intake_floors_select.',

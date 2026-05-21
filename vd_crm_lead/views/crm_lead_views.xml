@@ -459,16 +459,20 @@
                                                        class="o_vd_area_dim" placeholder="Rộng"/>
                                             </div>
                                         </div>
-                                        <!-- Hàng 2: Diện tích nhà (= tổng các tầng, auto computed) -->
+                                        <!-- Hàng 2: Diện tích nhà (= tổng các tầng) + Dài × Rộng nhà optional -->
                                         <div class="o_vd_area_row">
                                             <span class="o_vd_area_lbl">Diện tích nhà:</span>
                                             <field name="vd_intake_total_m2" nolabel="1"
                                                    class="o_vd_area_input o_vd_area_input_readonly"
                                                    readonly="1"/>
                                             <span class="o_vd_area_unit">m²</span>
-                                            <div class="o_vd_area_hint">
-                                                <i class="fa fa-info-circle"/>
-                                                Auto: tổng diện tích các tầng đã nhập bên dưới.
+                                            <div class="o_vd_area_pair">
+                                                <span class="o_vd_area_lbl_sub">Hoặc Dài × Rộng:</span>
+                                                <field name="vd_intake_house_length_m" nolabel="1"
+                                                       class="o_vd_area_dim" placeholder="Dài"/>
+                                                <span class="o_vd_area_sep">×</span>
+                                                <field name="vd_intake_house_width_m" nolabel="1"
+                                                       class="o_vd_area_dim" placeholder="Rộng"/>
                                             </div>
                                         </div>
                                     </div>
