@@ -76,8 +76,8 @@
                                   font-family="Times New Roman,serif" font-weight="700" font-size="26"
                                   letter-spacing="4" fill="#ffffff">BẢNG BÁO GIÁ CHI TIẾT</text>
                         </svg>
-                        <!-- Logo VINADUY thật (ảnh PNG) đè lên góc trái -->
-                        <img src="/vd_crm_lead/static/src/img/vinaduy_logo.png" alt="VINADUY"
+                        <!-- Logo VINADUY thật (data URI base64) đè lên góc trái -->
+                        <img t-att-src="ctx.get('logo_data_uri', '')" alt="VINADUY"
                              style="position:absolute;top:8px;left:10px;height:54px;"/>
                     </div>
 
@@ -145,13 +145,9 @@
                                 <t t-foreach="per_floor" t-as="floor">
                                     <t t-set="fa" t-value="floor[1]"/>
                                     <t t-set="cost" t-value="fa * (float(ctx.get('unit_price_raw') or 0) or 6300000)"/>
-                                    <t t-set="tag_text" t-value="' · '.join(t.name for t in floor[2]) if floor[2] else ''"/>
                                     <tr>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;">
                                             <b><t t-esc="floor[0]"/></b>
-                                            <div t-if="tag_text" style="font-size:8pt;color:#475569;font-style:italic;margin-top:0.15rem;">
-                                                <t t-esc="tag_text"/>
-                                            </div>
                                         </td>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="'%.0f' % fa"/> M2</td>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
@@ -194,8 +190,8 @@
                                 </text>
                             </g>
                         </svg>
-                        <!-- Dấu mộc thật (PNG) đè lên góc phải -->
-                        <img src="/vd_crm_lead/static/src/img/vinaduy_stamp.png" alt="VINADUY Stamp"
+                        <!-- Dấu mộc thật (data URI base64) đè lên góc phải -->
+                        <img t-att-src="ctx.get('stamp_data_uri', '')" alt="VINADUY Stamp"
                              style="position:absolute;top:10px;right:30px;height:140px;"/>
                     </div>
 

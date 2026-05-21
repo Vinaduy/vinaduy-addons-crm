@@ -2635,6 +2635,20 @@ class CrmLead(models.Model):
             },
         }
 
+    @api.model
+    def _vd_static_image_data_uri(self, relpath, mime='image/png'):
+        """Đọc file ảnh trong static folder → trả về data URI base64.
+        Dùng cho QWeb report vì wkhtmltopdf không luôn fetch được /module/static/."""
+        import base64, os
+        try:
+            module_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            full = os.path.join(module_path, relpath)
+            with open(full, 'rb') as f:
+                b64 = base64.b64encode(f.read()).decode('ascii')
+            return f'data:{mime};base64,{b64}'
+        except Exception:
+            return ''
+
     def _build_quote_context(self):
         """Build dict context để truyền vào docx template (Jinja placeholders).
         Tất cả intake data → key flat đơn giản cho NV viết template dễ."""
@@ -2694,6 +2708,9 @@ class CrmLead(models.Model):
             'tt2': fmt(total * 0.30),
             'tt3': fmt(total * 0.30),
             'tt4': fmt(total * 0.10),
+            # Logo + dấu mộc inline (base64) — bypass wkhtmltopdf static URL fetch
+            'logo_data_uri': self._vd_static_image_data_uri('static/src/img/vinaduy_logo.png'),
+            'stamp_data_uri': self._vd_static_image_data_uri('static/src/img/vinaduy_stamp.png'),
         }
 
     def _render_template_pdf_overlay_text(self):
