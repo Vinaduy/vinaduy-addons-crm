@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Paperformat custom 10x7.5 inch landscape — KHỚP CHÍNH XÁC kích thước
-         các trang template PDF VINADUY (720x540pt = 254x190mm = slide 4:3).
-         Nếu A4 landscape (842x595pt) sẽ to hơn → mismatch giữa các trang. -->
+    <!-- Paperformat custom 10x7.5 inch — KHỚP CHÍNH XÁC kích thước các trang
+         template PDF VINADUY (720x540pt). page_width > page_height nên đã là
+         landscape về mặt dimension; KHÔNG set orientation=Landscape vì sẽ làm
+         wkhtmltopdf xoay thêm 90° → trang bị lật ngược. -->
     <record id="paperformat_vd_a4_landscape" model="report.paperformat">
-        <field name="name">VD Slide 10x7.5 Landscape</field>
+        <field name="name">VD Slide 10x7.5</field>
         <field name="default" eval="False"/>
         <field name="format">custom</field>
         <field name="page_width">254</field>
         <field name="page_height">190</field>
-        <field name="orientation">Landscape</field>
+        <field name="orientation">Portrait</field>
         <field name="margin_top">8</field>
         <field name="margin_bottom">8</field>
         <field name="margin_left">8</field>
