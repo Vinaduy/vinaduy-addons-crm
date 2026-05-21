@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Paperformat A4 landscape cho báo giá chi tiết — match orientation
-         của các template PDF VINADUY khác (cover, vật liệu, tiến độ...
-         đều ngang). -->
+    <!-- Paperformat custom 10x7.5 inch landscape — KHỚP CHÍNH XÁC kích thước
+         các trang template PDF VINADUY (720x540pt = 254x190mm = slide 4:3).
+         Nếu A4 landscape (842x595pt) sẽ to hơn → mismatch giữa các trang. -->
     <record id="paperformat_vd_a4_landscape" model="report.paperformat">
-        <field name="name">VD A4 Landscape</field>
+        <field name="name">VD Slide 10x7.5 Landscape</field>
         <field name="default" eval="False"/>
-        <field name="format">A4</field>
+        <field name="format">custom</field>
+        <field name="page_width">254</field>
+        <field name="page_height">190</field>
         <field name="orientation">Landscape</field>
-        <field name="margin_top">10</field>
-        <field name="margin_bottom">10</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
         <field name="margin_left">8</field>
         <field name="margin_right">8</field>
         <field name="header_line" eval="False"/>

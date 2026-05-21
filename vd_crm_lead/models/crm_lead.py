@@ -3065,29 +3065,55 @@ class CrmLead(models.Model):
             target_idx = min(2, total_pages - 1)  # fallback page 3 hoặc cuối
 
         def _force_landscape(p):
-            """Xoay portrait pages 90° để toàn bộ file đồng bộ landscape.
-            pypdf tính effective dimensions = mediabox + rotation tích lũy."""
+            """Xoay portrait pages 90° để toàn bộ file đồng bộ landscape."""
             try:
                 rot = (p.rotation or 0) % 360
                 mb = p.mediabox
                 raw_w = float(mb.width)
                 raw_h = float(mb.height)
-                # Effective W/H sau khi áp dụng rotation hiện tại
                 if rot in (90, 270):
                     eff_w, eff_h = raw_h, raw_w
                 else:
                     eff_w, eff_h = raw_w, raw_h
-                if eff_h > eff_w:  # portrait → rotate
+                if eff_h > eff_w:
                     p.rotate(90)
+            except Exception:
+                pass
+
+        # Scale báo giá page khớp KÍCH THƯỚC trang template đang thay (để mọi
+        # trang trong file PDF cuối cùng có cùng size, không bị lệch khi xem).
+        try:
+            from pypdf import Transformation
+        except ImportError:
+            Transformation = None
+
+        target_tpl_page = tpl_reader.pages[target_idx]
+        target_w = float(target_tpl_page.mediabox.width)
+        target_h = float(target_tpl_page.mediabox.height)
+
+        def _scale_to_target(p):
+            if Transformation is None:
+                return
+            try:
+                src_w = float(p.mediabox.width)
+                src_h = float(p.mediabox.height)
+                if src_w <= 0 or src_h <= 0:
+                    return
+                sx = target_w / src_w
+                sy = target_h / src_h
+                p.add_transformation(Transformation().scale(sx, sy))
+                p.mediabox.upper_right = (target_w, target_h)
+                p.cropbox.upper_right = (target_w, target_h)
             except Exception:
                 pass
 
         writer = PdfWriter()
         for i, page in enumerate(tpl_reader.pages):
             if i == target_idx:
-                # Thay trang này bằng báo giá
+                # Thay trang này bằng báo giá — force landscape + scale fit template size
                 for new_p in baogia_reader.pages:
                     _force_landscape(new_p)
+                    _scale_to_target(new_p)
                     writer.add_page(new_p)
             else:
                 _force_landscape(page)
