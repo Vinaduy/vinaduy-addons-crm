@@ -545,6 +545,19 @@
                                             <field name="vd_intake_floor_tum_m2" nolabel="1" placeholder="m² (≈ 15-30)"/>
                                         </div>
                                     </div>
+
+                                    <!-- ===== TỔNG diện tích sau khi nhập per-tầng (auto-sum)
+                                         Đây là số chính thức được dùng cho công thức báo giá
+                                         + ghi vào "Diện tích nhà" ở section trên ===== -->
+                                    <div class="o_vd_floors_total" invisible="not vd_intake_total_m2">
+                                        <span class="o_vd_floors_total_lbl">📐 Tổng diện tích sàn:</span>
+                                        <field name="vd_intake_total_m2" nolabel="1"
+                                               class="o_vd_floors_total_val" readonly="1"/>
+                                        <span class="o_vd_floors_total_unit">m²</span>
+                                        <span class="o_vd_floors_total_hint">
+                                            → Áp dụng vào báo giá chi tiết
+                                        </span>
+                                    </div>
                             </div>
 
                             <!-- RIGHT — Stack: Thời gian (trên) + Ngân sách (dưới) -->
