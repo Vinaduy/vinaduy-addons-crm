@@ -50,6 +50,27 @@ class VdLeadQuickAddWizard(models.TransientModel):
         'vd.lead.quick.add.wizard.line', 'wizard_id',
         string='Danh sách KH',
     )
+    # Quick-create field: admin gõ tên → tạo vd.intake.custom.field → cột
+    # tương ứng xuất hiện trong bảng (qua fields_get override trên line model).
+    quick_add_field_id = fields.Many2one(
+        'vd.intake.custom.field',
+        string='+ Thêm cột',
+        store=False,
+        help='Gõ tên cột mới + Enter để tạo. Đóng và mở lại wizard để thấy cột mới.',
+    )
+
+    @api.onchange('quick_add_field_id')
+    def _onchange_quick_add_field_id(self):
+        if self.quick_add_field_id:
+            field = self.quick_add_field_id
+            self.quick_add_field_id = False
+            return {
+                'warning': {
+                    'title': '✅ Đã tạo cột mới',
+                    'message': f'Cột "{field.name}" đã được tạo. Đóng wizard và '
+                               f'mở lại để cột xuất hiện trong bảng.',
+                },
+            }
 
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""
@@ -237,11 +258,36 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
 
-    # ===== Phát sinh preset — admin tạo 1 lần, NV pick + nhập qty =====
+    # 5 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm cột" (vd.intake.custom.field).
+    # Label hiển thị được override dynamic trong fields_get() dựa trên config.
+    extra_1 = fields.Char(string='Tuỳ chọn 1')
+    extra_2 = fields.Char(string='Tuỳ chọn 2')
+    extra_3 = fields.Char(string='Tuỳ chọn 3')
+    extra_4 = fields.Char(string='Tuỳ chọn 4')
+    extra_5 = fields.Char(string='Tuỳ chọn 5')
+
+    # ===== Phát sinh preset (cũ — vẫn giữ phòng khi cần) =====
     surcharge_preset_id = fields.Many2one(
         'vd.lead.surcharge.preset',
         string='+ Tùy biến',
         domain="[('active', '=', True)]",
-        help='Chọn preset phát sinh (Thêm WC, Cầu thang...). Sau đó nhập "Số lượng PS".',
     )
     surcharge_qty = fields.Float(string='Số lượng PS', digits=(10, 2))
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        """Override label các cột extra_N theo cấu hình vd.intake.custom.field."""
+        res = super().fields_get(allfields, attributes)
+        try:
+            cfs = self.env['vd.intake.custom.field'].sudo().search(
+                [('active', '=', True)], order='sequence, id', limit=5,
+            )
+            for idx, cf in enumerate(cfs, start=1):
+                key = f'extra_{idx}'
+                if key in res:
+                    res[key]['string'] = cf.name
+                    if cf.help_text:
+                        res[key]['help'] = cf.help_text
+        except Exception:
+            pass
+        return res
