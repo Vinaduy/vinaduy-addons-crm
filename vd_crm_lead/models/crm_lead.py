@@ -4713,6 +4713,15 @@ class CrmLead(models.Model):
                 'call_count': l.call_count or 0,
             }
 
+        def _short_prob_name(p):
+            if p.tag_id:
+                return p.tag_id.name
+            text = (p.name or '').strip()
+            for sep in (':', '—', ' – ', ' - '):
+                if sep in text:
+                    return text.split(sep, 1)[0].strip()
+            return text or 'Vấn đề'
+
         def _ld_with_problems(l):
             open_probs = l.vd_lead_problem_ids.filtered(
                 lambda p: p.status in ('open', 'in_progress')
@@ -4721,7 +4730,7 @@ class CrmLead(models.Model):
                 **_ld_basic(l),
                 'problem_count': len(open_probs),
                 'problems': [{
-                    'name': p.tag_id.name if p.tag_id else (p.name or 'Vấn đề'),
+                    'name': _short_prob_name(p),
                     'icon': p.tag_id.icon if p.tag_id else '🔸',
                     'status': p.status,
                 } for p in open_probs[:5]],
