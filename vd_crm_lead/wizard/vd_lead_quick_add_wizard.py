@@ -131,6 +131,20 @@ class VdLeadQuickAddWizard(models.TransientModel):
             lead = Lead.with_context(vd_skip_reassign_check=True).create(vals)
             created |= lead
 
+            # Nếu line có preset phát sinh + qty → tạo vd.lead.surcharge
+            if line.surcharge_preset_id and line.surcharge_qty:
+                preset = line.surcharge_preset_id
+                self.env['vd.lead.surcharge'].sudo().create({
+                    'lead_id': lead.id,
+                    'name': preset.name,
+                    'quantity': line.surcharge_qty,
+                    'quantity_label': (
+                        f'Số lượng {int(line.surcharge_qty)} {preset.unit_label}'
+                        if preset.unit_label else f'Số lượng {int(line.surcharge_qty)}'
+                    ),
+                    'unit_price': preset.unit_price,
+                })
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -222,3 +236,12 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         ('khong', 'Không'),
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
+
+    # ===== Phát sinh preset — admin tạo 1 lần, NV pick + nhập qty =====
+    surcharge_preset_id = fields.Many2one(
+        'vd.lead.surcharge.preset',
+        string='+ Tùy biến',
+        domain="[('active', '=', True)]",
+        help='Chọn preset phát sinh (Thêm WC, Cầu thang...). Sau đó nhập "Số lượng PS".',
+    )
+    surcharge_qty = fields.Float(string='Số lượng PS', digits=(10, 2))

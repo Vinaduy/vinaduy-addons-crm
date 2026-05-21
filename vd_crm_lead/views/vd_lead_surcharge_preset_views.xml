@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vd_lead_surcharge_preset_list" model="ir.ui.view">
+        <field name="name">vd.lead.surcharge.preset.list</field>
+        <field name="model">vd.lead.surcharge.preset</field>
+        <field name="arch" type="xml">
+            <list string="Preset phát sinh báo giá" editable="bottom"
+                  default_order="sequence, id">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="unit_label" placeholder="cái / phòng / m²"/>
+                <field name="unit_price"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vd_lead_surcharge_preset" model="ir.actions.act_window">
+        <field name="name">⚙️ Preset phát sinh báo giá</field>
+        <field name="res_model">vd.lead.surcharge.preset</field>
+        <field name="view_mode">list</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có preset nào.</p>
+            <p>Tạo preset (Thêm WC, Cầu thang phụ...) để NV pick nhanh trong wizard Thêm KH.</p>
+        </field>
+    </record>
+</odoo>

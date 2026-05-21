@@ -30,3 +30,19 @@ class VdLeadSurcharge(models.Model):
     def _compute_total(self):
         for rec in self:
             rec.total = (rec.quantity or 0) * (rec.unit_price or 0)
+
+
+class VdLeadSurchargePreset(models.Model):
+    """Preset phát sinh: admin tạo 1 lần (Thêm WC, Cầu thang, ...), NV pick
+    trong wizard và nhập quantity → tự tạo vd.lead.surcharge trên lead."""
+    _name = 'vd.lead.surcharge.preset'
+    _description = 'Preset phát sinh báo giá'
+    _order = 'sequence, id'
+
+    name = fields.Char(string='Tên phát sinh', required=True,
+                       help='Vd: "Thêm WC", "Cầu thang phụ", "Đào móng sâu"...')
+    unit_price = fields.Float(string='Đơn giá (VNĐ)', digits=(16, 0))
+    unit_label = fields.Char(string='Đơn vị tính',
+                             help='Vd: "cái", "phòng", "m²" — hiển thị trong báo giá.')
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)

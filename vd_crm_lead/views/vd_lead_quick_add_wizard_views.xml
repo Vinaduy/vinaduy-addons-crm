@@ -5,9 +5,16 @@
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
             <form string="Thêm KH mới (nhập nhiều)">
-                <div class="alert alert-info" role="alert" style="margin:0 0 0.5rem 0;">
-                    <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Tab/Enter để xuống dòng kế.
-                    Bấm <b>⋮</b> ở góc phải header bảng để thêm cột intake (Loại móng, Kiểu nhà, Tầng 1, Tỉnh...).
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                    <div class="alert alert-info" role="alert" style="margin:0;flex:1;min-width:300px;">
+                        <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Bấm <b>⋮</b> ở header bảng để thêm cột.
+                    </div>
+                    <button name="%(vd_crm_lead.action_vd_lead_surcharge_preset)d" type="action"
+                            string="➕ Tùy biến phát sinh"
+                            class="btn btn-warning"
+                            style="font-weight:700;"
+                            groups="vd_crm_lead.vd_crm_group_admin"
+                            help="Tạo preset phát sinh (Thêm WC, Cầu thang...) — NV pick trong cột 'Tùy biến' rồi nhập số lượng"/>
                 </div>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
@@ -42,6 +49,10 @@
                         <field name="i_land_type" optional="hide"/>
                         <field name="i_car_access_select" optional="hide"/>
                         <field name="i_budget_amount" optional="hide"/>
+                        <!-- Phát sinh tuỳ biến — pick preset + nhập qty -->
+                        <field name="surcharge_preset_id" optional="hide"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="surcharge_qty" optional="hide"/>
                     </list>
                 </field>
                 <footer>
