@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Paperformat A4 landscape cho báo giá chi tiết — match orientation
+         của các template PDF VINADUY khác (cover, vật liệu, tiến độ...
+         đều ngang). -->
+    <record id="paperformat_vd_a4_landscape" model="report.paperformat">
+        <field name="name">VD A4 Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
     <!-- Single-page báo giá chi tiết — redesign khớp mẫu chuẩn VINADUY.
          Fix UTF-8 encoding (mojibake font tiếng Việt) bằng cách wrap template
          bằng <html><head><meta charset="UTF-8"></head> đầy đủ thay vì
@@ -12,7 +29,7 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">vd_crm_lead.report_vd_quote_single_page</field>
         <field name="report_file">vd_crm_lead.report_vd_quote_single_page</field>
-        <field name="paperformat_id" ref="base.paperformat_euro"/>
+        <field name="paperformat_id" ref="paperformat_vd_a4_landscape"/>
     </record>
 
     <template id="report_vd_quote_single_page">
