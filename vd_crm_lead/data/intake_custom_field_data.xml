@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 5 trường khai thác mặc định — admin sửa/đổi tên hoặc xoá tuỳ ý.
+             Sequence khớp với 5 cột extra_1..5 của vd.lead.quick.add.wizard.line. -->
+        <record id="intake_field_mong_muon" model="vd.intake.custom.field">
+            <field name="name">Mong muốn KH</field>
+            <field name="help_text">Vd: muốn nhà rộng, có sân, gần trường học...</field>
+            <field name="sequence">1</field>
+        </record>
+        <record id="intake_field_phong_cach" model="vd.intake.custom.field">
+            <field name="name">Phong cách yêu thích</field>
+            <field name="help_text">Vd: hiện đại, tân cổ điển, Á Đông...</field>
+            <field name="sequence">2</field>
+        </record>
+        <record id="intake_field_so_phong" model="vd.intake.custom.field">
+            <field name="name">Số phòng ngủ</field>
+            <field name="help_text">Vd: 3 phòng ngủ + 1 phòng làm việc</field>
+            <field name="sequence">3</field>
+        </record>
+        <record id="intake_field_huong_nha" model="vd.intake.custom.field">
+            <field name="name">Hướng nhà</field>
+            <field name="help_text">Vd: hướng Đông, hợp tuổi gia chủ</field>
+            <field name="sequence">4</field>
+        </record>
+        <record id="intake_field_yeu_cau_khac" model="vd.intake.custom.field">
+            <field name="name">Yêu cầu khác</field>
+            <field name="help_text">Ghi chú đặc biệt từ KH</field>
+            <field name="sequence">5</field>
+        </record>
+    </data>
+</odoo>
