@@ -281,18 +281,25 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
 
     @api.model
     def fields_get(self, allfields=None, attributes=None):
-        """Override label các cột extra_N theo cấu hình vd.intake.custom.field."""
+        """Map vd.intake.custom.field config → extra_N column labels.
+        Slot không có config → bị xoá khỏi fields_get để picker không hiện."""
         res = super().fields_get(allfields, attributes)
         try:
             cfs = self.env['vd.intake.custom.field'].sudo().search(
                 [('active', '=', True)], order='sequence, id', limit=10,
             )
+            n = len(cfs)
             for idx, cf in enumerate(cfs, start=1):
                 key = f'extra_{idx}'
                 if key in res:
                     res[key]['string'] = cf.name
                     if cf.help_text:
                         res[key]['help'] = cf.help_text
+            # Slot dư (idx > n) → xoá khỏi fields_get → picker không hiện
+            for idx in range(n + 1, 11):
+                key = f'extra_{idx}'
+                if key in res:
+                    del res[key]
         except Exception:
             pass
         return res
