@@ -1416,36 +1416,29 @@
         gap: 0.25rem;
     }
     /* Nút "Thêm mới" — gọn, dùng chung admin nav + NV sidebar */
-    .o_vd_add_lead_btn,
-    .o_vd_search_lead_btn {
+    .o_vd_add_lead_btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0.4rem 0.85rem;
         border: none;
         border-radius: 6px;
+        background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
         color: #fff;
         font-size: 0.8rem;
         font-weight: 600;
         cursor: pointer;
+        box-shadow: 0 1px 3px rgba(55, 178, 77, 0.25);
         transition: transform 0.1s ease, box-shadow 0.15s ease;
         white-space: nowrap;
-        margin-top: 0.35rem;
 
-        &:hover { transform: translateY(-1px); }
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(55, 178, 77, 0.4);
+        }
         &:active { transform: translateY(0); }
 
         i.fa { font-size: 0.78rem; }
-    }
-    .o_vd_add_lead_btn {
-        background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
-        box-shadow: 0 1px 3px rgba(55, 178, 77, 0.25);
-        &:hover { box-shadow: 0 3px 8px rgba(55, 178, 77, 0.4); }
-    }
-    .o_vd_search_lead_btn {
-        background: linear-gradient(135deg, #4dabf7 0%, #1864ab 100%);
-        box-shadow: 0 1px 3px rgba(24, 100, 171, 0.25);
-        &:hover { box-shadow: 0 3px 8px rgba(24, 100, 171, 0.4); }
     }
 
     .o_vd_admin_nav_picker {
@@ -2297,6 +2290,83 @@
         letter-spacing: 0.5px;
         color: var(--bs-body-color, inherit);
         .o_vd_an_brand_sub { color: var(--bs-secondary-color, #6c757d); font-weight: 500; }
+    }
+    .o_vd_an_search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, #ced4da);
+        border-radius: 20px;
+        padding: 0 0.6rem;
+        min-width: 280px;
+        height: 32px;
+        .o_vd_an_search_icon {
+            color: var(--bs-secondary-color, #6c757d);
+            font-size: 0.85rem;
+            margin-right: 0.4rem;
+        }
+        .o_vd_an_search_input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.85rem;
+            color: var(--bs-body-color, inherit);
+            min-width: 0;
+            &::placeholder { color: var(--bs-secondary-color, #9ba5af); font-style: italic; }
+        }
+        .o_vd_an_search_clear {
+            background: transparent;
+            border: none;
+            color: var(--bs-secondary-color, #6c757d);
+            cursor: pointer;
+            padding: 0.1rem 0.3rem;
+            border-radius: 50%;
+            &:hover { background: var(--bs-tertiary-bg, #e9ecef); color: #dc3545; }
+        }
+        .o_vd_an_search_dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--bs-body-bg, #fff);
+            border: 1px solid var(--bs-border-color, #dee2e6);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 360px;
+            overflow-y: auto;
+            z-index: 1050;
+        }
+        .o_vd_an_search_loading,
+        .o_vd_an_search_empty {
+            padding: 0.7rem 1rem;
+            text-align: center;
+            color: var(--bs-secondary-color, #6c757d);
+            font-size: 0.85rem;
+        }
+        .o_vd_an_search_item {
+            padding: 0.55rem 0.8rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--bs-border-color-translucent, #f1f3f5);
+            &:last-child { border-bottom: none; }
+            &:hover { background: var(--bs-tertiary-bg, #f8f9fa); }
+            .o_vd_an_search_item_main {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                font-size: 0.88rem;
+                .o_vd_an_search_item_name { font-weight: 600; color: var(--bs-body-color); }
+                .o_vd_an_search_item_phone { color: #1864ab; font-family: monospace; font-size: 0.82rem; }
+            }
+            .o_vd_an_search_item_meta {
+                display: flex;
+                gap: 0.7rem;
+                margin-top: 0.15rem;
+                font-size: 0.75rem;
+                color: var(--bs-secondary-color, #6c757d);
+            }
+        }
     }
     .o_vd_an_filter {
         display: flex;

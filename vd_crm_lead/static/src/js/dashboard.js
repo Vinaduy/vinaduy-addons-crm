@@ -56,7 +56,13 @@ export class VdCrmDashboard extends Component {
             analyticsLoading: false,
             analyticsFrom: isoDate(past),
             analyticsTo: isoDate(today),
+            // ===== SEARCH KH (live search dropdown) =====
+            searchQuery: "",
+            searchResults: [],
+            searchLoading: false,
+            searchOpen: false,
         });
+        this._searchDebounce = null;
 
         onWillStart(async () => {
             await this.loadDashboard();
@@ -340,20 +346,72 @@ export class VdCrmDashboard extends Component {
         this.action.doAction("vd_crm_lead.action_vd_lead_quick_add_wizard");
     }
 
-    searchLeads() {
-        // Mở list view crm.lead với search bar focused — NV nhập tên/SĐT để tìm.
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "🔍 Tìm kiếm khách hàng",
-            res_model: "crm.lead",
-            views: [
-                [false, "list"],
-                [false, "form"],
-            ],
-            target: "current",
-            context: { search_default_filter_my_leads: 0 },
-            domain: [["type", "=", "lead"], ["active", "=", true]],
-        });
+    // ============ SEARCH KH LIVE (topbar) ============
+    onSearchInput(ev) {
+        const q = ev.target.value || "";
+        this.state.searchQuery = q;
+        this.state.searchOpen = true;
+        if (this._searchDebounce) clearTimeout(this._searchDebounce);
+        if (!q.trim()) {
+            this.state.searchResults = [];
+            this.state.searchLoading = false;
+            return;
+        }
+        this.state.searchLoading = true;
+        this._searchDebounce = setTimeout(() => this._runSearch(q.trim()), 250);
+    }
+
+    async _runSearch(q) {
+        try {
+            const domain = [
+                ["active", "=", true],
+                "|", "|", "|",
+                ["name", "ilike", q],
+                ["partner_name", "ilike", q],
+                ["phone", "ilike", q],
+                ["mobile", "ilike", q],
+            ];
+            const rows = await this.orm.searchRead(
+                "crm.lead",
+                domain,
+                ["id", "name", "partner_name", "phone", "stage_id", "user_id"],
+                { limit: 20, order: "write_date desc" },
+            );
+            this.state.searchResults = rows.map(r => ({
+                id: r.id,
+                name: r.partner_name || r.name || "(không tên)",
+                phone: r.phone || "",
+                stage_name: r.stage_id ? r.stage_id[1] : "",
+                user_name: r.user_id ? r.user_id[1] : "",
+            }));
+        } catch (e) {
+            console.error("[VD] search lead failed", e);
+            this.state.searchResults = [];
+        } finally {
+            this.state.searchLoading = false;
+        }
+    }
+
+    onSearchFocus() {
+        if (this.state.searchQuery && this.state.searchResults.length) {
+            this.state.searchOpen = true;
+        }
+    }
+
+    onSearchBlur() {
+        // Delay để click mousedown bắt được trước khi dropdown ẩn
+        setTimeout(() => { this.state.searchOpen = false; }, 200);
+    }
+
+    clearSearch() {
+        this.state.searchQuery = "";
+        this.state.searchResults = [];
+        this.state.searchOpen = false;
+    }
+
+    selectSearchResult(leadId) {
+        this.clearSearch();
+        this.openLead(leadId);
     }
 
     async openAlertLeads(kind) {

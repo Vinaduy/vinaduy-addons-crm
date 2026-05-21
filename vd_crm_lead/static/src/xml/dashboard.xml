@@ -57,12 +57,6 @@
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
 
-                        <!-- Nút tìm kiếm KH -->
-                        <button class="o_vd_search_lead_btn"
-                                t-on-click="() => this.searchLeads()">
-                            <i class="fa fa-search me-1"/> Tìm kiếm
-                        </button>
-
                         <!-- ===== FOCUS TOGGLE: KH / NV — stack dọc 1 dòng/cái ===== -->
                         <div class="o_vd_admin_focus_toggle">
                             <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_kh ' + (isCustomerFocus ? 'o_active' : '')"
@@ -121,6 +115,48 @@
                                         <t t-else="">Lọc</t>
                                     </button>
                                 </div>
+
+                                <!-- ===== SEARCH KH (live search by name/phone) ===== -->
+                                <div class="o_vd_an_search">
+                                    <i class="fa fa-search o_vd_an_search_icon"/>
+                                    <input type="text" class="o_vd_an_search_input"
+                                           placeholder="Tìm KH theo tên hoặc SĐT..."
+                                           t-att-value="state.searchQuery"
+                                           t-on-input="(ev) => this.onSearchInput(ev)"
+                                           t-on-focus="() => this.onSearchFocus()"
+                                           t-on-blur="() => this.onSearchBlur()"/>
+                                    <button t-if="state.searchQuery"
+                                            class="o_vd_an_search_clear"
+                                            t-on-click="() => this.clearSearch()"
+                                            title="Xoá">
+                                        <i class="fa fa-times"/>
+                                    </button>
+                                    <!-- Dropdown kết quả -->
+                                    <div t-if="state.searchOpen and (state.searchResults.length or state.searchLoading)"
+                                         class="o_vd_an_search_dropdown">
+                                        <div t-if="state.searchLoading" class="o_vd_an_search_loading">
+                                            <i class="fa fa-spinner fa-spin me-2"/> Đang tìm...
+                                        </div>
+                                        <div t-else=""
+                                             t-foreach="state.searchResults" t-as="r" t-key="r.id"
+                                             class="o_vd_an_search_item"
+                                             t-on-mousedown="() => this.selectSearchResult(r.id)">
+                                            <div class="o_vd_an_search_item_main">
+                                                <span class="o_vd_an_search_item_name"><t t-esc="r.name"/></span>
+                                                <span t-if="r.phone" class="o_vd_an_search_item_phone">📞 <t t-esc="r.phone"/></span>
+                                            </div>
+                                            <div class="o_vd_an_search_item_meta">
+                                                <span t-if="r.stage_name" class="o_vd_an_search_item_stage"><t t-esc="r.stage_name"/></span>
+                                                <span t-if="r.user_name" class="o_vd_an_search_item_user">👤 <t t-esc="r.user_name"/></span>
+                                            </div>
+                                        </div>
+                                        <div t-if="!state.searchLoading and !state.searchResults.length"
+                                             class="o_vd_an_search_empty">
+                                            Không tìm thấy KH khớp.
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="o_vd_an_now">
                                     <span class="o_vd_an_now_dot"/>
                                     <t t-esc="analyticsNow"/>
