@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.22.4',
+    'version': '18.0.9.22.5',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -19,6 +19,9 @@
         'data/vd_quote_template_category_data.xml',
         'reports/vd_quote_report.xml',
         'reports/vd_quote_single_page_report.xml',
+        # PHẢI load TRƯỚC crm_lead_views.xml + wizard view vì các view đó
+        # reference %(vd_crm_lead.action_vd_intake_custom_field)d
+        'views/vd_intake_custom_field_views.xml',
         'views/crm_lead_views.xml',
         'views/crm_dashboard_views.xml',
         'views/stringee_call_views.xml',
@@ -30,7 +33,6 @@
         'views/vd_quote_preview_wizard_views.xml',
         'views/vd_lead_quick_add_wizard_views.xml',
         'views/vd_role_config_views.xml',
-        'views/vd_intake_custom_field_views.xml',
         'views/vd_pancake_page_views.xml',
         'views/menus.xml',
         # Seed default 4 vị trí (load SAU view + group)
