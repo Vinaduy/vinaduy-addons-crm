@@ -50,6 +50,38 @@ class VdLeadQuickAddWizard(models.TransientModel):
         'vd.lead.quick.add.wizard.line', 'wizard_id',
         string='Danh sách KH',
     )
+    # Dropdown để admin chọn/tạo trường tuỳ chọn ngay trong wizard.
+    # Quick-create: gõ tên mới + Enter → tạo vd.intake.custom.field record.
+    # Chọn record có sẵn từ list cũng được.
+    quick_add_field_id = fields.Many2one(
+        'vd.intake.custom.field',
+        string='➕ Thêm cột tuỳ chọn',
+        store=False,
+        help='Gõ tên cột mới rồi Enter để tạo, hoặc chọn cột có sẵn từ danh sách. '
+             'Sau khi chọn/tạo, đóng + mở lại wizard để cột xuất hiện.',
+    )
+
+    @api.onchange('quick_add_field_id')
+    def _onchange_quick_add_field_id(self):
+        """Clear field sau khi chọn — chỉ là shortcut để tạo/chọn config."""
+        if self.quick_add_field_id:
+            # Bump sequence để config mới nằm cuối, sau đó clear
+            field = self.quick_add_field_id
+            if not field.sequence or field.sequence == 10:
+                last = self.env['vd.intake.custom.field'].sudo().search(
+                    [('id', '!=', field.id)],
+                    order='sequence desc, id desc', limit=1,
+                )
+                next_seq = (last.sequence + 1) if last else 1
+                field.sudo().sequence = next_seq
+            self.quick_add_field_id = False
+            return {
+                'warning': {
+                    'title': '✅ Trường đã sẵn sàng',
+                    'message': f'Cột "{field.name}" sẽ xuất hiện trong bảng. '
+                               f'Đóng wizard và mở lại để hiển thị cột mới.',
+                },
+            }
 
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""
