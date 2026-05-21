@@ -722,18 +722,6 @@
                         </div>
                         </div><!-- /.o_vd_intake_geo_panel -->
 
-                        <!-- ===== CUSTOM FIELDS — admin tự thêm trường khai thác ===== -->
-                        <div class="o_vd_intake_custom_panel" style="margin-top:1rem;padding:0.8rem 1rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-                                <h5 style="margin:0;color:#1864ab;">⚙️ Trường khai thác tuỳ chọn</h5>
-                                <button name="%(vd_crm_lead.action_vd_intake_custom_field)d" type="action"
-                                        string="+ Thêm trường" class="btn btn-sm btn-primary"
-                                        context="{}"
-                                        groups="vd_crm_lead.vd_crm_group_admin"/>
-                            </div>
-                            <field name="vd_custom_value_ids" nolabel="1"
-                                   context="{'default_lead_id': id}"/>
-                        </div>
 
                             </div>
                             <!-- Sidebar "Kịch bản tư vấn" đã bỏ theo yêu cầu user -->
