@@ -1114,16 +1114,51 @@
        [Dài] × [Rộng] = [Total] m²
    ============================================================ */
 .o_vd_dims_row {
-    display: grid;
-    grid-template-columns: 1fr 18px 1fr 18px 1fr auto;
-    align-items: center;
-    gap: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
     width: 100%;
-    /* Bao layout pair + total trong 1 hàng — để hero card không bị nhồi */
 
-    /* Wrapper grid items — bỏ flex/grid con, chỉ kế thừa grid cha */
-    .o_vd_dim_pair { display: contents; }
-    .o_vd_dim_total_row { display: contents; }
+    /* Row 1: Diện tích đất (primary input) */
+    .o_vd_dim_total_row {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+    }
+    /* Row 2: Dài × Rộng (optional, hiện khi area > 0) */
+    .o_vd_dim_pair {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        width: 100%;
+        .o_vd_dim_input {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+    }
+    .o_vd_dims_lbl {
+        font-weight: 700;
+        color: #0b5d1e;
+        font-size: 0.92rem;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+    .o_vd_dims_lbl_sub {
+        font-weight: 500;
+        color: rgba(11, 93, 30, 0.7);
+        font-size: 0.82rem;
+        font-style: italic;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+    .o_vd_dims_unit {
+        font-weight: 700;
+        color: #2b8a3e;
+        font-size: 0.95rem;
+        flex: 0 0 auto;
+    }
 
     .o_vd_dim_input {
         width: 100% !important;
@@ -1164,33 +1199,33 @@
     }
 
     .o_vd_dim_total {
-        width: 100% !important;
-        /* readonly Float trong Odoo render là <span> chứ không phải <input>.
-           Style cả input lẫn span để to bằng các ô dài/rộng. */
-        > input,
-        > span,
-        > .o_field_widget {
+        flex: 1 1 0;
+        min-width: 0;
+        > input {
             display: block !important;
             width: 100% !important;
-            min-width: 0 !important;
             text-align: center !important;
-            font-size: 1.05rem !important;
+            font-size: 1.15rem !important;
             font-weight: 800 !important;
-            padding: 0.42rem 0.4rem !important;
-            background: linear-gradient(135deg, #2b8a3e, #51cf66) !important;
-            color: #fff !important;
-            border: none !important;
+            padding: 0.55rem 0.5rem !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #0b5d1e !important;
+            border: 2px solid #2b8a3e !important;
             border-radius: 8px !important;
-            cursor: default !important;
-            box-shadow: 0 3px 8px rgba(43, 138, 62, 0.35),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
-            line-height: 1.3 !important;
+            box-shadow: 0 2px 6px rgba(43, 138, 62, 0.18);
+            transition: all 0.18s ease;
         }
-        /* Empty state - nhạt hơn */
-        > input.vd-dim-empty,
-        &.vd-dim-empty > span {
-            opacity: 0.55;
-            background: linear-gradient(135deg, #51cf66, #8ce99a) !important;
+        > input:focus {
+            border-color: #2b8a3e !important;
+            box-shadow: 0 0 0 3px rgba(43, 138, 62, 0.22),
+                        0 3px 10px rgba(43, 138, 62, 0.22) !important;
+            outline: none !important;
+            background: #fff !important;
+        }
+        > input::placeholder {
+            color: rgba(20, 80, 30, 0.4) !important;
+            font-weight: 400 !important;
+            font-style: italic !important;
         }
     }
 
