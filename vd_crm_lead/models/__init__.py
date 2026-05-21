@@ -8,6 +8,7 @@ from . import vd_quote_template
 from . import vd_quote_version
 from . import vd_role_config
 from . import vd_intake_custom_field
+from . import vd_lead_surcharge
 from . import vd_nego_problem
 from . import vd_lead_problem
 from . import vd_pancake_page

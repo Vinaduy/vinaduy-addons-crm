@@ -1403,6 +1403,12 @@ class CrmLead(models.Model):
         string='Trường khai thác tuỳ chọn',
         copy=False,
     )
+    vd_surcharge_ids = fields.One2many(
+        'vd.lead.surcharge', 'lead_id',
+        string='Phát sinh báo giá',
+        copy=True,
+        help='Items phát sinh thêm vào báo giá (Thêm WC, cầu thang phụ...).',
+    )
 
     def _ensure_custom_value_records(self):
         """Tạo value record rỗng cho mọi custom field active mà lead chưa có.
@@ -2760,6 +2766,9 @@ class CrmLead(models.Model):
         # TỔNG TIỀN báo giá = sum chính xác các dòng (đồng bộ với
         # _compute_intake_estimate). Nếu NV đã chốt giá thủ công thì ưu tiên cái đó.
         components_total = found_cost + floor_cost + roof_cost
+        # Cộng các item phát sinh (Thêm WC, cầu thang...) vào tổng
+        surcharges_total = sum(self.vd_surcharge_ids.mapped('total'))
+        components_total += surcharges_total
         total = self.vd_quote_price or components_total or self.vd_intake_estimate or 0
 
         house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
@@ -2808,6 +2817,13 @@ class CrmLead(models.Model):
             # Logo + dấu mộc inline (base64) — bypass wkhtmltopdf static URL fetch
             'logo_data_uri': self._vd_static_image_data_uri('static/src/img/vinaduy_logo.png'),
             'stamp_data_uri': self._vd_static_image_data_uri('static/src/img/vinaduy_stamp.png'),
+            # Items phát sinh (Thêm WC, cầu thang...) — render thêm rows sau Mái
+            'surcharges': [{
+                'name': s.name,
+                'qty_label': s.quantity_label or (f'Số lượng {int(s.quantity)}' if s.quantity else '1'),
+                'unit_price': fmt(s.unit_price),
+                'total': fmt(s.total),
+            } for s in self.vd_surcharge_ids.sorted(lambda x: (x.sequence, x.id))],
         }
 
     def _render_template_pdf_overlay_text(self):

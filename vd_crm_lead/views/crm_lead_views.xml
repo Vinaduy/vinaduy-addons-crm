@@ -750,6 +750,26 @@
                         </div>
                         </div><!-- /.o_vd_intake_geo_panel -->
 
+                        <!-- ===== PHÁT SINH BÁO GIÁ — items thêm vào báo giá ===== -->
+                        <div class="o_vd_surcharge_panel" style="margin-top:1rem;padding:0.75rem 1rem;background:#fff8e6;border:1px solid #ffd966;border-radius:8px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                                <h5 style="margin:0;color:#856404;">💰 Phát sinh báo giá</h5>
+                                <span style="font-size:0.78rem;color:#6c757d;font-style:italic;">
+                                    Thêm WC, cầu thang phụ, đào sâu hơn... — auto append vào báo giá chi tiết
+                                </span>
+                            </div>
+                            <field name="vd_surcharge_ids" nolabel="1">
+                                <list editable="bottom" string="Phát sinh">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" placeholder="Vd: Thêm WC, Cầu thang phụ..."/>
+                                    <field name="quantity_label" placeholder="Vd: Số lượng 02"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="total" readonly="1"/>
+                                </list>
+                            </field>
+                        </div>
+
 
                             </div>
                             <!-- Sidebar "Kịch bản tư vấn" đã bỏ theo yêu cầu user -->
