@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.26.4',
+    'version': '18.0.9.27.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -37,6 +37,7 @@
         'views/vd_lead_quick_add_wizard_views.xml',
         'views/vd_role_config_views.xml',
         'views/vd_pancake_page_views.xml',
+        'views/res_users_vd_settings_views.xml',
         'views/menus.xml',
         # Seed default 4 vị trí (load SAU view + group)
         'data/role_config_data.xml',

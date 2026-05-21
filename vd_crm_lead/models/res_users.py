@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Extension res.users — track số KH quá hạn + cờ block nhận lead mới."""
+from datetime import date
+
 from odoo import models, fields, api
 
 
@@ -36,6 +38,44 @@ class ResUsers(models.Model):
         help='Admin tắt cờ này khi muốn TẠM DỪNG đẩy KH Pancake cho NV này '
              '(vd: NV nghỉ phép, đang training). Round-robin sẽ skip NV.',
     )
+
+    # ============ THÔNG TIN LÀM VIỆC — số tháng + năng lực ============
+    vd_work_start_date = fields.Date(
+        string='Ngày bắt đầu làm việc',
+        default=fields.Date.context_today,
+        help='Ngày NV chính thức bắt đầu làm việc. Mặc định = ngày tạo user, '
+             'admin có thể chỉnh sửa lại đúng thực tế.',
+    )
+    vd_work_months = fields.Integer(
+        string='Số tháng làm việc',
+        compute='_compute_vd_work_months',
+        help='Số tháng tính từ vd_work_start_date đến hôm nay.',
+    )
+    vd_capacity_level = fields.Selection(
+        [
+            ('trainee', '🌱 Tập sự'),
+            ('junior',  '🌿 Junior'),
+            ('mid',     '🌳 Trung cấp'),
+            ('senior',  '🏆 Senior'),
+            ('expert',  '⭐ Expert'),
+        ],
+        string='Năng lực',
+        default='junior',
+        help='Đánh giá năng lực NV — admin set thủ công theo kết quả review định kỳ.',
+    )
+
+    @api.depends('vd_work_start_date')
+    def _compute_vd_work_months(self):
+        today = date.today()
+        for u in self:
+            if not u.vd_work_start_date:
+                u.vd_work_months = 0
+                continue
+            d = u.vd_work_start_date
+            months = (today.year - d.year) * 12 + (today.month - d.month)
+            if today.day < d.day:
+                months -= 1
+            u.vd_work_months = max(0, months)
 
     # ============ PERFORMANCE / BONUS — cơ cấu chỉ tiêu VINADUY 2026 ============
     vd_contracts_month = fields.Integer(

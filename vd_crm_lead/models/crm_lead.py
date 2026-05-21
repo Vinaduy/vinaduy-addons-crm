@@ -4737,6 +4737,9 @@ class CrmLead(models.Model):
             }
 
         # Build NV stats — iterate sales_users for completeness
+        cap_labels = dict(
+            self.env['res.users']._fields['vd_capacity_level'].selection
+        )
         nv_unified_flat = []
         for u in sales_users:
             # Metric 1: ĐANG CHỐT = lead ở stage 'won' (đang trong giai đoạn ký HĐ /
@@ -4807,6 +4810,9 @@ class CrmLead(models.Model):
                 'name': _short_name(u.name),
                 'full_name': u.name,
                 'team': self._vd_team_label_for(u),
+                'work_months': u.vd_work_months or 0,
+                'capacity_level': u.vd_capacity_level or 'junior',
+                'capacity_label': cap_labels.get(u.vd_capacity_level or 'junior', ''),
                 'total_leads': total_managed,
                 'resolved_count': n_resolved,
                 'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
