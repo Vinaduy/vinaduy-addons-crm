@@ -956,11 +956,13 @@ class CrmLead(models.Model):
                 )
                 continue
 
-            san_unit = rec._get_san_unit_price(pricing, area, rec.vd_intake_car_access)
-            found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, area >= 70)
-            roof_pct = rec._get_roof_pct(pricing, rec.vd_intake_roof_type)
-            found_cost = area * (found_pct / 100.0) * san_unit
-            roof_cost = area * (roof_pct / 100.0) * san_unit
+            # T1 = footprint thật (Tầng 1) — dùng cho Móng + Mái + đơn giá sàn
+            t1 = rec.vd_intake_floor_1_m2 or area
+            san_unit = rec._get_san_unit_price(pricing, t1, rec.vd_intake_car_access)
+            found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, t1 >= 70)
+            roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
+            found_cost = t1 * (found_pct / 100.0) * san_unit
+            roof_cost = t1 * (roof_pct / 100.0) * san_unit
 
             # ===== Build per-floor rows từ diện tích mỗi tầng đã nhập =====
             # Nếu NV đã nhập diện tích tầng riêng → dùng. Nếu không → fallback
@@ -1004,6 +1006,11 @@ class CrmLead(models.Model):
         </tr>'''
 
             total = found_cost + floor_cost + roof_cost
+            # Phụ phí móng (đơn 10%, băng/cọc 15%)
+            if rec.vd_intake_foundation_type == 'don':
+                total *= 1 + (pricing.pct_mong_don / 100.0)
+            elif rec.vd_intake_foundation_type in ('bang', 'coc'):
+                total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
             # rowspan = số dòng tổng (móng + N tầng + mái)
             num_rows = 2 + max(len(per_floor_data), 1)
 
@@ -1044,14 +1051,14 @@ class CrmLead(models.Model):
     <tbody>
         <tr>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {found_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{t1:.0f} M2 x {found_pct:.0f}%</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(found_cost)} VNĐ</td>
             <td rowspan="{num_rows}" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;color:#1864ab;vertical-align:middle;">{self._fmt_vnd(total)} VNĐ</td>
         </tr>{floor_rows_html}
         <tr>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {roof_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{t1:.0f} M2 x {roof_pct:.0f}%</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(roof_cost)} VNĐ</td>
         </tr>
@@ -1143,14 +1150,24 @@ class CrmLead(models.Model):
                 rec.vd_quote_preview_html = '<i>Chưa có pricing region.</i>'
                 continue
 
-            san_unit = rec._get_san_unit_price(pricing, area, rec.vd_intake_car_access)
+            t1 = rec.vd_intake_floor_1_m2 or area
+            sum_floor_areas = 0.0
+            n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
+            for i in range(1, n_floors_select + 1):
+                sum_floor_areas += rec['vd_intake_floor_%s_m2' % i] or 0.0
+            if rec.vd_intake_has_tum and rec.vd_intake_floor_tum_m2:
+                sum_floor_areas += rec.vd_intake_floor_tum_m2
+            if sum_floor_areas <= 0:
+                sum_floor_areas = area * floors
+
+            san_unit = rec._get_san_unit_price(pricing, t1, rec.vd_intake_car_access)
             found_pct = rec._get_foundation_pct(
-                pricing, rec.vd_intake_foundation_type, area >= 70,
+                pricing, rec.vd_intake_foundation_type, t1 >= 70,
             )
-            roof_pct = rec._get_roof_pct(pricing, rec.vd_intake_roof_type)
-            found_cost = area * (found_pct / 100.0) * san_unit
-            floor_cost = area * floors * san_unit
-            roof_cost = area * (roof_pct / 100.0) * san_unit
+            roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
+            found_cost = t1 * (found_pct / 100.0) * san_unit
+            floor_cost = sum_floor_areas * san_unit
+            roof_cost = t1 * (roof_pct / 100.0) * san_unit
 
             # Labels
             house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
@@ -1160,7 +1177,7 @@ class CrmLead(models.Model):
                 rec.vd_intake_foundation_type, 'MÓNG ĐƠN'
             ) or 'MÓNG ĐƠN'
             roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
-                rec.vd_intake_roof_type, 'MÁI BẰNG'
+                rec._vd_resolve_roof_type(), 'MÁI BẰNG'
             ) or 'MÁI BẰNG'
 
             kh_name = rec.partner_name or rec.contact_name or rec.name or ''
@@ -1222,20 +1239,20 @@ class CrmLead(models.Model):
         <tbody>
             <tr>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {found_pct:.0f}%</td>
+                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{t1:.0f} M2 x {found_pct:.0f}%</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(found_cost)} VNĐ</td>
                 <td rowspan="3" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#fff;text-align:center;font-weight:700;font-size:13pt;color:#1a1a1a;vertical-align:middle;">{fmt(total_price)} VNĐ</td>
             </tr>
             <tr>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f}</td>
+                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{sum_floor_areas:.0f}</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(floor_cost)} VNĐ</td>
             </tr>
             <tr>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{area:.0f} M2 x {roof_pct:.0f}%</td>
+                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{t1:.0f} M2 x {roof_pct:.0f}%</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
                 <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(roof_cost)} VNĐ</td>
             </tr>
