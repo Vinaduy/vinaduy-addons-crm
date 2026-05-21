@@ -4568,8 +4568,13 @@ class CrmLead(models.Model):
                 })
             return result
 
-        # ============ NEW: 1 NV → 3 metric (resolved / in_progress / new) ============
+        # ============ NEW: 1 NV → 3 metric (new / in_progress mid-stages / won) ============
         won_stage = Stage.search([('code', '=', 'won')], limit=1)
+        # ĐANG XỬ LÝ = lead đã khai thác thông tin, đang báo giá, đàm phán, phát hiện
+        # vấn đề... mọi stage giữa 'new' và 'won' đều count vào đây.
+        mid_stage_ids = Stage.search([
+            ('code', 'in', ['potential', 'callback', 'quote', 'negotiate']),
+        ]).ids
 
         def _ld_basic(l):
             return {
@@ -4610,14 +4615,17 @@ class CrmLead(models.Model):
                 ], order='create_date desc', limit=100)
                 resolved_leads = list(won_leads_qs)
 
-            # Metric 2: ĐANG XỬ LÝ = có problem status open/in_progress
-            in_progress_qs = self.search([
-                ('user_id', '=', u.id),
-                ('active', '=', True),
-                ('vd_lead_problem_ids.status', 'in', ['open', 'in_progress']),
-                ('create_date', '>=', dt_from),
-                ('create_date', '<', dt_to),
-            ], order='create_date desc', limit=100)
+            # Metric 2: ĐANG XỬ LÝ = lead ở stage potential/callback/quote/negotiate
+            # (đã khai thác info, đang báo giá, đang đàm phán, có vấn đề...)
+            in_progress_qs = self.env['crm.lead'].browse()
+            if mid_stage_ids:
+                in_progress_qs = self.search([
+                    ('user_id', '=', u.id),
+                    ('stage_id', 'in', mid_stage_ids),
+                    ('active', '=', True),
+                    ('create_date', '>=', dt_from),
+                    ('create_date', '<', dt_to),
+                ], order='create_date desc', limit=100)
 
             # Metric 3: KH MỚI = stage 'new'
             new_leads_qs = self.env['crm.lead'].browse()
