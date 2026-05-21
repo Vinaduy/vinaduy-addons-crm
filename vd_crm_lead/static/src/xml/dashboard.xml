@@ -99,6 +99,19 @@
                                 <div class="o_vd_an_brand">
                                     <span class="o_vd_an_brand_main">VINADUY</span><span class="o_vd_an_brand_sub"> CRM</span>
                                 </div>
+                                <!-- Hover-switch giữa bảng NV và bảng KH có vấn đề -->
+                                <div t-if="isCustomerFocus" class="o_vd_dash_subview_chips">
+                                    <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'nv' ? 'o_active' : '')"
+                                            t-on-mouseenter="() => this.setDashSubView('nv')"
+                                            t-on-click="() => this.setDashSubView('nv')">
+                                        👤 Nhân viên
+                                    </button>
+                                    <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'kh' ? 'o_active' : '')"
+                                            t-on-mouseenter="() => this.setDashSubView('kh')"
+                                            t-on-click="() => this.setDashSubView('kh')">
+                                        👥 Khách hàng
+                                    </button>
+                                </div>
                                 <div class="o_vd_an_filter">
                                     <label>Từ</label>
                                     <input type="date" class="o_vd_an_input"
@@ -175,7 +188,7 @@
                                  - Box 2 KH: flat list KH cần xử lý (in_progress problems)
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
-                            <div class="o_vd_kh_box">
+                            <div t-if="state.dashSubView === 'nv'" class="o_vd_kh_box">
                                 <!-- Header row (table-style) — thay cho box_head + legend cũ -->
                                 <div class="o_vd_kh_table_header">
                                     <div class="o_vd_kh_table_header_sidebar"/>
@@ -295,7 +308,7 @@
                             <!-- ============================================================
                                  RIGHT COLUMN: 2 box stacked (Đang chốt trên, Vấn đề dưới)
                                  ============================================================ -->
-                            <div class="o_vd_kh_right_col">
+                            <div t-if="state.dashSubView === 'kh'" class="o_vd_kh_right_col">
 
                                 <!-- BOX 2A: Bảng KH ĐANG CHỐT (stage=won, gửi HĐ/chốt) -->
                                 <div class="o_vd_kh_box o_vd_kh_box_done_list">

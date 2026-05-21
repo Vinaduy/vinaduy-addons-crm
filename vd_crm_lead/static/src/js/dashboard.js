@@ -48,6 +48,7 @@ export class VdCrmDashboard extends Component {
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
+            dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
             nvDetailLoading: false,
@@ -112,6 +113,10 @@ export class VdCrmDashboard extends Component {
     get isEmployeeFocus() { return this.state.focus === 'employees'; }
     get showKhSection()   { return this.state.focus !== 'employees'; }
     get showNvSection()   { return this.state.focus !== 'customers'; }
+
+    setDashSubView(mode) {
+        if (this.state.dashSubView !== mode) this.state.dashSubView = mode;
+    }
 
     setFocus(focus) {
         if (this.state.focus === focus) return;

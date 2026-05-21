@@ -2303,6 +2303,32 @@
         color: var(--bs-body-color, inherit);
         .o_vd_an_brand_sub { color: var(--bs-secondary-color, #6c757d); font-weight: 500; }
     }
+    .o_vd_dash_subview_chips {
+        display: inline-flex;
+        gap: 0.35rem;
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-radius: 999px;
+        padding: 3px;
+        .o_vd_dash_subview_chip {
+            border: none;
+            background: transparent;
+            color: var(--bs-secondary-color, #6c757d);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background .12s ease, color .12s ease;
+            white-space: nowrap;
+            &:hover { background: var(--bs-tertiary-bg, #eef2f7); color: var(--bs-body-color, #212529); }
+            &.o_active {
+                background: linear-gradient(135deg, #6a4ce0, #8b66f0);
+                color: #fff;
+                box-shadow: 0 2px 6px rgba(106, 76, 224, 0.25);
+            }
+        }
+    }
     .o_vd_an_search {
         position: relative;
         display: flex;
