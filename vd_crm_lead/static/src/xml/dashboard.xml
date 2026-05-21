@@ -1289,7 +1289,11 @@
                  t-att-style="`border-left-color:${grp.cssColor}`">
                 <div class="o_vd_pill_col_header" t-att-style="`color:${grp.cssColor}`">
                     <i t-if="grp.iconClass" t-att-class="grp.iconClass"/>
-                    <span><t t-esc="grp.label"/></span>
+                    <span t-if="grp.sublabel" class="o_vd_pill_col_team_tag"
+                          t-att-style="`background:${grp.cssColor}1a;color:${grp.cssColor};`">
+                        <t t-esc="grp.sublabel"/>
+                    </span>
+                    <span class="o_vd_pill_col_nv_name"><t t-esc="grp.label"/></span>
                     <span class="o_vd_pill_col_count"><t t-esc="grp.leads.length"/></span>
                 </div>
                 <div class="o_vd_pill_col_body">

@@ -247,35 +247,42 @@ export class VdCrmDashboard extends Component {
         const leads = this.state.leads || [];
 
         if (code === 'new') {
-            // Group theo team_label (HCM1/HCM2/HCM3/HN/QN/KHÁC)
-            const PRESET_ORDER = ['HCM1', 'HCM2', 'HCM3', 'HCM', 'HN', 'QN', 'ĐN', 'DN'];
-            const COLORS = {
+            // Group theo NV (user_name) — mỗi NV 1 column liệt kê toàn bộ KH mới
+            // của họ. Header label = "Team | NV name", color theo team.
+            const TEAM_COLORS = {
                 'HCM1': '#228be6', 'HCM2': '#15aabf', 'HCM3': '#0ca678', 'HCM': '#228be6',
                 'HN': '#fa5252', 'QN': '#f59f00', 'ĐN': '#e64980', 'DN': '#e64980',
                 'KHÁC': '#868e96',
             };
+            const TEAM_ORDER = ['HCM1', 'HCM2', 'HCM3', 'HCM', 'HN', 'QN', 'ĐN', 'DN', 'KHÁC'];
             const groupMap = {};
             for (const ld of leads) {
-                const k = ld.team_label || 'KHÁC';
+                const team = ld.team_label || 'KHÁC';
+                const nv = ld.user_name || 'Chưa gán';
+                const k = `${team}::${nv}`;
                 if (!groupMap[k]) {
                     groupMap[k] = {
-                        key: k, label: k, cssColor: COLORS[k] || '#495057', leads: [],
+                        key: k,
+                        label: nv,
+                        sublabel: team,
+                        team: team,
+                        cssColor: TEAM_COLORS[team] || '#495057',
+                        leads: [],
                     };
                 }
                 groupMap[k].leads.push(ld);
             }
-            // Sort: preset order trước, rồi alphabet, KHÁC cuối
-            const sorted = Object.values(groupMap).sort((a, b) => {
-                if (a.key === 'KHÁC') return 1;
-                if (b.key === 'KHÁC') return -1;
-                const ai = PRESET_ORDER.indexOf(a.key);
-                const bi = PRESET_ORDER.indexOf(b.key);
-                if (ai !== -1 && bi !== -1) return ai - bi;
-                if (ai !== -1) return -1;
-                if (bi !== -1) return 1;
-                return a.key.localeCompare(b.key);
+            // Sort: team theo preset order, trong team sort theo NV name
+            return Object.values(groupMap).sort((a, b) => {
+                const ai = TEAM_ORDER.indexOf(a.team);
+                const bi = TEAM_ORDER.indexOf(b.team);
+                if (ai !== bi) {
+                    if (ai === -1) return 1;
+                    if (bi === -1) return -1;
+                    return ai - bi;
+                }
+                return (a.label || '').localeCompare(b.label || '');
             });
-            return sorted;
         }
 
         if (code === 'won') {
