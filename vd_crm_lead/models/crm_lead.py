@@ -1818,6 +1818,21 @@ class CrmLead(models.Model):
             return pricing.mong_coc_lon if is_lon else pricing.mong_coc_nho
         return 0.0
 
+    def _vd_resolve_roof_type(self):
+        """Trả về effective roof_type. Ưu tiên vd_intake_roof_type (NV chọn explicit).
+        Fallback derive từ vd_intake_house_type (Kiểu nhà):
+        - Nhà mái bằng → mai_bang
+        - Nhà mái thái → mai_thai_kdt (không đổ trần làm default)
+        - Nhà mái nhật → mai_nhat_kdt
+        """
+        if self.vd_intake_roof_type:
+            return self.vd_intake_roof_type
+        return {
+            'mai_bang': 'mai_bang',
+            'mai_thai': 'mai_thai_kdt',
+            'mai_nhat': 'mai_nhat_kdt',
+        }.get(self.vd_intake_house_type, False)
+
     def _get_roof_pct(self, pricing, rtype):
         return {
             'mai_bang': pricing.mai_bang,
@@ -1895,7 +1910,7 @@ class CrmLead(models.Model):
             ) / 100.0
             found_cost = t1 * found_pct * san_unit
             floor_cost = total_floor_area * san_unit
-            roof_pct = rec._get_roof_pct(pricing, rec.vd_intake_roof_type) / 100.0
+            roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type()) / 100.0
             roof_cost = t1 * roof_pct * san_unit
 
             total = found_cost + floor_cost + roof_cost
@@ -2685,7 +2700,7 @@ class CrmLead(models.Model):
 
         san_unit = self._get_san_unit_price(pricing, t1, self.vd_intake_car_access) if pricing and t1 else 0
         found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, t1 >= 70) if pricing else 0
-        roof_pct = self._get_roof_pct(pricing, self.vd_intake_roof_type) if pricing else 0
+        roof_pct = self._get_roof_pct(pricing, self._vd_resolve_roof_type()) if pricing else 0
         found_cost = t1 * (found_pct / 100.0) * san_unit
         floor_cost = sum_floor_areas * san_unit
         roof_cost = t1 * (roof_pct / 100.0) * san_unit
@@ -2706,8 +2721,9 @@ class CrmLead(models.Model):
         found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
             self.vd_intake_foundation_type, 'MÓNG ĐƠN'
         ) or 'MÓNG ĐƠN'
+        eff_roof = self._vd_resolve_roof_type()
         roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
-            self.vd_intake_roof_type, 'MÁI BẰNG'
+            eff_roof, 'MÁI BẰNG'
         ) or 'MÁI BẰNG'
 
         def fmt(n):
