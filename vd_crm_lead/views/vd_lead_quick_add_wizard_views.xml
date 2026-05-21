@@ -16,9 +16,10 @@
                         <field name="phone" placeholder="0901..." widget="phone"/>
                         <field name="source"/>
                         <field name="date"/>
-                        <field name="stage_id"
+                        <field name="status"/>
+                        <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
-                               placeholder="(Khách mới)"/>
+                               placeholder="(Auto)"/>
                     </list>
                 </field>
                 <footer>

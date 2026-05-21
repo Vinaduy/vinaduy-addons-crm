@@ -29,6 +29,18 @@ SOURCE_PREFIX = {
     'manual': '',
 }
 
+# Map trạng thái dashboard (3 cột) → stage code trong crm.stage
+STATUS_SELECTION = [
+    ('new', '🆕 Khách mới'),
+    ('progress', '⏳ Đang xử lý vấn đề'),
+    ('won', '🏆 Khách chốt'),
+]
+STATUS_TO_STAGE_CODE = {
+    'new': 'new',
+    'progress': 'quote',  # mid-funnel representative
+    'won': 'won',
+}
+
 
 class VdLeadQuickAddWizard(models.TransientModel):
     _name = 'vd.lead.quick.add.wizard'
@@ -51,10 +63,21 @@ class VdLeadQuickAddWizard(models.TransientModel):
 
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        Stage = self.env['crm.stage'].sudo()
+
+        # Cache stage lookups for 3 status options
+        stage_cache = {}
+        for status_key, stage_code in STATUS_TO_STAGE_CODE.items():
+            s = Stage.search([('code', '=', stage_code)], limit=1)
+            if s:
+                stage_cache[status_key] = s.id
 
         created = self.env['crm.lead']
         for line in lines:
-            if is_leader:
+            # Assignee: ưu tiên user chọn explicit, fallback round-robin/self
+            if line.user_id:
+                assignee = line.user_id
+            elif is_leader:
                 picked = ResUsers.sudo()._vd_pick_next_assignee()
                 assignee = picked or user
             else:
@@ -68,8 +91,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'user_id': assignee.id,
                 'type': 'lead',
             }
-            if line.stage_id:
-                vals['stage_id'] = line.stage_id.id
+            stage_id = stage_cache.get(line.status)
+            if stage_id:
+                vals['stage_id'] = stage_id
             if line.date:
                 vals['date_open'] = fields.Datetime.to_datetime(line.date)
 
@@ -109,9 +133,16 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         string='Ngày',
         default=fields.Date.context_today,
     )
-    stage_id = fields.Many2one(
-        'crm.stage',
+    status = fields.Selection(
+        STATUS_SELECTION,
         string='Trạng thái',
-        domain="[('code', 'in', ['new', 'potential', 'callback', 'quote', 'negotiate', 'won'])]",
-        help='Để trống = mặc định "Khách mới". Chọn stage = lead đẩy thẳng vào stage đó.',
+        default='new',
+        help='Khách mới → stage "Khách mới". Đang xử lý → stage "Khách báo giá". '
+             'Khách chốt → stage "Khách chốt".',
+    )
+    user_id = fields.Many2one(
+        'res.users',
+        string='Nhân viên',
+        domain="[('share', '=', False)]",
+        help='Chọn NV phụ trách. Để trống = round-robin (leader) hoặc gán cho chính mình (NV).',
     )
