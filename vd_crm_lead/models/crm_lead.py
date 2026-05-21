@@ -1006,11 +1006,6 @@ class CrmLead(models.Model):
         </tr>'''
 
             total = found_cost + floor_cost + roof_cost
-            # Phụ phí móng (đơn 10%, băng/cọc 15%)
-            if rec.vd_intake_foundation_type == 'don':
-                total *= 1 + (pricing.pct_mong_don / 100.0)
-            elif rec.vd_intake_foundation_type in ('bang', 'coc'):
-                total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
             # rowspan = số dòng tổng (móng + N tầng + mái)
             num_rows = 2 + max(len(per_floor_data), 1)
 
@@ -1931,14 +1926,7 @@ class CrmLead(models.Model):
             roof_cost = t1 * roof_pct * san_unit
 
             total = found_cost + floor_cost + roof_cost
-
-            # Phụ phí móng (spec 2026-05-20):
-            # - Móng đơn: +pct_mong_don (10%)
-            # - Móng băng / móng cọc: +pct_mong_bang_coc (15%)
-            if rec.vd_intake_foundation_type == 'don':
-                total *= 1 + (pricing.pct_mong_don / 100.0)
-            elif rec.vd_intake_foundation_type in ('bang', 'coc'):
-                total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
+            # Phụ phí móng đơn 10% / móng băng-cọc 15% đã BỎ (2026-05-21 spec).
 
             # Phụ phí tỉnh vùng cao (+300k/m² × total_floor_area)
             province_name = rec.vd_intake_province_id.name if rec.vd_intake_province_id else None
@@ -2722,14 +2710,9 @@ class CrmLead(models.Model):
         floor_cost = sum_floor_areas * san_unit
         roof_cost = t1 * (roof_pct / 100.0) * san_unit
 
-        # TỔNG TIỀN báo giá = sum chính xác các dòng + phụ phí móng (đồng bộ với
+        # TỔNG TIỀN báo giá = sum chính xác các dòng (đồng bộ với
         # _compute_intake_estimate). Nếu NV đã chốt giá thủ công thì ưu tiên cái đó.
         components_total = found_cost + floor_cost + roof_cost
-        if pricing:
-            if self.vd_intake_foundation_type == 'don':
-                components_total *= 1 + (pricing.pct_mong_don / 100.0)
-            elif self.vd_intake_foundation_type in ('bang', 'coc'):
-                components_total *= 1 + (pricing.pct_mong_bang_coc / 100.0)
         total = self.vd_quote_price or components_total or self.vd_intake_estimate or 0
 
         house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
