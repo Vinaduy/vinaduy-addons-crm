@@ -7,8 +7,9 @@
 
 .o_vd_crm_dashboard {
     background: linear-gradient(180deg, #f5f7fb 0%, #eef2f9 100%);
-    min-height: 100vh;
-    padding: 1rem 1.25rem;
+    /* min-height: 100vh removed — không tạo khoảng trắng dưới content khi
+       dashboard ngắn. Dashboard giờ chỉ cao bằng content thực. */
+    padding: 1rem 1.25rem 0;
 
     .o_vd_dash_loader {
         text-align: center;
