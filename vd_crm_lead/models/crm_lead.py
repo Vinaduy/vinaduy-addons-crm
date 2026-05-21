@@ -971,7 +971,7 @@ class CrmLead(models.Model):
                 continue
 
             # T1 = footprint thật (Tầng 1) — dùng cho Móng + Mái + đơn giá sàn
-            t1 = rec.vd_intake_floor_1_m2 or area
+            t1 = rec.vd_intake_floor_1_m2 or 0.0  # KHÔNG fallback đất
             san_unit = rec._get_san_unit_price(pricing, t1, rec.vd_intake_car_access)
             found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, t1 >= 70)
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
@@ -1159,7 +1159,7 @@ class CrmLead(models.Model):
                 rec.vd_quote_preview_html = '<i>Chưa có pricing region.</i>'
                 continue
 
-            t1 = rec.vd_intake_floor_1_m2 or area
+            t1 = rec.vd_intake_floor_1_m2 or 0.0  # KHÔNG fallback đất
             sum_floor_areas = 0.0
             n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             for i in range(1, n_floors_select + 1):
@@ -1948,9 +1948,8 @@ class CrmLead(models.Model):
             if not pricing:
                 continue
 
-            # Công thức (2026-05-21): MÓNG + MÁI dùng diện tích TẦNG 1 (footprint
-            # thực tế của ngôi nhà), KHÔNG dùng vd_intake_area_m2 nữa.
-            # SÀN = sum diện tích các tầng NV nhập.
+            # Công thức (2026-05-21): MÓNG + MÁI dùng Tầng 1 (footprint nhà).
+            # SÀN = sum diện tích các tầng NV nhập. KHÔNG fallback đất.
             t1 = rec.vd_intake_floor_1_m2 or 0.0
             sum_floor_areas = 0.0
             n_floors_select = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
@@ -1958,10 +1957,7 @@ class CrmLead(models.Model):
                 sum_floor_areas += rec['vd_intake_floor_%s_m2' % i] or 0.0
             if rec.vd_intake_has_tum and rec.vd_intake_floor_tum_m2:
                 sum_floor_areas += rec.vd_intake_floor_tum_m2
-            # Fallback nếu NV chưa nhập per-tầng
-            if t1 <= 0:
-                t1 = area
-            total_floor_area = sum_floor_areas if sum_floor_areas > 0 else (area * floors)
+            total_floor_area = sum_floor_areas
 
             # ===== Tính chi tiết: Móng (× T1) + Sàn (× sum) + Mái (× T1) =====
             san_unit = rec._get_san_unit_price(pricing, t1, rec.vd_intake_car_access)
@@ -2735,10 +2731,11 @@ class CrmLead(models.Model):
         Pricing = self.env['vd.pricing.region']
         pricing = Pricing.search([('code', '=', self.vd_intake_region or '')], limit=1)
 
-        area = self.vd_intake_area_m2 or 0
+        area = self.vd_intake_area_m2 or 0  # diện tích ĐẤT — chỉ dùng để hiển thị, KHÔNG tính báo giá
         floors = self.vd_intake_floors_num or 1.0
         # Công thức (2026-05-21): MÓNG + MÁI dùng Tầng 1 (footprint thật).
-        # SÀN = sum diện tích các tầng NV nhập.
+        # SÀN = sum diện tích các tầng NV nhập. KHÔNG fallback vd_intake_area_m2
+        # (đất) — đất ≠ sàn, fallback sẽ tính giá sai.
         t1 = self.vd_intake_floor_1_m2 or 0
         sum_floor_areas = 0.0
         n_floors = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
@@ -2746,10 +2743,6 @@ class CrmLead(models.Model):
             sum_floor_areas += self['vd_intake_floor_%s_m2' % i] or 0.0
         if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
             sum_floor_areas += self.vd_intake_floor_tum_m2
-        if t1 <= 0:
-            t1 = area
-        if sum_floor_areas <= 0:
-            sum_floor_areas = area * floors
 
         san_unit = self._get_san_unit_price(pricing, t1, self.vd_intake_car_access) if pricing and t1 else 0
         found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, t1 >= 70) if pricing else 0

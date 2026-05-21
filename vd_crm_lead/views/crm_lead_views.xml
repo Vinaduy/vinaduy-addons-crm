@@ -203,7 +203,9 @@
                                         <span class="o_vd_sum_hero_label">Diện tích / sàn</span>
                                     </div>
                                     <div class="o_vd_sum_hero_value o_vd_sum_area_inline">
-                                        <field name="vd_intake_area_m2" readonly="1" nolabel="1"/>
+                                        <!-- Diện tích sàn TỔNG (sum các tầng) — KHÔNG dùng
+                                             vd_intake_area_m2 (đất) × floors vì sai. -->
+                                        <field name="vd_intake_total_m2" readonly="1" nolabel="1"/>
                                         <span class="o_vd_sum_unit">m²</span>
                                         <span class="o_vd_sum_area_x" invisible="not vd_intake_floors_num">
                                             × <field name="vd_intake_floors_num" readonly="1" nolabel="1"/> tầng

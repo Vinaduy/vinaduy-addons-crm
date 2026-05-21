@@ -2742,24 +2742,21 @@ div.o_vd_layout_right {
     .o_field_radio,
     > .o_field_widget {
         display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 0.2rem !important;       /* sát hơn để 7 chips + Tum vừa 1 hàng */
+        flex-wrap: nowrap !important;     /* GIỮ 1 dòng, không wrap */
+        gap: 0.35rem !important;
     }
-    /* Hỗ trợ cả wrapper class 'o_horizontal' / 'o_vertical' của Odoo */
     &, .o_horizontal, .o_vertical {
         display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 0.2rem !important;
+        flex-wrap: nowrap !important;
+        gap: 0.35rem !important;
         flex-direction: row !important;
     }
-    /* Mỗi option = 1 chip */
     .o_radio_item {
         display: inline-flex !important;
         margin: 0 !important;
         flex: 0 0 auto !important;
         position: relative;
     }
-    /* Ẩn input radio gốc (giữ accessible bằng peer/sibling) */
     input[type="radio"] {
         position: absolute;
         opacity: 0;
@@ -2767,22 +2764,25 @@ div.o_vd_layout_right {
         width: 0;
         height: 0;
     }
-    /* Style label như chip pill — siêu gọn */
+    /* Chip pill TO HƠN — dễ click + số rõ */
     label {
-        display: inline-block !important;
-        padding: 0.12rem 0.5rem !important;        /* nhỏ hơn nữa */
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.32rem 0.75rem !important;
         margin: 0 !important;
-        border: 1.5px solid #51cf66 !important;
+        border: 1.8px solid #51cf66 !important;
         border-radius: 999px !important;
-        background: rgba(255, 255, 255, 0.85) !important;
-        font-size: 0.76rem !important;
-        font-weight: 600 !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
         color: #0b5d1e !important;
         cursor: pointer !important;
         transition: all 0.15s ease !important;
         line-height: 1.2 !important;
         user-select: none;
-        min-width: 22px;
+        min-width: 32px;
+        min-height: 32px;
         text-align: center;
     }
     label:hover {
@@ -3341,14 +3341,16 @@ div.o_vd_layout_right {
 .o_vd_tum_chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.15rem 0.6rem;
-    margin-left: 0.25rem;
-    border: 1.5px dashed #51cf66;
+    justify-content: center;
+    padding: 0.32rem 0.85rem;
+    margin-left: auto;
+    min-height: 32px;
+    border: 1.8px dashed #51cf66;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.92);
     color: #0b5d1e;
-    font-size: 0.76rem;
-    font-weight: 600;
+    font-size: 0.92rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
     line-height: 1.2;
