@@ -5,9 +5,16 @@
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
             <form string="Thêm KH mới (nhập nhiều)">
-                <div class="alert alert-info" role="alert" style="margin-bottom:0.5rem;">
-                    <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Tab/Enter để xuống dòng kế.
-                    Trạng thái để trống = mặc định "Khách mới". Chọn Trạng thái khác để đẩy thẳng vào stage đó.
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;gap:0.5rem;">
+                    <div class="alert alert-info" role="alert" style="margin:0;flex:1;">
+                        <b>💡 Mẹo:</b> Nhập từng dòng = 1 KH. Tab/Enter để xuống dòng kế.
+                        Trạng thái để trống = mặc định "Khách mới". Chọn Trạng thái khác để đẩy thẳng vào stage đó.
+                    </div>
+                    <button name="%(vd_crm_lead.action_vd_intake_custom_field)d" type="action"
+                            string="+ Thêm trường"
+                            class="btn btn-sm btn-primary"
+                            groups="vd_crm_lead.vd_crm_group_admin"
+                            help="Tạo trường khai thác tuỳ chọn — NV thấy trong form lead sau khi tạo KH"/>
                 </div>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
