@@ -1115,24 +1115,27 @@
    ============================================================ */
 .o_vd_dims_row {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.45rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
     width: 100%;
+    flex-wrap: nowrap;
 
-    /* Row 1: Diện tích đất (primary input) */
+    /* Group 1: Diện tích đất (primary, ~40%) */
     .o_vd_dim_total_row {
         display: flex;
         align-items: center;
-        gap: 0.55rem;
-        width: 100%;
+        gap: 0.45rem;
+        flex: 1 1 40%;
+        min-width: 0;
     }
-    /* Row 2: Dài × Rộng (optional, hiện khi area > 0) */
+    /* Group 2: Dài × Rộng (optional, ~60%) */
     .o_vd_dim_pair {
         display: flex;
         align-items: center;
-        gap: 0.45rem;
-        width: 100%;
+        gap: 0.35rem;
+        flex: 1 1 60%;
+        min-width: 0;
         .o_vd_dim_input {
             flex: 1 1 0;
             min-width: 0;
