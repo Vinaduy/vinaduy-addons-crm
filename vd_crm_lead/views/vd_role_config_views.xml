@@ -11,8 +11,10 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="role_code"/>
-                <field name="group_id" options="{'no_create': True}"/>
-                <field name="member_count" string="Số NV"/>
+                <field name="group_id" options="{'no_create': True}" optional="hide"/>
+                <field name="user_ids" widget="many2many_tags" string="👥 Nhân viên"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="member_count" string="Số NV" optional="hide"/>
                 <field name="scope" string="Phạm vi"/>
                 <field name="can_read" widget="boolean_toggle" string="👁️ Xem"/>
                 <field name="can_create" widget="boolean_toggle" string="➕ Thêm"/>
@@ -69,6 +71,11 @@
                         <field name="can_reassign_lead" widget="boolean_toggle"/>
                     </group>
 
+                    <separator string="👥 Nhân viên trong vị trí này"/>
+                    <field name="user_ids" widget="many2many_tags"
+                           options="{'no_create': True, 'no_open': False, 'color_field': 'color'}"
+                           placeholder="— Thêm user → gán vào group này —"/>
+
                     <separator string="📝 Ghi chú"/>
                     <field name="note" placeholder="Ghi chú nội bộ về vị trí này..."/>
 
@@ -78,9 +85,9 @@
                         • <b>Phó GĐ</b> kế thừa <b>Trưởng nhóm + Nhân viên</b>.<br/>
                         • <b>Admin</b> kế thừa Phó GĐ + có toàn quyền hệ thống Odoo.<br/>
                         <br/>
-                        <b>📌 Cách gán NV vào vị trí:</b><br/>
-                        Vào <i>Settings → Users &amp; Companies → Users</i>, mở user, chọn tab
-                        <b>"Quyền truy cập"</b>, tick group <b>"VD CRM Phân quyền"</b> tương ứng.<br/>
+                        <b>📌 Cách gán NV vào vị trí (NHANH):</b><br/>
+                        Chọn user trong field <b>"👥 Nhân viên trong vị trí này"</b> phía trên.
+                        Add user = gán quyền. Remove = bỏ quyền.<br/>
                         <br/>
                         <b>⚠️ Lưu ý:</b> Quyền <b>Xem / Thêm / Sửa / Xoá</b> được áp ở mức <i>ir.model.access</i>
                         và <i>ir.rule</i> (cấu hình khi cài/upgrade module). Quyền <b>"Chuyển KH"</b> được check

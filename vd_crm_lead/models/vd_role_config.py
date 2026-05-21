@@ -32,6 +32,12 @@ class VdCrmRoleConfig(models.Model):
     member_count = fields.Integer(
         'Số NV',
         compute='_compute_member_count', store=False)
+    # M2M qua group_id.users — admin add/remove user trực tiếp ở đây,
+    # đổi sẽ ghi thẳng vào res_groups_users_rel (group membership).
+    user_ids = fields.Many2many(
+        related='group_id.users', readonly=False,
+        string='Nhân viên trong vị trí',
+        help='Add user vào đây = gán user vào group này. Remove = bỏ khỏi group.')
 
     # ============ CRUD trên crm.lead ============
     can_read = fields.Boolean('👁️ Xem', default=True,
