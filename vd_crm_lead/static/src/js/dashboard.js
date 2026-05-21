@@ -340,6 +340,22 @@ export class VdCrmDashboard extends Component {
         this.action.doAction("vd_crm_lead.action_vd_lead_quick_add_wizard");
     }
 
+    searchLeads() {
+        // Mở list view crm.lead với search bar focused — NV nhập tên/SĐT để tìm.
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "🔍 Tìm kiếm khách hàng",
+            res_model: "crm.lead",
+            views: [
+                [false, "list"],
+                [false, "form"],
+            ],
+            target: "current",
+            context: { search_default_filter_my_leads: 0 },
+            domain: [["type", "=", "lead"], ["active", "=", true]],
+        });
+    }
+
     async openAlertLeads(kind) {
         // Filter lead table BÊN PHẢI theo loại cảnh báo, KHÔNG navigate trang mới.
         // Clear stage selection để cảnh báo filter thay thế.

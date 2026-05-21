@@ -1416,29 +1416,36 @@
         gap: 0.25rem;
     }
     /* Nút "Thêm mới" — gọn, dùng chung admin nav + NV sidebar */
-    .o_vd_add_lead_btn {
+    .o_vd_add_lead_btn,
+    .o_vd_search_lead_btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0.4rem 0.85rem;
         border: none;
         border-radius: 6px;
-        background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
         color: #fff;
         font-size: 0.8rem;
         font-weight: 600;
         cursor: pointer;
-        box-shadow: 0 1px 3px rgba(55, 178, 77, 0.25);
         transition: transform 0.1s ease, box-shadow 0.15s ease;
         white-space: nowrap;
+        margin-top: 0.35rem;
 
-        &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(55, 178, 77, 0.4);
-        }
+        &:hover { transform: translateY(-1px); }
         &:active { transform: translateY(0); }
 
         i.fa { font-size: 0.78rem; }
+    }
+    .o_vd_add_lead_btn {
+        background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
+        box-shadow: 0 1px 3px rgba(55, 178, 77, 0.25);
+        &:hover { box-shadow: 0 3px 8px rgba(55, 178, 77, 0.4); }
+    }
+    .o_vd_search_lead_btn {
+        background: linear-gradient(135deg, #4dabf7 0%, #1864ab 100%);
+        box-shadow: 0 1px 3px rgba(24, 100, 171, 0.25);
+        &:hover { box-shadow: 0 3px 8px rgba(24, 100, 171, 0.4); }
     }
 
     .o_vd_admin_nav_picker {

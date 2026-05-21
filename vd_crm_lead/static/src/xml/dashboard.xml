@@ -57,6 +57,12 @@
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
 
+                        <!-- Nút tìm kiếm KH -->
+                        <button class="o_vd_search_lead_btn"
+                                t-on-click="() => this.searchLeads()">
+                            <i class="fa fa-search me-1"/> Tìm kiếm
+                        </button>
+
                         <!-- ===== FOCUS TOGGLE: KH / NV — stack dọc 1 dòng/cái ===== -->
                         <div class="o_vd_admin_focus_toggle">
                             <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_kh ' + (isCustomerFocus ? 'o_active' : '')"
