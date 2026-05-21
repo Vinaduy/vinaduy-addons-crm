@@ -905,6 +905,14 @@
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_budget_balance'}">⚖️ Cân đối ngân sách</button>
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_promotion'}">🎁 Khuyến mãi</button>
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_extra_area'}">📐 Phát sinh diện tích</button>
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_extra_material'}">🧰 Phát sinh vật tư</button>
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_undefined'}">❓ Chưa xác định</button>
                         </div>
                     </div>

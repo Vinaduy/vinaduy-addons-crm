@@ -162,6 +162,70 @@
         ]]></field>
     </record>
 
+    <record id="nego_problem_budget_balance" model="vd.nego.problem">
+        <field name="code">budget_balance</field>
+        <field name="name">Cân đối ngân sách</field>
+        <field name="icon">⚖️</field>
+        <field name="color">9</field>
+        <field name="sequence">110</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH muốn cân đối lại ngân sách giữa các hạng mục:</b></p>
+            <ul>
+                <li>Mở khoá báo giá → cùng KH rà từng nhóm vật tư, hạng mục có thể điều chỉnh.</li>
+                <li>Đề xuất phương án cắt/giảm hạng mục phụ giữ nguyên kết cấu chính.</li>
+                <li>Tổng số tiền KH muốn cân đối là bao nhiêu? Có thể bù bằng đợt thanh toán kéo dài hơn không?</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_promotion" model="vd.nego.problem">
+        <field name="code">promotion</field>
+        <field name="name">Khuyến mãi</field>
+        <field name="icon">🎁</field>
+        <field name="color">10</field>
+        <field name="sequence">120</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH yêu cầu / đang chờ chương trình khuyến mãi:</b></p>
+            <ul>
+                <li>Check policy khuyến mãi hiện hành — KH đã được hưởng chưa, còn quà gì có thể tặng thêm.</li>
+                <li>Đề xuất gói KM đặt cọc sớm (giữ giá, tặng hạng mục nhỏ) thay vì giảm tổng tiền.</li>
+                <li>Nếu KH so sánh với KM của đối thủ → làm rõ giá trị thật của từng quà tặng.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_extra_area" model="vd.nego.problem">
+        <field name="code">extra_area</field>
+        <field name="name">Phát sinh diện tích</field>
+        <field name="icon">📐</field>
+        <field name="color">4</field>
+        <field name="sequence">130</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH muốn thay đổi diện tích so với báo giá ban đầu:</b></p>
+            <ul>
+                <li>Xác nhận diện tích mới chính xác (m²/tầng) — cập nhật báo giá theo công thức.</li>
+                <li>Giải thích phần phát sinh đến từ đâu (móng, mái, tầng) để KH thấy hợp lý.</li>
+                <li>Đề nghị ký phụ lục HĐ ghi rõ diện tích phát sinh + số tiền tương ứng.</li>
+            </ul>
+        ]]></field>
+    </record>
+
+    <record id="nego_problem_extra_material" model="vd.nego.problem">
+        <field name="code">extra_material</field>
+        <field name="name">Phát sinh vật tư</field>
+        <field name="icon">🧰</field>
+        <field name="color">6</field>
+        <field name="sequence">140</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH muốn upgrade / thêm vật tư ngoài báo giá:</b></p>
+            <ul>
+                <li>Liệt kê chi tiết các vật tư phát sinh KH yêu cầu — cập nhật báo giá kèm đơn giá.</li>
+                <li>Phân biệt rõ vật tư "trong gói" vs "phát sinh" để tránh tranh chấp sau này.</li>
+                <li>Đề nghị ký phụ lục HĐ riêng cho phát sinh vật tư, thanh toán theo đợt riêng.</li>
+            </ul>
+        ]]></field>
+    </record>
+
     <record id="nego_problem_undefined" model="vd.nego.problem">
         <field name="code">undefined</field>
         <field name="name">Chưa xác định</field>
