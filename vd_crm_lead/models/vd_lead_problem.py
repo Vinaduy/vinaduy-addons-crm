@@ -163,12 +163,20 @@ class VdLeadProblem(models.Model):
 
     @api.depends('tag_id', 'tag_id.icon', 'tag_id.name', 'name')
     def _compute_tag_display(self):
+        """Chỉ hiển thị TÊN vấn đề (không description chi tiết).
+        - Có tag_id → icon + tag.name
+        - Không tag_id → lấy phần trước ':' / '—' / ' - ' của field name."""
         for rec in self:
             if rec.tag_id:
                 icon = rec.tag_id.icon or '❓'
                 rec.tag_display = f"{icon} {rec.tag_id.name}"
-            else:
-                rec.tag_display = rec.name or ''
+                continue
+            text = (rec.name or '').strip()
+            for sep in [':', '—', ' – ', ' - ']:
+                if sep in text:
+                    text = text.split(sep, 1)[0].strip()
+                    break
+            rec.tag_display = text
 
     @api.onchange('tag_id')
     def _onchange_tag_id(self):
