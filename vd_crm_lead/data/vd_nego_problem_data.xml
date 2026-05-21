@@ -18,22 +18,6 @@
         ]]></field>
     </record>
 
-    <record id="nego_problem_low_budget" model="vd.nego.problem">
-        <field name="code">low_budget</field>
-        <field name="name">Thiếu kinh phí ít</field>
-        <field name="icon">💵</field>
-        <field name="color">4</field>
-        <field name="sequence">20</field>
-        <field name="tip_html"><![CDATA[
-            <p><b>KH thiếu một phần kinh phí:</b></p>
-            <ul>
-                <li>Đề nghị giảm hạng mục không thiết yếu (vd: thay vật liệu cao cấp bằng phổ thông).</li>
-                <li>Chia nhỏ đợt thanh toán: cọc 50tr + 4 đợt theo tiến độ.</li>
-                <li>Mở khóa báo giá → thương lượng item cụ thể, KHÔNG giảm tổng arbitrary.</li>
-            </ul>
-        ]]></field>
-    </record>
-
     <record id="nego_problem_very_low_budget" model="vd.nego.problem">
         <field name="code">very_low_budget</field>
         <field name="name">Thiếu kinh phí nhiều</field>
