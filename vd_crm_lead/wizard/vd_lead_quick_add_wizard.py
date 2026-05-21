@@ -258,13 +258,18 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
 
-    # 5 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm cột" (vd.intake.custom.field).
+    # 10 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm cột" (vd.intake.custom.field).
     # Label hiển thị được override dynamic trong fields_get() dựa trên config.
     extra_1 = fields.Char(string='Tuỳ chọn 1')
     extra_2 = fields.Char(string='Tuỳ chọn 2')
     extra_3 = fields.Char(string='Tuỳ chọn 3')
     extra_4 = fields.Char(string='Tuỳ chọn 4')
     extra_5 = fields.Char(string='Tuỳ chọn 5')
+    extra_6 = fields.Char(string='Tuỳ chọn 6')
+    extra_7 = fields.Char(string='Tuỳ chọn 7')
+    extra_8 = fields.Char(string='Tuỳ chọn 8')
+    extra_9 = fields.Char(string='Tuỳ chọn 9')
+    extra_10 = fields.Char(string='Tuỳ chọn 10')
 
     # ===== Phát sinh preset (cũ — vẫn giữ phòng khi cần) =====
     surcharge_preset_id = fields.Many2one(
@@ -280,7 +285,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         res = super().fields_get(allfields, attributes)
         try:
             cfs = self.env['vd.intake.custom.field'].sudo().search(
-                [('active', '=', True)], order='sequence, id', limit=5,
+                [('active', '=', True)], order='sequence, id', limit=10,
             )
             for idx, cf in enumerate(cfs, start=1):
                 key = f'extra_{idx}'

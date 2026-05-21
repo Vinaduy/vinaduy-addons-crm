@@ -57,6 +57,11 @@
                         <field name="extra_3" optional="hide"/>
                         <field name="extra_4" optional="hide"/>
                         <field name="extra_5" optional="hide"/>
+                        <field name="extra_6" optional="hide"/>
+                        <field name="extra_7" optional="hide"/>
+                        <field name="extra_8" optional="hide"/>
+                        <field name="extra_9" optional="hide"/>
+                        <field name="extra_10" optional="hide"/>
                     </list>
                 </field>
                 <footer>
