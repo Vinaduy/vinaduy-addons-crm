@@ -94,38 +94,29 @@
                         <div t-if="state.adminTab === 'overview'"
                              class="o_vd_admin_tab o_vd_analytics">
 
-                            <!-- ===== Analytics header: date filter + timestamp ===== -->
+                            <!-- ===== Analytics header: 2 chip hover-switch + search + clock ===== -->
                             <div class="o_vd_an_topbar">
-                                <div class="o_vd_an_brand">
-                                    <span class="o_vd_an_brand_main">VINADUY</span><span class="o_vd_an_brand_sub"> CRM</span>
-                                </div>
                                 <!-- Hover-switch giữa bảng NV và bảng KH có vấn đề -->
-                                <div t-if="isCustomerFocus" class="o_vd_dash_subview_chips">
+                                <div t-if="isCustomerFocus" class="o_vd_dash_subview_chips"
+                                     t-att-data-active="state.dashSubView">
+                                    <span class="o_vd_dash_subview_thumb"/>
                                     <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'nv' ? 'o_active' : '')"
                                             t-on-mouseenter="() => this.setDashSubView('nv')"
                                             t-on-click="() => this.setDashSubView('nv')">
-                                        👤 Nhân viên
+                                        <i class="fa fa-users-cog o_vd_dash_subview_icon"/>
+                                        <span class="o_vd_dash_subview_lbl">
+                                            <span class="o_vd_dash_subview_title">Nhân viên</span>
+                                            <span class="o_vd_dash_subview_sub">Hiệu suất từng NV</span>
+                                        </span>
                                     </button>
                                     <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'kh' ? 'o_active' : '')"
                                             t-on-mouseenter="() => this.setDashSubView('kh')"
                                             t-on-click="() => this.setDashSubView('kh')">
-                                        👥 Khách hàng
-                                    </button>
-                                </div>
-                                <div class="o_vd_an_filter">
-                                    <label>Từ</label>
-                                    <input type="date" class="o_vd_an_input"
-                                           t-att-value="state.analyticsFrom"
-                                           t-on-change="(ev) => this.onAnalyticsDateChange('analyticsFrom', ev)"/>
-                                    <label>Đến</label>
-                                    <input type="date" class="o_vd_an_input"
-                                           t-att-value="state.analyticsTo"
-                                           t-on-change="(ev) => this.onAnalyticsDateChange('analyticsTo', ev)"/>
-                                    <button class="o_vd_an_filter_btn"
-                                            t-on-click="() => this.onApplyAnalyticsFilter()"
-                                            t-att-disabled="state.analyticsLoading">
-                                        <t t-if="state.analyticsLoading"><i class="fa fa-spinner fa-spin me-1"/>Đang lọc...</t>
-                                        <t t-else="">Lọc</t>
+                                        <i class="fa fa-id-card-o o_vd_dash_subview_icon"/>
+                                        <span class="o_vd_dash_subview_lbl">
+                                            <span class="o_vd_dash_subview_title">Khách hàng</span>
+                                            <span class="o_vd_dash_subview_sub">Đang chốt &amp; có vấn đề</span>
+                                        </span>
                                     </button>
                                 </div>
 
