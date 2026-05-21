@@ -2975,11 +2975,8 @@
 .o_vd_analytics {
     .o_vd_kh_grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;     /* full-width: chỉ 1 sub-view hiển thị 1 lần (NV hoặc KH) */
         gap: 1rem;
-    }
-    @media (max-width: 900px) {
-        .o_vd_kh_grid { grid-template-columns: 1fr; }
     }
 
     .o_vd_kh_box {
@@ -3079,7 +3076,7 @@
     }
     .o_vd_kh_nv_row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4 cột đều nhau */
+        grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;   /* 5 cột: NV name (rộng hơn) + 4 metric */
         gap: 4px;
         align-items: stretch;
         padding: 4px;
@@ -3091,6 +3088,19 @@
             padding: 0.45rem 0.6rem;
             min-height: 28px;
         }
+    }
+    /* Responsive: tablet — name xuống còn 1 dòng + collapse sub-label */
+    @media (max-width: 1100px) {
+        .o_vd_kh_table_header_cells,
+        .o_vd_kh_nv_row { grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr; }
+        .o_vd_kh_th { font-size: 0.72rem; padding: 0.55rem 0.35rem; gap: 0.2rem; }
+    }
+    /* Mobile: scroll ngang để giữ cấu trúc 5 cột */
+    @media (max-width: 768px) {
+        .o_vd_kh_box { overflow-x: auto; }
+        .o_vd_kh_table_header,
+        .o_vd_kh_team_list { min-width: 720px; }
+        .o_vd_kh_th { font-size: 0.7rem; padding: 0.5rem 0.3rem; }
     }
     .o_vd_kh_col_name {
         display: flex;
@@ -3153,6 +3163,7 @@
     .o_vd_kh_metric_done:hover     { border-color: #16a34a; background: rgba(22,163,74,0.06); }
     .o_vd_kh_metric_progress:hover { border-color: #d97706; background: rgba(217,119,6,0.07); }
     .o_vd_kh_metric_new:hover      { border-color: #2563eb; background: rgba(37,99,235,0.06); }
+    .o_vd_kh_metric_noprob:hover   { border-color: #8b5cf6; background: rgba(139,92,246,0.07); }
     /* Metric — số plain, không badge. Màu theo cột để dễ phân biệt. */
     .o_vd_kh_metric_num {
         display: inline-block;
@@ -3165,6 +3176,7 @@
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }
+    .o_vd_kh_metric_noprob .o_vd_kh_metric_num   { color: #8b5cf6; }
     /* Số 0 → mờ */
     .o_vd_kh_metric_num:hover { opacity: 0.7; }
     /* Khi popover hiển thị (parent có popover) → show on hover */
@@ -3247,6 +3259,7 @@
     }
     .o_vd_kh_metric_done .o_vd_kh_popover_head    { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
     .o_vd_kh_metric_progress .o_vd_kh_popover_head { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .o_vd_kh_metric_noprob .o_vd_kh_popover_head   { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
     .o_vd_kh_metric_new .o_vd_kh_popover_head      { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 
     /* Popover body — table-style, mỗi KH 1 dòng */
@@ -3346,7 +3359,7 @@
     .o_vd_kh_table_header_cells {
         flex: 1;
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;   /* 5 cột: NV name + 4 metric */
         min-width: 0;
     }
     .o_vd_kh_th {
@@ -3366,6 +3379,7 @@
     .o_vd_kh_th_name      { background: linear-gradient(135deg, #475569 0%, #334155 100%); justify-content: flex-start; }
     .o_vd_kh_th_done      { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
     .o_vd_kh_th_progress  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .o_vd_kh_th_noprob    { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
     .o_vd_kh_th_new       { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 
     /* Right column: 2 box stacked (Đang chốt trên, Vấn đề dưới) */

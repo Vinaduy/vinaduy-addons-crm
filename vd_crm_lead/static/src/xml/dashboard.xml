@@ -186,6 +186,7 @@
                                     <div class="o_vd_kh_table_header_cells">
                                         <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
                                         <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
+                                        <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
                                         <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
                                         <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
                                     </div>
@@ -239,7 +240,30 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Metric 2: Đang xử lý (open/in_progress problems) -->
+                                                <!-- Metric 2 (new): Chưa có vấn đề — đã báo giá nhưng chưa khai thác vấn đề -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_noprob">
+                                                    <span class="o_vd_kh_metric_num">
+                                                        <t t-esc="nv.no_problem_count or 0"/>
+                                                    </span>
+                                                    <div t-if="nv.no_problem_count" class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            CHƯA CÓ VẤN ĐỀ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.no_problem_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.no_problem_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Metric 3: Đang xử lý (open/in_progress problems) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_progress">
                                                     <span class="o_vd_kh_metric_num">
                                                         <t t-esc="nv.in_progress_count"/>

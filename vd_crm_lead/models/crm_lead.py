@@ -4754,15 +4754,29 @@ class CrmLead(models.Model):
 
             # Metric 2: ĐANG XỬ LÝ = lead ở stage potential/callback/quote/negotiate
             # (đã khai thác info, đang báo giá, đang đàm phán, có vấn đề...)
-            in_progress_qs = self.env['crm.lead'].browse()
+            # Tách thành 2 sub-bucket:
+            #   - in_progress: lead có vấn đề đang mở (open/in_progress)
+            #   - no_problem:  lead ở mid-stage NHƯNG chưa có vấn đề nào
+            #                  (mới làm báo giá, chưa khai thác/tạo vấn đề)
+            mid_qs = self.env['crm.lead'].browse()
             if mid_stage_ids:
-                in_progress_qs = self.search([
+                mid_qs = self.search([
                     ('user_id', '=', u.id),
                     ('stage_id', 'in', mid_stage_ids),
                     ('active', '=', True),
                     ('create_date', '>=', dt_from),
                     ('create_date', '<', dt_to),
-                ], order='create_date desc', limit=100)
+                ], order='create_date desc', limit=200)
+
+            in_progress_qs = mid_qs.browse()
+            no_problem_qs = mid_qs.browse()
+            for l in mid_qs:
+                if l.vd_lead_problem_ids.filtered(
+                    lambda p: p.status in ('open', 'in_progress')
+                ):
+                    in_progress_qs |= l
+                else:
+                    no_problem_qs |= l
 
             # Metric 3: KH MỚI = stage 'new'
             new_leads_qs = self.env['crm.lead'].browse()
@@ -4777,6 +4791,7 @@ class CrmLead(models.Model):
 
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
+            n_no_problem = len(no_problem_qs)
             n_new = len(new_leads_qs)
             # Tổng KH NV quản lý: tất cả lead active gán cho NV (không filter
             # theo date — total real, không phụ thuộc khoảng lọc)
@@ -4784,7 +4799,7 @@ class CrmLead(models.Model):
                 ('user_id', '=', u.id),
                 ('active', '=', True),
             ])
-            if n_resolved + n_in_prog + n_new == 0 and total_managed == 0:
+            if n_resolved + n_in_prog + n_no_problem + n_new == 0 and total_managed == 0:
                 continue
 
             nv_unified_flat.append({
@@ -4797,6 +4812,8 @@ class CrmLead(models.Model):
                 'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
                 'in_progress_count': n_in_prog,
                 'in_progress_leads': [_ld_with_problems(l) for l in in_progress_qs[:50]],
+                'no_problem_count': n_no_problem,
+                'no_problem_leads': [_ld_basic(l) for l in no_problem_qs[:50]],
                 'new_count': n_new,
                 'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
             })
