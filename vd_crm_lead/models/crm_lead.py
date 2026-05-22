@@ -918,7 +918,7 @@ class CrmLead(models.Model):
             val = rec[fname]
             if not val:
                 return ''
-            return dict(rec._fields[fname].selection).get(val, val)
+            return rec._vd_selection_dict(fname).get(val, val)
 
         for rec in self:
             lines = []
