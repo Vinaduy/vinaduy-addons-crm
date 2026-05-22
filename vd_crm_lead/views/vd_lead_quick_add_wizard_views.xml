@@ -8,6 +8,7 @@
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
                     <div class="alert alert-info" role="alert" style="margin:0;flex:1;min-width:280px;">
                         <b>💡 Mẹo:</b> Bấm <b>⋮</b> header bảng để hiện/ẩn cột. Gõ ô bên phải để thêm cột mới.
+                        <br/><b>📋 Paste Excel:</b> Copy nhiều dòng từ Excel rồi paste (Ctrl+V) vào ô bất kỳ — tự fill cả bảng.
                     </div>
                     <div groups="vd_crm_lead.vd_crm_group_admin"
                          style="display:flex;align-items:center;gap:0.4rem;min-width:260px;">
