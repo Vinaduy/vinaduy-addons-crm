@@ -11,6 +11,10 @@
        dashboard ngắn. Dashboard giờ chỉ cao bằng content thực. */
     padding: 1rem 1.25rem 0;
 
+    /* COMPACT 70% — chỉ scope vào dashboard, không ảnh hưởng module khác.
+       Dùng zoom CSS (giữ click point chính xác, khác transform:scale). */
+    zoom: 0.7;
+
     .o_vd_dash_loader {
         text-align: center;
         padding: 4rem 0;
