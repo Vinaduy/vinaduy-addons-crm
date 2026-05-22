@@ -45,6 +45,8 @@ export class VdCrmDashboard extends Component {
             alertFilter: null,     // 'overdue_callback' | 'new_not_called' | ... | null
             leads: [],
             leadsLoading: false,
+            // KH có vấn đề mở (mọi stage active) — section "ĐANG XỬ LÝ VẤN ĐỀ"
+            leadsWithProblemsAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -196,6 +198,21 @@ export class VdCrmDashboard extends Component {
         }
         this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", args);
         this.state.leadsLoading = false;
+        // Khi vào stage "Khách mới" → cũng fetch list KH có vấn đề (mọi stage)
+        // để render section 2 "ĐANG XỬ LÝ VẤN ĐỀ" bên dưới.
+        const stage = this.state.stages.find(s => s.id === stageId);
+        if (stage?.code === 'new') {
+            const probArgs = this.state.selected_user_id ? [this.state.selected_user_id] : [];
+            try {
+                this.state.leadsWithProblemsAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_with_problems", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsWithProblemsAll = [];
+            }
+        } else {
+            this.state.leadsWithProblemsAll = [];
+        }
     }
 
     get selectedStage() {
@@ -247,8 +264,9 @@ export class VdCrmDashboard extends Component {
     get leadsNoProblems() {
         return (this.state.leads || []).filter(l => !l.problem_open_count);
     }
+    // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
-        return (this.state.leads || []).filter(l => l.problem_open_count > 0);
+        return this.state.leadsWithProblemsAll || [];
     }
     get isNewStageSplit() {
         // Chỉ split khi đang ở stage "Khách mới" và KHÔNG đang filter alert.

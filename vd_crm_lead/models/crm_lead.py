@@ -4172,6 +4172,27 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def dashboard_leads_with_problems(self, user_id=None, limit=200):
+        """Trả TẤT CẢ KH active (chưa won/lost) có vấn đề mở (chưa resolved),
+        bất kể đang ở stage nào. Dùng cho section 'ĐANG XỬ LÝ VẤN ĐỀ' ở dashboard.
+        """
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        # vd_lead_problem_open_count là computed non-stored → không search được
+        # trực tiếp. Dùng One2many status != resolved (Odoo dịch ra exists join).
+        leads = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('vd_lead_problem_ids.status', '!=', 'resolved'),
+            ],
+            limit=limit,
+            order='callback_date asc, create_date desc',
+        )
+        # Filter ra leads có open_count > 0 (post-search vì compute không store)
+        leads = leads.filtered(lambda l: l.vd_lead_problem_open_count > 0)
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
     def dashboard_nv_active_leads(self, user_id, limit=30):
         """Danh sách KH đang active của 1 NV — dùng cho NV detail panel
         khi admin click vào NV trong tab Thành tích."""

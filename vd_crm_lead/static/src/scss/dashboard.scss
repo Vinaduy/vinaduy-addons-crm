@@ -3648,6 +3648,131 @@
         color: #fff !important;
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
     }
+    /* ====== BẢNG 2-CỘT: filter VUÔNG | pills/rows ======
+       Cột trái = filter to vuông (~140px, cao bằng cột phải, tối thiểu 2 dòng pill).
+       Cột phải = chứa pills (wrap) hoặc rows (mỗi KH 1 dòng dài).
+       Border bao ngoài → trông như 1 bảng. */
+    .o_vd_filter_table {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 0;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
+                    0 4px 14px -4px rgba(15, 23, 42, 0.05);
+        margin-bottom: 0.85rem;
+
+        @media (max-width: 720px) {
+            grid-template-columns: 1fr;
+        }
+    }
+    .o_vd_filter_table_left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.85rem 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #fff;
+        font-weight: 800;
+        min-height: 72px;
+
+        i.fa {
+            font-size: 1.5rem;
+            margin-bottom: 0.1rem;
+        }
+    }
+    .o_vd_filter_table_lbl {
+        font-size: 0.88rem;
+        text-align: center;
+        line-height: 1.15;
+    }
+    .o_vd_filter_table_count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.2rem;
+        height: 1.7rem;
+        padding: 0 0.55rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #1f2a44;
+    }
+    .o_vd_filter_table_right {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 0.35rem 0.45rem;
+        padding: 0.55rem 0.7rem;
+        background: #fff;
+    }
+    .o_vd_filter_table_right_rows {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 0.35rem;
+    }
+    .o_vd_filter_table_right .o_vd_won_pill {
+        padding: 0.18rem 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+    .o_vd_filter_table_empty {
+        width: 100%;
+        padding: 0.85rem 0.5rem;
+        text-align: center;
+        color: #868e96;
+        font-size: 0.82rem;
+    }
+
+    /* Variant: bảng KHÁCH MỚI — header xanh */
+    .o_vd_filter_table_new {
+        .o_vd_filter_table_left {
+            background: linear-gradient(135deg, #4c6ef5 0%, #5c7cfa 100%);
+        }
+        .o_vd_filter_table_count { color: #4c6ef5; }
+    }
+    /* Variant: bảng ĐANG XỬ LÝ VẤN ĐỀ — header cam */
+    .o_vd_filter_table_warn {
+        .o_vd_filter_table_left {
+            background: linear-gradient(135deg, #fab005 0%, #fd7e14 100%);
+        }
+        .o_vd_filter_table_count { color: #d9480f; }
+    }
+
+    /* Khi 1 KH có nhiều stage khác nhau — show stage code chip nhỏ */
+    .o_vd_problem_row_stage {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.15rem 0.4rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #495057;
+        background: #f1f3f5;
+        border-radius: 4px;
+        letter-spacing: 0.3px;
+    }
+    /* Row grid trong filter table — thêm cột stage */
+    .o_vd_filter_table_right_rows .o_vd_problem_row {
+        grid-template-columns: 50px 60px 1fr 150px 170px 120px 150px;
+
+        @media (max-width: 1200px) {
+            grid-template-columns: 50px 60px 1fr 140px 120px;
+            .o_vd_problem_row_callback { display: none; }
+        }
+        @media (max-width: 900px) {
+            grid-template-columns: 50px 1fr 120px;
+            .o_vd_problem_row_stage,
+            .o_vd_problem_row_nv,
+            .o_vd_problem_row_phone { display: none; }
+        }
+    }
+
     /* Flat pills dense — pills tràn ngang, gap nhỏ, không có header NV */
     .o_vd_won_pills_dense {
         display: flex;
