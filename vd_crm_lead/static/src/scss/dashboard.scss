@@ -3619,6 +3619,57 @@
         margin: 0 0 0.4rem 0;
         padding: 0;
     }
+    /* Filter bar BIG — chip to, hàng riêng, gap dưới rộng để hình thành section */
+    .o_vd_lead_filter_bar_big {
+        margin: 0 0 0.75rem 0;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+    .o_vd_filter_chip_big {
+        padding: 0.55rem 1.1rem 0.55rem 0.95rem !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.8px !important;
+        i.fa { font-size: 1.05rem; }
+        .o_vd_filter_chip_count {
+            min-width: 1.9rem;
+            height: 1.5rem;
+            font-size: 0.85rem;
+        }
+    }
+    /* Phễu đỏ — icon filter trong chip xanh "KHÁCH MỚI" nổi bật */
+    .o_vd_filter_funnel {
+        color: #ff6b6b !important;
+        filter: drop-shadow(0 1px 2px rgba(255, 107, 107, 0.5));
+    }
+    /* Phễu cam đậm — chip warn "ĐANG XỬ LÝ VẤN ĐỀ" */
+    .o_vd_filter_funnel_warn {
+        color: #fff !important;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    }
+    /* Flat pills dense — pills tràn ngang, gap nhỏ, không có header NV */
+    .o_vd_won_pills_dense {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.4rem;
+        padding: 0.4rem 0.55rem;
+        background: #fff;
+        border-radius: 10px;
+        border-left: 4px solid #4c6ef5;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+    .o_vd_won_pills_dense .o_vd_won_pill {
+        padding: 0.18rem 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+    .o_vd_problem_empty {
+        padding: 1.5rem 1rem !important;
+        text-align: center;
+        background: #fff;
+        border-radius: 10px;
+        border: 2px dashed #e9ecef;
+    }
     .o_vd_filter_chip {
         display: inline-flex;
         align-items: center;

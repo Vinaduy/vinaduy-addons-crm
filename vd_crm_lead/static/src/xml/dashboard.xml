@@ -1291,10 +1291,10 @@
 
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
-                            <!-- ===== FILTER BAR (chuyên nghiệp, UPPERCASE) ===== -->
-                            <div class="o_vd_lead_filter_bar">
-                                <span class="o_vd_filter_chip o_vd_filter_chip_active">
-                                    <i class="fa fa-filter"/>
+                            <!-- ===== FILTER BAR TO — phễu đỏ, UPPERCASE, hàng riêng ===== -->
+                            <div class="o_vd_lead_filter_bar o_vd_lead_filter_bar_big">
+                                <span class="o_vd_filter_chip o_vd_filter_chip_active o_vd_filter_chip_big">
+                                    <i class="fa fa-filter o_vd_filter_funnel"/>
                                     <span class="o_vd_filter_chip_lbl">
                                         <t t-if="state.alertFilter"><t t-esc="alertTitle"/></t>
                                         <t t-else=""><t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/></t>
@@ -1310,23 +1310,38 @@
                                     <i class="fa fa-times me-1"/>Bỏ filter
                                 </button>
                             </div>
-                            <!-- Pills sát filter bar — tiết kiệm diện tích -->
+                            <!-- Pills sát filter bar — tiết kiệm diện tích.
+                                 Khi split mode: render FLAT pills (bỏ group header NV)
+                                 vì NV view chỉ có 1 NV → header thừa. -->
                             <div class="o_vd_lead_section_body o_vd_lead_section_body_compact">
-                                <t t-call="vd_crm_lead.LeadTableBody"/>
+                                <t t-if="isNewStageSplit">
+                                    <div t-if="leadsNoProblems.length" class="o_vd_won_pills o_vd_won_pills_dense">
+                                        <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
+                                            <t t-call="vd_crm_lead.LeadPill"/>
+                                        </t>
+                                    </div>
+                                    <div t-else="" class="o_vd_table_empty">
+                                        <i class="fa fa-check-circle text-success me-2"/>
+                                        Tất cả KH mới đã có vấn đề được tạo — xem ở bảng dưới.
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <t t-call="vd_crm_lead.LeadTableBody"/>
+                                </t>
                             </div>
                         </section>
 
                         <!-- ===== SECTION 2: ĐANG XỬ LÝ VẤN ĐỀ (mỗi KH 1 dòng dài) ===== -->
-                        <section t-if="isNewStageSplit and leadsWithProblems.length"
+                        <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">
-                            <div class="o_vd_lead_filter_bar">
-                                <span class="o_vd_filter_chip o_vd_filter_chip_warn">
-                                    <i class="fa fa-hourglass-half"/>
+                            <div class="o_vd_lead_filter_bar o_vd_lead_filter_bar_big">
+                                <span class="o_vd_filter_chip o_vd_filter_chip_warn o_vd_filter_chip_big">
+                                    <i class="fa fa-filter o_vd_filter_funnel_warn"/>
                                     <span class="o_vd_filter_chip_lbl">ĐANG XỬ LÝ VẤN ĐỀ</span>
                                     <span class="o_vd_filter_chip_count"><t t-esc="leadsWithProblems.length"/></span>
                                 </span>
                             </div>
-                            <div class="o_vd_problem_rows">
+                            <div t-if="leadsWithProblems.length" class="o_vd_problem_rows">
                                 <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
                                      t-on-click="() => this.openLead(lead.id)"
                                      class="o_vd_problem_row">
@@ -1350,6 +1365,13 @@
                                     <span t-if="lead.callback_date" class="o_vd_problem_row_callback">
                                         📅 <t t-esc="lead.callback_date.slice(0, 16).replace('T', ' ')"/>
                                     </span>
+                                </div>
+                            </div>
+                            <div t-else="" class="o_vd_table_empty o_vd_problem_empty">
+                                <i class="fa fa-inbox fa-2x text-muted mb-2"/>
+                                <div>Chưa có KH nào đang xử lý vấn đề.</div>
+                                <div class="text-muted small mt-1">
+                                    Vào form KH → tạo "vấn đề" → KH sẽ xuất hiện ở đây.
                                 </div>
                             </div>
                         </section>
