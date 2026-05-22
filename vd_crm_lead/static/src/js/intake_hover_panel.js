@@ -15,8 +15,36 @@
 const HTML = document.documentElement;
 const HOVER_CLS = "vd-intake-hover-active";
 const PINNED_CLS = "vd-intake-pinned";
+const ON_LEAD_CLS = "vd-on-lead-form";
 const HOVER_OPEN_DELAY = 250;   // ms — chống accidental hover
 const CLOSE_DELAY = 200;        // ms — grace di chuột từ button → panel
+
+// ===== DETECT LEAD FORM (add .vd-on-lead-form vào <html>) =====
+// CSS zoom 0.7 chỉ apply khi class này active → form khác không bị zoom theo.
+function _detectLeadForm() {
+    const hasLeadForm = !!document.querySelector(".o_form_view .o_vd_layout_grid");
+    HTML.classList.toggle(ON_LEAD_CLS, hasLeadForm);
+}
+// Run on initial load + watch DOM changes (debounced)
+let _detectTimer = null;
+function _scheduleDetect() {
+    if (_detectTimer) return;
+    _detectTimer = setTimeout(() => {
+        _detectTimer = null;
+        _detectLeadForm();
+    }, 100);
+}
+const _mainObserver = new MutationObserver(_scheduleDetect);
+_mainObserver.observe(document.documentElement, { childList: true, subtree: true });
+_detectLeadForm();
+
+// Read CSS zoom factor (cần để hover position bù lại scale).
+function _getZoomFactor() {
+    const sheet = document.querySelector(".o_form_view .o_form_sheet");
+    if (!sheet) return 1;
+    const z = parseFloat(getComputedStyle(sheet).zoom || "1");
+    return isNaN(z) || z <= 0 ? 1 : z;
+}
 
 let _openTimer = null;
 let _closeTimer = null;
@@ -36,11 +64,14 @@ function _positionOverlay() {
     const r = right.getBoundingClientRect();
     // Sanity check — nếu rect 0×0 (panel chưa render) thì bỏ qua
     if (r.width < 50 || r.height < 50) return;
-    overlay.style.setProperty("--vd-hover-top",    Math.max(0, r.top) + "px");
-    overlay.style.setProperty("--vd-hover-left",   Math.max(0, r.left) + "px");
-    overlay.style.setProperty("--vd-hover-width",  r.width + "px");
+    // r là viewport coords (post-zoom). Overlay nằm TRONG zoom 0.7 context →
+    // CSS dimensions sẽ bị nhân với zoom khi render. Chia rect cho zoom để bù.
+    const z = _getZoomFactor();
+    overlay.style.setProperty("--vd-hover-top",    Math.max(0, r.top) / z + "px");
+    overlay.style.setProperty("--vd-hover-left",   Math.max(0, r.left) / z + "px");
+    overlay.style.setProperty("--vd-hover-width",  r.width / z + "px");
     overlay.style.setProperty("--vd-hover-height",
-        Math.max(r.height, window.innerHeight - r.top - 20) + "px");
+        Math.max(r.height, window.innerHeight - r.top - 20) / z + "px");
 }
 
 function _setupObserver() {

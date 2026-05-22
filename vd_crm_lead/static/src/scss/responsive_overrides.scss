@@ -338,12 +338,11 @@ html, body {
 }
 
 /* ============================================================
-   17a. LEAD FORM COMPACT 70% — scope vào o_form_sheet CHỨA layout grid
-   của crm.lead. Dùng :has() (Chrome 105+) match form sheet có vd layout
-   bên trong. CHỈ 1 level zoom — KHÔNG kèm .o_vd_layout_grid để tránh
-   compound 0.7×0.7=0.49 (quá nhỏ).
+   17a. LEAD FORM COMPACT 70% — class .vd-on-lead-form do JS add vào <html>
+   khi detect form crm.lead đang mở (xem intake_hover_panel.js).
+   Bền hơn :has() (browser support không đồng nhất).
    ============================================================ */
-.o_form_view .o_form_sheet:has(.o_vd_layout_grid) {
+html.vd-on-lead-form .o_form_view .o_form_sheet {
     zoom: 0.7 !important;
 }
 
