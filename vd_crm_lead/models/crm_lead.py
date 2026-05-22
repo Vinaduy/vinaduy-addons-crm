@@ -2692,6 +2692,9 @@ class CrmLead(models.Model):
         # Generate PDF luôn
         new_v._generate_pdf()
 
+        # Auto-rename lead khi có báo giá đầu tiên — format: "VINADUY - <KH> - <team>"
+        self._vd_apply_quote_name_pattern()
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -3547,6 +3550,8 @@ class CrmLead(models.Model):
             'stage_id': nego.id,
             'vd_negotiate_deadline': deadline,
         })
+        # Auto-rename theo format VINADUY (nếu chưa)
+        self._vd_apply_quote_name_pattern()
         self.message_post(
             subtype_xmlid='mail.mt_note',
             body=_(
@@ -4066,6 +4071,20 @@ class CrmLead(models.Model):
         } for l in leads]
 
     @api.model
+    def _vd_apply_quote_name_pattern(self):
+        """Đổi tên lead sang format: VINADUY - <Tên KH> - <Team>.
+        Idempotent: nếu name đã đúng format → bỏ qua."""
+        self.ensure_one()
+        team = self._vd_team_label_for(self.user_id) or 'KHÁC'
+        contact = (self.contact_name or self.partner_name or self.name or 'KH').strip()
+        # Nếu name đã là dạng "VINADUY - ... - <team>" → bỏ qua, tránh đè khi user
+        # đã chỉnh tên KH thủ công sau khi rename lần đầu.
+        if (self.name or '').startswith('VINADUY - '):
+            return
+        new_name = f'VINADUY - {contact} - {team}'
+        if new_name != self.name:
+            self.with_context(mail_notrack=True).write({'name': new_name})
+
     def _vd_team_label_for(self, user):
         """Lấy 'team label' từ tên NV (HCM1/HCM2/HCM3/HN/QN/...).
         Fallback dùng sale_team_id.name nếu không match prefix."""

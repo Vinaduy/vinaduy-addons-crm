@@ -3309,15 +3309,15 @@
         &.o_vd_kh_count_warn { background: #dc2626; }
     }
 
-    /* === Popover hover — auto-fit content, không wrap vô lý === */
+    /* === Popover hover — auto-fit, cap theo viewport để không tràn cạnh phải === */
     .o_vd_kh_nv_popover {
         display: none;
         position: absolute;
         top: calc(100% + 6px);
         right: 0;
-        width: max-content;        /* tự co theo nội dung */
-        min-width: 480px;
-        max-width: 880px;          /* giới hạn không quá rộng */
+        width: max-content;
+        min-width: 360px;
+        max-width: min(720px, calc(100vw - 80px));   /* cap theo viewport */
         max-height: 540px;
         flex-direction: column;
         background: var(--bs-body-bg, #fff);
@@ -3328,11 +3328,16 @@
         z-index: 9999;
         overflow: hidden;
     }
-    /* Metric đầu (Đang chốt) — popover canh trái để không tràn phải */
-    .o_vd_kh_metric_done .o_vd_kh_nv_popover { right: auto; left: 0; }
-    /* Metric giữa (Đang xử lý) — center */
-    .o_vd_kh_metric_progress .o_vd_kh_nv_popover { right: auto; left: 50%; transform: translateX(-50%); }
-    /* Metric cuối (KH mới) — canh phải, default đã set */
+    /* Cells nửa TRÁI bảng — popover dock LEFT (popover xổ về bên phải cell) */
+    .o_vd_kh_metric_new .o_vd_kh_nv_popover,
+    .o_vd_kh_metric_noprob .o_vd_kh_nv_popover {
+        right: auto; left: 0; transform: none;
+    }
+    /* Cells nửa PHẢI bảng — popover dock RIGHT (popover xổ về bên trái cell) */
+    .o_vd_kh_metric_progress .o_vd_kh_nv_popover,
+    .o_vd_kh_metric_done .o_vd_kh_nv_popover {
+        right: 0; left: auto; transform: none;
+    }
     /* Popover header: gradient banner màu theo loại metric */
     .o_vd_kh_popover_head {
         padding: 0.7rem 1rem;

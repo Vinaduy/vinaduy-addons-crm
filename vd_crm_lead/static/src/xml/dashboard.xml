@@ -255,7 +255,6 @@
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -278,7 +277,6 @@
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -301,7 +299,6 @@
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
                                                                 </div>
                                                                 <div class="o_vd_kh_lead_problems">
                                                                     <span t-foreach="ld.problems" t-as="p" t-key="p_index"
@@ -330,7 +327,6 @@
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone or '—'"/></span>
                                                                 </div>
                                                             </div>
                                                         </div>
