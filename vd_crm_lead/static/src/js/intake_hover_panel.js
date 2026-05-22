@@ -16,6 +16,7 @@
 
 const HTML = document.documentElement;
 const HOVER_CLS = "vd-intake-hover-active";
+const PINNED_CLS = "vd-intake-pinned";
 const CLOSE_DELAY = 200;
 
 let _closeTimer = null;
@@ -59,17 +60,23 @@ function _openHover() {
 }
 
 function _scheduleClose() {
+    // Pinned mode (đã click button) → KHÔNG auto-close. Chỉ đóng khi click X.
+    if (HTML.classList.contains(PINNED_CLS)) return;
     if (_closeTimer) clearTimeout(_closeTimer);
     _closeTimer = setTimeout(() => {
         HTML.classList.remove(HOVER_CLS);
         _closeTimer = null;
-        if (_scrollHandler) {
-            window.removeEventListener("scroll", _scrollHandler, true);
-            window.removeEventListener("resize", _resizeHandler);
-            _scrollHandler = null;
-            _resizeHandler = null;
-        }
+        _teardownListeners();
     }, CLOSE_DELAY);
+}
+
+function _teardownListeners() {
+    if (_scrollHandler) {
+        window.removeEventListener("scroll", _scrollHandler, true);
+        window.removeEventListener("resize", _resizeHandler);
+        _scrollHandler = null;
+        _resizeHandler = null;
+    }
 }
 
 function _cancelClose() {
@@ -105,14 +112,35 @@ document.addEventListener("mouseleave", (ev) => {
     }
 }, true);
 
-// User click nút "Thông tin tư vấn" (action_open_intake_inline) thì popup sẽ
-// mở qua vd_intake_open=True bình thường — clear hover state để không xung đột.
+// User click nút "Thông tin tư vấn" → PIN inline mode (persistent, không auto-close).
+// Server action vẫn fire (set vd_intake_open=True) để form fields bind data,
+// nhưng popup render với inline positioning thay vì fixed overlay.
+// Click lại button → unpin. Click X close → unpin + server đóng popup.
 document.addEventListener("click", (ev) => {
-    if (ev.target instanceof Element && ev.target.closest(".o_vd_open_intake_btn_main")) {
+    const target = ev.target;
+    if (!(target instanceof Element)) return;
+
+    // Click X close trong popup → unpin
+    if (target.closest(".o_vd_popup_close_btn")) {
+        HTML.classList.remove(PINNED_CLS);
         HTML.classList.remove(HOVER_CLS);
         if (_closeTimer) {
             clearTimeout(_closeTimer);
             _closeTimer = null;
+        }
+        _teardownListeners();
+        return;
+    }
+
+    // Click button "Thông tin tư vấn" → toggle pinned mode
+    if (target.closest(".o_vd_open_intake_btn_main")) {
+        if (HTML.classList.contains(PINNED_CLS)) {
+            HTML.classList.remove(PINNED_CLS);
+            HTML.classList.remove(HOVER_CLS);
+            _teardownListeners();
+        } else {
+            HTML.classList.add(PINNED_CLS);
+            _openHover();
         }
     }
 }, true);
