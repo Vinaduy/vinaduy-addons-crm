@@ -427,3 +427,57 @@ html, body {
         padding: 0.5rem !important;
     }
 }
+
+/* ============================================================
+   19. HOVER INLINE MODE — "Thông tin tư vấn" hover trên button
+   → hiện popup ngay tại vị trí panel VẤN ĐỀ (o_vd_layout_right).
+   JS: intake_hover_panel.js add class .vd-intake-hover-active vào <html>
+   + set CSS vars --vd-hover-top/left/width/height bằng rect của .o_vd_layout_right.
+   ============================================================ */
+html.vd-intake-hover-active {
+    /* Ẩn nội dung panel bên phải để popup chiếm chỗ. */
+    .o_vd_layout_right > * {
+        visibility: hidden;
+    }
+    /* Force show popup overlay (override invisible="not vd_intake_open"). */
+    .o_vd_intake_popup_overlay {
+        display: block !important;
+        position: fixed !important;
+        z-index: 50 !important;
+        pointer-events: auto !important;
+        top: var(--vd-hover-top, 0) !important;
+        left: var(--vd-hover-left, 50%) !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: var(--vd-hover-width, 45vw) !important;
+        height: var(--vd-hover-height, 80vh) !important;
+        inset: auto !important;
+    }
+    /* Bỏ backdrop — không cần che màn hình */
+    .o_vd_intake_popup_overlay .o_vd_intake_popup_backdrop {
+        display: none !important;
+    }
+    /* Panel nằm full trong overlay (đã được position lại) */
+    .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
+        position: relative !important;
+        top: 0 !important;
+        right: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.25);
+        border: 2px solid #4c6ef5;
+    }
+    /* Hint visual để biết đây là hover mode (label nhỏ ở header) */
+    .o_vd_intake_popup_overlay .o_vd_popup_title::after {
+        content: " (hover preview)";
+        font-size: 0.7rem;
+        font-weight: 500;
+        opacity: 0.7;
+        margin-left: 0.5rem;
+    }
+}
