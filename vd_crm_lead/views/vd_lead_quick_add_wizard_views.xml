@@ -23,15 +23,15 @@
                         <field name="sequence" widget="handle"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..." widget="phone"/>
-                        <field name="source"/>
+                        <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="date"/>
                         <field name="status"/>
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Auto)"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
-                        <field name="i_house_type" optional="hide"/>
-                        <field name="i_foundation_type" optional="hide"/>
+                        <field name="i_house_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                        <field name="i_foundation_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_floors_select" optional="hide"/>
                         <field name="i_area_m2" optional="hide"/>
                         <field name="i_floor_1_m2" optional="hide"/>
@@ -47,8 +47,8 @@
                         <field name="i_district" optional="hide"
                                domain="[('state_id', '=', i_province_id)]"
                                options="{'no_create': True, 'no_open': True}"/>
-                        <field name="i_dimensions" optional="hide"/>
-                        <field name="i_land_type" optional="hide"/>
+                        <field name="i_dimensions" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                        <field name="i_land_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_car_access_select" optional="hide"/>
                         <field name="i_budget_amount" optional="hide"/>
                         <!-- 5 cột tuỳ chọn — label dynamic từ vd.intake.custom.field

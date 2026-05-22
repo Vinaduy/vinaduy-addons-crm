@@ -22,6 +22,92 @@ _logger = logging.getLogger(__name__)
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
+    # ============ EXTENSIBLE SELECTION INFRA ============
+    # Mỗi field liệt kê ở đây dùng `selection=callable` để merge base list
+    # với records của vd.field.option (NV/admin thêm option qua UI "+ Thêm mới").
+    _VD_EXT_SELECTIONS = {
+        'vd_intake_house_type': [
+            ('mai_bang', 'Nhà mái bằng'),
+            ('mai_thai', 'Nhà mái thái'),
+            ('mai_nhat', 'Nhà mái nhật'),
+            ('nha_ong', 'Nhà ống'),
+        ],
+        'vd_intake_foundation_type': [
+            ('don', 'Móng đơn'),
+            ('bang', 'Móng băng'),
+            ('coc', 'Móng cọc'),
+        ],
+        'vd_intake_roof_type': [
+            ('mai_bang', 'Mái bằng (20%)'),
+            ('mai_nhat_kdt', 'Mái nhật — Không đổ trần (42%)'),
+            ('mai_nhat_cdt', 'Mái nhật — Có đổ trần (48%)'),
+            ('mai_thai_kdt', 'Mái thái — Không đổ trần (45%)'),
+            ('mai_thai_cdt', 'Mái thái — Có đổ trần (55%)'),
+            ('thong_tang', 'Thông tầng (40%)'),
+            ('mai_trang_tri', 'Mái trang trí (50%)'),
+            ('mai_trang_tri_dt', 'Mái trang trí — Đổ trần (100%)'),
+            ('mai_ton_1m', 'Mái tôn 1 mặt (13%)'),
+            ('mai_ton_2m', 'Mái tôn 2 mặt (16%)'),
+            ('mai_ton_3m', 'Mái tôn 3 mặt (20%)'),
+        ],
+        'vd_intake_dimensions': [
+            ('co_so_co_phep', 'Có sổ + có cấp phép'),
+            ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
+            ('chua_co_so', 'Chưa có sổ'),
+            ('dang_xin_phep', 'Đang xin cấp phép'),
+            ('khac', 'Khác'),
+        ],
+        'vd_intake_land_type': [
+            ('lien_tho', 'Đất liền thổ'),
+            ('phan_lo', 'Đất phân lô'),
+            ('hon_hop', 'Đất hỗn hợp'),
+            ('nong_nghiep', 'Đất nông nghiệp'),
+            ('quy_hoach', 'Đất quy hoạch'),
+            ('khac', 'Khác'),
+        ],
+        'vd_intake_position': [
+            ('mt_lon', 'Mặt tiền đường lớn'),
+            ('mt_nho', 'Mặt tiền đường nhỏ'),
+            ('xe_tai', 'Đường xe tải'),
+            ('hem_xh', 'Hẻm xe hơi'),
+            ('hem_xm', 'Hẻm xe máy'),
+            ('cuoi_hem', 'Cuối hẻm'),
+            ('khac', 'Khác'),
+        ],
+        'vd_intake_budget': [
+            ('duoi_1ty', 'Dưới 1 tỷ'),
+            ('1-3ty', '1–3 tỷ'),
+            ('3-5ty', '3–5 tỷ'),
+            ('5-10ty', '5–10 tỷ'),
+            ('10-20ty', '10–20 tỷ'),
+            ('tren_20ty', 'Trên 20 tỷ'),
+            ('chua_xd', 'Chưa xác định'),
+        ],
+    }
+
+    @api.model
+    def _vd_ext_selection(self, fname):
+        """Merge base selection + records từ vd.field.option."""
+        base = list(self._VD_EXT_SELECTIONS.get(fname, []))
+        try:
+            extras = self.env['vd.field.option'].sudo().get_options(
+                self._name, fname,
+            )
+        except Exception:
+            extras = []
+        keys = {k for k, _ in base}
+        return base + [(k, l) for k, l in extras if k not in keys]
+
+    def _vd_selection_dict(self, fname):
+        """Resolve Selection field → dict {key: label}, hỗ trợ cả callable selection."""
+        field = self._fields.get(fname)
+        if not field:
+            return {}
+        sel = field.selection
+        if callable(sel):
+            sel = sel(self)
+        return dict(sel or [])
+
     # Custom fields not in standard
     callback_date = fields.Datetime(string='Hẹn gọi lại lúc', tracking=True)
 
@@ -355,12 +441,9 @@ class CrmLead(models.Model):
         string='Diện tích',
         help='Hỏi: "Tổng diện tích đất / sàn xây dựng?". VD: 100m² hoặc 5x20m',
     )
-    vd_intake_house_type = fields.Selection([
-        ('mai_bang', 'Nhà mái bằng'),
-        ('mai_thai', 'Nhà mái thái'),
-        ('mai_nhat', 'Nhà mái nhật'),
-        ('nha_ong', 'Nhà ống'),
-    ], string='Kiểu nhà',
+    vd_intake_house_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_house_type'),
+        string='Kiểu nhà',
         help='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, mái nhật, nhà ống?"',
     )
     vd_intake_house_type_other = fields.Char(
@@ -379,45 +462,24 @@ class CrmLead(models.Model):
         string='Ghi chú công năng',
         help='Hỏi: "Có yêu cầu đặc biệt gì về phong thủy / ánh sáng / spa / phòng thờ không?"',
     )
-    vd_intake_land_type = fields.Selection([
-        ('lien_tho', 'Đất liền thổ'),
-        ('phan_lo', 'Đất phân lô'),
-        ('hon_hop', 'Đất hỗn hợp'),
-        ('nong_nghiep', 'Đất nông nghiệp'),
-        ('quy_hoach', 'Đất quy hoạch'),
-        ('khac', 'Khác'),
-    ], string='Loại đất',
+    vd_intake_land_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_land_type'),
+        string='Loại đất',
         help='Hỏi: "Đất là sổ đỏ thổ cư hay nông nghiệp / phân lô?"',
     )
-    vd_intake_position = fields.Selection([
-        ('mt_lon', 'Mặt tiền đường lớn'),
-        ('mt_nho', 'Mặt tiền đường nhỏ'),
-        ('xe_tai', 'Đường xe tải'),
-        ('hem_xh', 'Hẻm xe hơi'),
-        ('hem_xm', 'Hẻm xe máy'),
-        ('cuoi_hem', 'Cuối hẻm'),
-        ('khac', 'Khác'),
-    ], string='Vị trí',
+    vd_intake_position = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_position'),
+        string='Vị trí',
         help='Hỏi: "Mặt tiền hay trong hẻm? Đường vào có thuận lợi xe vận chuyển không?"',
     )
-    vd_intake_budget = fields.Selection([
-        ('duoi_1ty', 'Dưới 1 tỷ'),
-        ('1-3ty', '1–3 tỷ'),
-        ('3-5ty', '3–5 tỷ'),
-        ('5-10ty', '5–10 tỷ'),
-        ('10-20ty', '10–20 tỷ'),
-        ('tren_20ty', 'Trên 20 tỷ'),
-        ('chua_xd', 'Chưa xác định'),
-    ], string='Ngân sách dự kiến',
+    vd_intake_budget = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_budget'),
+        string='Ngân sách dự kiến',
         help='Hỏi: "Anh/chị dự kiến đầu tư khoảng bao nhiêu?"',
     )
-    vd_intake_dimensions = fields.Selection([
-        ('co_so_co_phep', 'Có sổ + có cấp phép'),
-        ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
-        ('chua_co_so', 'Chưa có sổ'),
-        ('dang_xin_phep', 'Đang xin cấp phép'),
-        ('khac', 'Khác'),
-    ], string='Sổ đỏ / cấp phép',
+    vd_intake_dimensions = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_dimensions'),
+        string='Sổ đỏ / cấp phép',
         help='Hỏi: "Đất đã có sổ đỏ chưa? Đã có giấy phép xây dựng chưa?"',
     )
 
@@ -650,25 +712,15 @@ class CrmLead(models.Model):
                 total = rec.vd_intake_house_length_m * rec.vd_intake_house_width_m
             if total > 0:
                 rec.vd_intake_total_m2 = total
-    vd_intake_foundation_type = fields.Selection([
-        ('don', 'Móng đơn'),
-        ('bang', 'Móng băng'),
-        ('coc', 'Móng cọc'),
-    ], string='Loại móng')
+    vd_intake_foundation_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_foundation_type'),
+        string='Loại móng',
+    )
     # ===== Loại mái — directly selectable, FILTER theo Kiểu nhà =====
-    vd_intake_roof_type = fields.Selection([
-        ('mai_bang', 'Mái bằng (20%)'),
-        ('mai_nhat_kdt', 'Mái nhật — Không đổ trần (42%)'),
-        ('mai_nhat_cdt', 'Mái nhật — Có đổ trần (48%)'),
-        ('mai_thai_kdt', 'Mái thái — Không đổ trần (45%)'),
-        ('mai_thai_cdt', 'Mái thái — Có đổ trần (55%)'),
-        ('thong_tang', 'Thông tầng (40%)'),
-        ('mai_trang_tri', 'Mái trang trí (50%)'),
-        ('mai_trang_tri_dt', 'Mái trang trí — Đổ trần (100%)'),
-        ('mai_ton_1m', 'Mái tôn 1 mặt (13%)'),
-        ('mai_ton_2m', 'Mái tôn 2 mặt (16%)'),
-        ('mai_ton_3m', 'Mái tôn 3 mặt (20%)'),
-    ], string='Loại mái')
+    vd_intake_roof_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('vd_intake_roof_type'),
+        string='Loại mái',
+    )
 
     @api.onchange('vd_intake_house_type')
     def _onchange_house_type_reset_roof(self):
@@ -1034,7 +1086,7 @@ class CrmLead(models.Model):
             # rowspan = số dòng tổng (móng + N tầng + mái)
             num_rows = 2 + max(len(per_floor_data), 1)
 
-            found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
+            found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
                 rec.vd_intake_foundation_type, 'Móng đơn'
             ) or 'Móng'
             # Roof label: ưu tiên roof_type cụ thể (vd "Mái thái — Có đổ trần").
@@ -1042,14 +1094,14 @@ class CrmLead(models.Model):
             # Cuối cùng: hiện "Chưa chọn mái" để NV biết cần cập nhật.
             roof_lbl = ''
             if rec.vd_intake_roof_type:
-                roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
+                roof_lbl = self._vd_selection_dict('vd_intake_roof_type').get(
                     rec.vd_intake_roof_type, ''
                 )
                 # Bỏ phần % trong ngoặc "(20%)" để gọn
                 if '(' in roof_lbl:
                     roof_lbl = roof_lbl.split('(')[0].strip()
             if not roof_lbl and rec.vd_intake_house_type:
-                house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
+                house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
                     rec.vd_intake_house_type, ''
                 )
                 # "Nhà mái thái" → "Mái thái"
@@ -1194,13 +1246,13 @@ class CrmLead(models.Model):
             roof_cost = total_m2 * (roof_pct / 100.0) * san_unit
 
             # Labels
-            house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
+            house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
                 rec.vd_intake_house_type, 'NHÀ DÂN DỤNG'
             ) or 'NHÀ DÂN DỤNG'
-            found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
+            found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
                 rec.vd_intake_foundation_type, 'MÓNG ĐƠN'
             ) or 'MÓNG ĐƠN'
-            roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
+            roof_lbl = self._vd_selection_dict('vd_intake_roof_type').get(
                 rec._vd_resolve_roof_type(), 'MÁI BẰNG'
             ) or 'MÁI BẰNG'
 
@@ -2724,15 +2776,15 @@ class CrmLead(models.Model):
         surcharge = self.vd_intake_estimate - (found_cost + floor_cost + roof_cost) if self.vd_intake_estimate else 0
 
         # Labels (text-readable cho snapshot)
-        house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
+        house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
             self.vd_intake_house_type, ''
         )
         if self.vd_intake_house_type == 'khac' and self.vd_intake_house_type_other:
             house_lbl += f' ({self.vd_intake_house_type_other})'
-        found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
+        found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
             self.vd_intake_foundation_type, ''
         )
-        roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
+        roof_lbl = self._vd_selection_dict('vd_intake_roof_type').get(
             self.vd_intake_roof_type, ''
         )
         region_lbl = {'bac': 'Miền Bắc', 'trung': 'Miền Trung', 'nam': 'Miền Nam'}.get(
@@ -2868,14 +2920,14 @@ class CrmLead(models.Model):
         components_total += surcharges_total
         total = self.vd_quote_price or components_total or self.vd_intake_estimate or 0
 
-        house_lbl = dict(self._fields['vd_intake_house_type'].selection).get(
+        house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
             self.vd_intake_house_type, 'NHÀ DÂN DỤNG'
         ) or 'NHÀ DÂN DỤNG'
-        found_lbl = dict(self._fields['vd_intake_foundation_type'].selection).get(
+        found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
             self.vd_intake_foundation_type, 'MÓNG ĐƠN'
         ) or 'MÓNG ĐƠN'
         eff_roof = self._vd_resolve_roof_type()
-        roof_lbl = dict(self._fields['vd_intake_roof_type'].selection).get(
+        roof_lbl = self._vd_selection_dict('vd_intake_roof_type').get(
             eff_roof, 'MÁI BẰNG'
         ) or 'MÁI BẰNG'
 

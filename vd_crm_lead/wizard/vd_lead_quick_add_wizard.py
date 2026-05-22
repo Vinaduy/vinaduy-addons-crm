@@ -218,6 +218,48 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     _description = 'Dòng KH trong wizard thêm nhanh'
     _order = 'sequence, id'
 
+    # Base selection cho các field "extensible" — selection callable sẽ merge
+    # với records từ vd.field.option để user có thể "+ Thêm mới" trên UI.
+    _VD_EXT_SELECTIONS = {
+        'source': SOURCE_SELECTION,
+        'i_house_type': [
+            ('mai_bang', 'Nhà mái bằng'),
+            ('mai_thai', 'Nhà mái thái'),
+            ('mai_nhat', 'Nhà mái nhật'),
+            ('nha_ong', 'Nhà ống'),
+        ],
+        'i_foundation_type': [
+            ('don', 'Móng đơn'),
+            ('bang', 'Móng băng'),
+            ('coc', 'Móng cọc'),
+        ],
+        'i_dimensions': [
+            ('co_so_co_phep', 'Có sổ + có cấp phép'),
+            ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
+            ('chua_co_so', 'Chưa có sổ'),
+            ('dang_xin_phep', 'Đang xin cấp phép'),
+            ('khac', 'Khác'),
+        ],
+        'i_land_type': [
+            ('lien_tho', 'Đất liền thổ'),
+            ('phan_lo', 'Đất phân lô'),
+            ('nong_nghiep', 'Nông nghiệp'),
+        ],
+    }
+
+    @api.model
+    def _vd_ext_selection(self, fname):
+        """Merge base selection + user-added records từ vd.field.option."""
+        base = list(self._VD_EXT_SELECTIONS.get(fname, []))
+        try:
+            extras = self.env['vd.field.option'].sudo().get_options(
+                self._name, fname,
+            )
+        except Exception:
+            extras = []
+        keys = {k for k, _ in base}
+        return base + [(k, l) for k, l in extras if k not in keys]
+
     wizard_id = fields.Many2one(
         'vd.lead.quick.add.wizard', required=True, ondelete='cascade',
     )
@@ -225,7 +267,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     name = fields.Char(string='Tên KH', required=False)
     phone = fields.Char(string='SĐT', required=False)
     source = fields.Selection(
-        SOURCE_SELECTION,
+        selection=lambda self: self._vd_ext_selection('source'),
         string='Nguồn',
         default='manual',
     )
@@ -249,17 +291,14 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
 
     # ===== MIRROR các trường intake từ crm.lead — admin bật tắt qua ⋮ menu =====
     # Khi NV nhập giá trị → action_create_leads sẽ ghi xuống crm.lead tương ứng.
-    i_house_type = fields.Selection([
-        ('mai_bang', 'Nhà mái bằng'),
-        ('mai_thai', 'Nhà mái thái'),
-        ('mai_nhat', 'Nhà mái nhật'),
-        ('nha_ong', 'Nhà ống'),
-    ], string='Kiểu nhà')
-    i_foundation_type = fields.Selection([
-        ('don', 'Móng đơn'),
-        ('bang', 'Móng băng'),
-        ('coc', 'Móng cọc'),
-    ], string='Loại móng')
+    i_house_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('i_house_type'),
+        string='Kiểu nhà',
+    )
+    i_foundation_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('i_foundation_type'),
+        string='Loại móng',
+    )
     i_floors_select = fields.Selection([
         ('1', '1 tầng'), ('1t', '1 tầng + tum'),
         ('2', '2 tầng'), ('2t', '2 tầng + tum'),
@@ -281,20 +320,16 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     i_province_id = fields.Many2one('res.country.state', string='Tỉnh/Thành',
                                     domain="[('country_id.code', '=', 'VN')]")
     i_district = fields.Many2one('vd.district', string='Huyện/Quận')
-    # Selection PHẢI khớp 1-1 với crm.lead.vd_intake_dimensions để mirror_map
+    # Base keys PHẢI khớp 1-1 với crm.lead.vd_intake_dimensions để mirror_map
     # copy thẳng được mà không cần convert key.
-    i_dimensions = fields.Selection([
-        ('co_so_co_phep', 'Có sổ + có cấp phép'),
-        ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
-        ('chua_co_so', 'Chưa có sổ'),
-        ('dang_xin_phep', 'Đang xin cấp phép'),
-        ('khac', 'Khác'),
-    ], string='Sổ đỏ / cấp phép')
-    i_land_type = fields.Selection([
-        ('lien_tho', 'Đất liền thổ'),
-        ('phan_lo', 'Đất phân lô'),
-        ('nong_nghiep', 'Nông nghiệp'),
-    ], string='Loại đất')
+    i_dimensions = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('i_dimensions'),
+        string='Sổ đỏ / cấp phép',
+    )
+    i_land_type = fields.Selection(
+        selection=lambda self: self._vd_ext_selection('i_land_type'),
+        string='Loại đất',
+    )
     i_car_access_select = fields.Selection([
         ('co', 'Có'),
         ('khong', 'Không'),

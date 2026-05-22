@@ -483,11 +483,13 @@
                                         <div class="o_vd_pf_compact">
                                             <label for="vd_intake_foundation_type">Loại móng</label>
                                             <field name="vd_intake_foundation_type" widget="vd_selection_dropdown" nolabel="1"
+                                                   options="{'extensible': True}"
                                                    placeholder="Móng gì?"/>
                                         </div>
                                         <div class="o_vd_pf_compact">
                                             <label for="vd_intake_house_type">Kiểu nhà</label>
                                             <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
+                                                   options="{'extensible': True}"
                                                    placeholder="Kiểu nhà nào?"/>
                                         </div>
                                     </div>
@@ -641,6 +643,7 @@
                             <div class="o_vd_pf">
                                 <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
                                 <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
+                                       options="{'extensible': True}"
                                        placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
                             </div>
                             <!-- Row 2: Huyện | Loại đất -->
@@ -655,6 +658,7 @@
                             <div class="o_vd_pf">
                                 <label for="vd_intake_land_type">Loại đất</label>
                                 <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
+                                       options="{'extensible': True}"
                                        placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
                             </div>
                             <!-- Row 3: Ô tô vào (Công năng cũ đã bỏ — giờ dùng

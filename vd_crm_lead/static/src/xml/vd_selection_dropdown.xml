@@ -23,7 +23,7 @@
             <i class="fa fa-caret-down o_vd_select_dd_arrow"/>
 
             <div t-if="state.open" class="o_vd_select_dd_menu">
-                <t t-if="filteredOptions.length === 0">
+                <t t-if="filteredOptions.length === 0 and !canAddNew">
                     <div class="o_vd_select_dd_empty">
                         <i class="fa fa-info-circle"/> Không có lựa chọn nào khớp
                     </div>
@@ -36,6 +36,12 @@
                         <t t-esc="opt[1]"/>
                     </div>
                 </t>
+                <div t-if="canAddNew"
+                     class="o_vd_select_dd_item o_vd_select_dd_add"
+                     t-on-mousedown.prevent="() => this.onAddNew()">
+                    <i class="fa fa-plus"/>
+                    Thêm "<t t-esc="state.search"/>"
+                </div>
             </div>
         </div>
     </t>
