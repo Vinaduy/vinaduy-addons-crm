@@ -3080,34 +3080,32 @@
         grid-template-columns: 3fr 4fr;
         gap: 12px;
         align-items: stretch;
-        padding: 4px;
-        border-radius: 0;
+        padding: 2px 4px;          /* giảm khoảng cách dọc 30% */
         background: transparent;
-        border: none;
         cursor: default;
+        border-bottom: 1px dashed rgba(148, 163, 184, 0.35);   /* đường kẻ mờ tách NV */
+        &:last-child { border-bottom: none; }
     }
-    /* ===== 2 wrapper subgrid: mỗi nhóm là 1 KHUNG riêng ===== */
+    /* ===== 2 wrapper subgrid: chỉ background, KHÔNG khung viền riêng từng NV ===== */
     .o_vd_kh_row_group {
         display: grid;
-        padding: 4px;
-        gap: 4px;
-        border-radius: 10px;
-        border: 1.5px solid #cbd5e1;
-        background: var(--bs-body-bg, #fff);
+        padding: 2px;
+        gap: 3px;
+        border: none;
+        background: transparent;
     }
     .o_vd_kh_row_group_info {
         grid-template-columns: 1.6fr 0.85fr 1.1fr;
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border-color: #cbd5e1;
+        background: rgba(241, 245, 249, 0.55);   /* nền xám nhạt — chỉ đánh dấu nhóm */
+        border-radius: 6px;
         > .o_vd_kh_col_name {
-            padding: 0.5rem 0.7rem;
-            min-height: 36px;
+            padding: 0.35rem 0.6rem;
+            min-height: 28px;
         }
     }
     .o_vd_kh_row_group_kh {
         grid-template-columns: 1fr 1fr 1fr 1fr;
-        background: var(--bs-body-bg, #fff);
-        border-color: #cbd5e1;
+        background: transparent;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
     .o_vd_kh_col_info {
@@ -3115,11 +3113,11 @@
         align-items: center;
         justify-content: center;
         gap: 0.35rem;
-        padding: 0.4rem 0.5rem;
+        padding: 0.25rem 0.5rem;
         background: transparent;
         border: none;
         border-radius: 0;
-        min-height: 38px;
+        min-height: 28px;            /* giảm chiều cao ~26% */
         font-size: 0.85rem;
     }
     .o_vd_kh_col_months {
@@ -3211,7 +3209,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 32px;
+        min-height: 26px;            /* giảm 30% chiều cao */
         background: transparent;
         border: none;
         border-radius: 6px;
@@ -3219,8 +3217,8 @@
         transition: all 0.12s ease;
         &:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px -3px rgba(0,0,0,0.2);
-            background: var(--bs-body-bg, #fff);
+            box-shadow: 0 3px 10px -3px rgba(0,0,0,0.18);
+            background: rgba(248, 250, 252, 0.85);
             z-index: 100;
         }
     }
