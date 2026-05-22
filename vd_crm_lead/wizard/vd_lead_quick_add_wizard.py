@@ -164,9 +164,13 @@ class VdLeadQuickAddWizard(models.TransientModel):
                     continue
                 # Defensive: nếu lead field là Selection, chỉ gán khi key có
                 # trong selection — tránh ValueError nếu wizard/lead lệch keys.
+                # selection có thể là callable (extensible) → dùng helper.
                 lead_field = Lead._fields.get(lead_fld)
                 if lead_field and lead_field.type == 'selection':
-                    valid_keys = {k for k, _lbl in lead_field.selection}
+                    sel = lead_field.selection
+                    if callable(sel):
+                        sel = sel(Lead)
+                    valid_keys = {k for k, _lbl in (sel or [])}
                     if val not in valid_keys:
                         continue
                 intake_vals[lead_fld] = val.id if hasattr(val, 'id') else val
