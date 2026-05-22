@@ -3235,6 +3235,29 @@
         cursor: pointer;
         transition: opacity 0.12s ease;
     }
+    /* Cột Khách mới: số to hơn các cột khác để nhấn mạnh */
+    .o_vd_kh_metric_num_lg { font-size: 1.15rem !important; font-weight: 800 !important; }
+    /* Tổng KH — badge có viền cạnh số Khách mới */
+    .o_vd_kh_metric_total {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 0.55rem;
+        padding: 2px 9px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: #475569;
+        background: var(--bs-body-bg, #fff);
+        border: 1.5px solid #94a3b8;
+        border-radius: 999px;
+        min-width: 26px;
+        cursor: help;
+    }
+    .o_vd_kh_metric_new:hover .o_vd_kh_metric_total {
+        border-color: #2563eb;
+        color: #1e40af;
+    }
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }

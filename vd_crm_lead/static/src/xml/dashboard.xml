@@ -216,9 +216,6 @@
                                                     <span class="o_vd_kh_nv_link_name">
                                                         <t t-esc="nv.name"/>
                                                     </span>
-                                                    <span t-if="nv.total_leads" class="o_vd_kh_nv_total_badge">
-                                                        <t t-esc="nv.total_leads"/>
-                                                    </span>
                                                 </div>
 
                                                 <!-- NHÓM 1: Thông tin — Số tháng làm việc -->
@@ -232,10 +229,14 @@
                                                     <span class="o_vd_kh_cap_badge"><t t-esc="nv.capacity_label or 'Junior'"/></span>
                                                 </div>
 
-                                                <!-- NHÓM 2: Khách hàng — KH mới (stage=new) -->
+                                                <!-- NHÓM 2: Khách hàng — KH mới (stage=new) + Tổng KH (badge có viền) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
-                                                    <span class="o_vd_kh_metric_num">
+                                                    <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg">
                                                         <t t-esc="nv.new_count"/>
+                                                    </span>
+                                                    <span class="o_vd_kh_metric_total"
+                                                          t-att-title="'Tổng KH: ' + (nv.total_leads or 0)">
+                                                        <t t-esc="nv.total_leads or 0"/>
                                                     </span>
                                                     <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
