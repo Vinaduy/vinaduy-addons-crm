@@ -226,6 +226,12 @@ class CrmLead(models.Model):
     vd_intake_open = fields.Boolean(
         string='Thông tin tư vấn', default=False, copy=False,
     )
+    # Khoá phiếu khai thác sau khi NV bấm "Lưu & Chuyển sang BÁO GIÁ".
+    # NV không sửa được khi locked. Admin/Leader có nút "Mở khoá" để bypass.
+    vd_intake_locked = fields.Boolean(
+        string='Đã khoá thông tin tư vấn', default=False, copy=False,
+        help='True sau khi NV bấm Lưu & Chuyển sang Báo giá. Admin/Leader có thể mở khoá.',
+    )
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
     # `help` = kịch bản gợi ý cho NV khi gọi (hiển thị tooltip).
@@ -2176,7 +2182,46 @@ class CrmLead(models.Model):
                 vals['callback_date'] = default_callback
         return super().create(vals_list)
 
+    # Các field intake bị khoá sau khi NV bấm "Lưu & Chuyển sang Báo giá".
+    # NV không write được nữa; admin/leader bypass bằng action_unlock_intake.
+    _INTAKE_LOCKED_FIELDS = frozenset({
+        'vd_intake_province_id', 'vd_intake_district',
+        'vd_intake_position', 'vd_intake_land_type', 'vd_intake_dimensions',
+        'vd_intake_area_m2', 'vd_intake_length_m', 'vd_intake_width_m',
+        'vd_intake_house_length_m', 'vd_intake_house_width_m', 'vd_intake_total_m2',
+        'vd_intake_house_type', 'vd_intake_house_type_other',
+        'vd_intake_foundation_type', 'vd_intake_roof_type',
+        'vd_intake_floors_select', 'vd_intake_floors_num', 'vd_intake_has_tum',
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2',
+        'vd_intake_function', 'vd_intake_function_notes',
+        'vd_intake_floor_1_function_ids', 'vd_intake_floor_2_function_ids',
+        'vd_intake_floor_3_function_ids', 'vd_intake_floor_4_function_ids',
+        'vd_intake_floor_5_function_ids', 'vd_intake_floor_6_function_ids',
+        'vd_intake_floor_7_function_ids', 'vd_intake_floor_tum_function_ids',
+        'vd_intake_timeline', 'vd_intake_budget', 'vd_intake_budget_amount',
+        'vd_intake_car_access', 'vd_intake_car_access_select',
+    })
+
     def write(self, vals):
+        # ============ Chặn NV sửa intake khi đã khoá ============
+        locked_keys = self._INTAKE_LOCKED_FIELDS & vals.keys()
+        if locked_keys:
+            current_user = self.env.user
+            is_privileged = (
+                current_user._is_superuser()
+                or current_user.has_group('vd_crm_lead.vd_crm_group_admin')
+                or current_user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+            )
+            if not is_privileged:
+                for rec in self:
+                    if rec.vd_intake_locked:
+                        raise UserError(_(
+                            'Thông tin tư vấn đã được chốt. Liên hệ Trưởng nhóm '
+                            'hoặc Admin để mở khoá nếu cần chỉnh sửa.'
+                        ))
+
         # ============ Phân quyền: chặn user không được phép chuyển KH ============
         # Nếu vals['user_id'] khác user_id hiện tại → user đang cố CHUYỂN KH cho
         # NV khác. Chỉ user thuộc group có can_reassign_lead=True mới được làm.
@@ -2443,6 +2488,25 @@ class CrmLead(models.Model):
         self.vd_intake_open = False
         return True
 
+    def action_unlock_intake(self):
+        """🔓 Mở khoá thông tin tư vấn — chỉ admin/leader. NV bị reject."""
+        self.ensure_one()
+        is_privileged = (
+            self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not is_privileged:
+            raise UserError(_(
+                'Chỉ Admin / Trưởng nhóm mới được mở khoá thông tin tư vấn đã chốt.'
+            ))
+        self.vd_intake_locked = False
+        self.vd_intake_open = True
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_('🔓 <b>%s</b> đã mở khoá thông tin tư vấn để chỉnh sửa.') % self.env.user.name,
+        )
+        return True
+
     def action_open_intake_popup(self):
         """LEGACY: redirect về chính lead form (popup đã bị xóa).
         Giữ lại stub để tương thích nếu có button cũ còn gọi."""
@@ -2458,15 +2522,47 @@ class CrmLead(models.Model):
 
     def action_save_intake_done(self):
         """Lưu thông tin khai thác → đóng phiếu (quay về tóm tắt) + AUTO
-        chuyển stage sang Báo giá (nếu chưa). Trả về effect rainbow_man."""
+        chuyển stage sang Báo giá (nếu chưa). Trả về effect rainbow_man.
+
+        NV (không phải admin/leader) phải điền đủ field bắt buộc:
+        tổng diện tích sàn, số tầng, móng, kiểu nhà, tỉnh/thành,
+        ngân sách dự kiến, thời gian khởi công.
+        """
         self.ensure_one()
+
+        # ===== Validate required fields cho NV =====
+        is_privileged = (
+            self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not is_privileged:
+            missing = []
+            if not (self.vd_intake_total_m2 or 0) > 0:
+                missing.append('Tổng diện tích sàn (m²)')
+            if not self.vd_intake_floors_select:
+                missing.append('Số tầng')
+            if not self.vd_intake_foundation_type:
+                missing.append('Loại móng')
+            if not self.vd_intake_house_type:
+                missing.append('Kiểu nhà')
+            if not self.vd_intake_province_id:
+                missing.append('Tỉnh / Thành')
+            if not (self.vd_intake_budget_amount or 0) > 0:
+                missing.append('Ngân sách dự kiến')
+            if not self.vd_intake_timeline:
+                missing.append('Thời gian khởi công')
+            if missing:
+                raise UserError(_(
+                    '❗ Chưa đủ thông tin để lưu. Vui lòng điền:\n• %s'
+                ) % '\n• '.join(missing))
+
         filled = sum(1 for f in self._intake_data_fields if self[f])
         total = len(self._intake_data_fields)
         pct = round(filled * 100 / total) if total else 0
         kh = self.partner_name or self.contact_name or self.name or 'khách hàng'
 
-        # Đóng phiếu khai thác → trở về tóm tắt
-        write_vals = {'vd_intake_open': False}
+        # Đóng phiếu khai thác + khoá để NV không sửa được nữa
+        write_vals = {'vd_intake_open': False, 'vd_intake_locked': True}
 
         # AUTO chuyển stage sang "Báo giá" — bao gồm cả callback (Hẹn gọi lại).
         # User bấm SAVE = họ muốn chuyển. Chỉ skip nếu đã ở quote/negotiate/won/lost.

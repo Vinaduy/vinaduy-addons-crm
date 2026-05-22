@@ -760,9 +760,20 @@
 
                         <!-- ===== FOOTER sticky: button Lưu góc phải dưới ===== -->
                         <div class="o_vd_popup_footer">
+                            <field name="vd_intake_locked" invisible="1"/>
                             <button string="🎉 Lưu &amp; Chuyển sang BÁO GIÁ"
                                     name="action_save_intake_done" type="object"
-                                    class="btn btn-primary o_vd_btn_save"/>
+                                    class="btn btn-primary o_vd_btn_save"
+                                    invisible="vd_intake_locked"/>
+                            <span class="o_vd_intake_locked_badge"
+                                  invisible="not vd_intake_locked">
+                                🔒 Thông tin đã chốt — không sửa được.
+                            </span>
+                            <button string="🔓 Mở khoá để sửa"
+                                    name="action_unlock_intake" type="object"
+                                    class="btn btn-warning o_vd_btn_unlock"
+                                    invisible="not vd_intake_locked"
+                                    groups="vd_crm_lead.vd_crm_group_admin,vd_crm_lead.vd_crm_group_team_leader"/>
                         </div>
                         </div><!-- /.o_vd_intake_popup_panel -->
                     </div><!-- /.o_vd_intake_popup_overlay -->
@@ -868,7 +879,7 @@
                 <!-- ============================================================
                      🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate
                      ============================================================ -->
-                <div class="o_vd_negotiate_panel" invisible="stage_code != 'negotiate'">
+                <div class="o_vd_negotiate_panel" invisible="stage_code not in ['quote', 'negotiate', 'won']">
                     <div class="o_vd_nego_head">
                         <i class="fa fa-exclamation-triangle"/>
                         <span>Vấn đề</span>

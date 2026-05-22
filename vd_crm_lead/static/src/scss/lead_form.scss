@@ -2482,11 +2482,36 @@ div.o_vd_layout_right {
     display: flex;
     justify-content: flex-end;       /* button góc phải dưới cùng */
     align-items: center;
+    gap: 0.6rem;
 
     .o_vd_btn_save {
         font-size: 0.95rem;
         padding: 0.55rem 1.4rem;
         font-weight: 600;
+    }
+    .o_vd_intake_locked_badge {
+        flex: 1;
+        color: #92400e;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+        border-radius: 6px;
+        padding: 0.45rem 0.8rem;
+        font-weight: 600;
+        font-size: 0.88rem;
+    }
+}
+
+/* Khi thông tin đã chốt → khoá toàn bộ inputs trong popup body.
+   Dùng :has() — modern browser hỗ trợ. Server-side cũng chặn trong write(). */
+.o_vd_intake_popup_panel:has(.o_vd_intake_locked_badge:not(.o_invisible_modifier)) {
+    .o_vd_popup_body {
+        pointer-events: none;
+        opacity: 0.7;
+        filter: grayscale(0.25);
+    }
+    .o_vd_popup_footer,
+    .o_vd_popup_header {
+        pointer-events: auto;   /* footer + header (đóng, unlock) vẫn click được */
     }
 }
 
