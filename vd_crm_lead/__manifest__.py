@@ -65,6 +65,7 @@
             'vd_crm_lead/static/src/xml/copy_preview_dialog.xml',
             'vd_crm_lead/static/src/scss/dashboard.scss',
             'vd_crm_lead/static/src/scss/lead_form.scss',
+            'vd_crm_lead/static/src/scss/responsive_overrides.scss',
         ],
     },
     'post_init_hook': '_post_init_hook',
