@@ -160,8 +160,16 @@ class VdLeadQuickAddWizard(models.TransientModel):
             }
             for line_fld, lead_fld in mirror_map.items():
                 val = line[line_fld]
-                if val:
-                    intake_vals[lead_fld] = val.id if hasattr(val, 'id') else val
+                if not val:
+                    continue
+                # Defensive: nếu lead field là Selection, chỉ gán khi key có
+                # trong selection — tránh ValueError nếu wizard/lead lệch keys.
+                lead_field = Lead._fields.get(lead_fld)
+                if lead_field and lead_field.type == 'selection':
+                    valid_keys = {k for k, _lbl in lead_field.selection}
+                    if val not in valid_keys:
+                        continue
+                intake_vals[lead_fld] = val.id if hasattr(val, 'id') else val
             # Tách "Nt" → vd_intake_floors_select=N + vd_intake_has_tum=True
             if line.i_floors_select:
                 raw = line.i_floors_select
@@ -273,10 +281,14 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     i_province_id = fields.Many2one('res.country.state', string='Tỉnh/Thành',
                                     domain="[('country_id.code', '=', 'VN')]")
     i_district = fields.Many2one('vd.district', string='Huyện/Quận')
+    # Selection PHẢI khớp 1-1 với crm.lead.vd_intake_dimensions để mirror_map
+    # copy thẳng được mà không cần convert key.
     i_dimensions = fields.Selection([
-        ('co_so_co_phep', 'Có sổ + có phép'),
+        ('co_so_co_phep', 'Có sổ + có cấp phép'),
         ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
-        ('chua_so', 'Chưa có sổ'),
+        ('chua_co_so', 'Chưa có sổ'),
+        ('dang_xin_phep', 'Đang xin cấp phép'),
+        ('khac', 'Khác'),
     ], string='Sổ đỏ / cấp phép')
     i_land_type = fields.Selection([
         ('lien_tho', 'Đất liền thổ'),
