@@ -3,34 +3,43 @@
     <!-- ============ MODULE CATEGORY (cho user form Settings) ============ -->
     <record id="module_category_vd_crm" model="ir.module.category">
         <field name="name">VD CRM Phân quyền</field>
-        <field name="description">Phân quyền cho hệ thống CRM của VINADUY (4 vị trí: Nhân viên, Trưởng nhóm, Phó GĐ, Admin).</field>
+        <field name="description">Phân quyền cho hệ thống CRM của VINADUY (5 vị trí: CTV, Nhân viên, Trưởng nhóm, Phó GĐ, Admin).</field>
         <field name="sequence">10</field>
     </record>
 
-    <!-- ============ 4 SECURITY GROUPS — hierarchy: mỗi cấp implies cấp dưới ============ -->
-    <record id="vd_crm_group_employee" model="res.groups">
-        <field name="name">1. Nhân viên</field>
+    <!-- ============ 5 SECURITY GROUPS — hierarchy: mỗi cấp implies cấp dưới ============ -->
+    <record id="vd_crm_group_collaborator" model="res.groups">
+        <field name="name">1. Cộng tác viên</field>
         <field name="category_id" ref="module_category_vd_crm"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('sales_team.group_sale_salesman_all_leads'))]"/>
-        <field name="comment">Nhân viên CRM — chỉ thấy KH được giao cho mình. Không được chuyển KH cho người khác.</field>
+        <!-- CTV: internal user + sales salesman basic (chỉ thấy lead của mình).
+             KHÔNG implies salesman_all_leads → CTV không xem KH chung của team. -->
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('sales_team.group_sale_salesman'))]"/>
+        <field name="comment">Cộng tác viên (CTV) — quyền thấp nhất, chỉ thấy KH được giao cho mình. Không xem KH của NV khác trong team.</field>
+    </record>
+
+    <record id="vd_crm_group_employee" model="res.groups">
+        <field name="name">2. Nhân viên</field>
+        <field name="category_id" ref="module_category_vd_crm"/>
+        <field name="implied_ids" eval="[(4, ref('vd_crm_group_collaborator')), (4, ref('sales_team.group_sale_salesman_all_leads'))]"/>
+        <field name="comment">Nhân viên CRM — thấy KH được giao cho mình + xem lead toàn team. Không được chuyển KH cho người khác.</field>
     </record>
 
     <record id="vd_crm_group_team_leader" model="res.groups">
-        <field name="name">2. Trưởng nhóm</field>
+        <field name="name">3. Trưởng nhóm</field>
         <field name="category_id" ref="module_category_vd_crm"/>
         <field name="implied_ids" eval="[(4, ref('vd_crm_group_employee'))]"/>
         <field name="comment">Trưởng nhóm — thấy KH của tất cả NV trong team, được chuyển KH giữa các NV trong team.</field>
     </record>
 
     <record id="vd_crm_group_deputy_director" model="res.groups">
-        <field name="name">3. Phó Giám đốc</field>
+        <field name="name">4. Phó Giám đốc</field>
         <field name="category_id" ref="module_category_vd_crm"/>
         <field name="implied_ids" eval="[(4, ref('vd_crm_group_team_leader')), (4, ref('sales_team.group_sale_manager'))]"/>
         <field name="comment">Phó Giám đốc — thấy KH của TẤT CẢ team, được xoá KH, chuyển KH liên team.</field>
     </record>
 
     <record id="vd_crm_group_admin" model="res.groups">
-        <field name="name">4. Admin</field>
+        <field name="name">5. Admin</field>
         <field name="category_id" ref="module_category_vd_crm"/>
         <field name="implied_ids" eval="[(4, ref('vd_crm_group_deputy_director')), (4, ref('base.group_system'))]"/>
         <!-- Auto-add superuser (base.user_admin) vào group này khi cài/upgrade

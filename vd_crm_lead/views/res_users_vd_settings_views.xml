@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ============ INHERIT FORM Người dùng — thêm Phòng ban + Cài đặt CRM ============ -->
+    <record id="view_users_form_vd_crm" model="ir.ui.view">
+        <field name="name">res.users.form.vd.crm</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <!-- Chèn vào sau email (top form), trước notebook tabs -->
+            <xpath expr="//field[@name='email']" position="after">
+                <group string="🏢 Phòng ban &amp; Cài đặt CRM" name="vd_crm_user_settings">
+                    <field name="sale_team_id" string="Phòng ban (Team)"
+                           options="{'no_create': True}"/>
+                    <field name="vd_work_start_date" string="📅 Ngày bắt đầu làm việc"/>
+                    <field name="vd_work_months" string="📊 Số tháng làm việc" readonly="1"/>
+                    <field name="vd_capacity_level" string="⭐ Năng lực" widget="badge"/>
+                    <field name="vd_target_month" string="🎯 Chỉ tiêu HĐ/tháng"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
     <!-- ============ LIST: Cài đặt NV — ngày bắt đầu + năng lực ============ -->
     <record id="view_vd_users_settings_list" model="ir.ui.view">
         <field name="name">res.users.vd.settings.list</field>
