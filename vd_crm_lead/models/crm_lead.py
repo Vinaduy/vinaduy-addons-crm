@@ -4216,6 +4216,8 @@ class CrmLead(models.Model):
             'stage_code': l.stage_code or '',
             # Team/Công ty: extract prefix từ tên NV (vd: "HCM1 - Mai" → "HCM1")
             'team_label': self._vd_team_label_for(l.user_id),
+            # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
+            'problem_open_count': l.vd_lead_problem_open_count,
         } for l in leads]
 
     @api.model

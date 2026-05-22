@@ -1291,13 +1291,18 @@
 
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
-                            <div class="o_vd_lead_section_head">
-                                <h5 class="mb-0">
-                                    <t t-if="state.alertFilter"><t t-esc="alertTitle"/></t>
-                                    <t t-else=""><t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/></t>
-                                </h5>
-                                <span class="o_vd_lead_count_badge">
-                                    <t t-esc="state.leads.length"/> KH
+                            <!-- ===== FILTER BAR (chuyên nghiệp, UPPERCASE) ===== -->
+                            <div class="o_vd_lead_filter_bar">
+                                <span class="o_vd_filter_chip o_vd_filter_chip_active">
+                                    <i class="fa fa-filter"/>
+                                    <span class="o_vd_filter_chip_lbl">
+                                        <t t-if="state.alertFilter"><t t-esc="alertTitle"/></t>
+                                        <t t-else=""><t t-esc="selectedStage and selectedStage.name or 'Khách hàng'"/></t>
+                                    </span>
+                                    <span class="o_vd_filter_chip_count">
+                                        <t t-if="isNewStageSplit"><t t-esc="leadsNoProblems.length"/></t>
+                                        <t t-else=""><t t-esc="state.leads.length"/></t>
+                                    </span>
                                 </span>
                                 <button t-if="state.alertFilter" class="o_vd_clear_alert_btn"
                                         t-on-click="() => this.clearAlertFilter()"
@@ -1305,8 +1310,47 @@
                                     <i class="fa fa-times me-1"/>Bỏ filter
                                 </button>
                             </div>
-                            <div class="o_vd_lead_section_body">
+                            <!-- Pills sát filter bar — tiết kiệm diện tích -->
+                            <div class="o_vd_lead_section_body o_vd_lead_section_body_compact">
                                 <t t-call="vd_crm_lead.LeadTableBody"/>
+                            </div>
+                        </section>
+
+                        <!-- ===== SECTION 2: ĐANG XỬ LÝ VẤN ĐỀ (mỗi KH 1 dòng dài) ===== -->
+                        <section t-if="isNewStageSplit and leadsWithProblems.length"
+                                 class="o_vd_lead_section o_vd_problem_section">
+                            <div class="o_vd_lead_filter_bar">
+                                <span class="o_vd_filter_chip o_vd_filter_chip_warn">
+                                    <i class="fa fa-hourglass-half"/>
+                                    <span class="o_vd_filter_chip_lbl">ĐANG XỬ LÝ VẤN ĐỀ</span>
+                                    <span class="o_vd_filter_chip_count"><t t-esc="leadsWithProblems.length"/></span>
+                                </span>
+                            </div>
+                            <div class="o_vd_problem_rows">
+                                <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
+                                     t-on-click="() => this.openLead(lead.id)"
+                                     class="o_vd_problem_row">
+                                    <span class="o_vd_problem_row_team"
+                                          t-att-data-team="lead.team_label">
+                                        <t t-esc="lead.team_label or 'KHÁC'"/>
+                                    </span>
+                                    <span class="o_vd_problem_row_name">
+                                        <t t-esc="pillTitle(lead)"/>
+                                    </span>
+                                    <span class="o_vd_problem_row_phone">
+                                        <i class="fa fa-phone me-1"/><t t-esc="lead.phone or '—'"/>
+                                    </span>
+                                    <span class="o_vd_problem_row_nv">
+                                        <i class="fa fa-user me-1"/><t t-esc="lead.user_name or '—'"/>
+                                    </span>
+                                    <span class="o_vd_problem_row_count"
+                                          t-att-class="lead.problem_open_count >= 3 ? 'o_vd_problem_row_count o_vd_pc_high' : 'o_vd_problem_row_count'">
+                                        ⚠️ <t t-esc="lead.problem_open_count"/> vấn đề
+                                    </span>
+                                    <span t-if="lead.callback_date" class="o_vd_problem_row_callback">
+                                        📅 <t t-esc="lead.callback_date.slice(0, 16).replace('T', ' ')"/>
+                                    </span>
+                                </div>
                             </div>
                         </section>
 

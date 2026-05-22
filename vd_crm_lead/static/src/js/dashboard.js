@@ -243,13 +243,28 @@ export class VdCrmDashboard extends Component {
         return '•';
     }
 
+    // Split leads cho UI "Khách mới" — top section pills, bottom section rows.
+    get leadsNoProblems() {
+        return (this.state.leads || []).filter(l => !l.problem_open_count);
+    }
+    get leadsWithProblems() {
+        return (this.state.leads || []).filter(l => l.problem_open_count > 0);
+    }
+    get isNewStageSplit() {
+        // Chỉ split khi đang ở stage "Khách mới" và KHÔNG đang filter alert.
+        return this.selectedStage?.code === 'new' && !this.state.alertFilter;
+    }
+
     get leadGroups() {
         // Trả về [{key, label, icon, color, leads}] để render columns.
         // Stage 'new' → group theo nguồn Pancake.
         // Stage 'won' → group theo urgency.
         // Stage khác → return null (caller dùng flex wrap).
         const code = this.selectedStage?.code;
-        const leads = this.state.leads || [];
+        // Khi stage='new', section top chỉ render KH chưa có vấn đề.
+        const leads = this.isNewStageSplit
+            ? this.leadsNoProblems
+            : (this.state.leads || []);
 
         if (code === 'new') {
             // Group theo NV (user_name) — mỗi NV 1 column liệt kê toàn bộ KH mới
