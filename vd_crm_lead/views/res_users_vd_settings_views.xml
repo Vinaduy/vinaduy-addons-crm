@@ -22,7 +22,7 @@
         <field name="res_model">res.users</field>
         <field name="view_mode">list</field>
         <field name="view_id" ref="view_vd_users_settings_list"/>
-        <field name="domain">[('share', '=', False), ('active', '=', True), ('groups_id', 'in', [ref('sales_team.group_sale_salesman')])]</field>
+        <field name="domain" eval="[('share', '=', False), ('active', '=', True), ('groups_id', 'in', [ref('sales_team.group_sale_salesman')])]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Cài đặt thông tin từng NV</p>
             <p>Set ngày bắt đầu làm việc + năng lực. Click trực tiếp vào ô để chỉnh.</p>
