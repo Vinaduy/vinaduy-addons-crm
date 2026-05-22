@@ -272,7 +272,66 @@ html, body {
 }
 
 /* ============================================================
-   17. MEDIA: viewport rất hẹp — gọn padding
+   17. COMPACT DENSITY — đồng nhất giữa Windows (DPI 125%) và Mac retina.
+   Windows browser thường zoom lên ~25%, khiến font-size 1.x rem trong
+   dashboard/form trông bự. Set base font-size root container về 13px
+   để mọi unit rem bên trong tự co lại tương đương Mac compact view.
+   ============================================================ */
+.o_vd_dash_root,
+.o_vd_kh_team_grid,
+.o_vd_intake_popup_panel,
+.o_vd_quote_panel,
+.o_vd_negotiate_panel,
+.o_form_view[data-model="crm.lead"] .o_form_sheet,
+[class*="o_vd_dash"],
+[class*="o_vd_kh"],
+[class*="o_vd_sum"] {
+    font-size: 13px;
+}
+
+/* Sidebar/header label trong dashboard: bớt to */
+.o_vd_dash_root,
+[class*="o_vd_dash"] {
+    .o_vd_dash_sidebar_label,
+    .o_vd_dash_card_title,
+    .o_vd_kh_team_header,
+    h1, h2, h3 {
+        font-size: 1rem;          /* 13px base × 1 = 13px */
+        line-height: 1.3;
+    }
+    h1 { font-size: 1.15rem; }     /* ~15px */
+    h2 { font-size: 1.05rem; }     /* ~14px */
+}
+
+/* Nút lớn trong sidebar (Thêm mới / Kiểm soát…) — giảm padding & font */
+.o_vd_dash_root,
+[class*="o_vd_dash"] {
+    .btn, button[class*="btn"] {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+        line-height: 1.2;
+    }
+}
+
+/* Bảng KH team — row height + font compact */
+.o_vd_kh_team_list,
+.o_vd_kh_team_row {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+.o_vd_kh_team_row {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+/* Form lead: giảm gap inner-group */
+.o_form_view[data-model="crm.lead"] .o_inner_group {
+    row-gap: 0.4rem;
+    column-gap: 0.6rem;
+}
+
+/* ============================================================
+   18. MEDIA: viewport rất hẹp — gọn padding
    ============================================================ */
 @media (max-width: 600px) {
     .o_vd_intake_popup_panel {
