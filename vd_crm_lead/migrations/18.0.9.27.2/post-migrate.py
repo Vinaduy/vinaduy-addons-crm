@@ -3,6 +3,8 @@
 
 Vì vd_nego_problem_data.xml dùng noupdate="1", record đã có trong DB không
 được override khi -u module. Migration này force update theo XML mới.
+
+Note: name là Char(translate=True) → DB type JSONB, phải dùng jsonb syntax.
 """
 
 
@@ -10,15 +12,18 @@ def migrate(cr, version):
     # very_low_budget: "Thiếu kinh phí nhiều" → "Cân đối tài chính"
     cr.execute("""
         UPDATE vd_nego_problem
-           SET name = 'Cân đối tài chính', icon = '💰', sequence = 5
+           SET name = jsonb_build_object('en_US', %s),
+               icon = %s,
+               sequence = 5
          WHERE code = 'very_low_budget'
-    """)
+    """, ('Cân đối tài chính', '💰'))
     # extra_area: "Phát sinh diện tích" → "Phát sinh"
     cr.execute("""
         UPDATE vd_nego_problem
-           SET name = 'Phát sinh', sequence = 7
+           SET name = jsonb_build_object('en_US', %s),
+               sequence = 7
          WHERE code = 'extra_area'
-    """)
+    """, ('Phát sinh',))
     # promotion: giữ tên, đẩy sequence lên top group tài chính
     cr.execute("""
         UPDATE vd_nego_problem

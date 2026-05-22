@@ -3317,7 +3317,7 @@
         right: 0;
         width: max-content;
         min-width: 360px;
-        max-width: min(720px, calc(100vw - 80px));   /* cap theo viewport */
+        max-width: unquote("min(720px, calc(100vw - 80px))");   /* cap theo viewport */
         max-height: 540px;
         flex-direction: column;
         background: var(--bs-body-bg, #fff);
