@@ -338,6 +338,16 @@ html, body {
 }
 
 /* ============================================================
+   17a. LEAD FORM COMPACT 70% — đồng bộ với dashboard + intake popup.
+   Zoom scoped vào form sheet của crm.lead (không ảnh hưởng control panel,
+   breadcrumb, các form khác). Click point chính xác vì dùng CSS zoom.
+   ============================================================ */
+.o_form_view[data-model="crm.lead"] .o_form_sheet_bg,
+.o_form_view[data-model="crm.lead"] .o_form_sheet {
+    zoom: 0.7;
+}
+
+/* ============================================================
    17. COMPACT DENSITY — đồng nhất giữa Windows (DPI 125%) và Mac retina.
    Windows browser thường zoom lên ~25%, khiến font-size 1.x rem trong
    dashboard/form trông bự. Set base font-size root container về 13px
