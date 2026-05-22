@@ -68,7 +68,7 @@ html, body {
 }
 
 /* ============================================================
-   4. POPUP "Thông tin tư vấn" — cap viewport
+   4. POPUP "Thông tin tư vấn" — cap viewport + compact 70%
    ============================================================ */
 .o_vd_intake_popup_overlay {
     max-width: 100vw;
@@ -79,6 +79,8 @@ html, body {
     max-width: 95vw !important;
     max-height: 92vh !important;
     overflow: hidden;
+    /* COMPACT 70% scoped — đồng bộ với dashboard. Zoom CSS giữ click point. */
+    zoom: 0.7;
 }
 .o_vd_popup_body {
     overflow-x: hidden;
