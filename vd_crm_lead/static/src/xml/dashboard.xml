@@ -185,14 +185,18 @@
                                     <div class="o_vd_kh_table_header_sidebar"/>
                                     <div class="o_vd_kh_table_header_cells">
                                         <!-- NHÓM 1: Thông tin NV -->
-                                        <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_months">📅 Số tháng</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_capacity o_vd_kh_group_end">⭐ Năng lực</div>
+                                        <div class="o_vd_kh_th_group o_vd_kh_th_group_info">
+                                            <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_months">📅 Số tháng</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_capacity">⭐ Năng lực</div>
+                                        </div>
                                         <!-- NHÓM 2: Khách hàng -->
-                                        <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
-                                        <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
+                                        <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
+                                            <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="o_vd_kh_team_list">
@@ -210,26 +214,28 @@
                                                  ở Box head 'Đã xong / Đang xử lý / KH mới') -->
                                             <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
                                                  class="o_vd_kh_nv_row">
-                                                <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
-                                                     t-att-title="nv.full_name + ' — Click để xem dashboard'"
-                                                     t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                    <span class="o_vd_kh_nv_link_name">
-                                                        <t t-esc="nv.name"/>
-                                                    </span>
+                                                <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
+                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
+                                                    <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
+                                                         t-att-title="nv.full_name + ' — Click để xem dashboard'"
+                                                         t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
+                                                        <span class="o_vd_kh_nv_link_name">
+                                                            <t t-esc="nv.name"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_vd_kh_col_info o_vd_kh_col_months">
+                                                        <span class="o_vd_kh_info_num"><t t-esc="nv.work_months or 0"/></span>
+                                                        <span class="o_vd_kh_info_unit">tháng</span>
+                                                    </div>
+                                                    <div t-att-class="'o_vd_kh_col_info o_vd_kh_col_capacity o_vd_kh_cap_' + (nv.capacity_level or 'junior')">
+                                                        <span class="o_vd_kh_cap_badge"><t t-esc="nv.capacity_label or 'Junior'"/></span>
+                                                    </div>
                                                 </div>
 
-                                                <!-- NHÓM 1: Thông tin — Số tháng làm việc -->
-                                                <div class="o_vd_kh_col_info o_vd_kh_col_months">
-                                                    <span class="o_vd_kh_info_num"><t t-esc="nv.work_months or 0"/></span>
-                                                    <span class="o_vd_kh_info_unit">tháng</span>
-                                                </div>
+                                                <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
+                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
-                                                <!-- NHÓM 1: Thông tin — Năng lực NV -->
-                                                <div t-att-class="'o_vd_kh_col_info o_vd_kh_col_capacity o_vd_kh_group_end o_vd_kh_cap_' + (nv.capacity_level or 'junior')">
-                                                    <span class="o_vd_kh_cap_badge"><t t-esc="nv.capacity_label or 'Junior'"/></span>
-                                                </div>
-
-                                                <!-- NHÓM 2: Khách hàng — KH mới (stage=new) + Tổng KH (badge có viền) -->
+                                                <!-- KH mới (stage=new) + Tổng KH (badge có viền) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
                                                     <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg">
                                                         <t t-esc="nv.new_count"/>
@@ -330,6 +336,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                </div><!-- /.o_vd_kh_row_group_kh -->
                                             </div>
                                         </div>
                                     </div>
