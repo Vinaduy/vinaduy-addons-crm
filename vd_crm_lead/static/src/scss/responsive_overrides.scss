@@ -339,12 +339,12 @@ html, body {
 
 /* ============================================================
    17a. LEAD FORM COMPACT 70% — đồng bộ với dashboard + intake popup.
-   Zoom scoped vào form sheet của crm.lead (không ảnh hưởng control panel,
-   breadcrumb, các form khác). Click point chính xác vì dùng CSS zoom.
+   Scope qua class vd unique (.o_vd_layout_grid + .o_vd_dup_warn_banner)
+   — bền hơn selector [data-model] vì Odoo 18 không guarantee attribute đó.
    ============================================================ */
-.o_form_view[data-model="crm.lead"] .o_form_sheet_bg,
-.o_form_view[data-model="crm.lead"] .o_form_sheet {
-    zoom: 0.7;
+.o_vd_layout_grid,
+.o_vd_dup_warn_banner {
+    zoom: 0.7 !important;
 }
 
 /* ============================================================
