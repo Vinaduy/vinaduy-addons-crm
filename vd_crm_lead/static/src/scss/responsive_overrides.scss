@@ -1,139 +1,294 @@
 /* ===========================================================================
    RESPONSIVE OVERRIDES — vd_crm_lead
-   ---------------------------------------------------------------------------
-   File này load SAU lead_form.scss + dashboard.scss để override các hardcoded
-   width/min-width gây tràn ngang trên màn hình hẹp (laptop 14" / Mac 13").
-   Mục tiêu: KHÔNG bao giờ tràn ngang. Wrap & scroll nội bộ khi cần.
+   Load LAST in bundle. Mục tiêu: KHÔNG tràn ngang ở zoom 100% trên MỌI màn
+   hình (laptop 13" → 4K). Tất cả layout custom phải tự co/wrap khi viewport
+   nhỏ; tables scroll TRONG container thay vì page; popups capped vào viewport.
+   Lưu ý libsass: dùng unquote("min(...)") khi mix units px/vw.
    =========================================================================== */
 
-/* ----- Global safety: ngăn body / main scroll ngang ----- */
-.o_action_manager,
-.o_content {
+/* ============================================================
+   1. GLOBAL: KHÔNG SCROLL NGANG PAGE
+   ============================================================ */
+html, body {
     overflow-x: hidden;
+    max-width: 100vw;
 }
-
-/* ----- Flex/Grid children dễ shrink (mặc định min-width: auto gây tràn) ----- */
-.o_vd_intake_popup_panel,
-.o_vd_intake_popup_panel .o_vd_popup_body,
-.o_vd_areas_grid,
-.o_vd_hero_grid_2col,
-.o_vd_hero_card,
-.o_vd_floor_area_list,
-.o_vd_floors_row,
-.o_vd_hero_tech_list,
-.o_vd_pf,
-.o_vd_pf_compact,
-.o_vd_summary_grid,
-.o_vd_summary_card,
-.o_vd_intake_layout,
-.o_vd_intake_main,
-.o_vd_quote_panel,
-.o_vd_negotiate_panel,
-.o_vd_problem_picker_dropdown,
-.o_vd_problem_tracker,
-.o_vd_kh_team_row,
-.o_vd_kh_team_list,
-.o_vd_sum_grid,
-.o_vd_dash_card,
-.o_vd_dash_row,
-.o_vd_dash_cell {
-    min-width: 0;          // critical: flex/grid children mặc định không shrink dưới content size
+.o_action_manager,
+.o_content,
+.o_main {
+    overflow-x: hidden;
     max-width: 100%;
 }
 
-/* ----- Popup: cap kích thước theo viewport ----- */
+/* Box-sizing đảm bảo border/padding không gây tràn */
+.o_action_manager *,
+.o_action_manager *::before,
+.o_action_manager *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   2. FORM SHEET: dùng max-width: 100% chứ không hardcode px
+   ============================================================ */
+.o_form_view .o_form_sheet_bg .o_form_sheet,
+.o_form_view .o_form_sheet {
+    max-width: 100% !important;
+    width: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow-x: hidden;
+}
+
+/* ============================================================
+   3. FLEX/GRID CHILDREN: min-width: 0 để không tràn (rule vàng)
+   ============================================================ */
+.o_action_manager .o_form_sheet > *,
+.o_action_manager .o_inner_group,
+.o_action_manager .o_group,
+.o_action_manager .o_horizontal_separator,
+[class*="o_vd_"] {
+    min-width: 0;
+}
+
+/* Block-level Vd containers: cap 100% */
+[class*="o_vd_hero"],
+[class*="o_vd_summary"],
+[class*="o_vd_intake"],
+[class*="o_vd_quote"],
+[class*="o_vd_negotiate"],
+[class*="o_vd_problem"],
+[class*="o_vd_dash"],
+[class*="o_vd_kh"],
+[class*="o_vd_sum"],
+[class*="o_vd_workflow"],
+[class*="o_vd_panel"],
+[class*="o_vd_card"] {
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* ============================================================
+   4. POPUP "Thông tin tư vấn" — cap viewport
+   ============================================================ */
+.o_vd_intake_popup_overlay {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
 .o_vd_intake_popup_panel {
     width: unquote("min(95vw, 1200px)") !important;
     max-width: 95vw !important;
     max-height: 92vh !important;
+    overflow: hidden;
 }
-.o_vd_intake_popup_overlay {
-    .o_vd_intake_popup_panel { max-width: 95vw !important; }
+.o_vd_popup_body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-width: 100%;
 }
 
-/* ----- Hero grid 2-col: wrap khi viewport < 1100 ----- */
+/* ============================================================
+   5. HERO GRID — wrap dưới 1100px
+   ============================================================ */
+.o_vd_hero_grid_2col {
+    display: grid;
+    gap: 0.6rem;
+}
+@media (min-width: 1101px) {
+    .o_vd_hero_grid_2col {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+}
 @media (max-width: 1100px) {
     .o_vd_hero_grid_2col {
         grid-template-columns: 1fr !important;
-        gap: 0.6rem;
     }
-    .o_vd_hero_card { min-width: 0; }
+}
+.o_vd_hero_card { min-width: 0; max-width: 100%; }
+
+/* ============================================================
+   6. DIỆN TÍCH GRID — wrap dưới 900px
+   ============================================================ */
+.o_vd_areas_grid {
+    display: grid;
+    gap: 0.4rem;
+}
+@media (max-width: 900px) {
+    .o_vd_areas_grid {
+        grid-template-columns: 1fr !important;
+    }
+    .o_vd_area_row {
+        flex-wrap: wrap !important;
+    }
 }
 
-/* ----- Floor area list: wrap mềm ----- */
+/* ============================================================
+   7. FLOORS ROW (chip 1-7 + Tum) — wrap nhiều dòng nếu hẹp
+   ============================================================ */
+.o_vd_floors_row,
+.o_vd_floors_chips,
+.o_vd_hero_tech_list {
+    flex-wrap: wrap !important;
+}
+
 .o_vd_floor_area_list {
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 0.5rem;
+    gap: 0.4rem;
     .o_vd_pf_compact {
         flex: 1 1 130px;
         min-width: 0;
     }
 }
 
-/* ----- Wizard quick-add: list table responsive ----- */
-.modal-dialog:has(.o_form_view[data-model="vd.lead.quick.add.wizard"]),
-.modal-dialog:has(form[data-model="vd.lead.quick.add.wizard"]) {
+/* ============================================================
+   8. WIZARD MODALS — cap 95vw + responsive
+   ============================================================ */
+.modal-dialog {
     max-width: 95vw !important;
-    width: 95vw !important;
-    margin: 1rem auto !important;
 }
-.o_form_view .o_list_view .o_list_table {
-    table-layout: auto;
+.modal-dialog.modal-xl,
+.modal-dialog.modal-lg {
+    max-width: 95vw !important;
+}
+.modal-body {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.modal-dialog .o_list_view {
+    max-width: 100%;
+    overflow-x: auto;
 }
 
-/* ----- Dashboard: cho phép wrap khi hẹp ----- */
+/* ============================================================
+   9. LIST/TABLE — scroll TRONG container, không tràn page
+   ============================================================ */
+.o_form_view .o_field_one2many,
+.o_form_view .o_field_x2many,
+.o_form_view .o_list_view,
+.o_vd_quote_breakdown_wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.o_vd_quote_breakdown_tbl {
+    min-width: 480px;   /* readability tối thiểu — cuộn nội bộ nếu hẹp */
+}
+
+/* ============================================================
+   10. DROPDOWN VẤN ĐỀ — cap viewport, không tràn phải
+   ============================================================ */
+.o_vd_problem_picker_dropdown {
+    position: relative;
+    .o_vd_problem_picker_menu {
+        max-width: unquote("min(720px, calc(100vw - 32px))");
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+}
+
+/* ============================================================
+   11. DROPDOWN custom (vd_selection_dropdown menu) cap viewport
+   ============================================================ */
+.o_vd_select_dd_menu {
+    max-width: unquote("min(360px, calc(100vw - 32px))");
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+/* ============================================================
+   12. DASHBOARD NV — cho phép wrap rows dưới 1280
+   ============================================================ */
 @media (max-width: 1280px) {
-    .o_vd_kh_team_list { min-width: 0 !important; }
-    .o_vd_dash_row { flex-wrap: wrap; }
+    .o_vd_kh_team_list,
+    .o_vd_dash_row,
+    .o_vd_dash_cards {
+        min-width: 0 !important;
+        flex-wrap: wrap !important;
+    }
+    .o_vd_dash_card,
+    .o_vd_dash_cell {
+        flex: 1 1 240px;
+        min-width: 0;
+    }
 }
 @media (max-width: 900px) {
-    .o_vd_areas_grid,
-    .o_vd_hero_tech_list {
-        grid-template-columns: 1fr !important;
+    .o_vd_dash_card,
+    .o_vd_dash_cell {
+        flex: 1 1 100%;
     }
-    .o_vd_floors_row {
+}
+
+/* ============================================================
+   13. TEXT WRAP — không kéo ngang giãn container
+   ============================================================ */
+.o_vd_intake_popup_panel,
+.o_vd_quote_panel,
+.o_vd_negotiate_panel,
+.o_vd_dash_card {
+    .o_field_widget input,
+    .o_field_widget textarea,
+    .o_field_widget .o_input,
+    .o_field_widget select {
+        max-width: 100%;
+        word-break: break-word;
+    }
+    h1, h2, h3, h4, h5, span, div, p, label {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* ============================================================
+   14. NAVBAR / HEADER không tràn (button row wrap)
+   ============================================================ */
+.o_form_view .o_form_statusbar {
+    flex-wrap: wrap;
+    overflow-x: auto;
+}
+.o_form_view .oe_button_box {
+    flex-wrap: wrap;
+}
+
+/* ============================================================
+   15. KANBAN / GRID Vd cards: auto-fit
+   ============================================================ */
+.o_vd_kh_team_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.8rem;
+    max-width: 100%;
+}
+
+/* ============================================================
+   16. CONTROL PANEL search bar không tràn
+   ============================================================ */
+.o_control_panel {
+    max-width: 100%;
+    .o_searchview {
+        max-width: 100%;
         flex-wrap: wrap;
     }
 }
 
-/* ----- Bảng quote breakdown: cuộn ngang nội bộ thay vì tràn page ----- */
-.o_vd_quote_breakdown_wrap {
-    overflow-x: auto;
-    max-width: 100%;
-    .o_vd_quote_breakdown_tbl {
-        min-width: 560px;     // đảm bảo readability nhưng cuộn nội bộ
+/* ============================================================
+   17. MEDIA: viewport rất hẹp — gọn padding
+   ============================================================ */
+@media (max-width: 600px) {
+    .o_vd_intake_popup_panel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
     }
-}
-
-/* ----- Negotiate problem picker dropdown: cap viewport, không tràn phải ----- */
-.o_vd_problem_picker_dropdown .o_vd_problem_picker_menu {
-    max-width: unquote("min(720px, calc(100vw - 32px))");
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-/* ----- Long text fields: cho phép wrap thay vì giãn ngang ----- */
-.o_vd_intake_popup_panel,
-.o_vd_quote_panel,
-.o_vd_negotiate_panel {
-    .o_field_widget input,
-    .o_field_widget textarea,
-    .o_field_widget .o_input {
-        max-width: 100%;
-        word-break: break-word;
+    .o_vd_popup_header,
+    .o_vd_popup_footer,
+    .o_vd_popup_body {
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
     }
-}
-
-/* ----- Chip/badge không tràn ngang trên header ----- */
-.o_vd_status_pills,
-.o_vd_tab_chips,
-.o_vd_floors_chips {
-    flex-wrap: wrap;
-}
-
-/* ----- Sheet inner: ngăn tràn ngang form lead ----- */
-.o_form_view .o_form_sheet_bg .o_form_sheet {
-    max-width: 100% !important;
-    overflow-x: auto;
+    .o_vd_hero_card,
+    .o_vd_summary_card {
+        padding: 0.5rem !important;
+    }
 }
