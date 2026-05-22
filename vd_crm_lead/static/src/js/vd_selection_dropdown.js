@@ -39,7 +39,20 @@ export class VdSelectionDropdown extends Component {
                 this.state.open = false;
             }
         };
-        onMounted(() => document.addEventListener("click", this._onDocClick, true));
+        onMounted(() => {
+            document.addEventListener("click", this._onDocClick, true);
+            // Khi widget mount trong list editable cell, Odoo đã consume click
+            // mở edit mode → widget không có cơ hội bắt click đầu. Auto-open
+            // ngay để user click 1 lần là chọn được option luôn.
+            if (this.rootRef.el?.closest(".o_list_table, .o_list_renderer")) {
+                this.state.open = true;
+                this.state.search = "";
+                Promise.resolve().then(() => {
+                    const inp = this.rootRef.el?.querySelector(".o_vd_select_dd_input");
+                    inp?.focus();
+                });
+            }
+        });
         onWillUnmount(() => document.removeEventListener("click", this._onDocClick, true));
     }
 
