@@ -118,6 +118,40 @@ export class VdSelectionDropdown extends Component {
         if (this.state.open) this.state.search = "";
     }
 
+    onWrapperClick(ev) {
+        // Click bất kỳ vị trí nào trên wrapper (input, arrow, padding) → mở dropdown.
+        // Skip nếu click vào button clear (nó tự xoá value).
+        if (ev.target.closest(".o_vd_select_dd_clear")) return;
+        if (!this.state.open) {
+            this.state.open = true;
+            this.state.search = "";
+            // Focus input sau khi state update (đợi 1 tick để readonly attr bị remove)
+            Promise.resolve().then(() => {
+                const inp = this.rootRef.el?.querySelector(".o_vd_select_dd_input");
+                inp?.focus();
+            });
+        }
+    }
+
+    onArrowClick(ev) {
+        ev.stopPropagation();
+        this.toggleOpen();
+        if (this.state.open) {
+            Promise.resolve().then(() => {
+                const inp = this.rootRef.el?.querySelector(".o_vd_select_dd_input");
+                inp?.focus();
+            });
+        }
+    }
+
+    onInputFocus() {
+        // Khi list editable cell trao focus cho input (Tab key / autoEnter) → mở dropdown.
+        if (!this.state.open) {
+            this.state.open = true;
+            this.state.search = "";
+        }
+    }
+
     onSearchInput(ev) {
         this.state.search = ev.target.value || "";
         if (!this.state.open) this.state.open = true;

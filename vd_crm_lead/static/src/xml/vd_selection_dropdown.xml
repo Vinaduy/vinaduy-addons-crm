@@ -2,14 +2,16 @@
 <templates xml:space="preserve">
 
     <t t-name="vd_crm_lead.VdSelectionDropdown">
-        <div class="o_vd_select_dd" t-ref="root" t-att-class="{ 'o_vd_select_dd--open': state.open, 'o_vd_select_dd--has-value': hasValue }">
+        <div class="o_vd_select_dd" t-ref="root"
+             t-att-class="{ 'o_vd_select_dd--open': state.open, 'o_vd_select_dd--has-value': hasValue }"
+             t-on-click="(ev) => this.onWrapperClick(ev)">
             <input type="text"
                    class="o_input o_vd_select_dd_input"
                    t-att-placeholder="props.placeholder"
                    t-att-value="state.open ? state.search : (hasValue ? currentLabel : '')"
-                   t-att-readonly="!state.open"
+                   t-att-readonly="!state.open or undefined"
                    autocomplete="off"
-                   t-on-click="() => this.toggleOpen()"
+                   t-on-focus="() => this.onInputFocus()"
                    t-on-input="(ev) => this.onSearchInput(ev)"
                    t-on-keydown="(ev) => this.onSearchKeydown(ev)"/>
 
@@ -20,7 +22,8 @@
                 ×
             </button>
 
-            <i class="fa fa-caret-down o_vd_select_dd_arrow"/>
+            <i class="fa fa-caret-down o_vd_select_dd_arrow"
+               t-on-click="(ev) => this.onArrowClick(ev)"/>
 
             <div t-if="state.open" class="o_vd_select_dd_menu">
                 <t t-if="filteredOptions.length === 0 and !canAddNew">
