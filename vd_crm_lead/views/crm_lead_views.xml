@@ -374,10 +374,12 @@
                         </div>
                     </div>
 
-                    <!-- ============ POPUP KHAI THÁC ============
-                         Khi vd_intake_open=True → overlay nằm phía bên phải màn hình
-                         (45vw, ≈ 90% nửa phải). Có header tiêu đề + X đóng. -->
-                    <div class="o_vd_intake_popup_overlay" invisible="not vd_intake_open">
+                    <!-- ============ PANEL KHAI THÁC (always in DOM) ============
+                         BỎ invisible="not vd_intake_open" — luôn render overlay
+                         vào DOM để CSS class .vd-intake-hover-active/.vd-intake-pinned
+                         có thể toggle visibility + position inline tại VẤN ĐỀ.
+                         Default hidden qua CSS rule .o_vd_intake_popup_overlay { display:none }. -->
+                    <div class="o_vd_intake_popup_overlay">
                         <div class="o_vd_intake_popup_backdrop"/>
                         <div class="o_vd_intake_full o_vd_intake_compact o_vd_intake_popup_panel">
 

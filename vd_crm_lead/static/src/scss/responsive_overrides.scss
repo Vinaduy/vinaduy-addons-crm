@@ -433,7 +433,17 @@ html, body {
    → hiện popup ngay tại vị trí panel VẤN ĐỀ (o_vd_layout_right).
    JS: intake_hover_panel.js add class .vd-intake-hover-active vào <html>
    + set CSS vars --vd-hover-top/left/width/height bằng rect của .o_vd_layout_right.
+
+   IMPORTANT: overlay div KHÔNG còn `invisible="not vd_intake_open"` — luôn render
+   trong DOM (xem crm_lead_views.xml). Default hide qua rule dưới đây, chỉ show khi
+   class hover-active hoặc pinned active.
    ============================================================ */
+
+/* Default: overlay ẩn (mạnh hơn d-none / o_invisible_modifier mà Odoo có thể apply) */
+.o_vd_intake_popup_overlay {
+    display: none !important;
+}
+
 html.vd-intake-hover-active,
 html.vd-intake-pinned {
     /* Ẩn nội dung panel bên phải để popup chiếm chỗ. */
