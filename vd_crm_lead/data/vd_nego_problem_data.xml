@@ -20,10 +20,10 @@
 
     <record id="nego_problem_very_low_budget" model="vd.nego.problem">
         <field name="code">very_low_budget</field>
-        <field name="name">Thiếu kinh phí nhiều</field>
-        <field name="icon">🪙</field>
+        <field name="name">Cân đối tài chính</field>
+        <field name="icon">💰</field>
         <field name="color">1</field>
-        <field name="sequence">30</field>
+        <field name="sequence">5</field>
         <field name="tip_html"><![CDATA[
             <p><b>KH thiếu ngân sách lớn — khả năng deal khó:</b></p>
             <ul>
@@ -167,7 +167,7 @@
         <field name="name">Khuyến mãi</field>
         <field name="icon">🎁</field>
         <field name="color">10</field>
-        <field name="sequence">120</field>
+        <field name="sequence">6</field>
         <field name="tip_html"><![CDATA[
             <p><b>KH yêu cầu / đang chờ chương trình khuyến mãi:</b></p>
             <ul>
@@ -180,10 +180,10 @@
 
     <record id="nego_problem_extra_area" model="vd.nego.problem">
         <field name="code">extra_area</field>
-        <field name="name">Phát sinh diện tích</field>
+        <field name="name">Phát sinh</field>
         <field name="icon">📐</field>
         <field name="color">4</field>
-        <field name="sequence">130</field>
+        <field name="sequence">7</field>
         <field name="tip_html"><![CDATA[
             <p><b>KH muốn thay đổi diện tích so với báo giá ban đầu:</b></p>
             <ul>
