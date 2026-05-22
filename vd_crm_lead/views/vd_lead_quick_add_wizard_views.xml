@@ -80,6 +80,6 @@
         <field name="res_model">vd.lead.quick.add.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="context">{'default_line_ids': [(0, 0, {}), (0, 0, {}), (0, 0, {})]}</field>
+        <field name="context">{'default_line_ids': [(0, 0, {}), (0, 0, {}), (0, 0, {})], 'dialog_size': 'fullscreen'}</field>
     </record>
 </odoo>

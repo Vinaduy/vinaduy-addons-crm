@@ -169,6 +169,70 @@ html, body {
     overflow-x: auto;
 }
 
+/* ===== WIZARD "Thêm KH mới" — FULLSCREEN với list co dãn full width ===== */
+.o_dialog_fullscreen .modal-dialog,
+.modal-dialog:has(.o_form_view[data-model="vd.lead.quick.add.wizard"]) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+
+    .modal-content {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+    }
+    .modal-body {
+        max-height: calc(100vh - 120px);
+        overflow: auto;
+        padding: 0.75rem 1rem;
+    }
+    .o_form_sheet_bg,
+    .o_form_sheet {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    /* List bên trong: stretch full width + compact cell padding để hiện hết cột */
+    .o_field_one2many,
+    .o_field_x2many,
+    .o_list_view,
+    .o_list_renderer {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .o_list_table {
+        width: 100% !important;
+        table-layout: auto;
+        font-size: 0.82rem;
+    }
+    .o_list_table th,
+    .o_list_table td {
+        padding: 0.25rem 0.4rem !important;
+        white-space: nowrap;
+    }
+    .o_list_table input,
+    .o_list_table select,
+    .o_list_table .o_input,
+    .o_list_table .o_field_widget {
+        font-size: 0.82rem;
+        padding: 0.15rem 0.3rem;
+        min-width: 0;
+    }
+    /* vd_selection_dropdown trong list cells: gọn lại */
+    .o_list_table .o_vd_select_dd {
+        min-width: 80px;
+    }
+    .o_list_table .o_vd_select_dd_input {
+        font-size: 0.82rem;
+        padding: 0.15rem 0.3rem;
+    }
+}
+
 /* ============================================================
    9. LIST/TABLE — scroll TRONG container, không tràn page
    ============================================================ */
