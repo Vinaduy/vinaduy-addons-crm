@@ -884,20 +884,20 @@
                             <i class="fa fa-plus"/> Thêm vấn đề
                         </span>
                         <div class="o_vd_problem_picker_menu">
-                            <!-- ===== Nhóm Tham khảo giá (đứng đầu) ===== -->
-                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
-
-                            <!-- ===== Nhóm TÀI CHÍNH (3 vấn đề đóng khung) ===== -->
+                            <!-- ===== Nhóm TÀI CHÍNH (3 vấn đề đóng khung) — ĐỨNG ĐẦU ===== -->
                             <div class="o_vd_picker_group o_vd_picker_group_financial">
                                 <div class="o_vd_picker_group_lbl">💼 Tài chính</div>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_very_low_budget'}">💰 Cân đối tài chính</button>
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_budget_balance'}">⚖️ Cân đối ngân sách</button>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_extra_area'}">📐 Phát sinh</button>
+                                        context="{'tag_xmlid': 'vd_crm_lead.nego_problem_extra_material'}">🧰 Phát sinh vật tư</button>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                         context="{'tag_xmlid': 'vd_crm_lead.nego_problem_promotion'}">🎁 Khuyến mãi</button>
                             </div>
+
+                            <!-- ===== Tham khảo giá ===== -->
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
 
                             <!-- ===== Nhóm khác — vấn đề giấy tờ/thi công ===== -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
