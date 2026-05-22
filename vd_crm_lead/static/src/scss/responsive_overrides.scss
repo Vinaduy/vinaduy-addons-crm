@@ -338,12 +338,12 @@ html, body {
 }
 
 /* ============================================================
-   17a. LEAD FORM COMPACT 70% — đồng bộ với dashboard + intake popup.
-   Scope qua class vd unique (.o_vd_layout_grid + .o_vd_dup_warn_banner)
-   — bền hơn selector [data-model] vì Odoo 18 không guarantee attribute đó.
+   17a. LEAD FORM COMPACT 70% — scope vào o_form_sheet CHỨA layout grid
+   của crm.lead. Dùng :has() (Chrome 105+) match form sheet có vd layout
+   bên trong. CHỈ 1 level zoom — KHÔNG kèm .o_vd_layout_grid để tránh
+   compound 0.7×0.7=0.49 (quá nhỏ).
    ============================================================ */
-.o_vd_layout_grid,
-.o_vd_dup_warn_banner {
+.o_form_view .o_form_sheet:has(.o_vd_layout_grid) {
     zoom: 0.7 !important;
 }
 
