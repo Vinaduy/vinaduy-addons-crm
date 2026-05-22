@@ -132,6 +132,9 @@ export class VdSelectionDropdown extends Component {
             if (filtered.length > 0) {
                 this.selectOption(filtered[0][0]);
                 ev.preventDefault();
+            } else if (this.canAddNew) {
+                ev.preventDefault();
+                this.onAddNew();
             }
         } else if (ev.key === "ArrowDown") {
             this.state.open = true;
