@@ -141,7 +141,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
             mirror_map = {
                 'i_house_type': 'vd_intake_house_type',
                 'i_foundation_type': 'vd_intake_foundation_type',
-                'i_floors_select': 'vd_intake_floors_select',
+                # i_floors_select xử lý riêng phía dưới (vì có biến thể "Nt" = N tầng + tum)
                 'i_area_m2': 'vd_intake_area_m2',
                 'i_floor_1_m2': 'vd_intake_floor_1_m2',
                 'i_floor_2_m2': 'vd_intake_floor_2_m2',
@@ -162,7 +162,15 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 val = line[line_fld]
                 if val:
                     intake_vals[lead_fld] = val.id if hasattr(val, 'id') else val
-            # Nếu có Tum thì set vd_intake_has_tum=True
+            # Tách "Nt" → vd_intake_floors_select=N + vd_intake_has_tum=True
+            if line.i_floors_select:
+                raw = line.i_floors_select
+                if raw.endswith('t'):
+                    intake_vals['vd_intake_floors_select'] = raw[:-1]
+                    intake_vals['vd_intake_has_tum'] = True
+                else:
+                    intake_vals['vd_intake_floors_select'] = raw
+            # Nếu có diện tích Tum thì cũng set vd_intake_has_tum=True
             if intake_vals.get('vd_intake_floor_tum_m2'):
                 intake_vals['vd_intake_has_tum'] = True
             vals.update(intake_vals)
@@ -245,8 +253,13 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         ('coc', 'Móng cọc'),
     ], string='Loại móng')
     i_floors_select = fields.Selection([
-        ('1', '1 tầng'), ('2', '2 tầng'), ('3', '3 tầng'),
-        ('4', '4 tầng'), ('5', '5 tầng'), ('6', '6 tầng'), ('7', '7 tầng'),
+        ('1', '1 tầng'), ('1t', '1 tầng + tum'),
+        ('2', '2 tầng'), ('2t', '2 tầng + tum'),
+        ('3', '3 tầng'), ('3t', '3 tầng + tum'),
+        ('4', '4 tầng'), ('4t', '4 tầng + tum'),
+        ('5', '5 tầng'), ('5t', '5 tầng + tum'),
+        ('6', '6 tầng'), ('6t', '6 tầng + tum'),
+        ('7', '7 tầng'), ('7t', '7 tầng + tum'),
     ], string='Số tầng')
     i_area_m2 = fields.Float(string='Tổng DT đất (m²)', digits=(10, 1))
     i_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
