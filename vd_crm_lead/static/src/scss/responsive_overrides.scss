@@ -7,6 +7,16 @@
    =========================================================================== */
 
 /* ============================================================
+   0. WINDOWS DEFAULT ZOOM 67% — match Mac retina compact view
+   JS module thêm class .vd-os-windows trên <html> khi UA = Windows.
+   Dùng zoom CSS (Chrome/Edge/Safari) — affects layout, click points
+   vẫn chính xác (khác transform:scale).
+   ============================================================ */
+html.vd-os-windows {
+    zoom: 0.67;
+}
+
+/* ============================================================
    1. GLOBAL: KHÔNG SCROLL NGANG PAGE
    ============================================================ */
 html, body {

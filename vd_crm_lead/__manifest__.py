@@ -46,6 +46,7 @@
     ],
     'assets': {
         'web.assets_backend': [
+            'vd_crm_lead/static/src/js/vd_windows_zoom.js',
             'vd_crm_lead/static/src/js/dashboard.js',
             'vd_crm_lead/static/src/js/call_status_widget.js',
             'vd_crm_lead/static/src/js/intake_select_fix.js',
