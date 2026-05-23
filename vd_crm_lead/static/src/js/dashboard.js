@@ -12,6 +12,7 @@
 import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
@@ -22,6 +23,7 @@ export class VdCrmDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.stringee = useService("stringee");
+        this.dialog = useService("dialog");
 
         // === Default date range: 90 ngày gần nhất → hôm nay ===
         const today = new Date();
@@ -461,8 +463,8 @@ export class VdCrmDashboard extends Component {
     }
 
     openLead(leadId) {
-        // Mở preview popup full-screen với iframe Odoo form + ← → navigate
-        // trong cùng nhóm hiện tại (auto-detect: pills / problem rows / state.leads).
+        // Mở FormViewDialog full-screen của Odoo (không dùng iframe — CSP chặn).
+        // Auto-detect nhóm KH hiện tại để hỗ trợ ← → chuyển KH.
         let ids;
         if (this.isNewStageSplit) {
             if (this.leadsNoProblems.some(l => l.id === leadId)) {
@@ -482,45 +484,70 @@ export class VdCrmDashboard extends Component {
             ids,
             index: idx >= 0 ? idx : 0,
         };
+        this._openLeadDialog();
+    }
+
+    _openLeadDialog() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return;
+        const leadId = p.ids[p.index];
+
+        // Đóng dialog cũ nếu đang mở (cho prev/next: replace thay vì stack)
+        if (this._closeDialog) {
+            this._isNavigating = true;
+            this._closeDialog();
+            this._closeDialog = null;
+        }
+
+        this._closeDialog = this.dialog.add(FormViewDialog, {
+            resModel: 'crm.lead',
+            resId: leadId,
+            size: 'fs',
+            title: `KH ${p.index + 1} / ${p.ids.length}`,
+            mode: 'edit',
+            onRecordSaved: () => this.refreshAfterPreview(),
+        }, {
+            onClose: () => {
+                if (this._isNavigating) {
+                    // Đóng do navigate prev/next → bỏ qua, không reset state
+                    this._isNavigating = false;
+                    return;
+                }
+                this._closeDialog = null;
+                this.state.previewLead = { ...this.state.previewLead, open: false };
+                this.refreshAfterPreview();
+            },
+        });
     }
 
     closePreview() {
+        if (this._closeDialog) {
+            this._closeDialog();
+            this._closeDialog = null;
+        }
         this.state.previewLead = { ...this.state.previewLead, open: false };
-        // Refresh lead list — KH có thể đã thay đổi stage / call_count khi preview
         this.refreshAfterPreview();
     }
 
     prevPreview() {
         const p = this.state.previewLead;
-        if (p.index > 0) this.state.previewLead.index = p.index - 1;
+        if (!p.open || p.index <= 0) return;
+        this.state.previewLead.index = p.index - 1;
+        this._openLeadDialog();
     }
 
     nextPreview() {
         const p = this.state.previewLead;
-        if (p.index < p.ids.length - 1) this.state.previewLead.index = p.index + 1;
+        if (!p.open || p.index >= p.ids.length - 1) return;
+        this.state.previewLead.index = p.index + 1;
+        this._openLeadDialog();
     }
 
     async refreshAfterPreview() {
-        // Reload leads cho stage hiện tại (không reload full dashboard để giữ scroll)
         if (this.state.selectedStageId) {
             try {
                 await this.selectStage(this.state.selectedStageId);
             } catch (_e) {}
-        }
-    }
-
-    get previewLeadUrl() {
-        const p = this.state.previewLead;
-        if (!p.open || !p.ids.length) return '';
-        const id = p.ids[p.index];
-        // Odoo 18 SPA URL — load lead form trong iframe; session cookie auth tự động.
-        return `/odoo/crm.lead/${id}`;
-    }
-
-    onPreviewBackdropClick(ev) {
-        // Click vào nền tối ngoài iframe → đóng popup
-        if (ev.target.classList.contains('o_vd_preview_backdrop')) {
-            this.closePreview();
         }
     }
 
