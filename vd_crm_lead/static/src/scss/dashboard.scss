@@ -4582,20 +4582,27 @@
     &:hover { background: #e03131; transform: scale(1.08); }
 }
 
-/* ===== Body — full form view embedded ===== */
+/* ===== Body — full form view embedded =====
+   QUAN TRỌNG: KHÔNG để overflow:auto trên body — gây Popper.js tính boundary
+   sai → dropdown/autocomplete nhảy lung tung. Để scroll cho o_form_view bên trong. */
 .o_vd_preview_body {
     flex: 1;
-    overflow-y: auto;
+    overflow: visible;
     background: #f8f9fa;
-    min-height: 0;            /* cần cho overflow trong flex container */
+    min-height: 0;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
-/* Body khi nhúng <View/> form crm.lead: reset chrome thừa, để form chiếm toàn bộ */
+/* Body khi nhúng <View/> form crm.lead: scroll xảy ra Ở ĐÂY (form view), KHÔNG
+   ở .o_vd_preview_body — tránh tạo clipping parent gây Popper lệch. */
 .o_vd_preview_body_form {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 0;
-    /* BỎ CSS zoom — gây lệch toạ độ Popper.js, dropdown/select render qua
-       portal nhảy sai vị trí. Thay bằng tăng font-size trực tiếp trên các
-       phần tử text/input cụ thể (an toàn với dropdown). */
+    /* KHÔNG dùng zoom — gây Popper lệch dropdown qua portal.
+       Thay bằng font-size trực tiếp lên text/input/button. */
 
     > .o_view_controller,
     > .o_action_manager,
@@ -4603,16 +4610,14 @@
         background: #f8f9fa;
         height: auto;
         min-height: 100%;
-        font-size: 17px;
     }
-    /* Ẩn breadcrumb/cog ở control panel */
     .o_control_panel { display: none !important; }
-    .o_form_sheet_bg {
-        padding: 1rem 1.2rem;
-    }
+    .o_form_sheet_bg { padding: 1rem 1.2rem; }
 
-    /* ===== TĂNG FONT-SIZE cho text/input/button trong form view ===== */
+    /* ===== TĂNG FONT-SIZE — to gần bằng zoom 1.5 cũ nhưng không phá Popper ===== */
     .o_form_view {
+        font-size: 22px;
+
         label,
         .o_form_label,
         .o_field_widget,
@@ -4628,30 +4633,36 @@
         td,
         th,
         span,
+        a,
         div.o_field_char,
         div.o_field_text {
-            font-size: 16px !important;
+            font-size: 22px !important;
+            line-height: 1.45;
         }
         .btn,
         button {
-            font-size: 15px !important;
+            font-size: 20px !important;
+            padding: 0.45rem 0.85rem;
         }
-        h1, .h1 { font-size: 24px !important; }
-        h2, .h2 { font-size: 20px !important; }
-        h3, .h3 { font-size: 18px !important; }
-        /* Badge / stage chip giữ nhỏ tránh vỡ layout */
-        .badge { font-size: 13px !important; }
+        h1, .h1 { font-size: 30px !important; }
+        h2, .h2 { font-size: 26px !important; }
+        h3, .h3 { font-size: 23px !important; }
+        /* Badge / stage chip giữ vừa phải để không vỡ layout pill */
+        .badge { font-size: 16px !important; }
+        /* Icon trong field/button giữ tương đối */
+        i.fa { font-size: 1em !important; }
     }
 
-    /* Giữ fix nowrap cho dropdown items (vẫn hữu ích kể cả khi bỏ zoom) */
+    /* Dropdown items không wrap */
     .dropdown-menu,
     .o-dropdown--menu,
     .o-dropdown-item,
     .dropdown-item {
         white-space: nowrap !important;
+        font-size: 18px !important;
     }
 
-    /* Custom hover-panel "Copy Zalo" — giữ override width để text wrap đúng */
+    /* Hover-panel Copy Zalo */
     .o_vd_zalo_hover_panel {
         min-width: 360px !important;
         max-width: 480px !important;
