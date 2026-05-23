@@ -25,7 +25,7 @@
             <i class="fa fa-caret-down o_vd_select_dd_arrow"
                t-on-click="(ev) => this.onArrowClick(ev)"/>
 
-            <div t-if="state.open" class="o_vd_select_dd_menu">
+            <div t-if="state.open" class="o_vd_select_dd_menu" t-att-style="menuStyle">
                 <t t-if="filteredOptions.length === 0 and !canAddNew">
                     <div class="o_vd_select_dd_empty">
                         <i class="fa fa-info-circle"/> Không có lựa chọn nào khớp

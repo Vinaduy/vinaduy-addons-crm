@@ -57,6 +57,20 @@ export class VdSelectionDropdown extends Component {
         onWillUnmount(() => document.removeEventListener("click", this._onDocClick, true));
     }
 
+    /** Inline style cho menu — position:fixed neo theo bounding rect của root,
+     *  thoát mọi overflow:hidden của parent (table cell / modal body). */
+    get menuStyle() {
+        if (!this.state.open || !this.rootRef.el) return "";
+        const rect = this.rootRef.el.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuMaxH = 320;
+        // Nếu không đủ chỗ phía dưới → flip lên trên
+        const flipUp = spaceBelow < 200 && rect.top > spaceBelow;
+        const top = flipUp ? `${rect.top - Math.min(menuMaxH, rect.top - 8)}px` : `${rect.bottom + 2}px`;
+        const minWidth = Math.max(rect.width, 200);
+        return `position: fixed; top: ${top}; left: ${rect.left}px; min-width: ${minWidth}px; max-width: calc(100vw - 32px); max-height: ${menuMaxH}px; z-index: 10000;`;
+    }
+
     get options() {
         const fieldDef = this.props.record.fields[this.props.name];
         const base = fieldDef && fieldDef.selection ? [...fieldDef.selection] : [];
