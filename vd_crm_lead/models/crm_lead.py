@@ -3938,55 +3938,22 @@ class CrmLead(models.Model):
         is_manager = self._dashboard_is_manager()
 
         Stage = self.env['crm.stage']
-        # 4 bucket pipeline đồng nhất với wizard "Thêm KH mới":
-        #   Khách mới · Khách đang xử lý vấn đề · Khách chốt · Khách hủy
-        # Mỗi bucket có thể gộp nhiều stage code (in_progress = quote+negotiate).
-        # Frontend filter bằng stage_ids (list) thay vì single stage_id.
-        stages_by_code = {
-            s.code: s for s in Stage.search([
-                ('code', 'in', ['new', 'quote', 'negotiate', 'won', 'lost']),
-            ])
-        }
-        bucket_defs = [
-            {'code': 'new',
-             'name': 'Khách mới',
-             'stage_codes': ['new'],
-             'probability': 5},
-            {'code': 'in_progress',
-             'name': 'Khách đang xử lý vấn đề',
-             'stage_codes': ['quote', 'negotiate'],
-             'probability': 60},
-            {'code': 'won',
-             'name': 'Khách chốt',
-             'stage_codes': ['won'],
-             'probability': 100},
-            {'code': 'lost',
-             'name': 'Khách hủy',
-             'stage_codes': ['lost'],
-             'probability': 0},
-        ]
+        # Chỉ 4 stage chính: Khách mới / Báo giá / Đàm phán / Chốt
+        # (bỏ Tiềm năng/Hẹn gọi lại đã archive + Hủy ẩn khỏi dashboard)
+        stages = Stage.search([
+            ('code', 'in', ['new', 'quote', 'negotiate', 'won']),
+        ], order='sequence')
         stage_payload = []
-        for bd in bucket_defs:
-            stage_ids = [stages_by_code[c].id for c in bd['stage_codes'] if c in stages_by_code]
-            if not stage_ids:
-                continue
-            # Lost bucket cần count cả lead archived (active=False)
-            if bd['code'] == 'lost':
-                count = self.with_context(active_test=False).search_count(
-                    domain_user + [('stage_id', 'in', stage_ids)],
-                )
-            else:
-                count = self.search_count(domain_user + [('stage_id', 'in', stage_ids)])
-            first_stage = stages_by_code[bd['stage_codes'][0]]
+        for st in stages:
+            count = self.search_count(domain_user + [('stage_id', '=', st.id)])
             stage_payload.append({
-                'id': first_stage.id,            # giữ stage id để selectedStageId tham chiếu
-                'code': bd['code'],
-                'name': bd['name'],
+                'id': st.id,
+                'code': st.code or '',
+                'name': st.name,
                 'count': count,
-                'is_won': bd['code'] == 'won',
-                'is_lost': bd['code'] == 'lost',
-                'default_probability': bd['probability'],
-                'stage_ids': stage_ids,          # list — frontend dùng cho filter leads
+                'is_won': st.is_won,
+                'is_lost': st.is_lost,
+                'default_probability': st.default_probability,
             })
 
         today = fields.Date.context_today(self)
@@ -4161,19 +4128,8 @@ class CrmLead(models.Model):
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=80):
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        # stage_id có thể là int (single stage) hoặc list (bucket gộp nhiều stage)
-        if isinstance(stage_id, (list, tuple)):
-            stage_domain = [('stage_id', 'in', list(stage_id))]
-            # Nếu bucket chứa stage 'lost' → include archived leads
-            lost_stage = self.env['crm.stage'].search([('code', '=', 'lost')], limit=1)
-            include_archived = lost_stage and lost_stage.id in stage_id
-        else:
-            stage_domain = [('stage_id', '=', stage_id)]
-            lost_stage = self.env['crm.stage'].search([('code', '=', 'lost')], limit=1)
-            include_archived = lost_stage and lost_stage.id == stage_id
-        search = self.with_context(active_test=False).search if include_archived else self.search
-        leads = search(
-            domain_user + stage_domain,
+        leads = self.search(
+            domain_user + [('stage_id', '=', stage_id)],
             limit=limit,
             order='probability desc, callback_date asc, create_date desc',
         )
