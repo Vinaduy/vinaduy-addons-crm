@@ -88,8 +88,10 @@ export class VdCrmDashboard extends Component {
         onMounted(() => window.addEventListener('keydown', this._onKeydown));
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
-            // Đảm bảo body class được dọn nếu user navigate đi mà popup còn mở
+            // Đảm bảo scroll lock + body class được dọn nếu navigate đi
             document.body.classList.remove('o_vd_preview_active');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
         });
 
         onWillStart(async () => {
@@ -539,8 +541,7 @@ export class VdCrmDashboard extends Component {
             ids,
             index: idx >= 0 ? idx : 0,
         };
-        // Body class → CSS scope cho dropdown render qua portal (sibling body)
-        document.body.classList.add('o_vd_preview_active');
+        this._lockScroll();
     }
 
     /**
@@ -551,12 +552,29 @@ export class VdCrmDashboard extends Component {
         if (!leads || !leads.length) return;
         const ids = leads.map(l => l.id);
         this.state.previewLead = { open: true, ids, index: 0 };
-        document.body.classList.add('o_vd_preview_active');
+        this._lockScroll();
     }
 
     closePreview() {
         this.state.previewLead = { ...this.state.previewLead, open: false };
+        this._unlockScroll();
+    }
+
+    /**
+     * Lock document scroll khi popup mở.
+     * QUAN TRỌNG cho Popper: Odoo's usePosition tính boundary dựa trên
+     * documentElement.scrollTop. Nếu document scroll != 0, math sẽ shift menu
+     * sai vị trí khi placement near edge. Lock scroll → scrollTop = 0 stable.
+     */
+    _lockScroll() {
+        document.body.classList.add('o_vd_preview_active');
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+    }
+    _unlockScroll() {
         document.body.classList.remove('o_vd_preview_active');
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
     }
 
     prevPreview() {
