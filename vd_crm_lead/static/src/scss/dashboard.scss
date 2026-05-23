@@ -3231,6 +3231,7 @@
     .o_vd_kh_metric_progress:hover { border-color: #d97706; background: rgba(217,119,6,0.07); }
     .o_vd_kh_metric_new:hover      { border-color: #2563eb; background: rgba(37,99,235,0.06); }
     .o_vd_kh_metric_noprob:hover   { border-color: #8b5cf6; background: rgba(139,92,246,0.07); }
+    .o_vd_kh_metric_lost:hover     { border-color: #dc2626; background: rgba(220,38,38,0.06); }
     /* Metric — số plain, không badge. Màu theo cột để dễ phân biệt. */
     .o_vd_kh_metric_num {
         display: inline-block;
@@ -3267,6 +3268,7 @@
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }
     .o_vd_kh_metric_noprob .o_vd_kh_metric_num   { color: #8b5cf6; }
+    .o_vd_kh_metric_lost .o_vd_kh_metric_num     { color: #dc2626; }
     /* Số 0 → mờ */
     .o_vd_kh_metric_num:hover { opacity: 0.7; }
     /* Khi popover hiển thị (parent có popover) → show on hover */
@@ -3355,6 +3357,7 @@
     .o_vd_kh_metric_done .o_vd_kh_popover_head    { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
     .o_vd_kh_metric_progress .o_vd_kh_popover_head { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .o_vd_kh_metric_noprob .o_vd_kh_popover_head   { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    .o_vd_kh_metric_lost .o_vd_kh_popover_head     { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
     .o_vd_kh_metric_new .o_vd_kh_popover_head      { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 
     /* Popover body — table-style, mỗi KH 1 dòng */
@@ -3494,6 +3497,7 @@
     .o_vd_kh_th_noprob    { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
     .o_vd_kh_th_progress  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .o_vd_kh_th_done      { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+    .o_vd_kh_th_lost      { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
     /* Đường phân tách 2 nhóm — viền phải đậm ở cuối nhóm Thông tin */
     .o_vd_kh_group_end {
         border-right: 4px double rgba(255, 255, 255, 0.55) !important;
