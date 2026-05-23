@@ -3742,6 +3742,38 @@
         }
         .o_vd_filter_table_count { color: #d9480f; }
     }
+    /* Variant: bảng KHÁCH HỦY — header đỏ */
+    .o_vd_filter_table_lost {
+        .o_vd_filter_table_left {
+            background: linear-gradient(135deg, #fa5252 0%, #e03131 100%);
+        }
+        .o_vd_filter_table_count { color: #c92a2a; }
+    }
+    /* Khi 1 KH hủy hiển thị ở nửa phải bảng KH mới: pill tone xám/mờ để
+       phân biệt với KH active. */
+    .o_vd_filter_table_lost .o_vd_won_pill {
+        opacity: 0.75;
+        text-decoration: line-through;
+        text-decoration-color: rgba(201, 42, 42, 0.5);
+        text-decoration-thickness: 1px;
+    }
+
+    /* ===== SPLIT WRAPPER: 2 nửa cạnh nhau (KH mới | KH hủy) ===== */
+    .o_vd_split_table {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+
+        @media (max-width: 1100px) {
+            grid-template-columns: 1fr;
+        }
+
+        > .o_vd_split_half {
+            margin-bottom: 0;  /* gap đã handle bởi parent grid */
+            min-width: 0;
+        }
+    }
 
     /* Khi 1 KH có nhiều stage khác nhau — show stage code chip nhỏ */
     .o_vd_problem_row_stage {

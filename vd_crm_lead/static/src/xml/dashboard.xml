@@ -1291,27 +1291,51 @@
 
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
-                            <!-- ===== BẢNG 2-CỘT: [FILTER VUÔNG] | [PILLS] ===== -->
+                            <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
                             <t t-if="isNewStageSplit">
-                                <div class="o_vd_filter_table o_vd_filter_table_new">
-                                    <div class="o_vd_filter_table_left">
-                                        <i class="fa fa-filter o_vd_filter_funnel"/>
-                                        <div class="o_vd_filter_table_lbl">
-                                            <t t-esc="selectedStage and selectedStage.name or 'Khách mới'"/>
+                                <div class="o_vd_split_table">
+                                    <!-- NỬA TRÁI: KHÁCH MỚI -->
+                                    <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half">
+                                        <div class="o_vd_filter_table_left">
+                                            <i class="fa fa-filter o_vd_filter_funnel"/>
+                                            <div class="o_vd_filter_table_lbl">
+                                                <t t-esc="selectedStage and selectedStage.name or 'Khách mới'"/>
+                                            </div>
+                                            <div class="o_vd_filter_table_count">
+                                                <t t-esc="leadsNoProblems.length"/>
+                                            </div>
                                         </div>
-                                        <div class="o_vd_filter_table_count">
-                                            <t t-esc="leadsNoProblems.length"/>
+                                        <div class="o_vd_filter_table_right">
+                                            <t t-if="leadsNoProblems.length">
+                                                <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
+                                                    <t t-call="vd_crm_lead.LeadPill"/>
+                                                </t>
+                                            </t>
+                                            <div t-else="" class="o_vd_filter_table_empty">
+                                                <i class="fa fa-check-circle text-success me-1"/>
+                                                Tất cả KH mới đã có vấn đề — xem bảng dưới.
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="o_vd_filter_table_right">
-                                        <t t-if="leadsNoProblems.length">
-                                            <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
-                                                <t t-call="vd_crm_lead.LeadPill"/>
+                                    <!-- NỬA PHẢI: KHÁCH HỦY -->
+                                    <div class="o_vd_filter_table o_vd_filter_table_lost o_vd_split_half">
+                                        <div class="o_vd_filter_table_left">
+                                            <i class="fa fa-times-circle o_vd_filter_funnel_lost"/>
+                                            <div class="o_vd_filter_table_lbl">Khách hủy</div>
+                                            <div class="o_vd_filter_table_count">
+                                                <t t-esc="leadsLost.length"/>
+                                            </div>
+                                        </div>
+                                        <div class="o_vd_filter_table_right">
+                                            <t t-if="leadsLost.length">
+                                                <t t-foreach="leadsLost" t-as="lead" t-key="lead.id">
+                                                    <t t-call="vd_crm_lead.LeadPill"/>
+                                                </t>
                                             </t>
-                                        </t>
-                                        <div t-else="" class="o_vd_filter_table_empty">
-                                            <i class="fa fa-check-circle text-success me-1"/>
-                                            Tất cả KH mới đã có vấn đề — xem bảng dưới.
+                                            <div t-else="" class="o_vd_filter_table_empty">
+                                                <i class="fa fa-inbox me-1"/>
+                                                Chưa có KH hủy.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -4193,6 +4193,18 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def dashboard_leads_lost(self, user_id=None, limit=200):
+        """Trả KH đã hủy (stage_is_lost=True). Dùng cho ô 'Khách hủy' ở
+        bảng KHÁCH MỚI (split 2 nửa) của dashboard."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        leads = self.search(
+            domain_user + [('stage_is_lost', '=', True)],
+            limit=limit,
+            order='write_date desc, create_date desc',
+        )
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
     def dashboard_nv_active_leads(self, user_id, limit=30):
         """Danh sách KH đang active của 1 NV — dùng cho NV detail panel
         khi admin click vào NV trong tab Thành tích."""

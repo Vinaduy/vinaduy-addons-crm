@@ -47,6 +47,8 @@ export class VdCrmDashboard extends Component {
             leadsLoading: false,
             // KH có vấn đề mở (mọi stage active) — section "ĐANG XỬ LÝ VẤN ĐỀ"
             leadsWithProblemsAll: [],
+            // KH đã hủy (stage_is_lost) — render nửa phải bảng KHÁCH MỚI
+            leadsLostAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -210,8 +212,17 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsWithProblemsAll = [];
             }
+            // Fetch song song KH đã hủy → render nửa phải bảng KHÁCH MỚI.
+            try {
+                this.state.leadsLostAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_lost", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsLostAll = [];
+            }
         } else {
             this.state.leadsWithProblemsAll = [];
+            this.state.leadsLostAll = [];
         }
     }
 
@@ -267,6 +278,10 @@ export class VdCrmDashboard extends Component {
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
         return this.state.leadsWithProblemsAll || [];
+    }
+    // Nửa PHẢI bảng KHÁCH MỚI — KH đã hủy (mọi stage lost).
+    get leadsLost() {
+        return this.state.leadsLostAll || [];
     }
     get isNewStageSplit() {
         // Chỉ split khi đang ở stage "Khách mới" và KHÔNG đang filter alert.
