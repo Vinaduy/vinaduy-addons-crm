@@ -4195,9 +4195,14 @@ class CrmLead(models.Model):
     @api.model
     def dashboard_leads_lost(self, user_id=None, limit=200):
         """Trả KH đã hủy (stage_is_lost=True). Dùng cho ô 'Khách hủy' ở
-        bảng KHÁCH MỚI (split 2 nửa) của dashboard."""
+        bảng KHÁCH MỚI (split 2 nửa) của dashboard.
+
+        ⚠️ write() tự động archive (active=False) khi chuyển stage sang lost
+        (xem crm_lead.py:2311) → phải dùng with_context(active_test=False) để
+        search cả archived records, nếu không sẽ không tìm thấy KH nào.
+        """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        leads = self.search(
+        leads = self.with_context(active_test=False).search(
             domain_user + [('stage_is_lost', '=', True)],
             limit=limit,
             order='write_date desc, create_date desc',
