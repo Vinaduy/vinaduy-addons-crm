@@ -28,6 +28,51 @@ class StringeeCall(models.Model):
             'target': 'current',
         }
 
+    def action_mark_wrong_number(self):
+        """Đánh dấu cuộc gọi 'không đúng số' → tự động chuyển KH sang stage Hủy
+        với reason 'wrong_lead'. KH bị archive theo workflow gán lost stage có sẵn."""
+        from odoo.exceptions import UserError
+        from odoo import _
+        self.ensure_one()
+        lead = self.lead_id
+        if not lead:
+            raise UserError(_("Cuộc gọi chưa link với KH — không thể đánh dấu sai số."))
+        if lead.stage_is_lost:
+            raise UserError(_("KH đã ở trạng thái Hủy."))
+        lost_stage = self.env.ref('vd_crm_lead.stage_lost', raise_if_not_found=False)
+        if not lost_stage:
+            lost_stage = self.env['crm.stage'].search(
+                [('code', '=', 'lost')], limit=1
+            ) or self.env['crm.stage'].search([('is_lost', '=', True)], limit=1)
+        if not lost_stage:
+            raise UserError(_("Chưa cấu hình stage Hủy (lost)."))
+        old_stage = lead.stage_id.name or ''
+        full_reason = (
+            "[❌ Sai số / nhầm lead] "
+            "Đánh dấu từ cuộc gọi #%s (%s)" % (self.id, self.callee_number or '—')
+        )
+        lead.with_context(mail_notrack=True, tracking_disable=True).write({
+            'stage_id': lost_stage.id,
+            'vd_lost_reason': full_reason,
+            'vd_lost_date': fields.Datetime.now(),
+        })
+        lead.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_(
+                "📵 <b>Sai số</b> — chuyển từ <i>%s</i> sang <b>%s</b>.<br/>%s"
+            ) % (old_stage, lost_stage.name, full_reason),
+        )
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Đã chuyển vào thùng rác'),
+                'message': _('KH "%s" đã được đánh dấu sai số.') % (lead.name or ''),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)

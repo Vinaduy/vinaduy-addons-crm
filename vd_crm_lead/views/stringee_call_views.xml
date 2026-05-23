@@ -22,6 +22,14 @@
                 <field name="lead_id"/>
                 <field name="lead_stage_name" invisible="1"/>
                 <field name="lead_probability" widget="progressbar" invisible="not lead_id"/>
+                <div class="o_form_label">
+                    <button name="action_mark_wrong_number" type="object"
+                            string="📵 Đánh dấu KHÔNG ĐÚNG SỐ"
+                            class="btn btn-sm btn-outline-danger"
+                            invisible="not lead_id"
+                            confirm="Đánh dấu cuộc gọi sai số? KH sẽ tự động chuyển vào thùng rác (Hủy)."
+                            help="Khi gọi nhầm số / số sai → đánh dấu để tự động move KH vào thùng rác."/>
+                </div>
             </xpath>
         </field>
     </record>

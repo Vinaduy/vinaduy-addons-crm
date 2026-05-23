@@ -4194,18 +4194,69 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_not_called(self, user_id=None, limit=200):
-        """KH active (chưa won/lost) mà call_count = 0 — chưa gọi được lần nào.
-        Dùng cho nửa phải bảng KHÁCH MỚI ở dashboard."""
+        """KH "chưa gọi được" — gọi nhiều lần nhưng không liên lạc được.
+
+        Định nghĩa (theo yêu cầu spec):
+        - Có ≥3 cuộc gọi
+        - Trên ≥3 ngày khác nhau (tránh case 3 cuộc cùng 1 ngày)
+        - KHÔNG có cuộc nào answered (duration > 0 hoặc state='answered'/'ended' với answer_time)
+          → toàn bộ là thuê bao / no_answer / busy / failed / declined
+        - KH vẫn đang active (chưa won/lost)
+        """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        leads = self.search(
+        # Pre-filter: KH active có call_count >= 3 — giảm tập candidate trước khi xét sâu
+        candidates = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
-                ('call_count', '=', 0),
+                ('call_count', '>=', 3),
             ],
-            limit=limit,
             order='create_date desc',
         )
+        if not candidates:
+            return []
+
+        Call = self.env['stringee.call']
+        calls = Call.search_read(
+            [('lead_id', 'in', candidates.ids)],
+            ['lead_id', 'state', 'duration', 'answer_time', 'start_time'],
+        )
+        from collections import defaultdict
+        by_lead = defaultdict(list)
+        for c in calls:
+            lid = c['lead_id'][0] if c['lead_id'] else False
+            if lid:
+                by_lead[lid].append(c)
+
+        matched_ids = []
+        for lead in candidates:
+            lcalls = by_lead.get(lead.id) or []
+            if len(lcalls) < 3:
+                continue
+            # Reject if any successful call (đã nói chuyện được)
+            had_success = any(
+                (c.get('duration') or 0) > 0
+                or (c.get('state') == 'answered')
+                or (c.get('state') == 'ended' and c.get('answer_time'))
+                for c in lcalls
+            )
+            if had_success:
+                continue
+            # ≥3 distinct days (theo start_time)
+            days = {
+                c['start_time'].date() if hasattr(c.get('start_time'), 'date') else None
+                for c in lcalls if c.get('start_time')
+            }
+            days.discard(None)
+            if len(days) < 3:
+                continue
+            matched_ids.append(lead.id)
+            if len(matched_ids) >= limit:
+                break
+
+        if not matched_ids:
+            return []
+        leads = self.browse(matched_ids)
         return self._dashboard_serialize_leads(leads)
 
     @api.model

@@ -1319,15 +1319,31 @@
                                     </div>
                                     <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled">
-                                        <div class="o_vd_trash_icon">
-                                            <span class="fa-stack o_vd_notcalled_stack">
-                                                <i class="fa fa-phone fa-stack-1x"/>
-                                                <i class="fa fa-ban fa-stack-2x"/>
-                                            </span>
-                                        </div>
+                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
+                                        </div>
+                                        <div t-if="leadsNotCalled.length" class="o_vd_trash_popover">
+                                            <div class="o_vd_trash_popover_head">
+                                                📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    ≥3 cuộc gọi · ≥3 ngày khác nhau · toàn thuê bao / không bắt máy
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body">
+                                                <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
+                                                     class="o_vd_trash_popover_item"
+                                                     t-on-click="() => this.openLead(ld.id)">
+                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                                    <span class="o_vd_trash_popover_phone">
+                                                        📞 <t t-esc="ld.phone or '—'"/>
+                                                    </span>
+                                                    <span class="o_vd_trash_popover_nv">
+                                                        <t t-esc="ld.user_name or '—'"/>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
@@ -1336,6 +1352,27 @@
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">KH HỦY</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
+                                        </div>
+                                        <div t-if="leadsLost.length" class="o_vd_trash_popover o_vd_trash_popover_lost">
+                                            <div class="o_vd_trash_popover_head">
+                                                🗑️ KH HỦY (<t t-esc="leadsLost.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    Đã chuyển vào thùng rác · gồm cuộc gọi sai số (📵 không đúng số)
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body">
+                                                <div t-foreach="leadsLost" t-as="ld" t-key="ld.id"
+                                                     class="o_vd_trash_popover_item"
+                                                     t-on-click="() => this.openLead(ld.id)">
+                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                                    <span class="o_vd_trash_popover_phone">
+                                                        📞 <t t-esc="ld.phone or '—'"/>
+                                                    </span>
+                                                    <span class="o_vd_trash_popover_nv">
+                                                        <t t-esc="ld.user_name or '—'"/>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
