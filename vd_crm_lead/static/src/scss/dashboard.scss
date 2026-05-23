@@ -4470,12 +4470,9 @@
     position: fixed;
     inset: 0;
     z-index: 1900;
-    background: rgba(15, 23, 42, 0.82);
-    /* Backdrop là CLIPPING duy nhất trong chain — Popper sẽ dùng làm boundary
-       (= viewport size → dropdown anchor đúng). KHÔNG dùng backdrop-filter,
-       transform, filter, perspective (đều biến thành containing block). */
+    background: #fff;          /* Trắng tinh, không backdrop trong suốt */
     overflow-y: auto;
-    padding: 12px;
+    padding: 0;                /* FULL màn hình — không margin viền */
     animation: vd-preview-fade 0.1s ease-out;
 }
 @keyframes vd-preview-fade {
@@ -4484,13 +4481,11 @@
 }
 .o_vd_preview_modal {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-    min-height: calc(100vh - 24px);  /* lấp đầy viewport */
+    border-radius: 0;          /* edge-to-edge, không bo góc */
+    box-shadow: none;
+    min-height: 100vh;         /* full viewport */
     display: flex;
     flex-direction: column;
-    /* KHÔNG overflow — không tạo Popper clipping parent. Long form sẽ extend
-       và backdrop ngoài cùng scroll. */
 }
 
 /* ===== Topbar ===== */
@@ -4506,7 +4501,7 @@
     padding: 0.6rem 1rem;
     background: linear-gradient(135deg, #1f2a44 0%, #2c3e50 100%);
     color: #fff;
-    border-radius: 12px 12px 0 0;
+    border-radius: 0;          /* edge-to-edge */
 }
 .o_vd_preview_topbar_left {
     display: flex;
@@ -4828,7 +4823,10 @@ body.o_vd_preview_active {
     background: #1f2a44;
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.72rem;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
 
     kbd {
         display: inline-block;
