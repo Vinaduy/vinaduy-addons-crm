@@ -3885,17 +3885,17 @@
         text-align: right;
     }
 
-    /* ===== SPLIT WRAPPER: 3 cột (KH mới | CHƯA GỌI ĐƯỢC | THÙNG RÁC) ===== */
+    /* ===== SPLIT WRAPPER: KHÁCH MỚI (full) + 2 counters naked ===== */
     .o_vd_split_table {
         display: grid;
-        grid-template-columns: 1fr 1fr 220px;   /* trash to → 220px */
+        grid-template-columns: 1fr 200px 200px;   /* KH mới flex + 2 counters cố định */
         gap: 1rem;
         margin-bottom: 0.85rem;
         align-items: stretch;
 
         @media (max-width: 1100px) {
             grid-template-columns: 1fr 1fr;
-            > .o_vd_split_trash { grid-column: 1 / -1; }
+            > .o_vd_split_half { grid-column: 1 / -1; }
         }
         @media (max-width: 720px) {
             grid-template-columns: 1fr;
@@ -3909,6 +3909,17 @@
             margin: 0;
             min-width: 0;
         }
+    }
+
+    /* Variant chưa gọi được — màu tím, naked (giống thùng rác) */
+    .o_vd_trash_box.o_vd_split_notcalled {
+        .o_vd_trash_icon { color: #6741d9; }
+        .o_vd_trash_icon i.fa {
+            color: #6741d9;
+            filter: drop-shadow(0 2px 6px rgba(103, 65, 217, 0.3));
+        }
+        .o_vd_trash_label { color: #6741d9; }
+        .o_vd_trash_count { color: #6741d9; }
     }
 
     /* Thùng rác trong split row — NAKED (bỏ khung) + 5x icon */

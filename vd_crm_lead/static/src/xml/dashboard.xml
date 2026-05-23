@@ -1328,39 +1328,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- NỬA GIỮA: KHÁCH CHƯA GỌI ĐƯỢC -->
-                                    <div class="o_vd_filter_table o_vd_filter_table_notcalled o_vd_split_half">
-                                        <div class="o_vd_filter_table_left">
-                                            <i class="fa fa-phone-slash o_vd_filter_funnel_notcalled"/>
-                                            <div class="o_vd_filter_table_lbl">Chưa gọi được</div>
-                                            <div class="o_vd_filter_table_count">
-                                                <t t-esc="leadsNotCalled.length"/>
-                                            </div>
-                                        </div>
-                                        <div class="o_vd_filter_table_right_wrap">
-                                            <div class="o_vd_filter_table_right o_vd_pills_2rows">
-                                                <t t-if="leadsNotCalled.length">
-                                                    <t t-foreach="leadsNotCalled" t-as="lead" t-key="lead.id">
-                                                        <t t-call="vd_crm_lead.LeadPill"/>
-                                                    </t>
-                                                </t>
-                                                <div t-else="" class="o_vd_filter_table_empty">
-                                                    <i class="fa fa-check me-1"/>
-                                                    Đã gọi hết KH.
-                                                </div>
-                                            </div>
-                                            <div t-if="leadsNotCalled.length > 8" class="o_vd_pills_show_btn">
-                                                <i class="fa fa-chevron-down me-1"/>
-                                                Xem tất cả <t t-esc="leadsNotCalled.length"/>
-                                                <div class="o_vd_pills_show_popup">
-                                                    <t t-foreach="leadsNotCalled" t-as="lead" t-key="lead.id">
-                                                        <t t-call="vd_crm_lead.LeadPill"/>
-                                                    </t>
-                                                </div>
-                                            </div>
+                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled">
+                                        <div class="o_vd_trash_icon"><i class="fa fa-phone-slash"/></div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
                                         </div>
                                     </div>
-                                    <!-- CỘT PHẢI: THÙNG RÁC KH HỦY (chỉ count) -->
+                                    <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
                                     <div class="o_vd_trash_box o_vd_split_trash">
                                         <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
                                         <div class="o_vd_trash_meta">
