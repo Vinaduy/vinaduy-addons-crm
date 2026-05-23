@@ -753,6 +753,16 @@ class CrmLead(models.Model):
     def _inverse_car_access_select(self):
         for rec in self:
             rec.vd_intake_car_access = (rec.vd_intake_car_access_select == 'co')
+
+    # Chỗ để đất móng — KH có chỗ chứa/đổ đất móng đào lên không?
+    # Ảnh hưởng đến chi phí thi công (phải thuê xe vận chuyển hay không).
+    vd_intake_soil_dump = fields.Selection([
+        ('co', 'Có chỗ để đất'),
+        ('khong', 'Không có chỗ để đất'),
+    ], string='Chỗ để đất móng',
+        help='KH có sân/khoảng đất để chứa đất móng đào lên không? '
+             'Không có → phải thuê xe vận chuyển đi.')
+
     vd_intake_budget_amount = fields.Monetary(
         string='Ngân sách KH (VNĐ)', currency_field='vd_currency_vnd_id',
         help='NV gõ số tiền cụ thể KH dự kiến (VD: 2_000_000_000). '
@@ -2263,6 +2273,7 @@ class CrmLead(models.Model):
         'vd_intake_floor_7_function_ids', 'vd_intake_floor_tum_function_ids',
         'vd_intake_timeline', 'vd_intake_budget', 'vd_intake_budget_amount',
         'vd_intake_car_access', 'vd_intake_car_access_select',
+        'vd_intake_soil_dump',
     })
 
     def write(self, vals):

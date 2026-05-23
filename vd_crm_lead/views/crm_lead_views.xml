@@ -671,6 +671,12 @@
                                 <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
                                        placeholder="Có / Không"/>
                             </div>
+                            <!-- Row 4: Chỗ để đất móng — ảnh hưởng chi phí vận chuyển đất đào -->
+                            <div class="o_vd_pf">
+                                <label for="vd_intake_soil_dump">Chỗ để đất móng</label>
+                                <field name="vd_intake_soil_dump" widget="vd_selection_dropdown" nolabel="1"
+                                       placeholder="Có / Không có chỗ để đất"/>
+                            </div>
                             <!-- Công năng từng tầng — m2m dropdown chip pills.
                                  Mỗi tầng = 1 row gọn: [Tầng N] [dropdown chip] -->
                             <div class="o_vd_pf o_vd_pf_notes o_vd_floor_function_list"
