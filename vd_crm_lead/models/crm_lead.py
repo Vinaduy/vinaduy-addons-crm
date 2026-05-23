@@ -4194,17 +4194,15 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_not_called(self, user_id=None, limit=200):
-        """KH "chưa gọi được" — gọi nhiều lần nhưng không liên lạc được.
+        """KH "chưa gọi được" — toàn cuộc gọi THUÊ BAO trải nhiều ngày.
 
-        Định nghĩa (theo yêu cầu spec):
-        - Có ≥3 cuộc gọi
-        - Trên ≥3 ngày khác nhau (tránh case 3 cuộc cùng 1 ngày)
-        - KHÔNG có cuộc nào answered (duration > 0 hoặc state='answered'/'ended' với answer_time)
-          → toàn bộ là thuê bao / no_answer / busy / failed / declined
+        Spec:
+        - Có ≥3 cuộc gọi THUÊ BAO (state='failed' — không kết nối được)
+        - Trên ≥3 ngày khác nhau
+        - Chưa từng có cuộc nào answered
         - KH vẫn đang active (chưa won/lost)
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        # Pre-filter: KH active có call_count >= 3 — giảm tập candidate trước khi xét sâu
         candidates = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
@@ -4231,9 +4229,8 @@ class CrmLead(models.Model):
         matched_ids = []
         for lead in candidates:
             lcalls = by_lead.get(lead.id) or []
-            if len(lcalls) < 3:
+            if not lcalls:
                 continue
-            # Reject if any successful call (đã nói chuyện được)
             had_success = any(
                 (c.get('duration') or 0) > 0
                 or (c.get('state') == 'answered')
@@ -4242,17 +4239,19 @@ class CrmLead(models.Model):
             )
             if had_success:
                 continue
-            # ≥3 distinct days (theo start_time)
-            days = {
-                c['start_time'].date() if hasattr(c.get('start_time'), 'date') else None
-                for c in lcalls if c.get('start_time')
-            }
-            days.discard(None)
-            if len(days) < 3:
-                continue
-            matched_ids.append(lead.id)
-            if len(matched_ids) >= limit:
-                break
+            # Đếm cuộc 'failed' = thuê bao + ngày khác nhau
+            subscriber_days = set()
+            subscriber_count = 0
+            for c in lcalls:
+                if c.get('state') == 'failed':
+                    subscriber_count += 1
+                    s = c.get('start_time')
+                    if s and hasattr(s, 'date'):
+                        subscriber_days.add(s.date())
+            if subscriber_count >= 3 and len(subscriber_days) >= 3:
+                matched_ids.append(lead.id)
+                if len(matched_ids) >= limit:
+                    break
 
         if not matched_ids:
             return []
@@ -4329,22 +4328,23 @@ class CrmLead(models.Model):
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'no_answer': 0,
-                'unreachable': 0, 'distinct_days': 0,
-                'distinct_days_unreachable': 0,
+                'busy_like': 0, 'subscriber': 0,
+                'distinct_days': 0, 'distinct_days_subscriber': 0,
+                'unreachable': 0, 'distinct_days_unreachable': 0,
             }),
         } for l in leads]
 
     @api.model
     def _dashboard_compute_call_stats(self, leads):
-        """Trả dict {lead_id: {total, answered, no_answer, unreachable,
-        distinct_days, distinct_days_unreachable}} cho batch leads.
+        """Trả dict {lead_id: {total, answered, no_answer, busy_like,
+        subscriber, distinct_days, distinct_days_subscriber}} cho batch leads.
 
-        - answered: cuộc gọi nói chuyện được (duration > 0 hoặc state='answered'
-          hoặc state='ended' với answer_time)
-        - no_answer: rung chuông nhưng không bắt (state='no_answer')
-        - unreachable: thuê bao / máy bận / lỗi (state in failed/busy/declined/cancelled)
-        - distinct_days: số ngày khác nhau đã gọi
-        - distinct_days_unreachable: số ngày khác nhau cuộc gọi unreachable
+        Phân loại trạng thái cuộc gọi:
+        - answered: nói chuyện được (duration>0 / state='answered' / 'ended' có answer_time)
+        - no_answer: chuông kêu nhưng không bắt (state='no_answer')
+        - busy_like: máy bận / từ chối (state in 'busy','declined')
+        - subscriber: thuê bao (state='failed' — không kết nối được tới máy KH)
+        - cancelled: NV tự huỷ trước khi bắt → bỏ qua, không tính vào nhóm nào.
         """
         from collections import defaultdict
         result = {}
@@ -4363,9 +4363,10 @@ class CrmLead(models.Model):
             total = len(lcalls)
             answered = 0
             no_answer = 0
-            unreachable = 0
+            busy_like = 0
+            subscriber = 0
             all_days = set()
-            unreachable_days = set()
+            subscriber_days = set()
             for c in lcalls:
                 st = c.get('state')
                 dur = c.get('duration') or 0
@@ -4381,17 +4382,24 @@ class CrmLead(models.Model):
                     answered += 1
                 elif st == 'no_answer':
                     no_answer += 1
-                elif st in ('failed', 'busy', 'declined', 'cancelled'):
-                    unreachable += 1
+                elif st in ('busy', 'declined'):
+                    busy_like += 1
+                elif st == 'failed':
+                    subscriber += 1
                     if day:
-                        unreachable_days.add(day)
+                        subscriber_days.add(day)
+                # cancelled → bỏ qua
             result[lead_id] = {
                 'total': total,
                 'answered': answered,
                 'no_answer': no_answer,
-                'unreachable': unreachable,
+                'busy_like': busy_like,
+                'subscriber': subscriber,
                 'distinct_days': len(all_days),
-                'distinct_days_unreachable': len(unreachable_days),
+                'distinct_days_subscriber': len(subscriber_days),
+                # giữ field cũ để backward compatible nếu nơi nào còn ref
+                'unreachable': busy_like + subscriber,
+                'distinct_days_unreachable': len(subscriber_days),
             }
         return result
 

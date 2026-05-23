@@ -2087,21 +2087,27 @@
         /* Stage khác — neutral */
         &.o_vd_pill_neutral       { border-color: #ced4da; background: #fff; }
 
-        /* ===== Khách mới — Màu theo TRẠNG THÁI CUỘC GỌI (ưu tiên cao hơn nguồn) ===== */
-        /* Xanh dương sáng: chưa gọi cuộc nào */
-        &.o_vd_pill_call_new {
-            border-color: #339af0;
-            background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
-            .o_vd_won_pill_date { color: #0b4f87; }
+        /* ===== Khách mới — Màu theo TRẠNG THÁI CUỘC GỌI ===== */
+        /* ⚪ Trắng: chưa gọi cuộc nào (default border-color #dee2e6, background #fff) */
+        &.o_vd_pill_call_white {
+            border-color: #ced4da;
+            background: #fff;
+            .o_vd_won_pill_date { color: #1f2a44; }
         }
-        /* Xanh lá đậm: rung chuông không bắt, chưa báo giá */
-        &.o_vd_pill_call_ringing {
+        /* 🟢 Xanh lá: đã liên lạc được */
+        &.o_vd_pill_call_answered {
             border-color: #2b8a3e;
             background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%);
             .o_vd_won_pill_date { color: #1b5e20; }
         }
-        /* Đỏ: thuê bao 1–2 lần / ≤2 ngày */
-        &.o_vd_pill_call_unreachable {
+        /* 🔵 Xanh dương: chuông không bắt + máy bận */
+        &.o_vd_pill_call_blue {
+            border-color: #339af0;
+            background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
+            .o_vd_won_pill_date { color: #0b4f87; }
+        }
+        /* 🔴 Đỏ: thuê bao (failed) */
+        &.o_vd_pill_call_red {
             border-color: #e03131;
             background: linear-gradient(135deg, #ffe3e3 0%, #ffa8a8 100%);
             .o_vd_won_pill_date { color: #8c1a1a; }
@@ -2123,9 +2129,9 @@
         white-space: nowrap;
         flex-shrink: 0;
     }
-    .o_vd_pill_call_new .o_vd_pill_call_badge       { background: rgba(13, 110, 187, 0.18); color: #0b4f87; }
-    .o_vd_pill_call_ringing .o_vd_pill_call_badge   { background: rgba(27, 94, 32, 0.18);  color: #1b5e20; }
-    .o_vd_pill_call_unreachable .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
+    .o_vd_pill_call_answered .o_vd_pill_call_badge { background: rgba(27, 94, 32, 0.18);  color: #1b5e20; }
+    .o_vd_pill_call_blue     .o_vd_pill_call_badge { background: rgba(13, 110, 187, 0.18); color: #0b4f87; }
+    .o_vd_pill_call_red      .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
 
     /* ===== TOOLTIP — Status header + row highlights ===== */
     .o_vd_won_tt_status {
@@ -2145,21 +2151,25 @@
 
         .o_vd_won_tt_status_text { font-weight: 800; }
 
-        &.o_vd_pill_call_new {
-            background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
-            color: #0b4f87;
+        &.o_vd_pill_call_white {
+            background: #f8f9fa;
+            color: #495057;
         }
-        &.o_vd_pill_call_ringing {
+        &.o_vd_pill_call_answered {
             background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%);
             color: #1b5e20;
         }
-        &.o_vd_pill_call_unreachable {
+        &.o_vd_pill_call_blue {
+            background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
+            color: #0b4f87;
+        }
+        &.o_vd_pill_call_red {
             background: linear-gradient(135deg, #ffe3e3 0%, #ffa8a8 100%);
             color: #8c1a1a;
         }
     }
-    /* Highlight 2 dòng quan trọng nhất: chuông vs thuê bao */
-    .o_vd_won_tt_ringing {
+    /* Highlight các dòng theo loại trạng thái cuộc gọi */
+    .o_vd_won_tt_answered {
         background: rgba(43, 138, 62, 0.08);
         border-radius: 6px;
         padding-left: 0.4rem !important;
@@ -2167,7 +2177,15 @@
         .o_vd_won_tt_lbl { color: #1b5e20 !important; }
         > span:last-child strong { color: #1b5e20; }
     }
-    .o_vd_won_tt_unreach {
+    .o_vd_won_tt_blue {
+        background: rgba(13, 110, 187, 0.08);
+        border-radius: 6px;
+        padding-left: 0.4rem !important;
+        padding-right: 0.4rem !important;
+        .o_vd_won_tt_lbl { color: #0b4f87 !important; }
+        > span:last-child strong { color: #0b4f87; }
+    }
+    .o_vd_won_tt_red {
         background: rgba(224, 49, 49, 0.08);
         border-radius: 6px;
         padding-left: 0.4rem !important;

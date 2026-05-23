@@ -1561,37 +1561,37 @@
                         <span class="o_vd_won_tt_lbl">👔 NV phụ trách:</span>
                         <span><t t-esc="lead.user_name"/></span>
                     </div>
-                    <div class="o_vd_won_tt_row">
+                    <!-- Giá trị HĐ — CHỈ hiện ở stage Khách chốt (theo yêu cầu user) -->
+                    <div t-if="selectedStage and selectedStage.code === 'won'" class="o_vd_won_tt_row">
                         <span class="o_vd_won_tt_lbl">💰 Giá trị HĐ:</span>
                         <span><t t-if="lead.quote_price"><t t-esc="formatVnd(lead.quote_price)"/>đ</t><t t-else="">—</t></span>
                     </div>
-                    <!-- Thống kê cuộc gọi — chỉ ở stage Khách mới -->
-                    <t t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats">
+                    <!-- Thống kê cuộc gọi — chỉ stage Khách mới, chỉ khi đã có cuộc gọi -->
+                    <t t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0">
                         <div class="o_vd_won_tt_row o_vd_won_tt_callstats">
-                            <span class="o_vd_won_tt_lbl">📊 Cuộc gọi:</span>
+                            <span class="o_vd_won_tt_lbl">📊 Tổng cuộc gọi:</span>
                             <span>
-                                <t t-if="lead.call_stats.total === 0">Chưa gọi lần nào</t>
-                                <t t-else="">
-                                    Tổng <strong><t t-esc="lead.call_stats.total"/></strong>
-                                    · <t t-esc="lead.call_stats.distinct_days"/> ngày
-                                </t>
+                                <strong><t t-esc="lead.call_stats.total"/></strong>
+                                · <t t-esc="lead.call_stats.distinct_days"/> ngày
                             </span>
                         </div>
-                        <div t-if="lead.call_stats.answered > 0" class="o_vd_won_tt_row">
-                            <span class="o_vd_won_tt_lbl">✅ Đã liên lạc:</span>
-                            <span><t t-esc="lead.call_stats.answered"/> cuộc</span>
+                        <div t-if="lead.call_stats.answered > 0" class="o_vd_won_tt_row o_vd_won_tt_answered">
+                            <span class="o_vd_won_tt_lbl">🟢 Đã liên lạc:</span>
+                            <span><strong><t t-esc="lead.call_stats.answered"/></strong> cuộc</span>
                         </div>
-                        <div t-if="lead.call_stats.no_answer > 0"
-                             class="o_vd_won_tt_row o_vd_won_tt_ringing">
+                        <div t-if="lead.call_stats.no_answer > 0" class="o_vd_won_tt_row o_vd_won_tt_blue">
                             <span class="o_vd_won_tt_lbl">🔔 Có chuông, không bắt:</span>
                             <span><strong><t t-esc="lead.call_stats.no_answer"/></strong> cuộc</span>
                         </div>
-                        <div t-if="lead.call_stats.unreachable > 0"
-                             class="o_vd_won_tt_row o_vd_won_tt_unreach">
-                            <span class="o_vd_won_tt_lbl">📵 Thuê bao / Máy bận:</span>
+                        <div t-if="lead.call_stats.busy_like > 0" class="o_vd_won_tt_row o_vd_won_tt_blue">
+                            <span class="o_vd_won_tt_lbl">📞 Máy bận / Từ chối:</span>
+                            <span><strong><t t-esc="lead.call_stats.busy_like"/></strong> cuộc</span>
+                        </div>
+                        <div t-if="lead.call_stats.subscriber > 0" class="o_vd_won_tt_row o_vd_won_tt_red">
+                            <span class="o_vd_won_tt_lbl">📵 Thuê bao:</span>
                             <span>
-                                <strong><t t-esc="lead.call_stats.unreachable"/></strong> cuộc
-                                · <t t-esc="lead.call_stats.distinct_days_unreachable"/> ngày
+                                <strong><t t-esc="lead.call_stats.subscriber"/></strong> cuộc
+                                · <t t-esc="lead.call_stats.distinct_days_subscriber"/> ngày
                             </span>
                         </div>
                     </t>
