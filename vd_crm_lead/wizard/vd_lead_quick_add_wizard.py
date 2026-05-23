@@ -31,16 +31,18 @@ SOURCE_PREFIX = {
     'manual': '',
 }
 
-# Map trạng thái dashboard (3 cột) → stage code trong crm.stage
+# Map trạng thái dashboard → stage code trong crm.stage
 STATUS_SELECTION = [
     ('new', '🆕 Khách mới'),
-    ('progress', '⏳ Đang xử lý vấn đề'),
+    ('progress', '⏳ Khách đang xử lý vấn đề'),
     ('won', '🏆 Khách chốt'),
+    ('lost', '❌ Khách hủy'),
 ]
 STATUS_TO_STAGE_CODE = {
     'new': 'new',
     'progress': 'quote',  # mid-funnel representative
     'won': 'won',
+    'lost': 'lost',
 }
 
 
