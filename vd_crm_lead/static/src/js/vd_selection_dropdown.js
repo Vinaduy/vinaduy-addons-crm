@@ -41,10 +41,11 @@ export class VdSelectionDropdown extends Component {
         };
         onMounted(() => {
             document.addEventListener("click", this._onDocClick, true);
-            // Khi widget mount trong list editable cell, Odoo đã consume click
-            // mở edit mode → widget không có cơ hội bắt click đầu. Auto-open
-            // ngay để user click 1 lần là chọn được option luôn.
-            if (this.rootRef.el?.closest(".o_list_table, .o_list_renderer")) {
+            // Trong list editable: chỉ auto-open NẾU widget đang ở ACTIVE row
+            // (có class o_selected_row). Tránh open trong tất cả cells gây
+            // menu stack chồng chéo.
+            const tr = this.rootRef.el?.closest("tr");
+            if (tr?.classList.contains("o_selected_row")) {
                 this.state.open = true;
                 this.state.search = "";
                 Promise.resolve().then(() => {

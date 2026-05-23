@@ -59,9 +59,18 @@ document.addEventListener(
         _pendingTd = td;
         _pendingTimer = setTimeout(() => {
             if (_pendingTd === td && document.contains(td)) {
-                // Simulate click để Odoo cell vào edit mode → vd_selection_dropdown
-                // mount → setup() detect list ancestor → auto-open.
+                // 1) Click TD → Odoo chuyển row sang edit mode (.o_selected_row)
                 td.click();
+                // 2) Sau khi widget remount/render trong active row, click vào
+                // wrapper để onWrapperClick mở dropdown menu.
+                setTimeout(() => {
+                    const ddRoot = td.querySelector(".o_vd_select_dd");
+                    if (ddRoot) {
+                        ddRoot.click();
+                        const inp = ddRoot.querySelector(".o_vd_select_dd_input");
+                        inp?.focus();
+                    }
+                }, 60);
             }
             _pendingTimer = null;
             _pendingTd = null;
