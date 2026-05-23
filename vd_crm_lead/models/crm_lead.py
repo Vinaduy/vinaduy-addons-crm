@@ -913,17 +913,15 @@ class CrmLead(models.Model):
     )
 
     @api.depends(
-        'name', 'partner_name', 'phone', 'user_id', 'callback_date',
-        'vd_intake_province_id', 'vd_intake_district',
+        'vd_intake_province_id',
         'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_house_type',
-        'vd_intake_roof_type', 'vd_intake_foundation_type',
+        'vd_intake_foundation_type',
         'vd_intake_budget', 'vd_intake_budget_amount',
         'vd_intake_timeline', 'vd_intake_land_type', 'vd_intake_dimensions',
-        'vd_intake_car_access',
-        'vd_quote_price', 'vd_intake_function_notes',
+        'vd_intake_car_access', 'vd_intake_soil_dump',
     )
     def _compute_vd_zalo_copy_text(self):
-        """Build text format đẹp gửi Zalo. Bỏ qua dòng nếu field rỗng."""
+        """Build TỔNG HỢP NHU CẦU KHÁCH — format đẹp gửi Zalo / paste nhanh."""
         def _sel_label(rec, fname):
             val = rec[fname]
             if not val:
@@ -931,24 +929,13 @@ class CrmLead(models.Model):
             return rec._vd_selection_dict(fname).get(val, val)
 
         for rec in self:
-            lines = []
-            lines.append('━━━ XÁC NHẬN THÔNG TIN KH ━━━')
-            lines.append('👤 KH: %s' % (rec.partner_name or rec.name or '—'))
-            if rec.phone:
-                lines.append('📞 SĐT: %s' % rec.phone)
-            if rec.user_id:
-                lines.append('👔 NV phụ trách: %s' % rec.user_id.name)
-            if rec.callback_date:
-                lines.append('📅 Hẹn gọi lại: %s' % rec.callback_date.strftime('%d/%m/%Y %H:%M'))
-            # Địa chỉ
-            addr_parts = []
-            if rec.vd_intake_district:
-                addr_parts.append(rec.vd_intake_district.name)
+            lines = ['TỔNG HỢP NHU CẦU KHÁCH', '----------------------------------']
+
+            # 📍 Tỉnh (chỉ province, bỏ huyện theo yêu cầu)
             if rec.vd_intake_province_id:
-                addr_parts.append(rec.vd_intake_province_id.name)
-            if addr_parts:
-                lines.append('📍 Tỉnh/Huyện: %s' % ', '.join(addr_parts))
-            # Nhà
+                lines.append('📍 %s' % rec.vd_intake_province_id.name)
+
+            # 🏠 Nhà: type • N tầng • Xm²
             house_parts = []
             if rec.vd_intake_house_type:
                 house_parts.append(_sel_label(rec, 'vd_intake_house_type'))
@@ -957,32 +944,34 @@ class CrmLead(models.Model):
             if rec.vd_intake_area_m2:
                 house_parts.append('%sm²' % rec.vd_intake_area_m2)
             if house_parts:
-                lines.append('🏠 Nhà: %s' % ' • '.join(house_parts))
-            if rec.vd_intake_roof_type:
-                lines.append('🏠 Mái: %s' % _sel_label(rec, 'vd_intake_roof_type'))
+                lines.append('🏠 %s' % ' • '.join(house_parts))
+
+            # 🧱 Móng
             if rec.vd_intake_foundation_type:
-                lines.append('🧱 Móng: %s' % _sel_label(rec, 'vd_intake_foundation_type'))
-            # Đất
-            land_parts = []
+                lines.append('🧱 %s' % _sel_label(rec, 'vd_intake_foundation_type'))
+
+            # 🌳 Loại đất
             if rec.vd_intake_land_type:
-                land_parts.append(_sel_label(rec, 'vd_intake_land_type'))
+                lines.append('🌳 %s,' % _sel_label(rec, 'vd_intake_land_type'))
+            # 📄 Sổ đỏ / cấp phép
             if rec.vd_intake_dimensions:
-                land_parts.append(_sel_label(rec, 'vd_intake_dimensions'))
-            land_parts.append('ô tô vào %s' % ('được' if rec.vd_intake_car_access else 'không được'))
-            if land_parts:
-                lines.append('🌳 Đất: %s' % ', '.join(land_parts))
-            # Ngân sách / báo giá
-            if rec.vd_quote_price:
-                lines.append('💰 Giá báo: %s đ' % '{:,.0f}'.format(rec.vd_quote_price))
+                lines.append('📄 %s' % _sel_label(rec, 'vd_intake_dimensions'))
+            # 🚗 Ô tô vào
+            lines.append('🚗 ô tô vào %s' % ('được' if rec.vd_intake_car_access else 'không được'))
+            # ⛰️ Chỗ để đất móng
+            if rec.vd_intake_soil_dump:
+                lines.append('⛰️ Đất: %s' % _sel_label(rec, 'vd_intake_soil_dump'))
+
+            # 💵 NS dự kiến
             if rec.vd_intake_budget_amount:
                 lines.append('💵 NS dự kiến: %s đ' % '{:,.0f}'.format(rec.vd_intake_budget_amount))
             elif rec.vd_intake_budget:
                 lines.append('💵 NS dự kiến: %s' % _sel_label(rec, 'vd_intake_budget'))
-            if rec.vd_intake_timeline:
-                lines.append('⏰ Khởi công: %s' % rec.vd_intake_timeline)
-            if rec.vd_intake_function_notes:
-                lines.append('📝 Ghi chú: %s' % rec.vd_intake_function_notes)
-            lines.append('━━━━━━━━━━━━━━━━━━━━')
+
+            # ⏰ Khởi công — luôn hiện, fallback "Chưa xác định"
+            lines.append('⏰ Khởi công: %s' % (rec.vd_intake_timeline or 'Chưa xác định'))
+
+            lines.append('---------------HẾT--------------')
             rec.vd_zalo_copy_text = '\n'.join(lines)
 
     def action_copy_zalo(self):
