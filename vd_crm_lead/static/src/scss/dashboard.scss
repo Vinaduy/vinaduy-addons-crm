@@ -4470,11 +4470,12 @@
     position: fixed;
     inset: 0;
     z-index: 1900;
-    /* QUAN TRỌNG: KHÔNG dùng backdrop-filter — gây containing block khiến
-       position:fixed của Popper dropdown anchor sai → menu nhảy chỗ khác. */
     background: rgba(15, 23, 42, 0.82);
-    display: flex;
-    flex-direction: column;
+    /* Backdrop là CLIPPING duy nhất trong chain — Popper sẽ dùng làm boundary
+       (= viewport size → dropdown anchor đúng). KHÔNG dùng backdrop-filter,
+       transform, filter, perspective (đều biến thành containing block). */
+    overflow-y: auto;
+    padding: 12px;
     animation: vd-preview-fade 0.1s ease-out;
 }
 @keyframes vd-preview-fade {
@@ -4482,27 +4483,22 @@
     to   { opacity: 1; }
 }
 .o_vd_preview_modal {
-    flex: 1;
-    margin: 12px;
     background: #fff;
     border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    min-height: calc(100vh - 24px);  /* lấp đầy viewport */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-    /* KHÔNG dùng animation transform — keyframes có transform:scale() biến
-       modal thành containing block cho position:fixed → Popper dropdown lệch.
-       Dùng animation opacity-only thay thế. */
-    animation: vd-preview-fade-modal 0.12s ease-out;
-}
-@keyframes vd-preview-fade-modal {
-    from { opacity: 0.4; }
-    to   { opacity: 1; }
+    /* KHÔNG overflow — không tạo Popper clipping parent. Long form sẽ extend
+       và backdrop ngoài cùng scroll. */
 }
 
 /* ===== Topbar ===== */
 .o_vd_preview_topbar {
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -4587,26 +4583,21 @@
 }
 
 /* ===== Body — full form view embedded =====
-   QUAN TRỌNG: KHÔNG để overflow:auto trên body — gây Popper.js tính boundary
-   sai → dropdown/autocomplete nhảy lung tung. Để scroll cho o_form_view bên trong. */
+   KHÔNG có overflow ở đây hoặc bất kỳ ancestor nào tới backdrop → Popper
+   chỉ thấy backdrop là clipping → boundary = viewport → dropdown anchor đúng. */
 .o_vd_preview_body {
     flex: 1;
     overflow: visible;
     background: #f8f9fa;
-    min-height: 0;
     position: relative;
     display: flex;
     flex-direction: column;
 }
-/* Body khi nhúng <View/> form crm.lead: scroll xảy ra Ở ĐÂY (form view), KHÔNG
-   ở .o_vd_preview_body — tránh tạo clipping parent gây Popper lệch. */
 .o_vd_preview_body_form {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
     padding: 0;
-    /* KHÔNG dùng zoom — gây Popper lệch dropdown qua portal.
-       Thay bằng font-size trực tiếp lên text/input/button. */
+    /* KHÔNG dùng zoom + KHÔNG dùng overflow:auto — cả 2 đều phá Popper. */
 
     > .o_view_controller,
     > .o_action_manager,
