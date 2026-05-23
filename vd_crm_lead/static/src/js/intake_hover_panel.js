@@ -51,10 +51,48 @@ let _closeTimer = null;
 let _resizeObserver = null;
 
 function _findRightPanel() {
-    return document.querySelector(".o_vd_layout_right");
+    // Scope vào form view đang visible để không match nhầm wizard/khác.
+    const form = document.querySelector(".o_form_view");
+    return form ? form.querySelector(".o_vd_layout_right") : null;
 }
 function _findOverlay() {
+    // Ưu tiên tìm overlay đã portal lên body trước (nếu đang open).
+    const portaled = document.body.querySelector(":scope > .o_vd_intake_popup_overlay");
+    if (portaled) return portaled;
     return document.querySelector(".o_vd_intake_popup_overlay");
+}
+
+// ===== PORTAL OVERLAY TO <body> =====
+// Khi mở: di chuyển overlay ra body để ESCAPE zoom 0.7 context của form sheet.
+// Khi đóng: trả về vị trí gốc để Odoo OWL không bị lệch render tree.
+let _portalOriginalParent = null;
+let _portalOriginalNext = null;
+
+function _portalToBody() {
+    const overlay = _findOverlay();
+    if (!overlay) return;
+    if (overlay.parentElement === document.body) return; // đã portal
+    _portalOriginalParent = overlay.parentElement;
+    _portalOriginalNext = overlay.nextElementSibling;
+    document.body.appendChild(overlay);
+}
+
+function _restoreFromBody() {
+    const overlay = document.body.querySelector(":scope > .o_vd_intake_popup_overlay");
+    if (!overlay || !_portalOriginalParent) {
+        _portalOriginalParent = null;
+        _portalOriginalNext = null;
+        return;
+    }
+    try {
+        if (_portalOriginalNext && _portalOriginalNext.parentElement === _portalOriginalParent) {
+            _portalOriginalParent.insertBefore(overlay, _portalOriginalNext);
+        } else {
+            _portalOriginalParent.appendChild(overlay);
+        }
+    } catch (_e) { /* parent có thể đã unmount; bỏ qua */ }
+    _portalOriginalParent = null;
+    _portalOriginalNext = null;
 }
 
 function _positionOverlay() {
@@ -62,16 +100,14 @@ function _positionOverlay() {
     const overlay = _findOverlay();
     if (!right || !overlay) return;
     const r = right.getBoundingClientRect();
-    // Sanity check — nếu rect 0×0 (panel chưa render) thì bỏ qua
     if (r.width < 50 || r.height < 50) return;
-    // r là viewport coords (post-zoom). Overlay nằm TRONG zoom 0.7 context →
-    // CSS dimensions sẽ bị nhân với zoom khi render. Chia rect cho zoom để bù.
-    const z = _getZoomFactor();
-    overlay.style.setProperty("--vd-hover-top",    Math.max(0, r.top) / z + "px");
-    overlay.style.setProperty("--vd-hover-left",   Math.max(0, r.left) / z + "px");
-    overlay.style.setProperty("--vd-hover-width",  r.width / z + "px");
+    // Overlay đã portal ra <body> → KHÔNG còn trong zoom context.
+    // Set rect viewport coords trực tiếp, không cần chia zoom.
+    overlay.style.setProperty("--vd-hover-top",    Math.max(0, r.top) + "px");
+    overlay.style.setProperty("--vd-hover-left",   Math.max(0, r.left) + "px");
+    overlay.style.setProperty("--vd-hover-width",  r.width + "px");
     overlay.style.setProperty("--vd-hover-height",
-        Math.max(r.height, window.innerHeight - r.top - 20) / z + "px");
+        Math.max(r.height, window.innerHeight - r.top - 20) + "px");
 }
 
 function _setupObserver() {
@@ -92,6 +128,7 @@ function _teardownObserver() {
 function _open() {
     _cancelClose();
     _cancelOpen();
+    _portalToBody();           // escape form's zoom 0.7 context
     _positionOverlay();
     HTML.classList.add(HOVER_CLS);
     _setupObserver();
@@ -101,6 +138,7 @@ function _close() {
     HTML.classList.remove(HOVER_CLS);
     if (!HTML.classList.contains(PINNED_CLS)) {
         _teardownObserver();
+        _restoreFromBody();    // trả overlay về cây Odoo OWL
     }
 }
 
