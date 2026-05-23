@@ -3913,10 +3913,23 @@
 
     /* Variant chưa gọi được — màu tím, naked (giống thùng rác) */
     .o_vd_trash_box.o_vd_split_notcalled {
-        .o_vd_trash_icon { color: #6741d9; }
-        .o_vd_trash_icon i.fa {
+        .o_vd_trash_icon {
             color: #6741d9;
+            i.fa { color: #6741d9; }
+        }
+        /* Fa-stack: phone + ban overlay — to giống thùng rác (~5.5rem) */
+        .o_vd_notcalled_stack {
+            font-size: 2.6rem;       /* fa-stack chiếm 2em → ~5.2rem */
+            line-height: 1;
             filter: drop-shadow(0 2px 6px rgba(103, 65, 217, 0.3));
+            .fa-stack-1x {
+                color: #6741d9;
+                line-height: inherit;
+            }
+            .fa-stack-2x {
+                color: #6741d9;
+                opacity: 0.85;
+            }
         }
         .o_vd_trash_label { color: #6741d9; }
         .o_vd_trash_count { color: #6741d9; }

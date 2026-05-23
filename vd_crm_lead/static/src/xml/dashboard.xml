@@ -1305,32 +1305,26 @@
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
                                         </div>
-                                        <div class="o_vd_filter_table_right_wrap">
-                                            <div class="o_vd_filter_table_right o_vd_pills_2rows">
-                                                <t t-if="leadsNoProblems.length">
-                                                    <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
-                                                        <t t-call="vd_crm_lead.LeadPill"/>
-                                                    </t>
+                                        <div class="o_vd_filter_table_right">
+                                            <t t-if="leadsNoProblems.length">
+                                                <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
+                                                    <t t-call="vd_crm_lead.LeadPill"/>
                                                 </t>
-                                                <div t-else="" class="o_vd_filter_table_empty">
-                                                    <i class="fa fa-check-circle text-success me-1"/>
-                                                    Tất cả KH mới đã có vấn đề — xem bảng dưới.
-                                                </div>
-                                            </div>
-                                            <div t-if="leadsNoProblems.length > 8" class="o_vd_pills_show_btn">
-                                                <i class="fa fa-chevron-down me-1"/>
-                                                Xem tất cả <t t-esc="leadsNoProblems.length"/>
-                                                <div class="o_vd_pills_show_popup">
-                                                    <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
-                                                        <t t-call="vd_crm_lead.LeadPill"/>
-                                                    </t>
-                                                </div>
+                                            </t>
+                                            <div t-else="" class="o_vd_filter_table_empty">
+                                                <i class="fa fa-check-circle text-success me-1"/>
+                                                Tất cả KH mới đã có vấn đề — xem bảng dưới.
                                             </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled">
-                                        <div class="o_vd_trash_icon"><i class="fa fa-phone-slash"/></div>
+                                        <div class="o_vd_trash_icon">
+                                            <span class="fa-stack o_vd_notcalled_stack">
+                                                <i class="fa fa-phone fa-stack-1x"/>
+                                                <i class="fa fa-ban fa-stack-2x"/>
+                                            </span>
+                                        </div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
