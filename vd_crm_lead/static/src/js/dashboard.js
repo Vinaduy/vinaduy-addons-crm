@@ -9,7 +9,7 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -68,8 +68,21 @@ export class VdCrmDashboard extends Component {
             searchResults: [],
             searchLoading: false,
             searchOpen: false,
+            // ===== PREVIEW LEAD POPUP (fullscreen iframe + prev/next) =====
+            previewLead: { open: false, ids: [], index: 0 },
         });
         this._searchDebounce = null;
+
+        // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH
+        this._onKeydown = (ev) => {
+            if (!this.state.previewLead.open) return;
+            // Bỏ qua nếu user đang gõ trong iframe (Odoo SPA chạy bên trong)
+            if (ev.key === 'Escape')     { ev.preventDefault(); this.closePreview(); }
+            else if (ev.key === 'ArrowLeft')  { ev.preventDefault(); this.prevPreview(); }
+            else if (ev.key === 'ArrowRight') { ev.preventDefault(); this.nextPreview(); }
+        };
+        onMounted(() => window.addEventListener('keydown', this._onKeydown));
+        onWillUnmount(() => window.removeEventListener('keydown', this._onKeydown));
 
         onWillStart(async () => {
             await this.loadDashboard();
@@ -448,13 +461,67 @@ export class VdCrmDashboard extends Component {
     }
 
     openLead(leadId) {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "crm.lead",
-            res_id: leadId,
-            views: [[false, "form"]],
-            target: "current",
-        });
+        // Mở preview popup full-screen với iframe Odoo form + ← → navigate
+        // trong cùng nhóm hiện tại (auto-detect: pills / problem rows / state.leads).
+        let ids;
+        if (this.isNewStageSplit) {
+            if (this.leadsNoProblems.some(l => l.id === leadId)) {
+                ids = this.leadsNoProblems.map(l => l.id);
+            } else if (this.leadsWithProblems.some(l => l.id === leadId)) {
+                ids = this.leadsWithProblems.map(l => l.id);
+            } else {
+                ids = [leadId];
+            }
+        } else {
+            const list = this.state.leads || [];
+            ids = list.length ? list.map(l => l.id) : [leadId];
+        }
+        const idx = ids.indexOf(leadId);
+        this.state.previewLead = {
+            open: true,
+            ids,
+            index: idx >= 0 ? idx : 0,
+        };
+    }
+
+    closePreview() {
+        this.state.previewLead = { ...this.state.previewLead, open: false };
+        // Refresh lead list — KH có thể đã thay đổi stage / call_count khi preview
+        this.refreshAfterPreview();
+    }
+
+    prevPreview() {
+        const p = this.state.previewLead;
+        if (p.index > 0) this.state.previewLead.index = p.index - 1;
+    }
+
+    nextPreview() {
+        const p = this.state.previewLead;
+        if (p.index < p.ids.length - 1) this.state.previewLead.index = p.index + 1;
+    }
+
+    async refreshAfterPreview() {
+        // Reload leads cho stage hiện tại (không reload full dashboard để giữ scroll)
+        if (this.state.selectedStageId) {
+            try {
+                await this.selectStage(this.state.selectedStageId);
+            } catch (_e) {}
+        }
+    }
+
+    get previewLeadUrl() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return '';
+        const id = p.ids[p.index];
+        // Odoo 18 SPA URL — load lead form trong iframe; session cookie auth tự động.
+        return `/odoo/crm.lead/${id}`;
+    }
+
+    onPreviewBackdropClick(ev) {
+        // Click vào nền tối ngoài iframe → đóng popup
+        if (ev.target.classList.contains('o_vd_preview_backdrop')) {
+            this.closePreview();
+        }
     }
 
     createNewLead() {

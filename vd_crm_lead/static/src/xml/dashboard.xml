@@ -1454,6 +1454,52 @@
                     </main>
                 </div>
             </div>
+
+            <!-- ============================================================
+                 PREVIEW LEAD POPUP — full-screen overlay với iframe Odoo form,
+                 X close, ← → chuyển KH cùng nhóm, ESC/Arrow keys.
+                 ============================================================ -->
+            <div t-if="state.previewLead.open"
+                 class="o_vd_preview_backdrop"
+                 t-on-click="(ev) => this.onPreviewBackdropClick(ev)">
+                <div class="o_vd_preview_modal">
+                    <!-- Top bar: title + index + close X -->
+                    <div class="o_vd_preview_topbar">
+                        <div class="o_vd_preview_title">
+                            <i class="fa fa-id-card-o me-2"/>
+                            KH <strong><t t-esc="state.previewLead.index + 1"/></strong>
+                            / <t t-esc="state.previewLead.ids.length"/>
+                            <span class="o_vd_preview_hint">
+                                · <kbd>←</kbd> <kbd>→</kbd> chuyển KH · <kbd>Esc</kbd> đóng
+                            </span>
+                        </div>
+                        <button class="o_vd_preview_close"
+                                t-on-click="() => this.closePreview()"
+                                title="Đóng (Esc)">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+                    <!-- Iframe Odoo form view -->
+                    <iframe class="o_vd_preview_frame"
+                            t-att-src="previewLeadUrl"
+                            t-att-key="state.previewLead.ids[state.previewLead.index]"
+                            frameborder="0"
+                            title="Lead preview"/>
+                    <!-- Nav arrows: side edges -->
+                    <button t-if="state.previewLead.index > 0"
+                            class="o_vd_preview_arrow o_vd_preview_arrow_left"
+                            t-on-click="() => this.prevPreview()"
+                            title="KH trước (←)">
+                        <i class="fa fa-chevron-left"/>
+                    </button>
+                    <button t-if="state.previewLead.index &lt; state.previewLead.ids.length - 1"
+                            class="o_vd_preview_arrow o_vd_preview_arrow_right"
+                            t-on-click="() => this.nextPreview()"
+                            title="KH sau (→)">
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+            </div>
         </div>
     </t>
 
