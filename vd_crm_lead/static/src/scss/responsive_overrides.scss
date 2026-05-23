@@ -223,6 +223,27 @@ html, body {
         font-size: 0.82rem;
         padding: 0.15rem 0.3rem;
     }
+
+    /* Non-active row: ẨN controls (× ▾), chỉ hiện text giá trị như Selection
+       mặc định Odoo. Active row (.o_selected_row): hiện full widget interactive. */
+    .o_list_table tr:not(.o_selected_row) .o_vd_select_dd {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        .o_vd_select_dd_clear,
+        .o_vd_select_dd_arrow,
+        .o_vd_select_dd_menu {
+            display: none !important;
+        }
+        .o_vd_select_dd_input {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            cursor: default;
+            pointer-events: none;
+            font-weight: 400;
+        }
+    }
 }
 
 /* ============================================================
