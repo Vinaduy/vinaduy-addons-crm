@@ -4577,6 +4577,31 @@
     .dropdown-item {
         white-space: nowrap !important;
     }
+
+    /* ===== Fix custom hover-panel "Copy Zalo" bị stack ký tự dọc do zoom =====
+       o_vd_zalo_hover_panel có min-width 340px gốc nhưng CSS zoom + word-break:
+       break-word của con khiến container collapse → cần ép width tuyệt đối + tắt
+       word-break aggressive. */
+    .o_vd_zalo_hover_panel {
+        min-width: 360px !important;
+        width: 360px !important;
+        max-width: 480px !important;
+        white-space: normal !important;
+    }
+    .o_vd_zalo_hover_panel * {
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
+    .o_vd_zalo_hover_panel .o_field_widget,
+    .o_vd_zalo_hover_panel .o_field_widget *,
+    .o_vd_zalo_hover_panel span,
+    .o_vd_zalo_hover_panel div,
+    .o_vd_zalo_hover_panel pre,
+    .o_vd_zalo_hover_panel textarea {
+        white-space: pre-wrap !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+    }
 }
 
 /* Owl dropdown/popover render qua portal (sibling của body) → CSS scope
