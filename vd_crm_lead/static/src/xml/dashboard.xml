@@ -1317,7 +1317,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- NỬA PHẢI: KHÁCH CHƯA GỌI ĐƯỢC -->
+                                    <!-- NỬA GIỮA: KHÁCH CHƯA GỌI ĐƯỢC -->
                                     <div class="o_vd_filter_table o_vd_filter_table_notcalled o_vd_split_half">
                                         <div class="o_vd_filter_table_left">
                                             <i class="fa fa-phone-slash o_vd_filter_funnel_notcalled"/>
@@ -1336,6 +1336,14 @@
                                                 <i class="fa fa-check me-1"/>
                                                 Đã gọi hết KH.
                                             </div>
+                                        </div>
+                                    </div>
+                                    <!-- CỘT PHẢI: THÙNG RÁC KH HỦY (chỉ count) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash">
+                                        <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">KH HỦY</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1411,19 +1419,7 @@
                             </div>
                         </section>
 
-                        <!-- ===== THÙNG RÁC — KH đã hủy (chỉ count, không chips) ===== -->
-                        <section t-if="isNewStageSplit" class="o_vd_trash_section">
-                            <div class="o_vd_trash_box">
-                                <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
-                                <div class="o_vd_trash_meta">
-                                    <div class="o_vd_trash_label">KHÁCH HỦY</div>
-                                    <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
-                                </div>
-                                <div class="o_vd_trash_hint">
-                                    Đã đánh dấu hủy — không hiển thị chi tiết.
-                                </div>
-                            </div>
-                        </section>
+                        <!-- Thùng rác KH hủy đã merge vào split row trên cùng với CHƯA GỌI ĐƯỢC. -->
 
                         <!-- Bảng xếp hạng NV đã xoá theo yêu cầu admin. -->
                     </main>
