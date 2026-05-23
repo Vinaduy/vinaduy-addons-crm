@@ -4429,32 +4429,46 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_clean_input_name(self, name):
-        """Chuẩn hoá tên KH MỚI: strip pattern 'VINADUY - X - <code>' và
-        team/code suffix (HCM1, T5/26, 19/3...) khỏi tên do user nhập.
-
-        Lý do: KH MỚI chỉ nên hiện tên kiểu 'Anh Hải' / 'Chị Minh' / tên đầy
-        đủ. Pattern 'VINADUY - X - <team>' CHỈ được auto-apply sau khi báo
-        giá (qua _vd_apply_quote_name_pattern). Nếu user nhập sẵn pattern
-        này thì strip về tên gốc.
+        """Chuẩn hoá tên KH MỚI: ép về dạng 'Anh Hải'/'Chị Minh'/tên đầy đủ.
+        Strip aggressively:
+          - Prefix nguồn: (Fanpage), [FB], [Pancake]...
+          - Pattern 'VINADUY - X - <code>'
+          - Prefix số-gạch: "21-Nguyễn..." → "Nguyễn..."
+          - Suffix date pair dính liền: "Phúc12/5" → "Phúc"
+          - Suffix gạch + code: " - HCM2", " - T5/26"
+          - Token cuối toàn caps (HT, LĐ, ĐNA, AG, HCM, HCM2, BN, ...)
+          - Token cuối cặp số: "19/3", "30-12", "1-11", "8/5"
+        Pattern 'VINADUY - X - <team>' CHỈ được auto-apply sau khi báo giá
+        (qua _vd_apply_quote_name_pattern).
         """
         if not name:
             return name
         import re
         s = name.strip()
-        # Strip prefix nguồn nếu lọt: [FB], [TT], (Pancake), [Pancake]...
+        # 1. Prefix nguồn
         s = re.sub(r'^\((Fanpage|Tiktok|Instagram|Pancake)\)\s*', '', s, flags=re.IGNORECASE)
         s = re.sub(r'^\[(Pancake|FB|TT|IG|Zalo|Hotline|GT)\]\s*', '', s, flags=re.IGNORECASE)
-        # Strip "VINADUY - <X> - <code>" → giữ <X>
+        # 2. Pattern VINADUY → giữ phần giữa
         m = re.match(r'^VINADUY\s*[-–—]\s*(.+?)\s*[-–—]\s*[^-–—]+\s*$', s, re.IGNORECASE)
         if m:
             s = m.group(1).strip()
-        # Strip trailing team/code suffix: " - HCM2", " - T5/26", " - 30-12",
-        # " - 19/3", " - 5/26"... — pattern code in trên thẻ pill cũ.
-        s = re.sub(
-            r'\s*[-–—]\s*(?:[A-Z]{1,5}\d*|T?\d{1,2}[-/]\d{1,4})\s*$',
-            '', s, flags=re.IGNORECASE,
-        )
-        return s.strip() or name
+        # 3. Prefix số-gạch
+        s = re.sub(r'^\d+\s*[-–—]\s*', '', s)
+        # 4. Date pair dính liền cuối
+        s = re.sub(r'(\D)\d+[-/]\d+\s*$', r'\1', s)
+        # 5. Gạch + code cuối
+        s = re.sub(r'\s*[-–—]\s*[A-ZĐ][A-ZĐ\d]{0,4}\s*$', '', s)
+        # 6. Lặp strip token cuối nếu là caps-code hoặc cặp số
+        upper_pat = re.compile(r'^[A-ZĐ][A-ZĐ\d]{1,4}$')
+        num_pat = re.compile(r'^T?\d{1,2}[-/]\d{1,4}$')
+        parts = s.split()
+        while len(parts) > 1:
+            last = parts[-1]
+            if upper_pat.match(last) or num_pat.match(last):
+                parts.pop()
+            else:
+                break
+        return ' '.join(parts).strip() or name
 
     def _vd_team_label_for(self, user):
         """Lấy 'team label' từ tên NV (HCM1/HCM2/HCM3/HN/QN/...).

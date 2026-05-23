@@ -4547,8 +4547,8 @@
 /* Body khi nhúng <View/> form crm.lead: reset chrome thừa, để form chiếm toàn bộ */
 .o_vd_preview_body_form {
     padding: 0;
-    /* Phóng to toàn bộ form view trong popup +15% (font + layout) so với form gốc */
-    zoom: 1.15;
+    /* Phóng to form view trong popup: 1.15 × 1.1 = 1.265 (~+26.5%) */
+    zoom: 1.265;
 
     > .o_view_controller,
     > .o_action_manager,

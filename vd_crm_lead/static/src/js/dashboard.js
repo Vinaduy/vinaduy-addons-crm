@@ -448,27 +448,41 @@ export class VdCrmDashboard extends Component {
     }
 
     /**
-     * Chuẩn hoá tên KH cho hiển thị pill:
-     *   - Strip prefix nguồn: (Fanpage), [Pancake], [FB], [TT]...
-     *   - Strip 'VINADUY - <X> - <code>' → giữ <X>
-     *   - Strip team/code suffix: ' - HCM2', ' - T5/26', ' - 30-12', ' - 19/3'
-     * Pattern VINADUY chỉ sinh ra sau khi báo giá (qua _vd_apply_quote_name_pattern),
-     * nhưng pill luôn show tên ngắn cho dễ nhìn.
+     * Chuẩn hoá tên KH cho pill: chỉ giữ "Anh Hải" / "Chị Minh" / tên đầy đủ.
+     * Strip:
+     *   - Prefix nguồn: (Fanpage), [Pancake], [FB], [TT]...
+     *   - Pattern 'VINADUY - <X> - <code>'
+     *   - Prefix số-gạch: "21-", "6-", "8-"
+     *   - Suffix date pair dính liền: "Phúc12/5" → "Phúc"
+     *   - Suffix gạch + code: " - HCM2", " - T5/26"
+     *   - Token cuối toàn caps Việt: "HT", "LĐ", "ĐNA", "AG", "HCM", "HCM2", "BN"...
+     *   - Token cuối là cặp số: "19/3", "30-12", "1-11", "8/5", "T5/26"
      */
     shortLeadName(lead) {
-        let name = lead.name || '';
-        // 1. Strip prefix nguồn
+        let name = (lead.name || '').trim();
+        if (!name) return 'KH';
+        // 1. Prefix nguồn
         name = name.replace(/^\((Fanpage|Tiktok|Instagram|Pancake)\)\s*/i, '');
         name = name.replace(/^\[(Pancake|FB|TT|IG|Zalo|Hotline|GT)\]\s*/i, '');
-        // 2. Strip 'VINADUY - <X> - <code>' → keep <X>
+        // 2. Pattern VINADUY - <X> - <code> → giữ <X>
         const m = name.match(/^VINADUY\s*[-–—]\s*(.+?)\s*[-–—]\s*[^-–—]+\s*$/i);
         if (m) name = m[1].trim();
-        // 3. Strip trailing team/code suffix
-        name = name.replace(
-            /\s*[-–—]\s*(?:[A-Z]{1,5}\d*|T?\d{1,2}[-/]\d{1,4})\s*$/i,
-            '',
-        );
-        return name.trim() || 'KH';
+        // 3. Prefix số-gạch: "21-Nguyễn..." → "Nguyễn..."
+        name = name.replace(/^\d+\s*[-–—]\s*/, '');
+        // 4. Date pair dính liền cuối: "Phúc12/5" → "Phúc"
+        name = name.replace(/(\D)\d+[-/]\d+\s*$/, '$1');
+        // 5. Gạch + code cuối: " - HCM2", " - T5/26"
+        name = name.replace(/\s*[-–—]\s*[A-ZĐ][A-ZĐ\d]{0,4}\s*$/, '');
+        // 6. Lặp: strip token cuối nếu là caps-code hoặc cặp số
+        const UPPER = /^[A-ZĐ][A-ZĐ\d]{1,4}$/;        // 2-5 chars caps Việt (Đ + A-Z + số)
+        const NUM_PAIR = /^T?\d{1,2}[-/]\d{1,4}$/;
+        let parts = name.split(/\s+/).filter(Boolean);
+        while (parts.length > 1) {
+            const last = parts[parts.length - 1];
+            if (UPPER.test(last) || NUM_PAIR.test(last)) parts.pop();
+            else break;
+        }
+        return parts.join(' ').trim() || 'KH';
     }
 
     formatSignDate(s) {
