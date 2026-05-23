@@ -230,6 +230,8 @@ html, body {
         background: transparent !important;
         border: none !important;
         padding: 0 !important;
+        min-width: 0 !important;
+        display: block;
         .o_vd_select_dd_clear,
         .o_vd_select_dd_arrow,
         .o_vd_select_dd_menu {
@@ -242,6 +244,12 @@ html, body {
             cursor: default;
             pointer-events: none;
             font-weight: 400;
+            width: 100% !important;       /* full cell width — không bị cắt chữ */
+            min-width: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+            text-overflow: ellipsis;       /* nếu dài hơn cell → ellipsis */
+            overflow: hidden;
         }
     }
 }
