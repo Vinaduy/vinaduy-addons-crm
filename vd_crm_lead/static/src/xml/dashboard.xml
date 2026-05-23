@@ -1305,7 +1305,7 @@
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
                                         </div>
-                                        <div class="o_vd_filter_table_right">
+                                        <div class="o_vd_filter_table_right o_vd_pills_2rows">
                                             <t t-if="leadsNoProblems.length">
                                                 <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
                                                     <t t-call="vd_crm_lead.LeadPill"/>
@@ -1317,24 +1317,24 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- NỬA PHẢI: KHÁCH HỦY -->
-                                    <div class="o_vd_filter_table o_vd_filter_table_lost o_vd_split_half">
+                                    <!-- NỬA PHẢI: KHÁCH CHƯA GỌI ĐƯỢC -->
+                                    <div class="o_vd_filter_table o_vd_filter_table_notcalled o_vd_split_half">
                                         <div class="o_vd_filter_table_left">
-                                            <i class="fa fa-times-circle o_vd_filter_funnel_lost"/>
-                                            <div class="o_vd_filter_table_lbl">Khách hủy</div>
+                                            <i class="fa fa-phone-slash o_vd_filter_funnel_notcalled"/>
+                                            <div class="o_vd_filter_table_lbl">Chưa gọi được</div>
                                             <div class="o_vd_filter_table_count">
-                                                <t t-esc="leadsLost.length"/>
+                                                <t t-esc="leadsNotCalled.length"/>
                                             </div>
                                         </div>
-                                        <div class="o_vd_filter_table_right">
-                                            <t t-if="leadsLost.length">
-                                                <t t-foreach="leadsLost" t-as="lead" t-key="lead.id">
+                                        <div class="o_vd_filter_table_right o_vd_pills_2rows">
+                                            <t t-if="leadsNotCalled.length">
+                                                <t t-foreach="leadsNotCalled" t-as="lead" t-key="lead.id">
                                                     <t t-call="vd_crm_lead.LeadPill"/>
                                                 </t>
                                             </t>
                                             <div t-else="" class="o_vd_filter_table_empty">
-                                                <i class="fa fa-inbox me-1"/>
-                                                Chưa có KH hủy.
+                                                <i class="fa fa-check me-1"/>
+                                                Đã gọi hết KH.
                                             </div>
                                         </div>
                                     </div>
@@ -1407,6 +1407,20 @@
                                         <i class="fa fa-inbox me-2"/>
                                         Chưa có KH nào đang xử lý vấn đề.
                                     </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== THÙNG RÁC — KH đã hủy (chỉ count, không chips) ===== -->
+                        <section t-if="isNewStageSplit" class="o_vd_trash_section">
+                            <div class="o_vd_trash_box">
+                                <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">KHÁCH HỦY</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
+                                </div>
+                                <div class="o_vd_trash_hint">
+                                    Đã đánh dấu hủy — không hiển thị chi tiết.
                                 </div>
                             </div>
                         </section>

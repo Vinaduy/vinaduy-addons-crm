@@ -3672,32 +3672,32 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.35rem;
-        padding: 0.85rem 0.75rem;
+        gap: 0.2rem;                /* was 0.35 */
+        padding: 0.4rem 0.55rem;    /* was 0.85 0.75 — giảm ~50% */
         text-transform: uppercase;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.5px;
         color: #fff;
         font-weight: 800;
-        min-height: 72px;
+        min-height: 36px;           /* was 72 — giảm 50% */
 
         i.fa {
-            font-size: 1.5rem;
-            margin-bottom: 0.1rem;
+            font-size: 1rem;        /* was 1.5 */
+            margin-bottom: 0;
         }
     }
     .o_vd_filter_table_lbl {
-        font-size: 0.88rem;
+        font-size: 0.75rem;         /* was 0.88 */
         text-align: center;
-        line-height: 1.15;
+        line-height: 1.1;
     }
     .o_vd_filter_table_count {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 2.2rem;
-        height: 1.7rem;
-        padding: 0 0.55rem;
-        font-size: 0.95rem;
+        min-width: 1.7rem;          /* was 2.2 */
+        height: 1.3rem;             /* was 1.7 */
+        padding: 0 0.4rem;
+        font-size: 0.8rem;
         font-weight: 800;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.95);
@@ -3707,9 +3707,25 @@
         display: flex;
         flex-wrap: wrap;
         align-content: flex-start;
-        gap: 0.35rem 0.45rem;
-        padding: 0.55rem 0.7rem;
+        gap: 0.25rem 0.35rem;
+        padding: 0.35rem 0.5rem;
         background: #fff;
+    }
+    /* Pills container: chỉ hiện 2 dòng, phần dư bị che, hiển thị count ẩn */
+    .o_vd_pills_2rows {
+        position: relative;
+        max-height: 4.4rem;         /* ~2 dòng pill 0.75rem padding */
+        overflow: hidden;
+        /* Fade-out cuối container để gợi ý có thêm content */
+        mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+
+        &:hover {
+            max-height: 30rem;
+            overflow-y: auto;
+            mask-image: none;
+            -webkit-mask-image: none;
+        }
     }
     .o_vd_filter_table_right_rows {
         flex-direction: column;
@@ -3742,20 +3758,82 @@
         }
         .o_vd_filter_table_count { color: #d9480f; }
     }
-    /* Variant: bảng KHÁCH HỦY — header đỏ */
+    /* Variant: bảng KHÁCH HỦY — header đỏ (giờ dùng cho thùng rác nhỏ ở trên) */
     .o_vd_filter_table_lost {
         .o_vd_filter_table_left {
             background: linear-gradient(135deg, #fa5252 0%, #e03131 100%);
         }
         .o_vd_filter_table_count { color: #c92a2a; }
     }
-    /* Khi 1 KH hủy hiển thị ở nửa phải bảng KH mới: pill tone xám/mờ để
-       phân biệt với KH active. */
     .o_vd_filter_table_lost .o_vd_won_pill {
         opacity: 0.75;
         text-decoration: line-through;
         text-decoration-color: rgba(201, 42, 42, 0.5);
         text-decoration-thickness: 1px;
+    }
+    /* Variant: bảng KHÁCH CHƯA GỌI ĐƯỢC — header tím */
+    .o_vd_filter_table_notcalled {
+        .o_vd_filter_table_left {
+            background: linear-gradient(135deg, #7950f2 0%, #845ef7 100%);
+        }
+        .o_vd_filter_table_count { color: #6741d9; }
+    }
+    .o_vd_filter_funnel_notcalled {
+        color: #fff !important;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    }
+
+    /* ===== THÙNG RÁC — KH đã hủy (chỉ count, không chips) ===== */
+    .o_vd_trash_section {
+        margin-top: 0.85rem;
+        margin-bottom: 0.85rem;
+    }
+    .o_vd_trash_box {
+        display: grid;
+        grid-template-columns: 60px auto 1fr;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+        border: 2px dashed #fa5252;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(250, 82, 82, 0.15);
+    }
+    .o_vd_trash_icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fa5252 0%, #c92a2a 100%);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(201, 42, 42, 0.35);
+        i.fa { font-size: 1.5rem; }
+    }
+    .o_vd_trash_meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+    .o_vd_trash_label {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #c92a2a;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .o_vd_trash_count {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #c92a2a;
+        line-height: 1;
+    }
+    .o_vd_trash_hint {
+        font-size: 0.75rem;
+        color: #868e96;
+        font-style: italic;
+        text-align: right;
     }
 
     /* ===== SPLIT WRAPPER: 2 nửa cạnh nhau (KH mới | KH hủy) ===== */

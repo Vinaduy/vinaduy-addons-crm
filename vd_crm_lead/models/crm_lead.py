@@ -4193,6 +4193,22 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def dashboard_leads_not_called(self, user_id=None, limit=200):
+        """KH active (chưa won/lost) mà call_count = 0 — chưa gọi được lần nào.
+        Dùng cho nửa phải bảng KHÁCH MỚI ở dashboard."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        leads = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('call_count', '=', 0),
+            ],
+            limit=limit,
+            order='create_date desc',
+        )
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
     def dashboard_leads_lost(self, user_id=None, limit=200):
         """Trả KH đã hủy (stage_is_lost=True). Dùng cho ô 'Khách hủy' ở
         bảng KHÁCH MỚI (split 2 nửa) của dashboard.

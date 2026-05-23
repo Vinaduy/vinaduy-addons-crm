@@ -47,8 +47,10 @@ export class VdCrmDashboard extends Component {
             leadsLoading: false,
             // KH có vấn đề mở (mọi stage active) — section "ĐANG XỬ LÝ VẤN ĐỀ"
             leadsWithProblemsAll: [],
-            // KH đã hủy (stage_is_lost) — render nửa phải bảng KHÁCH MỚI
+            // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
+            // KH chưa gọi được (call_count=0, active) — render nửa phải bảng KHÁCH MỚI
+            leadsNotCalledAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -212,7 +214,7 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsWithProblemsAll = [];
             }
-            // Fetch song song KH đã hủy → render nửa phải bảng KHÁCH MỚI.
+            // Fetch song song KH đã hủy (cho thùng rác cuối — count only).
             try {
                 this.state.leadsLostAll = await this.orm.call(
                     "crm.lead", "dashboard_leads_lost", probArgs
@@ -220,9 +222,18 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsLostAll = [];
             }
+            // Fetch KH chưa gọi được → nửa phải bảng KHÁCH MỚI
+            try {
+                this.state.leadsNotCalledAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_not_called", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsNotCalledAll = [];
+            }
         } else {
             this.state.leadsWithProblemsAll = [];
             this.state.leadsLostAll = [];
+            this.state.leadsNotCalledAll = [];
         }
     }
 
@@ -279,9 +290,13 @@ export class VdCrmDashboard extends Component {
     get leadsWithProblems() {
         return this.state.leadsWithProblemsAll || [];
     }
-    // Nửa PHẢI bảng KHÁCH MỚI — KH đã hủy (mọi stage lost).
+    // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
         return this.state.leadsLostAll || [];
+    }
+    // Nửa PHẢI bảng KHÁCH MỚI — KH chưa gọi được (call_count=0)
+    get leadsNotCalled() {
+        return this.state.leadsNotCalledAll || [];
     }
     get isNewStageSplit() {
         // Chỉ split khi đang ở stage "Khách mới" và KHÔNG đang filter alert.
