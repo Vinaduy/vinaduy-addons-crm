@@ -1317,14 +1317,50 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"
+                                         t-on-click="() => this.openCategoryList(leadsReference)"
+                                         title="Click để mở popup danh sách KH tham khảo">
+                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">THAM KHẢO</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsReference.length"/></div>
+                                        </div>
+                                        <div class="o_vd_trash_popover o_vd_popover_anchor_left">
+                                            <div class="o_vd_trash_popover_head">
+                                                👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    Đã liên lạc được · chưa báo giá · còn cần nuôi dưỡng
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body">
+                                                <div t-if="!leadsReference.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
+                                                <div t-foreach="leadsReference" t-as="ld" t-key="ld.id"
+                                                     class="o_vd_trash_popover_item"
+                                                     t-on-click.stop="() => this.openLead(ld.id)">
+                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                                    <span class="o_vd_trash_popover_phone">
+                                                        📞 <t t-esc="ld.phone or '—'"/>
+                                                    </span>
+                                                    <span class="o_vd_trash_popover_nv">
+                                                        <t t-esc="ld.user_name or '—'"/>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled">
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
+                                         t-on-click="() => this.openCategoryList(leadsNotCalled)"
+                                         title="Click để mở popup danh sách KH chưa gọi được">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
                                         </div>
-                                        <div t-if="leadsNotCalled.length" class="o_vd_trash_popover">
+                                        <div class="o_vd_trash_popover o_vd_popover_anchor_center">
                                             <div class="o_vd_trash_popover_head">
                                                 📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
@@ -1332,9 +1368,12 @@
                                                 </div>
                                             </div>
                                             <div class="o_vd_trash_popover_body">
+                                                <div t-if="!leadsNotCalled.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
                                                 <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
                                                      class="o_vd_trash_popover_item"
-                                                     t-on-click="() => this.openLead(ld.id)">
+                                                     t-on-click.stop="() => this.openLead(ld.id)">
                                                     <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
                                                     <span class="o_vd_trash_popover_phone">
                                                         📞 <t t-esc="ld.phone or '—'"/>
@@ -1347,13 +1386,15 @@
                                         </div>
                                     </div>
                                     <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash">
+                                    <div class="o_vd_trash_box o_vd_split_trash"
+                                         t-on-click="() => this.openCategoryList(leadsLost)"
+                                         title="Click để mở popup danh sách KH hủy">
                                         <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">KH HỦY</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
                                         </div>
-                                        <div t-if="leadsLost.length" class="o_vd_trash_popover o_vd_trash_popover_lost">
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_lost o_vd_popover_anchor_right">
                                             <div class="o_vd_trash_popover_head">
                                                 🗑️ KH HỦY (<t t-esc="leadsLost.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
@@ -1361,9 +1402,12 @@
                                                 </div>
                                             </div>
                                             <div class="o_vd_trash_popover_body">
+                                                <div t-if="!leadsLost.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
                                                 <div t-foreach="leadsLost" t-as="ld" t-key="ld.id"
                                                      class="o_vd_trash_popover_item"
-                                                     t-on-click="() => this.openLead(ld.id)">
+                                                     t-on-click.stop="() => this.openLead(ld.id)">
                                                     <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
                                                     <span class="o_vd_trash_popover_phone">
                                                         📞 <t t-esc="ld.phone or '—'"/>

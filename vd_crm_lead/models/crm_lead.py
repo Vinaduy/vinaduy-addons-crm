@@ -4268,6 +4268,34 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def dashboard_leads_reference(self, user_id=None, limit=200):
+        """KH "tham khảo": đã từng liên lạc được (answered ≥ 1) nhưng CHƯA báo
+        giá → vẫn đang trong giai đoạn thăm dò / chưa cam kết.
+        Dùng cho ô THAM KHẢO bên cạnh CHƯA GỌI ĐƯỢC + KH HỦY ở dashboard."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        candidates = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('call_count', '>', 0),
+            ],
+            order='create_date desc',
+        )
+        if not candidates:
+            return []
+        # Lọc: có ≥1 cuộc answered + chưa có quote_price
+        Call = self.env['stringee.call']
+        answered_lead_ids = set(Call.search([
+            ('lead_id', 'in', candidates.ids),
+            '|', ('duration', '>', 0),
+                 ('state', '=', 'answered'),
+        ]).mapped('lead_id').ids)
+        matched = candidates.filtered(
+            lambda l: l.id in answered_lead_ids and not l.vd_quote_price
+        )[:limit]
+        return self._dashboard_serialize_leads(matched)
+
+    @api.model
     def dashboard_leads_lost(self, user_id=None, limit=200):
         """Trả KH đã hủy (stage_is_lost=True). Dùng cho ô 'Khách hủy' ở
         bảng KHÁCH MỚI (split 2 nửa) của dashboard.

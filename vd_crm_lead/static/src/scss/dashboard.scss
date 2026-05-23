@@ -4006,16 +4006,16 @@
         text-align: right;
     }
 
-    /* ===== SPLIT WRAPPER: KHÁCH MỚI (full) + 2 counters naked ===== */
+    /* ===== SPLIT WRAPPER: KHÁCH MỚI (full) + 3 counters naked (THAM KHẢO / CHƯA GỌI / KH HỦY) ===== */
     .o_vd_split_table {
         display: grid;
-        grid-template-columns: 1fr 200px 200px;   /* KH mới flex + 2 counters cố định */
-        gap: 1rem;
+        grid-template-columns: 1fr 170px 170px 170px;   /* KH mới flex + 3 counters cố định */
+        gap: 0.9rem;
         margin-bottom: 0.85rem;
         align-items: stretch;
 
-        @media (max-width: 1100px) {
-            grid-template-columns: 1fr 1fr;
+        @media (max-width: 1280px) {
+            grid-template-columns: 1fr 1fr 1fr;
             > .o_vd_split_half { grid-column: 1 / -1; }
         }
         @media (max-width: 720px) {
@@ -4029,6 +4029,27 @@
         > .o_vd_split_trash {
             margin: 0;
             min-width: 0;
+        }
+    }
+
+    /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
+    .o_vd_trash_box.o_vd_split_reference {
+        .o_vd_trash_icon { color: #2b8a3e; }
+        .o_vd_trash_icon_emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 8px rgba(43, 138, 62, 0.35));
+            user-select: none;
+        }
+        .o_vd_trash_label { color: #2b8a3e; }
+        .o_vd_trash_count { color: #2b8a3e; }
+
+        .o_vd_trash_popover_head {
+            background: linear-gradient(135deg, #2b8a3e 0%, #51cf66 100%);
+        }
+        .o_vd_trash_popover_nv {
+            color: #2b8a3e;
+            background: #ebfbee;
         }
     }
 
@@ -4054,28 +4075,45 @@
         .o_vd_trash_popover {
             position: absolute;
             top: calc(100% + 6px);
-            left: 50%;
-            transform: translateX(-50%) translateY(-4px);
             z-index: 60;
-            min-width: 360px;
-            max-width: 460px;
-            max-height: 60vh;
+            min-width: 520px;
+            max-width: 720px;
+            width: max-content;
+            max-height: 72vh;
             display: flex;
             flex-direction: column;
             background: #fff;
             border: 1px solid #dee2e6;
             border-radius: 10px;
-            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
             transition: opacity 0.14s ease, transform 0.14s ease;
+
+            /* Anchor variants — tránh popover bị che mép màn hình */
+            &.o_vd_popover_anchor_left {
+                left: 0;
+                transform: translateY(-4px);
+            }
+            &.o_vd_popover_anchor_center {
+                left: 50%;
+                transform: translateX(-50%) translateY(-4px);
+            }
+            &.o_vd_popover_anchor_right {
+                right: 0;
+                left: auto;
+                transform: translateY(-4px);
+            }
         }
         &:hover .o_vd_trash_popover {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%) translateY(0);
             pointer-events: auto;
+
+            &.o_vd_popover_anchor_left   { transform: translateY(0); }
+            &.o_vd_popover_anchor_center { transform: translateX(-50%) translateY(0); }
+            &.o_vd_popover_anchor_right  { transform: translateY(0); }
         }
         .o_vd_trash_popover_head {
             padding: 0.55rem 0.85rem;
@@ -4096,9 +4134,17 @@
         }
         .o_vd_trash_popover_body {
             overflow-y: auto;
-            padding: 0.35rem 0.4rem;
+            padding: 0.45rem 0.5rem;
             background: #fff;
             border-radius: 0 0 10px 10px;
+            min-height: 60px;
+        }
+        .o_vd_trash_popover_empty {
+            text-align: center;
+            color: #868e96;
+            font-size: 0.82rem;
+            padding: 1.2rem 0.5rem;
+            font-style: italic;
         }
         .o_vd_trash_popover_item {
             display: grid;

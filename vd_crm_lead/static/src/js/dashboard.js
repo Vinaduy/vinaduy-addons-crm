@@ -51,6 +51,8 @@ export class VdCrmDashboard extends Component {
             leadsWithProblemsAll: [],
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
+            // KH "tham khảo": đã liên lạc được (answered ≥ 1) nhưng chưa báo giá
+            leadsReferenceAll: [],
             // KH chưa gọi được (call_count=0, active) — render nửa phải bảng KHÁCH MỚI
             leadsNotCalledAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
@@ -249,10 +251,19 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsNotCalledAll = [];
             }
+            // Fetch KH tham khảo (đã liên lạc, chưa báo giá)
+            try {
+                this.state.leadsReferenceAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_reference", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsReferenceAll = [];
+            }
         } else {
             this.state.leadsWithProblemsAll = [];
             this.state.leadsLostAll = [];
             this.state.leadsNotCalledAll = [];
+            this.state.leadsReferenceAll = [];
         }
     }
 
@@ -358,6 +369,10 @@ export class VdCrmDashboard extends Component {
     // Nửa PHẢI bảng KHÁCH MỚI — KH chưa gọi được (call_count=0)
     get leadsNotCalled() {
         return this.state.leadsNotCalledAll || [];
+    }
+    // KH tham khảo: đã liên lạc, chưa báo giá
+    get leadsReference() {
+        return this.state.leadsReferenceAll || [];
     }
     get isNewStageSplit() {
         // Chỉ split khi đang ở stage "Khách mới" và KHÔNG đang filter alert.
@@ -525,6 +540,17 @@ export class VdCrmDashboard extends Component {
             index: idx >= 0 ? idx : 0,
         };
         // Body class → CSS scope cho dropdown render qua portal (sibling body)
+        document.body.classList.add('o_vd_preview_active');
+    }
+
+    /**
+     * Mở preview popup với danh sách KH explicit (dùng cho click icon thùng rác /
+     * tham khảo / chưa gọi). Cho phép user ← → duyệt qua tất cả KH trong nhóm.
+     */
+    openCategoryList(leads) {
+        if (!leads || !leads.length) return;
+        const ids = leads.map(l => l.id);
+        this.state.previewLead = { open: true, ids, index: 0 };
         document.body.classList.add('o_vd_preview_active');
     }
 
