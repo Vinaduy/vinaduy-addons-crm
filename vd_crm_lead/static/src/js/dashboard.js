@@ -436,16 +436,39 @@ export class VdCrmDashboard extends Component {
     }
 
     pillTitle(lead) {
-        // Pill title (đậm, lớn) — won = ngày ký, khác = tên KH (strip prefix)
+        // Pill title (đậm, lớn) — won = ngày ký, khác = tên KH (strip prefix + VINADUY pattern)
         const code = this.selectedStage?.code;
         if (code === 'won') {
             return lead.planned_sign_date ? this.formatSignDate(lead.planned_sign_date) : 'Chưa hẹn';
         }
-        // Strip prefix (Fanpage)/(Tiktok)/(Instagram)/(Pancake)/[Pancake]
+        // Stage 'new' & KH chưa báo giá → BẮT BUỘC strip pattern VINADUY/team-code
+        // và chỉ hiện tên ngắn ('Anh Hải', 'Chị Minh', họ tên đầy đủ).
+        // Stage khác hoặc đã có quote → vẫn strip để pill gọn (popup hiện tên đầy đủ).
+        return this.shortLeadName(lead);
+    }
+
+    /**
+     * Chuẩn hoá tên KH cho hiển thị pill:
+     *   - Strip prefix nguồn: (Fanpage), [Pancake], [FB], [TT]...
+     *   - Strip 'VINADUY - <X> - <code>' → giữ <X>
+     *   - Strip team/code suffix: ' - HCM2', ' - T5/26', ' - 30-12', ' - 19/3'
+     * Pattern VINADUY chỉ sinh ra sau khi báo giá (qua _vd_apply_quote_name_pattern),
+     * nhưng pill luôn show tên ngắn cho dễ nhìn.
+     */
+    shortLeadName(lead) {
         let name = lead.name || '';
+        // 1. Strip prefix nguồn
         name = name.replace(/^\((Fanpage|Tiktok|Instagram|Pancake)\)\s*/i, '');
-        name = name.replace(/^\[Pancake\]\s*/i, '');
-        return name || 'KH';
+        name = name.replace(/^\[(Pancake|FB|TT|IG|Zalo|Hotline|GT)\]\s*/i, '');
+        // 2. Strip 'VINADUY - <X> - <code>' → keep <X>
+        const m = name.match(/^VINADUY\s*[-–—]\s*(.+?)\s*[-–—]\s*[^-–—]+\s*$/i);
+        if (m) name = m[1].trim();
+        // 3. Strip trailing team/code suffix
+        name = name.replace(
+            /\s*[-–—]\s*(?:[A-Z]{1,5}\d*|T?\d{1,2}[-/]\d{1,4})\s*$/i,
+            '',
+        );
+        return name.trim() || 'KH';
     }
 
     formatSignDate(s) {

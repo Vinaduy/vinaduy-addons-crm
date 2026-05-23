@@ -2232,6 +2232,15 @@ class CrmLead(models.Model):
         for vals in vals_list:
             if not vals.get('callback_date'):
                 vals['callback_date'] = default_callback
+            # Chuẩn hoá tên KH MỚI: strip pattern 'VINADUY - X - <code>' nếu
+            # user/wizard lỡ nhập sẵn. Pattern này CHỈ được auto-apply sau khi
+            # báo giá (qua _vd_apply_quote_name_pattern).
+            if vals.get('name'):
+                vals['name'] = self._vd_clean_input_name(vals['name']) or vals['name']
+            if vals.get('contact_name'):
+                vals['contact_name'] = self._vd_clean_input_name(vals['contact_name']) or vals['contact_name']
+            if vals.get('partner_name'):
+                vals['partner_name'] = self._vd_clean_input_name(vals['partner_name']) or vals['partner_name']
         return super().create(vals_list)
 
     # Các field intake bị khoá sau khi NV bấm "Lưu & Chuyển sang Báo giá".
@@ -4410,13 +4419,42 @@ class CrmLead(models.Model):
         self.ensure_one()
         team = self._vd_team_label_for(self.user_id) or 'KHÁC'
         contact = (self.contact_name or self.partner_name or self.name or 'KH').strip()
-        # Nếu name đã là dạng "VINADUY - ... - <team>" → bỏ qua, tránh đè khi user
-        # đã chỉnh tên KH thủ công sau khi rename lần đầu.
+        # Strip lại pattern VINADUY nếu contact đã chứa (đề phòng user nhập kiểu rởm)
+        contact = self._vd_clean_input_name(contact) or contact
         if (self.name or '').startswith('VINADUY - '):
             return
         new_name = f'VINADUY - {contact} - {team}'
         if new_name != self.name:
             self.with_context(mail_notrack=True).write({'name': new_name})
+
+    @api.model
+    def _vd_clean_input_name(self, name):
+        """Chuẩn hoá tên KH MỚI: strip pattern 'VINADUY - X - <code>' và
+        team/code suffix (HCM1, T5/26, 19/3...) khỏi tên do user nhập.
+
+        Lý do: KH MỚI chỉ nên hiện tên kiểu 'Anh Hải' / 'Chị Minh' / tên đầy
+        đủ. Pattern 'VINADUY - X - <team>' CHỈ được auto-apply sau khi báo
+        giá (qua _vd_apply_quote_name_pattern). Nếu user nhập sẵn pattern
+        này thì strip về tên gốc.
+        """
+        if not name:
+            return name
+        import re
+        s = name.strip()
+        # Strip prefix nguồn nếu lọt: [FB], [TT], (Pancake), [Pancake]...
+        s = re.sub(r'^\((Fanpage|Tiktok|Instagram|Pancake)\)\s*', '', s, flags=re.IGNORECASE)
+        s = re.sub(r'^\[(Pancake|FB|TT|IG|Zalo|Hotline|GT)\]\s*', '', s, flags=re.IGNORECASE)
+        # Strip "VINADUY - <X> - <code>" → giữ <X>
+        m = re.match(r'^VINADUY\s*[-–—]\s*(.+?)\s*[-–—]\s*[^-–—]+\s*$', s, re.IGNORECASE)
+        if m:
+            s = m.group(1).strip()
+        # Strip trailing team/code suffix: " - HCM2", " - T5/26", " - 30-12",
+        # " - 19/3", " - 5/26"... — pattern code in trên thẻ pill cũ.
+        s = re.sub(
+            r'\s*[-–—]\s*(?:[A-Z]{1,5}\d*|T?\d{1,2}[-/]\d{1,4})\s*$',
+            '', s, flags=re.IGNORECASE,
+        )
+        return s.strip() or name
 
     def _vd_team_label_for(self, user):
         """Lấy 'team label' từ tên NV (HCM1/HCM2/HCM3/HN/QN/...).
