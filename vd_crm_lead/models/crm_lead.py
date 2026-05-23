@@ -4291,6 +4291,8 @@ class CrmLead(models.Model):
 
     @api.model
     def _dashboard_serialize_leads(self, leads):
+        # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
+        call_stats_by_lead = self._dashboard_compute_call_stats(leads)
         return [{
             'id': l.id,
             'name': l.name,
@@ -4314,6 +4316,7 @@ class CrmLead(models.Model):
             'contract_signed': l.vd_contract_signed,
             'province_name': l.vd_intake_province_id.name or '' if l.vd_intake_province_id else '',
             'quote_price': l.vd_quote_price or 0,
+            'has_quote': bool(l.vd_quote_price and l.vd_quote_price > 0),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill
             'pancake_platform': (
                 l.vd_pancake_page_id.platform if l.vd_pancake_page_id else 'manual'
@@ -4323,7 +4326,74 @@ class CrmLead(models.Model):
             'team_label': self._vd_team_label_for(l.user_id),
             # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
             'problem_open_count': l.vd_lead_problem_open_count,
+            # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
+            'call_stats': call_stats_by_lead.get(l.id, {
+                'total': 0, 'answered': 0, 'no_answer': 0,
+                'unreachable': 0, 'distinct_days': 0,
+                'distinct_days_unreachable': 0,
+            }),
         } for l in leads]
+
+    @api.model
+    def _dashboard_compute_call_stats(self, leads):
+        """Trả dict {lead_id: {total, answered, no_answer, unreachable,
+        distinct_days, distinct_days_unreachable}} cho batch leads.
+
+        - answered: cuộc gọi nói chuyện được (duration > 0 hoặc state='answered'
+          hoặc state='ended' với answer_time)
+        - no_answer: rung chuông nhưng không bắt (state='no_answer')
+        - unreachable: thuê bao / máy bận / lỗi (state in failed/busy/declined/cancelled)
+        - distinct_days: số ngày khác nhau đã gọi
+        - distinct_days_unreachable: số ngày khác nhau cuộc gọi unreachable
+        """
+        from collections import defaultdict
+        result = {}
+        if not leads:
+            return result
+        calls = self.env['stringee.call'].search_read(
+            [('lead_id', 'in', leads.ids)],
+            ['lead_id', 'state', 'duration', 'answer_time', 'start_time'],
+        )
+        by_lead = defaultdict(list)
+        for c in calls:
+            lid = c['lead_id'][0] if c['lead_id'] else False
+            if lid:
+                by_lead[lid].append(c)
+        for lead_id, lcalls in by_lead.items():
+            total = len(lcalls)
+            answered = 0
+            no_answer = 0
+            unreachable = 0
+            all_days = set()
+            unreachable_days = set()
+            for c in lcalls:
+                st = c.get('state')
+                dur = c.get('duration') or 0
+                is_answered = (
+                    dur > 0 or st == 'answered'
+                    or (st == 'ended' and c.get('answer_time'))
+                )
+                start = c.get('start_time')
+                day = start.date() if start and hasattr(start, 'date') else None
+                if day:
+                    all_days.add(day)
+                if is_answered:
+                    answered += 1
+                elif st == 'no_answer':
+                    no_answer += 1
+                elif st in ('failed', 'busy', 'declined', 'cancelled'):
+                    unreachable += 1
+                    if day:
+                        unreachable_days.add(day)
+            result[lead_id] = {
+                'total': total,
+                'answered': answered,
+                'no_answer': no_answer,
+                'unreachable': unreachable,
+                'distinct_days': len(all_days),
+                'distinct_days_unreachable': len(unreachable_days),
+            }
+        return result
 
     @api.model
     def _vd_apply_quote_name_pattern(self):

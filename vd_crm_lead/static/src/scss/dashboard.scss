@@ -2086,7 +2086,46 @@
 
         /* Stage khác — neutral */
         &.o_vd_pill_neutral       { border-color: #ced4da; background: #fff; }
+
+        /* ===== Khách mới — Màu theo TRẠNG THÁI CUỘC GỌI (ưu tiên cao hơn nguồn) ===== */
+        /* Xanh dương sáng: chưa gọi cuộc nào */
+        &.o_vd_pill_call_new {
+            border-color: #339af0;
+            background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
+            .o_vd_won_pill_date { color: #0b4f87; }
+        }
+        /* Xanh lá đậm: rung chuông không bắt, chưa báo giá */
+        &.o_vd_pill_call_ringing {
+            border-color: #2b8a3e;
+            background: linear-gradient(135deg, #d3f9d8 0%, #8ce99a 100%);
+            .o_vd_won_pill_date { color: #1b5e20; }
+        }
+        /* Đỏ: thuê bao 1–2 lần / ≤2 ngày */
+        &.o_vd_pill_call_unreachable {
+            border-color: #e03131;
+            background: linear-gradient(135deg, #ffe3e3 0%, #ffa8a8 100%);
+            .o_vd_won_pill_date { color: #8c1a1a; }
+        }
     }
+
+    /* Badge số cuộc gọi trên pill */
+    .o_vd_pill_call_badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.15rem;
+        padding: 0.05rem 0.4rem;
+        margin-left: 0.15rem;
+        background: rgba(0, 0, 0, 0.08);
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #1f2a44;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .o_vd_pill_call_new .o_vd_pill_call_badge       { background: rgba(13, 110, 187, 0.18); color: #0b4f87; }
+    .o_vd_pill_call_ringing .o_vd_pill_call_badge   { background: rgba(27, 94, 32, 0.18);  color: #1b5e20; }
+    .o_vd_pill_call_unreachable .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
     .o_vd_won_pill_icon {
         font-size: 0.95rem;
         line-height: 1;
@@ -3658,10 +3697,25 @@
         gap: 0;
         background: #fff;
         border-radius: 10px;
-        overflow: hidden;
+        /* overflow:hidden gây cắt tooltip pill hàng trên cùng — chuyển sang
+           border-radius riêng cho từng cell để giữ rounded corners. */
+        overflow: visible;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
                     0 4px 14px -4px rgba(15, 23, 42, 0.05);
         margin-bottom: 0.85rem;
+
+        > .o_vd_filter_table_left {
+            border-radius: 10px 0 0 10px;
+        }
+        > .o_vd_filter_table_right,
+        > .o_vd_filter_table_right_wrap {
+            border-radius: 0 10px 10px 0;
+        }
+        @media (max-width: 720px) {
+            > .o_vd_filter_table_left { border-radius: 10px 10px 0 0; }
+            > .o_vd_filter_table_right,
+            > .o_vd_filter_table_right_wrap { border-radius: 0 0 10px 10px; }
+        }
 
         @media (max-width: 720px) {
             grid-template-columns: 1fr;

@@ -1528,6 +1528,13 @@
                 </span>
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
+                <!-- Badge số cuộc gọi — chỉ hiện ở stage Khách mới khi có ≥1 cuộc -->
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
+                      class="o_vd_pill_call_badge"
+                      t-att-title="'Đã gọi ' + lead.call_stats.total + ' cuộc'">
+                    📞 <t t-esc="lead.call_stats.total"/>
+                </span>
+
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">
                     <div class="o_vd_won_tt_row">
@@ -1550,6 +1557,34 @@
                         <span class="o_vd_won_tt_lbl">💰 Giá trị HĐ:</span>
                         <span><t t-if="lead.quote_price"><t t-esc="formatVnd(lead.quote_price)"/>đ</t><t t-else="">—</t></span>
                     </div>
+                    <!-- Thống kê cuộc gọi — chỉ ở stage Khách mới -->
+                    <t t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats">
+                        <div class="o_vd_won_tt_row o_vd_won_tt_callstats">
+                            <span class="o_vd_won_tt_lbl">📊 Cuộc gọi:</span>
+                            <span>
+                                <t t-if="lead.call_stats.total === 0">Chưa gọi lần nào</t>
+                                <t t-else="">
+                                    Tổng <strong><t t-esc="lead.call_stats.total"/></strong>
+                                    · <t t-esc="lead.call_stats.distinct_days"/> ngày
+                                </t>
+                            </span>
+                        </div>
+                        <div t-if="lead.call_stats.answered > 0" class="o_vd_won_tt_row">
+                            <span class="o_vd_won_tt_lbl">✅ Đã liên lạc:</span>
+                            <span><t t-esc="lead.call_stats.answered"/> cuộc</span>
+                        </div>
+                        <div t-if="lead.call_stats.no_answer > 0" class="o_vd_won_tt_row">
+                            <span class="o_vd_won_tt_lbl">🔔 Rung không bắt:</span>
+                            <span><t t-esc="lead.call_stats.no_answer"/> cuộc</span>
+                        </div>
+                        <div t-if="lead.call_stats.unreachable > 0" class="o_vd_won_tt_row">
+                            <span class="o_vd_won_tt_lbl">📵 Thuê bao/Bận:</span>
+                            <span>
+                                <t t-esc="lead.call_stats.unreachable"/> cuộc
+                                · <t t-esc="lead.call_stats.distinct_days_unreachable"/> ngày
+                            </span>
+                        </div>
+                    </t>
                 </div>
         </div>
     </t>

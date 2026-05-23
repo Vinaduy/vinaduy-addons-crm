@@ -254,10 +254,40 @@ export class VdCrmDashboard extends Component {
                 + (lead.contract_signed ? ' o_vd_won_signed' : '');
         }
         if (code === 'new') {
+            // Stage Khách mới: ưu tiên màu theo call status (xanh dương/lá/đỏ).
+            // Nếu chưa có tín hiệu call → fallback màu theo nguồn Pancake.
+            const callCls = this.pillCallClass(lead);
+            if (callCls) return callCls;
             return 'o_vd_pill_src_' + (lead.pancake_platform || 'manual');
         }
         // Stage khác — neutral
         return 'o_vd_pill_neutral';
+    }
+
+    /**
+     * Trả CSS class màu cho pill KH MỚI theo trạng thái cuộc gọi:
+     *   - blue (o_vd_pill_call_new): chưa có cuộc gọi nào
+     *   - green (o_vd_pill_call_ringing): có ≥1 no_answer (rung không bắt), chưa
+     *     answered & chưa báo giá
+     *   - red (o_vd_pill_call_unreachable): có 1–2 cuộc unreachable (thuê bao/
+     *     máy bận/failed), chưa answered, không quá ngưỡng "CHƯA GỌI ĐƯỢC"
+     *   - '' (fallback): có cuộc gọi answered → giữ màu nguồn Pancake
+     */
+    pillCallClass(lead) {
+        const s = lead.call_stats || {};
+        if ((s.total || 0) === 0) return 'o_vd_pill_call_new';
+        if ((s.answered || 0) > 0) return '';   // đã liên lạc được → fallback
+        const unreach = s.unreachable || 0;
+        const unreachDays = s.distinct_days_unreachable || 0;
+        // Red: 1–2 cuộc unreachable, ≤2 ngày khác nhau
+        if (unreach >= 1 && unreach <= 2 && unreachDays <= 2) {
+            return 'o_vd_pill_call_unreachable';
+        }
+        // Green: chỉ no_answer (rung chuông không bắt), chưa báo giá
+        if ((s.no_answer || 0) > 0 && !lead.has_quote) {
+            return 'o_vd_pill_call_ringing';
+        }
+        return '';
     }
 
     pillIcon(lead) {
