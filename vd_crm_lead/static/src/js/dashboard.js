@@ -12,7 +12,6 @@
 import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
@@ -23,7 +22,6 @@ export class VdCrmDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.stringee = useService("stringee");
-        this.dialog = useService("dialog");
 
         // === Default date range: 90 ngày gần nhất → hôm nay ===
         const today = new Date();
@@ -463,8 +461,7 @@ export class VdCrmDashboard extends Component {
     }
 
     openLead(leadId) {
-        // Mở FormViewDialog full-screen của Odoo (không dùng iframe — CSP chặn).
-        // Auto-detect nhóm KH hiện tại để hỗ trợ ← → chuyển KH.
+        // Mở preview INLINE — render từ data đã cache → 0 RPC, mở instantly.
         let ids;
         if (this.isNewStageSplit) {
             if (this.leadsNoProblems.some(l => l.id === leadId)) {
@@ -484,70 +481,60 @@ export class VdCrmDashboard extends Component {
             ids,
             index: idx >= 0 ? idx : 0,
         };
-        this._openLeadDialog();
-    }
-
-    _openLeadDialog() {
-        const p = this.state.previewLead;
-        if (!p.open || !p.ids.length) return;
-        const leadId = p.ids[p.index];
-
-        // Đóng dialog cũ nếu đang mở (cho prev/next: replace thay vì stack)
-        if (this._closeDialog) {
-            this._isNavigating = true;
-            this._closeDialog();
-            this._closeDialog = null;
-        }
-
-        this._closeDialog = this.dialog.add(FormViewDialog, {
-            resModel: 'crm.lead',
-            resId: leadId,
-            size: 'fs',
-            title: `KH ${p.index + 1} / ${p.ids.length}`,
-            mode: 'edit',
-            onRecordSaved: () => this.refreshAfterPreview(),
-        }, {
-            onClose: () => {
-                if (this._isNavigating) {
-                    // Đóng do navigate prev/next → bỏ qua, không reset state
-                    this._isNavigating = false;
-                    return;
-                }
-                this._closeDialog = null;
-                this.state.previewLead = { ...this.state.previewLead, open: false };
-                this.refreshAfterPreview();
-            },
-        });
     }
 
     closePreview() {
-        if (this._closeDialog) {
-            this._closeDialog();
-            this._closeDialog = null;
-        }
         this.state.previewLead = { ...this.state.previewLead, open: false };
-        this.refreshAfterPreview();
     }
 
     prevPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index <= 0) return;
         this.state.previewLead.index = p.index - 1;
-        this._openLeadDialog();
     }
 
     nextPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index >= p.ids.length - 1) return;
         this.state.previewLead.index = p.index + 1;
-        this._openLeadDialog();
     }
 
-    async refreshAfterPreview() {
-        if (this.state.selectedStageId) {
-            try {
-                await this.selectStage(this.state.selectedStageId);
-            } catch (_e) {}
+    // Lấy lead object hiện đang preview — lookup từ data đã cache (instant, 0 RPC).
+    get previewLeadObj() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return null;
+        const id = p.ids[p.index];
+        const sources = [
+            this.state.leads || [],
+            this.state.leadsWithProblemsAll || [],
+            this.state.leadsNotCalledAll || [],
+            this.state.leadsLostAll || [],
+        ];
+        for (const list of sources) {
+            const found = list.find(l => l.id === id);
+            if (found) return found;
+        }
+        return { id, name: '(KH)', phone: '', user_name: '' };
+    }
+
+    // Mở form Odoo đầy đủ (navigate trang) — khi user cần edit nâng cao
+    openLeadFullForm() {
+        const p = this.state.previewLead;
+        const id = p.open ? p.ids[p.index] : null;
+        if (!id) return;
+        this.closePreview();
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'crm.lead',
+            res_id: id,
+            views: [[false, 'form']],
+            target: 'current',
+        });
+    }
+
+    onPreviewBackdropClick(ev) {
+        if (ev.target.classList.contains('o_vd_preview_backdrop')) {
+            this.closePreview();
         }
     }
 

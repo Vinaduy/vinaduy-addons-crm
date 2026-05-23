@@ -1456,23 +1456,180 @@
             </div>
 
             <!-- ============================================================
-                 PREVIEW LEAD POPUP — dùng Odoo FormViewDialog (size=fs, full-screen).
-                 Arrows ← → floating overlay phía trên dialog để chuyển KH cùng nhóm.
+                 PREVIEW LEAD POPUP — RENDER INLINE từ data đã cache (0 RPC, instant).
+                 Full-screen overlay · ✕ đóng · ← → chuyển KH cùng nhóm
                  ============================================================ -->
-            <t t-if="state.previewLead.open">
+            <div t-if="state.previewLead.open"
+                 class="o_vd_preview_backdrop"
+                 t-on-click="(ev) => this.onPreviewBackdropClick(ev)">
+                <t t-set="L" t-value="previewLeadObj"/>
+                <div class="o_vd_preview_modal" t-if="L">
+                    <!-- Topbar: stage + tên KH + index + close X -->
+                    <div class="o_vd_preview_topbar">
+                        <div class="o_vd_preview_topbar_left">
+                            <span class="o_vd_preview_stage_chip">
+                                <t t-esc="L.stage_code or 'KH'"/>
+                            </span>
+                            <strong class="o_vd_preview_name"><t t-esc="L.name"/></strong>
+                            <span class="o_vd_preview_pager">
+                                KH <strong><t t-esc="state.previewLead.index + 1"/></strong>
+                                / <t t-esc="state.previewLead.ids.length"/>
+                            </span>
+                        </div>
+                        <div class="o_vd_preview_topbar_right">
+                            <button class="o_vd_preview_btn o_vd_preview_btn_primary"
+                                    t-on-click="() => this.openLeadFullForm()"
+                                    title="Mở form Odoo đầy đủ để edit chi tiết">
+                                <i class="fa fa-external-link me-1"/> Mở form đầy đủ
+                            </button>
+                            <button class="o_vd_preview_close"
+                                    t-on-click="() => this.closePreview()"
+                                    title="Đóng (Esc)">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body: grid 2 cột — thông tin + thống kê -->
+                    <div class="o_vd_preview_body">
+                        <!-- LEFT: Thông tin chính -->
+                        <div class="o_vd_preview_col">
+                            <div class="o_vd_preview_section_title">
+                                <i class="fa fa-id-card-o me-2"/>Thông tin khách hàng
+                            </div>
+                            <div class="o_vd_preview_field">
+                                <span class="o_vd_preview_lbl">📞 SĐT</span>
+                                <span class="o_vd_preview_val">
+                                    <a t-att-href="L.phone ? ('tel:' + L.phone) : '#'"
+                                       class="o_vd_preview_phone">
+                                        <t t-esc="L.phone or '—'"/>
+                                    </a>
+                                </span>
+                            </div>
+                            <div class="o_vd_preview_field">
+                                <span class="o_vd_preview_lbl">👔 NV phụ trách</span>
+                                <span class="o_vd_preview_val"><t t-esc="L.user_name or '—'"/></span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.team_label">
+                                <span class="o_vd_preview_lbl">🏢 Team</span>
+                                <span class="o_vd_preview_val"><t t-esc="L.team_label"/></span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.province_name">
+                                <span class="o_vd_preview_lbl">📍 Khu vực</span>
+                                <span class="o_vd_preview_val"><t t-esc="L.province_name"/></span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.callback_date">
+                                <span class="o_vd_preview_lbl">📅 Hẹn gọi lại</span>
+                                <span t-att-class="'o_vd_preview_val ' + (L.is_overdue_callback ? 'o_vd_preview_overdue' : (L.is_today_callback ? 'o_vd_preview_today' : ''))">
+                                    <t t-esc="L.callback_date.slice(0, 16).replace('T', ' ')"/>
+                                    <t t-if="L.is_overdue_callback"> ⚠️ QUÁ HẠN</t>
+                                    <t t-elif="L.is_today_callback"> 🔥 HÔM NAY</t>
+                                </span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.last_call_date">
+                                <span class="o_vd_preview_lbl">📞 Lần gọi cuối</span>
+                                <span class="o_vd_preview_val">
+                                    <t t-esc="L.last_call_date.slice(0, 16).replace('T', ' ')"/>
+                                </span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.quote_price">
+                                <span class="o_vd_preview_lbl">💰 Giá trị HĐ</span>
+                                <span class="o_vd_preview_val o_vd_preview_money">
+                                    <t t-esc="formatVnd(L.quote_price)"/>đ
+                                </span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.expected_revenue">
+                                <span class="o_vd_preview_lbl">📈 Doanh thu dự kiến</span>
+                                <span class="o_vd_preview_val o_vd_preview_money">
+                                    <t t-esc="formatVnd(L.expected_revenue)"/>đ
+                                </span>
+                            </div>
+                            <div class="o_vd_preview_field" t-if="L.probability">
+                                <span class="o_vd_preview_lbl">🎯 Tỉ lệ chốt</span>
+                                <span class="o_vd_preview_val">
+                                    <strong><t t-esc="L.probability"/>%</strong>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Thống kê cuộc gọi + vấn đề -->
+                        <div class="o_vd_preview_col">
+                            <div class="o_vd_preview_section_title">
+                                <i class="fa fa-phone me-2"/>Lịch sử gọi
+                            </div>
+                            <t t-set="cs" t-value="L.call_stats or {}"/>
+                            <t t-set="cstatus" t-value="pillCallStatusLabel(L)"/>
+                            <div t-att-class="'o_vd_preview_status_chip ' + pillCallClass(L)">
+                                <t t-esc="cstatus.icon"/>
+                                <span><t t-esc="cstatus.text"/></span>
+                            </div>
+                            <div class="o_vd_preview_callstats">
+                                <div class="o_vd_preview_callstat">
+                                    <div class="o_vd_preview_callstat_num"><t t-esc="cs.total or 0"/></div>
+                                    <div class="o_vd_preview_callstat_lbl">Tổng cuộc</div>
+                                </div>
+                                <div class="o_vd_preview_callstat">
+                                    <div class="o_vd_preview_callstat_num"><t t-esc="cs.distinct_days or 0"/></div>
+                                    <div class="o_vd_preview_callstat_lbl">Ngày đã gọi</div>
+                                </div>
+                                <div class="o_vd_preview_callstat o_vd_cs_green">
+                                    <div class="o_vd_preview_callstat_num"><t t-esc="cs.answered or 0"/></div>
+                                    <div class="o_vd_preview_callstat_lbl">🟢 Liên lạc</div>
+                                </div>
+                                <div class="o_vd_preview_callstat o_vd_cs_blue">
+                                    <div class="o_vd_preview_callstat_num">
+                                        <t t-esc="(cs.no_answer or 0) + (cs.busy_like or 0)"/>
+                                    </div>
+                                    <div class="o_vd_preview_callstat_lbl">🔔 Chuông/Bận</div>
+                                </div>
+                                <div class="o_vd_preview_callstat o_vd_cs_red">
+                                    <div class="o_vd_preview_callstat_num"><t t-esc="cs.subscriber or 0"/></div>
+                                    <div class="o_vd_preview_callstat_lbl">📵 Thuê bao</div>
+                                </div>
+                            </div>
+
+                            <div t-if="L.problem_open_count > 0" class="o_vd_preview_section_title o_vd_preview_section_warn">
+                                <i class="fa fa-exclamation-triangle me-2"/>Vấn đề đàm phán
+                            </div>
+                            <div t-if="L.problem_open_count > 0" class="o_vd_preview_problem_badge">
+                                ⚠️ <strong><t t-esc="L.problem_open_count"/></strong> vấn đề đang mở
+                            </div>
+
+                            <div t-if="L.planned_sign_date"
+                                 class="o_vd_preview_section_title">
+                                <i class="fa fa-pencil me-2"/>Lịch ký HĐ
+                            </div>
+                            <div t-if="L.planned_sign_date" class="o_vd_preview_sign_card"
+                                 t-att-data-urgency="L.planned_sign_urgency">
+                                <div><strong>📅 <t t-esc="L.planned_sign_date.slice(0, 16).replace('T', ' ')"/></strong></div>
+                                <div t-if="L.planned_sign_location">📍 <t t-esc="L.planned_sign_location"/></div>
+                                <div t-if="L.planned_sign_countdown" class="o_vd_preview_sign_countdown">
+                                    ⏳ <t t-esc="L.planned_sign_countdown"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer hint -->
+                    <div class="o_vd_preview_footer_hint">
+                        <kbd>←</kbd> <kbd>→</kbd> chuyển KH cùng nhóm · <kbd>Esc</kbd> đóng
+                    </div>
+                </div>
+
+                <!-- Nav arrows -->
                 <button t-if="state.previewLead.index > 0"
                         class="o_vd_preview_arrow o_vd_preview_arrow_left"
-                        t-on-click="() => this.prevPreview()"
-                        t-att-title="`KH ${state.previewLead.index} / ${state.previewLead.ids.length} (←)`">
+                        t-on-click.stop="() => this.prevPreview()"
+                        title="KH trước (←)">
                     <i class="fa fa-chevron-left"/>
                 </button>
                 <button t-if="state.previewLead.index &lt; state.previewLead.ids.length - 1"
                         class="o_vd_preview_arrow o_vd_preview_arrow_right"
-                        t-on-click="() => this.nextPreview()"
-                        t-att-title="`KH ${state.previewLead.index + 2} / ${state.previewLead.ids.length} (→)`">
+                        t-on-click.stop="() => this.nextPreview()"
+                        title="KH sau (→)">
                     <i class="fa fa-chevron-right"/>
                 </button>
-            </t>
+            </div>
         </div>
     </t>
 
