@@ -1537,6 +1537,14 @@
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">
+                    <!-- Badge trạng thái nổi bật ở đầu — chỉ stage KH MỚI -->
+                    <t t-if="selectedStage and selectedStage.code === 'new'">
+                        <t t-set="cstatus" t-value="pillCallStatusLabel(lead)"/>
+                        <div t-att-class="'o_vd_won_tt_status ' + pillCallClass(lead)">
+                            <t t-esc="cstatus.icon"/>
+                            <span class="o_vd_won_tt_status_text"><t t-esc="cstatus.text"/></span>
+                        </div>
+                    </t>
                     <div class="o_vd_won_tt_row">
                         <span class="o_vd_won_tt_lbl">👤 Tên KH:</span>
                         <span><t t-esc="lead.name"/></span>
@@ -1573,14 +1581,16 @@
                             <span class="o_vd_won_tt_lbl">✅ Đã liên lạc:</span>
                             <span><t t-esc="lead.call_stats.answered"/> cuộc</span>
                         </div>
-                        <div t-if="lead.call_stats.no_answer > 0" class="o_vd_won_tt_row">
-                            <span class="o_vd_won_tt_lbl">🔔 Rung không bắt:</span>
-                            <span><t t-esc="lead.call_stats.no_answer"/> cuộc</span>
+                        <div t-if="lead.call_stats.no_answer > 0"
+                             class="o_vd_won_tt_row o_vd_won_tt_ringing">
+                            <span class="o_vd_won_tt_lbl">🔔 Có chuông, không bắt:</span>
+                            <span><strong><t t-esc="lead.call_stats.no_answer"/></strong> cuộc</span>
                         </div>
-                        <div t-if="lead.call_stats.unreachable > 0" class="o_vd_won_tt_row">
-                            <span class="o_vd_won_tt_lbl">📵 Thuê bao/Bận:</span>
+                        <div t-if="lead.call_stats.unreachable > 0"
+                             class="o_vd_won_tt_row o_vd_won_tt_unreach">
+                            <span class="o_vd_won_tt_lbl">📵 Thuê bao / Máy bận:</span>
                             <span>
-                                <t t-esc="lead.call_stats.unreachable"/> cuộc
+                                <strong><t t-esc="lead.call_stats.unreachable"/></strong> cuộc
                                 · <t t-esc="lead.call_stats.distinct_days_unreachable"/> ngày
                             </span>
                         </div>

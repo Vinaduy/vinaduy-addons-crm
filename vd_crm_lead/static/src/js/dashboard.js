@@ -313,8 +313,33 @@ export class VdCrmDashboard extends Component {
     }
 
     // Split leads cho UI "Khách mới" — top section pills, bottom section rows.
+    // Sắp xếp ưu tiên: 🟦 chưa gọi → 🟢 chuông không bắt → 🔴 thuê bao → ⚪ đã liên lạc/khác.
     get leadsNoProblems() {
-        return (this.state.leads || []).filter(l => !l.problem_open_count);
+        const base = (this.state.leads || []).filter(l => !l.problem_open_count);
+        const rank = (l) => {
+            const cls = this.pillCallClass(l);
+            if (cls === 'o_vd_pill_call_new')          return 0;
+            if (cls === 'o_vd_pill_call_ringing')      return 1;
+            if (cls === 'o_vd_pill_call_unreachable')  return 2;
+            return 3;
+        };
+        return [...base].sort((a, b) => {
+            const ra = rank(a), rb = rank(b);
+            if (ra !== rb) return ra - rb;
+            // Cùng nhóm → KH mới (create_date desc qua last_call_date asc fallback)
+            return 0;
+        });
+    }
+
+    // Trả label trạng thái cuộc gọi để hiển thị nổi bật trong tooltip
+    pillCallStatusLabel(lead) {
+        const cls = this.pillCallClass(lead);
+        if (cls === 'o_vd_pill_call_new')         return { icon: '🟦', text: 'CHƯA GỌI LẦN NÀO' };
+        if (cls === 'o_vd_pill_call_ringing')     return { icon: '🟢', text: 'CÓ CHUÔNG, CHƯA BẮT MÁY' };
+        if (cls === 'o_vd_pill_call_unreachable') return { icon: '🔴', text: 'THUÊ BAO / MÁY BẬN' };
+        const s = lead.call_stats || {};
+        if ((s.answered || 0) > 0)                return { icon: '⚪', text: 'ĐÃ LIÊN LẠC ĐƯỢC' };
+        return { icon: '⚪', text: 'KHÁC' };
     }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
