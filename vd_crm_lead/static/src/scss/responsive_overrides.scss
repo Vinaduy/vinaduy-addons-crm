@@ -197,31 +197,45 @@ html, body {
         width: 100% !important;
         max-width: 100% !important;
     }
+    /* List bên trong wizard fullscreen: cho phép scroll ngang nếu tổng cột
+       wider hơn viewport — không ép all cells về 100% width gây cắt chữ. */
+    .o_field_one2many,
+    .o_field_x2many,
+    .o_list_view,
+    .o_list_renderer {
+        overflow-x: auto !important;
+    }
     .o_list_table {
-        width: 100% !important;
+        width: auto !important;
+        min-width: 100% !important;
         table-layout: auto;
-        font-size: 0.82rem;
+        font-size: 0.85rem;
     }
     .o_list_table th,
     .o_list_table td {
-        padding: 0.25rem 0.4rem !important;
+        padding: 0.35rem 0.55rem !important;
         white-space: nowrap;
+        max-width: 280px;             /* cap để cell rất dài không phá layout */
     }
+    .o_list_table th { font-weight: 600; }
     .o_list_table input,
     .o_list_table select,
     .o_list_table .o_input,
     .o_list_table .o_field_widget {
-        font-size: 0.82rem;
-        padding: 0.15rem 0.3rem;
+        font-size: 0.85rem;
+        padding: 0.18rem 0.35rem;
         min-width: 0;
     }
-    /* vd_selection_dropdown trong list cells: gọn lại */
+    /* Min-width đủ rộng để KHÔNG cắt chữ Vietnamese phổ biến */
     .o_list_table .o_vd_select_dd {
-        min-width: 80px;
+        min-width: 130px;
+    }
+    .o_list_table .o_field_many2one {
+        min-width: 130px;
     }
     .o_list_table .o_vd_select_dd_input {
-        font-size: 0.82rem;
-        padding: 0.15rem 0.3rem;
+        font-size: 0.85rem;
+        padding: 0.18rem 0.35rem;
     }
 
     /* Non-active row: ẨN controls (× ▾), chỉ hiện text giá trị như Selection
