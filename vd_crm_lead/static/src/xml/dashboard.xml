@@ -193,9 +193,9 @@
                                         <!-- NHÓM 2: Khách hàng -->
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
                                             <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Khách đang xử lý vấn đề</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Khách chốt</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_lost">❌ Khách hủy</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
                                         </div>
                                     </div>
                                 </div>
@@ -261,14 +261,36 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Metric 2: Khách đang xử lý vấn đề (mid-stage tổng: in_progress + no_problem) -->
+                                                <!-- Metric 2 (new): Chưa có vấn đề — đã báo giá nhưng chưa khai thác vấn đề -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_noprob">
+                                                    <span class="o_vd_kh_metric_num">
+                                                        <t t-esc="nv.no_problem_count or 0"/>
+                                                    </span>
+                                                    <div t-if="nv.no_problem_count" class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            CHƯA CÓ VẤN ĐỀ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.no_problem_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.no_problem_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Metric 3: Đang xử lý (open/in_progress problems) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_progress">
                                                     <span class="o_vd_kh_metric_num">
                                                         <t t-esc="nv.in_progress_count"/>
                                                     </span>
                                                     <div t-if="nv.in_progress_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            KHÁCH ĐANG XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
+                                                            ĐANG XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
                                                             (<t t-esc="nv.in_progress_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
@@ -278,7 +300,7 @@
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
                                                                 </div>
-                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
+                                                                <div class="o_vd_kh_lead_problems">
                                                                     <span t-foreach="ld.problems" t-as="p" t-key="p_index"
                                                                           t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
                                                                         <t t-esc="p.icon"/> <t t-esc="p.name"/>
@@ -289,40 +311,18 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Metric 3: Khách chốt (stage won) -->
+                                                <!-- Metric 3: Đang chốt (resolved problems + stage won) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_done">
                                                     <span class="o_vd_kh_metric_num">
                                                         <t t-esc="nv.resolved_count"/>
                                                     </span>
                                                     <div t-if="nv.resolved_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            KHÁCH CHỐT - <t t-esc="nv.full_name"/>
+                                                            ĐANG CHỐT - <t t-esc="nv.full_name"/>
                                                             (<t t-esc="nv.resolved_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
                                                             <div t-foreach="nv.resolved_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Metric 4 (NEW): Khách hủy (stage lost) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_lost">
-                                                    <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.lost_count or 0"/>
-                                                    </span>
-                                                    <div t-if="nv.lost_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            KHÁCH HỦY - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.lost_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.lost_leads" t-as="ld" t-key="ld.lead_id"
                                                                  class="o_vd_kh_lead_item"
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">

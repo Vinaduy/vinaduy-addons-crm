@@ -4874,7 +4874,6 @@ class CrmLead(models.Model):
                     item.get('resolved_count', 0)
                     + item.get('in_progress_count', 0)
                     + item.get('new_count', 0)
-                    + item.get('lost_count', 0)
                 )
             result = []
             for team in order:
@@ -4887,9 +4886,8 @@ class CrmLead(models.Model):
                 })
             return result
 
-        # ============ 1 NV → 4 metric: new / in_progress / won / lost ============
+        # ============ NEW: 1 NV → 3 metric (new / in_progress mid-stages / won) ============
         won_stage = Stage.search([('code', '=', 'won')], limit=1)
-        lost_stage = Stage.search([('code', '=', 'lost')], limit=1)
         # ĐANG XỬ LÝ = lead đã khai thác thông tin, đang báo giá, đàm phán, phát hiện
         # vấn đề... mọi stage giữa 'new' và 'won' đều count vào đây.
         mid_stage_ids = Stage.search([
@@ -4984,36 +4982,18 @@ class CrmLead(models.Model):
                     ('create_date', '<', dt_to),
                 ], order='create_date desc', limit=100)
 
-            # Metric 4 (NEW): KHÁCH HỦY = stage 'lost' (active=False thường có nhưng
-            # giữ filter active=True nếu user chưa archive — đảm bảo nhất quán).
-            lost_leads_qs = self.env['crm.lead'].browse()
-            if lost_stage:
-                lost_leads_qs = self.search([
-                    ('user_id', '=', u.id),
-                    ('stage_id', '=', lost_stage.id),
-                    ('active', 'in', [True, False]),
-                    ('create_date', '>=', dt_from),
-                    ('create_date', '<', dt_to),
-                ], order='create_date desc', limit=100)
-
             n_resolved = len(resolved_leads)
-            # Gộp in_progress + no_problem thành "Khách đang xử lý vấn đề" tổng
-            n_in_prog_total = len(in_progress_qs) + len(no_problem_qs)
             n_in_prog = len(in_progress_qs)
             n_no_problem = len(no_problem_qs)
             n_new = len(new_leads_qs)
-            n_lost = len(lost_leads_qs)
             # Tổng KH NV quản lý: tất cả lead active gán cho NV (không filter
             # theo date — total real, không phụ thuộc khoảng lọc)
             total_managed = self.search_count([
                 ('user_id', '=', u.id),
                 ('active', '=', True),
             ])
-            if n_resolved + n_in_prog + n_no_problem + n_new + n_lost == 0 and total_managed == 0:
+            if n_resolved + n_in_prog + n_no_problem + n_new == 0 and total_managed == 0:
                 continue
-
-            # Merge in_progress + no_problem leads for the unified "đang xử lý" popover
-            mid_leads_merged = list(in_progress_qs) + list(no_problem_qs)
 
             nv_unified_flat.append({
                 'user_id': u.id,
@@ -5024,18 +5004,14 @@ class CrmLead(models.Model):
                 'capacity_level': u.vd_capacity_level or 'junior',
                 'capacity_label': cap_labels.get(u.vd_capacity_level or 'junior', ''),
                 'total_leads': total_managed,
-                # 4 metrics đồng bộ với wizard "Thêm KH mới" status options.
-                'new_count': n_new,
-                'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
-                'in_progress_count': n_in_prog_total,
-                'in_progress_leads': [_ld_with_problems(l) for l in mid_leads_merged[:50]],
                 'resolved_count': n_resolved,
                 'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
-                'lost_count': n_lost,
-                'lost_leads': [_ld_basic(l) for l in lost_leads_qs[:50]],
-                # Backward-compat: vẫn expose no_problem_count cho UI cũ chưa update
+                'in_progress_count': n_in_prog,
+                'in_progress_leads': [_ld_with_problems(l) for l in in_progress_qs[:50]],
                 'no_problem_count': n_no_problem,
                 'no_problem_leads': [_ld_basic(l) for l in no_problem_qs[:50]],
+                'new_count': n_new,
+                'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 
