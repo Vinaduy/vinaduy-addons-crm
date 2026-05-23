@@ -4470,8 +4470,9 @@
     position: fixed;
     inset: 0;
     z-index: 1900;
-    background: rgba(15, 23, 42, 0.72);
-    backdrop-filter: blur(3px);
+    /* QUAN TRỌNG: KHÔNG dùng backdrop-filter — gây containing block khiến
+       position:fixed của Popper dropdown anchor sai → menu nhảy chỗ khác. */
+    background: rgba(15, 23, 42, 0.82);
     display: flex;
     flex-direction: column;
     animation: vd-preview-fade 0.1s ease-out;
@@ -4489,11 +4490,14 @@
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-    animation: vd-preview-pop 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    /* KHÔNG dùng animation transform — keyframes có transform:scale() biến
+       modal thành containing block cho position:fixed → Popper dropdown lệch.
+       Dùng animation opacity-only thay thế. */
+    animation: vd-preview-fade-modal 0.12s ease-out;
 }
-@keyframes vd-preview-pop {
-    from { transform: scale(0.97); opacity: 0.5; }
-    to   { transform: scale(1);    opacity: 1; }
+@keyframes vd-preview-fade-modal {
+    from { opacity: 0.4; }
+    to   { opacity: 1; }
 }
 
 /* ===== Topbar ===== */
