@@ -84,7 +84,11 @@ export class VdCrmDashboard extends Component {
             else if (ev.key === 'ArrowRight') { ev.preventDefault(); this.nextPreview(); }
         };
         onMounted(() => window.addEventListener('keydown', this._onKeydown));
-        onWillUnmount(() => window.removeEventListener('keydown', this._onKeydown));
+        onWillUnmount(() => {
+            window.removeEventListener('keydown', this._onKeydown);
+            // Đảm bảo body class được dọn nếu user navigate đi mà popup còn mở
+            document.body.classList.remove('o_vd_preview_active');
+        });
 
         onWillStart(async () => {
             await this.loadDashboard();
@@ -520,10 +524,13 @@ export class VdCrmDashboard extends Component {
             ids,
             index: idx >= 0 ? idx : 0,
         };
+        // Body class → CSS scope cho dropdown render qua portal (sibling body)
+        document.body.classList.add('o_vd_preview_active');
     }
 
     closePreview() {
         this.state.previewLead = { ...this.state.previewLead, open: false };
+        document.body.classList.remove('o_vd_preview_active');
     }
 
     prevPreview() {

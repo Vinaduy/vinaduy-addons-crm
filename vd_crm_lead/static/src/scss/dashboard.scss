@@ -4547,8 +4547,8 @@
 /* Body khi nhúng <View/> form crm.lead: reset chrome thừa, để form chiếm toàn bộ */
 .o_vd_preview_body_form {
     padding: 0;
-    /* Phóng to form view trong popup: 1.15 × 1.1 = 1.265 (~+26.5%) */
-    zoom: 1.265;
+    /* Phóng to form view trong popup: 1.265 × 1.2 = 1.518 (~+52%) */
+    zoom: 1.518;
 
     > .o_view_controller,
     > .o_action_manager,
@@ -4562,6 +4562,36 @@
     /* Form sheet: giữ shadow + padding gốc, chỉ căn giữa */
     .o_form_sheet_bg {
         padding: 1rem 1.2rem;
+    }
+    /* Fix dropdown/popover bị xếp dọc do CSS zoom của parent — ép min-width
+       + nowrap để menu items hiện ngang bình thường. Áp cho dropdown render
+       inline (không qua portal). */
+    .dropdown-menu,
+    .o-dropdown--menu,
+    .o-dropdown-item,
+    .o-popover,
+    .o_popover {
+        min-width: max-content !important;
+        white-space: nowrap !important;
+    }
+    .dropdown-item {
+        white-space: nowrap !important;
+    }
+}
+
+/* Owl dropdown/popover render qua portal (sibling của body) → CSS scope
+   .o_vd_preview_body_form không bắt được. Áp global khi preview popup đang
+   mở (body.o_vd_preview_active được set qua JS). */
+body.o_vd_preview_active {
+    .o-dropdown--menu,
+    .o-popover,
+    .o_popover {
+        min-width: max-content !important;
+        white-space: nowrap;
+    }
+    .o-dropdown-item,
+    .dropdown-item {
+        white-space: nowrap !important;
     }
 }
 .o_vd_preview_col {
