@@ -161,9 +161,11 @@ html, body {
     overflow-x: auto;
 }
 
-/* ===== WIZARD "Thêm KH mới" — FULLSCREEN với list co dãn full width ===== */
-.o_dialog_fullscreen .modal-dialog,
-.modal-dialog:has(.o_form_view[data-model="vd.lead.quick.add.wizard"]) {
+/* ===== WIZARD "Thêm KH mới" — FULLSCREEN với list co dãn full width =====
+   Marker class .o_vd_quick_add_form được set trong XML view. Target từ
+   .modal-dialog level để stretch cả wrapper. */
+.modal-dialog:has(.o_vd_quick_add_form),
+.o_dialog_fullscreen .modal-dialog {
     width: 100vw !important;
     max-width: 100vw !important;
     height: 100vh !important;
@@ -292,6 +294,41 @@ html, body {
             overflow: hidden;
         }
     }
+}
+
+/* ===== BORDERLESS dropdown cells trong WIZARD "Thêm KH mới" =====
+   Áp dụng top-level (không nested trong :has()) để chắc chắn override
+   các rule border từ lead_form.scss. Selector cụ thể đủ specificity. */
+.o_vd_quick_add_form .o_list_table .o_vd_select_dd,
+.o_vd_quick_add_form .o_list_table .o_field_many2one,
+.o_vd_quick_add_form .o_list_table .o_field_selection {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.o_vd_quick_add_form .o_list_table .o_vd_select_dd .o_vd_select_dd_input,
+.o_vd_quick_add_form .o_list_table .o_field_many2one input,
+.o_vd_quick_add_form .o_list_table .o_field_many2one .o_input,
+.o_vd_quick_add_form .o_list_table .o_field_selection input,
+.o_vd_quick_add_form .o_list_table .o_field_selection select {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0.2rem 0.4rem !important;
+}
+.o_vd_quick_add_form .o_list_table .o_vd_select_dd .o_vd_select_dd_input:focus,
+.o_vd_quick_add_form .o_list_table .o_vd_select_dd .o_vd_select_dd_input:hover,
+.o_vd_quick_add_form .o_list_table .o_field_many2one input:focus,
+.o_vd_quick_add_form .o_list_table .o_field_many2one input:hover {
+    border: none !important;
+    box-shadow: none !important;
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+/* Ẩn caret arrow khi không hover/focus cho clean look */
+.o_vd_quick_add_form .o_list_table tr:not(:hover):not(.o_selected_row) .o_vd_select_dd_arrow {
+    opacity: 0;
 }
 
 /* ============================================================

@@ -4,7 +4,7 @@
         <field name="name">vd.lead.quick.add.wizard.form</field>
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
-            <form string="Thêm KH mới (nhập nhiều)">
+            <form string="Thêm KH mới (nhập nhiều)" class="o_vd_quick_add_form">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
                     <div class="alert alert-info" role="alert" style="margin:0;flex:1;min-width:280px;">
                         <b>💡 Mẹo:</b> Bấm <b>⋮</b> header bảng để hiện/ẩn cột. Gõ ô bên phải để thêm cột mới.
