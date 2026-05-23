@@ -41,18 +41,10 @@ export class VdSelectionDropdown extends Component {
         };
         onMounted(() => {
             document.addEventListener("click", this._onDocClick, true);
-            // Trong list editable: chỉ auto-open NẾU widget đang ở ACTIVE row
-            // (có class o_selected_row). Tránh open trong tất cả cells gây
-            // menu stack chồng chéo.
-            const tr = this.rootRef.el?.closest("tr");
-            if (tr?.classList.contains("o_selected_row")) {
-                this.state.open = true;
-                this.state.search = "";
-                Promise.resolve().then(() => {
-                    const inp = this.rootRef.el?.querySelector(".o_vd_select_dd_input");
-                    inp?.focus();
-                });
-            }
+            // KHÔNG auto-open trên mount — sẽ trigger cho TẤT CẢ widgets cùng row
+            // khi user add line / chọn row, gây menu stack chồng chéo.
+            // Mở dropdown chỉ qua interaction explicit: onWrapperClick (user click)
+            // hoặc quick_add_hover_open.js (hover cell trong wizard).
         });
         onWillUnmount(() => document.removeEventListener("click", this._onDocClick, true));
     }
