@@ -12,10 +12,11 @@
 import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
+import { View } from "@web/views/view";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
+    static components = { View };
     static props = ["*"];
 
     setup() {
@@ -23,7 +24,6 @@ export class VdCrmDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.stringee = useService("stringee");
-        this.dialog = useService("dialog");
 
         // === Default date range: 90 ngày gần nhất → hôm nay ===
         const today = new Date();
@@ -77,16 +77,12 @@ export class VdCrmDashboard extends Component {
         });
         this._searchDebounce = null;
 
-        // Keyboard handler cho preview popup: chỉ ←/→ chuyển KH.
-        // ESC để Odoo FormViewDialog tự handle (gọi onClose → reset state).
+        // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH
         this._onKeydown = (ev) => {
             if (!this.state.previewLead.open) return;
-            // KHÔNG intercept ←/→ khi user đang edit input/textarea/select
-            const tag = ev.target.tagName;
-            const editable = ev.target.isContentEditable
-                || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-            if (editable) return;
-            if (ev.key === 'ArrowLeft')       { ev.preventDefault(); this.prevPreview(); }
+            // Bỏ qua nếu user đang gõ trong iframe (Odoo SPA chạy bên trong)
+            if (ev.key === 'Escape')     { ev.preventDefault(); this.closePreview(); }
+            else if (ev.key === 'ArrowLeft')  { ev.preventDefault(); this.prevPreview(); }
             else if (ev.key === 'ArrowRight') { ev.preventDefault(); this.nextPreview(); }
         };
         onMounted(() => window.addEventListener('keydown', this._onKeydown));
@@ -523,7 +519,7 @@ export class VdCrmDashboard extends Component {
     }
 
     openLead(leadId) {
-        // Resolve nhóm KH hiện tại (auto-detect: pills KH mới / problem rows / state.leads)
+        // Mở preview INLINE — render từ data đã cache → 0 RPC, mở instantly.
         let ids;
         if (this.isNewStageSplit) {
             if (this.leadsNoProblems.some(l => l.id === leadId)) {
@@ -543,77 +539,53 @@ export class VdCrmDashboard extends Component {
             ids,
             index: idx >= 0 ? idx : 0,
         };
+        // Body class → CSS scope cho dropdown render qua portal (sibling body)
         document.body.classList.add('o_vd_preview_active');
-        this._openLeadDialog();
     }
 
+    /**
+     * Mở preview popup với danh sách KH explicit (dùng cho click icon thùng rác /
+     * tham khảo / chưa gọi). Cho phép user ← → duyệt qua tất cả KH trong nhóm.
+     */
     openCategoryList(leads) {
         if (!leads || !leads.length) return;
         const ids = leads.map(l => l.id);
         this.state.previewLead = { open: true, ids, index: 0 };
         document.body.classList.add('o_vd_preview_active');
-        this._openLeadDialog();
-    }
-
-    /**
-     * Mở Odoo FormViewDialog cho KH hiện tại. Dùng native dialog → dropdown,
-     * autocomplete, datepicker đều hoạt động đúng (vì Odoo handle overflow/clipping
-     * tương thích với Popper.js). Khi prev/next → close dialog cũ + mở dialog mới.
-     */
-    _openLeadDialog() {
-        const p = this.state.previewLead;
-        if (!p.open || !p.ids.length) return;
-        const leadId = p.ids[p.index];
-
-        if (this._closeDialog) {
-            this._isNavigating = true;
-            this._closeDialog();
-            this._closeDialog = null;
-        }
-
-        this._closeDialog = this.dialog.add(FormViewDialog, {
-            resModel: 'crm.lead',
-            resId: leadId,
-            size: 'fs',  // fullscreen
-            title: `KH ${p.index + 1} / ${p.ids.length}`,
-            mode: 'edit',
-            onRecordSaved: () => this.refreshAfterPreview(),
-        }, {
-            onClose: () => {
-                if (this._isNavigating) {
-                    this._isNavigating = false;
-                    return;
-                }
-                this._closeDialog = null;
-                this.state.previewLead = { ...this.state.previewLead, open: false };
-                document.body.classList.remove('o_vd_preview_active');
-                this.refreshAfterPreview();
-            },
-        });
     }
 
     closePreview() {
-        if (this._closeDialog) {
-            this._closeDialog();
-            this._closeDialog = null;
-        }
         this.state.previewLead = { ...this.state.previewLead, open: false };
         document.body.classList.remove('o_vd_preview_active');
-        this.refreshAfterPreview();
     }
 
     prevPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index <= 0) return;
         this.state.previewLead.index = p.index - 1;
-        this._openLeadDialog();
     }
 
     nextPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index >= p.ids.length - 1) return;
         this.state.previewLead.index = p.index + 1;
-        this._openLeadDialog();
+    }
+
+    // Props cho component <View/> embedded trong popup — render full form view
+    // của crm.lead nhưng KHÔNG kèm Dialog wrapper / breadcrumb / action overhead
+    // → load nhanh hơn so với FormViewDialog hoặc navigate trang.
+    get previewViewProps() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return null;
+        return {
+            type: "form",
+            resModel: "crm.lead",
+            resId: p.ids[p.index],
+            mode: "edit",
+            display: { controlPanel: false },
+            // Sau khi save → refresh cached leads để pill update màu/data
+            onRecordSaved: () => this.refreshAfterPreview(),
+        };
     }
 
     async refreshAfterPreview() {
@@ -621,6 +593,45 @@ export class VdCrmDashboard extends Component {
             try {
                 await this.selectStage(this.state.selectedStageId);
             } catch (_e) {}
+        }
+    }
+
+    // Lấy lead object hiện đang preview — lookup từ data đã cache (instant, 0 RPC).
+    get previewLeadObj() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return null;
+        const id = p.ids[p.index];
+        const sources = [
+            this.state.leads || [],
+            this.state.leadsWithProblemsAll || [],
+            this.state.leadsNotCalledAll || [],
+            this.state.leadsLostAll || [],
+        ];
+        for (const list of sources) {
+            const found = list.find(l => l.id === id);
+            if (found) return found;
+        }
+        return { id, name: '(KH)', phone: '', user_name: '' };
+    }
+
+    // Mở form Odoo đầy đủ (navigate trang) — khi user cần edit nâng cao
+    openLeadFullForm() {
+        const p = this.state.previewLead;
+        const id = p.open ? p.ids[p.index] : null;
+        if (!id) return;
+        this.closePreview();
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'crm.lead',
+            res_id: id,
+            views: [[false, 'form']],
+            target: 'current',
+        });
+    }
+
+    onPreviewBackdropClick(ev) {
+        if (ev.target.classList.contains('o_vd_preview_backdrop')) {
+            this.closePreview();
         }
     }
 
