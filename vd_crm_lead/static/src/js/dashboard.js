@@ -192,7 +192,12 @@ export class VdCrmDashboard extends Component {
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
         this.state.leadsLoading = true;
-        const args = [stageId];
+        // Bucket có thể gộp nhiều stage → pass stage_ids list. Fallback single.
+        const stage = this.state.stages.find(s => s.id === stageId);
+        const stageArg = (stage && Array.isArray(stage.stage_ids) && stage.stage_ids.length > 1)
+            ? stage.stage_ids
+            : stageId;
+        const args = [stageArg];
         if (this.state.selected_user_id) {
             args.push(this.state.selected_user_id);
         }
