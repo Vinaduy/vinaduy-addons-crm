@@ -534,47 +534,51 @@ html.vd-on-lead-form .o_form_view .o_form_sheet {
 }
 
 /* ============================================================
-   19. HOVER INLINE MODE — "Thông tin tư vấn" hover trên button
-   → hiện popup ngay tại vị trí panel VẤN ĐỀ (o_vd_layout_right).
-   JS: intake_hover_panel.js add class .vd-intake-hover-active vào <html>
-   + set CSS vars --vd-hover-top/left/width/height bằng rect của .o_vd_layout_right.
+   19. TAB-SWITCH INLINE MODE — "Thông tin tư vấn" hover → CHIẾM CHỖ
+   panel VẤN ĐỀ. JS portal overlay INTO .o_vd_layout_right (xem
+   intake_hover_panel.js _portalToRightPanel) → cùng zoom context, không
+   cần JS positioning. CSS dưới fill bằng position:absolute; inset:0.
 
    IMPORTANT: overlay div KHÔNG còn `invisible="not vd_intake_open"` — luôn render
-   trong DOM (xem crm_lead_views.xml). Default hide qua rule dưới đây, chỉ show khi
-   class hover-active hoặc pinned active.
+   trong DOM (xem crm_lead_views.xml). Default hide qua rule dưới đây.
    ============================================================ */
 
-/* Default: overlay ẩn (mạnh hơn d-none / o_invisible_modifier mà Odoo có thể apply) */
+/* Default: overlay ẩn */
 .o_vd_intake_popup_overlay {
     display: none !important;
 }
 
 html.vd-intake-hover-active,
 html.vd-intake-pinned {
-    /* Ẩn nội dung panel bên phải để popup chiếm chỗ. */
-    .o_vd_layout_right > * {
+    /* Right panel làm anchor cho overlay absolute fill */
+    .o_vd_layout_right {
+        position: relative !important;
+        min-height: 400px;
+    }
+    /* Ẩn sibling content của right panel (VẤN ĐỀ ...) — để overlay chiếm chỗ */
+    .o_vd_layout_right > *:not(.o_vd_intake_popup_overlay) {
         visibility: hidden;
     }
-    /* Force show popup overlay (override invisible="not vd_intake_open"). */
-    .o_vd_intake_popup_overlay {
+    /* Overlay đã được portal VÀO right panel → fill absolute */
+    .o_vd_layout_right > .o_vd_intake_popup_overlay {
         display: block !important;
-        position: fixed !important;
-        z-index: 50 !important;
+        position: absolute !important;
+        inset: 0 !important;
+        z-index: 5 !important;
         pointer-events: auto !important;
-        top: var(--vd-hover-top, 0) !important;
-        left: var(--vd-hover-left, 50%) !important;
+        top: auto !important;
+        left: auto !important;
         right: auto !important;
         bottom: auto !important;
-        width: var(--vd-hover-width, 45vw) !important;
-        height: var(--vd-hover-height, 80vh) !important;
-        inset: auto !important;
+        width: auto !important;
+        height: auto !important;
     }
-    /* Bỏ backdrop — không cần che màn hình */
-    .o_vd_intake_popup_overlay .o_vd_intake_popup_backdrop {
+    /* Bỏ backdrop */
+    .o_vd_layout_right > .o_vd_intake_popup_overlay .o_vd_intake_popup_backdrop {
         display: none !important;
     }
-    /* Panel nằm full trong overlay (đã được position lại) */
-    .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
+    /* Panel fill overlay */
+    .o_vd_layout_right > .o_vd_intake_popup_overlay .o_vd_intake_popup_panel {
         position: relative !important;
         top: 0 !important;
         right: 0 !important;
@@ -585,7 +589,7 @@ html.vd-intake-pinned {
         height: 100% !important;
         max-height: 100% !important;
         margin: 0 !important;
-        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.25);
+        box-shadow: 0 4px 16px rgba(76, 110, 245, 0.2);
         border: 2px solid #4c6ef5;
     }
 }
