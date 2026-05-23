@@ -12,9 +12,11 @@
 import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { View } from "@web/views/view";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
+    static components = { View };
     static props = ["*"];
 
     setup() {
@@ -497,6 +499,31 @@ export class VdCrmDashboard extends Component {
         const p = this.state.previewLead;
         if (!p.open || p.index >= p.ids.length - 1) return;
         this.state.previewLead.index = p.index + 1;
+    }
+
+    // Props cho component <View/> embedded trong popup — render full form view
+    // của crm.lead nhưng KHÔNG kèm Dialog wrapper / breadcrumb / action overhead
+    // → load nhanh hơn so với FormViewDialog hoặc navigate trang.
+    get previewViewProps() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return null;
+        return {
+            type: "form",
+            resModel: "crm.lead",
+            resId: p.ids[p.index],
+            mode: "edit",
+            display: { controlPanel: false },
+            // Sau khi save → refresh cached leads để pill update màu/data
+            onRecordSaved: () => this.refreshAfterPreview(),
+        };
+    }
+
+    async refreshAfterPreview() {
+        if (this.state.selectedStageId) {
+            try {
+                await this.selectStage(this.state.selectedStageId);
+            } catch (_e) {}
+        }
     }
 
     // Lấy lead object hiện đang preview — lookup từ data đã cache (instant, 0 RPC).

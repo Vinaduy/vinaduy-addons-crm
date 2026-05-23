@@ -4536,18 +4536,30 @@
     &:hover { background: #e03131; transform: scale(1.08); }
 }
 
-/* ===== Body — grid 2 cột ===== */
+/* ===== Body — full form view embedded ===== */
 .o_vd_preview_body {
     flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-    padding: 1.2rem 1.4rem;
     overflow-y: auto;
     background: #f8f9fa;
+    min-height: 0;            /* cần cho overflow trong flex container */
+    position: relative;
+}
+/* Body khi nhúng <View/> form crm.lead: reset chrome thừa, để form chiếm toàn bộ */
+.o_vd_preview_body_form {
+    padding: 0;
 
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr;
+    > .o_view_controller,
+    > .o_action_manager,
+    .o_form_view {
+        background: #f8f9fa;
+        height: auto;
+        min-height: 100%;
+    }
+    /* Ẩn breadcrumb/cog ở control panel nếu lọt qua (display.controlPanel=false đã ẩn rồi) */
+    .o_control_panel { display: none !important; }
+    /* Form sheet: giữ shadow + padding gốc, chỉ căn giữa */
+    .o_form_sheet_bg {
+        padding: 1rem 1.2rem;
     }
 }
 .o_vd_preview_col {
