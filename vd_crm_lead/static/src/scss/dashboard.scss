@@ -4681,13 +4681,65 @@ body.o_vd_preview_active {
 }
 
 /* ============================================================
-   FIX dropdown Many2one/Selection trong popup KH:
-   Popper.js của Owl đang tính sai vị trí khi autocomplete render trong
-   popup (do CSS context khác bình thường). Override TOÀN BỘ Popper math:
-   force dropdown nằm ngay dưới input qua position:absolute.
-   Trade-off: không flip lên trên nếu thiếu space dưới (chấp nhận được).
+   STYLE đồng nhất cho TẤT CẢ dropdown trong popup KH —
+   theo mẫu trường THỜI GIAN (border tím + caret tím + bg trắng nhạt).
+   Áp cho: vd_selection_dropdown (Loại móng, Kiểu nhà, Sổ đỏ, Loại đất,
+   Ô tô vào, Chỗ để đất móng), Many2one (Tỉnh, Huyện).
    ============================================================ */
 body.o_vd_preview_active .o_vd_preview_body_form {
+    /* Custom vd_selection_dropdown input */
+    .o_vd_select_dd .o_vd_select_dd_input,
+    /* Many2one autocomplete input */
+    .o-autocomplete .o-autocomplete--input,
+    /* Native input/select fallback */
+    .o_field_widget input.o_input,
+    .o_field_widget select.o_input {
+        border: 1.5px solid #b197fc !important;
+        border-radius: 8px !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        padding: 0.4rem 1.8rem 0.4rem 0.6rem !important;
+        font-size: 0.88rem !important;
+        line-height: 1.35 !important;
+        transition: all 0.15s ease !important;
+        cursor: pointer;
+
+        &:hover, &:focus {
+            border-color: #845ef7 !important;
+            background: #fff !important;
+            outline: none !important;
+        }
+        &::placeholder {
+            color: #adb5bd !important;
+            font-style: italic !important;
+            font-size: 0.82rem !important;
+        }
+    }
+    /* Caret/chevron — to + tím đậm như Timeline */
+    .o_vd_select_dd .o_vd_select_dd_arrow {
+        color: #845ef7 !important;
+        font-size: 0.95rem !important;
+        right: 0.6rem !important;
+    }
+    /* Many2one không có caret built-in — thêm qua ::after */
+    .o-autocomplete {
+        position: relative !important;
+    }
+    .o-autocomplete::after {
+        content: '\f0d7';   /* fa-caret-down */
+        font-family: FontAwesome;
+        position: absolute;
+        right: 0.6rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #845ef7;
+        font-size: 0.95rem;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       FIX vị trí dropdown menu — bypass Popper, ép đứng dưới input.
+       ============================================================ */
     /* Autocomplete (Many2one): force dropdown dưới input qua absolute */
     .o-autocomplete {
         position: relative !important;
