@@ -4687,11 +4687,17 @@ body.o_vd_preview_active {
    Ô tô vào, Chỗ để đất móng), Many2one (Tỉnh, Huyện).
    ============================================================ */
 body.o_vd_preview_active .o_vd_preview_body_form {
-    /* Custom vd_selection_dropdown input */
+    /* Selector tổng quát — match mọi vị trí render */
     .o_vd_select_dd .o_vd_select_dd_input,
-    /* Many2one autocomplete input */
     .o-autocomplete .o-autocomplete--input,
-    /* Native input/select fallback */
+    /* Override CHẾT các fallback specific từ lead_form.scss .o_vd_pf > .o_field_widget input */
+    .o_vd_pf .o_field_widget input.o_input,
+    .o_vd_pf .o_field_widget select.o_input,
+    .o_vd_pf .o_vd_select_dd .o_vd_select_dd_input,
+    .o_vd_pf .o-autocomplete .o-autocomplete--input,
+    .o_vd_pf_compact .o_vd_select_dd .o_vd_select_dd_input,
+    .o_vd_pf_compact .o-autocomplete .o-autocomplete--input,
+    /* Fallback native input/select */
     .o_field_widget input.o_input,
     .o_field_widget select.o_input {
         border: 1.5px solid #b197fc !important;
@@ -4702,11 +4708,14 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         line-height: 1.35 !important;
         transition: all 0.15s ease !important;
         cursor: pointer;
+        height: auto !important;
+        min-height: 32px !important;
 
         &:hover, &:focus {
             border-color: #845ef7 !important;
             background: #fff !important;
             outline: none !important;
+            box-shadow: 0 0 0 2px rgba(132, 94, 247, 0.15) !important;
         }
         &::placeholder {
             color: #adb5bd !important;
@@ -4714,11 +4723,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
             font-size: 0.82rem !important;
         }
     }
-    /* Caret/chevron — to + tím đậm như Timeline */
-    .o_vd_select_dd .o_vd_select_dd_arrow {
+    /* Caret tím to — override mọi vị trí */
+    .o_vd_select_dd .o_vd_select_dd_arrow,
+    .o_vd_pf .o_vd_select_dd .o_vd_select_dd_arrow,
+    .o_vd_pf_compact .o_vd_select_dd .o_vd_select_dd_arrow {
         color: #845ef7 !important;
         font-size: 0.95rem !important;
-        right: 0.6rem !important;
+        right: 0.65rem !important;
     }
     /* Many2one không có caret built-in — thêm qua ::after */
     .o-autocomplete {
@@ -4728,7 +4739,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         content: '\f0d7';   /* fa-caret-down */
         font-family: FontAwesome;
         position: absolute;
-        right: 0.6rem;
+        right: 0.65rem;
         top: 50%;
         transform: translateY(-50%);
         color: #845ef7;
