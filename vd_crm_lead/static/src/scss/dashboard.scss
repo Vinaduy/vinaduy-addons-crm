@@ -4679,6 +4679,49 @@ body.o_vd_preview_active {
         white-space: nowrap !important;
     }
 }
+
+/* ============================================================
+   FIX dropdown Many2one/Selection trong popup KH:
+   Popper.js của Owl đang tính sai vị trí khi autocomplete render trong
+   popup (do CSS context khác bình thường). Override TOÀN BỘ Popper math:
+   force dropdown nằm ngay dưới input qua position:absolute.
+   Trade-off: không flip lên trên nếu thiếu space dưới (chấp nhận được).
+   ============================================================ */
+body.o_vd_preview_active .o_vd_preview_body_form {
+    /* Autocomplete (Many2one): force dropdown dưới input qua absolute */
+    .o-autocomplete {
+        position: relative !important;
+    }
+    .o-autocomplete .o-autocomplete--dropdown-menu {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: auto !important;
+        min-width: 100% !important;
+        max-width: 500px;
+        max-height: 320px;
+        overflow-y: auto;
+        margin-top: 2px;
+        z-index: 1100;
+    }
+    /* Owl Dropdown (Selection vd_selection_dropdown): tương tự */
+    .o-dropdown {
+        position: relative !important;
+    }
+    .o-dropdown > .o-dropdown--menu,
+    .dropdown > .dropdown-menu {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        margin-top: 2px !important;
+        z-index: 1100;
+    }
+}
 .o_vd_preview_col {
     background: #fff;
     padding: 1rem 1.1rem;
@@ -4815,18 +4858,19 @@ body.o_vd_preview_active {
 }
 .o_vd_preview_sign_countdown { font-weight: 700; }
 
-/* ===== Footer hint ===== */
+/* ===== Footer hint — fixed bottom of viewport ===== */
 .o_vd_preview_footer_hint {
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     text-align: center;
     padding: 0.4rem;
     background: #1f2a44;
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.72rem;
     border-radius: 0;
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
+    z-index: 2001;
 
     kbd {
         display: inline-block;
