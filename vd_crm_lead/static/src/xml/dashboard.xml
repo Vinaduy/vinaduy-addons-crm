@@ -1510,13 +1510,21 @@
                  t-on-click="(ev) => this.onPreviewBackdropClick(ev)">
                 <t t-set="L" t-value="previewLeadObj"/>
                 <div class="o_vd_preview_modal" t-if="L">
-                    <!-- Topbar: stage + tên KH + index + close X -->
+                    <!-- Topbar: stage + tên KH + phone + NV + index + close X -->
                     <div class="o_vd_preview_topbar">
                         <div class="o_vd_preview_topbar_left">
                             <span class="o_vd_preview_stage_chip">
                                 <t t-esc="L.stage_code or 'KH'"/>
                             </span>
                             <strong class="o_vd_preview_name"><t t-esc="L.name"/></strong>
+                            <span class="o_vd_preview_phone" t-if="L.phone">
+                                <i class="fa fa-phone"/>
+                                <t t-esc="L.phone"/>
+                            </span>
+                            <span class="o_vd_preview_user" t-if="L.user_name">
+                                <i class="fa fa-user-circle"/>
+                                <t t-esc="L.user_name"/>
+                            </span>
                             <span class="o_vd_preview_pager">
                                 KH <strong><t t-esc="state.previewLead.index + 1"/></strong>
                                 / <t t-esc="state.previewLead.ids.length"/>
