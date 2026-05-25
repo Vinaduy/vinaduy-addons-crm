@@ -9176,19 +9176,19 @@ $vd-panel-head-radius: 10px;
 .o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input,
 .o_vd_layout_grid .o_vd_intake_inline .o_field_widget select,
 .o_vd_layout_grid .o_vd_intake_inline .o_field_widget input {
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     line-height: 1.3 !important;
-    height: 34px !important;
-    min-height: 34px !important;
+    height: 32px !important;
+    min-height: 32px !important;
     box-sizing: border-box !important;
-    padding: 0.35rem 0.6rem !important;
+    padding: 0.3rem 0.6rem !important;
     border: 1px solid var(--vd-border) !important;
     border-radius: 6px !important;
     background-color: #fff !important;
     color: var(--vd-text) !important;
-    transition: border-color 0.12s ease, box-shadow 0.12s ease !important;
     vertical-align: middle !important;
+    transition: none !important;
 }
 /* Wrapper .o-autocomplete chỉ là div — bỏ border/height riêng để input bên trong style chuẩn */
 .o_vd_layout_grid .o_vd_intake_inline .o-autocomplete {
@@ -9212,58 +9212,32 @@ $vd-panel-head-radius: 10px;
     background-size: 12px 8px !important;
     cursor: pointer !important;
 }
-/* Hover / focus state — đồng bộ navy theme */
+/* Hover: KHÔNG đổi nền/transform → bảng không "động đậy" khi rê chuột.
+   Chỉ đậm border 1 chút để biết đang hover. */
 .o_vd_layout_grid .o_vd_intake_inline select:hover,
 .o_vd_layout_grid .o_vd_intake_inline input:hover,
 .o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:hover,
 .o_vd_layout_grid .o_vd_intake_inline .o_input:hover {
     border-color: var(--vd-navy-s) !important;
-    background-color: var(--vd-cream) !important;
+    background-color: #fff !important;
 }
+/* Focus: viền navy đậm (khi click vào, KH biết đang nhập ô nào) */
 .o_vd_layout_grid .o_vd_intake_inline select:focus,
 .o_vd_layout_grid .o_vd_intake_inline input:focus,
 .o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:focus,
 .o_vd_layout_grid .o_vd_intake_inline .o_input:focus {
     border-color: var(--vd-navy) !important;
-    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
     outline: none !important;
+    box-shadow: none !important;
     background-color: #fff !important;
 }
-/* Placeholder font-size match input */
+/* Placeholder font-size match input (13px = button "Lịch sử cuộc gọi") */
 .o_vd_layout_grid .o_vd_intake_inline input::placeholder,
 .o_vd_layout_grid .o_vd_intake_inline textarea::placeholder,
 .o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input::placeholder {
-    font-size: 14px !important;
+    font-size: 13px !important;
     color: var(--vd-text-muted) !important;
     opacity: 0.85 !important;
-}
-
-/* ===== STEP PANEL TEXT UNIFY 14px — override NUCLEAR 13px =====
-   Everything visible trong steps_panel = 14px chuẩn (label + value + chip text).
-   Trừ: step_num circle (11px), banner head (16px), unit "m²" (vẫn nhỏ). */
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step *,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step span,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step label,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl_sub,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_budget_lbl,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floors_total_lbl {
-    font-size: 14px !important;
-}
-/* Giữ exception: step_num circle nhỏ (11px), banner head (16px), unit (12px) */
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num {
-    font-size: 11px !important;
-}
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head * {
-    font-size: 16px !important;
-}
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_unit,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_sep,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floors_total_unit {
-    font-size: 12px !important;
 }
 
 /* ===== STEP_FIELD: label trái + dropdown phải — KHÔNG đè, KHÔNG lệch =====
@@ -9277,7 +9251,7 @@ $vd-panel-head-radius: 10px;
     flex: 0 0 auto !important;
     min-width: 78px !important;
     text-align: left !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     color: var(--vd-text-muted) !important;
     margin: 0 !important;
@@ -9385,17 +9359,13 @@ $vd-panel-head-radius: 10px;
     margin-left: auto !important;
 }
 
-/* Step row — compact, không border, các dòng sát nhau */
+/* Step row — compact, không border, các dòng sát nhau, KHÔNG hover effect (giữ tĩnh) */
 .o_vd_intake_inline .o_vd_step {
     display: grid;
     grid-template-columns: 200px 1fr;
     gap: 0.8rem;
     align-items: center;
     padding: 0.35rem 0.9rem;
-    transition: background 0.15s ease;
-}
-.o_vd_intake_inline .o_vd_step:hover {
-    background: rgba(251, 249, 244, 0.5);
 }
 
 .o_vd_intake_inline .o_vd_step_lbl {
@@ -9553,11 +9523,9 @@ $vd-panel-head-radius: 10px;
     font-weight: 700;
 }
 
-/* Compact hero head — bớt padding */
-.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
-    padding: 0.45rem 0.9rem !important;
-    margin-bottom: 0 !important;
-}
+/* Header THÔNG TIN TƯ VẤN: KHÔNG override padding ở đây — để rule base
+   ở line ~9205 áp dụng (height 3.4rem, padding 0 1.4rem, font 1.15rem)
+   → đồng nhất 100% với VẤN ĐỀ panel (.o_vd_negotiate_panel .o_vd_nego_head). */
 
 /* Responsive: mobile/tablet stack label trên + body dưới */
 @media (max-width: 767px) {
