@@ -10051,6 +10051,97 @@ $vd-panel-head-radius: 10px;
     letter-spacing: 1.2px !important;
 }
 
+/* ============================================================================
+   🎯 M2O HOVER PICKER (Tỉnh / Huyện) — style giống Thêm vấn đề menu
+   ============================================================================ */
+.o_vd_m2o_hover_picker {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 32px;
+    padding: 0 0.6rem;
+    border: 1px solid #d9dee6;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 13px;
+}
+.o_vd_m2o_hover_picker:hover .o_vd_mhp_bar {
+    border-color: #714B67;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_value {
+    flex: 1 1 auto;
+    color: #0f1e34;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_placeholder {
+    flex: 1 1 auto;
+    color: #6b7a93;
+    font-style: normal;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_clear {
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    color: #b91c1c;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 0.2rem;
+    line-height: 1;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_clear:hover { color: #7f1d1d; }
+.o_vd_m2o_hover_picker .o_vd_mhp_caret {
+    flex: 0 0 auto;
+    color: #714B67;
+    font-size: 12px;
+}
+
+/* Menu xổ ra khi hover — style Thêm vấn đề (white bg + shadow + scrollable) */
+.o_vd_m2o_hover_picker .o_vd_mhp_menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    min-width: 240px;
+    max-width: 400px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #d9dee6;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 30, 52, 0.18);
+    padding: 0.3rem 0;
+    z-index: 10000;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.85rem;
+    font-size: 13px;
+    color: #0f1e34;
+    cursor: pointer;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_item:hover {
+    background: #ebf1f8;
+    color: #1e3a5f;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_empty {
+    padding: 0.6rem 0.85rem;
+    font-size: 12px;
+    color: #6b7a93;
+    font-style: italic;
+}
+
 /* === DIỆN TÍCH INPUTS: uniform 90px × 32px (không quá dài, đều nhau) === */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_input,

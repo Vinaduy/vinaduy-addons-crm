@@ -216,16 +216,14 @@
                                     <div class="o_vd_step_field">
                                         <label for="vd_intake_province_id">Tỉnh / Thành</label>
                                         <field name="vd_intake_province_id" nolabel="1"
-                                               placeholder="Anh/chị xây ở tỉnh / thành phố nào ạ?"
-                                               options="{'no_create': True, 'no_open': True}"/>
+                                               widget="vd_m2o_hover_picker"
+                                               placeholder="Tỉnh / Thành phố?"/>
                                     </div>
                                     <div class="o_vd_step_field">
                                         <label for="vd_intake_district">Huyện / Quận</label>
                                         <field name="vd_intake_district" nolabel="1"
-                                               placeholder="Khu vực huyện / quận nào ạ?"
-                                               domain="[('state_id', '=', vd_intake_province_id)]"
-                                               context="{'default_state_id': vd_intake_province_id}"
-                                               options="{'no_open': True}"/>
+                                               widget="vd_m2o_hover_picker"
+                                               placeholder="Huyện / Quận?"/>
                                     </div>
                                 </div>
                             </div>

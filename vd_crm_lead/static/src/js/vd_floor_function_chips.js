@@ -85,6 +85,16 @@ export class VdFloorFunctionChips extends Component {
         this.state.open = !this.state.open;
     }
 
+    onMouseEnter() {
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        this.state.open = true;
+    }
+
+    onMouseLeave() {
+        if (this._closeTimer) clearTimeout(this._closeTimer);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 150);
+    }
+
     async onChipClick(tag, ev) {
         ev.stopPropagation();
         const sel = this.selectedIds;

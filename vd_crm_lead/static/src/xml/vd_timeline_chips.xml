@@ -2,7 +2,8 @@
 <templates xml:space="preserve">
 
     <t t-name="vd_crm_lead.VdTimelineChips">
-        <div class="o_vd_timeline_chips" t-ref="root" t-att-class="{ 'o_vd_tlc_open': state.open }">
+        <div class="o_vd_timeline_chips" t-ref="root" t-att-class="{ 'o_vd_tlc_open': state.open }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
             <!-- Bar gọn: hiển thị chips đã chọn (hoặc placeholder) — bấm để mở danh sách -->
             <div class="o_vd_tlc_bar" t-on-click.prevent.stop="toggleOpen">
                 <t t-if="selectedOrdered.length === 0">

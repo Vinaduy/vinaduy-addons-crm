@@ -3,7 +3,8 @@
 
     <t t-name="vd_crm_lead.VdFloorFunctionChips">
         <div class="o_vd_timeline_chips o_vd_floor_func_chips" t-ref="root"
-             t-att-class="{ 'o_vd_tlc_open': state.open }">
+             t-att-class="{ 'o_vd_tlc_open': state.open }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
             <!-- Bar gọn: chips đã chọn (hoặc placeholder) -->
             <div class="o_vd_tlc_bar" t-on-click.prevent.stop="toggleOpen">
                 <t t-if="selectedTags.length === 0">

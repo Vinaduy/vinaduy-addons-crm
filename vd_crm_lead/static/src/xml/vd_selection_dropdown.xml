@@ -4,7 +4,8 @@
     <t t-name="vd_crm_lead.VdSelectionDropdown">
         <div class="o_vd_select_dd" t-ref="root"
              t-att-class="{ 'o_vd_select_dd--open': state.open, 'o_vd_select_dd--has-value': hasValue }"
-             t-on-click="(ev) => this.onWrapperClick(ev)">
+             t-on-click="(ev) => this.onWrapperClick(ev)"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
             <input type="text"
                    class="o_input o_vd_select_dd_input"
                    t-att-placeholder="props.placeholder"

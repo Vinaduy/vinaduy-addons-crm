@@ -89,6 +89,16 @@ export class VdTimelineChips extends Component {
         this.state.open = !this.state.open;
     }
 
+    onMouseEnter() {
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        this.state.open = true;
+    }
+
+    onMouseLeave() {
+        if (this._closeTimer) clearTimeout(this._closeTimer);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 150);
+    }
+
     onChipClick(label, ev) {
         ev.stopPropagation();
         const sel = this.selectedSet;

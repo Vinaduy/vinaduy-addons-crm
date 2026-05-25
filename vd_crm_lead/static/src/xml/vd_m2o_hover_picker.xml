@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdM2oHoverPicker">
+        <div class="o_vd_m2o_hover_picker" t-ref="root"
+             t-att-class="{ 'o_vd_mhp_open': state.open, 'o_vd_mhp_has_value': hasValue }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
+            <!-- Bar -->
+            <div class="o_vd_mhp_bar">
+                <span class="o_vd_mhp_value" t-if="hasValue">
+                    <t t-esc="currentDisplay"/>
+                </span>
+                <span class="o_vd_mhp_placeholder" t-if="!hasValue">
+                    <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
+                </span>
+                <button type="button" class="o_vd_mhp_clear"
+                        t-if="hasValue"
+                        t-on-click="(ev) => this.clearValue(ev)"
+                        title="Xoá">×</button>
+                <i class="fa fa-caret-down o_vd_mhp_caret"/>
+            </div>
+
+            <!-- Hover menu — style như Thêm vấn đề picker -->
+            <div class="o_vd_mhp_menu" t-if="state.open">
+                <t t-if="state.options.length === 0">
+                    <div class="o_vd_mhp_empty">
+                        <i class="fa fa-info-circle"/>
+                        <t t-if="props.name === 'vd_intake_district'">Chọn Tỉnh/Thành trước.</t>
+                        <t t-else="">Không có lựa chọn nào.</t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-foreach="state.options" t-as="opt" t-key="opt.id">
+                        <button type="button" class="o_vd_mhp_item"
+                                t-on-click.stop="(ev) => this.selectRecord(opt, ev)">
+                            <t t-esc="opt.display_name"/>
+                        </button>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

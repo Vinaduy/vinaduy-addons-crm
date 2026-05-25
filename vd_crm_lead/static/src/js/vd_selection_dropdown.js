@@ -138,6 +138,19 @@ export class VdSelectionDropdown extends Component {
         if (this.state.open) this.state.search = "";
     }
 
+    onMouseEnter() {
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        if (!this.state.open) {
+            this.state.open = true;
+            this.state.search = "";
+        }
+    }
+
+    onMouseLeave() {
+        if (this._closeTimer) clearTimeout(this._closeTimer);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 200);
+    }
+
     onWrapperClick(ev) {
         // Click bất kỳ vị trí nào trên wrapper (input, arrow, padding) → mở dropdown.
         // Skip nếu click vào button clear (nó tự xoá value).
