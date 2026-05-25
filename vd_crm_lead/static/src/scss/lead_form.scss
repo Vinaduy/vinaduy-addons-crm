@@ -10279,10 +10279,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     display: none !important;
     visibility: hidden !important;
 }
-/* Brute force: bất kỳ element nào không phải input/wrapper text trong area_row → ẩn */
-.o_vd_intake_inline .o_vd_area_row .o_field_widget > *:not(input):not(label):not(.o-checkbox):not(.o_boolean_toggle) {
-    display: none !important;
-}
+/* (Đã bỏ brute force '*:not(input)' — gây ẩn input của monetary widget) */
 /* Spinner arrows của number input cũng bỏ luôn cho gọn */
 .o_vd_intake_inline .o_vd_area_row input[type="number"]::-webkit-inner-spin-button,
 .o_vd_intake_inline .o_vd_area_row input[type="number"]::-webkit-outer-spin-button {
