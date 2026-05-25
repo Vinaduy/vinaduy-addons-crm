@@ -9894,9 +9894,11 @@ $vd-panel-head-radius: 10px;
     padding: 0 !important;
 }
 
-/* === FRAME chính: .o_vd_steps_panel = clone .o_vd_negotiate_panel === */
+/* === FRAME chính: .o_vd_steps_panel + .o_vd_quote_panel = clone .o_vd_negotiate_panel === */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel,
-.o_vd_intake_inline .o_vd_steps_panel {
+.o_vd_intake_inline .o_vd_steps_panel,
+.o_vd_layout_grid .o_vd_quote_panel,
+.o_vd_quote_panel {
     margin: 0 0 1rem !important;
     background: linear-gradient(180deg, #ffffff 0%, #fff8e6 100%) !important;
     border: 2px solid #f59e0b !important;
@@ -9906,6 +9908,12 @@ $vd-panel-head-radius: 10px;
     max-width: none !important;
     padding: 0 !important;
     width: 100% !important;
+}
+/* Header BÁO GIÁ CHI TIẾT — radius khớp 10px top (12 frame - 2 border) */
+.o_vd_layout_grid .o_vd_quote_panel > .o_vd_quote_head,
+.o_vd_quote_panel > .o_vd_quote_head {
+    border-radius: 10px 10px 0 0 !important;
+    margin: 0 !important;
 }
 
 /* Header bên trong frame mới: BORDER-RADIUS = 10px top (12px frame - 2px border) */
@@ -9918,8 +9926,8 @@ $vd-panel-head-radius: 10px;
 
 /* ============================================================================
    ✂️ TÁCH 2 BẢNG — strip wrapper o_vd_main_panel về trong suốt
-   THÔNG TIN TƯ VẤN (frame amber) và BÁO GIÁ CHI TIẾT là 2 bảng RIÊNG, KHÔNG
-   chung border outer nữa.
+   THÔNG TIN TƯ VẤN (frame amber) và BÁO GIÁ CHI TIẾT (frame amber) là 2 bảng
+   RIÊNG, KHÔNG chung border outer nữa.
    ============================================================================ */
 .o_vd_layout_grid .o_vd_main_panel,
 .o_vd_main_panel {
@@ -9935,11 +9943,18 @@ $vd-panel-head-radius: 10px;
 .o_vd_main_panel .o_vd_summary_card {
     margin-bottom: 1.5rem !important;
 }
-/* Bỏ divider dashed của quote_panel khi nằm trong main_panel (vì giờ tách hẳn) */
+/* Override rule strip cũ ở line ~2115 — quote_panel khi trong main_panel
+   PHẢI KEEP frame amber riêng (không strip về transparent) */
 .o_vd_layout_grid .o_vd_main_panel .o_vd_quote_panel,
 .o_vd_main_panel .o_vd_quote_panel {
-    border-top: none !important;
-    margin-top: 0 !important;
+    margin: 0 0 1rem !important;
+    border: 2px solid #f59e0b !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px -4px rgba(245, 158, 11, 0.25) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8e6 100%) !important;
+    border-top: 2px solid #f59e0b !important;
+    overflow: hidden !important;
+    max-width: none !important;
 }
 
 /* ============================================================================
