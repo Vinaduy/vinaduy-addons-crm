@@ -353,31 +353,31 @@
 
                                     <!-- Inputs per-floor: hiện theo floors_count -->
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 1">
-                                        <span class="o_vd_dim_lbl">Tầng 1 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 1</span>
                                         <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 2">
-                                        <span class="o_vd_dim_lbl">Tầng 2 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 2</span>
                                         <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 3">
-                                        <span class="o_vd_dim_lbl">Tầng 3 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 3</span>
                                         <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 4">
-                                        <span class="o_vd_dim_lbl">Tầng 4 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 4</span>
                                         <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 5">
-                                        <span class="o_vd_dim_lbl">Tầng 5 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 5</span>
                                         <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 6">
-                                        <span class="o_vd_dim_lbl">Tầng 6 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 6</span>
                                         <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 7">
-                                        <span class="o_vd_dim_lbl">Tầng 7 (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tầng 7</span>
                                         <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
 
@@ -388,7 +388,7 @@
                                         <i class="fa fa-plus"/> Tum
                                     </button>
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_tum">
-                                        <span class="o_vd_dim_lbl">Tum (m²):</span>
+                                        <span class="o_vd_dim_lbl">Tum</span>
                                         <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                         <button name="action_toggle_tum" type="object"
                                                 class="o_vd_floor_chip_remove_inline"
@@ -402,11 +402,11 @@
                                         <i class="fa fa-plus"/> Lửng
                                     </button>
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
-                                        <span class="o_vd_dim_lbl">Lửng (m²):</span>
+                                        <span class="o_vd_dim_lbl">Lửng</span>
                                         <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
-                                        <span class="o_vd_dim_lbl">Thông tầng (m²):</span>
+                                        <span class="o_vd_dim_lbl">Thông tầng</span>
                                         <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                         <button name="action_toggle_lung" type="object"
                                                 class="o_vd_floor_chip_remove_inline"

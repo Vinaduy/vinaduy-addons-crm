@@ -10223,7 +10223,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     padding: 0 0.7rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 140px !important;
+    flex: 0 0 112px !important;
     font-size: 16px !important;
     line-height: 1.3 !important;
 }
@@ -10326,11 +10326,15 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
 .o_vd_intake_inline .o_vd_floor_chip_remove_inline:hover {
     color: #7f1d1d !important;
 }
-/* Pair (label + input) inline */
+/* Pair (label + input) inline — TIGHT gap để label dính sát input */
 .o_vd_intake_inline .o_vd_floor_pair {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 0.35rem !important;
+    gap: 0.2rem !important;
+}
+.o_vd_intake_inline .o_vd_floor_pair .o_vd_dim_lbl {
+    margin-right: 0 !important;
+    font-size: 14px !important;
 }
 /* Input bên trong floor_pair = giống area_dim Diện tích nhà/đất (140×41px) — HIGH SPECIFICITY */
 div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim,
@@ -10340,18 +10344,18 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_floor_pair .o_vd_area_dim input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim input {
-    width: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
+    width: 112px !important;
+    min-width: 112px !important;
+    max-width: 112px !important;
     height: 41px !important;
     min-height: 41px !important;
     max-height: 41px !important;
-    padding: 0 0.7rem !important;
+    padding: 0 0.5rem !important;
     text-align: center !important;
     font-size: 16px !important;
     line-height: 1.3 !important;
     box-sizing: border-box !important;
-    flex: 0 0 140px !important;
+    flex: 0 0 112px !important;
 }
 /* Tổng diện tích sàn — pill xanh ngắn 'TỔNG: 60 M²' */
 .o_vd_intake_inline .o_vd_floors_total_inline {
@@ -10519,12 +10523,12 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
         auto        /* 2. Main toggle */
         220px       /* 3. Subtoggle cell (Đất rộng + toggle, hoặc placeholder cho nhà) */
         auto        /* 4. 'Dài:' label */
-        140px       /* 5. Dài input */
+        112px       /* 5. Dài input (-20%) */
         auto        /* 6. × separator */
         auto        /* 7. 'Rộng:' label */
-        140px       /* 8. Rộng input */
+        112px       /* 8. Rộng input (-20%) */
         ;
-    gap: 0 0.7rem !important;
+    gap: 0 0.5rem !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
 }
