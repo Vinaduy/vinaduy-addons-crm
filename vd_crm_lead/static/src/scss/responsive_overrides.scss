@@ -359,24 +359,14 @@ html, body {
 }
 
 /* ============================================================
-   8b. Dashboard NV: 2 sections "Khách mới" + "Đang xử lý vấn đề"
-   nằm CẠNH NHAU (grid 2 cột) thay vì stack dọc. Wrap thành 1 cột
-   khi viewport <= 1100px.
+   8b. Dashboard NV: 2 sections "Khách mới" + "XỬ LÝ VẤN ĐỀ" STACK DỌC
+   (1 trên 1 dưới) theo yêu cầu user. KHÔNG để cạnh nhau.
    ============================================================ */
 .o_vd_main_v2 .o_vd_lead_dual_cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    align-items: start;
+    display: block;
 }
 .o_vd_main_v2 .o_vd_lead_dual_cols > section {
-    min-width: 0;
-    margin: 0;       /* override section default margin nếu có */
-}
-@media (max-width: 1100px) {
-    .o_vd_main_v2 .o_vd_lead_dual_cols {
-        grid-template-columns: 1fr;
-    }
+    margin: 0 0 0.85rem 0;
 }
 
 /* ============================================================
