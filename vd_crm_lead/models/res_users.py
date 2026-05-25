@@ -6,7 +6,7 @@ from odoo import models, fields, api
 
 
 # Mặc định 3 — có thể đổi qua ir.config_parameter 'vd_crm_lead.overdue_block_threshold'
-_DEFAULT_OVERDUE_THRESHOLD = 3
+_DEFAULT_OVERDUE_THRESHOLD = 15
 
 
 class ResUsers(models.Model):
@@ -22,7 +22,7 @@ class ResUsers(models.Model):
     vd_can_receive_new_leads = fields.Boolean(
         string='Được nhận KH mới',
         compute='_compute_vd_overdue_count',
-        help='False khi vd_overdue_lead_count > threshold (mặc định 3). '
+        help='False khi vd_overdue_lead_count > threshold (mặc định 15). '
              'Khi False, hệ thống round-robin sẽ skip NV này.',
     )
     vd_overdue_threshold = fields.Integer(

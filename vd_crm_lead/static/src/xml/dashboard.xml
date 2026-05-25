@@ -1446,13 +1446,16 @@
                             </t>
                         </section>
 
-                        <!-- ===== SECTION 2: ĐANG XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
+                        <!-- ===== SECTION 2: XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">
                             <div class="o_vd_filter_table o_vd_filter_table_warn">
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-filter o_vd_filter_funnel_warn"/>
-                                    <div class="o_vd_filter_table_lbl">ĐANG XỬ LÝ VẤN ĐỀ</div>
+                                    <div class="o_vd_filter_table_lbl">
+                                        <span>XỬ LÝ</span>
+                                        <span>VẤN ĐỀ</span>
+                                    </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsWithProblems.length"/></div>
                                 </div>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
@@ -1463,9 +1466,6 @@
                                             <span class="o_vd_problem_row_team"
                                                   t-att-data-team="lead.team_label">
                                                 <t t-esc="lead.team_label or 'KHÁC'"/>
-                                            </span>
-                                            <span class="o_vd_problem_row_stage">
-                                                <t t-esc="lead.stage_code or '—'"/>
                                             </span>
                                             <span class="o_vd_problem_row_name">
                                                 <t t-esc="pillTitle(lead)"/>

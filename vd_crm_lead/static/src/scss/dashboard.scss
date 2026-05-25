@@ -3793,32 +3793,41 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.2rem;                /* was 0.35 */
-        padding: 0.4rem 0.55rem;    /* was 0.85 0.75 — giảm ~50% */
+        gap: 0.45rem;
+        padding: 0.9rem 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
         color: #fff;
         font-weight: 800;
-        min-height: 36px;           /* was 72 — giảm 50% */
+        min-height: 110px;          /* TO hơn — fit label 2 dòng + count */
 
         i.fa {
-            font-size: 1rem;        /* was 1.5 */
+            font-size: 1.3rem;
             margin-bottom: 0;
         }
     }
     .o_vd_filter_table_lbl {
-        font-size: 0.75rem;         /* was 0.88 */
+        font-size: 1.35rem;         /* TO full khung — to gấp ~2x */
+        font-weight: 800;
         text-align: center;
-        line-height: 1.1;
+        line-height: 1.05;
+        /* Hack: ép mỗi từ xuống 1 dòng riêng (KHÁCH MỚI / XỬ LÝ VẤN ĐỀ) */
+        word-spacing: 9999px;
+
+        /* Khi có spans bên trong (vd XỬ LÝ + VẤN ĐỀ) → mỗi span 1 dòng */
+        > span {
+            display: block;
+            word-spacing: normal;
+        }
     }
     .o_vd_filter_table_count {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 1.7rem;          /* was 2.2 */
-        height: 1.3rem;             /* was 1.7 */
-        padding: 0 0.4rem;
-        font-size: 0.8rem;
+        min-width: 2.2rem;
+        height: 1.7rem;
+        padding: 0 0.5rem;
+        font-size: 1rem;
         font-weight: 800;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.95);
@@ -4253,17 +4262,16 @@
         border-radius: 4px;
         letter-spacing: 0.3px;
     }
-    /* Row grid trong filter table — thêm cột stage */
+    /* Row grid trong filter table — đã bỏ cột stage chip (NEGOTIATE) theo yêu cầu */
     .o_vd_filter_table_right_rows .o_vd_problem_row {
-        grid-template-columns: 50px 60px 1fr 150px 170px 120px 150px;
+        grid-template-columns: 50px 1fr 150px 170px 120px 150px;
 
         @media (max-width: 1200px) {
-            grid-template-columns: 50px 60px 1fr 140px 120px;
+            grid-template-columns: 50px 1fr 140px 120px;
             .o_vd_problem_row_callback { display: none; }
         }
         @media (max-width: 900px) {
             grid-template-columns: 50px 1fr 120px;
-            .o_vd_problem_row_stage,
             .o_vd_problem_row_nv,
             .o_vd_problem_row_phone { display: none; }
         }

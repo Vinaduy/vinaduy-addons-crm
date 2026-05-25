@@ -4020,7 +4020,7 @@ class CrmLead(models.Model):
         }
 
         # Block status — NV này có đang bị tạm dừng nhận lead mới không
-        block_status = {'is_blocked': False, 'overdue_count': 0, 'threshold': 3}
+        block_status = {'is_blocked': False, 'overdue_count': 0, 'threshold': 15}
         if scope_user:
             block_status = {
                 'is_blocked': not scope_user.vd_can_receive_new_leads,
