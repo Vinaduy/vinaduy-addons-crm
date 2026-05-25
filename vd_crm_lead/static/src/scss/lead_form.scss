@@ -2336,10 +2336,78 @@ div.o_vd_layout_right {
     grid-column: 1 / -1 !important;       /* span full width nếu grid */
 }
 
-/* ===== POPUP KHAI THÁC — overlay nằm phía bên phải màn hình =====
-   width 45vw (90% của nửa phải), căn giữa nửa phải bằng cách
-   right: 2.5vw → khoảng cách mép phải = (50vw - 45vw)/2 = 2.5vw.
-   Mobile: full width. */
+/* ===== INLINE MODE — panel khai thác nhúng trực tiếp vào card KH =====
+   Sau khi gộp 2 bảng làm 1, panel KHÔNG còn ở overlay popup mà render thẳng
+   trong customer card. Class .o_vd_intake_inline neutralize toàn bộ popup
+   positioning (fixed/absolute → static, no shadow/border/animation). */
+.o_vd_intake_popup_panel.o_vd_intake_inline {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    inset: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    animation: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    margin-top: 0.6rem !important;
+}
+.o_vd_intake_inline .o_vd_popup_body {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0.4rem 0 !important;
+    flex: none !important;
+}
+.o_vd_intake_inline .o_vd_popup_footer {
+    background: transparent !important;
+    border-top: 1px dashed rgba(0, 0, 0, 0.12) !important;
+    padding: 0.55rem 0 0.2rem !important;
+    flex: none !important;
+}
+/* Header inline thay popup_header — tiêu đề + Cúp máy button align hai bên */
+.o_vd_intake_inline .o_vd_inline_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.5rem 0.2rem 0.45rem;
+    margin-bottom: 0.1rem;
+    border-bottom: 1px solid rgba(76, 110, 245, 0.18);
+}
+.o_vd_intake_inline .o_vd_inline_title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #364fc7;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+.o_vd_intake_inline .o_vd_inline_title i {
+    font-size: 0.95rem;
+}
+/* Cúp máy button inline — variant chữ đỏ trên nền trắng (không gradient cam như popup header) */
+.o_vd_intake_inline .o_vd_popup_hangup_btn {
+    background: linear-gradient(135deg, #fa5252 0%, #ff6b6b 100%) !important;
+    color: #fff !important;
+    border-color: #fa5252 !important;
+}
+
+/* ===== POPUP KHAI THÁC (legacy — XML không còn dùng class này nhưng giữ rule
+   để tránh side-effect nếu module khác dùng) ===== */
 .o_vd_intake_popup_overlay {
     position: fixed;
     inset: 0;
