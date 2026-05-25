@@ -497,6 +497,11 @@ class CrmLead(models.Model):
         compute='_compute_area_from_dims', store=True, readonly=False,
         help='Auto = Dài × Rộng. NV vẫn có thể nhập tay nếu hình dạng đặc biệt.',
     )
+    vd_intake_show_land_area = fields.Boolean(
+        string='Hiện diện tích đất',
+        default=False,
+        help='Bật khi cần nhập diện tích đất riêng (đa số KH chỉ tính diện tích nhà).',
+    )
 
     @api.depends('vd_intake_length_m', 'vd_intake_width_m')
     def _compute_area_from_dims(self):

@@ -9997,3 +9997,46 @@ $vd-panel-head-radius: 10px;
     outline: none !important;
     transform: none !important;
 }
+
+/* === STEP LABEL ("Diện tích", "Địa chỉ" cột trái) BIGGER 15px === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--vd-navy) !important;
+}
+
+/* === DIỆN TÍCH INPUTS: uniform 90px × 32px (không quá dài, đều nhau) === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_dim,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_dim input,
+.o_vd_intake_inline .o_vd_area_row input,
+.o_vd_intake_inline .o_vd_area_input,
+.o_vd_intake_inline .o_vd_area_input input,
+.o_vd_intake_inline .o_vd_area_dim,
+.o_vd_intake_inline .o_vd_area_dim input {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 0.5rem !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    flex: 0 0 90px !important;
+}
+/* Row layout: gap đều, wrap allowed */
+.o_vd_intake_inline .o_vd_area_row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.4rem 0.6rem !important;
+}
+.o_vd_intake_inline .o_vd_area_pair {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+}

@@ -247,7 +247,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 3: DIỆN TÍCH (đất + nhà) ===== -->
+                            <!-- ===== STEP 3: DIỆN TÍCH (nhà TRƯỚC, đất SAU + toggle) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">3</span>
@@ -255,21 +255,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <div class="o_vd_areas_grid">
-                                        <div class="o_vd_area_row">
-                                            <span class="o_vd_area_lbl">Diện tích đất:</span>
-                                            <field name="vd_intake_area_m2" nolabel="1"
-                                                   class="o_vd_area_input"
-                                                   placeholder="Vd: 100"/>
-                                            <span class="o_vd_area_unit">m²</span>
-                                            <div class="o_vd_area_pair">
-                                                <span class="o_vd_area_lbl_sub">Hoặc Dài × Rộng:</span>
-                                                <field name="vd_intake_length_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="Dài"/>
-                                                <span class="o_vd_area_sep">×</span>
-                                                <field name="vd_intake_width_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="Rộng"/>
-                                            </div>
-                                        </div>
+                                        <!-- Nhà TRƯỚC (mặc định, đa số KH chỉ tính nhà) -->
                                         <div class="o_vd_area_row">
                                             <span class="o_vd_area_lbl">Diện tích nhà:</span>
                                             <div class="o_vd_area_pair">
@@ -284,6 +270,28 @@
                                                    class="o_vd_area_input"
                                                    placeholder="Auto từ tầng"/>
                                             <span class="o_vd_area_unit">m²</span>
+                                        </div>
+                                        <!-- Đất SAU — có toggle, mặc định ẩn input -->
+                                        <div class="o_vd_area_row">
+                                            <span class="o_vd_area_lbl">Diện tích đất:</span>
+                                            <field name="vd_intake_show_land_area"
+                                                   widget="boolean_toggle" nolabel="1"/>
+                                            <field name="vd_intake_area_m2" nolabel="1"
+                                                   class="o_vd_area_input"
+                                                   placeholder="Vd: 100"
+                                                   invisible="not vd_intake_show_land_area"/>
+                                            <span class="o_vd_area_unit"
+                                                  invisible="not vd_intake_show_land_area">m²</span>
+                                            <span class="o_vd_area_lbl_sub"
+                                                  invisible="not vd_intake_show_land_area">Hoặc Dài × Rộng:</span>
+                                            <field name="vd_intake_length_m" nolabel="1"
+                                                   class="o_vd_area_dim" placeholder="Dài"
+                                                   invisible="not vd_intake_show_land_area"/>
+                                            <span class="o_vd_area_sep"
+                                                  invisible="not vd_intake_show_land_area">×</span>
+                                            <field name="vd_intake_width_m" nolabel="1"
+                                                   class="o_vd_area_dim" placeholder="Rộng"
+                                                   invisible="not vd_intake_show_land_area"/>
                                         </div>
                                     </div>
                                 </div>
