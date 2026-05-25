@@ -170,25 +170,8 @@
                                     </span>
                                     <span class="o_vd_val_empty" invisible="vd_intake_province_id or vd_intake_district">—</span>
                                 </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-th"/> Loại đất:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_land_type">
-                                        <field name="vd_intake_land_type" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_land_type">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-file-text-o"/> Sổ đỏ:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_dimensions">
-                                        <field name="vd_intake_dimensions" readonly="1" nolabel="1"/>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_dimensions">—</span>
-                                </div>
-                                <div class="o_vd_row_inline">
-                                    <span class="o_vd_lbl"><i class="fa fa-car"/> Ô tô vào:</span>
-                                    <span style="color:#c92a2a;font-weight:600;" invisible="vd_intake_car_access">Không</span>
-                                    <span style="color:#2b8a3e;font-weight:600;" invisible="not vd_intake_car_access">Có</span>
-                                </div>
+                                <!-- Loại đất / Sổ đỏ / Ô tô vào: đã xoá readonly ở đây vì
+                                     form THÔNG TIN TƯ VẤN bên dưới đã có input editable. -->
                             </div>
                             <!-- Công năng từng tầng — đặt NGOÀI summary_grid_inline
                                  để KHÔNG bị parent constraint (3-col grid + overflow:hidden).
@@ -203,68 +186,8 @@
                                        widget="html" readonly="1" nolabel="1" sanitize="false"/>
                             </div>
 
-                            <!-- ===== Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG =====
-                                 Layout: [Hẹn gọi lại] [Chip-dài: Nghe máy | Không nghe | Đánh giá]
-                                          [Lịch sử]  ........  [KH không có nhu cầu (3 cuộc đầu không nghe)] -->
-                            <div class="o_vd_call_stats_box">
-                                <div class="o_vd_call_stats_row">
-                                    <!-- Hẹn gọi lại — thay thế vị trí "Tổng cuộc gọi" cũ -->
-                                    <button name="action_open_callback_wizard" type="object"
-                                            class="btn btn-sm o_vd_wf_btn_callback"
-                                            invisible="stage_code in ['won', 'lost']"
-                                            title="Hẹn ngày gọi lại KH">
-                                        <i class="fa fa-calendar-plus-o"/>
-                                        <span class="o_vd_wf_btn_callback_lbl">Hẹn gọi lại</span>
-                                        <span class="o_vd_wf_callback_chip"
-                                              invisible="not callback_date">
-                                            <field name="callback_date" readonly="1" nolabel="1"
-                                                   widget="date"/>
-                                        </span>
-                                    </button>
-
-                                    <!-- Chip dài gộp 3 trường: Nghe máy / Không nghe / Đánh giá -->
-                                    <div class="o_vd_call_stats_chip">
-                                        <span class="o_vd_cs_part o_vd_cs_yes">
-                                            <i class="fa fa-check-circle"/>
-                                            <span class="o_vd_cs_lbl">Nghe máy:</span>
-                                            <span class="o_vd_cs_val"><field name="vd_call_answered_count" readonly="1" nolabel="1"/></span>
-                                        </span>
-                                        <span class="o_vd_cs_sep">|</span>
-                                        <span class="o_vd_cs_part o_vd_cs_no">
-                                            <i class="fa fa-times-circle"/>
-                                            <span class="o_vd_cs_lbl">Không nghe:</span>
-                                            <span class="o_vd_cs_val"><field name="vd_call_not_answered_count" readonly="1" nolabel="1"/></span>
-                                        </span>
-                                        <field name="vd_lead_call_rating" invisible="1"/>
-                                        <span class="o_vd_cs_sep" invisible="not vd_lead_call_rating">|</span>
-                                        <span class="o_vd_cs_part o_vd_cs_rating">
-                                            <span class="o_vd_cr_badge o_vd_cr_high" invisible="vd_lead_call_rating != 'high'">🔥 Nghe máy cao</span>
-                                            <span class="o_vd_cr_badge o_vd_cr_low" invisible="vd_lead_call_rating != 'low'">⚖️ Nghe máy thấp</span>
-                                            <span class="o_vd_cr_badge o_vd_cr_none" invisible="vd_lead_call_rating != 'none'">🚫 Không nghe máy</span>
-                                            <span class="o_vd_cr_badge o_vd_cr_unreachable" invisible="vd_lead_call_rating != 'unreachable'">📵 Thuê bao</span>
-                                        </span>
-                                    </div>
-
-                                    <!-- Lịch sử cuộc gọi -->
-                                    <button name="action_view_calls" type="object"
-                                            class="btn btn-sm btn-outline-info o_vd_cr_history_btn">
-                                        <i class="fa fa-history me-1"/>
-                                        Lịch sử cuộc gọi
-                                        <span class="badge bg-info ms-1" invisible="not call_count">
-                                            <field name="call_count" nolabel="1" readonly="1"/>
-                                        </span>
-                                    </button>
-
-                                    <!-- "Hủy" — đổi từ "KH không có nhu cầu", style giống Lịch sử cuộc gọi,
-                                         luôn hiện sau Lịch sử (không điều kiện) -->
-                                    <button name="action_mark_no_demand" type="object"
-                                            class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
-                                            title="KH không có nhu cầu — hủy lead">
-                                        <i class="fa fa-times-circle me-1"/>
-                                        Hủy
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- Call stats box (Hẹn gọi lại / Nghe máy / Lịch sử / Hủy) đã chuyển
+                                 xuống cuối — ngay dưới panel THỜI GIAN KHỞI CÔNG theo yêu cầu user. -->
                         </div>
                     </div>
 
@@ -647,6 +570,60 @@
                                       invisible="vd_intake_timeline_status != 'critical'">⏰ Quá gấp</span>
                             </div>
                             <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
+                        </div>
+
+                        <!-- ===== Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG (chuyển từ
+                             summary_body xuống đây theo yêu cầu user — ngay dưới THỜI GIAN). -->
+                        <div class="o_vd_call_stats_box o_vd_call_stats_below_time">
+                            <div class="o_vd_call_stats_row">
+                                <button name="action_open_callback_wizard" type="object"
+                                        class="btn btn-sm o_vd_wf_btn_callback"
+                                        invisible="stage_code in ['won', 'lost']"
+                                        title="Hẹn ngày gọi lại KH">
+                                    <i class="fa fa-calendar-plus-o"/>
+                                    <span class="o_vd_wf_btn_callback_lbl">Hẹn gọi lại</span>
+                                    <span class="o_vd_wf_callback_chip"
+                                          invisible="not callback_date">
+                                        <field name="callback_date" readonly="1" nolabel="1"
+                                               widget="date"/>
+                                    </span>
+                                </button>
+                                <div class="o_vd_call_stats_chip">
+                                    <span class="o_vd_cs_part o_vd_cs_yes">
+                                        <i class="fa fa-check-circle"/>
+                                        <span class="o_vd_cs_lbl">Nghe máy:</span>
+                                        <span class="o_vd_cs_val"><field name="vd_call_answered_count" readonly="1" nolabel="1"/></span>
+                                    </span>
+                                    <span class="o_vd_cs_sep">|</span>
+                                    <span class="o_vd_cs_part o_vd_cs_no">
+                                        <i class="fa fa-times-circle"/>
+                                        <span class="o_vd_cs_lbl">Không nghe:</span>
+                                        <span class="o_vd_cs_val"><field name="vd_call_not_answered_count" readonly="1" nolabel="1"/></span>
+                                    </span>
+                                    <field name="vd_lead_call_rating" invisible="1"/>
+                                    <span class="o_vd_cs_sep" invisible="not vd_lead_call_rating">|</span>
+                                    <span class="o_vd_cs_part o_vd_cs_rating">
+                                        <span class="o_vd_cr_badge o_vd_cr_high" invisible="vd_lead_call_rating != 'high'">🔥 Nghe máy cao</span>
+                                        <span class="o_vd_cr_badge o_vd_cr_low" invisible="vd_lead_call_rating != 'low'">⚖️ Nghe máy thấp</span>
+                                        <span class="o_vd_cr_badge o_vd_cr_none" invisible="vd_lead_call_rating != 'none'">🚫 Không nghe máy</span>
+                                        <span class="o_vd_cr_badge o_vd_cr_unreachable" invisible="vd_lead_call_rating != 'unreachable'">📵 Thuê bao</span>
+                                    </span>
+                                </div>
+                                <button name="action_view_calls" type="object"
+                                        class="btn btn-sm btn-outline-info o_vd_cr_history_btn">
+                                    <i class="fa fa-history me-1"/>
+                                    Lịch sử cuộc gọi
+                                    <span class="badge bg-info ms-1" invisible="not call_count">
+                                        <field name="call_count" nolabel="1" readonly="1"/>
+                                    </span>
+                                </button>
+                                <button name="action_mark_no_demand" type="object"
+                                        class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
+                                        title="KH không có nhu cầu — hủy lead">
+                                    <i class="fa fa-times-circle me-1"/>
+                                    Hủy
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Geo panel + Công năng từng tầng đã CHUYỂN vào sub-section

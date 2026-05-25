@@ -2336,16 +2336,18 @@ div.o_vd_layout_right {
     grid-column: 1 / -1 !important;       /* span full width nếu grid */
 }
 
+/* ===== ZOOM ĐỀU TOÀN CUSTOMER CARD =====
+   User feedback: zoom 1.3 trên inline panel thì to quá. Đổi sang 1.1 và apply
+   đều cho cả .o_vd_summary_card (header + inline form + call stats + workflow)
+   để cỡ chữ nhất quán toàn bảng THÔNG TIN KHÁCH HÀNG. Effective = 0.7 × 1.1 = 0.77. */
+.o_vd_summary_card {
+    zoom: 1.1;
+}
+
 /* ===== INLINE MODE — panel khai thác nhúng trực tiếp vào card KH =====
    Sau khi gộp 2 bảng làm 1, panel KHÔNG còn ở overlay popup mà render thẳng
    trong customer card. Class .o_vd_intake_inline neutralize toàn bộ popup
-   positioning (fixed/absolute → static, no shadow/border/animation).
-
-   User yêu cầu font to lên 30% so với hiện tại → zoom: 1.3. Form sheet đã
-   có zoom: 0.7 từ trước, nên effective = 0.7 × 1.3 = 0.91. */
-.o_vd_intake_popup_panel.o_vd_intake_inline {
-    zoom: 1.3 !important;
-}
+   positioning (fixed/absolute → static, no shadow/border/animation). */
 .o_vd_intake_popup_panel.o_vd_intake_inline {
     position: static !important;
     top: auto !important;
