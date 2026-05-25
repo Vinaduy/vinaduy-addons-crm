@@ -10028,13 +10028,15 @@ $vd-panel-head-radius: 10px;
     max-width: 480px !important;
 }
 
-/* === NGÂN SÁCH input width = selection chips (~320px) === */
+/* === NGÂN SÁCH input — width 320px + height 41px (=Diện tích input) === */
 .o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual {
     display: inline-flex !important;
     align-items: center !important;
 }
 .o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual > .o_field_widget,
-.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual > .o_field_widget input {
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual .o_field_widget input,
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual input.o_input,
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual input[type="text"] {
     min-width: 320px !important;
     width: 320px !important;
     max-width: 320px !important;
@@ -10245,16 +10247,21 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     font-size: 15px !important;
     line-height: 1.3 !important;
 }
-/* HIDE × clear button (browser native + Odoo wrapper) trên area inputs */
-.o_vd_intake_inline .o_vd_area_row input::-webkit-search-cancel-button,
-.o_vd_intake_inline .o_vd_area_row input::-webkit-clear-button,
-.o_vd_intake_inline .o_vd_area_row input::-ms-clear,
-.o_vd_intake_inline .o_vd_area_row input::-ms-reveal {
+/* HIDE × clear button GLOBAL — mọi input trong intake_inline */
+.o_vd_intake_inline input::-webkit-search-cancel-button,
+.o_vd_intake_inline input::-webkit-clear-button,
+.o_vd_intake_inline input::-ms-clear,
+.o_vd_intake_inline input::-ms-reveal {
     display: none !important;
     -webkit-appearance: none !important;
     appearance: none !important;
     width: 0 !important;
     height: 0 !important;
+}
+/* Cũng hide button × decoration ở Step 5 floors + Step 10 budget */
+.o_vd_intake_inline .o_vd_floors_oneline .o_field_widget > *:not(input):not(label):not(.o-checkbox):not(.o_boolean_toggle),
+.o_vd_intake_inline .o_vd_step_body_budget .o_field_widget > *:not(input):not(label):not(.o-checkbox):not(.o_boolean_toggle) {
+    display: none !important;
 }
 /* HIDE × clear button — broad selector cho area_row */
 .o_vd_intake_inline .o_vd_area_row .o_field_widget .fa-times,
@@ -10534,28 +10541,50 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     flex-direction: column !important;
     gap: 0.6rem !important;
 }
-/* Grid layout SHRINK — fit trong khung max ~560px (giống Thời gian dropdown) */
+/* Grid Diện tích — FULL WIDTH (bỏ max-width, dài bằng Thời gian dropdown).
+   Dùng minmax + 1fr cho input cuối để stretch tận điểm cuối row. */
 .o_vd_intake_inline .o_vd_areas_grid {
-    max-width: 560px !important;
     width: 100% !important;
+    max-width: none !important;
 }
 .o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid {
     display: grid !important;
     grid-template-columns:
-        90px        /* 1. Label 'Diện tích nhà/đất:' (rút gọn) */
+        100px       /* 1. Label */
         44px        /* 2. Main toggle */
-        140px       /* 3. Subtoggle cell (Đất rộng + toggle, hoặc placeholder cho nhà) */
-        28px        /* 4. 'Dài:' label */
-        90px        /* 5. Dài input (-20% từ 112) */
-        12px        /* 6. × separator */
-        38px        /* 7. 'Rộng:' label */
-        90px        /* 8. Rộng input */
+        150px       /* 3. Subtoggle cell */
+        32px        /* 4. Dài lbl */
+        110px       /* 5. Dài input */
+        16px        /* 6. × */
+        42px        /* 7. Rộng lbl */
+        1fr         /* 8. Rộng input — stretch tận cuối */
         ;
-    gap: 0 0.3rem !important;
+    gap: 0 0.4rem !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
+    width: 100% !important;
+}
+/* Rộng input cuối được stretch — max 200px */
+.o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid > .o_vd_area_dim:last-of-type,
+.o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid > .o_vd_area_dim:last-of-type input {
+    width: 100% !important;
+    min-width: 110px !important;
+    max-width: 200px !important;
+    flex: 1 1 auto !important;
+}
+
+/* Step 4 Kiểu nhà / Loại móng — bỏ label → input rộng full step_field */
+.o_vd_intake_inline .o_vd_step_field_nolbl {
+    grid-template-columns: 1fr !important;
+}
+.o_vd_intake_inline .o_vd_step_field_nolbl > label {
+    display: none !important;
+}
+.o_vd_intake_inline .o_vd_step_field_nolbl > .o_field_widget,
+.o_vd_intake_inline .o_vd_step_field_nolbl > .o_field_widget .o_vd_selection_chips {
+    width: 100% !important;
     max-width: 100% !important;
-    overflow: hidden !important;
+    flex: 1 1 100% !important;
 }
 /* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất */
 .o_vd_intake_inline .o_vd_subtoggle_cell {

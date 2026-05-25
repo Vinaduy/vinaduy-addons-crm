@@ -58,10 +58,12 @@ export class VdM2oHoverPicker extends Component {
             const prov = this.props.record.data["vd_intake_province_id"];
             const provId = this._extractId(prov);
             if (provId) return [["state_id", "=", provId]];
-            return false; // signal empty
+            return false;
         }
-        // Province: fetch all (Odoo base data is small) — bỏ filter country_id để
-        // tránh fail khi country_id null. Sort theo name.
+        if (this.props.name === "vd_intake_province_id") {
+            // Restore VN filter — chỉ tỉnh/thành Việt Nam (36 sau sát nhập 2025).
+            return [["country_id.code", "=", "VN"]];
+        }
         return [];
     }
 

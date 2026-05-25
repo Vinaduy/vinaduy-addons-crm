@@ -312,14 +312,12 @@
                                     <span class="o_vd_step_text">Mẫu nhà</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_step_body_2col">
-                                    <div class="o_vd_step_field">
-                                        <label for="vd_intake_house_type">Kiểu nhà</label>
+                                    <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_house_type" nolabel="1"
                                                widget="vd_selection_chips"
                                                placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
                                     </div>
-                                    <div class="o_vd_step_field">
-                                        <label for="vd_intake_foundation_type">Loại móng</label>
+                                    <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_foundation_type" nolabel="1"
                                                widget="vd_selection_chips"
                                                placeholder="Móng đơn / Móng băng / Móng cọc...?"/>
