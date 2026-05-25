@@ -10474,3 +10474,41 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     align-items: center !important;
     gap: 0.3rem !important;
 }
+
+/* ============================================================================
+   📐 GRID LAYOUT cho 2 row Diện tích đất / nhà — column tracks ĐỒNG NHẤT
+   8 columns: [lbl][main_tg][subtoggle_cell][Dài lbl][Dài input][×][Rộng lbl][Rộng input]
+   → input Dài cột 5 align thẳng, input Rộng cột 8 align thẳng giữa 2 row.
+   ============================================================================ */
+.o_vd_intake_inline .o_vd_areas_grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.6rem !important;
+}
+.o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid {
+    display: grid !important;
+    grid-template-columns:
+        140px       /* 1. Label 'Diện tích nhà/đất:' */
+        auto        /* 2. Main toggle */
+        220px       /* 3. Subtoggle cell (Đất rộng + toggle, hoặc placeholder cho nhà) */
+        auto        /* 4. 'Dài:' label */
+        140px       /* 5. Dài input */
+        auto        /* 6. × separator */
+        auto        /* 7. 'Rộng:' label */
+        140px       /* 8. Rộng input */
+        ;
+    gap: 0 0.7rem !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+/* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất */
+.o_vd_intake_inline .o_vd_subtoggle_cell {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    min-height: 24px !important;
+}
+/* Subtoggle label "Đất rộng:" margin-left bỏ (giờ trong grid cell riêng) */
+.o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_subtoggle_lbl {
+    margin-left: 0 !important;
+}
