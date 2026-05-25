@@ -1289,6 +1289,7 @@
                             </div>
                         </div>
 
+                        <div class="o_vd_lead_dual_cols">
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
                             <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
@@ -1491,6 +1492,7 @@
                                 </div>
                             </div>
                         </section>
+                        </div><!-- /.o_vd_lead_dual_cols -->
 
                         <!-- Thùng rác KH hủy đã merge vào split row trên cùng với CHƯA GỌI ĐƯỢC. -->
 
