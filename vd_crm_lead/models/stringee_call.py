@@ -133,8 +133,12 @@ class StringeeCall(models.Model):
         For inbound calls from numbers we've never seen, auto-create a 'Khách mới'
         lead so the call doesn't fall on the floor. Outbound calls without a match
         are left unlinked — they were placed manually and the agent owns linking.
+
+        Lưu ý: dùng with_context(active_test=False) khi search theo phone — KH
+        đã hủy (archived) vẫn cần được link với cuộc gọi để Lịch sử cuộc gọi
+        trên form KH (kể cả KH hủy) hiển thị đầy đủ.
         """
-        Lead = self.env['crm.lead']
+        Lead = self.env['crm.lead'].with_context(active_test=False)
         for call in self:
             lead = call.lead_id
             phone = call.callee_number if call.direction == 'outbound' else call.caller_number
