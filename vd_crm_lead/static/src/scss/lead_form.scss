@@ -8670,3 +8670,165 @@ $vd-panel-head-radius: 10px;
     font-weight: 600 !important;
 }
 .o_vd_summary_card .o_vd_wf_btn:hover { background: var(--vd-navy-d) !important; }
+
+/* ============================================================================
+   DROPDOWN REDESIGN — vd_selection_dropdown widget cho navy+cream theme
+   --------------------------------------------------------------------------
+   Vấn đề cũ: chip-pill style trông cũ kỹ, × clear button thô, chevron lạc tone,
+   menu options highlight xanh dương không hợp navy.
+   Mới: input box clean như text inputs, chevron navy, × ẩn cho đến khi hover,
+   menu navy theme, options hover navy soft + active navy đậm.
+   ============================================================================ */
+.o_vd_intake_inline .o_vd_select_dd {
+    position: relative;
+    width: 100% !important;
+}
+
+/* Input chính — match style với text inputs khác */
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_input {
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-input) !important;
+    font-weight: 500 !important;
+    padding: 0.45rem 2.6rem 0.45rem 0.7rem !important;
+    line-height: 1.35 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    height: auto !important;
+}
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_input:hover {
+    border-color: var(--vd-navy-s) !important;
+    background: var(--vd-cream) !important;
+}
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_input:focus,
+.o_vd_intake_inline .o_vd_select_dd.o_vd_select_dd--open .o_vd_select_dd_input {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+    background: #fff !important;
+}
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_input::placeholder {
+    color: var(--vd-text-muted) !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    opacity: 0.7 !important;
+    font-size: var(--vd-fs-body) !important;
+}
+
+/* Chevron — navy, animate khi open */
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_arrow {
+    color: var(--vd-navy) !important;
+    font-size: 0.85rem !important;
+    right: 0.7rem !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    transition: transform 0.2s ease !important;
+}
+.o_vd_intake_inline .o_vd_select_dd.o_vd_select_dd--open .o_vd_select_dd_arrow {
+    transform: translateY(-50%) rotate(180deg) !important;
+    color: var(--vd-gold) !important;
+}
+
+/* × clear button — subtle, chỉ visible khi hover hoặc đã có value */
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_clear {
+    right: 1.85rem !important;
+    color: var(--vd-text-muted) !important;
+    font-size: 1.15rem !important;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+.o_vd_intake_inline .o_vd_select_dd:hover .o_vd_select_dd_clear,
+.o_vd_intake_inline .o_vd_select_dd.o_vd_select_dd--has-value .o_vd_select_dd_clear {
+    opacity: 0.55;
+}
+.o_vd_intake_inline .o_vd_select_dd .o_vd_select_dd_clear:hover {
+    color: var(--vd-danger) !important;
+    opacity: 1 !important;
+}
+
+/* Menu (options panel) — navy theme */
+.o_vd_intake_inline .o_vd_select_dd_menu {
+    border: 1px solid var(--vd-navy-s) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 8px 24px rgba(15, 30, 52, 0.12) !important;
+    background: #fff !important;
+    margin-top: 4px !important;
+    padding: 4px 0 !important;
+    z-index: 9999 !important;
+}
+.o_vd_intake_inline .o_vd_select_dd_item {
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-body) !important;
+    padding: 0.5rem 0.85rem !important;
+    transition: background 0.12s ease, color 0.12s ease !important;
+}
+.o_vd_intake_inline .o_vd_select_dd_item:hover {
+    background: var(--vd-navy-x) !important;
+    color: var(--vd-navy) !important;
+}
+.o_vd_intake_inline .o_vd_select_dd_item--active {
+    background: var(--vd-navy) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+.o_vd_intake_inline .o_vd_select_dd_item--active:hover {
+    background: var(--vd-navy-d) !important;
+    color: #fff !important;
+}
+/* "Thêm '...'" item (canAddNew) — gold accent thay vì xanh lá cũ */
+.o_vd_intake_inline .o_vd_select_dd_add {
+    border-top: 1px solid var(--vd-border) !important;
+    background: var(--vd-cream-d) !important;
+    color: var(--vd-gold-d) !important;
+    font-weight: 600 !important;
+    i { color: var(--vd-gold-d) !important; }
+}
+.o_vd_intake_inline .o_vd_select_dd_add:hover {
+    background: var(--vd-cream) !important;
+    color: var(--vd-navy) !important;
+}
+.o_vd_intake_inline .o_vd_select_dd_empty {
+    color: var(--vd-text-muted) !important;
+    font-size: var(--vd-fs-body) !important;
+}
+
+/* Many2one autocomplete (Tỉnh/Huyện) — match cùng style nếu có */
+.o_vd_intake_inline .o_field_widget[name="vd_intake_province_id"] input,
+.o_vd_intake_inline .o_field_widget[name="vd_intake_district"] input {
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-input) !important;
+    padding: 0.45rem 0.7rem !important;
+}
+.o_vd_intake_inline .o_field_widget[name="vd_intake_province_id"] input:focus,
+.o_vd_intake_inline .o_field_widget[name="vd_intake_district"] input:focus {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+}
+
+/* THỜI GIAN KHỞI CÔNG (vd_timeline_chips) — neutralize chip background tím cũ */
+.o_vd_intake_inline .o_vd_tlc_bar {
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    min-height: 42px !important;
+    padding: 0.35rem 0.6rem !important;
+}
+.o_vd_intake_inline .o_vd_tlc_bar:hover {
+    border-color: var(--vd-navy-s) !important;
+}
