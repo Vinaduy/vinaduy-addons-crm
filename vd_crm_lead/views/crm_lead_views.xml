@@ -145,51 +145,9 @@
                         </div>
                     </div>
 
-                    <!-- ============ COMPACT SUMMARY MODE — luôn hiện
-                         Highlight 3 thông tin quan trọng (Ngân sách / Diện tích / Thời gian)
-                         + Ước tính + badge trạng thái. Info phụ ở dưới (compact grid).
-                         Form khai thác giờ mở ở popup overlay → không cần ẩn summary. -->
-                    <div class="o_vd_intake_summary">
-                        <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
-
-                            <!-- 3 hero readonly cards (Chi phí báo giá / Diện tích sàn / Thời gian
-                                 khởi công) ĐÃ BỎ — dữ liệu giờ hiện trực tiếp trong form khai
-                                 thác phía dưới (CHI PHÍ BÁO GIÁ ở cột phải của THÔNG TIN CÔNG
-                                 TRÌNH, THỜI GIAN ở panel riêng bên dưới). -->
-
-                            <!-- Info phụ — 2 dòng gọn (Kiểu nhà + Loại móng đã chuyển vào card Diện tích):
-                                 R1: Tỉnh/Huyện (wide)
-                                 R2: Loại đất / Sổ đỏ / Ô tô vào
-                                 R3: Công năng (wide) -->
-                            <div class="o_vd_summary_grid_inline">
-                                <div class="o_vd_row_inline o_vd_row_inline_wide">
-                                    <span class="o_vd_lbl"><i class="fa fa-map-marker"/> Tỉnh / Huyện:</span>
-                                    <span class="o_vd_val" invisible="not vd_intake_province_id and not vd_intake_district">
-                                        <field name="vd_intake_province_id" readonly="1" nolabel="1"/>
-                                        <span invisible="not vd_intake_district"> / <field name="vd_intake_district" readonly="1" nolabel="1"/></span>
-                                    </span>
-                                    <span class="o_vd_val_empty" invisible="vd_intake_province_id or vd_intake_district">—</span>
-                                </div>
-                                <!-- Loại đất / Sổ đỏ / Ô tô vào: đã xoá readonly ở đây vì
-                                     form THÔNG TIN TƯ VẤN bên dưới đã có input editable. -->
-                            </div>
-                            <!-- Công năng từng tầng — đặt NGOÀI summary_grid_inline
-                                 để KHÔNG bị parent constraint (3-col grid + overflow:hidden).
-                                 Render full width clean. -->
-                            <div class="o_vd_floor_functions_section"
-                                 invisible="not vd_intake_floor_functions_html"
-                                 style="margin-top:8px;padding:6px 10px;background:#f0f7ff;border-radius:6px;width:100%;">
-                                <div style="font-size:11px;font-weight:700;color:#1864ab;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">
-                                    <i class="fa fa-list-ul"/> Công năng từng tầng
-                                </div>
-                                <field name="vd_intake_floor_functions_html"
-                                       widget="html" readonly="1" nolabel="1" sanitize="false"/>
-                            </div>
-
-                            <!-- Call stats box (Hẹn gọi lại / Nghe máy / Lịch sử / Hủy) đã chuyển
-                                 xuống cuối — ngay dưới panel THỜI GIAN KHỞI CÔNG theo yêu cầu user. -->
-                        </div>
-                    </div>
+                    <!-- Compact summary mode đã bỏ — toàn bộ readonly summaries (3 hero + Tỉnh/Huyện
+                         inline + floor functions HTML) đã chuyển thành editable inputs trong form
+                         THÔNG TIN TƯ VẤN bên dưới. Call stats box đã move xuống dưới THỜI GIAN. -->
 
                     <!-- ============ PANEL KHAI THÁC (inline trong card KH) ============
                          Đã bỏ popup overlay/backdrop/header X. Form khai thác giờ
@@ -240,13 +198,9 @@
                         <div class="o_vd_intake_layout">
                             <div class="o_vd_intake_main">
 
-                        <!-- ===== HERO 2-COL =====
-                             LEFT: Diện tích/sàn (lớn) — chứa kích thước + Số tầng/Móng/Kiểu nhà/Mái
-                             RIGHT (top): Thời gian
-                             RIGHT (bottom): Ngân sách (VNĐ) -->
-                        <div class="o_vd_hero_grid_2col">
-                            <!-- LEFT — Thông tin xây dựng (70% width, chứa kích thước + tech + chip số tầng + per-floor m²) -->
-                            <div class="o_vd_hero_card o_vd_hero_area">
+                        <!-- ===== THÔNG TIN CÔNG TRÌNH (full-width — không còn 2-col vì
+                             CHI PHÍ BÁO GIÁ đã chuyển xuống panel THỜI GIAN KHỞI CÔNG) ===== -->
+                        <div class="o_vd_hero_card o_vd_hero_area">
                                 <div class="o_vd_hero_head">
                                     <span class="o_vd_hero_icon">🏗️</span>
                                     <span class="o_vd_hero_title">THÔNG TIN CÔNG TRÌNH</span>
@@ -500,13 +454,30 @@
                                     </div>
                             </div>
 
-                            <!-- RIGHT — CHI PHÍ BÁO GIÁ (THỜI GIAN tách thành panel riêng dưới) -->
-                            <div class="o_vd_hero_card o_vd_hero_budget">
-                                <div class="o_vd_hero_head">
+                        <!-- /.o_vd_hero_area (full-width) -->
+
+                        <!-- ===== BẢNG THỜI GIAN KHỞI CÔNG + CHI PHÍ BÁO GIÁ (gộp 2 nội dung
+                             trong 1 panel theo yêu cầu user — divider rõ giữa 2 sub-section). ===== -->
+                        <div class="o_vd_hero_card o_vd_hero_time o_vd_time_panel_standalone">
+                            <field name="vd_intake_timeline_status" invisible="1"/>
+                            <div class="o_vd_hero_head">
+                                <span class="o_vd_hero_icon">📅</span>
+                                <span class="o_vd_hero_title">THỜI GIAN KHỞI CÔNG</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_fit"
+                                      invisible="vd_intake_timeline_status != 'ok'">✅ Đủ thời gian</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_warn"
+                                      invisible="vd_intake_timeline_status != 'warn'">⏰ Hơi gấp</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_over"
+                                      invisible="vd_intake_timeline_status != 'critical'">⏰ Quá gấp</span>
+                            </div>
+                            <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
+
+                            <!-- SUB-SECTION: CHI PHÍ BÁO GIÁ — divider tím-vàng + sub-header -->
+                            <div class="o_vd_time_budget_section">
+                                <div class="o_vd_time_budget_head">
                                     <span class="o_vd_hero_icon">💰</span>
-                                    <span class="o_vd_hero_title">CHI PHÍ BÁO GIÁ</span>
+                                    <span>CHI PHÍ BÁO GIÁ</span>
                                 </div>
-                                <!-- Auto-computed price (đơn giá × diện tích × tầng + móng + mái) -->
                                 <div class="o_vd_budget_row o_vd_budget_auto">
                                     <span class="o_vd_budget_lbl">Phần mềm tính:</span>
                                     <span class="o_vd_budget_val">
@@ -516,14 +487,12 @@
                                                readonly="1" nolabel="1"/>
                                     </span>
                                 </div>
-                                <!-- Manual entry — Ngân sách dự kiến của KH -->
                                 <div class="o_vd_budget_row o_vd_budget_manual">
                                     <span class="o_vd_budget_lbl">Ngân sách dự kiến:</span>
                                     <field name="vd_intake_budget_amount" widget="monetary"
                                            options="{'currency_field': 'vd_currency_vnd_id'}"
                                            nolabel="1" placeholder="Vd: 2,000,000,000"/>
                                 </div>
-                                <!-- Comparison: chênh lệch ngân sách vs estimate -->
                                 <div class="o_vd_budget_compare"
                                      invisible="not vd_intake_budget_amount or not vd_intake_estimate">
                                     <field name="vd_intake_budget_status" invisible="1"/>
@@ -554,22 +523,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- ===== BẢNG THỜI GIAN (gộp readonly "Thời gian khởi công" + input timeline) ===== -->
-                        <div class="o_vd_hero_card o_vd_hero_time o_vd_time_panel_standalone">
-                            <field name="vd_intake_timeline_status" invisible="1"/>
-                            <div class="o_vd_hero_head">
-                                <span class="o_vd_hero_icon">📅</span>
-                                <span class="o_vd_hero_title">THỜI GIAN KHỞI CÔNG</span>
-                                <span class="o_vd_time_badge_inline o_vd_badge_fit"
-                                      invisible="vd_intake_timeline_status != 'ok'">✅ Đủ thời gian</span>
-                                <span class="o_vd_time_badge_inline o_vd_badge_warn"
-                                      invisible="vd_intake_timeline_status != 'warn'">⏰ Hơi gấp</span>
-                                <span class="o_vd_time_badge_inline o_vd_badge_over"
-                                      invisible="vd_intake_timeline_status != 'critical'">⏰ Quá gấp</span>
-                            </div>
-                            <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
                         </div>
 
                         <!-- ===== Ô THỐNG KÊ CUỘC GỌI + ĐÁNH GIÁ KH TIỀM NĂNG (chuyển từ

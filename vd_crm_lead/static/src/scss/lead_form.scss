@@ -2459,6 +2459,37 @@ div.o_vd_layout_right {
     border: 1px solid #ef4444;
 }
 
+/* ===== SUB-SECTION: CHI PHÍ BÁO GIÁ (gộp vào panel THỜI GIAN KHỞI CÔNG)
+   Divider rõ giữa timeline chips và budget info — border-top + background tint vàng. */
+.o_vd_intake_inline .o_vd_time_budget_section {
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    padding-bottom: 0.55rem;
+    border-top: 2px dashed rgba(217, 119, 6, 0.45);
+    background: rgba(252, 211, 77, 0.12);
+    border-radius: 8px;
+    margin-left: -0.4rem;
+    margin-right: -0.4rem;
+}
+.o_vd_intake_inline .o_vd_time_budget_head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid rgba(217, 119, 6, 0.3);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #92400e;
+}
+.o_vd_intake_inline .o_vd_time_budget_head .o_vd_hero_icon {
+    font-size: 0.95rem;
+}
+
 .o_vd_intake_inline .o_vd_popup_footer {
     background: transparent !important;
     border-top: 1px dashed rgba(0, 0, 0, 0.12) !important;
