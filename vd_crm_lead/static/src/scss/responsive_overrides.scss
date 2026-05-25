@@ -482,12 +482,13 @@ html, body {
 }
 
 /* ============================================================
-   17a. LEAD FORM COMPACT 70% — class .vd-on-lead-form do JS add vào <html>
-   khi detect form crm.lead đang mở (xem intake_hover_panel.js).
-   Bền hơn :has() (browser support không đồng nhất).
+   17a. LEAD FORM SIZE — zoom 0.7 cũ đã BỎ vì gây sub-pixel anti-alias
+   trên màn low-DPI (96 DPI) → text mờ. Thay bằng html font-size: 14px
+   để mọi rem rule trong form lead render ở native integer pixel → crisp
+   tuyệt đối trên mọi DPI. Net effect ~+25% lớn hơn so với cũ.
    ============================================================ */
-html.vd-on-lead-form .o_form_view .o_form_sheet {
-    zoom: 0.7 !important;
+html.vd-on-lead-form {
+    font-size: 14px;
 }
 
 /* ============================================================

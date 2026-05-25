@@ -8330,3 +8330,343 @@ $vd-panel-head-radius: 10px;
         grid-template-columns: 1fr !important;
     }
 }
+
+/* ============================================================================
+   ████████████████████████████████████████████████████████████████████████████
+   DESIGN SYSTEM v2 — NAVY + CREAM (FINAL OVERRIDE LAYER)
+   ----------------------------------------------------------------------------
+   Mục tiêu: gam màu đồng bộ, đơn giản mà sang trọng (navy đậm + kem ấm +
+   accent vàng đồng). Bỏ mọi gradient sặc sỡ, dùng nền solid + viền 1.5px.
+   Section header in hoa nhỏ, muted; sub-section divider 1px subtle line.
+   Font size: 14px html base + rem rules → 14-16px native, crisp mọi DPI.
+   ----------------------------------------------------------------------------
+   Cascade thắng vì đặt cuối file. Đảm bảo overrides toàn bộ section trước.
+   ████████████████████████████████████████████████████████████████████████████
+   ============================================================================ */
+
+/* ===== TOKENS ===== */
+.o_vd_summary_card {
+    /* Palette */
+    --vd-navy:        #1e3a5f;   /* primary deep navy */
+    --vd-navy-d:      #0f2540;   /* darker shade — top banner */
+    --vd-navy-s:      #c8d6e5;   /* soft navy border / outline */
+    --vd-navy-x:      #ebf1f8;   /* extra light navy bg hover */
+    --vd-cream:       #fbf9f4;   /* warm ivory bg base */
+    --vd-cream-d:     #f2ede1;   /* deeper cream for sub-section */
+    --vd-gold:        #c9a26a;   /* brass accent */
+    --vd-gold-d:      #a37c45;   /* hover gold */
+    --vd-text:        #0f1e34;   /* near-black navy */
+    --vd-text-muted:  #6b7a93;   /* muted slate */
+    --vd-border:      #d9dee6;   /* subtle border */
+    --vd-success:     #047857;   /* status fit */
+    --vd-warning:     #b45309;   /* status warn */
+    --vd-danger:      #b91c1c;   /* status over */
+    --vd-success-bg:  #ecfdf5;
+    --vd-warning-bg:  #fffbeb;
+    --vd-danger-bg:   #fef2f2;
+
+    /* Typography scale */
+    --vd-fs-banner:   1.05rem;   /* 14.7px — THÔNG TIN KHÁCH HÀNG main banner */
+    --vd-fs-h-panel:  0.95rem;   /* 13.3px — THÔNG TIN CÔNG TRÌNH / THỜI GIAN ... */
+    --vd-fs-h-sub:    0.82rem;   /* 11.5px — ĐỊA LÝ + CÔNG NĂNG / CHI PHÍ ... */
+    --vd-fs-label:    0.9rem;    /* 12.6px — field labels */
+    --vd-fs-input:    1rem;      /* 14px — input/select values */
+    --vd-fs-body:     0.9rem;    /* 12.6px — body text */
+    --vd-fs-badge:    0.8rem;    /* 11.2px — chips/badges */
+    --vd-fs-button:   0.9rem;    /* 12.6px — buttons */
+
+    /* Spacing & shape */
+    --vd-radius:      8px;
+    --vd-radius-pill: 999px;
+    --vd-shadow:      0 1px 3px rgba(15, 30, 52, 0.05);
+}
+
+/* ===== OUTER CARD ===== */
+.o_vd_summary_card {
+    background: var(--vd-cream) !important;
+    border: 1.5px solid var(--vd-navy-s) !important;
+    border-radius: var(--vd-radius) !important;
+    color: var(--vd-text) !important;
+    box-shadow: var(--vd-shadow) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+/* ===== BANNER "THÔNG TIN KHÁCH HÀNG" ===== */
+.o_vd_summary_card .o_vd_summary_banner {
+    background: linear-gradient(180deg, var(--vd-navy) 0%, var(--vd-navy-d) 100%) !important;
+    border: none !important;
+    border-bottom: 2px solid var(--vd-gold) !important;
+    padding: 0.7rem 1rem !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+}
+.o_vd_summary_card .o_vd_banner_title {
+    font-size: var(--vd-fs-banner) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.6px !important;
+    text-transform: uppercase !important;
+    color: #fff !important;
+    margin: 0 !important;
+}
+.o_vd_summary_card .o_vd_summary_banner i.fa { color: #fff !important; }
+
+/* ===== HEADER ROW (name + phone + user) ===== */
+.o_vd_summary_card .o_vd_summary_header { padding: 0.8rem 1rem 0.55rem !important; }
+.o_vd_summary_card .o_vd_name_chip_wrap .o_vd_name_chip {
+    border-color: var(--vd-navy) !important;
+    background: #fff !important;
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-input) !important;
+    box-shadow: var(--vd-shadow);
+}
+.o_vd_summary_card .o_vd_name_chip_wrap .o_vd_name_phone_btn {
+    border-color: var(--vd-navy) !important;
+    color: var(--vd-navy) !important;
+    background: #fff !important;
+    font-size: var(--vd-fs-label) !important;
+}
+.o_vd_summary_card .o_vd_name_chip:hover,
+.o_vd_summary_card .o_vd_name_phone_btn:hover {
+    background: var(--vd-navy-x) !important;
+    border-color: var(--vd-navy-d) !important;
+}
+.o_vd_summary_card .o_vd_header_user { font-size: var(--vd-fs-label) !important; color: var(--vd-text) !important; }
+
+/* ===== INLINE INTAKE PANEL ===== */
+.o_vd_intake_inline {
+    /* Override các CSS var đã set ở section font cũ — dùng tokens mới */
+    --vd-fs-header-lg: var(--vd-fs-h-panel);
+    --vd-fs-header-sm: var(--vd-fs-h-sub);
+    --vd-fs-label:     var(--vd-fs-label);
+    --vd-fs-input:     var(--vd-fs-input);
+    --vd-fs-badge:     var(--vd-fs-badge);
+    --vd-fs-button:    var(--vd-fs-button);
+}
+.o_vd_intake_inline .o_vd_popup_body { padding: 0 1rem 0.6rem !important; }
+
+/* ===== HERO CARDS (THÔNG TIN CÔNG TRÌNH / THỜI GIAN KHỞI CÔNG) =====
+   Bỏ gradient xanh lá / tím. Dùng background trắng + viền navy nhẹ.
+   Header navy + accent gold underline. */
+.o_vd_intake_inline .o_vd_hero_card {
+    background: #ffffff !important;
+    border: 1.5px solid var(--vd-navy-s) !important;
+    border-radius: var(--vd-radius) !important;
+    padding: 0.7rem 0.9rem 0.75rem !important;
+    box-shadow: var(--vd-shadow) !important;
+    margin: 0.45rem 0 !important;
+}
+.o_vd_intake_inline .o_vd_hero_head {
+    padding-bottom: 0.4rem !important;
+    margin-bottom: 0.55rem !important;
+    border-bottom: 2px solid var(--vd-gold) !important;
+    border-color: var(--vd-gold) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+}
+.o_vd_intake_inline .o_vd_hero_title {
+    color: var(--vd-navy) !important;
+    font-size: var(--vd-fs-h-panel) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+.o_vd_intake_inline .o_vd_hero_icon { font-size: 1rem !important; }
+
+/* ===== HERO AREA (THÔNG TIN CÔNG TRÌNH) — bỏ tint xanh lá ===== */
+.o_vd_intake_inline .o_vd_hero_area {
+    background: #ffffff !important;
+}
+
+/* ===== TIME PANEL (THỜI GIAN) — bỏ tint tím ===== */
+.o_vd_intake_inline .o_vd_time_panel_standalone {
+    background: #ffffff !important;
+    border: 1.5px solid var(--vd-navy-s) !important;
+}
+.o_vd_intake_inline .o_vd_time_panel_standalone .o_vd_hero_head {
+    border-bottom-color: var(--vd-gold) !important;
+}
+.o_vd_intake_inline .o_vd_time_panel_standalone .o_vd_hero_title {
+    color: var(--vd-navy) !important;
+}
+
+/* ===== SUB-SECTION (ĐỊA LÝ + CÔNG NĂNG | CHI PHÍ BÁO GIÁ) =====
+   Bỏ bg xanh lá / vàng + border dashed màu loè loẹt. Dùng 1px solid
+   navy-soft + sub-header nhỏ uppercase muted. */
+.o_vd_intake_inline .o_vd_area_geo_section,
+.o_vd_intake_inline .o_vd_time_budget_section {
+    background: var(--vd-cream-d) !important;
+    border: none !important;
+    border-top: 1px solid var(--vd-border) !important;
+    border-radius: 0 0 6px 6px !important;
+    margin: 0.65rem -0.9rem -0.75rem !important;
+    padding: 0.65rem 0.9rem 0.7rem !important;
+}
+.o_vd_intake_inline .o_vd_area_geo_head,
+.o_vd_intake_inline .o_vd_time_budget_head {
+    color: var(--vd-text-muted) !important;
+    border-bottom: 1px solid var(--vd-border) !important;
+    font-size: var(--vd-fs-h-sub) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0.3rem !important;
+    font-weight: 700 !important;
+}
+.o_vd_intake_inline .o_vd_area_geo_head i.fa,
+.o_vd_intake_inline .o_vd_time_budget_head .o_vd_hero_icon {
+    color: var(--vd-gold) !important;
+}
+
+/* ===== HERO ACTIONS (Copy + Cúp máy ở cuối dòng header) ===== */
+.o_vd_intake_inline .o_vd_hero_head_actions .o_vd_copy_zalo_inline {
+    background: var(--vd-navy) !important;
+    color: #fff !important;
+    border: 1px solid var(--vd-navy) !important;
+    border-radius: var(--vd-radius-pill) !important;
+}
+.o_vd_intake_inline .o_vd_hero_head_actions .o_vd_copy_zalo_inline:hover {
+    background: var(--vd-navy-d) !important;
+}
+
+/* ===== LABEL & INPUT (đồng đều, viền navy soft) ===== */
+.o_vd_intake_inline .o_vd_pf > label,
+.o_vd_intake_inline .o_vd_pf_compact > label,
+.o_vd_intake_inline .o_vd_area_lbl,
+.o_vd_intake_inline .o_vd_floors_lbl,
+.o_vd_intake_inline .o_vd_budget_lbl,
+.o_vd_intake_inline .o_vd_floor_function_lbl {
+    color: var(--vd-text) !important;
+    font-weight: 600 !important;
+}
+.o_vd_intake_inline input,
+.o_vd_intake_inline select,
+.o_vd_intake_inline .o_field_widget input,
+.o_vd_intake_inline .o_field_widget select {
+    border: 1px solid var(--vd-border) !important;
+    background: #fff !important;
+    color: var(--vd-text) !important;
+    border-radius: 6px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.o_vd_intake_inline input:focus,
+.o_vd_intake_inline select:focus,
+.o_vd_intake_inline .o_field_widget input:focus,
+.o_vd_intake_inline .o_field_widget select:focus {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+}
+
+/* ===== TỔNG DIỆN TÍCH SÀN — đổi badge xanh lá → navy ===== */
+.o_vd_intake_inline .o_vd_floors_total {
+    background: var(--vd-cream-d) !important;
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+}
+.o_vd_intake_inline .o_vd_floors_total_val {
+    background: var(--vd-navy) !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+}
+.o_vd_intake_inline .o_vd_floors_total_lbl {
+    color: var(--vd-text) !important;
+    font-weight: 700 !important;
+}
+
+/* ===== SỐ TẦNG CHIPS ===== */
+.o_vd_intake_inline .o_vd_floors_chips .o_radio_item label,
+.o_vd_intake_inline .o_vd_floors_chips input[type="radio"] + label {
+    border: 1.5px solid var(--vd-navy-s) !important;
+    color: var(--vd-text) !important;
+    background: #fff !important;
+}
+.o_vd_intake_inline .o_vd_floors_chips input[type="radio"]:checked + label {
+    background: var(--vd-navy) !important;
+    color: #fff !important;
+    border-color: var(--vd-navy) !important;
+}
+.o_vd_intake_inline .o_vd_tum_chip {
+    border: 1.5px dashed var(--vd-gold) !important;
+    color: var(--vd-gold-d) !important;
+    background: #fff !important;
+}
+.o_vd_intake_inline .o_vd_tum_chip_active {
+    background: var(--vd-gold) !important;
+    color: #fff !important;
+    border-style: solid !important;
+}
+
+/* ===== CHI PHÍ BÁO GIÁ — gam navy thay vì vàng ===== */
+.o_vd_intake_inline .o_vd_budget_row { color: var(--vd-text) !important; }
+.o_vd_intake_inline .o_vd_budget_val { color: var(--vd-navy) !important; font-weight: 700 !important; }
+.o_vd_intake_inline .o_vd_budget_lbl { color: var(--vd-text-muted) !important; }
+
+/* ===== BADGE STATUSES — soft palette ===== */
+.o_vd_intake_inline .o_vd_badge_fit,
+.o_vd_intake_inline .o_vd_budget_diff_fit {
+    background: var(--vd-success-bg) !important;
+    color: var(--vd-success) !important;
+    border: 1px solid var(--vd-success) !important;
+}
+.o_vd_intake_inline .o_vd_badge_warn,
+.o_vd_intake_inline .o_vd_budget_diff_warn {
+    background: var(--vd-warning-bg) !important;
+    color: var(--vd-warning) !important;
+    border: 1px solid var(--vd-warning) !important;
+}
+.o_vd_intake_inline .o_vd_badge_over,
+.o_vd_intake_inline .o_vd_budget_diff_over {
+    background: var(--vd-danger-bg) !important;
+    color: var(--vd-danger) !important;
+    border: 1px solid var(--vd-danger) !important;
+}
+
+/* ===== CALL STATS BOX (Hẹn gọi lại / Nghe máy / Lịch sử / Hủy) ===== */
+.o_vd_summary_card .o_vd_call_stats_box {
+    background: #fff !important;
+    border: 1.5px solid var(--vd-navy-s) !important;
+    border-radius: var(--vd-radius) !important;
+    margin: 0.5rem 1rem !important;
+    padding: 0.55rem 0.8rem !important;
+}
+.o_vd_summary_card .o_vd_wf_btn_callback {
+    background: var(--vd-navy) !important;
+    color: #fff !important;
+    border-color: var(--vd-navy) !important;
+}
+.o_vd_summary_card .o_vd_wf_btn_callback:hover { background: var(--vd-navy-d) !important; }
+.o_vd_summary_card .o_vd_cr_history_btn,
+.o_vd_summary_card .o_vd_cancel_calls_btn {
+    border-color: var(--vd-navy-s) !important;
+    color: var(--vd-navy) !important;
+}
+
+/* ===== FOOTER (Lưu & Chuyển sang BÁO GIÁ) ===== */
+.o_vd_intake_inline .o_vd_popup_footer {
+    border-top: 1px solid var(--vd-border) !important;
+    padding: 0.65rem 1rem !important;
+}
+.o_vd_intake_inline .o_vd_btn_save {
+    background: linear-gradient(135deg, var(--vd-gold) 0%, var(--vd-gold-d) 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(163, 124, 69, 0.3) !important;
+    padding: 0.5rem 1.2rem !important;
+}
+.o_vd_intake_inline .o_vd_btn_save:hover {
+    background: linear-gradient(135deg, var(--vd-gold-d) 0%, var(--vd-gold) 100%) !important;
+    box-shadow: 0 4px 10px rgba(163, 124, 69, 0.4) !important;
+}
+
+/* ===== WORKFLOW BUTTONS (Hoàn tất khai thác → Báo giá) ===== */
+.o_vd_summary_card .o_vd_workflow_bar { padding: 0 1rem 0.7rem !important; }
+.o_vd_summary_card .o_vd_wf_btn {
+    background: var(--vd-navy) !important;
+    border-color: var(--vd-navy) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+.o_vd_summary_card .o_vd_wf_btn:hover { background: var(--vd-navy-d) !important; }
