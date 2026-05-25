@@ -45,16 +45,23 @@ export class VdM2oHoverPicker extends Component {
         });
     }
 
+    _extractId(v) {
+        if (!v) return false;
+        if (typeof v === "number") return v;
+        if (Array.isArray(v)) return v[0] || false;
+        if (typeof v === "object") return v.id || v.resId || false;
+        return false;
+    }
+
     get fetchDomain() {
-        if (this.props.name === "vd_intake_province_id") {
-            return [["country_id.code", "=", "VN"]];
-        }
         if (this.props.name === "vd_intake_district") {
             const prov = this.props.record.data["vd_intake_province_id"];
-            const provId = prov ? (prov.id || (Array.isArray(prov) ? prov[0] : false)) : false;
+            const provId = this._extractId(prov);
             if (provId) return [["state_id", "=", provId]];
-            return [["id", "=", -1]];
+            return false; // signal empty
         }
+        // Province: fetch all (Odoo base data is small) — bỏ filter country_id để
+        // tránh fail khi country_id null. Sort theo name.
         return [];
     }
 
@@ -63,19 +70,28 @@ export class VdM2oHoverPicker extends Component {
     }
 
     async _fetchIfNeeded() {
+        const dom = this.fetchDomain;
         const key = this.domainKey;
         if (key === this.state.loadedKey) return;
+        // District khi province chưa chọn → empty
+        if (dom === false) {
+            this.state.options = [];
+            this.state.loadedKey = key;
+            return;
+        }
         try {
             const recs = await this.orm.searchRead(
                 this.relation,
-                this.fetchDomain,
+                dom,
                 ["id", "display_name"],
-                { order: "display_name", limit: 500 }
+                { order: "display_name", limit: 1000 }
             );
-            this.state.options = recs;
+            this.state.options = recs || [];
             this.state.loadedKey = key;
-        } catch (_e) {
+        } catch (e) {
+            console.error("vd_m2o_hover_picker fetch error:", e);
             this.state.options = [];
+            this.state.loadedKey = key;
         }
     }
 

@@ -10005,12 +10005,54 @@ $vd-panel-head-radius: 10px;
     transform: none !important;
 }
 
-/* === STEP LABEL ("Diện tích", "Địa chỉ" cột trái) BIGGER 15px === */
+/* === STEP LABEL ("Diện tích", "Địa chỉ" cột trái) +20% → 18px === */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
 .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text {
-    font-size: 15px !important;
+    font-size: 18px !important;
     font-weight: 600 !important;
     color: var(--vd-navy) !important;
+}
+
+/* === BUMP TOÀN BỘ TEXT trong steps_panel +20% (13→16, 14→17) ===
+   Override NUCLEAR 13px. Áp cho mọi label, value, placeholder, dropdown
+   item bên trong panel THÔNG TIN TƯ VẤN. Trừ: step_num (giữ nhỏ),
+   banner head (đã 16px), unit m² (giữ 12px). */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step *,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step span,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step label,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step button,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl_sub,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_dim_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_subtoggle_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > label {
+    font-size: 16px !important;
+}
+/* Step text (cột trái) +20% → 18px (đã set ở trên nhưng nhắc lại với specificity cao hơn) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step .o_vd_step_text {
+    font-size: 18px !important;
+}
+/* Step num circle giữ 13px (nhỏ trong vòng tròn 24px) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num {
+    font-size: 13px !important;
+}
+/* Unit m² giữ 14px (vẫn nhỏ hơn input) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_unit {
+    font-size: 14px !important;
+}
+/* Address field placeholder + dropdown items cũng +20% */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_value,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_placeholder {
+    font-size: 16px !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker .o_vd_mhp_bar {
+    height: 40px !important;
+    font-size: 16px !important;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_item {
+    font-size: 15px !important;
 }
 
 /* === KILL-ALL WOBBLE PHASE 2 — ancestor cũng kill transition === */
@@ -10160,14 +10202,14 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     width: 140px !important;
     min-width: 140px !important;
     max-width: 140px !important;
-    height: 46px !important;
-    min-height: 46px !important;
-    max-height: 46px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    max-height: 41px !important;
     padding: 0 0.7rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
     flex: 0 0 140px !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
     line-height: 1.3 !important;
 }
 /* HIDE × clear button (browser native + Odoo wrapper) trên area inputs */
