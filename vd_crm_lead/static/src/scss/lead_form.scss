@@ -8905,17 +8905,14 @@ $vd-panel-head-radius: 10px;
     border-bottom: 2px solid var(--vd-gold) !important;
 }
 
+/* Step row — compact, không border, các dòng sát nhau */
 .o_vd_intake_inline .o_vd_step {
     display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 1rem;
-    align-items: flex-start;
-    padding: 0.7rem 1rem;
-    border-bottom: 1px solid var(--vd-border);
+    grid-template-columns: 160px 1fr;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
     transition: background 0.15s ease;
-}
-.o_vd_intake_inline .o_vd_step:last-child {
-    border-bottom: none;
 }
 .o_vd_intake_inline .o_vd_step:hover {
     background: rgba(251, 249, 244, 0.5);
@@ -8928,32 +8925,32 @@ $vd-panel-head-radius: 10px;
     color: var(--vd-navy);
     font-weight: 600;
     font-size: 0.95rem;
-    padding-top: 0.35rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 .o_vd_intake_inline .o_vd_step_num {
     flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     background: var(--vd-navy);
     color: #fff;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     box-shadow: 0 2px 4px rgba(15, 30, 52, 0.15);
 }
 .o_vd_intake_inline .o_vd_step_text {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
 }
 
 .o_vd_intake_inline .o_vd_step_body {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 0.7rem;
+    gap: 0.4rem 0.6rem;
     align-items: center;
     min-width: 0;
 }
@@ -8961,14 +8958,14 @@ $vd-panel-head-radius: 10px;
 .o_vd_intake_inline .o_vd_step_body_2col {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.5rem 0.8rem;
+    gap: 0.4rem 0.6rem;
     align-items: center;
 }
 /* Field block với label trong step (cho 2col) */
 .o_vd_intake_inline .o_vd_step_field {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     min-width: 0;
 }
 .o_vd_intake_inline .o_vd_step_field > label {
@@ -8984,29 +8981,109 @@ $vd-panel-head-radius: 10px;
     min-width: 0;
 }
 
-/* Step 10 Ngân sách dự kiến — body 1 column stack */
-.o_vd_intake_inline .o_vd_step_body_budget {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 0.4rem !important;
+/* Step 2 Thời gian: 1 dòng — chips + badge inline cùng dòng */
+.o_vd_intake_inline .o_vd_step_body_time {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+}
+.o_vd_intake_inline .o_vd_step_body_time > .o_field_widget {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.o_vd_intake_inline .o_vd_step_body_time .o_vd_time_badge_inline {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
-/* Bỏ inline status badge trong step label — đã có ngay sau step_text */
-.o_vd_intake_inline .o_vd_step_lbl .o_vd_time_badge_inline {
-    margin-left: 0.3rem;
-    font-size: 0.7rem;
-    padding: 0.12rem 0.45rem;
+/* Step 6 Công năng — MỖI TẦNG = 1 DÒNG ngang: [T1 tag] + [chips field] cùng row */
+.o_vd_intake_inline .o_vd_floor_function_grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+}
+.o_vd_intake_inline .o_vd_floor_function_row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100%;
+}
+.o_vd_intake_inline .o_vd_floor_function_row .o_vd_floor_function_tag {
+    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: 0.2rem 0.5rem;
+    background: var(--vd-navy);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.o_vd_intake_inline .o_vd_floor_function_row .o_vd_floor_function_tag.o_vd_tag_tum {
+    background: var(--vd-gold);
+}
+.o_vd_intake_inline .o_vd_floor_function_row > .o_field_widget,
+.o_vd_intake_inline .o_vd_floor_function_row > .o_field_many2many_tags {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+/* Step 10 Ngân sách dự kiến — 1 DÒNG: PM tính | NS KH | chênh lệch flex row */
+.o_vd_intake_inline .o_vd_step_body_budget {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.4rem 0.9rem !important;
+}
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_row {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_compare {
+    display: inline-flex !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_diff {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    margin: 0 !important;
+    padding: 0.18rem 0.55rem !important;
+    border-radius: 999px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap;
+}
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_diff .o_vd_diff_amount {
+    margin-left: 0.2rem;
+    font-weight: 700;
+}
+
+/* Compact hero head — bớt padding */
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    padding: 0.45rem 0.9rem !important;
+    margin-bottom: 0 !important;
 }
 
 /* Responsive: mobile/tablet stack label trên + body dưới */
 @media (max-width: 767px) {
     .o_vd_intake_inline .o_vd_step {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
+        gap: 0.3rem;
+        padding: 0.4rem 0.7rem;
     }
     .o_vd_intake_inline .o_vd_step_body_2col {
         grid-template-columns: 1fr;
+    }
+    .o_vd_intake_inline .o_vd_step_body_time {
+        flex-wrap: wrap !important;
     }
 }
 

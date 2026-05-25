@@ -235,20 +235,20 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 2: THỜI GIAN KHỞI CÔNG ===== -->
+                            <!-- ===== STEP 2: THỜI GIAN KHỞI CÔNG (1 dòng — badge inline với chips) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">2</span>
                                     <span class="o_vd_step_text">Thời gian</span>
+                                </div>
+                                <div class="o_vd_step_body o_vd_step_body_time">
+                                    <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
                                     <span class="o_vd_time_badge_inline o_vd_badge_fit"
                                           invisible="vd_intake_timeline_status != 'ok'">✅ Đủ</span>
                                     <span class="o_vd_time_badge_inline o_vd_badge_warn"
                                           invisible="vd_intake_timeline_status != 'warn'">⏰ Hơi gấp</span>
                                     <span class="o_vd_time_badge_inline o_vd_badge_over"
                                           invisible="vd_intake_timeline_status != 'critical'">⏰ Quá gấp</span>
-                                </div>
-                                <div class="o_vd_step_body">
-                                    <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
                                 </div>
                             </div>
 
