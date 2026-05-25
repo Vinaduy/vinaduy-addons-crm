@@ -20,8 +20,11 @@
                 <i class="fa fa-caret-down o_vd_mhp_caret"/>
             </div>
 
-            <!-- Hover menu — style như Thêm vấn đề picker -->
-            <div class="o_vd_mhp_menu" t-if="state.open">
+            <!-- Hover menu — mouseenter/leave để keep open khi rê chuột xuống menu
+                 (menu position:absolute ở ngoài bbox wrapper → cần handle riêng) -->
+            <div class="o_vd_mhp_menu" t-if="state.open"
+                 t-on-mouseenter="onMouseEnter"
+                 t-on-mouseleave="onMouseLeave">
                 <t t-if="state.options.length === 0">
                     <div class="o_vd_mhp_empty">
                         <i class="fa fa-info-circle"/>
