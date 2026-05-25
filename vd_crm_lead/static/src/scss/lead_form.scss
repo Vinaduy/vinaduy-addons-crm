@@ -9671,3 +9671,187 @@ $vd-panel-head-radius: 10px;
     align-items: center !important;
     gap: 0.3rem !important;
 }
+
+/* ============================================================================
+   ████████████████████████████████████████████████████████████████████████████
+   🎯 FINAL OVERRIDE — ĐẶT CUỐI FILE → SPECIFICITY CAO NHẤT, KHÔNG RULE NÀO ĐÈ
+   ----------------------------------------------------------------------------
+   Mục tiêu CHỐT:
+   1. Header THÔNG TIN TƯ VẤN = VẤN ĐỀ panel head, từng pixel
+   2. Mọi dropdown / input / select font 13px height 32px, KHÔNG hover wobble
+   3. Cột step trái 220px, label 1 dòng không wrap
+   ████████████████████████████████████████████████████████████████████████████
+   ============================================================================ */
+
+/* === 1. HEADER THÔNG TIN TƯ VẤN — clone 1:1 VẤN ĐỀ === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.6rem !important;
+    height: 3.4rem !important;
+    min-height: 3.4rem !important;
+    max-height: 3.4rem !important;
+    padding: 0 1.4rem !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px 10px 0 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    line-height: 1.2 !important;
+    box-shadow: none !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head::before,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head::before {
+    content: none !important;
+    display: none !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_title,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_title {
+    color: #ffffff !important;
+    font-size: 1.15rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_icon,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_icon {
+    color: #ffffff !important;
+    font-size: 1.15rem !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_head_actions {
+    margin-left: auto !important;
+}
+
+/* === 2. DROPDOWN / INPUT FLAT — 13px, 32px, KHÔNG hover/transition === */
+.o_vd_layout_grid .o_vd_intake_inline select,
+.o_vd_layout_grid .o_vd_intake_inline input[type="text"],
+.o_vd_layout_grid .o_vd_intake_inline input[type="number"],
+.o_vd_layout_grid .o_vd_intake_inline input:not([type]),
+.o_vd_layout_grid .o_vd_intake_inline textarea,
+.o_vd_layout_grid .o_vd_intake_inline .o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete--input,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    box-sizing: border-box !important;
+    padding: 0 0.6rem !important;
+    border: 1px solid #d9dee6 !important;
+    border-radius: 6px !important;
+    background-color: #ffffff !important;
+    color: #0f1e34 !important;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    vertical-align: middle !important;
+}
+/* Wrapper .o-autocomplete — bỏ border riêng */
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    box-shadow: none !important;
+}
+/* Native select chevron */
+.o_vd_layout_grid .o_vd_intake_inline select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 1.8rem !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='%23714B67' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.7rem center !important;
+    background-size: 10px 6px !important;
+    cursor: pointer !important;
+}
+/* Hover: KHÔNG đổi nền, KHÔNG transform → BẢNG TĨNH HOÀN TOÀN */
+.o_vd_layout_grid .o_vd_intake_inline select:hover,
+.o_vd_layout_grid .o_vd_intake_inline input:hover,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:hover,
+.o_vd_layout_grid .o_vd_intake_inline .o_input:hover {
+    border-color: #714B67 !important;
+    background-color: #ffffff !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+/* Focus: chỉ đậm viền, KHÔNG ring */
+.o_vd_layout_grid .o_vd_intake_inline select:focus,
+.o_vd_layout_grid .o_vd_intake_inline input:focus,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:focus,
+.o_vd_layout_grid .o_vd_intake_inline .o_input:focus {
+    border-color: #714B67 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: #ffffff !important;
+}
+/* Bỏ hover row */
+.o_vd_intake_inline .o_vd_step:hover,
+.o_vd_intake_inline .o_vd_step_field:hover,
+.o_vd_intake_inline .o_vd_step_body:hover {
+    background: transparent !important;
+    transform: none !important;
+}
+/* Placeholder 13px */
+.o_vd_layout_grid .o_vd_intake_inline input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline textarea::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input::placeholder {
+    font-size: 13px !important;
+    color: #6b7a93 !important;
+    opacity: 0.85 !important;
+}
+/* Dropdown popup items 13px khớp input */
+.o-autocomplete--dropdown-menu {
+    z-index: 10000 !important;
+    min-width: 240px !important;
+}
+.o-autocomplete--dropdown-item {
+    font-size: 13px !important;
+    padding: 0.4rem 0.8rem !important;
+}
+/* Native <option> trong <select> — không control được nhưng ép font-family cho consistent */
+.o_vd_layout_grid .o_vd_intake_inline select option {
+    font-size: 13px !important;
+}
+
+/* === 3. STEP COLUMN 220px + LABEL 1 DÒNG NOWRAP === */
+.o_vd_intake_inline .o_vd_step {
+    grid-template-columns: 220px 1fr !important;
+}
+.o_vd_intake_inline .o_vd_step_lbl,
+.o_vd_intake_inline .o_vd_step_lbl > .o_vd_step_text {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: keep-all !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_lbl * {
+    font-size: 13px !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_num {
+    font-size: 11px !important;
+}
+/* Step_field label trên cùng dòng dropdown */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+}
