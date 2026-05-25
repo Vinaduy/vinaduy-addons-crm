@@ -999,6 +999,18 @@ class CrmLead(models.Model):
             },
         }
 
+    def action_copy_phone(self):
+        """Copy số điện thoại KH vào clipboard (click vào chip phone trong header)."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'vd_copy_to_clipboard',
+            'params': {
+                'text': self.phone or '',
+                'message': _('Đã copy số điện thoại vào clipboard.'),
+            },
+        }
+
     @api.depends(
         'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
         'vd_intake_house_type', 'vd_intake_roof_type', 'vd_intake_region',
@@ -2382,22 +2394,22 @@ class CrmLead(models.Model):
         return nm.strip() or 'KH'
 
     def _vd_build_quote_name(self):
-        """Build "VINADUY - <Tên KH> <TỈNH> - MM/YY".
+        """Build "VINADUY - <Tên KH> - <TỈNH>".
         Trả '' nếu thiếu data buộc — caller giữ tên cũ.
+
+        Format đã đổi (bỏ MM/YY): "VINADUY - Nguyễn Linh Vân - HN"
+        (trước đây: "VINADUY - Nguyễn Linh Vân HN - 05/26").
         """
         self.ensure_one()
-        from datetime import date
         kh_name = self._vd_extract_customer_name()
         if not kh_name or kh_name == 'KH':
             return ''  # Không có tên rõ ràng → skip rename
         province_code = self._vd_province_code(
             self.vd_intake_province_id.name if self.vd_intake_province_id else ''
         )
-        today = date.today()
-        mmyy = today.strftime('%m/%y')
         if province_code:
-            return 'VINADUY - %s %s - %s' % (kh_name, province_code, mmyy)
-        return 'VINADUY - %s - %s' % (kh_name, mmyy)
+            return 'VINADUY - %s - %s' % (kh_name, province_code)
+        return 'VINADUY - %s' % kh_name
 
     def _message_compute_author(self, author_id=None, email_from=None, raise_on_email=True):
         """Fallback email_from khi user không config email → tránh

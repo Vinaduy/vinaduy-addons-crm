@@ -2518,6 +2518,99 @@ div.o_vd_layout_right {
     border: 1px solid #ef4444;
 }
 
+/* ===== NEW HEADER LAYOUT (1 row) =====
+   [Name chip btn + Phone chip btn — visually attached] ... [user_id avatar end]
+   Click name → copy name; Click phone → copy phone (action_copy_phone). */
+.o_vd_header_row_single {
+    justify-content: space-between !important;
+    flex-wrap: wrap;
+}
+.o_vd_header_user_end {
+    margin-left: auto !important;
+}
+
+.o_vd_name_chip_wrap {
+    display: inline-flex !important;
+    align-items: stretch;
+    flex: 0 0 auto;
+}
+/* Name button: chỉ rounded LEFT, không border phải để dính với phone btn */
+.o_vd_name_chip_wrap .o_vd_name_chip {
+    border-radius: 999px 0 0 999px !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    margin-right: 0 !important;
+}
+.o_vd_name_chip_wrap .o_vd_name_chip:only-child {
+    /* Khi không có phone (KH chưa có SĐT) → vẫn rounded đủ 4 góc */
+    border-radius: 999px !important;
+    border-right: 1.5px solid #1864ab !important;
+    box-shadow: 0 1px 2px rgba(24, 100, 171, 0.08) !important;
+}
+.o_vd_name_chip_wrap .o_vd_name_phone_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.35rem 0.85rem 0.4rem !important;
+    border: 1.5px solid #1864ab !important;
+    border-left: 1px solid rgba(24, 100, 171, 0.28) !important;
+    border-radius: 0 999px 999px 0 !important;
+    background: #fff !important;
+    color: #1971c2 !important;
+    cursor: pointer;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease,
+                box-shadow 0.15s ease;
+    box-shadow: 0 1px 2px rgba(24, 100, 171, 0.08);
+
+    i.fa { font-size: 0.8rem; }
+    .o_field_widget,
+    .o_field_widget > * {
+        font-size: inherit !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-width: 0 !important;
+        pointer-events: none;
+    }
+    &:hover {
+        background: #e7f5ff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(24, 100, 171, 0.22);
+    }
+    &:active { transform: translateY(0); }
+}
+
+/* ===== HERO HEAD VỚI ACTIONS (THÔNG TIN CÔNG TRÌNH + Cúp máy + Copy Zalo cuối dòng) ===== */
+.o_vd_hero_head_with_actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+.o_vd_hero_head_actions {
+    margin-left: auto !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+/* Cúp máy + Copy Zalo trong hero header — scale nhỏ hơn variant ở popup header cũ */
+.o_vd_hero_head_actions .o_vd_popup_hangup_btn {
+    padding: 0.28rem 0.65rem !important;
+    font-size: 0.78rem !important;
+}
+.o_vd_hero_head_actions .o_vd_copy_zalo_inline {
+    padding: 0.3rem 0.7rem !important;
+    font-size: 0.8rem !important;
+}
+
 /* ===== SUB-SECTION: CHI PHÍ BÁO GIÁ (gộp vào panel THỜI GIAN KHỞI CÔNG)
    Divider rõ giữa timeline chips và budget info — border-top + background tint vàng. */
 .o_vd_intake_inline .o_vd_time_budget_section {

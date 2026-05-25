@@ -105,43 +105,29 @@
                         <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
                     </div>
 
-                    <!-- Header (2 hàng):
-                         Hàng 1: [Chip tên KH (border + bo tròn, click copy) + phone nhỏ]
-                         Hàng 2: [Salesperson (plain, dưới tên KH)] ........ [Copy (hover xem)] [Thông tin tư vấn] -->
+                    <!-- Header (1 hàng):
+                         [Chip tên KH (click → copy name)] [Chip phone (click → copy phone)] ... [NV phụ trách avatar — cuối dòng] -->
                     <div class="o_vd_summary_header">
-                        <div class="o_vd_header_row o_vd_header_row1">
-                            <button name="action_copy_name" type="object"
-                                    class="o_vd_name_chip"
-                                    title="Bấm để copy tên khách hàng">
-                                <span class="o_vd_name_text">
-                                    <field name="name" placeholder="Tên khách hàng" nolabel="1" readonly="1"/>
-                                </span>
-                                <span class="o_vd_name_phone" invisible="not phone">
+                        <div class="o_vd_header_row o_vd_header_row1 o_vd_header_row_single">
+                            <div class="o_vd_name_chip_wrap">
+                                <button name="action_copy_name" type="object"
+                                        class="o_vd_name_chip o_vd_name_chip_btn"
+                                        title="Bấm để copy tên khách hàng">
+                                    <span class="o_vd_name_text">
+                                        <field name="name" placeholder="Tên khách hàng" nolabel="1" readonly="1"/>
+                                    </span>
+                                </button>
+                                <button name="action_copy_phone" type="object"
+                                        class="o_vd_name_phone_btn"
+                                        title="Bấm để copy số điện thoại"
+                                        invisible="not phone">
                                     <i class="fa fa-phone"/>
                                     <field name="phone" nolabel="1" readonly="1"/>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="o_vd_header_row o_vd_header_row2">
-                            <span class="o_vd_header_user" title="Nhân viên phụ trách — bấm để đổi cho NV khác">
+                                </button>
+                            </div>
+                            <span class="o_vd_header_user o_vd_header_user_end" title="Nhân viên phụ trách — bấm để đổi cho NV khác">
                                 <field name="user_id" widget="many2one_avatar_user" nolabel="1"/>
                             </span>
-                            <!-- "Copy": hover → preview panel zalo text; click → copy trực tiếp (no popup) -->
-                            <div class="o_vd_zalo_hover_wrap">
-                                <button name="action_copy_zalo" type="object"
-                                        class="o_vd_copy_zalo_inline"
-                                        title="Hover xem nội dung — Click để copy">
-                                    <i class="fa fa-clipboard"/>
-                                    <span>Copy</span>
-                                </button>
-                                <div class="o_vd_zalo_hover_panel">
-                                    <div class="o_vd_zalo_hover_head">
-                                        <i class="fa fa-clipboard"/>
-                                        <span>Thông tin gửi Zalo</span>
-                                    </div>
-                                    <field name="vd_zalo_copy_text" readonly="1" nolabel="1"/>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -155,21 +141,9 @@
                          neutralize popup positioning. -->
                     <div class="o_vd_intake_full o_vd_intake_compact o_vd_intake_popup_panel o_vd_intake_inline">
 
-                        <!-- ===== HEADER inline: tiêu đề + Cúp máy (chỉ khi đang gọi) ===== -->
-                        <div class="o_vd_inline_header">
-                            <h3 class="o_vd_inline_title">
-                                <i class="fa fa-clipboard-list"/> THÔNG TIN TƯ VẤN
-                            </h3>
-                            <button name="action_hangup_active" type="object"
-                                    class="o_vd_popup_hangup_btn"
-                                    title="Cúp máy / Kết thúc cuộc gọi"
-                                    invisible="not vd_in_call">
-                                <i class="fa fa-phone"/>
-                                <span>Cúp máy</span>
-                            </button>
-                        </div>
-
-                        <!-- ===== BODY: nội dung khai thác ===== -->
+                        <!-- ===== BODY: nội dung khai thác (đã bỏ inline_header THÔNG TIN TƯ VẤN
+                             theo yêu cầu — Copy zalo + Cúp máy chuyển vào header THÔNG TIN
+                             CÔNG TRÌNH bên dưới). ===== -->
                         <div class="o_vd_popup_body">
                         <!-- Banner state RINGING — wording + màu đồng bộ với FAB (cam) -->
                         <div class="o_vd_popup_banner o_vd_popup_banner_ringing"
@@ -201,9 +175,34 @@
                         <!-- ===== THÔNG TIN CÔNG TRÌNH (full-width — không còn 2-col vì
                              CHI PHÍ BÁO GIÁ đã chuyển xuống panel THỜI GIAN KHỞI CÔNG) ===== -->
                         <div class="o_vd_hero_card o_vd_hero_area">
-                                <div class="o_vd_hero_head">
+                                <div class="o_vd_hero_head o_vd_hero_head_with_actions">
                                     <span class="o_vd_hero_icon">🏗️</span>
                                     <span class="o_vd_hero_title">THÔNG TIN CÔNG TRÌNH</span>
+                                    <!-- Actions cuối dòng header: Cúp máy (chỉ khi đang gọi) + Copy Zalo (hover preview) -->
+                                    <div class="o_vd_hero_head_actions">
+                                        <button name="action_hangup_active" type="object"
+                                                class="o_vd_popup_hangup_btn"
+                                                title="Cúp máy / Kết thúc cuộc gọi"
+                                                invisible="not vd_in_call">
+                                            <i class="fa fa-phone"/>
+                                            <span>Cúp máy</span>
+                                        </button>
+                                        <div class="o_vd_zalo_hover_wrap">
+                                            <button name="action_copy_zalo" type="object"
+                                                    class="o_vd_copy_zalo_inline"
+                                                    title="Hover xem nội dung — Click để copy">
+                                                <i class="fa fa-clipboard"/>
+                                                <span>Copy</span>
+                                            </button>
+                                            <div class="o_vd_zalo_hover_panel">
+                                                <div class="o_vd_zalo_hover_head">
+                                                    <i class="fa fa-clipboard"/>
+                                                    <span>Thông tin gửi Zalo</span>
+                                                </div>
+                                                <field name="vd_zalo_copy_text" readonly="1" nolabel="1"/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                     <!-- ===== GRID 1: 2 hàng diện tích (đều nhau) ===== -->
                                     <div class="o_vd_areas_grid">
