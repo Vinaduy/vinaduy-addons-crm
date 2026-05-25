@@ -32,8 +32,8 @@
                 <t t-else="">
                     <t t-foreach="state.options" t-as="opt" t-key="opt.id">
                         <button type="button" class="o_vd_mhp_item"
-                                t-on-click.stop="(ev) => this.selectRecord(opt, ev)">
-                            <t t-esc="opt.display_name"/>
+                                t-on-mousedown.prevent.stop="(ev) => this.selectRecord(opt, ev)">
+                            <t t-esc="opt.display_name or opt.name"/>
                         </button>
                     </t>
                 </t>

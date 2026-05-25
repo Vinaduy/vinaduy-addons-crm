@@ -80,6 +80,33 @@ export class VdM2oHoverPicker extends Component {
         return `${this.relation}|${JSON.stringify(this.fetchDomain)}`;
     }
 
+    /** Ưu tiên thành phố lớn + tỉnh giàu lên đầu danh sách Tỉnh/Thành */
+    _sortProvinces(recs) {
+        // Order: TP trực thuộc TW → tỉnh kinh tế trọng điểm → còn lại theo tên
+        const PRIORITY = [
+            "Hà Nội", "Hồ Chí Minh", "TP Hồ Chí Minh", "Thành phố Hồ Chí Minh",
+            "Đà Nẵng", "Hải Phòng", "Cần Thơ", "Huế", "Thừa Thiên Huế",
+            "Quảng Ninh", "Bình Dương", "Đồng Nai", "Bà Rịa - Vũng Tàu", "Bà Rịa Vũng Tàu",
+            "Bắc Ninh", "Hưng Yên", "Vĩnh Phúc", "Hải Dương",
+            "Khánh Hòa", "Long An", "Tiền Giang", "Quảng Nam",
+        ];
+        const priorityIdx = (name) => {
+            const norm = (name || "").trim();
+            for (let i = 0; i < PRIORITY.length; i++) {
+                if (norm.includes(PRIORITY[i]) || PRIORITY[i].includes(norm)) {
+                    return i;
+                }
+            }
+            return PRIORITY.length;
+        };
+        return recs.slice().sort((a, b) => {
+            const pa = priorityIdx(a.display_name || a.name);
+            const pb = priorityIdx(b.display_name || b.name);
+            if (pa !== pb) return pa - pb;
+            return (a.display_name || a.name || "").localeCompare(b.display_name || b.name || "", "vi");
+        });
+    }
+
     async _fetchIfNeeded() {
         if (!this.relation) {
             this.state.debugMsg = "Không có relation";
@@ -95,14 +122,19 @@ export class VdM2oHoverPicker extends Component {
         }
         try {
             console.log("[vd_m2o_hover_picker] fetch", this.relation, "domain:", dom);
-            const recs = await this.orm.searchRead(
+            let recs = await this.orm.searchRead(
                 this.relation,
                 dom,
                 ["id", "display_name", "name"],
                 { limit: 1000 }
             );
-            console.log("[vd_m2o_hover_picker] got", (recs || []).length, "records");
-            this.state.options = recs || [];
+            recs = recs || [];
+            console.log("[vd_m2o_hover_picker] got", recs.length, "records");
+            // Sort Province: ưu tiên thành phố lớn + tỉnh giàu lên đầu
+            if (this.props.name === "vd_intake_province_id") {
+                recs = this._sortProvinces(recs);
+            }
+            this.state.options = recs;
             this.state.loadedKey = key;
             this.state.debugMsg = "";
         } catch (e) {
@@ -138,11 +170,20 @@ export class VdM2oHoverPicker extends Component {
     }
 
     async selectRecord(rec, ev) {
-        ev.stopPropagation();
-        await this.props.record.update({
-            [this.props.name]: { id: rec.id, display_name: rec.display_name },
-        });
-        this.state.open = false;
+        if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        this.state.open = false; // đóng ngay để tránh re-render race
+        console.log("[vd_m2o_hover_picker] select", rec.id, rec.display_name || rec.name);
+        try {
+            await this.props.record.update({
+                [this.props.name]: {
+                    id: rec.id,
+                    display_name: rec.display_name || rec.name || "",
+                },
+            });
+        } catch (e) {
+            console.error("[vd_m2o_hover_picker] update error:", e);
+        }
     }
 
     async clearValue(ev) {
