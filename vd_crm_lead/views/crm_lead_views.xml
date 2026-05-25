@@ -413,13 +413,12 @@
                                                 title="Bỏ Lửng">×</button>
                                     </span>
 
-                                    <!-- Tổng diện tích sàn — luôn ở cuối row -->
+                                    <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->
                                     <span class="o_vd_floors_total_inline" invisible="not vd_intake_total_m2">
-                                        <i class="fa fa-bar-chart" title="Tổng"/>
-                                        <span class="o_vd_floors_total_lbl">Tổng diện tích sàn:</span>
+                                        <span class="o_vd_floors_total_lbl">TỔNG:</span>
                                         <field name="vd_intake_total_m2" nolabel="1"
                                                class="o_vd_floors_total_val" readonly="1"/>
-                                        <span class="o_vd_floors_total_unit">m²</span>
+                                        <span class="o_vd_floors_total_unit">M²</span>
                                     </span>
                                 </div>
                             </div>

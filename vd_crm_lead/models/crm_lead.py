@@ -545,8 +545,8 @@ class CrmLead(models.Model):
         ('5', '5'),
         ('6', '6'),
         ('7', '7'),
-    ], string='Số tầng',
-        help='Chọn số tầng dạng thẻ (1-7). Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng. Tum là toggle riêng (vd_intake_has_tum).')
+    ], string='Số tầng', default='1',
+        help='Chọn số tầng dạng thẻ (1-7). Default = 1. Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng. Tum là toggle riêng (vd_intake_has_tum).')
 
     # Tum optional toggle — chỉ chọn khi đã chọn số tầng. Tum là tầng trên cùng.
     vd_intake_has_tum = fields.Boolean(
@@ -568,8 +568,8 @@ class CrmLead(models.Model):
     vd_intake_floor_thongtang_m2 = fields.Float(string='Thông tầng (m²)', digits=(10, 1))
     # ===== Counter cho UI '+ Tầng' button — sync 2 chiều với floors_select =====
     vd_intake_floors_count = fields.Integer(
-        string='Số tầng đã thêm', default=0,
-        help='Đếm số lần bấm + Tầng. Sync với vd_intake_floors_select.',
+        string='Số tầng đã thêm', default=1,
+        help='Đếm số lần bấm + Tầng. Default = 1 (mặc định có Tầng 1). Sync với vd_intake_floors_select.',
     )
 
     # ===== Công năng từng tầng — Many2many dropdown per floor =====

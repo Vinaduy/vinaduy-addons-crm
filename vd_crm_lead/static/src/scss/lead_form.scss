@@ -10317,7 +10317,12 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     align-items: center !important;
     gap: 0.35rem !important;
 }
-/* Input bên trong floor_pair = giống area_dim (140×41px) — đảm bảo đồng nhất */
+/* Input bên trong floor_pair = giống area_dim Diện tích nhà/đất (140×41px) — HIGH SPECIFICITY */
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim,
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim > input,
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_floor_pair .o_vd_area_dim,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_floor_pair .o_vd_area_dim input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim input {
     width: 140px !important;
@@ -10329,21 +10334,28 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     padding: 0 0.7rem !important;
     text-align: center !important;
     font-size: 16px !important;
+    line-height: 1.3 !important;
     box-sizing: border-box !important;
     flex: 0 0 140px !important;
 }
-/* Tổng diện tích sàn — pill xanh ở cuối row */
+/* Tổng diện tích sàn — pill xanh ngắn 'TỔNG: 60 M²' */
 .o_vd_intake_inline .o_vd_floors_total_inline {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 0.35rem !important;
+    gap: 0.3rem !important;
     padding: 0.3rem 0.85rem !important;
     border-radius: 999px !important;
     background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%) !important;
     color: #1b5e20 !important;
     font-weight: 700 !important;
     margin-left: auto !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+.o_vd_intake_inline .o_vd_floors_total_inline .o_vd_floors_total_lbl {
+    font-weight: 800 !important;
+    color: #1b5e20 !important;
 }
 .o_vd_intake_inline .o_vd_floors_total_inline .o_vd_floors_total_val,
 .o_vd_intake_inline .o_vd_floors_total_inline .o_vd_floors_total_val input {
