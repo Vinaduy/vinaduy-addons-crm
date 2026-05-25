@@ -8672,6 +8672,59 @@ $vd-panel-head-radius: 10px;
 .o_vd_summary_card .o_vd_wf_btn:hover { background: var(--vd-navy-d) !important; }
 
 /* ============================================================================
+   NATIVE <select> REDESIGN — đã bỏ widget="vd_selection_dropdown" trong XML.
+   Selection fields giờ render bằng native HTML <select> → browser tự xử lý
+   menu position (không còn bug "menu vị trí sai").
+   Style: rectangle clean như text input, chevron SVG navy ở cuối, không có ×
+   (native select có Backspace/Delete để clear, hoặc reset bằng giá trị rỗng).
+   ============================================================================ */
+.o_vd_intake_inline select,
+.o_vd_intake_inline .o_field_widget select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    /* Chevron SVG navy color #1e3a5f */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e3a5f' d='M6 8.5L1.5 4h9z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.65rem center !important;
+    background-size: 12px 12px !important;
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-input) !important;
+    font-weight: 500 !important;
+    padding: 0.45rem 2rem 0.45rem 0.7rem !important;
+    line-height: 1.35 !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    height: auto !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.o_vd_intake_inline select:hover,
+.o_vd_intake_inline .o_field_widget select:hover {
+    border-color: var(--vd-navy-s) !important;
+    background-color: var(--vd-cream) !important;
+}
+.o_vd_intake_inline select:focus,
+.o_vd_intake_inline .o_field_widget select:focus {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+    background-color: #fff !important;
+}
+.o_vd_intake_inline select option {
+    color: var(--vd-text) !important;
+    background: #fff !important;
+    padding: 0.4rem 0.7rem !important;
+}
+/* Placeholder option (value="") — muted text */
+.o_vd_intake_inline select option[value=""] {
+    color: var(--vd-text-muted) !important;
+    font-style: italic !important;
+}
+
+/* ============================================================================
    DROPDOWN REDESIGN — vd_selection_dropdown widget cho navy+cream theme
    --------------------------------------------------------------------------
    Vấn đề cũ: chip-pill style trông cũ kỹ, × clear button thô, chevron lạc tone,

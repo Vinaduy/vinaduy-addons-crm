@@ -243,14 +243,12 @@
                                     <div class="o_vd_hero_tech_list">
                                         <div class="o_vd_pf_compact">
                                             <label for="vd_intake_foundation_type">Loại móng</label>
-                                            <field name="vd_intake_foundation_type" widget="vd_selection_dropdown" nolabel="1"
-                                                   options="{'extensible': True}"
+                                            <field name="vd_intake_foundation_type" nolabel="1"
                                                    placeholder="Móng gì?"/>
                                         </div>
                                         <div class="o_vd_pf_compact">
                                             <label for="vd_intake_house_type">Kiểu nhà</label>
-                                            <field name="vd_intake_house_type" widget="vd_selection_dropdown" nolabel="1"
-                                                   options="{'extensible': True}"
+                                            <field name="vd_intake_house_type" nolabel="1"
                                                    placeholder="Kiểu nhà nào?"/>
                                         </div>
                                     </div>
@@ -342,8 +340,7 @@
                                             </div>
                                             <div class="o_vd_pf">
                                                 <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
-                                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
-                                                       options="{'extensible': True}"
+                                                <field name="vd_intake_dimensions" nolabel="1"
                                                        placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
                                             </div>
                                             <div class="o_vd_pf">
@@ -356,19 +353,18 @@
                                             </div>
                                             <div class="o_vd_pf">
                                                 <label for="vd_intake_land_type">Loại đất</label>
-                                                <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
-                                                       options="{'extensible': True}"
+                                                <field name="vd_intake_land_type" nolabel="1"
                                                        placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
                                             </div>
                                             <div class="o_vd_pf">
                                                 <label for="vd_intake_car_access_select">Ô tô vào</label>
                                                 <field name="vd_intake_car_access" invisible="1"/>
-                                                <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
+                                                <field name="vd_intake_car_access_select" nolabel="1"
                                                        placeholder="Có / Không"/>
                                             </div>
                                             <div class="o_vd_pf">
                                                 <label for="vd_intake_soil_dump">Chỗ để đất móng</label>
-                                                <field name="vd_intake_soil_dump" widget="vd_selection_dropdown" nolabel="1"
+                                                <field name="vd_intake_soil_dump" nolabel="1"
                                                        placeholder="Có / Không có chỗ để đất"/>
                                             </div>
                                             <div class="o_vd_pf o_vd_pf_notes o_vd_floor_function_list"
