@@ -9156,6 +9156,131 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================================
+   🎯 DROPDOWN / INPUT UNIFIED — đồng bộ MỌI ô nhập (select, many2one, input)
+   --------------------------------------------------------------------------
+   User pain point: dropdown chữ nhỏ, đè label, lệch vị trí, kích thước khác
+   nhau giữa native <select> (Selection) và .o-autocomplete (Many2one).
+
+   Override NUCLEAR 13px chỉ cho FORM CONTROLS — text body label giữ 13px,
+   nhưng giá trị bên trong input phải 14px (chuẩn vd-fs-input) + height +
+   padding + border-radius đồng nhất → tất cả dropdown trông như 1 type.
+   ============================================================================ */
+.o_vd_layout_grid .o_vd_intake_inline select,
+.o_vd_layout_grid .o_vd_intake_inline input[type="text"],
+.o_vd_layout_grid .o_vd_intake_inline input[type="number"],
+.o_vd_layout_grid .o_vd_intake_inline input:not([type]),
+.o_vd_layout_grid .o_vd_intake_inline textarea,
+.o_vd_layout_grid .o_vd_intake_inline .o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete--input,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input,
+.o_vd_layout_grid .o_vd_intake_inline .o_field_widget select,
+.o_vd_layout_grid .o_vd_intake_inline .o_field_widget input {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    box-sizing: border-box !important;
+    padding: 0.35rem 0.6rem !important;
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    color: var(--vd-text) !important;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease !important;
+    vertical-align: middle !important;
+}
+/* Wrapper .o-autocomplete chỉ là div — bỏ border/height riêng để input bên trong style chuẩn */
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: 100% !important;
+    display: block !important;
+}
+/* Native <select> — ép appearance để mọi browser render giống nhau + chevron tùy biến */
+.o_vd_layout_grid .o_vd_intake_inline select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 1.8rem !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%231e3a5f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.65rem center !important;
+    background-size: 12px 8px !important;
+    cursor: pointer !important;
+}
+/* Hover / focus state — đồng bộ navy theme */
+.o_vd_layout_grid .o_vd_intake_inline select:hover,
+.o_vd_layout_grid .o_vd_intake_inline input:hover,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:hover,
+.o_vd_layout_grid .o_vd_intake_inline .o_input:hover {
+    border-color: var(--vd-navy-s) !important;
+    background-color: var(--vd-cream) !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline select:focus,
+.o_vd_layout_grid .o_vd_intake_inline input:focus,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input:focus,
+.o_vd_layout_grid .o_vd_intake_inline .o_input:focus {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+    background-color: #fff !important;
+}
+/* Placeholder font-size match input */
+.o_vd_layout_grid .o_vd_intake_inline input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline textarea::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o-autocomplete input::placeholder {
+    font-size: 14px !important;
+    color: var(--vd-text-muted) !important;
+    opacity: 0.85 !important;
+}
+
+/* ===== STEP_FIELD: label trái + dropdown phải — KHÔNG đè, KHÔNG lệch =====
+   Label fixed-width → mọi step_field trên cùng row align chuẩn, dropdown
+   không tràn sang vùng label. */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field {
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > label {
+    flex: 0 0 auto !important;
+    min-width: 72px !important;
+    max-width: 110px !important;
+    text-align: left !important;
+    font-size: 13px !important;
+    color: var(--vd-text-muted) !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+/* Field wrapper TAKE remaining space — dropdown luôn fit khít vùng còn lại */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > .o_field_widget,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > .o-autocomplete {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+}
+
+/* ===== DROPDOWN MENU (popup) — items đồng bộ font 14px =====
+   Portal-rendered (nằm ngoài layout_grid), cần selector global. */
+.o-autocomplete--dropdown-menu {
+    z-index: 10000 !important;
+    min-width: 240px !important;
+    max-height: 320px !important;
+    overflow-y: auto !important;
+}
+.o-autocomplete--dropdown-item {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    padding: 0.5rem 0.85rem !important;
+}
+
+/* ============================================================================
    PREVIEW TOPBAR — chip NV (cạnh nút Copy tên + Copy SĐT)
    .o_vd_preview_name + .o_vd_preview_phone là button (.o_vd_preview_copy_btn) →
    styled trong dashboard.scss. Chỉ còn .o_vd_preview_user là span thuần.
