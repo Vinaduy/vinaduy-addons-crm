@@ -10246,12 +10246,118 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
 }
 
 /* Dim label "Dài:" / "Rộng:" inline cạnh input */
-.o_vd_intake_inline .o_vd_area_row .o_vd_dim_lbl {
+.o_vd_intake_inline .o_vd_area_row .o_vd_dim_lbl,
+.o_vd_intake_inline .o_vd_floors_oneline .o_vd_dim_lbl {
     font-size: 14px !important;
     font-weight: 600 !important;
     color: var(--vd-text) !important;
     margin-right: 0.2rem !important;
     white-space: nowrap !important;
+}
+
+/* ============================================================================
+   🏗️ STEP 5 SỐ TẦNG — 1 dòng inline: [+ Tầng] [Tầng N: __] ... [+ Tum] [+ Lửng] [Tổng]
+   ============================================================================ */
+.o_vd_intake_inline .o_vd_floors_oneline {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.4rem 0.6rem !important;
+    min-width: 0 !important;
+}
+/* Chip button "+ Tầng" / "+ Tum" / "+ Lửng" / "- Tầng" */
+.o_vd_intake_inline .o_vd_floor_chip_btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    height: 36px !important;
+    padding: 0 0.85rem !important;
+    border-radius: 999px !important;
+    border: 1.5px dashed #c9a26a !important;
+    background: rgba(201, 162, 106, 0.08) !important;
+    color: #8a5a00 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_btn:hover {
+    background: rgba(201, 162, 106, 0.18) !important;
+    border-style: solid !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_btn i {
+    font-size: 12px !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_remove {
+    border-color: #b91c1c !important;
+    color: #b91c1c !important;
+    background: rgba(185, 28, 28, 0.05) !important;
+    padding: 0 0.65rem !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_remove:hover {
+    background: rgba(185, 28, 28, 0.15) !important;
+}
+/* Inline × để bỏ Tum / Lửng cạnh input */
+.o_vd_intake_inline .o_vd_floor_chip_remove_inline {
+    background: transparent !important;
+    border: none !important;
+    color: #b91c1c !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    padding: 0 0.3rem !important;
+    line-height: 1 !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_remove_inline:hover {
+    color: #7f1d1d !important;
+}
+/* Pair (label + input) inline */
+.o_vd_intake_inline .o_vd_floor_pair {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+}
+/* Input bên trong floor_pair = giống area_dim (140×41px) — đảm bảo đồng nhất */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim input {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    max-height: 41px !important;
+    padding: 0 0.7rem !important;
+    text-align: center !important;
+    font-size: 16px !important;
+    box-sizing: border-box !important;
+    flex: 0 0 140px !important;
+}
+/* Tổng diện tích sàn — pill xanh ở cuối row */
+.o_vd_intake_inline .o_vd_floors_total_inline {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    padding: 0.3rem 0.85rem !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%) !important;
+    color: #1b5e20 !important;
+    font-weight: 700 !important;
+    margin-left: auto !important;
+    font-size: 14px !important;
+}
+.o_vd_intake_inline .o_vd_floors_total_inline .o_vd_floors_total_val,
+.o_vd_intake_inline .o_vd_floors_total_inline .o_vd_floors_total_val input {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #1b5e20 !important;
+    width: auto !important;
+    min-width: 60px !important;
+    max-width: 90px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: auto !important;
+    text-align: right !important;
 }
 /* Wrapper .o_field_widget của các input area phải fit content, không stretch */
 .o_vd_intake_inline .o_vd_area_row .o_field_widget {

@@ -329,68 +329,100 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 5: SỐ TẦNG (chips + Tum + per-floor + Tổng) ===== -->
+                            <!-- ===== STEP 5: SỐ TẦNG (1 dòng: + Tầng → inputs → + Tum → + Lửng → Tổng) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">5</span>
                                     <span class="o_vd_step_text">Số tầng</span>
                                 </div>
-                                <div class="o_vd_step_body">
-                                    <div class="o_vd_floors_row">
-                                        <field name="vd_intake_floors_select" widget="radio"
-                                               options="{'horizontal': True}"
-                                               class="o_vd_floors_chips" nolabel="1"/>
+                                <div class="o_vd_step_body o_vd_floors_oneline">
+                                    <field name="vd_intake_floors_count" invisible="1"/>
+                                    <field name="vd_intake_floors_select" invisible="1"/>
+                                    <field name="vd_intake_has_lung" invisible="1"/>
+
+                                    <!-- + Tầng button — bấm tăng counter, max 7 -->
+                                    <button name="action_add_floor" type="object"
+                                            class="btn o_vd_floor_chip_btn"
+                                            invisible="vd_intake_floors_count &gt;= 7">
+                                        <i class="fa fa-plus"/> Tầng
+                                    </button>
+                                    <button name="action_remove_floor" type="object"
+                                            class="btn o_vd_floor_chip_btn o_vd_floor_chip_remove"
+                                            invisible="vd_intake_floors_count &lt; 1"
+                                            title="Bỏ tầng cuối">
+                                        <i class="fa fa-minus"/>
+                                    </button>
+
+                                    <!-- Inputs per-floor: hiện theo floors_count -->
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 1">
+                                        <span class="o_vd_dim_lbl">Tầng 1 (m²):</span>
+                                        <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 2">
+                                        <span class="o_vd_dim_lbl">Tầng 2 (m²):</span>
+                                        <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 3">
+                                        <span class="o_vd_dim_lbl">Tầng 3 (m²):</span>
+                                        <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 4">
+                                        <span class="o_vd_dim_lbl">Tầng 4 (m²):</span>
+                                        <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 5">
+                                        <span class="o_vd_dim_lbl">Tầng 5 (m²):</span>
+                                        <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 6">
+                                        <span class="o_vd_dim_lbl">Tầng 6 (m²):</span>
+                                        <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 7">
+                                        <span class="o_vd_dim_lbl">Tầng 7 (m²):</span>
+                                        <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+
+                                    <!-- + Tum button + input -->
+                                    <button name="action_toggle_tum" type="object"
+                                            class="btn o_vd_floor_chip_btn"
+                                            invisible="vd_intake_has_tum">
+                                        <i class="fa fa-plus"/> Tum
+                                    </button>
+                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_tum">
+                                        <span class="o_vd_dim_lbl">Tum (m²):</span>
+                                        <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                         <button name="action_toggle_tum" type="object"
-                                                class="o_vd_tum_chip"
-                                                invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7'] or vd_intake_has_tum">
-                                            + Tum
-                                        </button>
-                                        <button name="action_toggle_tum" type="object"
-                                                class="o_vd_tum_chip o_vd_tum_chip_active"
-                                                invisible="not vd_intake_has_tum">
-                                            ✓ Tum
-                                        </button>
-                                    </div>
-                                    <div class="o_vd_floor_area_list" invisible="not vd_intake_floors_select and not vd_intake_has_tum">
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7']">
-                                            <label for="vd_intake_floor_1_m2">Tầng 1</label>
-                                            <field name="vd_intake_floor_1_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['2', '3', '4', '5', '6', '7']">
-                                            <label for="vd_intake_floor_2_m2">Tầng 2</label>
-                                            <field name="vd_intake_floor_2_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['3', '4', '5', '6', '7']">
-                                            <label for="vd_intake_floor_3_m2">Tầng 3</label>
-                                            <field name="vd_intake_floor_3_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['4', '5', '6', '7']">
-                                            <label for="vd_intake_floor_4_m2">Tầng 4</label>
-                                            <field name="vd_intake_floor_4_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['5', '6', '7']">
-                                            <label for="vd_intake_floor_5_m2">Tầng 5</label>
-                                            <field name="vd_intake_floor_5_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select not in ['6', '7']">
-                                            <label for="vd_intake_floor_6_m2">Tầng 6</label>
-                                            <field name="vd_intake_floor_6_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="vd_intake_floors_select != '7'">
-                                            <label for="vd_intake_floor_7_m2">Tầng 7</label>
-                                            <field name="vd_intake_floor_7_m2" nolabel="1" placeholder="m²"/>
-                                        </div>
-                                        <div class="o_vd_pf_compact" invisible="not vd_intake_has_tum">
-                                            <label for="vd_intake_floor_tum_m2">Tum</label>
-                                            <field name="vd_intake_floor_tum_m2" nolabel="1" placeholder="m² (≈ 15-30)"/>
-                                        </div>
-                                    </div>
-                                    <div class="o_vd_floors_total" invisible="not vd_intake_total_m2">
-                                        <span class="o_vd_floors_total_lbl">📐 Tổng diện tích sàn:</span>
+                                                class="o_vd_floor_chip_remove_inline"
+                                                title="Bỏ Tum">×</button>
+                                    </span>
+
+                                    <!-- + Lửng button + 2 inputs (Lửng + Thông tầng) -->
+                                    <button name="action_toggle_lung" type="object"
+                                            class="btn o_vd_floor_chip_btn"
+                                            invisible="vd_intake_has_lung">
+                                        <i class="fa fa-plus"/> Lửng
+                                    </button>
+                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
+                                        <span class="o_vd_dim_lbl">Lửng (m²):</span>
+                                        <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                    </span>
+                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
+                                        <span class="o_vd_dim_lbl">Thông tầng (m²):</span>
+                                        <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <button name="action_toggle_lung" type="object"
+                                                class="o_vd_floor_chip_remove_inline"
+                                                title="Bỏ Lửng">×</button>
+                                    </span>
+
+                                    <!-- Tổng diện tích sàn — luôn ở cuối row -->
+                                    <span class="o_vd_floors_total_inline" invisible="not vd_intake_total_m2">
+                                        <i class="fa fa-bar-chart" title="Tổng"/>
+                                        <span class="o_vd_floors_total_lbl">Tổng diện tích sàn:</span>
                                         <field name="vd_intake_total_m2" nolabel="1"
                                                class="o_vd_floors_total_val" readonly="1"/>
                                         <span class="o_vd_floors_total_unit">m²</span>
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
 

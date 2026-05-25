@@ -562,6 +562,15 @@ class CrmLead(models.Model):
     vd_intake_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1))
     vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
     vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
+    # ===== Lửng (mezzanine) — NV bấm '+ Lửng' để mở 2 ô: Lửng + Thông tầng =====
+    vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False)
+    vd_intake_floor_lung_m2 = fields.Float(string='Lửng (m²)', digits=(10, 1))
+    vd_intake_floor_thongtang_m2 = fields.Float(string='Thông tầng (m²)', digits=(10, 1))
+    # ===== Counter cho UI '+ Tầng' button — sync 2 chiều với floors_select =====
+    vd_intake_floors_count = fields.Integer(
+        string='Số tầng đã thêm', default=0,
+        help='Đếm số lần bấm + Tầng. Sync với vd_intake_floors_select.',
+    )
 
     # ===== Công năng từng tầng — Many2many dropdown per floor =====
     # NV chọn nhanh từ dropdown chip-pill cho mỗi tầng.
@@ -691,6 +700,36 @@ class CrmLead(models.Model):
         # Auto-fill tum area từ area_m2 nếu vừa bật
         if self.vd_intake_has_tum and self.vd_intake_area_m2 and not self.vd_intake_floor_tum_m2:
             self.vd_intake_floor_tum_m2 = self.vd_intake_area_m2
+        return True
+
+    def action_add_floor(self):
+        """Bấm '+ Tầng' → tăng counter (max 7) + sync floors_select."""
+        self.ensure_one()
+        if self.vd_intake_floors_count < 7:
+            new_count = self.vd_intake_floors_count + 1
+            self.vd_intake_floors_count = new_count
+            self.vd_intake_floors_select = str(new_count)
+        return True
+
+    def action_remove_floor(self):
+        """Bấm '- Tầng' → giảm counter (min 0) + clear m² của tầng vừa xoá."""
+        self.ensure_one()
+        if self.vd_intake_floors_count > 0:
+            last = self.vd_intake_floors_count
+            # Clear m² của tầng cuối
+            setattr(self, f'vd_intake_floor_{last}_m2', 0.0)
+            new_count = last - 1
+            self.vd_intake_floors_count = new_count
+            self.vd_intake_floors_select = str(new_count) if new_count > 0 else False
+        return True
+
+    def action_toggle_lung(self):
+        """Toggle Lửng on/off — bật → mở 2 ô Lửng + Thông tầng."""
+        self.ensure_one()
+        self.vd_intake_has_lung = not self.vd_intake_has_lung
+        if not self.vd_intake_has_lung:
+            self.vd_intake_floor_lung_m2 = 0.0
+            self.vd_intake_floor_thongtang_m2 = 0.0
         return True
 
     # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
