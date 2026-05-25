@@ -10142,9 +10142,8 @@ $vd-panel-head-radius: 10px;
     font-style: italic;
 }
 
-/* === DIỆN TÍCH INPUTS: +30% width (117px), +20% height (38px) ===
-   QUAN TRỌNG: phải đè cả max-height/max-width của FINAL OVERRIDE phía trên
-   (set max-height: 32px) bằng cách bao gồm thuộc tính max-* trong rule mới. */
+/* === DIỆN TÍCH INPUTS: 140px × 46px (+20% so với 117×38) ===
+   Override mọi max-* của FINAL OVERRIDE phía trên (max-height: 32px). */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input,
@@ -10156,18 +10155,51 @@ $vd-panel-head-radius: 10px;
 .o_vd_intake_inline .o_vd_area_input input,
 .o_vd_intake_inline .o_vd_area_dim,
 .o_vd_intake_inline .o_vd_area_dim input {
-    width: 117px !important;
-    min-width: 117px !important;
-    max-width: 117px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    padding: 0 0.6rem !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 0 0.7rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 117px !important;
-    font-size: 14px !important;
+    flex: 0 0 140px !important;
+    font-size: 15px !important;
     line-height: 1.3 !important;
+}
+/* HIDE × clear button (browser native + Odoo wrapper) trên area inputs */
+.o_vd_intake_inline .o_vd_area_row input::-webkit-search-cancel-button,
+.o_vd_intake_inline .o_vd_area_row input::-webkit-clear-button,
+.o_vd_intake_inline .o_vd_area_row input::-ms-clear,
+.o_vd_intake_inline .o_vd_area_row input::-ms-reveal {
+    display: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+.o_vd_intake_inline .o_vd_area_row .o_field_widget .fa-times,
+.o_vd_intake_inline .o_vd_area_row .o_field_widget [class*="clear"],
+.o_vd_intake_inline .o_vd_area_row .o_field_widget button[title*="lear"],
+.o_vd_intake_inline .o_vd_area_row .o_field_widget button[title*="óa"],
+.o_vd_intake_inline .o_vd_area_row .o_field_widget button[title*="oá"] {
+    display: none !important;
+}
+/* Spinner arrows của number input cũng bỏ luôn cho gọn */
+.o_vd_intake_inline .o_vd_area_row input[type="number"]::-webkit-inner-spin-button,
+.o_vd_intake_inline .o_vd_area_row input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+/* Dim label "Dài:" / "Rộng:" inline cạnh input */
+.o_vd_intake_inline .o_vd_area_row .o_vd_dim_lbl {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--vd-text) !important;
+    margin-right: 0.2rem !important;
+    white-space: nowrap !important;
 }
 /* Wrapper .o_field_widget của các input area phải fit content, không stretch */
 .o_vd_intake_inline .o_vd_area_row .o_field_widget {
@@ -10195,7 +10227,7 @@ $vd-panel-head-radius: 10px;
     max-width: 60px !important;
 }
 
-/* Wrapper o-checkbox.o_boolean_toggle — 44×24 inline-flex */
+/* Wrapper o-checkbox.o_boolean_toggle — 44×24 inline-flex, margin lớn khỏi đè label */
 .o_vd_intake_inline .o_boolean_toggle.o-checkbox,
 .o_vd_intake_inline .o-checkbox.o_boolean_toggle,
 .o_vd_layout_grid .o_vd_intake_inline .o_boolean_toggle {
@@ -10209,9 +10241,15 @@ $vd-panel-head-radius: 10px;
     min-height: 24px !important;
     max-height: 24px !important;
     padding: 0 !important;
-    margin: 0 0.3rem !important;
+    margin: 0 1rem 0 0.8rem !important;
     flex: 0 0 44px !important;
     position: relative !important;
+    vertical-align: middle !important;
+}
+/* Label đứng trước toggle: khoảng cách thoáng */
+.o_vd_intake_inline .o_vd_area_row .o_vd_area_lbl {
+    margin-right: 0.5rem !important;
+    white-space: nowrap !important;
 }
 
 /* Input checkbox = pill + sliding knob (background-image SVG) */
