@@ -10028,6 +10028,24 @@ $vd-panel-head-radius: 10px;
     max-width: 480px !important;
 }
 
+/* === NGÂN SÁCH input width = selection chips (~320px) === */
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual > .o_field_widget,
+.o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual > .o_field_widget input {
+    min-width: 320px !important;
+    width: 320px !important;
+    max-width: 320px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    max-height: 41px !important;
+    font-size: 15px !important;
+    padding: 0 0.7rem !important;
+    box-sizing: border-box !important;
+}
+
 /* === BUMP TOÀN BỘ TEXT trong steps_panel +20% (13→16, 14→17) ===
    Override NUCLEAR 13px. Áp cho mọi label, value, placeholder, dropdown
    item bên trong panel THÔNG TIN TƯ VẤN. Trừ: step_num (giữ nhỏ),
@@ -10214,17 +10232,17 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_dim,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_dim input {
-    width: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
     height: 41px !important;
     min-height: 41px !important;
     max-height: 41px !important;
-    padding: 0 0.7rem !important;
+    padding: 0 0.4rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 112px !important;
-    font-size: 16px !important;
+    flex: 0 0 90px !important;
+    font-size: 15px !important;
     line-height: 1.3 !important;
 }
 /* HIDE × clear button (browser native + Odoo wrapper) trên area inputs */
@@ -10336,7 +10354,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     margin-right: 0 !important;
     font-size: 14px !important;
 }
-/* Input bên trong floor_pair = giống area_dim Diện tích nhà/đất (140×41px) — HIGH SPECIFICITY */
+/* Input bên trong floor_pair = giống area_dim Diện tích nhà/đất (90×41px) */
 div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim,
 div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim > input,
 div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_dim input,
@@ -10344,18 +10362,18 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_floor_pair .o_vd_area_dim input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_floors_oneline .o_vd_area_dim input {
-    width: 112px !important;
-    min-width: 112px !important;
-    max-width: 112px !important;
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
     height: 41px !important;
     min-height: 41px !important;
     max-height: 41px !important;
-    padding: 0 0.5rem !important;
+    padding: 0 0.4rem !important;
     text-align: center !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     line-height: 1.3 !important;
     box-sizing: border-box !important;
-    flex: 0 0 112px !important;
+    flex: 0 0 90px !important;
 }
 /* Tổng diện tích sàn — pill xanh ngắn 'TỔNG: 60 M²' */
 .o_vd_intake_inline .o_vd_floors_total_inline {
@@ -10516,21 +10534,28 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     flex-direction: column !important;
     gap: 0.6rem !important;
 }
+/* Grid layout SHRINK — fit trong khung max ~560px (giống Thời gian dropdown) */
+.o_vd_intake_inline .o_vd_areas_grid {
+    max-width: 560px !important;
+    width: 100% !important;
+}
 .o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid {
     display: grid !important;
     grid-template-columns:
-        140px       /* 1. Label 'Diện tích nhà/đất:' */
-        auto        /* 2. Main toggle */
-        220px       /* 3. Subtoggle cell (Đất rộng + toggle, hoặc placeholder cho nhà) */
-        auto        /* 4. 'Dài:' label */
-        112px       /* 5. Dài input (-20%) */
-        auto        /* 6. × separator */
-        auto        /* 7. 'Rộng:' label */
-        112px       /* 8. Rộng input (-20%) */
+        90px        /* 1. Label 'Diện tích nhà/đất:' (rút gọn) */
+        44px        /* 2. Main toggle */
+        140px       /* 3. Subtoggle cell (Đất rộng + toggle, hoặc placeholder cho nhà) */
+        28px        /* 4. 'Dài:' label */
+        90px        /* 5. Dài input (-20% từ 112) */
+        12px        /* 6. × separator */
+        38px        /* 7. 'Rộng:' label */
+        90px        /* 8. Rộng input */
         ;
-    gap: 0 0.5rem !important;
+    gap: 0 0.3rem !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
 }
 /* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất */
 .o_vd_intake_inline .o_vd_subtoggle_cell {

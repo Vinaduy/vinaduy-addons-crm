@@ -537,9 +537,8 @@
                                     <span class="o_vd_step_text">Ngân sách dự kiến</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_step_body_budget">
-                                    <!-- Ngân sách KH TRƯỚC (user nhập trước) -->
+                                    <!-- Ngân sách KH TRƯỚC (user nhập). Bỏ label theo user. -->
                                     <div class="o_vd_budget_row o_vd_budget_manual">
-                                        <span class="o_vd_budget_lbl">Ngân sách KH:</span>
                                         <field name="vd_intake_budget_amount" widget="monetary"
                                                options="{'currency_field': 'vd_currency_vnd_id'}"
                                                nolabel="1" placeholder="Vd: 2,000,000,000"/>
