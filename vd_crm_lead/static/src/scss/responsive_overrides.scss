@@ -332,6 +332,33 @@ html, body {
 }
 
 /* ============================================================
+   8a. Nút "← Quay lại" trong navbar (vd_back_button.js inject)
+   ============================================================ */
+.o_main_navbar .vd_back_btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    margin-left: 0.6rem;
+    margin-right: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.35);
+        color: #fff;
+    }
+    &:active { transform: translateY(1px); }
+    i { font-size: 0.8rem; }
+    .vd_back_lbl { font-weight: 600; }
+}
+
+/* ============================================================
    8b. Dashboard NV: 2 sections "Khách mới" + "Đang xử lý vấn đề"
    nằm CẠNH NHAU (grid 2 cột) thay vì stack dọc. Wrap thành 1 cột
    khi viewport <= 1100px.
