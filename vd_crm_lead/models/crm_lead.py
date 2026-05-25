@@ -502,6 +502,16 @@ class CrmLead(models.Model):
         default=False,
         help='Bật khi cần nhập diện tích đất riêng (đa số KH chỉ tính diện tích nhà).',
     )
+    vd_intake_show_house_area = fields.Boolean(
+        string='Hiện diện tích nhà',
+        default=True,
+        help='Tắt khi chưa rõ kích thước cụ thể của nhà (vd: chỉ ước tính từ số tầng).',
+    )
+    vd_intake_land_unlimited = fields.Boolean(
+        string='Đất rộng (không kích thước cụ thể)',
+        default=False,
+        help='Bật khi đất vườn rộng, không có kích thước cụ thể → ẩn ô nhập diện tích đất.',
+    )
 
     @api.depends('vd_intake_length_m', 'vd_intake_width_m')
     def _compute_area_from_dims(self):

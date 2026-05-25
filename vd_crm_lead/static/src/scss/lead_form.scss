@@ -10142,7 +10142,7 @@ $vd-panel-head-radius: 10px;
     font-style: italic;
 }
 
-/* === DIỆN TÍCH INPUTS: uniform 90px × 32px (không quá dài, đều nhau) === */
+/* === DIỆN TÍCH INPUTS: +30% width (90→117px), +20% height (32→38px) === */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input,
@@ -10154,15 +10154,81 @@ $vd-panel-head-radius: 10px;
 .o_vd_intake_inline .o_vd_area_input input,
 .o_vd_intake_inline .o_vd_area_dim,
 .o_vd_intake_inline .o_vd_area_dim input {
-    width: 90px !important;
-    min-width: 90px !important;
-    max-width: 90px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 0 0.5rem !important;
+    width: 117px !important;
+    min-width: 117px !important;
+    max-width: 117px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 0.6rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 90px !important;
+    flex: 0 0 117px !important;
+    font-size: 14px !important;
+}
+
+/* === BOOLEAN_TOGGLE = công tắc oval với knob trượt (force lại Bootstrap form-switch) === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch,
+.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 24px !important;
+    margin: 0 0.3rem !important;
+    padding: 0 !important;
+    position: relative;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"],
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"],
+.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"] {
+    width: 44px !important;
+    height: 24px !important;
+    min-width: 44px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-color: #cbd5e1 !important;
+    background-image: none !important;
+    border: none !important;
+    border-radius: 999px !important;
+    position: relative !important;
+    transition: background-color 0.2s ease !important;
+}
+/* Knob trượt — pseudo ::before */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]::before,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]::before,
+.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 3px !important;
+    left: 3px !important;
+    width: 18px !important;
+    height: 18px !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.2s ease !important;
+}
+/* Khi checked = ON: background amber + knob trượt sang phải */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]:checked,
+.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked {
+    background-color: #f59e0b !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked::before,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]:checked::before,
+.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked::before {
+    transform: translateX(20px) !important;
+}
+/* Subtoggle label (Đất rộng:) */
+.o_vd_intake_inline .o_vd_area_row .o_vd_area_subtoggle_lbl {
+    font-size: 13px !important;
+    color: var(--vd-text-muted) !important;
+    font-weight: 500 !important;
+    margin-left: 0.6rem !important;
 }
 /* Row layout: gap đều, wrap allowed */
 .o_vd_intake_inline .o_vd_area_row {
