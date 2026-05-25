@@ -80,11 +80,15 @@ export class VdM2oHoverPicker extends Component {
             return;
         }
         try {
+            // KHÔNG dùng order: "display_name" — đó là computed field, Postgres
+            // không ORDER BY được → searchRead throws silent error → empty menu.
+            // Dùng default order của model (res.country.state._order='name',
+            // vd.district._order='state_id, name').
             const recs = await this.orm.searchRead(
                 this.relation,
                 dom,
-                ["id", "display_name"],
-                { order: "display_name", limit: 1000 }
+                ["id", "display_name", "name"],
+                { limit: 1000 }
             );
             this.state.options = recs || [];
             this.state.loadedKey = key;

@@ -10013,6 +10013,21 @@ $vd-panel-head-radius: 10px;
     color: var(--vd-navy) !important;
 }
 
+/* === SELECTION CHIPS BAR — width đồng nhất giữa Kiểu nhà / Loại móng / Loại đất /
+       Chỗ để đất / Ô tô vào / Sổ đỏ === */
+.o_vd_intake_inline .o_vd_selection_chips,
+.o_vd_intake_inline .o_vd_selection_chips .o_vd_tlc_bar,
+.o_vd_intake_inline .o_vd_step_body > .o_field_widget .o_vd_selection_chips {
+    min-width: 320px !important;
+    width: 100% !important;
+    max-width: 480px !important;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: 480px !important;
+}
+
 /* === BUMP TOÀN BỘ TEXT trong steps_panel +20% (13→16, 14→17) ===
    Override NUCLEAR 13px. Áp cho mọi label, value, placeholder, dropdown
    item bên trong panel THÔNG TIN TƯ VẤN. Trừ: step_num (giữ nhỏ),
