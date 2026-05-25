@@ -1274,10 +1274,10 @@
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
                     <main class="o_vd_main_v2">
 
-                        <div class="o_vd_funnel_section">
-                            <div class="o_vd_section_title">
-                                <i class="fa fa-filter me-2"/> Pipeline
-                            </div>
+                        <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
+                             quote/negotiate hiển thị trực tiếp ở section "ĐANG XỬ LÝ
+                             VẤN ĐỀ" bên dưới. Giữ comment để dễ rollback nếu cần. -->
+                        <div class="o_vd_funnel_section" style="display:none;">
                             <div class="o_vd_funnel">
                                 <button t-foreach="state.stages" t-as="stage" t-key="stage.id"
                                         t-on-click="() => this.selectStage(stage.id)"
