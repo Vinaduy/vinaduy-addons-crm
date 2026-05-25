@@ -2339,7 +2339,13 @@ div.o_vd_layout_right {
 /* ===== INLINE MODE — panel khai thác nhúng trực tiếp vào card KH =====
    Sau khi gộp 2 bảng làm 1, panel KHÔNG còn ở overlay popup mà render thẳng
    trong customer card. Class .o_vd_intake_inline neutralize toàn bộ popup
-   positioning (fixed/absolute → static, no shadow/border/animation). */
+   positioning (fixed/absolute → static, no shadow/border/animation).
+
+   User yêu cầu font to lên 30% so với hiện tại → zoom: 1.3. Form sheet đã
+   có zoom: 0.7 từ trước, nên effective = 0.7 × 1.3 = 0.91. */
+.o_vd_intake_popup_panel.o_vd_intake_inline {
+    zoom: 1.3 !important;
+}
 .o_vd_intake_popup_panel.o_vd_intake_inline {
     position: static !important;
     top: auto !important;
@@ -2369,6 +2375,40 @@ div.o_vd_layout_right {
     padding: 0.4rem 0 !important;
     flex: none !important;
 }
+/* ===== SUB-SECTION: ĐỊA LÝ / KHU VỰC + CÔNG NĂNG TỪNG TẦNG (gộp vào THÔNG TIN CÔNG TRÌNH)
+   Cần phân biệt với section kích thước/tầng phía trên → divider 2px dashed + background tint
+   nhẹ + sub-header có icon + label hoa. */
+.o_vd_intake_inline .o_vd_area_geo_section {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 2px dashed rgba(34, 139, 34, 0.45);
+    background: rgba(34, 139, 34, 0.05);
+    border-radius: 0 0 8px 8px;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-bottom: 0.55rem;
+}
+.o_vd_intake_inline .o_vd_area_geo_head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid rgba(34, 139, 34, 0.25);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #1f6f3a;
+}
+.o_vd_intake_inline .o_vd_area_geo_head i.fa {
+    font-size: 0.95rem;
+    color: #2e8b57;
+}
+/* Sub-section dùng pf_grid 2 cột — đã có rule sẵn ở .o_vd_intake_popup_panel .o_vd_pf_grid */
+
 /* ===== THỜI GIAN standalone panel — gộp readonly "Thời gian khởi công" + input timeline
    Full-width nằm dưới 2-col THÔNG TIN CÔNG TRÌNH + CHI PHÍ BÁO GIÁ.
    Status badge inline trong head row (cạnh tiêu đề) thay vì badge dưới. */

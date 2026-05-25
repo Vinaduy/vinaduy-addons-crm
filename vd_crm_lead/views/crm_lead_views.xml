@@ -447,6 +447,134 @@
                                             → Áp dụng vào báo giá chi tiết
                                         </span>
                                     </div>
+
+                                    <!-- ===== SUB-SECTION: ĐỊA LÝ / KHU VỰC + CÔNG NĂNG TỪNG TẦNG
+                                         Gộp vào THÔNG TIN CÔNG TRÌNH theo yêu cầu, có divider rõ
+                                         (border-top đậm + sub-header) để phân biệt với section
+                                         kích thước/tầng phía trên. ===== -->
+                                    <div class="o_vd_area_geo_section">
+                                        <div class="o_vd_area_geo_head">
+                                            <i class="fa fa-map-marker"/>
+                                            <span>ĐỊA LÝ / KHU VỰC + CÔNG NĂNG TỪNG TẦNG</span>
+                                        </div>
+                                        <div class="o_vd_pf_grid">
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_province_id">Tỉnh / Thành</label>
+                                                <field name="vd_intake_province_id" nolabel="1"
+                                                       placeholder="Dạ, anh/chị đang xây dựng ở tỉnh / thành phố nào ạ?"
+                                                       options="{'no_create': True, 'no_open': True}"/>
+                                            </div>
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
+                                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
+                                                       options="{'extensible': True}"
+                                                       placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
+                                            </div>
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_district">Huyện / Quận</label>
+                                                <field name="vd_intake_district" nolabel="1"
+                                                       placeholder="Anh/chị cho em xin huyện / quận ở khu vực nào ạ?"
+                                                       domain="[('state_id', '=', vd_intake_province_id)]"
+                                                       context="{'default_state_id': vd_intake_province_id}"
+                                                       options="{'no_open': True}"/>
+                                            </div>
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_land_type">Loại đất</label>
+                                                <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
+                                                       options="{'extensible': True}"
+                                                       placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
+                                            </div>
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_car_access_select">Ô tô vào</label>
+                                                <field name="vd_intake_car_access" invisible="1"/>
+                                                <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
+                                                       placeholder="Có / Không"/>
+                                            </div>
+                                            <div class="o_vd_pf">
+                                                <label for="vd_intake_soil_dump">Chỗ để đất móng</label>
+                                                <field name="vd_intake_soil_dump" widget="vd_selection_dropdown" nolabel="1"
+                                                       placeholder="Có / Không có chỗ để đất"/>
+                                            </div>
+                                            <div class="o_vd_pf o_vd_pf_notes o_vd_floor_function_list"
+                                                 invisible="not vd_intake_floors_select and not vd_intake_has_tum">
+                                                <div class="o_vd_floor_function_lbl">Công năng từng tầng</div>
+                                                <div class="o_vd_floor_function_grid">
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T1</span>
+                                                        <field name="vd_intake_floor_1_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['2', '3', '4', '5', '6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T2</span>
+                                                        <field name="vd_intake_floor_2_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['3', '4', '5', '6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T3</span>
+                                                        <field name="vd_intake_floor_3_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['4', '5', '6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T4</span>
+                                                        <field name="vd_intake_floor_4_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['5', '6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T5</span>
+                                                        <field name="vd_intake_floor_5_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select not in ['6', '7']">
+                                                        <span class="o_vd_floor_function_tag">T6</span>
+                                                        <field name="vd_intake_floor_6_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="vd_intake_floors_select != '7'">
+                                                        <span class="o_vd_floor_function_tag">T7</span>
+                                                        <field name="vd_intake_floor_7_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                    <div class="o_vd_floor_function_row"
+                                                         invisible="not vd_intake_has_tum">
+                                                        <span class="o_vd_floor_function_tag o_vd_tag_tum">Tum</span>
+                                                        <field name="vd_intake_floor_tum_function_ids"
+                                                               widget="many2many_tags"
+                                                               options="{'no_create_edit': False, 'color_field': 'color'}"
+                                                               nolabel="1"
+                                                               placeholder="+ thêm công năng..."/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                             </div>
 
                             <!-- RIGHT — CHI PHÍ BÁO GIÁ (THỜI GIAN tách thành panel riêng dưới) -->
@@ -521,135 +649,8 @@
                             <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
                         </div>
 
-                        <!-- ===== BẢNG THÔNG TIN ĐỊA LÝ / KHU VỰC ===== -->
-                        <div class="o_vd_intake_geo_panel">
-                        <div class="o_vd_pf_grid">
-                            <!-- Row 1: Tỉnh | Sổ đỏ -->
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_province_id">Tỉnh / Thành</label>
-                                <field name="vd_intake_province_id" nolabel="1"
-                                       placeholder="Dạ, anh/chị đang xây dựng ở tỉnh / thành phố nào ạ?"
-                                       options="{'no_create': True, 'no_open': True}"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_dimensions">Sổ đỏ / cấp phép</label>
-                                <field name="vd_intake_dimensions" widget="vd_selection_dropdown" nolabel="1"
-                                       options="{'extensible': True}"
-                                       placeholder="Đất đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
-                            </div>
-                            <!-- Row 2: Huyện | Loại đất -->
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_district">Huyện / Quận</label>
-                                <field name="vd_intake_district" nolabel="1"
-                                       placeholder="Anh/chị cho em xin huyện / quận ở khu vực nào ạ?"
-                                       domain="[('state_id', '=', vd_intake_province_id)]"
-                                       context="{'default_state_id': vd_intake_province_id}"
-                                       options="{'no_open': True}"/>
-                            </div>
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_land_type">Loại đất</label>
-                                <field name="vd_intake_land_type" widget="vd_selection_dropdown" nolabel="1"
-                                       options="{'extensible': True}"
-                                       placeholder="Đất của mình là thổ cư hay nông nghiệp / phân lô ạ?"/>
-                            </div>
-                            <!-- Row 3: Ô tô vào (Công năng cũ đã bỏ — giờ dùng
-                                 multi-tag per-floor ở dưới) -->
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_car_access_select">Ô tô vào</label>
-                                <field name="vd_intake_car_access" invisible="1"/>
-                                <field name="vd_intake_car_access_select" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Có / Không"/>
-                            </div>
-                            <!-- Row 4: Chỗ để đất móng — ảnh hưởng chi phí vận chuyển đất đào -->
-                            <div class="o_vd_pf">
-                                <label for="vd_intake_soil_dump">Chỗ để đất móng</label>
-                                <field name="vd_intake_soil_dump" widget="vd_selection_dropdown" nolabel="1"
-                                       placeholder="Có / Không có chỗ để đất"/>
-                            </div>
-                            <!-- Công năng từng tầng — m2m dropdown chip pills.
-                                 Mỗi tầng = 1 row gọn: [Tầng N] [dropdown chip] -->
-                            <div class="o_vd_pf o_vd_pf_notes o_vd_floor_function_list"
-                                 invisible="not vd_intake_floors_select and not vd_intake_has_tum">
-                                <div class="o_vd_floor_function_lbl">Công năng từng tầng</div>
-                                <div class="o_vd_floor_function_grid">
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7']">
-                                        <span class="o_vd_floor_function_tag">T1</span>
-                                        <field name="vd_intake_floor_1_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['2', '3', '4', '5', '6', '7']">
-                                        <span class="o_vd_floor_function_tag">T2</span>
-                                        <field name="vd_intake_floor_2_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['3', '4', '5', '6', '7']">
-                                        <span class="o_vd_floor_function_tag">T3</span>
-                                        <field name="vd_intake_floor_3_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['4', '5', '6', '7']">
-                                        <span class="o_vd_floor_function_tag">T4</span>
-                                        <field name="vd_intake_floor_4_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['5', '6', '7']">
-                                        <span class="o_vd_floor_function_tag">T5</span>
-                                        <field name="vd_intake_floor_5_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select not in ['6', '7']">
-                                        <span class="o_vd_floor_function_tag">T6</span>
-                                        <field name="vd_intake_floor_6_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="vd_intake_floors_select != '7'">
-                                        <span class="o_vd_floor_function_tag">T7</span>
-                                        <field name="vd_intake_floor_7_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                    <div class="o_vd_floor_function_row"
-                                         invisible="not vd_intake_has_tum">
-                                        <span class="o_vd_floor_function_tag o_vd_tag_tum">Tum</span>
-                                        <field name="vd_intake_floor_tum_function_ids"
-                                               widget="many2many_tags"
-                                               options="{'no_create_edit': False, 'color_field': 'color'}"
-                                               nolabel="1"
-                                               placeholder="+ thêm công năng..."/>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Ghi chú chung đã bỏ theo yêu cầu — chỉ giữ
-                                 multi-tag per-floor ở trên. -->
-                        </div>
-                        </div><!-- /.o_vd_intake_geo_panel -->
+                        <!-- Geo panel + Công năng từng tầng đã CHUYỂN vào sub-section
+                             trong card THÔNG TIN CÔNG TRÌNH (.o_vd_area_geo_section) ở trên. -->
 
 
 
