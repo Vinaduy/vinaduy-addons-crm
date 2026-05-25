@@ -335,18 +335,29 @@
                                     <field name="vd_intake_floors_select" invisible="1"/>
                                     <field name="vd_intake_has_lung" invisible="1"/>
 
-                                    <!-- + Tầng button — bấm tăng counter, max 7 -->
-                                    <button name="action_add_floor" type="object"
-                                            class="btn o_vd_floor_chip_btn"
-                                            invisible="vd_intake_floors_count &gt;= 7">
-                                        <i class="fa fa-plus"/> Tầng
-                                    </button>
-                                    <button name="action_remove_floor" type="object"
-                                            class="btn o_vd_floor_chip_btn o_vd_floor_chip_remove"
-                                            invisible="vd_intake_floors_count &lt; 1"
-                                            title="Bỏ tầng cuối">
-                                        <i class="fa fa-minus"/>
-                                    </button>
+                                    <!-- ===== 4 BUTTON GROUP — luôn đứng đầu, không bao giờ ẩn ===== -->
+                                    <span class="o_vd_floor_btn_group">
+                                        <button name="action_add_floor" type="object"
+                                                class="btn o_vd_floor_chip_btn"
+                                                title="Thêm tầng">
+                                            <i class="fa fa-plus"/> Tầng
+                                        </button>
+                                        <button name="action_toggle_tum" type="object"
+                                                class="btn o_vd_floor_chip_btn"
+                                                title="Toggle Tum">
+                                            <i class="fa fa-plus"/> Tum
+                                        </button>
+                                        <button name="action_toggle_lung" type="object"
+                                                class="btn o_vd_floor_chip_btn"
+                                                title="Toggle Lửng">
+                                            <i class="fa fa-plus"/> Lửng
+                                        </button>
+                                        <button name="action_remove_floor" type="object"
+                                                class="btn o_vd_floor_chip_btn o_vd_floor_chip_remove"
+                                                title="Bỏ tầng cuối">
+                                            <i class="fa fa-minus"/>
+                                        </button>
+                                    </span>
 
                                     <!-- Inputs per-floor: hiện theo floors_count -->
                                     <!-- Tầng 1 ALWAYS visible (default tầng đầu, không cần bấm + Tầng) -->
@@ -379,26 +390,13 @@
                                         <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
                                     </span>
 
-                                    <!-- + Tum button + input -->
-                                    <button name="action_toggle_tum" type="object"
-                                            class="btn o_vd_floor_chip_btn"
-                                            invisible="vd_intake_has_tum">
-                                        <i class="fa fa-plus"/> Tum
-                                    </button>
+                                    <!-- Tum input (button đã ở group trên) -->
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_tum">
                                         <span class="o_vd_dim_lbl">Tum</span>
                                         <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
-                                        <button name="action_toggle_tum" type="object"
-                                                class="o_vd_floor_chip_remove_inline"
-                                                title="Bỏ Tum">×</button>
                                     </span>
 
-                                    <!-- + Lửng button + 2 inputs (Lửng + Thông tầng) -->
-                                    <button name="action_toggle_lung" type="object"
-                                            class="btn o_vd_floor_chip_btn"
-                                            invisible="vd_intake_has_lung">
-                                        <i class="fa fa-plus"/> Lửng
-                                    </button>
+                                    <!-- Lửng + Thông tầng inputs (button đã ở group trên) -->
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
                                         <span class="o_vd_dim_lbl">Lửng</span>
                                         <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
@@ -406,9 +404,6 @@
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
                                         <span class="o_vd_dim_lbl">Thông tầng</span>
                                         <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
-                                        <button name="action_toggle_lung" type="object"
-                                                class="o_vd_floor_chip_remove_inline"
-                                                title="Bỏ Lửng">×</button>
                                     </span>
 
                                     <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->
@@ -429,10 +424,18 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <div class="o_vd_floor_function_grid">
-                                        <div class="o_vd_floor_function_row"
-                                             invisible="vd_intake_floors_select not in ['1', '2', '3', '4', '5', '6', '7']">
+                                        <!-- T1 ALWAYS visible (mặc định có tầng 1) -->
+                                        <div class="o_vd_floor_function_row">
                                             <span class="o_vd_floor_function_tag">T1</span>
                                             <field name="vd_intake_floor_1_function_ids"
+                                                   widget="vd_floor_function_chips"
+                                                   nolabel="1"/>
+                                        </div>
+                                        <!-- ===== LỬNG row — luôn đứng SAU T1, hiện khi has_lung=True ===== -->
+                                        <div class="o_vd_floor_function_row"
+                                             invisible="not vd_intake_has_lung">
+                                            <span class="o_vd_floor_function_tag o_vd_tag_lung">Lửng</span>
+                                            <field name="vd_intake_floor_lung_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
                                         </div>

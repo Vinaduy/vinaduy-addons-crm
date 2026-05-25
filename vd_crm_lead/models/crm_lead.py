@@ -613,6 +613,9 @@ class CrmLead(models.Model):
     vd_intake_floor_tum_function_ids = fields.Many2many(
         'vd.floor.function.tag', 'vd_lead_floor_tum_func_rel',
         'lead_id', 'tag_id', string='Công năng tum')
+    vd_intake_floor_lung_function_ids = fields.Many2many(
+        'vd.floor.function.tag', 'vd_lead_floor_lung_func_rel',
+        'lead_id', 'tag_id', string='Công năng tầng lửng')
 
     # ===== Computed HTML hiển thị công năng từng tầng trong card thông tin KH =====
     vd_intake_floor_functions_html = fields.Html(

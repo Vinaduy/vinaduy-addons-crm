@@ -10313,6 +10313,14 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     gap: 0.4rem 0.6rem !important;
     min-width: 0 !important;
 }
+/* 4 button group — luôn đứng đầu row */
+.o_vd_intake_inline .o_vd_floor_btn_group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    flex-shrink: 0 !important;
+    margin-right: 0.4rem !important;
+}
 /* Chip button "+ Tầng" / "+ Tum" / "+ Lửng" / "- Tầng" */
 .o_vd_intake_inline .o_vd_floor_chip_btn {
     display: inline-flex !important;
@@ -10332,6 +10340,20 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
 .o_vd_intake_inline .o_vd_floor_chip_btn:hover {
     background: rgba(201, 162, 106, 0.18) !important;
     border-style: solid !important;
+}
+/* Active state (Tum/Lửng đang ON) — fill amber solid */
+.o_vd_intake_inline .o_vd_floor_chip_btn_active {
+    background: #fab005 !important;
+    border-style: solid !important;
+    color: #fff !important;
+}
+.o_vd_intake_inline .o_vd_floor_chip_btn_active:hover {
+    background: #f59e0b !important;
+}
+/* Lửng tag trong Công năng — màu khác để phân biệt */
+.o_vd_intake_inline .o_vd_floor_function_tag.o_vd_tag_lung {
+    background: #845ef7 !important;
+    color: #fff !important;
 }
 .o_vd_intake_inline .o_vd_floor_chip_btn i {
     font-size: 12px !important;
