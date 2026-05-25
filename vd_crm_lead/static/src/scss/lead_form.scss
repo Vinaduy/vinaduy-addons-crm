@@ -8891,6 +8891,126 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================================
+   STEP-ROW LAYOUT — bố cục 11 step theo flow tư vấn (Địa chỉ → Thời gian → ...)
+   --------------------------------------------------------------------------
+   Mỗi step: [Số tròn + Tên step] | [Inputs/content bên phải]
+   ============================================================================ */
+.o_vd_intake_inline .o_vd_steps_panel {
+    padding: 0 !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    padding: 0.65rem 1rem !important;
+    margin-bottom: 0 !important;
+    background: var(--vd-cream-d) !important;
+    border-bottom: 2px solid var(--vd-gold) !important;
+}
+
+.o_vd_intake_inline .o_vd_step {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--vd-border);
+    transition: background 0.15s ease;
+}
+.o_vd_intake_inline .o_vd_step:last-child {
+    border-bottom: none;
+}
+.o_vd_intake_inline .o_vd_step:hover {
+    background: rgba(251, 249, 244, 0.5);
+}
+
+.o_vd_intake_inline .o_vd_step_lbl {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--vd-navy);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding-top: 0.35rem;
+    flex-wrap: wrap;
+}
+.o_vd_intake_inline .o_vd_step_num {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    background: var(--vd-navy);
+    color: #fff;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(15, 30, 52, 0.15);
+}
+.o_vd_intake_inline .o_vd_step_text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.o_vd_intake_inline .o_vd_step_body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.7rem;
+    align-items: center;
+    min-width: 0;
+}
+/* 2-col layout cho step có 2 trường (Địa chỉ, Mẫu nhà) */
+.o_vd_intake_inline .o_vd_step_body_2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.8rem;
+    align-items: center;
+}
+/* Field block với label trong step (cho 2col) */
+.o_vd_intake_inline .o_vd_step_field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.o_vd_intake_inline .o_vd_step_field > label {
+    flex: 0 0 auto;
+    color: var(--vd-text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget,
+.o_vd_intake_inline .o_vd_step_field > .o-autocomplete {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Step 10 Ngân sách dự kiến — body 1 column stack */
+.o_vd_intake_inline .o_vd_step_body_budget {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.4rem !important;
+}
+
+/* Bỏ inline status badge trong step label — đã có ngay sau step_text */
+.o_vd_intake_inline .o_vd_step_lbl .o_vd_time_badge_inline {
+    margin-left: 0.3rem;
+    font-size: 0.7rem;
+    padding: 0.12rem 0.45rem;
+}
+
+/* Responsive: mobile/tablet stack label trên + body dưới */
+@media (max-width: 767px) {
+    .o_vd_intake_inline .o_vd_step {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .o_vd_intake_inline .o_vd_step_body_2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================================
    MANY2ONE AUTOCOMPLETE (Tỉnh / Huyện) + MANY2MANY_TAGS (Công năng từng tầng)
    --------------------------------------------------------------------------
    Vấn đề cũ: autocomplete dropdown menu của Odoo portal vào o_vd_summary_card
