@@ -9855,3 +9855,63 @@ $vd-panel-head-radius: 10px;
     text-overflow: clip !important;
     max-width: none !important;
 }
+
+/* ============================================================================
+   ████████████████████████████████████████████████████████████████████████████
+   🖼️ FRAME REDO — KHUNG BẢNG THÔNG TIN TƯ VẤN clone 1:1 frame VẤN ĐỀ panel
+   ----------------------------------------------------------------------------
+   User yêu cầu: làm LẠI từ đầu KHUNG bảng giống VẤN ĐỀ panel. Field bên trong
+   để sau, KHÔNG đụng tới ở turn này.
+
+   Reference VẤN ĐỀ frame (.o_vd_negotiate_panel) ở line 112-119:
+     background: linear-gradient(180deg, #fff 0%, #fff8e6 100%);  // white → cream
+     border: 2px solid #f59e0b;                                    // amber gold
+     border-radius: 12px;
+     box-shadow: 0 4px 16px -4px rgba(245, 158, 11, 0.25);          // gold soft
+     overflow: hidden;                                              // clip nội dung
+   ████████████████████████████████████████████████████████████████████████████
+   ============================================================================ */
+
+/* Strip border/shadow của container CHA (summary_card, intake_*) — để frame mới
+   trên steps_panel không bị frame-trong-frame */
+.o_vd_layout_grid .o_vd_summary_card .o_vd_intake_inline,
+.o_vd_layout_grid .o_vd_summary_card .o_vd_intake_inline .o_vd_popup_body,
+.o_vd_layout_grid .o_vd_summary_card .o_vd_intake_inline .o_vd_intake_layout,
+.o_vd_layout_grid .o_vd_summary_card .o_vd_intake_inline .o_vd_intake_main {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+/* Cũng strip outer .o_vd_summary_card khi chỉ chứa intake (đã ẩn customer_frame) */
+.o_vd_layout_grid .o_vd_main_panel .o_vd_summary_card {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* === FRAME chính: .o_vd_steps_panel = clone .o_vd_negotiate_panel === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel,
+.o_vd_intake_inline .o_vd_steps_panel {
+    margin: 0 0 1rem !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8e6 100%) !important;
+    border: 2px solid #f59e0b !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px -4px rgba(245, 158, 11, 0.25) !important;
+    overflow: hidden !important;
+    max-width: 1080px !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* Header bên trong frame mới: BORDER-RADIUS = 10px top (12px frame - 2px border) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    border-radius: 10px 10px 0 0 !important;
+    margin: 0 !important;
+}
