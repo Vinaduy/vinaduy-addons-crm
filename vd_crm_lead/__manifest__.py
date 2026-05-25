@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.57.0',
+    'version': '18.0.9.58.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -52,6 +52,7 @@
             'vd_crm_lead/static/src/js/intake_bubble_positioner.js',
             'vd_crm_lead/static/src/js/vd_selection_dropdown.js',
             'vd_crm_lead/static/src/js/vd_timeline_chips.js',
+            'vd_crm_lead/static/src/js/vd_floor_function_chips.js',
             'vd_crm_lead/static/src/js/vd_audio_player.js',
             'vd_crm_lead/static/src/js/lead_call_action.js',
             'vd_crm_lead/static/src/js/copy_to_clipboard_action.js',
@@ -64,6 +65,7 @@
             'vd_crm_lead/static/src/xml/call_status_widget.xml',
             'vd_crm_lead/static/src/xml/vd_selection_dropdown.xml',
             'vd_crm_lead/static/src/xml/vd_timeline_chips.xml',
+            'vd_crm_lead/static/src/xml/vd_floor_function_chips.xml',
             'vd_crm_lead/static/src/xml/vd_audio_player.xml',
             'vd_crm_lead/static/src/xml/copy_preview_dialog.xml',
             'vd_crm_lead/static/src/scss/dashboard.scss',

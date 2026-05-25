@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdFloorFunctionChips">
+        <div class="o_vd_timeline_chips o_vd_floor_func_chips" t-ref="root"
+             t-att-class="{ 'o_vd_tlc_open': state.open }">
+            <!-- Bar gọn: chips đã chọn (hoặc placeholder) -->
+            <div class="o_vd_tlc_bar" t-on-click.prevent.stop="toggleOpen">
+                <t t-if="selectedTags.length === 0">
+                    <span class="o_vd_tlc_placeholder">Bấm để chọn công năng…</span>
+                </t>
+                <t t-else="">
+                    <t t-foreach="selectedTags" t-as="tag" t-key="tag.id">
+                        <span class="o_vd_tlc_pill">
+                            <t t-if="tag.icon"><t t-esc="tag.icon"/> </t>
+                            <t t-esc="tag.name"/>
+                            <button type="button" class="o_vd_tlc_pill_x"
+                                    t-on-click.prevent.stop="(ev) => this.onRemoveSelected(tag, ev)"
+                                    title="Bỏ chọn">×</button>
+                        </span>
+                    </t>
+                </t>
+                <i class="fa fa-caret-down o_vd_tlc_caret"/>
+            </div>
+
+            <!-- Dropdown panel: tất cả options khớp floor, click để toggle -->
+            <div class="o_vd_tlc_dropdown" t-if="state.open">
+                <t t-foreach="state.allTags" t-as="tag" t-key="tag.id">
+                    <button type="button"
+                            class="o_vd_tl_chip"
+                            t-att-class="{ 'o_vd_tl_chip_active': isSelected(tag.id) }"
+                            t-on-click.prevent.stop="(ev) => this.onChipClick(tag, ev)">
+                        <t t-if="tag.icon"><t t-esc="tag.icon"/> </t>
+                        <t t-esc="tag.name"/>
+                    </button>
+                </t>
+                <div class="o_vd_tl_hint" t-if="state.allTags.length === 0">
+                    <i class="fa fa-info-circle"/> Chưa có tag công năng phù hợp tầng này.
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
