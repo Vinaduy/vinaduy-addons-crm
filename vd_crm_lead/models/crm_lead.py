@@ -499,8 +499,8 @@ class CrmLead(models.Model):
     )
     vd_intake_show_land_area = fields.Boolean(
         string='Hiện diện tích đất',
-        default=False,
-        help='Bật khi cần nhập diện tích đất riêng (đa số KH chỉ tính diện tích nhà).',
+        default=True,
+        help='Default ON. Mutually exclusive với vd_intake_land_unlimited.',
     )
     vd_intake_show_house_area = fields.Boolean(
         string='Hiện diện tích nhà',
@@ -510,8 +510,23 @@ class CrmLead(models.Model):
     vd_intake_land_unlimited = fields.Boolean(
         string='Đất rộng (không kích thước cụ thể)',
         default=False,
-        help='Bật khi đất vườn rộng, không có kích thước cụ thể → ẩn ô nhập diện tích đất.',
+        help='Bật khi đất vườn rộng, không có kích thước cụ thể → ẩn ô nhập diện tích đất. '
+             'Mutually exclusive với vd_intake_show_land_area.',
     )
+
+    @api.onchange('vd_intake_show_land_area')
+    def _onchange_show_land_area(self):
+        """Toggle Diện tích đất ON → tự tắt Đất rộng."""
+        for rec in self:
+            if rec.vd_intake_show_land_area:
+                rec.vd_intake_land_unlimited = False
+
+    @api.onchange('vd_intake_land_unlimited')
+    def _onchange_land_unlimited(self):
+        """Toggle Đất rộng ON → tự tắt Diện tích đất (ẩn các ô nhập kích thước)."""
+        for rec in self:
+            if rec.vd_intake_land_unlimited:
+                rec.vd_intake_show_land_area = False
 
     @api.depends('vd_intake_length_m', 'vd_intake_width_m')
     def _compute_area_from_dims(self):
