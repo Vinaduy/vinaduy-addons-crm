@@ -152,100 +152,10 @@
                     <div class="o_vd_intake_summary">
                         <div class="o_vd_summary_body" invisible="not vd_has_intake_data">
 
-                            <!-- 3 HERO CARDS NỔI BẬT — Ngân sách + Diện tích + Thời gian -->
-                            <div class="o_vd_summary_hero_grid">
-                                <!-- CHI PHÍ BÁO GIÁ — PM tính + NS dự kiến + badge -->
-                                <div class="o_vd_summary_hero o_vd_hero_budget_sum">
-                                    <div class="o_vd_sum_hero_head">
-                                        <span class="o_vd_sum_hero_icon">💰</span>
-                                        <span class="o_vd_sum_hero_label">Chi phí báo giá</span>
-                                    </div>
-                                    <div class="o_vd_sum_budget_lines">
-                                        <div class="o_vd_sum_budget_line">
-                                            <span class="o_vd_sum_budget_lbl">PM tính:</span>
-                                            <span class="o_vd_sum_budget_val o_vd_sum_budget_auto">
-                                                <field name="vd_intake_estimate" widget="monetary"
-                                                       options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                       readonly="1" nolabel="1"/>
-                                            </span>
-                                        </div>
-                                        <div class="o_vd_sum_budget_line">
-                                            <span class="o_vd_sum_budget_lbl">NS dự kiến:</span>
-                                            <span class="o_vd_sum_budget_val o_vd_sum_budget_manual">
-                                                <field name="vd_intake_budget_amount" widget="monetary"
-                                                       options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                       readonly="1" nolabel="1"/>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="o_vd_sum_budget_badge o_vd_badge_fit"
-                                         invisible="vd_intake_budget_status != 'fit'">
-                                        ✅ Phù hợp
-                                    </div>
-                                    <div class="o_vd_sum_budget_badge o_vd_badge_warn"
-                                         invisible="vd_intake_budget_status != 'warn'">
-                                        ⚖️ Chênh nhẹ (dưới 300tr)
-                                    </div>
-                                    <div class="o_vd_sum_budget_badge o_vd_badge_over"
-                                         invisible="vd_intake_budget_status != 'over'">
-                                        ⚠️ Chênh lớn (≥ 300tr)
-                                    </div>
-                                </div>
-                                <!-- DIỆN TÍCH / SÀN — diện tích × tầng (+ tum) cùng 1 dòng | dòng 2: móng + nhà -->
-                                <div class="o_vd_summary_hero o_vd_hero_area_sum">
-                                    <div class="o_vd_sum_hero_head">
-                                        <span class="o_vd_sum_hero_icon">📐</span>
-                                        <span class="o_vd_sum_hero_label">Diện tích / sàn</span>
-                                    </div>
-                                    <div class="o_vd_sum_hero_value o_vd_sum_area_inline">
-                                        <!-- Diện tích sàn TỔNG (sum các tầng) — KHÔNG dùng
-                                             vd_intake_area_m2 (đất) × floors vì sai. -->
-                                        <field name="vd_intake_total_m2" readonly="1" nolabel="1"/>
-                                        <span class="o_vd_sum_unit">m²</span>
-                                        <span class="o_vd_sum_area_x" invisible="not vd_intake_floors_num">
-                                            × <field name="vd_intake_floors_num" readonly="1" nolabel="1"/> tầng
-                                        </span>
-                                        <span class="o_vd_sum_area_tum" invisible="not vd_intake_has_tum">
-                                            <field name="vd_intake_has_tum" invisible="1"/>+ Tum
-                                        </span>
-                                    </div>
-                                    <div class="o_vd_sum_area_extra">
-                                        <span class="o_vd_sum_area_lbl" title="Loại móng"><i class="fa fa-cubes"/></span>
-                                        <span class="o_vd_sum_area_v" invisible="not vd_intake_foundation_type">
-                                            <field name="vd_intake_foundation_type" readonly="1" nolabel="1"/>
-                                        </span>
-                                        <span class="o_vd_sum_area_v_empty" invisible="vd_intake_foundation_type">—</span>
-                                        <span class="o_vd_sum_area_sep">|</span>
-                                        <span class="o_vd_sum_area_lbl" title="Kiểu nhà"><i class="fa fa-home"/></span>
-                                        <span class="o_vd_sum_area_v" invisible="not vd_intake_house_type">
-                                            <field name="vd_intake_house_type" readonly="1" nolabel="1"/>
-                                        </span>
-                                        <span class="o_vd_sum_area_v_empty" invisible="vd_intake_house_type">—</span>
-                                    </div>
-                                </div>
-                                <!-- Thời gian -->
-                                <div class="o_vd_summary_hero o_vd_hero_time_sum">
-                                    <div class="o_vd_sum_hero_head">
-                                        <span class="o_vd_sum_hero_icon">📅</span>
-                                        <span class="o_vd_sum_hero_label">Thời gian khởi công</span>
-                                    </div>
-                                    <div class="o_vd_sum_hero_value o_vd_sum_hero_value_text">
-                                        <field name="vd_intake_timeline" readonly="1" nolabel="1"/>
-                                    </div>
-                                    <div class="o_vd_sum_time_badge o_vd_badge_fit"
-                                         invisible="vd_intake_timeline_status != 'ok'">
-                                        ✅ Đủ thời gian
-                                    </div>
-                                    <div class="o_vd_sum_time_badge o_vd_badge_warn"
-                                         invisible="vd_intake_timeline_status != 'warn'">
-                                        ⏰ Hơi gấp
-                                    </div>
-                                    <div class="o_vd_sum_time_badge o_vd_badge_over"
-                                         invisible="vd_intake_timeline_status != 'critical'">
-                                        ⏰ Quá gấp
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- 3 hero readonly cards (Chi phí báo giá / Diện tích sàn / Thời gian
+                                 khởi công) ĐÃ BỎ — dữ liệu giờ hiện trực tiếp trong form khai
+                                 thác phía dưới (CHI PHÍ BÁO GIÁ ở cột phải của THÔNG TIN CÔNG
+                                 TRÌNH, THỜI GIAN ở panel riêng bên dưới). -->
 
                             <!-- Info phụ — 2 dòng gọn (Kiểu nhà + Loại móng đã chuyển vào card Diện tích):
                                  R1: Tỉnh/Huyện (wide)
@@ -539,70 +449,76 @@
                                     </div>
                             </div>
 
-                            <!-- RIGHT — Stack: Thời gian (trên) + Ngân sách (dưới) -->
-                            <div class="o_vd_hero_col_right">
-                                <div class="o_vd_hero_card o_vd_hero_time">
-                                    <field name="vd_intake_timeline_status" invisible="1"/>
-                                    <div class="o_vd_hero_head">
-                                        <span class="o_vd_hero_icon">📅</span>
-                                        <span class="o_vd_hero_title">THỜI GIAN</span>
-                                    </div>
-                                    <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
+                            <!-- RIGHT — CHI PHÍ BÁO GIÁ (THỜI GIAN tách thành panel riêng dưới) -->
+                            <div class="o_vd_hero_card o_vd_hero_budget">
+                                <div class="o_vd_hero_head">
+                                    <span class="o_vd_hero_icon">💰</span>
+                                    <span class="o_vd_hero_title">CHI PHÍ BÁO GIÁ</span>
                                 </div>
-                                <div class="o_vd_hero_card o_vd_hero_budget">
-                                    <div class="o_vd_hero_head">
-                                        <span class="o_vd_hero_icon">💰</span>
-                                        <span class="o_vd_hero_title">CHI PHÍ BÁO GIÁ</span>
-                                    </div>
-                                    <!-- Auto-computed price (đơn giá × diện tích × tầng + móng + mái) -->
-                                    <div class="o_vd_budget_row o_vd_budget_auto">
-                                        <span class="o_vd_budget_lbl">Phần mềm tính:</span>
-                                        <span class="o_vd_budget_val">
-                                            <field name="vd_intake_estimate"
-                                                   widget="monetary"
-                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1"/>
-                                        </span>
-                                    </div>
-                                    <!-- Manual entry — Ngân sách dự kiến của KH -->
-                                    <div class="o_vd_budget_row o_vd_budget_manual">
-                                        <span class="o_vd_budget_lbl">Ngân sách dự kiến:</span>
-                                        <field name="vd_intake_budget_amount" widget="monetary"
+                                <!-- Auto-computed price (đơn giá × diện tích × tầng + móng + mái) -->
+                                <div class="o_vd_budget_row o_vd_budget_auto">
+                                    <span class="o_vd_budget_lbl">Phần mềm tính:</span>
+                                    <span class="o_vd_budget_val">
+                                        <field name="vd_intake_estimate"
+                                               widget="monetary"
                                                options="{'currency_field': 'vd_currency_vnd_id'}"
-                                               nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                                               readonly="1" nolabel="1"/>
+                                    </span>
+                                </div>
+                                <!-- Manual entry — Ngân sách dự kiến của KH -->
+                                <div class="o_vd_budget_row o_vd_budget_manual">
+                                    <span class="o_vd_budget_lbl">Ngân sách dự kiến:</span>
+                                    <field name="vd_intake_budget_amount" widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           nolabel="1" placeholder="Vd: 2,000,000,000"/>
+                                </div>
+                                <!-- Comparison: chênh lệch ngân sách vs estimate -->
+                                <div class="o_vd_budget_compare"
+                                     invisible="not vd_intake_budget_amount or not vd_intake_estimate">
+                                    <field name="vd_intake_budget_status" invisible="1"/>
+                                    <div class="o_vd_budget_diff o_vd_budget_diff_fit"
+                                         invisible="vd_intake_budget_status != 'fit'">
+                                        <span class="o_vd_diff_icon">✅</span>
+                                        <span class="o_vd_diff_label">Ngân sách phù hợp với báo giá</span>
                                     </div>
-                                    <!-- Comparison: chênh lệch ngân sách vs estimate -->
-                                    <div class="o_vd_budget_compare"
-                                         invisible="not vd_intake_budget_amount or not vd_intake_estimate">
-                                        <field name="vd_intake_budget_status" invisible="1"/>
-                                        <div class="o_vd_budget_diff o_vd_budget_diff_fit"
-                                             invisible="vd_intake_budget_status != 'fit'">
-                                            <span class="o_vd_diff_icon">✅</span>
-                                            <span class="o_vd_diff_label">Ngân sách phù hợp với báo giá</span>
+                                    <div class="o_vd_budget_diff o_vd_budget_diff_warn"
+                                         invisible="vd_intake_budget_status != 'warn'">
+                                        <div class="o_vd_diff_head">
+                                            <span class="o_vd_diff_icon">⚖️</span>
+                                            <span class="o_vd_diff_label">Chênh lệch nhẹ</span>
                                         </div>
-                                        <div class="o_vd_budget_diff o_vd_budget_diff_warn"
-                                             invisible="vd_intake_budget_status != 'warn'">
-                                            <div class="o_vd_diff_head">
-                                                <span class="o_vd_diff_icon">⚖️</span>
-                                                <span class="o_vd_diff_label">Chênh lệch nhẹ</span>
-                                            </div>
-                                            <field name="vd_intake_gap" widget="monetary"
-                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1" class="o_vd_diff_amount"/>
+                                        <field name="vd_intake_gap" widget="monetary"
+                                               options="{'currency_field': 'vd_currency_vnd_id'}"
+                                               readonly="1" nolabel="1" class="o_vd_diff_amount"/>
+                                    </div>
+                                    <div class="o_vd_budget_diff o_vd_budget_diff_over"
+                                         invisible="vd_intake_budget_status != 'over'">
+                                        <div class="o_vd_diff_head">
+                                            <span class="o_vd_diff_icon">⚠️</span>
+                                            <span class="o_vd_diff_label">Chênh lệch lớn</span>
                                         </div>
-                                        <div class="o_vd_budget_diff o_vd_budget_diff_over"
-                                             invisible="vd_intake_budget_status != 'over'">
-                                            <div class="o_vd_diff_head">
-                                                <span class="o_vd_diff_icon">⚠️</span>
-                                                <span class="o_vd_diff_label">Chênh lệch lớn</span>
-                                            </div>
-                                            <field name="vd_intake_gap" widget="monetary"
-                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1" class="o_vd_diff_amount"/>
-                                        </div>
+                                        <field name="vd_intake_gap" widget="monetary"
+                                               options="{'currency_field': 'vd_currency_vnd_id'}"
+                                               readonly="1" nolabel="1" class="o_vd_diff_amount"/>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- ===== BẢNG THỜI GIAN (gộp readonly "Thời gian khởi công" + input timeline) ===== -->
+                        <div class="o_vd_hero_card o_vd_hero_time o_vd_time_panel_standalone">
+                            <field name="vd_intake_timeline_status" invisible="1"/>
+                            <div class="o_vd_hero_head">
+                                <span class="o_vd_hero_icon">📅</span>
+                                <span class="o_vd_hero_title">THỜI GIAN KHỞI CÔNG</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_fit"
+                                      invisible="vd_intake_timeline_status != 'ok'">✅ Đủ thời gian</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_warn"
+                                      invisible="vd_intake_timeline_status != 'warn'">⏰ Hơi gấp</span>
+                                <span class="o_vd_time_badge_inline o_vd_badge_over"
+                                      invisible="vd_intake_timeline_status != 'critical'">⏰ Quá gấp</span>
+                            </div>
+                            <field name="vd_intake_timeline" widget="vd_timeline_chips" nolabel="1"/>
                         </div>
 
                         <!-- ===== BẢNG THÔNG TIN ĐỊA LÝ / KHU VỰC ===== -->
