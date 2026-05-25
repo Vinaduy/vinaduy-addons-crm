@@ -9941,10 +9941,11 @@ $vd-panel-head-radius: 10px;
 }
 .o_vd_layout_grid .o_vd_main_panel .o_vd_summary_card,
 .o_vd_main_panel .o_vd_summary_card {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 0 !important;
 }
 /* Override rule strip cũ ở line ~2115 — quote_panel khi trong main_panel
-   PHẢI KEEP frame amber riêng (không strip về transparent) */
+   PHẢI KEEP frame amber riêng (không strip về transparent).
+   margin-top: -2px → 2 border 2px stack đè nhau thành 1 đường = 2 bảng dính sát */
 .o_vd_layout_grid .o_vd_main_panel .o_vd_quote_panel,
 .o_vd_main_panel .o_vd_quote_panel {
     margin: 0 0 1rem !important;
@@ -9955,6 +9956,12 @@ $vd-panel-head-radius: 10px;
     border-top: 2px solid #f59e0b !important;
     overflow: hidden !important;
     max-width: none !important;
+}
+/* Đẩy quote_panel chồm lên 2px → 2 viền 2px chồng lên nhau thành 1 đường,
+   2 bảng dính khít không có gap */
+.o_vd_layout_grid .o_vd_main_panel .o_vd_quote_panel,
+.o_vd_main_panel .o_vd_quote_panel {
+    margin-top: -2px !important;
 }
 
 /* ============================================================================
@@ -10004,6 +10011,44 @@ $vd-panel-head-radius: 10px;
     font-size: 15px !important;
     font-weight: 600 !important;
     color: var(--vd-navy) !important;
+}
+
+/* === KILL-ALL WOBBLE PHASE 2 — ancestor cũng kill transition === */
+.o_vd_layout_grid .o_vd_main_panel,
+.o_vd_layout_grid .o_vd_main_panel *,
+.o_vd_layout_grid .o_vd_summary_card,
+.o_vd_layout_grid .o_vd_summary_card *,
+.o_vd_layout_grid .o_vd_intake_inline,
+.o_vd_layout_grid .o_vd_intake_inline *,
+.o_vd_layout_grid .o_vd_popup_body,
+.o_vd_layout_grid .o_vd_popup_body *,
+.o_vd_layout_grid .o_vd_intake_main,
+.o_vd_layout_grid .o_vd_intake_main *,
+.o_vd_layout_grid .o_vd_steps_panel,
+.o_vd_layout_grid .o_vd_steps_panel * {
+    transition: none !important;
+    animation: none !important;
+}
+.o_vd_layout_grid .o_vd_main_panel:hover,
+.o_vd_layout_grid .o_vd_main_panel *:hover,
+.o_vd_layout_grid .o_vd_summary_card:hover,
+.o_vd_layout_grid .o_vd_summary_card *:hover,
+.o_vd_layout_grid .o_vd_intake_inline:hover,
+.o_vd_layout_grid .o_vd_intake_inline *:hover,
+.o_vd_layout_grid .o_vd_steps_panel:hover,
+.o_vd_layout_grid .o_vd_steps_panel *:hover {
+    transform: none !important;
+    scale: none !important;
+}
+
+/* === HEADER THÔNG TIN TƯ VẤN: FORCE 16px = nego_head (NUCLEAR rule chuẩn) === */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head *,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_title,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_icon {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    letter-spacing: 1.2px !important;
 }
 
 /* === DIỆN TÍCH INPUTS: uniform 90px × 32px (không quá dài, đều nhau) === */
