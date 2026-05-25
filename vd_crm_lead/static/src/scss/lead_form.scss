@@ -2336,12 +2336,71 @@ div.o_vd_layout_right {
     grid-column: 1 / -1 !important;       /* span full width nếu grid */
 }
 
-/* ===== ZOOM ĐỀU TOÀN CUSTOMER CARD =====
-   User feedback: zoom 1.3 trên inline panel thì to quá. Đổi sang 1.1 và apply
-   đều cho cả .o_vd_summary_card (header + inline form + call stats + workflow)
-   để cỡ chữ nhất quán toàn bảng THÔNG TIN KHÁCH HÀNG. Effective = 0.7 × 1.1 = 0.77. */
-.o_vd_summary_card {
-    zoom: 1.1;
+/* ===== FONT SMOOTHING + UNIFIED SIZES =====
+   Bỏ zoom: 1.1 trên .o_vd_summary_card cũ — zoom compound (0.7 × 1.1 = 0.77)
+   trên màn low-DPI gây sub-pixel anti-alias → text mờ.
+   Thay bằng: (a) font-smoothing để text crisp, (b) CSS vars để cỡ chữ đồng đều
+   khắp inline panel, override các rule lẻ tẻ. */
+.o_form_view[data-model="crm.lead"],
+.o_form_view[data-model="crm.lead"] .o_form_sheet,
+.o_vd_summary_card,
+.o_vd_intake_inline {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Unified font-size scale (rem × 0.7 zoom = effective px).
+   Mục tiêu: text body ≈ 10-11px, header ≈ 11-12px, badge ≈ 9-10px sau zoom. */
+.o_vd_intake_inline {
+    --vd-fs-header-lg: 1rem;       /* tiêu đề panel chính (THÔNG TIN TƯ VẤN, THÔNG TIN CÔNG TRÌNH, THỜI GIAN KHỞI CÔNG) ≈ 11.2px */
+    --vd-fs-header-sm: 0.88rem;    /* sub-section header (ĐỊA LÝ, CHI PHÍ BÁO GIÁ) ≈ 9.86px */
+    --vd-fs-label:     0.9rem;     /* field labels ≈ 10.1px */
+    --vd-fs-input:     0.95rem;    /* input/select values ≈ 10.6px */
+    --vd-fs-body:      0.9rem;     /* body text generic ≈ 10.1px */
+    --vd-fs-badge:     0.82rem;    /* badge / chip ≈ 9.2px */
+    --vd-fs-button:    0.9rem;     /* button text ≈ 10.1px */
+}
+.o_vd_intake_inline .o_vd_inline_title,
+.o_vd_intake_inline .o_vd_hero_title {
+    font-size: var(--vd-fs-header-lg) !important;
+}
+.o_vd_intake_inline .o_vd_area_geo_head,
+.o_vd_intake_inline .o_vd_time_budget_head {
+    font-size: var(--vd-fs-header-sm) !important;
+}
+.o_vd_intake_inline .o_vd_pf > label,
+.o_vd_intake_inline .o_vd_pf_compact > label,
+.o_vd_intake_inline .o_vd_area_lbl,
+.o_vd_intake_inline .o_vd_area_lbl_sub,
+.o_vd_intake_inline .o_vd_budget_lbl,
+.o_vd_intake_inline .o_vd_floor_function_lbl,
+.o_vd_intake_inline .o_vd_floors_lbl {
+    font-size: var(--vd-fs-label) !important;
+}
+.o_vd_intake_inline input,
+.o_vd_intake_inline select,
+.o_vd_intake_inline textarea,
+.o_vd_intake_inline .o_field_widget input,
+.o_vd_intake_inline .o_field_widget select,
+.o_vd_intake_inline .o_field_widget textarea {
+    font-size: var(--vd-fs-input) !important;
+}
+.o_vd_intake_inline .o_vd_time_badge_inline,
+.o_vd_intake_inline .o_vd_budget_diff,
+.o_vd_intake_inline .o_vd_floor_function_tag,
+.o_vd_intake_inline .o_vd_area_unit,
+.o_vd_intake_inline .o_vd_area_sep {
+    font-size: var(--vd-fs-badge) !important;
+}
+.o_vd_intake_inline .btn,
+.o_vd_intake_inline button {
+    font-size: var(--vd-fs-button) !important;
+}
+.o_vd_intake_inline .o_vd_budget_val,
+.o_vd_intake_inline .o_vd_floors_total_val {
+    font-size: var(--vd-fs-input) !important;
+    font-weight: 700;
 }
 
 /* ===== INLINE MODE — panel khai thác nhúng trực tiếp vào card KH =====
