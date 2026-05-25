@@ -26,9 +26,18 @@ export class VdM2oHoverPicker extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ open: false, options: [], loadedKey: "" });
+        this.state = useState({ open: false, options: [], loadedKey: "", debugMsg: "" });
         this.rootRef = useRef("root");
-        this.relation = this.props.record.fields[this.props.name].relation;
+
+        const fieldDef = this.props.record && this.props.record.fields
+            ? this.props.record.fields[this.props.name] : null;
+        // Fallback hardcode relation theo tên field nếu auto-detect lỗi
+        const FALLBACK_REL = {
+            "vd_intake_province_id": "res.country.state",
+            "vd_intake_district": "vd.district",
+        };
+        this.relation = (fieldDef && fieldDef.relation) || FALLBACK_REL[this.props.name] || null;
+        console.log("[vd_m2o_hover_picker] mount", this.props.name, "relation:", this.relation);
 
         this._closeTimer = null;
         this._onDocClick = (ev) => {
@@ -72,32 +81,35 @@ export class VdM2oHoverPicker extends Component {
     }
 
     async _fetchIfNeeded() {
+        if (!this.relation) {
+            this.state.debugMsg = "Không có relation";
+            return;
+        }
         const dom = this.fetchDomain;
         const key = this.domainKey;
         if (key === this.state.loadedKey) return;
-        // District khi province chưa chọn → empty
         if (dom === false) {
             this.state.options = [];
             this.state.loadedKey = key;
             return;
         }
         try {
-            // KHÔNG dùng order: "display_name" — đó là computed field, Postgres
-            // không ORDER BY được → searchRead throws silent error → empty menu.
-            // Dùng default order của model (res.country.state._order='name',
-            // vd.district._order='state_id, name').
+            console.log("[vd_m2o_hover_picker] fetch", this.relation, "domain:", dom);
             const recs = await this.orm.searchRead(
                 this.relation,
                 dom,
                 ["id", "display_name", "name"],
                 { limit: 1000 }
             );
+            console.log("[vd_m2o_hover_picker] got", (recs || []).length, "records");
             this.state.options = recs || [];
             this.state.loadedKey = key;
+            this.state.debugMsg = "";
         } catch (e) {
             console.error("vd_m2o_hover_picker fetch error:", e);
             this.state.options = [];
             this.state.loadedKey = key;
+            this.state.debugMsg = `Lỗi tải: ${e.message || e}`;
         }
     }
 
