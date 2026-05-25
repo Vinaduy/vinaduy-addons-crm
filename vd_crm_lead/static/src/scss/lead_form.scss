@@ -9915,3 +9915,70 @@ $vd-panel-head-radius: 10px;
     border-radius: 10px 10px 0 0 !important;
     margin: 0 !important;
 }
+
+/* ============================================================================
+   ✂️ TÁCH 2 BẢNG — strip wrapper o_vd_main_panel về trong suốt
+   THÔNG TIN TƯ VẤN (frame amber) và BÁO GIÁ CHI TIẾT là 2 bảng RIÊNG, KHÔNG
+   chung border outer nữa.
+   ============================================================================ */
+.o_vd_layout_grid .o_vd_main_panel,
+.o_vd_main_panel {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.o_vd_layout_grid .o_vd_main_panel .o_vd_summary_card,
+.o_vd_main_panel .o_vd_summary_card {
+    margin-bottom: 1.5rem !important;
+}
+/* Bỏ divider dashed của quote_panel khi nằm trong main_panel (vì giờ tách hẳn) */
+.o_vd_layout_grid .o_vd_main_panel .o_vd_quote_panel,
+.o_vd_main_panel .o_vd_quote_panel {
+    border-top: none !important;
+    margin-top: 0 !important;
+}
+
+/* ============================================================================
+   🧊 KILL-ALL WOBBLE — DIỆT MỌI HOVER ANIMATION trong steps_panel
+   Mọi element con của .o_vd_steps_panel: KHÔNG transition / transform / animation.
+   Hover chỉ đổi border-color (static), KHÔNG đổi background / shadow / scale.
+   ============================================================================ */
+.o_vd_intake_inline .o_vd_steps_panel,
+.o_vd_intake_inline .o_vd_steps_panel * {
+    transition: none !important;
+    animation: none !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel *:hover,
+.o_vd_intake_inline .o_vd_steps_panel *:focus,
+.o_vd_intake_inline .o_vd_steps_panel *:focus-within {
+    transform: none !important;
+    scale: none !important;
+    box-shadow: none !important;
+}
+/* Hover input/select: KHÔNG đổi background, chỉ đậm border 1px */
+.o_vd_intake_inline .o_vd_steps_panel input:hover,
+.o_vd_intake_inline .o_vd_steps_panel select:hover,
+.o_vd_intake_inline .o_vd_steps_panel textarea:hover,
+.o_vd_intake_inline .o_vd_steps_panel .o-autocomplete input:hover,
+.o_vd_intake_inline .o_vd_steps_panel .o_input:hover {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+/* Focus: KHÔNG ring, KHÔNG shadow */
+.o_vd_intake_inline .o_vd_steps_panel input:focus,
+.o_vd_intake_inline .o_vd_steps_panel select:focus,
+.o_vd_intake_inline .o_vd_steps_panel textarea:focus,
+.o_vd_intake_inline .o_vd_steps_panel .o-autocomplete input:focus,
+.o_vd_intake_inline .o_vd_steps_panel .o_input:focus {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
