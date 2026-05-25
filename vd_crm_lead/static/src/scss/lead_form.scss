@@ -10142,7 +10142,9 @@ $vd-panel-head-radius: 10px;
     font-style: italic;
 }
 
-/* === DIỆN TÍCH INPUTS: +30% width (90→117px), +20% height (32→38px) === */
+/* === DIỆN TÍCH INPUTS: +30% width (117px), +20% height (38px) ===
+   QUAN TRỌNG: phải đè cả max-height/max-width của FINAL OVERRIDE phía trên
+   (set max-height: 32px) bằng cách bao gồm thuộc tính max-* trong rule mới. */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_input,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_input,
@@ -10159,70 +10161,101 @@ $vd-panel-head-radius: 10px;
     max-width: 117px !important;
     height: 38px !important;
     min-height: 38px !important;
+    max-height: 38px !important;
     padding: 0 0.6rem !important;
     text-align: center !important;
     box-sizing: border-box !important;
     flex: 0 0 117px !important;
     font-size: 14px !important;
+    line-height: 1.3 !important;
+}
+/* Wrapper .o_field_widget của các input area phải fit content, không stretch */
+.o_vd_intake_inline .o_vd_area_row .o_field_widget {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
 }
 
-/* === BOOLEAN_TOGGLE = công tắc oval với knob trượt (force lại Bootstrap form-switch) === */
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch,
-.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle {
+/* ============================================================================
+   🎚️ BOOLEAN_TOGGLE = công tắc oval pill 44×24px với knob trượt
+   ----------------------------------------------------------------------------
+   Odoo 18 render: <div class="o-checkbox form-check o_field_boolean o_boolean_toggle form-switch">
+                     <input type="checkbox" class="form-check-input"/>
+                     <label class="form-check-label">​</label>  ← zero-width
+                   </div>
+   <input> KHÔNG hỗ trợ ::before — phải dùng background-image SVG cho knob.
+   ============================================================================ */
+
+/* Wrapper field_widget chứa toggle: fit content, không stretch full width */
+.o_vd_intake_inline .o_vd_area_row .o_field_boolean,
+.o_vd_intake_inline .o_vd_area_row .o_field_widget:has(> .o_boolean_toggle),
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_field_boolean {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: 60px !important;
+}
+
+/* Wrapper o-checkbox.o_boolean_toggle — 44×24 inline-flex */
+.o_vd_intake_inline .o_boolean_toggle.o-checkbox,
+.o_vd_intake_inline .o-checkbox.o_boolean_toggle,
+.o_vd_layout_grid .o_vd_intake_inline .o_boolean_toggle {
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     width: 44px !important;
     min-width: 44px !important;
+    max-width: 44px !important;
     height: 24px !important;
-    margin: 0 0.3rem !important;
-    padding: 0 !important;
-    position: relative;
-}
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"],
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"],
-.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"] {
-    width: 44px !important;
-    height: 24px !important;
-    min-width: 44px !important;
     min-height: 24px !important;
+    max-height: 24px !important;
+    padding: 0 !important;
+    margin: 0 0.3rem !important;
+    flex: 0 0 44px !important;
+    position: relative !important;
+}
+
+/* Input checkbox = pill + sliding knob (background-image SVG) */
+.o_vd_intake_inline .o_boolean_toggle .form-check-input,
+.o_vd_layout_grid .o_vd_intake_inline .o_boolean_toggle .form-check-input {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
     margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
     cursor: pointer !important;
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: #cbd5e1 !important;
-    background-image: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle r='9' cx='10' cy='10' fill='white' filter='url(%23s)'/%3E%3Cdefs%3E%3Cfilter id='s' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1' flood-opacity='0.3'/%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 2px center !important;
+    background-size: 20px 20px !important;
     border: none !important;
     border-radius: 999px !important;
-    position: relative !important;
-    transition: background-color 0.2s ease !important;
+    box-shadow: none !important;
+    transition: background-color 0.2s ease, background-position 0.2s ease !important;
 }
-/* Knob trượt — pseudo ::before */
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]::before,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]::before,
-.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 3px !important;
-    left: 3px !important;
-    width: 18px !important;
-    height: 18px !important;
-    background: #ffffff !important;
-    border-radius: 50% !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
-    transition: transform 0.2s ease !important;
-}
-/* Khi checked = ON: background amber + knob trượt sang phải */
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]:checked,
-.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked {
+/* Knob sang phải + nền amber khi checked */
+.o_vd_intake_inline .o_boolean_toggle .form-check-input:checked,
+.o_vd_layout_grid .o_vd_intake_inline .o_boolean_toggle .form-check-input:checked {
     background-color: #f59e0b !important;
+    background-position: calc(100% - 2px) center !important;
 }
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked::before,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row .form-switch input[type="checkbox"]:checked::before,
-.o_vd_intake_inline .o_vd_area_row .o_boolean_toggle input[type="checkbox"]:checked::before {
-    transform: translateX(20px) !important;
+/* Focus: không ring */
+.o_vd_intake_inline .o_boolean_toggle .form-check-input:focus {
+    box-shadow: none !important;
+    outline: none !important;
 }
+/* Ẩn label trống (zero-width space) — tránh nó chiếm space gây lệch */
+.o_vd_intake_inline .o_boolean_toggle .form-check-label,
+.o_vd_layout_grid .o_vd_intake_inline .o_boolean_toggle .form-check-label {
+    display: none !important;
+}
+
 /* Subtoggle label (Đất rộng:) */
 .o_vd_intake_inline .o_vd_area_row .o_vd_area_subtoggle_lbl {
     font-size: 13px !important;
