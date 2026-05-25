@@ -9156,33 +9156,27 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================================
-   PREVIEW TOPBAR — phone + NV inline cạnh tên KH (đã add vào dashboard.xml)
+   PREVIEW TOPBAR — chip NV (cạnh nút Copy tên + Copy SĐT)
+   .o_vd_preview_name + .o_vd_preview_phone là button (.o_vd_preview_copy_btn) →
+   styled trong dashboard.scss. Chỉ còn .o_vd_preview_user là span thuần.
    ============================================================================ */
-.o_vd_preview_phone,
 .o_vd_preview_user {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.28rem 0.7rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgba(201, 162, 106, 0.45);
     border-radius: 999px;
     color: rgba(255, 255, 255, 0.95);
     font-size: 13px !important;
     font-weight: 600 !important;
     line-height: 1.2;
-    margin-left: 0.5rem;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
     white-space: nowrap;
 }
-.o_vd_preview_phone i.fa,
 .o_vd_preview_user i.fa {
     font-size: 12px !important;
-    opacity: 0.85;
-}
-.o_vd_preview_phone:hover,
-.o_vd_preview_user:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.55);
+    color: #c9a26a;
 }
 
 /* ============================================================================
@@ -9192,71 +9186,11 @@ $vd-panel-head-radius: 10px;
 .o_vd_summary_card .o_vd_summary_header { display: none !important; }
 
 /* ============================================================================
-   THÔNG TIN TƯ VẤN HEADER — REDESIGN "SANG TRỌNG" (luxurious frame)
-   --------------------------------------------------------------------------
-   User feedback: gradient tím cũ "tối nhìn quê". Redesign: white bg + viền
-   double-line elegant (navy top hairline + gold bottom thicker) + navy
-   uppercase title với letter-spacing rộng + gold corner accents.
+   THÔNG TIN TƯ VẤN HEADER — UNIFIED VỚI VẤN ĐỀ panel (mauve gradient)
+   Rule mauve sống ở `.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head`
+   bên dưới (line ~9271). KHÔNG override ở đây nữa — để 2 panel match nhau
+   100% (cùng background, cùng height, cùng padding, cùng font).
    ============================================================================ */
-.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head {
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.7rem !important;
-    height: auto !important;
-    min-height: auto !important;
-    padding: 0.75rem 1.2rem !important;
-    background: linear-gradient(180deg, #ffffff 0%, #fdfbf5 100%) !important;
-    color: var(--vd-navy) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    border-bottom: 2px solid var(--vd-gold) !important;
-    box-shadow: 0 1px 0 0 rgba(201, 162, 106, 0.25) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1.8px !important;
-}
-/* Hairline gold ở top + bottom (double frame elegant) */
-.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head::before,
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%, var(--vd-navy-s) 15%, var(--vd-navy) 50%,
-        var(--vd-navy-s) 85%, transparent 100%);
-}
-.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_hero_title,
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_hero_title {
-    color: var(--vd-navy) !important;
-    font-size: 16px !important;
-    font-weight: 700 !important;
-    letter-spacing: 1.8px !important;
-    text-transform: uppercase !important;
-    margin: 0 !important;
-}
-.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_hero_icon,
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_hero_icon {
-    color: var(--vd-gold-d) !important;
-    font-size: 16px !important;
-}
-
-/* Hero head actions (Copy zalo) — navy outline thay vì gradient navy đậm */
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_copy_zalo_inline {
-    background: var(--vd-navy) !important;
-    color: #fff !important;
-    border: 1px solid var(--vd-navy) !important;
-}
-.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head .o_vd_copy_zalo_inline:hover {
-    background: var(--vd-navy-d) !important;
-}
-
-/* Override font-weight cho preview topbar elements để khớp 700 rule chung */
-.o_vd_preview_topbar .o_vd_preview_phone,
-.o_vd_preview_topbar .o_vd_preview_user {
-    font-weight: 600 !important;
-}
 
 /* ============================================================================
    STEP-ROW LAYOUT — bố cục 11 step theo flow tư vấn (Địa chỉ → Thời gian → ...)

@@ -4496,7 +4496,7 @@
     flex-direction: column;
 }
 
-/* ===== Topbar ===== */
+/* ===== Topbar — sang trọng: navy deep + gold hairline ===== */
 .o_vd_preview_topbar {
     flex-shrink: 0;
     position: sticky;
@@ -4506,15 +4506,29 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.6rem 1rem;
-    background: linear-gradient(135deg, #1f2a44 0%, #2c3e50 100%);
+    padding: 0.7rem 1.2rem;
+    background: linear-gradient(135deg, #0f2540 0%, #1e3a5f 55%, #1f2a44 100%);
     color: #fff;
-    border-radius: 0;          /* edge-to-edge */
+    border-radius: 0;
+    border-bottom: 2px solid #c9a26a; /* gold hairline */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+/* Gold top hairline — double-frame elegant */
+.o_vd_preview_topbar::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(201, 162, 106, 0.4) 15%,
+        #c9a26a 50%, rgba(201, 162, 106, 0.4) 85%, transparent 100%);
+    pointer-events: none;
 }
 .o_vd_preview_topbar_left {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.55rem;
     min-width: 0;
     flex: 1;
 }
@@ -4523,32 +4537,48 @@
     align-items: center;
     gap: 0.5rem;
 }
-.o_vd_preview_stage_chip {
-    background: rgba(255, 255, 255, 0.18);
-    padding: 0.2rem 0.55rem;
+/* Copy chip (tên + phone) — sang trọng: viền gold mảnh, nền trong suốt, hover bừng sáng */
+.o_vd_preview_copy_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(201, 162, 106, 0.5);  /* gold subtle */
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+
+    i { color: #c9a26a; font-size: 0.85rem; flex-shrink: 0; }
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+    &:hover {
+        background: rgba(201, 162, 106, 0.18);
+        border-color: #c9a26a;
+        box-shadow: 0 0 0 3px rgba(201, 162, 106, 0.15);
+        transform: translateY(-1px);
+    }
+    &:active {
+        transform: translateY(0);
+        background: rgba(201, 162, 106, 0.28);
+    }
 }
 .o_vd_preview_name {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #fff;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     min-width: 0;
-}
-.o_vd_preview_pager {
-    font-size: 0.78rem;
-    opacity: 0.85;
-    background: rgba(255, 255, 255, 0.08);
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    white-space: nowrap;
+    max-width: 38%;
 }
 .o_vd_preview_btn {
     background: rgba(255, 255, 255, 0.12);
@@ -4844,12 +4874,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &.o_vd_preview_today   { color: #d9480f; font-weight: 800; }
     &.o_vd_preview_money   { color: #2b8a3e; font-weight: 800; }
 }
-.o_vd_preview_phone {
-    color: #1c7ed6;
-    font-weight: 700;
-    text-decoration: none;
-    &:hover { text-decoration: underline; }
-}
+/* .o_vd_preview_phone style sống trong .o_vd_preview_topbar — đã styled qua .o_vd_preview_copy_btn */
 
 /* ===== Call stats grid ===== */
 .o_vd_preview_status_chip {

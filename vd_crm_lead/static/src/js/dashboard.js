@@ -653,6 +653,39 @@ export class VdCrmDashboard extends Component {
         }
     }
 
+    // ============ COPY tên / SĐT từ topbar preview (click chip → clipboard) ============
+    async _copyToClipboard(text, okMsg, emptyMsg) {
+        if (!text) {
+            this.notification.add(emptyMsg, { type: "warning" });
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            this.notification.add(okMsg, { type: "success" });
+        } catch (_e) {
+            // Fallback: dùng textarea ẩn (cho browser cũ / không có permission clipboard API)
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); this.notification.add(okMsg, { type: "success" }); }
+            catch (_e2) { this.notification.add("Không thể copy — trình duyệt chặn clipboard.", { type: "danger" }); }
+            document.body.removeChild(ta);
+        }
+    }
+    copyPreviewName() {
+        const L = this.previewLeadObj;
+        if (!L) return;
+        this._copyToClipboard(L.name, `Đã copy tên: ${L.name}`, "Chưa có tên KH.");
+    }
+    copyPreviewPhone() {
+        const L = this.previewLeadObj;
+        if (!L) return;
+        this._copyToClipboard(L.phone, `Đã copy SĐT: ${L.phone}`, "Chưa có số điện thoại.");
+    }
+
     createNewLead() {
         // Mở wizard popup nhỏ chỉ điền Tên + SĐT.
         // Sau khi tạo, wizard sẽ navigate đến form lead đầy đủ để bổ sung intake.
