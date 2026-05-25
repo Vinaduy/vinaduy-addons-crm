@@ -3957,6 +3957,28 @@
         }
         .o_vd_filter_table_count { color: #6741d9; }
     }
+    /* Variant: bảng THI CÔNG GẤP — header đỏ-cam (urgency) */
+    .o_vd_filter_table_urgent {
+        .o_vd_filter_table_left {
+            background: linear-gradient(135deg, #e03131 0%, #fd7e14 100%);
+        }
+        .o_vd_filter_table_count { color: #c92a2a; }
+    }
+    .o_vd_filter_funnel_urgent {
+        color: #fff !important;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        animation: vd-urgent-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes vd-urgent-pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.15); }
+    }
+    .o_vd_urgent_row {
+        border-left: 3px solid #e03131 !important;
+    }
+    .o_vd_urgent_row:hover {
+        background: rgba(224, 49, 49, 0.05) !important;
+    }
     .o_vd_filter_funnel_notcalled {
         color: #fff !important;
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));

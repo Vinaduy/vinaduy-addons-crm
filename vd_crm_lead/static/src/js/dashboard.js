@@ -49,6 +49,8 @@ export class VdCrmDashboard extends Component {
             leadsLoading: false,
             // KH có vấn đề mở (mọi stage active) — section "ĐANG XỬ LÝ VẤN ĐỀ"
             leadsWithProblemsAll: [],
+            // KH có thời gian thi công GẤP (≤3 tháng / càng sớm) — section "THI CÔNG GẤP"
+            leadsUrgentConstructionAll: [],
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
             // KH "tham khảo": đã liên lạc được (answered ≥ 1) nhưng chưa báo giá
@@ -237,6 +239,14 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsWithProblemsAll = [];
             }
+            // Fetch KH thi công GẤP (≤3 tháng tới / càng sớm càng tốt)
+            try {
+                this.state.leadsUrgentConstructionAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_urgent_construction", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsUrgentConstructionAll = [];
+            }
             // Fetch song song KH đã hủy (cho thùng rác cuối — count only).
             try {
                 this.state.leadsLostAll = await this.orm.call(
@@ -263,6 +273,7 @@ export class VdCrmDashboard extends Component {
             }
         } else {
             this.state.leadsWithProblemsAll = [];
+            this.state.leadsUrgentConstructionAll = [];
             this.state.leadsLostAll = [];
             this.state.leadsNotCalledAll = [];
             this.state.leadsReferenceAll = [];
@@ -363,6 +374,10 @@ export class VdCrmDashboard extends Component {
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
         return this.state.leadsWithProblemsAll || [];
+    }
+
+    get leadsUrgentConstruction() {
+        return this.state.leadsUrgentConstructionAll || [];
     }
     // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
@@ -526,6 +541,8 @@ export class VdCrmDashboard extends Component {
         if (this.isNewStageSplit) {
             if (this.leadsNoProblems.some(l => l.id === leadId)) {
                 ids = this.leadsNoProblems.map(l => l.id);
+            } else if (this.leadsUrgentConstruction.some(l => l.id === leadId)) {
+                ids = this.leadsUrgentConstruction.map(l => l.id);
             } else if (this.leadsWithProblems.some(l => l.id === leadId)) {
                 ids = this.leadsWithProblems.map(l => l.id);
             } else {
@@ -622,6 +639,7 @@ export class VdCrmDashboard extends Component {
         const sources = [
             this.state.leads || [],
             this.state.leadsWithProblemsAll || [],
+            this.state.leadsUrgentConstructionAll || [],
             this.state.leadsNotCalledAll || [],
             this.state.leadsLostAll || [],
         ];

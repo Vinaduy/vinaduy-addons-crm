@@ -1446,6 +1446,53 @@
                             </t>
                         </section>
 
+                        <!-- ===== SECTION 1b: THI CÔNG GẤP — KH cần khởi công ≤ 3 tháng / càng sớm.
+                             EXCLUDE khỏi 'XỬ LÝ VẤN ĐỀ' bên dưới để tránh trùng lặp. ===== -->
+                        <section t-if="isNewStageSplit"
+                                 class="o_vd_lead_section o_vd_urgent_section">
+                            <div class="o_vd_filter_table o_vd_filter_table_urgent">
+                                <div class="o_vd_filter_table_left">
+                                    <i class="fa fa-bolt o_vd_filter_funnel_urgent"/>
+                                    <div class="o_vd_filter_table_lbl">
+                                        <span>THI CÔNG</span>
+                                        <span>GẤP</span>
+                                    </div>
+                                    <div class="o_vd_filter_table_count"><t t-esc="leadsUrgentConstruction.length"/></div>
+                                </div>
+                                <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
+                                    <t t-if="leadsUrgentConstruction.length">
+                                        <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
+                                             t-on-click="() => this.openLead(lead.id)"
+                                             class="o_vd_problem_row o_vd_urgent_row">
+                                            <span class="o_vd_problem_row_team"
+                                                  t-att-data-team="lead.team_label">
+                                                <t t-esc="lead.team_label or 'KHÁC'"/>
+                                            </span>
+                                            <span class="o_vd_problem_row_name">
+                                                <t t-esc="pillTitle(lead)"/>
+                                            </span>
+                                            <span class="o_vd_problem_row_phone">
+                                                <i class="fa fa-phone me-1"/><t t-esc="lead.phone or '—'"/>
+                                            </span>
+                                            <span class="o_vd_problem_row_nv">
+                                                <i class="fa fa-user me-1"/><t t-esc="lead.user_name or '—'"/>
+                                            </span>
+                                            <span t-if="lead.intake_timeline" class="o_vd_problem_row_count o_vd_pc_high">
+                                                ⚡ <t t-esc="lead.intake_timeline"/>
+                                            </span>
+                                            <span t-if="lead.callback_date" class="o_vd_problem_row_callback">
+                                                📅 <t t-esc="lead.callback_date.slice(0, 16).replace('T', ' ')"/>
+                                            </span>
+                                        </div>
+                                    </t>
+                                    <div t-else="" class="o_vd_filter_table_empty">
+                                        <i class="fa fa-check-circle me-2"/>
+                                        Không có KH thi công gấp.
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
                         <!-- ===== SECTION 2: XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">

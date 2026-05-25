@@ -4247,10 +4247,63 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def _dashboard_urgent_construction_ids(self, domain_user):
+        """Helper: IDs của lead có thời gian thi công gấp.
+        Tiêu chí: vd_intake_timeline chứa 'càng sớm' / 'asap' / 'gấp' HOẶC
+        có 'Tháng N/YYYY' trong khoảng <= 3 tháng tới (kể cả tháng đã qua).
+        """
+        import re
+        from datetime import date
+        candidates = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('active', '=', True),
+                ('vd_intake_timeline', '!=', False),
+            ],
+        )
+        today = date.today()
+        urgent_ids = []
+        pat = re.compile(r'Tháng\s+(\d{1,2})\s*/\s*(\d{4})', re.IGNORECASE)
+        for lead in candidates:
+            tl = (lead.vd_intake_timeline or '').strip()
+            if not tl:
+                continue
+            low = tl.lower()
+            if 'càng sớm' in low or 'asap' in low or 'gấp' in low:
+                urgent_ids.append(lead.id)
+                continue
+            m = pat.search(tl)
+            if m:
+                try:
+                    month = min(max(int(m.group(1)), 1), 12)
+                    year = int(m.group(2))
+                    target = date(year, month, 1)
+                    months_diff = (target.year - today.year) * 12 + (target.month - today.month)
+                    if months_diff <= 3:
+                        urgent_ids.append(lead.id)
+                except ValueError:
+                    continue
+        return urgent_ids
+
+    @api.model
+    def dashboard_leads_urgent_construction(self, user_id=None, limit=200):
+        """Trả KH có thời gian thi công GẤP (≤ 3 tháng tới hoặc 'càng sớm càng tốt')."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        urgent_ids = self._dashboard_urgent_construction_ids(domain_user)
+        if not urgent_ids:
+            return []
+        leads = self.search(
+            [('id', 'in', urgent_ids)],
+            limit=limit,
+            order='callback_date asc, create_date desc',
+        )
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
     def dashboard_leads_with_problems(self, user_id=None, limit=200):
         """Trả TẤT CẢ KH ở stage quote/negotiate (sau báo giá, trước khi chốt).
-        Section 'ĐANG XỬ LÝ VẤN ĐỀ' giờ list tất cả KH đang trong giai đoạn xử lý
-        (báo giá → đàm phán) bất kể có vấn đề hay không.
+        EXCLUDE KH đã hiển thị ở section 'THI CÔNG GẤP' (tránh trùng lặp).
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         Stage = self.env['crm.stage']
@@ -4259,10 +4312,12 @@ class CrmLead(models.Model):
         ]).ids
         if not mid_stage_ids:
             return []
+        urgent_ids = self._dashboard_urgent_construction_ids(domain_user)
         leads = self.search(
             domain_user + [
                 ('stage_id', 'in', mid_stage_ids),
                 ('active', '=', True),
+                ('id', 'not in', urgent_ids),
             ],
             limit=limit,
             order='callback_date asc, create_date desc',
@@ -4419,6 +4474,7 @@ class CrmLead(models.Model):
             'planned_sign_urgency': l.vd_planned_sign_urgency or '',
             'contract_signed': l.vd_contract_signed,
             'province_name': l.vd_intake_province_id.name or '' if l.vd_intake_province_id else '',
+            'intake_timeline': l.vd_intake_timeline or '',
             'quote_price': l.vd_quote_price or 0,
             'has_quote': bool(l.vd_quote_price and l.vd_quote_price > 0),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill
