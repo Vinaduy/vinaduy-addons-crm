@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdSelectionChips">
+        <div class="o_vd_timeline_chips o_vd_selection_chips" t-ref="root"
+             t-att-class="{ 'o_vd_tlc_open': state.open }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
+            <!-- Bar: chip giá trị hiện tại (hoặc placeholder) -->
+            <div class="o_vd_tlc_bar">
+                <t t-if="hasValue">
+                    <span class="o_vd_tlc_pill">
+                        <t t-esc="currentLabel"/>
+                        <button type="button" class="o_vd_tlc_pill_x"
+                                t-on-click.prevent.stop="(ev) => this.clearValue(ev)"
+                                title="Bỏ chọn">×</button>
+                    </span>
+                </t>
+                <t t-else="">
+                    <span class="o_vd_tlc_placeholder">
+                        <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
+                    </span>
+                </t>
+                <i class="fa fa-caret-down o_vd_tlc_caret"/>
+            </div>
+
+            <!-- Dropdown: tất cả options dạng chip, click toggle -->
+            <div class="o_vd_tlc_dropdown" t-if="state.open">
+                <t t-foreach="options" t-as="opt" t-key="opt[0]">
+                    <button type="button"
+                            class="o_vd_tl_chip"
+                            t-att-class="{ 'o_vd_tl_chip_active': isSelected(opt[0]) }"
+                            t-on-click.prevent.stop="(ev) => this.onChipClick(opt[0], ev)">
+                        <t t-esc="opt[1]"/>
+                    </button>
+                </t>
+                <div class="o_vd_tl_hint" t-if="options.length === 0">
+                    <i class="fa fa-info-circle"/> Không có lựa chọn nào.
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -317,11 +317,13 @@
                                     <div class="o_vd_step_field">
                                         <label for="vd_intake_house_type">Kiểu nhà</label>
                                         <field name="vd_intake_house_type" nolabel="1"
+                                               widget="vd_selection_chips"
                                                placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
                                     </div>
                                     <div class="o_vd_step_field">
                                         <label for="vd_intake_foundation_type">Loại móng</label>
                                         <field name="vd_intake_foundation_type" nolabel="1"
+                                               widget="vd_selection_chips"
                                                placeholder="Móng đơn / Móng băng / Móng cọc...?"/>
                                     </div>
                                 </div>
@@ -468,6 +470,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_land_type" nolabel="1"
+                                           widget="vd_selection_chips"
                                            placeholder="Đất thổ cư / nông nghiệp / phân lô...?"/>
                                 </div>
                             </div>
@@ -480,6 +483,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
+                                           widget="vd_selection_chips"
                                            placeholder="Có / Không có chỗ để đất đào móng?"/>
                                 </div>
                             </div>
@@ -553,6 +557,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
+                                           widget="vd_selection_chips"
                                            placeholder="Đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
                                 </div>
                             </div>
