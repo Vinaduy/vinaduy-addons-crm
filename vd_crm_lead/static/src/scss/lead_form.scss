@@ -8396,27 +8396,35 @@ $vd-panel-head-radius: 10px;
     border-radius: calc(var(--vd-radius) - 1px) calc(var(--vd-radius) - 1px) 0 0 !important;
 }
 
-/* ===== BANNER "THÔNG TIN KHÁCH HÀNG" ===== */
-.o_vd_summary_card .o_vd_summary_banner {
-    background: linear-gradient(180deg, var(--vd-navy) 0%, var(--vd-navy-d) 100%) !important;
-    border: none !important;
-    border-bottom: 2px solid var(--vd-gold) !important;
-    padding: 0.7rem 1rem !important;
-    border-radius: 0 !important;
-    color: #fff !important;
-}
-.o_vd_summary_card .o_vd_banner_title {
-    font-size: var(--vd-fs-banner) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.6px !important;
-    text-transform: uppercase !important;
-    color: #fff !important;
-    margin: 0 !important;
-}
-.o_vd_summary_card .o_vd_summary_banner i.fa { color: #fff !important; }
+/* Banner THÔNG TIN KHÁCH HÀNG đã bỏ — XML không còn render .o_vd_summary_banner.
+   Rule cũ giữ orphan (harmless) hoặc xóa nếu cần dọn dẹp. */
+.o_vd_summary_card .o_vd_summary_banner { display: none !important; }
 
-/* ===== HEADER ROW (name + phone + user) ===== */
-.o_vd_summary_card .o_vd_summary_header { padding: 0.8rem 1rem 0.55rem !important; }
+/* ===== KHUNG KHÁCH HÀNG — đóng khung tên KH + SĐT + NV phụ trách =====
+   Border navy 1.5px + bg cream + radius 8px + shadow tinh. Thay banner cũ. */
+.o_vd_summary_card .o_vd_customer_frame {
+    position: relative;
+    margin: 0.9rem 1rem 0.6rem !important;
+    padding: 0.7rem 1rem !important;
+    background: linear-gradient(180deg, #ffffff 0%, var(--vd-cream) 100%) !important;
+    border: 1.5px solid var(--vd-navy-s) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 6px rgba(15, 30, 52, 0.06) !important;
+}
+/* Mini-label "KHÁCH HÀNG" cắt vào border-top (fieldset-legend style) */
+.o_vd_summary_card .o_vd_customer_frame::before {
+    content: "KHÁCH HÀNG";
+    position: absolute;
+    top: -0.55rem;
+    left: 0.9rem;
+    background: var(--vd-cream);
+    padding: 0 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--vd-gold-d);
+    line-height: 1;
+}
 .o_vd_summary_card .o_vd_name_chip_wrap .o_vd_name_chip {
     border-color: var(--vd-navy) !important;
     background: #fff !important;
@@ -8898,11 +8906,36 @@ $vd-panel-head-radius: 10px;
 .o_vd_intake_inline .o_vd_steps_panel {
     padding: 0 !important;
 }
+/* Tiêu đề THÔNG TIN TƯ VẤN — style giống VẤN ĐỀ panel (mauve/burgundy gradient
+   #5d3d54 → #714B67 → #875174, height 3.4rem, white uppercase letter-spaced). */
 .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
-    padding: 0.65rem 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.6rem !important;
+    height: 3.4rem !important;
+    padding: 0 1.4rem !important;
     margin-bottom: 0 !important;
-    background: var(--vd-cream-d) !important;
-    border-bottom: 2px solid var(--vd-gold) !important;
+    background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: calc(var(--vd-radius) - 1px) calc(var(--vd-radius) - 1px) 0 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    line-height: 1.2 !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_title {
+    color: #fff !important;
+    font-size: 1.15rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_icon {
+    color: #fff !important;
+    font-size: 1.15rem !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head .o_vd_hero_head_actions {
+    margin-left: auto !important;
 }
 
 /* Step row — compact, không border, các dòng sát nhau */

@@ -97,17 +97,12 @@
                      ở cuối layout grid). -->
                 <div class="o_vd_summary_card">
 
-                    <!-- Banner: tiêu đề tĩnh "THÔNG TIN KHÁCH HÀNG"
-                         (trước đây hiển thị stage badge — đã đổi thành tiêu đề
-                         cố định, in đậm, trắng, không bo tròn). -->
-                    <div class="o_vd_summary_banner">
-                        <i class="fa fa-user-circle"/>
-                        <h2 class="o_vd_banner_title">THÔNG TIN KHÁCH HÀNG</h2>
-                    </div>
+                    <!-- Banner "THÔNG TIN KHÁCH HÀNG" cũ đã bỏ theo yêu cầu user.
+                         Chip name + phone + user_id giờ render trong frame riêng (.o_vd_customer_frame). -->
 
-                    <!-- Header (1 hàng):
+                    <!-- Header (1 hàng — đóng khung):
                          [Chip tên KH (click → copy name)] [Chip phone (click → copy phone)] ... [NV phụ trách avatar — cuối dòng] -->
-                    <div class="o_vd_summary_header">
+                    <div class="o_vd_summary_header o_vd_customer_frame">
                         <div class="o_vd_header_row o_vd_header_row1 o_vd_header_row_single">
                             <div class="o_vd_name_chip_wrap">
                                 <button name="action_copy_name" type="object"
