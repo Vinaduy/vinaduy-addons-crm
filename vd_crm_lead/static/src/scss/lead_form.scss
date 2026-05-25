@@ -9238,6 +9238,34 @@ $vd-panel-head-radius: 10px;
     opacity: 0.85 !important;
 }
 
+/* ===== STEP PANEL TEXT UNIFY 14px — override NUCLEAR 13px =====
+   Everything visible trong steps_panel = 14px chuẩn (label + value + chip text).
+   Trừ: step_num circle (11px), banner head (16px), unit "m²" (vẫn nhỏ). */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step *,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step span,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step label,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl_sub,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_budget_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floors_total_lbl {
+    font-size: 14px !important;
+}
+/* Giữ exception: step_num circle nhỏ (11px), banner head (16px), unit (12px) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num {
+    font-size: 11px !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head * {
+    font-size: 16px !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_unit,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_sep,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floors_total_unit {
+    font-size: 12px !important;
+}
+
 /* ===== STEP_FIELD: label trái + dropdown phải — KHÔNG đè, KHÔNG lệch =====
    Label fixed-width → mọi step_field trên cùng row align chuẩn, dropdown
    không tràn sang vùng label. */
@@ -9247,15 +9275,15 @@ $vd-panel-head-radius: 10px;
 }
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > label {
     flex: 0 0 auto !important;
-    min-width: 72px !important;
-    max-width: 110px !important;
+    min-width: 78px !important;
     text-align: left !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
     color: var(--vd-text-muted) !important;
     margin: 0 !important;
     white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
 }
 /* Field wrapper TAKE remaining space — dropdown luôn fit khít vùng còn lại */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_step_field > .o_field_widget,
@@ -9360,7 +9388,7 @@ $vd-panel-head-radius: 10px;
 /* Step row — compact, không border, các dòng sát nhau */
 .o_vd_intake_inline .o_vd_step {
     display: grid;
-    grid-template-columns: 160px 1fr;
+    grid-template-columns: 200px 1fr;
     gap: 0.8rem;
     align-items: center;
     padding: 0.35rem 0.9rem;
@@ -9378,7 +9406,14 @@ $vd-panel-head-radius: 10px;
     font-weight: 600;
     font-size: 0.95rem;
     flex-wrap: nowrap;
-    white-space: nowrap;
+    white-space: normal;
+    overflow: visible;
+}
+.o_vd_intake_inline .o_vd_step_lbl > .o_vd_step_text {
+    white-space: normal !important;
+    word-break: keep-all;
+    overflow: visible !important;
+    text-overflow: clip !important;
 }
 .o_vd_intake_inline .o_vd_step_num {
     flex: 0 0 auto;
