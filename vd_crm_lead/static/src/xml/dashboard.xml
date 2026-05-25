@@ -1523,11 +1523,8 @@
                             </span>
                         </div>
                         <div class="o_vd_preview_topbar_right">
-                            <button class="o_vd_preview_btn o_vd_preview_btn_primary"
-                                    t-on-click="() => this.openLeadFullForm()"
-                                    title="Mở form Odoo đầy đủ để edit chi tiết">
-                                <i class="fa fa-external-link me-1"/> Mở form đầy đủ
-                            </button>
+                            <!-- "Mở form đầy đủ" đã bỏ — popup này LÀ main view. Nếu cần edit
+                                 sâu khác, dùng Odoo backend menu list view bình thường. -->
                             <button class="o_vd_preview_close"
                                     t-on-click="() => this.closePreview()"
                                     title="Đóng (Esc)">

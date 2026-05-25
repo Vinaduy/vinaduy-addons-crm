@@ -9039,6 +9039,86 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================================
+   FONT NORMALIZATION FINAL — ÉP CHỈ 3 TIER FONT-SIZE TRONG TOÀN CUSTOMER CARD
+   --------------------------------------------------------------------------
+   Tier 1 (banner)  : 1.15rem = 17.5px — chỉ header bar THÔNG TIN TƯ VẤN
+   Tier 2 (body)    : 0.95rem = 14.25px — TẤT CẢ labels, inputs, chips, badges,
+                                          buttons, name chip, sub-labels, values
+   Tier 3 (caption) : 0.78rem = 11.7px — chỉ mini-label fieldset "KHÁCH HÀNG",
+                                          step number circle, kbd hints
+   ============================================================================ */
+
+/* Reset all font-size descendants trong summary_card về Tier 2 (default) */
+.o_vd_summary_card,
+.o_vd_summary_card * {
+    font-size: 0.95rem !important;
+}
+
+/* Tier 1 — banner header (THÔNG TIN TƯ VẤN) ONLY */
+.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head,
+.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head *,
+.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_title,
+.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_icon {
+    font-size: 1.15rem !important;
+}
+
+/* Tier 3 — caption (mini-label KHÁCH HÀNG, step number) */
+.o_vd_summary_card .o_vd_customer_frame::before {
+    font-size: 0.62rem !important;
+}
+.o_vd_summary_card .o_vd_step_num {
+    font-size: 0.78rem !important;
+}
+.o_vd_summary_card .o_vd_floor_function_tag {
+    font-size: 0.78rem !important;
+}
+
+/* Font-weight cũng giảm variation: 4 weights total
+   - 700 cho banner title + name chip + tổng sàn val + badge status
+   - 600 cho step labels + step field labels + budget val
+   - 500 cho body inputs
+   - 400 default */
+.o_vd_summary_card * {
+    font-weight: 500 !important;
+}
+.o_vd_summary_card .o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_title,
+.o_vd_summary_card .o_vd_name_chip,
+.o_vd_summary_card .o_vd_name_chip *,
+.o_vd_summary_card .o_vd_name_phone_btn,
+.o_vd_summary_card .o_vd_name_phone_btn *,
+.o_vd_summary_card .o_vd_floors_total_val,
+.o_vd_summary_card .o_vd_budget_val,
+.o_vd_summary_card .o_vd_step_num,
+.o_vd_summary_card .o_vd_floor_function_tag,
+.o_vd_summary_card .o_vd_time_badge_inline {
+    font-weight: 700 !important;
+}
+.o_vd_summary_card .o_vd_step_lbl,
+.o_vd_summary_card .o_vd_step_lbl *,
+.o_vd_summary_card .o_vd_step_field > label,
+.o_vd_summary_card .o_vd_area_lbl,
+.o_vd_summary_card .o_vd_budget_lbl,
+.o_vd_summary_card .o_vd_floors_total_lbl,
+.o_vd_summary_card .o_vd_floor_function_lbl,
+.o_vd_summary_card .o_vd_pf > label,
+.o_vd_summary_card .o_vd_pf_compact > label {
+    font-weight: 600 !important;
+}
+
+/* Reset italic (sublabel "Tỉnh/Thành?" cũ là italic — bỏ luôn) */
+.o_vd_summary_card .o_vd_step_field > label,
+.o_vd_summary_card .o_vd_pf > label,
+.o_vd_summary_card .o_vd_pf_compact > label,
+.o_vd_summary_card .o_vd_area_lbl,
+.o_vd_summary_card .o_vd_area_lbl_sub,
+.o_vd_summary_card .o_vd_budget_lbl,
+.o_vd_summary_card input::placeholder,
+.o_vd_summary_card select option,
+.o_vd_summary_card .o-autocomplete input::placeholder {
+    font-style: normal !important;
+}
+
+/* ============================================================================
    STEP-ROW LAYOUT — bố cục 11 step theo flow tư vấn (Địa chỉ → Thời gian → ...)
    --------------------------------------------------------------------------
    Mỗi step: [Số tròn + Tên step] | [Inputs/content bên phải]
