@@ -8381,7 +8381,9 @@ $vd-panel-head-radius: 10px;
     --vd-shadow:      0 1px 3px rgba(15, 30, 52, 0.05);
 }
 
-/* ===== OUTER CARD ===== */
+/* ===== OUTER CARD =====
+   KHÔNG dùng overflow: hidden — sẽ clip autocomplete dropdown (Tỉnh/Huyện/Công
+   năng) khiến menu xổ ra bị cắt. Banner bo góc trên + card bo góc dưới tự lo. */
 .o_vd_summary_card {
     background: var(--vd-cream) !important;
     border: 1.5px solid var(--vd-navy-s) !important;
@@ -8389,7 +8391,9 @@ $vd-panel-head-radius: 10px;
     color: var(--vd-text) !important;
     box-shadow: var(--vd-shadow) !important;
     padding: 0 !important;
-    overflow: hidden;
+}
+.o_vd_summary_card .o_vd_summary_banner {
+    border-radius: calc(var(--vd-radius) - 1px) calc(var(--vd-radius) - 1px) 0 0 !important;
 }
 
 /* ===== BANNER "THÔNG TIN KHÁCH HÀNG" ===== */
@@ -8884,4 +8888,134 @@ $vd-panel-head-radius: 10px;
 }
 .o_vd_intake_inline .o_vd_tlc_bar:hover {
     border-color: var(--vd-navy-s) !important;
+}
+
+/* ============================================================================
+   MANY2ONE AUTOCOMPLETE (Tỉnh / Huyện) + MANY2MANY_TAGS (Công năng từng tầng)
+   --------------------------------------------------------------------------
+   Vấn đề cũ: autocomplete dropdown menu của Odoo portal vào o_vd_summary_card
+   có overflow: hidden → menu bị cắt. Đã bỏ overflow trên card.
+   Thêm: style input + dropdown menu (.o-autocomplete--dropdown-menu) theme
+   navy+cream cho đồng bộ với native select bên trên.
+   ============================================================================ */
+
+/* Many2one input field wrapper — match style với native select */
+.o_vd_intake_inline .o-autocomplete {
+    width: 100% !important;
+}
+.o_vd_intake_inline .o-autocomplete--input,
+.o_vd_intake_inline .o-autocomplete input {
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: var(--vd-text) !important;
+    font-size: var(--vd-fs-input) !important;
+    font-weight: 500 !important;
+    padding: 0.45rem 0.7rem !important;
+    line-height: 1.35 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    width: 100% !important;
+    height: auto !important;
+}
+.o_vd_intake_inline .o-autocomplete--input:hover,
+.o_vd_intake_inline .o-autocomplete input:hover {
+    border-color: var(--vd-navy-s) !important;
+    background-color: var(--vd-cream) !important;
+}
+.o_vd_intake_inline .o-autocomplete--input:focus,
+.o_vd_intake_inline .o-autocomplete input:focus {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+    outline: none !important;
+    background-color: #fff !important;
+}
+
+/* Autocomplete dropdown menu (portal — appears anywhere in DOM)
+   Selector global vì menu portal ra ngoài inline panel. Giới hạn scope qua
+   class .o-autocomplete--dropdown-menu (Odoo 18). */
+.o-autocomplete--dropdown-menu {
+    border: 1px solid #c8d6e5 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 8px 24px rgba(15, 30, 52, 0.15) !important;
+    background: #fff !important;
+    padding: 0.25rem 0 !important;
+    z-index: 9999 !important;
+    min-width: 220px !important;
+}
+.o-autocomplete--dropdown-item {
+    color: #0f1e34 !important;
+    font-size: 0.9rem !important;
+    padding: 0.5rem 0.8rem !important;
+    cursor: pointer !important;
+    transition: background 0.12s ease, color 0.12s ease !important;
+}
+.o-autocomplete--dropdown-item:hover,
+.o-autocomplete--dropdown-item.ui-state-active,
+.o-autocomplete--dropdown-item.o-autocomplete--dropdown-item--active {
+    background: #ebf1f8 !important;
+    color: #1e3a5f !important;
+}
+.o-autocomplete--dropdown-item a {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+/* "Search more..." / "Create" rows ở cuối dropdown */
+.o-autocomplete--dropdown-item.o_m2o_dropdown_option {
+    border-top: 1px solid #e5e7eb !important;
+    background: #f2ede1 !important;
+    color: #a37c45 !important;
+    font-weight: 600 !important;
+}
+.o-autocomplete--dropdown-item.o_m2o_dropdown_option:hover {
+    background: #fbf9f4 !important;
+    color: #1e3a5f !important;
+}
+
+/* ===== MANY2MANY_TAGS (Công năng T1-T7+Tum) =====
+   Chips hiện trong input + dropdown khi click. Tag chips có màu (color_field='color')
+   nên giữ background gradient riêng. Style WRAPPER + INPUT để match navy theme. */
+.o_vd_intake_inline .o_field_many2many_tags {
+    border: 1px solid var(--vd-border) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    padding: 0.3rem 0.4rem !important;
+    min-height: 38px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.o_vd_intake_inline .o_field_many2many_tags:hover {
+    border-color: var(--vd-navy-s) !important;
+}
+.o_vd_intake_inline .o_field_many2many_tags:focus-within {
+    border-color: var(--vd-navy) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+}
+/* Input bên trong many2many_tags (typeahead search) */
+.o_vd_intake_inline .o_field_many2many_tags input,
+.o_vd_intake_inline .o_field_many2many_tags .o-autocomplete input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0.15rem 0.3rem !important;
+    font-size: var(--vd-fs-body) !important;
+    min-width: 100px;
+    flex: 1 1 auto;
+}
+.o_vd_intake_inline .o_field_many2many_tags input:focus {
+    border: none !important;
+    box-shadow: none !important;
+}
+/* Tag chips bên trong — giữ màu original (color_field='color') nhưng radius + padding gọn */
+.o_vd_intake_inline .o_field_many2many_tags .o_tag,
+.o_vd_intake_inline .o_field_many2many_tags .badge {
+    border-radius: 999px !important;
+    padding: 0.2rem 0.55rem 0.2rem 0.6rem !important;
+    font-size: var(--vd-fs-badge) !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
 }
