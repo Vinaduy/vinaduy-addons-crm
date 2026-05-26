@@ -1194,12 +1194,14 @@ class CrmLead(models.Model):
                 )
                 continue
 
-            # Tất cả formula dùng TỔNG DIỆN TÍCH SÀN (vd_intake_total_m2)
+            # MÓNG: diện tích Tầng 1; MÁI: diện tích tầng trên cùng;
+            # SÀN: tổng diện tích các tầng (giữ nguyên).
+            found_area, roof_area = rec._vd_get_found_roof_areas()
             san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
             found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, total_m2 >= 70)
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
-            found_cost = total_m2 * (found_pct / 100.0) * san_unit
-            roof_cost = total_m2 * (roof_pct / 100.0) * san_unit
+            found_cost = found_area * (found_pct / 100.0) * san_unit
+            roof_cost = roof_area * (roof_pct / 100.0) * san_unit
 
             # ===== Build per-floor rows từ diện tích mỗi tầng đã nhập =====
             # Nếu NV đã nhập diện tích tầng riêng → dùng. Nếu không → fallback
@@ -1283,14 +1285,14 @@ class CrmLead(models.Model):
     <tbody>
         <tr>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {found_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{found_area:.0f} M2 x {found_pct:.0f}%</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(found_cost)} VNĐ</td>
             <td rowspan="{num_rows}" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;color:#1864ab;vertical-align:middle;">{self._fmt_vnd(total)} VNĐ</td>
         </tr>{floor_rows_html}
         <tr>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {roof_pct:.0f}%</td>
+            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(roof_cost)} VNĐ</td>
         </tr>
@@ -2122,6 +2124,37 @@ class CrmLead(models.Model):
             'mai_nhat': 'mai_nhat_kdt',
         }.get(self.vd_intake_house_type, False)
 
+    def _vd_get_found_roof_areas(self):
+        """Trả về (found_area, roof_area) cho công thức báo giá:
+        - Móng: diện tích Tầng 1 (sàn dưới cùng đỡ móng)
+        - Mái : diện tích tầng trên cùng (Tum nếu có, không thì tầng N cao nhất
+                có diện tích > 0)
+        Fallback nếu chưa nhập per-floor: dùng total_m2 / floors (bình quân)."""
+        self.ensure_one()
+        floor_1 = self.vd_intake_floor_1_m2 or 0.0
+
+        # Top floor — ưu tiên Tum, không thì floor cao nhất có area > 0
+        top = 0.0
+        if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
+            top = self.vd_intake_floor_tum_m2
+        else:
+            n_select = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
+            for i in range(n_select, 0, -1):
+                fa = self['vd_intake_floor_%s_m2' % i] or 0.0
+                if fa > 0:
+                    top = fa
+                    break
+
+        # Fallback bình quân nếu user chưa nhập per-floor
+        total = self.vd_intake_total_m2 or 0.0
+        floors = self.vd_intake_floors_num or 1.0
+        avg = (total / floors) if floors > 0 else 0.0
+        if floor_1 <= 0:
+            floor_1 = avg
+        if top <= 0:
+            top = avg
+        return floor_1, top
+
     def _get_roof_pct(self, pricing, rtype):
         return {
             'mai_bang': pricing.mai_bang,
@@ -2189,15 +2222,19 @@ class CrmLead(models.Model):
             if not pricing:
                 continue
 
-            # ===== Tính chi tiết: Móng + Sàn + Mái — TẤT CẢ × tổng sàn =====
+            # ===== Tính chi tiết: Móng + Sàn + Mái =====
+            # MÓNG: dùng diện tích Tầng 1 (sàn dưới cùng đỡ móng)
+            # MÁI : dùng diện tích tầng trên cùng (Tum hoặc tầng N cao nhất)
+            # SÀN : dùng TỔNG diện tích các tầng (giữ nguyên)
+            found_area, roof_area = rec._vd_get_found_roof_areas()
             san_unit = rec._get_san_unit_price(pricing, total_floor_area, rec.vd_intake_car_access)
             found_pct = rec._get_foundation_pct(
                 pricing, rec.vd_intake_foundation_type, total_floor_area >= 70,
             ) / 100.0
-            found_cost = total_floor_area * found_pct * san_unit
+            found_cost = found_area * found_pct * san_unit
             floor_cost = total_floor_area * san_unit
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type()) / 100.0
-            roof_cost = total_floor_area * roof_pct * san_unit
+            roof_cost = roof_area * roof_pct * san_unit
 
             total = found_cost + floor_cost + roof_cost
             # Phụ phí móng đơn 10% / móng băng-cọc 15% đã BỎ (2026-05-21 spec).
