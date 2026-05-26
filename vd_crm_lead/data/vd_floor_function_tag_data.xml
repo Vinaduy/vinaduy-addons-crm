@@ -48,19 +48,16 @@
              - Tum  : 1 Thờ, 1 Ngủ
              ============================================================ -->
 
-        <!-- ===== Phòng khách / bếp (chỉ T1) ===== -->
-        <record id="tag_1_khach" model="vd.floor.function.tag">
-            <field name="name">🛋️ 1 Khách</field>
+        <!-- ===== Khách + Bếp gộp (chỉ T1) ===== -->
+        <record id="tag_1_khach_1_bep" model="vd.floor.function.tag">
+            <field name="name">🛋️🍳 1 Khách 1 Bếp</field>
             <field name="sequence">10</field>
             <field name="color">4</field>
             <field name="fit_floors">f1</field>
         </record>
-        <record id="tag_1_bep" model="vd.floor.function.tag">
-            <field name="name">🍳 1 Bếp</field>
-            <field name="sequence">11</field>
-            <field name="color">5</field>
-            <field name="fit_floors">f1</field>
-        </record>
+        <!-- DELETE 2 tag tách rời cũ — đã gộp thành 1 -->
+        <delete model="vd.floor.function.tag" id="tag_1_khach"/>
+        <delete model="vd.floor.function.tag" id="tag_1_bep"/>
 
         <!-- ===== Ngủ (count) ===== -->
         <record id="tag_1_ngu" model="vd.floor.function.tag">
@@ -133,6 +130,18 @@
             <field name="name">🚗 Gara oto</field>
             <field name="sequence">51</field>
             <field name="color">8</field>
+            <field name="fit_floors">f1</field>
+        </record>
+        <record id="tag_oto_trong_nha" model="vd.floor.function.tag">
+            <field name="name">🚙 Ô tô trong nhà</field>
+            <field name="sequence">52</field>
+            <field name="color">8</field>
+            <field name="fit_floors">f1</field>
+        </record>
+        <record id="tag_kinh_doanh" model="vd.floor.function.tag">
+            <field name="name">🏪 Kinh doanh</field>
+            <field name="sequence">53</field>
+            <field name="color">10</field>
             <field name="fit_floors">f1</field>
         </record>
 
