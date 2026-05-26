@@ -2589,7 +2589,11 @@ class CrmLead(models.Model):
                     if new_name:
                         rec.with_context(mail_notrack=True).name = new_name
                 # ===== AUTO-tạo 2 vấn đề mặc định khi vào Đàm phán =====
-                if rec.stage_code == 'negotiate' and old_codes.get(rec.id) != 'negotiate':
+                # CHỈ tạo nếu intake_complete=True (đã đủ thông tin + có báo giá).
+                # KH chưa đủ thông tin coi như khách mới → không sinh vấn đề.
+                if (rec.stage_code == 'negotiate'
+                        and old_codes.get(rec.id) != 'negotiate'
+                        and rec.vd_intake_complete):
                     rec._vd_ensure_default_problems()
         # ===== AUTO-LOCK + AUTO chuyển stage sang 'quote' khi intake_complete =====
         # User spec: khi 11 trường bắt buộc điền đủ → tự chốt + sinh báo giá.
@@ -4418,6 +4422,9 @@ class CrmLead(models.Model):
         """Helper: IDs của lead có thời gian thi công gấp.
         Tiêu chí: vd_intake_timeline chứa 'càng sớm' / 'asap' / 'gấp' HOẶC
         có 'Tháng N/YYYY' trong khoảng <= 3 tháng tới (kể cả tháng đã qua).
+
+        REQUIRE: vd_intake_complete=True — KH chưa đủ thông tin (chưa sinh
+        báo giá) coi như khách mới, KHÔNG hiện ở THI CÔNG GẤP.
         """
         import re
         from datetime import date
@@ -4426,6 +4433,7 @@ class CrmLead(models.Model):
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('active', '=', True),
+                ('vd_intake_complete', '=', True),
                 ('vd_intake_timeline', '!=', False),
             ],
         )
@@ -4471,6 +4479,9 @@ class CrmLead(models.Model):
     def dashboard_leads_with_problems(self, user_id=None, limit=200):
         """Trả TẤT CẢ KH ở stage quote/negotiate (sau báo giá, trước khi chốt).
         EXCLUDE KH đã hiển thị ở section 'THI CÔNG GẤP' (tránh trùng lặp).
+
+        REQUIRE: vd_intake_complete=True — KH chưa đủ thông tin (chưa sinh
+        báo giá) coi như khách mới, KHÔNG hiện ở XỬ LÝ VẤN ĐỀ.
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         Stage = self.env['crm.stage']
@@ -4484,6 +4495,7 @@ class CrmLead(models.Model):
             domain_user + [
                 ('stage_id', 'in', mid_stage_ids),
                 ('active', '=', True),
+                ('vd_intake_complete', '=', True),
                 ('id', 'not in', urgent_ids),
             ],
             limit=limit,
