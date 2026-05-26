@@ -10255,6 +10255,34 @@ $vd-panel-head-radius: 10px;
     color: #6b7a93;
     font-style: italic;
 }
+
+/* ============================================================
+   GHI CHÚ row (Step 6) — textarea/input đứng cùng layout
+   với các tầng T1/T2/Tum bên trên.
+   ============================================================ */
+.o_vd_floor_function_notes_row {
+    align-items: flex-start !important;
+}
+.o_vd_tag_notes {
+    background: #fff4e6 !important;
+    color: #ad6700 !important;
+    border-color: #ffd591 !important;
+}
+.o_vd_floor_function_notes_row > .o_field_widget {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+.o_vd_floor_function_notes_row textarea,
+.o_vd_floor_function_notes_row input {
+    width: 100% !important;
+    min-height: 38px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 14px !important;
+    border: 1px solid #d9dee6 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    resize: vertical;
+}
 .o_vd_m2o_hover_picker .o_vd_mhp_err {
     padding: 0.5rem 0.85rem;
     margin-top: 0.3rem;

@@ -101,6 +101,37 @@ export class VdSelectionHoverPicker extends Component {
         return Boolean(this.currentValue);
     }
 
+    /** Inline style cho menu — position:fixed neo theo bounding rect của bar.
+     *  Thoát overflow:hidden + CSS zoom trên parent (popup panel) để menu
+     *  hiện FULL list, không bị bảng khác che. */
+    get menuStyle() {
+        if (!this.state.open || !this.rootRef.el) return "";
+        const rect = this.rootRef.el.getBoundingClientRect();
+        const optCount = this.options.length || 1;
+        const itemH = 36;
+        const padding = 12;
+        const desiredH = optCount * itemH + padding;
+        const spaceBelow = window.innerHeight - rect.bottom - 12;
+        const spaceAbove = rect.top - 12;
+        // Flip lên nếu dưới không đủ và trên rộng hơn
+        const flipUp = desiredH > spaceBelow && spaceAbove > spaceBelow;
+        const maxH = Math.max(
+            120,
+            Math.min(desiredH, flipUp ? spaceAbove : spaceBelow),
+        );
+        const top = flipUp ? rect.top - maxH - 4 : rect.bottom + 4;
+        return (
+            `position:fixed !important;` +
+            `top:${Math.round(top)}px !important;` +
+            `left:${Math.round(rect.left)}px !important;` +
+            `width:${Math.round(rect.width)}px !important;` +
+            `max-width:${Math.round(rect.width)}px !important;` +
+            `min-width:${Math.round(rect.width)}px !important;` +
+            `max-height:${Math.round(maxH)}px !important;` +
+            `z-index:2147483600 !important;`
+        );
+    }
+
     onMouseEnter() {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         this.state.open = true;

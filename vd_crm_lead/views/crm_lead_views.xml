@@ -490,6 +490,13 @@
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
                                         </div>
+                                        <!-- GHI CHÚ — text area dưới cùng Step 6 -->
+                                        <div class="o_vd_floor_function_row o_vd_floor_function_notes_row">
+                                            <span class="o_vd_floor_function_tag o_vd_tag_notes">Ghi chú</span>
+                                            <field name="vd_intake_function_notes"
+                                                   nolabel="1"
+                                                   placeholder="Yêu cầu đặc biệt: phong thủy / ánh sáng / spa / phòng thờ..."/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

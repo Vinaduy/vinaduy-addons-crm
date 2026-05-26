@@ -17,8 +17,9 @@
                 <i class="fa fa-caret-down o_vd_mhp_caret"/>
             </div>
 
-            <!-- Hover menu — click bắt bằng document capture listener (xem vd_m2o_hover_picker.js) -->
+            <!-- Hover menu — position:fixed via menuStyle để thoát parent overflow/zoom -->
             <div class="o_vd_mhp_menu" t-if="state.open"
+                 t-att-style="menuStyle"
                  t-on-mouseenter="onMouseEnter"
                  t-on-mouseleave="onMouseLeave">
                 <t t-if="state.options.length === 0">
