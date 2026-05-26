@@ -6685,16 +6685,26 @@ div.o_vd_layout_right {
    (vd popup lịch sử cuộc gọi) — KHÔNG ảnh hưởng các wizard form
    dialog khác (lost wizard, callback wizard, sign contract...).
    ============================================================ */
-/* Z-INDEX BUMP: form lead đang là dialog (z-index 1055) → popup
-   Lịch sử cuộc gọi mở target='new' phải đè lên trên. Bootstrap modal
-   chuẩn 1055 → bump lên 1100+ cho cả overlay container + modal. */
-.o_dialog_container:has(.o_dialog .o_list_view) {
-    z-index: 1100 !important;
+/* Z-INDEX NUCLEAR: popup Lịch sử cuộc gọi phải đè TẤT CẢ (lead form,
+   panel intake, ripple effect, hover panel, picker menu...).
+   Lead form panel có nhiều element z-index 9999/10000 → modal default
+   1055 bị che. Bump cực mạnh + dùng nhiều selector cover các trường hợp. */
+.o_dialog_container,
+body > .o_dialog_container,
+.o-overlay-container {
+    z-index: 99999 !important;
 }
 .o_dialog:has(.o_list_view),
 .o_dialog:has(.o_list_view) .modal,
-.o_dialog:has(.o_list_view) .modal-backdrop {
-    z-index: 1100 !important;
+.o_dialog:has(.o_list_view) .modal-dialog,
+.o_dialog:has(.o_list_view) ~ .modal-backdrop,
+.modal-backdrop.show {
+    z-index: 99999 !important;
+}
+/* Backup: bất kỳ .o_dialog nào — đảm bảo dialog (kể cả wizard) luôn
+   trên tất cả custom panel CSS. Wizards cũng không bị che. */
+.o_dialog {
+    z-index: 99999 !important;
 }
 
 .o_dialog:has(.o_list_view) .modal-dialog,
