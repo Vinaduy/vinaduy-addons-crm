@@ -687,7 +687,7 @@
                                     name="action_unlock_intake" type="object"
                                     class="btn btn-warning o_vd_btn_unlock"
                                     invisible="not vd_intake_locked"
-                                    groups="vd_crm_lead.vd_crm_group_admin,vd_crm_lead.vd_crm_group_team_leader"/>
+                                    groups="vd_crm_lead.vd_crm_group_admin"/>
                         </div>
                     </div><!-- /.o_vd_intake_popup_panel.o_vd_intake_inline -->
 

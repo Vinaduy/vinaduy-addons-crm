@@ -2466,21 +2466,20 @@ class CrmLead(models.Model):
         # ============ Tầm tài chính: range → amount auto ============
         self._sync_budget_range_to_amount(vals)
 
-        # ============ Chặn NV sửa intake khi đã khoá ============
+        # ============ Chặn NV/Leader sửa intake khi đã khoá — chỉ admin bypass ============
         locked_keys = self._INTAKE_LOCKED_FIELDS & vals.keys()
         if locked_keys:
             current_user = self.env.user
-            is_privileged = (
+            is_admin = (
                 current_user._is_superuser()
                 or current_user.has_group('vd_crm_lead.vd_crm_group_admin')
-                or current_user.has_group('vd_crm_lead.vd_crm_group_team_leader')
             )
-            if not is_privileged:
+            if not is_admin:
                 for rec in self:
                     if rec.vd_intake_locked:
                         raise UserError(_(
-                            'Thông tin tư vấn đã được chốt. Liên hệ Trưởng nhóm '
-                            'hoặc Admin để mở khoá nếu cần chỉnh sửa.'
+                            'Thông tin tư vấn đã được chốt. Liên hệ Admin '
+                            'để mở khoá nếu cần chỉnh sửa.'
                         ))
 
         # ============ Phân quyền: chặn user không được phép chuyển KH ============
@@ -2750,15 +2749,16 @@ class CrmLead(models.Model):
         return True
 
     def action_unlock_intake(self):
-        """🔓 Mở khoá thông tin tư vấn — chỉ admin/leader. NV bị reject."""
+        """🔓 Mở khoá thông tin tư vấn — CHỈ admin. NV + Trưởng nhóm đều bị reject."""
         self.ensure_one()
-        is_privileged = (
-            self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
-            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        is_admin = (
+            self.env.user._is_superuser()
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
         )
-        if not is_privileged:
+        if not is_admin:
             raise UserError(_(
-                'Chỉ Admin / Trưởng nhóm mới được mở khoá thông tin tư vấn đã chốt.'
+                'Chỉ Admin mới được mở khoá thông tin tư vấn đã chốt. '
+                'Liên hệ Admin nếu cần chỉnh sửa.'
             ))
         self.vd_intake_locked = False
         self.vd_intake_open = True
@@ -2849,45 +2849,13 @@ class CrmLead(models.Model):
                 ) % (old_stage_name, new_stage_name),
             )
 
-        if filled >= total - 1:
-            message = (
-                f'🎉 Khai thác XUẤT SẮC! ({filled}/{total} trường — {pct}%)\n'
-                f'Chúc mừng bạn đã khai thác {kh} thành công! 🌈'
-            )
-            if auto_quoted:
-                message += '\n→ Đã chuyển sang BÁO GIÁ. Lập file báo giá nhé!'
-        elif filled >= total * 2 // 3:
-            message = (
-                f'👏 Khai thác tốt! ({filled}/{total} trường — {pct}%)\n'
-            )
-            if auto_quoted:
-                message += '→ Đã chuyển sang BÁO GIÁ.'
-            else:
-                message += 'Bổ sung thêm các trường còn thiếu sau nhé!'
-        else:
-            message = (
-                f'📝 Đã lưu — mới khai thác {filled}/{total} trường ({pct}%).\n'
-                f'Cố gắng bổ sung thêm khi có cơ hội!'
-            )
-
-        # CRITICAL: phải reload form để stage_code mới render ngay → panel
-        # BÁO GIÁ tự hiện. Dùng act_window vào chính lead này → form re-fetch
-        # data từ DB → stage_code updated → invisible conditions recompute →
-        # panel báo giá visible mà không cần F5.
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'crm.lead',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'current',
-            'effect': {
-                'fadeout': 'slow',
-                'message': message,
-                'type': 'rainbow_man',
-                'img_url': '/vd_crm_lead/static/src/img/celebration.svg',
-            },
-        }
+        # KHÔNG return act_window + rainbow effect nữa (user request).
+        # Khoá fields đã set qua write_vals['vd_intake_locked']=True ở trên.
+        # Odoo tự re-fetch + re-render form sau khi button method xong →
+        # locked badge + button MỞ KHOÁ hiện ra, inputs readonly.
+        # Stage_code mới (quote) cũng tự apply → panel BÁO GIÁ visible.
+        # `filled`, `pct`, `kh` giữ lại trong audit log via message_post nếu cần.
+        return True
 
     # ============ PHASE A — WORKFLOW BUTTONS ============
     def action_mark_no_demand(self):
