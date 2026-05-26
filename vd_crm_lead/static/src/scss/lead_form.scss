@@ -10218,6 +10218,15 @@ $vd-panel-head-radius: 10px;
     background: #ebf1f8;
     color: #1e3a5f;
 }
+.o_vd_m2o_hover_picker .o_vd_mhp_item.o_vd_mhp_item_active {
+    background: #714B67;
+    color: #ffffff;
+    font-weight: 600;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_item.o_vd_mhp_item_active:hover {
+    background: #5a3c52;
+    color: #ffffff;
+}
 .o_vd_m2o_hover_picker .o_vd_mhp_empty {
     padding: 0.6rem 0.85rem;
     font-size: 12px;

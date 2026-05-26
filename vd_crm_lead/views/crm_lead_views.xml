@@ -313,12 +313,12 @@
                                 <div class="o_vd_step_body o_vd_step_body_2col">
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_house_type" nolabel="1"
-                                               widget="vd_selection_chips"
+                                               widget="vd_selection_hover_picker"
                                                placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_chips"
+                                               widget="vd_selection_hover_picker"
                                                placeholder="Móng đơn / Móng băng / Móng cọc...?"/>
                                     </div>
                                 </div>
@@ -500,7 +500,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_land_type" nolabel="1"
-                                           widget="vd_selection_chips"
+                                           widget="vd_selection_hover_picker"
                                            placeholder="Đất thổ cư / nông nghiệp / phân lô...?"/>
                                 </div>
                             </div>
@@ -513,7 +513,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
-                                           widget="vd_selection_chips"
+                                           widget="vd_selection_hover_picker"
                                            placeholder="Có / Không có chỗ để đất đào móng?"/>
                                 </div>
                             </div>
@@ -526,7 +526,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_car_access_select" nolabel="1"
-                                           widget="vd_selection_chips"
+                                           widget="vd_selection_hover_picker"
                                            placeholder="Ô tô vào tận cửa được không?"/>
                                 </div>
                             </div>
@@ -589,7 +589,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
-                                           widget="vd_selection_chips"
+                                           widget="vd_selection_hover_picker"
                                            placeholder="Đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
                                 </div>
                             </div>

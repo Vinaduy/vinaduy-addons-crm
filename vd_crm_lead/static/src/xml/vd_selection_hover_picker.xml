@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdSelectionHoverPicker">
+        <div class="o_vd_m2o_hover_picker o_vd_selection_hover_picker" t-ref="root"
+             t-att-class="{ 'o_vd_mhp_open': state.open, 'o_vd_mhp_has_value': hasValue }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
+            <!-- Bar (reuse style .o_vd_mhp_bar từ m2o picker) -->
+            <div class="o_vd_mhp_bar">
+                <span class="o_vd_mhp_value" t-if="hasValue">
+                    <t t-esc="currentLabel"/>
+                </span>
+                <span class="o_vd_mhp_placeholder" t-if="!hasValue">
+                    <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
+                </span>
+                <button type="button" class="o_vd_mhp_clear o_vd_shp_clear" t-if="hasValue" title="Xoá">×</button>
+                <i class="fa fa-caret-down o_vd_mhp_caret"/>
+            </div>
+
+            <!-- Hover menu — click bắt bằng document capture listener -->
+            <div class="o_vd_mhp_menu" t-if="state.open"
+                 t-on-mouseenter="onMouseEnter"
+                 t-on-mouseleave="onMouseLeave">
+                <t t-if="options.length === 0">
+                    <div class="o_vd_mhp_empty">
+                        <i class="fa fa-info-circle"/> Không có lựa chọn nào.
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-foreach="options" t-as="opt" t-key="opt[0]">
+                        <button type="button"
+                                class="o_vd_mhp_item o_vd_shp_item"
+                                t-att-data-opt-key="opt[0]"
+                                t-att-class="{ 'o_vd_mhp_item_active': opt[0] === currentValue }">
+                            <t t-esc="opt[1]"/>
+                        </button>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>
