@@ -224,6 +224,18 @@ export class VdM2oHoverPicker extends Component {
     }
 
     async selectRecord(rec, ev) {
+        // BANNER VÀNG xác nhận selectRecord ĐÃ chạy
+        try {
+            let b = document.getElementById("__vd_mhp_debug_banner");
+            if (!b) {
+                b = document.createElement("div");
+                b.id = "__vd_mhp_debug_banner";
+                b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999999;padding:8px 16px;font:bold 13px monospace;color:#000;white-space:pre-wrap;";
+                document.body.appendChild(b);
+            }
+            b.style.background = "#fde047";
+            b.textContent = `🟡 selectRecord FIRED — field=${this.props.name} pick=${rec.id} "${rec.display_name || rec.name}"`;
+        } catch (_) {}
         if (ev) { ev.stopPropagation(); ev.preventDefault(); }
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         console.log("[vd_m2o_hover_picker] SELECT START", this.props.name, "→", rec.id, rec.display_name || rec.name);

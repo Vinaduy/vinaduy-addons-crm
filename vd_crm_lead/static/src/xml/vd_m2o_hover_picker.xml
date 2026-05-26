@@ -34,10 +34,9 @@
                 </t>
                 <t t-else="">
                     <t t-foreach="state.options" t-as="opt" t-key="opt.id">
-                        <!-- mousedown.prevent: chặn focus shift (giữ menu); click.stop: xử lý chọn (không race với re-render giữa mousedown-mouseup) -->
+                        <!-- KHÔNG dùng modifier OWL — tự stopPropagation/preventDefault trong handler -->
                         <button type="button" class="o_vd_mhp_item"
-                                t-on-mousedown.prevent="() => {}"
-                                t-on-click.stop.prevent="(ev) => this.selectRecord(opt, ev)">
+                                t-on-click="(ev) => this.selectRecord(opt, ev)">
                             <t t-esc="opt.display_name or opt.name"/>
                         </button>
                     </t>
