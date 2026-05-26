@@ -10089,8 +10089,30 @@ $vd-panel-head-radius: 10px;
     font-size: 16px !important;
 }
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker .o_vd_mhp_bar {
-    height: 40px !important;
-    font-size: 16px !important;
+    min-width: 320px !important;
+    width: 320px !important;
+    max-width: 320px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    max-height: 41px !important;
+    font-size: 15px !important;
+    padding: 0 0.7rem !important;
+    box-sizing: border-box !important;
+}
+/* Wrapper field cũng cố định width để picker bar không bị flex co lại */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_m2o_hover_picker,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_selection_hover_picker,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_m2o_hover_picker,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_selection_hover_picker {
+    flex: 0 0 320px !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+}
+/* Inner picker container: cho phép width fit 320px */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker {
+    width: 320px !important;
+    max-width: 320px !important;
 }
 .o_vd_m2o_hover_picker .o_vd_mhp_item {
     font-size: 15px !important;
@@ -10605,7 +10627,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     grid-template-columns:
         130px       /* 1. Label 'Diện tích đất/nhà:' (widen) */
         44px        /* 2. Main toggle */
-        140px       /* 3. Subtoggle 'Đất rộng:' + toggle */
+        190px       /* 3. Subtoggle 'Đất rộng:' + toggle (+5ch padding-left) */
         32px        /* 4. Dài lbl */
         110px       /* 5. Dài input */
         16px        /* 6. × */
@@ -10632,12 +10654,14 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     max-width: 100% !important;
     flex: 1 1 100% !important;
 }
-/* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất */
+/* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất.
+   padding-left 5ch: đẩy "Đất rộng:" sang phải cách ô toggle Diện tích đất ~5 ký tự */
 .o_vd_intake_inline .o_vd_subtoggle_cell {
     display: inline-flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
     min-height: 24px !important;
+    padding-left: 5ch !important;
 }
 /* Subtoggle label "Đất rộng:" margin-left bỏ (giờ trong grid cell riêng) */
 .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_subtoggle_lbl {

@@ -93,6 +93,8 @@ const CLEAR_SKIP_SELECTORS = [
     ".o_vd_popup_banner",    // banner đang gọi — phone readonly
     ".o_vd_dim_total",       // total diện tích — readonly
     ".o_vd_estimate_panel",  // panel estimate — readonly
+    ".o_vd_floors_oneline",  // hàng số tầng — input diện tích Tầng 1/2/3... bỏ X (user request)
+    ".o_vd_area_row",        // Dài / Rộng đất + nhà — bỏ X cho UX gọn
 ];
 
 function shouldSkipClear(input) {
