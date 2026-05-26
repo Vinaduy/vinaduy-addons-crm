@@ -258,14 +258,32 @@ class CrmLead(models.Model):
         ('unreachable', 'Thuê bao'),
     ], string='Đánh giá KH tiềm năng', compute='_compute_call_stats', store=False)
 
-    @api.depends('call_ids', 'call_ids.state', 'call_ids.duration', 'call_count')
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
+                 'call_ids.recording_url', 'call_ids.recording_attachment_id',
+                 'call_ids.answer_time', 'call_count')
     def _compute_call_stats(self):
+        """Đánh giá 'nghe máy / không nghe' theo MỌI tín hiệu KH thực sự bắt máy:
+        1. state == 'answered'                     → chắc chắn nghe
+        2. answer_time có giá trị                  → Stringee ghi nhận pickup
+        3. duration > 0                            → có thời gian đàm thoại
+        4. recording_url / recording_attachment_id → có file ghi âm
+                                                     (Stringee chỉ record sau khi
+                                                      KH bắt máy, file = bằng chứng)
+        → chỉ cần 1 trong 4 đúng = COUNT NGHE MÁY.
+
+        State 'busy' / 'failed' / 'no_answer' / 'declined' / 'cancelled' không
+        có 1 trong 4 trên = KHÔNG NGHE.
+        """
         for rec in self:
             answered = 0
             not_answered = 0
             unreachable = 0
             for c in rec.call_ids:
-                if c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0):
+                has_recording = bool(c.recording_url or c.recording_attachment_id)
+                has_duration = (c.duration or 0) > 0
+                has_answer_time = bool(c.answer_time)
+                is_answered_state = c.state == 'answered'
+                if is_answered_state or has_answer_time or has_duration or has_recording:
                     answered += 1
                 elif c.state in ('busy', 'failed'):
                     unreachable += 1
