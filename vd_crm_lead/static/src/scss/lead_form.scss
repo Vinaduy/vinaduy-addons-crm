@@ -6685,25 +6685,30 @@ div.o_vd_layout_right {
    (vd popup lịch sử cuộc gọi) — KHÔNG ảnh hưởng các wizard form
    dialog khác (lost wizard, callback wizard, sign contract...).
    ============================================================ */
-/* Z-INDEX NUCLEAR: popup Lịch sử cuộc gọi phải đè TẤT CẢ (lead form,
-   panel intake, ripple effect, hover panel, picker menu...).
-   Lead form panel có nhiều element z-index 9999/10000 → modal default
-   1055 bị che. Bump cực mạnh + dùng nhiều selector cover các trường hợp. */
-.o_dialog_container,
-body > .o_dialog_container,
-.o-overlay-container {
+/* ============================================================
+   Z-INDEX NUCLEAR cho popup (Odoo 18 dùng .o-overlay-item, KHÔNG
+   phải .o_dialog_container như Odoo cũ).
+
+   ROOT CAUSE: Odoo 18 source code (overlay_container.scss):
+     .o-overlay-item { position: fixed; z-index: $zindex-modal; }  // 1055
+   Lead form panel có nhiều element z-index 9999/10000 (mhp_menu,
+   intake_popup_overlay legacy, hover_panel...) → modal 1055 bị che.
+
+   FIX: bump .o-overlay-item lên 99999 — đè TẤT CẢ.
+   ============================================================ */
+.o-overlay-container,
+.o-overlay-item {
     z-index: 99999 !important;
 }
-.o_dialog:has(.o_list_view),
-.o_dialog:has(.o_list_view) .modal,
-.o_dialog:has(.o_list_view) .modal-dialog,
-.o_dialog:has(.o_list_view) ~ .modal-backdrop,
+.o-overlay-item .modal,
+.o-overlay-item .modal-dialog,
+.o-overlay-item .modal-content,
+.o-overlay-item .modal-backdrop {
+    z-index: 99999 !important;
+}
+/* Backup: target .o_dialog trực tiếp (legacy class vẫn còn ở 1 số chỗ) */
+.o_dialog,
 .modal-backdrop.show {
-    z-index: 99999 !important;
-}
-/* Backup: bất kỳ .o_dialog nào — đảm bảo dialog (kể cả wizard) luôn
-   trên tất cả custom panel CSS. Wizards cũng không bị che. */
-.o_dialog {
     z-index: 99999 !important;
 }
 
