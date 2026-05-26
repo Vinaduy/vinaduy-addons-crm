@@ -10286,6 +10286,30 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================
+   INTAKE STATUS BADGE — thay button CHỐT THÔNG TIN (auto-lock)
+   ============================================================ */
+.o_vd_intake_status_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.o_vd_intake_status_badge.o_vd_status_pending {
+    background: #fff4e6;
+    color: #ad6700;
+    border: 1px solid #ffd591;
+}
+.o_vd_intake_status_badge.o_vd_status_locked {
+    background: #ebfbee;
+    color: #2b8a3e;
+    border: 1px solid #b2f2bb;
+}
+
+/* ============================================================
    GHI CHÚ row (Step 6) — textarea/input đứng cùng layout
    với các tầng T1/T2/Tum bên trên.
    - align-items center: label "Ghi chú" cân giữa với textarea (không lệch trên)

@@ -655,13 +655,20 @@
                                         <i class="fa fa-times-circle me-1"/>
                                         Hủy
                                     </button>
-                                    <!-- CHỐT THÔNG TIN / MỞ KHOÁ — cùng vị trí, alternate theo vd_intake_locked -->
-                                    <button string="🎯 CHỐT THÔNG TIN"
-                                            name="action_save_intake_done" type="object"
-                                            class="btn btn-sm btn-primary o_vd_btn_chot"
-                                            invisible="vd_intake_locked"/>
+                                    <!-- Bỏ CHỐT THÔNG TIN — auto-lock khi điền đủ 11 trường bắt buộc.
+                                         Giữ MỞ KHOÁ (admin only) khi đã chốt. -->
                                     <field name="vd_intake_locked" invisible="1"/>
-                                    <button string="🔓 Mở khoá để sửa"
+                                    <field name="vd_intake_complete" invisible="1"/>
+                                    <span class="o_vd_intake_status_badge o_vd_status_pending"
+                                          invisible="vd_intake_complete or vd_intake_locked"
+                                          title="Điền đủ 11 trường bắt buộc để hệ thống tự chốt + sinh báo giá">
+                                        ⏳ Chưa đủ thông tin
+                                    </span>
+                                    <span class="o_vd_intake_status_badge o_vd_status_locked"
+                                          invisible="not vd_intake_locked">
+                                        🔒 Đã chốt — báo giá đã sinh
+                                    </span>
+                                    <button string="🔓 Mở khoá"
                                             name="action_unlock_intake" type="object"
                                             class="btn btn-sm btn-warning o_vd_btn_unlock"
                                             invisible="not vd_intake_locked"
@@ -715,7 +722,11 @@
                      Đặt NGAY DƯỚI summary card, BÊN TRONG main_panel để 2 bảng
                      dính liền nhau (CSS strip border/shadow của panel con).
                      ============================================================ -->
-                <div class="o_vd_quote_panel" invisible="stage_code not in ['quote', 'negotiate', 'won']">
+                <!-- Báo giá panel: chỉ hiện khi intake đã ĐỦ THÔNG TIN
+                     (auto-lock đã trigger). Stage 'negotiate'/'won' vẫn hiện
+                     để xem lại báo giá đã chốt. -->
+                <div class="o_vd_quote_panel"
+                     invisible="not vd_intake_complete and stage_code not in ['negotiate', 'won']">
                     <div class="o_vd_quote_head">
                         <i class="fa fa-money"/>
                         <span>Báo giá chi tiết</span>

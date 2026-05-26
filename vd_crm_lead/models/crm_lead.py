@@ -325,6 +325,48 @@ class CrmLead(models.Model):
     )
     # Khoá phiếu khai thác sau khi NV bấm "Lưu & Chuyển sang BÁO GIÁ".
     # NV không sửa được khi locked. Admin/Leader có nút "Mở khoá" để bypass.
+    # ============ AUTO-LOCK INFRA ============
+    # Required fields cho 'intake complete' — TẤT CẢ phải có giá trị trừ:
+    #   - Xã/Phường (vd_intake_district)
+    #   - Diện tích đất (vd_intake_length_m / vd_intake_width_m)
+    #   - Ghi chú (vd_intake_function_notes)
+    vd_intake_complete = fields.Boolean(
+        string='Khai thác đủ thông tin',
+        compute='_compute_intake_complete', store=True,
+        help='True khi đã điền đủ 11 trường bắt buộc của THÔNG TIN TƯ VẤN. '
+             'Trigger: auto-lock + auto hiện panel BÁO GIÁ CHI TIẾT.',
+    )
+
+    @api.depends(
+        'vd_intake_province_id',                              # 1. Địa chỉ (Tỉnh)
+        'vd_intake_timeline',                                 # 2. Thời gian
+        'vd_intake_total_m2',                                 # 3. Diện tích nhà (computed)
+        'vd_intake_house_type', 'vd_intake_foundation_type',  # 4. Mẫu nhà + Móng
+        'vd_intake_floor_1_m2',                               # 5. Số tầng (ít nhất T1)
+        'vd_intake_floor_1_function_ids',                     # 6. Công năng (ít nhất T1 có tag)
+        'vd_intake_land_type',                                # 7. Loại đất
+        'vd_intake_soil_dump',                                # 8. Chỗ để đất móng
+        'vd_intake_car_access_select',                        # 9. Ô tô vào
+        'vd_intake_budget_range',                             # 10. Tầm tài chính
+        'vd_intake_dimensions',                               # 11. Sổ đỏ / cấp phép
+    )
+    def _compute_intake_complete(self):
+        for rec in self:
+            rec.vd_intake_complete = bool(
+                rec.vd_intake_province_id
+                and rec.vd_intake_timeline
+                and (rec.vd_intake_total_m2 or 0) > 0
+                and rec.vd_intake_house_type
+                and rec.vd_intake_foundation_type
+                and (rec.vd_intake_floor_1_m2 or 0) > 0
+                and rec.vd_intake_floor_1_function_ids
+                and rec.vd_intake_land_type
+                and rec.vd_intake_soil_dump
+                and rec.vd_intake_car_access_select
+                and rec.vd_intake_budget_range
+                and rec.vd_intake_dimensions
+            )
+
     vd_intake_locked = fields.Boolean(
         string='Đã khoá thông tin tư vấn', default=False, copy=False,
         help='True sau khi NV bấm Lưu & Chuyển sang Báo giá. Admin/Leader có thể mở khoá.',
@@ -2549,6 +2591,18 @@ class CrmLead(models.Model):
                 # ===== AUTO-tạo 2 vấn đề mặc định khi vào Đàm phán =====
                 if rec.stage_code == 'negotiate' and old_codes.get(rec.id) != 'negotiate':
                     rec._vd_ensure_default_problems()
+        # ===== AUTO-LOCK + AUTO chuyển stage sang 'quote' khi intake_complete =====
+        # User spec: khi 11 trường bắt buộc điền đủ → tự chốt + sinh báo giá.
+        # Skip nếu đã locked (admin chưa unlock) hoặc context bypass.
+        if not self.env.context.get('vd_skip_auto_lock'):
+            quote_stage = self.env.ref('vd_crm_lead.stage_quote', raise_if_not_found=False) \
+                          or self.env['crm.stage'].search([('code', '=', 'quote')], limit=1)
+            for rec in self:
+                if rec.vd_intake_complete and not rec.vd_intake_locked:
+                    auto_vals = {'vd_intake_locked': True, 'vd_intake_open': False}
+                    if quote_stage and rec.stage_code not in ('quote', 'negotiate', 'won', 'lost'):
+                        auto_vals['stage_id'] = quote_stage.id
+                    rec.with_context(vd_skip_auto_lock=True).write(auto_vals)
         return result
 
     # ============================================================
