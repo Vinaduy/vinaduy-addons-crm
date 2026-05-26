@@ -156,6 +156,80 @@ class VdLeadProblem(models.Model):
         ('signing', '✅ KH sắp chốt — chuẩn bị ký HĐ'),
     ], string='Kết quả sau xử lý')
 
+    # ============================================================
+    # CÂN ĐỐI NGÂN SÁCH (tag.code = 'budget_balance') — sửa intake
+    # Section cho phép NV sửa các trường ảnh hưởng báo giá chi tiết
+    # (mẫu nhà / móng / mái / vùng / diện tích từng tầng / lửng / tum).
+    # Related fields → write thẳng vào lead.vd_intake_*. Lock bypass qua
+    # context vd_skip_intake_lock trong write() override.
+    # CHỈ editable khi: tag_code='budget_balance' AND status != 'resolved'.
+    # ============================================================
+    i_house_type = fields.Selection(
+        related='lead_id.vd_intake_house_type', readonly=False, string='Mẫu nhà',
+    )
+    i_foundation_type = fields.Selection(
+        related='lead_id.vd_intake_foundation_type', readonly=False, string='Loại móng',
+    )
+    i_roof_type = fields.Selection(
+        related='lead_id.vd_intake_roof_type', readonly=False, string='Loại mái',
+    )
+    # Vùng giá derive từ tỉnh — sửa qua i_province_id (m2o → res.country.state)
+    i_province_id = fields.Many2one(
+        related='lead_id.vd_intake_province_id', readonly=False, string='Tỉnh/Thành',
+    )
+    i_region = fields.Char(related='lead_id.vd_intake_region', readonly=True, string='Vùng giá')
+    i_floor_1_m2 = fields.Float(related='lead_id.vd_intake_floor_1_m2', readonly=False, string='Tầng 1 (m²)')
+    i_floor_2_m2 = fields.Float(related='lead_id.vd_intake_floor_2_m2', readonly=False, string='Tầng 2 (m²)')
+    i_floor_3_m2 = fields.Float(related='lead_id.vd_intake_floor_3_m2', readonly=False, string='Tầng 3 (m²)')
+    i_floor_4_m2 = fields.Float(related='lead_id.vd_intake_floor_4_m2', readonly=False, string='Tầng 4 (m²)')
+    i_floor_5_m2 = fields.Float(related='lead_id.vd_intake_floor_5_m2', readonly=False, string='Tầng 5 (m²)')
+    i_floor_6_m2 = fields.Float(related='lead_id.vd_intake_floor_6_m2', readonly=False, string='Tầng 6 (m²)')
+    i_floor_7_m2 = fields.Float(related='lead_id.vd_intake_floor_7_m2', readonly=False, string='Tầng 7 (m²)')
+    i_floor_tum_m2 = fields.Float(related='lead_id.vd_intake_floor_tum_m2', readonly=False, string='Tum (m²)')
+    i_floor_lung_m2 = fields.Float(related='lead_id.vd_intake_floor_lung_m2', readonly=False, string='Lửng (m²)')
+    i_has_tum = fields.Boolean(related='lead_id.vd_intake_has_tum', readonly=False, string='Có Tum')
+    i_has_lung = fields.Boolean(related='lead_id.vd_intake_has_lung', readonly=False, string='Có Lửng')
+    i_floors_select = fields.Selection(
+        related='lead_id.vd_intake_floors_select', readonly=False, string='Số tầng',
+    )
+    # Mirror read-only: tổng diện tích sàn + estimate hiện tại để NV thấy ngay
+    i_total_m2 = fields.Float(related='lead_id.vd_intake_total_m2', readonly=True, string='Tổng diện tích sàn')
+    i_estimate = fields.Monetary(
+        related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính',
+        currency_field='i_currency_id',
+    )
+    i_currency_id = fields.Many2one(related='lead_id.vd_currency_vnd_id', readonly=True)
+
+    _INTAKE_FIELD_NAMES = (
+        'i_house_type', 'i_foundation_type', 'i_roof_type', 'i_province_id',
+        'i_floor_1_m2', 'i_floor_2_m2', 'i_floor_3_m2', 'i_floor_4_m2',
+        'i_floor_5_m2', 'i_floor_6_m2', 'i_floor_7_m2',
+        'i_floor_tum_m2', 'i_floor_lung_m2',
+        'i_has_tum', 'i_has_lung', 'i_floors_select',
+    )
+
+    def write(self, vals):
+        """Khi NV sửa intake qua section 'Cân đối ngân sách':
+        - Bypass lock check trên lead (qua context vd_skip_intake_lock)
+        - CHẶN nếu problem.status='resolved' (user yêu cầu: phải tạo vấn đề mới)
+        - CHẶN nếu tag_code != 'budget_balance' (chỉ vấn đề này được sửa)
+        """
+        from odoo.exceptions import UserError
+        intake_keys = set(vals.keys()) & set(self._INTAKE_FIELD_NAMES)
+        if intake_keys:
+            for rec in self:
+                if rec.status == 'resolved':
+                    raise UserError(_(
+                        'Vấn đề "Cân đối ngân sách" này đã giải quyết — '
+                        'tạo vấn đề mới cùng loại để sửa tiếp.'
+                    ))
+                if rec.tag_code != 'budget_balance':
+                    raise UserError(_(
+                        'Chỉ sửa thông tin báo giá qua vấn đề "Cân đối ngân sách".'
+                    ))
+            self = self.with_context(vd_skip_intake_lock=True)
+        return super().write(vals)
+
     _sql_constraints = [
         ('lead_tag_uniq', 'unique(lead_id, tag_id)',
          'Mỗi vấn đề chỉ được thêm 1 lần cho 1 KH.'),

@@ -10310,6 +10310,66 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================
+   SECTION SỬA INTAKE trong popup vấn đề Cân đối ngân sách
+   ============================================================ */
+.o_vd_pf_section_intake_edit {
+    border-left: 3px solid #fa5252;
+    background: #fff8f8;
+    margin-top: 0.8rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 6px;
+}
+.o_vd_pf_intake_grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+}
+.o_vd_pf_intake_grid.o_vd_pf_intake_locked {
+    opacity: 0.7;
+    pointer-events: none;
+}
+.o_vd_pf_intake_summary {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.4rem 0.7rem;
+    background: #ebf1f8;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #1864ab;
+    font-size: 13px;
+}
+.o_vd_pf_intake_row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem 0.8rem;
+}
+.o_vd_pf_intake_field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.o_vd_pf_intake_field > label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+}
+.o_vd_pf_intake_field.o_vd_pf_intake_check {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+}
+.o_vd_pf_intake_field.o_vd_pf_intake_check > label {
+    margin: 0;
+}
+.o_vd_pf_intake_hint {
+    font-size: 11px;
+    color: #6b7a93;
+    font-style: italic;
+    padding: 0.3rem 0;
+}
+
+/* ============================================================
    LOCKED STATE — steps panel khi vd_intake_locked=True.
    Class .vd-intake-locked được toggle bởi intake_select_fix.js
    theo giá trị field vd_intake_locked.

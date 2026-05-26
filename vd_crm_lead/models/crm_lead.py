@@ -496,7 +496,7 @@ class CrmLead(models.Model):
     )
     vd_intake_house_type = fields.Selection(
         selection=lambda self: self._vd_ext_selection('vd_intake_house_type'),
-        string='Kiểu nhà',
+        string='Kiểu nhà', tracking=True,
         help='Hỏi: "Anh/chị muốn xây kiểu nhà nào? Mái bằng, mái thái, mái nhật, nhà ống?"',
     )
     vd_intake_house_type_other = fields.Char(
@@ -613,26 +613,26 @@ class CrmLead(models.Model):
         ('5', '5'),
         ('6', '6'),
         ('7', '7'),
-    ], string='Số tầng', default='1',
+    ], string='Số tầng', default='1', tracking=True,
         help='Chọn số tầng dạng thẻ (1-7). Default = 1. Tự sync sang vd_intake_floors_num + mở các ô nhập diện tích từng tầng. Tum là toggle riêng (vd_intake_has_tum).')
 
     # Tum optional toggle — chỉ chọn khi đã chọn số tầng. Tum là tầng trên cùng.
     vd_intake_has_tum = fields.Boolean(
-        string='Có tầng tum',
+        string='Có tầng tum', tracking=True,
         help='Tum là tầng trên cùng (≈ 15-30m²). Bắt buộc đã chọn số tầng (1-7) trước.',
     )
 
-    vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
-    vd_intake_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1))
-    vd_intake_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1))
-    vd_intake_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1))
-    vd_intake_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1))
-    vd_intake_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1))
-    vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
-    vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
+    vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1), tracking=True)
+    vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1), tracking=True)
     # ===== Lửng (mezzanine) — NV bấm '+ Lửng' để mở 2 ô: Lửng + Thông tầng =====
-    vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False)
-    vd_intake_floor_lung_m2 = fields.Float(string='Lửng (m²)', digits=(10, 1))
+    vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False, tracking=True)
+    vd_intake_floor_lung_m2 = fields.Float(string='Lửng (m²)', digits=(10, 1), tracking=True)
     vd_intake_floor_thongtang_m2 = fields.Float(string='Thông tầng (m²)', digits=(10, 1))
     # ===== Counter cho UI '+ Tầng' button — sync 2 chiều với floors_select =====
     vd_intake_floors_count = fields.Integer(
@@ -839,12 +839,12 @@ class CrmLead(models.Model):
                 rec.vd_intake_total_m2 = total
     vd_intake_foundation_type = fields.Selection(
         selection=lambda self: self._vd_ext_selection('vd_intake_foundation_type'),
-        string='Loại móng',
+        string='Loại móng', tracking=True,
     )
     # ===== Loại mái — directly selectable, FILTER theo Kiểu nhà =====
     vd_intake_roof_type = fields.Selection(
         selection=lambda self: self._vd_ext_selection('vd_intake_roof_type'),
-        string='Loại mái',
+        string='Loại mái', tracking=True,
     )
 
     @api.onchange('vd_intake_house_type')
@@ -2520,8 +2520,10 @@ class CrmLead(models.Model):
         self._sync_budget_range_to_amount(vals)
 
         # ============ Chặn NV/Leader sửa intake khi đã khoá — chỉ admin bypass ============
+        # ALSO bypass khi write đến từ section 'Cân đối ngân sách' trong popup
+        # vấn đề (context vd_skip_intake_lock=True từ vd.lead.problem.write).
         locked_keys = self._INTAKE_LOCKED_FIELDS & vals.keys()
-        if locked_keys:
+        if locked_keys and not self.env.context.get('vd_skip_intake_lock'):
             current_user = self.env.user
             is_admin = (
                 current_user._is_superuser()
@@ -2532,7 +2534,8 @@ class CrmLead(models.Model):
                     if rec.vd_intake_locked:
                         raise UserError(_(
                             'Thông tin tư vấn đã được chốt. Liên hệ Admin '
-                            'để mở khoá nếu cần chỉnh sửa.'
+                            'để mở khoá nếu cần chỉnh sửa, hoặc tạo vấn đề '
+                            '"Cân đối ngân sách" mới để sửa qua popup vấn đề.'
                         ))
 
         # ============ Phân quyền: chặn user không được phép chuyển KH ============
