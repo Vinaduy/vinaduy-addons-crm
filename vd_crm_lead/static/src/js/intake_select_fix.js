@@ -507,25 +507,17 @@ function attachAutoSaveBlur() {
 }
 
 // ===== Sync class 'vd-intake-locked' lên .o_vd_steps_panel =====
-// Đọc trạng thái Boolean field vd_intake_locked (rendered ở DOM) → toggle
-// class trên panel để CSS apply pointer-events:none + visual lock.
+// Odoo 18: field Boolean invisible="1" KHÔNG render <input> DOM nên không
+// thể đọc value trực tiếp. Dùng marker element o_vd_steps_lock_marker:
+//   - View XML có <span class="o_vd_steps_lock_marker"
+//                       invisible="not vd_intake_locked"/>
+//   - Khi locked=True  → element render vào DOM
+//   - Khi locked=False → invisible="True" → Odoo remove element khỏi DOM
+//   - JS chỉ cần check existence để biết lock state
 function syncIntakeLockedClass() {
     try {
-        // Tìm hidden input field vd_intake_locked Odoo render trong form
-        const lockedInputs = document.querySelectorAll(
-            'input[name="vd_intake_locked"], [data-name="vd_intake_locked"] input'
-        );
-        let isLocked = false;
-        for (const inp of lockedInputs) {
-            const v = inp.value || inp.getAttribute('value') || '';
-            const checked = inp.checked;
-            // Boolean field: value 'True'/'1' or input.checked
-            if (checked === true || v === 'True' || v === '1' || v === 'true') {
-                isLocked = true;
-                break;
-            }
-        }
         document.querySelectorAll('.o_vd_steps_panel').forEach((panel) => {
+            const isLocked = !!panel.querySelector('.o_vd_steps_lock_marker');
             panel.classList.toggle('vd-intake-locked', isLocked);
         });
     } catch (e) {}

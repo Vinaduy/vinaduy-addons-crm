@@ -176,6 +176,14 @@
                             <field name="vd_intake_has_tum" invisible="1"/>
                             <field name="vd_intake_car_access" invisible="1"/>
                             <field name="vd_intake_budget_status" invisible="1"/>
+                            <!-- Marker để JS detect locked state — Odoo 18 với
+                                 invisible="not vd_intake_locked" → element được render
+                                 vào DOM khi locked=True, bị remove khi False.
+                                 JS query 'span.o_vd_steps_lock_marker' tồn tại =
+                                 locked → toggle class .vd-intake-locked lên panel. -->
+                            <span class="o_vd_steps_lock_marker"
+                                  invisible="not vd_intake_locked"
+                                  style="position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;"/>
 
                             <div class="o_vd_hero_head o_vd_hero_head_with_actions">
                                 <span class="o_vd_hero_icon">📋</span>
