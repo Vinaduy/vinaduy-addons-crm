@@ -348,19 +348,27 @@ export class VdCrmDashboard extends Component {
     }
 
     // Split leads cho UI "Khách mới" — top section pills, bottom section rows.
-    // Sort priority (ưu tiên KH cần gọi trước):
-    //   ⚪ chưa gọi → 🔵 chuông/bận → 🔴 thuê bao → 🟢 đã liên lạc
+    // Sort priority (per user request 2026-05-26):
+    //   1. ⚪ Chưa gọi (call_count=0)                 — đầu
+    //   2. 🟢 Đã có cuộc gọi thành công (answered>0)  — kế
+    //   3. 🔴🔵 Chưa kết nối (subscriber/no_answer/busy) — sort ASC theo
+    //      tổng số cuộc → KH ít cuộc fail trước, KH nhiều cuộc fail cuối
     get leadsNoProblems() {
         const base = (this.state.leads || []).filter(l => !l.problem_open_count);
-        const rank = (l) => {
-            const cls = this.pillCallClass(l);
-            if (cls === '' || cls === 'o_vd_pill_call_white') return 0;
-            if (cls === 'o_vd_pill_call_blue')               return 1;
-            if (cls === 'o_vd_pill_call_red')                return 2;
-            if (cls === 'o_vd_pill_call_answered')           return 3;
-            return 4;
+        const tierAndCalls = (l) => {
+            const s = l.call_stats || {};
+            const total = s.total || 0;
+            const answered = s.answered || 0;
+            if (total === 0)       return { tier: 0, calls: 0 };
+            if (answered > 0)      return { tier: 1, calls: total };
+            return { tier: 2, calls: total };
         };
-        return [...base].sort((a, b) => rank(a) - rank(b));
+        return [...base].sort((a, b) => {
+            const A = tierAndCalls(a), B = tierAndCalls(b);
+            if (A.tier !== B.tier) return A.tier - B.tier;
+            // Trong cùng tier 2 (chưa kết nối): ít cuộc trước, nhiều cuộc sau
+            return A.calls - B.calls;
+        });
     }
 
     // Trả label trạng thái cuộc gọi cho header tooltip
