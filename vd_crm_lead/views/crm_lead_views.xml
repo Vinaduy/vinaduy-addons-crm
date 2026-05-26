@@ -168,8 +168,9 @@
                             <div class="o_vd_intake_main">
 
                         <!-- ===== THÔNG TIN TƯ VẤN — 11 STEPS layout theo flow tư vấn KH =====
-                             1.Địa chỉ 2.Thời gian 3.Diện tích 4.Mẫu nhà 5.Số tầng
-                             6.Công năng 7.Loại đất 8.Chỗ để đất móng 9.Ô tô vào
+                             1.Địa chỉ 2.Thời gian 3.Diện tích 4.Mẫu nhà
+                             5.Loại đất/Móng 6.Số tầng 7.Công năng
+                             8.Chỗ để đất móng 9.Ô tô vào
                              10.Tầm tài chính 11.Sổ đỏ -->
                         <div class="o_vd_hero_card o_vd_hero_area o_vd_steps_panel">
                             <field name="vd_intake_timeline_status" invisible="1"/>
@@ -314,17 +315,30 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 4: MẪU NHÀ (Kiểu nhà + Loại móng) ===== -->
+                            <!-- ===== STEP 4: MẪU NHÀ (chỉ Kiểu nhà — Móng đã chuyển xuống Step 5) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">4</span>
                                     <span class="o_vd_step_text">Mẫu nhà</span>
                                 </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_house_type" nolabel="1"
+                                           widget="vd_selection_hover_picker"
+                                           placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
+                                </div>
+                            </div>
+
+                            <!-- ===== STEP 5: LOẠI ĐẤT + MÓNG (cùng 1 dòng — per user 2026-05-26) ===== -->
+                            <div class="o_vd_step">
+                                <div class="o_vd_step_lbl">
+                                    <span class="o_vd_step_num">5</span>
+                                    <span class="o_vd_step_text">Loại đất / Móng</span>
+                                </div>
                                 <div class="o_vd_step_body o_vd_step_body_2col">
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
-                                        <field name="vd_intake_house_type" nolabel="1"
+                                        <field name="vd_intake_land_type" nolabel="1"
                                                widget="vd_selection_hover_picker"
-                                               placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
+                                               placeholder="ĐẤT CỨNG / ĐẤT YẾU?"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_foundation_type" nolabel="1"
@@ -334,10 +348,10 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 5: SỐ TẦNG (1 dòng: + Tầng → inputs → + Tum → + Lửng → Tổng) ===== -->
+                            <!-- ===== STEP 6: SỐ TẦNG (1 dòng: + Tầng → inputs → + Tum → + Lửng → Tổng) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">5</span>
+                                    <span class="o_vd_step_num">6</span>
                                     <span class="o_vd_step_text">Số tầng</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_floors_oneline">
@@ -426,10 +440,10 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 6: CÔNG NĂNG TỪNG TẦNG (T1-T7 + Tum many2many_tags) ===== -->
+                            <!-- ===== STEP 7: CÔNG NĂNG TỪNG TẦNG (T1-T7 + Tum many2many_tags) ===== -->
                             <div class="o_vd_step" invisible="not vd_intake_floors_select and not vd_intake_has_tum">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">6</span>
+                                    <span class="o_vd_step_num">7</span>
                                     <span class="o_vd_step_text">Công năng</span>
                                 </div>
                                 <div class="o_vd_step_body">
@@ -509,18 +523,7 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 7: LOẠI ĐẤT ===== -->
-                            <div class="o_vd_step">
-                                <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">7</span>
-                                    <span class="o_vd_step_text">Loại đất</span>
-                                </div>
-                                <div class="o_vd_step_body">
-                                    <field name="vd_intake_land_type" nolabel="1"
-                                           widget="vd_selection_hover_picker"
-                                           placeholder="Đất thổ cư / nông nghiệp / phân lô...?"/>
-                                </div>
-                            </div>
+                            <!-- Step 7 (Loại đất) đã GỘP vào Step 5 với Móng -->
 
                             <!-- ===== STEP 8: CHỖ ĐỂ ĐẤT MÓNG ===== -->
                             <div class="o_vd_step">
