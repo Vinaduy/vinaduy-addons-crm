@@ -950,8 +950,19 @@ class CrmLead(models.Model):
     vd_quote_template_id = fields.Many2one(
         'vd.quote.template', string='Template báo giá',
         domain="[('id', 'in', vd_quote_template_suggested_ids)]",
-        help='Auto-filter theo intake KH (vùng/tầng/móng/mái). NV chọn template phù hợp.',
+        compute='_compute_quote_template_id_auto', store=True, readonly=False,
+        help='AUTO-pick template đầu tiên trong suggested list khi field còn rỗng. '
+             'Admin có thể override bằng cách set manual (compute respect non-empty).',
     )
+
+    @api.depends('vd_quote_template_suggested_ids')
+    def _compute_quote_template_id_auto(self):
+        """Tự pick template đầu tiên match intake nếu chưa có template nào.
+        Giữ nguyên nếu đã có (kể cả khi suggested thay đổi) để không ghi đè
+        manual selection."""
+        for rec in self:
+            if not rec.vd_quote_template_id and rec.vd_quote_template_suggested_ids:
+                rec.vd_quote_template_id = rec.vd_quote_template_suggested_ids[0]
 
     @api.depends(
         'vd_intake_region', 'vd_intake_foundation_type',
@@ -1228,20 +1239,20 @@ class CrmLead(models.Model):
                     cost = fa * san_unit
                     floor_rows_html += f'''
         <tr>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;"><b>{label}</b></td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{fa:.0f} M2</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(cost)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;"><b>{label}</b></td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{fa:.0f} M2</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(cost)} VNĐ</td>
         </tr>'''
             else:
                 # Fallback: 1 dòng "Tổng sàn" — dùng total_m2, không phụ thuộc diện tích đất.
                 floor_cost = total_m2 * san_unit
                 floor_rows_html = f'''
         <tr>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tổng sàn ({floors:g} tầng)</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(floor_cost)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">Tổng sàn ({floors:g} tầng)</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(floor_cost)} VNĐ</td>
         </tr>'''
 
             total = found_cost + floor_cost + roof_cost
@@ -1272,29 +1283,29 @@ class CrmLead(models.Model):
                 roof_lbl = '⚠️ Chưa chọn mái'
 
             rec.vd_quote_breakdown_html = f'''
-<table class="o_vd_quote_breakdown_tbl" style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:0.5rem 0;">
+<table class="o_vd_quote_breakdown_tbl" style="width:100%;border-collapse:collapse;font-size:0.72rem;margin:0.4rem 0;">
     <thead>
         <tr style="background:#5c8fb8;color:#fff;">
-            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
-            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
-            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
-            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
-            <th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
+            <th style="padding:0.42rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
+            <th style="padding:0.42rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
+            <th style="padding:0.42rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
+            <th style="padding:0.42rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
+            <th style="padding:0.42rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{found_area:.0f} M2 x {found_pct:.0f}%</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(found_cost)} VNĐ</td>
-            <td rowspan="{num_rows}" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;color:#1864ab;vertical-align:middle;">{self._fmt_vnd(total)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{found_area:.0f} M2 x {found_pct:.0f}%</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(found_cost)} VNĐ</td>
+            <td rowspan="{num_rows}" style="padding:0.38rem 0.5rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:0.85rem;color:#1864ab;vertical-align:middle;">{self._fmt_vnd(total)} VNĐ</td>
         </tr>{floor_rows_html}
         <tr>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
-            <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(roof_cost)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(san_unit)} VNĐ</td>
+            <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{self._fmt_vnd(roof_cost)} VNĐ</td>
         </tr>
     </tbody>
 </table>
@@ -1476,23 +1487,23 @@ class CrmLead(models.Model):
         </thead>
         <tbody>
             <tr>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {found_pct:.0f}%</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(found_cost)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">{found_lbl}</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {found_pct:.0f}%</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(found_cost)} VNĐ</td>
                 <td rowspan="3" style="padding:0.45rem 0.6rem;border:1px solid #1864ab;background:#fff;text-align:center;font-weight:700;font-size:13pt;color:#1a1a1a;vertical-align:middle;">{fmt(total_price)} VNĐ</td>
             </tr>
             <tr>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{sum_floor_areas:.0f}</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(floor_cost)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">Tầng trệt</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{sum_floor_areas:.0f}</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(floor_cost)} VNĐ</td>
             </tr>
             <tr>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {roof_pct:.0f}%</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
-                <td style="padding:0.45rem 0.6rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(roof_cost)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;">{roof_lbl}</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:center;">{total_m2:.0f} M2 x {roof_pct:.0f}%</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(san_unit)} VNĐ</td>
+                <td style="padding:0.38rem 0.5rem;border:1px solid #93c5fd;background:#fff;text-align:right;">{fmt(roof_cost)} VNĐ</td>
             </tr>
         </tbody>
     </table>

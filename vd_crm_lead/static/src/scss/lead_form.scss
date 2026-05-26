@@ -551,6 +551,8 @@
     box-shadow: 0 2px 10px rgba(43, 138, 62, 0.08);
     overflow: hidden;
     max-width: 1080px;
+    /* Giảm -15% toàn panel theo user request (zoom giữ click point chính xác) */
+    zoom: 0.85;
 
     .o_vd_quote_head {
         display: flex;
@@ -9392,7 +9394,17 @@ $vd-panel-head-radius: 10px;
     grid-template-columns: 200px 1fr;
     gap: 0.8rem;
     align-items: center;
-    padding: 0.35rem 0.9rem;
+    padding: 0.5rem 0.9rem;
+    /* Border + nền nhẹ → mỗi step trông như header section riêng */
+    border: 1px solid #e3e8ef;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    margin-bottom: 0.4rem;
+    box-shadow: 0 1px 2px rgba(15, 30, 52, 0.04);
+}
+.o_vd_intake_inline .o_vd_step:hover {
+    border-color: #c7d2dd;
+    background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 100%);
 }
 
 .o_vd_intake_inline .o_vd_step_lbl {

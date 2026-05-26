@@ -723,20 +723,10 @@
                     </div>
                     <div class="o_vd_quote_body">
 
-                        <!-- Form chỉ còn 1 trường: Chọn template -->
-                        <div class="o_vd_quote_layout">
-                            <div class="o_vd_quote_form_col">
-                                <div class="o_vd_quote_field">
-                                    <label for="vd_quote_template_id">📄 Chọn template có sẵn</label>
-                                    <!-- Hidden suggested_ids để domain trên dropdown đọc được -->
-                                    <field name="vd_quote_template_suggested_ids" invisible="1"/>
-                                    <field name="vd_quote_template_id" nolabel="1"
-                                           readonly="vd_quote_locked"
-                                           options="{'no_create': False, 'no_create_edit': False}"
-                                           placeholder="— Auto-filter theo vùng/tầng/móng/mái KH —"/>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Template auto-pick từ suggested list (compute) — ẩn UI dropdown.
+                             Field vẫn render invisible để Odoo track value cho domain + PDF gen. -->
+                        <field name="vd_quote_template_suggested_ids" invisible="1"/>
+                        <field name="vd_quote_template_id" invisible="1"/>
 
                         <!-- Bảng báo giá chi tiết (breakdown) — data từ Thông tin tư vấn -->
                         <div class="o_vd_quote_breakdown_wrap">
