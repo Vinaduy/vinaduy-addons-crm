@@ -13,15 +13,11 @@
                 <span class="o_vd_mhp_placeholder" t-if="!hasValue">
                     <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
                 </span>
-                <button type="button" class="o_vd_mhp_clear"
-                        t-if="hasValue"
-                        t-on-click="(ev) => this.clearValue(ev)"
-                        title="Xoá">×</button>
+                <button type="button" class="o_vd_mhp_clear" t-if="hasValue" title="Xoá">×</button>
                 <i class="fa fa-caret-down o_vd_mhp_caret"/>
             </div>
 
-            <!-- Hover menu — mouseenter/leave để keep open khi rê chuột xuống menu
-                 (menu position:absolute ở ngoài bbox wrapper → cần handle riêng) -->
+            <!-- Hover menu — click bắt bằng document capture listener (xem vd_m2o_hover_picker.js) -->
             <div class="o_vd_mhp_menu" t-if="state.open"
                  t-on-mouseenter="onMouseEnter"
                  t-on-mouseleave="onMouseLeave">
@@ -34,17 +30,13 @@
                 </t>
                 <t t-else="">
                     <t t-foreach="state.options" t-as="opt" t-key="opt.id">
-                        <!-- KHÔNG dùng modifier OWL — tự stopPropagation/preventDefault trong handler -->
                         <button type="button" class="o_vd_mhp_item"
-                                t-on-click="(ev) => this.selectRecord(opt, ev)">
+                                t-att-data-rec-id="opt.id"
+                                t-att-data-rec-name="opt.display_name or opt.name">
                             <t t-esc="opt.display_name or opt.name"/>
                         </button>
                     </t>
                 </t>
-                <!-- Debug: show last error inline -->
-                <div class="o_vd_mhp_err" t-if="state.lastError">
-                    ⚠️ <t t-esc="state.lastError"/>
-                </div>
             </div>
         </div>
     </t>
