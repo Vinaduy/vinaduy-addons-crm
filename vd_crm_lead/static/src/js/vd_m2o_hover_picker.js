@@ -187,35 +187,6 @@ export class VdM2oHoverPicker extends Component {
         return Boolean(this.props.record.data[this.props.name]);
     }
 
-    /** Inline style cho menu — position:fixed neo theo bar rect.
-     *  Thoát overflow:hidden + CSS zoom trên parent (popup panel). */
-    get menuStyle() {
-        if (!this.state.open || !this.rootRef.el) return "";
-        const rect = this.rootRef.el.getBoundingClientRect();
-        const optCount = (this.state.options || []).length || 1;
-        const itemH = 36;
-        const padding = 12;
-        const desiredH = optCount * itemH + padding;
-        const spaceBelow = window.innerHeight - rect.bottom - 12;
-        const spaceAbove = rect.top - 12;
-        const flipUp = desiredH > spaceBelow && spaceAbove > spaceBelow;
-        const maxH = Math.max(
-            120,
-            Math.min(desiredH, flipUp ? spaceAbove : spaceBelow),
-        );
-        const top = flipUp ? rect.top - maxH - 4 : rect.bottom + 4;
-        return (
-            `position:fixed !important;` +
-            `top:${Math.round(top)}px !important;` +
-            `left:${Math.round(rect.left)}px !important;` +
-            `width:${Math.round(rect.width)}px !important;` +
-            `max-width:${Math.round(rect.width)}px !important;` +
-            `min-width:${Math.round(rect.width)}px !important;` +
-            `max-height:${Math.round(maxH)}px !important;` +
-            `z-index:2147483600 !important;`
-        );
-    }
-
     async onMouseEnter() {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         await this._fetchIfNeeded();

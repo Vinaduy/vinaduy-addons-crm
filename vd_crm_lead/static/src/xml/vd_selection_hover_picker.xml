@@ -17,10 +17,8 @@
                 <i class="fa fa-caret-down o_vd_mhp_caret"/>
             </div>
 
-            <!-- Hover menu — click bắt bằng document capture listener.
-                 t-att-style: position:fixed thoát parent overflow:hidden + zoom -->
+            <!-- Hover menu — click bắt bằng document capture listener -->
             <div class="o_vd_mhp_menu" t-if="state.open"
-                 t-att-style="menuStyle"
                  t-on-mouseenter="onMouseEnter"
                  t-on-mouseleave="onMouseLeave">
                 <t t-if="options.length === 0">
