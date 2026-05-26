@@ -835,10 +835,70 @@ class CrmLead(models.Model):
              'KHÔNG → phải thuê xe vận chuyển đi (đội chi phí).')
 
     vd_intake_budget_amount = fields.Monetary(
-        string='Ngân sách KH (VNĐ)', currency_field='vd_currency_vnd_id',
-        help='NV gõ số tiền cụ thể KH dự kiến (VD: 2_000_000_000). '
-             'Nếu để trống, dùng vd_intake_budget Selection.',
+        string='Tầm tài chính (VNĐ)', currency_field='vd_currency_vnd_id',
+        help='Số tiền cụ thể KH dự kiến. Được auto-set khi user pick '
+             'vd_intake_budget_range (qua onchange + write hook).',
     )
+    # ============ TẦM TÀI CHÍNH — Selection dropdown ============
+    # Mapping key → VND amount để sync 2 chiều với vd_intake_budget_amount.
+    # Tăng dần: 0 (chưa xđ) → 700tr → ... → 3 tỷ.
+    _VD_BUDGET_RANGE_AMOUNT = {
+        'chua_xd':  0,
+        '700tr':    700_000_000,
+        '800tr':    800_000_000,
+        '900tr':    900_000_000,
+        '1ty':    1_000_000_000,
+        '1_1ty':  1_100_000_000,
+        '1_2ty':  1_200_000_000,
+        '1_3ty':  1_300_000_000,
+        '1_4ty':  1_400_000_000,
+        '1_5ty':  1_500_000_000,
+        '1_6ty':  1_600_000_000,
+        '1_7ty':  1_700_000_000,
+        '2ty':    2_000_000_000,
+        '2_2ty':  2_200_000_000,
+        '2_5ty':  2_500_000_000,
+        '2_8ty':  2_800_000_000,
+        '3ty':    3_000_000_000,
+    }
+    vd_intake_budget_range = fields.Selection([
+        ('chua_xd', 'Chưa xác định'),
+        ('700tr',   '700 Triệu'),
+        ('800tr',   '800 Triệu'),
+        ('900tr',   '900 Triệu'),
+        ('1ty',     '1 Tỷ'),
+        ('1_1ty',   '1,1 Tỷ'),
+        ('1_2ty',   '1,2 Tỷ'),
+        ('1_3ty',   '1,3 Tỷ'),
+        ('1_4ty',   '1,4 Tỷ'),
+        ('1_5ty',   '1,5 Tỷ'),
+        ('1_6ty',   '1,6 Tỷ'),
+        ('1_7ty',   '1,7 Tỷ'),
+        ('2ty',     '2 Tỷ'),
+        ('2_2ty',   '2,2 Tỷ'),
+        ('2_5ty',   '2,5 Tỷ'),
+        ('2_8ty',   '2,8 Tỷ'),
+        ('3ty',     '3 Tỷ'),
+    ], string='Tầm tài chính',
+        help='KH chọn từ dropdown. Auto cập nhật vd_intake_budget_amount '
+             'để compute chênh lệch với estimate.')
+
+    @api.onchange('vd_intake_budget_range')
+    def _onchange_budget_range(self):
+        """UI: user pick range → set amount tương ứng."""
+        if self.vd_intake_budget_range:
+            self.vd_intake_budget_amount = self._VD_BUDGET_RANGE_AMOUNT.get(
+                self.vd_intake_budget_range, 0,
+            )
+
+    @classmethod
+    def _sync_budget_range_to_amount(cls, vals):
+        """Helper: nếu vals có budget_range mà chưa có budget_amount → tự fill amount.
+        Gọi từ create()/write() override bên dưới."""
+        if 'vd_intake_budget_range' in vals and 'vd_intake_budget_amount' not in vals:
+            amount = cls._VD_BUDGET_RANGE_AMOUNT.get(vals['vd_intake_budget_range'])
+            if amount is not None:
+                vals['vd_intake_budget_amount'] = amount
     vd_currency_vnd_id = fields.Many2one(
         'res.currency', compute='_compute_vnd_currency', store=False,
         help='Currency cố định = VND để monetary widget format đúng.',
@@ -2319,6 +2379,8 @@ class CrmLead(models.Model):
                 vals['contact_name'] = self._vd_clean_input_name(vals['contact_name']) or vals['contact_name']
             if vals.get('partner_name'):
                 vals['partner_name'] = self._vd_clean_input_name(vals['partner_name']) or vals['partner_name']
+            # Tầm tài chính: range → amount auto
+            self._sync_budget_range_to_amount(vals)
         return super().create(vals_list)
 
     # Các field intake bị khoá sau khi NV bấm "Lưu & Chuyển sang Báo giá".
@@ -2340,11 +2402,15 @@ class CrmLead(models.Model):
         'vd_intake_floor_5_function_ids', 'vd_intake_floor_6_function_ids',
         'vd_intake_floor_7_function_ids', 'vd_intake_floor_tum_function_ids',
         'vd_intake_timeline', 'vd_intake_budget', 'vd_intake_budget_amount',
+        'vd_intake_budget_range',
         'vd_intake_car_access', 'vd_intake_car_access_select',
         'vd_intake_soil_dump',
     })
 
     def write(self, vals):
+        # ============ Tầm tài chính: range → amount auto ============
+        self._sync_budget_range_to_amount(vals)
+
         # ============ Chặn NV sửa intake khi đã khoá ============
         locked_keys = self._INTAKE_LOCKED_FIELDS & vals.keys()
         if locked_keys:

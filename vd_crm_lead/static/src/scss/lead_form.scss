@@ -10655,13 +10655,22 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     flex: 1 1 100% !important;
 }
 /* Subtoggle cell — wrapper giữ chỗ cho row nhà (empty) + đặt label+toggle row đất.
-   padding-left 5ch: đẩy "Đất rộng:" sang phải cách ô toggle Diện tích đất ~5 ký tự */
+   - grid-column: 3 — anchor vào column 3 cố định, không shift khi cell 1+2 ẩn
+     (khi "Đất rộng" ON, label Diện tích đất + main toggle invisible/display:none,
+      nếu không anchor thì subtoggle nhảy về column 1 130px → text wrap)
+   - padding-left 5ch: đẩy "Đất rộng:" sang phải ~5 ký tự
+   - white-space nowrap: label luôn 1 dòng, không wrap khi container hẹp */
 .o_vd_intake_inline .o_vd_subtoggle_cell {
     display: inline-flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
     min-height: 24px !important;
     padding-left: 5ch !important;
+    grid-column: 3 / 4 !important;
+    white-space: nowrap !important;
+}
+.o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_subtoggle_lbl {
+    white-space: nowrap !important;
 }
 /* Subtoggle label "Đất rộng:" margin-left bỏ (giờ trong grid cell riêng) */
 .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_subtoggle_lbl {
