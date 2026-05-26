@@ -10224,6 +10224,20 @@ $vd-panel-head-radius: 10px;
     color: #6b7a93;
     font-style: italic;
 }
+.o_vd_m2o_hover_picker .o_vd_mhp_err {
+    padding: 0.5rem 0.85rem;
+    margin-top: 0.3rem;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 12px;
+    border-top: 1px solid #fca5a5;
+    word-break: break-word;
+}
+/* Defensive: đảm bảo menu + item nhận click (chống parent pointer-events:none) */
+.o_vd_m2o_hover_picker .o_vd_mhp_menu,
+.o_vd_m2o_hover_picker .o_vd_mhp_item {
+    pointer-events: auto !important;
+}
 
 /* === DIỆN TÍCH INPUTS: 140px × 46px — HIGHER SPECIFICITY override mọi rule ===
    Dùng div.class qualifier để tăng specificity, target cả .o_input wrapper. */

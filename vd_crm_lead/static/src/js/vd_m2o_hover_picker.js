@@ -26,7 +26,7 @@ export class VdM2oHoverPicker extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ open: false, options: [], loadedKey: "", debugMsg: "" });
+        this.state = useState({ open: false, options: [], loadedKey: "", debugMsg: "", lastError: "" });
         this.rootRef = useRef("root");
 
         const fieldDef = this.props.record && this.props.record.fields
@@ -172,17 +172,33 @@ export class VdM2oHoverPicker extends Component {
     async selectRecord(rec, ev) {
         if (ev) { ev.stopPropagation(); ev.preventDefault(); }
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
-        this.state.open = false; // đóng ngay để tránh re-render race
-        console.log("[vd_m2o_hover_picker] select", rec.id, rec.display_name || rec.name);
+        console.log("[vd_m2o_hover_picker] SELECT START", this.props.name, "→", rec.id, rec.display_name || rec.name);
+        this.state.lastError = "";
+        // Update TRƯỚC, đóng menu SAU — tránh re-render xoá button giữa mousedown-mouseup
         try {
-            await this.props.record.update({
-                [this.props.name]: {
-                    id: rec.id,
-                    display_name: rec.display_name || rec.name || "",
-                },
-            });
+            const payload = { id: rec.id, display_name: rec.display_name || rec.name || "" };
+            await this.props.record.update({ [this.props.name]: payload });
+            const after = this.props.record.data[this.props.name];
+            console.log("[vd_m2o_hover_picker] SELECT OK", this.props.name, "data=", after);
+            this.state.open = false;
         } catch (e) {
-            console.error("[vd_m2o_hover_picker] update error:", e);
+            const msg = (e && (e.message || e.data?.message)) || String(e);
+            console.error("[vd_m2o_hover_picker] SELECT FAIL:", e);
+            this.state.lastError = msg;
+            // Thử format mảng [id, display_name] (Odoo cũ) làm fallback
+            try {
+                console.warn("[vd_m2o_hover_picker] retry với format mảng [id, name]");
+                await this.props.record.update({
+                    [this.props.name]: [rec.id, rec.display_name || rec.name || ""],
+                });
+                console.log("[vd_m2o_hover_picker] RETRY OK");
+                this.state.lastError = "";
+                this.state.open = false;
+            } catch (e2) {
+                const msg2 = (e2 && (e2.message || e2.data?.message)) || String(e2);
+                console.error("[vd_m2o_hover_picker] RETRY FAIL:", e2);
+                this.state.lastError = `Lỗi cập nhật: ${msg2}`;
+            }
         }
     }
 
