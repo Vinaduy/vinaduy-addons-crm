@@ -2595,18 +2595,32 @@ class CrmLead(models.Model):
                         and old_codes.get(rec.id) != 'negotiate'
                         and rec.vd_intake_complete):
                     rec._vd_ensure_default_problems()
-        # ===== AUTO-LOCK + AUTO chuyển stage sang 'quote' khi intake_complete =====
-        # User spec: khi 11 trường bắt buộc điền đủ → tự chốt + sinh báo giá.
-        # Skip nếu đã locked (admin chưa unlock) hoặc context bypass.
+        # ===== AUTO-LOCK + AUTO chuyển stage theo intake_complete =====
+        # User spec:
+        #   - Đủ 11 trường → auto-lock + chuyển stage 'quote'
+        #   - KHÔNG đủ → coi như khách mới → revert về stage 'new'
+        # Skip nếu context bypass (chống recursion).
         if not self.env.context.get('vd_skip_auto_lock'):
+            Stage = self.env['crm.stage']
             quote_stage = self.env.ref('vd_crm_lead.stage_quote', raise_if_not_found=False) \
-                          or self.env['crm.stage'].search([('code', '=', 'quote')], limit=1)
+                          or Stage.search([('code', '=', 'quote')], limit=1)
+            new_stage = Stage.search([('code', '=', 'new')], limit=1)
             for rec in self:
                 if rec.vd_intake_complete and not rec.vd_intake_locked:
+                    # Đủ → lock + chuyển 'quote'
                     auto_vals = {'vd_intake_locked': True, 'vd_intake_open': False}
                     if quote_stage and rec.stage_code not in ('quote', 'negotiate', 'won', 'lost'):
                         auto_vals['stage_id'] = quote_stage.id
                     rec.with_context(vd_skip_auto_lock=True).write(auto_vals)
+                elif (not rec.vd_intake_complete
+                        and new_stage
+                        and rec.stage_code in ('quote',)
+                        and not rec.vd_intake_locked):
+                    # Không đủ + đang ở 'quote' + đã unlock → revert về 'new'
+                    # (KHÔNG revert khi locked — vẫn giữ stage hiện tại)
+                    rec.with_context(vd_skip_auto_lock=True).write({
+                        'stage_id': new_stage.id,
+                    })
         return result
 
     # ============================================================

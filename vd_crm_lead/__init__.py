@@ -24,17 +24,34 @@ def _post_init_hook(env):
 
     # Force recompute vd_intake_complete for all leads — và auto-lock các lead
     # đã đủ thông tin nhưng chưa lock (data tồn tại trước v9.106).
+    # Đồng thời revert các lead intake KHÔNG đủ nhưng đang ở stage quote
+    # về stage 'new' (KH chưa đủ thông tin coi như khách mới).
     try:
         Lead = env['crm.lead']
+        Stage = env['crm.stage']
+        new_stage = Stage.search([('code', '=', 'new')], limit=1)
         all_leads = Lead.search([])
         if all_leads:
             all_leads._compute_intake_complete()
+            # Auto-lock các lead đủ thông tin
             to_lock = all_leads.filtered(lambda l: l.vd_intake_complete and not l.vd_intake_locked)
             if to_lock:
                 to_lock.with_context(vd_skip_auto_lock=True).write({
                     'vd_intake_locked': True,
                     'vd_intake_open': False,
                 })
+            # Revert các lead chưa đủ ở stage 'quote' (chưa locked) về 'new'
+            # (giữ nguyên stage 'negotiate'/'won'/'lost' — không động vào)
+            if new_stage:
+                to_revert = all_leads.filtered(
+                    lambda l: (not l.vd_intake_complete
+                               and l.stage_id.code == 'quote'
+                               and not l.vd_intake_locked)
+                )
+                if to_revert:
+                    to_revert.with_context(vd_skip_auto_lock=True).write({
+                        'stage_id': new_stage.id,
+                    })
     except Exception:
         pass  # không crash post-init nếu có vấn đề
 
