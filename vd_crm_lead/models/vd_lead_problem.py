@@ -194,11 +194,8 @@ class VdLeadProblem(models.Model):
     )
     # Mirror read-only: tổng diện tích sàn + estimate hiện tại để NV thấy ngay
     i_total_m2 = fields.Float(related='lead_id.vd_intake_total_m2', readonly=True, string='Tổng diện tích sàn')
-    i_estimate = fields.Monetary(
-        related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính',
-        currency_field='i_currency_id',
-    )
-    i_currency_id = fields.Many2one(related='lead_id.vd_currency_vnd_id', readonly=True)
+    # vd_intake_estimate là Float (không phải Monetary) → related cùng type
+    i_estimate = fields.Float(related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính')
 
     _INTAKE_FIELD_NAMES = (
         'i_house_type', 'i_foundation_type', 'i_roof_type', 'i_province_id',
