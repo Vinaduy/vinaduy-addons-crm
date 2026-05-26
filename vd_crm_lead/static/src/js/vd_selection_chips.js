@@ -78,6 +78,7 @@ export class VdSelectionChips extends Component {
         // Click vào chip đang chọn → bỏ chọn (clear). Click khác → set value mới.
         const newVal = (value === this.currentValue) ? false : value;
         await this.props.record.update({ [this.props.name]: newVal });
+        try { await this.props.record.save(); } catch (_) {}
         this.state.open = false;
     }
 

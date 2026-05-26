@@ -468,7 +468,41 @@ function schedule() {
         attachReadableHintAll();        // chỉ XOÁ hint cũ, không tạo mới
         attachLiveSeparatorAll();        // gõ tới đâu phân cách số tới đó
         clearZeroDisplays();
+        attachAutoSaveBlur();            // blur Float/Char inputs → auto-save form
     });
+}
+
+// ===== AUTO-SAVE on blur cho Float/Char inputs trong steps panel =====
+// Để auto-lock trigger ngay khi user blur khỏi ô cuối (Tầng N m², Diện tích...)
+// thay vì phải bấm cloud icon Save thủ công.
+function _autoSaveFormSafe() {
+    try {
+        // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
+        const btn = document.querySelector(
+            ".o_form_view.o_form_dirty button.o_form_button_save, " +
+            ".o_form_view button.o_form_button_save:not([disabled])"
+        );
+        if (btn && btn.offsetParent !== null) {
+            btn.click();
+        }
+    } catch (e) {
+        // im lặng — không phá UI
+    }
+}
+let _autoSaveDebounce = null;
+function attachAutoSaveBlur() {
+    try {
+        document.querySelectorAll(
+            ".o_vd_steps_panel input, .o_vd_steps_panel textarea"
+        ).forEach((el) => {
+            if (el.dataset.vdAutoSaveBlur === "1") return;
+            el.dataset.vdAutoSaveBlur = "1";
+            el.addEventListener("blur", () => {
+                if (_autoSaveDebounce) clearTimeout(_autoSaveDebounce);
+                _autoSaveDebounce = setTimeout(_autoSaveFormSafe, 350);
+            });
+        });
+    } catch (e) {}
 }
 
 function start() {

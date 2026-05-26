@@ -104,12 +104,15 @@ export class VdFloorFunctionChips extends Component {
         } else {
             await this.saveRecord([tag.id]);
         }
+        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
+        try { await this.props.record.save(); } catch (_) {}
     }
 
     async onRemoveSelected(tag, ev) {
         ev.stopPropagation();
         const rec = this.x2manyValue.records.find((r) => r.resId === tag.id);
         if (rec) await this.removeRecord(rec);
+        try { await this.props.record.save(); } catch (_) {}
     }
 }
 

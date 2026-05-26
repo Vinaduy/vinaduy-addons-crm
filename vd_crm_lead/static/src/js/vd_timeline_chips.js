@@ -112,6 +112,8 @@ export class VdTimelineChips extends Component {
         }
         const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
         this.props.record.update({ [this.props.name]: ordered.join(SEP) });
+        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
+        try { this.props.record.save(); } catch (_) {}
     }
 
     onRemoveSelected(label, ev) {
@@ -120,6 +122,8 @@ export class VdTimelineChips extends Component {
         sel.delete(label);
         const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
         this.props.record.update({ [this.props.name]: ordered.join(SEP) });
+        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
+        try { this.props.record.save(); } catch (_) {}
     }
 }
 

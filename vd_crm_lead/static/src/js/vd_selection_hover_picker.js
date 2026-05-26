@@ -114,13 +114,13 @@ export class VdSelectionHoverPicker extends Component {
     async selectOption(key, ev) {
         if (ev) { try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {} }
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
-        console.log("[vd_shp] selectOption", this.props.name, "→", key);
         try {
             await this.props.record.update({ [this.props.name]: key });
-            console.log("[vd_shp] update OK, data=", this.props.record.data[this.props.name]);
         } catch (e) {
             console.error("[vd_shp] update failed:", e);
         }
+        // Auto-save form → trigger backend compute vd_intake_complete + auto-lock
+        try { await this.props.record.save(); } catch (_) {}
         try { this.render(true); } catch (_) {}
         this.state.open = false;
     }
