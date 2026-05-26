@@ -201,23 +201,53 @@ export class VdM2oHoverPicker extends Component {
     async selectRecord(rec, ev) {
         if (ev) { try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {} }
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        const fname = this.props.name;
+        const dispName = rec.display_name || rec.name || "";
+        console.log("[vd_m2o_picker] selectRecord", fname, "→", rec.id, dispName);
+
+        // STRATEGY 1: thử record.update format object (Odoo 18 standard)
+        let updated = false;
         try {
-            await this.props.record.update({
-                [this.props.name]: {
-                    id: rec.id,
-                    display_name: rec.display_name || rec.name || "",
-                },
-            });
+            await this.props.record.update({ [fname]: { id: rec.id, display_name: dispName } });
+            updated = true;
+            console.log("[vd_m2o_picker] update OBJECT OK, data=", this.props.record.data[fname]);
         } catch (e) {
-            // Fallback format mảng [id, name] cho version Odoo cũ
+            console.warn("[vd_m2o_picker] update OBJECT failed:", e);
+        }
+
+        // STRATEGY 2: nếu chưa thành công, thử format mảng [id, name]
+        if (!updated) {
             try {
-                await this.props.record.update({
-                    [this.props.name]: [rec.id, rec.display_name || rec.name || ""],
-                });
-            } catch (e2) {
-                console.error("[vd_m2o_hover_picker] update failed:", e2);
+                await this.props.record.update({ [fname]: [rec.id, dispName] });
+                updated = true;
+                console.log("[vd_m2o_picker] update ARRAY OK, data=", this.props.record.data[fname]);
+            } catch (e) {
+                console.warn("[vd_m2o_picker] update ARRAY failed:", e);
             }
         }
+
+        // STRATEGY 3: nếu vẫn fail (hoặc data không phản ánh), gọi ORM write thẳng
+        // rồi reload record. Brute force, đảm bảo lưu DB.
+        const curData = this.props.record.data[fname];
+        const curId = this._extractId(curData);
+        if (!updated || curId !== rec.id) {
+            try {
+                const resId = this.props.record.resId;
+                if (resId) {
+                    await this.orm.write(this.props.record.resModel, [resId], { [fname]: rec.id });
+                    await this.props.record.load();
+                    updated = true;
+                    console.log("[vd_m2o_picker] ORM WRITE OK, data=", this.props.record.data[fname]);
+                } else {
+                    console.warn("[vd_m2o_picker] no resId — can't ORM write");
+                }
+            } catch (e) {
+                console.error("[vd_m2o_picker] ORM WRITE failed:", e);
+            }
+        }
+
+        // Force render để UI bar cập nhật ngay
+        try { this.render(true); } catch (_) {}
         this.state.open = false;
     }
 
