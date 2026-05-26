@@ -30,7 +30,6 @@ class CrmLead(models.Model):
             ('mai_bang', 'Nhà mái bằng'),
             ('mai_thai', 'Nhà mái thái'),
             ('mai_nhat', 'Nhà mái nhật'),
-            ('nha_ong', 'Nhà ống'),
         ],
         'vd_intake_foundation_type': [
             ('don', 'Móng đơn'),
@@ -51,19 +50,13 @@ class CrmLead(models.Model):
             ('mai_ton_3m', 'Mái tôn 3 mặt (20%)'),
         ],
         'vd_intake_dimensions': [
-            ('co_so_co_phep', 'Có sổ + có cấp phép'),
-            ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
-            ('chua_co_so', 'Chưa có sổ'),
-            ('dang_xin_phep', 'Đang xin cấp phép'),
-            ('khac', 'Khác'),
+            ('co_so_can_phep', 'CÓ SỔ - Phải làm cấp phép'),
+            ('co_so_khong_phep', 'CÓ SỔ - Không cần cấp phép'),
+            ('khong_so_khong_phep', 'KHÔNG SỔ - Không cần cấp phép'),
         ],
         'vd_intake_land_type': [
-            ('lien_tho', 'Đất liền thổ'),
-            ('phan_lo', 'Đất phân lô'),
-            ('hon_hop', 'Đất hỗn hợp'),
-            ('nong_nghiep', 'Đất nông nghiệp'),
-            ('quy_hoach', 'Đất quy hoạch'),
-            ('khac', 'Khác'),
+            ('dat_cung', 'ĐẤT CỨNG - Liền thổ'),
+            ('dat_yeu', 'ĐẤT YẾU - Ao ruộng san lấp'),
         ],
         'vd_intake_position': [
             ('mt_lon', 'Mặt tiền đường lớn'),
@@ -808,10 +801,13 @@ class CrmLead(models.Model):
             if ok and rec.vd_intake_roof_type not in ok:
                 rec.vd_intake_roof_type = False
     vd_intake_car_access = fields.Boolean(string='Ô tô vào được', default=True)
-    # Selection mirror cho UI dropdown (sync 2 chiều với Boolean ở trên)
+    # Selection mirror cho UI dropdown (sync 2 chiều với Boolean ở trên):
+    #  - xe_tai_lon / xe_tai_nho → vào được (True)
+    #  - xe_3_banh → không vào được ô tô (False, chỉ xe 3 bánh)
     vd_intake_car_access_select = fields.Selection([
-        ('co', 'Có'),
-        ('khong', 'Không'),
+        ('xe_tai_lon', 'ĐƯỜNG - Xe tải lớn'),
+        ('xe_tai_nho', 'ĐƯỜNG - Xe tải nhỏ'),
+        ('xe_3_banh', 'ĐƯỜNG - Xe 3 bánh'),
     ], string='Ô tô vào',
         compute='_compute_car_access_select',
         inverse='_inverse_car_access_select',
@@ -820,20 +816,23 @@ class CrmLead(models.Model):
     @api.depends('vd_intake_car_access')
     def _compute_car_access_select(self):
         for rec in self:
-            rec.vd_intake_car_access_select = 'co' if rec.vd_intake_car_access else 'khong'
+            # Chỉ set giá trị mặc định khi chưa có (tránh ghi đè lựa chọn cụ thể)
+            if not rec.vd_intake_car_access_select:
+                rec.vd_intake_car_access_select = 'xe_tai_nho' if rec.vd_intake_car_access else 'xe_3_banh'
 
     def _inverse_car_access_select(self):
         for rec in self:
-            rec.vd_intake_car_access = (rec.vd_intake_car_access_select == 'co')
+            rec.vd_intake_car_access = rec.vd_intake_car_access_select in ('xe_tai_lon', 'xe_tai_nho')
 
     # Chỗ để đất móng — KH có chỗ chứa/đổ đất móng đào lên không?
     # Ảnh hưởng đến chi phí thi công (phải thuê xe vận chuyển hay không).
     vd_intake_soil_dump = fields.Selection([
-        ('co', 'Có chỗ để đất'),
-        ('khong', 'Không có chỗ để đất'),
+        ('co_dat_rong', 'CÓ - Đất rộng'),
+        ('co_quanh_mong', 'CÓ - Để quanh móng, vỉa hè'),
+        ('khong', 'KHÔNG - Không có chỗ'),
     ], string='Chỗ để đất móng',
-        help='KH có sân/khoảng đất để chứa đất móng đào lên không? '
-             'Không có → phải thuê xe vận chuyển đi.')
+        help='KH có chỗ chứa đất móng đào lên không? '
+             'KHÔNG → phải thuê xe vận chuyển đi (đội chi phí).')
 
     vd_intake_budget_amount = fields.Monetary(
         string='Ngân sách KH (VNĐ)', currency_field='vd_currency_vnd_id',
@@ -1744,12 +1743,8 @@ class CrmLead(models.Model):
         all_problems = {p.code: p for p in Problem.search([])}
         for rec in self:
             suggested = Problem.browse()
-            # Đất chưa có sổ → no_red_book
-            if rec.vd_intake_dimensions == 'chua_co_so':
-                p = all_problems.get('no_red_book')
-                if p:
-                    suggested |= p
-            elif rec.vd_intake_dimensions in ('co_so_chua_phep', 'dang_xin_phep'):
+            # KHÔNG SỔ → no_red_book; CÓ SỔ - phải làm cấp phép → cũng cảnh báo
+            if rec.vd_intake_dimensions in ('khong_so_khong_phep', 'co_so_can_phep'):
                 p = all_problems.get('no_red_book')
                 if p:
                     suggested |= p

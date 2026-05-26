@@ -232,7 +232,6 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
             ('mai_bang', 'Nhà mái bằng'),
             ('mai_thai', 'Nhà mái thái'),
             ('mai_nhat', 'Nhà mái nhật'),
-            ('nha_ong', 'Nhà ống'),
         ],
         'i_foundation_type': [
             ('don', 'Móng đơn'),
@@ -240,16 +239,13 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
             ('coc', 'Móng cọc'),
         ],
         'i_dimensions': [
-            ('co_so_co_phep', 'Có sổ + có cấp phép'),
-            ('co_so_chua_phep', 'Có sổ - chưa cấp phép'),
-            ('chua_co_so', 'Chưa có sổ'),
-            ('dang_xin_phep', 'Đang xin cấp phép'),
-            ('khac', 'Khác'),
+            ('co_so_can_phep', 'CÓ SỔ - Phải làm cấp phép'),
+            ('co_so_khong_phep', 'CÓ SỔ - Không cần cấp phép'),
+            ('khong_so_khong_phep', 'KHÔNG SỔ - Không cần cấp phép'),
         ],
         'i_land_type': [
-            ('lien_tho', 'Đất liền thổ'),
-            ('phan_lo', 'Đất phân lô'),
-            ('nong_nghiep', 'Nông nghiệp'),
+            ('dat_cung', 'ĐẤT CỨNG - Liền thổ'),
+            ('dat_yeu', 'ĐẤT YẾU - Ao ruộng san lấp'),
         ],
     }
 
@@ -337,8 +333,9 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         string='Loại đất',
     )
     i_car_access_select = fields.Selection([
-        ('co', 'Có'),
-        ('khong', 'Không'),
+        ('xe_tai_lon', 'ĐƯỜNG - Xe tải lớn'),
+        ('xe_tai_nho', 'ĐƯỜNG - Xe tải nhỏ'),
+        ('xe_3_banh', 'ĐƯỜNG - Xe 3 bánh'),
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
 
