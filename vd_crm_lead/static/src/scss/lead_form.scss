@@ -10310,6 +10310,57 @@ $vd-panel-head-radius: 10px;
 }
 
 /* ============================================================
+   LOCKED STATE — steps panel khi vd_intake_locked=True.
+   Class .vd-intake-locked được toggle bởi intake_select_fix.js
+   theo giá trị field vd_intake_locked.
+   ============================================================ */
+.o_vd_steps_panel.vd-intake-locked {
+    position: relative;
+}
+/* Chặn click + scroll trên TẤT CẢ input/picker/chip/button trong panel.
+   Riêng button .o_vd_btn_unlock vẫn click được (override pointer-events) */
+.o_vd_steps_panel.vd-intake-locked input,
+.o_vd_steps_panel.vd-intake-locked textarea,
+.o_vd_steps_panel.vd-intake-locked select,
+.o_vd_steps_panel.vd-intake-locked .o_vd_m2o_hover_picker,
+.o_vd_steps_panel.vd-intake-locked .o_vd_timeline_chips,
+.o_vd_steps_panel.vd-intake-locked .o_vd_floor_function_chips,
+.o_vd_steps_panel.vd-intake-locked .o_field_widget,
+.o_vd_steps_panel.vd-intake-locked .o_vd_area_toggle,
+.o_vd_steps_panel.vd-intake-locked .o_vd_floors_btn {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+.o_vd_steps_panel.vd-intake-locked input,
+.o_vd_steps_panel.vd-intake-locked textarea {
+    background: #f1f3f5 !important;
+    color: #495057 !important;
+    cursor: not-allowed !important;
+}
+.o_vd_steps_panel.vd-intake-locked .o_vd_m2o_hover_picker .o_vd_mhp_bar {
+    background: #f1f3f5 !important;
+    cursor: not-allowed !important;
+}
+/* Nút × xoá trong picker bị ẩn khi lock */
+.o_vd_steps_panel.vd-intake-locked .o_vd_mhp_clear,
+.o_vd_steps_panel.vd-intake-locked .o_vd_tlc_pill_x {
+    display: none !important;
+}
+/* Banner báo locked phía trên panel */
+.o_vd_steps_panel.vd-intake-locked::before {
+    content: "🔒 Thông tin đã chốt — chỉ Admin mới mở khoá được";
+    display: block;
+    background: #fff3bf;
+    color: #5c3c00;
+    padding: 0.4rem 0.85rem;
+    border-bottom: 1px solid #ffd43b;
+    font-weight: 600;
+    font-size: 12px;
+    text-align: center;
+    pointer-events: auto;
+}
+
+/* ============================================================
    GHI CHÚ row (Step 6) — textarea/input đứng cùng layout
    với các tầng T1/T2/Tum bên trên.
    - align-items center: label "Ghi chú" cân giữa với textarea (không lệch trên)

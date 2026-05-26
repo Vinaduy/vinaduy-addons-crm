@@ -469,6 +469,7 @@ function schedule() {
         attachLiveSeparatorAll();        // gõ tới đâu phân cách số tới đó
         clearZeroDisplays();
         attachAutoSaveBlur();            // blur Float/Char inputs → auto-save form
+        syncIntakeLockedClass();         // sync class .vd-intake-locked theo state
     });
 }
 
@@ -501,6 +502,31 @@ function attachAutoSaveBlur() {
                 if (_autoSaveDebounce) clearTimeout(_autoSaveDebounce);
                 _autoSaveDebounce = setTimeout(_autoSaveFormSafe, 350);
             });
+        });
+    } catch (e) {}
+}
+
+// ===== Sync class 'vd-intake-locked' lên .o_vd_steps_panel =====
+// Đọc trạng thái Boolean field vd_intake_locked (rendered ở DOM) → toggle
+// class trên panel để CSS apply pointer-events:none + visual lock.
+function syncIntakeLockedClass() {
+    try {
+        // Tìm hidden input field vd_intake_locked Odoo render trong form
+        const lockedInputs = document.querySelectorAll(
+            'input[name="vd_intake_locked"], [data-name="vd_intake_locked"] input'
+        );
+        let isLocked = false;
+        for (const inp of lockedInputs) {
+            const v = inp.value || inp.getAttribute('value') || '';
+            const checked = inp.checked;
+            // Boolean field: value 'True'/'1' or input.checked
+            if (checked === true || v === 'True' || v === '1' || v === 'true') {
+                isLocked = true;
+                break;
+            }
+        }
+        document.querySelectorAll('.o_vd_steps_panel').forEach((panel) => {
+            panel.classList.toggle('vd-intake-locked', isLocked);
         });
     } catch (e) {}
 }
