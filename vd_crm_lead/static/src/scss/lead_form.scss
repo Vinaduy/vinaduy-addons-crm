@@ -10259,14 +10259,18 @@ $vd-panel-head-radius: 10px;
 /* ============================================================
    GHI CHÚ row (Step 6) — textarea/input đứng cùng layout
    với các tầng T1/T2/Tum bên trên.
+   - align-items center: label "Ghi chú" cân giữa với textarea (không lệch trên)
+   - min-height 46px (+20% so với cũ 38px)
+   - font-size dùng --vd-fs-input chung của panel
    ============================================================ */
 .o_vd_floor_function_notes_row {
-    align-items: flex-start !important;
+    align-items: center !important;
 }
 .o_vd_tag_notes {
     background: #fff4e6 !important;
     color: #ad6700 !important;
     border-color: #ffd591 !important;
+    align-self: center !important;
 }
 .o_vd_floor_function_notes_row > .o_field_widget {
     flex: 1 1 auto !important;
@@ -10275,13 +10279,23 @@ $vd-panel-head-radius: 10px;
 .o_vd_floor_function_notes_row textarea,
 .o_vd_floor_function_notes_row input {
     width: 100% !important;
-    min-height: 38px !important;
-    padding: 0.5rem 0.75rem !important;
-    font-size: 14px !important;
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 0.7rem 0.85rem !important;
+    font-size: var(--vd-fs-input, 0.95rem) !important;
+    line-height: 1.4 !important;
     border: 1px solid #d9dee6 !important;
     border-radius: 6px !important;
     background: #ffffff !important;
     resize: vertical;
+    box-sizing: border-box !important;
+}
+/* Steps panel override: cùng font-size với input picker bar (15px) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row textarea,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row input {
+    font-size: 15px !important;
+    min-height: 46px !important;
+    height: 46px !important;
 }
 .o_vd_m2o_hover_picker .o_vd_mhp_err {
     padding: 0.5rem 0.85rem;
