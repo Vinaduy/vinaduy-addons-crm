@@ -17,6 +17,60 @@ import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
 
+// ============= GLOBAL DEBUG: bắt mọi click ở body trong CAPTURE phase =============
+// Mục đích: xác định click có tới được button .o_vd_mhp_item hay không, và
+// nếu KHÔNG thì handler nào / element nào chặn (stopPropagation / pointer-events).
+if (!window.__vdMhpDebugInstalled) {
+    window.__vdMhpDebugInstalled = true;
+    const showBanner = (text, color) => {
+        let b = document.getElementById("__vd_mhp_debug_banner");
+        if (!b) {
+            b = document.createElement("div");
+            b.id = "__vd_mhp_debug_banner";
+            b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999999;padding:8px 16px;font:bold 13px monospace;color:#fff;white-space:pre-wrap;max-height:30vh;overflow:auto;";
+            document.body.appendChild(b);
+        }
+        b.style.background = color;
+        b.textContent = text;
+    };
+    document.addEventListener("click", (ev) => {
+        const t = ev.target;
+        if (!(t instanceof Element)) return;
+        const inMenu = t.closest(".o_vd_mhp_menu");
+        const inItem = t.closest(".o_vd_mhp_item");
+        const inPicker = t.closest(".o_vd_m2o_hover_picker");
+        if (inMenu || inItem || inPicker) {
+            const path = [];
+            let el = t;
+            while (el && el !== document.body && path.length < 8) {
+                path.push(`${el.tagName.toLowerCase()}${el.className ? "." + String(el.className).split(" ").slice(0, 2).join(".") : ""}`);
+                el = el.parentElement;
+            }
+            showBanner(
+                `🟢 CLICK CAPTURED @body\n` +
+                `target: ${t.tagName} ${t.className}\n` +
+                `inMenu=${!!inMenu} inItem=${!!inItem} inPicker=${!!inPicker}\n` +
+                `path: ${path.join(" > ")}`,
+                "#16a34a"
+            );
+            // tự xoá sau 4s
+            setTimeout(() => {
+                const b = document.getElementById("__vd_mhp_debug_banner");
+                if (b) b.remove();
+            }, 4000);
+        }
+    }, true);
+    // Capture mousedown cũng để check
+    document.addEventListener("mousedown", (ev) => {
+        const t = ev.target;
+        if (!(t instanceof Element)) return;
+        if (t.closest(".o_vd_mhp_item")) {
+            console.log("[vd_mhp_debug] mousedown on item:", t);
+        }
+    }, true);
+    console.log("[vd_mhp_debug] Global capture listeners installed");
+}
+
 export class VdM2oHoverPicker extends Component {
     static template = "vd_crm_lead.VdM2oHoverPicker";
     static props = {
