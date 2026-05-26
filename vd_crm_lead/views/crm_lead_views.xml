@@ -820,6 +820,10 @@
                                         context="{'tag_xmlid': 'vd_crm_lead.nego_problem_promotion'}">🎁 Khuyến mãi</button>
                             </div>
 
+                            <!-- ===== Thi công gấp — manual (auto-sinh khi intake_timeline ≤ 3 tháng) ===== -->
+                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_urgent_construction'}">⚡ Thi công gấp</button>
+
                             <!-- ===== Tham khảo giá ===== -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>

@@ -210,6 +210,23 @@
         ]]></field>
     </record>
 
+    <record id="nego_problem_urgent_construction" model="vd.nego.problem">
+        <field name="code">urgent_construction</field>
+        <field name="name">Thi công gấp</field>
+        <field name="icon">⚡</field>
+        <field name="color">1</field>
+        <field name="sequence">1</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>KH muốn khởi công gấp (≤ 3 tháng / càng sớm càng tốt):</b></p>
+            <ul>
+                <li>Xác nhận lại deadline khởi công cụ thể — ngày/tháng KH cần xong phần thô.</li>
+                <li>Check năng lực thi công: có đội thi công sẵn trong khoảng đó không? Báo lại sớm cho KH.</li>
+                <li>Đẩy nhanh thủ tục: chốt báo giá → cọc → khởi công trong ≤ 7 ngày.</li>
+                <li>Nếu không kịp tiến độ KH yêu cầu → trao đổi thẳng + đề xuất phương án (giảm quy mô / lùi 1-2 tuần).</li>
+            </ul>
+        ]]></field>
+    </record>
+
     <record id="nego_problem_undefined" model="vd.nego.problem">
         <field name="code">undefined</field>
         <field name="name">Chưa xác định</field>

@@ -4442,6 +4442,9 @@ class CrmLead(models.Model):
 
         REQUIRE: vd_intake_complete=True — KH chưa đủ thông tin (chưa sinh
         báo giá) coi như khách mới, KHÔNG hiện ở THI CÔNG GẤP.
+
+        SIDE EFFECT: Auto-tạo problem "Thi công gấp" cho mọi lead match
+        điều kiện (idempotent — bỏ qua nếu đã có).
         """
         import re
         from datetime import date
@@ -4476,7 +4479,30 @@ class CrmLead(models.Model):
                         urgent_ids.append(lead.id)
                 except ValueError:
                     continue
+        if urgent_ids:
+            self.browse(urgent_ids)._vd_ensure_urgent_construction_problem()
         return urgent_ids
+
+    def _vd_ensure_urgent_construction_problem(self):
+        """Idempotent: tạo 'Thi công gấp' problem nếu chưa có cho leads này."""
+        tag = self.env.ref(
+            'vd_crm_lead.nego_problem_urgent_construction',
+            raise_if_not_found=False,
+        )
+        if not tag:
+            return
+        Problem = self.env['vd.lead.problem'].sudo()
+        for lead in self:
+            if lead.vd_lead_problem_ids.filtered(lambda p: p.tag_id.id == tag.id):
+                continue
+            Problem.create({
+                'lead_id': lead.id,
+                'tag_id': tag.id,
+                'name': tag.name,
+                'status': 'open',
+                'sequence': 1,
+                'is_default': True,
+            })
 
     @api.model
     def dashboard_leads_urgent_construction(self, user_id=None, limit=200):
@@ -4648,6 +4674,27 @@ class CrmLead(models.Model):
     def _dashboard_serialize_leads(self, leads):
         # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
         call_stats_by_lead = self._dashboard_compute_call_stats(leads)
+
+        def _lead_problems(l):
+            open_probs = l.vd_lead_problem_ids.filtered(
+                lambda p: p.status in ('open', 'in_progress')
+            ).sorted(key=lambda p: (p.sequence, p.id))
+            out = []
+            for p in open_probs[:8]:
+                if p.tag_id:
+                    nm = p.tag_id.name
+                    ic = p.tag_id.icon or '🔸'
+                else:
+                    text = (p.name or '').strip()
+                    nm = text
+                    for sep in (':', '—', ' – ', ' - '):
+                        if sep in text:
+                            nm = text.split(sep, 1)[0].strip()
+                            break
+                    ic = '🔸'
+                out.append({'name': nm, 'icon': ic, 'status': p.status})
+            return out
+
         return [{
             'id': l.id,
             'name': l.name,
@@ -4682,6 +4729,8 @@ class CrmLead(models.Model):
             'team_label': self._vd_team_label_for(l.user_id),
             # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
             'problem_open_count': l.vd_lead_problem_open_count,
+            # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
+            'problems': _lead_problems(l),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'no_answer': 0,
