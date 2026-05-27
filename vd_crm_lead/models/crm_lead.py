@@ -2917,7 +2917,12 @@ class CrmLead(models.Model):
         return True
 
     def action_unlock_intake(self):
-        """🔓 Mở khoá thông tin tư vấn — CHỈ admin. NV + Trưởng nhóm đều bị reject."""
+        """🔓 Mở khoá thông tin tư vấn — CHỈ admin. NV + Trưởng nhóm đều bị reject.
+
+        User spec 2026-05-28: Mở khoá phải đồng thời revert stage về 'new'
+        (vì filter "Xử lý vấn đề"/"Thi công gấp" yêu cầu locked=True). Không
+        revert → KH biến mất khỏi mọi bucket.
+        """
         self.ensure_one()
         is_admin = (
             self.env.user._is_superuser()
@@ -2928,12 +2933,21 @@ class CrmLead(models.Model):
                 'Chỉ Admin mới được mở khoá thông tin tư vấn đã chốt. '
                 'Liên hệ Admin nếu cần chỉnh sửa.'
             ))
-        # vd_skip_auto_lock=True defensive — phòng khi có ai thêm lại auto-lock
-        # trong write(): unlock xong KHÔNG bị khoá lại ngay lập tức.
-        self.with_context(vd_skip_auto_lock=True).write({
+        write_vals = {
             'vd_intake_locked': False,
             'vd_intake_open': True,
-        })
+        }
+        # Revert stage về 'new' để KH quay lại bucket "Khách mới"
+        if self.stage_code in ('quote', 'negotiate'):
+            new_stage = self.env.ref(
+                'vd_crm_lead.stage_new', raise_if_not_found=False,
+            ) or self.env['crm.stage'].search([('code', '=', 'new')], limit=1)
+            if new_stage:
+                write_vals['stage_id'] = new_stage.id
+        # vd_skip_auto_lock + vd_skip_intake_lock: bypass gate v9.131
+        self.with_context(
+            vd_skip_auto_lock=True, vd_skip_intake_lock=True, mail_notrack=True,
+        ).write(write_vals)
         self.message_post(
             subtype_xmlid='mail.mt_note',
             body=_('🔓 <b>%s</b> đã mở khoá thông tin tư vấn để chỉnh sửa.') % self.env.user.name,
