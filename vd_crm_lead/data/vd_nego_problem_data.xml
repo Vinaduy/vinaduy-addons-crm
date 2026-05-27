@@ -210,6 +210,22 @@
         ]]></field>
     </record>
 
+    <record id="nego_problem_land_legal" model="vd.nego.problem">
+        <field name="code">land_legal</field>
+        <field name="name">Pháp lý đất</field>
+        <field name="icon">📜</field>
+        <field name="color">2</field>
+        <field name="sequence">40</field>
+        <field name="tip_html"><![CDATA[
+            <p><b>Vướng pháp lý liên quan đến đất / sổ:</b></p>
+            <ul>
+                <li><b>Chưa làm được sổ:</b> hỏi tiến độ xin sổ, đề nghị ký HĐ tạm + ép cọc — KHÔNG khởi công trước khi có phép.</li>
+                <li><b>Chưa mua được đất:</b> hẹn gọi lại sau 1-2 tháng, tư vấn thiết kế tham khảo theo lô đất KH xem.</li>
+                <li><b>Chưa sang tên đất:</b> hỏi tiến độ sang tên, ký HĐ tạm + cam kết từ chủ đất hiện tại nếu khởi công trước.</li>
+            </ul>
+        ]]></field>
+    </record>
+
     <record id="nego_problem_urgent_construction" model="vd.nego.problem">
         <field name="code">urgent_construction</field>
         <field name="name">Thi công gấp</field>

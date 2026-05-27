@@ -829,12 +829,9 @@
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
 
                             <!-- ===== Nhóm khác — vấn đề giấy tờ/thi công ===== -->
+                            <!-- Gộp 3 vấn đề (chưa sổ / chưa mua đất / chưa sang tên) → 1 thẻ Pháp lý đất -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_red_book'}">📜 Chưa làm được sổ</button>
-                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_land'}">🏞️ Chưa mua được đất</button>
-                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_not_transferred'}">📄 Chưa sang tên đất</button>
+                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_legal'}">📜 Pháp lý đất</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_family_not_agree'}">👨‍👩‍👧 Gia đình không đồng ý</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
@@ -843,8 +840,6 @@
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_bad_date'}">🗓️ Không được tuổi / chưa xem ngày</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
-                            <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
-                                    context="{'tag_xmlid': 'vd_crm_lead.nego_problem_undefined'}">❓ Chưa xác định</button>
                         </div>
                     </div>
 

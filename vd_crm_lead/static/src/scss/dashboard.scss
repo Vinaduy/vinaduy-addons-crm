@@ -4299,7 +4299,7 @@
     }
     /* Row grid: name + problems badges + days column (cuối hàng, chữ to) */
     .o_vd_filter_table_right_rows .o_vd_problem_row {
-        grid-template-columns: minmax(220px, 1fr) 2fr 92px;
+        grid-template-columns: minmax(320px, 1.6fr) 1.4fr 90px;
 
         @media (max-width: 600px) {
             grid-template-columns: 1fr;
@@ -4405,7 +4405,7 @@
     }
     .o_vd_problem_row {
         display: grid;
-        grid-template-columns: minmax(220px, 1fr) 2fr 92px;
+        grid-template-columns: minmax(320px, 1.6fr) 1.4fr 90px;
         align-items: center;
         gap: 0.8rem;
         padding: 0.5rem 0.8rem;
