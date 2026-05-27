@@ -4663,18 +4663,30 @@ class CrmLead(models.Model):
         )
         if not tag:
             return
-        Problem = self.env['vd.lead.problem'].sudo()
+        # Bypass gate vd_skip_intake_lock — system tự tạo problem cho KH urgent,
+        # KHÔNG yêu cầu CHỐT THÔNG TIN trước (chỉ áp cho NV bấm + Thêm vấn đề).
+        # try/except defense: nếu 1 lead fail không break cả batch.
+        Problem = self.env['vd.lead.problem'].sudo().with_context(
+            vd_skip_intake_lock=True
+        )
         for lead in self:
             if lead.vd_lead_problem_ids.filtered(lambda p: p.tag_id.id == tag.id):
                 continue
-            Problem.create({
-                'lead_id': lead.id,
-                'tag_id': tag.id,
-                'name': tag.name,
-                'status': 'open',
-                'sequence': 1,
-                'is_default': True,
-            })
+            try:
+                Problem.create({
+                    'lead_id': lead.id,
+                    'tag_id': tag.id,
+                    'name': tag.name,
+                    'status': 'open',
+                    'sequence': 1,
+                    'is_default': True,
+                })
+            except Exception:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "[vd_crm_lead] Skip create urgent problem for lead %d (%s)",
+                    lead.id, lead.name,
+                )
 
     @api.model
     def dashboard_leads_urgent_construction(self, user_id=None, limit=200):
