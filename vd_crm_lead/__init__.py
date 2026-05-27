@@ -187,21 +187,25 @@ def _populate_vn_districts(env):
             except Exception:
                 pass
 
-    # ============== STEP 3: Reload ward data ==============
-    # Strategy: chỉ create wards mới chưa có, KHÔNG xoá cái cũ (tránh
-    # vỡ FK của lead đang dùng). Sau này admin có thể xoá thủ công.
+    # ============== STEP 3: Reload districts (huyện cũ map về tỉnh mới) ==============
+    # User spec 2026-05-27: dùng huyện cũ (vn_districts.py) thay cho wards mới.
+    # Vd: "Tuyên Quang" mới = huyện của Tuyên Quang cũ + huyện của Hà Giang cũ.
+    from .data.vn_districts import VN_DISTRICTS
+    existing_all = District.search([])
+    if existing_all:
+        existing_all.unlink()
     to_create = []
     seen = set()
-    for province_name, wards in VN_WARDS_2025.items():
-        state = by_name.get(province_name)
+    for old_province, huyens in VN_DISTRICTS.items():
+        new_name = VN_PROVINCE_MERGE_MAP.get(old_province, old_province)
+        state = by_name.get(new_name)
         if not state:
             continue
-        existing = set(District.search([('state_id', '=', state.id)]).mapped('name'))
-        for name in wards:
-            key = (state.id, name)
-            if name in existing or key in seen:
+        for huyen in huyens:
+            key = (state.id, huyen)
+            if key in seen:
                 continue
             seen.add(key)
-            to_create.append({'name': name, 'state_id': state.id})
+            to_create.append({'name': huyen, 'state_id': state.id})
     if to_create:
         District.create(to_create)

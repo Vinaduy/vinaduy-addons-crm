@@ -224,13 +224,15 @@
                                 <div class="o_vd_step_body o_vd_step_body_2col">
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_province_id" nolabel="1"
-                                               widget="vd_m2o_hover_picker"
+                                               options="{'no_create': True, 'no_open': True}"
+                                               domain="[('country_id.code', '=', 'VN'), ('vd_is_active_2025', '=', True)]"
                                                placeholder="Tỉnh / Thành phố?"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_district" nolabel="1"
-                                               widget="vd_m2o_hover_picker"
-                                               placeholder="Xã / Phường (sau sát nhập)?"/>
+                                               options="{'no_create': True, 'no_open': True}"
+                                               domain="[('state_id', '=', vd_intake_province_id)]"
+                                               placeholder="Huyện / Quận?"/>
                                     </div>
                                 </div>
                             </div>
