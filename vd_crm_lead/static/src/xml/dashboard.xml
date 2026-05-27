@@ -1706,6 +1706,13 @@
                 </span>
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
+                <!-- Icon "đã có báo giá" — KH complete + chưa CHỐT (user spec 2026-05-27) -->
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked"
+                      class="o_vd_pill_quote_badge"
+                      title="Đã có báo giá chi tiết — chưa CHỐT THÔNG TIN">
+                    💰
+                </span>
+
                 <!-- Badge cuộc gọi: 📞 <total> 📅 <distinct_days>. Chỉ stage 'new'. -->
                 <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
                       class="o_vd_pill_call_badge"

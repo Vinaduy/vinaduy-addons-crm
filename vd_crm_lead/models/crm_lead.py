@@ -4626,6 +4626,7 @@ class CrmLead(models.Model):
                 ('stage_is_lost', '=', False),
                 ('active', '=', True),
                 ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),  # user spec 2026-05-27: phải CHỐT mới vào THI CÔNG GẤP
                 ('vd_intake_timeline', '!=', False),
             ],
         )
@@ -4723,6 +4724,7 @@ class CrmLead(models.Model):
                 ('stage_id', 'in', mid_stage_ids),
                 ('active', '=', True),
                 ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),  # user spec 2026-05-27: phải CHỐT mới vào XỬ LÝ VẤN ĐỀ
                 ('id', 'not in', urgent_ids),
             ],
             limit=limit,
@@ -4956,6 +4958,11 @@ class CrmLead(models.Model):
             'intake_timeline': l.vd_intake_timeline or '',
             'quote_price': l.vd_quote_price or 0,
             'has_quote': bool(l.vd_quote_price and l.vd_quote_price > 0),
+            # has_intake_complete = báo giá đã hiện (đủ 11 trường). User spec
+            # 2026-05-27: pill xanh lá đậm + icon báo giá khi complete nhưng
+            # chưa CHỐT (locked=False).
+            'intake_complete': bool(l.vd_intake_complete),
+            'intake_locked': bool(l.vd_intake_locked),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill
             'pancake_platform': (
                 l.vd_pancake_page_id.platform if l.vd_pancake_page_id else 'manual'

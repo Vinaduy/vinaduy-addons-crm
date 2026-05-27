@@ -315,13 +315,18 @@ export class VdCrmDashboard extends Component {
      *      (≥4 ngày sẽ bị auto-archive backend → không hiện ở đây nữa)
      */
     pillCallClass(lead) {
+        // User spec 2026-05-27: KH có báo giá (complete=True) nhưng chưa CHỐT
+        // → pill xanh lá ĐẬM (o_vd_pill_has_quote), ưu tiên hơn các màu khác.
+        if (lead.intake_complete && !lead.intake_locked) {
+            return 'o_vd_pill_has_quote';
+        }
         const s = lead.call_stats || {};
         const total = s.total || 0;
         if (total === 0) return '';
         if ((s.days_no_answer || 0) >= 3 && (s.answered || 0) === 0) {
             return 'o_vd_pill_call_darkred';
         }
-        // User spec 2026-05-27: ANY answered call → green (bỏ đk >120s).
+        // ANY answered call → green
         if ((s.answered || 0) > 0) return 'o_vd_pill_call_answered';
         return 'o_vd_pill_call_blue';
     }
@@ -367,6 +372,10 @@ export class VdCrmDashboard extends Component {
             const total = s.total || 0;
             const answered = s.answered || 0;
             const daysNoAns = s.days_no_answer || 0;
+            // Tier -1: KH có báo giá (chưa CHỐT) — TOP ưu tiên (sắp đóng deal)
+            if (l.intake_complete && !l.intake_locked) {
+                return { tier: -1, calls: total };
+            }
             if (total === 0)                            return { tier: 0, calls: 0 };
             if (daysNoAns >= 3 && answered === 0)       return { tier: 3, calls: total };
             if (answered > 0)                           return { tier: 2, calls: total };
