@@ -306,23 +306,23 @@ export class VdCrmDashboard extends Component {
     }
 
     /**
-     * Trả CSS class màu cho pill KH MỚI theo trạng thái cuộc gọi:
-     *   - ⚪ trắng (no class): chưa gọi cuộc nào (total=0)
-     *   - 🟢 xanh lá (o_vd_pill_call_answered): có ≥1 cuộc đã liên lạc được
-     *   - 🔵 xanh dương (o_vd_pill_call_blue): chuông không bắt / máy bận
-     *   - 🔴 đỏ (o_vd_pill_call_red): thuê bao (state='failed')
-     *
-     * Ưu tiên: answered > subscriber > no_answer/busy > white.
+     * Trả CSS class màu cho pill KH MỚI — quy định mới theo user 2026-05-27:
+     *   1. ⚪ trắng (no class): chưa gọi cuộc nào (total=0)
+     *   2. 🔵 xanh dương (o_vd_pill_call_blue): có phát sinh cuộc gọi
+     *      (sort theo số cuộc ASC trong cùng tier)
+     *   3. 🟢 xanh lá (o_vd_pill_call_answered): có ≥1 cuộc thành công >2 phút
+     *   4. 🔴 đỏ xẫm (o_vd_pill_call_darkred): 3 ngày khác nhau gọi không nghe máy
+     *      (≥4 ngày sẽ bị auto-archive backend → không hiện ở đây nữa)
      */
     pillCallClass(lead) {
         const s = lead.call_stats || {};
-        if ((s.total || 0) === 0) return '';   // trắng = chưa gọi
-        if ((s.answered || 0) > 0) return 'o_vd_pill_call_answered';
-        if ((s.subscriber || 0) > 0) return 'o_vd_pill_call_red';
-        if ((s.no_answer || 0) > 0 || (s.busy_like || 0) > 0) {
-            return 'o_vd_pill_call_blue';
+        const total = s.total || 0;
+        if (total === 0) return '';
+        if ((s.days_no_answer || 0) >= 3 && (s.answered || 0) === 0) {
+            return 'o_vd_pill_call_darkred';
         }
-        return '';
+        if ((s.answered_long || 0) > 0) return 'o_vd_pill_call_answered';
+        return 'o_vd_pill_call_blue';
     }
 
     pillIcon(lead) {
@@ -347,26 +347,27 @@ export class VdCrmDashboard extends Component {
         return '•';
     }
 
-    // Split leads cho UI "Khách mới" — top section pills, bottom section rows.
-    // Sort priority (per user request 2026-05-26):
-    //   1. ⚪ Chưa gọi (call_count=0)                 — đầu
-    //   2. 🟢 Đã có cuộc gọi thành công (answered>0)  — kế
-    //   3. 🔴🔵 Chưa kết nối (subscriber/no_answer/busy) — sort ASC theo
-    //      tổng số cuộc → KH ít cuộc fail trước, KH nhiều cuộc fail cuối
+    // Split leads cho UI "Khách mới" — sort priority (user 2026-05-27):
+    //   1. ⚪ Chưa gọi (total=0)                                 — đầu
+    //   2. 🔵 Có cuộc gọi — sort theo total ASC (ít → nhiều)
+    //   3. 🟢 Có cuộc gọi thành công ≥ 120s                       — kế
+    //   4. 🔴 Đỏ xẫm: 3 ngày khác nhau không nghe máy (answered=0) — cuối
     get leadsNoProblems() {
         const base = (this.state.leads || []).filter(l => !l.problem_open_count);
         const tierAndCalls = (l) => {
             const s = l.call_stats || {};
             const total = s.total || 0;
             const answered = s.answered || 0;
-            if (total === 0)       return { tier: 0, calls: 0 };
-            if (answered > 0)      return { tier: 1, calls: total };
-            return { tier: 2, calls: total };
+            const answeredLong = s.answered_long || 0;
+            const daysNoAns = s.days_no_answer || 0;
+            if (total === 0)                            return { tier: 0, calls: 0 };
+            if (daysNoAns >= 3 && answered === 0)       return { tier: 3, calls: total };
+            if (answeredLong > 0)                       return { tier: 2, calls: total };
+            return { tier: 1, calls: total };
         };
         return [...base].sort((a, b) => {
             const A = tierAndCalls(a), B = tierAndCalls(b);
             if (A.tier !== B.tier) return A.tier - B.tier;
-            // Trong cùng tier 2 (chưa kết nối): ít cuộc trước, nhiều cuộc sau
             return A.calls - B.calls;
         });
     }
@@ -374,9 +375,9 @@ export class VdCrmDashboard extends Component {
     // Trả label trạng thái cuộc gọi cho header tooltip
     pillCallStatusLabel(lead) {
         const cls = this.pillCallClass(lead);
-        if (cls === 'o_vd_pill_call_blue')     return { icon: '🔵', text: 'CHUÔNG KHÔNG BẮT / MÁY BẬN' };
-        if (cls === 'o_vd_pill_call_red')      return { icon: '🔴', text: 'THUÊ BAO' };
-        if (cls === 'o_vd_pill_call_answered') return { icon: '🟢', text: 'ĐÃ LIÊN LẠC ĐƯỢC' };
+        if (cls === 'o_vd_pill_call_blue')     return { icon: '🔵', text: 'ĐÃ PHÁT SINH CUỘC GỌI' };
+        if (cls === 'o_vd_pill_call_darkred')  return { icon: '🔴', text: '3 NGÀY KHÔNG NGHE MÁY' };
+        if (cls === 'o_vd_pill_call_answered') return { icon: '🟢', text: 'GỌI THÀNH CÔNG > 2 PHÚT' };
         return { icon: '⚪', text: 'CHƯA GỌI LẦN NÀO' };
     }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').

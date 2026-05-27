@@ -4208,6 +4208,11 @@ class CrmLead(models.Model):
         """Single-payload data for the OWL dashboard."""
         scope_user, scope_label, domain_user, call_user_domain = self._dashboard_resolve_scope(user_id)
         is_manager = self._dashboard_is_manager()
+        # Auto-trash KH 4+ ngày không nghe máy — chạy trước khi tính counts
+        try:
+            self._vd_auto_trash_no_answer_leads(domain_user)
+        except Exception:
+            pass
 
         Stage = self.env['crm.stage']
         # Chỉ 4 stage chính: Khách mới / Báo giá / Đàm phán / Chốt
@@ -4787,12 +4792,43 @@ class CrmLead(models.Model):
             ),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
-                'total': 0, 'answered': 0, 'no_answer': 0,
-                'busy_like': 0, 'subscriber': 0,
+                'total': 0, 'answered': 0, 'answered_long': 0,
+                'no_answer': 0, 'busy_like': 0, 'subscriber': 0,
                 'distinct_days': 0, 'distinct_days_subscriber': 0,
+                'days_no_answer': 0,
                 'unreachable': 0, 'distinct_days_unreachable': 0,
             }),
         } for l in leads]
+
+    @api.model
+    def _vd_auto_trash_no_answer_leads(self, domain_user):
+        """Auto-archive KH ở stage 'new' có ≥4 ngày khác nhau gọi nhưng
+        không nghe máy lần nào → chuyển sang stage lost + lý do tự động."""
+        candidates = self.search(
+            domain_user + [
+                ('stage_id.code', '=', 'new'),
+                ('active', '=', True),
+                ('call_count', '>=', 4),
+            ],
+        )
+        if not candidates:
+            return
+        stats = self._dashboard_compute_call_stats(candidates)
+        to_archive_ids = [
+            lid for lid, s in stats.items()
+            if s.get('days_no_answer', 0) >= 4 and s.get('answered', 0) == 0
+        ]
+        if not to_archive_ids:
+            return
+        lost_stage = self.env['crm.stage'].search([('is_lost', '=', True)], limit=1)
+        if not lost_stage:
+            return
+        reason = 'Tự động: 4+ ngày khác nhau gọi nhưng KH không nghe máy'
+        self.browse(to_archive_ids).with_context(mail_notrack=True).write({
+            'stage_id': lost_stage.id,
+            'vd_lost_reason': reason,
+            'vd_lost_date': fields.Datetime.now(),
+        })
 
     @api.model
     def _dashboard_compute_call_stats(self, leads):
@@ -4822,11 +4858,13 @@ class CrmLead(models.Model):
         for lead_id, lcalls in by_lead.items():
             total = len(lcalls)
             answered = 0
+            answered_long = 0  # answered + duration >= 120s
             no_answer = 0
             busy_like = 0
             subscriber = 0
             all_days = set()
             subscriber_days = set()
+            days_answered = set()  # ngày có ≥1 cuộc liên lạc được
             for c in lcalls:
                 st = c.get('state')
                 dur = c.get('duration') or 0
@@ -4840,6 +4878,10 @@ class CrmLead(models.Model):
                     all_days.add(day)
                 if is_answered:
                     answered += 1
+                    if dur >= 120:
+                        answered_long += 1
+                    if day:
+                        days_answered.add(day)
                 elif st == 'no_answer':
                     no_answer += 1
                 elif st in ('busy', 'declined'):
@@ -4849,14 +4891,18 @@ class CrmLead(models.Model):
                     if day:
                         subscriber_days.add(day)
                 # cancelled → bỏ qua
+            # Số ngày không có cuộc nghe máy nào (mọi ngày có call mà KH không bắt)
+            days_no_answer = len(all_days - days_answered)
             result[lead_id] = {
                 'total': total,
                 'answered': answered,
+                'answered_long': answered_long,
                 'no_answer': no_answer,
                 'busy_like': busy_like,
                 'subscriber': subscriber,
                 'distinct_days': len(all_days),
                 'distinct_days_subscriber': len(subscriber_days),
+                'days_no_answer': days_no_answer,
                 # giữ field cũ để backward compatible nếu nơi nào còn ref
                 'unreachable': busy_like + subscriber,
                 'distinct_days_unreachable': len(subscriber_days),

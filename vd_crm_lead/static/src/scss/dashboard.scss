@@ -2112,6 +2112,13 @@
             background: linear-gradient(135deg, #ffe3e3 0%, #ffa8a8 100%);
             .o_vd_won_pill_date { color: #8c1a1a; }
         }
+        /* 🔴 Đỏ xẫm: 3 ngày khác nhau không nghe máy — KH gần bị trash */
+        &.o_vd_pill_call_darkred {
+            border-color: #842029;
+            background: linear-gradient(135deg, #f8d7da 0%, #ea868f 100%);
+            .o_vd_won_pill_date { color: #fff; font-weight: 800; }
+            color: #fff;
+        }
     }
 
     /* Badge số cuộc gọi trên pill */
@@ -2132,6 +2139,7 @@
     .o_vd_pill_call_answered .o_vd_pill_call_badge { background: rgba(27, 94, 32, 0.18);  color: #1b5e20; }
     .o_vd_pill_call_blue     .o_vd_pill_call_badge { background: rgba(13, 110, 187, 0.18); color: #0b4f87; }
     .o_vd_pill_call_red      .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
+    .o_vd_pill_call_darkred  .o_vd_pill_call_badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
     /* ===== TOOLTIP — Status header + row highlights ===== */
     .o_vd_won_tt_status {
@@ -2166,6 +2174,10 @@
         &.o_vd_pill_call_red {
             background: linear-gradient(135deg, #ffe3e3 0%, #ffa8a8 100%);
             color: #8c1a1a;
+        }
+        &.o_vd_pill_call_darkred {
+            background: linear-gradient(135deg, #f8d7da 0%, #ea868f 100%);
+            color: #fff;
         }
     }
     /* Highlight các dòng theo loại trạng thái cuộc gọi */
@@ -4461,38 +4473,30 @@
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
-    /* Dòng "YÊU CẦU XỬ LÝ KHÁCH MỚI" — full width, căn giữa,
-       cùng style với badge YÊU CẦU TÌM VẤN ĐỀ nhưng cỡ chữ to gấp 3
-       (0.74rem × 3 ≈ 2.2rem). */
-    .o_vd_new_required_row {
-        grid-column: 1 / -1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0.8rem 0.5rem 0.4rem;
-        margin-top: 0.6rem;
-        border-top: 1px dashed #fee2e2;
-    }
+    /* Badge "YÊU CẦU XỬ LÝ KHÁCH MỚI" — inline trong bảng KHÁCH MỚI
+       cùng pills, không tách row riêng. Cỡ chữ ~1.1rem (~50% của 2.2). */
     .o_vd_new_required_badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
         background: #c92a2a;
         color: #fff;
-        border: 4px solid #ffd43b;
+        border: 3px solid #ffd43b;
         border-radius: 999px;
-        padding: 0.8rem 1.8rem;
-        font-size: 2.2rem;
+        padding: 0.4rem 0.95rem;
+        font-size: 1.1rem;
         font-weight: 800;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.4px;
         text-transform: uppercase;
         white-space: nowrap;
-        box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.35);
-        animation: vd-pulse-required-big 1.6s ease-in-out infinite;
+        box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35);
+        animation: vd-pulse-required-mid 1.6s ease-in-out infinite;
+        margin: 0.3rem 0.3rem 0.3rem 0;
+        vertical-align: middle;
     }
-    @keyframes vd-pulse-required-big {
-        0%, 100% { box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.35); }
-        50%      { box-shadow: 0 0 0 12px rgba(255, 212, 59, 0); }
+    @keyframes vd-pulse-required-mid {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
+        50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */
     .o_vd_problem_row_days {
