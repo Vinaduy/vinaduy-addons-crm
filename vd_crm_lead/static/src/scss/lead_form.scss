@@ -10063,6 +10063,71 @@ $vd-panel-head-radius: 10px;
     white-space: nowrap !important;
 }
 
+/* === ĐỊA CHỈ — Tỉnh / Huyện m2o standard (Odoo native autocomplete) ===
+   Match height + font + style với o_vd_area_dim inputs.
+   User spec 2026-05-27: kích thước to như ô diện tích, font +20%. */
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"],
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"],
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget.o_field_many2one {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"] .o-autocomplete,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"] .o-autocomplete,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget.o_field_many2one .o-autocomplete {
+    width: 100% !important;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"] input,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"] input,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"] .o-autocomplete--input,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"] .o-autocomplete--input {
+    width: 100% !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    font-size: 17px !important;
+    padding: 0 0.75rem !important;
+    border: 1.5px solid rgba(168, 132, 198, 0.55) !important;
+    border-radius: 7px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #0f1e34 !important;
+    box-sizing: border-box !important;
+    font-style: normal !important;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"] input:focus,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"] input:focus {
+    border-color: #714B67 !important;
+    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.15) !important;
+    outline: none !important;
+}
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_province_id"] input::placeholder,
+.o_vd_intake_inline .o_vd_step_field > .o_field_widget[name="vd_intake_district"] input::placeholder {
+    color: #6b7a93 !important;
+    font-style: normal !important;
+}
+
+/* === BUMP FONT +20% TOÀN BỘ inputs/selects trong steps_panel ===
+   User spec: cỡ chữ tăng 20% — placeholder, value, label, dropdown items. */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input[type="text"],
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input[type="number"],
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel select.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel textarea.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o-autocomplete--input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_selection_picker_value {
+    font-size: 17px !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o-autocomplete--input::placeholder {
+    font-size: 17px !important;
+}
+/* Dropdown items (autocomplete results) cũng +20% để nhất quán */
+.o-autocomplete--dropdown-menu .o-autocomplete--dropdown-item,
+.o-autocomplete--dropdown-menu li {
+    font-size: 16px !important;
+}
+
 /* === NGÂN SÁCH input — width 320px + height 41px (=Diện tích input) === */
 .o_vd_intake_inline .o_vd_step_body_budget .o_vd_budget_manual {
     display: inline-flex !important;
