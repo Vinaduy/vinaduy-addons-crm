@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="ir_cron_vd_wipe_unsaved_intake" model="ir.cron">
+            <field name="name">VD CRM: Wipe intake chưa CHỐT (>15 phút im lặng)</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_vd_wipe_unsaved_intake()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="user_id" ref="base.user_root"/>
+        </record>
+    </data>
+</odoo>

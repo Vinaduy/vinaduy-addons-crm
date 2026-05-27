@@ -376,6 +376,14 @@ class CrmLead(models.Model):
         help='Latch lần đầu intake đủ → khoá → báo giá chi tiết hiện ra. '
              'Dùng để đếm số ngày KH đã ở giai đoạn báo giá/đàm phán.',
     )
+    # Timestamp lần cuối NV chỉnh sửa intake (chưa CHỐT). Cron wipe sau 15 phút
+    # im lặng → ép NV phải CHỐT trong 1 lượt khai thác. Bump trong write() khi
+    # locked field đổi + lead chưa locked.
+    vd_intake_last_edit = fields.Datetime(
+        string='Lần cuối chỉnh sửa khai thác', copy=False, readonly=True,
+        help='Cron _cron_vd_wipe_unsaved_intake wipe data nếu vd_intake_last_edit '
+             'cách hiện tại > 15 phút và chưa CHỐT.',
+    )
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
     # `help` = kịch bản gợi ý cho NV khi gọi (hiển thị tooltip).
@@ -2608,6 +2616,21 @@ class CrmLead(models.Model):
         # User spec (2026-05): NV phải bấm nút "🔒 CHỐT THÔNG TIN" (action_save_intake_done)
         # mới khoá + chuyển stage 'quote'. Tránh khoá ngoài ý muốn khi NV
         # vô tình điền đủ 11 trường nhưng chưa muốn chốt.
+
+        # ===== Bump vd_intake_last_edit khi NV chỉnh intake (chưa CHỐT) =====
+        # Cron _cron_vd_wipe_unsaved_intake dùng timestamp này để wipe data
+        # sau 15 phút im lặng. Skip nếu đang trong context bypass / CHỐT / wipe.
+        if (locked_keys
+                and not self.env.context.get('vd_skip_intake_lock')
+                and not self.env.context.get('vd_skip_last_edit_bump')
+                and 'vd_intake_last_edit' not in vals
+                and 'vd_intake_locked' not in vals):
+            now = fields.Datetime.now()
+            for rec in self:
+                if not rec.vd_intake_locked:
+                    rec.with_context(vd_skip_last_edit_bump=True).write(
+                        {'vd_intake_last_edit': now}
+                    )
         return result
 
     # ============================================================
@@ -2855,6 +2878,62 @@ class CrmLead(models.Model):
             'target': 'current',
         }
 
+    # ============ WIPE INTAKE DATA (manual + cron) ============
+    def _vd_intake_wipe_vals(self):
+        """Build write_vals để xoá tất cả intake fields về giá trị rỗng.
+        Dùng cho action_vd_wipe_intake_data + cron."""
+        vals = {}
+        for fname in self._INTAKE_LOCKED_FIELDS:
+            field = self._fields.get(fname)
+            if not field:
+                continue
+            if field.type == 'many2many':
+                vals[fname] = [(5, 0, 0)]
+            elif field.type in ('integer', 'float', 'monetary'):
+                vals[fname] = 0
+            else:
+                vals[fname] = False
+        # Reset cả timestamp + intake_open + last_edit
+        vals['vd_intake_open'] = False
+        vals['vd_intake_last_edit'] = False
+        return vals
+
+    def action_vd_wipe_intake_data(self):
+        """🗑 Wipe toàn bộ intake fields về rỗng. Gọi từ JS khi NV bấm
+        'Huỷ bỏ' trong modal cảnh báo. Chỉ wipe nếu chưa CHỐT (not locked)."""
+        self.ensure_one()
+        if self.vd_intake_locked:
+            return False
+        vals = self._vd_intake_wipe_vals()
+        self.with_context(
+            vd_skip_intake_lock=True, vd_skip_last_edit_bump=True,
+        ).write(vals)
+        return True
+
+    @api.model
+    def _cron_vd_wipe_unsaved_intake(self):
+        """Cron: wipe intake của các lead chưa CHỐT mà im lặng >15 phút.
+        Trigger từ data/cron_data.xml. Idempotent."""
+        from datetime import timedelta
+        cutoff = fields.Datetime.now() - timedelta(minutes=15)
+        leads = self.search([
+            ('vd_intake_locked', '=', False),
+            ('vd_intake_last_edit', '!=', False),
+            ('vd_intake_last_edit', '<', cutoff),
+        ])
+        wiped = 0
+        for lead in leads:
+            if lead.vd_has_intake_data:
+                lead.action_vd_wipe_intake_data()
+                wiped += 1
+        if wiped:
+            import logging
+            logging.getLogger(__name__).info(
+                "VD CRM cron: wiped intake data for %d unsaved leads (>15min idle)",
+                wiped,
+            )
+        return wiped
+
     def action_save_intake_done(self):
         """🔒 CHỐT THÔNG TIN — khoá phiếu khai thác + chuyển stage sang Báo giá.
 
@@ -2901,7 +2980,10 @@ class CrmLead(models.Model):
         kh = self.partner_name or self.contact_name or self.name or 'khách hàng'
 
         # Đóng phiếu khai thác + khoá để NV không sửa được nữa
-        write_vals = {'vd_intake_open': False, 'vd_intake_locked': True}
+        write_vals = {
+            'vd_intake_open': False, 'vd_intake_locked': True,
+            'vd_intake_last_edit': False,  # clear → cron không nhầm
+        }
         if not self.vd_quote_created_date:
             write_vals['vd_quote_created_date'] = fields.Datetime.now()
 
