@@ -4664,14 +4664,16 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_not_called(self, user_id=None, limit=200):
-        """KH "chưa gọi được" — toàn cuộc gọi THUÊ BAO trải nhiều ngày.
+        """KH "chưa gọi được" — NV đã cố gắng nhưng KH chưa bao giờ nghe máy.
 
-        Spec:
-        - Có ≥3 cuộc gọi THUÊ BAO (state='failed' — không kết nối được)
-        - Trên ≥3 ngày khác nhau
-        - Chưa từng có cuộc nào answered
-        - KH vẫn đang active (chưa won/lost)
+        Conditions (OR — match 1 trong 2):
+        A) ≥3 cuộc gọi THUÊ BAO (state='failed') trên ≥3 ngày khác nhau
+        B) Days_since_create ≥ 5 + distinct_days ≥ 3 (NV gọi đủ pace, KH ko bắt)
+
+        Loại trừ: KH đã từng nghe máy (had_success=True).
         """
+        from datetime import date as _date
+        today = _date.today()
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         candidates = self.search(
             domain_user + [
@@ -4709,16 +4711,28 @@ class CrmLead(models.Model):
             )
             if had_success:
                 continue
-            # Đếm cuộc 'failed' = thuê bao + ngày khác nhau
+            # Cuộc gọi đầy đủ: thuê bao + ngày khác nhau
             subscriber_days = set()
             subscriber_count = 0
+            all_days = set()
             for c in lcalls:
+                s = c.get('start_time')
+                day = s.date() if s and hasattr(s, 'date') else None
+                if day:
+                    all_days.add(day)
                 if c.get('state') == 'failed':
                     subscriber_count += 1
-                    s = c.get('start_time')
-                    if s and hasattr(s, 'date'):
-                        subscriber_days.add(s.date())
-            if subscriber_count >= 3 and len(subscriber_days) >= 3:
+                    if day:
+                        subscriber_days.add(day)
+            # Condition A: 3+ thuê bao trên 3+ ngày
+            cond_a = subscriber_count >= 3 and len(subscriber_days) >= 3
+            # Condition B (user spec 2026-05-27): KH tạo ≥5 ngày + NV gọi ≥3 ngày
+            days_since = (
+                (today - lead.create_date.date()).days
+                if lead.create_date else 0
+            )
+            cond_b = days_since >= 5 and len(all_days) >= 3
+            if cond_a or cond_b:
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
@@ -4913,21 +4927,33 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_pill_needs_call_today(self, lead, stats):
-        """True khi: lead.stage='new' + days_since_create in [1,4] +
-        cumulative distinct_days < days_since_create + chưa có cuộc gọi hôm nay."""
+        """True khi blue border cần hiện (NV cần gọi hôm nay).
+
+        Conditions ALL true:
+        - stage = 'new'
+        - days_since_create in [1, 4]
+        - total > 0 (KHÔNG áp dụng cho thẻ trắng = chưa gọi cuộc nào)
+        - distinct_days < 3 (đủ 3 ngày → off border, lead đã đủ pace)
+        - distinct_days < days_since (behind schedule)
+        - has_call_today = False (chưa gọi hôm nay)
+        """
         if lead.stage_code != 'new':
             return False
         if not lead.create_date:
+            return False
+        # Bỏ qua thẻ trắng (chưa có cuộc gọi nào) — user spec 2026-05-27
+        if (stats.get('total') or 0) == 0:
+            return False
+        # Đủ 3 ngày khác nhau → không cần báo nữa
+        if (stats.get('distinct_days') or 0) >= 3:
+            return False
+        if stats.get('has_call_today'):
             return False
         from datetime import date as _date
         today = _date.today()
         days_since = (today - lead.create_date.date()).days
         if days_since < 1 or days_since > 4:
             return False
-        if stats.get('has_call_today'):
-            return False
-        # Distinct days đã gọi (đếm cả ngày hôm nay nếu có — nhưng đã loại ở
-        # check trên rồi). Required = days_since (1, 2, 3 hoặc 4).
         required = days_since
         actual = stats.get('distinct_days', 0)
         return actual < required

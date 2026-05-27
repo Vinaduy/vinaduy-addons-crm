@@ -1706,11 +1706,12 @@
                 </span>
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
-                <!-- Badge số ngày đã gọi — chỉ hiện ở stage Khách mới khi có ≥1 ngày -->
-                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.distinct_days > 0"
+                <!-- Badge cuộc gọi: 📞 <total> 📅 <distinct_days>. Chỉ stage 'new'. -->
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
                       class="o_vd_pill_call_badge"
-                      t-att-title="'Đã gọi ' + lead.call_stats.distinct_days + ' ngày khác nhau (' + lead.call_stats.total + ' cuộc)'">
-                    📞 <t t-esc="lead.call_stats.distinct_days"/>N
+                      t-att-title="'Đã gọi ' + lead.call_stats.total + ' cuộc trong ' + lead.call_stats.distinct_days + ' ngày khác nhau'">
+                    📞 <t t-esc="lead.call_stats.total"/>
+                    <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
