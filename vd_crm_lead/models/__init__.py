@@ -14,5 +14,6 @@ from . import vd_nego_problem
 from . import vd_lead_problem
 from . import vd_pancake_page
 from . import res_users
+from . import res_country_state
 from . import crm_lead
 from . import stringee_call

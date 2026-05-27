@@ -115,7 +115,10 @@ export class VdM2oHoverPicker extends Component {
             return false;
         }
         if (this.props.name === "vd_intake_province_id") {
-            return [["country_id.code", "=", "VN"]];
+            return [
+                ["country_id.code", "=", "VN"],
+                ["vd_is_active_2025", "=", true],
+            ];
         }
         return [];
     }

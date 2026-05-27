@@ -93,23 +93,55 @@ def _populate_vn_districts(env):
     if not vn_country:
         return
 
+    # ============== STEP 0: Name aliases — chuẩn hoá tên cũ trong DB ==============
+    # DB Odoo seed dùng "TP X", "Thừa Thiên - Huế" → chuẩn hoá theo tên mới.
+    DB_NAME_ALIASES = {
+        'TP Hồ Chí Minh': 'TP Hồ Chí Minh',
+        'TP. Hồ Chí Minh': 'TP Hồ Chí Minh',
+        'Hồ Chí Minh': 'TP Hồ Chí Minh',
+        'TP Hải Phòng': 'Hải Phòng',
+        'TP Đà Nẵng': 'Đà Nẵng',
+        'TP Cần Thơ': 'Cần Thơ',
+        'Thừa Thiên - Huế': 'Huế',
+        'Thừa Thiên Huế': 'Huế',
+        'Bà Rịa-Vũng Tàu': 'Bà Rịa - Vũng Tàu',
+    }
+
     # ============== STEP 1: ENSURE 34 new provinces exist ==============
     all_states = State.search([('country_id', '=', vn_country.id)])
     by_name = {s.name.strip(): s for s in all_states}
     new_province_names = {p['name'] for p in VN_PROVINCES_2025}
 
-    # Tạo các tỉnh mới chưa có trong DB
+    # Tạo các tỉnh mới chưa có trong DB (dùng alias để tránh tạo duplicate)
     for prov in VN_PROVINCES_2025:
-        if prov['name'] not in by_name:
-            new_state = State.sudo().create({
-                'name': prov['name'],
-                'code': prov['name'][:3].upper(),  # tạm — Odoo sẽ chấp nhận
-                'country_id': vn_country.id,
-            })
-            by_name[prov['name']] = new_state
+        new_name = prov['name']
+        if new_name in by_name:
+            continue
+        # Kiểm tra alias: vd "Đà Nẵng" mới → có "TP Đà Nẵng" cũ → đổi tên
+        renamed = False
+        for old_db_name, target in DB_NAME_ALIASES.items():
+            if target == new_name and old_db_name in by_name:
+                # Rename tỉnh cũ thành tên mới
+                old_state = by_name[old_db_name]
+                old_state.sudo().write({'name': new_name})
+                by_name[new_name] = old_state
+                del by_name[old_db_name]
+                renamed = True
+                break
+        if not renamed:
+            try:
+                new_state = State.sudo().create({
+                    'name': new_name,
+                    'country_id': vn_country.id,
+                    'code': 'V' + str(len(by_name) + 100)[-2:],
+                })
+                by_name[new_name] = new_state
+            except Exception:
+                pass
 
-    # ============== STEP 2: Migrate lead FK old → new + archive old ==============
+    # ============== STEP 2: Migrate lead FK old → new ==============
     Lead = env['crm.lead']
+    Partner = env['res.partner']
     for old_name, new_name in VN_PROVINCE_MERGE_MAP.items():
         if old_name == new_name:
             continue  # giữ nguyên
@@ -119,22 +151,41 @@ def _populate_vn_districts(env):
             continue
         if old_state.id == new_state.id:
             continue
-        # Migrate leads
+        # Migrate crm.lead
         leads_to_migrate = Lead.search([
             ('vd_intake_province_id', '=', old_state.id),
         ])
         if leads_to_migrate:
-            leads_to_migrate.with_context(
-                vd_skip_intake_lock=True, mail_notrack=True,
-            ).write({'vd_intake_province_id': new_state.id})
-        # Archive old state (giữ FK history)
-        if old_state.active:
-            old_state.sudo().write({'active': False})
+            try:
+                leads_to_migrate.with_context(
+                    vd_skip_intake_lock=True, mail_notrack=True,
+                ).write({'vd_intake_province_id': new_state.id})
+            except Exception:
+                pass
+        # Migrate res.partner.state_id (nếu có)
+        try:
+            partners = Partner.search([('state_id', '=', old_state.id)])
+            if partners:
+                partners.sudo().with_context(mail_notrack=True).write(
+                    {'state_id': new_state.id}
+                )
+        except Exception:
+            pass
+        # Rename old state để NV biết là tỉnh cũ (không xoá để giữ FK history khác)
+        try:
+            old_state.sudo().write({'name': old_name + ' (cũ - đã sáp nhập)'})
+        except Exception:
+            pass
 
-    # Archive bất kỳ state nào không thuộc 34 mới (vd các tỉnh cũ không trong map)
-    for s in all_states:
-        if s.name.strip() not in new_province_names and s.active:
-            s.sudo().write({'active': False})
+    # ============== STEP 2b: Mark 34 new provinces vd_is_active_2025=True ==============
+    # Picker domain filter: chỉ show các state có flag này → NV chỉ thấy 34 mới.
+    for name in new_province_names:
+        state = by_name.get(name)
+        if state and not state.vd_is_active_2025:
+            try:
+                state.sudo().write({'vd_is_active_2025': True})
+            except Exception:
+                pass
 
     # ============== STEP 3: Reload ward data ==============
     # Strategy: chỉ create wards mới chưa có, KHÔNG xoá cái cũ (tránh
