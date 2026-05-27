@@ -4675,13 +4675,51 @@ class CrmLead(models.Model):
         # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
         call_stats_by_lead = self._dashboard_compute_call_stats(leads)
 
+        import re as _re
+        _urgent_tag = self.env.ref(
+            'vd_crm_lead.nego_problem_urgent_construction',
+            raise_if_not_found=False,
+        )
+        _urgent_tag_id = _urgent_tag.id if _urgent_tag else 0
+
+        def _fmt_urgent_label(timeline_str):
+            """'Càng sớm càng tốt,Tháng 10/2026' → 'THÁNG 10 - CÀNG SỚM CÀNG TỐT'."""
+            if not timeline_str:
+                return 'THI CÔNG GẤP'
+            parts = [s.strip() for s in timeline_str.split(',') if s.strip()]
+            months, others = [], []
+            pat = _re.compile(r'Tháng\s+(\d{1,2})\s*/\s*(\d{4})', _re.IGNORECASE)
+            for p in parts:
+                m = pat.search(p)
+                if m:
+                    months.append('THÁNG %d' % int(m.group(1)))
+                else:
+                    others.append(p.upper())
+            ordered = months + others
+            return ' - '.join(ordered) if ordered else 'THI CÔNG GẤP'
+
+        def _calls_since(lead_id, since_dt):
+            if not since_dt:
+                return 0
+            return self.env['stringee.call'].search_count([
+                ('lead_id', '=', lead_id),
+                ('start_time', '>=', since_dt),
+            ])
+
         def _lead_problems(l):
             open_probs = l.vd_lead_problem_ids.filtered(
                 lambda p: p.status in ('open', 'in_progress')
             ).sorted(key=lambda p: (p.sequence, p.id))
             out = []
             for p in open_probs[:8]:
-                if p.tag_id:
+                if p.tag_id and p.tag_id.id == _urgent_tag_id:
+                    # 'Thi công gấp' badge → hiển thị thời gian từ intake +
+                    # số cuộc gọi tính từ thời điểm vấn đề được tạo.
+                    label = _fmt_urgent_label(l.vd_intake_timeline)
+                    calls_n = _calls_since(l.id, p.create_date)
+                    nm = '%s · 📞 %d cuộc' % (label, calls_n)
+                    ic = p.tag_id.icon or '⚡'
+                elif p.tag_id:
                     nm = p.tag_id.name
                     ic = p.tag_id.icon or '🔸'
                 else:
