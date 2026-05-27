@@ -557,8 +557,9 @@ class CrmLead(models.Model):
     )
     vd_intake_show_land_area = fields.Boolean(
         string='Hiện diện tích đất',
-        default=True,
-        help='Default ON. Mutually exclusive với vd_intake_land_unlimited.',
+        default=False,
+        help='Default OFF (user request 2026-05-27). NV bật khi cần ghi nhận '
+             'diện tích đất riêng. Mutually exclusive với vd_intake_land_unlimited.',
     )
     vd_intake_show_house_area = fields.Boolean(
         string='Hiện diện tích nhà',
