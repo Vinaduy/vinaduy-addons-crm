@@ -2603,34 +2603,10 @@ class CrmLead(models.Model):
                         and old_codes.get(rec.id) != 'negotiate'
                         and rec.vd_intake_complete):
                     rec._vd_ensure_default_problems()
-        # ===== AUTO-LOCK + AUTO chuyển stage theo intake_complete =====
-        # User spec:
-        #   - Đủ 11 trường → auto-lock + chuyển stage 'quote'
-        #   - KHÔNG đủ → coi như khách mới → revert về stage 'new'
-        # Skip nếu context bypass (chống recursion).
-        if not self.env.context.get('vd_skip_auto_lock'):
-            Stage = self.env['crm.stage']
-            quote_stage = self.env.ref('vd_crm_lead.stage_quote', raise_if_not_found=False) \
-                          or Stage.search([('code', '=', 'quote')], limit=1)
-            new_stage = Stage.search([('code', '=', 'new')], limit=1)
-            for rec in self:
-                if rec.vd_intake_complete and not rec.vd_intake_locked:
-                    # Đủ → lock + chuyển 'quote'
-                    auto_vals = {'vd_intake_locked': True, 'vd_intake_open': False}
-                    if not rec.vd_quote_created_date:
-                        auto_vals['vd_quote_created_date'] = fields.Datetime.now()
-                    if quote_stage and rec.stage_code not in ('quote', 'negotiate', 'won', 'lost'):
-                        auto_vals['stage_id'] = quote_stage.id
-                    rec.with_context(vd_skip_auto_lock=True).write(auto_vals)
-                elif (not rec.vd_intake_complete
-                        and new_stage
-                        and rec.stage_code in ('quote',)
-                        and not rec.vd_intake_locked):
-                    # Không đủ + đang ở 'quote' + đã unlock → revert về 'new'
-                    # (KHÔNG revert khi locked — vẫn giữ stage hiện tại)
-                    rec.with_context(vd_skip_auto_lock=True).write({
-                        'stage_id': new_stage.id,
-                    })
+        # ===== KHÔNG auto-lock theo intake_complete nữa =====
+        # User spec (2026-05): NV phải bấm nút "🔒 CHỐT THÔNG TIN" (action_save_intake_done)
+        # mới khoá + chuyển stage 'quote'. Tránh khoá ngoài ý muốn khi NV
+        # vô tình điền đủ 11 trường nhưng chưa muốn chốt.
         return result
 
     # ============================================================
@@ -2853,8 +2829,12 @@ class CrmLead(models.Model):
                 'Chỉ Admin mới được mở khoá thông tin tư vấn đã chốt. '
                 'Liên hệ Admin nếu cần chỉnh sửa.'
             ))
-        self.vd_intake_locked = False
-        self.vd_intake_open = True
+        # vd_skip_auto_lock=True defensive — phòng khi có ai thêm lại auto-lock
+        # trong write(): unlock xong KHÔNG bị khoá lại ngay lập tức.
+        self.with_context(vd_skip_auto_lock=True).write({
+            'vd_intake_locked': False,
+            'vd_intake_open': True,
+        })
         self.message_post(
             subtype_xmlid='mail.mt_note',
             body=_('🔓 <b>%s</b> đã mở khoá thông tin tư vấn để chỉnh sửa.') % self.env.user.name,

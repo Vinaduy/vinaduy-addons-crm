@@ -666,15 +666,20 @@
                                         <i class="fa fa-times-circle me-1"/>
                                         Hủy
                                     </button>
-                                    <!-- Bỏ CHỐT THÔNG TIN — auto-lock khi điền đủ 11 trường bắt buộc.
-                                         Giữ MỞ KHOÁ (admin only) khi đã chốt. -->
+                                    <!-- CHỐT THÔNG TIN (manual) — NV bấm để khoá + chuyển sang báo giá.
+                                         Bỏ auto-lock: NV chủ động hoàn toàn. -->
                                     <field name="vd_intake_locked" invisible="1"/>
                                     <field name="vd_intake_complete" invisible="1"/>
                                     <span class="o_vd_intake_status_badge o_vd_status_pending"
                                           invisible="vd_intake_complete or vd_intake_locked"
-                                          title="Điền đủ 11 trường bắt buộc để hệ thống tự chốt + sinh báo giá">
+                                          title="Điền đủ 11 trường bắt buộc rồi bấm CHỐT THÔNG TIN để sinh báo giá">
                                         ⏳ Chưa đủ thông tin
                                     </span>
+                                    <button string="🔒 CHỐT THÔNG TIN"
+                                            name="action_save_intake_done" type="object"
+                                            class="btn btn-sm btn-success o_vd_btn_intake_lock"
+                                            invisible="vd_intake_locked"
+                                            title="Lưu + khoá thông tin tư vấn + chuyển sang BÁO GIÁ"/>
                                     <button string="🔓 Mở khoá"
                                             name="action_unlock_intake" type="object"
                                             class="btn btn-sm btn-warning o_vd_btn_unlock"
