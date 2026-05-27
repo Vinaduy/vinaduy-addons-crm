@@ -21,15 +21,35 @@
             <div class="o_vd_mhp_menu" t-if="state.open"
                  t-on-mouseenter="onMouseEnter"
                  t-on-mouseleave="onMouseLeave">
+                <!-- Ô tìm kiếm: gõ ký tự để filter, Enter chọn item đầu tiên -->
+                <div class="o_vd_mhp_search_wrap">
+                    <i class="fa fa-search o_vd_mhp_search_icon"/>
+                    <input type="text" class="o_vd_mhp_search_input"
+                           t-ref="searchInput"
+                           t-att-value="state.search"
+                           t-on-input="onSearchInput"
+                           t-on-keydown="onSearchKeydown"
+                           placeholder="Gõ để tìm…"
+                           autocomplete="off"/>
+                </div>
                 <t t-if="state.options.length === 0">
                     <div class="o_vd_mhp_empty">
                         <i class="fa fa-info-circle"/>
-                        <t t-if="props.name === 'vd_intake_district'">Chọn Tỉnh/Thành trước.</t>
+                        <t t-if="props.name === 'vd_intake_district'">
+                            <t t-if="!fetchDomain">Chọn Tỉnh/Thành trước.</t>
+                            <t t-else="">Chưa có dữ liệu Xã/Phường cho tỉnh này.</t>
+                        </t>
                         <t t-else="">Không có lựa chọn nào.</t>
                     </div>
                 </t>
+                <t t-elif="filteredOptions.length === 0">
+                    <div class="o_vd_mhp_empty">
+                        <i class="fa fa-search"/>
+                        Không khớp "<t t-esc="state.search"/>"
+                    </div>
+                </t>
                 <t t-else="">
-                    <t t-foreach="state.options" t-as="opt" t-key="opt.id">
+                    <t t-foreach="filteredOptions" t-as="opt" t-key="opt.id">
                         <button type="button" class="o_vd_mhp_item"
                                 t-att-data-rec-id="opt.id"
                                 t-att-data-rec-name="opt.display_name or opt.name">

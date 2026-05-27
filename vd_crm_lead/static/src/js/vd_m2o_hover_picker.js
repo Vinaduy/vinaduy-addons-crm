@@ -62,8 +62,9 @@ export class VdM2oHoverPicker extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ open: false, options: [], loadedKey: "" });
+        this.state = useState({ open: false, options: [], loadedKey: "", search: "" });
         this.rootRef = useRef("root");
+        this.searchInputRef = useRef("searchInput");
 
         const fieldDef = this.props.record && this.props.record.fields
             ? this.props.record.fields[this.props.name] : null;
@@ -172,6 +173,54 @@ export class VdM2oHoverPicker extends Component {
         }
     }
 
+    _normalize(s) {
+        return (s || "").toLowerCase()
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "")
+            .replace(/đ/g, "d").replace(/Đ/g, "D");
+    }
+
+    get filteredOptions() {
+        const q = this._normalize(this.state.search).trim();
+        const opts = this.state.options || [];
+        if (!q) return opts;
+        const starts = [];
+        const contains = [];
+        for (const o of opts) {
+            const n = this._normalize(o.display_name || o.name || "");
+            if (!n) continue;
+            if (n.startsWith(q)) {
+                starts.push(o);
+            } else if (n.includes(q)) {
+                contains.push(o);
+            } else {
+                // Cũng match từng từ — vd "duy" match "Vĩnh Duy"
+                const words = n.split(/[\s\-_\/]+/);
+                if (words.some((w) => w.startsWith(q))) {
+                    contains.push(o);
+                }
+            }
+        }
+        return starts.concat(contains);
+    }
+
+    onSearchInput(ev) {
+        this.state.search = ev.target.value || "";
+    }
+
+    onSearchKeydown(ev) {
+        // Enter → chọn item đầu tiên trong filteredOptions
+        if (ev.key === "Enter") {
+            const first = this.filteredOptions[0];
+            if (first) {
+                ev.preventDefault();
+                this.selectRecord(first, ev);
+            }
+        } else if (ev.key === "Escape") {
+            this.state.open = false;
+        }
+    }
+
     get currentDisplay() {
         const v = this.props.record.data[this.props.name];
         if (!v) return "";
@@ -189,8 +238,15 @@ export class VdM2oHoverPicker extends Component {
 
     async onMouseEnter() {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        const wasOpen = this.state.open;
         await this._fetchIfNeeded();
         this.state.open = true;
+        // Auto-focus search input lần đầu mở menu để NV gõ ngay
+        if (!wasOpen) {
+            setTimeout(() => {
+                try { this.searchInputRef.el && this.searchInputRef.el.focus(); } catch (_) {}
+            }, 50);
+        }
     }
 
     onMouseLeave() {
@@ -251,6 +307,7 @@ export class VdM2oHoverPicker extends Component {
         // Force render để UI bar cập nhật ngay
         try { this.render(true); } catch (_) {}
         this.state.open = false;
+        this.state.search = "";
     }
 
     async clearValue(ev) {

@@ -10285,6 +10285,38 @@ $vd-panel-head-radius: 10px;
     font-style: italic;
 }
 
+/* ===== Search input trong menu picker ===== */
+.o_vd_m2o_hover_picker .o_vd_mhp_search_wrap {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid #e5eaf2;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    z-index: 1;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_search_icon {
+    color: #6b7a93;
+    font-size: 12px;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_search_input {
+    flex: 1 1 auto;
+    border: 1px solid #d9dee6;
+    border-radius: 5px;
+    padding: 0.35rem 0.55rem;
+    font-size: 13px;
+    color: #0f1e34;
+    outline: none;
+    background: #f6f8fb;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_search_input:focus {
+    border-color: #714B67;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.15);
+}
+
 /* ============================================================
    INTAKE STATUS BADGE — thay button CHỐT THÔNG TIN (auto-lock)
    ============================================================ */
