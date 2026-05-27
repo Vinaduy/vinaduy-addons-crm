@@ -55,6 +55,8 @@ class StringeeCall(models.Model):
             'stage_id': lost_stage.id,
             'vd_lost_reason': full_reason,
             'vd_lost_date': fields.Datetime.now(),
+            'vd_lost_user_id': self.env.user.id,
+            'vd_lost_is_auto': False,
         })
         lead.message_post(
             subtype_xmlid='mail.mt_note',

@@ -659,11 +659,21 @@
                                             <field name="call_count" nolabel="1" readonly="1"/>
                                         </span>
                                     </button>
+                                    <!-- Hủy / ĐÃ HUỶ — toggle theo stage_is_lost -->
+                                    <field name="stage_is_lost" invisible="1"/>
                                     <button name="action_mark_no_demand" type="object"
                                             class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
-                                            title="KH không có nhu cầu — hủy lead">
+                                            title="KH không có nhu cầu — hủy lead"
+                                            invisible="stage_is_lost">
                                         <i class="fa fa-times-circle me-1"/>
                                         Hủy
+                                    </button>
+                                    <button name="action_show_cancel_history" type="object"
+                                            class="btn btn-sm btn-danger o_vd_cancelled_badge_btn"
+                                            title="Xem lịch sử huỷ — ai huỷ, khi nào, lý do"
+                                            invisible="not stage_is_lost">
+                                        <i class="fa fa-trash me-1"/>
+                                        🚫 ĐÃ HUỶ — xem chi tiết
                                     </button>
                                     <!-- CHỐT THÔNG TIN (manual) — NV bấm để khoá + chuyển sang báo giá.
                                          Bỏ auto-lock: NV chủ động hoàn toàn. -->

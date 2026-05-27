@@ -56,6 +56,8 @@ class VdLeadLostWizard(models.TransientModel):
             'stage_id': lost_stage.id,
             'vd_lost_reason': full_reason,
             'vd_lost_date': fields.Datetime.now(),
+            'vd_lost_user_id': self.env.user.id,
+            'vd_lost_is_auto': False,
         }
 
         # Đặt callback 3 tháng (nếu chọn) — không archive ngay để cron có thể nhắc

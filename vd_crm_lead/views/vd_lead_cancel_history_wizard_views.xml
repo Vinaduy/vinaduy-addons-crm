@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_vd_lead_cancel_history_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.cancel.history.wizard.form</field>
+        <field name="model">vd.lead.cancel.history.wizard</field>
+        <field name="arch" type="xml">
+            <form string="🚫 Lịch sử huỷ KH">
+                <sheet>
+                    <div class="alert alert-danger" role="alert" style="margin-bottom:1rem;">
+                        <h4 style="margin:0;">
+                            <i class="fa fa-trash me-2"/>
+                            KH "<field name="lead_name" readonly="1" nolabel="1" class="d-inline"/>" — <field name="stage_name" readonly="1" nolabel="1" class="d-inline"/>
+                        </h4>
+                    </div>
+                    <group>
+                        <group string="📋 THÔNG TIN HUỶ">
+                            <field name="lead_phone" readonly="1"/>
+                            <field name="is_auto_label" readonly="1" string="Loại huỷ"/>
+                            <field name="actor_display" readonly="1"/>
+                            <field name="actor_user_id" readonly="1" invisible="not actor_user_id"/>
+                            <field name="lost_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="📝 Lý do huỷ"/>
+                    <field name="lost_reason" readonly="1" nolabel="1"
+                           style="font-size:0.95rem;color:#c92a2a;font-weight:600;"/>
+                    <separator string="🕘 LỊCH SỬ THAO TÁC (chatter log)"/>
+                    <field name="history_html" readonly="1" nolabel="1"/>
+                </sheet>
+                <footer>
+                    <button string="Đóng" name="action_close" type="object"
+                            class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

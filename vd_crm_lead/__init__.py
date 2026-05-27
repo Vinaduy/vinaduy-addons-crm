@@ -54,6 +54,27 @@ def _post_init_hook(env):
     except Exception:
         pass  # không crash post-init nếu có vấn đề
 
+    # Backfill vd_lost_user_id / vd_lost_is_auto cho KH đã huỷ trước v9.133
+    # Heuristic:
+    #   - reason starts với "Tự động:" → cron auto-trash → is_auto=True, user_id=False
+    #   - else → manual → user_id = write_uid (suy luận)
+    try:
+        env.cr.execute("""
+            UPDATE crm_lead
+               SET vd_lost_is_auto = TRUE
+             WHERE vd_lost_reason LIKE 'Tự động:%%'
+               AND vd_lost_is_auto = FALSE
+        """)
+        env.cr.execute("""
+            UPDATE crm_lead
+               SET vd_lost_user_id = write_uid
+             WHERE vd_lost_reason IS NOT NULL
+               AND vd_lost_reason NOT LIKE 'Tự động:%%'
+               AND vd_lost_user_id IS NULL
+        """)
+    except Exception:
+        pass
+
 
 def _populate_vn_districts(env):
     """Tạo các bản ghi vd.district từ data/vn_districts.py.

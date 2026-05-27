@@ -993,6 +993,14 @@ class CrmLead(models.Model):
     vd_lost_date = fields.Datetime(
         string='Thời điểm đánh dấu hủy', readonly=True, copy=False,
     )
+    vd_lost_user_id = fields.Many2one(
+        'res.users', string='Người huỷ', readonly=True, copy=False,
+        help='User ấn nút Hủy. False = cron auto-trash (4+ ngày không nghe máy).',
+    )
+    vd_lost_is_auto = fields.Boolean(
+        string='Tự động huỷ', readonly=True, copy=False, default=False,
+        help='True = cron auto-trash. False = NV bấm Hủy thủ công.',
+    )
 
     # ============ BÁO GIÁ — fields working trong panel báo giá ============
     # Helper Many2many: tự filter template theo intake KH (vùng / tầng / móng / mái)
@@ -2990,6 +2998,24 @@ class CrmLead(models.Model):
             },
         }
 
+    def action_show_cancel_history(self):
+        """🚫 ĐÃ HUỶ → mở popup hiển thị lịch sử huỷ: ai huỷ, khi nào, lý do,
+        manual hay auto cron. Đọc từ field vd_lost_user_id + vd_lost_is_auto.
+        Fallback (data cũ chưa backfill): dùng write_uid."""
+        self.ensure_one()
+        wiz = self.env['vd.lead.cancel.history.wizard'].create({
+            'lead_id': self.id,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('🚫 Lịch sử huỷ KH'),
+            'res_model': 'vd.lead.cancel.history.wizard',
+            'res_id': wiz.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'dialog_size': 'medium'},
+        }
+
     def action_open_callback_wizard(self):
         """Mở wizard hẹn ngày gọi lại — preset nhanh + custom datetime + note."""
         self.ensure_one()
@@ -4850,6 +4876,8 @@ class CrmLead(models.Model):
             'stage_id': lost_stage.id,
             'vd_lost_reason': reason,
             'vd_lost_date': fields.Datetime.now(),
+            'vd_lost_user_id': False,    # cron — không có user
+            'vd_lost_is_auto': True,
         })
 
     @api.model
