@@ -3849,6 +3849,7 @@
         display: flex;
         flex-wrap: wrap;
         align-content: flex-start;
+        align-items: center;   /* pills không bị stretch khi cùng dòng với badge cao hơn */
         gap: 0.25rem 0.35rem;
         padding: 0.35rem 0.5rem;
         background: #fff;
@@ -4473,8 +4474,16 @@
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
-    /* Badge "YÊU CẦU XỬ LÝ KHÁCH MỚI" — inline trong bảng KHÁCH MỚI
-       cùng pills, không tách row riêng. Cỡ chữ ~1.1rem (~50% của 2.2). */
+    /* Wrapper xuống dòng riêng + căn giữa trong bảng KHÁCH MỚI */
+    .o_vd_new_required_wrap {
+        flex-basis: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0.4rem 0 0.2rem;
+    }
+    /* Badge "YÊU CẦU XỬ LÝ KHÁCH MỚI" — cỡ chữ ~1.1rem. */
     .o_vd_new_required_badge {
         display: inline-flex;
         align-items: center;
@@ -4491,8 +4500,6 @@
         white-space: nowrap;
         box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35);
         animation: vd-pulse-required-mid 1.6s ease-in-out infinite;
-        margin: 0.3rem 0.3rem 0.3rem 0;
-        vertical-align: middle;
     }
     @keyframes vd-pulse-required-mid {
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }

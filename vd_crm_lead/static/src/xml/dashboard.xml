@@ -1317,11 +1317,14 @@
                                                 Tất cả KH mới đã có vấn đề — xem bảng dưới.
                                             </div>
                                             <!-- 🚨 Badge yêu cầu xử lý — chỉ hiện khi NV bị
-                                                 khoá nhận KH mới. Wrap-inline cùng pills. -->
-                                            <span t-if="state.block_status?.is_blocked and !isAdminView"
-                                                  class="o_vd_new_required_badge">
-                                                ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
-                                            </span>
+                                                 khoá nhận KH mới. Tự xuống dòng + căn giữa
+                                                 nhưng vẫn nằm trong bảng KHÁCH MỚI. -->
+                                            <div t-if="state.block_status?.is_blocked and !isAdminView"
+                                                 class="o_vd_new_required_wrap">
+                                                <span class="o_vd_new_required_badge">
+                                                    ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
