@@ -10285,28 +10285,6 @@ $vd-panel-head-radius: 10px;
     font-style: italic;
 }
 
-/* ===== INTAKE CLOSE GUARD MODAL ===== */
-.o_vd_intake_close_guard {
-    .o_vd_icg_msg {
-        font-size: 14px;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-        p { margin-bottom: 0.5rem; }
-    }
-    .o_vd_icg_actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        button {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            font-weight: 600;
-            font-size: 14px;
-            text-align: left;
-        }
-    }
-}
-
 /* ===== Search input trong menu picker ===== */
 .o_vd_m2o_hover_picker .o_vd_mhp_search_wrap {
     position: sticky;

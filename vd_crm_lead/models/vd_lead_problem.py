@@ -205,6 +205,29 @@ class VdLeadProblem(models.Model):
         'i_has_tum', 'i_has_lung', 'i_floors_select',
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """User spec 2026-05-27: chỉ cho tạo vấn đề khi lead đã CHỐT
+        (vd_intake_locked=True). Chưa CHỐT thì KH vẫn ở "Khách mới",
+        không sinh vấn đề.
+
+        Bypass: context vd_skip_intake_lock=True (vd cho _vd_ensure_default_problems
+        chạy sau khi action_save_intake_done lock xong).
+        """
+        from odoo.exceptions import UserError
+        if not self.env.context.get('vd_skip_intake_lock'):
+            lead_ids = {v.get('lead_id') for v in vals_list if v.get('lead_id')}
+            if lead_ids:
+                leads = self.env['crm.lead'].browse(list(lead_ids))
+                for lead in leads:
+                    if not lead.vd_intake_locked:
+                        raise UserError(_(
+                            'Chưa thể tạo vấn đề cho KH "%s" — vui lòng bấm '
+                            '🔒 CHỐT THÔNG TIN trước. KH chưa CHỐT vẫn ở '
+                            'giai đoạn "Khách mới".'
+                        ) % (lead.name or lead.partner_name or 'lead'))
+        return super().create(vals_list)
+
     def write(self, vals):
         """Khi NV sửa intake qua section 'Cân đối ngân sách':
         - Bypass lock check trên lead (qua context vd_skip_intake_lock)

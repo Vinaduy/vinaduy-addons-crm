@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data noupdate="0">
+        <!-- Cron wipe intake — DISABLED (user spec 2026-05-27): data persist mãi mãi.
+             NV chưa CHỐT thì KH vẫn ở "Khách mới"; data không bị xoá khi reload/close. -->
         <record id="ir_cron_vd_wipe_unsaved_intake" model="ir.cron">
-            <field name="name">VD CRM: Wipe intake chưa CHỐT (>15 phút im lặng)</field>
+            <field name="name">VD CRM: Wipe intake chưa CHỐT (DISABLED)</field>
             <field name="model_id" ref="crm.model_crm_lead"/>
             <field name="state">code</field>
-            <field name="code">model._cron_vd_wipe_unsaved_intake()</field>
-            <field name="active" eval="True"/>
+            <field name="code">pass  # disabled per user spec — data persists</field>
+            <field name="active" eval="False"/>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
             <field name="user_id" ref="base.user_root"/>

@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.130.0',
+    'version': '18.0.9.131.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -43,7 +43,7 @@
         'data/role_config_data.xml',
         # Ẩn các menu Sales/Reporting/Sales app theo yêu cầu user
         'data/menu_overrides.xml',
-        # Cron: wipe intake chưa CHỐT sau 15 phút im lặng
+        # Cron wipe intake — DISABLED (user spec: data persist mãi mãi)
         'data/cron_data.xml',
     ],
     'assets': {
@@ -65,7 +65,6 @@
             'vd_crm_lead/static/src/js/quick_add_tsv_paste.js',
             'vd_crm_lead/static/src/js/quick_add_hover_open.js',
             'vd_crm_lead/static/src/js/intake_hover_panel.js',
-            'vd_crm_lead/static/src/js/intake_close_guard.js',
             'vd_crm_lead/static/src/js/vd_back_button.js',
             'vd_crm_lead/static/src/xml/dashboard.xml',
             'vd_crm_lead/static/src/xml/call_status_widget.xml',
