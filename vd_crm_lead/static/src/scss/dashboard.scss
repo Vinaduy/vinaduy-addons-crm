@@ -3922,7 +3922,11 @@
     .o_vd_filter_table_right_rows {
         flex-direction: column;
         flex-wrap: nowrap;
+        align-items: stretch;  /* override: row stretch full width, không center-shrink */
         gap: 0.35rem;
+    }
+    .o_vd_filter_table_right_rows .o_vd_problem_row {
+        width: 100%;           /* đảm bảo row fill từ left → right của bảng */
     }
     .o_vd_filter_table_right .o_vd_won_pill {
         padding: 0.18rem 0.6rem !important;
