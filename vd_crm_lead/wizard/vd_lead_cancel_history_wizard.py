@@ -91,6 +91,7 @@ class VdLeadCancelHistoryWizard(models.TransientModel):
             if not messages:
                 w.history_html = '<i>Không có message log nào.</i>'
                 continue
+            import html as _html
             rows = []
             for m in messages:
                 author = ''
@@ -100,7 +101,9 @@ class VdLeadCancelHistoryWizard(models.TransientModel):
                     )
                     author = u.login if u else m.author_id.name or ''
                 body = (m.body or '').strip()
-                # Strip HTML thô nhẹ — chỉ giữ text + b/i/br
+                # Mail body trong DB bị double-escape (`&lt;b&gt;` thay vì `<b>`)
+                # → unescape 1 lần để browser render đúng tag HTML.
+                body = _html.unescape(body)
                 date_str = fields.Datetime.context_timestamp(
                     w, m.date or fields.Datetime.now()
                 ).strftime('%d/%m/%Y %H:%M:%S')
