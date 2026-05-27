@@ -1849,36 +1849,51 @@ class CrmLead(models.Model):
         # ===== 1. CHÊNH LỆCH CHI PHÍ — so sánh NS KH vs giá báo =====
         kh_budget = self.vd_intake_budget_amount or 0
         quote = self.vd_quote_price or 0
+        # Threshold 20% (user spec 2026-05-27): chỉ tạo "Cân đối ngân sách"
+        # khi diff > 20% NS KH. < 20% bỏ qua (resolved).
+        BUDGET_THRESHOLD_PCT = 0.20
+        cost_name = None
+        cost_status = None
         if quote and kh_budget:
             diff = quote - kh_budget
-            if diff > 0:
-                cost_name = '💰 CHÊNH LỆCH CHI PHÍ: KH dự kiến %s đ — Giá báo %s đ — Thiếu %s đ' % (
+            diff_pct = (diff / kh_budget) if kh_budget else 0
+            if diff > 0 and diff_pct > BUDGET_THRESHOLD_PCT:
+                cost_name = (
+                    '💰 CÂN ĐỐI NGÂN SÁCH: KH dự kiến %s đ — Giá báo %s đ — '
+                    'Thiếu %s đ (chênh %.0f%%)'
+                ) % (
                     '{:,.0f}'.format(kh_budget),
                     '{:,.0f}'.format(quote),
                     '{:,.0f}'.format(diff),
+                    diff_pct * 100,
                 )
                 cost_status = 'open'
+            elif diff > 0:
+                # Chênh nhỏ ≤ 20% — không tạo vấn đề (skip)
+                cost_name = None
             else:
-                cost_name = '✅ CHÊNH LỆCH CHI PHÍ: KH dự kiến đủ (%s ≥ giá báo %s)' % (
+                cost_name = '✅ CÂN ĐỐI NGÂN SÁCH: KH đủ NS (%s đ ≥ giá báo %s đ)' % (
                     '{:,.0f}'.format(kh_budget),
                     '{:,.0f}'.format(quote),
                 )
                 cost_status = 'resolved'
         elif quote:
-            cost_name = '⚠️ CHÊNH LỆCH CHI PHÍ: chưa biết NS KH (giá báo %s đ — hỏi KH NS dự kiến)' % (
+            cost_name = '⚠️ CÂN ĐỐI NGÂN SÁCH: chưa biết NS KH (giá báo %s đ — hỏi NS dự kiến)' % (
                 '{:,.0f}'.format(quote),
             )
             cost_status = 'open'
         elif kh_budget:
-            cost_name = '⚠️ CHÊNH LỆCH CHI PHÍ: NS KH %s đ — chưa có báo giá để so sánh' % (
-                '{:,.0f}'.format(kh_budget),
-            )
-            cost_status = 'open'
-        else:
-            cost_name = '⚠️ CHÊNH LỆCH CHI PHÍ: chưa có data (cần điền Khai thác + Báo giá)'
-            cost_status = 'open'
+            # Có NS nhưng chưa có báo giá → chưa cần vấn đề
+            cost_name = None
 
-        if 'cost_diff' in existing:
+        if cost_name is None:
+            # Threshold không match → skip create. Nếu đã có problem cũ + open
+            # → mark resolved (NV đã đàm phán thành công hoặc tự nhỏ lại).
+            if 'cost_diff' in existing and existing['cost_diff'].status != 'resolved':
+                existing['cost_diff'].with_context(mail_notrack=True).write({
+                    'status': 'resolved',
+                })
+        elif 'cost_diff' in existing:
             existing['cost_diff'].with_context(mail_notrack=True).write({
                 'name': cost_name, 'status': cost_status,
             })
