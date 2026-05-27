@@ -3,35 +3,24 @@
 
     <t t-name="vd_crm_lead.VdM2oHoverPicker">
         <div class="o_vd_m2o_hover_picker" t-ref="root"
-             t-att-class="{ 'o_vd_mhp_open': state.open, 'o_vd_mhp_has_value': hasValue }"
-             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
-            <!-- Bar -->
+             t-att-class="{ 'o_vd_mhp_open': state.open, 'o_vd_mhp_has_value': hasValue }">
+            <!-- Bar = INPUT (gõ trực tiếp để search, click để mở dropdown) -->
             <div class="o_vd_mhp_bar">
-                <span class="o_vd_mhp_value" t-if="hasValue">
-                    <t t-esc="currentDisplay"/>
-                </span>
-                <span class="o_vd_mhp_placeholder" t-if="!hasValue">
-                    <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
-                </span>
+                <input type="text" class="o_vd_mhp_input"
+                       t-ref="searchInput"
+                       t-att-value="inputValue"
+                       t-att-placeholder="props.placeholder or 'Bấm để chọn…'"
+                       t-on-focus="onInputFocus"
+                       t-on-input="onSearchInput"
+                       t-on-keydown="onSearchKeydown"
+                       autocomplete="off"/>
                 <button type="button" class="o_vd_mhp_clear" t-if="hasValue" title="Xoá">×</button>
                 <i class="fa fa-caret-down o_vd_mhp_caret"/>
             </div>
 
-            <!-- Hover menu — click bắt bằng document capture listener (xem vd_m2o_hover_picker.js) -->
+            <!-- Dropdown menu — chỉ chứa options (search input đã chuyển lên bar) -->
             <div class="o_vd_mhp_menu" t-if="state.open"
-                 t-on-mouseenter="onMouseEnter"
-                 t-on-mouseleave="onMouseLeave">
-                <!-- Ô tìm kiếm: gõ ký tự để filter, Enter chọn item đầu tiên -->
-                <div class="o_vd_mhp_search_wrap">
-                    <i class="fa fa-search o_vd_mhp_search_icon"/>
-                    <input type="text" class="o_vd_mhp_search_input"
-                           t-ref="searchInput"
-                           t-att-value="state.search"
-                           t-on-input="onSearchInput"
-                           t-on-keydown="onSearchKeydown"
-                           placeholder="Gõ để tìm…"
-                           autocomplete="off"/>
-                </div>
+                 t-on-mousedown="onMenuMouseDown">
                 <t t-if="state.options.length === 0">
                     <div class="o_vd_mhp_empty">
                         <i class="fa fa-info-circle"/>

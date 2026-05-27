@@ -10220,6 +10220,31 @@ $vd-panel-head-radius: 10px;
     color: #6b7a93;
     font-style: normal;
 }
+/* Input MỚI: gõ trực tiếp trong bar để search */
+.o_vd_m2o_hover_picker .o_vd_mhp_input {
+    flex: 1 1 auto;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    color: #0f1e34;
+    width: 100%;
+    min-width: 0;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_input::placeholder {
+    color: #6b7a93;
+    font-style: normal;
+}
+.o_vd_m2o_hover_picker .o_vd_mhp_input:focus {
+    outline: none;
+}
+.o_vd_m2o_hover_picker:has(.o_vd_mhp_input:focus) .o_vd_mhp_bar,
+.o_vd_m2o_hover_picker.o_vd_mhp_open .o_vd_mhp_bar {
+    border-color: #714B67;
+    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.12);
+}
 .o_vd_m2o_hover_picker .o_vd_mhp_clear {
     flex: 0 0 auto;
     background: transparent;

@@ -62,7 +62,10 @@ export class VdM2oHoverPicker extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ open: false, options: [], loadedKey: "", search: "" });
+        this.state = useState({
+            open: false, options: [], loadedKey: "",
+            search: "", editing: false,
+        });
         this.rootRef = useRef("root");
         this.searchInputRef = useRef("searchInput");
 
@@ -78,6 +81,8 @@ export class VdM2oHoverPicker extends Component {
         this._onDocClick = (ev) => {
             if (this.rootRef.el && !this.rootRef.el.contains(ev.target)) {
                 this.state.open = false;
+                this.state.editing = false;
+                this.state.search = "";
             }
         };
 
@@ -204,12 +209,30 @@ export class VdM2oHoverPicker extends Component {
         return starts.concat(contains);
     }
 
+    get inputValue() {
+        // Khi đang editing (gõ tìm) → hiển thị search query
+        // Khi không editing → hiển thị display name của value đã chọn (hoặc rỗng)
+        if (this.state.editing) return this.state.search;
+        return this.currentDisplay;
+    }
+
+    async onInputFocus(ev) {
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        await this._fetchIfNeeded();
+        this.state.editing = true;
+        this.state.search = "";  // Clear search để hiện ALL options khi vừa focus
+        this.state.open = true;
+        // Select all text để user dễ thay thế
+        try { ev.target.select(); } catch (_) {}
+    }
+
     onSearchInput(ev) {
+        this.state.editing = true;
         this.state.search = ev.target.value || "";
+        this.state.open = true;
     }
 
     onSearchKeydown(ev) {
-        // Enter → chọn item đầu tiên trong filteredOptions
         if (ev.key === "Enter") {
             const first = this.filteredOptions[0];
             if (first) {
@@ -218,6 +241,19 @@ export class VdM2oHoverPicker extends Component {
             }
         } else if (ev.key === "Escape") {
             this.state.open = false;
+            this.state.editing = false;
+            try { ev.target.blur(); } catch (_) {}
+        } else if (ev.key === "ArrowDown") {
+            // Future: keyboard navigation. Hiện tại chỉ mở menu.
+            this.state.open = true;
+        }
+    }
+
+    onMenuMouseDown(ev) {
+        // Ngăn input blur khi click trong menu (cho phép click item)
+        // Click handler global sẽ xử lý item click sau đó.
+        if (ev.target && !ev.target.closest(".o_vd_mhp_item")) {
+            ev.preventDefault();
         }
     }
 
@@ -308,6 +344,9 @@ export class VdM2oHoverPicker extends Component {
         try { this.render(true); } catch (_) {}
         this.state.open = false;
         this.state.search = "";
+        this.state.editing = false;
+        // Blur input để hiện display name (không phải search query)
+        try { this.searchInputRef.el && this.searchInputRef.el.blur(); } catch (_) {}
     }
 
     async clearValue(ev) {
