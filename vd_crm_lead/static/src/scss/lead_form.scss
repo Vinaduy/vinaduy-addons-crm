@@ -10684,6 +10684,33 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_dim > input,
     margin: 0 !important;
 }
 
+/* Button X xoá tầng — đứng cuối row công năng */
+.o_vd_intake_inline .o_vd_floor_func_x {
+    flex: 0 0 auto !important;
+    margin-left: 0.4rem !important;
+    background: transparent !important;
+    border: 1.5px solid #b91c1c !important;
+    color: #b91c1c !important;
+    border-radius: 50% !important;
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    transition: background 0.15s ease !important;
+}
+.o_vd_intake_inline .o_vd_floor_func_x:hover {
+    background: rgba(185, 28, 28, 0.15) !important;
+}
+.o_vd_intake_inline .o_vd_floor_func_x i {
+    font-size: 14px !important;
+    margin: 0 !important;
+}
+
 /* Dim label "Dài:" / "Rộng:" inline cạnh input */
 .o_vd_intake_inline .o_vd_area_row .o_vd_dim_lbl,
 .o_vd_intake_inline .o_vd_floors_oneline .o_vd_dim_lbl {

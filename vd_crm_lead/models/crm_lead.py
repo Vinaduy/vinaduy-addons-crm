@@ -775,16 +775,21 @@ class CrmLead(models.Model):
                 self.vd_intake_floor_tum_m2 = area
 
     def action_toggle_tum(self):
-        """Toggle tầng tum on/off (chip button)."""
+        """Toggle tầng tum on/off (chip button). Khi tắt → clear data."""
         self.ensure_one()
         self.vd_intake_has_tum = not self.vd_intake_has_tum
         # Sync lại floors_num
         mapping = {'1': 1.0, '2': 2.0, '3': 3.0, '4': 4.0, '5': 5.0, '6': 6.0, '7': 7.0}
         base = mapping.get(self.vd_intake_floors_select, 0.0)
         self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
-        # Auto-fill tum area từ area_m2 nếu vừa bật
-        if self.vd_intake_has_tum and self.vd_intake_area_m2 and not self.vd_intake_floor_tum_m2:
-            self.vd_intake_floor_tum_m2 = self.vd_intake_area_m2
+        if self.vd_intake_has_tum:
+            # Auto-fill tum area từ area_m2 nếu vừa bật
+            if self.vd_intake_area_m2 and not self.vd_intake_floor_tum_m2:
+                self.vd_intake_floor_tum_m2 = self.vd_intake_area_m2
+        else:
+            # Tắt → clear m² + function_ids
+            self.vd_intake_floor_tum_m2 = 0.0
+            self.vd_intake_floor_tum_function_ids = [(5, 0, 0)]
         return True
 
     def action_add_floor(self):
@@ -797,24 +802,60 @@ class CrmLead(models.Model):
         return True
 
     def action_remove_floor(self):
-        """Bấm '- Tầng' → giảm counter (min 0) + clear m² của tầng vừa xoá."""
+        """Bấm '- Tầng' → giảm counter (min 0) + clear m² của tầng vừa xoá.
+        (LEGACY — button đã ẩn khỏi view sau 2026-05-27.)"""
         self.ensure_one()
         if self.vd_intake_floors_count > 0:
             last = self.vd_intake_floors_count
-            # Clear m² của tầng cuối
             setattr(self, f'vd_intake_floor_{last}_m2', 0.0)
             new_count = last - 1
             self.vd_intake_floors_count = new_count
             self.vd_intake_floors_select = str(new_count) if new_count > 0 else False
         return True
 
+    def action_vd_remove_floor_n(self):
+        """Xoá tầng N (lấy từ context vd_floor_n). User spec 2026-05-27:
+        button X trên từng row công năng — xoá cả m² + function_ids của Tn,
+        đồng thời shift các tầng cao hơn xuống (T(N+1) → Tn, T(N+2) → T(N+1)...)
+        và decrement floors_count.
+
+        Riêng Tum/Lửng: dùng action_toggle_tum/lung (đã clear data sẵn).
+        """
+        self.ensure_one()
+        n = int(self.env.context.get('vd_floor_n', 0))
+        if n < 1 or n > 7:
+            return True
+        # Đọc data 7 tầng vào list
+        floor_data = []
+        for i in range(1, 8):
+            m2 = self[f'vd_intake_floor_{i}_m2'] or 0.0
+            fids = self[f'vd_intake_floor_{i}_function_ids'].ids
+            floor_data.append((m2, fids))
+        # Bỏ index n-1, append empty cuối
+        floor_data.pop(n - 1)
+        floor_data.append((0.0, []))
+        # Build vals shift xuống
+        vals = {}
+        for i in range(1, 8):
+            m2, fids = floor_data[i - 1]
+            vals[f'vd_intake_floor_{i}_m2'] = m2
+            vals[f'vd_intake_floor_{i}_function_ids'] = [(6, 0, fids)]
+        # Decrement floors_count (min 1 — Tầng 1 luôn có)
+        current = self.vd_intake_floors_count or int(self.vd_intake_floors_select or '1')
+        new_count = max(1, current - 1)
+        vals['vd_intake_floors_count'] = new_count
+        vals['vd_intake_floors_select'] = str(new_count)
+        self.write(vals)
+        return True
+
     def action_toggle_lung(self):
-        """Toggle Lửng on/off — bật → mở 2 ô Lửng + Thông tầng."""
+        """Toggle Lửng on/off — bật → mở 2 ô Lửng + Thông tầng. Tắt → clear data."""
         self.ensure_one()
         self.vd_intake_has_lung = not self.vd_intake_has_lung
         if not self.vd_intake_has_lung:
             self.vd_intake_floor_lung_m2 = 0.0
             self.vd_intake_floor_thongtang_m2 = 0.0
+            self.vd_intake_floor_lung_function_ids = [(5, 0, 0)]
         return True
 
     # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
