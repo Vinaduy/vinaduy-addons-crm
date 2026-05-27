@@ -22,36 +22,35 @@ def _post_init_hook(env):
 
     _populate_vn_districts(env)
 
-    # Force recompute vd_intake_complete for all leads — và auto-lock các lead
-    # đã đủ thông tin nhưng chưa lock (data tồn tại trước v9.106).
-    # Đồng thời revert các lead intake KHÔNG đủ nhưng đang ở stage quote
-    # về stage 'new' (KH chưa đủ thông tin coi như khách mới).
+    # Force recompute vd_intake_complete + lock các lead đã đủ thông tin.
+    # User spec 2026-05-27: KHÔNG revert lead về 'new' nữa — data persist
+    # mãi mãi; thay vào đó tự lock + đẩy về stage 'quote' để dashboard hiển
+    # thị KH ở đúng bảng (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).
     try:
         Lead = env['crm.lead']
         Stage = env['crm.stage']
-        new_stage = Stage.search([('code', '=', 'new')], limit=1)
+        quote_stage = Stage.search([('code', '=', 'quote')], limit=1)
         all_leads = Lead.search([])
         if all_leads:
             all_leads._compute_intake_complete()
-            # Auto-lock các lead đủ thông tin
-            to_lock = all_leads.filtered(lambda l: l.vd_intake_complete and not l.vd_intake_locked)
-            if to_lock:
-                to_lock.with_context(vd_skip_auto_lock=True).write({
-                    'vd_intake_locked': True,
-                    'vd_intake_open': False,
-                })
-            # Revert các lead chưa đủ ở stage 'quote' (chưa locked) về 'new'
-            # (giữ nguyên stage 'negotiate'/'won'/'lost' — không động vào)
-            if new_stage:
-                to_revert = all_leads.filtered(
-                    lambda l: (not l.vd_intake_complete
-                               and l.stage_id.code == 'quote'
-                               and not l.vd_intake_locked)
-                )
-                if to_revert:
-                    to_revert.with_context(vd_skip_auto_lock=True).write({
-                        'stage_id': new_stage.id,
-                    })
+            # Auto-lock + đẩy về 'quote' các lead đủ thông tin (chưa locked
+            # hoặc đã bị revert về 'new' do post_init cũ).
+            complete_leads = all_leads.filtered(lambda l: l.vd_intake_complete)
+            for lead in complete_leads:
+                vals = {}
+                if not lead.vd_intake_locked:
+                    vals['vd_intake_locked'] = True
+                    vals['vd_intake_open'] = False
+                if (quote_stage
+                        and lead.stage_id.code in ('new', 'lead')
+                        and lead.active):
+                    vals['stage_id'] = quote_stage.id
+                if vals:
+                    lead.with_context(
+                        vd_skip_auto_lock=True,
+                        vd_skip_intake_lock=True,
+                        mail_notrack=True,
+                    ).write(vals)
     except Exception:
         pass  # không crash post-init nếu có vấn đề
 
