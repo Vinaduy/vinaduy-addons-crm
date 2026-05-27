@@ -127,3 +127,10 @@ class VdLeadCancelHistoryWizard(models.TransientModel):
 
     def action_close(self):
         return {'type': 'ir.actions.act_window_close'}
+
+    def action_restore(self):
+        """🔄 Hoàn tác huỷ — chỉ admin. Gọi method trên lead + đóng popup."""
+        self.ensure_one()
+        if not self.lead_id:
+            return self.action_close()
+        return self.lead_id.action_vd_restore_cancelled_lead()

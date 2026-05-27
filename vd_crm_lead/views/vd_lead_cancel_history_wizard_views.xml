@@ -28,8 +28,13 @@
                     <field name="history_html" readonly="1" nolabel="1"/>
                 </sheet>
                 <footer>
+                    <button string="🔄 Hoàn tác huỷ (khôi phục KH)"
+                            name="action_restore" type="object"
+                            class="btn-warning"
+                            groups="vd_crm_lead.vd_crm_group_admin"
+                            confirm="Khôi phục KH này về 'Khách mới'? Hành động này sẽ xoá lý do huỷ + ngày huỷ + user huỷ."/>
                     <button string="Đóng" name="action_close" type="object"
-                            class="btn-primary" special="cancel"/>
+                            class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>

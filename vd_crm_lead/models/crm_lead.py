@@ -2998,6 +2998,60 @@ class CrmLead(models.Model):
             },
         }
 
+    def action_vd_restore_cancelled_lead(self):
+        """🔄 Hoàn tác huỷ — đưa KH từ stage 'Khách huỷ' trở về 'Khách mới'.
+        CHỈ admin (vd_crm_group_admin) hoặc superuser được gọi.
+
+        Clear toàn bộ field huỷ (reason/date/user/is_auto) + active=True.
+        Post message vào chatter để audit ai khôi phục lúc nào.
+        """
+        self.ensure_one()
+        is_admin = (
+            self.env.user._is_superuser()
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
+        )
+        if not is_admin:
+            raise UserError(_(
+                'Chỉ Admin mới được hoàn tác huỷ KH. '
+                'Liên hệ Admin nếu cần khôi phục KH này.'
+            ))
+        if not self.stage_is_lost:
+            raise UserError(_('KH này không ở trạng thái Huỷ — không cần hoàn tác.'))
+
+        new_stage = self.env['crm.stage'].search([('code', '=', 'new')], limit=1)
+        if not new_stage:
+            raise UserError(_('Không tìm thấy stage "Khách mới" (code="new").'))
+
+        old_reason = self.vd_lost_reason or ''
+        old_actor = self.vd_lost_user_id.name if self.vd_lost_user_id else (
+            '🤖 cron auto' if self.vd_lost_is_auto else 'không rõ'
+        )
+        old_date_str = (
+            self.vd_lost_date.strftime('%d/%m/%Y %H:%M:%S')
+            if self.vd_lost_date else '—'
+        )
+
+        self.with_context(
+            vd_skip_intake_lock=True, mail_notrack=True,
+        ).write({
+            'stage_id': new_stage.id,
+            'active': True,
+            'vd_lost_reason': False,
+            'vd_lost_date': False,
+            'vd_lost_user_id': False,
+            'vd_lost_is_auto': False,
+        })
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_(
+                "🔄 <b>Hoàn tác huỷ KH</b> — <b>%s</b> đã khôi phục KH về "
+                "<b>Khách mới</b>.<br/>"
+                "<i>Huỷ trước đó:</i> %s lúc %s<br/>"
+                "<i>Lý do huỷ cũ:</i> %s"
+            ) % (self.env.user.name, old_actor, old_date_str, old_reason),
+        )
+        return {'type': 'ir.actions.act_window_close'}
+
     def action_show_cancel_history(self):
         """🚫 ĐÃ HUỶ → mở popup hiển thị lịch sử huỷ: ai huỷ, khi nào, lý do,
         manual hay auto cron. Đọc từ field vd_lost_user_id + vd_lost_is_auto.
