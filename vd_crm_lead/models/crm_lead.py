@@ -4897,10 +4897,40 @@ class CrmLead(models.Model):
                 'total': 0, 'answered': 0, 'answered_long': 0,
                 'no_answer': 0, 'busy_like': 0, 'subscriber': 0,
                 'distinct_days': 0, 'distinct_days_subscriber': 0,
-                'days_no_answer': 0,
+                'days_no_answer': 0, 'has_call_today': False,
                 'unreachable': 0, 'distinct_days_unreachable': 0,
             }),
+            # Cảnh báo "cần gọi hôm nay" — chỉ stage 'new':
+            #   Day 1 (ngày tạo): skip
+            #   Day 2: cumulative distinct_days >= 1
+            #   Day 3: cumulative distinct_days >= 2
+            #   Day 4: cumulative distinct_days >= 3
+            # Border xanh nếu: behind schedule + chưa gọi hôm nay.
+            'needs_call_today': self._vd_pill_needs_call_today(
+                l, call_stats_by_lead.get(l.id, {}),
+            ),
         } for l in leads]
+
+    @api.model
+    def _vd_pill_needs_call_today(self, lead, stats):
+        """True khi: lead.stage='new' + days_since_create in [1,4] +
+        cumulative distinct_days < days_since_create + chưa có cuộc gọi hôm nay."""
+        if lead.stage_code != 'new':
+            return False
+        if not lead.create_date:
+            return False
+        from datetime import date as _date
+        today = _date.today()
+        days_since = (today - lead.create_date.date()).days
+        if days_since < 1 or days_since > 4:
+            return False
+        if stats.get('has_call_today'):
+            return False
+        # Distinct days đã gọi (đếm cả ngày hôm nay nếu có — nhưng đã loại ở
+        # check trên rồi). Required = days_since (1, 2, 3 hoặc 4).
+        required = days_since
+        actual = stats.get('distinct_days', 0)
+        return actual < required
 
     @api.model
     def _vd_auto_trash_no_answer_leads(self, domain_user):
@@ -4947,6 +4977,8 @@ class CrmLead(models.Model):
         - cancelled: NV tự huỷ trước khi bắt → bỏ qua, không tính vào nhóm nào.
         """
         from collections import defaultdict
+        from datetime import date as _date
+        today_date = _date.today()
         result = {}
         if not leads:
             return result
@@ -4969,6 +5001,7 @@ class CrmLead(models.Model):
             all_days = set()
             subscriber_days = set()
             days_answered = set()  # ngày có ≥1 cuộc liên lạc được
+            has_call_today = False
             for c in lcalls:
                 st = c.get('state')
                 dur = c.get('duration') or 0
@@ -4980,6 +5013,8 @@ class CrmLead(models.Model):
                 day = start.date() if start and hasattr(start, 'date') else None
                 if day:
                     all_days.add(day)
+                    if day == today_date:
+                        has_call_today = True
                 if is_answered:
                     answered += 1
                     if dur >= 120:
@@ -5007,6 +5042,7 @@ class CrmLead(models.Model):
                 'distinct_days': len(all_days),
                 'distinct_days_subscriber': len(subscriber_days),
                 'days_no_answer': days_no_answer,
+                'has_call_today': has_call_today,
                 # giữ field cũ để backward compatible nếu nơi nào còn ref
                 'unreachable': busy_like + subscriber,
                 'distinct_days_unreachable': len(subscriber_days),

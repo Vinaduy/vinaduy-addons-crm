@@ -2141,6 +2141,28 @@
     .o_vd_pill_call_red      .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
     .o_vd_pill_call_darkred  .o_vd_pill_call_badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
+    /* ===== PILL "CẦN GỌI HÔM NAY" — viền xanh dương sáng + pulse glow =====
+       KH chưa CHỐT + behind schedule + chưa có cuộc gọi hôm nay → nhắc NV. */
+    .o_vd_won_pill.o_vd_pill_needs_call {
+        border: 2.5px solid #1971c2 !important;
+        box-shadow:
+            0 0 0 3px rgba(25, 113, 194, 0.25),
+            0 0 12px rgba(25, 113, 194, 0.55) !important;
+        animation: vd-pulse-needs-call 1.6s ease-in-out infinite !important;
+    }
+    @keyframes vd-pulse-needs-call {
+        0%, 100% {
+            box-shadow:
+                0 0 0 3px rgba(25, 113, 194, 0.25),
+                0 0 8px rgba(25, 113, 194, 0.4);
+        }
+        50% {
+            box-shadow:
+                0 0 0 5px rgba(25, 113, 194, 0.4),
+                0 0 18px rgba(25, 113, 194, 0.7);
+        }
+    }
+
     /* ===== TOOLTIP — Status header + row highlights ===== */
     .o_vd_won_tt_status {
         display: flex;
@@ -4509,6 +4531,22 @@
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
+    /* Badge "Hôm nay có X KH cần gọi" — viền xanh dương, đặt cuối bảng KH mới */
+    .o_vd_need_call_today_badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(25, 113, 194, 0.12);
+        color: #1971c2;
+        border: 2px solid #1971c2;
+        border-radius: 999px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        white-space: nowrap;
+        b { color: #d9480f; font-size: 1.05rem; }
+    }
+
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */
     .o_vd_problem_row_days {
         display: inline-flex;

@@ -1325,6 +1325,15 @@
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
                                                 </span>
                                             </div>
+                                            <!-- 📞 Cảnh báo nhẹ "Hôm nay có X KH cần gọi" — đếm
+                                                 lead có needs_call_today=true. Chỉ stage 'new'. -->
+                                            <t t-set="needCallCount" t-value="leadsNoProblems.filter(l => l.needs_call_today).length"/>
+                                            <div t-if="needCallCount &gt; 0"
+                                                 class="o_vd_new_required_wrap">
+                                                <span class="o_vd_need_call_today_badge">
+                                                    📞 Hôm nay bạn có <b><t t-esc="needCallCount"/></b> khách mới cần gọi
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
@@ -1670,7 +1679,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.openLead(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead)">
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '')">
                 <span class="o_vd_won_pill_icon">
                     <!-- Stage WON: urgency icon -->
                     <t t-if="selectedStage and selectedStage.code === 'won'">
@@ -1697,11 +1706,11 @@
                 </span>
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
-                <!-- Badge số cuộc gọi — chỉ hiện ở stage Khách mới khi có ≥1 cuộc -->
-                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
+                <!-- Badge số ngày đã gọi — chỉ hiện ở stage Khách mới khi có ≥1 ngày -->
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.distinct_days > 0"
                       class="o_vd_pill_call_badge"
-                      t-att-title="'Đã gọi ' + lead.call_stats.total + ' cuộc'">
-                    📞 <t t-esc="lead.call_stats.total"/>
+                      t-att-title="'Đã gọi ' + lead.call_stats.distinct_days + ' ngày khác nhau (' + lead.call_stats.total + ' cuộc)'">
+                    📞 <t t-esc="lead.call_stats.distinct_days"/>N
                 </span>
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
