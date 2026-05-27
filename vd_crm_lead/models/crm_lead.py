@@ -2855,40 +2855,44 @@ class CrmLead(models.Model):
         }
 
     def action_save_intake_done(self):
-        """Lưu thông tin khai thác → đóng phiếu (quay về tóm tắt) + AUTO
-        chuyển stage sang Báo giá (nếu chưa). Trả về effect rainbow_man.
+        """🔒 CHỐT THÔNG TIN — khoá phiếu khai thác + chuyển stage sang Báo giá.
 
-        NV (không phải admin/leader) phải điền đủ field bắt buộc:
-        tổng diện tích sàn, số tầng, móng, kiểu nhà, tỉnh/thành,
-        ngân sách dự kiến, thời gian khởi công.
+        Validate ĐỦ 11 trường bắt buộc (same logic với vd_intake_complete).
+        Áp dụng cho TẤT CẢ user (kể cả admin/leader) — không cho chốt khi
+        thiếu thông tin. Nếu cần edge-case, admin có thể sửa trực tiếp DB.
         """
         self.ensure_one()
 
-        # ===== Validate required fields cho NV =====
-        is_privileged = (
-            self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
-            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
-        )
-        if not is_privileged:
-            missing = []
-            if not (self.vd_intake_total_m2 or 0) > 0:
-                missing.append('Tổng diện tích sàn (m²)')
-            if not self.vd_intake_floors_select:
-                missing.append('Số tầng')
-            if not self.vd_intake_foundation_type:
-                missing.append('Loại móng')
-            if not self.vd_intake_house_type:
-                missing.append('Kiểu nhà')
-            if not self.vd_intake_province_id:
-                missing.append('Tỉnh / Thành')
-            if not (self.vd_intake_budget_amount or 0) > 0:
-                missing.append('Ngân sách dự kiến')
-            if not self.vd_intake_timeline:
-                missing.append('Thời gian khởi công')
-            if missing:
-                raise UserError(_(
-                    '❗ Chưa đủ thông tin để lưu. Vui lòng điền:\n• %s'
-                ) % '\n• '.join(missing))
+        # ===== Validate ĐỦ 11 trường bắt buộc (giống vd_intake_complete) =====
+        missing = []
+        if not self.vd_intake_province_id:
+            missing.append('1. Địa chỉ (Tỉnh / Thành)')
+        if not self.vd_intake_timeline:
+            missing.append('2. Thời gian khởi công')
+        if not (self.vd_intake_total_m2 or 0) > 0:
+            missing.append('3. Diện tích nhà (Ngang × Dài)')
+        if not self.vd_intake_house_type:
+            missing.append('4a. Mẫu nhà')
+        if not self.vd_intake_foundation_type:
+            missing.append('4b. Loại móng')
+        if not (self.vd_intake_floor_1_m2 or 0) > 0:
+            missing.append('5. Số tầng (ít nhất Tầng 1)')
+        if not self.vd_intake_floor_1_function_ids:
+            missing.append('6. Công năng Tầng 1')
+        if not self.vd_intake_land_type:
+            missing.append('7. Loại đất')
+        if not self.vd_intake_soil_dump:
+            missing.append('8. Chỗ để đất móng')
+        if not self.vd_intake_car_access_select:
+            missing.append('9. Ô tô vào')
+        if not self.vd_intake_budget_range:
+            missing.append('10. Tầm tài chính')
+        if not self.vd_intake_dimensions:
+            missing.append('11. Sổ đỏ / cấp phép')
+        if missing:
+            raise UserError(_(
+                '❗ Chưa đủ thông tin để CHỐT. Vui lòng điền:\n• %s'
+            ) % '\n• '.join(missing))
 
         filled = sum(1 for f in self._intake_data_fields if self[f])
         total = len(self._intake_data_fields)
