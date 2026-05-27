@@ -371,6 +371,11 @@ class CrmLead(models.Model):
         string='Đã khoá thông tin tư vấn', default=False, copy=False,
         help='True sau khi NV bấm Lưu & Chuyển sang Báo giá. Admin/Leader có thể mở khoá.',
     )
+    vd_quote_created_date = fields.Datetime(
+        string='Ngày tạo báo giá chi tiết', copy=False, readonly=True,
+        help='Latch lần đầu intake đủ → khoá → báo giá chi tiết hiện ra. '
+             'Dùng để đếm số ngày KH đã ở giai đoạn báo giá/đàm phán.',
+    )
 
     # Khai thác — tổng hợp nhu cầu khách hàng (xây dựng / nhà ở)
     # `help` = kịch bản gợi ý cho NV khi gọi (hiển thị tooltip).
@@ -2612,6 +2617,8 @@ class CrmLead(models.Model):
                 if rec.vd_intake_complete and not rec.vd_intake_locked:
                     # Đủ → lock + chuyển 'quote'
                     auto_vals = {'vd_intake_locked': True, 'vd_intake_open': False}
+                    if not rec.vd_quote_created_date:
+                        auto_vals['vd_quote_created_date'] = fields.Datetime.now()
                     if quote_stage and rec.stage_code not in ('quote', 'negotiate', 'won', 'lost'):
                         auto_vals['stage_id'] = quote_stage.id
                     rec.with_context(vd_skip_auto_lock=True).write(auto_vals)
@@ -2910,6 +2917,8 @@ class CrmLead(models.Model):
 
         # Đóng phiếu khai thác + khoá để NV không sửa được nữa
         write_vals = {'vd_intake_open': False, 'vd_intake_locked': True}
+        if not self.vd_quote_created_date:
+            write_vals['vd_quote_created_date'] = fields.Datetime.now()
 
         # AUTO chuyển stage sang "Báo giá" — bao gồm cả callback (Hẹn gọi lại).
         # User bấm SAVE = họ muốn chuyển. Chỉ skip nếu đã ở quote/negotiate/won/lost.
@@ -4717,7 +4726,7 @@ class CrmLead(models.Model):
                     # số cuộc gọi tính từ thời điểm vấn đề được tạo.
                     label = _fmt_urgent_label(l.vd_intake_timeline)
                     calls_n = _calls_since(l.id, p.create_date)
-                    nm = '%s · 📞 %d cuộc' % (label, calls_n)
+                    nm = '%s · 📞 %d' % (label, calls_n)
                     ic = p.tag_id.icon or '⚡'
                 elif p.tag_id:
                     nm = p.tag_id.name
@@ -4769,6 +4778,13 @@ class CrmLead(models.Model):
             'problem_open_count': l.vd_lead_problem_open_count,
             # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
             'problems': _lead_problems(l),
+            # Số ngày từ lúc báo giá chi tiết xuất hiện. Fallback create_date
+            # cho lead cũ chưa có latch (chưa migrate field này).
+            'quote_days': (
+                (fields.Datetime.now() - (l.vd_quote_created_date or l.create_date)).days
+                if (l.vd_quote_created_date or (l.vd_intake_locked and l.create_date))
+                else None
+            ),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'no_answer': 0,

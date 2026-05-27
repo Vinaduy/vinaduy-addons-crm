@@ -1473,6 +1473,14 @@
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
                                             </span>
+                                            <span class="o_vd_problem_row_days"
+                                                  t-att-title="'Số ngày từ khi báo giá chi tiết xuất hiện'">
+                                                <t t-if="lead.quote_days !== null and lead.quote_days !== undefined">
+                                                    <strong><t t-esc="lead.quote_days"/></strong>
+                                                    <span class="o_vd_problem_row_days_unit">ngày</span>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </span>
                                         </div>
                                     </t>
                                     <div t-else="" class="o_vd_filter_table_empty">
@@ -1505,13 +1513,21 @@
                                             </span>
                                             <span class="o_vd_problem_row_problems">
                                                 <span t-if="!lead.problems or !lead.problems.length"
-                                                      class="o_vd_problem_row_badge o_vd_prb_empty">
-                                                    ⚠️ <t t-esc="lead.problem_open_count or 0"/> vấn đề
+                                                      class="o_vd_problem_row_badge o_vd_prb_required">
+                                                    ⚠️ YÊU CẦU TÌM VẤN ĐỀ
                                                 </span>
                                                 <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
+                                            </span>
+                                            <span class="o_vd_problem_row_days"
+                                                  t-att-title="'Số ngày từ khi báo giá chi tiết xuất hiện'">
+                                                <t t-if="lead.quote_days !== null and lead.quote_days !== undefined">
+                                                    <strong><t t-esc="lead.quote_days"/></strong>
+                                                    <span class="o_vd_problem_row_days_unit">ngày</span>
+                                                </t>
+                                                <t t-else="">—</t>
                                             </span>
                                         </div>
                                     </t>
