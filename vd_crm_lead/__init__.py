@@ -77,32 +77,80 @@ def _post_init_hook(env):
 
 
 def _populate_vn_districts(env):
-    """Tạo các bản ghi vd.district từ data/vn_districts.py.
-    Idempotent: bỏ qua nếu (state_id, name) đã tồn tại."""
-    from .data.vn_districts import VN_DISTRICTS
+    """Migrate VN administrative divisions to 2025 post-reform structure:
+    - 34 cấp tỉnh (6 TP + 28 tỉnh) thay cho 63 cũ
+    - Xã/Phường (~3.321) thay cho huyện cũ (~705)
 
+    Source: data/vn_admin_2025.py
+    Idempotent: chạy lại không tạo trùng + không re-migrate đã merge.
+    """
+    from .data.vn_admin_2025 import (
+        VN_PROVINCES_2025, VN_PROVINCE_MERGE_MAP, VN_WARDS_2025,
+    )
     State = env['res.country.state']
     District = env['vd.district'].sudo()
     vn_country = env.ref('base.vn', raise_if_not_found=False)
     if not vn_country:
         return
 
-    states = State.search([('country_id', '=', vn_country.id)])
-    by_name = {s.name: s for s in states}
+    # ============== STEP 1: ENSURE 34 new provinces exist ==============
+    all_states = State.search([('country_id', '=', vn_country.id)])
+    by_name = {s.name.strip(): s for s in all_states}
+    new_province_names = {p['name'] for p in VN_PROVINCES_2025}
 
+    # Tạo các tỉnh mới chưa có trong DB
+    for prov in VN_PROVINCES_2025:
+        if prov['name'] not in by_name:
+            new_state = State.sudo().create({
+                'name': prov['name'],
+                'code': prov['name'][:3].upper(),  # tạm — Odoo sẽ chấp nhận
+                'country_id': vn_country.id,
+            })
+            by_name[prov['name']] = new_state
+
+    # ============== STEP 2: Migrate lead FK old → new + archive old ==============
+    Lead = env['crm.lead']
+    for old_name, new_name in VN_PROVINCE_MERGE_MAP.items():
+        if old_name == new_name:
+            continue  # giữ nguyên
+        old_state = by_name.get(old_name)
+        new_state = by_name.get(new_name)
+        if not old_state or not new_state:
+            continue
+        if old_state.id == new_state.id:
+            continue
+        # Migrate leads
+        leads_to_migrate = Lead.search([
+            ('vd_intake_province_id', '=', old_state.id),
+        ])
+        if leads_to_migrate:
+            leads_to_migrate.with_context(
+                vd_skip_intake_lock=True, mail_notrack=True,
+            ).write({'vd_intake_province_id': new_state.id})
+        # Archive old state (giữ FK history)
+        if old_state.active:
+            old_state.sudo().write({'active': False})
+
+    # Archive bất kỳ state nào không thuộc 34 mới (vd các tỉnh cũ không trong map)
+    for s in all_states:
+        if s.name.strip() not in new_province_names and s.active:
+            s.sudo().write({'active': False})
+
+    # ============== STEP 3: Reload ward data ==============
+    # Strategy: chỉ create wards mới chưa có, KHÔNG xoá cái cũ (tránh
+    # vỡ FK của lead đang dùng). Sau này admin có thể xoá thủ công.
     to_create = []
-    seen = set()  # (state_id, name) — chống trùng cả với data sẵn có lẫn nội bộ
-    for province_name, districts in VN_DISTRICTS.items():
+    seen = set()
+    for province_name, wards in VN_WARDS_2025.items():
         state = by_name.get(province_name)
         if not state:
             continue
         existing = set(District.search([('state_id', '=', state.id)]).mapped('name'))
-        for name in districts:
+        for name in wards:
             key = (state.id, name)
             if name in existing or key in seen:
                 continue
             seen.add(key)
             to_create.append({'name': name, 'state_id': state.id})
-
     if to_create:
         District.create(to_create)
