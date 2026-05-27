@@ -1317,6 +1317,15 @@
                                                 Tất cả KH mới đã có vấn đề — xem bảng dưới.
                                             </div>
                                         </div>
+                                        <!-- 🚨 Dòng yêu cầu xử lý — chỉ hiện khi NV bị khoá
+                                             nhận KH mới (overdue > limit). Cùng style với
+                                             badge YÊU CẦU TÌM VẤN ĐỀ nhưng cỡ chữ to gấp 3. -->
+                                        <div t-if="state.block_status?.is_blocked and !isAdminView"
+                                             class="o_vd_new_required_row">
+                                            <span class="o_vd_new_required_badge">
+                                                ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
+                                            </span>
+                                        </div>
                                     </div>
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"

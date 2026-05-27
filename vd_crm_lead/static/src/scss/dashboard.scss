@@ -4461,6 +4461,39 @@
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
+    /* Dòng "YÊU CẦU XỬ LÝ KHÁCH MỚI" — full width, căn giữa,
+       cùng style với badge YÊU CẦU TÌM VẤN ĐỀ nhưng cỡ chữ to gấp 3
+       (0.74rem × 3 ≈ 2.2rem). */
+    .o_vd_new_required_row {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.8rem 0.5rem 0.4rem;
+        margin-top: 0.6rem;
+        border-top: 1px dashed #fee2e2;
+    }
+    .o_vd_new_required_badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #c92a2a;
+        color: #fff;
+        border: 4px solid #ffd43b;
+        border-radius: 999px;
+        padding: 0.8rem 1.8rem;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.35);
+        animation: vd-pulse-required-big 1.6s ease-in-out infinite;
+    }
+    @keyframes vd-pulse-required-big {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.35); }
+        50%      { box-shadow: 0 0 0 12px rgba(255, 212, 59, 0); }
+    }
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */
     .o_vd_problem_row_days {
         display: inline-flex;
