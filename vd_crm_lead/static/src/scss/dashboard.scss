@@ -4401,9 +4401,9 @@
         border-radius: 4px;
         letter-spacing: 0.3px;
     }
-    /* Row grid: name + problems badges + days column (cuối hàng, chữ to) */
+    /* Row grid: name + urgent_label + problems + days (4 cot — user spec 2026-05-28) */
     .o_vd_filter_table_right_rows .o_vd_problem_row {
-        grid-template-columns: minmax(320px, 1.6fr) 1.4fr 90px;
+        grid-template-columns: minmax(280px, 1.4fr) 220px minmax(180px, 1.2fr) 90px;
 
         @media (max-width: 600px) {
             grid-template-columns: 1fr;
