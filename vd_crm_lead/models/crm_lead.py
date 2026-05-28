@@ -2530,12 +2530,42 @@ class CrmLead(models.Model):
 
     # ---------- Stage transition: auto-archive on lost ----------
 
+    @staticmethod
+    def _vd_normalize_kh_name(value):
+        """User spec 2026-05-28: tên KH viết HOA TOÀN BỘ → tự convert Title Case.
+        Tên đã có chữ thường thì giữ nguyên. Bỏ qua format auto-rename
+        'VINADUY - ... - XX' (giữ HN/HCM2/etc team prefix).
+        """
+        if not value or not isinstance(value, str):
+            return value
+        s = value.strip()
+        if not s:
+            return s
+        # Skip auto-rename pattern
+        if s.startswith('VINADUY -') or s.startswith('(Fanpage)') or s.startswith('(Tiktok)'):
+            return s
+        has_lower = any(c.islower() for c in s)
+        has_upper = any(c.isupper() for c in s)
+        # All uppercase (with optional digits/spaces/dots) → Title Case
+        if has_upper and not has_lower:
+            return s.title()
+        return s
+
+    def _vd_normalize_kh_names_in_vals(self, vals):
+        """Apply normalize cho 3 field tên KH trong vals dict."""
+        for f in ('name', 'partner_name', 'contact_name'):
+            if f in vals and isinstance(vals[f], str):
+                vals[f] = self._vd_normalize_kh_name(vals[f])
+
     @api.model_create_multi
     def create(self, vals_list):
         """Override create — auto round-robin nếu NV được assign đã block
-        (quá hạn chăm sóc > 3 KH). Pancake / Zalo / Manual đều áp."""
+        (quá hạn chăm sóc > 3 KH). Pancake / Zalo / Manual đều áp.
+        Plus normalize tên KH viết HOA TOÀN BỘ → Title Case."""
         if not isinstance(vals_list, list):
             vals_list = [vals_list]
+        for vals in vals_list:
+            self._vd_normalize_kh_names_in_vals(vals)
         Users = self.env['res.users']
         used_users = []  # tránh phân tất cả vào 1 NV trong cùng batch
         for vals in vals_list:
@@ -2611,6 +2641,8 @@ class CrmLead(models.Model):
     def write(self, vals):
         # ============ Tầm tài chính: range → amount auto ============
         self._sync_budget_range_to_amount(vals)
+        # ============ Normalize tên KH viết HOA → Title Case ============
+        self._vd_normalize_kh_names_in_vals(vals)
 
         # ============ Chặn NV/Leader sửa intake khi đã khoá — chỉ admin bypass ============
         # ALSO bypass khi write đến từ section 'Cân đối ngân sách' trong popup
@@ -4956,13 +4988,15 @@ class CrmLead(models.Model):
                 ('start_time', '>=', since_dt),
             ])
 
-        def _lead_problems(l):
+        def _lead_problems(l, exclude_urgent=False):
             open_probs = l.vd_lead_problem_ids.filtered(
                 lambda p: p.status in ('open', 'in_progress')
             ).sorted(key=lambda p: (p.sequence, p.id))
             out = []
             for p in open_probs[:8]:
                 if p.tag_id and p.tag_id.id == _urgent_tag_id:
+                    if exclude_urgent:
+                        continue  # User spec 2026-05-28: TCG tách urgent ra cột riêng
                     # 'Thi công gấp' badge → hiển thị thời gian từ intake +
                     # số cuộc gọi tính từ thời điểm vấn đề được tạo.
                     label = _fmt_urgent_label(l.vd_intake_timeline)
@@ -4982,6 +5016,21 @@ class CrmLead(models.Model):
                     ic = '🔸'
                 out.append({'name': nm, 'icon': ic, 'status': p.status})
             return out
+
+        def _lead_urgent_label(l):
+            """Trả label urgent timeline (vd 'THÁNG 5/2026 · 📞 0').
+            Empty nếu lead không match urgent problem."""
+            urgent_p = l.vd_lead_problem_ids.filtered(
+                lambda p: p.status in ('open', 'in_progress')
+                and p.tag_id.id == _urgent_tag_id
+            )[:1]
+            if not urgent_p:
+                return ''
+            p = urgent_p
+            label = _fmt_urgent_label(l.vd_intake_timeline)
+            calls_n = _calls_since(l.id, p.create_date)
+            icon = p.tag_id.icon or '⚡'
+            return '%s %s · 📞 %d' % (icon, label, calls_n)
 
         return [{
             'id': l.id,
@@ -5024,6 +5073,9 @@ class CrmLead(models.Model):
             'problem_open_count': l.vd_lead_problem_open_count,
             # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
             'problems': _lead_problems(l),
+            # User spec 2026-05-28: TCG tách urgent ra cột riêng + show vấn đề khác
+            'urgent_label': _lead_urgent_label(l),
+            'problems_non_urgent': _lead_problems(l, exclude_urgent=True),
             # Số ngày từ lúc báo giá chi tiết xuất hiện. Fallback create_date
             # cho lead cũ chưa có latch (chưa migrate field này).
             'quote_days': (

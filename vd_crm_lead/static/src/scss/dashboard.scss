@@ -4052,9 +4052,22 @@
     }
     .o_vd_urgent_row {
         border-left: 3px solid #e03131 !important;
+        /* User spec 2026-05-28: 4 cot (name + urgent + problems + days) */
+        grid-template-columns: minmax(200px, 1.2fr) auto 1.2fr 90px !important;
     }
     .o_vd_urgent_row:hover {
         background: rgba(224, 49, 49, 0.05) !important;
+    }
+    .o_vd_urgent_label_cell {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+    .o_vd_urgent_badge {
+        background: #fff5f5 !important;
+        color: #c92a2a !important;
+        border: 1.5px solid #ffc9c9 !important;
+        font-weight: 700 !important;
     }
     .o_vd_filter_funnel_notcalled {
         color: #fff !important;
