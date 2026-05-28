@@ -359,13 +359,15 @@ export class VdCrmDashboard extends Component {
     //   3. 🟢 Có cuộc gọi thành công ≥ 120s                       — kế
     //   4. 🔴 Đỏ xẫm: 3 ngày khác nhau không nghe máy (answered=0) — cuối
     get leadsNoProblems() {
-        // Loại trừ lead đã match "CHƯA GỌI ĐƯỢC" bucket — user spec 2026-05-27:
-        // sau 5 ngày + 3 ngày gọi → tự chuyển sang bucket bên, không hiện ở KH MỚI.
+        // Loại trừ lead đã match "CHƯA GỌI ĐƯỢC" bucket — user spec 2026-05-27.
+        // User spec 2026-05-28: KHÔNG filter problem_open_count nữa — KH chưa
+        // CHỐT (stage='new') LUÔN ở KH MỚI dù còn open problems từ trước.
+        // leadsWithProblems chỉ chứa KH ĐÃ CHỐT (locked=True) ở quote/negotiate.
         const notCalledIds = new Set(
             (this.state.leadsNotCalledAll || []).map(l => l.id)
         );
         const base = (this.state.leads || []).filter(
-            l => !l.problem_open_count && !notCalledIds.has(l.id)
+            l => !notCalledIds.has(l.id)
         );
         const tierAndCalls = (l) => {
             const s = l.call_stats || {};
