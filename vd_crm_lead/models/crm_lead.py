@@ -1314,7 +1314,8 @@ class CrmLead(models.Model):
             # SÀN: tổng diện tích các tầng (giữ nguyên).
             found_area, roof_area = rec._vd_get_found_roof_areas()
             san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
-            found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, total_m2 >= 70)
+            # Threshold % móng theo DT MÓNG (Tầng 1), KHÔNG phải tổng sàn (fix 2026-05-28)
+            found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, found_area >= 70)
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
             found_cost = found_area * (found_pct / 100.0) * san_unit
             roof_cost = roof_area * (roof_pct / 100.0) * san_unit
@@ -1515,8 +1516,10 @@ class CrmLead(models.Model):
                 sum_floor_areas = total_m2  # fallback total_m2 (NV nhập tay)
 
             san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
+            # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
+            _found_area_th, _ = rec._vd_get_found_roof_areas()
             found_pct = rec._get_foundation_pct(
-                pricing, rec.vd_intake_foundation_type, total_m2 >= 70,
+                pricing, rec.vd_intake_foundation_type, _found_area_th >= 70,
             )
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
             found_cost = total_m2 * (found_pct / 100.0) * san_unit
@@ -2359,8 +2362,9 @@ class CrmLead(models.Model):
             # SÀN : dùng TỔNG diện tích các tầng (giữ nguyên)
             found_area, roof_area = rec._vd_get_found_roof_areas()
             san_unit = rec._get_san_unit_price(pricing, total_floor_area, rec.vd_intake_car_access)
+            # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
             found_pct = rec._get_foundation_pct(
-                pricing, rec.vd_intake_foundation_type, total_floor_area >= 70,
+                pricing, rec.vd_intake_foundation_type, found_area >= 70,
             ) / 100.0
             found_cost = found_area * found_pct * san_unit
             floor_cost = total_floor_area * san_unit
@@ -3206,8 +3210,10 @@ class CrmLead(models.Model):
         if pricing and total_m2:
             san_unit = self._get_san_unit_price(pricing, total_m2,
                                                  self.vd_intake_car_access)
+            # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
+            _found_area_th, _ = self._vd_get_found_roof_areas()
             found_pct = self._get_foundation_pct(
-                pricing, self.vd_intake_foundation_type, total_m2 >= 70,
+                pricing, self.vd_intake_foundation_type, _found_area_th >= 70,
             )
             roof_pct = self._get_roof_pct(pricing, self.vd_intake_roof_type)
         else:
@@ -3350,7 +3356,9 @@ class CrmLead(models.Model):
         total_floor_area = sum_floor_areas or self.vd_intake_total_m2 or 0.0
 
         san_unit = self._get_san_unit_price(pricing, total_floor_area, self.vd_intake_car_access) if pricing and total_floor_area else 0
-        found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, total_floor_area >= 70) if pricing else 0
+        # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
+        _found_area_th, _ = self._vd_get_found_roof_areas() if pricing else (0.0, 0.0)
+        found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, _found_area_th >= 70) if pricing else 0
         roof_pct = self._get_roof_pct(pricing, self._vd_resolve_roof_type()) if pricing else 0
         found_cost = total_floor_area * (found_pct / 100.0) * san_unit
         floor_cost = total_floor_area * san_unit
