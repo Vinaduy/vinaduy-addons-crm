@@ -82,3 +82,18 @@ class VdStringeeHotline(models.Model):
         if 'number' in vals and vals['number']:
             vals['number'] = _digits_only(vals['number'])
         return super().write(vals)
+
+    def action_open_assign_wizard(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Gán NV cho %s') % (self.name or self.number or ''),
+            'res_model': 'vd.stringee.hotline.assign.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_hotline_id': self.id,
+                'active_id': self.id,
+                'active_model': 'vd.stringee.hotline',
+            },
+        }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_stringee_hotline_assign_wizard_form" model="ir.ui.view">
+        <field name="name">vd.stringee.hotline.assign.wizard.form</field>
+        <field name="model">vd.stringee.hotline.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Gán NV cho số tổng đài">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>
+                            <field name="hotline_id" readonly="1" options="{'no_open': True}"/>
+                        </h2>
+                        <div class="text-muted">
+                            <field name="hotline_carrier" readonly="1"/> · <field name="hotline_number" readonly="1"/>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="user_ids" widget="many2many_tags"
+                               options="{'no_create': True, 'no_create_edit': True}"
+                               placeholder="Chọn NV..."/>
+                    </group>
+                    <div invisible="moved_count == 0" class="alert alert-warning" role="alert">
+                        <strong>Lưu ý:</strong> Có <field name="moved_count" class="oe_inline"/> NV
+                        đang dùng hotline khác — sẽ được chuyển sang số này.
+                        <field name="moved_user_ids" widget="many2many_tags" readonly="1" options="{'no_open': True}"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Áp dụng" name="action_apply" type="object" class="btn-primary"/>
+                    <button string="Huỷ" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_stringee_hotline_assign_wizard" model="ir.actions.act_window">
+        <field name="name">Gán NV cho số tổng đài</field>
+        <field name="res_model">vd.stringee.hotline.assign.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
