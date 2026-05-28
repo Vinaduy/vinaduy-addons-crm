@@ -1504,9 +1504,10 @@
                                                     <t t-esc="lead.urgent_label"/>
                                                 </span>
                                             </span>
-                                            <!-- Cột vấn đề khác — show YÊU CẦU TÌM VẤN ĐỀ nếu rỗng -->
+                                            <!-- Cột vấn đề khác — KHÔNG hiện YÊU CẦU nếu urgent_label tồn tại
+                                                 (urgent IS the problem rồi, NV không cần "tìm thêm") -->
                                             <span class="o_vd_problem_row_problems">
-                                                <span t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length"
+                                                <span t-if="(!lead.problems_non_urgent or !lead.problems_non_urgent.length) and !lead.urgent_label"
                                                       class="o_vd_problem_row_badge o_vd_prb_required">
                                                     ⚠️ YÊU CẦU TÌM VẤN ĐỀ
                                                 </span>
@@ -1549,10 +1550,12 @@
                                     <t t-if="leadsWithProblems.length">
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.openLead(lead.id)"
-                                             class="o_vd_problem_row">
+                                             class="o_vd_problem_row o_vd_xlvd_row">
                                             <span class="o_vd_problem_row_name">
                                                 <t t-esc="lead.name"/>
                                             </span>
+                                            <!-- Empty cell de align voi TCG row (4 cols same grid) -->
+                                            <span class="o_vd_urgent_label_cell"></span>
                                             <span class="o_vd_problem_row_problems">
                                                 <span t-if="!lead.problems or !lead.problems.length"
                                                       class="o_vd_problem_row_badge o_vd_prb_required">

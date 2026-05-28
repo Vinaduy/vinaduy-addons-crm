@@ -2532,24 +2532,35 @@ class CrmLead(models.Model):
 
     @staticmethod
     def _vd_normalize_kh_name(value):
-        """User spec 2026-05-28: tên KH viết HOA TOÀN BỘ → tự convert Title Case.
-        Tên đã có chữ thường thì giữ nguyên. Bỏ qua format auto-rename
-        'VINADUY - ... - XX' (giữ HN/HCM2/etc team prefix).
+        """User spec 2026-05-28: title-case tên KH theo từng phần " - ":
+        - Part 1 từ duy nhất + ALL UPPER → giữ (vd "VINADUY", "HN", "HCM2")
+        - Part nhiều từ HOẶC có chữ thường → title case mỗi word
+        Vd: "VINADUY - anh Sỹ Chuẩn - HN" → "VINADUY - Anh Sỹ Chuẩn - HN"
+            "ĐOÀN VŨ GIA HÂN" → "Đoàn Vũ Gia Hân"
+            "đặng cương" → "Đặng Cương"
         """
         if not value or not isinstance(value, str):
             return value
         s = value.strip()
         if not s:
             return s
-        # Skip auto-rename pattern
-        if s.startswith('VINADUY -') or s.startswith('(Fanpage)') or s.startswith('(Tiktok)'):
+        # Skip facebook/tiktok prefix to avoid mangling
+        if s.startswith('(Fanpage)') or s.startswith('(Tiktok)') or s.startswith('(Pancake)'):
             return s
-        has_lower = any(c.islower() for c in s)
-        has_upper = any(c.isupper() for c in s)
-        # All uppercase (with optional digits/spaces/dots) → Title Case
-        if has_upper and not has_lower:
-            return s.title()
-        return s
+        out_parts = []
+        for part in s.split(' - '):
+            p = part.strip()
+            if not p:
+                out_parts.append(p)
+                continue
+            # Single word + all uppercase (alpha+digits) → team code/brand, keep
+            if ' ' not in p and p.replace('.', '').replace('-', '').isupper() \
+                    and any(c.isalpha() for c in p):
+                out_parts.append(p)
+            else:
+                # Title case word-by-word
+                out_parts.append(' '.join(w.capitalize() for w in p.split()))
+        return ' - '.join(out_parts)
 
     def _vd_normalize_kh_names_in_vals(self, vals):
         """Apply normalize cho 3 field tên KH trong vals dict."""

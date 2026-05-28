@@ -4052,8 +4052,6 @@
     }
     .o_vd_urgent_row {
         border-left: 3px solid #e03131 !important;
-        /* User spec 2026-05-28: 4 cot (name + urgent + problems + days) */
-        grid-template-columns: minmax(200px, 1.2fr) auto 1.2fr 90px !important;
     }
     .o_vd_urgent_row:hover {
         background: rgba(224, 49, 49, 0.05) !important;
@@ -4502,19 +4500,22 @@
 
     /* ===== PROBLEM SECTION — mỗi KH 1 dòng dài ===== */
     .o_vd_problem_section {
-        margin-top: 0.85rem;
+        margin-top: 0.6rem;
     }
     .o_vd_problem_rows {
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: 0.25rem; /* User spec 2026-05-28: giảm 30% (0.35→0.25) */
     }
     .o_vd_problem_row {
         display: grid;
-        grid-template-columns: minmax(320px, 1.6fr) 1.4fr 90px;
+        /* User spec 2026-05-28: 4 cot align cho ca TCG va XLVD
+           1. name (320px min, 1.6fr) | 2. urgent label (200px fixed) |
+           3. other problems (1.4fr) | 4. days (90px) */
+        grid-template-columns: minmax(280px, 1.4fr) 220px minmax(180px, 1.2fr) 90px;
         align-items: center;
-        gap: 0.8rem;
-        padding: 0.5rem 0.8rem;
+        gap: 0.6rem;
+        padding: 0.34rem 0.7rem; /* User spec: giảm 30% padding y (0.5→0.34) */
         background: #fff;
         border: 1px solid #e9ecef;
         border-left: 4px solid #fd7e14;
