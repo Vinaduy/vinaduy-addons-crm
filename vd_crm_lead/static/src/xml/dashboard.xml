@@ -1389,15 +1389,29 @@
                                                     ✓ Không có KH nào trong nhóm này
                                                 </div>
                                                 <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
-                                                     class="o_vd_trash_popover_item"
+                                                     class="o_vd_trash_popover_item o_vd_notcalled_row"
                                                      t-on-click.stop="() => this.openLead(ld.id)">
                                                     <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
                                                     <span class="o_vd_trash_popover_phone">
                                                         📞 <t t-esc="ld.phone or '—'"/>
                                                     </span>
+                                                    <!-- User spec 2026-05-28: hien so cuoc + so ngay -->
+                                                    <span class="o_vd_notcalled_stats"
+                                                          t-if="ld.call_stats"
+                                                          t-att-title="ld.call_stats.total + ' cuoc trong ' + ld.call_stats.distinct_days + ' ngay khac nhau'">
+                                                        📞 <t t-esc="ld.call_stats.total or 0"/>
+                                                        · 📅 <t t-esc="ld.call_stats.distinct_days or 0"/>N
+                                                    </span>
                                                     <span class="o_vd_trash_popover_nv">
                                                         <t t-esc="ld.user_name or '—'"/>
                                                     </span>
+                                                    <!-- Gọi lại — click trực tiếp, không cần mở form -->
+                                                    <button t-if="ld.phone"
+                                                            class="btn btn-sm btn-success o_vd_notcalled_call_btn"
+                                                            t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                            title="Goi lai KH ngay">
+                                                        <i class="fa fa-phone me-1"/> Gọi lại
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

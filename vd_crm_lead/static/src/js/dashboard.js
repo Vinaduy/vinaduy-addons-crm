@@ -606,6 +606,27 @@ export class VdCrmDashboard extends Component {
         this._lockScroll();
     }
 
+    /**
+     * Gọi lại trực tiếp KH từ popover "CHƯA GỌI ĐƯỢC" — không cần mở form lead.
+     * Server action_call returns client action vd_stringee_call để trigger SDK.
+     */
+    async callLeadDirect(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            const action = await this.orm.call(
+                "crm.lead", "action_call", [[leadId]],
+            );
+            if (action) {
+                await this.action.doAction(action);
+            }
+        } catch (e) {
+            console.error("[dashboard] callLeadDirect failed:", e);
+            this.notification.add("Không gọi được KH. Kiểm tra cấu hình Stringee.", {
+                type: "danger",
+            });
+        }
+    }
+
     closePreview() {
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
