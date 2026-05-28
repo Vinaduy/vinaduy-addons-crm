@@ -4505,24 +4505,30 @@
     .o_vd_problem_rows {
         display: flex;
         flex-direction: column;
-        gap: 0.25rem; /* User spec 2026-05-28: giảm 30% (0.35→0.25) */
+        gap: 0; /* User spec 2026-05-28 round 5: bỏ gap, dùng border-bottom làm divider chung */
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
     }
     .o_vd_problem_row {
         display: grid;
-        /* User spec 2026-05-28: 4 cot align cho ca TCG va XLVD
-           1. name (320px min, 1.6fr) | 2. urgent label (200px fixed) |
-           3. other problems (1.4fr) | 4. days (90px) */
         grid-template-columns: minmax(280px, 1.4fr) 220px minmax(180px, 1.2fr) 90px;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.34rem 0.7rem; /* User spec: giảm 30% padding y (0.5→0.34) */
+        padding: 0.27rem 0.7rem; /* User spec 2026-05-28 round 5: giảm 20% (0.34→0.27) */
         background: #fff;
-        border: 1px solid #e9ecef;
+        /* User spec: dùng border-bottom làm divider chung — last-child không có */
+        border: none;
+        border-bottom: 1px solid #e9ecef;
         border-left: 4px solid #fd7e14;
-        border-radius: 8px;
+        border-radius: 0;
         font-size: 0.82rem;
         cursor: pointer;
         transition: all 0.15s ease;
+
+        &:last-child {
+            border-bottom: none;
+        }
 
         &:hover {
             background: #fff8f0;
