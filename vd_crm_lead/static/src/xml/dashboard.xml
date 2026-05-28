@@ -1319,18 +1319,16 @@
                                             <!-- 🚨 Badge yêu cầu xử lý — chỉ hiện khi NV bị
                                                  khoá nhận KH mới. Tự xuống dòng + căn giữa
                                                  nhưng vẫn nằm trong bảng KHÁCH MỚI. -->
-                                            <div t-if="state.block_status?.is_blocked and !isAdminView"
-                                                 class="o_vd_new_required_wrap">
-                                                <span class="o_vd_new_required_badge">
+                                            <!-- Gộp 2 badge vào 1 wrap khi cả 2 cùng xuất hiện (user spec 2026-05-28) -->
+                                            <t t-set="hasBlock" t-value="state.block_status?.is_blocked and !isAdminView"/>
+                                            <t t-set="needCallCount" t-value="leadsNoProblems.filter(l => l.needs_call_today).length"/>
+                                            <t t-set="hasNeedCall" t-value="needCallCount &gt; 0"/>
+                                            <div t-if="hasBlock or hasNeedCall"
+                                                 class="o_vd_new_required_wrap o_vd_new_required_combo">
+                                                <span t-if="hasBlock" class="o_vd_new_required_badge">
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
                                                 </span>
-                                            </div>
-                                            <!-- 📞 Cảnh báo nhẹ "Hôm nay có X KH cần gọi" — đếm
-                                                 lead có needs_call_today=true. Chỉ stage 'new'. -->
-                                            <t t-set="needCallCount" t-value="leadsNoProblems.filter(l => l.needs_call_today).length"/>
-                                            <div t-if="needCallCount &gt; 0"
-                                                 class="o_vd_new_required_wrap">
-                                                <span class="o_vd_need_call_today_badge">
+                                                <span t-if="hasNeedCall" class="o_vd_need_call_today_badge">
                                                     📞 Hôm nay bạn có <b><t t-esc="needCallCount"/></b> khách mới cần gọi
                                                 </span>
                                             </div>

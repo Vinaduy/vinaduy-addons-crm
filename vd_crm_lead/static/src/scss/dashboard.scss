@@ -4545,6 +4545,11 @@
         align-items: center;
         margin: 0.4rem 0 0.2rem;
     }
+    /* Khi gộp 2 badge (block + can goi today) vào 1 dòng — gap inline */
+    .o_vd_new_required_combo {
+        gap: 0.7rem !important;
+        flex-wrap: wrap;
+    }
     /* Badge "YÊU CẦU XỬ LÝ KHÁCH MỚI" — cỡ chữ ~1.1rem. */
     .o_vd_new_required_badge {
         display: inline-flex;
