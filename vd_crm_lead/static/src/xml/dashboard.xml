@@ -1504,14 +1504,14 @@
                                                     <t t-esc="lead.urgent_label"/>
                                                 </span>
                                             </span>
-                                            <!-- Cột vấn đề khác — KHÔNG hiện YÊU CẦU nếu urgent_label tồn tại
-                                                 (urgent IS the problem rồi, NV không cần "tìm thêm") -->
+                                            <!-- Cột vấn đề — hiện TẤT CẢ problems (kể cả urgent_construction).
+                                                 YÊU CẦU TÌM VẤN ĐỀ chỉ khi lead không có problem nào. -->
                                             <span class="o_vd_problem_row_problems">
-                                                <span t-if="(!lead.problems_non_urgent or !lead.problems_non_urgent.length) and !lead.urgent_label"
+                                                <span t-if="!lead.problems or !lead.problems.length"
                                                       class="o_vd_problem_row_badge o_vd_prb_required">
                                                     ⚠️ YÊU CẦU TÌM VẤN ĐỀ
                                                 </span>
-                                                <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
+                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>

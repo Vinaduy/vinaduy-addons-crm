@@ -5032,12 +5032,11 @@ class CrmLead(models.Model):
             for p in open_probs[:8]:
                 if p.tag_id and p.tag_id.id == _urgent_tag_id:
                     if exclude_urgent:
-                        continue  # User spec 2026-05-28: TCG tách urgent ra cột riêng
-                    # 'Thi công gấp' badge → hiển thị thời gian từ intake +
-                    # số cuộc gọi tính từ thời điểm vấn đề được tạo.
-                    label = _fmt_urgent_label(l.vd_intake_timeline)
-                    calls_n = _calls_since(l.id, p.create_date)
-                    nm = '%s · 📞 %d' % (label, calls_n)
+                        continue  # cũ: TCG tách urgent ra cột riêng
+                    # User spec 2026-05-28 round 5: badge dùng tag.name
+                    # ("Thi công gấp") thay vì format "THÁNG X · 📞 N"
+                    # (timeline + call count đã ở urgent_label cột riêng).
+                    nm = p.tag_id.name
                     ic = p.tag_id.icon or '⚡'
                 elif p.tag_id:
                     nm = p.tag_id.name
