@@ -4795,9 +4795,11 @@ class CrmLead(models.Model):
             lcalls = by_lead.get(lead.id) or []
             if not lcalls:
                 continue
-            # User spec 2026-05-28: only count answered when duration > 0
+            # User spec 2026-05-28 (round 2): answered = state ∈ {answered, ended}
+            # AND dur > 0 (declined dur=1s không count là answered).
             had_success = any(
-                (c.get('duration') or 0) > 0
+                (c.get('state') in ('answered', 'ended'))
+                and (c.get('duration') or 0) > 0
                 for c in lcalls
             )
             if had_success:
@@ -5139,10 +5141,10 @@ class CrmLead(models.Model):
             for c in lcalls:
                 st = c.get('state')
                 dur = c.get('duration') or 0
-                # User spec 2026-05-28: chỉ count answered khi duration > 0
-                # (KH thực sự nghe máy + nói). State='ended' với dur=0 = nhấc
-                # máy rồi tắt ngay → KHÔNG count là answered (pill xanh sai).
-                is_answered = dur > 0
+                # User spec 2026-05-28 (round 2): answered = state ∈ {answered, ended}
+                # AND duration > 0. State='declined' với dur=1s (system ghi vài
+                # giây ring trước khi reject) → KHÔNG phải answered.
+                is_answered = (st in ('answered', 'ended')) and dur > 0
                 start = c.get('start_time')
                 day = start.date() if start and hasattr(start, 'date') else None
                 if day:
