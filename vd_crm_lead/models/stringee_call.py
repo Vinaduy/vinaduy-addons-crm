@@ -175,6 +175,7 @@ class StringeeCall(models.Model):
                 vals['no_answer_streak'] = 0
             elif call.state in ('no_answer', 'busy', 'declined', 'cancelled', 'failed'):
                 vals['no_answer_streak'] = lead.no_answer_streak + 1
-            vals['call_count'] = lead.call_count + (0 if call._origin.id else 1)
+            # call_count giờ là computed field (lead.py) auto-sync từ call_ids
+            # → KHÔNG cần manual increment ở đây (logic cũ dùng _origin.id bị sai).
             if vals:
                 lead.write(vals)

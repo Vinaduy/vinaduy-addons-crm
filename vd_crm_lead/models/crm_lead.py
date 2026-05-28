@@ -241,8 +241,19 @@ class CrmLead(models.Model):
         string='Số lần không nghe liên tiếp', default=0, readonly=True,
         help='Reset về 0 khi KH nghe máy.',
     )
-    call_count = fields.Integer(string='Số lần gọi', default=0, readonly=True)
+    call_count = fields.Integer(
+        string='Số lần gọi', default=0, readonly=True,
+        compute='_compute_call_count', store=True,
+        help='Auto-sync từ len(call_ids). User spec 2026-05-28: fix bug stale '
+             '(trước đó dùng `lead.call_count + 1` trong _sync_lead_activity '
+             'không bao giờ chạy vì _origin.id luôn truthy sau create).',
+    )
     call_ids = fields.One2many('stringee.call', 'lead_id', string='Lịch sử gọi')
+
+    @api.depends('call_ids')
+    def _compute_call_count(self):
+        for rec in self:
+            rec.call_count = len(rec.call_ids)
 
     # ===== Thống kê cuộc gọi + đánh giá KH tiềm năng =====
     vd_call_answered_count = fields.Integer(
