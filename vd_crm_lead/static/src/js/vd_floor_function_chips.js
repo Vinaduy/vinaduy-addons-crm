@@ -29,8 +29,13 @@ export class VdFloorFunctionChips extends Component {
         this.state = useState({ open: false, allTags: [] });
         this.rootRef = useRef("root");
 
-        const m = this.props.name.match(/floor_(\d+|tum)_function/);
-        this.floorCode = m ? (m[1] === "tum" ? "tum" : `f${m[1]}`) : null;
+        const m = this.props.name.match(/floor_(\d+|tum|lung)_function/);
+        if (m) {
+            const k = m[1];
+            this.floorCode = (k === "tum" || k === "lung") ? k : `f${k}`;
+        } else {
+            this.floorCode = null;
+        }
 
         const { saveRecord, removeRecord } = useX2ManyCrud(
             () => this.props.record.data[this.props.name],

@@ -10527,12 +10527,27 @@ $vd-panel-head-radius: 10px;
 .o_vd_steps_panel.vd-intake-locked .o_vd_floor_function_chips,
 .o_vd_steps_panel.vd-intake-locked .o_field_widget,
 .o_vd_steps_panel.vd-intake-locked .o_vd_area_toggle,
-.o_vd_steps_panel.vd-intake-locked .o_vd_floors_btn {
+.o_vd_steps_panel.vd-intake-locked .o_vd_floors_btn,
+/* User spec 2026-05-28: chặn cả m2o standard widget + selection chips + boolean toggle */
+.o_vd_steps_panel.vd-intake-locked .o-autocomplete,
+.o_vd_steps_panel.vd-intake-locked .o-autocomplete--input,
+.o_vd_steps_panel.vd-intake-locked .o_vd_selection_picker,
+.o_vd_steps_panel.vd-intake-locked .o_vd_selection_chips,
+.o_vd_steps_panel.vd-intake-locked .o_vd_selection_hover_picker,
+.o_vd_steps_panel.vd-intake-locked .o_boolean_toggle,
+.o_vd_steps_panel.vd-intake-locked .form-check-input,
+.o_vd_steps_panel.vd-intake-locked .o_vd_floor_chip_btn,
+.o_vd_steps_panel.vd-intake-locked .o_vd_floor_func_x,
+.o_vd_steps_panel.vd-intake-locked .o_vd_floor_function_tag,
+.o_vd_steps_panel.vd-intake-locked button:not(.o_vd_btn_unlock):not(.o_vd_cancel_calls_btn):not(.o_vd_cr_history_btn) {
     pointer-events: none !important;
     user-select: none !important;
+    opacity: 0.75 !important;
 }
 .o_vd_steps_panel.vd-intake-locked input,
-.o_vd_steps_panel.vd-intake-locked textarea {
+.o_vd_steps_panel.vd-intake-locked textarea,
+.o_vd_steps_panel.vd-intake-locked .o-autocomplete--input,
+.o_vd_steps_panel.vd-intake-locked .o-autocomplete .o_input {
     background: #f1f3f5 !important;
     color: #495057 !important;
     cursor: not-allowed !important;

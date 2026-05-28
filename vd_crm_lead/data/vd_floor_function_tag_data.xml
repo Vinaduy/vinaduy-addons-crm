@@ -64,13 +64,13 @@
             <field name="name">🛏️ 1 Ngủ</field>
             <field name="sequence">20</field>
             <field name="color">1</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,tum</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,tum,lung</field>
         </record>
         <record id="tag_2_ngu" model="vd.floor.function.tag">
             <field name="name">🛏️ 2 Ngủ</field>
             <field name="sequence">21</field>
             <field name="color">1</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,lung</field>
         </record>
         <record id="tag_3_ngu" model="vd.floor.function.tag">
             <field name="name">🛏️ 3 Ngủ</field>
@@ -96,13 +96,13 @@
             <field name="name">🚻 1 Wc</field>
             <field name="sequence">30</field>
             <field name="color">7</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,lung</field>
         </record>
         <record id="tag_2_wc" model="vd.floor.function.tag">
             <field name="name">🚻 2 Wc</field>
             <field name="sequence">31</field>
             <field name="color">7</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,lung</field>
         </record>
         <record id="tag_3_wc" model="vd.floor.function.tag">
             <field name="name">🚻 3 Wc</field>
@@ -116,7 +116,15 @@
             <field name="name">🪔 1 Thờ</field>
             <field name="sequence">40</field>
             <field name="color">6</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,tum</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,tum,lung</field>
+        </record>
+
+        <!-- ===== Khách (1 Khách) — Lửng only (T1 dùng "1 Khách 1 Bếp") ===== -->
+        <record id="tag_1_khach" model="vd.floor.function.tag">
+            <field name="name">🛋️ 1 Khách</field>
+            <field name="sequence">41</field>
+            <field name="color">4</field>
+            <field name="fit_floors">lung</field>
         </record>
 
         <!-- ===== Đặc thù T1 ===== -->
@@ -145,12 +153,12 @@
             <field name="fit_floors">f1</field>
         </record>
 
-        <!-- ===== Kho (T1..T7, KHÔNG Tum theo spec) ===== -->
+        <!-- ===== Kho (T1..T7 + Lửng — user spec 2026-05-28 thêm Lửng) ===== -->
         <record id="tag_kho" model="vd.floor.function.tag">
             <field name="name">📦 Kho</field>
             <field name="sequence">60</field>
             <field name="color">8</field>
-            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7</field>
+            <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,lung</field>
         </record>
 
     </data>
