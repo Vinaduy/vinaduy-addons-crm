@@ -2532,34 +2532,46 @@ class CrmLead(models.Model):
 
     @staticmethod
     def _vd_normalize_kh_name(value):
-        """User spec 2026-05-28: title-case tên KH theo từng phần " - ":
-        - Part 1 từ duy nhất + ALL UPPER → giữ (vd "VINADUY", "HN", "HCM2")
-        - Part nhiều từ HOẶC có chữ thường → title case mỗi word
-        Vd: "VINADUY - anh Sỹ Chuẩn - HN" → "VINADUY - Anh Sỹ Chuẩn - HN"
-            "ĐOÀN VŨ GIA HÂN" → "Đoàn Vũ Gia Hân"
-            "đặng cương" → "Đặng Cương"
+        """User spec 2026-05-28: title-case tên KH per-word với logic:
+        - Word có chữ thường → .capitalize() (vd "anh"→"Anh", "đặng"→"Đặng")
+        - Word ALL UPPER + có dấu Tiếng Việt (Đ,Ơ,Ư...) → .capitalize() (vd "ĐOÀN"→"Đoàn")
+        - Word ALL UPPER ASCII len≥2 → keep (vd "VINADUY", "TNI", "HN", "TP.HCM")
+        - Word 1 letter (vd "T" trong "T5/26") → capitalize
+        Skip prefix "(Fanpage)" / "(Tiktok)" / "(Pancake)".
         """
         if not value or not isinstance(value, str):
             return value
         s = value.strip()
         if not s:
             return s
-        # Skip facebook/tiktok prefix to avoid mangling
         if s.startswith('(Fanpage)') or s.startswith('(Tiktok)') or s.startswith('(Pancake)'):
             return s
+
+        def _norm_word(w):
+            if not w:
+                return w
+            alpha = [c for c in w if c.isalpha()]
+            if not alpha:
+                return w  # all digits/punctuation
+            alpha_str = ''.join(alpha)
+            if alpha_str.isupper():
+                # All upper: check Vietnamese diacritic (non-ASCII)
+                if any(ord(c) > 127 for c in alpha):
+                    return w.capitalize()  # vd "ĐOÀN"→"Đoàn"
+                # ASCII all-upper team code/brand → keep if ≥2 letters
+                if len(alpha_str) >= 2:
+                    return w  # "VINADUY", "TNI", "HN", "TP.HCM"
+                return w.capitalize()  # single letter "T" in "T5/26"
+            # Has lowercase → capitalize (đặng→Đặng, anh→Anh, Sỹ→Sỹ idempotent)
+            return w.capitalize()
+
         out_parts = []
         for part in s.split(' - '):
             p = part.strip()
             if not p:
                 out_parts.append(p)
                 continue
-            # Single word + all uppercase (alpha+digits) → team code/brand, keep
-            if ' ' not in p and p.replace('.', '').replace('-', '').isupper() \
-                    and any(c.isalpha() for c in p):
-                out_parts.append(p)
-            else:
-                # Title case word-by-word
-                out_parts.append(' '.join(w.capitalize() for w in p.split()))
+            out_parts.append(' '.join(_norm_word(w) for w in p.split()))
         return ' - '.join(out_parts)
 
     def _vd_normalize_kh_names_in_vals(self, vals):
