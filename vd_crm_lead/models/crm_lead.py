@@ -2547,6 +2547,22 @@ class CrmLead(models.Model):
         if s.startswith('(Fanpage)') or s.startswith('(Tiktok)') or s.startswith('(Pancake)'):
             return s
 
+        def _capitalize_first(s):
+            """Title-case: upper first alpha char, lower rest. Robust với
+            Vietnamese chars (.capitalize() built-in có thể không lower rest đúng)."""
+            result = []
+            found_first = False
+            for c in s:
+                if c.isalpha():
+                    if not found_first:
+                        result.append(c.upper())
+                        found_first = True
+                    else:
+                        result.append(c.lower())
+                else:
+                    result.append(c)
+            return ''.join(result)
+
         def _norm_word(w):
             if not w:
                 return w
@@ -2554,16 +2570,13 @@ class CrmLead(models.Model):
             if not alpha:
                 return w  # all digits/punctuation
             alpha_str = ''.join(alpha)
-            if alpha_str.isupper():
-                # All upper: check Vietnamese diacritic (non-ASCII)
-                if any(ord(c) > 127 for c in alpha):
-                    return w.capitalize()  # vd "ĐOÀN"→"Đoàn"
-                # ASCII all-upper team code/brand → keep if ≥2 letters
-                if len(alpha_str) >= 2:
-                    return w  # "VINADUY", "TNI", "HN", "TP.HCM"
-                return w.capitalize()  # single letter "T" in "T5/26"
-            # Has lowercase → capitalize (đặng→Đặng, anh→Anh, Sỹ→Sỹ idempotent)
-            return w.capitalize()
+            is_ascii = all(ord(c) < 128 for c in alpha)
+            is_all_upper = all(c.isupper() for c in alpha)
+            if is_all_upper and is_ascii and len(alpha) >= 2:
+                # ASCII all-upper team code/brand → keep
+                return w  # "VINADUY", "TNI", "HN", "TP.HCM"
+            # Else: title case (upper first, lower rest)
+            return _capitalize_first(w)
 
         out_parts = []
         for part in s.split(' - '):
