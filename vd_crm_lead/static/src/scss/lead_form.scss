@@ -7378,23 +7378,37 @@ $vd-panel-head-radius: 10px;
         }
     }
 
+    /* User spec 2026-05-29: thiet ke giong dashboard problem rows —
+       phang, dung chung border-bottom lam divider, KHONG per-card border-radius */
     .o_vd_problem_card {
         position: relative;
         background: #ffffff;
-        border: 1px solid #ebe0e6;
-        border-radius: 8px;
-        padding: 0.5rem 0.85rem;
-        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+        border: none;
+        border-bottom: 1px solid #ebe0e6;
+        border-radius: 0;
+        padding: 0.32rem 0.85rem;
+        transition: background 0.12s ease;
         z-index: 1;
 
         &:hover {
-            border-color: #d9c2d2;
-            box-shadow: 0 4px 14px -3px rgba(93, 61, 84, 0.18);
+            background: #fff8f0;
             z-index: 10;
         }
-
+        &:last-child {
+            border-bottom: none;
+        }
         &.o_vd_status_resolved { background: #f4faf5; }
         &.o_vd_status_in_progress { background: #fffaf0; }
+    }
+    /* Wrapper bao ngoai: rounded + border tron, KHONG max-height (bo scrollbar) */
+    .o_vd_problem_kanban .o_kanban_renderer {
+        max-height: none !important;
+        overflow: visible !important;
+        border: 1px solid #ebe0e6 !important;
+        border-radius: 8px !important;
+    }
+    .o_vd_problem_kanban .o_kanban_record {
+        margin: 0 !important;
     }
 
     .o_vd_problem_card_row {

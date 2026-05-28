@@ -936,7 +936,7 @@
                                                        decoration-success="status == 'resolved'"/>
                                                 <button name="unlink" type="object"
                                                         class="o_vd_problem_unlink_btn"
-                                                        groups="base.group_system"
+                                                        groups="base.group_system,vd_crm_lead.vd_crm_group_admin"
                                                         confirm="Xoá vấn đề này khỏi danh sách?">
                                                     <i class="fa fa-trash"/>
                                                 </button>
