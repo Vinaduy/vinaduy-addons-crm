@@ -4795,10 +4795,9 @@ class CrmLead(models.Model):
             lcalls = by_lead.get(lead.id) or []
             if not lcalls:
                 continue
+            # User spec 2026-05-28: only count answered when duration > 0
             had_success = any(
                 (c.get('duration') or 0) > 0
-                or (c.get('state') == 'answered')
-                or (c.get('state') == 'ended' and c.get('answer_time'))
                 for c in lcalls
             )
             if had_success:
@@ -4807,11 +4806,14 @@ class CrmLead(models.Model):
             subscriber_days = set()
             subscriber_count = 0
             all_days = set()
+            latest_call_dt = None
             for c in lcalls:
                 s = c.get('start_time')
                 day = s.date() if s and hasattr(s, 'date') else None
                 if day:
                     all_days.add(day)
+                if s and (latest_call_dt is None or s > latest_call_dt):
+                    latest_call_dt = s
                 if c.get('state') == 'failed':
                     subscriber_count += 1
                     if day:
@@ -4824,7 +4826,16 @@ class CrmLead(models.Model):
                 if lead.create_date else 0
             )
             cond_b = days_since >= 5 and len(all_days) >= 3
-            if cond_a or cond_b:
+            # Condition C (user spec 2026-05-28): ≥4 ngày khác nhau có cuộc gọi
+            # + đã qua ≥1 giờ kể từ cuộc gọi cuối → auto move sang "CHƯA GỌI ĐƯỢC"
+            from datetime import timedelta
+            now_dt = fields.Datetime.now()
+            cond_c = (
+                len(all_days) >= 4
+                and latest_call_dt is not None
+                and (now_dt - latest_call_dt) >= timedelta(hours=1)
+            )
+            if cond_a or cond_b or cond_c:
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
@@ -5128,10 +5139,10 @@ class CrmLead(models.Model):
             for c in lcalls:
                 st = c.get('state')
                 dur = c.get('duration') or 0
-                is_answered = (
-                    dur > 0 or st == 'answered'
-                    or (st == 'ended' and c.get('answer_time'))
-                )
+                # User spec 2026-05-28: chỉ count answered khi duration > 0
+                # (KH thực sự nghe máy + nói). State='ended' với dur=0 = nhấc
+                # máy rồi tắt ngay → KHÔNG count là answered (pill xanh sai).
+                is_answered = dur > 0
                 start = c.get('start_time')
                 day = start.date() if start and hasattr(start, 'date') else None
                 if day:

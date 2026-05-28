@@ -2297,12 +2297,14 @@
         }
     }
 
-    /* ===== TOOLTIP — hiện khi hover card ===== */
+    /* ===== TOOLTIP — hiện khi hover card =====
+       User spec 2026-05-28: tooltip pill o hang dau bi che boi header.
+       Doi sang xuat hien BEN DUOI pill (top: 100%) thay vi tren. */
     .o_vd_won_tooltip {
         position: absolute;
-        bottom: calc(100% + 10px);
+        top: calc(100% + 10px);
         left: 50%;
-        transform: translateX(-50%) translateY(6px);
+        transform: translateX(-50%) translateY(-6px);
         min-width: 380px;
         max-width: 520px;
         width: max-content;
@@ -2324,20 +2326,20 @@
         &::after {
             content: '';
             position: absolute;
-            top: 100%;
+            bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
             border: 8px solid transparent;
-            border-top-color: #fff;
+            border-bottom-color: #fff;
         }
         &::before {
             content: '';
             position: absolute;
-            top: 100%;
+            bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
             border: 9px solid transparent;
-            border-top-color: #dee2e6;
+            border-bottom-color: #dee2e6;
         }
     }
     .o_vd_won_pill:hover .o_vd_won_tooltip {
