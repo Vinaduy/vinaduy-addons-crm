@@ -4653,15 +4653,15 @@ class CrmLead(models.Model):
         """
         import re
         from datetime import date
-        # User spec 2026-05-28: bỏ filter vd_intake_locked. KH có báo giá
-        # (intake_complete=True) là vào THI CÔNG GẤP ngay, dù chưa CHỐT.
-        # NV có thể chưa gọi được nhưng nhắn Zalo lấy info đủ → đáng vào bucket.
+        # User spec 2026-05-28 (round 2 — revert): KH chưa CHỐT (locked=False)
+        # phải ở KH MỚI bucket. Chỉ KH đã CHỐT mới vào THI CÔNG GẤP.
         candidates = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('active', '=', True),
                 ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),
                 ('vd_intake_timeline', '!=', False),
             ],
         )
@@ -4754,15 +4754,14 @@ class CrmLead(models.Model):
         if not mid_stage_ids:
             return []
         urgent_ids = self._dashboard_urgent_construction_ids(domain_user)
-        # User spec 2026-05-28: bỏ filter vd_intake_locked + stage_id. KH có báo
-        # giá (intake_complete=True) là vào XỬ LÝ VẤN ĐỀ ngay, dù chưa CHỐT,
-        # dù stage='new'. Logic: NV làm xong intake = báo giá hiện = phải xử lý.
+        # User spec 2026-05-28 (round 2 — revert): chỉ KH đã CHỐT mới ở XLVD.
+        # Chưa CHỐT (locked=False) → ở KH MỚI bucket với pill xanh lá + 💰.
         leads = self.search(
             domain_user + [
+                ('stage_id', 'in', mid_stage_ids),
                 ('active', '=', True),
-                ('stage_is_won', '=', False),
-                ('stage_is_lost', '=', False),
                 ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),
                 ('id', 'not in', urgent_ids),
             ],
             limit=limit,
