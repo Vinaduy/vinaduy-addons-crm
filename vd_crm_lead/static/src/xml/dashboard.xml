@@ -118,6 +118,16 @@
                                             <span class="o_vd_dash_subview_sub">Đang chốt &amp; có vấn đề</span>
                                         </span>
                                     </button>
+                                    <!-- User spec 2026-05-29: ALL khách hàng toàn cty -->
+                                    <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'all' ? 'o_active' : '')"
+                                            t-on-mouseenter="() => this.setDashSubView('all')"
+                                            t-on-click="() => this.setDashSubView('all')">
+                                        <i class="fa fa-list-ul o_vd_dash_subview_icon"/>
+                                        <span class="o_vd_dash_subview_lbl">
+                                            <span class="o_vd_dash_subview_title">ALL khách hàng</span>
+                                            <span class="o_vd_dash_subview_sub">Toàn bộ công ty</span>
+                                        </span>
+                                    </button>
                                 </div>
 
                                 <!-- ===== SEARCH KH (live search by name/phone) ===== -->
@@ -423,6 +433,60 @@
                                 </div>
 
                             </div><!-- /.o_vd_kh_right_col -->
+
+                            <!-- ============================================================
+                                 ALL KHÁCH HÀNG: 1 bảng flat toàn cty (user spec 2026-05-29)
+                                 ============================================================ -->
+                            <div t-if="state.dashSubView === 'all'" class="o_vd_kh_all_col">
+                                <div class="o_vd_kh_box o_vd_kh_box_all">
+                                    <div class="o_vd_kh_box_head">
+                                        <h4>📋 ALL khách hàng (toàn công ty)
+                                            <span class="o_vd_kh_all_count">
+                                                <t t-esc="allLeadsFlat.length"/>
+                                            </span>
+                                        </h4>
+                                        <div class="o_vd_kh_box_sub">
+                                            Toàn bộ KH trong khoảng lọc · Click KH để mở lead form
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_kh_all_table">
+                                        <div class="o_vd_kh_all_header">
+                                            <div class="o_vd_kh_all_th o_vd_kh_all_th_team">Team</div>
+                                            <div class="o_vd_kh_all_th o_vd_kh_all_th_nv">👤 NV</div>
+                                            <div class="o_vd_kh_all_th o_vd_kh_all_th_name">Tên KH</div>
+                                            <div class="o_vd_kh_all_th o_vd_kh_all_th_phone">📞 SĐT</div>
+                                            <div class="o_vd_kh_all_th o_vd_kh_all_th_stage">Trạng thái</div>
+                                        </div>
+                                        <div t-if="!allLeadsFlat.length" class="o_vd_kh_empty">
+                                            ✓ Không có KH nào trong khoảng lọc
+                                        </div>
+                                        <div t-foreach="allLeadsFlat" t-as="ld" t-key="ld.lead_id + '_' + ld.bucket"
+                                             class="o_vd_kh_all_row"
+                                             t-att-style="`--team-color:${ld.team_color}`"
+                                             t-on-click="() => this.openLead(ld.lead_id)">
+                                            <div class="o_vd_kh_all_td o_vd_kh_all_td_team">
+                                                <span class="o_vd_kh_all_team_chip">
+                                                    <t t-esc="teamFullName(ld.team)"/>
+                                                </span>
+                                            </div>
+                                            <div class="o_vd_kh_all_td o_vd_kh_all_td_nv">
+                                                <t t-esc="ld.nv_name"/>
+                                            </div>
+                                            <div class="o_vd_kh_all_td o_vd_kh_all_td_name">
+                                                <strong><t t-esc="ld.name"/></strong>
+                                            </div>
+                                            <div class="o_vd_kh_all_td o_vd_kh_all_td_phone">
+                                                <t t-esc="ld.phone or '—'"/>
+                                            </div>
+                                            <div class="o_vd_kh_all_td o_vd_kh_all_td_stage">
+                                                <span t-att-class="'o_vd_kh_all_bucket o_vd_kh_all_bucket_' + ld.bucket">
+                                                    <t t-esc="ld.bucket_label"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             </div><!-- /.o_vd_kh_grid -->
 
                             <!-- NV focus: 5 KPI về NV (active/closed/idle/conversion/training) -->

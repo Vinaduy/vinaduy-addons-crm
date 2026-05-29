@@ -149,6 +149,45 @@ export class VdCrmDashboard extends Component {
         if (this.state.dashSubView !== mode) this.state.dashSubView = mode;
     }
 
+    /**
+     * User spec 2026-05-29: ALL khách hàng = flatten kh_by_team
+     * → 1 list duy nhất bao gồm KH mới + chưa có vấn đề + đang xử lý + đang chốt
+     * của TOÀN BỘ NV / team trong khoảng lọc. Sort theo team, NV.
+     */
+    get allLeadsFlat() {
+        const ana = this.state.analytics;
+        if (!ana || !ana.kh_by_team) return [];
+        const out = [];
+        const stageLabel = {
+            new: '🆕 Khách mới',
+            no_problem: '📋 Chưa có vấn đề',
+            in_progress: '⏳ Đang xử lý',
+            resolved: '🏆 Đang chốt',
+        };
+        for (const grp of ana.kh_by_team) {
+            for (const nv of grp.nvs) {
+                const push = (leads, bucket) => {
+                    for (const ld of leads || []) {
+                        out.push({
+                            ...ld,
+                            team: grp.team,
+                            team_color: grp.color,
+                            nv_id: nv.user_id,
+                            nv_name: nv.name,
+                            bucket,
+                            bucket_label: stageLabel[bucket] || bucket,
+                        });
+                    }
+                };
+                push(nv.new_leads, 'new');
+                push(nv.no_problem_leads, 'no_problem');
+                push(nv.in_progress_leads, 'in_progress');
+                push(nv.resolved_leads, 'resolved');
+            }
+        }
+        return out;
+    }
+
     setFocus(focus) {
         if (this.state.focus === focus) return;
         this.state.focus = focus;

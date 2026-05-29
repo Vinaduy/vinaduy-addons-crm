@@ -3816,6 +3816,89 @@
     .o_vd_kh_box_kh::before {
         background: linear-gradient(90deg, #d97706 0%, #dc2626 100%) !important;
     }
+
+    /* ============================================================
+       ALL KH (user spec 2026-05-29) — flat table toàn cty
+       ============================================================ */
+    .o_vd_kh_all_col {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .o_vd_kh_box_all::before {
+        background: linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%) !important;
+    }
+    .o_vd_kh_all_count {
+        display: inline-block;
+        background: #4f46e5;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.1rem 0.55rem;
+        border-radius: 10px;
+        margin-left: 0.4rem;
+    }
+    .o_vd_kh_all_table {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+    }
+    .o_vd_kh_all_header,
+    .o_vd_kh_all_row {
+        display: grid;
+        grid-template-columns: 110px 140px 1fr 130px 140px;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.4rem 0.55rem;
+    }
+    .o_vd_kh_all_header {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #374151;
+        margin-bottom: 0.3rem;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .o_vd_kh_all_row {
+        background: #fff;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        border-left: 3px solid var(--team-color, #94a3b8);
+        transition: background 0.12s ease;
+        font-size: 0.88rem;
+        &:hover {
+            background: #fef3c7;
+        }
+    }
+    .o_vd_kh_all_team_chip {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        background: var(--team-color, #94a3b8);
+        color: #fff;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .o_vd_kh_all_td_nv { font-weight: 600; color: #1f2937; }
+    .o_vd_kh_all_td_phone { font-family: monospace; color: #475569; }
+    .o_vd_kh_all_bucket {
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .o_vd_kh_all_bucket_new          { background: #dbeafe; color: #1e40af; }
+    .o_vd_kh_all_bucket_no_problem   { background: #fef3c7; color: #92400e; }
+    .o_vd_kh_all_bucket_in_progress  { background: #fed7aa; color: #9a3412; }
+    .o_vd_kh_all_bucket_resolved     { background: #bbf7d0; color: #166534; }
     .o_vd_kh_kh_list {
         flex: 1;
         display: flex;
