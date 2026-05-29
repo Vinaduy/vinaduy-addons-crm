@@ -215,22 +215,24 @@ html, body {
     }
     .o_list_table th,
     .o_list_table td {
-        /* User spec 2026-05-29: row spacing -30% (0.35→0.24, 0.55→0.38) */
-        padding: 0.24rem 0.38rem !important;
+        /* User spec 2026-05-29 (round 2): row spacing -60% total
+           (0.35→0.24→0.14, 0.55→0.38→0.27) */
+        padding: 0.14rem 0.27rem !important;
         white-space: nowrap;
         max-width: 280px;             /* cap để cell rất dài không phá layout */
-        line-height: 1.25 !important;
+        line-height: 1.1 !important;
+        height: auto !important;
     }
     .o_list_table th { font-weight: 600; }
-    .o_list_table tr { line-height: 1.25 !important; }
+    .o_list_table tr { line-height: 1.1 !important; }
     .o_list_table input,
     .o_list_table select,
     .o_list_table .o_input,
     .o_list_table .o_field_widget {
         font-size: 0.85rem;
-        padding: 0.12rem 0.25rem;
+        padding: 0.05rem 0.2rem !important;
         min-width: 0;
-        line-height: 1.25 !important;
+        line-height: 1.1 !important;
     }
     /* Min-width đủ rộng để KHÔNG cắt chữ Vietnamese phổ biến */
     .o_list_table .o_vd_select_dd {

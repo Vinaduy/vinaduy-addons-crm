@@ -54,6 +54,17 @@ class VdLeadQuickAddWizard(models.TransientModel):
         'vd.lead.quick.add.wizard.line', 'wizard_id',
         string='Danh sách KH',
     )
+    # User spec 2026-05-29: mutually exclusive — manual per-line user_id
+    # vs auto round-robin distribute on save. Ẩn cột NV khi chọn 'even'.
+    assign_mode = fields.Selection(
+        [
+            ('manual', '👤 Tự chọn NV cho từng KH'),
+            ('even', '🎯 Chia đều cho tất cả NV'),
+        ],
+        string='Phân bổ NV',
+        default='manual',
+        required=True,
+    )
     # Quick-create field: admin gõ tên → tạo vd.intake.custom.field → cột
     # tương ứng xuất hiện trong bảng (qua fields_get override trên line model).
     quick_add_field_id = fields.Many2one(
@@ -161,6 +172,14 @@ class VdLeadQuickAddWizard(models.TransientModel):
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
         Stage = self.env['crm.stage'].sudo()
+
+        # User spec 2026-05-29: mode='even' → distribute round-robin trước khi tạo
+        if self.assign_mode == 'even':
+            if not is_leader:
+                raise UserError(_(
+                    'Chỉ Trưởng nhóm / Admin mới được chọn "Chia đều cho NV".'
+                ))
+            self.action_distribute_evenly()
 
         # Cache stage lookups for 3 status options
         stage_cache = {}
@@ -324,6 +343,15 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     sequence = fields.Integer(string='STT', default=10)
     name = fields.Char(string='Tên KH', required=False)
     phone = fields.Char(string='SĐT', required=False)
+
+    @api.onchange('name')
+    def _onchange_name_normalize(self):
+        """User spec 2026-05-29: normalize tên KH theo quy tắc title-case
+        (preserves ASCII team code, capitalize từng từ Vietnamese)."""
+        if self.name:
+            normalized = self.env['crm.lead']._vd_normalize_kh_name(self.name)
+            if normalized != self.name:
+                self.name = normalized
     source = fields.Selection(
         selection=lambda self: self._vd_ext_selection('source'),
         string='Nguồn',

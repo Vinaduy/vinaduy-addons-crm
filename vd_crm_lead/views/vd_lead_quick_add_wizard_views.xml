@@ -18,18 +18,29 @@
                                style="min-width:260px;"/>
                     </div>
                 </div>
+                <!-- User spec 2026-05-29: assign_mode toggle (manual vs even).
+                     Chọn 'even' → ẩn cột NV. Chỉ leader/admin thấy toggle. -->
+                <div groups="vd_crm_lead.vd_crm_group_team_leader"
+                     style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;padding:0.4rem 0.6rem;background:#fff8e1;border-radius:6px;border:1px solid #ffe082;">
+                    <span style="font-weight:600;">Phân bổ NV:</span>
+                    <field name="assign_mode" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                </div>
+                <field name="assign_mode" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
                         <field name="sequence" widget="handle"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..." widget="phone"/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
-                        <field name="date"/>
+                        <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
+                        <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
-                        <field name="status" invisible="1"/>
+                        <field name="status" column_invisible="1"/>
+                        <!-- NV: ẩn khi assign_mode='even' (user spec 2026-05-29) -->
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
-                               placeholder="(Auto)"/>
+                               placeholder="(Auto)"
+                               column_invisible="parent.assign_mode == 'even'"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
                         <field name="i_house_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_foundation_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
@@ -70,12 +81,6 @@
                     <button name="action_create_leads" type="object"
                             string="💾 Tạo tất cả"
                             class="btn-primary"/>
-                    <!-- User spec 2026-05-29: Chia đều cho NV (chỉ leader/admin) -->
-                    <button name="action_distribute_evenly" type="object"
-                            string="🎯 Chia đều cho NV"
-                            class="btn-warning"
-                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                            confirm="Bạn muốn chia đều các KH cho tất cả NV eligible (round-robin theo NV ít lead nhất)? Sẽ override cột NV hiện tại."/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
             </form>
