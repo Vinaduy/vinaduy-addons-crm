@@ -550,6 +550,55 @@ function start() {
         },
         true
     );
+
+    // ===== Copy Zalo button — click → direct clipboard write (no modal) =====
+    // User spec 2026-05-29 (round 4): hover panel hiện preview, click copy ngay.
+    // Phải bind capture-phase để chặn Odoo's default button handler.
+    document.addEventListener(
+        "click",
+        async (e) => {
+            const btn = e.target.closest(".o_vd_copy_zalo_btn");
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const wrap = btn.closest(".o_vd_copy_zalo_wrap");
+            const txtEl = wrap && wrap.querySelector(".o_vd_copy_zalo_text");
+            // innerText ưu tiên vì giữ \n từ white-space:pre-wrap render
+            const text = txtEl ? (txtEl.innerText || txtEl.textContent || "") : "";
+            if (!text.trim()) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa fa-check"></i><span>Đã copy</span>';
+                btn.classList.add("o_vd_copy_zalo_btn_done");
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.classList.remove("o_vd_copy_zalo_btn_done");
+                }, 1500);
+            } catch (err) {
+                // Fallback: legacy execCommand (HTTPS không cần — nhưng phòng hờ)
+                try {
+                    const ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.opacity = "0";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                    btn.innerHTML = '<i class="fa fa-check"></i><span>Đã copy</span>';
+                    btn.classList.add("o_vd_copy_zalo_btn_done");
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa fa-clipboard"></i><span>Copy</span>';
+                        btn.classList.remove("o_vd_copy_zalo_btn_done");
+                    }, 1500);
+                } catch (e2) {
+                    console.error("Copy failed:", err, e2);
+                }
+            }
+        },
+        true
+    );
 }
 
 if (document.readyState === "loading") {

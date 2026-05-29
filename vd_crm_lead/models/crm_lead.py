@@ -1218,21 +1218,23 @@ class CrmLead(models.Model):
             return ', '.join(funcs.mapped('name')) if funcs else ''
 
         for rec in self:
-            lines = ['THÔNG TIN TƯ VẤN', '----------------------------------']
+            # User spec 2026-05-29 round 4: dùng ICON thay vì 1.2.3... để paste
+            # vào Zalo gọn + chuyên nghiệp hơn.
+            lines = ['📋 THÔNG TIN TƯ VẤN', '────────────────────']
 
-            # 1. Địa chỉ
+            # 📍 Địa chỉ
             addr = ''
             if rec.vd_intake_district:
                 addr = rec.vd_intake_district.name
             if rec.vd_intake_province_id:
                 addr = (addr + ', ' if addr else '') + rec.vd_intake_province_id.name
             if addr:
-                lines.append('1. Địa chỉ: %s' % addr)
+                lines.append('📍 Địa chỉ: %s' % addr)
 
-            # 2. Thời gian
-            lines.append('2. Thời gian: %s' % (rec.vd_intake_timeline or 'Chưa xác định'))
+            # ⏰ Thời gian
+            lines.append('⏰ Thời gian: %s' % (rec.vd_intake_timeline or 'Chưa xác định'))
 
-            # 3. Diện tích
+            # 📐 Diện tích
             dt_parts = []
             if rec.vd_intake_house_width_m and rec.vd_intake_house_length_m:
                 dt_parts.append('Nhà %sx%sm' % (rec.vd_intake_house_width_m, rec.vd_intake_house_length_m))
@@ -1241,21 +1243,21 @@ class CrmLead(models.Model):
             if rec.vd_intake_total_m2:
                 dt_parts.append('Tổng %sm²' % rec.vd_intake_total_m2)
             if dt_parts:
-                lines.append('3. Diện tích: %s' % ' | '.join(dt_parts))
+                lines.append('📐 Diện tích: %s' % ' | '.join(dt_parts))
 
-            # 4. Mẫu nhà
+            # 🏠 Mẫu nhà
             if rec.vd_intake_house_type:
-                lines.append('4. Mẫu nhà: %s' % _sel_label(rec, 'vd_intake_house_type'))
+                lines.append('🏠 Mẫu nhà: %s' % _sel_label(rec, 'vd_intake_house_type'))
 
-            # 5. Loại đất (tách riêng — user spec 2026-05-29)
+            # 🌱 Loại đất
             if rec.vd_intake_land_type:
-                lines.append('5. Loại đất: %s' % _sel_label(rec, 'vd_intake_land_type'))
+                lines.append('🌱 Loại đất: %s' % _sel_label(rec, 'vd_intake_land_type'))
 
-            # 6. Móng (tách riêng)
+            # 🔨 Móng
             if rec.vd_intake_foundation_type:
-                lines.append('6. Móng: %s' % _sel_label(rec, 'vd_intake_foundation_type'))
+                lines.append('🔨 Móng: %s' % _sel_label(rec, 'vd_intake_foundation_type'))
 
-            # 7. Số tầng + DT từng tầng
+            # 🏗️ Số tầng + DT từng tầng
             floor_parts = []
             n = int(rec.vd_intake_floors_select or '0')
             for i in range(1, n + 1):
@@ -1267,48 +1269,48 @@ class CrmLead(models.Model):
             if rec.vd_intake_has_lung and rec.vd_intake_floor_lung_m2:
                 floor_parts.append('Lửng: %sm²' % rec.vd_intake_floor_lung_m2)
             if floor_parts:
-                lines.append('7. Số tầng: %s' % ' | '.join(floor_parts))
+                lines.append('🏗️ Số tầng: %s' % ' | '.join(floor_parts))
 
-            # 8. Công năng từng tầng (BẮT BUỘC)
+            # 🛋️ Công năng từng tầng
             cn_lines = []
             for i in range(1, n + 1):
                 fns = _fn_names(rec['vd_intake_floor_%s_function_ids' % i])
                 if fns:
-                    cn_lines.append('   T%s: %s' % (i, fns))
+                    cn_lines.append('   • T%s: %s' % (i, fns))
             if rec.vd_intake_has_lung:
                 fns = _fn_names(rec.vd_intake_floor_lung_function_ids)
                 if fns:
-                    cn_lines.append('   Lửng: %s' % fns)
+                    cn_lines.append('   • Lửng: %s' % fns)
             if rec.vd_intake_has_tum:
                 fns = _fn_names(rec.vd_intake_floor_tum_function_ids)
                 if fns:
-                    cn_lines.append('   Tum: %s' % fns)
+                    cn_lines.append('   • Tum: %s' % fns)
             if cn_lines:
-                lines.append('8. Công năng:')
+                lines.append('🛋️ Công năng:')
                 lines.extend(cn_lines)
             if rec.vd_intake_function_notes:
-                lines.append('   Ghi chú: %s' % rec.vd_intake_function_notes)
+                lines.append('   📝 Ghi chú: %s' % rec.vd_intake_function_notes)
 
-            # 9. Chỗ để đất móng
+            # 🚧 Chỗ để đất móng
             if rec.vd_intake_soil_dump:
-                lines.append('9. Chỗ để đất móng: %s' % _sel_label(rec, 'vd_intake_soil_dump'))
+                lines.append('🚧 Chỗ để đất móng: %s' % _sel_label(rec, 'vd_intake_soil_dump'))
 
-            # 10. Ô tô vào
+            # 🚗 Ô tô vào
             if rec.vd_intake_car_access_select:
-                lines.append('10. Ô tô vào: %s' % _sel_label(rec, 'vd_intake_car_access_select'))
+                lines.append('🚗 Ô tô vào: %s' % _sel_label(rec, 'vd_intake_car_access_select'))
 
-            # 11. Tầm tài chính
+            # 💰 Tầm tài chính
             if rec.vd_intake_budget_range:
                 budget = _sel_label(rec, 'vd_intake_budget_range') or rec.vd_intake_budget_range
-                lines.append('11. Tầm tài chính: %s' % budget)
+                lines.append('💰 Tầm tài chính: %s' % budget)
             elif rec.vd_intake_budget_amount:
-                lines.append('11. Tầm tài chính: %s đ' % '{:,.0f}'.format(rec.vd_intake_budget_amount))
+                lines.append('💰 Tầm tài chính: %s đ' % '{:,.0f}'.format(rec.vd_intake_budget_amount))
 
-            # 12. Sổ đỏ / cấp phép
+            # 📜 Sổ đỏ / cấp phép
             if rec.vd_intake_dimensions:
-                lines.append('12. Sổ đỏ: %s' % _sel_label(rec, 'vd_intake_dimensions'))
+                lines.append('📜 Sổ đỏ: %s' % _sel_label(rec, 'vd_intake_dimensions'))
 
-            lines.append('----------------HẾT----------------')
+            lines.append('────────────────────')
             rec.vd_zalo_copy_text = '\n'.join(lines)
 
     def action_copy_zalo(self):

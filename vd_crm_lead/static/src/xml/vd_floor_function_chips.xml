@@ -13,7 +13,7 @@
                 <t t-else="">
                     <t t-foreach="selectedTags" t-as="tag" t-key="tag.id">
                         <span class="o_vd_tlc_pill">
-                            <t t-if="tag.icon"><t t-esc="tag.icon"/> </t>
+                            <!-- User spec 2026-05-29 (round 4): bỏ icon, chỉ name. -->
                             <t t-esc="tag.name"/>
                             <button type="button" class="o_vd_tlc_pill_x"
                                     t-on-click.prevent.stop="(ev) => this.onRemoveSelected(tag, ev)"
@@ -31,7 +31,7 @@
                             class="o_vd_tl_chip"
                             t-att-class="{ 'o_vd_tl_chip_active': isSelected(tag.id) }"
                             t-on-click.prevent.stop="(ev) => this.onChipClick(tag, ev)">
-                        <t t-if="tag.icon"><t t-esc="tag.icon"/> </t>
+                        <!-- User spec 2026-05-29 (round 4): bỏ icon. -->
                         <t t-esc="tag.name"/>
                     </button>
                 </t>

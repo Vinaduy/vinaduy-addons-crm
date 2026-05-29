@@ -201,13 +201,27 @@
                                         <i class="fa fa-phone"/>
                                         <span>Cúp máy</span>
                                     </button>
-                                    <button name="action_copy_zalo" type="object"
-                                            class="o_vd_copy_zalo_inline"
-                                            title="Click để xem + Copy thông tin KH">
-                                        <span>Copy</span>
-                                    </button>
-                                    <!-- Field invisible — vẫn cần cho @api.depends + RPC fetch -->
-                                    <field name="vd_zalo_copy_text" invisible="1"/>
+                                    <!-- Copy KH info — hover ra panel preview, click copy direct.
+                                         User spec 2026-05-29 round 4: bỏ Dialog modal, dùng
+                                         hover panel inline. JS đọc field value trong panel
+                                         + navigator.clipboard.writeText() (user-gesture
+                                         preserved vì button type=button không call RPC). -->
+                                    <div class="o_vd_copy_zalo_wrap">
+                                        <button type="button"
+                                                class="o_vd_copy_zalo_btn o_vd_copy_zalo_inline"
+                                                title="Hover xem preview — Click để copy ngay">
+                                            <i class="fa fa-clipboard"/>
+                                            <span>Copy</span>
+                                        </button>
+                                        <div class="o_vd_copy_zalo_panel">
+                                            <div class="o_vd_copy_zalo_panel_hd">
+                                                <i class="fa fa-clipboard"/>
+                                                <span>Nội dung sẽ copy vào Zalo</span>
+                                            </div>
+                                            <field name="vd_zalo_copy_text" readonly="1" nolabel="1"
+                                                   class="o_vd_copy_zalo_text"/>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
