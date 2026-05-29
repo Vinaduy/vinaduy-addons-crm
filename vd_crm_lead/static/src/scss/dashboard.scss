@@ -3408,7 +3408,8 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        /* User spec 2026-05-29: 5 cell (4 metric + 1 call status) */
+        grid-template-columns: 1fr 1fr 1fr 1fr 1.1fr;
         background: transparent;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
@@ -3563,6 +3564,61 @@
         border-color: #2563eb;
         color: #1e40af;
     }
+    /* User spec 2026-05-29: cột "Trạng thái" cuộc gọi LIVE (poll 5s) */
+    .o_vd_kh_col_call_status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.4rem;
+    }
+    .o_vd_call_status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .o_vd_call_status_dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .o_vd_call_status_on {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        color: #15803d;
+        border: 1.5px solid #16a34a;
+        .o_vd_call_status_dot {
+            background: #16a34a;
+            box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+            animation: vd-call-pulse 1.4s infinite;
+        }
+    }
+    .o_vd_call_status_off {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1.5px solid #cbd5e1;
+        .o_vd_call_status_dot {
+            background: #94a3b8;
+        }
+    }
+    .o_vd_call_status_time {
+        font-weight: 800;
+        font-size: 0.7rem;
+        background: rgba(22, 163, 74, 0.18);
+        padding: 1px 5px;
+        border-radius: 6px;
+    }
+    @keyframes vd-call-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+        70%  { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    }
+
     /* User spec 2026-05-29: 2 segment có label trong cột Khách mới
        Format: "Hôm nay [N]  Tổng [M]" */
     .o_vd_kh_new_seg {
@@ -3833,7 +3889,11 @@
         grid-template-columns: 1.6fr 0.85fr 1.1fr;
     }
     .o_vd_kh_th_group_kh {
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        /* User spec 2026-05-29: 5 cell (4 metric + 1 call status) */
+        grid-template-columns: 1fr 1fr 1fr 1fr 1.1fr;
+    }
+    .o_vd_kh_th_call {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
     }
     .o_vd_kh_th {
         padding: 0.7rem 0.6rem;

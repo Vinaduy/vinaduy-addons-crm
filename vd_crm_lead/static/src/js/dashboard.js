@@ -76,6 +76,9 @@ export class VdCrmDashboard extends Component {
             searchOpen: false,
             // ===== PREVIEW LEAD POPUP (fullscreen iframe + prev/next) =====
             previewLead: { open: false, ids: [], index: 0 },
+            // ===== LIVE CALL STATUS — user spec 2026-05-29 =====
+            // {user_id: {is_calling, since_min, state}} — poll mỗi 5s
+            activeCalls: {},
         });
         this._searchDebounce = null;
 
@@ -87,9 +90,18 @@ export class VdCrmDashboard extends Component {
             else if (ev.key === 'ArrowLeft')  { ev.preventDefault(); this.prevPreview(); }
             else if (ev.key === 'ArrowRight') { ev.preventDefault(); this.nextPreview(); }
         };
-        onMounted(() => window.addEventListener('keydown', this._onKeydown));
+        onMounted(() => {
+            window.addEventListener('keydown', this._onKeydown);
+            // User spec 2026-05-29: poll trạng thái cuộc gọi LIVE mỗi 5s
+            this._refreshActiveCalls();
+            this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 5000);
+        });
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
+            if (this._callPollInterval) {
+                clearInterval(this._callPollInterval);
+                this._callPollInterval = null;
+            }
             // Đảm bảo scroll lock + body class được dọn nếu navigate đi
             document.body.classList.remove('o_vd_preview_active');
             document.documentElement.style.overflow = '';
@@ -147,6 +159,26 @@ export class VdCrmDashboard extends Component {
 
     setDashSubView(mode) {
         if (this.state.dashSubView !== mode) this.state.dashSubView = mode;
+    }
+
+    /**
+     * User spec 2026-05-29: poll backend mỗi 5s lấy trạng thái call LIVE
+     * → update badge "Đang gọi / Không gọi" cuối row NV không cần reload.
+     */
+    async _refreshActiveCalls() {
+        try {
+            const data = await this.orm.call(
+                "crm.lead", "vd_dashboard_active_calls", []
+            );
+            this.state.activeCalls = data || {};
+        } catch (err) {
+            // Silent fail — không spam console khi WS đứt / restart server
+        }
+    }
+
+    /** Helper cho XML: lấy info call live của 1 NV. */
+    callInfo(userId) {
+        return this.state.activeCalls[userId] || null;
     }
 
     /**

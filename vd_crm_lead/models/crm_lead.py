@@ -4510,6 +4510,38 @@ class CrmLead(models.Model):
         )
 
     @api.model
+    def vd_dashboard_active_calls(self):
+        """User spec 2026-05-29: trả về trạng thái cuộc gọi LIVE của từng NV.
+        Frontend poll mỗi 5s → update badge "Đang gọi" / "Không gọi" mỗi row.
+
+        Returns: dict {user_id: {'is_calling': bool, 'since_min': int, 'state': str}}
+        Active state = ringing/answered + end_time IS NULL + start <= 30 min ago.
+        """
+        from datetime import timedelta as _td
+        Call = self.env['stringee.call'].sudo()
+        now = fields.Datetime.now()
+        threshold = now - _td(minutes=30)
+        active = Call.search([
+            ('state', 'in', ['ringing', 'answered']),
+            ('end_time', '=', False),
+            ('start_time', '>=', threshold),
+            ('user_id', '!=', False),
+        ])
+        result = {}
+        for c in active:
+            uid = c.user_id.id
+            since_min = int((now - c.start_time).total_seconds() // 60) if c.start_time else 0
+            existing = result.get(uid)
+            # Nếu NV có nhiều call đồng thời (rare), lấy cái latest
+            if not existing or since_min < existing['since_min']:
+                result[uid] = {
+                    'is_calling': True,
+                    'since_min': since_min,
+                    'state': c.state,
+                }
+        return result
+
+    @api.model
     def dashboard_users(self):
         """Danh sách NV để manager chọn xem dashboard theo từng NV."""
         if not self._dashboard_is_manager():

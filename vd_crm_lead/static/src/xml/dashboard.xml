@@ -206,6 +206,8 @@
                                             <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
+                                            <!-- User spec 2026-05-29: live call status (poll 5s) -->
+                                            <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
                                         </div>
                                     </div>
                                 </div>
@@ -369,6 +371,25 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <!-- User spec 2026-05-29: Trạng thái cuộc gọi LIVE
+                                                     Poll mỗi 5s qua vd_dashboard_active_calls. -->
+                                                <t t-set="callInfo" t-value="callInfo(nv.user_id)"/>
+                                                <div class="o_vd_kh_col_metric o_vd_kh_col_call_status">
+                                                    <span t-if="callInfo" class="o_vd_call_status o_vd_call_status_on"
+                                                          t-att-title="'Đang gọi ' + callInfo.since_min + ' phút (state: ' + callInfo.state + ')'">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
+                                                        <span class="o_vd_call_status_time">
+                                                            <t t-esc="callInfo.since_min"/>'
+                                                        </span>
+                                                    </span>
+                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
+                                                          title="NV không có cuộc gọi đang diễn ra">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
+                                                    </span>
                                                 </div>
                                                 </div><!-- /.o_vd_kh_row_group_kh -->
                                             </div>
