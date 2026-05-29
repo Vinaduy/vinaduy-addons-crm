@@ -10576,9 +10576,45 @@ $vd-panel-head-radius: 10px;
    LOCKED STATE — steps panel khi vd_intake_locked=True.
    Class .vd-intake-locked được toggle bởi intake_select_fix.js
    theo giá trị field vd_intake_locked.
+
+   User spec 2026-05-29 (round 2): NUCLEAR lock — chặn TOÀN BỘ
+   pointer-events trên panel + overlay che mờ. Chỉ button Mở khoá
+   / Cúp máy / Lịch sử / Copy / hangup là còn dùng được.
    ============================================================ */
 .o_vd_steps_panel.vd-intake-locked {
     position: relative;
+    /* Nuclear: chặn TẤT CẢ children */
+}
+.o_vd_steps_panel.vd-intake-locked * {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+/* Whitelist: các button vẫn cần dùng được khi lock */
+.o_vd_steps_panel.vd-intake-locked .o_vd_btn_unlock,
+.o_vd_steps_panel.vd-intake-locked .o_vd_btn_unlock *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_popup_hangup_btn,
+.o_vd_steps_panel.vd-intake-locked .o_vd_popup_hangup_btn *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_copy_zalo_inline,
+.o_vd_steps_panel.vd-intake-locked .o_vd_copy_zalo_inline *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_cancel_calls_btn,
+.o_vd_steps_panel.vd-intake-locked .o_vd_cancel_calls_btn *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn,
+.o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn * {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+/* Visual: tất cả fields mờ đi để user thấy ngay là disabled */
+.o_vd_steps_panel.vd-intake-locked .o_vd_steps_grid,
+.o_vd_steps_panel.vd-intake-locked .o_vd_step_row,
+.o_vd_steps_panel.vd-intake-locked .o_vd_pf {
+    opacity: 0.55 !important;
+    filter: grayscale(0.3);
+    cursor: not-allowed;
+}
+.o_vd_steps_panel.vd-intake-locked input,
+.o_vd_steps_panel.vd-intake-locked textarea,
+.o_vd_steps_panel.vd-intake-locked select {
+    cursor: not-allowed !important;
 }
 /* Chặn click + scroll trên TẤT CẢ input/picker/chip/button trong panel.
    Riêng button .o_vd_btn_unlock vẫn click được (override pointer-events) */

@@ -1,6 +1,4 @@
-# Local push helper — chạy: .\push.ps1 "commit message"
-# Args:
-#   $args[0] = commit message (bắt buộc)
+# Local push helper: .\push.ps1 "commit message"
 param(
     [Parameter(Mandatory=$true, Position=0)]
     [string]$Message
@@ -18,5 +16,5 @@ Write-Host "====== PUSH ======" -ForegroundColor Cyan
 git push origin main
 
 Write-Host ""
-Write-Host "DONE — chạy trên server:" -ForegroundColor Green
+Write-Host "DONE - chay tren server:" -ForegroundColor Green
 Write-Host "  bash /root/vinaduy-addons-crm/pull.sh" -ForegroundColor Yellow
