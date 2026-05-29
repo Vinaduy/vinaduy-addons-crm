@@ -519,6 +519,15 @@ function syncIntakeLockedClass() {
         document.querySelectorAll('.o_vd_steps_panel').forEach((panel) => {
             const isLocked = !!panel.querySelector('.o_vd_steps_lock_marker');
             panel.classList.toggle('vd-intake-locked', isLocked);
+            // Set HTML5 `inert` attribute trên từng step row (KHÔNG set lên
+            // .o_vd_hero_head để giữ button Cúp máy/Copy/Mở khoá dùng được).
+            // `inert` block CẢ click LẪN keystroke — user spec 2026-05-29: dù
+            // input đã focus sẵn, lock xong vẫn không gõ được. Khác overlay
+            // (chỉ block pointer, không block keyboard sau khi focus).
+            panel.querySelectorAll('.o_vd_step, .o_vd_intake_consult_script_wrap').forEach((row) => {
+                if (isLocked) row.setAttribute('inert', '');
+                else row.removeAttribute('inert');
+            });
         });
     } catch (e) {}
 }

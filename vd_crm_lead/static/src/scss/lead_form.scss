@@ -10583,14 +10583,17 @@ $vd-panel-head-radius: 10px;
     position: relative;
 }
 .o_vd_steps_lock_overlay {
+    /* User spec 2026-05-29: KHÔNG làm mờ — chỉ catch pointer-events cho
+       cursor "not-allowed" cue khi hover. Block typing thật do JS set
+       `inert` attribute trên từng .o_vd_step (xem intake_select_fix.js). */
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
     z-index: 100 !important;
-    background: rgba(241, 245, 249, 0.45) !important;
-    backdrop-filter: grayscale(0.3);
+    background: transparent !important;
+    backdrop-filter: none !important;
     cursor: not-allowed !important;
     display: block !important;
     pointer-events: auto !important;
@@ -10628,12 +10631,12 @@ $vd-panel-head-radius: 10px;
     pointer-events: auto !important;
     user-select: auto !important;
 }
-/* Visual: tất cả fields mờ đi để user thấy ngay là disabled */
+/* User spec 2026-05-29: KHÔNG làm mờ fields khi lock — giữ rõ để đọc.
+   Chỉ cursor:not-allowed cue khi hover. Block tương tác bằng `inert`
+   attribute (set ở intake_select_fix.js → syncIntakeLockedClass). */
 .o_vd_steps_panel.vd-intake-locked .o_vd_steps_grid,
 .o_vd_steps_panel.vd-intake-locked .o_vd_step_row,
 .o_vd_steps_panel.vd-intake-locked .o_vd_pf {
-    opacity: 0.55 !important;
-    filter: grayscale(0.3);
     cursor: not-allowed;
 }
 .o_vd_steps_panel.vd-intake-locked input,
