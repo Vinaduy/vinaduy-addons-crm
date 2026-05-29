@@ -207,7 +207,10 @@
                                          + navigator.clipboard.writeText() (user-gesture
                                          preserved vì button type=button không call RPC). -->
                                     <div class="o_vd_copy_zalo_wrap">
-                                        <button type="button"
+                                        <!-- name bắt buộc cho form view button, nhưng JS chặn
+                                             click ở capture phase → action backend không bao
+                                             giờ chạy; chỉ là placeholder thỏa validation. -->
+                                        <button name="action_copy_zalo" type="object"
                                                 class="o_vd_copy_zalo_btn o_vd_copy_zalo_inline"
                                                 title="Hover xem preview — Click để copy ngay">
                                             <i class="fa fa-clipboard"/>
