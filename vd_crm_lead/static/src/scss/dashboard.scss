@@ -4892,7 +4892,7 @@
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
     }
-    /* Badge "Hôm nay có X KH cần gọi" — viền xanh dương, đặt cuối bảng KH mới */
+    /* Badge "N Khách mới — M Khách cần gọi lại" — viền xanh dương, đặt cuối bảng KH mới */
     .o_vd_need_call_today_badge {
         display: inline-flex;
         align-items: center;
@@ -4906,6 +4906,11 @@
         font-weight: 700;
         white-space: nowrap;
         b { color: #d9480f; font-size: 1.05rem; }
+    }
+    .o_vd_need_call_sep {
+        color: #94a3b8;
+        font-weight: 600;
+        margin: 0 0.15rem;
     }
 
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */

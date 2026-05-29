@@ -1321,46 +1321,8 @@
                             </div>
                         </div>
 
-                        <!-- 4. Alerts -->
-                        <div class="o_vd_side_card o_vd_side_alerts">
-                            <div class="o_vd_side_card_title">
-                                <i class="fa fa-exclamation-triangle"/> Cảnh báo
-                            </div>
-                            <ul class="o_vd_side_alert_list">
-                                <li t-if="state.errors.overdue_callback" class="o_vd_alert_overdue o_vd_alert_clickable"
-                                    t-on-click="() => this.openAlertLeads('overdue_callback')"
-                                    title="Click xem danh sách KH cần gọi gấp">
-                                    <span class="o_vd_alert_num"><t t-esc="state.errors.overdue_callback"/></span>
-                                    <span class="o_vd_alert_text">KH quá hạn gọi lại</span>
-                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
-                                </li>
-                                <li t-if="state.errors.new_not_called" class="o_vd_alert_new o_vd_alert_clickable"
-                                    t-on-click="() => this.openAlertLeads('new_not_called')"
-                                    title="Click xem danh sách KH mới chưa gọi">
-                                    <span class="o_vd_alert_num"><t t-esc="state.errors.new_not_called"/></span>
-                                    <span class="o_vd_alert_text">KH mới chưa gọi</span>
-                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
-                                </li>
-                                <li t-if="state.errors.potential_no_quote" class="o_vd_alert_potential o_vd_alert_clickable"
-                                    t-on-click="() => this.openAlertLeads('potential_no_quote')"
-                                    title="Click xem danh sách">
-                                    <span class="o_vd_alert_num"><t t-esc="state.errors.potential_no_quote"/></span>
-                                    <span class="o_vd_alert_text">KH tiềm năng chưa báo giá</span>
-                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
-                                </li>
-                                <li t-if="state.errors.stale" class="o_vd_alert_stale o_vd_alert_clickable"
-                                    t-on-click="() => this.openAlertLeads('stale')"
-                                    title="Click xem danh sách KH stale">
-                                    <span class="o_vd_alert_num"><t t-esc="state.errors.stale"/></span>
-                                    <span class="o_vd_alert_text">KH chưa gọi 14+ ngày</span>
-                                    <i class="fa fa-chevron-right o_vd_alert_chev"/>
-                                </li>
-                                <li t-if="!state.errors.overdue_callback and !state.errors.new_not_called and !state.errors.potential_no_quote and !state.errors.stale"
-                                    class="o_vd_alert_ok">
-                                    ✓ Không có cảnh báo
-                                </li>
-                            </ul>
-                        </div>
+                        <!-- 4. Cảnh báo: ĐÃ XOÁ theo user spec 2026-05-29
+                             (KH quá hạn gọi lại / KH mới chưa gọi không còn hiển thị sidebar) -->
                     </aside>
 
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
@@ -1454,17 +1416,23 @@
                                             <!-- 🚨 Badge yêu cầu xử lý — chỉ hiện khi NV bị
                                                  khoá nhận KH mới. Tự xuống dòng + căn giữa
                                                  nhưng vẫn nằm trong bảng KHÁCH MỚI. -->
-                                            <!-- Gộp 2 badge vào 1 wrap khi cả 2 cùng xuất hiện (user spec 2026-05-28) -->
+                                            <!-- User spec 2026-05-29: tách 2 nhóm theo cuộc gọi
+                                                 - Khách MỚI (chưa gọi lần nào): pill TRẮNG
+                                                 - Khách CẦN GỌI LẠI (đã gọi rồi): pill XANH dương
+                                                 Display: [N Khách mới - M Khách cần gọi lại] -->
                                             <t t-set="hasBlock" t-value="state.block_status?.is_blocked and !isAdminView"/>
-                                            <t t-set="needCallCount" t-value="leadsNoProblems.filter(l => l.needs_call_today).length"/>
-                                            <t t-set="hasNeedCall" t-value="needCallCount &gt; 0"/>
+                                            <t t-set="newNotCalledCount" t-value="leadsNoProblems.filter(l => !l.call_stats || !l.call_stats.total).length"/>
+                                            <t t-set="callbackCount" t-value="leadsNoProblems.filter(l => l.call_stats and l.call_stats.total &gt; 0).length"/>
+                                            <t t-set="hasNeedCall" t-value="newNotCalledCount &gt; 0 or callbackCount &gt; 0"/>
                                             <div t-if="hasBlock or hasNeedCall"
                                                  class="o_vd_new_required_wrap o_vd_new_required_combo">
                                                 <span t-if="hasBlock" class="o_vd_new_required_badge">
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
                                                 </span>
                                                 <span t-if="hasNeedCall" class="o_vd_need_call_today_badge">
-                                                    📞 Hôm nay bạn có <b><t t-esc="needCallCount"/></b> khách mới cần gọi
+                                                    📞 <b><t t-esc="newNotCalledCount"/></b> Khách mới
+                                                    <span class="o_vd_need_call_sep">—</span>
+                                                    <b><t t-esc="callbackCount"/></b> Khách cần gọi lại
                                                 </span>
                                             </div>
                                         </div>
