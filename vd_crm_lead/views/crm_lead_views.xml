@@ -197,21 +197,13 @@
                                         <i class="fa fa-phone"/>
                                         <span>Cúp máy</span>
                                     </button>
-                                    <div class="o_vd_zalo_hover_wrap">
-                                        <button name="action_copy_zalo" type="object"
-                                                class="o_vd_copy_zalo_inline"
-                                                title="Hover xem nội dung — Click để copy">
-                                            <i class="fa fa-clipboard"/>
-                                            <span>Copy</span>
-                                        </button>
-                                        <div class="o_vd_zalo_hover_panel">
-                                            <div class="o_vd_zalo_hover_head">
-                                                <i class="fa fa-clipboard"/>
-                                                <span>Thông tin gửi Zalo</span>
-                                            </div>
-                                            <field name="vd_zalo_copy_text" readonly="1" nolabel="1"/>
-                                        </div>
-                                    </div>
+                                    <button name="action_copy_zalo" type="object"
+                                            class="o_vd_copy_zalo_inline"
+                                            title="Click để xem + Copy thông tin KH">
+                                        <span>Copy</span>
+                                    </button>
+                                    <!-- Field invisible — vẫn cần cho @api.depends + RPC fetch -->
+                                    <field name="vd_zalo_copy_text" invisible="1"/>
                                 </div>
                             </div>
 
