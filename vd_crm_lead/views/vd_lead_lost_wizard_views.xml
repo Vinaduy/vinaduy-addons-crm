@@ -5,27 +5,67 @@
         <field name="name">vd.lead.lost.wizard.form</field>
         <field name="model">vd.lead.lost.wizard</field>
         <field name="arch" type="xml">
-            <form string="Khách hàng KHÔNG có nhu cầu">
+            <form string="ĐỀ XUẤT HỦY" class="o_vd_cancel_wizard">
                 <field name="lead_id" invisible="1"/>
 
                 <div class="alert alert-warning" role="alert" style="margin-bottom: 0.85rem;">
                     <i class="fa fa-exclamation-triangle"/>
-                    Bạn sắp đánh dấu <b><field name="lead_name" readonly="1" nolabel="1"/></b>
-                    là <b>Khách hủy</b>. Vui lòng ghi lý do để team có dữ liệu phân tích.
+                    Bạn sắp đề xuất hủy <b><field name="lead_name" readonly="1" nolabel="1"/></b>.
+                    Vui lòng chọn nhóm lý do và khai thác chi tiết để admin duyệt.
                 </div>
 
                 <group>
                     <field name="reason_category" widget="radio" options="{'horizontal': False}"/>
                 </group>
-                <group>
-                    <field name="reason_detail" placeholder="VD: KH bảo đang khó khăn tài chính, đợi vợ về cuối tháng quyết định lại..."/>
+
+                <!-- ===== Block 1: Không đủ ngân sách ===== -->
+                <group invisible="reason_category != 'no_budget'"
+                       string="💸 Không đủ ngân sách"
+                       class="o_vd_cancel_block">
+                    <field name="kh_budget_display" readonly="1"/>
+                    <field name="quote_price_display" readonly="1"/>
+                    <field name="budget_gap_display" readonly="1"/>
+                    <field name="no_budget_note"
+                           placeholder="VD: KH bảo phương án xây nhỏ hơn 100m² hoặc đợi thêm 6 tháng tích thêm..."/>
                 </group>
-                <group>
-                    <field name="callback_3m"/>
+
+                <!-- ===== Block 2: Đã chọn bên khác ===== -->
+                <group invisible="reason_category != 'competitor'"
+                       string="🏗️ Đã chọn bên khác"
+                       class="o_vd_cancel_block">
+                    <field name="competitor_name"
+                           placeholder="VD: Xây dựng ABC, Công ty XYZ..."/>
+                    <field name="competitor_review_duration"
+                           placeholder="VD: 2 tuần, 1 tháng, trước khi gọi mình..."/>
+                    <field name="competitor_why_lost"
+                           placeholder="VD: Giá đắt hơn ~50tr, tư vấn chậm, ít mẫu nhà..."/>
+                    <field name="competitor_why_chose"
+                           placeholder="VD: Quen người quen, được giảm thêm 30tr, gần nhà hơn..."/>
+                </group>
+
+                <!-- ===== Block 3: Hủy kế hoạch xây ===== -->
+                <group invisible="reason_category != 'cancel_plan'"
+                       string="🚫 Hủy kế hoạch xây"
+                       class="o_vd_cancel_block">
+                    <field name="cancel_plan_why"
+                           placeholder="VD: Vợ chồng đổi ý không xây nữa, dồn tiền việc khác..."/>
+                    <field name="cancel_plan_duration"
+                           placeholder="VD: Hủy hẳn, hoãn 6 tháng, hoãn vô thời hạn..."/>
+                    <field name="cancel_plan_how"
+                           placeholder="VD: Chuyển sang mua nhà chung cư, đất chưa làm được sổ đỏ..."/>
+                </group>
+
+                <!-- ===== Block 4: Nhầm số ===== -->
+                <group invisible="reason_category != 'wrong_number'"
+                       string="❌ Nhầm số"
+                       class="o_vd_cancel_block">
+                    <field name="wrong_number_detail"
+                           placeholder="VD: SĐT của KH khác đã liên hệ trước, KH không có nhu cầu xây nhà, hotline doanh nghiệp..."/>
                 </group>
 
                 <footer>
-                    <button name="action_confirm_lost" type="object" string="✓ Xác nhận hủy"
+                    <button name="action_confirm_lost" type="object"
+                            string="✓ Gửi đề xuất hủy"
                             class="btn-danger"/>
                     <button special="cancel" string="Đóng" class="btn-secondary"/>
                 </footer>
