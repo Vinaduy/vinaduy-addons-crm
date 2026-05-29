@@ -7400,10 +7400,23 @@ $vd-panel-head-radius: 10px;
         &.o_vd_status_resolved { background: #f4faf5; }
         &.o_vd_status_in_progress { background: #fffaf0; }
     }
-    /* Wrapper bao ngoai: rounded + border tron, KHONG max-height (bo scrollbar) */
-    .o_vd_problem_kanban .o_kanban_renderer {
+    /* User spec 2026-05-29 round 2: BO TRIET DE scrollbar khoi van de panel.
+       Override tat ca container co the gay scroll. */
+    .o_vd_problem_kanban,
+    .o_vd_problem_kanban .o_kanban_renderer,
+    .o_vd_problem_kanban .o_renderer,
+    .o_vd_problem_kanban .o_kanban_view,
+    .o_vd_problem_kanban .o_view_controller,
+    .o_field_widget[name='vd_lead_problem_ids'],
+    .o_field_widget[name='vd_lead_problem_ids'] > *,
+    .o_field_x2many,
+    .o_field_x2many > * {
         max-height: none !important;
+        height: auto !important;
         overflow: visible !important;
+        overflow-y: visible !important;
+    }
+    .o_vd_problem_kanban .o_kanban_renderer {
         border: 1px solid #ebe0e6 !important;
         border-radius: 8px !important;
     }
@@ -7755,7 +7768,8 @@ $vd-panel-head-radius: 10px;
     display: inline-flex;
     align-items: center;
 }
-.o_vd_zalo_hover_wrap > .o_vd_copy_zalo_inline {
+.o_vd_zalo_hover_wrap > .o_vd_copy_zalo_inline,
+.o_vd_copy_zalo_inline {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
