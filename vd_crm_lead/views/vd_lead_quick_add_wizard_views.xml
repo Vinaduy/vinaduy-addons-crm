@@ -69,6 +69,12 @@
                     <button name="action_create_leads" type="object"
                             string="💾 Tạo tất cả"
                             class="btn-primary"/>
+                    <!-- User spec 2026-05-29: Chia đều cho NV (chỉ leader/admin) -->
+                    <button name="action_distribute_evenly" type="object"
+                            string="🎯 Chia đều cho NV"
+                            class="btn-warning"
+                            groups="vd_crm_lead.vd_crm_group_team_leader"
+                            confirm="Bạn muốn chia đều các KH cho tất cả NV eligible (round-robin theo NV ít lead nhất)? Sẽ override cột NV hiện tại."/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
             </form>

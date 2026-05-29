@@ -92,6 +92,62 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 },
             }
 
+    def action_distribute_evenly(self):
+        """User spec 2026-05-29: chia đều các dòng cho tất cả NV eligible.
+        Round-robin theo thứ tự dòng trong wizard. Override user_id hiện tại.
+
+        Only Leader/Admin được dùng (NV thường không được phân lead cho NV khác).
+        """
+        self.ensure_one()
+        user = self.env.user
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not is_leader:
+            raise UserError(_(
+                'Chỉ Trưởng nhóm / Admin mới được chia KH cho tất cả NV.'
+            ))
+
+        ResUsers = self.env['res.users'].sudo()
+        # Lấy POOL NV sales eligible (loại lãnh đạo, chỉ NV có vd_can_receive_new_leads)
+        domain = [
+            ('share', '=', False),
+            ('active', '=', True),
+            ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
+        ]
+        candidates = ResUsers.search(domain)
+        eligible = candidates.filtered(
+            lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
+                      and u.vd_can_receive_new_leads
+        )
+        if not eligible:
+            raise UserError(_('Không có NV nào đủ điều kiện nhận KH mới (kiểm tra quá hạn chăm sóc).'))
+
+        # Sort theo số lead active asc → NV ít lead nhận trước
+        users_sorted = sorted(
+            eligible,
+            key=lambda u: self.env['crm.lead'].sudo().search_count([
+                ('user_id', '=', u.id),
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+            ]),
+        )
+        # Round-robin gán
+        lines = self.line_ids.filtered(lambda l: l.name and l.phone)
+        n = len(users_sorted)
+        for i, line in enumerate(lines):
+            line.user_id = users_sorted[i % n].id
+
+        # Notification: bao nhiêu lines / bao nhiêu NV
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Đã chia đều'),
+                'message': _('Đã chia %d KH cho %d NV (round-robin theo NV ít lead nhất).') % (len(lines), n),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""
         self.ensure_one()
