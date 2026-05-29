@@ -663,18 +663,8 @@
                                  Hẹn gọi lại + Nghe máy/Không nghe + Lịch sử + Hủy + CHỐT THÔNG TIN -->
                             <div class="o_vd_call_stats_box o_vd_call_stats_below_time o_vd_call_stats_in_panel">
                                 <div class="o_vd_call_stats_row">
-                                    <button name="action_open_callback_wizard" type="object"
-                                            class="btn btn-sm o_vd_wf_btn_callback"
-                                            invisible="stage_code in ['won', 'lost']"
-                                            title="Hẹn ngày gọi lại KH">
-                                        <i class="fa fa-calendar-plus-o"/>
-                                        <span class="o_vd_wf_btn_callback_lbl">Hẹn gọi lại</span>
-                                        <span class="o_vd_wf_callback_chip"
-                                              invisible="not callback_date">
-                                            <field name="callback_date" readonly="1" nolabel="1"
-                                                   widget="date"/>
-                                        </span>
-                                    </button>
+                                    <!-- Button "Hẹn gọi lại" — DELETED 2026-05-29 per user request -->
+                                    <field name="callback_date" invisible="1"/>
                                     <div class="o_vd_call_stats_chip">
                                         <span class="o_vd_cs_part o_vd_cs_yes">
                                             <i class="fa fa-check-circle"/>

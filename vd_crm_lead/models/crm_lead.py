@@ -1189,65 +1189,127 @@ class CrmLead(models.Model):
     )
 
     @api.depends(
-        'vd_intake_province_id',
-        'vd_intake_area_m2', 'vd_intake_floors_num', 'vd_intake_house_type',
-        'vd_intake_foundation_type',
-        'vd_intake_budget', 'vd_intake_budget_amount',
+        'vd_intake_province_id', 'vd_intake_district',
+        'vd_intake_total_m2', 'vd_intake_floors_select', 'vd_intake_has_tum',
+        'vd_intake_has_lung', 'vd_intake_house_type', 'vd_intake_foundation_type',
+        'vd_intake_house_length_m', 'vd_intake_house_width_m',
+        'vd_intake_length_m', 'vd_intake_width_m',
+        'vd_intake_budget_range', 'vd_intake_budget_amount',
         'vd_intake_timeline', 'vd_intake_land_type', 'vd_intake_dimensions',
-        'vd_intake_car_access', 'vd_intake_soil_dump',
+        'vd_intake_car_access_select', 'vd_intake_soil_dump',
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2', 'vd_intake_floor_lung_m2',
+        'vd_intake_floor_1_function_ids', 'vd_intake_floor_2_function_ids',
+        'vd_intake_floor_3_function_ids', 'vd_intake_floor_4_function_ids',
+        'vd_intake_floor_5_function_ids', 'vd_intake_floor_6_function_ids',
+        'vd_intake_floor_7_function_ids', 'vd_intake_floor_tum_function_ids',
+        'vd_intake_floor_lung_function_ids', 'vd_intake_function_notes',
     )
     def _compute_vd_zalo_copy_text(self):
-        """Build TỔNG HỢP NHU CẦU KHÁCH — format đẹp gửi Zalo / paste nhanh."""
+        """User spec 2026-05-29: copy ĐẦY ĐỦ 11 trường intake + công năng từng tầng."""
         def _sel_label(rec, fname):
             val = rec[fname]
             if not val:
                 return ''
             return rec._vd_selection_dict(fname).get(val, val)
 
+        def _fn_names(funcs):
+            return ', '.join(funcs.mapped('name')) if funcs else ''
+
         for rec in self:
-            lines = ['TỔNG HỢP NHU CẦU KHÁCH', '----------------------------------']
+            lines = ['📋 THÔNG TIN TƯ VẤN', '─' * 35]
 
-            # 📍 Tỉnh (chỉ province, bỏ huyện theo yêu cầu)
+            # 1️⃣ Địa chỉ
+            addr = ''
+            if rec.vd_intake_district:
+                addr = rec.vd_intake_district.name
             if rec.vd_intake_province_id:
-                lines.append('📍 %s' % rec.vd_intake_province_id.name)
+                addr = (addr + ', ' if addr else '') + rec.vd_intake_province_id.name
+            if addr:
+                lines.append('1️⃣ Địa chỉ: %s' % addr)
 
-            # 🏠 Nhà: type • N tầng • Xm²
-            house_parts = []
+            # 2️⃣ Thời gian
+            lines.append('2️⃣ Thời gian: %s' % (rec.vd_intake_timeline or 'Chưa xác định'))
+
+            # 3️⃣ Diện tích
+            dt_parts = []
+            if rec.vd_intake_house_width_m and rec.vd_intake_house_length_m:
+                dt_parts.append('Nhà %sx%sm' % (rec.vd_intake_house_width_m, rec.vd_intake_house_length_m))
+            if rec.vd_intake_width_m and rec.vd_intake_length_m:
+                dt_parts.append('Đất %sx%sm' % (rec.vd_intake_width_m, rec.vd_intake_length_m))
+            if rec.vd_intake_total_m2:
+                dt_parts.append('Tổng %sm²' % rec.vd_intake_total_m2)
+            if dt_parts:
+                lines.append('3️⃣ Diện tích: %s' % ' · '.join(dt_parts))
+
+            # 4️⃣ Mẫu nhà
             if rec.vd_intake_house_type:
-                house_parts.append(_sel_label(rec, 'vd_intake_house_type'))
-            if rec.vd_intake_floors_num:
-                house_parts.append('%s tầng' % int(rec.vd_intake_floors_num))
-            if rec.vd_intake_area_m2:
-                house_parts.append('%sm²' % rec.vd_intake_area_m2)
-            if house_parts:
-                lines.append('🏠 %s' % ' • '.join(house_parts))
+                lines.append('4️⃣ Mẫu nhà: %s' % _sel_label(rec, 'vd_intake_house_type'))
 
-            # 🧱 Móng
-            if rec.vd_intake_foundation_type:
-                lines.append('🧱 %s' % _sel_label(rec, 'vd_intake_foundation_type'))
-
-            # 🌳 Loại đất
+            # 5️⃣ Loại đất / Móng
+            lm_parts = []
             if rec.vd_intake_land_type:
-                lines.append('🌳 %s,' % _sel_label(rec, 'vd_intake_land_type'))
-            # 📄 Sổ đỏ / cấp phép
-            if rec.vd_intake_dimensions:
-                lines.append('📄 %s' % _sel_label(rec, 'vd_intake_dimensions'))
-            # 🚗 Ô tô vào
-            lines.append('🚗 ô tô vào %s' % ('được' if rec.vd_intake_car_access else 'không được'))
-            # ⛰️ Chỗ để đất móng
+                lm_parts.append(_sel_label(rec, 'vd_intake_land_type'))
+            if rec.vd_intake_foundation_type:
+                lm_parts.append(_sel_label(rec, 'vd_intake_foundation_type'))
+            if lm_parts:
+                lines.append('5️⃣ Loại đất / Móng: %s' % ' · '.join(lm_parts))
+
+            # 6️⃣ Số tầng + diện tích từng tầng
+            floor_parts = []
+            n = int(rec.vd_intake_floors_select or '0')
+            for i in range(1, n + 1):
+                m2 = rec['vd_intake_floor_%s_m2' % i] or 0
+                if m2:
+                    floor_parts.append('T%s: %sm²' % (i, m2))
+            if rec.vd_intake_has_tum and rec.vd_intake_floor_tum_m2:
+                floor_parts.append('Tum: %sm²' % rec.vd_intake_floor_tum_m2)
+            if rec.vd_intake_has_lung and rec.vd_intake_floor_lung_m2:
+                floor_parts.append('Lửng: %sm²' % rec.vd_intake_floor_lung_m2)
+            if floor_parts:
+                lines.append('6️⃣ Số tầng: %s' % ' · '.join(floor_parts))
+
+            # 7️⃣ Công năng từng tầng (user spec 2026-05-29: BẮT BUỘC)
+            cn_lines = []
+            for i in range(1, n + 1):
+                fns = _fn_names(rec['vd_intake_floor_%s_function_ids' % i])
+                if fns:
+                    cn_lines.append('   T%s: %s' % (i, fns))
+            if rec.vd_intake_has_lung:
+                fns = _fn_names(rec.vd_intake_floor_lung_function_ids)
+                if fns:
+                    cn_lines.append('   Lửng: %s' % fns)
+            if rec.vd_intake_has_tum:
+                fns = _fn_names(rec.vd_intake_floor_tum_function_ids)
+                if fns:
+                    cn_lines.append('   Tum: %s' % fns)
+            if cn_lines:
+                lines.append('7️⃣ Công năng:')
+                lines.extend(cn_lines)
+            if rec.vd_intake_function_notes:
+                lines.append('   📝 Ghi chú: %s' % rec.vd_intake_function_notes)
+
+            # 8️⃣ Chỗ để đất móng
             if rec.vd_intake_soil_dump:
-                lines.append('⛰️ Đất: %s' % _sel_label(rec, 'vd_intake_soil_dump'))
+                lines.append('8️⃣ Chỗ để đất móng: %s' % _sel_label(rec, 'vd_intake_soil_dump'))
 
-            # 💵 NS dự kiến
-            if rec.vd_intake_budget_amount:
-                lines.append('💵 NS dự kiến: %s đ' % '{:,.0f}'.format(rec.vd_intake_budget_amount))
-            elif rec.vd_intake_budget:
-                lines.append('💵 NS dự kiến: %s' % _sel_label(rec, 'vd_intake_budget'))
+            # 9️⃣ Ô tô vào
+            if rec.vd_intake_car_access_select:
+                lines.append('9️⃣ Ô tô vào: %s' % _sel_label(rec, 'vd_intake_car_access_select'))
 
-            # ⏰ Khởi công — luôn hiện, fallback "Chưa xác định"
-            lines.append('⏰ Khởi công: %s' % (rec.vd_intake_timeline or 'Chưa xác định'))
+            # 🔟 Tầm tài chính
+            if rec.vd_intake_budget_range:
+                budget = _sel_label(rec, 'vd_intake_budget_range') or rec.vd_intake_budget_range
+                lines.append('🔟 Tầm tài chính: %s' % budget)
+            elif rec.vd_intake_budget_amount:
+                lines.append('🔟 Tầm tài chính: %s đ' % '{:,.0f}'.format(rec.vd_intake_budget_amount))
 
-            lines.append('---------------HẾT--------------')
+            # 1️⃣1️⃣ Sổ đỏ / cấp phép
+            if rec.vd_intake_dimensions:
+                lines.append('1️⃣1️⃣ Sổ đỏ: %s' % _sel_label(rec, 'vd_intake_dimensions'))
+
+            lines.append('─' * 35)
             rec.vd_zalo_copy_text = '\n'.join(lines)
 
     def action_copy_zalo(self):
