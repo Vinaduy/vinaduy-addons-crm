@@ -3498,13 +3498,32 @@ class CrmLead(models.Model):
         total_floor_area = sum_floor_areas or self.vd_intake_total_m2 or 0.0
 
         san_unit = self._get_san_unit_price(pricing, total_floor_area, self.vd_intake_car_access) if pricing and total_floor_area else 0
-        # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
-        _found_area_th, _ = self._vd_get_found_roof_areas() if pricing else (0.0, 0.0)
-        found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, _found_area_th >= 70) if pricing else 0
+        # Móng dùng DT TẦNG 1; Mái dùng DT tầng trên cùng (fix 2026-05-29: trước
+        # đây dùng total_floor_area → PDF lệch với UI breakdown panel).
+        found_area, roof_area = self._vd_get_found_roof_areas() if pricing else (0.0, 0.0)
+        found_pct = self._get_foundation_pct(pricing, self.vd_intake_foundation_type, found_area >= 70) if pricing else 0
         roof_pct = self._get_roof_pct(pricing, self._vd_resolve_roof_type()) if pricing else 0
-        found_cost = total_floor_area * (found_pct / 100.0) * san_unit
+        found_cost = found_area * (found_pct / 100.0) * san_unit
         floor_cost = total_floor_area * san_unit
-        roof_cost = total_floor_area * (roof_pct / 100.0) * san_unit
+        roof_cost = roof_area * (roof_pct / 100.0) * san_unit
+
+        # Per-floor breakdown rows (Tầng 1/2/.../Tum) — đồng nhất với UI panel.
+        floor_breakdown = []
+        for i in range(1, n_floors + 1):
+            fa = self['vd_intake_floor_%s_m2' % i] or 0.0
+            if fa > 0:
+                floor_breakdown.append({
+                    'label': f'Tầng {i}',
+                    'area': f'{fa:.0f}',
+                    'cost': f'{fa * san_unit:,.0f}'.replace(',', '.'),
+                })
+        if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
+            ta = self.vd_intake_floor_tum_m2
+            floor_breakdown.append({
+                'label': 'Tum',
+                'area': f'{ta:.0f}',
+                'cost': f'{ta * san_unit:,.0f}'.replace(',', '.'),
+            })
 
         # TỔNG TIỀN báo giá = sum chính xác các dòng (đồng bộ với
         # _compute_intake_estimate). Nếu NV đã chốt giá thủ công thì ưu tiên cái đó.
@@ -3539,10 +3558,14 @@ class CrmLead(models.Model):
             'house_type': house_lbl,
             'foundation': found_lbl,
             'roof': roof_lbl,
-            # 'area' hiển thị cho dòng Móng/Mái = tổng diện tích sàn
+            # Diện tích MÓNG = Tầng 1, MÁI = tầng trên cùng (KHÔNG dùng total)
+            'found_area': f'{found_area:.0f}',
+            'roof_area': f'{roof_area:.0f}',
+            # 'area' giữ legacy = tổng diện tích sàn (template khác dùng)
             'area': f'{total_floor_area:.0f}',
             'floors': f'{floors:.1f}'.rstrip('0').rstrip('.'),
             'total_floor_area': f'{total_floor_area:.0f}',
+            'floor_breakdown': floor_breakdown,
             'unit_price': fmt(san_unit),
             'unit_price_raw': san_unit,  # raw float để template tính cost per tầng
             'found_pct': f'{found_pct:.0f}',

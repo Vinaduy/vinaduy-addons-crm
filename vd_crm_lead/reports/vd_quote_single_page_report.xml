@@ -105,23 +105,62 @@
                     </table>
 
                     <!-- ============ PRICING TABLE ============
-                         User spec 2026-05-29 (round 2): bê NGUYÊN bảng "BÁO GIÁ
-                         CHI TIẾT" UI (field vd_quote_breakdown_html). Dùng t-raw
-                         vì Html field cần render KHÔNG escape. -->
-                    <div style="margin-bottom:0.8rem;font-size:10pt;" t-raw="o.vd_quote_breakdown_html"/>
-                    <!-- Phát sinh — append SAU bảng breakdown nếu có -->
+                         Render INLINE bằng QWeb để không phụ thuộc Html field
+                         (t-raw đã bị remove trong Odoo 18). Logic 1:1 với UI
+                         panel BÁO GIÁ CHI TIẾT:
+                         - Móng: diện tích Tầng 1 × %
+                         - Mỗi tầng (Tầng 1, Tầng 2, ..., Tum): area × san_unit
+                         - Mái: diện tích tầng trên cùng × %
+                         -->
+                    <t t-set="floor_rows" t-value="ctx.get('floor_breakdown') or []"/>
                     <t t-set="surcharges" t-value="ctx.get('surcharges') or []"/>
-                    <table t-if="surcharges"
-                           style="width:100%;border-collapse:collapse;margin-bottom:0.8rem;font-size:10pt;">
+                    <t t-set="num_rows" t-value="2 + max(len(floor_rows), 1) + len(surcharges)"/>
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:0.8rem;font-size:10pt;">
                         <thead>
                             <tr style="background:linear-gradient(90deg,#5c8fb8 0%,#1864ab 100%);color:#fff;">
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Phát sinh</th>
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Số lượng</th>
+                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
+                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
                                 <th style="padding:0.55rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
                                 <th style="padding:0.55rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
+                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Móng — diện tích = Tầng 1 (KHÔNG phải total) -->
+                            <tr>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="found_lbl"/></td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('found_area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
+                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border:2px solid #1864ab;background:#dbeafe;text-align:center;font-weight:800;font-size:13pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                            </tr>
+                            <!-- Per-floor rows (Tầng 1, Tầng 2, ..., Tum) -->
+                            <t t-if="floor_rows">
+                                <t t-foreach="floor_rows" t-as="fr" t-key="fr_index">
+                                    <tr>
+                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="fr['label']"/></td>
+                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="fr['area']"/> M2</td>
+                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="fr['cost']"/> VNĐ</td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <tr>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;">Tổng sàn (<t t-esc="ctx.get('floors', '1')"/> tầng)</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('total_floor_area', '0')"/> M2</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('floor_cost', '0')"/> VNĐ</td>
+                                </tr>
+                            </t>
+                            <!-- Mái — diện tích = tầng trên cùng -->
+                            <tr>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="roof_lbl"/></td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('roof_area', '0')"/> M2 x <t t-esc="ctx.get('roof_pct', '0')"/>%</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('roof_cost', '0')"/> VNĐ</td>
+                            </tr>
+                            <!-- Phát sinh (Thêm WC, cầu thang...) — append sau Mái -->
                             <t t-foreach="surcharges" t-as="sc" t-key="sc_index">
                                 <tr>
                                     <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="sc['name']"/></td>
