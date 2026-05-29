@@ -2149,6 +2149,127 @@
     .o_vd_pill_call_red      .o_vd_pill_call_badge { background: rgba(140, 26, 26, 0.18); color: #8c1a1a; }
     .o_vd_pill_call_darkred  .o_vd_pill_call_badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
+    /* ===== NV SEARCH BOX — to + chuyên nghiệp (user spec 2026-05-29) ===== */
+    .o_vd_nv_search_wrap {
+        margin: 0.5rem 0 0.85rem;
+        padding: 0 0.15rem;
+    }
+    .o_vd_nv_search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 2px solid #d0d7de;
+        border-radius: 14px;
+        padding: 0.65rem 1.1rem;
+        box-shadow: 0 2px 8px rgba(15, 30, 52, 0.06);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+        &:focus-within {
+            border-color: #1971c2;
+            box-shadow: 0 4px 16px rgba(25, 113, 194, 0.18);
+        }
+    }
+    .o_vd_nv_search_icon {
+        font-size: 1.1rem;
+        color: #1971c2;
+        margin-right: 0.7rem;
+        flex-shrink: 0;
+    }
+    .o_vd_nv_search_input {
+        flex: 1 1 auto;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        color: #0f1e34;
+        background: transparent;
+        font-weight: 500;
+        &::placeholder {
+            color: #8b96a8;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+    }
+    .o_vd_nv_search_clear {
+        background: transparent;
+        border: none;
+        color: #8b96a8;
+        cursor: pointer;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        &:hover { background: #f1f3f5; color: #1f2a44; }
+    }
+    .o_vd_nv_search_dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        max-height: 420px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1.5px solid #d0d7de;
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(15, 30, 52, 0.22);
+        z-index: 100;
+        padding: 0.35rem;
+    }
+    .o_vd_nv_search_loading,
+    .o_vd_nv_search_empty {
+        padding: 0.85rem 1rem;
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.92rem;
+        text-align: center;
+    }
+    .o_vd_nv_search_item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.18rem;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.12s ease;
+        &:hover { background: #e7f5ff; }
+    }
+    .o_vd_nv_search_item_main {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-size: 0.95rem;
+    }
+    .o_vd_nv_search_item_name {
+        font-weight: 700;
+        color: #0f1e34;
+    }
+    .o_vd_nv_search_item_phone {
+        color: #1971c2;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_vd_nv_search_item_meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .o_vd_nv_search_item_stage {
+        background: #fff5f5;
+        color: #c92a2a;
+        padding: 0.08rem 0.45rem;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+    .o_vd_nv_search_item_user {
+        color: #6741d9;
+        font-weight: 600;
+    }
+
     /* ===== PILL "ĐÃ CÓ BÁO GIÁ" — chưa CHỐT (user spec 2026-05-27) =====
        Xanh lá đậm nền + viền trắng dày + icon 💰 — thu hút NV CHỐT ngay. */
     .o_vd_won_pill.o_vd_pill_has_quote {

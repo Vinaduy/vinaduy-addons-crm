@@ -4901,6 +4901,60 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(leads)
 
     @api.model
+    def vd_dashboard_search_leads(self, query, user_id=None, limit=20):
+        """User spec 2026-05-29: search KH theo SĐT hoặc TÊN không dấu.
+        Scope: nếu user_id specified → chỉ leads của user đó; else all (admin).
+        """
+        import unicodedata
+        q = (query or '').strip()
+        if not q:
+            return []
+
+        def _norm(s):
+            """Lowercase + strip diacritics + collapse spaces. 'Hà Nội' → 'ha noi'."""
+            if not s:
+                return ''
+            s = unicodedata.normalize('NFD', s)
+            s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+            s = s.replace('đ', 'd').replace('Đ', 'd')
+            return s.lower().strip()
+
+        q_norm = _norm(q)
+        # Phone: chỉ digits → so sánh substring
+        q_digits = ''.join(c for c in q if c.isdigit())
+
+        # Domain scope
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        # Fetch wider — filter Python (cần normalize)
+        leads = self.search(
+            domain_user + [('active', '=', True)],
+            limit=200,
+            order='write_date desc',
+        )
+        matches = []
+        for l in leads:
+            name_norm = _norm(l.name or '')
+            partner_norm = _norm(l.partner_name or '')
+            phone = (l.phone or '').replace(' ', '').replace('.', '').replace('-', '')
+            mobile = (l.mobile or '').replace(' ', '').replace('.', '').replace('-', '')
+            hit = False
+            if q_norm and (q_norm in name_norm or q_norm in partner_norm):
+                hit = True
+            elif q_digits and (q_digits in phone or q_digits in mobile):
+                hit = True
+            if hit:
+                matches.append({
+                    'id': l.id,
+                    'name': l.partner_name or l.name or '(không tên)',
+                    'phone': l.phone or '',
+                    'stage_name': l.stage_id.name or '',
+                    'user_name': l.user_id.name or '',
+                })
+                if len(matches) >= limit:
+                    break
+        return matches
+
+    @api.model
     def dashboard_leads_not_called(self, user_id=None, limit=200):
         """KH "chưa gọi được" — NV đã cố gắng nhưng KH chưa bao giờ nghe máy.
 

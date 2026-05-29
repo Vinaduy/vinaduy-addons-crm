@@ -774,27 +774,14 @@ export class VdCrmDashboard extends Component {
 
     async _runSearch(q) {
         try {
-            const domain = [
-                ["active", "=", true],
-                "|", "|", "|",
-                ["name", "ilike", q],
-                ["partner_name", "ilike", q],
-                ["phone", "ilike", q],
-                ["mobile", "ilike", q],
-            ];
-            const rows = await this.orm.searchRead(
-                "crm.lead",
-                domain,
-                ["id", "name", "partner_name", "phone", "stage_id", "user_id"],
-                { limit: 20, order: "write_date desc" },
+            // User spec 2026-05-29: search KHÔNG DẤU theo tên + SĐT.
+            // Backend Python normalize NFD strip diacritics + match substring.
+            const uid = this.state.selected_user_id || null;
+            const rows = await this.orm.call(
+                "crm.lead", "vd_dashboard_search_leads",
+                [q, uid, 20],
             );
-            this.state.searchResults = rows.map(r => ({
-                id: r.id,
-                name: r.partner_name || r.name || "(không tên)",
-                phone: r.phone || "",
-                stage_name: r.stage_id ? r.stage_id[1] : "",
-                user_name: r.user_id ? r.user_id[1] : "",
-            }));
+            this.state.searchResults = rows || [];
         } catch (e) {
             console.error("[VD] search lead failed", e);
             this.state.searchResults = [];

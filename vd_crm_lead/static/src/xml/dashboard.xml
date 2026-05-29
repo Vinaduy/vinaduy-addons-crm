@@ -1289,6 +1289,49 @@
                             </div>
                         </div>
 
+                        <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
+                        <div class="o_vd_nv_search_wrap" t-if="!isAdminView">
+                            <div class="o_vd_nv_search">
+                                <i class="fa fa-search o_vd_nv_search_icon"/>
+                                <input type="text" class="o_vd_nv_search_input"
+                                       placeholder="Tìm khách hàng theo tên (không dấu) hoặc số điện thoại..."
+                                       t-att-value="state.searchQuery"
+                                       t-on-input="(ev) => this.onSearchInput(ev)"
+                                       t-on-focus="() => this.onSearchFocus()"
+                                       t-on-blur="() => this.onSearchBlur()"/>
+                                <button t-if="state.searchQuery"
+                                        class="o_vd_nv_search_clear"
+                                        t-on-click="() => this.clearSearch()"
+                                        title="Xoá">
+                                    <i class="fa fa-times"/>
+                                </button>
+                                <!-- Dropdown kết quả -->
+                                <div t-if="state.searchOpen and (state.searchResults.length or state.searchLoading)"
+                                     class="o_vd_nv_search_dropdown">
+                                    <div t-if="state.searchLoading" class="o_vd_nv_search_loading">
+                                        <i class="fa fa-spinner fa-spin me-2"/> Đang tìm...
+                                    </div>
+                                    <div t-else=""
+                                         t-foreach="state.searchResults" t-as="r" t-key="r.id"
+                                         class="o_vd_nv_search_item"
+                                         t-on-mousedown="() => this.selectSearchResult(r.id)">
+                                        <div class="o_vd_nv_search_item_main">
+                                            <span class="o_vd_nv_search_item_name"><t t-esc="r.name"/></span>
+                                            <span t-if="r.phone" class="o_vd_nv_search_item_phone">📞 <t t-esc="r.phone"/></span>
+                                        </div>
+                                        <div class="o_vd_nv_search_item_meta">
+                                            <span t-if="r.stage_name" class="o_vd_nv_search_item_stage"><t t-esc="r.stage_name"/></span>
+                                            <span t-if="r.user_name" class="o_vd_nv_search_item_user">👤 <t t-esc="r.user_name"/></span>
+                                        </div>
+                                    </div>
+                                    <div t-if="!state.searchLoading and !state.searchResults.length"
+                                         class="o_vd_nv_search_empty">
+                                        Không tìm thấy KH khớp.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="o_vd_lead_dual_cols">
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
