@@ -10706,7 +10706,9 @@ $vd-panel-head-radius: 10px;
 }
 .o_vd_copy_zalo_panel {
     /* CRITICAL: width CỨNG để Odoo's flex container ko collapse panel
-       xuống 1ch (round 5 fix). Dùng width + !important đè mọi parent. */
+       xuống 1ch. Dùng width + !important đè mọi parent.
+       text-transform: none để value (đã viết thường) ko bị parent
+       .o_vd_hero_head ép uppercase. */
     display: none;
     position: absolute !important;
     top: calc(100% + 4px) !important;
@@ -10726,6 +10728,8 @@ $vd-panel-head-radius: 10px;
     box-sizing: border-box !important;
     text-align: left !important;
     flex: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
     /* Bridge invisible để hover bắc cầu từ button xuống panel */
     &::before {
         content: '';
@@ -10767,6 +10771,9 @@ $vd-panel-head-radius: 10px;
         margin: 0 !important;
         border: none !important;
         flex: none !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        font-weight: normal !important;
     }
 }
 .o_vd_copy_zalo_wrap:hover .o_vd_copy_zalo_panel,
