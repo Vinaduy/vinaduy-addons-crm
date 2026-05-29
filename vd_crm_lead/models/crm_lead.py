@@ -1080,10 +1080,13 @@ class CrmLead(models.Model):
         """Admin duyệt đề xuất hủy → archive lead (active=False) + record audit.
         Lead vẫn ở stage=lost (đã được wizard set) → vẫn xuất hiện trong thùng
         rác với active_test=False. NV không thấy ở pipeline chính (active=False
-        + stage_is_lost=True → đã exclude từ mọi domain pipeline chuẩn)."""
+        + stage_is_lost=True → đã exclude từ mọi domain pipeline chuẩn).
+
+        Round 7 phase 2.1: cho phép duyệt CẢ legacy leads (vd_cancel_state=None)
+        — KH lost trước Phase 2 vẫn cần audit trail admin duyệt."""
         for rec in self:
-            if rec.vd_cancel_state != 'proposed':
-                continue
+            if rec.vd_cancel_state == 'approved':
+                continue  # đã duyệt rồi, skip
             rec.with_context(mail_notrack=True, tracking_disable=True).write({
                 'vd_cancel_state': 'approved',
                 'vd_cancel_approved_by_id': self.env.user.id,

@@ -1575,7 +1575,7 @@
                                                     </thead>
                                                     <tbody>
                                                         <tr t-foreach="leadsLost" t-as="ld" t-key="ld.id"
-                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'proposed' ? 'o_vd_cancel_pending' : (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_legacy'))"
+                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
                                                             t-on-click.stop="() => this.openLead(ld.id)">
                                                             <td class="o_vd_cancel_kh">
                                                                 <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
@@ -1586,7 +1586,7 @@
                                                                 <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
                                                                     <t t-esc="ld.cancel_category_label"/>
                                                                 </span>
-                                                                <span t-else="" class="o_vd_cancel_topic_legacy">—</span>
+                                                                <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
                                                             </td>
                                                             <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
                                                                 <t t-if="ld.cancel_reason_short">
@@ -1595,18 +1595,17 @@
                                                                 <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
                                                             </td>
                                                             <td class="o_vd_cancel_status">
-                                                                <span t-if="ld.cancel_state === 'proposed'" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
-                                                                    ⏳ Chờ duyệt
-                                                                </span>
-                                                                <span t-elif="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
+                                                                <!-- Round 7 phase 2.1: NULL state = legacy lead chưa duyệt
+                                                                     → treat same as 'proposed' → admin có thể duyệt. -->
+                                                                <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
                                                                     ✓ Đã duyệt
                                                                 </span>
-                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_legacy">
-                                                                    Cũ
+                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
+                                                                    ⏳ Chờ duyệt
                                                                 </span>
                                                             </td>
                                                             <td class="o_vd_cancel_action">
-                                                                <button t-if="ld.cancel_state === 'proposed'"
+                                                                <button t-if="ld.cancel_state !== 'approved'"
                                                                         class="btn btn-sm o_vd_cancel_approve_btn"
                                                                         t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
                                                                         title="Duyệt đề xuất hủy này">
