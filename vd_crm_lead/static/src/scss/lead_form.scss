@@ -10574,16 +10574,41 @@ $vd-panel-head-radius: 10px;
 
 /* ============================================================
    LOCKED STATE — steps panel khi vd_intake_locked=True.
-   Class .vd-intake-locked được toggle bởi intake_select_fix.js
-   theo giá trị field vd_intake_locked.
-
-   User spec 2026-05-29 (round 2): NUCLEAR lock — chặn TOÀN BỘ
-   pointer-events trên panel + overlay che mờ. Chỉ button Mở khoá
-   / Cúp máy / Lịch sử / Copy / hangup là còn dùng được.
+   User spec 2026-05-29 (round 3): OVERLAY DIV thực sự catch clicks.
+   View XML có <div class="o_vd_steps_lock_overlay" invisible="not vd_intake_locked"/>
+   → Odoo render overlay khi lock, ẩn khi unlock — NATIVE behavior, bulletproof.
+   Overlay z-100 phủ panel; whitelist buttons z-101 nổi lên.
    ============================================================ */
+.o_vd_steps_panel {
+    position: relative;
+}
+.o_vd_steps_lock_overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    background: rgba(241, 245, 249, 0.45) !important;
+    backdrop-filter: grayscale(0.3);
+    cursor: not-allowed !important;
+    display: block !important;
+    pointer-events: auto !important;
+}
+/* Whitelist buttons nổi LÊN TRÊN overlay — vẫn click được */
+.o_vd_btn_unlock,
+.o_vd_popup_hangup_btn,
+.o_vd_copy_zalo_inline,
+.o_vd_cancel_calls_btn,
+.o_vd_cr_history_btn,
+.o_vd_hero_head_actions,
+.o_vd_hero_head {
+    position: relative !important;
+    z-index: 101 !important;
+}
+/* Class fallback giữ lại cho legacy compat */
 .o_vd_steps_panel.vd-intake-locked {
     position: relative;
-    /* Nuclear: chặn TẤT CẢ children */
 }
 .o_vd_steps_panel.vd-intake-locked * {
     pointer-events: none !important;

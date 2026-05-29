@@ -177,11 +177,15 @@
                             <field name="vd_intake_has_tum" invisible="1"/>
                             <field name="vd_intake_car_access" invisible="1"/>
                             <field name="vd_intake_budget_status" invisible="1"/>
-                            <!-- Marker để JS detect locked state — Odoo 18 với
-                                 invisible="not vd_intake_locked" → element được render
-                                 vào DOM khi locked=True, bị remove khi False.
-                                 JS query 'span.o_vd_steps_lock_marker' tồn tại =
-                                 locked → toggle class .vd-intake-locked lên panel. -->
+                            <!-- User spec 2026-05-29 (round 3): OVERLAY thực sự catch clicks
+                                 thay vì JS marker (Odoo 18 không reliably remove element).
+                                 Overlay absolute z-100 phủ TOÀN BỘ panel, block mọi click.
+                                 Các button cần dùng được khi lock (Mở khoá, Cúp máy, Copy,
+                                 Lịch sử) z-index: 101 nổi lên trên overlay. -->
+                            <div class="o_vd_steps_lock_overlay"
+                                 invisible="not vd_intake_locked"
+                                 title="🔒 Thông tin đã chốt — bấm 'Mở khoá' để chỉnh sửa"/>
+                            <!-- Marker giữ lại để JS legacy code không broken -->
                             <span class="o_vd_steps_lock_marker"
                                   invisible="not vd_intake_locked"
                                   style="position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;"/>

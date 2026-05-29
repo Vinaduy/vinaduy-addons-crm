@@ -105,12 +105,10 @@
                     </table>
 
                     <!-- ============ PRICING TABLE ============
-                         User spec 2026-05-29: bê NGUYÊN bảng "BÁO GIÁ CHI TIẾT"
-                         hiển thị trên UI (field vd_quote_breakdown_html) vào PDF
-                         để 2 nơi đồng nhất 100%. -->
-                    <div style="margin-bottom:0.8rem;font-size:10pt;">
-                        <t t-out="o.vd_quote_breakdown_html"/>
-                    </div>
+                         User spec 2026-05-29 (round 2): bê NGUYÊN bảng "BÁO GIÁ
+                         CHI TIẾT" UI (field vd_quote_breakdown_html). Dùng t-raw
+                         vì Html field cần render KHÔNG escape. -->
+                    <div style="margin-bottom:0.8rem;font-size:10pt;" t-raw="o.vd_quote_breakdown_html"/>
                     <!-- Phát sinh — append SAU bảng breakdown nếu có -->
                     <t t-set="surcharges" t-value="ctx.get('surcharges') or []"/>
                     <table t-if="surcharges"
