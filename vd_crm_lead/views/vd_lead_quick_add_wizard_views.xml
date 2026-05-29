@@ -4,28 +4,17 @@
         <field name="name">vd.lead.quick.add.wizard.form</field>
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
-            <form string="Thêm KH mới (nhập nhiều)" class="o_vd_quick_add_form o_vd_quick_add_compact">
-                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
-                    <div class="alert alert-info" role="alert" style="margin:0;flex:1;min-width:280px;">
-                        <b>💡 Mẹo:</b> Bấm <b>⋮</b> header bảng để hiện/ẩn cột. Gõ ô bên phải để thêm cột mới.
-                        <br/><b>📋 Paste Excel:</b> Copy nhiều dòng từ Excel rồi paste (Ctrl+V) vào ô bất kỳ — tự fill cả bảng.
-                    </div>
-                    <div groups="vd_crm_lead.vd_crm_group_admin"
-                         style="display:flex;align-items:center;gap:0.4rem;min-width:260px;">
-                        <field name="quick_add_field_id" nolabel="1"
-                               options="{'no_open': True}"
-                               placeholder="Gõ tên cột mới + Enter..."
-                               style="min-width:260px;"/>
-                    </div>
-                </div>
-                <!-- User spec 2026-05-29: assign_mode toggle (manual vs even).
-                     Chọn 'even' → ẩn cột NV. Chỉ leader/admin thấy toggle. -->
+            <form string="Thêm khách hàng mới" class="o_vd_quick_add_form o_vd_quick_add_compact o_vd_quick_add_v2">
+                <!-- User spec 2026-05-29 (round 3): bỏ alert Mẹo + ô tạo cột mới,
+                     chỉ giữ assign_mode toggle dạng segmented button group. -->
                 <div groups="vd_crm_lead.vd_crm_group_team_leader"
-                     style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;padding:0.4rem 0.6rem;background:#fff8e1;border-radius:6px;border:1px solid #ffe082;">
-                    <span style="font-weight:600;">Phân bổ NV:</span>
-                    <field name="assign_mode" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                     class="o_vd_quick_assign_bar">
+                    <span class="o_vd_quick_assign_lbl">Phân bổ NV:</span>
+                    <field name="assign_mode" widget="radio" options="{'horizontal': true}" nolabel="1"
+                           class="o_vd_quick_assign_radio"/>
                 </div>
                 <field name="assign_mode" invisible="1"/>
+                <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
                         <field name="sequence" widget="handle"/>

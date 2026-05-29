@@ -179,10 +179,17 @@ html, body {
         max-height: 100vh !important;
         border-radius: 0 !important;
     }
+    /* User spec 2026-05-29: title bar -40% chiều cao */
+    .modal-header {
+        padding: 0.4rem 1rem !important;
+        min-height: 0 !important;
+        .modal-title { font-size: 1rem !important; line-height: 1.2 !important; }
+        .btn-close { padding: 0.25rem !important; }
+    }
     .modal-body {
-        max-height: calc(100vh - 120px);
+        max-height: calc(100vh - 90px);
         overflow: auto;
-        padding: 0.75rem 1rem;
+        padding: 0.4rem 0.6rem;
     }
     .o_form_sheet_bg,
     .o_form_sheet {
@@ -215,24 +222,36 @@ html, body {
     }
     .o_list_table th,
     .o_list_table td {
-        /* User spec 2026-05-29 (round 2): row spacing -60% total
-           (0.35→0.24→0.14, 0.55→0.38→0.27) */
-        padding: 0.14rem 0.27rem !important;
+        /* User spec 2026-05-29 (round 3): row spacing -72% total
+           (0.35→0.24→0.14→0.07, 0.55→0.38→0.27→0.2). 10 dòng phải fit 1 màn */
+        padding: 0.07rem 0.2rem !important;
         white-space: nowrap;
-        max-width: 280px;             /* cap để cell rất dài không phá layout */
-        line-height: 1.1 !important;
-        height: auto !important;
+        max-width: 280px;
+        line-height: 1.0 !important;
+        height: 24px !important;
+        min-height: 0 !important;
     }
-    .o_list_table th { font-weight: 600; }
-    .o_list_table tr { line-height: 1.1 !important; }
+    .o_list_table th { font-weight: 600; height: 26px !important; }
+    .o_list_table tr {
+        line-height: 1.0 !important;
+        height: 24px !important;
+        min-height: 0 !important;
+    }
     .o_list_table input,
     .o_list_table select,
     .o_list_table .o_input,
     .o_list_table .o_field_widget {
-        font-size: 0.85rem;
-        padding: 0.05rem 0.2rem !important;
+        font-size: 0.82rem;
+        padding: 0 0.15rem !important;
         min-width: 0;
-        line-height: 1.1 !important;
+        line-height: 1.0 !important;
+        height: 22px !important;
+    }
+    /* Bỏ debug/trash button column min-height */
+    .o_list_table .o_list_record_remove,
+    .o_list_table .o_handle_cell {
+        padding: 0 0.15rem !important;
+        height: 24px !important;
     }
     /* Min-width đủ rộng để KHÔNG cắt chữ Vietnamese phổ biến */
     .o_list_table .o_vd_select_dd {
@@ -335,6 +354,75 @@ html, body {
 /* Ẩn caret arrow khi không hover/focus cho clean look */
 .o_vd_quick_add_form .o_list_table tr:not(:hover):not(.o_selected_row) .o_vd_select_dd_arrow {
     opacity: 0;
+}
+
+/* ============================================================
+   User spec 2026-05-29 (round 3): Segmented button group cho
+   assign_mode trong Quick Add Wizard. Thay radio plain bằng
+   2 button "pro" sát nhau, click chuyển active.
+   ============================================================ */
+.o_vd_quick_assign_bar {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.5rem 0;
+    padding: 0.3rem 0.5rem;
+}
+.o_vd_quick_assign_lbl {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #475569;
+    white-space: nowrap;
+}
+/* Container: pill group có background xám nhạt + border */
+.o_vd_quick_assign_radio.o_field_radio {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0;
+    padding: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.o_vd_quick_assign_radio.o_field_radio > div,
+.o_vd_quick_assign_radio.o_field_radio .o_radio_item {
+    display: inline-flex !important;
+    align-items: center;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+/* Ẩn radio input native */
+.o_vd_quick_assign_radio.o_field_radio input[type="radio"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+/* Label = button — sát nhau, có padding rộng */
+.o_vd_quick_assign_radio.o_field_radio label {
+    cursor: pointer;
+    padding: 0.4rem 0.95rem !important;
+    margin: 0 !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+    &:hover { background: #fff; color: #1e293b; }
+}
+/* Active = button đậm — gradient tím / xanh tuỳ option */
+.o_vd_quick_assign_radio.o_field_radio label:has(input:checked),
+.o_vd_quick_assign_radio.o_field_radio .o_radio_item:has(input:checked) label {
+    background: linear-gradient(135deg, #6a4ce0 0%, #8b66f0 100%);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(106, 76, 224, 0.35);
+    &:hover { background: linear-gradient(135deg, #5a3ce0 0%, #7a56f0 100%); color: #fff; }
 }
 
 /* ============================================================
