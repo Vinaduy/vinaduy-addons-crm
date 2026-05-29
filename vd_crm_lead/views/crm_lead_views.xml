@@ -1338,6 +1338,71 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                         </div>
                                     </div>
 
+                                    <!-- ===== GIA ĐÌNH KHÔNG ĐỒNG Ý (tag_code='family_not_agree') ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_family"
+                                         invisible="tag_code != 'family_not_agree'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">👨‍👩‍👧</span>
+                                            <span class="o_vd_pf_section_title">2. AI KHÔNG ĐỒNG Ý? TẠI SAO?</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Người cản KH chốt</span>
+                                                <field name="fa_who" nolabel="1" widget="radio"
+                                                       options="{'horizontal': True}"/>
+                                            </div>
+                                            <div class="o_vd_pf_field" invisible="fa_who != 'khac'">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Chi tiết người khác</span>
+                                                <field name="fa_who_other" nolabel="1"
+                                                       placeholder="VD: bố vợ, dì ruột, người tư vấn quen..."/>
+                                            </div>
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Tại sao họ không đồng ý?</span>
+                                                <field name="fa_why" nolabel="1"
+                                                       placeholder="VD: lo phát sinh chi phí, muốn xem thêm bên khác, thiên kiến công ty A từng làm hỏng, sợ vợ chồng cãi nhau..."/>
+                                            </div>
+                                        </div>
+
+                                        <div class="o_vd_pf_section_head" style="margin-top:0.8rem;">
+                                            <span class="o_vd_pf_section_icon">🎯</span>
+                                            <span class="o_vd_pf_section_title">3. HƯỚNG XỬ LÝ</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Phương án NV dự kiến</span>
+                                                <field name="fa_solution" nolabel="1"
+                                                       placeholder="VD: xin gặp trực tiếp người ra quyết định, mời tham quan công trình, gửi hợp đồng mẫu + cam kết bảo hành..."/>
+                                            </div>
+                                        </div>
+
+                                        <div class="o_vd_pf_section_head" style="margin-top:0.8rem;">
+                                            <span class="o_vd_pf_section_icon">☑️</span>
+                                            <span class="o_vd_pf_section_title">4. CHECKLIST CÁC BƯỚC XỬ LÝ</span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body o_vd_pf_family_checklist">
+                                            <div class="o_vd_pf_check_row">
+                                                <field name="fa_step1"/>
+                                                <label for="fa_step1">Đã xác định ĐÚNG người ra quyết định cuối</label>
+                                            </div>
+                                            <div class="o_vd_pf_check_row">
+                                                <field name="fa_step2"/>
+                                                <label for="fa_step2">Đã gặp / gọi trực tiếp người đó</label>
+                                            </div>
+                                            <div class="o_vd_pf_check_row">
+                                                <field name="fa_step3"/>
+                                                <label for="fa_step3">Đã gửi tài liệu thuyết phục (báo giá, mẫu nhà, công trình thực)</label>
+                                            </div>
+                                            <div class="o_vd_pf_check_row">
+                                                <field name="fa_step4"/>
+                                                <label for="fa_step4">Đã đưa phương án thay thế (giảm chi phí / đổi mẫu / chia giai đoạn)</label>
+                                            </div>
+                                            <div class="o_vd_pf_check_row">
+                                                <field name="fa_step5"/>
+                                                <label for="fa_step5">Đã chốt được sự đồng ý của người đó</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- ===== 5. KẾT QUẢ + TỔNG KẾT ===== -->
                                     <div class="o_vd_pf_section o_vd_pf_section_outcome">
                                         <div class="o_vd_pf_section_head">

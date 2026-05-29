@@ -10572,6 +10572,43 @@ $vd-panel-head-radius: 10px;
     padding: 0.3rem 0;
 }
 
+/* Round 7 phase 3: Family disagree checklist */
+.o_vd_pf_family_checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+.o_vd_pf_check_row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.6rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    transition: background 0.12s;
+    &:hover { background: #f1f3f5; }
+    label {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #1f2a44;
+        cursor: pointer;
+        flex: 1;
+    }
+    /* Khi checkbox đã tick → row hiển thị xanh ✓ */
+    &:has(input:checked) {
+        background: #d3f9d8;
+        border-color: #8ce99a;
+        label {
+            color: #2b8a3e;
+            font-weight: 600;
+            text-decoration: line-through;
+            text-decoration-color: rgba(43, 138, 62, 0.3);
+        }
+    }
+}
+
 /* ============================================================
    LOCKED STATE — steps panel khi vd_intake_locked=True.
    User spec 2026-05-29 (round 3): OVERLAY DIV thực sự catch clicks.

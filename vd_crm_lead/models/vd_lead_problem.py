@@ -157,6 +157,41 @@ class VdLeadProblem(models.Model):
     ], string='Kết quả sau xử lý')
 
     # ============================================================
+    # GIA ĐÌNH KHÔNG ĐỒNG Ý (tag.code = 'family_not_agree') — round 7 phase 3
+    # Khai thác: AI không đồng ý, TẠI SAO, HƯỚNG xử lý, CHECKLIST các bước.
+    # ============================================================
+    fa_who = fields.Selection([
+        ('vo', '💑 Vợ'),
+        ('chong', '🤵 Chồng'),
+        ('bo_me', '👴👵 Bố mẹ'),
+        ('ong_ba', '👴👵 Ông bà'),
+        ('con_cai', '👨‍👩‍👧 Con cái'),
+        ('anh_chi_em', '👨‍👩‍👦 Anh chị em'),
+        ('khac', '❓ Khác'),
+    ], string='Ai không đồng ý?',
+        help='Người đang cản KH chốt — quan trọng vì sau này phải gặp/thuyết phục đúng người đó.')
+    fa_who_other = fields.Char(
+        string='Chi tiết người khác',
+        help='Nếu chọn "Khác" — ghi cụ thể (vd: bố vợ, dì ruột, người tư vấn quen…).',
+    )
+    fa_why = fields.Text(
+        string='Tại sao họ không đồng ý?',
+        help='Lý do cụ thể họ phản đối: lo chi phí, lo chất lượng, có ý định khác, '
+             'thiên kiến với công ty xây dựng…',
+    )
+    fa_solution = fields.Text(
+        string='Hướng xử lý',
+        help='NV dự kiến làm gì để giải quyết: gặp trực tiếp, gửi tài liệu, '
+             'đề xuất phương án rẻ hơn, mời đến công trường tham quan…',
+    )
+    # Checklist 5 bước chuẩn xử lý (theo tip_html của tag)
+    fa_step1 = fields.Boolean(string='Đã xác định ĐÚNG người ra quyết định cuối')
+    fa_step2 = fields.Boolean(string='Đã gặp / gọi trực tiếp người đó')
+    fa_step3 = fields.Boolean(string='Đã gửi tài liệu thuyết phục (báo giá, mẫu nhà, công trình thực)')
+    fa_step4 = fields.Boolean(string='Đã đưa phương án thay thế (giảm chi phí / đổi mẫu / chia giai đoạn)')
+    fa_step5 = fields.Boolean(string='Đã chốt được sự đồng ý của người đó')
+
+    # ============================================================
     # CÂN ĐỐI NGÂN SÁCH (tag.code = 'budget_balance') — sửa intake
     # Section cho phép NV sửa các trường ảnh hưởng báo giá chi tiết
     # (mẫu nhà / móng / mái / vùng / diện tích từng tầng / lửng / tum).
