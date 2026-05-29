@@ -10705,23 +10705,27 @@ $vd-panel-head-radius: 10px;
     &:hover { background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important; }
 }
 .o_vd_copy_zalo_panel {
-    /* Default ẩn — hiện khi hover wrap. Đặt sát button (margin-top: -2px
-       qua bridge invisible) để chuột move từ button qua panel không bị mất hover. */
+    /* CRITICAL: width CỨNG để Odoo's flex container ko collapse panel
+       xuống 1ch (round 5 fix). Dùng width + !important đè mọi parent. */
     display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    min-width: 380px;
-    max-width: 520px;
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    right: 0 !important;
+    width: 460px !important;
+    max-width: 90vw !important;
+    min-width: 460px !important;
     max-height: 60vh;
     overflow-y: auto;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18), 0 3px 8px rgba(15, 23, 42, 0.08);
-    z-index: 9999;
-    padding: 0.7rem 0.95rem 0.85rem;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18), 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+    z-index: 9999 !important;
+    padding: 0.7rem 0.95rem 0.85rem !important;
     animation: vd-copy-pop-in 0.14s ease-out;
+    box-sizing: border-box !important;
+    text-align: left !important;
+    flex: none !important;
     /* Bridge invisible để hover bắc cầu từ button xuống panel */
     &::before {
         content: '';
@@ -10730,24 +10734,39 @@ $vd-panel-head-radius: 10px;
         background: transparent;
     }
     .o_vd_copy_zalo_panel_hd {
-        font-weight: 700;
-        font-size: 0.82rem;
-        color: #0284c7;
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 0.4rem;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        color: #0284c7 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-bottom: 0.4rem !important;
+        margin-bottom: 0.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        width: 100% !important;
+        white-space: nowrap !important;
     }
-    .o_vd_copy_zalo_text {
+    /* Force field widget + INNER span/textarea/div FULL WIDTH (Odoo readonly
+       text field renders thành 1 wrapper rất hẹp). */
+    .o_vd_copy_zalo_text,
+    .o_vd_copy_zalo_text > *,
+    .o_vd_copy_zalo_text .o_field_widget,
+    .o_vd_copy_zalo_text span {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
         white-space: pre-wrap !important;
-        font-family: 'Segoe UI', 'Roboto', sans-serif;
-        font-size: 0.83rem;
-        line-height: 1.55;
-        color: #1f2937;
-        /* Hide Odoo's field wrapping if any */
-        & > * { all: unset; white-space: pre-wrap !important; font: inherit; color: inherit; }
+        word-break: break-word !important;
+        font-family: 'Segoe UI', 'Roboto', sans-serif !important;
+        font-size: 0.83rem !important;
+        line-height: 1.55 !important;
+        color: #1f2937 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        flex: none !important;
     }
 }
 .o_vd_copy_zalo_wrap:hover .o_vd_copy_zalo_panel,
