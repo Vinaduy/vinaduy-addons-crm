@@ -3563,6 +3563,41 @@
         border-color: #2563eb;
         color: #1e40af;
     }
+    /* User spec 2026-05-29: 2 segment có label trong cột Khách mới
+       Format: "Hôm nay [N]  Tổng [M]" */
+    .o_vd_kh_new_seg {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.3;
+        cursor: help;
+        &:not(:last-child) { margin-right: 0.5rem; }
+    }
+    .o_vd_kh_new_seg_lbl {
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        opacity: 0.85;
+        letter-spacing: 0.3px;
+    }
+    .o_vd_kh_new_seg_val {
+        font-size: 1rem;
+        font-weight: 800;
+    }
+    .o_vd_kh_new_seg_today {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        border: 1.5px solid #f59e0b;
+    }
+    .o_vd_kh_new_seg_total {
+        background: var(--bs-body-bg, #fff);
+        color: #1e40af;
+        border: 1.5px solid #2563eb;
+    }
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }

@@ -227,10 +227,15 @@
                                                 <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
                                                     <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
-                                                         t-att-title="nv.full_name + ' — Click để xem dashboard'"
+                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
                                                         <span class="o_vd_kh_nv_link_name">
                                                             <t t-esc="nv.name"/>
+                                                        </span>
+                                                        <!-- User spec 2026-05-29: tổng KH NV quản lý -->
+                                                        <span class="o_vd_kh_nv_total_badge"
+                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)">
+                                                            <t t-esc="nv.total_leads or 0"/> KH
                                                         </span>
                                                     </div>
                                                     <div class="o_vd_kh_col_info o_vd_kh_col_months">
@@ -246,17 +251,19 @@
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
                                                 <!-- User spec 2026-05-29:
-                                                     Big = KH mới HÔM NAY (today's new)
-                                                     Badge = tổng KH mới trong khoảng lọc
-                                                     Hover: today section TRƯỚC, sau đó toàn bộ. -->
+                                                     2 segment có label rõ ràng:
+                                                     "Hôm nay [N]  Tổng [M]" — chỉ tính KH MỚI (stage=new).
+                                                     Tổng KH NV quản lý đã chuyển lên cạnh tên NV. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
-                                                    <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"
-                                                          t-att-title="'KH mới hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <t t-esc="nv.new_today_count or 0"/>
+                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_today"
+                                                          t-att-title="'KH mới HÔM NAY: ' + (nv.new_today_count or 0)">
+                                                        <span class="o_vd_kh_new_seg_lbl">Hôm nay</span>
+                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_today_count or 0"/></span>
                                                     </span>
-                                                    <span class="o_vd_kh_metric_total"
+                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_total"
                                                           t-att-title="'Tổng KH mới trong khoảng lọc: ' + (nv.new_count or 0)">
-                                                        <t t-esc="nv.new_count or 0"/>
+                                                        <span class="o_vd_kh_new_seg_lbl">Tổng</span>
+                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_count or 0"/></span>
                                                     </span>
                                                     <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
