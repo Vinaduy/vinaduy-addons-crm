@@ -1549,28 +1549,74 @@
                                             <div class="o_vd_trash_label">KH HỦY</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
                                         </div>
-                                        <div class="o_vd_trash_popover o_vd_trash_popover_lost o_vd_popover_anchor_right">
+                                        <!-- User spec round 7 phase 2: panel rộng, table 5 cột với
+                                             chủ đề hủy + nội dung tóm tắt + nút Duyệt hủy. -->
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_lost o_vd_trash_popover_wide o_vd_popover_anchor_right">
                                             <div class="o_vd_trash_popover_head">
                                                 🗑️ KH HỦY (<t t-esc="leadsLost.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
-                                                    Đã chuyển vào thùng rác · gồm cuộc gọi sai số (📵 không đúng số)
+                                                    NV đề xuất hủy → Admin duyệt → KH archive thực sự
                                                 </div>
                                             </div>
-                                            <div class="o_vd_trash_popover_body">
+                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
                                                 <div t-if="!leadsLost.length" class="o_vd_trash_popover_empty">
                                                     ✓ Không có KH nào trong nhóm này
                                                 </div>
-                                                <div t-foreach="leadsLost" t-as="ld" t-key="ld.id"
-                                                     class="o_vd_trash_popover_item"
-                                                     t-on-click.stop="() => this.openLead(ld.id)">
-                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
-                                                    <span class="o_vd_trash_popover_phone">
-                                                        📞 <t t-esc="ld.phone or '—'"/>
-                                                    </span>
-                                                    <span class="o_vd_trash_popover_nv">
-                                                        <t t-esc="ld.user_name or '—'"/>
-                                                    </span>
-                                                </div>
+                                                <table t-if="leadsLost.length" class="o_vd_cancel_table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Khách hàng</th>
+                                                            <th>NV phụ trách</th>
+                                                            <th>Chủ đề</th>
+                                                            <th>Tóm tắt</th>
+                                                            <th>Trạng thái</th>
+                                                            <th>Hành động</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr t-foreach="leadsLost" t-as="ld" t-key="ld.id"
+                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'proposed' ? 'o_vd_cancel_pending' : (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_legacy'))"
+                                                            t-on-click.stop="() => this.openLead(ld.id)">
+                                                            <td class="o_vd_cancel_kh">
+                                                                <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
+                                                                <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
+                                                            </td>
+                                                            <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
+                                                            <td class="o_vd_cancel_topic">
+                                                                <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
+                                                                    <t t-esc="ld.cancel_category_label"/>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_cancel_topic_legacy">—</span>
+                                                            </td>
+                                                            <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
+                                                                <t t-if="ld.cancel_reason_short">
+                                                                    <t t-esc="ld.cancel_reason_short"/>
+                                                                </t>
+                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
+                                                            </td>
+                                                            <td class="o_vd_cancel_status">
+                                                                <span t-if="ld.cancel_state === 'proposed'" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
+                                                                    ⏳ Chờ duyệt
+                                                                </span>
+                                                                <span t-elif="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
+                                                                    ✓ Đã duyệt
+                                                                </span>
+                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_legacy">
+                                                                    Cũ
+                                                                </span>
+                                                            </td>
+                                                            <td class="o_vd_cancel_action">
+                                                                <button t-if="ld.cancel_state === 'proposed'"
+                                                                        class="btn btn-sm o_vd_cancel_approve_btn"
+                                                                        t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
+                                                                        title="Duyệt đề xuất hủy này">
+                                                                    <i class="fa fa-check"/> Duyệt hủy
+                                                                </button>
+                                                                <span t-else="" class="o_vd_cancel_action_done">—</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>

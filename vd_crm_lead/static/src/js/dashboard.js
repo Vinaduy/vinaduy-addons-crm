@@ -670,6 +670,25 @@ export class VdCrmDashboard extends Component {
     }
 
     /**
+     * Duyệt đề xuất hủy KH → archive (active=False). Admin only (server check).
+     * User spec round 7 phase 2: NV đề xuất → admin duyệt → KH chính thức hủy.
+     */
+    async approveCancel(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call("crm.lead", "action_approve_cancel", [[leadId]]);
+            this.notification.add("✓ Đã duyệt hủy KH.", { type: "success" });
+            // Refresh full dashboard để reload tất cả buckets (bao gồm leadsLost).
+            await this.loadDashboard();
+        } catch (e) {
+            console.error("[dashboard] approveCancel failed:", e);
+            this.notification.add("Không duyệt được. " + (e.message || ""), {
+                type: "danger",
+            });
+        }
+    }
+
+    /**
      * Gọi lại trực tiếp KH từ popover "CHƯA GỌI ĐƯỢC" — không cần mở form lead.
      * Server action_call returns client action vd_stringee_call để trigger SDK.
      */

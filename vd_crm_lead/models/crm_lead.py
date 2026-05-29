@@ -1054,6 +1054,48 @@ class CrmLead(models.Model):
         help='True = cron auto-trash. False = NV bấm Hủy thủ công.',
     )
 
+    # ============ ĐỀ XUẤT HỦY — Approval gate (user spec round 7 phase 2) ============
+    # NV submit wizard → vd_cancel_state='proposed'. Admin xem trong thùng rác,
+    # bấm Duyệt → state='approved' + archive (active=False).
+    vd_cancel_state = fields.Selection([
+        ('proposed', '⏳ Đề xuất hủy — chờ duyệt'),
+        ('approved', '✓ Đã duyệt hủy'),
+    ], string='Trạng thái duyệt hủy', tracking=True, copy=False,
+        help='proposed = NV đã đề xuất, chờ admin duyệt. '
+             'approved = admin đã duyệt → KH thực sự hủy + archive.')
+    vd_cancel_category = fields.Selection([
+        ('no_budget', '💸 Không đủ ngân sách'),
+        ('competitor', '🏗️ Đã chọn bên khác'),
+        ('cancel_plan', '🚫 Hủy kế hoạch xây'),
+        ('wrong_number', '❌ Nhầm số'),
+    ], string='Chủ đề hủy', copy=False)
+    vd_cancel_approved_by_id = fields.Many2one(
+        'res.users', string='Người duyệt hủy', readonly=True, copy=False,
+    )
+    vd_cancel_approved_date = fields.Datetime(
+        string='Ngày duyệt hủy', readonly=True, copy=False,
+    )
+
+    def action_approve_cancel(self):
+        """Admin duyệt đề xuất hủy → archive lead (active=False) + record audit.
+        Lead vẫn ở stage=lost (đã được wizard set) → vẫn xuất hiện trong thùng
+        rác với active_test=False. NV không thấy ở pipeline chính (active=False
+        + stage_is_lost=True → đã exclude từ mọi domain pipeline chuẩn)."""
+        for rec in self:
+            if rec.vd_cancel_state != 'proposed':
+                continue
+            rec.with_context(mail_notrack=True, tracking_disable=True).write({
+                'vd_cancel_state': 'approved',
+                'vd_cancel_approved_by_id': self.env.user.id,
+                'vd_cancel_approved_date': fields.Datetime.now(),
+                'active': False,
+            })
+            rec.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✓ <b>Đã duyệt hủy</b> bởi %s — KH chính thức archive.') % self.env.user.name,
+            )
+        return True
+
     # ============ BÁO GIÁ — fields working trong panel báo giá ============
     # Helper Many2many: tự filter template theo intake KH (vùng / tầng / móng / mái)
     # Dropdown vd_quote_template_id dùng domain id IN suggested_ids để chỉ show
@@ -5322,6 +5364,16 @@ class CrmLead(models.Model):
             'needs_call_today': self._vd_pill_needs_call_today(
                 l, call_stats_by_lead.get(l.id, {}),
             ),
+            # ===== Đề xuất hủy info (cho thùng rác) =====
+            'cancel_state': l.vd_cancel_state or '',
+            'cancel_category': l.vd_cancel_category or '',
+            'cancel_category_label': dict(
+                l._fields['vd_cancel_category'].selection
+            ).get(l.vd_cancel_category, '') if l.vd_cancel_category else '',
+            'cancel_reason_short': (l.vd_lost_reason or '').strip()[:160],
+            'cancel_proposed_date': fields.Datetime.to_string(l.vd_lost_date) if l.vd_lost_date else '',
+            'cancel_proposed_by_name': l.vd_lost_user_id.name if l.vd_lost_user_id else '',
+            'cancel_approved_by_name': l.vd_cancel_approved_by_id.name if l.vd_cancel_approved_by_id else '',
         } for l in leads]
 
     @api.model

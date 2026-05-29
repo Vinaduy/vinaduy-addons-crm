@@ -186,6 +186,9 @@ class VdLeadLostWizard(models.TransientModel):
             'vd_lost_date': fields.Datetime.now(),
             'vd_lost_user_id': self.env.user.id,
             'vd_lost_is_auto': False,
+            # Phase 2: đề xuất hủy CHỜ admin duyệt — chưa archive.
+            'vd_cancel_state': 'proposed',
+            'vd_cancel_category': self.reason_category,
         }
 
         self.lead_id.with_context(mail_notrack=True, tracking_disable=True).write(vals)
