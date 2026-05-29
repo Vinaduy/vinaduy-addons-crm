@@ -4732,7 +4732,7 @@
     }
     /* Row grid: name + urgent_label + problems + days (4 cot — user spec 2026-05-28) */
     .o_vd_filter_table_right_rows .o_vd_problem_row {
-        grid-template-columns: minmax(280px, 1.4fr) 220px minmax(180px, 1.2fr) 90px;
+        grid-template-columns: minmax(220px, 1fr) auto;
 
         @media (max-width: 600px) {
             grid-template-columns: 1fr;
@@ -4841,7 +4841,7 @@
     }
     .o_vd_problem_row {
         display: grid;
-        grid-template-columns: minmax(280px, 1.4fr) 220px minmax(180px, 1.2fr) 90px;
+        grid-template-columns: minmax(220px, 1fr) auto;
         align-items: center;
         gap: 0.6rem;
         padding: 0.27rem 0.7rem; /* User spec 2026-05-28 round 5: giảm 20% (0.34→0.27) */
@@ -4875,6 +4875,7 @@
         flex-wrap: wrap;
         gap: 0.3rem;
         align-items: center;
+        justify-content: flex-end;  /* Round 6.1: badge dồn về phải */
     }
     .o_vd_problem_row_badge {
         display: inline-flex;

@@ -1621,24 +1621,15 @@
                                             <span class="o_vd_problem_row_name">
                                                 <t t-esc="lead.name"/>
                                             </span>
-                                            <!-- User spec 2026-05-29 (round 6): BỎ badge "Thi công gấp"
-                                                 trong row TCG — hiện YÊU CẦU TÌM VẤN ĐỀ format mới
-                                                 giống panel XLVD. Cell rỗng giữ grid alignment. -->
-                                            <span class="o_vd_urgent_label_cell"></span>
+                                            <!-- User spec round 6.1: BỎ urgent_label_cell + days_cell,
+                                                 chỉ còn name | YÊU CẦU TÌM badge (right-align).
+                                                 problems_non_urgent → exclude 'Thi công gấp'. -->
                                             <span class="o_vd_problem_row_problems">
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
+                                                <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
-                                            </span>
-                                            <span class="o_vd_problem_row_days"
-                                                  t-att-title="'Số ngày từ khi báo giá chi tiết xuất hiện'">
-                                                <t t-if="lead.quote_days !== null and lead.quote_days !== undefined">
-                                                    <strong><t t-esc="lead.quote_days"/></strong>
-                                                    <span class="o_vd_problem_row_days_unit">ngày</span>
-                                                </t>
-                                                <t t-else="">—</t>
                                             </span>
                                         </div>
                                     </t>
@@ -1670,22 +1661,13 @@
                                             <span class="o_vd_problem_row_name">
                                                 <t t-esc="lead.name"/>
                                             </span>
-                                            <!-- Empty cell de align voi TCG row (4 cols same grid) -->
-                                            <span class="o_vd_urgent_label_cell"></span>
+                                            <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
                                             <span class="o_vd_problem_row_problems">
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
+                                                <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
-                                            </span>
-                                            <span class="o_vd_problem_row_days"
-                                                  t-att-title="'Số ngày từ khi báo giá chi tiết xuất hiện'">
-                                                <t t-if="lead.quote_days !== null and lead.quote_days !== undefined">
-                                                    <strong><t t-esc="lead.quote_days"/></strong>
-                                                    <span class="o_vd_problem_row_days_unit">ngày</span>
-                                                </t>
-                                                <t t-else="">—</t>
                                             </span>
                                         </div>
                                     </t>
@@ -1784,7 +1766,9 @@
          - 📅 = distinct call days (lead.call_stats.distinct_days)
          ============================================================ -->
     <t t-name="vd_crm_lead.ProblemRequiredBadge">
-        <span t-if="!lead.problems or !lead.problems.length"
+        <!-- problems_non_urgent: đã exclude 'Thi công gấp' (urgent_construction).
+             Round 6.1: TCG KHÔNG coi 'Thi công gấp' là vấn đề thực sự. -->
+        <span t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length"
               class="o_vd_problem_row_badge o_vd_prb_required">
             <span class="o_vd_prb_req_title">⚠️ YÊU CẦU TÌM VẤN ĐỀ</span>
             <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
