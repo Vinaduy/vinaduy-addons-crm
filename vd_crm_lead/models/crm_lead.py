@@ -1208,6 +1208,16 @@ class CrmLead(models.Model):
     )
     def _compute_vd_zalo_copy_text(self):
         """User spec 2026-05-29: copy ĐẦY ĐỦ 11 trường intake + công năng từng tầng."""
+        import re
+        # Strip emoji/non-word prefix khỏi tên công năng. User spec round 5:
+        # "công năng đã bỏ các icon trong nội dung". DB name dạng
+        # "🛋️🍳 1 Khách 1 Bếp" → output "1 Khách 1 Bếp". Regex match leading
+        # ký tự không phải [a-zA-Z0-9_à-ỹÀ-Ỹ] (\w trong UNICODE) → strip.
+        _emoji_prefix_re = re.compile(r'^[^\w]+', re.UNICODE)
+
+        def _strip_emoji(name):
+            return _emoji_prefix_re.sub('', name or '').strip()
+
         def _sel_label(rec, fname):
             val = rec[fname]
             if not val:
@@ -1215,7 +1225,9 @@ class CrmLead(models.Model):
             return rec._vd_selection_dict(fname).get(val, val)
 
         def _fn_names(funcs):
-            return ', '.join(funcs.mapped('name')) if funcs else ''
+            if not funcs:
+                return ''
+            return ', '.join(_strip_emoji(n) for n in funcs.mapped('name'))
 
         for rec in self:
             # User spec 2026-05-29 round 5: LABEL viết HOA + value giữ NGUYÊN
