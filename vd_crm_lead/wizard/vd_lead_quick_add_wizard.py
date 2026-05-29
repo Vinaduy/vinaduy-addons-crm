@@ -327,7 +327,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     source = fields.Selection(
         selection=lambda self: self._vd_ext_selection('source'),
         string='Nguồn',
-        default='manual',
+        # User spec 2026-05-29: KHÔNG default → bắt NV chọn explicit
     )
     date = fields.Date(
         string='Ngày',

@@ -4,7 +4,7 @@
         <field name="name">vd.lead.quick.add.wizard.form</field>
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
-            <form string="Thêm KH mới (nhập nhiều)" class="o_vd_quick_add_form">
+            <form string="Thêm KH mới (nhập nhiều)" class="o_vd_quick_add_form o_vd_quick_add_compact">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
                     <div class="alert alert-info" role="alert" style="margin:0;flex:1;min-width:280px;">
                         <b>💡 Mẹo:</b> Bấm <b>⋮</b> header bảng để hiện/ẩn cột. Gõ ô bên phải để thêm cột mới.
@@ -25,7 +25,8 @@
                         <field name="phone" placeholder="0901..." widget="phone"/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="date"/>
-                        <field name="status" widget="vd_selection_dropdown"/>
+                        <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
+                        <field name="status" invisible="1"/>
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Auto)"/>
@@ -86,6 +87,7 @@
         <field name="res_model">vd.lead.quick.add.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="context">{'default_line_ids': [(0, 0, {})], 'dialog_size': 'fullscreen'}</field>
+        <!-- User spec 2026-05-29: pre-create 12 dong, full screen -->
+        <field name="context">{'default_line_ids': [(0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {})], 'dialog_size': 'fullscreen'}</field>
     </record>
 </odoo>
