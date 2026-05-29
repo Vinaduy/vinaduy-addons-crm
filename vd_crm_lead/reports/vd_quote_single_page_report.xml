@@ -39,9 +39,12 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-set="ctx" t-value="o._build_quote_context()"/>
-                <t t-set="house_lbl" t-value="dict(o._fields['vd_intake_house_type'].selection).get(o.vd_intake_house_type, 'NHÀ DÂN DỤNG') or 'NHÀ DÂN DỤNG'"/>
-                <t t-set="found_lbl" t-value="dict(o._fields['vd_intake_foundation_type'].selection).get(o.vd_intake_foundation_type, 'MÓNG ĐƠN') or 'MÓNG ĐƠN'"/>
-                <t t-set="roof_lbl" t-value="dict(o._fields['vd_intake_roof_type'].selection).get(o.vd_intake_roof_type, 'Mái') or 'Mái'"/>
+                <!-- Labels lấy từ ctx (đã resolve selection trong Python) — KHÔNG
+                     dùng dict(o._fields[...].selection) vì Odoo 18 safe_eval
+                     fail "'function' object is not iterable" với dynamic selection. -->
+                <t t-set="house_lbl" t-value="ctx.get('house_type') or 'NHÀ DÂN DỤNG'"/>
+                <t t-set="found_lbl" t-value="ctx.get('foundation') or 'MÓNG ĐƠN'"/>
+                <t t-set="roof_lbl" t-value="ctx.get('roof') or 'Mái'"/>
                 <t t-set="addr_parts" t-value="[
                     o.vd_intake_district.name if o.vd_intake_district else '',
                     o.vd_intake_province_id.name if o.vd_intake_province_id else ''
