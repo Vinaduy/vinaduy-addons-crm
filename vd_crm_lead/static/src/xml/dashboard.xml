@@ -1621,20 +1621,12 @@
                                             <span class="o_vd_problem_row_name">
                                                 <t t-esc="lead.name"/>
                                             </span>
-                                            <!-- Cột Urgent timeline (tách riêng — user spec 2026-05-28) -->
-                                            <span class="o_vd_urgent_label_cell"
-                                                  t-if="lead.urgent_label">
-                                                <span class="o_vd_problem_row_badge o_vd_prb_open o_vd_urgent_badge">
-                                                    <t t-esc="lead.urgent_label"/>
-                                                </span>
-                                            </span>
-                                            <!-- Cột vấn đề — hiện TẤT CẢ problems (kể cả urgent_construction).
-                                                 YÊU CẦU TÌM VẤN ĐỀ chỉ khi lead không có problem nào. -->
+                                            <!-- User spec 2026-05-29 (round 6): BỎ badge "Thi công gấp"
+                                                 trong row TCG — hiện YÊU CẦU TÌM VẤN ĐỀ format mới
+                                                 giống panel XLVD. Cell rỗng giữ grid alignment. -->
+                                            <span class="o_vd_urgent_label_cell"></span>
                                             <span class="o_vd_problem_row_problems">
-                                                <span t-if="!lead.problems or !lead.problems.length"
-                                                      class="o_vd_problem_row_badge o_vd_prb_required">
-                                                    ⚠️ YÊU CẦU TÌM VẤN ĐỀ
-                                                </span>
+                                                <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
                                                 <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
@@ -1681,10 +1673,7 @@
                                             <!-- Empty cell de align voi TCG row (4 cols same grid) -->
                                             <span class="o_vd_urgent_label_cell"></span>
                                             <span class="o_vd_problem_row_problems">
-                                                <span t-if="!lead.problems or !lead.problems.length"
-                                                      class="o_vd_problem_row_badge o_vd_prb_required">
-                                                    ⚠️ YÊU CẦU TÌM VẤN ĐỀ
-                                                </span>
+                                                <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
                                                 <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
@@ -1784,6 +1773,40 @@
                 </button>
             </div>
         </div>
+    </t>
+
+    <!-- ============================================================
+         YÊU CẦU TÌM VẤN ĐỀ badge — dùng chung cho TCG + XLVD panel.
+         User spec 2026-05-29 (round 6):
+         [⚠️ YÊU CẦU TÌM VẤN ĐỀ  ·  Còn 7 ngày  ·  📞 5  📅 3]
+         - 7 ngày countdown từ khi báo giá hiện (lead.quote_days)
+         - 📞 = total calls (lead.call_stats.total)
+         - 📅 = distinct call days (lead.call_stats.distinct_days)
+         ============================================================ -->
+    <t t-name="vd_crm_lead.ProblemRequiredBadge">
+        <span t-if="!lead.problems or !lead.problems.length"
+              class="o_vd_problem_row_badge o_vd_prb_required">
+            <span class="o_vd_prb_req_title">⚠️ YÊU CẦU TÌM VẤN ĐỀ</span>
+            <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
+            <t t-set="dleft" t-value="7 - qd"/>
+            <span class="o_vd_prb_req_sep">·</span>
+            <span t-if="dleft &gt; 0"
+                  t-att-class="'o_vd_prb_req_countdown ' + (dleft &lt;= 2 ? 'o_vd_prb_req_urgent' : '')">
+                Còn <strong><t t-esc="dleft"/></strong> ngày
+            </span>
+            <span t-else="" class="o_vd_prb_req_countdown o_vd_prb_req_overdue">
+                Quá hạn <strong><t t-esc="-dleft"/></strong> ngày
+            </span>
+            <span class="o_vd_prb_req_sep">·</span>
+            <span class="o_vd_prb_req_stat" title="Tổng cuộc gọi">
+                <i class="fa fa-phone"/>
+                <strong t-esc="(lead.call_stats and lead.call_stats.total) || 0"/>
+            </span>
+            <span class="o_vd_prb_req_stat" title="Số ngày đã gọi">
+                <i class="fa fa-calendar"/>
+                <strong t-esc="(lead.call_stats and lead.call_stats.distinct_days) || 0"/>
+            </span>
+        </span>
     </t>
 
     <!-- ============================================================

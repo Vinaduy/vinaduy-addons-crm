@@ -4899,22 +4899,81 @@
             color: #495057;
             border-color: #dee2e6;
         }
-        /* Đỏ-quan trọng + viền vàng — NV chưa khai thác vấn đề, cần làm gấp */
+        /* Đỏ-quan trọng + viền vàng — NV chưa khai thác vấn đề, cần làm gấp.
+           Round 6: badge mở rộng — title + countdown + call stats inline. */
         &.o_vd_prb_required {
             background: #c92a2a;
             color: #fff;
             border: 2px solid #ffd43b;
             font-weight: 800;
-            padding: 0.3rem 0.7rem;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
+            padding: 0.3rem 0.75rem;
+            letter-spacing: 0.3px;
             box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35);
             animation: vd-pulse-required 1.6s ease-in-out infinite;
+            gap: 0.45rem;
+            flex-wrap: nowrap;
+
+            .o_vd_prb_req_title {
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                font-weight: 800;
+            }
+            .o_vd_prb_req_sep {
+                color: rgba(255, 212, 59, 0.7);
+                font-weight: 700;
+                font-size: 0.9rem;
+                margin: 0 0.05rem;
+            }
+            .o_vd_prb_req_countdown {
+                background: rgba(255, 255, 255, 0.18);
+                border: 1px solid rgba(255, 212, 59, 0.6);
+                color: #fffce7;
+                padding: 0.1rem 0.45rem;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 0.72rem;
+                text-transform: none;
+                letter-spacing: 0;
+                white-space: nowrap;
+                strong { color: #ffd43b; font-size: 0.85rem; margin: 0 1px; }
+
+                &.o_vd_prb_req_urgent {
+                    background: #ffd43b;
+                    color: #7c2d12;
+                    border-color: #ffd43b;
+                    animation: vd-blink-urgent 0.9s ease-in-out infinite;
+                    strong { color: #c92a2a; }
+                }
+                &.o_vd_prb_req_overdue {
+                    background: #000;
+                    color: #ffd43b;
+                    border-color: #ffd43b;
+                    strong { color: #fff; }
+                }
+            }
+            .o_vd_prb_req_stat {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.22rem;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 6px;
+                padding: 0.1rem 0.4rem;
+                font-size: 0.72rem;
+                text-transform: none;
+                letter-spacing: 0;
+
+                i.fa { font-size: 0.78rem; opacity: 0.92; }
+                strong { color: #ffd43b; font-weight: 800; font-size: 0.85rem; }
+            }
         }
     }
     @keyframes vd-pulse-required {
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }
         50%      { box-shadow: 0 0 0 6px rgba(255, 212, 59, 0); }
+    }
+    @keyframes vd-blink-urgent {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.06); }
     }
     /* Wrapper xuống dòng riêng + căn giữa trong bảng KHÁCH MỚI */
     .o_vd_new_required_wrap {
