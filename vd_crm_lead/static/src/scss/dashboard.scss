@@ -2612,7 +2612,7 @@
         display: inline-flex;
         gap: 0;
         flex: 1;
-        max-width: 720px;
+        max-width: 980px;
         background: linear-gradient(135deg, #f3f0ff 0%, #ecf3ff 100%);
         border: 1px solid rgba(106, 76, 224, 0.18);
         border-radius: 18px;
@@ -2621,13 +2621,13 @@
             0 8px 24px rgba(106, 76, 224, 0.10),
             inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
-        /* Sliding thumb — pill di chuyển theo chip active */
+        /* Sliding thumb — pill di chuyển theo chip active (3 chip: nv/kh/all) */
         .o_vd_dash_subview_thumb {
             position: absolute;
             top: 8px;
             bottom: 8px;
             left: 8px;
-            width: calc(50% - 8px);
+            width: calc(33.333% - 10.66px);
             border-radius: 12px;
             background: linear-gradient(135deg, #6a4ce0 0%, #8b66f0 50%, #a584ff 100%);
             box-shadow:
@@ -2638,7 +2638,8 @@
             pointer-events: none;
             z-index: 0;
         }
-        &[data-active="kh"] .o_vd_dash_subview_thumb { left: calc(50% + 0px); }
+        &[data-active="kh"]  .o_vd_dash_subview_thumb { left: calc(33.333% + 2.66px); }
+        &[data-active="all"] .o_vd_dash_subview_thumb { left: calc(66.666% - 2.66px); }
 
         .o_vd_dash_subview_chip {
             position: relative;
@@ -3662,6 +3663,35 @@
         overflow-y: auto;
         padding: 0;
         background: var(--bs-body-bg, #fff);
+    }
+    /* User spec 2026-05-29: popover sections (Hôm nay + Toàn bộ) */
+    .o_vd_kh_popover_section_head {
+        padding: 0.4rem 0.95rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f1f5f9;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    .o_vd_kh_popover_section_today {
+        background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+    }
+    .o_vd_kh_popover_empty {
+        padding: 0.5rem 0.95rem;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        font-style: italic;
+        text-align: center;
+    }
+    .o_vd_kh_lead_item_today {
+        background: #fffbeb !important;
+        &:hover { background: #fef3c7 !important; }
     }
     .o_vd_kh_lead_item {
         display: flex;

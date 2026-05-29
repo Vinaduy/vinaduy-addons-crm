@@ -6188,6 +6188,14 @@ class CrmLead(models.Model):
                     ('create_date', '<', dt_to),
                 ], order='create_date desc', limit=100)
 
+            # User spec 2026-05-29: Metric 3a — KH mới HÔM NAY (subset of new_leads_qs)
+            # Big number trên dashboard = today's new; badge = total trong khoảng lọc.
+            today_start = fields.Datetime.to_datetime(today)
+            today_end = today_start + _td(days=1)
+            new_today_qs = new_leads_qs.filtered(
+                lambda l: l.create_date and today_start <= l.create_date < today_end
+            )
+
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
             n_no_problem = len(no_problem_qs)
@@ -6218,6 +6226,9 @@ class CrmLead(models.Model):
                 'no_problem_leads': [_ld_basic(l) for l in no_problem_qs[:50]],
                 'new_count': n_new,
                 'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
+                # User spec 2026-05-29: KH mới HÔM NAY
+                'new_today_count': len(new_today_qs),
+                'new_today_leads': [_ld_basic(l) for l in new_today_qs[:50]],
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 

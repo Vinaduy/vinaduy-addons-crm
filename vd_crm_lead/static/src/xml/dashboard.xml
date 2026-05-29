@@ -245,22 +245,43 @@
                                                 <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
-                                                <!-- KH mới (stage=new) + Tổng KH (badge có viền) -->
+                                                <!-- User spec 2026-05-29:
+                                                     Big = KH mới HÔM NAY (today's new)
+                                                     Badge = tổng KH mới trong khoảng lọc
+                                                     Hover: today section TRƯỚC, sau đó toàn bộ. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
-                                                    <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg">
-                                                        <t t-esc="nv.new_count"/>
+                                                    <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"
+                                                          t-att-title="'KH mới hôm nay: ' + (nv.new_today_count or 0)">
+                                                        <t t-esc="nv.new_today_count or 0"/>
                                                     </span>
                                                     <span class="o_vd_kh_metric_total"
-                                                          t-att-title="'Tổng KH: ' + (nv.total_leads or 0)">
-                                                        <t t-esc="nv.total_leads or 0"/>
+                                                          t-att-title="'Tổng KH mới trong khoảng lọc: ' + (nv.new_count or 0)">
+                                                        <t t-esc="nv.new_count or 0"/>
                                                     </span>
-                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
+                                                    <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             KHÁCH MỚI - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.new_count"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
+                                                            <!-- Section 1: HÔM NAY -->
+                                                            <div class="o_vd_kh_popover_section_head o_vd_kh_popover_section_today">
+                                                                🆕 Hôm nay (<t t-esc="nv.new_today_count or 0"/>)
+                                                            </div>
+                                                            <div t-if="!nv.new_today_count" class="o_vd_kh_popover_empty">
+                                                                Hôm nay chưa có KH mới
+                                                            </div>
+                                                            <div t-foreach="nv.new_today_leads or []" t-as="ld" t-key="'today_' + ld.lead_id"
+                                                                 class="o_vd_kh_lead_item o_vd_kh_lead_item_today"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Section 2: TOÀN BỘ KH mới -->
+                                                            <div class="o_vd_kh_popover_section_head">
+                                                                📋 Toàn bộ (<t t-esc="nv.new_count or 0"/>)
+                                                            </div>
+                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="'all_' + ld.lead_id"
                                                                  class="o_vd_kh_lead_item"
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
