@@ -249,22 +249,23 @@
                                                      - KH gọi thành công hôm nay (answered/duration>0)
                                                      -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_new o_vd_kh_metric_today_box">
+                                                    <!-- Round 17.1: gộp 2 badge Đã gọi + Thành công
+                                                         → 1 badge duy nhất, icon-only (không text). -->
                                                     <span class="o_vd_kh_new_seg o_vd_kh_new_seg_today"
                                                           t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">🆕 KH mới</span>
+                                                        <span class="o_vd_kh_new_seg_lbl">🆕</span>
                                                         <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_today_count or 0"/></span>
                                                     </span>
-                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_calls"
-                                                          t-att-title="'KH đã gọi hôm nay (distinct leads): ' + (nv.calls_today_total or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">📞 Đã gọi</span>
-                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                    </span>
-                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_success"
-                                                          t-att-title="'KH gọi thành công (KH bắt máy) hôm nay: ' + (nv.calls_today_success or 0) + ' / ' + (nv.calls_today_total or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">✅ Thành công</span>
-                                                        <span class="o_vd_kh_new_seg_val">
-                                                            <t t-esc="nv.calls_today_success or 0"/>
-                                                            <span class="o_vd_kh_new_seg_subval">/<t t-esc="nv.calls_today_total or 0"/></span>
+                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_calls_combined"
+                                                          t-att-title="'KH gọi thành công ' + (nv.calls_today_success or 0) + ' / Đã gọi ' + (nv.calls_today_total or 0)">
+                                                        <span class="o_vd_kh_combined_part o_vd_kh_combined_phone">
+                                                            <i class="fa fa-phone"/>
+                                                            <strong><t t-esc="nv.calls_today_total or 0"/></strong>
+                                                        </span>
+                                                        <span class="o_vd_kh_combined_sep">·</span>
+                                                        <span class="o_vd_kh_combined_part o_vd_kh_combined_success">
+                                                            <i class="fa fa-check-circle"/>
+                                                            <strong><t t-esc="nv.calls_today_success or 0"/></strong>
                                                         </span>
                                                     </span>
                                                     <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
@@ -1705,10 +1706,10 @@
                             </t>
                         </section>
 
-                        <!-- Round 17: TCG + XLVD đặt side-by-side trong 1 wrapper. -->
-                        <div t-if="isNewStageSplit" class="o_vd_tcg_xlvd_split">
                         <!-- ===== SECTION 1b: THI CÔNG GẤP — KH cần khởi công ≤ 3 tháng / càng sớm.
-                             EXCLUDE khỏi 'XỬ LÝ VẤN ĐỀ' bên dưới để tránh trùng lặp. ===== -->
+                             EXCLUDE khỏi 'XỬ LÝ VẤN ĐỀ' bên dưới để tránh trùng lặp.
+                             Round 17.1: stacked vertical, mỗi section tách 2 col
+                             (list left + side panel right với icon Im lặng). -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
                             <div class="o_vd_filter_table o_vd_filter_table_urgent">
@@ -1785,7 +1786,6 @@
                                 </div>
                             </div>
                         </section>
-                        </div><!-- /.o_vd_tcg_xlvd_split -->
                         </div><!-- /.o_vd_lead_dual_cols -->
 
                         <!-- Thùng rác KH hủy đã merge vào split row trên cùng với CHƯA GỌI ĐƯỢC. -->

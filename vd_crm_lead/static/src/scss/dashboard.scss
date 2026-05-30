@@ -3423,8 +3423,8 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        /* Round 13: cột HÔM NAY rộng hơn (chứa 3 segment) */
-        grid-template-columns: 1.6fr 1fr 1fr 1fr 1.1fr;
+        /* Round 17.1: HÔM NAY rộng hơn (2 segment: KH mới + combined call) */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 1fr;
         background: transparent;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
@@ -3669,22 +3669,38 @@
         color: #1e40af;
         border: 1.5px solid #2563eb;
     }
-    /* Round 13: 2 segment mới + đóng khung "HÔM NAY" */
-    .o_vd_kh_new_seg_calls {
-        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-        color: #075985;
+    /* Round 17.1: badge GỘP 2 chỉ số (Đã gọi + Thành công) — icon only */
+    .o_vd_kh_new_seg_calls_combined {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #d1fae5 100%);
         border: 1.5px solid #0284c7;
-    }
-    .o_vd_kh_new_seg_success {
-        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-        color: #065f46;
-        border: 1.5px solid #059669;
-    }
-    .o_vd_kh_new_seg_subval {
-        font-size: 0.72rem;
-        font-weight: 600;
-        opacity: 0.7;
-        margin-left: 1px;
+        font-weight: 700;
+        line-height: 1.3;
+        cursor: help;
+        .o_vd_kh_combined_part {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            i.fa { font-size: 0.85rem; }
+            strong { font-size: 0.95rem; font-weight: 800; }
+        }
+        .o_vd_kh_combined_phone {
+            color: #075985;
+            i.fa { color: #0284c7; }
+        }
+        .o_vd_kh_combined_success {
+            color: #065f46;
+            i.fa { color: #059669; }
+        }
+        .o_vd_kh_combined_sep {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
     }
     /* Khung HÔM NAY — bao toàn bộ 3 chỉ số per NV row */
     .o_vd_kh_metric_today_box {
@@ -3942,8 +3958,8 @@
         grid-template-columns: 1fr;
     }
     .o_vd_kh_th_group_kh {
-        /* Round 13: cột HÔM NAY rộng hơn (3 segment) */
-        grid-template-columns: 1.6fr 1fr 1fr 1fr 1.1fr;
+        /* Round 17.1: HÔM NAY rộng hơn (2 segment) */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 1fr;
     }
     .o_vd_kh_th_call {
         background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
@@ -5482,20 +5498,7 @@
     }
     .o_vd_prb_req2_rec_nolink { color: #adb5bd; font-size: 0.7rem; text-align: center; }
 
-    /* Round 17: TCG + XLVD layout side-by-side (2 cột). */
-    .o_vd_tcg_xlvd_split {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.85rem;
-        align-items: flex-start;
-        margin-top: 0.6rem;
-        @media (max-width: 1100px) {
-            grid-template-columns: 1fr;
-        }
-        > section {
-            margin: 0 !important;
-        }
-    }
+    /* Round 17.1: revert TCG+XLVD về stacked (1 trên 1 dưới). */
     /* Wrapper xuống dòng riêng + căn giữa trong bảng KHÁCH MỚI */
     .o_vd_new_required_wrap {
         flex-basis: 100%;
