@@ -4598,14 +4598,16 @@ class CrmLead(models.Model):
         Frontend poll mỗi 5s → update badge "Đang gọi" / "Không gọi" mỗi row.
 
         Returns: dict {user_id: {'is_calling': bool, 'since_min': int, 'state': str}}
-        Active state = ringing/answered + end_time IS NULL + start <= 30 min ago.
+        User spec round 8: "cứ bấm gọi = đang gọi" — KHÔNG cần đợi ringing/answered.
+        Bao gồm CẢ draft, initiated (vừa tạo call record) → ringing → answered.
+        Filter qua end_time IS NULL + start ≤ 30 phút để loại record cũ stuck.
         """
         from datetime import timedelta as _td
         Call = self.env['stringee.call'].sudo()
         now = fields.Datetime.now()
         threshold = now - _td(minutes=30)
         active = Call.search([
-            ('state', 'in', ['ringing', 'answered']),
+            ('state', 'in', ['draft', 'initiated', 'ringing', 'answered']),
             ('end_time', '=', False),
             ('start_time', '>=', threshold),
             ('user_id', '!=', False),
