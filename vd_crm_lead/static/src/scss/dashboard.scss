@@ -5460,6 +5460,13 @@
             display: block;
         }
     }
+    /* Màu icon 📞 theo tỷ lệ nghe máy (answered/total) — user spec 2026-05-30.
+       !important để thắng rule xám mặc định .o_vd_prb_req2_stat_item i.fa. */
+    i.o_vd_call_rate_none { color: #868e96 !important; }   /* chưa có cuộc gọi — xám */
+    i.o_vd_call_rate_poor { color: #e03131 !important; }   /* <5% — đỏ */
+    i.o_vd_call_rate_low  { color: #1971c2 !important; }   /* 5-10% — xanh dương */
+    i.o_vd_call_rate_mid  { color: #37b24d !important; }   /* 10-20% — xanh lá */
+    i.o_vd_call_rate_high { color: #2b8a3e !important; }   /* ≥20% — xanh lá đậm */
     .o_vd_prb_req2_popover {
         display: none;
         position: absolute;

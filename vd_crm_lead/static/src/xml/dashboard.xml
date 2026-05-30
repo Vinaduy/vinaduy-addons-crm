@@ -1737,11 +1737,13 @@
                                                  chỉ còn name | YÊU CẦU TÌM badge (right-align).
                                                  problems_non_urgent → exclude 'Thi công gấp'. -->
                                             <span class="o_vd_problem_row_problems">
+                                                <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
                                                 <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
+                                                <t t-call="vd_crm_lead.CallStatsBadge"/>
                                             </span>
                                         </div>
                                     </t>
@@ -1821,11 +1823,13 @@
                                             </span>
                                             <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
                                             <span class="o_vd_problem_row_problems">
+                                                <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
                                                 <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
+                                                <t t-call="vd_crm_lead.CallStatsBadge"/>
                                             </span>
                                         </div>
                                     </t>
@@ -1984,10 +1988,18 @@
                 <span t-else="" class="o_vd_prb_req2_ctd o_vd_prb_req2_ctd_over">Quá hạn <strong><t t-esc="-dleft"/></strong> ngày</span>
             </span>
         </t>
-        <!-- THẺ B: thống kê cuộc gọi — LUÔN hiện (kể cả khi đã tìm được vấn đề) -->
+    </t>
+
+    <!-- THẺ B (📞/📅): thống kê cuộc gọi — render SAU thẻ vấn đề (đứng CUỐI hàng).
+         Màu icon 📞 theo tỷ lệ nghe máy (answered/total):
+         xám = chưa gọi · đỏ <5% · xanh dương 5-10% · xanh lá 10-20% · xanh lá đậm ≥20%. -->
+    <t t-name="vd_crm_lead.CallStatsBadge">
+        <t t-set="cs" t-value="lead.call_stats or {}"/>
+        <t t-set="ansRate" t-value="(cs.total &gt; 0) ? ((cs.answered || 0) * 100 / cs.total) : -1"/>
+        <t t-set="rateClass" t-value="ansRate &lt; 0 ? 'o_vd_call_rate_none' : (ansRate &gt;= 20 ? 'o_vd_call_rate_high' : (ansRate &gt;= 10 ? 'o_vd_call_rate_mid' : (ansRate &gt;= 5 ? 'o_vd_call_rate_low' : 'o_vd_call_rate_poor')))"/>
         <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
-                <span class="o_vd_prb_req2_stat_item" title="Tổng cuộc gọi">
-                    <i class="fa fa-phone"/>
+                <span class="o_vd_prb_req2_stat_item" t-att-title="'Tổng cuộc gọi: ' + (cs.total || 0) + ' · Nghe máy: ' + (cs.answered || 0)">
+                    <i class="fa fa-phone" t-att-class="rateClass"/>
                     <strong t-esc="cs.total || 0"/>
                 </span>
                 <span class="o_vd_prb_req2_stat_item" title="Số ngày đã gọi">
