@@ -172,6 +172,18 @@
                                     <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="sc['total']"/> VNĐ</td>
                                 </tr>
                             </t>
+                            <!-- KHUYẾN MÃI / GIẢM GIÁ — round 10. Chỉ render khi >0. -->
+                            <tr t-if="ctx.get('discount_amount_raw') and ctx.get('discount_amount_raw') &gt; 0"
+                                style="background:#fff8e1;">
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;">
+                                    🎁 <t t-esc="ctx.get('discount_label', 'Khuyến mãi')"/>
+                                </td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;">—</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;">—</td>
+                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;">
+                                    − <t t-esc="ctx.get('discount_amount', '0')"/> VNĐ
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
 

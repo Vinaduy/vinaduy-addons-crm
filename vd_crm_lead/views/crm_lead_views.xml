@@ -723,11 +723,22 @@
                                         <i class="fa fa-trash me-1"/>
                                         🚫 ĐÃ HUỶ — xem chi tiết
                                     </button>
-                                    <!-- CHỐT THÔNG TIN (manual) — NV bấm để khoá + chuyển sang báo giá.
-                                         Bỏ auto-lock: NV chủ động hoàn toàn. -->
+                                    <!-- Round 11: thêm CHƯA BÁO GIÁ — visible khi intake CHƯA complete.
+                                         Khi intake complete → CHỐT BÁO GIÁ hiện, CHƯA BÁO GIÁ ẩn. -->
                                     <field name="vd_intake_locked" invisible="1"/>
                                     <field name="vd_intake_complete" invisible="1"/>
-                                    <button string="🔒 CHỐT THÔNG TIN"
+                                    <field name="vd_no_quote_state" invisible="1"/>
+                                    <button string="⏸️ CHƯA BÁO GIÁ"
+                                            name="action_open_no_quote_wizard" type="object"
+                                            class="btn btn-sm btn-info o_vd_btn_no_quote"
+                                            invisible="vd_intake_locked or vd_intake_complete or vd_no_quote_state == 'pending'"
+                                            title="KH chưa đủ điều kiện báo giá (tài chính/đất/pháp lý/thời gian) → chuyển sang THAM KHẢO + đặt ngày gọi lại."/>
+                                    <button string="⏸️ ĐANG THAM KHẢO"
+                                            name="action_open_no_quote_wizard" type="object"
+                                            class="btn btn-sm btn-warning o_vd_btn_no_quote_active"
+                                            invisible="vd_no_quote_state != 'pending'"
+                                            title="KH đang ở trạng thái THAM KHẢO. Click để cập nhật lý do / ngày gọi lại."/>
+                                    <button string="🔒 CHỐT BÁO GIÁ"
                                             name="action_save_intake_done" type="object"
                                             class="btn btn-sm btn-success o_vd_btn_intake_lock"
                                             invisible="vd_intake_locked or not vd_intake_complete"
@@ -802,6 +813,16 @@
                              Field vẫn render invisible để Odoo track value cho domain + PDF gen. -->
                         <field name="vd_quote_template_suggested_ids" invisible="1"/>
                         <field name="vd_quote_template_id" invisible="1"/>
+
+                        <!-- KHUYẾN MÃI / GIẢM GIÁ (round 10) — NV nhập số tiền + label,
+                             sẽ hiển thị dòng vàng trong bảng breakdown + PDF, trừ khỏi tổng. -->
+                        <div class="o_vd_quote_discount_row"
+                             style="display:flex;gap:0.6rem;align-items:center;margin:0.4rem 0 0.6rem;flex-wrap:wrap;padding:0.5rem 0.7rem;background:#fff8e1;border:1px dashed #ffd43b;border-radius:6px;">
+                            <span style="font-weight:700;color:#d9480f;white-space:nowrap;">🎁 Khuyến mãi:</span>
+                            <field name="vd_quote_discount_label" nolabel="1" placeholder="VD: Khuyến mãi Tết 2026, Tri ân KH cũ..." style="flex:1;min-width:160px;"/>
+                            <field name="vd_quote_discount_amount" nolabel="1" widget="monetary" options="{'currency_field': 'vd_currency_vnd_id'}" style="max-width:200px;"/>
+                            <field name="vd_currency_vnd_id" invisible="1"/>
+                        </div>
 
                         <!-- Bảng báo giá chi tiết (breakdown) — data từ Thông tin tư vấn -->
                         <div class="o_vd_quote_breakdown_wrap">

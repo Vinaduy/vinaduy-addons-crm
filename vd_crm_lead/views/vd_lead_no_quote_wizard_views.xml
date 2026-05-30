@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_lead_no_quote_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.no_quote.wizard.form</field>
+        <field name="model">vd.lead.no_quote.wizard</field>
+        <field name="arch" type="xml">
+            <form string="CHƯA BÁO GIÁ — KHÁCH THAM KHẢO" class="o_vd_no_quote_wizard">
+                <field name="lead_id" invisible="1"/>
+
+                <div class="alert alert-info" role="alert" style="margin-bottom: 0.85rem;">
+                    <i class="fa fa-info-circle"/>
+                    KH <b><field name="lead_name" readonly="1" nolabel="1"/></b> chưa đủ điều kiện
+                    làm báo giá. Chọn nhóm lý do + khai thác chi tiết + đặt ngày gọi lại.
+                    KH sẽ chuyển sang bucket <b>👀 THAM KHẢO</b>.
+                </div>
+
+                <group>
+                    <field name="category" widget="radio" options="{'horizontal': False}"/>
+                </group>
+
+                <!-- ===== 1. Tài chính ===== -->
+                <group invisible="category != 'financial'"
+                       string="💰 Tài chính"
+                       class="o_vd_nq_block">
+                    <field name="fi_have" placeholder="VD: 500 triệu, mới có 30%, gần đủ..."/>
+                    <field name="fi_need" placeholder="VD: thiếu khoảng 300 triệu nữa..."/>
+                    <field name="fi_when_enough" placeholder="VD: 6 tháng, sau Tết, đợi bán đất khác..."/>
+                    <field name="fi_note" placeholder="Phương án vay? Có vợ chồng góp? Thái độ thật của KH?"/>
+                </group>
+
+                <!-- ===== 2. Đất đai ===== -->
+                <group invisible="category != 'land'"
+                       string="🌍 Đất đai"
+                       class="o_vd_nq_block">
+                    <field name="la_status"/>
+                    <field name="la_where" placeholder="VD: Đông Anh HN, Bình Chánh HCM, khu đô thị X..."/>
+                    <field name="la_when_have" placeholder="VD: 2 tháng nữa, sau sang tên xong..."/>
+                    <field name="la_note" placeholder="KH ưu tiên vị trí hay diện tích? Có vướng mắc gì?"/>
+                </group>
+
+                <!-- ===== 3. Pháp lý giấy tờ ===== -->
+                <group invisible="category != 'legal'"
+                       string="📜 Pháp lý giấy tờ"
+                       class="o_vd_nq_block">
+                    <field name="le_missing" placeholder="VD: chưa có sổ đỏ, đang sang tên, chưa cấp phép..."/>
+                    <field name="le_who_handles" placeholder="KH tự đi làm? Văn phòng XYZ giúp? Bên trung gian..."/>
+                    <field name="le_when_done" placeholder="VD: 1 tháng, 3 tháng, không rõ..."/>
+                    <field name="le_note" placeholder="Mức độ cấp bách? KH có muốn VINADUY hỗ trợ pháp lý không?"/>
+                </group>
+
+                <!-- ===== 4. Thời gian xây ===== -->
+                <group invisible="category != 'timing'"
+                       string="⏰ Thời gian xây"
+                       class="o_vd_nq_block">
+                    <field name="ti_when_start" placeholder="VD: cuối năm 2026, sau Tết, đợi con đi học xong..."/>
+                    <field name="ti_why_wait" placeholder="VD: chưa được tuổi, đợi vợ về nước, lý do gia đình..."/>
+                    <field name="ti_note" placeholder="KH có chắc chắn xây không? Hay đang phân vân chọn nhà cũ?"/>
+                </group>
+
+                <!-- ===== Ngày gọi lại ===== -->
+                <group string="📅 Lịch gọi lại">
+                    <field name="callback_date"/>
+                </group>
+
+                <footer>
+                    <button name="action_confirm_no_quote" type="object"
+                            string="👀 Chuyển sang THAM KHẢO"
+                            class="btn-info"/>
+                    <button special="cancel" string="Đóng" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

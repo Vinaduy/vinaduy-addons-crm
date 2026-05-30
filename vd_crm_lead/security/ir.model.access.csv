@@ -7,6 +7,7 @@ access_vd_floor_function_tag_user,vd.floor.function.tag read,model_vd_floor_func
 access_vd_floor_function_tag_manager,vd.floor.function.tag manager,model_vd_floor_function_tag,sales_team.group_sale_manager,1,1,1,1
 access_vd_lead_floor_func_line_user,vd.lead.floor.func.line user,model_vd_lead_floor_func_line,base.group_user,1,1,1,1
 access_vd_lead_lost_wizard_user,vd.lead.lost.wizard,model_vd_lead_lost_wizard,base.group_user,1,1,1,1
+access_vd_lead_no_quote_wizard_user,vd.lead.no_quote.wizard,model_vd_lead_no_quote_wizard,base.group_user,1,1,1,1
 access_vd_lead_cancel_history_wizard_user,vd.lead.cancel.history.wizard,model_vd_lead_cancel_history_wizard,base.group_user,1,1,1,1
 access_vd_lead_callback_wizard_user,vd.lead.callback.wizard,model_vd_lead_callback_wizard,base.group_user,1,1,1,1
 access_vd_contract_sign_wizard_user,vd.contract.sign.wizard,model_vd_contract_sign_wizard,base.group_user,1,1,1,1

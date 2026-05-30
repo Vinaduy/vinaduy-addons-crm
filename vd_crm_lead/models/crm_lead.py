@@ -1054,6 +1054,50 @@ class CrmLead(models.Model):
         help='True = cron auto-trash. False = NV bấm Hủy thủ công.',
     )
 
+    # ============ CHƯA BÁO GIÁ — round 11 (chuyển sang THAM KHẢO) ============
+    # NV bấm CHƯA BÁO GIÁ → wizard → set state='pending' → KH tự xuất hiện
+    # trong THAM KHẢO bucket thay vì KHÁCH MỚI. Có callback_date để dashboard
+    # hiện nút "GỌI LẠI" khi đến ngày.
+    vd_no_quote_state = fields.Selection([
+        ('pending', '⏸️ Chưa báo giá — đang theo dõi'),
+    ], string='Trạng thái CHƯA BÁO GIÁ', tracking=True, copy=False)
+    vd_no_quote_category = fields.Selection([
+        ('financial', '💰 Tài chính'),
+        ('land', '🌍 Đất đai'),
+        ('legal', '📜 Pháp lý giấy tờ'),
+        ('timing', '⏰ Thời gian xây'),
+    ], string='Lý do CHƯA BÁO GIÁ', copy=False, tracking=True)
+    vd_no_quote_reason = fields.Text(
+        string='Chi tiết CHƯA BÁO GIÁ', copy=False,
+        help='Khai thác cụ thể: tài chính bao nhiêu, đất ở đâu, pháp lý gì, '
+             'thời gian khi nào… do wizard sinh ra.',
+    )
+    vd_no_quote_callback_date = fields.Date(
+        string='Ngày gọi lại (THAM KHẢO)', copy=False, tracking=True,
+        help='Ngày NV phải gọi lại để follow up. Dashboard THAM KHẢO hiển '
+             'thị nút GỌI LẠI khi today >= ngày này.',
+    )
+    vd_no_quote_date = fields.Datetime(
+        string='Thời điểm CHƯA BÁO GIÁ', readonly=True, copy=False,
+    )
+    vd_no_quote_user_id = fields.Many2one(
+        'res.users', string='NV đánh dấu CHƯA BÁO GIÁ',
+        readonly=True, copy=False,
+    )
+
+    def action_open_no_quote_wizard(self):
+        """Mở wizard CHƯA BÁO GIÁ — KHÁCH THAM KHẢO."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'vd.lead.no_quote.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_lead_id': self.id,
+            },
+        }
+
     # ============ ĐỀ XUẤT HỦY — Approval gate (user spec round 7 phase 2) ============
     # NV submit wizard → vd_cancel_state='proposed'. Admin xem trong thùng rác,
     # bấm Duyệt → state='approved' + archive (active=False).
@@ -1202,6 +1246,22 @@ class CrmLead(models.Model):
         string='Hiệu lực đến',
         compute='_compute_quote_valid_until', store=True, readonly=False, copy=False,
         help='Tự động = ngày báo + 30 ngày. NV có thể sửa.',
+    )
+
+    # ============ KHUYẾN MÃI / GIẢM GIÁ — Round 10 spec ============
+    # NV nhập 1 số tiền giảm trực tiếp + label (vd "Khuyến mãi Tết 2026").
+    # Hiển thị thành 1 dòng riêng trong bảng báo giá chi tiết và PDF, TRỪ
+    # khỏi tổng tiền. Mặc định = 0 (không hiện dòng nào).
+    vd_quote_discount_amount = fields.Monetary(
+        string='Khuyến mãi / Giảm giá (VNĐ)',
+        currency_field='vd_currency_vnd_id', default=0, copy=False,
+        help='Số tiền giảm trực tiếp cho KH. Sẽ hiện thành 1 dòng riêng "(-)" '
+             'trong báo giá và trừ khỏi tổng tiền.',
+    )
+    vd_quote_discount_label = fields.Char(
+        string='Lý do khuyến mãi',
+        default='Khuyến mãi', copy=False,
+        help='Nhãn cho dòng giảm giá (VD: "Khuyến mãi Tết 2026", "VIP discount", "Tri ân KH cũ"...).',
     )
 
     # Upload file template trực tiếp từ máy (sẽ tự tạo vd.quote.template record)
@@ -1422,6 +1482,10 @@ class CrmLead(models.Model):
         'vd_intake_floor_3_function_ids', 'vd_intake_floor_4_function_ids',
         'vd_intake_floor_5_function_ids', 'vd_intake_floor_6_function_ids',
         'vd_intake_floor_7_function_ids', 'vd_intake_floor_tum_function_ids',
+        # Round 10: Lửng + Khuyến mãi
+        'vd_intake_has_lung', 'vd_intake_floor_lung_m2',
+        'vd_intake_floor_lung_function_ids',
+        'vd_quote_discount_amount', 'vd_quote_discount_label',
     )
     def _compute_quote_breakdown_html(self):
         Pricing = self.env['vd.pricing.region']
@@ -1455,8 +1519,7 @@ class CrmLead(models.Model):
             roof_cost = roof_area * (roof_pct / 100.0) * san_unit
 
             # ===== Build per-floor rows từ diện tích mỗi tầng đã nhập =====
-            # Nếu NV đã nhập diện tích tầng riêng → dùng. Nếu không → fallback
-            # area × floors như cũ (1 dòng "Tầng trệt × N").
+            # Round 10 fix: bổ sung Lửng vào breakdown (trước đó bị thiếu).
             n_floors = int(rec.vd_intake_floors_select) if rec.vd_intake_floors_select else 0
             per_floor_data = []  # list of (label, area_m2)  — bỏ công năng
             sum_per_floor_area = 0.0
@@ -1465,6 +1528,11 @@ class CrmLead(models.Model):
                 if fa > 0:
                     per_floor_data.append((f'Tầng {i}', fa))
                     sum_per_floor_area += fa
+            if rec.vd_intake_has_lung:
+                lung_a = rec.vd_intake_floor_lung_m2 or 0.0
+                if lung_a > 0:
+                    per_floor_data.append(('Lửng', lung_a))
+                    sum_per_floor_area += lung_a
             if rec.vd_intake_has_tum:
                 tum_a = rec.vd_intake_floor_tum_m2 or 0.0
                 if tum_a > 0:
@@ -1495,9 +1563,24 @@ class CrmLead(models.Model):
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(floor_cost)} VNĐ</td>
         </tr>'''
 
-            total = found_cost + floor_cost + roof_cost
-            # rowspan = số dòng tổng (móng + N tầng + mái)
-            num_rows = 2 + max(len(per_floor_data), 1)
+            # Round 10: TRỪ khuyến mãi/giảm giá khỏi tổng UI breakdown
+            discount_amount = rec.vd_quote_discount_amount or 0
+            discount_label = rec.vd_quote_discount_label or 'Khuyến mãi'
+            total = found_cost + floor_cost + roof_cost - discount_amount
+            # rowspan = số dòng tổng (móng + N tầng + mái + dòng discount nếu có)
+            discount_row_count = 1 if discount_amount > 0 else 0
+            num_rows = 2 + max(len(per_floor_data), 1) + discount_row_count
+            # Build discount row HTML separately (tránh nested f-string Python 3.10)
+            discount_row_html = ''
+            if discount_amount > 0:
+                discount_row_html = (
+                    '<tr style="background:#fff8e1;">'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;font-size:0.85rem;">🎁 {discount_label}</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;font-size:0.85rem;">—</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;font-size:0.85rem;">—</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;font-size:0.85rem;">− {self._fmt_vnd(discount_amount)} VNĐ</td>'
+                    '</tr>'
+                )
 
             found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
                 rec.vd_intake_foundation_type, 'Móng đơn'
@@ -1546,7 +1629,7 @@ class CrmLead(models.Model):
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(roof_cost)} VNĐ</td>
-        </tr>
+        </tr>{discount_row_html}
     </tbody>
 </table>
 '''.strip()
@@ -3567,7 +3650,8 @@ class CrmLead(models.Model):
         floor_cost = total_floor_area * san_unit
         roof_cost = roof_area * (roof_pct / 100.0) * san_unit
 
-        # Per-floor breakdown rows (Tầng 1/2/.../Tum) — đồng nhất với UI panel.
+        # Per-floor breakdown rows (Tầng 1/2/.../Lửng/Tum) — đồng nhất với UI panel.
+        # Round 10 fix: bổ sung Lửng (trước đó bị thiếu cả PDF + UI HTML).
         floor_breakdown = []
         for i in range(1, n_floors + 1):
             fa = self['vd_intake_floor_%s_m2' % i] or 0.0
@@ -3577,6 +3661,15 @@ class CrmLead(models.Model):
                     'area': f'{fa:.0f}',
                     'cost': f'{fa * san_unit:,.0f}'.replace(',', '.'),
                 })
+        # Lửng — tầng phụ giữa 2 tầng (50-70 m² thường)
+        if self.vd_intake_has_lung and self.vd_intake_floor_lung_m2:
+            la = self.vd_intake_floor_lung_m2
+            floor_breakdown.append({
+                'label': 'Lửng',
+                'area': f'{la:.0f}',
+                'cost': f'{la * san_unit:,.0f}'.replace(',', '.'),
+            })
+        # Tum — tầng trên cùng
         if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
             ta = self.vd_intake_floor_tum_m2
             floor_breakdown.append({
@@ -3585,13 +3678,19 @@ class CrmLead(models.Model):
                 'cost': f'{ta * san_unit:,.0f}'.replace(',', '.'),
             })
 
-        # TỔNG TIỀN báo giá = sum chính xác các dòng (đồng bộ với
-        # _compute_intake_estimate). Nếu NV đã chốt giá thủ công thì ưu tiên cái đó.
+        # TỔNG TIỀN báo giá = sum chính xác các dòng PDF (đồng bộ với UI
+        # breakdown panel). User spec round 9: KHI NV update intake sau khi
+        # lock báo giá → quote_price stored bị lệch với các dòng đang hiển thị
+        # → PDF tổng = 1.228B nhưng các dòng cộng lại 937M (mismatch).
+        # Fix: LUÔN ưu tiên components_total để toán PDF chính xác.
         components_total = found_cost + floor_cost + roof_cost
         # Cộng các item phát sinh (Thêm WC, cầu thang...) vào tổng
         surcharges_total = sum(self.vd_surcharge_ids.mapped('total'))
         components_total += surcharges_total
-        total = self.vd_quote_price or components_total or self.vd_intake_estimate or 0
+        # Round 10: TRỪ khuyến mãi/giảm giá khỏi tổng
+        discount_amount = self.vd_quote_discount_amount or 0
+        components_total -= discount_amount
+        total = components_total or self.vd_quote_price or self.vd_intake_estimate or 0
 
         house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
             self.vd_intake_house_type, 'NHÀ DÂN DỤNG'
@@ -3633,6 +3732,10 @@ class CrmLead(models.Model):
             'found_cost': fmt(found_cost),
             'floor_cost': fmt(floor_cost),
             'roof_cost': fmt(roof_cost),
+            # Round 10: discount info — template render dòng riêng nếu > 0
+            'discount_amount_raw': discount_amount,
+            'discount_amount': fmt(discount_amount) if discount_amount else '',
+            'discount_label': self.vd_quote_discount_label or 'Khuyến mãi',
             'total_price': fmt(total),
             'total_price_int': int(total),
             # Tiến độ thanh toán (4 đợt)
@@ -4844,9 +4947,14 @@ class CrmLead(models.Model):
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=80):
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        stage = self.env['crm.stage'].browse(stage_id)
+        domain = domain_user + [('stage_id', '=', stage_id)]
+        # Round 11: KH explicit "CHƯA BÁO GIÁ" chuyển sang THAM KHẢO bucket
+        # → loại khỏi stage KHÁCH MỚI để tránh hiển thị 2 chỗ.
+        if stage.code == 'new':
+            domain.append(('vd_no_quote_state', '!=', 'pending'))
         leads = self.search(
-            domain_user + [('stage_id', '=', stage_id)],
-            limit=limit,
+            domain, limit=limit,
             order='probability desc, callback_date asc, create_date desc',
         )
         return self._dashboard_serialize_leads(leads)
@@ -5166,31 +5274,48 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_reference(self, user_id=None, limit=200):
-        """KH "tham khảo": đã từng liên lạc được (answered ≥ 1) nhưng CHƯA báo
-        giá → vẫn đang trong giai đoạn thăm dò / chưa cam kết.
-        Dùng cho ô THAM KHẢO bên cạnh CHƯA GỌI ĐƯỢC + KH HỦY ở dashboard."""
+        """KH "tham khảo" — round 11 mở rộng:
+        A) NV explicit đánh dấu CHƯA BÁO GIÁ (vd_no_quote_state='pending'), HOẶC
+        B) Đã từng liên lạc được (answered ≥ 1) nhưng CHƯA báo giá (legacy).
+
+        Group A ưu tiên hiển thị (có callback_date + category để UI render).
+        """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        # A) Explicit "CHƯA BÁO GIÁ" — có thể đang ở bất kỳ stage chưa won/lost
+        explicit = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('vd_no_quote_state', '=', 'pending'),
+            ],
+            order='vd_no_quote_callback_date asc, create_date desc',
+        )
+        # B) Legacy heuristic — call_count > 0 + answered ≥ 1 + chưa quote
         candidates = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('call_count', '>', 0),
+                ('vd_no_quote_state', '!=', 'pending'),  # tránh trùng explicit
             ],
             order='create_date desc',
         )
-        if not candidates:
+        legacy = self.env['crm.lead']
+        if candidates:
+            Call = self.env['stringee.call']
+            answered_lead_ids = set(Call.search([
+                ('lead_id', 'in', candidates.ids),
+                '|', ('duration', '>', 0),
+                     ('state', '=', 'answered'),
+            ]).mapped('lead_id').ids)
+            legacy = candidates.filtered(
+                lambda l: l.id in answered_lead_ids and not l.vd_quote_price
+            )
+        # Gộp + giới hạn limit; explicit lên trước
+        merged = (explicit + legacy)[:limit]
+        if not merged:
             return []
-        # Lọc: có ≥1 cuộc answered + chưa có quote_price
-        Call = self.env['stringee.call']
-        answered_lead_ids = set(Call.search([
-            ('lead_id', 'in', candidates.ids),
-            '|', ('duration', '>', 0),
-                 ('state', '=', 'answered'),
-        ]).mapped('lead_id').ids)
-        matched = candidates.filtered(
-            lambda l: l.id in answered_lead_ids and not l.vd_quote_price
-        )[:limit]
-        return self._dashboard_serialize_leads(matched)
+        return self._dashboard_serialize_leads(merged)
 
     @api.model
     def dashboard_leads_lost(self, user_id=None, limit=200):
@@ -5369,6 +5494,17 @@ class CrmLead(models.Model):
             'needs_call_today': self._vd_pill_needs_call_today(
                 l, call_stats_by_lead.get(l.id, {}),
             ),
+            # ===== CHƯA BÁO GIÁ info (round 11) — cho THAM KHẢO popover =====
+            'no_quote_state': l.vd_no_quote_state or '',
+            'no_quote_category': l.vd_no_quote_category or '',
+            'no_quote_category_label': dict(
+                l._fields['vd_no_quote_category'].selection
+            ).get(l.vd_no_quote_category, '') if l.vd_no_quote_category else '',
+            'no_quote_callback_date': fields.Date.to_string(l.vd_no_quote_callback_date) if l.vd_no_quote_callback_date else '',
+            'no_quote_callback_due': bool(
+                l.vd_no_quote_callback_date and l.vd_no_quote_callback_date <= fields.Date.today()
+            ),
+            'no_quote_reason_short': (l.vd_no_quote_reason or '').strip()[:160],
             # ===== Đề xuất hủy info (cho thùng rác) =====
             'cancel_state': l.vd_cancel_state or '',
             'cancel_category': l.vd_cancel_category or '',

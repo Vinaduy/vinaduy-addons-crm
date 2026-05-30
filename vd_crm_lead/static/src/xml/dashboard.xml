@@ -1467,28 +1467,70 @@
                                             <div class="o_vd_trash_label">THAM KHẢO</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsReference.length"/></div>
                                         </div>
-                                        <div class="o_vd_trash_popover o_vd_popover_anchor_left">
+                                        <!-- Round 11: popover wide với chủ đề CHƯA BÁO GIÁ +
+                                             callback date + nút GỌI LẠI nếu đến ngày. -->
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_left">
                                             <div class="o_vd_trash_popover_head">
                                                 👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
-                                                    Đã liên lạc được · chưa báo giá · còn cần nuôi dưỡng
+                                                    KH CHƯA BÁO GIÁ · Đang nuôi dưỡng · Đến ngày callback hiện nút GỌI LẠI
                                                 </div>
                                             </div>
-                                            <div class="o_vd_trash_popover_body">
+                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
                                                 <div t-if="!leadsReference.length" class="o_vd_trash_popover_empty">
                                                     ✓ Không có KH nào trong nhóm này
                                                 </div>
-                                                <div t-foreach="leadsReference" t-as="ld" t-key="ld.id"
-                                                     class="o_vd_trash_popover_item"
-                                                     t-on-click.stop="() => this.openLead(ld.id)">
-                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
-                                                    <span class="o_vd_trash_popover_phone">
-                                                        📞 <t t-esc="ld.phone or '—'"/>
-                                                    </span>
-                                                    <span class="o_vd_trash_popover_nv">
-                                                        <t t-esc="ld.user_name or '—'"/>
-                                                    </span>
-                                                </div>
+                                                <table t-if="leadsReference.length" class="o_vd_reference_table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Khách hàng</th>
+                                                            <th>NV</th>
+                                                            <th>Chủ đề</th>
+                                                            <th>Tóm tắt</th>
+                                                            <th>Gọi lại</th>
+                                                            <th>Hành động</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr t-foreach="leadsReference" t-as="ld" t-key="ld.id"
+                                                            t-att-class="'o_vd_ref_row ' + (ld.no_quote_callback_due ? 'o_vd_ref_due' : '')"
+                                                            t-on-click.stop="() => this.openLead(ld.id)">
+                                                            <td class="o_vd_ref_kh">
+                                                                <div class="o_vd_ref_name"><t t-esc="ld.name"/></div>
+                                                                <div class="o_vd_ref_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
+                                                            </td>
+                                                            <td class="o_vd_ref_nv"><t t-esc="ld.user_name or '—'"/></td>
+                                                            <td class="o_vd_ref_topic">
+                                                                <span t-if="ld.no_quote_category_label" class="o_vd_ref_topic_pill">
+                                                                    <t t-esc="ld.no_quote_category_label"/>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_ref_topic_legacy">— (legacy)</span>
+                                                            </td>
+                                                            <td class="o_vd_ref_summary" t-att-title="ld.no_quote_reason_short or ''">
+                                                                <t t-if="ld.no_quote_reason_short"><t t-esc="ld.no_quote_reason_short"/></t>
+                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
+                                                            </td>
+                                                            <td class="o_vd_ref_callback">
+                                                                <span t-if="ld.no_quote_callback_due" class="o_vd_ref_chip_due">
+                                                                    🔥 Hôm nay/quá hạn
+                                                                </span>
+                                                                <span t-elif="ld.no_quote_callback_date" class="o_vd_ref_chip_future">
+                                                                    📅 <t t-esc="ld.no_quote_callback_date"/>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_ref_chip_legacy">—</span>
+                                                            </td>
+                                                            <td class="o_vd_ref_action">
+                                                                <button t-if="ld.no_quote_callback_due"
+                                                                        class="btn btn-sm o_vd_ref_call_btn"
+                                                                        t-on-click.stop.prevent="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                                        title="Gọi lại ngay">
+                                                                    <i class="fa fa-phone"/> Gọi lại
+                                                                </button>
+                                                                <span t-else="" class="o_vd_ref_action_done">—</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
