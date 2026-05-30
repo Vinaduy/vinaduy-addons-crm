@@ -5193,18 +5193,24 @@ class CrmLead(models.Model):
             rec = by_id.get(d['id'])
             if not rec:
                 continue
+            budget_amt = rec.vd_intake_budget_amount or 0
+            quote_amt = rec.vd_quote_price or 0
             d['budget_label'] = (
                 budget_sel.get(rec.vd_intake_budget_range, '')
                 if rec.vd_intake_budget_range else ''
             )
-            d['budget_amount_fmt'] = (
-                self._fmt_vnd(rec.vd_intake_budget_amount)
-                if rec.vd_intake_budget_amount else ''
-            )
-            d['quote_price_fmt'] = (
-                self._fmt_vnd(rec.vd_quote_price) if rec.vd_quote_price else ''
-            )
+            d['budget_amount_fmt'] = self._fmt_vnd(budget_amt) if budget_amt else ''
+            d['quote_price_fmt'] = self._fmt_vnd(quote_amt) if quote_amt else ''
             d['quote_breakdown_html'] = rec.vd_quote_breakdown_html or ''
+            # Chênh lệch: BÁO GIÁ − TÀI CHÍNH DỰ KIẾN. > 0 = vượt ngân sách (đỏ),
+            # < 0 = còn dư (xanh). Chỉ tính khi có cả 2 số.
+            if budget_amt and quote_amt:
+                diff = quote_amt - budget_amt
+                d['quote_over_budget'] = diff > 0
+                d['quote_vs_budget_diff_fmt'] = self._fmt_vnd(abs(diff))
+            else:
+                d['quote_over_budget'] = False
+                d['quote_vs_budget_diff_fmt'] = ''
         return data
 
     @api.model

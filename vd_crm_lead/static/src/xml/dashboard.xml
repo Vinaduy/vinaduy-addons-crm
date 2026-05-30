@@ -1748,6 +1748,15 @@
                                                             <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
                                                         </div>
                                                     </div>
+                                                    <!-- Chênh lệch BÁO GIÁ vs TÀI CHÍNH DỰ KIẾN — nổi bật -->
+                                                    <div t-if="lead.quote_vs_budget_diff_fmt"
+                                                         t-att-class="'o_vd_kh_info_diff ' + (lead.quote_over_budget ? 'o_vd_diff_over' : 'o_vd_diff_under')">
+                                                        <span class="o_vd_kh_info_diff_lbl">
+                                                            <t t-if="lead.quote_over_budget">⚠️ VƯỢT tài chính dự kiến</t>
+                                                            <t t-else="">✅ CÒN DƯ so với tài chính</t>
+                                                        </span>
+                                                        <span class="o_vd_kh_info_diff_val"><t t-if="lead.quote_over_budget">+ </t><t t-else="">− </t><t t-esc="lead.quote_vs_budget_diff_fmt"/> đ</span>
+                                                    </div>
                                                     <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
                                                     <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>
                                                     <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
@@ -1855,6 +1864,15 @@
                                                             <span class="o_vd_kh_info_lbl">🧾 Giá báo KH</span>
                                                             <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
                                                         </div>
+                                                    </div>
+                                                    <!-- Chênh lệch BÁO GIÁ vs TÀI CHÍNH DỰ KIẾN — nổi bật -->
+                                                    <div t-if="lead.quote_vs_budget_diff_fmt"
+                                                         t-att-class="'o_vd_kh_info_diff ' + (lead.quote_over_budget ? 'o_vd_diff_over' : 'o_vd_diff_under')">
+                                                        <span class="o_vd_kh_info_diff_lbl">
+                                                            <t t-if="lead.quote_over_budget">⚠️ VƯỢT tài chính dự kiến</t>
+                                                            <t t-else="">✅ CÒN DƯ so với tài chính</t>
+                                                        </span>
+                                                        <span class="o_vd_kh_info_diff_val"><t t-if="lead.quote_over_budget">+ </t><t t-else="">− </t><t t-esc="lead.quote_vs_budget_diff_fmt"/> đ</span>
                                                     </div>
                                                     <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
                                                     <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>

@@ -5736,8 +5736,8 @@
             left: 0;
             top: calc(100% + 5px);
             z-index: 90;
-            width: 560px;
-            max-width: 78vw;
+            width: 720px;
+            max-width: 92vw;
             max-height: 62vh;
             overflow-y: auto;
             background: #fff;
@@ -5810,7 +5810,36 @@
     }
     .o_vd_kh_info_breakdown {
         padding: 0 0.6rem 0.5rem;
-        table { width: 100%; }
+        overflow-x: auto;
+        table {
+            width: 100%;
+            /* Không xuống dòng trong ô — kéo bảng rộng ra thay vì wrap chữ. */
+            td, th { white-space: nowrap !important; }
+        }
+    }
+    /* Box chênh lệch BÁO GIÁ vs TÀI CHÍNH DỰ KIẾN — nổi bật để dễ xử lý */
+    .o_vd_kh_info_diff {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        margin: 0.1rem 0.6rem 0.2rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 8px;
+        border: 1.5px solid;
+        font-weight: 800;
+    }
+    .o_vd_kh_info_diff_lbl { font-size: 0.8rem; }
+    .o_vd_kh_info_diff_val { font-size: 1.05rem; white-space: nowrap; }
+    .o_vd_kh_info_diff.o_vd_diff_over {   /* báo giá VƯỢT ngân sách — đỏ */
+        background: #fff5f5;
+        border-color: #ffa8a8;
+        color: #c92a2a;
+    }
+    .o_vd_kh_info_diff.o_vd_diff_under {  /* còn DƯ ngân sách — xanh lá */
+        background: #ebfbee;
+        border-color: #8ce99a;
+        color: #2b8a3e;
     }
     .o_vd_kh_info_foot {
         padding: 0.4rem 0.8rem;
