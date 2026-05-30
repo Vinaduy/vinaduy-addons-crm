@@ -157,6 +157,229 @@ class VdLeadProblem(models.Model):
     ], string='Kết quả sau xử lý')
 
     # ============================================================
+    # KHUYẾN MÃI / GIẢM GIÁ (tag.code = 'promotion') — round 12
+    # NV tạo vấn đề → chọn loại (giảm giá / khuyến mãi) + nhập số tiền
+    # → Gửi duyệt → trưởng nhóm hoặc admin duyệt → tự động thành dòng
+    # trong báo giá chi tiết + PDF.
+    # ============================================================
+    km_type = fields.Selection([
+        ('discount', '💸 Giảm giá (số tiền trực tiếp)'),
+        ('promo', '🎁 Khuyến mãi (tên vật tư tặng + số tiền quy đổi)'),
+    ], string='Loại')
+    km_material_name = fields.Char(
+        string='Tên vật tư khuyến mãi',
+        help='VD: "Tặng máy nước nóng", "Tặng cửa nhôm", "Nâng cấp sơn ngoài"...',
+    )
+    km_amount = fields.Monetary(
+        string='Số tiền', currency_field='km_currency_id', default=0,
+        help='Giảm giá: số tiền trừ trực tiếp. Khuyến mãi: giá trị quy đổi của quà tặng.',
+    )
+    km_currency_id = fields.Many2one(
+        'res.currency', related='lead_id.vd_currency_vnd_id',
+        store=False, readonly=True,
+    )
+    km_state = fields.Selection([
+        ('draft', '📝 Nháp — NV soạn'),
+        ('pending', '⏳ Chờ duyệt'),
+        ('approved', '✓ Đã duyệt — đưa vào báo giá'),
+        ('rejected', '✗ Bị từ chối'),
+    ], string='Trạng thái duyệt KM', default='draft', tracking=True, copy=False)
+    km_submitted_date = fields.Datetime(string='Ngày gửi duyệt', readonly=True, copy=False)
+    km_approved_by_id = fields.Many2one(
+        'res.users', string='Người duyệt KM', readonly=True, copy=False,
+    )
+    km_approved_date = fields.Datetime(string='Ngày duyệt', readonly=True, copy=False)
+    km_reject_reason = fields.Text(string='Lý do từ chối', copy=False)
+
+    def action_km_submit(self):
+        """NV bấm 'Gửi duyệt' → state='pending'."""
+        from odoo.exceptions import UserError
+        for rec in self:
+            if rec.tag_code != 'promotion':
+                raise UserError(_('Chỉ vấn đề "Khuyến mãi" mới gửi duyệt được.'))
+            if not rec.km_type:
+                raise UserError(_('Vui lòng chọn loại (Giảm giá / Khuyến mãi).'))
+            if not rec.km_amount or rec.km_amount <= 0:
+                raise UserError(_('Số tiền phải > 0.'))
+            if rec.km_type == 'promo' and not (rec.km_material_name or '').strip():
+                raise UserError(_('Khuyến mãi phải nhập tên vật tư.'))
+            rec.write({
+                'km_state': 'pending',
+                'km_submitted_date': fields.Datetime.now(),
+            })
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('🎁 NV %s gửi duyệt KM: <b>%s %s đ</b>') % (
+                    self.env.user.name,
+                    rec.km_material_name or '(giảm giá)',
+                    '{:,.0f}'.format(rec.km_amount).replace(',', '.'),
+                ),
+            )
+
+    def action_km_approve(self):
+        """Trưởng nhóm hoặc admin duyệt → state='approved' →
+        tự động render vào báo giá chi tiết + PDF (trigger compute breakdown_html)."""
+        from odoo.exceptions import AccessError
+        user = self.env.user
+        is_admin = user.has_group('vd_crm_lead.vd_crm_group_admin')
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not (is_admin or is_leader):
+            raise AccessError(_('Chỉ trưởng nhóm hoặc admin được duyệt khuyến mãi.'))
+        for rec in self:
+            if rec.km_state != 'pending':
+                continue
+            rec.write({
+                'km_state': 'approved',
+                'km_approved_by_id': user.id,
+                'km_approved_date': fields.Datetime.now(),
+            })
+            # Trigger recompute breakdown
+            rec.lead_id._compute_quote_breakdown_html()
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✓ <b>%s</b> đã duyệt KM: %s — %s đ') % (
+                    user.name,
+                    rec.km_material_name or 'Giảm giá',
+                    '{:,.0f}'.format(rec.km_amount).replace(',', '.'),
+                ),
+            )
+
+    def action_km_reject(self):
+        """Trưởng nhóm hoặc admin từ chối → state='rejected'."""
+        from odoo.exceptions import AccessError
+        user = self.env.user
+        is_admin = user.has_group('vd_crm_lead.vd_crm_group_admin')
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not (is_admin or is_leader):
+            raise AccessError(_('Chỉ trưởng nhóm hoặc admin được từ chối khuyến mãi.'))
+        for rec in self:
+            if rec.km_state not in ('pending', 'approved'):
+                continue
+            rec.write({
+                'km_state': 'rejected',
+                'km_approved_by_id': user.id,
+                'km_approved_date': fields.Datetime.now(),
+            })
+            rec.lead_id._compute_quote_breakdown_html()
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✗ <b>%s</b> từ chối KM: %s') % (
+                    user.name,
+                    rec.km_reject_reason or rec.km_material_name or '(không rõ lý do)',
+                ),
+            )
+
+    def action_km_revert_to_draft(self):
+        """Đưa về nháp để sửa lại."""
+        for rec in self:
+            rec.km_state = 'draft'
+
+    # ============================================================
+    # PHÁT SINH VẬT TƯ (tag.code = 'extra_material') — round 12.1
+    # KH yêu cầu thêm vật tư ngoài báo giá gốc → CỘNG vào tổng (KH trả thêm).
+    # Flow giống KM nhưng dấu ngược: NV nhập → gửi duyệt → trưởng nhóm/admin
+    # duyệt → tự thành 1 dòng cộng trong báo giá + PDF.
+    # ============================================================
+    ps_material_name = fields.Char(
+        string='Tên vật tư phát sinh',
+        help='VD: "Thêm máy lạnh tầng 2", "Nâng cấp gạch lát ngoài", "Thêm 1 WC tầng tum"...',
+    )
+    ps_amount = fields.Monetary(
+        string='Số tiền phát sinh', currency_field='ps_currency_id', default=0,
+        help='Số tiền KH phải trả thêm cho vật tư / hạng mục này.',
+    )
+    ps_currency_id = fields.Many2one(
+        'res.currency', related='lead_id.vd_currency_vnd_id',
+        store=False, readonly=True,
+    )
+    ps_state = fields.Selection([
+        ('draft', '📝 Nháp — NV soạn'),
+        ('pending', '⏳ Chờ duyệt'),
+        ('approved', '✓ Đã duyệt — đưa vào báo giá'),
+        ('rejected', '✗ Bị từ chối'),
+    ], string='Trạng thái duyệt PS', default='draft', tracking=True, copy=False)
+    ps_submitted_date = fields.Datetime(string='Ngày gửi duyệt PS', readonly=True, copy=False)
+    ps_approved_by_id = fields.Many2one(
+        'res.users', string='Người duyệt PS', readonly=True, copy=False,
+    )
+    ps_approved_date = fields.Datetime(string='Ngày duyệt PS', readonly=True, copy=False)
+    ps_reject_reason = fields.Text(string='Lý do từ chối PS', copy=False)
+
+    def action_ps_submit(self):
+        """NV gửi duyệt phát sinh vật tư."""
+        from odoo.exceptions import UserError
+        for rec in self:
+            if rec.tag_code != 'extra_material':
+                raise UserError(_('Chỉ vấn đề "Phát sinh vật tư" mới gửi duyệt được.'))
+            if not (rec.ps_material_name or '').strip():
+                raise UserError(_('Vui lòng nhập tên vật tư phát sinh.'))
+            if not rec.ps_amount or rec.ps_amount <= 0:
+                raise UserError(_('Số tiền phát sinh phải > 0.'))
+            rec.write({
+                'ps_state': 'pending',
+                'ps_submitted_date': fields.Datetime.now(),
+            })
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('🧰 NV %s gửi duyệt PS vật tư: <b>%s — %s đ</b>') % (
+                    self.env.user.name, rec.ps_material_name,
+                    '{:,.0f}'.format(rec.ps_amount).replace(',', '.'),
+                ),
+            )
+
+    def action_ps_approve(self):
+        """Trưởng nhóm hoặc admin duyệt PS → CỘNG vào báo giá."""
+        from odoo.exceptions import AccessError
+        user = self.env.user
+        is_admin = user.has_group('vd_crm_lead.vd_crm_group_admin')
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not (is_admin or is_leader):
+            raise AccessError(_('Chỉ trưởng nhóm hoặc admin được duyệt phát sinh.'))
+        for rec in self:
+            if rec.ps_state != 'pending':
+                continue
+            rec.write({
+                'ps_state': 'approved',
+                'ps_approved_by_id': user.id,
+                'ps_approved_date': fields.Datetime.now(),
+            })
+            rec.lead_id._compute_quote_breakdown_html()
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✓ <b>%s</b> duyệt PS vật tư: %s + %s đ') % (
+                    user.name, rec.ps_material_name,
+                    '{:,.0f}'.format(rec.ps_amount).replace(',', '.'),
+                ),
+            )
+
+    def action_ps_reject(self):
+        from odoo.exceptions import AccessError
+        user = self.env.user
+        is_admin = user.has_group('vd_crm_lead.vd_crm_group_admin')
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not (is_admin or is_leader):
+            raise AccessError(_('Chỉ trưởng nhóm hoặc admin được từ chối phát sinh.'))
+        for rec in self:
+            if rec.ps_state not in ('pending', 'approved'):
+                continue
+            rec.write({
+                'ps_state': 'rejected',
+                'ps_approved_by_id': user.id,
+                'ps_approved_date': fields.Datetime.now(),
+            })
+            rec.lead_id._compute_quote_breakdown_html()
+            rec.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✗ <b>%s</b> từ chối PS: %s') % (
+                    user.name, rec.ps_reject_reason or rec.ps_material_name or '(không rõ)',
+                ),
+            )
+
+    def action_ps_revert_to_draft(self):
+        for rec in self:
+            rec.ps_state = 'draft'
+
+    # ============================================================
     # GIA ĐÌNH KHÔNG ĐỒNG Ý (tag.code = 'family_not_agree') — round 7 phase 3
     # Khai thác: AI không đồng ý, TẠI SAO, HƯỚNG xử lý, CHECKLIST các bước.
     # ============================================================

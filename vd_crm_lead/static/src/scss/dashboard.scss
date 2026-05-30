@@ -116,6 +116,20 @@
             letter-spacing: 0.4px;
             margin-top: 0.25rem;
         }
+        /* Round 15: badge trạng thái cuộc gọi dưới tên NV trong sidebar. */
+        .o_vd_side_call_status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.35rem;
+            margin-left: 0.4rem;
+            padding: 0.15rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 999px;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
         .o_vd_side_user_picker {
             margin-bottom: 0.55rem;
             select {
@@ -3399,8 +3413,9 @@
         background: transparent;
     }
     .o_vd_kh_row_group_info {
-        grid-template-columns: 1.6fr 0.85fr 1.1fr;
-        background: rgba(241, 245, 249, 0.55);   /* nền xám nhạt — chỉ đánh dấu nhóm */
+        /* Round 13: chỉ còn 1 cột Tên NV (đã bỏ Số tháng + Năng lực). */
+        grid-template-columns: 1fr;
+        background: rgba(241, 245, 249, 0.55);
         border-radius: 6px;
         > .o_vd_kh_col_name {
             padding: 0.35rem 0.6rem;
@@ -3408,8 +3423,8 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        /* User spec 2026-05-29: 5 cell (4 metric + 1 call status) */
-        grid-template-columns: 1fr 1fr 1fr 1fr 1.1fr;
+        /* Round 13: cột HÔM NAY rộng hơn (chứa 3 segment) */
+        grid-template-columns: 1.6fr 1fr 1fr 1fr 1.1fr;
         background: transparent;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
@@ -3654,6 +3669,43 @@
         color: #1e40af;
         border: 1.5px solid #2563eb;
     }
+    /* Round 13: 2 segment mới + đóng khung "HÔM NAY" */
+    .o_vd_kh_new_seg_calls {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        color: #075985;
+        border: 1.5px solid #0284c7;
+    }
+    .o_vd_kh_new_seg_success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        border: 1.5px solid #059669;
+    }
+    .o_vd_kh_new_seg_subval {
+        font-size: 0.72rem;
+        font-weight: 600;
+        opacity: 0.7;
+        margin-left: 1px;
+    }
+    /* Khung HÔM NAY — bao toàn bộ 3 chỉ số per NV row */
+    .o_vd_kh_metric_today_box {
+        background: linear-gradient(180deg, #fffbeb 0%, #fff 100%);
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        padding: 6px 8px !important;
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: center;
+        justify-content: flex-start;
+        box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+    }
+    /* Header column HÔM NAY — vàng nổi bật */
+    .o_vd_kh_th_today {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: #fff !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.6px !important;
+    }
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }
@@ -3886,11 +3938,12 @@
         overflow: hidden;   /* clip border-radius cho gradient header con */
     }
     .o_vd_kh_th_group_info {
-        grid-template-columns: 1.6fr 0.85fr 1.1fr;
+        /* Round 13: chỉ 1 cột Tên NV. */
+        grid-template-columns: 1fr;
     }
     .o_vd_kh_th_group_kh {
-        /* User spec 2026-05-29: 5 cell (4 metric + 1 call status) */
-        grid-template-columns: 1fr 1fr 1fr 1fr 1.1fr;
+        /* Round 13: cột HÔM NAY rộng hơn (3 segment) */
+        grid-template-columns: 1.6fr 1fr 1fr 1fr 1.1fr;
     }
     .o_vd_kh_th_call {
         background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;

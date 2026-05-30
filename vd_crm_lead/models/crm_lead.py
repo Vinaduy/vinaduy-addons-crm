@@ -1485,7 +1485,12 @@ class CrmLead(models.Model):
         # Round 10: Lửng + Khuyến mãi
         'vd_intake_has_lung', 'vd_intake_floor_lung_m2',
         'vd_intake_floor_lung_function_ids',
-        'vd_quote_discount_amount', 'vd_quote_discount_label',
+        # Round 12: KM từ problems
+        'vd_lead_problem_ids.km_state', 'vd_lead_problem_ids.km_amount',
+        'vd_lead_problem_ids.km_type', 'vd_lead_problem_ids.km_material_name',
+        # Round 12.1: PS (phát sinh vật tư) từ problems
+        'vd_lead_problem_ids.ps_state', 'vd_lead_problem_ids.ps_amount',
+        'vd_lead_problem_ids.ps_material_name',
     )
     def _compute_quote_breakdown_html(self):
         Pricing = self.env['vd.pricing.region']
@@ -1563,24 +1568,49 @@ class CrmLead(models.Model):
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(floor_cost)} VNĐ</td>
         </tr>'''
 
-            # Round 10: TRỪ khuyến mãi/giảm giá khỏi tổng UI breakdown
-            discount_amount = rec.vd_quote_discount_amount or 0
-            discount_label = rec.vd_quote_discount_label or 'Khuyến mãi'
-            total = found_cost + floor_cost + roof_cost - discount_amount
-            # rowspan = số dòng tổng (móng + N tầng + mái + dòng discount nếu có)
-            discount_row_count = 1 if discount_amount > 0 else 0
-            num_rows = 2 + max(len(per_floor_data), 1) + discount_row_count
-            # Build discount row HTML separately (tránh nested f-string Python 3.10)
-            discount_row_html = ''
-            if discount_amount > 0:
-                discount_row_html = (
-                    '<tr style="background:#fff8e1;">'
-                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;font-size:0.85rem;">🎁 {discount_label}</td>'
-                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;font-size:0.85rem;">—</td>'
-                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;font-size:0.85rem;">—</td>'
-                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;font-size:0.85rem;">− {self._fmt_vnd(discount_amount)} VNĐ</td>'
+            # Round 12: TRỪ KM (khuyến mãi) — approved problems tag_code='promotion'
+            km_problems = rec.vd_lead_problem_ids.filtered(
+                lambda p: p.tag_code == 'promotion' and p.km_state == 'approved' and (p.km_amount or 0) > 0
+            )
+            km_total = sum(p.km_amount or 0 for p in km_problems)
+            # Round 12.1: CỘNG PS (phát sinh vật tư) — approved tag_code='extra_material'
+            ps_problems = rec.vd_lead_problem_ids.filtered(
+                lambda p: p.tag_code == 'extra_material' and p.ps_state == 'approved' and (p.ps_amount or 0) > 0
+            )
+            ps_total = sum(p.ps_amount or 0 for p in ps_problems)
+            total = found_cost + floor_cost + roof_cost + ps_total - km_total
+            # rowspan = móng + N tầng + mái + N dòng PS + N dòng KM
+            num_rows = 2 + max(len(per_floor_data), 1) + len(ps_problems) + len(km_problems)
+
+            # Build PS rows HTML (xanh — cộng tiền)
+            ps_rows_html = ''
+            for ps in ps_problems:
+                ps_label = f'🧰 PS: {ps.ps_material_name}' if ps.ps_material_name else '🧰 Phát sinh vật tư'
+                ps_rows_html += (
+                    '<tr style="background:#e6fcf5;">'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #63e6be;background:#e6fcf5;font-weight:700;color:#0b7285;font-size:0.85rem;">{ps_label}</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #63e6be;background:#e6fcf5;text-align:center;color:#0b7285;font-size:0.85rem;">—</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;color:#0b7285;font-size:0.85rem;">—</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;font-weight:700;color:#0b7285;font-size:0.85rem;">+ {self._fmt_vnd(ps.ps_amount)} VNĐ</td>'
                     '</tr>'
                 )
+            # Build KM rows HTML (vàng — trừ tiền)
+            km_rows_html = ''
+            for km in km_problems:
+                if km.km_type == 'promo' and km.km_material_name:
+                    km_label = f'🎁 KM: {km.km_material_name}'
+                else:
+                    km_label = '💸 Giảm giá'
+                km_rows_html += (
+                    '<tr style="background:#fff8e1;">'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;font-size:0.85rem;">{km_label}</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;font-size:0.85rem;">—</td>'
+                    '<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;font-size:0.85rem;">—</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;font-size:0.85rem;">− {self._fmt_vnd(km.km_amount)} VNĐ</td>'
+                    '</tr>'
+                )
+            # PS rows trước (cộng) → KM rows sau (trừ) — render trước dòng mái close cuối
+            discount_row_html = ps_rows_html + km_rows_html
 
             found_lbl = self._vd_selection_dict('vd_intake_foundation_type').get(
                 rec.vd_intake_foundation_type, 'Móng đơn'
@@ -2123,24 +2153,12 @@ class CrmLead(models.Model):
                 'status': cost_status, 'sequence': 10, 'is_default': True,
             })
 
-        # ===== 2. THỜI GIAN KHỞI CÔNG — đọc từ vd_intake_timeline =====
-        tl = (self.vd_intake_timeline or '').strip()
-        if tl:
-            time_name = '🗓️ THỜI GIAN KHỞI CÔNG: KH muốn "%s"' % tl
-            time_status = 'in_progress'
-        else:
-            time_name = '🗓️ THỜI GIAN KHỞI CÔNG: chưa rõ (NV hỏi KH muốn khởi công khi nào)'
-            time_status = 'open'
-
-        if 'start_time' in existing:
-            existing['start_time'].with_context(mail_notrack=True).write({
-                'name': time_name, 'status': time_status,
-            })
-        else:
-            Problem.create({
-                'lead_id': self.id, 'code': 'start_time', 'name': time_name,
-                'status': time_status, 'sequence': 20, 'is_default': True,
-            })
+        # ===== 2. THỜI GIAN KHỞI CÔNG — round 14: BỎ auto-sinh =====
+        # User spec round 14: "thi công gấp" đã có hệ thống tự sinh (badge
+        # urgent_construction trong dashboard) → vấn đề "Thời gian khởi công"
+        # KHÔNG cần auto-tạo nữa. Bỏ hoàn toàn.
+        # (Code cũ vẫn còn các lead legacy đã được tạo — xử lý qua migration
+        #  hoặc cron dọn dẹp nếu cần.)
 
     @api.depends('vd_nego_problem_ids', 'vd_nego_problem_ids.tip_html')
     def _compute_vd_nego_problem_tips_html(self):
@@ -3687,9 +3705,17 @@ class CrmLead(models.Model):
         # Cộng các item phát sinh (Thêm WC, cầu thang...) vào tổng
         surcharges_total = sum(self.vd_surcharge_ids.mapped('total'))
         components_total += surcharges_total
-        # Round 10: TRỪ khuyến mãi/giảm giá khỏi tổng
-        discount_amount = self.vd_quote_discount_amount or 0
-        components_total -= discount_amount
+        # Round 12: TRỪ KM (khuyến mãi) — approved problems tag_code='promotion'
+        km_problems = self.vd_lead_problem_ids.filtered(
+            lambda p: p.tag_code == 'promotion' and p.km_state == 'approved' and (p.km_amount or 0) > 0
+        )
+        km_total = sum(p.km_amount or 0 for p in km_problems)
+        # Round 12.1: CỘNG PS (phát sinh vật tư) — tag_code='extra_material'
+        ps_problems = self.vd_lead_problem_ids.filtered(
+            lambda p: p.tag_code == 'extra_material' and p.ps_state == 'approved' and (p.ps_amount or 0) > 0
+        )
+        ps_total = sum(p.ps_amount or 0 for p in ps_problems)
+        components_total = components_total + ps_total - km_total
         total = components_total or self.vd_quote_price or self.vd_intake_estimate or 0
 
         house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
@@ -3732,10 +3758,28 @@ class CrmLead(models.Model):
             'found_cost': fmt(found_cost),
             'floor_cost': fmt(floor_cost),
             'roof_cost': fmt(roof_cost),
-            # Round 10: discount info — template render dòng riêng nếu > 0
-            'discount_amount_raw': discount_amount,
-            'discount_amount': fmt(discount_amount) if discount_amount else '',
-            'discount_label': self.vd_quote_discount_label or 'Khuyến mãi',
+            # Round 12: list KM approved (mỗi item 1 row trong PDF — TRỪ)
+            'km_items': [{
+                'label': (
+                    f'🎁 KM: {p.km_material_name}' if p.km_type == 'promo' and p.km_material_name
+                    else '💸 Giảm giá'
+                ),
+                'amount': fmt(p.km_amount),
+                'amount_raw': p.km_amount,
+            } for p in km_problems],
+            # Round 12.1: list PS approved (mỗi item 1 row trong PDF — CỘNG)
+            'ps_items': [{
+                'label': (
+                    f'🧰 PS: {p.ps_material_name}' if p.ps_material_name
+                    else '🧰 Phát sinh vật tư'
+                ),
+                'amount': fmt(p.ps_amount),
+                'amount_raw': p.ps_amount,
+            } for p in ps_problems],
+            # Legacy keys giữ để fallback (không dùng nếu km_items hoạt động)
+            'discount_amount_raw': km_total,
+            'discount_amount': fmt(km_total) if km_total else '',
+            'discount_label': '',
             'total_price': fmt(total),
             'total_price_int': int(total),
             # Tiến độ thanh toán (4 đợt)
@@ -6458,6 +6502,20 @@ class CrmLead(models.Model):
             new_today_qs = new_leads_qs.filtered(
                 lambda l: l.create_date and today_start <= l.create_date < today_end
             )
+            # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG
+            # (success = at least 1 call with state='answered' OR ended+duration>0)
+            calls_today = self.env['stringee.call'].sudo().search([
+                ('user_id', '=', u.id),
+                ('create_date', '>=', today_start),
+                ('create_date', '<', today_end),
+                ('lead_id', '!=', False),
+            ])
+            calls_today_lead_ids = set(calls_today.mapped('lead_id').ids)
+            success_call_lead_ids = set(
+                calls_today.filtered(
+                    lambda c: c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0)
+                ).mapped('lead_id').ids
+            )
 
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
@@ -6492,6 +6550,9 @@ class CrmLead(models.Model):
                 # User spec 2026-05-29: KH mới HÔM NAY
                 'new_today_count': len(new_today_qs),
                 'new_today_leads': [_ld_basic(l) for l in new_today_qs[:50]],
+                # Round 13: số KH đã gọi / gọi thành công hôm nay
+                'calls_today_total': len(calls_today_lead_ids),
+                'calls_today_success': len(success_call_lead_ids),
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 

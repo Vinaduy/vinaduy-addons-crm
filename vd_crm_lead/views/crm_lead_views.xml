@@ -728,7 +728,7 @@
                                     <field name="vd_intake_locked" invisible="1"/>
                                     <field name="vd_intake_complete" invisible="1"/>
                                     <field name="vd_no_quote_state" invisible="1"/>
-                                    <button string="⏸️ CHƯA BÁO GIÁ"
+                                    <button string="⏸️ KHÁCH THAM KHẢO"
                                             name="action_open_no_quote_wizard" type="object"
                                             class="btn btn-sm btn-info o_vd_btn_no_quote"
                                             invisible="vd_intake_locked or vd_intake_complete or vd_no_quote_state == 'pending'"
@@ -814,15 +814,10 @@
                         <field name="vd_quote_template_suggested_ids" invisible="1"/>
                         <field name="vd_quote_template_id" invisible="1"/>
 
-                        <!-- KHUYẾN MÃI / GIẢM GIÁ (round 10) — NV nhập số tiền + label,
-                             sẽ hiển thị dòng vàng trong bảng breakdown + PDF, trừ khỏi tổng. -->
-                        <div class="o_vd_quote_discount_row"
-                             style="display:flex;gap:0.6rem;align-items:center;margin:0.4rem 0 0.6rem;flex-wrap:wrap;padding:0.5rem 0.7rem;background:#fff8e1;border:1px dashed #ffd43b;border-radius:6px;">
-                            <span style="font-weight:700;color:#d9480f;white-space:nowrap;">🎁 Khuyến mãi:</span>
-                            <field name="vd_quote_discount_label" nolabel="1" placeholder="VD: Khuyến mãi Tết 2026, Tri ân KH cũ..." style="flex:1;min-width:160px;"/>
-                            <field name="vd_quote_discount_amount" nolabel="1" widget="monetary" options="{'currency_field': 'vd_currency_vnd_id'}" style="max-width:200px;"/>
-                            <field name="vd_currency_vnd_id" invisible="1"/>
-                        </div>
+                        <!-- Round 12: BỎ inline discount input. KM/Giảm giá đi qua
+                             vấn đề (tag_code='promotion') → NV gửi duyệt → trưởng nhóm
+                             hoặc admin duyệt → tự động thành dòng trong báo giá. -->
+                        <field name="vd_currency_vnd_id" invisible="1"/>
 
                         <!-- Bảng báo giá chi tiết (breakdown) — data từ Thông tin tư vấn -->
                         <div class="o_vd_quote_breakdown_wrap">
@@ -1355,6 +1350,142 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                             <div class="o_vd_pf_intake_hint">
                                                 💡 Thay đổi các trường trên sẽ cập nhật trực tiếp vào THÔNG TIN TƯ VẤN
                                                 + báo giá chi tiết tự tính lại. Lịch sử thay đổi log vào chatter KH.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== KHUYẾN MÃI / GIẢM GIÁ (tag_code='promotion') — round 12 ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_km"
+                                         invisible="tag_code != 'promotion'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">🎁</span>
+                                            <span class="o_vd_pf_section_title">KHUYẾN MÃI — GIẢM GIÁ</span>
+                                            <span class="o_vd_pf_section_sub" style="margin-left:0.6rem;font-size:12px;">
+                                                <span class="badge bg-warning text-dark" invisible="km_state != 'draft'">📝 Nháp</span>
+                                                <span class="badge bg-info" invisible="km_state != 'pending'">⏳ Chờ duyệt</span>
+                                                <span class="badge bg-success" invisible="km_state != 'approved'">✓ Đã duyệt — vào báo giá</span>
+                                                <span class="badge bg-danger" invisible="km_state != 'rejected'">✗ Bị từ chối</span>
+                                            </span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <field name="km_state" invisible="1"/>
+                                            <field name="km_currency_id" invisible="1"/>
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Loại</span>
+                                                <field name="km_type" nolabel="1" widget="radio"
+                                                       readonly="km_state in ('approved', 'pending')"/>
+                                            </div>
+                                            <div class="o_vd_pf_field" invisible="km_type != 'promo'">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Tên vật tư khuyến mãi</span>
+                                                <field name="km_material_name" nolabel="1"
+                                                       placeholder="VD: Tặng máy nước nóng Ariston 30L, Nâng cấp sơn ngoài Dulux..."
+                                                       readonly="km_state in ('approved', 'pending')"/>
+                                            </div>
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Số tiền</span>
+                                                <field name="km_amount" nolabel="1"
+                                                       widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                       readonly="km_state in ('approved', 'pending')"/>
+                                            </div>
+                                            <div class="o_vd_pf_field" invisible="km_state != 'rejected'">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Lý do từ chối</span>
+                                                <field name="km_reject_reason" nolabel="1" readonly="1"/>
+                                            </div>
+
+                                            <!-- Action buttons -->
+                                            <div class="o_vd_pf_field" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.6rem;">
+                                                <button name="action_km_submit" type="object"
+                                                        class="btn btn-info btn-sm"
+                                                        invisible="km_state != 'draft'">
+                                                    ⏳ Gửi duyệt
+                                                </button>
+                                                <button name="action_km_approve" type="object"
+                                                        class="btn btn-success btn-sm"
+                                                        invisible="km_state != 'pending'"
+                                                        groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin">
+                                                    ✓ Duyệt
+                                                </button>
+                                                <field name="km_reject_reason" nolabel="1"
+                                                       invisible="km_state != 'pending'"
+                                                       placeholder="Lý do từ chối (nhập trước khi bấm Từ chối)..."
+                                                       style="min-width:280px;"
+                                                       groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin"/>
+                                                <button name="action_km_reject" type="object"
+                                                        class="btn btn-danger btn-sm"
+                                                        invisible="km_state != 'pending'"
+                                                        groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin">
+                                                    ✗ Từ chối
+                                                </button>
+                                                <button name="action_km_revert_to_draft" type="object"
+                                                        class="btn btn-secondary btn-sm"
+                                                        invisible="km_state not in ('pending', 'rejected')">
+                                                    ↩️ Đưa về nháp
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== PHÁT SINH VẬT TƯ (tag_code='extra_material') — round 12.1 ===== -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_ps"
+                                         invisible="tag_code != 'extra_material'">
+                                        <div class="o_vd_pf_section_head">
+                                            <span class="o_vd_pf_section_icon">🧰</span>
+                                            <span class="o_vd_pf_section_title">PHÁT SINH VẬT TƯ — KH TRẢ THÊM</span>
+                                            <span class="o_vd_pf_section_sub" style="margin-left:0.6rem;font-size:12px;">
+                                                <span class="badge bg-warning text-dark" invisible="ps_state != 'draft'">📝 Nháp</span>
+                                                <span class="badge bg-info" invisible="ps_state != 'pending'">⏳ Chờ duyệt</span>
+                                                <span class="badge bg-success" invisible="ps_state != 'approved'">✓ Đã duyệt — vào báo giá</span>
+                                                <span class="badge bg-danger" invisible="ps_state != 'rejected'">✗ Bị từ chối</span>
+                                            </span>
+                                        </div>
+                                        <div class="o_vd_pf_section_body">
+                                            <field name="ps_state" invisible="1"/>
+                                            <field name="ps_currency_id" invisible="1"/>
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Tên vật tư phát sinh</span>
+                                                <field name="ps_material_name" nolabel="1"
+                                                       placeholder="VD: Thêm máy lạnh tầng 2, Nâng cấp gạch lát ngoài, Thêm WC tầng tum..."
+                                                       readonly="ps_state in ('approved', 'pending')"/>
+                                            </div>
+                                            <div class="o_vd_pf_field">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Số tiền KH trả thêm</span>
+                                                <field name="ps_amount" nolabel="1"
+                                                       widget="monetary" options="{'currency_field': 'ps_currency_id'}"
+                                                       readonly="ps_state in ('approved', 'pending')"/>
+                                            </div>
+                                            <div class="o_vd_pf_field" invisible="ps_state != 'rejected'">
+                                                <span class="o_form_label o_vd_pf_field_lbl">Lý do từ chối</span>
+                                                <field name="ps_reject_reason" nolabel="1" readonly="1"/>
+                                            </div>
+
+                                            <div class="o_vd_pf_field" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.6rem;">
+                                                <button name="action_ps_submit" type="object"
+                                                        class="btn btn-info btn-sm"
+                                                        invisible="ps_state != 'draft'">
+                                                    ⏳ Gửi duyệt
+                                                </button>
+                                                <button name="action_ps_approve" type="object"
+                                                        class="btn btn-success btn-sm"
+                                                        invisible="ps_state != 'pending'"
+                                                        groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin">
+                                                    ✓ Duyệt
+                                                </button>
+                                                <field name="ps_reject_reason" nolabel="1"
+                                                       invisible="ps_state != 'pending'"
+                                                       placeholder="Lý do từ chối..."
+                                                       style="min-width:280px;"
+                                                       groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin"/>
+                                                <button name="action_ps_reject" type="object"
+                                                        class="btn btn-danger btn-sm"
+                                                        invisible="ps_state != 'pending'"
+                                                        groups="vd_crm_lead.vd_crm_group_team_leader,vd_crm_lead.vd_crm_group_admin">
+                                                    ✗ Từ chối
+                                                </button>
+                                                <button name="action_ps_revert_to_draft" type="object"
+                                                        class="btn btn-secondary btn-sm"
+                                                        invisible="ps_state not in ('pending', 'rejected')">
+                                                    ↩️ Đưa về nháp
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

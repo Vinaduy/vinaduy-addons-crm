@@ -117,7 +117,9 @@
                          -->
                     <t t-set="floor_rows" t-value="ctx.get('floor_breakdown') or []"/>
                     <t t-set="surcharges" t-value="ctx.get('surcharges') or []"/>
-                    <t t-set="num_rows" t-value="2 + max(len(floor_rows), 1) + len(surcharges)"/>
+                    <t t-set="km_items" t-value="ctx.get('km_items') or []"/>
+                    <t t-set="ps_items" t-value="ctx.get('ps_items') or []"/>
+                    <t t-set="num_rows" t-value="2 + max(len(floor_rows), 1) + len(surcharges) + len(km_items) + len(ps_items)"/>
                     <table style="width:100%;border-collapse:collapse;margin-bottom:0.8rem;font-size:10pt;">
                         <thead>
                             <tr style="background:linear-gradient(90deg,#5c8fb8 0%,#1864ab 100%);color:#fff;">
@@ -172,18 +174,32 @@
                                     <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="sc['total']"/> VNĐ</td>
                                 </tr>
                             </t>
-                            <!-- KHUYẾN MÃI / GIẢM GIÁ — round 10. Chỉ render khi >0. -->
-                            <tr t-if="ctx.get('discount_amount_raw') and ctx.get('discount_amount_raw') &gt; 0"
-                                style="background:#fff8e1;">
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;">
-                                    🎁 <t t-esc="ctx.get('discount_label', 'Khuyến mãi')"/>
-                                </td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;">—</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;">—</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;">
-                                    − <t t-esc="ctx.get('discount_amount', '0')"/> VNĐ
-                                </td>
-                            </tr>
+                            <!-- PHÁT SINH VẬT TƯ — round 12.1. Xanh — CỘNG tiền. -->
+                            <t t-foreach="ps_items" t-as="ps" t-key="ps_index">
+                                <tr style="background:#e6fcf5;">
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;font-weight:700;color:#0b7285;">
+                                        <t t-esc="ps['label']"/>
+                                    </td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:center;color:#0b7285;">—</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;color:#0b7285;">—</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;font-weight:700;color:#0b7285;">
+                                        + <t t-esc="ps['amount']"/> VNĐ
+                                    </td>
+                                </tr>
+                            </t>
+                            <!-- KHUYẾN MÃI / GIẢM GIÁ — round 12. Vàng — TRỪ tiền. -->
+                            <t t-foreach="km_items" t-as="km" t-key="km_index">
+                                <tr style="background:#fff8e1;">
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;">
+                                        <t t-esc="km['label']"/>
+                                    </td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;">—</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;">—</td>
+                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;">
+                                        − <t t-esc="km['amount']"/> VNĐ
+                                    </td>
+                                </tr>
+                            </t>
                         </tbody>
                     </table>
 

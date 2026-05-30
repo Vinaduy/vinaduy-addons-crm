@@ -194,19 +194,16 @@
                                 <div class="o_vd_kh_table_header">
                                     <div class="o_vd_kh_table_header_sidebar"/>
                                     <div class="o_vd_kh_table_header_cells">
-                                        <!-- NHÓM 1: Thông tin NV -->
+                                        <!-- Round 13: Bỏ cột Số tháng + Năng lực. Khách mới đổi
+                                             tiêu đề HÔM NAY (đóng khung toàn bộ NV). -->
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_info">
                                             <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_months">📅 Số tháng</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_capacity">⭐ Năng lực</div>
                                         </div>
-                                        <!-- NHÓM 2: Khách hàng -->
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
-                                            <div class="o_vd_kh_th o_vd_kh_th_new">🆕 Khách mới</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_new o_vd_kh_th_today">📅 HÔM NAY</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
-                                            <!-- User spec 2026-05-29: live call status (poll 5s) -->
                                             <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
                                         </div>
                                     </div>
@@ -240,32 +237,35 @@
                                                             <t t-esc="nv.total_leads or 0"/> KH
                                                         </span>
                                                     </div>
-                                                    <div class="o_vd_kh_col_info o_vd_kh_col_months">
-                                                        <span class="o_vd_kh_info_num"><t t-esc="nv.work_months or 0"/></span>
-                                                        <span class="o_vd_kh_info_unit">tháng</span>
-                                                    </div>
-                                                    <div t-att-class="'o_vd_kh_col_info o_vd_kh_col_capacity o_vd_kh_cap_' + (nv.capacity_level or 'junior')">
-                                                        <span class="o_vd_kh_cap_badge"><t t-esc="nv.capacity_label or 'Junior'"/></span>
-                                                    </div>
+                                                    <!-- Round 13: bỏ Số tháng + Năng lực. -->
                                                 </div>
 
                                                 <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
-                                                <!-- User spec 2026-05-29:
-                                                     2 segment có label rõ ràng:
-                                                     "Hôm nay [N]  Tổng [M]" — chỉ tính KH MỚI (stage=new).
-                                                     Tổng KH NV quản lý đã chuyển lên cạnh tên NV. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_new">
+                                                <!-- Round 13: khung HÔM NAY chứa 3 chỉ số:
+                                                     - KH mới hôm nay
+                                                     - Tổng KH đã gọi hôm nay
+                                                     - KH gọi thành công hôm nay (answered/duration>0)
+                                                     -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_new o_vd_kh_metric_today_box">
                                                     <span class="o_vd_kh_new_seg o_vd_kh_new_seg_today"
-                                                          t-att-title="'KH mới HÔM NAY: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">Hôm nay</span>
+                                                          t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
+                                                        <span class="o_vd_kh_new_seg_lbl">🆕 KH mới</span>
                                                         <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_today_count or 0"/></span>
                                                     </span>
-                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_total"
-                                                          t-att-title="'Tổng KH mới trong khoảng lọc: ' + (nv.new_count or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">Tổng</span>
-                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_count or 0"/></span>
+                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_calls"
+                                                          t-att-title="'KH đã gọi hôm nay (distinct leads): ' + (nv.calls_today_total or 0)">
+                                                        <span class="o_vd_kh_new_seg_lbl">📞 Đã gọi</span>
+                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                    </span>
+                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_success"
+                                                          t-att-title="'KH gọi thành công (KH bắt máy) hôm nay: ' + (nv.calls_today_success or 0) + ' / ' + (nv.calls_today_total or 0)">
+                                                        <span class="o_vd_kh_new_seg_lbl">✅ Thành công</span>
+                                                        <span class="o_vd_kh_new_seg_val">
+                                                            <t t-esc="nv.calls_today_success or 0"/>
+                                                            <span class="o_vd_kh_new_seg_subval">/<t t-esc="nv.calls_today_total or 0"/></span>
+                                                        </span>
                                                     </span>
                                                     <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
@@ -1208,6 +1208,24 @@
                                     <div t-if="state.is_manager" class="o_vd_side_user_role">
                                         <i class="fa fa-shield"/> Manager
                                     </div>
+                                    <!-- Round 15: trạng thái LIVE call của NV đang xem.
+                                         Skip khi 'Tất cả NV' (no specific user). -->
+                                    <t t-if="!state.user.is_all and state.user.id">
+                                        <t t-set="ci" t-value="state.activeCalls[state.user.id]"/>
+                                        <span t-if="ci" class="o_vd_call_status o_vd_call_status_on o_vd_side_call_status"
+                                              t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
+                                            <span class="o_vd_call_status_dot"/>
+                                            <span class="o_vd_call_status_lbl">Đang gọi</span>
+                                            <span class="o_vd_call_status_time">
+                                                <t t-esc="ci.since_min"/>'
+                                            </span>
+                                        </span>
+                                        <span t-else="" class="o_vd_call_status o_vd_call_status_off o_vd_side_call_status"
+                                              title="NV không có cuộc gọi đang diễn ra">
+                                            <span class="o_vd_call_status_dot"/>
+                                            <span class="o_vd_call_status_lbl">Không gọi</span>
+                                        </span>
+                                    </t>
                                 </div>
                             </div>
                             <div t-if="state.is_manager" class="o_vd_side_user_picker">
