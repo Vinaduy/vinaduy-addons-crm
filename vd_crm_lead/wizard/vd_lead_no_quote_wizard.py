@@ -5,7 +5,7 @@ chưa xong pháp lý, chưa muốn xây ngay) → bấm CHƯA BÁO GIÁ → wiza
 form khai thác chi tiết theo 4 nhóm + đặt ngày gọi lại → KH tự chuyển
 từ KHÁCH MỚI sang THAM KHẢO (👀 icon).
 """
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -167,9 +167,8 @@ class VdLeadNoQuoteWizard(models.TransientModel):
             'vd_no_quote_callback_date': self.callback_date,
             'vd_no_quote_date': fields.Datetime.now(),
             'vd_no_quote_user_id': self.env.user.id,
-            'callback_date': fields.Datetime.combine(
-                self.callback_date, fields.Datetime.now().time(),
-            ),
+            # callback_date trên crm.lead là Datetime → combine date+time(9h sáng)
+            'callback_date': datetime.combine(self.callback_date, time(9, 0)),
         })
         self.lead_id.message_post(
             subtype_xmlid='mail.mt_note',
