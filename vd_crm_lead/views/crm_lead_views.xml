@@ -1588,6 +1588,11 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </field>
                     </div>
 
+                    <!-- ===== LỊCH SỬ CUỘC GỌI SAU BÁO GIÁ — báo cáo nhanh + list ===== -->
+                    <div class="o_vd_pq_call_report" invisible="not vd_quote_created_date">
+                        <field name="vd_post_quote_call_report" widget="html" nolabel="1" readonly="1"/>
+                    </div>
+
                     <!-- ===== ACTION TOOLBOX ===== -->
                     <div class="o_vd_nego_actions" invisible="vd_contract_signed">
                         <button name="action_unlock_quote_for_edit" type="object"

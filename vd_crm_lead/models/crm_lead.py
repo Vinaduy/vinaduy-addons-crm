@@ -313,6 +313,117 @@ class CrmLead(models.Model):
             else:
                 rec.vd_lead_call_rating = 'high' if (answered / total) >= 0.5 else 'low'
 
+    # ===== Báo cáo nhanh + lịch sử cuộc gọi SAU BÁO GIÁ (panel VẤN ĐỀ) =====
+    vd_post_quote_call_report = fields.Html(
+        string='Lịch sử cuộc gọi sau báo giá',
+        compute='_compute_post_quote_call_report',
+        store=False, sanitize=False,
+    )
+
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
+                 'call_ids.start_time', 'call_ids.recording_url',
+                 'vd_quote_created_date')
+    def _compute_post_quote_call_report(self):
+        """Báo cáo nhanh + lịch sử cuộc gọi KỂ TỪ ngày báo giá thành công
+        (vd_quote_created_date). Phân loại: ✅ nghe máy (state ended/answered +
+        duration>0) / 🔕 cố tình không nghe (no_answer/busy/declined) /
+        📵 thuê bao (failed). Hiển thị trong panel VẤN ĐỀ trên form KH."""
+        for rec in self:
+            since = rec.vd_quote_created_date
+            if not since:
+                rec.vd_post_quote_call_report = (
+                    '<div style="padding:0.6rem 0.8rem;color:#868e96;'
+                    'font-style:italic;font-size:0.85rem;">Chưa có báo giá — '
+                    'chưa tính được cuộc gọi sau báo giá.</div>'
+                )
+                continue
+            calls = rec.call_ids.filtered(
+                lambda c: c.start_time and c.start_time >= since
+            ).sorted(key=lambda c: c.start_time, reverse=True)
+            ans = refuse = sub = 0
+            days = set()
+            for c in calls:
+                dur = c.duration or 0
+                days.add(c.start_time.date())
+                if c.state in ('answered', 'ended') and dur > 0:
+                    ans += 1
+                elif c.state == 'failed':
+                    sub += 1
+                else:
+                    refuse += 1
+            total = ans + refuse + sub
+
+            def _chip(icon, label, val, color, bg, border):
+                return (
+                    f'<span style="display:inline-flex;align-items:center;gap:4px;'
+                    f'padding:2px 9px;border-radius:999px;font-size:0.78rem;font-weight:700;'
+                    f'border:1px solid {border};background:{bg};color:{color};margin:2px;">'
+                    f'{icon} {label} <b style="font-size:0.92rem;">{val}</b></span>'
+                )
+
+            if total == 0:
+                v_txt, v_col, v_bg, v_bd = '— Chưa có cuộc gọi nào sau báo giá', '#868e96', '#f1f3f5', '#ced4da'
+            elif ans > 0:
+                v_txt, v_col, v_bg, v_bd = f'✅ CÓ NGHE MÁY · {ans} lần', '#2b8a3e', '#ebfbee', '#8ce99a'
+            else:
+                v_txt, v_col, v_bg, v_bd = f'📵 CHƯA NGHE MÁY · {total} cuộc', '#c92a2a', '#fff5f5', '#ffa8a8'
+
+            chips = ''
+            if ans:
+                chips += _chip('📞', 'Nghe máy', ans, '#2b8a3e', '#ebfbee', '#b2f2bb')
+            if refuse:
+                chips += _chip('🔕', 'Cố tình không nghe', refuse, '#e8590c', '#fff4e6', '#ffd8a8')
+            if sub:
+                chips += _chip('📵', 'Thuê bao', sub, '#7048e8', '#f3f0ff', '#d0bfff')
+            chips += _chip('📅', 'Ngày gọi', len(days), '#1971c2', '#e7f5ff', '#a5d8ff')
+
+            rows = ''
+            for c in calls[:15]:
+                dur = c.duration or 0
+                if c.state in ('answered', 'ended') and dur > 0:
+                    ic, lbl, col = '✅', 'Nghe máy', '#2b8a3e'
+                elif c.state == 'failed':
+                    ic, lbl, col = '📵', 'Thuê bao', '#7048e8'
+                else:
+                    ic, lbl, col = '🔕', 'Không nghe', '#e8590c'
+                tstr = fields.Datetime.context_timestamp(rec, c.start_time).strftime('%d/%m %H:%M')
+                durstr = f'{dur}s' if dur else '—'
+                link = ''
+                if c.recording_url:
+                    link = (
+                        f'<a href="{c.recording_url}" target="_blank" style="color:#fff;'
+                        f'background:#2b8a3e;padding:1px 9px;border-radius:5px;text-decoration:none;'
+                        f'font-weight:700;font-size:0.75rem;">▶ Nghe</a>'
+                    )
+                rows += (
+                    f'<tr style="border-bottom:1px solid #f1f3f5;">'
+                    f'<td style="padding:4px 8px;white-space:nowrap;color:#1f2a44;font-weight:600;">{tstr}</td>'
+                    f'<td style="padding:4px 8px;white-space:nowrap;color:{col};font-weight:700;">{ic} {lbl}</td>'
+                    f'<td style="padding:4px 8px;text-align:right;color:#6c757d;">{durstr}</td>'
+                    f'<td style="padding:4px 8px;text-align:right;">{link}</td></tr>'
+                )
+            if rows:
+                list_html = (
+                    f'<table style="width:100%;border-collapse:collapse;'
+                    f'font-size:0.8rem;margin-top:4px;">{rows}</table>'
+                )
+            else:
+                list_html = (
+                    '<div style="padding:6px 8px;color:#868e96;font-style:italic;'
+                    'font-size:0.82rem;">Chưa có cuộc gọi nào kể từ báo giá.</div>'
+                )
+            since_str = fields.Datetime.context_timestamp(rec, since).strftime('%d/%m/%Y')
+            rec.vd_post_quote_call_report = (
+                f'<div style="border:1px solid #e9ecef;border-radius:8px;overflow:hidden;">'
+                f'<div style="padding:6px 10px;background:linear-gradient(135deg,#5c8fb8,#4a7aa0);'
+                f'color:#fff;font-weight:800;font-size:0.85rem;">📞 Lịch sử cuộc gọi sau báo giá '
+                f'<span style="font-weight:500;font-size:0.7rem;opacity:0.9;">(từ {since_str})</span></div>'
+                f'<div style="margin:8px 10px;padding:6px 10px;border-radius:8px;border:1.5px solid {v_bd};'
+                f'background:{v_bg};color:{v_col};font-weight:800;text-align:center;">{v_txt}</div>'
+                f'<div style="padding:0 8px 6px;text-align:center;">{chips}</div>'
+                f'<div style="padding:0 8px 8px;">{list_html}</div></div>'
+            )
+
     # Live call indicator — computed (not stored), used by form to toggle
     # Gọi/Cúp máy buttons. Cheap query: looks for any non-terminal call.
     vd_active_call_id = fields.Many2one(
