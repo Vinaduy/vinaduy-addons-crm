@@ -5259,6 +5259,10 @@
             border-color: #fd7e14;
             transform: translateX(2px);
             box-shadow: 0 2px 6px rgba(253, 126, 20, 0.15);
+            /* Nâng hàng đang hover lên trên → panel THÔNG TIN KH không bị các
+               dòng KH bên dưới (vẽ sau trong DOM) che mất. */
+            position: relative;
+            z-index: 100;
         }
 
         @media (max-width: 600px) {
@@ -5818,6 +5822,14 @@
         font-style: italic;
         position: sticky;
         bottom: 0;
+    }
+    /* Khi hover tên KH: mở overflow của section (mặc định overflow:hidden cắt
+       panel) + nâng section lên trên các section/dòng khác. :has() — Chrome/Edge/
+       Safari hiện đại đều hỗ trợ (Odoo 18 yêu cầu browser mới). */
+    .o_vd_lead_section:has(.o_vd_name_pill:hover) {
+        overflow: visible;
+        position: relative;
+        z-index: 200;
     }
     .o_vd_problem_row_phone,
     .o_vd_problem_row_nv,
