@@ -1731,7 +1731,27 @@
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
-                                                <span class="o_vd_name_pill_hint">📋 Click để copy</span>
+                                                <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
+                                                <div class="o_vd_kh_info_panel" t-on-click.stop="">
+                                                    <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>
+                                                    <div class="o_vd_kh_info_meta">
+                                                        <div class="o_vd_kh_info_row">
+                                                            <span class="o_vd_kh_info_lbl">💰 Tầm tài chính</span>
+                                                            <span class="o_vd_kh_info_val">
+                                                                <t t-if="lead.budget_label"><t t-esc="lead.budget_label"/></t>
+                                                                <t t-elif="lead.budget_amount_fmt"><t t-esc="lead.budget_amount_fmt"/> đ</t>
+                                                                <t t-else="">—</t>
+                                                            </span>
+                                                        </div>
+                                                        <div class="o_vd_kh_info_row" t-if="lead.quote_price_fmt">
+                                                            <span class="o_vd_kh_info_lbl">🧾 Giá báo KH</span>
+                                                            <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
+                                                    <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>
+                                                    <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
+                                                </div>
                                             </span>
                                             <!-- User spec round 6.1: BỎ urgent_label_cell + days_cell,
                                                  chỉ còn name | YÊU CẦU TÌM badge (right-align).
@@ -1819,7 +1839,27 @@
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
-                                                <span class="o_vd_name_pill_hint">📋 Click để copy</span>
+                                                <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
+                                                <div class="o_vd_kh_info_panel" t-on-click.stop="">
+                                                    <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>
+                                                    <div class="o_vd_kh_info_meta">
+                                                        <div class="o_vd_kh_info_row">
+                                                            <span class="o_vd_kh_info_lbl">💰 Tầm tài chính</span>
+                                                            <span class="o_vd_kh_info_val">
+                                                                <t t-if="lead.budget_label"><t t-esc="lead.budget_label"/></t>
+                                                                <t t-elif="lead.budget_amount_fmt"><t t-esc="lead.budget_amount_fmt"/> đ</t>
+                                                                <t t-else="">—</t>
+                                                            </span>
+                                                        </div>
+                                                        <div class="o_vd_kh_info_row" t-if="lead.quote_price_fmt">
+                                                            <span class="o_vd_kh_info_lbl">🧾 Giá báo KH</span>
+                                                            <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
+                                                    <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>
+                                                    <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
+                                                </div>
                                             </span>
                                             <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
                                             <span class="o_vd_problem_row_problems">

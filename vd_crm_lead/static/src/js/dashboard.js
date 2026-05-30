@@ -9,7 +9,7 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
+import { Component, markup, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { View } from "@web/views/view";
@@ -307,17 +307,19 @@ export class VdCrmDashboard extends Component {
         if (stage?.code === 'new') {
             const probArgs = this.state.selected_user_id ? [this.state.selected_user_id] : [];
             try {
-                this.state.leadsWithProblemsAll = await this.orm.call(
+                const rows = await this.orm.call(
                     "crm.lead", "dashboard_leads_with_problems", probArgs
                 );
+                this.state.leadsWithProblemsAll = this._markupBreakdown(rows);
             } catch (_e) {
                 this.state.leadsWithProblemsAll = [];
             }
             // Fetch KH thi công GẤP (≤3 tháng tới / càng sớm càng tốt)
             try {
-                this.state.leadsUrgentConstructionAll = await this.orm.call(
+                const rows = await this.orm.call(
                     "crm.lead", "dashboard_leads_urgent_construction", probArgs
                 );
+                this.state.leadsUrgentConstructionAll = this._markupBreakdown(rows);
             } catch (_e) {
                 this.state.leadsUrgentConstructionAll = [];
             }
@@ -862,6 +864,16 @@ export class VdCrmDashboard extends Component {
     copyLeadName(ev, name) {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
+    }
+    // Bọc HTML bảng báo giá chi tiết bằng markup() → t-out render raw (không escape).
+    // Panel THÔNG TIN KHÁCH HÀNG (hover tên KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).
+    _markupBreakdown(rows) {
+        for (const r of (rows || [])) {
+            if (typeof r.quote_breakdown_html === "string") {
+                r.quote_breakdown_html = markup(r.quote_breakdown_html);
+            }
+        }
+        return rows || [];
     }
 
     createNewLead() {

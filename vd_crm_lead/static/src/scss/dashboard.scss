@@ -5726,29 +5726,98 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .o_vd_name_pill_hint {
+        /* Hover panel THÔNG TIN KHÁCH HÀNG — tầm tài chính + báo giá chi tiết */
+        .o_vd_kh_info_panel {
             position: absolute;
             left: 0;
-            bottom: calc(100% + 4px);
-            z-index: 80;
-            background: #1f2a44;
-            color: #fff;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-            padding: 0.2rem 0.5rem;
-            border-radius: 5px;
-            white-space: nowrap;
+            top: calc(100% + 5px);
+            z-index: 90;
+            width: 560px;
+            max-width: 78vw;
+            max-height: 62vh;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            box-shadow: 0 16px 44px rgba(15, 23, 42, 0.30);
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.28);
             transition: opacity 0.12s ease;
+            text-align: left;
+            white-space: normal;
+            font-weight: 400;
+            color: #1f2a44;
+            cursor: default;
+
+            &::before {   /* bridge phủ khe hở — di chuột vào panel không mất hover */
+                content: '';
+                position: absolute;
+                top: -7px; left: 0; right: 0; height: 7px;
+            }
         }
-        &:hover .o_vd_name_pill_hint {
+        &:hover .o_vd_kh_info_panel {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
+    }
+    .o_vd_kh_info_head {
+        padding: 0.55rem 0.8rem;
+        background: linear-gradient(135deg, #1971c2 0%, #4dabf7 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.82rem;
+        border-radius: 10px 10px 0 0;
+        position: sticky;
+        top: 0;
+    }
+    .o_vd_kh_info_meta {
+        padding: 0.55rem 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    .o_vd_kh_info_row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+    }
+    .o_vd_kh_info_lbl {
+        font-weight: 700;
+        color: #495057;
+        font-size: 0.8rem;
+    }
+    .o_vd_kh_info_val {
+        font-weight: 800;
+        color: #1f2a44;
+        font-size: 0.92rem;
+    }
+    .o_vd_kh_info_quote { color: #1971c2; }
+    .o_vd_kh_info_subhead {
+        padding: 0.45rem 0.8rem 0.2rem;
+        font-weight: 800;
+        font-size: 0.78rem;
+        color: #1864ab;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .o_vd_kh_info_breakdown {
+        padding: 0 0.6rem 0.5rem;
+        table { width: 100%; }
+    }
+    .o_vd_kh_info_foot {
+        padding: 0.4rem 0.8rem;
+        background: #f8f9fa;
+        border-top: 1px solid #f1f3f5;
+        border-radius: 0 0 10px 10px;
+        font-size: 0.72rem;
+        color: #868e96;
+        font-style: italic;
+        position: sticky;
+        bottom: 0;
     }
     .o_vd_problem_row_phone,
     .o_vd_problem_row_nv,

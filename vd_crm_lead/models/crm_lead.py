@@ -5144,7 +5144,8 @@ class CrmLead(models.Model):
             limit=limit,
             order='vd_quote_created_date asc nulls last, create_date asc',
         )
-        return self._dashboard_serialize_leads(leads)
+        data = self._dashboard_serialize_leads(leads)
+        return self._dashboard_attach_quote_info(leads, data)
 
     @api.model
     def dashboard_leads_with_problems(self, user_id=None, limit=200):
@@ -5176,7 +5177,35 @@ class CrmLead(models.Model):
             # Round 17 sort: ưu tiên KH cũ nhất (= ít ngày còn lại / quá hạn).
             order='vd_quote_created_date asc nulls last, create_date asc',
         )
-        return self._dashboard_serialize_leads(leads)
+        data = self._dashboard_serialize_leads(leads)
+        return self._dashboard_attach_quote_info(leads, data)
+
+    @api.model
+    def _dashboard_attach_quote_info(self, leads, data):
+        """Gắn THÔNG TIN KHÁCH HÀNG (tầm tài chính + bảng báo giá chi tiết HTML)
+        vào serialized data — CHỈ cho 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ để render
+        panel hover trên tên KH. KHÔNG dùng cho list chính vì vd_quote_breakdown_html
+        là field compute (store=False) — tính hàng loạt sẽ nặng.
+        """
+        by_id = {l.id: l for l in leads}
+        budget_sel = dict(self._fields['vd_intake_budget_range'].selection)
+        for d in data:
+            rec = by_id.get(d['id'])
+            if not rec:
+                continue
+            d['budget_label'] = (
+                budget_sel.get(rec.vd_intake_budget_range, '')
+                if rec.vd_intake_budget_range else ''
+            )
+            d['budget_amount_fmt'] = (
+                self._fmt_vnd(rec.vd_intake_budget_amount)
+                if rec.vd_intake_budget_amount else ''
+            )
+            d['quote_price_fmt'] = (
+                self._fmt_vnd(rec.vd_quote_price) if rec.vd_quote_price else ''
+            )
+            d['quote_breakdown_html'] = rec.vd_quote_breakdown_html or ''
+        return data
 
     @api.model
     def vd_dashboard_search_leads(self, query, user_id=None, limit=20):
