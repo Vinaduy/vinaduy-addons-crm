@@ -352,6 +352,49 @@ class CrmLead(models.Model):
             rec.vd_zalo_problem_overdue_days = days
             rec.vd_zalo_problem_overdue = overdue
 
+    # ----- CHĂM SÓC các ngày tiếp theo (cái cần kiểm soát chính) -----
+    vd_zalo_last_care = fields.Datetime(string='Zalo: lần chăm sóc cuối')
+    vd_zalo_care_count = fields.Integer(string='Zalo: tổng số lần chăm', default=0)
+    vd_zalo_care_overdue = fields.Boolean(
+        string='Zalo: quá hạn chăm sóc', compute='_compute_zalo_care_overdue',
+    )
+    vd_zalo_care_overdue_days = fields.Integer(
+        string='Zalo: số ngày chưa chăm', compute='_compute_zalo_care_overdue',
+    )
+
+    @api.depends('vd_zalo_last_care', 'vd_quote_created_date')
+    def _compute_zalo_care_overdue(self):
+        """Đèn đỏ chăm sóc: số ngày kể từ LẦN CHĂM CUỐI (nếu chưa chăm lần nào
+        thì tính từ ngày báo giá). Quá ngưỡng (default 2 ngày, config
+        'vd_crm_lead.zalo_care_overdue_days') → đỏ."""
+        threshold = int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.zalo_care_overdue_days', 2) or 2)
+        now = fields.Datetime.now()
+        for rec in self:
+            anchor = rec.vd_zalo_last_care or rec.vd_quote_created_date
+            days = 0
+            overdue = False
+            if rec.vd_quote_created_date and anchor:
+                days = (now - anchor).days
+                overdue = days >= threshold
+            rec.vd_zalo_care_overdue_days = days
+            rec.vd_zalo_care_overdue = overdue
+
+    def action_zalo_log_care(self):
+        """Ghi nhận 'đã chăm khách hôm nay' → cập nhật lần cuối + tăng đếm."""
+        self.ensure_one()
+        self.vd_zalo_last_care = fields.Datetime.now()
+        self.vd_zalo_care_count = (self.vd_zalo_care_count or 0) + 1
+
+    def action_open_zalo_chat(self):
+        """Mở Zalo của KH theo SĐT (zalo.me/<sđt>) → vào profile KH, bấm Nhắn tin.
+        Zalo KHÔNG hỗ trợ deep-link thẳng vào hộp thoại — đây là cách gần nhất."""
+        self.ensure_one()
+        phone = ''.join(ch for ch in (self.phone or self.mobile or '') if ch.isdigit())
+        if not phone:
+            raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
+        return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
+
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
                  'call_ids.start_time', 'call_ids.recording_url',
                  'vd_quote_created_date')
@@ -410,14 +453,14 @@ class CrmLead(models.Model):
             chips += _chip('📅', 'Ngày gọi', len(days), '#1971c2', '#e7f5ff', '#a5d8ff')
 
             since_str = fields.Datetime.context_timestamp(rec, since).strftime('%d/%m/%Y')
+            # User spec 2026-05-31: gói gọn 1 DÒNG — verdict + chips inline.
             rec.vd_post_quote_call_report = (
-                f'<div style="border:1px solid #e9ecef;border-radius:8px;overflow:hidden;">'
-                f'<div style="padding:6px 10px;background:linear-gradient(135deg,#5c8fb8,#4a7aa0);'
-                f'color:#fff;font-weight:800;font-size:0.85rem;">📞 Báo cáo cuộc gọi sau báo giá '
-                f'<span style="font-weight:500;font-size:0.7rem;opacity:0.9;">(từ {since_str})</span></div>'
-                f'<div style="margin:8px 10px;padding:6px 10px;border-radius:8px;border:1.5px solid {v_bd};'
-                f'background:{v_bg};color:{v_col};font-weight:800;text-align:center;">{v_txt}</div>'
-                f'<div style="padding:0 8px 8px;text-align:center;">{chips}</div></div>'
+                f'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;'
+                f'padding:6px 10px;border:1px solid #e9ecef;border-radius:8px;background:#f8f9fa;">'
+                f'<span style="font-weight:800;font-size:0.8rem;color:{v_col};white-space:nowrap;">{v_txt}</span>'
+                f'{chips}'
+                f'<span style="margin-left:auto;font-size:0.68rem;color:#868e96;white-space:nowrap;">'
+                f'📞 từ {since_str}</span></div>'
             )
 
     # Live call indicator — computed (not stored), used by form to toggle

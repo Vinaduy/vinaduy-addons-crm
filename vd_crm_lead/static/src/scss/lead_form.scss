@@ -329,38 +329,40 @@
         .o_field_widget { flex: 1; min-width: 0; }
     }
     .o_vd_zalo_open_btn { white-space: nowrap; font-weight: 700; }
-    .o_vd_zalo_checklist {
-        padding: 0 12px 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
+    /* Cài đặt ban đầu — gom nhỏ 1 hàng (không phải trọng tâm) */
+    .o_vd_zalo_setup {
+        display: flex; align-items: center; flex-wrap: wrap;
+        gap: 0.3rem; padding: 0 12px 8px;
     }
-    .o_vd_zalo_step {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
+    .o_vd_zalo_setup_lbl { font-size: 0.72rem; color: #868e96; margin-right: 0.2rem; }
+    .o_vd_zalo_mini {
+        border: 1px solid transparent; border-radius: 999px;
+        padding: 2px 9px; font-size: 0.74rem; font-weight: 700; cursor: pointer;
     }
-    .o_vd_zalo_chk {
-        border: 1px solid transparent;
-        border-radius: 6px;
-        padding: 3px 11px;
-        font-size: 0.82rem;
-        font-weight: 700;
-        cursor: pointer;
-        text-align: left;
+    .o_vd_zalo_mini_done { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e; }
+    .o_vd_zalo_mini_todo { background: #f1f3f5; border-color: #dee2e6; color: #868e96;
+                           &:hover { background: #e9ecef; } }
+    /* CHĂM SÓC các ngày tiếp theo — TRỌNG TÂM kiểm soát */
+    .o_vd_zalo_care {
+        margin: 0 12px 12px; padding: 10px; border-radius: 8px;
+        border: 1px solid #e9ecef; background: #fff;
+        display: flex; flex-direction: column; gap: 0.4rem;
     }
-    .o_vd_zalo_done   { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e; }
-    .o_vd_zalo_todo   { background: #f1f3f5; border-color: #dee2e6; color: #868e96;
-                        &:hover { background: #e9ecef; } }
-    .o_vd_zalo_key_todo { background: #fff4e6; border-color: #ffd8a8; color: #e8590c;
-                          &:hover { background: #ffe8cc; } }
-    .o_vd_zalo_time { font-size: 0.72rem; color: #868e96; }
-    .o_vd_zalo_overdue {
-        color: #c92a2a; font-weight: 800; font-size: 0.8rem;
-        background: #fff5f5; border: 1px solid #ffc9c9;
-        border-radius: 6px; padding: 2px 8px;
-        display: inline-flex; align-items: center; gap: 0.2rem;
+    .o_vd_zalo_care_status {
+        font-weight: 800; font-size: 0.95rem; padding: 6px 10px;
+        border-radius: 8px; border: 1.5px solid; text-align: center;
+        display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+    }
+    .o_vd_care_ok  { background: #ebfbee; border-color: #8ce99a; color: #2b8a3e; }
+    .o_vd_care_bad { background: #fff5f5; border-color: #ffa8a8; color: #c92a2a; }
+    .o_vd_zalo_care_meta {
+        font-size: 0.78rem; color: #495057;
+        display: flex; align-items: center; justify-content: center; gap: 0.3rem; flex-wrap: wrap;
+    }
+    .o_vd_zalo_care_btn { font-weight: 800; align-self: stretch; }
+    .o_vd_zalo_care_status .o_field_widget,
+    .o_vd_zalo_care_meta .o_field_widget {
+        display: inline-flex; font-weight: inherit; color: inherit;
     }
     .o_vd_nego_actions {
         margin: 0.85rem 1rem 1rem;
