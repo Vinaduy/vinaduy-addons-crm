@@ -2834,6 +2834,12 @@ class CrmLead(models.Model):
                 continue
             assigned_uid = vals.get('user_id')
             should_reroute = False
+            # User spec 2026-05-30: NV TỰ THÊM khách cho CHÍNH MÌNH thì LUÔN giữ —
+            # không reroute dù đang quá hạn (>threshold). Chặn quá-hạn chỉ áp cho
+            # lead TỰ ĐỘNG (Pancake đã tự pick eligible NV trước khi create nên
+            # không vướng nhánh này). assigned_uid == uid = self-add qua form/kanban.
+            if assigned_uid and assigned_uid == self.env.uid:
+                continue
             if assigned_uid:
                 # Có NV được chỉ định → check họ có bị block không
                 u = Users.sudo().browse(assigned_uid)
