@@ -5242,8 +5242,6 @@ class CrmLead(models.Model):
 
         Loại trừ: KH đã từng nghe máy (had_success=True).
         """
-        from datetime import date as _date
-        today = _date.today()
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         candidates = self.search(
             domain_user + [
@@ -5253,9 +5251,23 @@ class CrmLead(models.Model):
             ],
             order='create_date desc',
         )
+        matched_ids = self._dashboard_unreachable_ids(candidates, limit)
+        if not matched_ids:
+            return []
+        return self._dashboard_serialize_leads(self.browse(matched_ids))
+
+    @api.model
+    def _dashboard_unreachable_ids(self, candidates, limit=200):
+        """Lọc trong `candidates` ra các lead "không liên lạc được": NV đã cố
+        gọi nhưng KH chưa bao giờ bắt máy (cond A/B/C). Trả về list lead id.
+
+        Dùng chung cho 'CHƯA GỌI ĐƯỢC' (mọi stage) và 'BÁO GIÁ XONG MẤT TÍCH'
+        (chỉ stage Báo giá/Đàm phán) để logic không bị lệch nhau.
+        """
+        from datetime import date as _date, timedelta
+        today = _date.today()
         if not candidates:
             return []
-
         Call = self.env['stringee.call']
         calls = Call.search_read(
             [('lead_id', 'in', candidates.ids)],
@@ -5269,6 +5281,7 @@ class CrmLead(models.Model):
                 by_lead[lid].append(c)
 
         matched_ids = []
+        now_dt = fields.Datetime.now()
         for lead in candidates:
             lcalls = by_lead.get(lead.id) or []
             if not lcalls:
@@ -5308,8 +5321,6 @@ class CrmLead(models.Model):
             cond_b = days_since >= 5 and len(all_days) >= 3
             # Condition C (user spec 2026-05-28): ≥4 ngày khác nhau có cuộc gọi
             # + đã qua ≥1 giờ kể từ cuộc gọi cuối → auto move sang "CHƯA GỌI ĐƯỢC"
-            from datetime import timedelta
-            now_dt = fields.Datetime.now()
             cond_c = (
                 len(all_days) >= 4
                 and latest_call_dt is not None
@@ -5319,11 +5330,33 @@ class CrmLead(models.Model):
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
+        return matched_ids
 
+    @api.model
+    def dashboard_leads_quoted_lost(self, user_id=None, limit=200):
+        """KH "BÁO GIÁ XONG MẤT TÍCH" — đã sang stage Báo giá/Đàm phán RỒI nhưng
+        dính tiêu chí không liên lạc được (NV gọi ≥3 lần, KH không bao giờ bắt máy).
+
+        = giao của (đã báo giá) ∩ (không liên lạc được). Hiển thị ở box cuối 2
+        bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (user spec 2026-05-30).
+        """
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        quoted_stages = self.env['crm.stage'].search([('code', 'in', ['quote', 'negotiate'])])
+        if not quoted_stages:
+            return []
+        candidates = self.search(
+            domain_user + [
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('stage_id', 'in', quoted_stages.ids),
+                ('call_count', '>=', 3),
+            ],
+            order='create_date desc',
+        )
+        matched_ids = self._dashboard_unreachable_ids(candidates, limit)
         if not matched_ids:
             return []
-        leads = self.browse(matched_ids)
-        return self._dashboard_serialize_leads(leads)
+        return self._dashboard_serialize_leads(self.browse(matched_ids))
 
     @api.model
     def dashboard_leads_reference(self, user_id=None, limit=200):

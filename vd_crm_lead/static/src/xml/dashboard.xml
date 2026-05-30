@@ -1712,7 +1712,8 @@
                              (list left + side panel right với icon Im lặng). -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
-                            <div class="o_vd_filter_table o_vd_filter_table_urgent">
+                            <div class="o_vd_split_table o_vd_split_table_single">
+                            <div class="o_vd_filter_table o_vd_filter_table_urgent o_vd_split_half">
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-bolt o_vd_filter_funnel_urgent"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -1747,12 +1748,24 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
+                                 t-on-click="() => this.openCategoryList(leadsQuotedLost)"
+                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
+                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">BÁO GIÁ XONG MẤT TÍCH</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
+                                </div>
+                            </div>
+                            </div><!-- /.o_vd_split_table_single -->
                         </section>
 
                         <!-- ===== SECTION 2: XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">
-                            <div class="o_vd_filter_table o_vd_filter_table_warn">
+                            <div class="o_vd_split_table o_vd_split_table_single">
+                            <div class="o_vd_filter_table o_vd_filter_table_warn o_vd_split_half">
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-filter o_vd_filter_funnel_warn"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -1785,6 +1798,17 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
+                                 t-on-click="() => this.openCategoryList(leadsQuotedLost)"
+                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
+                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">BÁO GIÁ XONG MẤT TÍCH</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
+                                </div>
+                            </div>
+                            </div><!-- /.o_vd_split_table_single -->
                         </section>
                         </div><!-- /.o_vd_lead_dual_cols -->
 

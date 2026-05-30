@@ -4549,6 +4549,32 @@
         }
     }
 
+    /* Variant grid 1 box: bảng (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) flex + 1 box
+       "BÁO GIÁ XONG MẤT TÍCH" ở cuối. Box 170px → mép phải canh BẰNG mép
+       thùng rác KH HỦY phía trên (cùng container full-width). */
+    .o_vd_split_table.o_vd_split_table_single {
+        grid-template-columns: 1fr 170px;
+        > * { min-width: 0; }
+
+        @media (max-width: 720px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Variant BÁO GIÁ XONG MẤT TÍCH — đỏ-cam (đã báo giá nhưng mất liên lạc) */
+    .o_vd_trash_box.o_vd_split_quoted_lost {
+        cursor: pointer;
+        .o_vd_trash_icon { color: #e8590c; }
+        .o_vd_trash_icon_emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 8px rgba(232, 89, 12, 0.35));
+            user-select: none;
+        }
+        .o_vd_trash_label { color: #e8590c; }
+        .o_vd_trash_count { color: #e8590c; }
+    }
+
     /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
     .o_vd_trash_box.o_vd_split_reference {
         .o_vd_trash_icon { color: #2b8a3e; }

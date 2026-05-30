@@ -57,6 +57,9 @@ export class VdCrmDashboard extends Component {
             leadsReferenceAll: [],
             // KH chưa gọi được (call_count=0, active) — render nửa phải bảng KHÁCH MỚI
             leadsNotCalledAll: [],
+            // KH "BÁO GIÁ XONG MẤT TÍCH": đã sang stage Báo giá/Đàm phán nhưng
+            // không liên lạc được — box cuối bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ
+            leadsQuotedLostAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -342,12 +345,21 @@ export class VdCrmDashboard extends Component {
             } catch (_e) {
                 this.state.leadsReferenceAll = [];
             }
+            // Fetch KH "BÁO GIÁ XONG MẤT TÍCH" (đã báo giá + không liên lạc được)
+            try {
+                this.state.leadsQuotedLostAll = await this.orm.call(
+                    "crm.lead", "dashboard_leads_quoted_lost", probArgs
+                );
+            } catch (_e) {
+                this.state.leadsQuotedLostAll = [];
+            }
         } else {
             this.state.leadsWithProblemsAll = [];
             this.state.leadsUrgentConstructionAll = [];
             this.state.leadsLostAll = [];
             this.state.leadsNotCalledAll = [];
             this.state.leadsReferenceAll = [];
+            this.state.leadsQuotedLostAll = [];
         }
     }
 
@@ -475,6 +487,10 @@ export class VdCrmDashboard extends Component {
 
     get leadsUrgentConstruction() {
         return this.state.leadsUrgentConstructionAll || [];
+    }
+    // Box cuối 2 bảng — KH đã báo giá rồi mất tích (không liên lạc được).
+    get leadsQuotedLost() {
+        return this.state.leadsQuotedLostAll || [];
     }
     // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
@@ -779,6 +795,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsUrgentConstructionAll || [],
             this.state.leadsNotCalledAll || [],
             this.state.leadsLostAll || [],
+            this.state.leadsQuotedLostAll || [],
         ];
         for (const list of sources) {
             const found = list.find(l => l.id === id);
