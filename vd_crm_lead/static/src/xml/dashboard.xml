@@ -1998,8 +1998,9 @@
         <t t-set="ansRate" t-value="(cs.total &gt; 0) ? ((cs.answered || 0) * 100 / cs.total) : -1"/>
         <t t-set="rateClass" t-value="ansRate &lt; 0 ? 'o_vd_call_rate_none' : (ansRate &gt;= 20 ? 'o_vd_call_rate_high' : (ansRate &gt;= 10 ? 'o_vd_call_rate_mid' : (ansRate &gt;= 5 ? 'o_vd_call_rate_low' : 'o_vd_call_rate_poor')))"/>
         <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
-                <span class="o_vd_prb_req2_stat_item" t-att-title="'Tổng cuộc gọi: ' + (cs.total || 0) + ' · Nghe máy: ' + (cs.answered || 0)">
-                    <i class="fa fa-phone" t-att-class="rateClass"/>
+                <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_phone" t-att-class="rateClass"
+                      t-att-title="'Tổng cuộc gọi: ' + (cs.total || 0) + ' · Nghe máy: ' + (cs.answered || 0)">
+                    <i class="fa fa-phone"/>
                     <strong t-esc="cs.total || 0"/>
                 </span>
                 <span class="o_vd_prb_req2_stat_item" title="Số ngày đã gọi">

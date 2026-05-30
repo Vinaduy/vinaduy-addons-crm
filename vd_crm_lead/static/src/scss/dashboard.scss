@@ -5239,7 +5239,7 @@
         grid-template-columns: minmax(220px, 1fr) auto;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.27rem 0.7rem; /* User spec 2026-05-28 round 5: giảm 20% (0.34→0.27) */
+        padding: 0.216rem 0.7rem; /* User spec 2026-05-30: giảm thêm 20% (0.27→0.216) */
         background: #fff;
         /* User spec: dùng border-bottom làm divider chung — last-child không có */
         border: none;
@@ -5460,13 +5460,34 @@
             display: block;
         }
     }
-    /* Màu icon 📞 theo tỷ lệ nghe máy (answered/total) — user spec 2026-05-30.
-       !important để thắng rule xám mặc định .o_vd_prb_req2_stat_item i.fa. */
-    i.o_vd_call_rate_none { color: #868e96 !important; }   /* chưa có cuộc gọi — xám */
-    i.o_vd_call_rate_poor { color: #e03131 !important; }   /* <5% — đỏ */
-    i.o_vd_call_rate_low  { color: #1971c2 !important; }   /* 5-10% — xanh dương */
-    i.o_vd_call_rate_mid  { color: #37b24d !important; }   /* 10-20% — xanh lá */
-    i.o_vd_call_rate_high { color: #2b8a3e !important; }   /* ≥20% — xanh lá đậm */
+    /* Ô 📞 (icon + số) đóng khung viền nhẹ + nền nhạt theo tỷ lệ nghe máy
+       (answered/total) — user spec 2026-05-30. Màu nhẹ, dễ nhận biết.
+       !important để thắng màu xám mặc định của i.fa / strong. */
+    .o_vd_prb_req2_phone {
+        border: 1px solid transparent;
+        border-radius: 5px;
+        padding: 0.02rem 0.4rem;
+    }
+    .o_vd_prb_req2_phone.o_vd_call_rate_none {   /* chưa có cuộc gọi — xám */
+        background: #f1f3f5; border-color: #ced4da;
+        i.fa, strong { color: #868e96 !important; }
+    }
+    .o_vd_prb_req2_phone.o_vd_call_rate_poor {   /* <5% — đỏ nhạt */
+        background: #fff5f5; border-color: #ffc9c9;
+        i.fa, strong { color: #e03131 !important; }
+    }
+    .o_vd_prb_req2_phone.o_vd_call_rate_low {    /* 5-10% — xanh dương nhạt */
+        background: #e7f5ff; border-color: #a5d8ff;
+        i.fa, strong { color: #1971c2 !important; }
+    }
+    .o_vd_prb_req2_phone.o_vd_call_rate_mid {    /* 10-20% — xanh lá nhạt */
+        background: #ebfbee; border-color: #b2f2bb;
+        i.fa, strong { color: #37b24d !important; }
+    }
+    .o_vd_prb_req2_phone.o_vd_call_rate_high {   /* ≥20% — xanh lá đậm (nền vẫn nhạt) */
+        background: #e6fcf5; border-color: #8ce99a;
+        i.fa, strong { color: #2b8a3e !important; }
+    }
     .o_vd_prb_req2_popover {
         display: none;
         position: absolute;
