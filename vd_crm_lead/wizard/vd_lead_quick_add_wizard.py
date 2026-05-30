@@ -264,7 +264,14 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 intake_vals['vd_intake_has_tum'] = True
             vals.update(intake_vals)
 
-            lead = Lead.with_context(vd_skip_reassign_check=True).create(vals)
+            # vd_skip_assignment_balance: khách nhập TAY qua wizard là lựa chọn
+            # explicit của NV/leader → KHÔNG reroute dù NV đang quá hạn (>threshold).
+            # Chặn quá-hạn chỉ áp cho lead tự động (Pancake / chia đều), không áp
+            # cho self-add. User spec 2026-05-30: "tự thêm thì luôn giữ".
+            lead = Lead.with_context(
+                vd_skip_reassign_check=True,
+                vd_skip_assignment_balance=True,
+            ).create(vals)
             created |= lead
 
             # Nếu line có preset phát sinh + qty → tạo vd.lead.surcharge
