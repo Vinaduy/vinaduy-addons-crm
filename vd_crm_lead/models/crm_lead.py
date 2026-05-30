@@ -5126,7 +5126,9 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_urgent_construction(self, user_id=None, limit=200):
-        """Trả KH có thời gian thi công GẤP (≤ 3 tháng tới hoặc 'càng sớm càng tốt')."""
+        """Trả KH có thời gian thi công GẤP (≤ 3 tháng tới hoặc 'càng sớm càng tốt').
+        Round 17 sort: ưu tiên KH có quote_created_date CŨ NHẤT (= quote_days
+        cao nhất = ít ngày còn lại nhất / đã quá hạn). Fallback create_date asc."""
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         urgent_ids = self._dashboard_urgent_construction_ids(domain_user)
         if not urgent_ids:
@@ -5134,7 +5136,7 @@ class CrmLead(models.Model):
         leads = self.search(
             [('id', 'in', urgent_ids)],
             limit=limit,
-            order='callback_date asc, create_date desc',
+            order='vd_quote_created_date asc nulls last, create_date asc',
         )
         return self._dashboard_serialize_leads(leads)
 
@@ -5165,7 +5167,8 @@ class CrmLead(models.Model):
                 ('id', 'not in', urgent_ids),
             ],
             limit=limit,
-            order='callback_date asc, create_date desc',
+            # Round 17 sort: ưu tiên KH cũ nhất (= ít ngày còn lại / quá hạn).
+            order='vd_quote_created_date asc nulls last, create_date asc',
         )
         return self._dashboard_serialize_leads(leads)
 
@@ -5318,48 +5321,25 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_reference(self, user_id=None, limit=200):
-        """KH "tham khảo" — round 11 mở rộng:
-        A) NV explicit đánh dấu CHƯA BÁO GIÁ (vd_no_quote_state='pending'), HOẶC
-        B) Đã từng liên lạc được (answered ≥ 1) nhưng CHƯA báo giá (legacy).
-
-        Group A ưu tiên hiển thị (có callback_date + category để UI render).
+        """KH "tham khảo" — round 16 (user spec 2026-05-30):
+        CHỈ KH explicit NV bấm "CHƯA BÁO GIÁ" (vd_no_quote_state='pending').
+        BỎ legacy heuristic (answered ≥ 1 + no quote) — vì KH chưa đủ thông
+        tin vẫn phải ở KHÁCH MỚI, không tự động chuyển sang THAM KHẢO chỉ
+        vì đã bắt máy.
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        # A) Explicit "CHƯA BÁO GIÁ" — có thể đang ở bất kỳ stage chưa won/lost
         explicit = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('vd_no_quote_state', '=', 'pending'),
             ],
+            limit=limit,
             order='vd_no_quote_callback_date asc, create_date desc',
         )
-        # B) Legacy heuristic — call_count > 0 + answered ≥ 1 + chưa quote
-        candidates = self.search(
-            domain_user + [
-                ('stage_is_won', '=', False),
-                ('stage_is_lost', '=', False),
-                ('call_count', '>', 0),
-                ('vd_no_quote_state', '!=', 'pending'),  # tránh trùng explicit
-            ],
-            order='create_date desc',
-        )
-        legacy = self.env['crm.lead']
-        if candidates:
-            Call = self.env['stringee.call']
-            answered_lead_ids = set(Call.search([
-                ('lead_id', 'in', candidates.ids),
-                '|', ('duration', '>', 0),
-                     ('state', '=', 'answered'),
-            ]).mapped('lead_id').ids)
-            legacy = candidates.filtered(
-                lambda l: l.id in answered_lead_ids and not l.vd_quote_price
-            )
-        # Gộp + giới hạn limit; explicit lên trước
-        merged = (explicit + legacy)[:limit]
-        if not merged:
+        if not explicit:
             return []
-        return self._dashboard_serialize_leads(merged)
+        return self._dashboard_serialize_leads(explicit)
 
     @api.model
     def dashboard_leads_lost(self, user_id=None, limit=200):
@@ -5527,6 +5507,7 @@ class CrmLead(models.Model):
                 'no_answer': 0, 'busy_like': 0, 'subscriber': 0,
                 'distinct_days': 0, 'distinct_days_subscriber': 0,
                 'days_no_answer': 0, 'has_call_today': False,
+                'recent_calls': [],
                 'unreachable': 0, 'distinct_days_unreachable': 0,
             }),
             # Cảnh báo "cần gọi hôm nay" — chỉ stage 'new':
@@ -5646,7 +5627,7 @@ class CrmLead(models.Model):
             return result
         calls = self.env['stringee.call'].search_read(
             [('lead_id', 'in', leads.ids)],
-            ['lead_id', 'state', 'duration', 'answer_time', 'start_time'],
+            ['lead_id', 'state', 'duration', 'answer_time', 'start_time', 'recording_url'],
         )
         by_lead = defaultdict(list)
         for c in calls:
@@ -5655,6 +5636,12 @@ class CrmLead(models.Model):
                 by_lead[lid].append(c)
         for lead_id, lcalls in by_lead.items():
             total = len(lcalls)
+            # Sort desc by start_time để recent_calls hiển thị mới nhất trước
+            lcalls_sorted = sorted(
+                lcalls,
+                key=lambda c: c.get('start_time') or '',
+                reverse=True,
+            )
             answered = 0
             answered_long = 0  # answered + duration >= 120s
             no_answer = 0
@@ -5694,6 +5681,22 @@ class CrmLead(models.Model):
                 # cancelled → bỏ qua
             # Số ngày không có cuộc nghe máy nào (mọi ngày có call mà KH không bắt)
             days_no_answer = len(all_days - days_answered)
+            # Round 16: recent_calls — top 10 mới nhất với recording_url
+            # cho popover hover badge (NV xem nhanh file ghi âm).
+            recent_calls = []
+            for c in lcalls_sorted[:10]:
+                st = c.get('state') or ''
+                dur = c.get('duration') or 0
+                start = c.get('start_time')
+                start_str = start.strftime('%d/%m %H:%M') if start and hasattr(start, 'strftime') else ''
+                is_answered = (st in ('answered', 'ended')) and dur > 0
+                recent_calls.append({
+                    'time': start_str,
+                    'state': st,
+                    'duration': dur,
+                    'is_answered': is_answered,
+                    'recording_url': c.get('recording_url') or '',
+                })
             result[lead_id] = {
                 'total': total,
                 'answered': answered,
@@ -5705,6 +5708,7 @@ class CrmLead(models.Model):
                 'distinct_days_subscriber': len(subscriber_days),
                 'days_no_answer': days_no_answer,
                 'has_call_today': has_call_today,
+                'recent_calls': recent_calls,
                 # giữ field cũ để backward compatible nếu nơi nào còn ref
                 'unreachable': busy_like + subscriber,
                 'distinct_days_unreachable': len(subscriber_days),

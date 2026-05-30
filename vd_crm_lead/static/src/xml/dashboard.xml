@@ -1705,6 +1705,8 @@
                             </t>
                         </section>
 
+                        <!-- Round 17: TCG + XLVD đặt side-by-side trong 1 wrapper. -->
+                        <div t-if="isNewStageSplit" class="o_vd_tcg_xlvd_split">
                         <!-- ===== SECTION 1b: THI CÔNG GẤP — KH cần khởi công ≤ 3 tháng / càng sớm.
                              EXCLUDE khỏi 'XỬ LÝ VẤN ĐỀ' bên dưới để tránh trùng lặp. ===== -->
                         <section t-if="isNewStageSplit"
@@ -1783,6 +1785,7 @@
                                 </div>
                             </div>
                         </section>
+                        </div><!-- /.o_vd_tcg_xlvd_split -->
                         </div><!-- /.o_vd_lead_dual_cols -->
 
                         <!-- Thùng rác KH hủy đã merge vào split row trên cùng với CHƯA GỌI ĐƯỢC. -->
@@ -1871,31 +1874,87 @@
          - 📅 = distinct call days (lead.call_stats.distinct_days)
          ============================================================ -->
     <t t-name="vd_crm_lead.ProblemRequiredBadge">
-        <!-- problems_non_urgent: đã exclude 'Thi công gấp' (urgent_construction).
-             Round 6.1: TCG KHÔNG coi 'Thi công gấp' là vấn đề thực sự. -->
-        <span t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length"
-              class="o_vd_problem_row_badge o_vd_prb_required">
-            <span class="o_vd_prb_req_title">⚠️ YÊU CẦU TÌM VẤN ĐỀ</span>
+        <!-- Round 16: tách 2 thẻ riêng (cùng width fixed):
+             A) ⚠️ Tìm vấn đề + Còn N ngày — đỏ NHẠT (không quá chói)
+             B) 📞 N · 📅 M — hover hiện popup chi tiết + recording
+             - problems_non_urgent: exclude 'Thi công gấp' (round 6.1) -->
+        <t t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length">
             <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
-            <t t-set="dleft" t-value="7 - qd"/>
-            <span class="o_vd_prb_req_sep">·</span>
-            <span t-if="dleft &gt; 0"
-                  t-att-class="'o_vd_prb_req_countdown ' + (dleft &lt;= 2 ? 'o_vd_prb_req_urgent' : '')">
-                Còn <strong><t t-esc="dleft"/></strong> ngày
+            <t t-set="dleft" t-value="15 - qd"/>
+            <t t-set="cs" t-value="lead.call_stats or {}"/>
+            <!-- THẺ A: yêu cầu + countdown (small, soft red) -->
+            <span class="o_vd_prb_req2 o_vd_prb_req2_main"
+                  t-att-class="dleft &lt;= 0 ? 'o_vd_prb_req2_overdue' : (dleft &lt;= 2 ? 'o_vd_prb_req2_urgent' : '')"
+                  t-att-title="dleft &gt; 0 ? ('Còn ' + dleft + ' ngày để khai thác vấn đề') : ('Đã quá hạn ' + (-dleft) + ' ngày')">
+                <i class="fa fa-exclamation-triangle"/>
+                <span class="o_vd_prb_req2_lbl">Tìm vấn đề</span>
+                <span t-if="dleft &gt; 0" class="o_vd_prb_req2_ctd">Còn <strong><t t-esc="dleft"/></strong> ngày</span>
+                <span t-else="" class="o_vd_prb_req2_ctd o_vd_prb_req2_ctd_over">Quá hạn <strong><t t-esc="-dleft"/></strong> ngày</span>
             </span>
-            <span t-else="" class="o_vd_prb_req_countdown o_vd_prb_req_overdue">
-                Quá hạn <strong><t t-esc="-dleft"/></strong> ngày
+            <!-- THẺ B: thống kê cuộc gọi (hover → popup chi tiết + ghi âm) -->
+            <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
+                <span class="o_vd_prb_req2_stat_item" title="Tổng cuộc gọi">
+                    <i class="fa fa-phone"/>
+                    <strong t-esc="cs.total || 0"/>
+                </span>
+                <span class="o_vd_prb_req2_stat_item" title="Số ngày đã gọi">
+                    <i class="fa fa-calendar"/>
+                    <strong t-esc="cs.distinct_days || 0"/>
+                </span>
+                <!-- Popup hover — báo cáo chi tiết -->
+                <div class="o_vd_prb_req2_popover">
+                    <div class="o_vd_prb_req2_pop_head">
+                        📞 Báo cáo cuộc gọi · <t t-esc="lead.name"/>
+                    </div>
+                    <div class="o_vd_prb_req2_pop_grid">
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_total">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.total || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Tổng cuộc</div>
+                        </div>
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_answered">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.answered || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Nghe máy</div>
+                        </div>
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_no_answer">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.no_answer || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Không bắt</div>
+                        </div>
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_busy">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.busy_like || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Bận / Từ chối</div>
+                        </div>
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_sub">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.subscriber || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Thuê bao</div>
+                        </div>
+                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_days">
+                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.distinct_days || 0"/></div>
+                            <div class="o_vd_prb_req2_box_lbl">Ngày gọi</div>
+                        </div>
+                    </div>
+                    <!-- Recordings -->
+                    <div class="o_vd_prb_req2_pop_recordings" t-if="(cs.recent_calls || []).length">
+                        <div class="o_vd_prb_req2_pop_subhead">🎙️ Ghi âm (mới nhất):</div>
+                        <div t-foreach="cs.recent_calls" t-as="rc" t-key="rc_index" class="o_vd_prb_req2_rec_row">
+                            <span class="o_vd_prb_req2_rec_state"
+                                  t-att-class="rc.is_answered ? 'o_vd_prb_req2_rec_ok' : 'o_vd_prb_req2_rec_no'">
+                                <t t-if="rc.is_answered">✅</t><t t-else="">❌</t>
+                            </span>
+                            <span class="o_vd_prb_req2_rec_time"><t t-esc="rc.time"/></span>
+                            <span class="o_vd_prb_req2_rec_dur" t-if="rc.duration"><t t-esc="rc.duration"/>s</span>
+                            <a t-if="rc.recording_url"
+                               t-att-href="rc.recording_url" target="_blank"
+                               class="o_vd_prb_req2_rec_link"
+                               t-on-click.stop=""
+                               title="Tải / nghe ghi âm">
+                                <i class="fa fa-play-circle"/> nghe
+                            </a>
+                            <span t-else="" class="o_vd_prb_req2_rec_nolink">—</span>
+                        </div>
+                    </div>
+                </div>
             </span>
-            <span class="o_vd_prb_req_sep">·</span>
-            <span class="o_vd_prb_req_stat" title="Tổng cuộc gọi">
-                <i class="fa fa-phone"/>
-                <strong t-esc="(lead.call_stats and lead.call_stats.total) || 0"/>
-            </span>
-            <span class="o_vd_prb_req_stat" title="Số ngày đã gọi">
-                <i class="fa fa-calendar"/>
-                <strong t-esc="(lead.call_stats and lead.call_stats.distinct_days) || 0"/>
-            </span>
-        </span>
+        </t>
     </t>
 
     <!-- ============================================================

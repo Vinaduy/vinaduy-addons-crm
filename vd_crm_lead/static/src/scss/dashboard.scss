@@ -5295,6 +5295,207 @@
         0%, 100% { transform: scale(1); }
         50%      { transform: scale(1.06); }
     }
+
+    /* ============================================================
+       ROUND 16: 2 thẻ rời (yêu cầu + stats) thay vì 1 pill đỏ to.
+       - Width FIXED để các row align thẳng (ko thụt ra thụt vào).
+       - Màu hồng nhạt thay vì đỏ chói → dễ nhìn.
+       - Thẻ stats hover → popup chi tiết + ghi âm.
+       ============================================================ */
+    .o_vd_prb_req2 {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+        box-sizing: border-box;
+        text-transform: none;
+    }
+    .o_vd_prb_req2_main {
+        /* Width cố định → row align thẳng */
+        width: 220px;
+        justify-content: space-between;
+        background: #fff5f5;
+        color: #c92a2a;
+        border: 1px solid #ffc9c9;
+        i.fa { font-size: 0.85rem; opacity: 0.85; }
+        .o_vd_prb_req2_lbl {
+            flex: 1;
+            text-align: left;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        .o_vd_prb_req2_ctd {
+            background: #fff;
+            border: 1px solid #ffa8a8;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            color: #c92a2a;
+            strong { color: #c92a2a; font-weight: 800; }
+        }
+        &.o_vd_prb_req2_urgent {
+            background: #fff0e6;
+            color: #d9480f;
+            border-color: #ffc078;
+            .o_vd_prb_req2_ctd {
+                background: #ffd43b;
+                border-color: #fab005;
+                color: #7c2d12;
+                strong { color: #7c2d12; }
+            }
+        }
+        &.o_vd_prb_req2_overdue {
+            background: #fff5f5;
+            color: #862e9c;
+            border-color: #d0bfff;
+            .o_vd_prb_req2_ctd_over {
+                background: #2b2d42;
+                color: #ffd43b;
+                border-color: #ffd43b;
+                strong { color: #fff; }
+            }
+        }
+    }
+    .o_vd_prb_req2_stats {
+        position: relative;
+        /* Width cố định, narrower */
+        width: 110px;
+        background: #f1f3f5;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        gap: 0.5rem;
+        cursor: help;
+        justify-content: space-around;
+        .o_vd_prb_req2_stat_item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            i.fa { font-size: 0.78rem; color: #6c757d; }
+            strong { color: #1f2a44; font-weight: 800; font-size: 0.85rem; }
+        }
+        &:hover .o_vd_prb_req2_popover {
+            display: block;
+        }
+    }
+    .o_vd_prb_req2_popover {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        right: 0;
+        z-index: 999;
+        min-width: 380px;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.22);
+        padding: 0.7rem 0.85rem;
+        text-align: left;
+        white-space: normal;
+        cursor: default;
+        animation: vd-copy-pop-in 0.14s ease-out;
+        &::before {
+            content: '';
+            position: absolute;
+            bottom: -8px; left: 0; right: 0; height: 8px;
+        }
+    }
+    .o_vd_prb_req2_pop_head {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #1864ab;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 0.4rem;
+        margin-bottom: 0.5rem;
+    }
+    .o_vd_prb_req2_pop_grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4rem;
+        margin-bottom: 0.5rem;
+    }
+    .o_vd_prb_req2_stat_box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 0.4rem 0.5rem;
+        text-align: center;
+        .o_vd_prb_req2_box_val {
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .o_vd_prb_req2_box_lbl {
+            font-size: 0.68rem;
+            color: #6c757d;
+            margin-top: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        &.o_vd_prb_req2_box_total .o_vd_prb_req2_box_val { color: #1864ab; }
+        &.o_vd_prb_req2_box_answered { background: #d3f9d8; border-color: #8ce99a;
+            .o_vd_prb_req2_box_val { color: #2b8a3e; } }
+        &.o_vd_prb_req2_box_no_answer { background: #fff5f5; border-color: #ffc9c9;
+            .o_vd_prb_req2_box_val { color: #c92a2a; } }
+        &.o_vd_prb_req2_box_busy .o_vd_prb_req2_box_val { color: #d9480f; }
+        &.o_vd_prb_req2_box_sub .o_vd_prb_req2_box_val { color: #862e9c; }
+        &.o_vd_prb_req2_box_days .o_vd_prb_req2_box_val { color: #5f3dc4; }
+    }
+    .o_vd_prb_req2_pop_subhead {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #495057;
+        margin: 0.4rem 0 0.3rem;
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.4rem;
+    }
+    .o_vd_prb_req2_pop_recordings {
+        max-height: 160px;
+        overflow-y: auto;
+    }
+    .o_vd_prb_req2_rec_row {
+        display: grid;
+        grid-template-columns: 24px 1fr 50px 80px;
+        gap: 0.4rem;
+        align-items: center;
+        padding: 0.25rem 0.4rem;
+        font-size: 0.74rem;
+        border-bottom: 1px solid #f1f3f5;
+        &:last-child { border-bottom: none; }
+        &:hover { background: #f8f9fa; }
+    }
+    .o_vd_prb_req2_rec_state.o_vd_prb_req2_rec_ok { color: #2b8a3e; }
+    .o_vd_prb_req2_rec_state.o_vd_prb_req2_rec_no { color: #c92a2a; }
+    .o_vd_prb_req2_rec_time { color: #1f2a44; font-weight: 600; }
+    .o_vd_prb_req2_rec_dur { color: #6c757d; font-size: 0.7rem; text-align: right; }
+    .o_vd_prb_req2_rec_link {
+        color: #0d6efd;
+        text-decoration: none;
+        font-size: 0.72rem;
+        font-weight: 700;
+        i.fa { margin-right: 0.15rem; }
+        &:hover { text-decoration: underline; }
+    }
+    .o_vd_prb_req2_rec_nolink { color: #adb5bd; font-size: 0.7rem; text-align: center; }
+
+    /* Round 17: TCG + XLVD layout side-by-side (2 cột). */
+    .o_vd_tcg_xlvd_split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+        align-items: flex-start;
+        margin-top: 0.6rem;
+        @media (max-width: 1100px) {
+            grid-template-columns: 1fr;
+        }
+        > section {
+            margin: 0 !important;
+        }
+    }
     /* Wrapper xuống dòng riêng + căn giữa trong bảng KHÁCH MỚI */
     .o_vd_new_required_wrap {
         flex-basis: 100%;
