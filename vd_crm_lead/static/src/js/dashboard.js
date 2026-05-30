@@ -872,6 +872,13 @@ export class VdCrmDashboard extends Component {
             if (typeof r.quote_breakdown_html === "string") {
                 r.quote_breakdown_html = markup(r.quote_breakdown_html);
             }
+            // Ghi âm: chỉ giữ cuộc kết nối > 1 phút (duration > 60s) + có file.
+            const cs = r.call_stats;
+            if (cs && Array.isArray(cs.recent_calls)) {
+                cs.recent_calls_long = cs.recent_calls.filter(
+                    (c) => (c.duration || 0) > 60 && c.recording_url
+                );
+            }
         }
         return rows || [];
     }

@@ -5563,17 +5563,64 @@
         border-top: 1px solid #e9ecef;
         padding-top: 0.4rem;
     }
+    /* 3 chỉ số ưu tiên (thay 6 ô vuông) — Nghe máy chính > Không nghe > Ngày gọi */
+    .o_vd_callrep_stats {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 0.45rem;
+        padding: 0.6rem 0.6rem 0.7rem;
+    }
+    .o_vd_callrep_stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.12rem;
+        border-radius: 9px;
+        padding: 0.4rem 0.2rem;
+    }
+    .o_vd_callrep_ic { line-height: 1; user-select: none; }
+    .o_vd_callrep_num { font-weight: 800; line-height: 1; }
+    .o_vd_callrep_lbl {
+        font-size: 0.66rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .o_vd_callrep_main {     /* ƯU TIÊN 1: Nghe máy — to nhất, xanh lá */
+        flex: 1.5;
+        background: #ebfbee;
+        border: 1.5px solid #8ce99a;
+        .o_vd_callrep_ic { font-size: 2.5rem; }
+        .o_vd_callrep_num { font-size: 1.9rem; color: #2b8a3e; }
+        .o_vd_callrep_lbl { color: #2b8a3e; }
+    }
+    .o_vd_callrep_second {   /* ƯU TIÊN 2: Không nghe — vừa, đỏ */
+        flex: 1.1;
+        background: #fff5f5;
+        border: 1px solid #ffc9c9;
+        .o_vd_callrep_ic { font-size: 1.7rem; }
+        .o_vd_callrep_num { font-size: 1.35rem; color: #e03131; }
+        .o_vd_callrep_lbl { color: #e03131; }
+    }
+    .o_vd_callrep_third {    /* ƯU TIÊN 3: Ngày gọi — nhỏ, xanh dương */
+        flex: 0.9;
+        background: #e7f5ff;
+        border: 1px solid #a5d8ff;
+        .o_vd_callrep_ic { font-size: 1.3rem; }
+        .o_vd_callrep_num { font-size: 1.1rem; color: #1971c2; }
+        .o_vd_callrep_lbl { color: #1971c2; }
+    }
     .o_vd_prb_req2_pop_recordings {
-        max-height: 160px;
+        max-height: 180px;
         overflow-y: auto;
     }
     .o_vd_prb_req2_rec_row {
         display: grid;
-        grid-template-columns: 24px 1fr 50px 80px;
+        grid-template-columns: 24px 1fr 56px 96px;
         gap: 0.4rem;
         align-items: center;
-        padding: 0.25rem 0.4rem;
-        font-size: 0.74rem;
+        padding: 0.32rem 0.4rem;
+        font-size: 0.78rem;
         border-bottom: 1px solid #f1f3f5;
         &:last-child { border-bottom: none; }
         &:hover { background: #f8f9fa; }
@@ -5583,12 +5630,20 @@
     .o_vd_prb_req2_rec_time { color: #1f2a44; font-weight: 600; }
     .o_vd_prb_req2_rec_dur { color: #6c757d; font-size: 0.7rem; text-align: right; }
     .o_vd_prb_req2_rec_link {
-        color: #0d6efd;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        background: #2b8a3e;
+        color: #fff;
         text-decoration: none;
-        font-size: 0.72rem;
+        font-size: 0.82rem;
         font-weight: 700;
-        i.fa { margin-right: 0.15rem; }
-        &:hover { text-decoration: underline; }
+        padding: 0.22rem 0.5rem;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(43, 138, 62, 0.3);
+        i.fa { font-size: 1.15rem; margin: 0; }
+        &:hover { background: #2f9e44; color: #fff; text-decoration: none; }
     }
     .o_vd_prb_req2_rec_nolink { color: #adb5bd; font-size: 0.7rem; text-align: center; }
 

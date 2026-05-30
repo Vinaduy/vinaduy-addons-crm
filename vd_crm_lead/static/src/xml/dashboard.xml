@@ -2070,50 +2070,37 @@
                     <div class="o_vd_prb_req2_pop_head">
                         📞 Báo cáo cuộc gọi · <t t-esc="lead.name"/>
                     </div>
-                    <div class="o_vd_prb_req2_pop_grid">
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_total">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.total || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Tổng cuộc</div>
+                    <!-- 3 chỉ số theo ƯU TIÊN: Nghe máy (chính, to nhất) > Không nghe > Ngày gọi -->
+                    <div class="o_vd_callrep_stats">
+                        <div class="o_vd_callrep_stat o_vd_callrep_main" title="Số cuộc nghe máy">
+                            <span class="o_vd_callrep_ic">📞</span>
+                            <span class="o_vd_callrep_num"><t t-esc="cs.answered || 0"/></span>
+                            <span class="o_vd_callrep_lbl">Nghe máy</span>
                         </div>
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_answered">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.answered || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Nghe máy</div>
+                        <div class="o_vd_callrep_stat o_vd_callrep_second" title="Số cuộc không nghe máy">
+                            <span class="o_vd_callrep_ic">📵</span>
+                            <span class="o_vd_callrep_num"><t t-esc="(cs.total || 0) - (cs.answered || 0)"/></span>
+                            <span class="o_vd_callrep_lbl">Không nghe</span>
                         </div>
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_no_answer">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.no_answer || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Không bắt</div>
-                        </div>
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_busy">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.busy_like || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Bận / Từ chối</div>
-                        </div>
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_sub">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.subscriber || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Thuê bao</div>
-                        </div>
-                        <div class="o_vd_prb_req2_stat_box o_vd_prb_req2_box_days">
-                            <div class="o_vd_prb_req2_box_val"><t t-esc="cs.distinct_days || 0"/></div>
-                            <div class="o_vd_prb_req2_box_lbl">Ngày gọi</div>
+                        <div class="o_vd_callrep_stat o_vd_callrep_third" title="Số ngày đã gọi">
+                            <span class="o_vd_callrep_ic">📅</span>
+                            <span class="o_vd_callrep_num"><t t-esc="cs.distinct_days || 0"/></span>
+                            <span class="o_vd_callrep_lbl">Ngày gọi</span>
                         </div>
                     </div>
-                    <!-- Recordings -->
-                    <div class="o_vd_prb_req2_pop_recordings" t-if="(cs.recent_calls || []).length">
-                        <div class="o_vd_prb_req2_pop_subhead">🎙️ Ghi âm (mới nhất):</div>
-                        <div t-foreach="cs.recent_calls" t-as="rc" t-key="rc_index" class="o_vd_prb_req2_rec_row">
-                            <span class="o_vd_prb_req2_rec_state"
-                                  t-att-class="rc.is_answered ? 'o_vd_prb_req2_rec_ok' : 'o_vd_prb_req2_rec_no'">
-                                <t t-if="rc.is_answered">✅</t><t t-else="">❌</t>
-                            </span>
+                    <!-- Ghi âm: CHỈ cuộc kết nối > 1 phút (lọc sẵn ở JS → recent_calls_long) -->
+                    <div class="o_vd_prb_req2_pop_recordings" t-if="(cs.recent_calls_long || []).length">
+                        <div class="o_vd_prb_req2_pop_subhead">🎙️ Ghi âm (kết nối &gt; 1 phút):</div>
+                        <div t-foreach="cs.recent_calls_long" t-as="rc" t-key="rc_index" class="o_vd_prb_req2_rec_row">
+                            <span class="o_vd_prb_req2_rec_state o_vd_prb_req2_rec_ok">✅</span>
                             <span class="o_vd_prb_req2_rec_time"><t t-esc="rc.time"/></span>
-                            <span class="o_vd_prb_req2_rec_dur" t-if="rc.duration"><t t-esc="rc.duration"/>s</span>
-                            <a t-if="rc.recording_url"
-                               t-att-href="rc.recording_url" target="_blank"
+                            <span class="o_vd_prb_req2_rec_dur"><t t-esc="rc.duration"/>s</span>
+                            <a t-att-href="rc.recording_url" target="_blank"
                                class="o_vd_prb_req2_rec_link"
                                t-on-click.stop=""
-                               title="Tải / nghe ghi âm">
-                                <i class="fa fa-play-circle"/> nghe
+                               title="Nghe / tải ghi âm">
+                                <i class="fa fa-play-circle"/> <span>Nghe</span>
                             </a>
-                            <span t-else="" class="o_vd_prb_req2_rec_nolink">—</span>
                         </div>
                     </div>
                 </div>
