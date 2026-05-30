@@ -857,6 +857,12 @@ export class VdCrmDashboard extends Component {
         if (!L) return;
         this._copyToClipboard(L.phone, `Đã copy SĐT: ${L.phone}`, "Chưa có số điện thoại.");
     }
+    // Click tên KH (pill ở bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) → copy tên,
+    // KHÔNG mở lead (stopPropagation để không trigger row openLead).
+    copyLeadName(ev, name) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
+    }
 
     createNewLead() {
         // Mở wizard popup nhỏ chỉ điền Tên + SĐT.

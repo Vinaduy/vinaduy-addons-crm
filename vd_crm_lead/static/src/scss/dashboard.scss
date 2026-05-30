@@ -5394,9 +5394,11 @@
         /* Width cố định → row align thẳng */
         width: 220px;
         justify-content: space-between;
-        background: #fff5f5;
-        color: #c92a2a;
-        border: 1px solid #ffc9c9;
+        /* User spec 2026-05-30: đỏ MEDIUM — đậm hơn #fff5f5 (nhạt) nhưng không
+           chói như bản solid trước. Ở giữa 2 lần. */
+        background: #ffe0e0;
+        color: #b01818;
+        border: 1px solid #ff8787;
         i.fa { font-size: 0.85rem; opacity: 0.85; }
         .o_vd_prb_req2_lbl {
             flex: 1;
@@ -5665,6 +5667,60 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+    /* Tên KH dạng PILL — width cố định → thẳng hàng từ trên xuống, tên ngắn/dài
+       không làm lệch. Click = copy tên. Hover → tooltip "Click để copy". */
+    .o_vd_problem_row_name.o_vd_name_pill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        width: 300px;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 0.22rem 0.6rem;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 6px;
+        color: #1f2a44;
+        font-weight: 600;
+        overflow: visible;          /* tooltip hint không bị cắt */
+        cursor: copy;
+        transition: background 0.12s ease, border-color 0.12s ease;
+
+        &:hover {
+            background: #e0e7ff;
+            border-color: #818cf8;
+        }
+        .o_vd_name_pill_txt {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .o_vd_name_pill_hint {
+            position: absolute;
+            left: 0;
+            bottom: calc(100% + 4px);
+            z-index: 80;
+            background: #1f2a44;
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.28);
+            transition: opacity 0.12s ease;
+        }
+        &:hover .o_vd_name_pill_hint {
+            opacity: 1;
+            visibility: visible;
+        }
     }
     .o_vd_problem_row_phone,
     .o_vd_problem_row_nv,

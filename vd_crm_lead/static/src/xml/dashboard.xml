@@ -1727,8 +1727,11 @@
                                         <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.openLead(lead.id)"
                                              class="o_vd_problem_row o_vd_urgent_row">
-                                            <span class="o_vd_problem_row_name">
-                                                <t t-esc="lead.name"/>
+                                            <span class="o_vd_problem_row_name o_vd_name_pill"
+                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
+                                                  t-att-title="lead.name">
+                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
+                                                <span class="o_vd_name_pill_hint">📋 Click để copy</span>
                                             </span>
                                             <!-- User spec round 6.1: BỎ urgent_label_cell + days_cell,
                                                  chỉ còn name | YÊU CẦU TÌM badge (right-align).
@@ -1810,8 +1813,11 @@
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.openLead(lead.id)"
                                              class="o_vd_problem_row o_vd_xlvd_row">
-                                            <span class="o_vd_problem_row_name">
-                                                <t t-esc="lead.name"/>
+                                            <span class="o_vd_problem_row_name o_vd_name_pill"
+                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
+                                                  t-att-title="lead.name">
+                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
+                                                <span class="o_vd_name_pill_hint">📋 Click để copy</span>
                                             </span>
                                             <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
                                             <span class="o_vd_problem_row_problems">
@@ -1964,11 +1970,11 @@
              A) ⚠️ Tìm vấn đề + Còn N ngày — đỏ NHẠT (không quá chói)
              B) 📞 N · 📅 M — hover hiện popup chi tiết + recording
              - problems_non_urgent: exclude 'Thi công gấp' (round 6.1) -->
+        <t t-set="cs" t-value="lead.call_stats or {}"/>
+        <!-- THẺ A: yêu cầu + countdown — CHỈ khi KH CHƯA tìm được vấn đề -->
         <t t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length">
             <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
             <t t-set="dleft" t-value="15 - qd"/>
-            <t t-set="cs" t-value="lead.call_stats or {}"/>
-            <!-- THẺ A: yêu cầu + countdown (small, soft red) -->
             <span class="o_vd_prb_req2 o_vd_prb_req2_main"
                   t-att-class="dleft &lt;= 0 ? 'o_vd_prb_req2_overdue' : (dleft &lt;= 2 ? 'o_vd_prb_req2_urgent' : '')"
                   t-att-title="dleft &gt; 0 ? ('Còn ' + dleft + ' ngày để khai thác vấn đề') : ('Đã quá hạn ' + (-dleft) + ' ngày')">
@@ -1977,8 +1983,9 @@
                 <span t-if="dleft &gt; 0" class="o_vd_prb_req2_ctd">Còn <strong><t t-esc="dleft"/></strong> ngày</span>
                 <span t-else="" class="o_vd_prb_req2_ctd o_vd_prb_req2_ctd_over">Quá hạn <strong><t t-esc="-dleft"/></strong> ngày</span>
             </span>
-            <!-- THẺ B: thống kê cuộc gọi (hover → popup chi tiết + ghi âm) -->
-            <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
+        </t>
+        <!-- THẺ B: thống kê cuộc gọi — LUÔN hiện (kể cả khi đã tìm được vấn đề) -->
+        <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
                 <span class="o_vd_prb_req2_stat_item" title="Tổng cuộc gọi">
                     <i class="fa fa-phone"/>
                     <strong t-esc="cs.total || 0"/>
@@ -2040,7 +2047,6 @@
                     </div>
                 </div>
             </span>
-        </t>
     </t>
 
     <!-- ============================================================
