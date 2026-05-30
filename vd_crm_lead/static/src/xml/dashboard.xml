@@ -2057,6 +2057,9 @@
         <t t-set="rateClass" t-value="ansRate &lt; 0 ? 'o_vd_call_rate_none' : (ansRate &gt;= 20 ? 'o_vd_call_rate_high' : (ansRate &gt;= 10 ? 'o_vd_call_rate_mid' : (ansRate &gt;= 5 ? 'o_vd_call_rate_low' : 'o_vd_call_rate_poor')))"/>
         <t t-set="ans" t-value="cs.answered || 0"/>
         <t t-set="noans" t-value="(cs.total || 0) - ans"/>
+        <!-- Phân loại: cố tình không nghe (chuông kêu/bận/từ chối) vs thuê bao (failed) -->
+        <t t-set="refuse" t-value="(cs.no_answer || 0) + (cs.busy_like || 0)"/>
+        <t t-set="sub" t-value="cs.subscriber || 0"/>
         <t t-set="days" t-value="cs.distinct_days || 0"/>
         <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
                 <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_phone" t-att-class="rateClass"
@@ -2083,7 +2086,8 @@
                     <!-- Chỉ số phụ — CHỈ hiện cái nào &gt; 0 -->
                     <div class="o_vd_callrep_chips" t-if="cs.total &gt; 0">
                         <span t-if="ans &gt; 0" class="o_vd_callrep_chip o_vd_ccp_ok">📞 Nghe máy <b><t t-esc="ans"/></b></span>
-                        <span t-if="noans &gt; 0" class="o_vd_callrep_chip o_vd_ccp_bad">📵 Không nghe <b><t t-esc="noans"/></b></span>
+                        <span t-if="refuse &gt; 0" class="o_vd_callrep_chip o_vd_ccp_bad">🔕 Cố tình không nghe <b><t t-esc="refuse"/></b></span>
+                        <span t-if="sub &gt; 0" class="o_vd_callrep_chip o_vd_ccp_sub">📵 Thuê bao <b><t t-esc="sub"/></b></span>
                         <span t-if="days &gt; 0" class="o_vd_callrep_chip o_vd_ccp_day">📅 <b><t t-esc="days"/></b> ngày gọi</span>
                     </div>
                     <!-- Ghi âm: CHỈ cuộc kết nối > 1 phút (lọc sẵn ở JS → recent_calls_long) -->
