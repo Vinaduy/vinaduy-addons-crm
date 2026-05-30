@@ -1488,7 +1488,7 @@
                                         </div>
                                         <!-- Round 11: popover wide với chủ đề CHƯA BÁO GIÁ +
                                              callback date + nút GỌI LẠI nếu đến ngày. -->
-                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_left">
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_right o_vd_popover_ref_shift">
                                             <div class="o_vd_trash_popover_head">
                                                 👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
@@ -1754,8 +1754,39 @@
                                  title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
-                                    <div class="o_vd_trash_label">BÁO GIÁ XONG MẤT TÍCH</div>
+                                    <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
                                     <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
+                                </div>
+                                <!-- Hover popover: danh sách KH + số ngày từ ngày báo giá + nút Gọi lại.
+                                     anchor_right vì box ở mép phải → bung sang trái, không bị che. -->
+                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_quoted_lost">
+                                    <div class="o_vd_trash_popover_head">
+                                        📵 BÁO GIÁ XONG MẤT TÍCH (<t t-esc="leadsQuotedLost.length"/>)
+                                        <div class="o_vd_trash_popover_hint">
+                                            Đã báo giá nhưng không liên lạc được · Số ngày = kể từ ngày báo giá
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_trash_popover_body">
+                                        <div t-if="!leadsQuotedLost.length" class="o_vd_trash_popover_empty">
+                                            ✓ Không có KH nào trong nhóm này
+                                        </div>
+                                        <div t-foreach="leadsQuotedLost" t-as="ld" t-key="ld.id"
+                                             class="o_vd_trash_popover_item o_vd_quoted_lost_row"
+                                             t-on-click.stop="() => this.openLead(ld.id)">
+                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <span class="o_vd_quoted_lost_days" title="Số ngày kể từ ngày báo giá">
+                                                📅 <t t-esc="ld.quote_days != null ? ld.quote_days : '—'"/><t t-if="ld.quote_days != null">N</t>
+                                            </span>
+                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
+                                            <button t-if="ld.phone"
+                                                    class="btn btn-sm o_vd_notcalled_call_btn"
+                                                    t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                    title="Gọi lại KH ngay">
+                                                <i class="fa fa-phone me-1"/> Gọi lại
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             </div><!-- /.o_vd_split_table_single -->
@@ -1804,8 +1835,39 @@
                                  title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
-                                    <div class="o_vd_trash_label">BÁO GIÁ XONG MẤT TÍCH</div>
+                                    <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
                                     <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
+                                </div>
+                                <!-- Hover popover: danh sách KH + số ngày từ ngày báo giá + nút Gọi lại.
+                                     anchor_right vì box ở mép phải → bung sang trái, không bị che. -->
+                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_quoted_lost">
+                                    <div class="o_vd_trash_popover_head">
+                                        📵 BÁO GIÁ XONG MẤT TÍCH (<t t-esc="leadsQuotedLost.length"/>)
+                                        <div class="o_vd_trash_popover_hint">
+                                            Đã báo giá nhưng không liên lạc được · Số ngày = kể từ ngày báo giá
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_trash_popover_body">
+                                        <div t-if="!leadsQuotedLost.length" class="o_vd_trash_popover_empty">
+                                            ✓ Không có KH nào trong nhóm này
+                                        </div>
+                                        <div t-foreach="leadsQuotedLost" t-as="ld" t-key="ld.id"
+                                             class="o_vd_trash_popover_item o_vd_quoted_lost_row"
+                                             t-on-click.stop="() => this.openLead(ld.id)">
+                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <span class="o_vd_quoted_lost_days" title="Số ngày kể từ ngày báo giá">
+                                                📅 <t t-esc="ld.quote_days != null ? ld.quote_days : '—'"/><t t-if="ld.quote_days != null">N</t>
+                                            </span>
+                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
+                                            <button t-if="ld.phone"
+                                                    class="btn btn-sm o_vd_notcalled_call_btn"
+                                                    t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                    title="Gọi lại KH ngay">
+                                                <i class="fa fa-phone me-1"/> Gọi lại
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             </div><!-- /.o_vd_split_table_single -->

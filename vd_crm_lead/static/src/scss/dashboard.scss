@@ -4571,8 +4571,12 @@
             filter: drop-shadow(0 3px 8px rgba(232, 89, 12, 0.35));
             user-select: none;
         }
-        .o_vd_trash_label { color: #e8590c; }
-        .o_vd_trash_count { color: #e8590c; }
+        .o_vd_trash_label {
+            color: #e8590c;
+            text-align: center;   /* 2 dòng "BÁO GIÁ XONG" / "MẤT TÍCH" cân giữa */
+            line-height: 1.18;
+        }
+        .o_vd_trash_count { color: #e8590c; text-align: center; }
     }
 
     /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
@@ -4770,6 +4774,36 @@
             min-width: 1080px !important;
             max-width: 1280px !important;
             width: 90vw;
+        }
+        /* THAM KHẢO: anchor_right + đẩy mép phải popover ra mép phải HÀNG (vượt
+           qua 2 box CHƯA GỌI + KH HỦY = 2*170px + 2 gap 0.9rem) → popover 90vw
+           nằm gọn trong màn hình, không bị che. Chỉ áp ở layout 4-cột (≥1281px). */
+        @media (min-width: 1281px) {
+            .o_vd_trash_popover.o_vd_popover_ref_shift {
+                right: calc(-340px - 1.8rem) !important;
+            }
+        }
+        /* Variant BÁO GIÁ XONG MẤT TÍCH — header đỏ-cam + hàng KH có cột số ngày */
+        .o_vd_trash_popover.o_vd_trash_popover_quoted_lost {
+            .o_vd_trash_popover_head {
+                background: linear-gradient(135deg, #e8590c 0%, #fd7e14 100%);
+            }
+            .o_vd_trash_popover_nv {
+                color: #e8590c;
+                background: #fff4e6;
+            }
+        }
+        .o_vd_quoted_lost_row {
+            grid-template-columns: minmax(110px, 1fr) auto auto auto auto;
+        }
+        .o_vd_quoted_lost_days {
+            font-weight: 700;
+            color: #e8590c;
+            background: #fff4e6;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            white-space: nowrap;
         }
         /* Round 11: bảng THAM KHẢO 6 cột (style ~ giống bảng KH HỦY) */
         .o_vd_reference_table {
