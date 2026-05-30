@@ -5189,6 +5189,15 @@ class CrmLead(models.Model):
         """
         by_id = {l.id: l for l in leads}
         budget_sel = dict(self._fields['vd_intake_budget_range'].selection)
+        # User spec 2026-05-30: chỉ số cuộc gọi ở 2 bảng này CHỈ tính từ ngày báo
+        # giá thành công (vd_quote_created_date). Recompute + overwrite call_stats.
+        since_map = {
+            l.id: l.vd_quote_created_date for l in leads if l.vd_quote_created_date
+        }
+        quote_call_stats = self._dashboard_compute_call_stats(leads, since_by_lead=since_map)
+        for d in data:
+            if d['id'] in quote_call_stats:
+                d['call_stats'] = quote_call_stats[d['id']]
         for d in data:
             rec = by_id.get(d['id'])
             if not rec:
@@ -5682,7 +5691,7 @@ class CrmLead(models.Model):
         })
 
     @api.model
-    def _dashboard_compute_call_stats(self, leads):
+    def _dashboard_compute_call_stats(self, leads, since_by_lead=None):
         """Trả dict {lead_id: {total, answered, no_answer, busy_like,
         subscriber, distinct_days, distinct_days_subscriber}} cho batch leads.
 
@@ -5709,6 +5718,14 @@ class CrmLead(models.Model):
             if lid:
                 by_lead[lid].append(c)
         for lead_id, lcalls in by_lead.items():
+            # User spec 2026-05-30: chỉ tính cuộc gọi KỂ TỪ khi báo giá thành công
+            # (nếu since_by_lead có mốc ngày cho lead này).
+            since = (since_by_lead or {}).get(lead_id)
+            if since:
+                lcalls = [
+                    c for c in lcalls
+                    if c.get('start_time') and c['start_time'] >= since
+                ]
             total = len(lcalls)
             # Sort desc by start_time để recent_calls hiển thị mới nhất trước
             lcalls_sorted = sorted(

@@ -660,6 +660,8 @@ export class VdCrmDashboard extends Component {
                 ids = this.leadsUrgentConstruction.map(l => l.id);
             } else if (this.leadsWithProblems.some(l => l.id === leadId)) {
                 ids = this.leadsWithProblems.map(l => l.id);
+            } else if ((this.state.leadsReferenceAll || []).some(l => l.id === leadId)) {
+                ids = this.state.leadsReferenceAll.map(l => l.id);
             } else {
                 ids = [leadId];
             }
@@ -798,6 +800,9 @@ export class VdCrmDashboard extends Component {
             this.state.leadsNotCalledAll || [],
             this.state.leadsLostAll || [],
             this.state.leadsQuotedLostAll || [],
+            // Fix 2026-05-30: thiếu list THAM KHẢO → bấm KH tham khảo topbar hiện
+            // "(KH)" trống vì không resolve được data cached.
+            this.state.leadsReferenceAll || [],
         ];
         for (const list of sources) {
             const found = list.find(l => l.id === id);

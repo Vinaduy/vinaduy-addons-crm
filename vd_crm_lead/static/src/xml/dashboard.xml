@@ -2055,38 +2055,36 @@
         <t t-set="cs" t-value="lead.call_stats or {}"/>
         <t t-set="ansRate" t-value="(cs.total &gt; 0) ? ((cs.answered || 0) * 100 / cs.total) : -1"/>
         <t t-set="rateClass" t-value="ansRate &lt; 0 ? 'o_vd_call_rate_none' : (ansRate &gt;= 20 ? 'o_vd_call_rate_high' : (ansRate &gt;= 10 ? 'o_vd_call_rate_mid' : (ansRate &gt;= 5 ? 'o_vd_call_rate_low' : 'o_vd_call_rate_poor')))"/>
+        <t t-set="ans" t-value="cs.answered || 0"/>
+        <t t-set="noans" t-value="(cs.total || 0) - ans"/>
+        <t t-set="days" t-value="cs.distinct_days || 0"/>
         <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
                 <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_phone" t-att-class="rateClass"
-                      t-att-title="'Tổng cuộc gọi: ' + (cs.total || 0) + ' · Nghe máy: ' + (cs.answered || 0)">
+                      t-att-title="'Nghe máy: ' + ans + ' · Không nghe: ' + noans + ' (từ khi báo giá)'">
                     <i class="fa fa-phone"/>
                     <strong t-esc="cs.total || 0"/>
                 </span>
-                <span class="o_vd_prb_req2_stat_item" title="Số ngày đã gọi">
+                <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_cal" title="Số ngày đã gọi (từ khi báo giá)">
                     <i class="fa fa-calendar"/>
-                    <strong t-esc="cs.distinct_days || 0"/>
+                    <strong t-esc="days"/>
                 </span>
                 <!-- Popup hover — báo cáo chi tiết -->
                 <div class="o_vd_prb_req2_popover">
                     <div class="o_vd_prb_req2_pop_head">
                         📞 Báo cáo cuộc gọi · <t t-esc="lead.name"/>
+                        <div class="o_vd_prb_req2_pop_subnote">Tính từ khi báo giá thành công</div>
                     </div>
-                    <!-- 3 chỉ số theo ƯU TIÊN: Nghe máy (chính, to nhất) > Không nghe > Ngày gọi -->
-                    <div class="o_vd_callrep_stats">
-                        <div class="o_vd_callrep_stat o_vd_callrep_main" title="Số cuộc nghe máy">
-                            <span class="o_vd_callrep_ic">📞</span>
-                            <span class="o_vd_callrep_num"><t t-esc="cs.answered || 0"/></span>
-                            <span class="o_vd_callrep_lbl">Nghe máy</span>
-                        </div>
-                        <div class="o_vd_callrep_stat o_vd_callrep_second" title="Số cuộc không nghe máy">
-                            <span class="o_vd_callrep_ic">📵</span>
-                            <span class="o_vd_callrep_num"><t t-esc="(cs.total || 0) - (cs.answered || 0)"/></span>
-                            <span class="o_vd_callrep_lbl">Không nghe</span>
-                        </div>
-                        <div class="o_vd_callrep_stat o_vd_callrep_third" title="Số ngày đã gọi">
-                            <span class="o_vd_callrep_ic">📅</span>
-                            <span class="o_vd_callrep_num"><t t-esc="cs.distinct_days || 0"/></span>
-                            <span class="o_vd_callrep_lbl">Ngày gọi</span>
-                        </div>
+                    <!-- VERDICT — nhìn 2 giây biết ngay tình hình nghe máy -->
+                    <div t-att-class="'o_vd_callrep_verdict ' + (ans &gt; 0 ? 'o_vd_cv_ok' : (cs.total &gt; 0 ? 'o_vd_cv_bad' : 'o_vd_cv_none'))">
+                        <t t-if="ans &gt; 0">✅ CÓ NGHE MÁY · <b><t t-esc="ans"/></b> lần</t>
+                        <t t-elif="cs.total &gt; 0">📵 THƯỜNG XUYÊN KHÔNG NGHE · <b><t t-esc="cs.total"/></b> cuộc không bắt</t>
+                        <t t-else="">— Chưa gọi cuộc nào</t>
+                    </div>
+                    <!-- Chỉ số phụ — CHỈ hiện cái nào &gt; 0 -->
+                    <div class="o_vd_callrep_chips" t-if="cs.total &gt; 0">
+                        <span t-if="ans &gt; 0" class="o_vd_callrep_chip o_vd_ccp_ok">📞 Nghe máy <b><t t-esc="ans"/></b></span>
+                        <span t-if="noans &gt; 0" class="o_vd_callrep_chip o_vd_ccp_bad">📵 Không nghe <b><t t-esc="noans"/></b></span>
+                        <span t-if="days &gt; 0" class="o_vd_callrep_chip o_vd_ccp_day">📅 <b><t t-esc="days"/></b> ngày gọi</span>
                     </div>
                     <!-- Ghi âm: CHỈ cuộc kết nối > 1 phút (lọc sẵn ở JS → recent_calls_long) -->
                     <div class="o_vd_prb_req2_pop_recordings" t-if="(cs.recent_calls_long || []).length">
@@ -2105,6 +2103,12 @@
                     </div>
                 </div>
             </span>
+        <!-- Nút Gọi lại — NV gọi luôn không cần mở form lead -->
+        <button t-if="lead.phone" class="o_vd_callback_btn"
+                t-on-click="(ev) => this.callLeadDirect(ev, lead.id)"
+                title="Gọi lại KH ngay">
+            <i class="fa fa-phone"/> <span>Gọi lại</span>
+        </button>
     </t>
 
     <!-- ============================================================
