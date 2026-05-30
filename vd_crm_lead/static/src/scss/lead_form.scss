@@ -300,6 +300,67 @@
     .o_vd_pq_call_report {
         margin: 0.6rem 1rem 0;
         .o_field_widget { width: 100%; }
+        .o_vd_pq_history_btn {
+            margin-top: 0.5rem;
+            width: 100%;
+            font-weight: 700;
+        }
+    }
+    /* ===== Panel KIỂM SOÁT CHĂM SÓC ZALO (Phase 1) ===== */
+    .o_vd_zalo_panel {
+        margin: 0.6rem 1rem 0;
+        border: 1px solid #d0bfff;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fbfaff;
+    }
+    .o_vd_zalo_head {
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #7048e8, #9775fa);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+    .o_vd_zalo_link_row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 8px 12px;
+        .o_field_widget { flex: 1; min-width: 0; }
+    }
+    .o_vd_zalo_open_btn { white-space: nowrap; font-weight: 700; }
+    .o_vd_zalo_checklist {
+        padding: 0 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+    .o_vd_zalo_step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .o_vd_zalo_chk {
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 3px 11px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: left;
+    }
+    .o_vd_zalo_done   { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e; }
+    .o_vd_zalo_todo   { background: #f1f3f5; border-color: #dee2e6; color: #868e96;
+                        &:hover { background: #e9ecef; } }
+    .o_vd_zalo_key_todo { background: #fff4e6; border-color: #ffd8a8; color: #e8590c;
+                          &:hover { background: #ffe8cc; } }
+    .o_vd_zalo_time { font-size: 0.72rem; color: #868e96; }
+    .o_vd_zalo_overdue {
+        color: #c92a2a; font-weight: 800; font-size: 0.8rem;
+        background: #fff5f5; border: 1px solid #ffc9c9;
+        border-radius: 6px; padding: 2px 8px;
+        display: inline-flex; align-items: center; gap: 0.2rem;
     }
     .o_vd_nego_actions {
         margin: 0.85rem 1rem 1rem;

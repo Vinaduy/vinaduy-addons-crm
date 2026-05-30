@@ -320,6 +320,38 @@ class CrmLead(models.Model):
         store=False, sanitize=False,
     )
 
+    # ===== KIỂM SOÁT CHĂM SÓC ZALO (Phase 1) — panel VẤN ĐỀ, chỉ sau báo giá =====
+    vd_zalo_group_url = fields.Char(string='Link nhóm Zalo')
+    vd_zalo_step_group = fields.Datetime(string='Zalo: đã tạo nhóm')
+    vd_zalo_step_quote = fields.Datetime(string='Zalo: đã gửi báo giá')
+    vd_zalo_step_model = fields.Datetime(string='Zalo: đã gửi mẫu nhà')
+    vd_zalo_step_problem = fields.Datetime(string='Zalo: đã nhắn khai thác vấn đề')
+    vd_zalo_problem_overdue = fields.Boolean(
+        string='Zalo: quá hạn nhắn khai thác',
+        compute='_compute_zalo_problem_overdue',
+    )
+    vd_zalo_problem_overdue_days = fields.Integer(
+        string='Zalo: số ngày chưa nhắn khai thác',
+        compute='_compute_zalo_problem_overdue',
+    )
+
+    @api.depends('vd_zalo_step_problem', 'vd_quote_created_date')
+    def _compute_zalo_problem_overdue(self):
+        """Đèn đỏ bước ④: sau báo giá mà NV chưa 'nhắn khai thác vấn đề' qua
+        Zalo quá ngưỡng (default 2 ngày, chỉnh qua ir.config_parameter
+        'vd_crm_lead.zalo_problem_overdue_days')."""
+        threshold = int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.zalo_problem_overdue_days', 2) or 2)
+        now = fields.Datetime.now()
+        for rec in self:
+            days = 0
+            overdue = False
+            if rec.vd_quote_created_date and not rec.vd_zalo_step_problem:
+                days = (now - rec.vd_quote_created_date).days
+                overdue = days >= threshold
+            rec.vd_zalo_problem_overdue_days = days
+            rec.vd_zalo_problem_overdue = overdue
+
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
                  'call_ids.start_time', 'call_ids.recording_url',
                  'vd_quote_created_date')
@@ -377,51 +409,15 @@ class CrmLead(models.Model):
                 chips += _chip('📵', 'Thuê bao', sub, '#7048e8', '#f3f0ff', '#d0bfff')
             chips += _chip('📅', 'Ngày gọi', len(days), '#1971c2', '#e7f5ff', '#a5d8ff')
 
-            rows = ''
-            for c in calls[:15]:
-                dur = c.duration or 0
-                if c.state in ('answered', 'ended') and dur > 0:
-                    ic, lbl, col = '✅', 'Nghe máy', '#2b8a3e'
-                elif c.state == 'failed':
-                    ic, lbl, col = '📵', 'Thuê bao', '#7048e8'
-                else:
-                    ic, lbl, col = '🔕', 'Không nghe', '#e8590c'
-                tstr = fields.Datetime.context_timestamp(rec, c.start_time).strftime('%d/%m %H:%M')
-                durstr = f'{dur}s' if dur else '—'
-                link = ''
-                if c.recording_url:
-                    link = (
-                        f'<a href="{c.recording_url}" target="_blank" style="color:#fff;'
-                        f'background:#2b8a3e;padding:1px 9px;border-radius:5px;text-decoration:none;'
-                        f'font-weight:700;font-size:0.75rem;">▶ Nghe</a>'
-                    )
-                rows += (
-                    f'<tr style="border-bottom:1px solid #f1f3f5;">'
-                    f'<td style="padding:4px 8px;white-space:nowrap;color:#1f2a44;font-weight:600;">{tstr}</td>'
-                    f'<td style="padding:4px 8px;white-space:nowrap;color:{col};font-weight:700;">{ic} {lbl}</td>'
-                    f'<td style="padding:4px 8px;text-align:right;color:#6c757d;">{durstr}</td>'
-                    f'<td style="padding:4px 8px;text-align:right;">{link}</td></tr>'
-                )
-            if rows:
-                list_html = (
-                    f'<table style="width:100%;border-collapse:collapse;'
-                    f'font-size:0.8rem;margin-top:4px;">{rows}</table>'
-                )
-            else:
-                list_html = (
-                    '<div style="padding:6px 8px;color:#868e96;font-style:italic;'
-                    'font-size:0.82rem;">Chưa có cuộc gọi nào kể từ báo giá.</div>'
-                )
             since_str = fields.Datetime.context_timestamp(rec, since).strftime('%d/%m/%Y')
             rec.vd_post_quote_call_report = (
                 f'<div style="border:1px solid #e9ecef;border-radius:8px;overflow:hidden;">'
                 f'<div style="padding:6px 10px;background:linear-gradient(135deg,#5c8fb8,#4a7aa0);'
-                f'color:#fff;font-weight:800;font-size:0.85rem;">📞 Lịch sử cuộc gọi sau báo giá '
+                f'color:#fff;font-weight:800;font-size:0.85rem;">📞 Báo cáo cuộc gọi sau báo giá '
                 f'<span style="font-weight:500;font-size:0.7rem;opacity:0.9;">(từ {since_str})</span></div>'
                 f'<div style="margin:8px 10px;padding:6px 10px;border-radius:8px;border:1.5px solid {v_bd};'
                 f'background:{v_bg};color:{v_col};font-weight:800;text-align:center;">{v_txt}</div>'
-                f'<div style="padding:0 8px 6px;text-align:center;">{chips}</div>'
-                f'<div style="padding:0 8px 8px;">{list_html}</div></div>'
+                f'<div style="padding:0 8px 8px;text-align:center;">{chips}</div></div>'
             )
 
     # Live call indicator — computed (not stored), used by form to toggle
@@ -4809,6 +4805,59 @@ class CrmLead(models.Model):
                 'vd_hide_lead_col': True,
                 'vd_hide_user_col': True,
                 'vd_call_history_popup': True,  # cho CSS target popup này
+            },
+        }
+
+    def action_zalo_mark_step(self):
+        """Toggle 1 bước checklist Zalo (chưa → set giờ hiện tại; đã → bỏ).
+        Bước truyền qua context {'zalo_step': 'group'|'quote'|'model'|'problem'}."""
+        self.ensure_one()
+        fmap = {
+            'group': 'vd_zalo_step_group',
+            'quote': 'vd_zalo_step_quote',
+            'model': 'vd_zalo_step_model',
+            'problem': 'vd_zalo_step_problem',
+        }
+        fname = fmap.get(self.env.context.get('zalo_step'))
+        if fname:
+            self[fname] = False if self[fname] else fields.Datetime.now()
+
+    def action_open_zalo_group(self):
+        """Mở nhóm Zalo trong tab mới (act_url) — NV/leader bấm vào nhóm nhanh."""
+        self.ensure_one()
+        url = (self.vd_zalo_group_url or '').strip()
+        if not url:
+            raise UserError(_('Chưa có link nhóm Zalo. Dán link vào ô bên cạnh trước.'))
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        return {'type': 'ir.actions.act_url', 'url': url, 'target': 'new'}
+
+    def action_view_calls_post_quote(self):
+        """Popup lịch sử cuộc gọi CHỈ tính từ ngày làm báo giá thành công
+        (vd_quote_created_date). Dùng chung view stringee.call (có widget
+        vd_audio_player để nghe ghi âm) y như action_view_calls."""
+        self.ensure_one()
+        domain = [('lead_id', '=', self.id)]
+        if self.vd_quote_created_date:
+            domain.append(('start_time', '>=', self.vd_quote_created_date))
+        since_str = (
+            fields.Datetime.context_timestamp(self, self.vd_quote_created_date).strftime('%d/%m/%Y')
+            if self.vd_quote_created_date else ''
+        )
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Cuộc gọi sau báo giá (từ %s) — %s') % (since_str, self.name or ''),
+            'res_model': 'stringee.call',
+            'view_mode': 'list,form',
+            'domain': domain,
+            'target': 'new',
+            'context': {
+                'default_lead_id': self.id,
+                'create': False,
+                'dialog_size': 'fullscreen',
+                'vd_hide_lead_col': True,
+                'vd_hide_user_col': True,
+                'vd_call_history_popup': True,
             },
         }
 

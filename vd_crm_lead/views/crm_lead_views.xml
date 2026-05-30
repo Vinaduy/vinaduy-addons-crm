@@ -1591,6 +1591,66 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     <!-- ===== LỊCH SỬ CUỘC GỌI SAU BÁO GIÁ — báo cáo nhanh + list ===== -->
                     <div class="o_vd_pq_call_report" invisible="not vd_quote_created_date">
                         <field name="vd_post_quote_call_report" widget="html" nolabel="1" readonly="1"/>
+                        <button name="action_view_calls_post_quote" type="object"
+                                class="btn btn-sm btn-outline-info o_vd_pq_history_btn">
+                            <i class="fa fa-history me-1"/>🎙️ Xem chi tiết + nghe ghi âm
+                        </button>
+                    </div>
+
+                    <!-- ===== KIỂM SOÁT CHĂM SÓC ZALO (Phase 1) — chỉ sau báo giá ===== -->
+                    <div class="o_vd_zalo_panel" invisible="not vd_quote_created_date">
+                        <div class="o_vd_zalo_head">💬 KIỂM SOÁT CHĂM SÓC ZALO</div>
+                        <div class="o_vd_zalo_link_row">
+                            <field name="vd_zalo_group_url" nolabel="1"
+                                   placeholder="Dán link nhóm Zalo: https://zalo.me/g/..."/>
+                            <button name="action_open_zalo_group" type="object"
+                                    class="btn btn-sm btn-primary o_vd_zalo_open_btn"
+                                    invisible="not vd_zalo_group_url">
+                                <i class="fa fa-external-link me-1"/>📲 Mở nhóm
+                            </button>
+                        </div>
+                        <div class="o_vd_zalo_checklist">
+                            <!-- ① Tạo nhóm -->
+                            <div class="o_vd_zalo_step">
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_done" invisible="not vd_zalo_step_group">✅ Tạo nhóm Zalo</button>
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_todo" invisible="vd_zalo_step_group">⬜ Tạo nhóm Zalo</button>
+                                <field name="vd_zalo_step_group" nolabel="1" readonly="1"
+                                       invisible="not vd_zalo_step_group" class="o_vd_zalo_time"/>
+                            </div>
+                            <!-- ② Gửi báo giá -->
+                            <div class="o_vd_zalo_step">
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_done" invisible="not vd_zalo_step_quote">✅ Gửi báo giá Zalo</button>
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_todo" invisible="vd_zalo_step_quote">⬜ Gửi báo giá Zalo</button>
+                                <field name="vd_zalo_step_quote" nolabel="1" readonly="1"
+                                       invisible="not vd_zalo_step_quote" class="o_vd_zalo_time"/>
+                            </div>
+                            <!-- ③ Gửi mẫu nhà -->
+                            <div class="o_vd_zalo_step">
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_done" invisible="not vd_zalo_step_model">✅ Gửi mẫu nhà</button>
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_todo" invisible="vd_zalo_step_model">⬜ Gửi mẫu nhà</button>
+                                <field name="vd_zalo_step_model" nolabel="1" readonly="1"
+                                       invisible="not vd_zalo_step_model" class="o_vd_zalo_time"/>
+                            </div>
+                            <!-- ④ Nhắn khai thác vấn đề (BƯỚC PHẢI KIỂM SOÁT) -->
+                            <div class="o_vd_zalo_step o_vd_zalo_step_key">
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'problem'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_done" invisible="not vd_zalo_step_problem">✅ Nhắn khai thác vấn đề</button>
+                                <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'problem'}"
+                                        class="o_vd_zalo_chk o_vd_zalo_todo o_vd_zalo_key_todo"
+                                        invisible="vd_zalo_step_problem">⭐ Nhắn khai thác vấn đề</button>
+                                <field name="vd_zalo_step_problem" nolabel="1" readonly="1"
+                                       invisible="not vd_zalo_step_problem" class="o_vd_zalo_time"/>
+                                <span class="o_vd_zalo_overdue" invisible="not vd_zalo_problem_overdue">
+                                    🔴 QUÁ HẠN <field name="vd_zalo_problem_overdue_days" nolabel="1" readonly="1"/> ngày — chưa nhắn khai thác!
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ===== ACTION TOOLBOX ===== -->
