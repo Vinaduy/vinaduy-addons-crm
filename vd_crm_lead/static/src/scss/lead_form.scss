@@ -11649,3 +11649,43 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     margin-left: 4px;
 }
 .o_vd_chs_dl:hover { color: #155a9c; }
+
+/* ============================================================================
+   ÉP CỠ CHỮ ĐỀU 16px — bảng THÔNG TIN TƯ VẤN (User spec 2026-05-31 #5).
+   Trước đây mỗi widget bị set px đá nhau (input/dropdown 19px, địa chỉ 19px,
+   ngân sách 15px, nhãn lúc 16/18/20px...) → chữ "chỗ to chỗ nhỏ". Block này
+   đặt CUỐI FILE + cùng prefix .o_vd_steps_panel với các rule cũ → THẮNG ties,
+   gom MỌI nhãn + giá trị về 16px. Áp cả form gốc lẫn popup preview (cùng
+   selector .o_vd_layout_grid). Giữ vòng tròn số + đơn vị m² nhỏ hơn.
+   ============================================================================ */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step .o_vd_step_text,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step *,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > label,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl_sub,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_dim_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_subtoggle_lbl,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input[type="text"],
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input[type="number"],
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel select,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel select.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel textarea,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel textarea.o_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o-autocomplete--input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o-autocomplete--input::placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_value,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_placeholder,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_bar,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_item,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_selection_picker_value,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_budget_manual input {
+    font-size: 16px !important;
+}
+/* Phần tử phụ giữ nhỏ hơn để không phá layout vòng tròn số + đơn vị */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num { font-size: 12px !important; }
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_area_unit { font-size: 13px !important; }
