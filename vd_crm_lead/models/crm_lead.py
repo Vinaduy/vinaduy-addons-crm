@@ -395,6 +395,28 @@ class CrmLead(models.Model):
             raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
         return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
 
+    # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.
+    # Auto-gen từ mẫu (.docx) trộn dữ liệu KH + bảng giá + đợt ứng: xử lý sau. =====
+    def action_view_contract_file(self):
+        return self._vd_contract_pending('HỢP ĐỒNG')
+
+    def action_download_contract_file(self):
+        return self._vd_contract_pending('HỢP ĐỒNG')
+
+    def action_view_appendix_file(self):
+        return self._vd_contract_pending('PHỤ LỤC')
+
+    def action_download_appendix_file(self):
+        return self._vd_contract_pending('PHỤ LỤC')
+
+    def _vd_contract_pending(self, doc):
+        self.ensure_one()
+        raise UserError(_(
+            'Chưa cấu hình MẪU %s. Gửi file mẫu (.docx) cho admin để thiết lập '
+            'tự động trộn: tên KH, địa chỉ, thông tin công trình, bảng giá chi '
+            'tiết và các đợt thanh toán.'
+        ) % doc)
+
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
                  'call_ids.start_time', 'call_ids.recording_url',
                  'vd_quote_created_date')
@@ -428,42 +450,40 @@ class CrmLead(models.Model):
                     refuse += 1
             total = ans + refuse + sub
 
-            def _chip(icon, label, val, color, bg, border):
-                return (
-                    f'<span style="display:inline-flex;align-items:center;gap:4px;'
-                    f'padding:2px 9px;border-radius:999px;font-size:0.78rem;font-weight:700;'
-                    f'border:1px solid {border};background:{bg};color:{color};margin:2px;">'
-                    f'{icon} {label} <b style="font-size:0.92rem;">{val}</b></span>'
-                )
-
+            noans = refuse + sub  # "không nghe" = cố tình không nghe + thuê bao
+            # Đánh giá (giống vd_lead_call_rating) → render thẻ badge như Hình 2.
             if total == 0:
-                v_txt, v_col, v_bg, v_bd = '— Chưa có cuộc gọi nào sau báo giá', '#868e96', '#f1f3f5', '#ced4da'
-            elif ans > 0:
-                v_txt, v_col, v_bg, v_bd = f'✅ CÓ NGHE MÁY · {ans} lần', '#2b8a3e', '#ebfbee', '#8ce99a'
+                rclass, rtext = '', ''
+            elif ans == 0 and sub >= max(1, total // 2):
+                rclass, rtext = 'unreachable', '📵 Thuê bao'
+            elif ans == 0:
+                rclass, rtext = 'none', '🚫 Không nghe máy'
+            elif (ans / total) >= 0.5:
+                rclass, rtext = 'high', '🔥 Nghe máy cao'
             else:
-                v_txt, v_col, v_bg, v_bd = f'📵 CHƯA NGHE MÁY · {total} cuộc', '#c92a2a', '#fff5f5', '#ffa8a8'
-
-            chips = ''
-            if ans:
-                chips += _chip('📞', 'Nghe máy', ans, '#2b8a3e', '#ebfbee', '#b2f2bb')
-            if refuse:
-                chips += _chip('🔕', 'Cố tình không nghe', refuse, '#e8590c', '#fff4e6', '#ffd8a8')
-            if sub:
-                chips += _chip('📵', 'Thuê bao', sub, '#7048e8', '#f3f0ff', '#d0bfff')
-            chips += _chip('📅', 'Ngày gọi', len(days), '#1971c2', '#e7f5ff', '#a5d8ff')
-
-            # User spec 2026-05-31: 1 DÒNG — verdict + chips + BỘ ĐẾM số ngày kể từ
-            # ngày xong báo giá đến hôm nay (bỏ "từ dd/mm"). Giữ nhận xét phân loại.
+                rclass, rtext = 'low', '⚖️ Nghe máy thấp'
+            rating_html = (
+                f'<span class="o_vd_cs_sep">|</span>'
+                f'<span class="o_vd_cs_part o_vd_cs_rating">'
+                f'<span class="o_vd_cr_badge o_vd_cr_{rclass}">{rtext}</span></span>'
+            ) if rclass else ''
             days_since = (fields.Datetime.now() - since).days
+            # User spec 2026-05-31: thiết kế giống Hình 2 (component o_vd_call_stats_chip)
+            # — ✓ Nghe máy | ✗ Không nghe | thẻ đánh giá + pill ⏳ số ngày từ báo giá.
             rec.vd_post_quote_call_report = (
-                f'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;'
-                f'padding:6px 10px;border:1px solid #e9ecef;border-radius:8px;background:#f8f9fa;">'
-                f'<span style="font-weight:800;font-size:0.8rem;color:{v_col};white-space:nowrap;">{v_txt}</span>'
-                f'{chips}'
-                f'<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;'
+                f'<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+                f'<span class="o_vd_call_stats_chip">'
+                f'<span class="o_vd_cs_part o_vd_cs_yes"><i class="fa fa-check-circle"></i>'
+                f'<span class="o_vd_cs_lbl">Nghe máy:</span> <span class="o_vd_cs_val">{ans}</span></span>'
+                f'<span class="o_vd_cs_sep">|</span>'
+                f'<span class="o_vd_cs_part o_vd_cs_no"><i class="fa fa-times-circle"></i>'
+                f'<span class="o_vd_cs_lbl">Không nghe:</span> <span class="o_vd_cs_val">{noans}</span></span>'
+                f'{rating_html}'
+                f'</span>'
+                f'<span style="display:inline-flex;align-items:center;gap:4px;'
                 f'background:#fff4e6;border:1px solid #ffd8a8;color:#e8590c;border-radius:999px;'
                 f'padding:2px 10px;font-size:0.78rem;font-weight:800;white-space:nowrap;">'
-                f'⏳ {days_since} ngày từ báo giá</span></div>'
+                f'⏳ {days_since} ngày từ báo giá</span></span>'
             )
 
     # Live call indicator — computed (not stored), used by form to toggle
