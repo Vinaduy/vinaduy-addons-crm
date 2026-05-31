@@ -5260,32 +5260,40 @@
     .o_vd_pf_expiring.o_vd_pfilter_on { background: #e8590c; border-color: #e8590c; color: #fff; box-shadow: 0 2px 6px rgba(232,89,12,0.3); }
     .o_vd_pf_problem.o_vd_pfilter_on  { background: #c92a2a; border-color: #c92a2a; color: #fff; box-shadow: 0 2px 6px rgba(201,42,42,0.3); }
     .o_vd_pf_all.o_vd_pfilter_on      { background: #495057; border-color: #495057; color: #fff; }
-    /* ===== Nút 🆘 SOS Cần cấp trên hỗ trợ — TO, full khung + popover hướng dẫn ===== */
+    /* ===== Nút 🆘 SOS — gọn (bằng nút Gọi lại), "SOS" to; đỏ tĩnh / đỏ nháy / xanh ===== */
     .o_vd_sos {
         position: relative;
-        align-self: stretch;
-        display: flex; align-items: center; justify-content: center;
-        min-width: 72px; min-height: 40px;
-        padding: 2px 8px;
-        border-radius: 8px;
-        border: 2px solid #fa5252;
-        background: linear-gradient(135deg, #fff0f0 0%, #ffe3e3 100%);
+        align-self: center;
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 58px;
+        padding: 0.2rem 0.55rem;
+        border-radius: 7px;
+        border: 2px solid;
         cursor: pointer;
         transition: all 0.12s ease;
-        &:hover {
-            background: linear-gradient(135deg, #ffe3e3 0%, #ffc9c9 100%);
-            box-shadow: 0 2px 8px rgba(250, 82, 82, 0.35);
-        }
     }
     .o_vd_sos_face {
-        font-size: 0.72rem; font-weight: 900; color: #c92a2a;
-        text-align: center; line-height: 1.05; letter-spacing: 0.3px; white-space: nowrap;
+        font-size: 1.15rem; font-weight: 900; letter-spacing: 1.5px; line-height: 1;
     }
-    .o_vd_sos.o_vd_sos_on {
+    .o_vd_sos_idle {                 /* chưa hỗ trợ — đỏ tĩnh */
+        border-color: #fa5252; background: #fff0f0;
+        .o_vd_sos_face { color: #c92a2a; }
+        &:hover { background: #ffe3e3; }
+    }
+    .o_vd_sos_waiting {              /* đã gửi, chờ cấp trên — đỏ NHẤP NHÁY */
         border-color: #c92a2a;
-        background: linear-gradient(135deg, #c92a2a 0%, #fa5252 100%);
-        animation: vd-pulse-warn 1.4s ease-in-out infinite;
+        background: linear-gradient(135deg, #fa5252, #c92a2a);
+        animation: vd-sos-blink 1s ease-in-out infinite;
         .o_vd_sos_face { color: #fff; }
+    }
+    .o_vd_sos_helping {              /* đang hỗ trợ — XANH */
+        border-color: #2b8a3e;
+        background: linear-gradient(135deg, #51cf66, #2b8a3e);
+        .o_vd_sos_face { color: #fff; }
+    }
+    @keyframes vd-sos-blink {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(201,42,42,0.6); opacity: 1; }
+        50%      { box-shadow: 0 0 0 6px rgba(201,42,42,0); opacity: 0.72; }
     }
     .o_vd_sos_pop {
         position: absolute;
@@ -5325,9 +5333,17 @@
                           &:hover { background: #ffe8cc; } }
     .o_vd_sos_opt_multi { background: #fff5f5; border-color: #ffa8a8; color: #c92a2a;
                           &:hover { background: #ffe3e3; } }
-    .o_vd_problem_row.o_vd_row_help {
+    .o_vd_sos_opt_ack  { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e;
+                         &:hover { background: #d3f9d8; } }
+    .o_vd_sos_opt_done { background: #e7f5ff; border-color: #a5d8ff; color: #1971c2;
+                         &:hover { background: #d0ebff; } }
+    .o_vd_problem_row.o_vd_row_waiting {
         background: #fff5f5 !important;
         border-left: 4px solid #c92a2a !important;
+    }
+    .o_vd_problem_row.o_vd_row_helping {
+        background: #ebfbee !important;
+        border-left: 4px solid #2b8a3e !important;
     }
     .o_vd_problem_row {
         display: grid;

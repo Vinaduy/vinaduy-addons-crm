@@ -394,6 +394,19 @@
     .o_vd_contract_doc_lbl {
         font-weight: 800; font-size: 0.92rem; color: #5d3d54; min-width: 92px;
     }
+    .o_vd_contract_trigger { margin: 0.85rem 1rem 1rem; text-align: center; }
+    .o_vd_contract_trigger_btn {
+        font-weight: 800; font-size: 0.95rem; padding: 0.5rem 1.3rem;
+        background: linear-gradient(135deg, #714B67, #875174); border: none;
+        &:hover { background: linear-gradient(135deg, #5d3d54, #714B67); }
+    }
+    .o_vd_contract_collapse_btn {
+        margin-left: auto;
+        background: rgba(255, 255, 255, 0.92); color: #5d3d54;
+        font-weight: 700; font-size: 0.76rem; padding: 0.18rem 0.7rem;
+        text-transform: none; letter-spacing: normal;
+        &:hover { background: #fff; }
+    }
     .o_vd_nego_actions {
         margin: 0.85rem 1rem 1rem;
         padding: 0.7rem 0.9rem;

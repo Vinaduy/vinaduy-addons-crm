@@ -1597,6 +1597,15 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </button>
                     </div>
 
+                    <!-- ===== NÚT BẬT PANEL LÀM HỢP ĐỒNG — chỉ hiện khi đã có báo giá ===== -->
+                    <div class="o_vd_contract_trigger"
+                         invisible="not vd_quote_created_date or vd_contract_open or vd_contract_signed">
+                        <button name="action_toggle_contract_panel" type="object"
+                                class="btn btn-primary o_vd_contract_trigger_btn">
+                            <i class="fa fa-file-text-o me-1"/>📄 Làm hợp đồng - Hẹn gặp
+                        </button>
+                    </div>
+
                     <!-- ===== ACTION TOOLBOX (chỉ còn "Mở khóa" — ẩn khi không có nút) ===== -->
                     <div class="o_vd_nego_actions" invisible="vd_contract_signed or not vd_quote_locked">
                         <button name="action_unlock_quote_for_edit" type="object"
@@ -1611,10 +1620,14 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                 <!-- ============================================================
                      📄 PANEL LÀM HỢP ĐỒNG - HẸN GẶP (repurpose từ panel Zalo cũ)
                      ============================================================ -->
-                <div class="o_vd_negotiate_panel o_vd_contract_make_panel" invisible="not vd_quote_created_date">
+                <div class="o_vd_negotiate_panel o_vd_contract_make_panel" invisible="not vd_quote_created_date or not vd_contract_open">
                     <div class="o_vd_nego_head">
                         <i class="fa fa-file-text-o"/>
                         <span>Làm hợp đồng - Hẹn gặp</span>
+                        <button name="action_toggle_contract_panel" type="object"
+                                class="btn btn-sm o_vd_contract_collapse_btn">
+                            <i class="fa fa-chevron-up me-1"/>Thu gọn
+                        </button>
                     </div>
                     <div class="o_vd_contract_make_body">
                         <div class="o_vd_contract_doc_row">

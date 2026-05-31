@@ -417,6 +417,14 @@ class CrmLead(models.Model):
             'tiết và các đợt thanh toán.'
         ) % doc)
 
+    # Panel "Làm hợp đồng - Hẹn gặp" chỉ bung khi NV bấm nút (không tự hiện).
+    vd_contract_open = fields.Boolean(string='Mở panel làm hợp đồng', default=False, copy=False)
+
+    def action_toggle_contract_panel(self):
+        self.ensure_one()
+        self.vd_contract_open = not self.vd_contract_open
+        return True
+
     # ===== CẦN CẤP TRÊN HỖ TRỢ — NV bấm 🆘 cuối dòng KH ở dashboard.
     # User spec 2026-05-31: ĐÃ BẤM thì KHÔNG huỷ được; 2 chế độ: trong ngày /
     # nhiều ngày (đến khi chốt); mỗi NV tối đa 3 KH active cùng lúc. =====
@@ -426,6 +434,10 @@ class CrmLead(models.Model):
         ('today', 'Trong ngày'),
         ('multi', 'Nhiều ngày — đến khi chốt'),
     ], string='Phạm vi hỗ trợ', default='today')
+    vd_help_status = fields.Selection([
+        ('waiting', 'Chờ hỗ trợ'),     # đỏ nhấp nháy — NV đã gửi, chưa ai tới
+        ('helping', 'Đang hỗ trợ'),    # xanh — cấp trên đang hỗ trợ
+    ], string='Trạng thái hỗ trợ')
 
     def _vd_need_help_active(self, today_d):
         """Cờ hỗ trợ còn hiệu lực? multi = đến khi chốt; today = chỉ hôm nay.
@@ -470,7 +482,21 @@ class CrmLead(models.Model):
             'vd_need_help': True,
             'vd_need_help_at': fields.Datetime.now(),
             'vd_need_help_scope': scope,
+            'vd_help_status': 'waiting',
         })
+        return True
+
+    def vd_ack_help(self):
+        """Cấp trên bấm 'Đang hỗ trợ' → chuyển đỏ (chờ) sang xanh (đang hỗ trợ)."""
+        self.ensure_one()
+        if self.vd_need_help and self.vd_help_status == 'waiting':
+            self.write({'vd_help_status': 'helping'})
+        return True
+
+    def vd_done_help(self):
+        """Cấp trên bấm 'Hoàn tất' → kết thúc yêu cầu hỗ trợ (xoá cờ)."""
+        self.ensure_one()
+        self.write({'vd_need_help': False, 'vd_help_status': False})
         return True
 
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
@@ -5858,6 +5884,7 @@ class CrmLead(models.Model):
             # Cờ 'cần cấp trên hỗ trợ' — active theo scope (today=hôm nay / multi=đến khi chốt).
             'need_help': l._vd_need_help_active(_today_d),
             'need_help_scope': l.vd_need_help_scope or 'today',
+            'help_status': l.vd_help_status or '',
             # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
             'problems': _lead_problems(l),
             # User spec 2026-05-28: TCG tách urgent ra cột riêng + show vấn đề khác

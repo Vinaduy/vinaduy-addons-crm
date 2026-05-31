@@ -905,6 +905,26 @@ export class VdCrmDashboard extends Component {
             this.notification.add(msg, { type: "warning" });
         }
     }
+    // Cấp trên: 🔴 chờ → 🟢 đang hỗ trợ
+    async ackHelp(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call("crm.lead", "vd_ack_help", [[leadId]]);
+            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+        } catch (e) {
+            this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
+        }
+    }
+    // Cấp trên: hoàn tất hỗ trợ → xoá cờ
+    async doneHelp(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call("crm.lead", "vd_done_help", [[leadId]]);
+            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+        } catch (e) {
+            this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
+        }
+    }
     // Bọc HTML bảng báo giá chi tiết bằng markup() → t-out render raw (không escape).
     // Panel THÔNG TIN KHÁCH HÀNG (hover tên KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).
     _markupBreakdown(rows) {
