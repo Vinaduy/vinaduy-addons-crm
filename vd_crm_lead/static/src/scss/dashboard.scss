@@ -3384,12 +3384,15 @@
     /* Badge count cũ đã bỏ — sidebar chỉ còn tên team xoay dọc */
     .o_vd_kh_team_total { display: none; }
 
-    /* NV rows — table-like layout với grid 4 cột */
+    /* NV rows — table-like layout với grid 4 cột.
+       User spec 2026-05-31 r4: thiết kế thoáng giống bảng KH (THI CÔNG GẤP) —
+       mỗi NV là 1 THẺ trắng riêng, có khoảng cách giữa các hàng + cao hơn. */
     .o_vd_kh_nv_list {
         flex: 1;
         display: flex;
         flex-direction: column;
-        padding: 0.5rem;
+        gap: 0.55rem;              /* khoảng cách giữa các hàng NV */
+        padding: 0.6rem;
         min-width: 0;
     }
     .o_vd_kh_nv_row {
@@ -3398,11 +3401,18 @@
         grid-template-columns: 3fr 4fr;
         gap: 12px;
         align-items: stretch;
-        padding: 2px 4px;          /* giảm khoảng cách dọc 30% */
-        background: transparent;
+        padding: 0.4rem 0.5rem;    /* cao hơn → hàng thoáng */
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid #e9ecef;
+        border-left: 3px solid var(--team-color, #cbd5e1);   /* accent màu team như thẻ KH */
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
         cursor: default;
-        border-bottom: 1px dashed rgba(148, 163, 184, 0.35);   /* đường kẻ mờ tách NV */
-        &:last-child { border-bottom: none; }
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+        &:hover {
+            box-shadow: 0 3px 10px -2px rgba(15, 23, 42, 0.14);
+            transform: translateX(2px);
+        }
     }
     /* ===== 2 wrapper subgrid: chỉ background, KHÔNG khung viền riêng từng NV ===== */
     .o_vd_kh_row_group {
@@ -3414,12 +3424,12 @@
     }
     .o_vd_kh_row_group_info {
         /* Round 13: chỉ còn 1 cột Tên NV (đã bỏ Số tháng + Năng lực). */
+        /* r4: nền trong suốt — tên NV đã là 1 thẻ pill riêng, tránh nền chồng nền. */
         grid-template-columns: 1fr;
-        background: rgba(241, 245, 249, 0.55);
-        border-radius: 6px;
+        background: transparent;
+        align-items: center;
         > .o_vd_kh_col_name {
-            padding: 0.35rem 0.6rem;
-            min-height: 28px;
+            min-height: 28px;   /* để pill o_vd_kh_col_name_link tự set padding */
         }
     }
     .o_vd_kh_row_group_kh {
@@ -3539,7 +3549,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 26px;            /* giảm 30% chiều cao */
+        min-height: 38px;            /* r4: cao hơn cho thoáng giống bảng KH */
         background: transparent;
         border: none;
         border-radius: 6px;
@@ -3552,6 +3562,14 @@
             z-index: 100;
         }
     }
+    /* User spec 2026-05-31 r4: các ô SỐ = THẺ viền nhạt giống badge bảng KH. */
+    .o_vd_kh_metric_newcust,
+    .o_vd_kh_metric_noprob,
+    .o_vd_kh_metric_urgent,
+    .o_vd_kh_metric_xlvd {
+        background: #f8fafc;
+        border: 1px solid #e9eef4;
+    }
     /* Hover viền màu theo loại metric */
     .o_vd_kh_metric_done:hover     { border-color: #16a34a; background: rgba(22,163,74,0.06); }
     .o_vd_kh_metric_progress:hover { border-color: #d97706; background: rgba(217,119,6,0.07); }
@@ -3563,8 +3581,8 @@
     /* Metric — số plain, không badge. Màu theo cột để dễ phân biệt. */
     .o_vd_kh_metric_num {
         display: inline-block;
-        font-size: 0.9rem;
-        font-weight: 700;
+        font-size: 1.05rem;
+        font-weight: 800;
         line-height: 1;
         cursor: pointer;
         transition: opacity 0.12s ease;
@@ -4077,7 +4095,8 @@
         grid-template-columns: 3fr 4fr;
         gap: 12px;
         min-width: 0;
-        padding: 0 4px;
+        /* r4: khớp inset với hàng NV (nv_list 0.6rem + row pad 0.5rem + border) */
+        padding: 0 1.2rem;
     }
     .o_vd_kh_th_group {
         display: grid;
