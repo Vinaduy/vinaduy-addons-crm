@@ -566,6 +566,126 @@ class CrmLead(models.Model):
                 f'⏳ {days_since} ngày từ báo giá</span></span>'
             )
 
+    # ===== LỊCH SỬ CUỘC GỌI TÁCH 2 BẢNG (sau / trước báo giá) — HOVER panel =====
+    # User spec 2026-05-31: hover (không click) trên 2 nút "Lịch sử cuộc gọi"
+    # (Thông tin tư vấn + Vấn đề) → bung CÙNG panel chứa 2 bảng xếp chồng:
+    #   • TRÊN  = cuộc gọi SAU báo giá (start_time >= vd_quote_created_date)
+    #   • DƯỚI  = cuộc gọi TRƯỚC báo giá (tạo KH → ngày báo giá)
+    # Chưa có vd_quote_created_date → tất cả vào bảng TRƯỚC, bảng SAU rỗng.
+    vd_call_history_split = fields.Html(
+        string='Lịch sử cuộc gọi (tách trước/sau báo giá)',
+        compute='_compute_call_history_split',
+        store=False, sanitize=False,
+    )
+
+    # Nhãn trạng thái cuộc gọi (đồng bộ selection ở vd_stringee/stringee_call).
+    _VD_CALL_STATE_LABELS = {
+        'draft': 'Chưa khởi tạo', 'initiated': 'Đã khởi tạo', 'ringing': 'Đang đổ chuông',
+        'answered': 'Đã trả lời', 'ended': 'Đã kết thúc', 'no_answer': 'Không nghe máy',
+        'busy': 'Máy bận', 'declined': 'Từ chối', 'cancelled': 'Đã huỷ', 'failed': 'Lỗi',
+    }
+
+    def _vd_render_call_rows(self, calls):
+        """Render các <tr> cho 1 bảng lịch sử cuộc gọi (đã sort sẵn)."""
+        self.ensure_one()
+        labels = self._VD_CALL_STATE_LABELS
+        rows = []
+        for c in calls:
+            when = (
+                fields.Datetime.context_timestamp(self, c.start_time).strftime('%d/%m/%Y %H:%M:%S')
+                if c.start_time else '—'
+            )
+            dur = c.duration or 0
+            dur_s = '%02d:%02d' % (dur // 60, dur % 60)
+            is_ans = c.state in ('answered', 'ended') and dur > 0
+            if is_ans:
+                bg, fg = '#e6f7ed', '#0b7a3b'
+            elif c.state == 'failed':
+                bg, fg = '#f1f3f5', '#868e96'
+            else:
+                bg, fg = '#fff0f0', '#c92a2a'
+            st = labels.get(c.state, c.state or '—')
+            if c.recording_attachment_id:
+                aid = c.recording_attachment_id.id
+                rec_html = (
+                    f'<audio controls preload="none" class="o_vd_chs_audio" '
+                    f'src="/web/content/{aid}?download=false"></audio>'
+                    f'<a href="/web/content/{aid}?download=true" class="o_vd_chs_dl" '
+                    f'title="Tải ghi âm" download="">⬇</a>'
+                )
+            elif c.recording_url:
+                rec_html = (
+                    f'<a href="{c.recording_url}" target="_blank" '
+                    f'class="o_vd_chs_dl">Nghe</a>'
+                )
+            else:
+                rec_html = '<span style="color:#adb5bd;">—</span>'
+            rows.append(
+                f'<tr><td>{when}</td>'
+                f'<td>{c.caller_number or "—"}</td>'
+                f'<td>{c.callee_number or "—"}</td>'
+                f'<td style="text-align:right;white-space:nowrap;">{dur_s}</td>'
+                f'<td><span style="background:{bg};color:{fg};border-radius:6px;'
+                f'padding:1px 7px;font-weight:700;white-space:nowrap;">{st}</span></td>'
+                f'<td class="o_vd_chs_rec">{rec_html}</td></tr>'
+            )
+        return ''.join(rows)
+
+    def _vd_render_call_table(self, title, subtitle, calls, accent):
+        """Render 1 block bảng (header + table)."""
+        self.ensure_one()
+        head = (
+            '<tr><th>Thời điểm</th><th>Từ số</th><th>Đến số</th>'
+            '<th style="text-align:right;">Thời lượng</th><th>Trạng thái</th>'
+            '<th>Ghi âm</th></tr>'
+        )
+        if calls:
+            body = self._vd_render_call_rows(calls)
+        else:
+            body = (
+                '<tr><td colspan="6" style="text-align:center;color:#adb5bd;'
+                'padding:14px;font-style:italic;">Chưa có cuộc gọi</td></tr>'
+            )
+        return (
+            f'<div class="o_vd_chs_block">'
+            f'<div class="o_vd_chs_head" style="border-left:4px solid {accent};">'
+            f'<span class="o_vd_chs_title">{title}</span>'
+            f'<span class="o_vd_chs_sub">{subtitle}</span>'
+            f'<span class="o_vd_chs_count">{len(calls)}</span></div>'
+            f'<table class="o_vd_chs_table"><thead>{head}</thead>'
+            f'<tbody>{body}</tbody></table></div>'
+        )
+
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.duration', 'call_ids.start_time',
+                 'call_ids.caller_number', 'call_ids.callee_number',
+                 'call_ids.recording_url', 'call_ids.recording_attachment_id',
+                 'vd_quote_created_date')
+    def _compute_call_history_split(self):
+        for rec in self:
+            all_calls = rec.call_ids.sorted(
+                key=lambda c: (c.start_time or fields.Datetime.to_datetime('1970-01-01')),
+                reverse=True,
+            )
+            since = rec.vd_quote_created_date
+            if since:
+                after = all_calls.filtered(lambda c: c.start_time and c.start_time >= since)
+                before = all_calls.filtered(lambda c: not c.start_time or c.start_time < since)
+                since_str = fields.Datetime.context_timestamp(rec, since).strftime('%d/%m/%Y')
+                sub_after = f'kể từ {since_str}'
+                sub_before = f'tạo KH → {since_str}'
+            else:
+                after = rec.call_ids.browse()
+                before = all_calls
+                sub_after = 'chưa có báo giá'
+                sub_before = 'từ tạo KH đến nay'
+            tbl_after = rec._vd_render_call_table(
+                '📞 Sau báo giá', sub_after, after, '#e8590c')
+            tbl_before = rec._vd_render_call_table(
+                '☎️ Trước báo giá', sub_before, before, '#1971c2')
+            rec.vd_call_history_split = (
+                f'<div class="o_vd_chs_wrap">{tbl_after}{tbl_before}</div>'
+            )
+
     # Live call indicator — computed (not stored), used by form to toggle
     # Gọi/Cúp máy buttons. Cheap query: looks for any non-terminal call.
     vd_active_call_id = fields.Many2one(
