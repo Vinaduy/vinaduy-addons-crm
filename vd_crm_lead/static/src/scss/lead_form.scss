@@ -300,17 +300,28 @@
     .o_vd_pq_call_report {
         display: flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 0.4rem;
+        flex-wrap: nowrap;            /* ÉP 1 dòng — button không xuống dòng */
+        gap: 0.3rem;
         margin: 0.6rem 1rem 0;
+        overflow-x: auto;            /* nếu vẫn tràn thì cuộn ngang */
         > .o_field_widget { flex: 0 1 auto; width: auto; min-width: 0; }
+        /* User spec 2026-05-31: thu nhỏ ~30% các thẻ trên dòng để vừa 1 hàng */
+        .o_vd_call_stats_chip {
+            gap: 0.3rem;
+            padding: 0.18rem 0.5rem;
+            i { font-size: 0.7rem; }
+            .o_vd_cs_lbl { font-size: 0.64rem; }
+            .o_vd_cs_val { font-size: 0.7rem; }
+            .o_vd_cs_sep { font-size: 0.66rem; }
+            .o_vd_cs_rating .o_vd_cr_badge { font-size: 0.56rem; padding: 0.08rem 0.42rem; }
+        }
         .o_vd_pq_history_btn {
             flex: 0 0 auto;
             margin: 0;
             width: auto;
             white-space: nowrap;
-            padding: 0.18rem 0.6rem;
-            font-size: 0.74rem;
+            padding: 0.1rem 0.42rem;
+            font-size: 0.58rem;
             font-weight: 700;
         }
     }

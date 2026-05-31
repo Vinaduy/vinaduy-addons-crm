@@ -1748,7 +1748,7 @@
                                     <t t-if="leadsUrgentConstruction.length">
                                         <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.openLead(lead.id)"
-                                             class="o_vd_problem_row o_vd_urgent_row">
+                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? ' o_vd_row_help' : '')">
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
                                                   t-att-title="lead.name">
@@ -1795,6 +1795,10 @@
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
+                                                <button class="o_vd_help_btn"
+                                                        t-att-class="lead.need_help ? 'o_vd_help_on' : ''"
+                                                        t-on-click.stop="(ev) => this.toggleNeedHelp(ev, lead.id)"
+                                                        t-att-title="lead.need_help ? 'Đang chờ cấp trên hỗ trợ — bấm để bỏ' : 'Bấm nếu cần cấp trên hỗ trợ KH này (trong ngày · tối đa 3 KH/NV)'">🆘</button>
                                             </span>
                                         </div>
                                     </t>
@@ -1865,7 +1869,7 @@
                                     <t t-if="leadsWithProblems.length">
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.openLead(lead.id)"
-                                             class="o_vd_problem_row o_vd_xlvd_row">
+                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? ' o_vd_row_help' : '')">
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
                                                   t-att-title="lead.name">
@@ -1910,6 +1914,10 @@
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
+                                                <button class="o_vd_help_btn"
+                                                        t-att-class="lead.need_help ? 'o_vd_help_on' : ''"
+                                                        t-on-click.stop="(ev) => this.toggleNeedHelp(ev, lead.id)"
+                                                        t-att-title="lead.need_help ? 'Đang chờ cấp trên hỗ trợ — bấm để bỏ' : 'Bấm nếu cần cấp trên hỗ trợ KH này (trong ngày · tối đa 3 KH/NV)'">🆘</button>
                                             </span>
                                         </div>
                                     </t>

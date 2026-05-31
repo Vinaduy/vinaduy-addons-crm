@@ -890,6 +890,17 @@ export class VdCrmDashboard extends Component {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
     }
+    // 🆘 NV bấm cuối dòng KH → cờ "cần cấp trên hỗ trợ" (trong ngày, tối đa 3 KH/NV).
+    async toggleNeedHelp(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call("crm.lead", "vd_toggle_need_help", [[leadId]]);
+            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Không thực hiện được.";
+            this.notification.add(msg, { type: "warning" });
+        }
+    }
     // Bọc HTML bảng báo giá chi tiết bằng markup() → t-out render raw (không escape).
     // Panel THÔNG TIN KHÁCH HÀNG (hover tên KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).
     _markupBreakdown(rows) {

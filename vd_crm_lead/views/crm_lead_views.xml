@@ -1597,17 +1597,13 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </button>
                     </div>
 
-                    <!-- ===== ACTION TOOLBOX ===== -->
-                    <div class="o_vd_nego_actions" invisible="vd_contract_signed">
+                    <!-- ===== ACTION TOOLBOX (chỉ còn "Mở khóa" — ẩn khi không có nút) ===== -->
+                    <div class="o_vd_nego_actions" invisible="vd_contract_signed or not vd_quote_locked">
                         <button name="action_unlock_quote_for_edit" type="object"
                                 class="btn btn-outline-warning btn-sm"
                                 invisible="not vd_quote_locked"
                                 confirm="🔓 KH yêu cầu sửa báo giá? Mở khóa để chỉnh sửa. Sau khi sửa xong cần Lưu version mới + Chốt lại để giữ giá.">
                             <i class="fa fa-unlock me-1"/>🔓 Mở khóa sửa báo giá
-                        </button>
-                        <button name="action_sign_contract" type="object"
-                                class="btn btn-success o_vd_nego_sign_btn">
-                            <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
                         </button>
                     </div>
                 </div>
@@ -1641,6 +1637,13 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                             <button name="action_download_appendix_file" type="object"
                                     class="btn btn-sm btn-primary">
                                 <i class="fa fa-download me-1"/>Tải file phụ lục
+                            </button>
+                        </div>
+                        <!-- Tạo lịch gặp — đặt CUỐI panel làm hợp đồng (user spec 2026-05-31) -->
+                        <div class="o_vd_contract_appt_row" invisible="vd_contract_signed">
+                            <button name="action_sign_contract" type="object"
+                                    class="btn btn-success o_vd_nego_sign_btn o_vd_contract_appt_btn">
+                                <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
                             </button>
                         </div>
                     </div>

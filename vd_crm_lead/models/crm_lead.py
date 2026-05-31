@@ -417,6 +417,33 @@ class CrmLead(models.Model):
             'tiết và các đợt thanh toán.'
         ) % doc)
 
+    # ===== CẦN CẤP TRÊN HỖ TRỢ — NV bấm cuối dòng KH ở dashboard, cấp trên thấy ngay =====
+    vd_need_help = fields.Boolean(string='Cần cấp trên hỗ trợ', default=False)
+    vd_need_help_at = fields.Datetime(string='Thời điểm yêu cầu hỗ trợ')
+
+    def vd_toggle_need_help(self):
+        """Toggle cờ 'cần cấp trên hỗ trợ'. Ràng buộc (user spec 2026-05-31):
+        - Chỉ có tác dụng TRONG NGÀY (serialize chỉ tính active nếu at = hôm nay).
+        - Mỗi NV tối đa 3 KH active cùng lúc."""
+        self.ensure_one()
+        if self.vd_need_help:
+            self.write({'vd_need_help': False, 'vd_need_help_at': False})
+            return True
+        today_start = fields.Datetime.to_datetime(fields.Date.context_today(self))
+        active = self.search_count([
+            ('user_id', '=', self.user_id.id),
+            ('vd_need_help', '=', True),
+            ('vd_need_help_at', '>=', today_start),
+            ('id', '!=', self.id),
+        ])
+        if active >= 3:
+            raise UserError(_(
+                'NV %s đã yêu cầu hỗ trợ tối đa 3 KH trong ngày. Xử lý xong 1 KH '
+                '(bấm 🆘 lần nữa để bỏ) rồi mới thêm KH khác.'
+            ) % (self.user_id.name or ''))
+        self.write({'vd_need_help': True, 'vd_need_help_at': fields.Datetime.now()})
+        return True
+
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
                  'call_ids.start_time', 'call_ids.recording_url',
                  'vd_quote_created_date')
@@ -480,9 +507,9 @@ class CrmLead(models.Model):
                 f'<span class="o_vd_cs_lbl">Không nghe:</span> <span class="o_vd_cs_val">{noans}</span></span>'
                 f'{rating_html}'
                 f'</span>'
-                f'<span style="display:inline-flex;align-items:center;gap:4px;'
+                f'<span style="display:inline-flex;align-items:center;gap:3px;'
                 f'background:#fff4e6;border:1px solid #ffd8a8;color:#e8590c;border-radius:999px;'
-                f'padding:2px 10px;font-size:0.78rem;font-weight:800;white-space:nowrap;">'
+                f'padding:1px 8px;font-size:0.56rem;font-weight:800;white-space:nowrap;">'
                 f'⏳ {days_since} ngày từ báo giá</span></span>'
             )
 
@@ -5684,6 +5711,7 @@ class CrmLead(models.Model):
     def _dashboard_serialize_leads(self, leads):
         # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
         call_stats_by_lead = self._dashboard_compute_call_stats(leads)
+        _today_d = fields.Date.context_today(self)  # cho cờ 'cần hỗ trợ' (active = hôm nay)
 
         import re as _re
         _urgent_tag = self.env.ref(
@@ -5798,6 +5826,11 @@ class CrmLead(models.Model):
             'team_label': self._vd_team_label_for(l.user_id),
             # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
             'problem_open_count': l.vd_lead_problem_open_count,
+            # Cờ 'cần cấp trên hỗ trợ' — CHỈ active nếu bấm trong NGÀY hôm nay (theo TZ user).
+            'need_help': bool(
+                l.vd_need_help and l.vd_need_help_at
+                and fields.Datetime.context_timestamp(l, l.vd_need_help_at).date() == _today_d
+            ),
             # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
             'problems': _lead_problems(l),
             # User spec 2026-05-28: TCG tách urgent ra cột riêng + show vấn đề khác

@@ -5260,6 +5260,28 @@
     .o_vd_pf_expiring.o_vd_pfilter_on { background: #e8590c; border-color: #e8590c; color: #fff; box-shadow: 0 2px 6px rgba(232,89,12,0.3); }
     .o_vd_pf_problem.o_vd_pfilter_on  { background: #c92a2a; border-color: #c92a2a; color: #fff; box-shadow: 0 2px 6px rgba(201,42,42,0.3); }
     .o_vd_pf_all.o_vd_pfilter_on      { background: #495057; border-color: #495057; color: #fff; }
+    /* ===== Nút 🆘 Cần cấp trên hỗ trợ (cuối dòng KH) + highlight hàng ===== */
+    .o_vd_help_btn {
+        border: 1.5px solid #ffd8a8;
+        background: #fff4e6;
+        border-radius: 6px;
+        padding: 0.1rem 0.45rem;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        &:hover { background: #ffe8cc; border-color: #ffc078; }
+    }
+    .o_vd_help_on {
+        background: #fff5f5;
+        border-color: #c92a2a;
+        box-shadow: 0 0 0 2px rgba(201, 42, 42, 0.25);
+        animation: vd-pulse-warn 1.4s ease-in-out infinite;
+    }
+    .o_vd_problem_row.o_vd_row_help {
+        background: #fff5f5 !important;
+        border-left: 4px solid #c92a2a !important;
+    }
     .o_vd_problem_row {
         display: grid;
         grid-template-columns: minmax(220px, 1fr) auto;
