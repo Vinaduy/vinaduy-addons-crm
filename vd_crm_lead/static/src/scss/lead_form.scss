@@ -325,27 +325,29 @@
         gap: 0.3rem;
         margin: 0.6rem 1rem 0;
         overflow-x: auto;            /* nếu vẫn tràn thì cuộn ngang */
-        > .o_field_widget { flex: 0 1 auto; width: auto; min-width: 0; }
-        /* User spec 2026-05-31 (cập nhật): ĐỒNG BỘ cỡ chữ với cụm bên panel
-           THÔNG TIN TƯ VẤN (thang TRUNG BÌNH: nhãn .72 / số .82 / badge .64).
-           Siết gap + padding để toolbar vẫn gói 1 dòng (đã có overflow-x:auto
-           làm lưới an toàn nếu vẫn chật). */
+        /* CHỐNG ĐÈ CHỮ: min-width max-content để field báo cáo KHÔNG bị flex co
+           xuống dưới bề rộng nội dung (gây chồng chữ). Nếu vượt khung thì
+           overflow-x:auto cuộn ngang chứ không bao giờ đè nhau. */
+        > .o_field_widget { flex: 0 1 auto; width: auto; min-width: max-content; }
+        /* User spec 2026-05-31 (cập nhật #2): user CHỌN giữ 1 DÒNG → cụm bên
+           VẤN ĐỀ dùng cỡ NHỎ HƠN panel trái 1 chút (nhãn .66 / số .74 / badge
+           .58) để vừa 1 hàng; panel trái giữ cỡ đồng bộ .72/.82. */
         .o_vd_call_stats_chip {
-            gap: 0.22rem;
-            padding: 0.16rem 0.42rem;
-            i { font-size: 0.78rem; }
-            .o_vd_cs_lbl { font-size: 0.72rem; }
-            .o_vd_cs_val { font-size: 0.82rem; }
-            .o_vd_cs_sep { font-size: 0.72rem; }
-            .o_vd_cs_rating .o_vd_cr_badge { font-size: 0.64rem; padding: 0.08rem 0.42rem; }
+            gap: 0.2rem;
+            padding: 0.14rem 0.38rem;
+            i { font-size: 0.72rem; }
+            .o_vd_cs_lbl { font-size: 0.66rem; }
+            .o_vd_cs_val { font-size: 0.74rem; }
+            .o_vd_cs_sep { font-size: 0.66rem; }
+            .o_vd_cs_rating .o_vd_cr_badge { font-size: 0.58rem; padding: 0.08rem 0.4rem; }
         }
         .o_vd_pq_history_btn {
             flex: 0 0 auto;
             margin: 0;
             width: auto;
             white-space: nowrap;
-            padding: 0.12rem 0.45rem;
-            font-size: 0.66rem;
+            padding: 0.12rem 0.42rem;
+            font-size: 0.62rem;
             font-weight: 700;
         }
         /* User spec 2026-05-31: ĐÓNG KHUNG cả dòng (giống thanh nút chân bảng) */
@@ -356,7 +358,7 @@
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
         .o_vd_pq_contract_btn {
             flex: 0 0 auto; margin: 0; white-space: nowrap;
-            padding: 0.12rem 0.5rem; font-size: 0.66rem; font-weight: 800;
+            padding: 0.12rem 0.5rem; font-size: 0.62rem; font-weight: 800;
             background: linear-gradient(135deg, #714B67, #875174); border: none; color: #fff;
             &:hover { background: linear-gradient(135deg, #5d3d54, #714B67); color: #fff; }
         }

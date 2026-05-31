@@ -562,7 +562,7 @@ class CrmLead(models.Model):
                 f'</span>'
                 f'<span style="display:inline-flex;align-items:center;gap:3px;'
                 f'background:#fff4e6;border:1px solid #ffd8a8;color:#e8590c;border-radius:999px;'
-                f'padding:1px 8px;font-size:0.62rem;font-weight:800;white-space:nowrap;">'
+                f'padding:1px 8px;font-size:0.60rem;font-weight:800;white-space:nowrap;">'
                 f'⏳ {days_since} ngày từ báo giá</span></span>'
             )
 
