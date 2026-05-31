@@ -1597,57 +1597,6 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </button>
                     </div>
 
-                    <!-- ===== KIỂM SOÁT CHĂM SÓC ZALO (Phase 1) — chỉ sau báo giá ===== -->
-                    <div class="o_vd_zalo_panel" invisible="not vd_quote_created_date">
-                        <div class="o_vd_zalo_head">💬 KIỂM SOÁT CHĂM SÓC ZALO</div>
-                        <div class="o_vd_zalo_link_row">
-                            <field name="vd_zalo_group_url" nolabel="1"
-                                   placeholder="Link nhóm Zalo (tuỳ chọn): https://zalo.me/g/..."/>
-                            <button name="action_open_zalo_chat" type="object"
-                                    class="btn btn-sm btn-primary o_vd_zalo_open_btn">
-                                <i class="fa fa-comment me-1"/>💬 Nhắn KH
-                            </button>
-                            <button name="action_open_zalo_group" type="object"
-                                    class="btn btn-sm btn-outline-primary o_vd_zalo_open_btn"
-                                    invisible="not vd_zalo_group_url">
-                                <i class="fa fa-users me-1"/>Mở nhóm
-                            </button>
-                        </div>
-                        <!-- Cài đặt ban đầu (công việc 1 lần) — gom nhỏ, không phải trọng tâm -->
-                        <div class="o_vd_zalo_setup">
-                            <span class="o_vd_zalo_setup_lbl">Cài đặt ban đầu:</span>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_group">✅ Nhóm</button>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_group">⬜ Nhóm</button>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_quote">✅ Báo giá</button>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_quote">⬜ Báo giá</button>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_model">✅ Mẫu nhà</button>
-                            <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
-                                    class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_model">⬜ Mẫu nhà</button>
-                        </div>
-                        <!-- CHĂM SÓC các ngày tiếp theo — CÁI CẦN KIỂM SOÁT CHÍNH -->
-                        <div class="o_vd_zalo_care">
-                            <div class="o_vd_zalo_care_status o_vd_care_bad" invisible="not vd_zalo_care_overdue">
-                                🔴 Đã <field name="vd_zalo_care_overdue_days" nolabel="1" readonly="1"/> ngày CHƯA CHĂM SÓC KHÁCH
-                            </div>
-                            <div class="o_vd_zalo_care_status o_vd_care_ok" invisible="vd_zalo_care_overdue">
-                                🟢 Đang đúng nhịp chăm sóc
-                            </div>
-                            <div class="o_vd_zalo_care_meta" invisible="not vd_zalo_last_care">
-                                Lần chăm cuối: <field name="vd_zalo_last_care" nolabel="1" readonly="1"/>
-                                · Tổng <field name="vd_zalo_care_count" nolabel="1" readonly="1"/> lần
-                            </div>
-                            <button name="action_zalo_log_care" type="object"
-                                    class="btn btn-sm btn-success o_vd_zalo_care_btn">
-                                <i class="fa fa-check me-1"/>✅ Ghi nhận đã chăm khách hôm nay
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- ===== ACTION TOOLBOX ===== -->
                     <div class="o_vd_nego_actions" invisible="vd_contract_signed">
                         <button name="action_unlock_quote_for_edit" type="object"
@@ -1659,6 +1608,62 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         <button name="action_sign_contract" type="object"
                                 class="btn btn-success o_vd_nego_sign_btn">
                             <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     💬 PANEL KIỂM SOÁT ZALO — TÁCH RIÊNG, tiêu đề giống VẤN ĐỀ
+                     ============================================================ -->
+                <div class="o_vd_negotiate_panel o_vd_zalo_sep" invisible="not vd_quote_created_date">
+                    <div class="o_vd_nego_head">
+                        <i class="fa fa-comments"/>
+                        <span>Kiểm soát Zalo</span>
+                    </div>
+                    <div class="o_vd_zalo_link_row">
+                        <field name="vd_zalo_group_url" nolabel="1"
+                               placeholder="Link nhóm Zalo (tuỳ chọn): https://zalo.me/g/..."/>
+                        <button name="action_open_zalo_chat" type="object"
+                                class="btn btn-sm btn-primary o_vd_zalo_open_btn">
+                            <i class="fa fa-comment me-1"/>💬 Nhắn KH
+                        </button>
+                        <button name="action_open_zalo_group" type="object"
+                                class="btn btn-sm btn-outline-primary o_vd_zalo_open_btn"
+                                invisible="not vd_zalo_group_url">
+                            <i class="fa fa-users me-1"/>Mở nhóm
+                        </button>
+                    </div>
+                    <!-- Cài đặt ban đầu (công việc 1 lần) — gom nhỏ -->
+                    <div class="o_vd_zalo_setup">
+                        <span class="o_vd_zalo_setup_lbl">Cài đặt ban đầu:</span>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_group">✅ Nhóm</button>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'group'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_group">⬜ Nhóm</button>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_quote">✅ Báo giá</button>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'quote'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_quote">⬜ Báo giá</button>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_done" invisible="not vd_zalo_step_model">✅ Mẫu nhà</button>
+                        <button name="action_zalo_mark_step" type="object" context="{'zalo_step': 'model'}"
+                                class="o_vd_zalo_mini o_vd_zalo_mini_todo" invisible="vd_zalo_step_model">⬜ Mẫu nhà</button>
+                    </div>
+                    <!-- CHĂM SÓC các ngày tiếp theo — TRỌNG TÂM -->
+                    <div class="o_vd_zalo_care">
+                        <div class="o_vd_zalo_care_status o_vd_care_bad" invisible="not vd_zalo_care_overdue">
+                            🔴 Đã <field name="vd_zalo_care_overdue_days" nolabel="1" readonly="1"/> ngày CHƯA CHĂM SÓC KHÁCH
+                        </div>
+                        <div class="o_vd_zalo_care_status o_vd_care_ok" invisible="vd_zalo_care_overdue">
+                            🟢 Đang đúng nhịp chăm sóc
+                        </div>
+                        <div class="o_vd_zalo_care_meta" invisible="not vd_zalo_last_care">
+                            Lần chăm cuối: <field name="vd_zalo_last_care" nolabel="1" readonly="1"/>
+                            · Tổng <field name="vd_zalo_care_count" nolabel="1" readonly="1"/> lần
+                        </div>
+                        <button name="action_zalo_log_care" type="object"
+                                class="btn btn-sm btn-success o_vd_zalo_care_btn">
+                            <i class="fa fa-check me-1"/>✅ Ghi nhận đã chăm khách hôm nay
                         </button>
                     </div>
                 </div>

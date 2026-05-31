@@ -452,15 +452,18 @@ class CrmLead(models.Model):
                 chips += _chip('📵', 'Thuê bao', sub, '#7048e8', '#f3f0ff', '#d0bfff')
             chips += _chip('📅', 'Ngày gọi', len(days), '#1971c2', '#e7f5ff', '#a5d8ff')
 
-            since_str = fields.Datetime.context_timestamp(rec, since).strftime('%d/%m/%Y')
-            # User spec 2026-05-31: gói gọn 1 DÒNG — verdict + chips inline.
+            # User spec 2026-05-31: 1 DÒNG — verdict + chips + BỘ ĐẾM số ngày kể từ
+            # ngày xong báo giá đến hôm nay (bỏ "từ dd/mm"). Giữ nhận xét phân loại.
+            days_since = (fields.Datetime.now() - since).days
             rec.vd_post_quote_call_report = (
                 f'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;'
                 f'padding:6px 10px;border:1px solid #e9ecef;border-radius:8px;background:#f8f9fa;">'
                 f'<span style="font-weight:800;font-size:0.8rem;color:{v_col};white-space:nowrap;">{v_txt}</span>'
                 f'{chips}'
-                f'<span style="margin-left:auto;font-size:0.68rem;color:#868e96;white-space:nowrap;">'
-                f'📞 từ {since_str}</span></div>'
+                f'<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;'
+                f'background:#fff4e6;border:1px solid #ffd8a8;color:#e8590c;border-radius:999px;'
+                f'padding:2px 10px;font-size:0.78rem;font-weight:800;white-space:nowrap;">'
+                f'⏳ {days_since} ngày từ báo giá</span></div>'
             )
 
     # Live call indicator — computed (not stored), used by form to toggle

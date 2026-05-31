@@ -9093,6 +9093,29 @@ $vd-panel-head-radius: 10px;
     font-size: 1.15rem !important;
 }
 
+/* User spec 2026-05-31: header THÔNG TIN TƯ VẤN (o_vd_hero_head_with_actions)
+   ĐỒNG BỘ kích thước với header VẤN ĐỀ (o_vd_nego_head) — bar 3.4rem, chữ 1.15rem. */
+.o_vd_intake_inline .o_vd_hero_head.o_vd_hero_head_with_actions {
+    height: 3.4rem !important;
+    min-height: 3.4rem !important;
+    padding: 0 1.4rem !important;
+    margin-bottom: 0 !important;
+    background: linear-gradient(135deg, #5d3d54 0%, #714B67 50%, #875174 100%) !important;
+    border-bottom: none !important;
+    border-radius: 7px 7px 0 0 !important;
+}
+.o_vd_intake_inline .o_vd_hero_head_with_actions .o_vd_hero_title {
+    color: #fff !important;
+    font-size: 1.15rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 1.2px !important;
+    text-transform: uppercase !important;
+}
+.o_vd_intake_inline .o_vd_hero_head_with_actions .o_vd_hero_icon {
+    color: #fff !important;
+    font-size: 1.15rem !important;
+}
+
 /* (2) Many2many tags chips (T1-T7 Phòng khách/Phòng bếp/...) — bỏ random colors.
    Tất cả về navy outline pill chuẩn. */
 .o_vd_intake_inline .o_field_many2many_tags .o_tag,

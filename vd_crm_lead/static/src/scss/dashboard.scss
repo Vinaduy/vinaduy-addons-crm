@@ -4564,6 +4564,13 @@
     /* Variant BÁO GIÁ XONG MẤT TÍCH — đỏ-cam (đã báo giá nhưng mất liên lạc) */
     .o_vd_trash_box.o_vd_split_quoted_lost {
         cursor: pointer;
+        /* User spec 2026-05-31: KHÔNG stretch full chiều cao bảng (làm popover rơi
+           xuống cuối). Cho box đứng ở TRÊN CÙNG + sticky → icon đứng im trên đầu
+           bảng THI CÔNG GẤP, popover hiện ngay tại đó. */
+        align-self: start;
+        position: sticky;
+        top: 0.6rem;
+        z-index: 30;
         .o_vd_trash_icon { color: #e8590c; }
         .o_vd_trash_icon_emoji {
             font-size: 4.5rem;
@@ -5235,6 +5242,24 @@
         border-radius: 8px;
         overflow: hidden;
     }
+    /* ===== Thanh FILTER hover trên 2 bảng TCG + XLVD ===== */
+    .o_vd_problem_filter_bar {
+        display: flex; align-items: center; flex-wrap: wrap;
+        gap: 0.4rem; margin: 0.2rem 0 0.55rem; padding: 0.2rem;
+    }
+    .o_vd_pfilter_lbl { font-size: 0.78rem; font-weight: 700; color: #495057; margin-right: 0.15rem; }
+    .o_vd_pfilter_chip {
+        display: inline-flex; align-items: center;
+        padding: 0.25rem 0.75rem; border-radius: 999px;
+        font-size: 0.8rem; font-weight: 700;
+        border: 1.5px solid #dee2e6; background: #fff; color: #495057;
+        cursor: pointer; transition: all 0.12s ease; user-select: none;
+        &:hover { border-color: #adb5bd; }
+    }
+    .o_vd_pf_newest.o_vd_pfilter_on   { background: #2b8a3e; border-color: #2b8a3e; color: #fff; box-shadow: 0 2px 6px rgba(43,138,62,0.3); }
+    .o_vd_pf_expiring.o_vd_pfilter_on { background: #e8590c; border-color: #e8590c; color: #fff; box-shadow: 0 2px 6px rgba(232,89,12,0.3); }
+    .o_vd_pf_problem.o_vd_pfilter_on  { background: #c92a2a; border-color: #c92a2a; color: #fff; box-shadow: 0 2px 6px rgba(201,42,42,0.3); }
+    .o_vd_pf_all.o_vd_pfilter_on      { background: #495057; border-color: #495057; color: #fff; }
     .o_vd_problem_row {
         display: grid;
         grid-template-columns: minmax(220px, 1fr) auto;

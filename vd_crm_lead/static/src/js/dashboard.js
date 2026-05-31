@@ -51,6 +51,8 @@ export class VdCrmDashboard extends Component {
             leadsWithProblemsAll: [],
             // KH có thời gian thi công GẤP (≤3 tháng / càng sớm) — section "THI CÔNG GẤP"
             leadsUrgentConstructionAll: [],
+            // Filter/sort hover cho 2 bảng TCG + XLVD (null = thứ tự gốc)
+            problemSort: null,
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
             // KH "tham khảo": đã liên lạc được (answered ≥ 1) nhưng chưa báo giá
@@ -484,12 +486,30 @@ export class VdCrmDashboard extends Component {
     }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
-        return this.state.leadsWithProblemsAll || [];
+        return this._applyProblemFilter(this.state.leadsWithProblemsAll || []);
     }
 
     get leadsUrgentConstruction() {
-        return this.state.leadsUrgentConstructionAll || [];
+        return this._applyProblemFilter(this.state.leadsUrgentConstructionAll || []);
     }
+
+    // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
+    // 2026-05-31). null = giữ thứ tự gốc.
+    //  - 'newest'  : KH CHƯA có vấn đề, mới báo giá lên trước (quote_days nhỏ trước)
+    //  - 'expiring': KH CHƯA có vấn đề, sắp hết hạn lên trước (quote_days lớn trước)
+    //  - 'problem' : KH ĐÃ có vấn đề
+    _applyProblemFilter(list) {
+        const f = this.state.problemSort;
+        if (!f) return list;
+        const hasProblem = (l) => !!(l.problems_non_urgent && l.problems_non_urgent.length);
+        const qd = (l) => (l.quote_days != null && l.quote_days !== undefined ? l.quote_days : 0);
+        if (f === 'problem') return list.filter(hasProblem);
+        const noProb = list.filter((l) => !hasProblem(l));
+        if (f === 'newest')   return [...noProb].sort((a, b) => qd(a) - qd(b));
+        if (f === 'expiring') return [...noProb].sort((a, b) => qd(b) - qd(a));
+        return list;
+    }
+    setProblemSort(f) { this.state.problemSort = f; }
     // Box cuối 2 bảng — KH đã báo giá rồi mất tích (không liên lạc được).
     get leadsQuotedLost() {
         return this.state.leadsQuotedLostAll || [];
