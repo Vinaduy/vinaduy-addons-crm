@@ -547,9 +547,8 @@ class CrmLead(models.Model):
                 f'<span class="o_vd_cs_part o_vd_cs_rating">'
                 f'<span class="o_vd_cr_badge o_vd_cr_{rclass}">{rtext}</span></span>'
             ) if rclass else ''
-            days_since = (fields.Datetime.now() - since).days
-            # User spec 2026-05-31: thiết kế giống Hình 2 (component o_vd_call_stats_chip)
-            # — ✓ Nghe máy | ✗ Không nghe | thẻ đánh giá + pill ⏳ số ngày từ báo giá.
+            # User spec 2026-05-31 (cập nhật #3): BỎ pill "⏳ X ngày từ báo giá"
+            # theo yêu cầu user — chỉ còn ✓ Nghe máy | ✗ Không nghe | thẻ đánh giá.
             rec.vd_post_quote_call_report = (
                 f'<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
                 f'<span class="o_vd_call_stats_chip">'
@@ -560,10 +559,7 @@ class CrmLead(models.Model):
                 f'<span class="o_vd_cs_lbl">Không nghe:</span> <span class="o_vd_cs_val">{noans}</span></span>'
                 f'{rating_html}'
                 f'</span>'
-                f'<span style="display:inline-flex;align-items:center;gap:3px;'
-                f'background:#fff4e6;border:1px solid #ffd8a8;color:#e8590c;border-radius:999px;'
-                f'padding:1px 8px;font-size:0.60rem;font-weight:800;white-space:nowrap;">'
-                f'⏳ {days_since} ngày từ báo giá</span></span>'
+                f'</span>'
             )
 
     # ===== LỊCH SỬ CUỘC GỌI TÁCH 2 BẢNG (sau / trước báo giá) — HOVER panel =====

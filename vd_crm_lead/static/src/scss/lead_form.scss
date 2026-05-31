@@ -325,6 +325,7 @@
         gap: 0.3rem;
         margin: 0.6rem 1rem 0;
         overflow-x: auto;            /* nếu vẫn tràn thì cuộn ngang */
+        zoom: 0.8;                   /* User spec #3: thu nhỏ TỔNG THỂ toolbar 20% */
         /* CHỐNG ĐÈ CHỮ: min-width max-content để field báo cáo KHÔNG bị flex co
            xuống dưới bề rộng nội dung (gây chồng chữ). Nếu vượt khung thì
            overflow-x:auto cuộn ngang chứ không bao giờ đè nhau. */
