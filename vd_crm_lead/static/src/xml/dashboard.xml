@@ -1795,10 +1795,43 @@
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <button class="o_vd_help_btn"
-                                                        t-att-class="lead.need_help ? 'o_vd_help_on' : ''"
-                                                        t-on-click.stop="(ev) => this.toggleNeedHelp(ev, lead.id)"
-                                                        t-att-title="lead.need_help ? 'Đang chờ cấp trên hỗ trợ — bấm để bỏ' : 'Bấm nếu cần cấp trên hỗ trợ KH này (trong ngày · tối đa 3 KH/NV)'">🆘</button>
+                                                <div class="o_vd_sos" t-att-class="lead.need_help ? 'o_vd_sos_on' : ''">
+                                                    <span class="o_vd_sos_face">
+                                                        <t t-if="lead.need_help">🆘<br/>ĐANG CHỜ</t>
+                                                        <t t-else="">🆘<br/>SOS</t>
+                                                    </span>
+                                                    <div class="o_vd_sos_pop" t-on-click.stop="">
+                                                        <t t-if="!lead.need_help">
+                                                            <div class="o_vd_sos_pop_head">🆘 Yêu cầu cấp trên hỗ trợ</div>
+                                                            <div class="o_vd_sos_pop_guide">
+                                                                Bấm khi bạn cần cấp trên vào hỗ trợ chốt KH này — cấp trên thấy ngay.<br/>
+                                                                ⚠️ Đã bấm thì <b>KHÔNG huỷ được</b>. Mỗi NV tối đa <b>3 KH</b> cùng lúc.
+                                                            </div>
+                                                            <button class="o_vd_sos_opt o_vd_sos_opt_today"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'today')">
+                                                                ☝️ Hỗ trợ TRONG NGÀY
+                                                            </button>
+                                                            <button class="o_vd_sos_opt o_vd_sos_opt_multi"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
+                                                                🔁 Hỗ trợ NHIỀU NGÀY (đến khi chốt)
+                                                            </button>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <div class="o_vd_sos_pop_head o_vd_sos_pop_head_on">✅ Đã gửi yêu cầu hỗ trợ</div>
+                                                            <div class="o_vd_sos_pop_guide">
+                                                                Cấp trên đã nhận tín hiệu cho KH này.<br/>
+                                                                <t t-if="lead.need_help_scope === 'multi'">🔁 Hỗ trợ <b>NHIỀU NGÀY</b> — đến khi chốt KH.</t>
+                                                                <t t-else="">☝️ Hỗ trợ <b>trong ngày</b> hôm nay.</t><br/>
+                                                                <b>Không thể tự huỷ</b> — cấp trên sẽ xử lý.
+                                                            </div>
+                                                            <button t-if="lead.need_help_scope !== 'multi'"
+                                                                    class="o_vd_sos_opt o_vd_sos_opt_multi"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
+                                                                🔁 Chuyển sang HỖ TRỢ NHIỀU NGÀY
+                                                            </button>
+                                                        </t>
+                                                    </div>
+                                                </div>
                                             </span>
                                         </div>
                                     </t>
@@ -1914,10 +1947,43 @@
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <button class="o_vd_help_btn"
-                                                        t-att-class="lead.need_help ? 'o_vd_help_on' : ''"
-                                                        t-on-click.stop="(ev) => this.toggleNeedHelp(ev, lead.id)"
-                                                        t-att-title="lead.need_help ? 'Đang chờ cấp trên hỗ trợ — bấm để bỏ' : 'Bấm nếu cần cấp trên hỗ trợ KH này (trong ngày · tối đa 3 KH/NV)'">🆘</button>
+                                                <div class="o_vd_sos" t-att-class="lead.need_help ? 'o_vd_sos_on' : ''">
+                                                    <span class="o_vd_sos_face">
+                                                        <t t-if="lead.need_help">🆘<br/>ĐANG CHỜ</t>
+                                                        <t t-else="">🆘<br/>SOS</t>
+                                                    </span>
+                                                    <div class="o_vd_sos_pop" t-on-click.stop="">
+                                                        <t t-if="!lead.need_help">
+                                                            <div class="o_vd_sos_pop_head">🆘 Yêu cầu cấp trên hỗ trợ</div>
+                                                            <div class="o_vd_sos_pop_guide">
+                                                                Bấm khi bạn cần cấp trên vào hỗ trợ chốt KH này — cấp trên thấy ngay.<br/>
+                                                                ⚠️ Đã bấm thì <b>KHÔNG huỷ được</b>. Mỗi NV tối đa <b>3 KH</b> cùng lúc.
+                                                            </div>
+                                                            <button class="o_vd_sos_opt o_vd_sos_opt_today"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'today')">
+                                                                ☝️ Hỗ trợ TRONG NGÀY
+                                                            </button>
+                                                            <button class="o_vd_sos_opt o_vd_sos_opt_multi"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
+                                                                🔁 Hỗ trợ NHIỀU NGÀY (đến khi chốt)
+                                                            </button>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <div class="o_vd_sos_pop_head o_vd_sos_pop_head_on">✅ Đã gửi yêu cầu hỗ trợ</div>
+                                                            <div class="o_vd_sos_pop_guide">
+                                                                Cấp trên đã nhận tín hiệu cho KH này.<br/>
+                                                                <t t-if="lead.need_help_scope === 'multi'">🔁 Hỗ trợ <b>NHIỀU NGÀY</b> — đến khi chốt KH.</t>
+                                                                <t t-else="">☝️ Hỗ trợ <b>trong ngày</b> hôm nay.</t><br/>
+                                                                <b>Không thể tự huỷ</b> — cấp trên sẽ xử lý.
+                                                            </div>
+                                                            <button t-if="lead.need_help_scope !== 'multi'"
+                                                                    class="o_vd_sos_opt o_vd_sos_opt_multi"
+                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
+                                                                🔁 Chuyển sang HỖ TRỢ NHIỀU NGÀY
+                                                            </button>
+                                                        </t>
+                                                    </div>
+                                                </div>
                                             </span>
                                         </div>
                                     </t>

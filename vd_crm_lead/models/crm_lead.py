@@ -417,31 +417,60 @@ class CrmLead(models.Model):
             'tiết và các đợt thanh toán.'
         ) % doc)
 
-    # ===== CẦN CẤP TRÊN HỖ TRỢ — NV bấm cuối dòng KH ở dashboard, cấp trên thấy ngay =====
+    # ===== CẦN CẤP TRÊN HỖ TRỢ — NV bấm 🆘 cuối dòng KH ở dashboard.
+    # User spec 2026-05-31: ĐÃ BẤM thì KHÔNG huỷ được; 2 chế độ: trong ngày /
+    # nhiều ngày (đến khi chốt); mỗi NV tối đa 3 KH active cùng lúc. =====
     vd_need_help = fields.Boolean(string='Cần cấp trên hỗ trợ', default=False)
     vd_need_help_at = fields.Datetime(string='Thời điểm yêu cầu hỗ trợ')
+    vd_need_help_scope = fields.Selection([
+        ('today', 'Trong ngày'),
+        ('multi', 'Nhiều ngày — đến khi chốt'),
+    ], string='Phạm vi hỗ trợ', default='today')
 
-    def vd_toggle_need_help(self):
-        """Toggle cờ 'cần cấp trên hỗ trợ'. Ràng buộc (user spec 2026-05-31):
-        - Chỉ có tác dụng TRONG NGÀY (serialize chỉ tính active nếu at = hôm nay).
-        - Mỗi NV tối đa 3 KH active cùng lúc."""
+    def _vd_need_help_active(self, today_d):
+        """Cờ hỗ trợ còn hiệu lực? multi = đến khi chốt; today = chỉ hôm nay.
+        KH đã won/lost → hết hiệu lực."""
         self.ensure_one()
-        if self.vd_need_help:
-            self.write({'vd_need_help': False, 'vd_need_help_at': False})
+        if not self.vd_need_help or not self.vd_need_help_at:
+            return False
+        if self.stage_is_won or self.stage_is_lost:
+            return False
+        if self.vd_need_help_scope == 'multi':
             return True
-        today_start = fields.Datetime.to_datetime(fields.Date.context_today(self))
-        active = self.search_count([
+        return fields.Datetime.context_timestamp(self, self.vd_need_help_at).date() == today_d
+
+    def vd_request_help(self):
+        """NV gửi yêu cầu hỗ trợ. Scope qua context {'help_scope': 'today'|'multi'}.
+        KHÔNG có chức năng tắt — đã gửi là cấp trên xử lý. Chỉ cho NÂNG today → multi."""
+        self.ensure_one()
+        scope = self.env.context.get('help_scope', 'today')
+        if scope not in ('today', 'multi'):
+            scope = 'today'
+        today_d = fields.Date.context_today(self)
+        if self._vd_need_help_active(today_d):
+            # Đã bật — chỉ cho nâng cấp today → multi (không hạ, không tắt).
+            if scope == 'multi' and self.vd_need_help_scope != 'multi':
+                self.write({'vd_need_help_scope': 'multi'})
+            return True
+        # Chưa active → check giới hạn 3 KH active của NV phụ trách
+        candidates = self.search([
             ('user_id', '=', self.user_id.id),
             ('vd_need_help', '=', True),
-            ('vd_need_help_at', '>=', today_start),
+            ('stage_is_won', '=', False),
+            ('stage_is_lost', '=', False),
             ('id', '!=', self.id),
         ])
-        if active >= 3:
+        active_n = sum(1 for c in candidates if c._vd_need_help_active(today_d))
+        if active_n >= 3:
             raise UserError(_(
-                'NV %s đã yêu cầu hỗ trợ tối đa 3 KH trong ngày. Xử lý xong 1 KH '
-                '(bấm 🆘 lần nữa để bỏ) rồi mới thêm KH khác.'
+                'NV %s đang cần hỗ trợ tối đa 3 KH. Chờ cấp trên xử lý xong bớt '
+                'rồi mới gửi thêm.'
             ) % (self.user_id.name or ''))
-        self.write({'vd_need_help': True, 'vd_need_help_at': fields.Datetime.now()})
+        self.write({
+            'vd_need_help': True,
+            'vd_need_help_at': fields.Datetime.now(),
+            'vd_need_help_scope': scope,
+        })
         return True
 
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
@@ -5826,11 +5855,9 @@ class CrmLead(models.Model):
             'team_label': self._vd_team_label_for(l.user_id),
             # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
             'problem_open_count': l.vd_lead_problem_open_count,
-            # Cờ 'cần cấp trên hỗ trợ' — CHỈ active nếu bấm trong NGÀY hôm nay (theo TZ user).
-            'need_help': bool(
-                l.vd_need_help and l.vd_need_help_at
-                and fields.Datetime.context_timestamp(l, l.vd_need_help_at).date() == _today_d
-            ),
+            # Cờ 'cần cấp trên hỗ trợ' — active theo scope (today=hôm nay / multi=đến khi chốt).
+            'need_help': l._vd_need_help_active(_today_d),
+            'need_help_scope': l.vd_need_help_scope or 'today',
             # Danh sách vấn đề (max 8) để render badge inline trên dashboard rows.
             'problems': _lead_problems(l),
             # User spec 2026-05-28: TCG tách urgent ra cột riêng + show vấn đề khác

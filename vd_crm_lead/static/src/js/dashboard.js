@@ -890,11 +890,15 @@ export class VdCrmDashboard extends Component {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
     }
-    // 🆘 NV bấm cuối dòng KH → cờ "cần cấp trên hỗ trợ" (trong ngày, tối đa 3 KH/NV).
-    async toggleNeedHelp(ev, leadId) {
+    // 🆘 NV gửi yêu cầu hỗ trợ. scope: 'today' (trong ngày) | 'multi' (đến khi chốt).
+    // Đã gửi KHÔNG huỷ được; tối đa 3 KH/NV. Cấp trên thấy ngay (hàng highlight đỏ).
+    async requestHelp(ev, leadId, scope) {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         try {
-            await this.orm.call("crm.lead", "vd_toggle_need_help", [[leadId]]);
+            await this.orm.call(
+                "crm.lead", "vd_request_help", [[leadId]],
+                { context: { help_scope: scope } },
+            );
             if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Không thực hiện được.";
