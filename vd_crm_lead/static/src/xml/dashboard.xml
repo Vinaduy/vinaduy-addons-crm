@@ -202,7 +202,6 @@
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
                                             <div class="o_vd_kh_th o_vd_kh_th_new o_vd_kh_th_today">📅 HÔM NAY</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_newcust">🆕 Khách mới</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_urgent">⚡ Thi công gấp</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_xlvd">🛠️ Xử lý vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_help">🆘 Cần hỗ trợ</div>
@@ -230,6 +229,7 @@
                                                     <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
                                                          t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
+                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
                                                         <span class="o_vd_kh_nv_link_name">
                                                             <t t-esc="nv.name"/>
                                                         </span>
@@ -323,28 +323,6 @@
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
                                                                 </div>
                                                                 <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Metric 2 (new): Chưa có vấn đề — đã báo giá nhưng chưa khai thác vấn đề -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_noprob">
-                                                    <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.no_problem_count or 0"/>
-                                                    </span>
-                                                    <div t-if="nv.no_problem_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            CHƯA CÓ VẤN ĐỀ - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.no_problem_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.no_problem_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

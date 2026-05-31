@@ -3391,8 +3391,8 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.55rem;              /* khoảng cách giữa các hàng NV */
-        padding: 0.6rem;
+        gap: 0;                    /* r4: KHÔNG gap — các NV cách nhau bằng 1 ĐƯỜNG KẺ */
+        padding: 0.3rem 0.5rem;
         min-width: 0;
     }
     .o_vd_kh_nv_row {
@@ -3400,19 +3400,17 @@
         /* 2 nhóm wrap — phải khớp tỉ lệ với .o_vd_kh_table_header_cells */
         grid-template-columns: 3fr 4fr;
         gap: 12px;
-        align-items: stretch;
-        padding: 0.4rem 0.5rem;    /* cao hơn → hàng thoáng */
-        background: var(--bs-body-bg, #fff);
-        border: 1px solid #e9ecef;
-        border-left: 3px solid var(--team-color, #cbd5e1);   /* accent màu team như thẻ KH */
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        align-items: center;
+        padding: 0.5rem 0.4rem;
+        background: transparent;
+        /* r4: phân cách NV = 1 đường kẻ ngang (không phải thẻ nổi) */
+        border: none;
+        border-bottom: 1px solid #e9eef4;
+        border-radius: 0;
         cursor: default;
-        transition: box-shadow 0.15s ease, transform 0.15s ease;
-        &:hover {
-            box-shadow: 0 3px 10px -2px rgba(15, 23, 42, 0.14);
-            transform: translateX(2px);
-        }
+        transition: background 0.12s ease;
+        &:last-child { border-bottom: none; }
+        &:hover { background: rgba(241, 245, 249, 0.5); }
     }
     /* ===== 2 wrapper subgrid: chỉ background, KHÔNG khung viền riêng từng NV ===== */
     .o_vd_kh_row_group {
@@ -3433,10 +3431,11 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        /* Round 17.1: HÔM NAY rộng hơn (2 segment: KH mới + combined call) */
-        /* Cột: HÔM NAY | Khách mới | Chưa có VĐ | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* Cột: HÔM NAY | Khách mới | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
         background: transparent;
+        align-items: stretch;
+        grid-auto-rows: 42px;     /* r4: mọi thẻ trong dòng CAO BẰNG NHAU */
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
     .o_vd_kh_col_info {
@@ -3505,30 +3504,46 @@
         white-space: nowrap;
         overflow: hidden;
     }
-    /* User spec 2026-05-31 r3: tên NV đóng khung dạng THẺ giống o_vd_name_pill
-       (thẻ tên khách hàng ở bảng THI CÔNG GẤP) — nền indigo nhạt + viền bo. */
+    /* User spec 2026-05-31 r4: thẻ tên NV ấn tượng + ĐỘ RỘNG ĐỀU NHAU (100% cột)
+       bất kể tên dài/ngắn — avatar + gradient + accent màu team. */
     .o_vd_kh_col_name_link {
         cursor: pointer;
-        justify-self: start;
-        width: fit-content;
-        max-width: 100%;
-        padding: 0.24rem 0.65rem;
-        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 42px;          /* r4: cao bằng các thẻ số trong dòng */
+        padding: 0.4rem 0.7rem;
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
         border: 1px solid #c7d2fe;
-        border-radius: 6px;
+        border-left: 4px solid var(--team-color, #6366f1);
+        border-radius: 9px;
         color: #1f2a44;
-        transition: background 0.12s ease, border-color 0.12s ease;
+        box-shadow: 0 1px 2px rgba(99, 102, 241, 0.12);
+        transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
         &:hover {
-            background: #e0e7ff;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
             border-color: #818cf8;
-            .o_vd_kh_nv_link_name { text-decoration: underline; }
+            box-shadow: 0 3px 10px -3px rgba(99, 102, 241, 0.35);
         }
+    }
+    .o_vd_kh_nv_avatar {
+        flex-shrink: 0;
+        display: inline-flex;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: var(--team-color, #6366f1);
     }
     .o_vd_kh_nv_link_name {
         flex: 1;
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
     }
     .o_vd_kh_nv_total_badge {
         font-size: 0.7rem;
@@ -3738,12 +3753,12 @@
         background: linear-gradient(180deg, #fffbeb 0%, #fff 100%);
         border: 2px solid #f59e0b;
         border-radius: 8px;
-        padding: 6px 8px !important;
+        padding: 2px 8px !important;   /* r4: gọn để vừa chiều cao 42px như các thẻ khác */
         display: flex !important;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;             /* không xuống dòng → giữ 1 hàng cao đều */
         gap: 0.4rem;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
         box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
     }
     /* Header column HÔM NAY — vàng nổi bật */
@@ -4095,8 +4110,8 @@
         grid-template-columns: 3fr 4fr;
         gap: 12px;
         min-width: 0;
-        /* r4: khớp inset với hàng NV (nv_list 0.6rem + row pad 0.5rem + border) */
-        padding: 0 1.2rem;
+        /* r4: khớp inset với hàng NV (nv_list 0.5rem + row pad 0.4rem) */
+        padding: 0 0.9rem;
     }
     .o_vd_kh_th_group {
         display: grid;
@@ -4108,8 +4123,8 @@
         grid-template-columns: 1fr;
     }
     .o_vd_kh_th_group_kh {
-        /* HÔM NAY | Khách mới | Chưa có VĐ | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* HÔM NAY | Khách mới | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
     }
     .o_vd_kh_th_call {
         background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
