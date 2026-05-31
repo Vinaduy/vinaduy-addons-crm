@@ -18,6 +18,13 @@ import { View } from "@web/views/view";
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
 const VD_DASH_NV_KEY = "vd_dash_selected_nv";
 
+// Phân biệt "F5 / page reload" vs "click menu Dashboard NV trong SPA".
+// Module-scope flag chỉ reset khi bundle JS chạy lại = full page reload (F5).
+// Click menu = SPA soft-nav → flag đã false → KHÔNG restore, về danh sách NV.
+// (User spec 2026-05-31 round 2: menu Dashboard NV phải ra danh sách NV, không
+//  kẹt ở NV cũ; "Quay lại" cũng phải về danh sách NV — xem _vdBackToEmployeeList.)
+let VD_DASH_FIRST_MOUNT = true;
+
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
     static components = { View };
@@ -95,10 +102,20 @@ export class VdCrmDashboard extends Component {
         // reset về "Tất cả NV" = trang đầu). Lưu trong sessionStorage theo tab.
         // Backend _dashboard_resolve_scope đã ép NV thường về chính họ nếu truyền
         // id NV khác → khôi phục giá trị này an toàn (không lộ dữ liệu).
+        // CHỈ restore khi đây là lần mount đầu của bundle (= F5 / page reload).
+        // Click menu "Dashboard NV" trong SPA = mount lại nhưng flag đã false →
+        // bỏ qua restore + xoá key → manager về thẳng danh sách NV (admin view).
+        const isPageReload = VD_DASH_FIRST_MOUNT;
+        VD_DASH_FIRST_MOUNT = false;
         try {
-            const savedNv = parseInt(browser.sessionStorage.getItem(VD_DASH_NV_KEY) || "0", 10);
-            if (savedNv) {
-                this.state.selected_user_id = savedNv;
+            if (isPageReload) {
+                const savedNv = parseInt(browser.sessionStorage.getItem(VD_DASH_NV_KEY) || "0", 10);
+                if (savedNv) {
+                    this.state.selected_user_id = savedNv;
+                }
+            } else {
+                // Vào lại qua menu → reset về danh sách NV cho đồng bộ với F5 sau đó.
+                browser.sessionStorage.removeItem(VD_DASH_NV_KEY);
             }
         } catch (_e) { /* sessionStorage bị chặn → bỏ qua, dùng mặc định */ }
 
@@ -115,9 +132,23 @@ export class VdCrmDashboard extends Component {
             // User spec 2026-05-29: poll trạng thái cuộc gọi LIVE mỗi 5s
             this._refreshActiveCalls();
             this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 5000);
+            // Nút "Quay lại" trên navbar (vd_back_button.js) sẽ gọi handler này
+            // TRƯỚC khi history.back(). Khi manager đang xem 1 NV cụ thể → pop về
+            // danh sách NV thay vì rời khỏi dashboard (user spec 2026-05-31 r2).
+            window.__vdDashBackHandler = () => this._vdBackToEmployeeList();
+            // Predicate THUẦN (không side-effect) cho syncVisibility navbar:
+            // còn back được = manager đang xem 1 NV cụ thể.
+            window.__vdDashCanBack = () =>
+                !!(this.state.is_manager && this.state.selected_user_id);
         });
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
+            if (window.__vdDashBackHandler) {
+                delete window.__vdDashBackHandler;
+            }
+            if (window.__vdDashCanBack) {
+                delete window.__vdDashCanBack;
+            }
             if (this._callPollInterval) {
                 clearInterval(this._callPollInterval);
                 this._callPollInterval = null;
@@ -182,6 +213,24 @@ export class VdCrmDashboard extends Component {
     // True khi manager đang xem "Tất cả NV" → render layout admin (menu dọc + content).
     get isAdminView() {
         return this.state.is_manager && !this.state.selected_user_id;
+    }
+
+    /**
+     * Handler cho nút "Quay lại" navbar (vd_back_button.js gọi qua
+     * window.__vdDashBackHandler). Khi manager đang drill-in 1 NV cụ thể →
+     * trả về danh sách NV (admin view) và báo "đã xử lý" (return true) để
+     * navbar KHÔNG history.back() rời khỏi dashboard. Ngược lại trả false →
+     * navbar dùng hành vi back mặc định.
+     */
+    _vdBackToEmployeeList() {
+        if (this.state.is_manager && this.state.selected_user_id) {
+            this.state.selected_user_id = 0;
+            this._persistSelectedNv();
+            this.state.nvDetail = null;
+            this.loadDashboard();
+            return true;
+        }
+        return false;
     }
 
     // Focus helpers: dùng trong XML để show/hide section theo nút sidebar
@@ -910,12 +959,18 @@ export class VdCrmDashboard extends Component {
             this.notification.add(msg, { type: "warning" });
         }
     }
+    // Refresh sau khi thao tác cờ hỗ trợ: cập nhật cả bảng NV (admin analytics)
+    // lẫn list theo stage (NV view) tuỳ màn hình đang mở.
+    async _refreshAfterHelp() {
+        if (this.state.analytics) await this.loadAnalytics();
+        if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+    }
     // Cấp trên: 🔴 chờ → 🟢 đang hỗ trợ
     async ackHelp(ev, leadId) {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         try {
             await this.orm.call("crm.lead", "vd_ack_help", [[leadId]]);
-            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+            await this._refreshAfterHelp();
         } catch (e) {
             this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
         }
@@ -925,7 +980,7 @@ export class VdCrmDashboard extends Component {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         try {
             await this.orm.call("crm.lead", "vd_done_help", [[leadId]]);
-            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
+            await this._refreshAfterHelp();
         } catch (e) {
             this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
         }

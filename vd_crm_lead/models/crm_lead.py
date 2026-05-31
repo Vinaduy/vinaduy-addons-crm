@@ -7063,6 +7063,24 @@ class CrmLead(models.Model):
                 } for p in open_probs[:5]],
             }
 
+        def _ld_help(l):
+            # KH mà NV đã bấm 🆘 — kèm phạm vi/trạng thái + vấn đề đang mở để
+            # admin nắm ngay tình huống khi rê chuột vào cột "Cần hỗ trợ".
+            open_probs = l.vd_lead_problem_ids.filtered(
+                lambda p: p.status in ('open', 'in_progress')
+            )
+            return {
+                **_ld_basic(l),
+                'scope': l.vd_need_help_scope or 'today',
+                'status': l.vd_help_status or 'waiting',
+                'stage_name': l.stage_id.name or '',
+                'problems': [{
+                    'name': _short_prob_name(p),
+                    'icon': p.tag_id.icon if p.tag_id else '🔸',
+                    'status': p.status,
+                } for p in open_probs[:3]],
+            }
+
         # Build NV stats — iterate sales_users for completeness
         cap_labels = dict(
             self.env['res.users']._fields['vd_capacity_level'].selection
@@ -7141,6 +7159,24 @@ class CrmLead(models.Model):
                 ).mapped('lead_id').ids
             )
 
+            # 🆘 CẦN HỖ TRỢ — KH mà NV này đã bấm yêu cầu cấp trên hỗ trợ và còn
+            # hiệu lực (today/multi, chưa won/lost). Độc lập với khoảng lọc ngày
+            # (vấn đề cần xử lý NGAY bất kể KH tạo lúc nào). Tối đa 3/NV.
+            help_qs = self.search([
+                ('user_id', '=', u.id),
+                ('vd_need_help', '=', True),
+                ('active', '=', True),
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+            ], order='vd_need_help_at asc', limit=20)
+            help_active = [l for l in help_qs if l._vd_need_help_active(today)]
+            # Sort: 🔴 chờ (waiting) lên trước 🟢 đang hỗ trợ (helping), rồi theo thời gian.
+            help_active.sort(key=lambda l: (l.vd_help_status == 'helping',
+                                            l.vd_need_help_at or now))
+            n_help_waiting = sum(
+                1 for l in help_active if (l.vd_help_status or 'waiting') == 'waiting'
+            )
+
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
             n_no_problem = len(no_problem_qs)
@@ -7177,6 +7213,10 @@ class CrmLead(models.Model):
                 # Round 13: số KH đã gọi / gọi thành công hôm nay
                 'calls_today_total': len(calls_today_lead_ids),
                 'calls_today_success': len(success_call_lead_ids),
+                # 🆘 Cần hỗ trợ (user spec 2026-05-31): count + danh sách ≤3 KH
+                'help_count': len(help_active),
+                'help_waiting': n_help_waiting,
+                'help_leads': [_ld_help(l) for l in help_active[:3]],
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 

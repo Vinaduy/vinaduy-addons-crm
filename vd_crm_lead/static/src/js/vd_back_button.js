@@ -12,6 +12,12 @@ const BTN_ID = "vd_back_btn";
 function _goBack(ev) {
     ev.preventDefault();
     ev.stopPropagation();
+    // STRATEGY 0: dashboard CRM tự xử lý back nếu manager đang drill-in 1 NV
+    // (chỉ là state change, không có history entry). Handler trả true = đã pop
+    // về danh sách NV → dừng, không history.back() rời dashboard.
+    if (typeof window.__vdDashBackHandler === "function" && window.__vdDashBackHandler()) {
+        return;
+    }
     // STRATEGY 1: click breadcrumb item NGAY TRƯỚC current.
     // Odoo 18 breadcrumb structure: ol.breadcrumb > li.breadcrumb-item *
     //   .breadcrumb-item (clickable links) ... .breadcrumb-item.active (current)
@@ -69,7 +75,9 @@ function syncVisibility(btn) {
         ".breadcrumb .breadcrumb-item:not(.active) a"
     );
     const hasHistory = window.history.length > 1;
-    btn.style.display = (hasBreadcrumb || hasHistory) ? "" : "none";
+    // Dashboard CRM: manager drill-in 1 NV → luôn cho hiện nút để pop về list.
+    const dashCanBack = typeof window.__vdDashCanBack === "function" && window.__vdDashCanBack();
+    btn.style.display = (hasBreadcrumb || hasHistory || dashCanBack) ? "" : "none";
 }
 
 const observer = new MutationObserver(() => {

@@ -204,6 +204,7 @@
                                             <div class="o_vd_kh_th o_vd_kh_th_noprob">📋 Chưa có vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_progress">⏳ Đang xử lý vấn đề</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_done">🏆 Đang chốt</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_help">🆘 Cần hỗ trợ</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
                                         </div>
                                     </div>
@@ -368,6 +369,56 @@
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">
                                                                     <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 🆘 CẦN HỖ TRỢ — NV đã bấm yêu cầu cấp trên hỗ trợ.
+                                                     Đỏ nhấp nháy nếu còn KH ĐANG CHỜ (waiting).
+                                                     Hover → danh sách tối đa 3 KH cần hỗ trợ. -->
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_help' + (nv.help_waiting ? ' o_vd_kh_metric_help_waiting' : '')">
+                                                    <span t-if="nv.help_count"
+                                                          t-att-class="'o_vd_kh_help_badge' + (nv.help_waiting ? ' o_vd_kh_help_badge_waiting' : '')">
+                                                        🆘 <t t-esc="nv.help_count"/>
+                                                    </span>
+                                                    <span t-else="" class="o_vd_kh_help_none">—</span>
+                                                    <div t-if="nv.help_count" class="o_vd_kh_nv_popover o_vd_kh_help_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            🆘 CẦN HỖ TRỢ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.help_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.help_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 t-att-class="'o_vd_kh_help_item o_vd_kh_help_' + ld.status">
+                                                                <div class="o_vd_kh_help_item_top"
+                                                                     t-on-click="() => this.openLead(ld.lead_id)">
+                                                                    <span t-att-class="'o_vd_kh_help_dot o_vd_kh_help_dot_' + ld.status"/>
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                    <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
+                                                                    <span t-att-class="'o_vd_kh_help_scope o_vd_kh_help_scope_' + ld.scope">
+                                                                        <t t-if="ld.scope === 'multi'">⏳ Nhiều ngày</t>
+                                                                        <t t-else="">📅 Trong ngày</t>
+                                                                    </span>
+                                                                </div>
+                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
+                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="o_vd_kh_help_actions">
+                                                                    <button t-if="ld.status === 'waiting'"
+                                                                            class="o_vd_help_btn o_vd_help_btn_ack"
+                                                                            t-on-click="(ev) => this.ackHelp(ev, ld.lead_id)">
+                                                                        🟢 Đang hỗ trợ
+                                                                    </button>
+                                                                    <span t-else="" class="o_vd_help_helping_lbl">🟢 Đang hỗ trợ</span>
+                                                                    <button class="o_vd_help_btn o_vd_help_btn_done"
+                                                                            t-on-click="(ev) => this.doneHelp(ev, ld.lead_id)">
+                                                                        ✓ Hoàn tất
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                         </div>
