@@ -667,6 +667,46 @@ html.vd-on-lead-form {
 }
 
 /* ============================================================
+   18b. ĐIỆN THOẠI (≤767px) — form lead 1 CỘT + field full-width.
+   Bug: .o_vd_layout_grid bị ép 2 cột !important LUÔN (lead_form.scss:2188)
+   → 2 panel (THÔNG TIN TƯ VẤN | VẤN ĐỀ) chen nhau, widget rộng cứng
+   320/380px tràn cột mobile. Fix: stack dọc + bỏ width cứng.
+   Selector cùng prefix .o_vd_steps_panel + file load CUỐI → thắng !important cũ.
+   ============================================================ */
+@media (max-width: 767px) {
+    /* 2 panel xếp DỌC: TƯ VẤN trên → VẤN ĐỀ/ĐÀM PHÁN/HĐ dưới */
+    div.o_vd_layout_grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem !important;
+    }
+    div.o_vd_layout_right {
+        position: static !important;   /* bỏ sticky trên mobile */
+    }
+    /* Field 2-cột (Địa chỉ Tỉnh/Huyện, Mẫu nhà...) → 1 cột dọc */
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_step_body_2col {
+        grid-template-columns: 1fr !important;
+    }
+    /* Bỏ width cứng 320/380px → full width khít cột mobile */
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_selection_chips,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_selection_chips .o_vd_tlc_bar,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_widget .o_vd_selection_chips,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_widget,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_m2o_hover_picker,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_selection_hover_picker,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_m2o_hover_picker,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_selection_hover_picker,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker .o_vd_mhp_bar,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body_budget .o_vd_budget_manual > .o_field_widget,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body_budget .o_vd_budget_manual input {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        flex: 1 1 auto !important;
+    }
+}
+
+/* ============================================================
    19. TAB-SWITCH INLINE MODE — "Thông tin tư vấn" hover → CHIẾM CHỖ
    panel VẤN ĐỀ. JS portal overlay INTO .o_vd_layout_right (xem
    intake_hover_panel.js _portalToRightPanel) → cùng zoom context, không
