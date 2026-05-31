@@ -200,12 +200,15 @@
                                             <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
                                         </div>
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
-                                            <div class="o_vd_kh_th o_vd_kh_th_new o_vd_kh_th_today">📅 HÔM NAY</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_newcust">🆕 Khách mới</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_urgent">⚡ Thi công gấp</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_xlvd">🛠️ Xử lý vấn đề</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_help">🆘 Cần hỗ trợ</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
+                                            <div class="o_vd_kh_th o_vd_kh_th_today">📅 HÔM NAY</div>
+                                            <!-- 3 cột đóng khung chung 1 nền (user spec r5) -->
+                                            <div class="o_vd_kh_th_trio">
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">🆕 Khách mới</div>
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">⚡ Thi công gấp</div>
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">🛠️ Xử lý vấn đề</div>
+                                            </div>
+                                            <!-- Cần hỗ trợ + Trạng thái gộp 1 cột -->
+                                            <div class="o_vd_kh_th o_vd_kh_th_merged">🆘 Hỗ trợ / Trạng thái</div>
                                         </div>
                                     </div>
                                 </div>
@@ -233,10 +236,11 @@
                                                         <span class="o_vd_kh_nv_link_name">
                                                             <t t-esc="nv.name"/>
                                                         </span>
-                                                        <!-- User spec 2026-05-29: tổng KH NV quản lý -->
-                                                        <span class="o_vd_kh_nv_total_badge"
+                                                        <!-- Tổng KH — số TO, không khung, chỉ 1 đường kẻ ngăn cách -->
+                                                        <span class="o_vd_kh_nv_total"
                                                               t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)">
-                                                            <t t-esc="nv.total_leads or 0"/> KH
+                                                            <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
+                                                            <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>
                                                     </div>
                                                     <!-- Round 13: bỏ Số tháng + Năng lực. -->
@@ -250,25 +254,17 @@
                                                      - Tổng KH đã gọi hôm nay
                                                      - KH gọi thành công hôm nay (answered/duration>0)
                                                      -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_new o_vd_kh_metric_today_box">
-                                                    <!-- Round 17.1: gộp 2 badge Đã gọi + Thành công
-                                                         → 1 badge duy nhất, icon-only (không text). -->
-                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_today"
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
+                                                    <!-- r5: phẳng — KHÔNG còn thẻ-chồng-thẻ, bỏ icon 🆕, chỉ "N Mới" -->
+                                                    <span class="o_vd_today_new"
                                                           t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_kh_new_seg_lbl">🆕</span>
-                                                        <span class="o_vd_kh_new_seg_val"><t t-esc="nv.new_today_count or 0"/></span>
+                                                        <strong><t t-esc="nv.new_today_count or 0"/></strong> Mới
                                                     </span>
-                                                    <span class="o_vd_kh_new_seg o_vd_kh_new_seg_calls_combined"
+                                                    <span class="o_vd_today_sep">·</span>
+                                                    <span class="o_vd_today_calls"
                                                           t-att-title="'KH gọi thành công ' + (nv.calls_today_success or 0) + ' / Đã gọi ' + (nv.calls_today_total or 0)">
-                                                        <span class="o_vd_kh_combined_part o_vd_kh_combined_phone">
-                                                            <i class="fa fa-phone"/>
-                                                            <strong><t t-esc="nv.calls_today_total or 0"/></strong>
-                                                        </span>
-                                                        <span class="o_vd_kh_combined_sep">·</span>
-                                                        <span class="o_vd_kh_combined_part o_vd_kh_combined_success">
-                                                            <i class="fa fa-check-circle"/>
-                                                            <strong><t t-esc="nv.calls_today_success or 0"/></strong>
-                                                        </span>
+                                                        <i class="fa fa-phone"/> <strong><t t-esc="nv.calls_today_total or 0"/></strong>
+                                                        <span class="o_vd_today_calls_ok"><i class="fa fa-check-circle"/> <strong><t t-esc="nv.calls_today_success or 0"/></strong></span>
                                                     </span>
                                                     <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
@@ -304,9 +300,10 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- 🆕 KHÁCH MỚI — thẻ riêng: tổng KH ở stage 'new' của NV.
-                                                     Hover → popover liệt kê toàn bộ KH mới (click mở lead). -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust">
+                                                <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
+                                                <div class="o_vd_kh_trio">
+                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
                                                     <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg">
                                                         <t t-esc="nv.new_count or 0"/>
                                                     </span>
@@ -329,7 +326,7 @@
                                                 </div>
 
                                                 <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_urgent">
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell">
                                                     <span class="o_vd_kh_metric_num">
                                                         <t t-esc="nv.urgent_count or 0"/>
                                                     </span>
@@ -352,7 +349,7 @@
                                                 </div>
 
                                                 <!-- 🛠️ XỬ LÝ VẤN ĐỀ — KH đã chốt báo giá (quote/negotiate) có vấn đề -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_xlvd">
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell">
                                                     <span class="o_vd_kh_metric_num">
                                                         <t t-esc="nv.xlvd_count or 0"/>
                                                     </span>
@@ -379,16 +376,27 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- 🆘 CẦN HỖ TRỢ — NV đã bấm yêu cầu cấp trên hỗ trợ.
-                                                     Đỏ nhấp nháy nếu còn KH ĐANG CHỜ (waiting).
-                                                     Hover → danh sách tối đa 3 KH cần hỗ trợ. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_help">
+                                                </div><!-- /.o_vd_kh_trio -->
+
+                                                <!-- GỘP: Cần hỗ trợ (SOS) + Trạng thái cuộc gọi (user spec r5) -->
+                                                <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>
+                                                <div class="o_vd_kh_col_metric o_vd_kh_col_merged">
                                                     <div t-if="nv.help_count"
                                                          t-att-class="'o_vd_sos o_vd_sos_dash ' + (nv.help_waiting ? 'o_vd_sos_waiting' : 'o_vd_sos_helping')">
                                                         <span class="o_vd_sos_face">SOS</span>
                                                         <span class="o_vd_sos_dash_count"><t t-esc="nv.help_count"/></span>
                                                     </div>
-                                                    <span t-else="" class="o_vd_kh_help_none">—</span>
+                                                    <span t-if="ci" class="o_vd_call_status o_vd_call_status_on"
+                                                          t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
+                                                        <span class="o_vd_call_status_time"><t t-esc="ci.since_min"/>'</span>
+                                                    </span>
+                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
+                                                          title="NV không có cuộc gọi đang diễn ra">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
+                                                    </span>
                                                     <div t-if="nv.help_count" class="o_vd_kh_nv_popover o_vd_kh_help_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             🆘 CẦN HỖ TRỢ - <t t-esc="nv.full_name"/>
@@ -428,26 +436,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-
-                                                <!-- User spec 2026-05-29: Trạng thái cuộc gọi LIVE
-                                                     Poll mỗi 5s qua vd_dashboard_active_calls. -->
-                                                <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>
-                                                <div class="o_vd_kh_col_metric o_vd_kh_col_call_status">
-                                                    <span t-if="ci" class="o_vd_call_status o_vd_call_status_on"
-                                                          t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
-                                                        <span class="o_vd_call_status_time">
-                                                            <t t-esc="ci.since_min"/>'
-                                                        </span>
-                                                    </span>
-                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
-                                                          title="NV không có cuộc gọi đang diễn ra">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
-                                                    </span>
-                                                </div>
+                                                </div><!-- /.o_vd_kh_col_merged -->
                                                 </div><!-- /.o_vd_kh_row_group_kh -->
                                             </div>
                                         </div>

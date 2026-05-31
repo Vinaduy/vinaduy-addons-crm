@@ -3397,8 +3397,8 @@
     }
     .o_vd_kh_nv_row {
         display: grid;
-        /* 2 nhóm wrap — phải khớp tỉ lệ với .o_vd_kh_table_header_cells */
-        grid-template-columns: 3fr 4fr;
+        /* r5: cột Nhân viên nhỏ vừa đủ — phải khớp .o_vd_kh_table_header_cells */
+        grid-template-columns: 2.3fr 5fr;
         gap: 12px;
         align-items: center;
         padding: 0.5rem 0.4rem;
@@ -3431,11 +3431,29 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        /* Cột: HÔM NAY | Khách mới | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* r5: 3 super-cột — HÔM NAY | [khung 3 cột] | [Hỗ trợ+Trạng thái gộp] */
+        grid-template-columns: 1.7fr 3fr 1.3fr;
         background: transparent;
         align-items: stretch;
-        grid-auto-rows: 42px;     /* r4: mọi thẻ trong dòng CAO BẰNG NHAU */
+        grid-auto-rows: 44px;     /* mọi thẻ trong dòng CAO BẰNG NHAU */
+    }
+    /* Khung chung 3 cột Khách mới | Thi công gấp | Xử lý vấn đề — 1 nền dùng chung */
+    .o_vd_kh_trio {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: stretch;
+        height: 100%;
+        background: #eef3f9;
+        border: 1px solid #d7e0ec;
+        border-radius: 8px;
+        /* KHÔNG overflow:hidden — sẽ cắt popover hover. Cells trong suốt nên góc vẫn gọn. */
+    }
+    .o_vd_kh_trio_cell {
+        background: transparent !important;   /* nền do khung chung lo */
+        border: none !important;
+        border-radius: 0 !important;
+        border-right: 1px solid #d7e0ec !important;
+        &:last-child { border-right: none !important; }
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
     .o_vd_kh_col_info {
@@ -3545,18 +3563,26 @@
         font-weight: 700;
         letter-spacing: 0.2px;
     }
-    .o_vd_kh_nv_total_badge {
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 0.1rem 0.5rem;
-        background: var(--bs-secondary-color, #6c757d);
-        color: #fff;
-        border-radius: 10px;
-        line-height: 1.3;
+    /* r5: tổng KH — số TO, KHÔNG khung, chỉ 1 đường kẻ dọc ngăn cách (vd "28 Khách") */
+    .o_vd_kh_nv_total {
         flex-shrink: 0;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.28rem;
+        padding-left: 0.7rem;
+        margin-left: 0.4rem;
+        border-left: 2px solid var(--team-color, #c7d2fe);
+        line-height: 1.1;
     }
-    .o_vd_kh_col_name_link:hover .o_vd_kh_nv_total_badge {
-        background: var(--bs-primary, #714B67);
+    .o_vd_kh_nv_total_num {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: #1f2a44;
+    }
+    .o_vd_kh_nv_total_unit {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
     }
     /* Metric cell = card riêng biệt, fill ô, hover popover */
     .o_vd_kh_col_metric {
@@ -3750,16 +3776,38 @@
     }
     /* Khung HÔM NAY — bao toàn bộ 3 chỉ số per NV row */
     .o_vd_kh_metric_today_box {
+        /* r5: 1 thẻ PHẲNG (không còn thẻ-chồng-thẻ) */
         background: linear-gradient(180deg, #fffbeb 0%, #fff 100%);
-        border: 2px solid #f59e0b;
+        border: 1.5px solid #f59e0b;
         border-radius: 8px;
-        padding: 2px 8px !important;   /* r4: gọn để vừa chiều cao 42px như các thẻ khác */
+        padding: 2px 8px !important;
         display: flex !important;
-        flex-wrap: nowrap;             /* không xuống dòng → giữ 1 hàng cao đều */
-        gap: 0.4rem;
+        flex-wrap: nowrap;
+        gap: 0.45rem;
         align-items: center;
         justify-content: center;
         box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+    }
+    .o_vd_today_new {
+        font-size: 0.9rem;
+        color: #92400e;
+        white-space: nowrap;
+        strong { font-size: 1.15rem; font-weight: 800; margin-right: 1px; }
+    }
+    .o_vd_today_sep { color: #d6d3d1; font-weight: 700; }
+    .o_vd_today_calls {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.82rem;
+        color: #075985;
+        white-space: nowrap;
+        strong { font-weight: 800; }
+        i.fa { font-size: 0.8rem; }
+        .o_vd_today_calls_ok {
+            display: inline-flex; align-items: center; gap: 0.2rem;
+            color: #15803d; margin-left: 0.25rem;
+        }
     }
     /* Header column HÔM NAY — vàng nổi bật */
     .o_vd_kh_th_today {
@@ -3895,6 +3943,19 @@
         color: #c92a2a;
     }
     .o_vd_sos_helping .o_vd_sos_dash_count { color: #2b8a3e; }
+    /* r5: ô GỘP Hỗ trợ + Trạng thái — SOS và pill trạng thái nằm cạnh nhau */
+    .o_vd_kh_col_merged {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+    .o_vd_kh_col_merged .o_vd_call_status {
+        padding: 0.18rem 0.5rem;
+        font-size: 0.72rem;
+    }
+    .o_vd_kh_col_merged .o_vd_kh_nv_popover { right: 0; left: auto; transform: none; }
     .o_vd_kh_help_badge {
         display: inline-flex;
         align-items: center;
@@ -4107,7 +4168,7 @@
         flex: 1;
         display: grid;
         /* 2 nhóm wrap — Thông tin NV (3 col) | Khách hàng (4 col) — tỉ lệ 3:4 + gap */
-        grid-template-columns: 3fr 4fr;
+        grid-template-columns: 2.3fr 5fr;   /* r5: cột Nhân viên nhỏ vừa đủ */
         gap: 12px;
         min-width: 0;
         /* r4: khớp inset với hàng NV (nv_list 0.5rem + row pad 0.4rem) */
@@ -4123,8 +4184,23 @@
         grid-template-columns: 1fr;
     }
     .o_vd_kh_th_group_kh {
-        /* HÔM NAY | Khách mới | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* r5: HÔM NAY | [khung 3 cột] | [Hỗ trợ+Trạng thái] */
+        grid-template-columns: 1.7fr 3fr 1.3fr;
+    }
+    /* Header khung chung 3 cột — viền + nền chung, 3 sub-header màu chung */
+    .o_vd_kh_th_trio {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .o_vd_kh_th_trio_cell {
+        background: linear-gradient(135deg, #3b6ea5 0%, #2c5680 100%);
+        border-right: 1px solid rgba(255,255,255,0.25);
+        &:last-child { border-right: none; }
+    }
+    .o_vd_kh_th_merged {
+        background: linear-gradient(135deg, #ef4444 0%, #0ea5e9 100%);
     }
     .o_vd_kh_th_call {
         background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
