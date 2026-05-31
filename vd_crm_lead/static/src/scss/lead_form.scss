@@ -88,6 +88,27 @@
         flex-wrap: wrap;
         .btn { font-weight: 600; padding: 0.45rem 1rem; border-radius: 6px; }
     }
+    /* "Báo giá cũ" — hover hiện danh sách báo giá cũ (mới nhất trên cùng) */
+    .o_vd_oldquote_wrap { position: relative; display: inline-flex; }
+    .o_vd_oldquote_pop {
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 0;
+        z-index: 90;
+        width: 340px;
+        max-height: 60vh;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 9px;
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.26);
+        opacity: 0; visibility: hidden; pointer-events: none;
+        transition: opacity 0.12s ease;
+        &::after { content: ''; position: absolute; bottom: -8px; left: 0; right: 0; height: 8px; }
+    }
+    .o_vd_oldquote_wrap:hover .o_vd_oldquote_pop {
+        opacity: 1; visibility: visible; pointer-events: auto;
+    }
     .o_vd_quote_history {
         margin-top: 0.8rem;
         padding-top: 0.7rem;
@@ -323,6 +344,18 @@
             padding: 0.1rem 0.42rem;
             font-size: 0.58rem;
             font-weight: 700;
+        }
+        /* User spec 2026-05-31: ĐÓNG KHUNG cả dòng (giống thanh nút chân bảng) */
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        .o_vd_pq_contract_btn {
+            flex: 0 0 auto; margin: 0; white-space: nowrap;
+            padding: 0.1rem 0.5rem; font-size: 0.58rem; font-weight: 800;
+            background: linear-gradient(135deg, #714B67, #875174); border: none; color: #fff;
+            &:hover { background: linear-gradient(135deg, #5d3d54, #714B67); color: #fff; }
         }
     }
     /* ===== Panel KIỂM SOÁT CHĂM SÓC ZALO (Phase 1) ===== */

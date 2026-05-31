@@ -836,24 +836,25 @@
                                     class="btn btn-success">
                                 <i class="fa fa-download me-1"/>📥 Tải báo giá PDF
                             </button>
+                            <!-- BÁO GIÁ CŨ — rename từ "Lưu version"; hover hiện danh sách
+                                 báo giá cũ (mới nhất trên cùng, ghi rõ bản V mấy + ngày). -->
+                            <div class="o_vd_oldquote_wrap">
+                                <button name="action_view_quote_history" type="object"
+                                        class="btn btn-info o_vd_oldquote_btn">
+                                    <i class="fa fa-history me-1"/>📋 Báo giá cũ
+                                    <span class="badge bg-light text-dark ms-1"
+                                          invisible="vd_quote_version_count == 0"><field name="vd_quote_version_count" readonly="1" nolabel="1"/></span>
+                                </button>
+                                <div class="o_vd_oldquote_pop" invisible="vd_quote_version_count == 0">
+                                    <field name="vd_quote_versions_html" widget="html" nolabel="1" readonly="1"/>
+                                </div>
+                            </div>
+                            <!-- Nút lưu bản (snapshot) — nhỏ, giữ chức năng cũ -->
                             <button name="action_save_quote_version" type="object"
-                                    class="btn btn-info"
+                                    class="btn btn-outline-secondary btn-sm"
                                     invisible="vd_quote_locked"
-                                    confirm="💾 Bạn muốn lưu báo giá hiện tại thành một phiên bản mới (lưu lịch sử, không tự động tải về)?">
-                                <i class="fa fa-save me-1"/>💾 Lưu version (history)
-                            </button>
-                            <button name="action_lock_quote_to_negotiate" type="object"
-                                    class="btn btn-warning"
-                                    invisible="vd_quote_locked"
-                                    confirm="🔒 Bạn chắc chắn CHỐT báo giá cuối cùng? Lead sẽ tự động chuyển sang giai đoạn Đàm phán và bạn không thể chỉnh sửa báo giá nữa.">
-                                <i class="fa fa-lock me-1"/>🔒 Chốt báo giá → Đàm phán
-                            </button>
-                            <!-- Nút lịch sử báo giá — gộp vào cùng row actions, không tách dòng riêng -->
-                            <button name="action_view_quote_history" type="object"
-                                    class="btn btn-outline-secondary btn-sm o_vd_quote_history_btn"
-                                    invisible="vd_quote_version_count == 0">
-                                <i class="fa fa-history me-1"/>
-                                📜 Xem lịch sử (<field name="vd_quote_version_count" readonly="1" nolabel="1"/> bản)
+                                    confirm="💾 Lưu báo giá hiện tại thành một bản (lưu lịch sử)?">
+                                <i class="fa fa-save me-1"/>💾 Lưu bản
                             </button>
                         </div>
                     </div>
@@ -1588,21 +1589,18 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </field>
                     </div>
 
-                    <!-- ===== LỊCH SỬ CUỘC GỌI SAU BÁO GIÁ — báo cáo nhanh + list ===== -->
-                    <div class="o_vd_pq_call_report" invisible="not vd_quote_created_date">
+                    <!-- ===== TOOLBAR 1 DÒNG: báo cáo cuộc gọi + Lịch sử + Làm hợp đồng,
+                         đóng khung — LUÔN hiện khi panel VẤN ĐỀ hiện ===== -->
+                    <div class="o_vd_pq_call_report o_vd_pq_toolbar">
                         <field name="vd_post_quote_call_report" widget="html" nolabel="1" readonly="1"/>
                         <button name="action_view_calls_post_quote" type="object"
                                 class="btn btn-sm btn-outline-info o_vd_pq_history_btn">
                             <i class="fa fa-history me-1"/>Lịch sử cuộc gọi
                         </button>
-                    </div>
-
-                    <!-- ===== NÚT BẬT PANEL LÀM HỢP ĐỒNG — chỉ hiện khi đã có báo giá ===== -->
-                    <div class="o_vd_contract_trigger"
-                         invisible="not vd_quote_created_date or vd_contract_open or vd_contract_signed">
                         <button name="action_toggle_contract_panel" type="object"
-                                class="btn btn-primary o_vd_contract_trigger_btn">
-                            <i class="fa fa-file-text-o me-1"/>📄 Làm hợp đồng - Hẹn gặp
+                                class="btn btn-sm o_vd_pq_contract_btn"
+                                invisible="vd_contract_open or vd_contract_signed">
+                            <i class="fa fa-file-text-o me-1"/>Làm hợp đồng
                         </button>
                     </div>
 
@@ -1620,7 +1618,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                 <!-- ============================================================
                      📄 PANEL LÀM HỢP ĐỒNG - HẸN GẶP (repurpose từ panel Zalo cũ)
                      ============================================================ -->
-                <div class="o_vd_negotiate_panel o_vd_contract_make_panel" invisible="not vd_quote_created_date or not vd_contract_open">
+                <div class="o_vd_negotiate_panel o_vd_contract_make_panel" invisible="stage_code not in ['quote', 'negotiate', 'won'] or not vd_contract_open">
                     <div class="o_vd_nego_head">
                         <i class="fa fa-file-text-o"/>
                         <span>Làm hợp đồng - Hẹn gặp</span>

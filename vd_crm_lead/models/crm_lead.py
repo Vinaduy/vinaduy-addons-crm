@@ -508,13 +508,11 @@ class CrmLead(models.Model):
         duration>0) / 🔕 cố tình không nghe (no_answer/busy/declined) /
         📵 thuê bao (failed). Hiển thị trong panel VẤN ĐỀ trên form KH."""
         for rec in self:
-            since = rec.vd_quote_created_date
+            # Fallback create_date nếu chưa có latch vd_quote_created_date → báo cáo
+            # LUÔN hiện khi panel VẤN ĐỀ hiện (user spec 2026-05-31).
+            since = rec.vd_quote_created_date or rec.create_date
             if not since:
-                rec.vd_post_quote_call_report = (
-                    '<div style="padding:0.6rem 0.8rem;color:#868e96;'
-                    'font-style:italic;font-size:0.85rem;">Chưa có báo giá — '
-                    'chưa tính được cuộc gọi sau báo giá.</div>'
-                )
+                rec.vd_post_quote_call_report = ''
                 continue
             calls = rec.call_ids.filtered(
                 lambda c: c.start_time and c.start_time >= since
@@ -2187,6 +2185,41 @@ class CrmLead(models.Model):
         for rec in self:
             rec.vd_quote_version_count = len(rec.vd_quote_version_ids)
 
+    # Danh sách báo giá cũ (hover nút "Báo giá cũ") — mới nhất trên cùng, ghi rõ
+    # bản V mấy + ngày + giá. User spec 2026-05-31.
+    vd_quote_versions_html = fields.Html(
+        string='Danh sách báo giá cũ',
+        compute='_compute_quote_versions_html', store=False, sanitize=False,
+    )
+
+    @api.depends('vd_quote_version_ids', 'vd_quote_version_count')
+    def _compute_quote_versions_html(self):
+        for rec in self:
+            versions = rec.vd_quote_version_ids.sorted(
+                key=lambda v: (v.version_no or 0), reverse=True
+            )
+            if not versions:
+                rec.vd_quote_versions_html = ''
+                continue
+            rows = ''
+            for v in versions:
+                d = (fields.Datetime.context_timestamp(rec, v.create_date).strftime('%d/%m/%Y %H:%M')
+                     if v.create_date else '—')
+                price = self._fmt_vnd(v.quote_price) if v.quote_price else '—'
+                locked = ' · 🔒 chốt' if v.state == 'locked' else ''
+                rows += (
+                    f'<tr style="border-bottom:1px solid #f1f3f5;">'
+                    f'<td style="padding:5px 9px;font-weight:800;color:#1864ab;white-space:nowrap;">Bản V{v.version_no}</td>'
+                    f'<td style="padding:5px 9px;color:#495057;white-space:nowrap;">{d}{locked}</td>'
+                    f'<td style="padding:5px 9px;text-align:right;font-weight:700;color:#1f2a44;white-space:nowrap;">{price} VNĐ</td>'
+                    f'</tr>'
+                )
+            rec.vd_quote_versions_html = (
+                f'<div style="font-weight:800;color:#fff;background:linear-gradient(135deg,#5c8fb8,#4a7aa0);'
+                f'padding:6px 10px;font-size:0.82rem;border-radius:8px 8px 0 0;">📋 Báo giá cũ (mới nhất trên cùng)</div>'
+                f'<table style="width:100%;border-collapse:collapse;font-size:0.8rem;background:#fff;">{rows}</table>'
+            )
+
     # ============ ĐÀM PHÁN + HỢP ĐỒNG ============
     vd_negotiate_deadline = fields.Date(
         string='Deadline đàm phán', copy=False,
@@ -2344,69 +2377,61 @@ class CrmLead(models.Model):
         })
         return True
 
-    def _vd_ensure_default_problems(self):
-        """Auto-tạo 2 vấn đề mặc định khi lead vào stage Đàm phán.
-        Tên vấn đề ĐỌC TỪ INTAKE DATA — context cụ thể của KH này."""
-        self.ensure_one()
-        existing = {p.code: p for p in self.vd_lead_problem_ids if p.code}
+    def _vd_auto_budget_problem(self):
+        """Tự sinh/cập nhật vấn đề 'Cân đối ngân sách' (code='cost_diff').
+        User spec 2026-05-31: TẠO khi tầm tài chính KH THẤP HƠN GIÁ BÁO > 15%.
+        Gọi ngay khi tạo báo giá hoặc khi NS KH / giá báo thay đổi."""
         Problem = self.env['vd.lead.problem']
-
-        # ===== 1. CHÊNH LỆCH CHI PHÍ — so sánh NS KH vs giá báo =====
-        kh_budget = self.vd_intake_budget_amount or 0
-        quote = self.vd_quote_price or 0
-        # Threshold 20% (user spec 2026-05-27): chỉ tạo "Cân đối ngân sách"
-        # khi diff > 20% NS KH. < 20% bỏ qua (resolved).
-        BUDGET_THRESHOLD_PCT = 0.20
-        cost_name = None
-        cost_status = None
-        if quote and kh_budget:
-            diff = quote - kh_budget
-            diff_pct = (diff / kh_budget) if kh_budget else 0
-            if diff > 0 and diff_pct > BUDGET_THRESHOLD_PCT:
-                cost_name = (
-                    '💰 CÂN ĐỐI NGÂN SÁCH: KH dự kiến %s đ — Giá báo %s đ — '
-                    'Thiếu %s đ (chênh %.0f%%)'
-                ) % (
-                    '{:,.0f}'.format(kh_budget),
+        THRESHOLD = 0.15  # > 15% so với GIÁ BÁO
+        for rec in self:
+            if rec.stage_is_won or rec.stage_is_lost:
+                continue
+            kh_budget = rec.vd_intake_budget_amount or 0
+            quote = rec.vd_quote_price or 0
+            existing = rec.vd_lead_problem_ids.filtered(lambda p: p.code == 'cost_diff')[:1]
+            name = None
+            status = None
+            if quote and kh_budget:
+                diff = quote - kh_budget
+                diff_pct = (diff / quote) if quote else 0  # base = GIÁ BÁO
+                if diff > 0 and diff_pct > THRESHOLD:
+                    name = (
+                        '💰 CÂN ĐỐI NGÂN SÁCH: KH dự kiến %s đ — Giá báo %s đ — '
+                        'Thiếu %s đ (chênh %.0f%% so với giá báo)'
+                    ) % (
+                        '{:,.0f}'.format(kh_budget), '{:,.0f}'.format(quote),
+                        '{:,.0f}'.format(diff), diff_pct * 100,
+                    )
+                    status = 'open'
+                elif diff > 0:
+                    name = None  # chênh ≤ 15% → bỏ qua
+                else:
+                    name = '✅ CÂN ĐỐI NGÂN SÁCH: KH đủ NS (%s đ ≥ giá báo %s đ)' % (
+                        '{:,.0f}'.format(kh_budget), '{:,.0f}'.format(quote),
+                    )
+                    status = 'resolved'
+            elif quote:
+                name = '⚠️ CÂN ĐỐI NGÂN SÁCH: chưa biết NS KH (giá báo %s đ — hỏi NS dự kiến)' % (
                     '{:,.0f}'.format(quote),
-                    '{:,.0f}'.format(diff),
-                    diff_pct * 100,
                 )
-                cost_status = 'open'
-            elif diff > 0:
-                # Chênh nhỏ ≤ 20% — không tạo vấn đề (skip)
-                cost_name = None
+                status = 'open'
+            # Áp dụng
+            if name is None:
+                if existing and existing.status != 'resolved':
+                    existing.with_context(mail_notrack=True).write({'status': 'resolved'})
+            elif existing:
+                existing.with_context(mail_notrack=True).write({'name': name, 'status': status})
             else:
-                cost_name = '✅ CÂN ĐỐI NGÂN SÁCH: KH đủ NS (%s đ ≥ giá báo %s đ)' % (
-                    '{:,.0f}'.format(kh_budget),
-                    '{:,.0f}'.format(quote),
-                )
-                cost_status = 'resolved'
-        elif quote:
-            cost_name = '⚠️ CÂN ĐỐI NGÂN SÁCH: chưa biết NS KH (giá báo %s đ — hỏi NS dự kiến)' % (
-                '{:,.0f}'.format(quote),
-            )
-            cost_status = 'open'
-        elif kh_budget:
-            # Có NS nhưng chưa có báo giá → chưa cần vấn đề
-            cost_name = None
-
-        if cost_name is None:
-            # Threshold không match → skip create. Nếu đã có problem cũ + open
-            # → mark resolved (NV đã đàm phán thành công hoặc tự nhỏ lại).
-            if 'cost_diff' in existing and existing['cost_diff'].status != 'resolved':
-                existing['cost_diff'].with_context(mail_notrack=True).write({
-                    'status': 'resolved',
+                Problem.create({
+                    'lead_id': rec.id, 'code': 'cost_diff', 'name': name,
+                    'status': status, 'sequence': 10, 'is_default': True,
                 })
-        elif 'cost_diff' in existing:
-            existing['cost_diff'].with_context(mail_notrack=True).write({
-                'name': cost_name, 'status': cost_status,
-            })
-        else:
-            Problem.create({
-                'lead_id': self.id, 'code': 'cost_diff', 'name': cost_name,
-                'status': cost_status, 'sequence': 10, 'is_default': True,
-            })
+
+    def _vd_ensure_default_problems(self):
+        """Auto-tạo vấn đề mặc định khi lead vào stage Đàm phán."""
+        self.ensure_one()
+        # ===== 1. CHÊNH LỆCH CHI PHÍ — dùng chung _vd_auto_budget_problem (15%) =====
+        self._vd_auto_budget_problem()
 
         # ===== 2. THỜI GIAN KHỞI CÔNG — round 14: BỎ auto-sinh =====
         # User spec round 14: "thi công gấp" đã có hệ thống tự sinh (badge
@@ -3274,6 +3299,13 @@ class CrmLead(models.Model):
         # vô tình điền đủ 11 trường nhưng chưa muốn chốt.
         # Data persist mãi mãi — KHÔNG wipe. NV chưa CHỐT thì KH vẫn ở
         # bảng "Khách mới"; chỉ khi CHỐT mới chuyển sang Báo giá + tạo vấn đề.
+
+        # Tự sinh/cập nhật "Cân đối ngân sách" khi NS KH hoặc giá báo thay đổi
+        # (chỉ KH đã ở giai đoạn báo giá/đàm phán/chốt).
+        if {'vd_intake_budget_amount', 'vd_intake_budget_range', 'vd_quote_price'} & set(vals.keys()):
+            self.filtered(
+                lambda r: r.stage_code in ('quote', 'negotiate', 'won')
+            )._vd_auto_budget_problem()
         return result
 
     # ============================================================
@@ -3601,6 +3633,9 @@ class CrmLead(models.Model):
 
         # write override sẽ tự apply mail_notrack/tracking_disable cho stage_id
         self.write(write_vals)
+
+        # Vừa tạo báo giá → tự sinh "Cân đối ngân sách" nếu NS KH < giá báo > 15%.
+        self._vd_auto_budget_problem()
 
         if auto_quoted:
             old_stage_name, new_stage_name = auto_quoted

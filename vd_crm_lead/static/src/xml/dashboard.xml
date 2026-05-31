@@ -1845,6 +1845,12 @@
                                                         </t>
                                                     </div>
                                                 </div>
+                                                <!-- Gọi lại — LUÔN đứng CUỐI CÙNG (sau SOS) -->
+                                                <button t-if="lead.phone" class="o_vd_callback_btn"
+                                                        t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
+                                                        title="Gọi lại KH ngay">
+                                                    <i class="fa fa-phone"/> <span>Gọi lại</span>
+                                                </button>
                                             </span>
                                         </div>
                                     </t>
@@ -2010,6 +2016,12 @@
                                                         </t>
                                                     </div>
                                                 </div>
+                                                <!-- Gọi lại — LUÔN đứng CUỐI CÙNG (sau SOS) -->
+                                                <button t-if="lead.phone" class="o_vd_callback_btn"
+                                                        t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
+                                                        title="Gọi lại KH ngay">
+                                                    <i class="fa fa-phone"/> <span>Gọi lại</span>
+                                                </button>
                                             </span>
                                         </div>
                                     </t>
@@ -2229,12 +2241,6 @@
                     </div>
                 </div>
             </span>
-        <!-- Nút Gọi lại — NV gọi luôn không cần mở form lead -->
-        <button t-if="lead.phone" class="o_vd_callback_btn"
-                t-on-click="(ev) => this.callLeadDirect(ev, lead.id)"
-                title="Gọi lại KH ngay">
-            <i class="fa fa-phone"/> <span>Gọi lại</span>
-        </button>
     </t>
 
     <!-- ============================================================
