@@ -12,7 +12,11 @@
 import { Component, markup, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { browser } from "@web/core/browser/browser";
 import { View } from "@web/views/view";
+
+// User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
+const VD_DASH_NV_KEY = "vd_dash_selected_nv";
 
 export class VdCrmDashboard extends Component {
     static template = "vd_crm_lead.Dashboard";
@@ -87,6 +91,17 @@ export class VdCrmDashboard extends Component {
         });
         this._searchDebounce = null;
 
+        // User spec 2026-05-31: khôi phục NV đang xem sau khi F5 (trước đây luôn
+        // reset về "Tất cả NV" = trang đầu). Lưu trong sessionStorage theo tab.
+        // Backend _dashboard_resolve_scope đã ép NV thường về chính họ nếu truyền
+        // id NV khác → khôi phục giá trị này an toàn (không lộ dữ liệu).
+        try {
+            const savedNv = parseInt(browser.sessionStorage.getItem(VD_DASH_NV_KEY) || "0", 10);
+            if (savedNv) {
+                this.state.selected_user_id = savedNv;
+            }
+        } catch (_e) { /* sessionStorage bị chặn → bỏ qua, dùng mặc định */ }
+
         // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH
         this._onKeydown = (ev) => {
             if (!this.state.previewLead.open) return;
@@ -145,9 +160,22 @@ export class VdCrmDashboard extends Component {
     async onChangeUser(ev) {
         const val = ev.target.value;
         this.state.selected_user_id = val === "all" ? 0 : parseInt(val, 10);
+        this._persistSelectedNv();
         // Đóng NV detail panel nếu đang mở
         this.state.nvDetail = null;
         await this.loadDashboard();
+    }
+
+    // Lưu NV đang xem để giữ nguyên màn hình sau F5 (user spec 2026-05-31).
+    _persistSelectedNv() {
+        try {
+            const id = this.state.selected_user_id || 0;
+            if (id) {
+                browser.sessionStorage.setItem(VD_DASH_NV_KEY, String(id));
+            } else {
+                browser.sessionStorage.removeItem(VD_DASH_NV_KEY);
+            }
+        } catch (_e) { /* sessionStorage bị chặn → bỏ qua */ }
     }
 
     // ===== ADMIN VIEW HELPERS =====
@@ -238,6 +266,7 @@ export class VdCrmDashboard extends Component {
     async selectNvFromDashboard(userId) {
         if (!userId) return;
         this.state.selected_user_id = userId;
+        this._persistSelectedNv();
         this.state.nvDetail = null;
         await this.loadDashboard();
     }
@@ -301,63 +330,38 @@ export class VdCrmDashboard extends Component {
         if (this.state.selected_user_id) {
             args.push(this.state.selected_user_id);
         }
-        this.state.leads = await this.orm.call("crm.lead", "dashboard_leads", args);
-        this.state.leadsLoading = false;
-        // Khi vào stage "Khách mới" → cũng fetch list KH có vấn đề (mọi stage)
-        // để render section 2 "ĐANG XỬ LÝ VẤN ĐỀ" bên dưới.
         const stage = this.state.stages.find(s => s.id === stageId);
+        const probArgs = this.state.selected_user_id ? [this.state.selected_user_id] : [];
+
+        // User spec 2026-05-31 (tốc độ): TRƯỚC ĐÂY 7 lệnh RPC await TUẦN TỰ
+        // (mỗi cái chờ cái trước xong) → vào màn hình NV mất vài giây + xoay tròn.
+        // GIỜ bắn SONG SONG bằng Promise.all → chỉ còn ~1 round-trip. Mỗi call có
+        // .catch riêng nên 1 cái lỗi không kéo sập các cái khác.
+        const call = (method, a) => this.orm.call("crm.lead", method, a).catch(() => []);
+
         if (stage?.code === 'new') {
-            const probArgs = this.state.selected_user_id ? [this.state.selected_user_id] : [];
-            try {
-                const rows = await this.orm.call(
-                    "crm.lead", "dashboard_leads_with_problems", probArgs
-                );
-                this.state.leadsWithProblemsAll = this._markupBreakdown(rows);
-            } catch (_e) {
-                this.state.leadsWithProblemsAll = [];
-            }
-            // Fetch KH thi công GẤP (≤3 tháng tới / càng sớm càng tốt)
-            try {
-                const rows = await this.orm.call(
-                    "crm.lead", "dashboard_leads_urgent_construction", probArgs
-                );
-                this.state.leadsUrgentConstructionAll = this._markupBreakdown(rows);
-            } catch (_e) {
-                this.state.leadsUrgentConstructionAll = [];
-            }
-            // Fetch song song KH đã hủy (cho thùng rác cuối — count only).
-            try {
-                this.state.leadsLostAll = await this.orm.call(
-                    "crm.lead", "dashboard_leads_lost", probArgs
-                );
-            } catch (_e) {
-                this.state.leadsLostAll = [];
-            }
-            // Fetch KH chưa gọi được → nửa phải bảng KHÁCH MỚI
-            try {
-                this.state.leadsNotCalledAll = await this.orm.call(
-                    "crm.lead", "dashboard_leads_not_called", probArgs
-                );
-            } catch (_e) {
-                this.state.leadsNotCalledAll = [];
-            }
-            // Fetch KH tham khảo (đã liên lạc, chưa báo giá)
-            try {
-                this.state.leadsReferenceAll = await this.orm.call(
-                    "crm.lead", "dashboard_leads_reference", probArgs
-                );
-            } catch (_e) {
-                this.state.leadsReferenceAll = [];
-            }
-            // Fetch KH "BÁO GIÁ XONG MẤT TÍCH" (đã báo giá + không liên lạc được)
-            try {
-                this.state.leadsQuotedLostAll = await this.orm.call(
-                    "crm.lead", "dashboard_leads_quoted_lost", probArgs
-                );
-            } catch (_e) {
-                this.state.leadsQuotedLostAll = [];
-            }
+            // Khi vào stage "Khách mới" → render thêm các bảng THI CÔNG GẤP /
+            // XỬ LÝ VẤN ĐỀ / tham khảo / mất tích... → gộp tất cả query 1 lần.
+            const [
+                leads, withProblems, urgent, lost, notCalled, reference, quotedLost,
+            ] = await Promise.all([
+                call("dashboard_leads", args),
+                call("dashboard_leads_with_problems", probArgs),
+                call("dashboard_leads_urgent_construction", probArgs),
+                call("dashboard_leads_lost", probArgs),
+                call("dashboard_leads_not_called", probArgs),
+                call("dashboard_leads_reference", probArgs),
+                call("dashboard_leads_quoted_lost", probArgs),
+            ]);
+            this.state.leads = leads;
+            this.state.leadsWithProblemsAll = this._markupBreakdown(withProblems);
+            this.state.leadsUrgentConstructionAll = this._markupBreakdown(urgent);
+            this.state.leadsLostAll = lost;
+            this.state.leadsNotCalledAll = notCalled;
+            this.state.leadsReferenceAll = reference;
+            this.state.leadsQuotedLostAll = quotedLost;
         } else {
+            this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];
             this.state.leadsUrgentConstructionAll = [];
             this.state.leadsLostAll = [];
@@ -365,6 +369,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsReferenceAll = [];
             this.state.leadsQuotedLostAll = [];
         }
+        this.state.leadsLoading = false;
     }
 
     get selectedStage() {
