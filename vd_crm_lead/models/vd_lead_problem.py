@@ -455,6 +455,20 @@ class VdLeadProblem(models.Model):
     # vd_intake_estimate là Float (không phải Monetary) → related cùng type
     i_estimate = fields.Float(related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính')
 
+    # ============================================================
+    # BÁO GIÁ CŨ (snapshot) — chỉ áp dụng cho tag_code='budget_balance'.
+    # User spec 2026-05-31: khi NV TẠO vấn đề "Cân đối ngân sách", chụp lại
+    # bảng báo giá chi tiết HIỆN TẠI (= báo giá GỐC, trước khi NV chỉnh để
+    # cân đối). Sau khi vấn đề được GIẢI QUYẾT, snapshot này hiện ra ở nút
+    # "📋 Báo giá cũ" (hover) trên panel báo giá của lead.
+    # ============================================================
+    old_quote_html = fields.Html(
+        string='Báo giá cũ (chụp lúc tạo vấn đề)', sanitize=False, copy=False,
+        readonly=True,
+        help='Bảng báo giá chi tiết tại thời điểm tạo vấn đề cân đối ngân sách '
+             '— giữ lại để KH/NV so sánh với báo giá đã cân đối.',
+    )
+
     _INTAKE_FIELD_NAMES = (
         'i_house_type', 'i_foundation_type', 'i_roof_type', 'i_province_id',
         'i_floor_1_m2', 'i_floor_2_m2', 'i_floor_3_m2', 'i_floor_4_m2',
@@ -484,6 +498,17 @@ class VdLeadProblem(models.Model):
                             '🔒 CHỐT THÔNG TIN trước. KH chưa CHỐT vẫn ở '
                             'giai đoạn "Khách mới".'
                         ) % (lead.name or lead.partner_name or 'lead'))
+
+        # User spec 2026-05-31: vấn đề "Cân đối ngân sách" (tag_code='budget_balance')
+        # → chụp bảng báo giá chi tiết GỐC ngay lúc tạo (trước khi NV chỉnh giảm).
+        for vals in vals_list:
+            if vals.get('old_quote_html') or not vals.get('tag_id') or not vals.get('lead_id'):
+                continue
+            tag = self.env['vd.nego.problem'].browse(vals['tag_id'])
+            if tag.code != 'budget_balance':
+                continue
+            lead = self.env['crm.lead'].browse(vals['lead_id'])
+            vals['old_quote_html'] = lead.vd_quote_breakdown_html or ''
         return super().create(vals_list)
 
     def write(self, vals):

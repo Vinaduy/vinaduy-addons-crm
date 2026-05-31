@@ -841,26 +841,19 @@
                                     class="btn btn-success">
                                 <i class="fa fa-download me-1"/>📥 Tải báo giá PDF
                             </button>
-                            <!-- BÁO GIÁ CŨ — rename từ "Lưu version"; hover hiện danh sách
-                                 báo giá cũ (mới nhất trên cùng, ghi rõ bản V mấy + ngày). -->
-                            <div class="o_vd_oldquote_wrap">
-                                <button name="action_view_quote_history" type="object"
-                                        class="btn btn-info o_vd_oldquote_btn">
+                            <!-- BÁO GIÁ CŨ — CHỈ hiện khi đã TẠO + GIẢI QUYẾT vấn đề
+                                 "Cân đối ngân sách". Hover → popup bảng báo giá chi tiết
+                                 GỐC (snapshot lúc tạo vấn đề, trước khi cân đối).
+                                 User spec 2026-05-31. -->
+                            <field name="vd_has_old_quote" invisible="1"/>
+                            <div class="o_vd_oldquote_wrap" invisible="not vd_has_old_quote">
+                                <span class="btn btn-info o_vd_oldquote_btn">
                                     <i class="fa fa-history me-1"/>📋 Báo giá cũ
-                                    <span class="badge bg-light text-dark ms-1"
-                                          invisible="vd_quote_version_count == 0"><field name="vd_quote_version_count" readonly="1" nolabel="1"/></span>
-                                </button>
-                                <div class="o_vd_oldquote_pop" invisible="vd_quote_version_count == 0">
-                                    <field name="vd_quote_versions_html" widget="html" nolabel="1" readonly="1"/>
+                                </span>
+                                <div class="o_vd_oldquote_pop">
+                                    <field name="vd_oldquote_breakdown_html" widget="html" nolabel="1" readonly="1"/>
                                 </div>
                             </div>
-                            <!-- Nút lưu bản (snapshot) — nhỏ, giữ chức năng cũ -->
-                            <button name="action_save_quote_version" type="object"
-                                    class="btn btn-outline-secondary btn-sm"
-                                    invisible="vd_quote_locked"
-                                    confirm="💾 Lưu báo giá hiện tại thành một bản (lưu lịch sử)?">
-                                <i class="fa fa-save me-1"/>💾 Lưu bản
-                            </button>
                         </div>
                     </div>
                 </div>

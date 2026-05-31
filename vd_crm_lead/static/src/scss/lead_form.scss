@@ -88,14 +88,16 @@
         flex-wrap: wrap;
         .btn { font-weight: 600; padding: 0.45rem 1rem; border-radius: 6px; }
     }
-    /* "Báo giá cũ" — hover hiện danh sách báo giá cũ (mới nhất trên cùng) */
-    .o_vd_oldquote_wrap { position: relative; display: inline-flex; }
+    /* "Báo giá cũ" — hover hiện bảng báo giá chi tiết GỐC (snapshot lúc tạo
+       vấn đề cân đối ngân sách). Bảng 5 cột → cần rộng hơn list version cũ. */
+    .o_vd_oldquote_wrap { position: relative; display: inline-flex; cursor: default; }
     .o_vd_oldquote_pop {
         position: absolute;
         bottom: calc(100% + 6px);
         left: 0;
         z-index: 90;
-        width: 340px;
+        width: 560px;
+        max-width: 90vw;
         max-height: 60vh;
         overflow-y: auto;
         background: #fff;
@@ -11563,7 +11565,22 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
 .o_vd_call_stats_box > .o_vd_call_rating_row > .o_vd_callhist_left {
     margin-left: auto;
 }
-.o_vd_pq_call_report > .o_vd_callhist_right { flex: 0 0 auto; }
+/* ============================================================
+   User spec 2026-05-31: đưa các NÚT THAO TÁC về CUỐI DÒNG (mép phải).
+   - Bảng VẤN ĐỀ (.o_vd_pq_call_report): cụm "Lịch sử cuộc gọi" +
+     "Làm hợp đồng" — neo phải bằng margin-left:auto trên nút Lịch sử
+     (đứng trước Làm hợp đồng trong DOM nên cả cụm bị đẩy sang phải).
+   - Bảng THÔNG TIN TƯ VẤN (.o_vd_call_stats_row): "Lịch sử cuộc gọi" +
+     "Khách tham khảo" + "Mở khoá" ra cuối (giữ "Hủy" + "CHỐT BÁO GIÁ"
+     bên trái) — dùng flex `order` + neo phải trên nút đầu cụm (Lịch sử,
+     luôn hiện).
+   ============================================================ */
+.o_vd_pq_call_report > .o_vd_callhist_right { flex: 0 0 auto; margin-left: auto; }
+
+.o_vd_call_stats_row > .o_vd_callhist_left { order: 10; margin-left: auto; }
+.o_vd_call_stats_row > .o_vd_btn_no_quote,
+.o_vd_call_stats_row > .o_vd_btn_no_quote_active { order: 11; }
+.o_vd_call_stats_row > .o_vd_btn_unlock { order: 12; }
 
 .o_vd_callhist_trigger {
     cursor: default;

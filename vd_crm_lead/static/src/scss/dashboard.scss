@@ -5133,9 +5133,11 @@
         border-radius: 4px;
         letter-spacing: 0.3px;
     }
-    /* Row grid: name + urgent_label + problems + days (4 cot — user spec 2026-05-28) */
+    /* Row grid: name | KHỚP TÀI CHÍNH | problems (3 cột — user spec 2026-05-31).
+       Tên (auto = 300px pill) + cột khớp tài chính DÍNH bên trái, problems lấp
+       phần còn lại dồn phải. */
     .o_vd_filter_table_right_rows .o_vd_problem_row {
-        grid-template-columns: minmax(220px, 1fr) auto;
+        grid-template-columns: auto auto 1fr;
 
         @media (max-width: 600px) {
             grid-template-columns: 1fr;
@@ -5347,7 +5349,7 @@
     }
     .o_vd_problem_row {
         display: grid;
-        grid-template-columns: minmax(220px, 1fr) auto;
+        grid-template-columns: auto auto 1fr;   /* name | khớp tài chính | problems */
         align-items: center;
         gap: 0.6rem;
         padding: 0.216rem 0.7rem; /* User spec 2026-05-30: giảm thêm 20% (0.27→0.216) */
@@ -5378,6 +5380,32 @@
 
         @media (max-width: 600px) {
             grid-template-columns: 1fr;
+        }
+    }
+    /* CỘT KHỚP TÀI CHÍNH — cạnh tên KH, luôn hiện (user spec 2026-05-31).
+       fit = xanh "Khớp tài chính" · over = đỏ "Chênh +X" · none = "—" xám. */
+    .o_vd_budget_fit_cell {
+        display: flex;
+        align-items: center;
+        min-width: 132px;            /* canh cột thẳng hàng giữa các dòng */
+        .o_vd_bf_badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.16rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1.25;
+            border-radius: 999px;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        .o_vd_bf_ok   { background: #ebfbee; color: #2b8a3e; border-color: #b2f2bb; }
+        .o_vd_bf_over { background: #fff0f0; color: #c92a2a; border-color: #ffc9c9; }
+        .o_vd_bf_none { background: #f1f3f5; color: #868e96; border-color: #e9ecef; font-weight: 600; }
+
+        @media (max-width: 600px) {
+            min-width: 0;
         }
     }
     .o_vd_problem_row_problems {

@@ -1784,6 +1784,8 @@
                                                     <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
                                                 </div>
                                             </span>
+                                            <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
+                                            <t t-call="vd_crm_lead.BudgetFitCell"/>
                                             <!-- User spec round 6.1: BỎ urgent_label_cell + days_cell,
                                                  chỉ còn name | YÊU CẦU TÌM badge (right-align).
                                                  problems_non_urgent → exclude 'Thi công gấp'. -->
@@ -1957,6 +1959,8 @@
                                                     <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
                                                 </div>
                                             </span>
+                                            <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
+                                            <t t-call="vd_crm_lead.BudgetFitCell"/>
                                             <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
                                             <span class="o_vd_problem_row_problems">
                                                 <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
@@ -2161,6 +2165,28 @@
          - 📞 = total calls (lead.call_stats.total)
          - 📅 = distinct call days (lead.call_stats.distinct_days)
          ============================================================ -->
+    <!-- ============================================================
+         CỘT KHỚP TÀI CHÍNH — cạnh tên KH, LUÔN hiện (user spec 2026-05-31).
+         - fit  : giá báo ≤ tầm tài chính KH → "✅ Khớp tài chính" (xanh)
+         - over : vượt → "⚠️ Chênh +<số rút gọn>" (đỏ)
+         - none : chưa đủ dữ liệu (thiếu tài chính / giá báo) → "—"
+         Data: lead.budget_fit, lead.budget_fit_diff_short (từ _dashboard_attach_quote_info).
+         ============================================================ -->
+    <t t-name="vd_crm_lead.BudgetFitCell">
+        <span t-att-class="'o_vd_budget_fit_cell o_vd_bf_' + (lead.budget_fit || 'none')">
+            <t t-if="lead.budget_fit === 'fit'">
+                <span class="o_vd_bf_badge o_vd_bf_ok" title="Giá báo nằm trong tầm tài chính KH">✅ Khớp tài chính</span>
+            </t>
+            <t t-elif="lead.budget_fit === 'over'">
+                <span class="o_vd_bf_badge o_vd_bf_over"
+                      t-att-title="'Vượt tài chính dự kiến ' + lead.budget_fit_diff_short + ' đ'">⚠️ Chênh +<t t-esc="lead.budget_fit_diff_short"/></span>
+            </t>
+            <t t-else="">
+                <span class="o_vd_bf_badge o_vd_bf_none" title="Chưa đủ dữ liệu tài chính / giá báo">—</span>
+            </t>
+        </span>
+    </t>
+
     <t t-name="vd_crm_lead.ProblemRequiredBadge">
         <!-- Round 16: tách 2 thẻ riêng (cùng width fixed):
              A) ⚠️ Tìm vấn đề + Còn N ngày — đỏ NHẠT (không quá chói)

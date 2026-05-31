@@ -2037,6 +2037,19 @@ class CrmLead(models.Model):
     def _fmt_vnd(self, n):
         return f'{n:,.0f}'.replace(',', '.')
 
+    @api.model
+    def _fmt_vnd_short(self, n):
+        """Rút gọn số tiền VNĐ cho cột hẹp: ≥1 tỷ → 'X,X tỷ', ≥1 triệu → 'X tr'."""
+        n = abs(n or 0)
+        if n >= 1_000_000_000:
+            s = f'{n / 1_000_000_000:.1f}'.rstrip('0').rstrip('.')
+            return f'{s} tỷ'
+        if n >= 1_000_000:
+            return f'{n / 1_000_000:.0f} tr'
+        if n >= 1_000:
+            return f'{n / 1_000:.0f}k'
+        return f'{n:.0f}'
+
     # PREVIEW PDF — Binary field + widget="pdf_viewer" hiển thị inline
     # NV bấm "🔄 Cập nhật preview" → generate file → embed PDF reader
     vd_quote_preview_pdf = fields.Binary(
@@ -2335,6 +2348,48 @@ class CrmLead(models.Model):
                 f'padding:6px 10px;font-size:0.82rem;border-radius:8px 8px 0 0;">📋 Báo giá cũ (mới nhất trên cùng)</div>'
                 f'<table style="width:100%;border-collapse:collapse;font-size:0.8rem;background:#fff;">{rows}</table>'
             )
+
+    # ============================================================
+    # BÁO GIÁ CŨ — nút "📋 Báo giá cũ" CHỈ hiện khi đã TẠO + GIẢI QUYẾT
+    # vấn đề "Cân đối ngân sách". Hover → popup bảng báo giá chi tiết GỐC
+    # (snapshot lúc tạo vấn đề, trước khi cân đối). User spec 2026-05-31.
+    # ============================================================
+    vd_has_old_quote = fields.Boolean(
+        string='Có báo giá cũ', compute='_compute_vd_old_quote', store=False,
+    )
+    vd_oldquote_breakdown_html = fields.Html(
+        string='Báo giá cũ (bảng chi tiết)',
+        compute='_compute_vd_old_quote', store=False, sanitize=False,
+    )
+
+    @api.depends(
+        'vd_lead_problem_ids.tag_code', 'vd_lead_problem_ids.status',
+        'vd_lead_problem_ids.old_quote_html',
+    )
+    def _compute_vd_old_quote(self):
+        for rec in self:
+            # Vấn đề cân đối ngân sách ĐÃ giải quyết + có snapshot báo giá gốc.
+            probs = rec.vd_lead_problem_ids.filtered(
+                lambda p: p.tag_code == 'budget_balance'
+                and p.status == 'resolved'
+                and p.old_quote_html
+            ).sorted(key=lambda p: (p.write_date or p.create_date or fields.Datetime.now()), reverse=True)
+            if not probs:
+                rec.vd_has_old_quote = False
+                rec.vd_oldquote_breakdown_html = ''
+                continue
+            rec.vd_has_old_quote = True
+            blocks = ''
+            for p in probs:
+                d = (fields.Datetime.context_timestamp(rec, p.create_date).strftime('%d/%m/%Y %H:%M')
+                     if p.create_date else '—')
+                blocks += (
+                    f'<div style="font-weight:800;color:#fff;background:linear-gradient(135deg,#5c8fb8,#4a7aa0);'
+                    f'padding:6px 10px;font-size:0.82rem;border-radius:8px 8px 0 0;">'
+                    f'📋 Báo giá cũ — trước khi cân đối ngân sách ({d})</div>'
+                    f'<div style="padding:6px 8px;background:#fff;border-radius:0 0 8px 8px;">{p.old_quote_html}</div>'
+                )
+            rec.vd_oldquote_breakdown_html = blocks
 
     # ============ ĐÀM PHÁN + HỢP ĐỒNG ============
     vd_negotiate_deadline = fields.Date(
@@ -5672,13 +5727,23 @@ class CrmLead(models.Model):
             d['quote_breakdown_html'] = rec.vd_quote_breakdown_html or ''
             # Chênh lệch: BÁO GIÁ − TÀI CHÍNH DỰ KIẾN. > 0 = vượt ngân sách (đỏ),
             # < 0 = còn dư (xanh). Chỉ tính khi có cả 2 số.
+            # budget_fit: 'fit' (giá ≤ tài chính = KHỚP), 'over' (vượt), '' (thiếu data).
+            # budget_fit_diff_short: số chênh rút gọn (vd '300 tr', '1,8 tỷ') cho cột hẹp.
             if budget_amt and quote_amt:
                 diff = quote_amt - budget_amt
                 d['quote_over_budget'] = diff > 0
                 d['quote_vs_budget_diff_fmt'] = self._fmt_vnd(abs(diff))
+                d['budget_fit'] = 'over' if diff > 0 else 'fit'
+                d['budget_fit_diff_short'] = self._fmt_vnd_short(abs(diff)) if diff else ''
             else:
                 d['quote_over_budget'] = False
                 d['quote_vs_budget_diff_fmt'] = ''
+                d['budget_fit'] = ''
+                d['budget_fit_diff_short'] = ''
+        # User spec 2026-05-31: KH KHỚP TÀI CHÍNH lên ĐẦU, rồi vượt ngân sách,
+        # cuối là chưa đủ dữ liệu. sort ỔN ĐỊNH → giữ thứ tự urgency cũ trong nhóm.
+        _fit_rank = {'fit': 0, 'over': 1}
+        data.sort(key=lambda d: _fit_rank.get(d.get('budget_fit'), 2))
         return data
 
     @api.model
