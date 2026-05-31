@@ -3424,8 +3424,8 @@
     }
     .o_vd_kh_row_group_kh {
         /* Round 17.1: HÔM NAY rộng hơn (2 segment: KH mới + combined call) */
-        /* + cột 🆘 Cần hỗ trợ (user spec 2026-05-31) trước cột Trạng thái */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* Cột: HÔM NAY | Khách mới | Chưa có VĐ | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
         background: transparent;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
@@ -3495,13 +3495,22 @@
         white-space: nowrap;
         overflow: hidden;
     }
+    /* User spec 2026-05-31 r3: tên NV đóng khung dạng THẺ giống o_vd_name_pill
+       (thẻ tên khách hàng ở bảng THI CÔNG GẤP) — nền indigo nhạt + viền bo. */
     .o_vd_kh_col_name_link {
         cursor: pointer;
-        transition: color 0.12s ease, background 0.12s ease;
-        border-radius: 4px;
+        justify-self: start;
+        width: fit-content;
+        max-width: 100%;
+        padding: 0.24rem 0.65rem;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 6px;
+        color: #1f2a44;
+        transition: background 0.12s ease, border-color 0.12s ease;
         &:hover {
-            color: var(--bs-primary, #714B67);
-            background: rgba(113, 75, 103, 0.06);
+            background: #e0e7ff;
+            border-color: #818cf8;
             .o_vd_kh_nv_link_name { text-decoration: underline; }
         }
     }
@@ -3547,7 +3556,10 @@
     .o_vd_kh_metric_done:hover     { border-color: #16a34a; background: rgba(22,163,74,0.06); }
     .o_vd_kh_metric_progress:hover { border-color: #d97706; background: rgba(217,119,6,0.07); }
     .o_vd_kh_metric_new:hover      { border-color: #2563eb; background: rgba(37,99,235,0.06); }
+    .o_vd_kh_metric_newcust:hover  { border-color: #2563eb; background: rgba(37,99,235,0.06); }
     .o_vd_kh_metric_noprob:hover   { border-color: #8b5cf6; background: rgba(139,92,246,0.07); }
+    .o_vd_kh_metric_urgent:hover   { border-color: #ea580c; background: rgba(234,88,12,0.07); }
+    .o_vd_kh_metric_xlvd:hover     { border-color: #d97706; background: rgba(217,119,6,0.07); }
     /* Metric — số plain, không badge. Màu theo cột để dễ phân biệt. */
     .o_vd_kh_metric_num {
         display: inline-block;
@@ -3726,7 +3738,10 @@
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
     .o_vd_kh_metric_new .o_vd_kh_metric_num      { color: #2563eb; }
+    .o_vd_kh_metric_newcust .o_vd_kh_metric_num  { color: #2563eb; }
     .o_vd_kh_metric_noprob .o_vd_kh_metric_num   { color: #8b5cf6; }
+    .o_vd_kh_metric_urgent .o_vd_kh_metric_num   { color: #ea580c; }
+    .o_vd_kh_metric_xlvd .o_vd_kh_metric_num     { color: #d97706; }
     /* Số 0 → mờ */
     .o_vd_kh_metric_num:hover { opacity: 0.7; }
     /* Khi popover hiển thị (parent có popover) → show on hover */
@@ -3794,11 +3809,14 @@
     }
     /* Cells nửa TRÁI bảng — popover dock LEFT (popover xổ về bên phải cell) */
     .o_vd_kh_metric_new .o_vd_kh_nv_popover,
+    .o_vd_kh_metric_newcust .o_vd_kh_nv_popover,
     .o_vd_kh_metric_noprob .o_vd_kh_nv_popover {
         right: auto; left: 0; transform: none;
     }
     /* Cells nửa PHẢI bảng — popover dock RIGHT (popover xổ về bên trái cell) */
     .o_vd_kh_metric_progress .o_vd_kh_nv_popover,
+    .o_vd_kh_metric_urgent .o_vd_kh_nv_popover,
+    .o_vd_kh_metric_xlvd .o_vd_kh_nv_popover,
     .o_vd_kh_metric_done .o_vd_kh_nv_popover {
         right: 0; left: auto; transform: none;
     }
@@ -3814,8 +3832,11 @@
     }
     .o_vd_kh_metric_done .o_vd_kh_popover_head    { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
     .o_vd_kh_metric_progress .o_vd_kh_popover_head { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .o_vd_kh_metric_urgent .o_vd_kh_popover_head   { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); }
+    .o_vd_kh_metric_xlvd .o_vd_kh_popover_head     { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .o_vd_kh_metric_noprob .o_vd_kh_popover_head   { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
     .o_vd_kh_metric_new .o_vd_kh_popover_head      { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+    .o_vd_kh_metric_newcust .o_vd_kh_popover_head  { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
     .o_vd_kh_metric_help .o_vd_kh_popover_head     { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); }
 
     /* ===== 🆘 CỘT CẦN HỖ TRỢ (user spec 2026-05-31) ===== */
@@ -3823,6 +3844,24 @@
     /* Popover help nằm cột bên phải bảng → dock RIGHT (xổ về trái cell) */
     .o_vd_kh_metric_help .o_vd_kh_nv_popover { right: 0; left: auto; transform: none; }
     .o_vd_kh_help_none { color: #cbd5e1; font-weight: 700; font-size: 0.9rem; }
+    /* Badge SOS trong bảng NV — DÙNG LẠI style o_vd_sos của danh sách KH
+       (user spec 2026-05-31 r3: phải giống SOS bên danh sách khách hàng). */
+    .o_vd_sos_dash {
+        min-width: 0;
+        gap: 0.32rem;
+        padding: 0.15rem 0.5rem;
+    }
+    .o_vd_sos_dash .o_vd_sos_face { font-size: 0.92rem; letter-spacing: 1px; }
+    .o_vd_sos_dash_count {
+        font-size: 0.82rem;
+        font-weight: 900;
+        line-height: 1;
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.9);
+        color: #c92a2a;
+    }
+    .o_vd_sos_helping .o_vd_sos_dash_count { color: #2b8a3e; }
     .o_vd_kh_help_badge {
         display: inline-flex;
         align-items: center;
@@ -4050,8 +4089,8 @@
         grid-template-columns: 1fr;
     }
     .o_vd_kh_th_group_kh {
-        /* Round 17.1: HÔM NAY rộng hơn (2 segment) + cột 🆘 Cần hỗ trợ */
-        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
+        /* HÔM NAY | Khách mới | Chưa có VĐ | Thi công gấp | Xử lý VĐ | Cần hỗ trợ | Trạng thái */
+        grid-template-columns: 1.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr;
     }
     .o_vd_kh_th_call {
         background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
@@ -4076,8 +4115,11 @@
     .o_vd_kh_th_capacity  { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
     /* Nhóm 2: Khách hàng — palette màu sắc */
     .o_vd_kh_th_new       { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+    .o_vd_kh_th_newcust   { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
     .o_vd_kh_th_noprob    { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
     .o_vd_kh_th_progress  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .o_vd_kh_th_urgent    { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); }
+    .o_vd_kh_th_xlvd      { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .o_vd_kh_th_done      { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
     .o_vd_kh_th_help      { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); }
     /* Đường phân tách 2 nhóm — viền phải đậm ở cuối nhóm Thông tin */

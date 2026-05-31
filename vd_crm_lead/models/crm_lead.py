@@ -7031,6 +7031,31 @@ class CrmLead(models.Model):
             ('code', 'in', ['potential', 'callback', 'quote', 'negotiate']),
         ]).ids
 
+        # ===== THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (user spec 2026-05-31 r3) =====
+        # Tính 1 LẦN cho TẤT CẢ NV rồi nhóm theo user (tránh query lặp 14 lần).
+        # Định nghĩa GIỐNG HỆT 2 bảng ở màn NV: dashboard_leads_urgent_construction
+        # + dashboard_leads_with_problems.
+        all_urgent_ids = self._dashboard_urgent_construction_ids(
+            [('user_id', 'in', sales_user_ids)]
+        ) if sales_user_ids else []
+        urgent_by_user = defaultdict(list)
+        for l in self.browse(all_urgent_ids):
+            urgent_by_user[l.user_id.id].append(l)
+
+        xlvd_stage_ids = Stage.search([('code', 'in', ['quote', 'negotiate'])]).ids
+        xlvd_by_user = defaultdict(list)
+        if xlvd_stage_ids and sales_user_ids:
+            xlvd_leads_all = self.search([
+                ('user_id', 'in', sales_user_ids),
+                ('stage_id', 'in', xlvd_stage_ids),
+                ('active', '=', True),
+                ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),
+                ('id', 'not in', all_urgent_ids),
+            ], order='vd_quote_created_date asc nulls last, create_date asc')
+            for l in xlvd_leads_all:
+                xlvd_by_user[l.user_id.id].append(l)
+
         def _ld_basic(l):
             return {
                 'lead_id': l.id,
@@ -7217,6 +7242,11 @@ class CrmLead(models.Model):
                 'help_count': len(help_active),
                 'help_waiting': n_help_waiting,
                 'help_leads': [_ld_help(l) for l in help_active[:3]],
+                # ⚡ Thi công gấp + 🛠 Xử lý vấn đề (mirror 2 bảng màn NV)
+                'urgent_count': len(urgent_by_user.get(u.id, [])),
+                'urgent_leads': [_ld_basic(l) for l in urgent_by_user.get(u.id, [])[:50]],
+                'xlvd_count': len(xlvd_by_user.get(u.id, [])),
+                'xlvd_leads': [_ld_with_problems(l) for l in xlvd_by_user.get(u.id, [])[:50]],
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 
