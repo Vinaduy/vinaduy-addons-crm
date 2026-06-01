@@ -476,6 +476,13 @@ function schedule() {
 // ===== AUTO-SAVE on blur cho Float/Char inputs trong steps panel =====
 // Để auto-lock trigger ngay khi user blur khỏi ô cuối (Tầng N m², Diện tích...)
 // thay vì phải bấm cloud icon Save thủ công.
+//
+// QUAN TRỌNG — KHÔNG áp dụng cho ô Many2one (.o-autocomplete: Tỉnh/Huyện):
+// ô số/chữ commit value NGAY khi blur, nhưng Many2one commit BẤT ĐỒNG BỘ.
+// Nếu auto-save (debounce 350ms) bấm Lùu đúng lúc user vừa chọn ô m2o kế tiếp
+// → form reload khi giá trị m2o trước đó CHƯA kịp commit → mất giá trị.
+// Bug thực tế: chọn Tỉnh xong chọn Huyện → Tỉnh bị xoá trắng. Loại m2o khỏi
+// auto-save-blur; Tỉnh/Huyện vẫn được lưu khi user bấm CHỐT hoặc blur ô khác.
 function _autoSaveFormSafe() {
     try {
         // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
@@ -497,6 +504,9 @@ function attachAutoSaveBlur() {
             ".o_vd_steps_panel input, .o_vd_steps_panel textarea"
         ).forEach((el) => {
             if (el.dataset.vdAutoSaveBlur === "1") return;
+            // Bỏ qua ô Many2one (Tỉnh/Huyện) — commit bất đồng bộ, auto-save
+            // sẽ race + làm mất giá trị (xem ghi chú ở _autoSaveFormSafe).
+            if (el.closest(".o-autocomplete")) return;
             el.dataset.vdAutoSaveBlur = "1";
             el.addEventListener("blur", () => {
                 if (_autoSaveDebounce) clearTimeout(_autoSaveDebounce);

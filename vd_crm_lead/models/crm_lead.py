@@ -776,6 +776,16 @@ class CrmLead(models.Model):
         'vd.district', string='Huyện / Quận',
         help='Hỏi: "Khu vực huyện / quận nào?"',
     )
+
+    @api.onchange('vd_intake_province_id')
+    def _onchange_intake_province_reset_district(self):
+        """Đổi Tỉnh → reset Huyện nếu Huyện hiện tại không thuộc Tỉnh mới.
+        Tránh lưu cặp Tỉnh/Huyện lệch nhau (vd: Tỉnh Bắc Ninh + Huyện của Hà Nội).
+        """
+        for rec in self:
+            if (rec.vd_intake_district
+                    and rec.vd_intake_district.state_id != rec.vd_intake_province_id):
+                rec.vd_intake_district = False
     vd_intake_timeline = fields.Char(
         string='Thời gian dự kiến',
         help='Tháng dự kiến khởi công (vd: Tháng 6/2026). NV gõ → autocomplete '
