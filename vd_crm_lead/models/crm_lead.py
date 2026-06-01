@@ -5613,7 +5613,18 @@ class CrmLead(models.Model):
         # Banner riêng cho từng bảng (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ). days_left =
         # số ngày còn lại trước khi cron áp khoá (đếm từ vd_problem_find_since).
         _pf_enabled, _pf_pct, _pf_grace = self._vd_problem_find_config()
-        problem_find = self._vd_problem_find_stats(domain_user)
+        # PERF (2026-06-01): CHỈ tính cho 1 NV cụ thể. Màn "Tất cả NV"
+        # (scope_user=None) quét toàn bộ lead + regex urgent → ~25s/lần ->
+        # với workers=0 gây nghẽn process -> 502. Banner chỉ hiện ở màn NV nên
+        # bỏ tính ở view tổng cho nhẹ.
+        if scope_user:
+            problem_find = self._vd_problem_find_stats(domain_user)
+        else:
+            _z = {'total': 0, 'no_problem': 0, 'pct': 0, 'over': False}
+            problem_find = {
+                'enabled': _pf_enabled, 'threshold_pct': _pf_pct,
+                'urgent': dict(_z), 'xlvd': dict(_z), 'violating': False,
+            }
         problem_find['grace_days'] = _pf_grace
         problem_find['locked'] = bool(scope_user and scope_user.vd_problem_lock)
         days_left = _pf_grace
