@@ -2149,12 +2149,23 @@
                     <!-- Topbar: tên KH (click copy) + phone (click copy) + NV + close X -->
                     <div class="o_vd_preview_topbar">
                         <div class="o_vd_preview_topbar_left">
-                            <button class="o_vd_preview_name o_vd_preview_copy_btn"
-                                    t-on-click.stop="() => this.copyPreviewName()"
-                                    title="Bấm để copy tên khách hàng">
+                            <!-- Tên KH SỬA ĐƯỢC: input inline, lưu qua ORM khi blur/Enter.
+                                 Icon copy tách riêng bên phải. (user spec 2026-06-01) -->
+                            <span class="o_vd_preview_name o_vd_preview_name_edit">
                                 <i class="fa fa-user"/>
-                                <span><t t-esc="L.name"/></span>
-                            </button>
+                                <input class="o_vd_preview_name_input"
+                                       t-att-value="L.name"
+                                       t-att-data-lead-id="L.id"
+                                       placeholder="Tên khách hàng"
+                                       t-on-click.stop="() => {}"
+                                       t-on-change.stop="(ev) => this.savePreviewName(ev)"
+                                       t-on-keydown.stop="(ev) => this.onPreviewNameKeydown(ev)"/>
+                                <button class="o_vd_preview_copy_btn o_vd_preview_name_copy"
+                                        t-on-click.stop="() => this.copyPreviewName()"
+                                        title="Bấm để copy tên khách hàng">
+                                    <i class="fa fa-clone"/>
+                                </button>
+                            </span>
                             <button class="o_vd_preview_phone o_vd_preview_copy_btn"
                                     t-if="L.phone"
                                     t-on-click.stop="() => this.copyPreviewPhone()"

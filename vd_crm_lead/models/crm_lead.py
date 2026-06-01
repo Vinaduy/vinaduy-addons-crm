@@ -786,6 +786,19 @@ class CrmLead(models.Model):
             if (rec.vd_intake_district
                     and rec.vd_intake_district.state_id != rec.vd_intake_province_id):
                 rec.vd_intake_district = False
+
+    @api.onchange('vd_intake_district')
+    def _onchange_intake_district_sync_province(self):
+        """Chọn Huyện → LUÔN set lại Tỉnh = huyện.state_id.
+
+        Fix bug: khi chọn Huyện thì Tỉnh bị mất trắng trên UI (Odoo client-side).
+        Vì state_id của huyện CHÍNH LÀ tỉnh nên ta tự điền lại — onchange trả về
+        province trong kết quả → client hiển thị lại đúng + lưu đúng, bất kể UI
+        có tạm xoá. (user spec 2026-06-01)
+        """
+        for rec in self:
+            if rec.vd_intake_district and rec.vd_intake_district.state_id:
+                rec.vd_intake_province_id = rec.vd_intake_district.state_id
     vd_intake_timeline = fields.Char(
         string='Thời gian dự kiến',
         help='Tháng dự kiến khởi công (vd: Tháng 6/2026). NV gõ → autocomplete '

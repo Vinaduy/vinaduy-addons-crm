@@ -963,6 +963,40 @@ export class VdCrmDashboard extends Component {
         if (!L) return;
         this._copyToClipboard(L.name, `Đã copy tên: ${L.name}`, "Chưa có tên KH.");
     }
+
+    // Lưu tên KH sửa trực tiếp ở topbar preview → ghi xuống crm.lead qua ORM.
+    // Sửa được ở MỌI trạng thái (name không nằm trong intake locked fields).
+    async savePreviewName(ev) {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return;
+        const id = p.ids[p.index];
+        const newName = (ev.target.value || "").trim();
+        const L = this.previewLeadObj;
+        if (!newName) {
+            this.notification.add("Tên KH không được để trống.", { type: "warning" });
+            if (L) ev.target.value = L.name || "";
+            return;
+        }
+        if (L && newName === L.name) return;
+        try {
+            await this.orm.call("crm.lead", "write", [[id], { name: newName }]);
+            if (L) L.name = newName;     // cập nhật cache → topbar + pill re-render
+            this.notification.add(`Đã đổi tên KH → ${newName}`, { type: "success" });
+            this.refreshAfterPreview();
+        } catch (e) {
+            this.notification.add("Không lưu được tên KH (thử lại).", { type: "danger" });
+            if (L) ev.target.value = L.name || "";
+        }
+    }
+
+    onPreviewNameKeydown(ev) {
+        if (ev.key === "Enter") { ev.preventDefault(); ev.target.blur(); }
+        else if (ev.key === "Escape") {
+            const L = this.previewLeadObj;
+            if (L) ev.target.value = L.name || "";
+            ev.target.blur();
+        }
+    }
     copyPreviewPhone() {
         const L = this.previewLeadObj;
         if (!L) return;
