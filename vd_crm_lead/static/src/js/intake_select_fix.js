@@ -504,9 +504,6 @@ function attachAutoSaveBlur() {
             ".o_vd_steps_panel input, .o_vd_steps_panel textarea"
         ).forEach((el) => {
             if (el.dataset.vdAutoSaveBlur === "1") return;
-            // Bỏ qua ô Many2one (Tỉnh/Huyện) — commit bất đồng bộ, auto-save
-            // sẽ race + làm mất giá trị (xem ghi chú ở _autoSaveFormSafe).
-            if (el.closest(".o-autocomplete")) return;
             el.dataset.vdAutoSaveBlur = "1";
             el.addEventListener("blur", () => {
                 if (_autoSaveDebounce) clearTimeout(_autoSaveDebounce);

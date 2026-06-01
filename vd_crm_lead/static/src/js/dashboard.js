@@ -878,7 +878,11 @@ export class VdCrmDashboard extends Component {
             resModel: "crm.lead",
             resId: p.ids[p.index],
             mode: "edit",
-            display: { controlPanel: false },
+            // BẬT control panel để có nút Lưu/Huỷ — TRƯỚC đây controlPanel:false
+            // khiến form KHÔNG có nút Save => intake (Tỉnh/Huyện...) KHÔNG bao giờ
+            // lưu xuống DB (log: 0 web_save cả ngày). Đó là gốc của "nó không lưu".
+            // CSS .o_vd_preview_modal sẽ thu gọn breadcrumb, chỉ giữ nút Lưu cho gọn.
+            display: { controlPanel: true },
             // Sau khi save → refresh cached leads để pill update màu/data
             onRecordSaved: () => this.refreshAfterPreview(),
         };
@@ -978,15 +982,22 @@ export class VdCrmDashboard extends Component {
             return;
         }
         if (L && newName === L.name) return;
-        try {
-            await this.orm.call("crm.lead", "write", [[id], { name: newName }]);
-            if (L) L.name = newName;     // cập nhật cache → topbar + pill re-render
-            this.notification.add(`Đã đổi tên KH → ${newName}`, { type: "success" });
-            this.refreshAfterPreview();
-        } catch (e) {
-            this.notification.add("Không lưu được tên KH (thử lại).", { type: "danger" });
-            if (L) ev.target.value = L.name || "";
+        // Thử tối đa 2 lần — phòng lỗi DB "could not serialize" tạm thời.
+        let lastErr = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                await this.orm.call("crm.lead", "write", [[id], { name: newName }]);
+                if (L) L.name = newName;     // cập nhật cache → topbar + pill re-render
+                this.notification.add(`Đã đổi tên KH → ${newName}`, { type: "success" });
+                this.refreshAfterPreview();
+                return;
+            } catch (e) {
+                lastErr = e;
+            }
         }
+        console.error("[dashboard] savePreviewName failed:", lastErr);
+        this.notification.add("Không lưu được tên KH — thử lại sau.", { type: "danger" });
+        if (L) ev.target.value = L.name || "";
     }
 
     onPreviewNameKeydown(ev) {
