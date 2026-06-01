@@ -46,6 +46,9 @@ export class VdCrmDashboard extends Component {
         // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
+            // Popover NHẮC NHỞ (hover tên NV) — fixed theo viewport để thoát mọi
+            // khung overflow cắt; {nv, top, left} hoặc null.
+            reminderHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
             current_user_id: 0,
@@ -827,6 +830,59 @@ export class VdCrmDashboard extends Component {
     reminderOverItems(nv) {
         const items = (nv && nv.reminder_items) || [];
         return items.filter((it) => it && it.over);
+    }
+
+    // Hover ô tên NV → mở popover NHẮC NHỞ (fixed, thoát khung cắt). Chỉ mở khi
+    // có nhóm vượt ngưỡng để khỏi nhắc vô nghĩa.
+    onReminderEnter(ev, nv) {
+        if (this._remTimer) {
+            clearTimeout(this._remTimer);
+            this._remTimer = null;
+        }
+        if (!this.reminderOverItems(nv).length) {
+            this.state.reminderHover = null;
+            return;
+        }
+        const r = ev.currentTarget.getBoundingClientRect();
+        this.state.reminderHover = {
+            nv,
+            top: Math.round(r.bottom + 6),
+            left: Math.round(r.left),
+        };
+    }
+    // Đóng có TRỄ để chuột kịp di từ tên NV xuống popover (bấm nút Lần/Gỡ).
+    onReminderLeave() {
+        if (this._remTimer) {
+            clearTimeout(this._remTimer);
+        }
+        this._remTimer = setTimeout(() => {
+            this.state.reminderHover = null;
+            this._remTimer = null;
+        }, 280);
+    }
+    onReminderPopEnter() {
+        if (this._remTimer) {
+            clearTimeout(this._remTimer);
+            this._remTimer = null;
+        }
+    }
+    get reminderPopStyle() {
+        const h = this.state.reminderHover;
+        if (!h) {
+            return "display:none;";
+        }
+        const vw = window.innerWidth || 1280;
+        const vh = window.innerHeight || 800;
+        const W = 720;
+        let left = h.left;
+        if (left + W > vw - 12) {
+            left = Math.max(12, vw - W - 12);
+        }
+        let top = h.top;
+        if (top > vh - 200) {
+            top = Math.max(12, vh - 360);
+        }
+        return `top:${top}px; left:${left}px;`;
     }
 
     // Tên gọi NGẮN cho tiêu đề (lấy từ cuối tên, viết HOA). Vd "HN - Lâm Văn Hậu" → "HẬU".
