@@ -7051,7 +7051,9 @@ body.o_vd_preview_active .o_vd_preview_body_form {
    POPOVER NHẮC NHỞ NHÂN VIÊN — hover tên NV trong bảng admin
    (user spec 2026-06-01).
    ============================================================ */
-.o_vd_kh_col_name { position: relative; }
+/* overflow:visible !important — ghi đè .o_vd_kh_col_name{overflow:hidden} (cắt
+   mất popover NHẮC NHỞ). Tên vẫn tự cắt ellipsis ở span .o_vd_kh_nv_link_name. */
+.o_vd_kh_col_name { position: relative; overflow: visible !important; }
 .o_vd_kh_col_name:hover .o_vd_kh_reminder_popover { display: flex; }
 .o_vd_kh_reminder_popover {
     display: none;
