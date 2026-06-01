@@ -7316,6 +7316,9 @@ class CrmLead(models.Model):
         # Tag 'Thi công gấp' để tách "đã có vấn đề thật" vs "chưa tìm vấn đề"
         # (khớp badge ⚠️ TÌM VẤN ĐỀ = problems_non_urgent) cho popover NHẮC NHỞ.
         _rem_urgent_tag_id = self._vd_urgent_tag_id()
+        # Ngưỡng % cho popover NHẮC NHỞ — dùng CHUNG ngưỡng "tìm vấn đề" (mặc định
+        # 20%): chỉ nhắc nhóm nào vượt ngưỡng (user spec 2026-06-01).
+        _rem_enabled, _rem_pct, _rem_grace = self._vd_problem_find_config()
 
         xlvd_stage_ids = Stage.search([('code', 'in', ['quote', 'negotiate'])]).ids
         xlvd_by_user = defaultdict(list)
@@ -7523,6 +7526,26 @@ class CrmLead(models.Model):
                 1 for l in _nv_xlvd if not l._vd_lead_has_real_problem(_rem_urgent_tag_id)
             )
             rem_xlvd_open_problem = len(_nv_xlvd) - rem_xlvd_no_problem
+            _n_urgent = len(_nv_urgent)
+            _n_xlvd = len(_nv_xlvd)
+
+            # ===== NHẮC NHỞ dạng tỷ lệ "X/Y khách (Z%)" — chỉ nhóm > ngưỡng =====
+            # Mỗi item: count/total + pct; over=True khi vượt ngưỡng (mặc định 20%).
+            # Frontend chỉ hiện item over → ẩn hết nhóm =0 hoặc dưới ngưỡng.
+            def _rem_item(icon, count, total, label):
+                pct = round(count / total * 100) if total else 0
+                return {
+                    'icon': icon, 'count': count, 'total': total, 'pct': pct,
+                    'label': label,
+                    'over': bool(_rem_enabled and total > 0 and count > 0 and pct > _rem_pct),
+                }
+            reminder_items = [
+                _rem_item('📞', rem_new_not_called, n_new, 'khách mới CHƯA gọi'),
+                _rem_item('🔁', u.vd_overdue_lead_count or 0, total_managed, 'khách cần gọi lại (quá hạn)'),
+                _rem_item('⚡', rem_urgent_no_problem, _n_urgent, 'khách thi công gấp CHƯA tìm vấn đề'),
+                _rem_item('❓', rem_xlvd_no_problem, _n_xlvd, 'khách sau báo giá CHƯA tìm vấn đề'),
+                _rem_item('🛠️', rem_xlvd_open_problem, _n_xlvd, 'khách đã có vấn đề CHƯA xử lý'),
+            ]
 
             nv_unified_flat.append({
                 'user_id': u.id,
@@ -7564,6 +7587,8 @@ class CrmLead(models.Model):
                 'rem_urgent_no_problem': rem_urgent_no_problem,
                 'rem_xlvd_no_problem': rem_xlvd_no_problem,
                 'rem_xlvd_open_problem': rem_xlvd_open_problem,
+                'reminder_items': reminder_items,
+                'reminder_threshold_pct': _rem_pct,
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 

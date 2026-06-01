@@ -245,38 +245,25 @@
 
                                                         <!-- 🔔 POPOVER NHẮC NHỞ NHÂN VIÊN (hover tên NV) -->
                                                         <div class="o_vd_kh_reminder_popover" t-on-click.stop="() => {}">
-                                                            <div class="o_vd_kh_rem_head">🔔 NHẮC NHỞ — <t t-esc="nv.full_name"/></div>
+                                                            <t t-set="overItems" t-value="reminderOverItems(nv)"/>
+                                                            <div class="o_vd_kh_rem_head">
+                                                                ANH YÊU CẦU BẠN "<t t-esc="nv.full_name"/>" PHẢI XỬ LÝ NGAY CÁC KHÁCH HÀNG SAU:
+                                                            </div>
                                                             <div class="o_vd_kh_rem_body">
-                                                                <!-- ① CẦN GỌI -->
-                                                                <div class="o_vd_kh_rem_grp">
-                                                                    <div class="o_vd_kh_rem_gtitle">① CẦN GỌI</div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_new_not_called or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        📞 <b><t t-esc="nv.rem_new_not_called or 0"/></b> khách mới CHƯA gọi
+                                                                <t t-if="overItems.length">
+                                                                    <div t-foreach="overItems" t-as="it" t-key="it_index"
+                                                                         class="o_vd_kh_rem_line o_vd_kh_rem_hot">
+                                                                        <span class="o_vd_kh_rem_ico"><t t-esc="it.icon"/></span>
+                                                                        <b><t t-esc="it.count"/>/<t t-esc="it.total"/></b> khách
+                                                                        (<b><t t-esc="it.pct"/>%</b>) <t t-esc="it.label"/>
                                                                     </div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_callback or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        🔁 <b><t t-esc="nv.rem_callback or 0"/></b> khách cần gọi lại (quá hạn)
-                                                                    </div>
+                                                                </t>
+                                                                <div t-else="" class="o_vd_kh_rem_ok">
+                                                                    ✅ Các nhóm đều dưới ngưỡng <t t-esc="nv.reminder_threshold_pct or 20"/>% — tạm ổn.
                                                                 </div>
-                                                                <!-- ② THI CÔNG GẤP -->
-                                                                <div class="o_vd_kh_rem_grp">
-                                                                    <div class="o_vd_kh_rem_gtitle">② THI CÔNG GẤP</div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_urgent or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        ⚡ <b><t t-esc="nv.rem_urgent or 0"/></b> khách gấp — cần lên phương án CHỐT
-                                                                    </div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_urgent_no_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        ❓ <b><t t-esc="nv.rem_urgent_no_problem or 0"/></b> khách gấp CHƯA tìm vấn đề
-                                                                    </div>
-                                                                </div>
-                                                                <!-- ③ XỬ LÝ VẤN ĐỀ -->
-                                                                <div class="o_vd_kh_rem_grp">
-                                                                    <div class="o_vd_kh_rem_gtitle">③ XỬ LÝ VẤN ĐỀ</div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_xlvd_no_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        ❓ <b><t t-esc="nv.rem_xlvd_no_problem or 0"/></b> khách CHƯA tìm vấn đề
-                                                                    </div>
-                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_xlvd_open_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
-                                                                        🛠️ <b><t t-esc="nv.rem_xlvd_open_problem or 0"/></b> khách đã có vấn đề CHƯA xử lý
-                                                                    </div>
-                                                                </div>
+                                                            </div>
+                                                            <div t-if="overItems.length" class="o_vd_kh_rem_deadline">
+                                                                ⏰ Thời hạn: <b>HẾT HÔM NAY</b>.<t t-if="(nv.reminder_level or 0) > 0"> Anh đã nhắc <b>lần <t t-esc="nv.reminder_level"/></b>.</t>
                                                             </div>
                                                             <!-- 5 mức nhắc -->
                                                             <div class="o_vd_kh_rem_ticks">
@@ -289,9 +276,6 @@
                                                                 </button>
                                                                 <button type="button" class="o_vd_kh_rem_reset"
                                                                         t-on-click.stop="() => this.setReminderLevel(nv, 0)">Gỡ</button>
-                                                            </div>
-                                                            <div t-if="(nv.reminder_level or 0) > 0" class="o_vd_kh_rem_msg">
-                                                                <t t-esc="reminderSentence(nv)"/>
                                                             </div>
                                                         </div>
                                                     </div>

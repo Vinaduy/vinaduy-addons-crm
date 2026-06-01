@@ -822,30 +822,26 @@ export class VdCrmDashboard extends Component {
         }
     }
 
-    reminderSummary(nv) {
-        const parts = [];
-        if (nv.rem_new_not_called) parts.push(`${nv.rem_new_not_called} mới chưa gọi`);
-        if (nv.rem_callback) parts.push(`${nv.rem_callback} cần gọi lại`);
-        if (nv.rem_urgent) parts.push(`${nv.rem_urgent} thi công gấp`);
-        if (nv.rem_urgent_no_problem) parts.push(`${nv.rem_urgent_no_problem} gấp chưa tìm vấn đề`);
-        if (nv.rem_xlvd_no_problem) parts.push(`${nv.rem_xlvd_no_problem} chưa tìm vấn đề`);
-        if (nv.rem_xlvd_open_problem) parts.push(`${nv.rem_xlvd_open_problem} đã có vấn đề chưa xử lý`);
-        return parts.length
-            ? `(Đang tồn: ${parts.join(", ")}.)`
-            : "(Hiện không còn tồn đọng — giữ vững nhé!)";
+    // Chỉ các nhóm VƯỢT NGƯỠNG (backend tính over=True khi pct > ngưỡng, mặc
+    // định 20%). Nhóm =0 hoặc dưới ngưỡng bị ẩn → popover chỉ nêu số gấp.
+    reminderOverItems(nv) {
+        const items = (nv && nv.reminder_items) || [];
+        return items.filter((it) => it && it.over);
     }
 
+    // Câu nhắc đầy đủ (admin copy gửi NV nếu cần). Khớp nội dung popover.
     reminderSentence(nv) {
+        const items = this.reminderOverItems(nv);
+        if (!items.length) return "";
+        const lines = items.map(
+            (it) => `${it.icon} ${it.count}/${it.total} khách (${it.pct}%) ${it.label}`
+        );
         const lvl = nv.reminder_level || 0;
-        if (!lvl) return "";
-        const BASE = {
-            1: "🔔 NHẮC LẦN 1: Em xử lý ngay KH tồn nhé — gọi KH mới, lên phương án chốt KH gấp, tìm vấn đề KH sau báo giá.",
-            2: "🔔 NHẮC LẦN 2: Vẫn còn KH chưa xử lý — em ưu tiên hoàn thành trong hôm nay.",
-            3: "⚠️ NHẮC LẦN 3: Đây là lần thứ 3 — em xử lý dứt điểm, tránh ảnh hưởng chỉ tiêu.",
-            4: "⚠️ NHẮC LẦN 4: Tồn đọng kéo dài — em báo lý do + cam kết thời gian xử lý.",
-            5: "🛑 NHẮC LẦN 5 (CUỐI): Đã nhắc nhiều lần chưa cải thiện — sẽ khoá nhận/mở KH mới + xem xét đánh giá.",
-        };
-        return `${BASE[lvl] || ""} ${this.reminderSummary(nv)}`;
+        const lvlTxt = lvl ? ` Anh đã nhắc lần ${lvl}.` : "";
+        return (
+            `ANH YÊU CẦU BẠN "${nv.full_name}" PHẢI XỬ LÝ NGAY CÁC KHÁCH HÀNG SAU:\n` +
+            `${lines.join("\n")}\n⏰ Thời hạn: HẾT HÔM NAY.${lvlTxt}`
+        );
     }
 
     /**
