@@ -19,12 +19,14 @@ export class VdStringeeAssignmentBoard extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
+        this.action = useService("action");
         this.state = useState({
             carriers: [],
             users: [],
             loading: true,
             search: "",
             busy: false,
+            hover: null, // {number, top, left}
         });
         onWillStart(() => this.load());
     }
@@ -49,11 +51,41 @@ export class VdStringeeAssignmentBoard extends Component {
     }
 
     onDragStart(ev, number, carrier) {
+        this.state.hover = null; // ẩn popover khi bắt đầu kéo
         ev.dataTransfer.setData(
             "text/plain",
             JSON.stringify({ id: number.id, carrier })
         );
         ev.dataTransfer.effectAllowed = "copy";
+    }
+
+    // ---- Hover popover: bảng chi tiết số (NV / dùng từ / phút gọi / cuộc) ----
+    onChipEnter(ev, number) {
+        const r = ev.currentTarget.getBoundingClientRect();
+        // position:fixed theo viewport → không bị cắt bởi vùng cuộn của kho số.
+        this.state.hover = { number, top: Math.round(r.bottom + 6), left: Math.round(r.left) };
+    }
+    onChipLeave() {
+        this.state.hover = null;
+    }
+    get popStyle() {
+        const h = this.state.hover;
+        if (!h) {
+            return "";
+        }
+        return `top:${h.top}px; left:${h.left}px;`;
+    }
+
+    // ---- Nút mở popup (full màn hình) ----
+    openDistribute() {
+        this.action.doAction("vd_stringee.action_vd_stringee_distribute_wizard", {
+            onClose: () => this.load(),
+        });
+    }
+    openLookup() {
+        this.action.doAction("vd_stringee.action_users_stringee_matrix", {
+            onClose: () => this.load(),
+        });
     }
 
     onDragOver(ev) {

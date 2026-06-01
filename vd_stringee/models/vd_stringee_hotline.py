@@ -155,10 +155,58 @@ class VdStringeeHotline(models.Model):
             raise AccessError(_('Bạn không có quyền phân bổ số tổng đài.'))
 
     @api.model
+    def _board_call_stats(self, numbers):
+        """Thống kê gọi theo (số tổng đài, NV): tổng giây + số cuộc + lần gọi ĐẦU.
+        Dùng cho popover hover. Bọc try/except để lỗi thống kê không làm sập bảng."""
+        stats = {}
+        if not numbers:
+            return stats
+        try:
+            groups = self.env['stringee.call'].read_group(
+                [('caller_number', 'in', list(numbers)), ('user_id', '!=', False)],
+                ['duration:sum', 'create_date:min'],
+                ['caller_number', 'user_id'],
+                lazy=False,
+            )
+            for g in groups:
+                uid = g['user_id'][0] if g.get('user_id') else False
+                stats[(g['caller_number'], uid)] = {
+                    'seconds': g.get('duration') or 0,
+                    'count': g.get('__count') or 0,
+                    'first': g.get('create_date'),
+                }
+        except Exception:
+            return {}
+        return stats
+
+    @api.model
     def get_assignment_board(self):
-        """Dữ liệu cho bảng kéo-thả: kho số gom theo mạng + danh sách NV kèm số đã gán."""
+        """Dữ liệu cho bảng kéo-thả: kho số gom theo mạng + danh sách NV kèm số đã gán.
+        Mỗi số kèm 'detail' = NV nào / dùng từ bao giờ / tổng phút gọi / số cuộc."""
         self._check_board_access()
         hotlines = self.search([('active', '=', True)])
+        stats = self._board_call_stats(hotlines.mapped('number'))
+        today = fields.Date.context_today(self)
+
+        def _detail(h):
+            rows = []
+            for u in h.assigned_user_ids.sorted('name'):
+                st = stats.get((h.number, u.id)) or {}
+                secs = st.get('seconds') or 0
+                first = st.get('first')
+                first_date = None
+                if first:
+                    first_date = (first.date() if hasattr(first, 'date')
+                                  else fields.Datetime.to_datetime(first).date())
+                rows.append({
+                    'user': u.name,
+                    'minutes': int(round(secs / 60.0)),
+                    'count': st.get('count') or 0,
+                    'first': first_date.strftime('%d/%m/%Y') if first_date else '',
+                    'days': (today - first_date).days if first_date else None,
+                })
+            return rows
+
         by_carrier = {}
         for h in hotlines:
             by_carrier.setdefault(h.carrier, []).append({
@@ -166,6 +214,7 @@ class VdStringeeHotline(models.Model):
                 'number': h.number,
                 'name': h.name or '',
                 'user_count': len(h.assigned_user_ids),
+                'detail': _detail(h),
             })
         carriers = []
         for code, label in _CARRIER_ORDER:

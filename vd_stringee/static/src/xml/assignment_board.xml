@@ -22,8 +22,9 @@
                                 <t t-foreach="c.numbers" t-as="n" t-key="n.id">
                                     <span class="o_vd_chip" t-att-data-carrier="c.code"
                                           draggable="true"
-                                          t-att-title="'Đang dùng bởi ' + n.user_count + ' NV'"
-                                          t-on-dragstart="(ev) => this.onDragStart(ev, n, c.code)">
+                                          t-on-dragstart="(ev) => this.onDragStart(ev, n, c.code)"
+                                          t-on-mouseenter="(ev) => this.onChipEnter(ev, n)"
+                                          t-on-mouseleave="() => this.onChipLeave()">
                                         <span class="o_vd_chip_num" t-esc="n.number"/>
                                         <span class="o_vd_chip_count" t-esc="n.user_count"/>
                                     </span>
@@ -41,6 +42,16 @@
                         <span class="o_vd_dim ms-2">
                             <t t-esc="filteredUsers.length"/>/<t t-esc="state.users.length"/> NV
                         </span>
+                        <div class="o_vd_toolbar_btns ms-auto">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    t-on-click="() => this.openDistribute()">
+                                <i class="fa fa-magic me-1"/>Thêm NV &amp; chia đều
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm ms-2"
+                                    t-on-click="() => this.openLookup()">
+                                <i class="fa fa-table me-1"/>Bảng tra cứu
+                            </button>
+                        </div>
                     </div>
                     <div class="o_vd_user_grid">
                         <t t-foreach="filteredUsers" t-as="u" t-key="u.id">
@@ -70,6 +81,34 @@
                 </div>
 
             </div>
+
+            <!-- Popover chi tiết số (hiện khi hover chip kho số) -->
+            <div t-if="state.hover" class="o_vd_pop" t-att-style="popStyle">
+                <div class="o_vd_pop_h">
+                    <i class="fa fa-phone me-1"/><t t-esc="state.hover.number.number"/>
+                    <span class="o_vd_dim ms-1">· <t t-esc="state.hover.number.detail.length"/> NV</span>
+                </div>
+                <table class="o_vd_pop_tbl" t-if="state.hover.number.detail.length">
+                    <thead>
+                        <tr><th>Nhân viên</th><th>Dùng từ</th><th class="text-end">Phút gọi</th><th class="text-end">Cuộc</th></tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="state.hover.number.detail" t-as="d" t-key="d_index">
+                            <tr>
+                                <td t-esc="d.user"/>
+                                <td>
+                                    <t t-if="d.first"><t t-esc="d.first"/> <span class="o_vd_dim">(<t t-esc="d.days"/>n)</span></t>
+                                    <t t-else=""><span class="o_vd_dim">chưa gọi</span></t>
+                                </td>
+                                <td class="text-end" t-esc="d.minutes"/>
+                                <td class="text-end" t-esc="d.count"/>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <div t-else="" class="o_vd_dim o_vd_pop_empty">Chưa gán cho NV nào.</div>
+            </div>
+
         </div>
     </t>
 

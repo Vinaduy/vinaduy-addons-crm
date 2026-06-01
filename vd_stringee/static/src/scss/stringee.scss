@@ -183,4 +183,61 @@
     .o_vd_pal_carrier[data-carrier="vietnamobile"] .o_vd_pal_carrier_h::before { background: #d6409f; }
     .o_vd_pal_carrier[data-carrier="itelecom"]     .o_vd_pal_carrier_h::before { background: #f79009; }
     .o_vd_pal_carrier[data-carrier="gmobile"]      .o_vd_pal_carrier_h::before { background: #7a5af8; }
+
+    /* Nút trên thanh công cụ NV */
+    .o_vd_toolbar_btns { display: flex; align-items: center; }
+}
+
+/* ===== Popover chi tiết số (hover chip kho số) ===== */
+.o_vd_pop {
+    position: fixed;
+    z-index: 1080;
+    min-width: 300px;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, .18);
+    padding: 10px 12px;
+    pointer-events: none; /* không chặn kéo-thả */
+    font-size: 12.5px;
+
+    .o_vd_pop_h {
+        font-weight: 700;
+        color: #1d2939;
+        margin-bottom: 6px;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_vd_pop_tbl {
+        width: 100%;
+        border-collapse: collapse;
+        th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            color: #667085;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-bottom: 1px solid #eef0f2;
+            text-align: left;
+        }
+        td {
+            padding: 3px 6px;
+            border-bottom: 1px solid #f5f6f7;
+            color: #344054;
+            white-space: nowrap;
+        }
+        tr:last-child td { border-bottom: 0; }
+    }
+    .o_vd_pop_empty { padding: 2px 0; }
+}
+
+/* ===== Popup FULL MÀN HÌNH cho wizard chia đều + bảng tra cứu ===== */
+.o_dialog:has(.o_vd_dlg_fs) .modal-dialog {
+    max-width: 96vw;
+    width: 96vw;
+    margin: 1.5rem auto;
+}
+.o_dialog:has(.o_vd_dlg_fs) .modal-content {
+    height: 90vh;
 }

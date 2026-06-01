@@ -44,7 +44,7 @@
         <field name="model">res.users</field>
         <field name="arch" type="xml">
             <list string="Số tổng đài theo NV" create="false" delete="false"
-                  default_order="name" class="o_vd_stringee_matrix">
+                  default_order="name" class="o_vd_stringee_matrix o_vd_dlg_fs">
                 <field name="name" string="Nhân viên"/>
                 <field name="stringee_num_viettel" string="Viettel"/>
                 <field name="stringee_num_mobi" string="MobiFone"/>
@@ -85,6 +85,7 @@
         <field name="view_id" ref="view_users_stringee_matrix_list"/>
         <field name="search_view_id" ref="view_users_stringee_matrix_search"/>
         <field name="domain">[('share','=',False),('active','=',True)]</field>
+        <field name="target">new</field>
         <field name="context">{'search_default_has_hotline': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Bảng phân bổ số tổng đài theo nhân viên.</p>

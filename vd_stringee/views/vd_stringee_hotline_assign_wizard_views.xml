@@ -45,7 +45,7 @@
         <field name="name">vd.stringee.hotline.distribute.wizard.form</field>
         <field name="model">vd.stringee.hotline.distribute.wizard</field>
         <field name="arch" type="xml">
-            <form string="Thêm NV và chia đều số tổng đài">
+            <form string="Thêm NV và chia đều số tổng đài" class="o_vd_dlg_fs">
                 <sheet>
                     <div class="oe_title">
                         <h2>Thêm NV và chia đều số tổng đài</h2>
