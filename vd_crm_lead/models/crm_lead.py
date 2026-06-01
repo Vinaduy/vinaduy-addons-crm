@@ -5294,6 +5294,56 @@ class CrmLead(models.Model):
         return result
 
     @api.model
+    def vd_dashboard_help_live(self):
+        """User spec 2026-06-01: trạng thái 🆘 CẦN HỖ TRỢ LIVE của từng NV để
+        admin poll mỗi 5s — NV bấm SOS là hiện ngay, KHÔNG cần F5.
+
+        Returns: {user_id: {'count', 'waiting', 'leads': [{lead_id,name,phone,
+                  scope,status,problems}]}}  (≤3 KH/NV, waiting lên trước).
+        """
+        if not self._dashboard_is_manager():
+            return {}
+        today = fields.Date.context_today(self)
+        from collections import defaultdict as _dd
+        leads = self.search([
+            ('vd_need_help', '=', True),
+            ('active', '=', True),
+            ('stage_is_won', '=', False),
+            ('stage_is_lost', '=', False),
+        ], order='vd_need_help_at asc')
+        result = {}
+        for l in leads:
+            if not l._vd_need_help_active(today):
+                continue
+            uid = l.user_id.id
+            if not uid:
+                continue
+            e = result.setdefault(uid, {'count': 0, 'waiting': 0, 'leads': []})
+            e['count'] += 1
+            status = l.vd_help_status or 'waiting'
+            if status == 'waiting':
+                e['waiting'] += 1
+            if len(e['leads']) < 3:
+                open_probs = l.vd_lead_problem_ids.filtered(
+                    lambda p: p.status in ('open', 'in_progress')
+                )
+                e['leads'].append({
+                    'lead_id': l.id,
+                    'name': l.name or l.partner_name or 'KH',
+                    'phone': l.phone or '',
+                    'scope': l.vd_need_help_scope or 'today',
+                    'status': status,
+                    'problems': [{
+                        'name': (p.tag_id.name if p.tag_id else p.name) or 'Vấn đề',
+                        'icon': p.tag_id.icon if p.tag_id else '🔸',
+                        'status': p.status,
+                    } for p in open_probs[:3]],
+                })
+        for e in result.values():
+            e['leads'].sort(key=lambda x: x['status'] == 'helping')
+        return result
+
+    @api.model
     def dashboard_users(self):
         """Danh sách NV để manager chọn xem dashboard theo từng NV."""
         if not self._dashboard_is_manager():
@@ -5508,15 +5558,55 @@ class CrmLead(models.Model):
             'performance': performance,
         }
 
+    def _dashboard_new_bucket_domain(self, user_domain):
+        """Domain bucket KHÁCH MỚI — dùng CHUNG cho màn NV (dashboard_leads) và
+        grid admin (newcust_by_user) để 2 chỗ luôn khớp số.
+
+        Gồm:
+          - KH stage 'new', VÀ
+          - KH stage Báo giá/Đàm phán NHƯNG chưa CHỐT thông tin
+            (vd_intake_locked=False HOẶC vd_intake_complete=False).
+
+        Lý do (user spec 2026-06-01 — "khách mất tích"): THI CÔNG GẤP và XỬ LÝ
+        VẤN ĐỀ đều yêu cầu locked=True AND complete=True. KH đã sang Báo giá
+        nhưng NV chưa CHỐT thông tin không lọt vào 2 bảng đó, cũng không phải
+        stage 'new' → biến mất khỏi mọi bảng dù vẫn đếm trong Tổng KH. Gom
+        chúng về KHÁCH MỚI (frontend hiện pill xanh lá + 💰, tier -1) đúng ý
+        "chưa CHỐT = vẫn là khách mới".
+
+        LOẠI vd_no_quote_state='pending' (→ bucket THAM KHẢO riêng).
+        """
+        Stage = self.env['crm.stage']
+        new_ids = Stage.search([('code', '=', 'new')]).ids
+        mid_ids = Stage.search([('code', 'in', ['quote', 'negotiate'])]).ids
+        if mid_ids:
+            stage_clause = [
+                '|',
+                    ('stage_id', 'in', new_ids),
+                    '&', ('stage_id', 'in', mid_ids),
+                         '|', ('vd_intake_locked', '=', False),
+                              ('vd_intake_complete', '=', False),
+            ]
+        else:
+            stage_clause = [('stage_id', 'in', new_ids)]
+        return user_domain + [
+            ('active', '=', True),
+            ('vd_no_quote_state', '!=', 'pending'),
+        ] + stage_clause
+
     @api.model
-    def dashboard_leads(self, stage_id, user_id=None, limit=80):
+    def dashboard_leads(self, stage_id, user_id=None, limit=500):
+        # User spec 2026-06-01: cap 80 cũ cắt cụt danh sách (NV >80 KH mới hiện
+        # thiếu → lệch số với bảng admin). Nâng 500 để hiện đủ + khớp số đếm.
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         stage = self.env['crm.stage'].browse(stage_id)
-        domain = domain_user + [('stage_id', '=', stage_id)]
-        # Round 11: KH explicit "CHƯA BÁO GIÁ" chuyển sang THAM KHẢO bucket
-        # → loại khỏi stage KHÁCH MỚI để tránh hiển thị 2 chỗ.
+        # KHÁCH MỚI = stage 'new' + KH Báo giá/Đàm phán chưa CHỐT (xem
+        # _dashboard_new_bucket_domain). Round 11: loại "CHƯA BÁO GIÁ"
+        # (vd_no_quote_state='pending') → THAM KHẢO bucket riêng.
         if stage.code == 'new':
-            domain.append(('vd_no_quote_state', '!=', 'pending'))
+            domain = self._dashboard_new_bucket_domain(domain_user)
+        else:
+            domain = domain_user + [('stage_id', '=', stage_id)]
         leads = self.search(
             domain, limit=limit,
             order='probability desc, callback_date asc, create_date desc',
@@ -7056,6 +7146,26 @@ class CrmLead(models.Model):
             for l in xlvd_leads_all:
                 xlvd_by_user[l.user_id.id].append(l)
 
+        # ===== KHÁCH MỚI (user spec 2026-06-01: KHỚP số với màn NV) =====
+        # Bảng "Khách mới" màn NV = leadsNoProblems = dashboard_leads('new')
+        # → dùng CHUNG _dashboard_new_bucket_domain (stage 'new' + KH Báo giá/
+        # Đàm phán chưa CHỐT, KHÔNG vd_no_quote_state='pending') TRỪ KH "chưa
+        # gọi được" (unreachable). KHÔNG lọc theo ngày, KHÔNG cap 80 như trước
+        # → admin đếm đúng bằng bên trong NV. Tính 1 lần cho toàn bộ NV.
+        newcust_by_user = defaultdict(list)
+        if new_stage and sales_user_ids:
+            new_base_all = self.search(
+                self._dashboard_new_bucket_domain([('user_id', 'in', sales_user_ids)]),
+                order='create_date desc',
+            )
+            unreach_cand = new_base_all.filtered(lambda l: (l.call_count or 0) >= 3)
+            unreachable_ids = set(
+                self._dashboard_unreachable_ids(unreach_cand, limit=100000)
+            )
+            for l in new_base_all:
+                if l.id not in unreachable_ids:
+                    newcust_by_user[l.user_id.id].append(l)
+
         def _ld_basic(l):
             return {
                 'lead_id': l.id,
@@ -7205,7 +7315,9 @@ class CrmLead(models.Model):
             n_resolved = len(resolved_leads)
             n_in_prog = len(in_progress_qs)
             n_no_problem = len(no_problem_qs)
-            n_new = len(new_leads_qs)
+            # KH MỚI = bucket khớp màn NV (đã trừ pending + unreachable, không cap)
+            nv_new = newcust_by_user.get(u.id, [])
+            n_new = len(nv_new)
             # Tổng KH NV quản lý: tất cả lead active gán cho NV (không filter
             # theo date — total real, không phụ thuộc khoảng lọc)
             total_managed = self.search_count([
@@ -7231,7 +7343,7 @@ class CrmLead(models.Model):
                 'no_problem_count': n_no_problem,
                 'no_problem_leads': [_ld_basic(l) for l in no_problem_qs[:50]],
                 'new_count': n_new,
-                'new_leads': [_ld_basic(l) for l in new_leads_qs[:50]],
+                'new_leads': [_ld_basic(l) for l in nv_new[:50]],
                 # User spec 2026-05-29: KH mới HÔM NAY
                 'new_today_count': len(new_today_qs),
                 'new_today_leads': [_ld_basic(l) for l in new_today_qs[:50]],

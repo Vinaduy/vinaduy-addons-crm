@@ -256,6 +256,36 @@ export class VdCrmDashboard extends Component {
         } catch (err) {
             // Silent fail — không spam console khi WS đứt / restart server
         }
+        // User spec 2026-06-01: SOS phải LIVE — poll trạng thái hỗ trợ mỗi 5s
+        // rồi ghi thẳng vào nv trong analytics (không cần F5 mới hiện).
+        if (this.state.is_manager) {
+            try {
+                const help = await this.orm.call(
+                    "crm.lead", "vd_dashboard_help_live", []
+                );
+                this._applyLiveHelp(help || {});
+            } catch (err) { /* silent */ }
+        }
+    }
+
+    /** Ghi đè help_count/help_waiting/help_leads của từng NV bằng dữ liệu LIVE. */
+    _applyLiveHelp(help) {
+        const ana = this.state.analytics;
+        if (!ana || !ana.kh_by_team) return;
+        for (const grp of ana.kh_by_team) {
+            for (const nv of grp.nvs) {
+                const h = help[nv.user_id];
+                if (h) {
+                    nv.help_count = h.count;
+                    nv.help_waiting = h.waiting;
+                    nv.help_leads = h.leads;
+                } else if (nv.help_count) {
+                    nv.help_count = 0;
+                    nv.help_waiting = 0;
+                    nv.help_leads = [];
+                }
+            }
+        }
     }
 
     /** Helper cho XML: lấy info call live của 1 NV. */
