@@ -5,13 +5,20 @@
     <menuitem id="menu_stringee_calls" name="Lịch sử cuộc gọi"
               parent="menu_stringee_root" action="action_stringee_call" sequence="10"/>
 
-    <menuitem id="menu_stringee_hotline" name="Số tổng đài"
-              parent="menu_stringee_root" action="action_vd_stringee_hotline"
-              sequence="20"
+    <!-- Menu CHÍNH: bảng ma trận NV x nha mang (tra 1 NV thay ngay du so). -->
+    <menuitem id="menu_stringee_matrix" name="Số tổng đài theo NV"
+              parent="menu_stringee_root" action="action_users_stringee_matrix"
+              sequence="12"
               groups="base.group_system,sales_team.group_sale_manager"/>
 
     <menuitem id="menu_stringee_distribute" name="Thêm NV và chia đều số"
               parent="menu_stringee_root" action="action_vd_stringee_distribute_wizard"
               sequence="15"
+              groups="base.group_system,sales_team.group_sale_manager"/>
+
+    <!-- Menu phu: kho so tong dai (them/bot so). -->
+    <menuitem id="menu_stringee_hotline" name="Kho số tổng đài"
+              parent="menu_stringee_root" action="action_vd_stringee_hotline"
+              sequence="20"
               groups="base.group_system,sales_team.group_sale_manager"/>
 </odoo>

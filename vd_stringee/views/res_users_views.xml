@@ -36,4 +36,54 @@
             </xpath>
         </field>
     </record>
+
+    <!-- ===== BẢNG MA TRẬN: mỗi dòng 1 NV, 5 cột = 5 nhà mạng, ô = số được gán =====
+         Tra 1 NV: gõ tên vào ô tìm kiếm trên cùng → thấy ngay đủ số của họ. -->
+    <record id="view_users_stringee_matrix_list" model="ir.ui.view">
+        <field name="name">res.users.stringee.matrix.list</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <list string="Số tổng đài theo NV" create="false" delete="false"
+                  default_order="name" class="o_vd_stringee_matrix">
+                <field name="name" string="Nhân viên"/>
+                <field name="stringee_num_viettel" string="Viettel"/>
+                <field name="stringee_num_mobi" string="MobiFone"/>
+                <field name="stringee_num_vina" string="Vinaphone"/>
+                <field name="stringee_num_vietnamobile" string="Vietnamobile"/>
+                <field name="stringee_num_itelecom" string="iTel"/>
+                <field name="stringee_missing_main" string="Thiếu mạng"
+                       decoration-danger="stringee_missing_main != ''"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_users_stringee_matrix_search" model="ir.ui.view">
+        <field name="name">res.users.stringee.matrix.search</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <search string="Tìm nhân viên">
+                <field name="name" string="Nhân viên"
+                       filter_domain="['|',('name','ilike',self),('login','ilike',self)]"/>
+                <filter string="Đã gán số tổng đài" name="has_hotline"
+                        domain="[('stringee_hotline_ids','!=',False)]"/>
+                <filter string="Là agent (có Stringee ID)" name="is_agent"
+                        domain="[('stringee_user_id','!=',False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_users_stringee_matrix" model="ir.actions.act_window">
+        <field name="name">Số tổng đài theo NV</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_users_stringee_matrix_list"/>
+        <field name="search_view_id" ref="view_users_stringee_matrix_search"/>
+        <field name="domain">[('share','=',False),('active','=',True)]</field>
+        <field name="context">{'search_default_has_hotline': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Bảng phân bổ số tổng đài theo nhân viên.</p>
+            <p>Mỗi dòng 1 NV, mỗi cột 1 nhà mạng. Gõ tên NV ở ô tìm kiếm để xem ngay
+               các số họ đang dùng. Bỏ bộ lọc "Đã gán số" để thấy cả NV chưa có số.</p>
+        </field>
+    </record>
 </odoo>

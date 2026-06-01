@@ -1,4 +1,4 @@
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 
 from .vd_stringee_hotline import vd_carrier_from_number
 
@@ -37,6 +37,37 @@ class ResUsers(models.Model):
         help='Mỗi NV cần đủ 1 Viettel + 1 Vinaphone + 1 MobiFone. Khi gọi, hệ '
              'thống TỰ lấy số CÙNG MẠNG với KH; không có số cùng mạng → báo lỗi.',
     )
+
+    # Số đang gán theo từng mạng — để dựng bảng MA TRẬN "NV × nhà mạng":
+    # mỗi dòng 1 NV, mỗi cột 1 mạng, ô = số được gán. Tra 1 NV thấy ngay đủ số.
+    stringee_num_viettel = fields.Char(string='Viettel', compute='_compute_stringee_nums')
+    stringee_num_mobi = fields.Char(string='MobiFone', compute='_compute_stringee_nums')
+    stringee_num_vina = fields.Char(string='Vinaphone', compute='_compute_stringee_nums')
+    stringee_num_vietnamobile = fields.Char(string='Vietnamobile', compute='_compute_stringee_nums')
+    stringee_num_itelecom = fields.Char(string='iTel', compute='_compute_stringee_nums')
+    stringee_missing_main = fields.Char(
+        string='Thiếu mạng', compute='_compute_stringee_nums',
+        help='Các mạng chính (Viettel/Vinaphone/MobiFone) NV chưa được gán số.',
+    )
+
+    @api.depends('stringee_hotline_ids', 'stringee_hotline_ids.number',
+                 'stringee_hotline_ids.carrier', 'stringee_hotline_ids.active')
+    def _compute_stringee_nums(self):
+        for user in self:
+            buckets = {'viettel': [], 'mobi': [], 'vina': [],
+                       'vietnamobile': [], 'itelecom': []}
+            for h in user.stringee_hotline_ids:
+                if h.active and h.carrier in buckets:
+                    buckets[h.carrier].append(h.number)
+            user.stringee_num_viettel = ', '.join(buckets['viettel'])
+            user.stringee_num_mobi = ', '.join(buckets['mobi'])
+            user.stringee_num_vina = ', '.join(buckets['vina'])
+            user.stringee_num_vietnamobile = ', '.join(buckets['vietnamobile'])
+            user.stringee_num_itelecom = ', '.join(buckets['itelecom'])
+            missing = [lbl for code, lbl in (
+                ('viettel', 'Viettel'), ('vina', 'Vinaphone'), ('mobi', 'MobiFone'))
+                if not buckets[code]]
+            user.stringee_missing_main = ', '.join(missing)
 
     def _vd_resolve_outbound(self, to_number):
         """Chọn số gọi ra CÙNG MẠNG với KH (to_number).
