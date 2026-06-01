@@ -41,4 +41,56 @@
         <field name="target">new</field>
     </record>
 
+    <record id="view_vd_stringee_distribute_wizard_form" model="ir.ui.view">
+        <field name="name">vd.stringee.hotline.distribute.wizard.form</field>
+        <field name="model">vd.stringee.hotline.distribute.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Thêm NV và chia đều số tổng đài">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Thêm NV và chia đều số tổng đài</h2>
+                    </div>
+                    <group>
+                        <field name="user_ids" widget="many2many_tags"
+                               options="{'no_create': True, 'no_create_edit': True}"
+                               placeholder="Chọn 1 hoặc nhiều NV..."/>
+                    </group>
+                    <separator string="Nhà mạng cần chia số"/>
+                    <group col="3">
+                        <field name="do_viettel"/>
+                        <field name="do_mobi"/>
+                        <field name="do_vina"/>
+                        <field name="do_vietnamobile"/>
+                        <field name="do_itelecom"/>
+                        <field name="do_gmobile"/>
+                    </group>
+                    <group>
+                        <field name="overwrite"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle me-1"/>
+                        <field name="preview_text" class="oe_inline" readonly="1"/>
+                    </div>
+                    <p class="text-muted small">
+                        Hệ thống tự gán mỗi NV vào số <b>ít người dùng nhất</b> của từng mạng
+                        (chia đều). Mạng chỉ có 1 số (iTel, Vietnamobile) thì tất cả NV
+                        dùng chung. NV đã có số của mạng đó sẽ được giữ nguyên, trừ khi
+                        bật "Gán lại".
+                    </p>
+                </sheet>
+                <footer>
+                    <button string="Chia đều" name="action_distribute" type="object" class="btn-primary"/>
+                    <button string="Huỷ" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_stringee_distribute_wizard" model="ir.actions.act_window">
+        <field name="name">Thêm NV và chia đều số</field>
+        <field name="res_model">vd.stringee.hotline.distribute.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
 </odoo>

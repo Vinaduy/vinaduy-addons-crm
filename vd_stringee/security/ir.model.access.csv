@@ -5,3 +5,4 @@ access_vd_stringee_hotline_user,vd.stringee.hotline read,model_vd_stringee_hotli
 access_vd_stringee_hotline_manager,vd.stringee.hotline manager,model_vd_stringee_hotline,sales_team.group_sale_manager,1,1,1,1
 access_vd_stringee_hotline_admin,vd.stringee.hotline admin,model_vd_stringee_hotline,base.group_system,1,1,1,1
 access_vd_stringee_hotline_assign_wizard_user,vd.stringee.hotline.assign.wizard user,model_vd_stringee_hotline_assign_wizard,base.group_user,1,1,1,1
+access_vd_stringee_hotline_distribute_wizard_user,vd.stringee.hotline.distribute.wizard user,model_vd_stringee_hotline_distribute_wizard,base.group_user,1,1,1,1

@@ -1,3 +1,39 @@
 /* (Global floating call indicator đã bị bỏ — user chỉ muốn 1 nút FAB form
    morph xanh→cam→đỏ. SCSS cho nút đó nằm trong vd_crm_lead/lead_form.scss
    dưới class .o_vd_call_btn .o_vd_call_btn_idle/ringing/incall.) */
+
+/* Bảng số tổng đài Stringee — Kanban gom nhóm theo nhà mạng.
+   Mỗi thẻ = 1 số; viền màu theo tải để "nhìn cái biết" số nào trống. */
+.o_vd_hotline_kanban {
+    .o_vd_hotline_card {
+        padding: 8px 10px;
+        border-left: 3px solid transparent;
+
+        &.o_vd_no_user {
+            border-left-color: #adb5bd;
+            background-color: #f8f9fa;
+        }
+        &.o_vd_has_user {
+            border-left-color: #0d6efd;
+        }
+    }
+
+    .o_vd_hotline_head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .o_vd_hotline_number {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+    .o_vd_hotline_users {
+        color: #495057;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+}
