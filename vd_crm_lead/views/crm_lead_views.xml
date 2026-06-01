@@ -242,9 +242,13 @@
                                 </div>
                                 <div class="o_vd_step_body o_vd_step_body_2col">
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
+                                        <!-- KHÔNG đặt domain ở field (client không xác minh được
+                                             vd_is_active_2025 -> tự xoá giá trị Tỉnh khi onchange).
+                                             Lọc 34 tỉnh qua context vd_province_picker trong
+                                             _name_search. (fix mất tỉnh 2026-06-01) -->
                                         <field name="vd_intake_province_id" nolabel="1"
                                                options="{'no_create': True, 'no_open': True}"
-                                               domain="[('country_id.code', '=', 'VN'), ('vd_is_active_2025', '=', True)]"
+                                               context="{'vd_province_picker': 1}"
                                                placeholder="Tỉnh / Thành phố?"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
