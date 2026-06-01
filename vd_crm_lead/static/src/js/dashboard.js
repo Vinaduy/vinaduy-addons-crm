@@ -755,6 +755,21 @@ export class VdCrmDashboard extends Component {
     }
 
     openLead(leadId) {
+        // KHOÁ "Yêu cầu tìm vấn đề" (user spec 2026-06-01): khi NV bị khoá,
+        // CHẶN mở thẻ KHÁCH MỚI (ép NV xử lý KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ
+        // trước). KHÔNG chặn TCG/XLVD để NV còn vào tạo vấn đề mà gỡ khoá.
+        // Chỉ áp cho NV xem dashboard của CHÍNH MÌNH (admin xem hộ vẫn mở được).
+        if (this.state.problem_find?.locked
+                && this.state.selected_user_id
+                && this.state.current_user_id === this.state.selected_user_id
+                && (this.leadsNoProblems || []).some(l => l.id === leadId)) {
+            this.notification.add(
+                "🔒 Bạn đang bị KHOÁ do chưa tìm vấn đề. Hãy vào THI CÔNG GẤP / "
+                + "XỬ LÝ VẤN ĐỀ tạo vấn đề cho khách để được mở lại.",
+                { type: "warning", title: "Khoá mở khách mới" },
+            );
+            return;
+        }
         // Mở preview INLINE — render từ data đã cache → 0 RPC, mở instantly.
         let ids;
         if (this.isNewStageSplit) {
@@ -791,6 +806,46 @@ export class VdCrmDashboard extends Component {
         const ids = leads.map(l => l.id);
         this.state.previewLead = { open: true, ids, index: 0 };
         this._lockScroll();
+    }
+
+    // ===== NHẮC NHỞ NHÂN VIÊN (user spec 2026-06-01) =====
+    // Admin tick "Lần N" → lưu mức nhắc vào res.users; hiện ✓ + câu nhắc kèm
+    // số liệu tồn đọng để admin chụp gửi NV. "Gỡ" = về 0.
+    async setReminderLevel(nv, level) {
+        try {
+            const newLevel = await this.orm.call(
+                "res.users", "vd_set_reminder_level", [nv.user_id, level],
+            );
+            nv.reminder_level = newLevel;   // mutate reactive analytics → re-render
+        } catch (err) {
+            this.notification.add("Không lưu được mức nhắc nhở.", { type: "danger" });
+        }
+    }
+
+    reminderSummary(nv) {
+        const parts = [];
+        if (nv.rem_new_not_called) parts.push(`${nv.rem_new_not_called} mới chưa gọi`);
+        if (nv.rem_callback) parts.push(`${nv.rem_callback} cần gọi lại`);
+        if (nv.rem_urgent) parts.push(`${nv.rem_urgent} thi công gấp`);
+        if (nv.rem_urgent_no_problem) parts.push(`${nv.rem_urgent_no_problem} gấp chưa tìm vấn đề`);
+        if (nv.rem_xlvd_no_problem) parts.push(`${nv.rem_xlvd_no_problem} chưa tìm vấn đề`);
+        if (nv.rem_xlvd_open_problem) parts.push(`${nv.rem_xlvd_open_problem} đã có vấn đề chưa xử lý`);
+        return parts.length
+            ? `(Đang tồn: ${parts.join(", ")}.)`
+            : "(Hiện không còn tồn đọng — giữ vững nhé!)";
+    }
+
+    reminderSentence(nv) {
+        const lvl = nv.reminder_level || 0;
+        if (!lvl) return "";
+        const BASE = {
+            1: "🔔 NHẮC LẦN 1: Em xử lý ngay KH tồn nhé — gọi KH mới, lên phương án chốt KH gấp, tìm vấn đề KH sau báo giá.",
+            2: "🔔 NHẮC LẦN 2: Vẫn còn KH chưa xử lý — em ưu tiên hoàn thành trong hôm nay.",
+            3: "⚠️ NHẮC LẦN 3: Đây là lần thứ 3 — em xử lý dứt điểm, tránh ảnh hưởng chỉ tiêu.",
+            4: "⚠️ NHẮC LẦN 4: Tồn đọng kéo dài — em báo lý do + cam kết thời gian xử lý.",
+            5: "🛑 NHẮC LẦN 5 (CUỐI): Đã nhắc nhiều lần chưa cải thiện — sẽ khoá nhận/mở KH mới + xem xét đánh giá.",
+        };
+        return `${BASE[lvl] || ""} ${this.reminderSummary(nv)}`;
     }
 
     /**

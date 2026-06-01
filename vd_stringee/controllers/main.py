@@ -301,15 +301,29 @@ class StringeeController(http.Controller):
         return request.make_response('OK', headers=[('Content-Type', 'text/plain')])
 
     # ----- Browser → server (authenticated) -----
+    @http.route('/stringee/resolve_from_number', type='json', auth='user')
+    def resolve_from_number(self, callee):
+        """JS hỏi server: gọi số KH này thì lấy đầu số CÙNG MẠNG nào?
+        Trả {'from_number','carrier'} hoặc {'error'} (không có số cùng mạng)."""
+        if not callee:
+            return {'error': 'missing callee'}
+        return request.env.user._vd_resolve_outbound(callee)
+
     @http.route('/stringee/click_to_call', type='json', auth='user')
     def click_to_call(self, callee, partner_id=None):
         """Place an outbound call from the server. Used by buttons in Odoo UI."""
         if not callee:
             return {'error': 'missing callee'}
+        # Gọi CÙNG MẠNG (user spec 2026-06-01): chọn đầu số cùng mạng KH;
+        # không có → báo lỗi, KHÔNG gọi bằng mạng khác.
+        resolved = request.env.user._vd_resolve_outbound(callee)
+        if resolved.get('error'):
+            return {'error': resolved['error']}
         rec = request.env['stringee.call'].sudo().make_call(
             callee_number=callee,
             partner_id=int(partner_id) if partner_id else None,
             user_id=request.env.user.id,
+            from_number=resolved.get('from_number'),
         )
         return {
             'id': rec.id,

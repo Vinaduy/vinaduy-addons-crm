@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdM2oDropdown">
+        <div class="o_vd_m2od" t-ref="root"
+             t-att-class="{ 'o_vd_m2od_open': state.open, 'o_vd_m2od_has_value': hasValue }"
+             t-on-mouseenter="onMouseEnter" t-on-mouseleave="onMouseLeave">
+
+            <!-- Bar gọn: hiện giá trị đã chọn (hoặc placeholder). Bấm/hover để mở. -->
+            <div class="o_vd_m2od_bar" t-on-click.prevent.stop="toggleBar">
+                <span t-if="hasValue" class="o_vd_m2od_val"><t t-esc="currentDisplay"/></span>
+                <span t-else="" class="o_vd_m2od_placeholder">
+                    <t t-esc="props.placeholder or 'Bấm để chọn…'"/>
+                </span>
+                <button t-if="hasValue" type="button" class="o_vd_m2od_clear"
+                        title="Xoá" t-on-click.prevent.stop="(ev) => this.clearValue(ev)">×</button>
+                <i class="fa fa-caret-down o_vd_m2od_caret"/>
+            </div>
+
+            <!-- Dropdown 1 cột — preload, KHÔNG gọi server khi mở -->
+            <div class="o_vd_m2od_menu" t-if="state.open">
+                <!-- Ô gõ lọc nhanh -->
+                <div class="o_vd_m2od_search_wrap">
+                    <i class="fa fa-search o_vd_m2od_search_icon"/>
+                    <input type="text" class="o_vd_m2od_search" t-ref="search"
+                           t-att-value="state.search"
+                           placeholder="Gõ để lọc..."
+                           autocomplete="off"
+                           t-on-input="onSearchInput"
+                           t-on-keydown="onSearchKeydown"/>
+                </div>
+
+                <div class="o_vd_m2od_list">
+                    <!-- District chưa chọn Tỉnh -->
+                    <t t-if="isDistrict and !state.options.length and !_provinceId">
+                        <div class="o_vd_m2od_empty">
+                            <i class="fa fa-info-circle"/> Chọn Tỉnh / Thành trước.
+                        </div>
+                    </t>
+                    <t t-elif="!state.options.length">
+                        <div class="o_vd_m2od_empty">
+                            <i class="fa fa-info-circle"/> Không có lựa chọn nào.
+                        </div>
+                    </t>
+                    <t t-elif="!filteredOptions.length">
+                        <div class="o_vd_m2od_empty">
+                            <i class="fa fa-search"/> Không khớp "<t t-esc="state.search"/>"
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <!-- BIND mousedown (fire TRƯỚC input blur) → chống race chọn khó -->
+                        <button t-foreach="filteredOptions" t-as="opt" t-key="opt.id"
+                                type="button" class="o_vd_m2od_item"
+                                t-att-class="{ 'o_vd_m2od_item_active': isCurrent(opt) }"
+                                t-on-mousedown.prevent.stop="(ev) => this.selectRecord(opt, ev)">
+                            <t t-esc="opt.display_name or opt.name"/>
+                            <i t-if="isCurrent(opt)" class="fa fa-check o_vd_m2od_item_check"/>
+                        </button>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

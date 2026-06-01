@@ -6997,3 +6997,152 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &.o_vd_preview_arrow_left  { left: 0;  border-radius: 0 8px 8px 0; }
     &.o_vd_preview_arrow_right { right: 0; border-radius: 8px 0 0 8px; }
 }
+
+/* ============================================================
+   BANNER "YÊU CẦU TÌM VẤN ĐỀ" — trên đầu bảng TCG / XLVD
+   (user spec 2026-06-01). To, đậm, nổi bật để NV thấy ngay.
+   ============================================================ */
+.o_vd_pf_banner {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.6rem 0;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fff3bf, #ffe066);
+    border: 2px solid #f59f00;
+    box-shadow: 0 3px 12px rgba(245, 159, 0, 0.25);
+    animation: vd-pf-pulse 1.8s ease-in-out infinite;
+}
+.o_vd_pf_banner_ico {
+    font-size: 1.7rem;
+    color: #e8590c;
+    flex: 0 0 auto;
+}
+.o_vd_pf_banner_text { line-height: 1.25; min-width: 0; }
+.o_vd_pf_banner_main {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    color: #b35900;
+    text-transform: uppercase;
+}
+.o_vd_pf_banner_sub {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #5c3b00;
+    b { color: #c92a2a; font-weight: 800; }
+}
+/* Trạng thái ĐÃ KHOÁ — đỏ cảnh báo mạnh */
+.o_vd_pf_banner_locked {
+    background: linear-gradient(135deg, #ffe3e3, #ffa8a8);
+    border-color: #e03131;
+    box-shadow: 0 3px 14px rgba(224, 49, 49, 0.35);
+    .o_vd_pf_banner_ico { color: #c92a2a; }
+    .o_vd_pf_banner_main { color: #c92a2a; }
+    .o_vd_pf_banner_sub { color: #7a1212; b { color: #c92a2a; } }
+}
+@keyframes vd-pf-pulse {
+    0%, 100% { box-shadow: 0 3px 12px rgba(245, 159, 0, 0.22); }
+    50%      { box-shadow: 0 3px 18px rgba(245, 159, 0, 0.45); }
+}
+
+/* ============================================================
+   POPOVER NHẮC NHỞ NHÂN VIÊN — hover tên NV trong bảng admin
+   (user spec 2026-06-01).
+   ============================================================ */
+.o_vd_kh_col_name { position: relative; }
+.o_vd_kh_col_name:hover .o_vd_kh_reminder_popover { display: flex; }
+.o_vd_kh_reminder_popover {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    flex-direction: column;
+    width: max-content;
+    min-width: 340px;
+    max-width: 460px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px -8px rgba(0,0,0,0.35), 0 4px 12px -2px rgba(0,0,0,0.15);
+    z-index: 10000;
+    overflow: hidden;
+    cursor: default;
+}
+.o_vd_kh_rem_head {
+    padding: 0.6rem 0.9rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+    background: linear-gradient(135deg, #e8590c, #c92a2a);
+}
+.o_vd_kh_rem_body { padding: 0.5rem 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.o_vd_kh_rem_grp {
+    border-left: 3px solid #ffd8a8;
+    padding-left: 0.55rem;
+}
+.o_vd_kh_rem_gtitle {
+    font-weight: 800;
+    font-size: 0.78rem;
+    color: #495057;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.15rem;
+}
+.o_vd_kh_rem_line {
+    font-size: 0.84rem;
+    line-height: 1.5;
+    b { font-size: 0.95rem; }
+}
+.o_vd_kh_rem_hot  { color: #c92a2a; b { color: #c92a2a; } }
+.o_vd_kh_rem_zero { color: #adb5bd; }
+.o_vd_kh_rem_ticks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 0.5rem 0.8rem;
+    border-top: 1px dashed #e9ecef;
+    background: #f8f9fa;
+}
+.o_vd_kh_rem_ticks_lbl { font-weight: 700; font-size: 0.8rem; color: #495057; margin-right: 2px; }
+.o_vd_kh_rem_tick {
+    all: unset;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #495057;
+    background: #fff;
+    &:hover { border-color: #e8590c; color: #e8590c; }
+}
+.o_vd_kh_rem_tick_on {
+    background: #2f9e44;
+    border-color: #2f9e44;
+    color: #fff;
+    &:hover { color: #fff; background: #2b8a3e; }
+}
+.o_vd_kh_rem_reset {
+    all: unset;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #868e96;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    &:hover { color: #c92a2a; border-color: #fa5252; }
+}
+.o_vd_kh_rem_msg {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5c3b00;
+    background: #fff9db;
+    border-top: 1px solid #ffe066;
+    line-height: 1.45;
+    user-select: all;   /* dễ bôi chọn copy nếu cần */
+}

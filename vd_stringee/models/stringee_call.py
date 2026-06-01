@@ -230,8 +230,11 @@ class StringeeCall(models.Model):
             self.user_id.stringee_from_number_id.number
             if (self.user_id and self.user_id.stringee_from_number_id) else ''
         )
+        # Ưu tiên đầu số CÙNG MẠNG đã resolve (vd_from_number_override) — user
+        # spec 2026-06-01. Fallback số đơn cũ → global config.
         from_number = _to_stringee_number(
-            user_hotline or Param.get_param('vd_stringee.from_number')
+            self.env.context.get('vd_from_number_override')
+            or user_hotline or Param.get_param('vd_stringee.from_number')
         )
         callee_e164 = _to_stringee_number(self.callee_number)
         record = (Param.get_param('vd_stringee.record_calls') or 'True') in ('True', 'true', '1')
@@ -306,8 +309,9 @@ class StringeeCall(models.Model):
         return True
 
     @api.model
-    def make_call(self, callee_number, partner_id=None, user_id=None):
+    def make_call(self, callee_number, partner_id=None, user_id=None, from_number=None):
         """Create call record and trigger callout. Returns the record.
+        from_number: đầu số CÙNG MẠNG đã resolve (truyền xuống action_callout).
 
         DEDUP: nếu user vừa gọi CÙNG SỐ trong 3 GIÂY (window ngắn để chỉ chặn
         accidental double-click, không chặn legitimate retry sau khi cúp).
@@ -332,7 +336,7 @@ class StringeeCall(models.Model):
             'user_id': user_id,
             'direction': 'outbound',
         })
-        rec.action_callout()
+        rec.with_context(vd_from_number_override=from_number).action_callout()
         return rec
 
     def action_hangup(self):

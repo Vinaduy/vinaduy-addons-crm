@@ -247,14 +247,15 @@
                                              Lọc 34 tỉnh qua context vd_province_picker trong
                                              _name_search. (fix mất tỉnh 2026-06-01) -->
                                         <field name="vd_intake_province_id" nolabel="1"
+                                               widget="vd_m2o_dropdown"
                                                options="{'no_create': True, 'no_open': True}"
                                                context="{'vd_province_picker': 1}"
                                                placeholder="Tỉnh / Thành phố?"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_district" nolabel="1"
+                                               widget="vd_m2o_dropdown"
                                                options="{'no_create': True, 'no_open': True}"
-                                               domain="[('state_id', '=', vd_intake_province_id)]"
                                                placeholder="Huyện / Quận?"/>
                                     </div>
                                 </div>

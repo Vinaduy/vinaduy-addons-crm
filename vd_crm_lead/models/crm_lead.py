@@ -5401,6 +5401,121 @@ class CrmLead(models.Model):
         )
         return [{'id': u.id, 'name': u.name, 'login': u.login} for u in sales_users]
 
+    # ========================================================================
+    # YÊU CẦU TÌM VẤN ĐỀ — cảnh báo + auto-khoá (user spec 2026-06-01)
+    # ========================================================================
+    @api.model
+    def _vd_problem_find_config(self):
+        """(enabled, pct_threshold, grace_days) đọc từ ir.config_parameter.
+        Cấu hình ở trang Cài đặt (res.config.settings)."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        enabled = ICP.get_param('vd_crm_lead.problem_find_enabled', '1') in ('1', 'True', 'true')
+        try:
+            pct = int(ICP.get_param('vd_crm_lead.problem_find_pct', 20) or 20)
+        except (TypeError, ValueError):
+            pct = 20
+        try:
+            grace = int(ICP.get_param('vd_crm_lead.problem_find_grace_days', 3) or 3)
+        except (TypeError, ValueError):
+            grace = 3
+        return enabled, pct, grace
+
+    def _vd_urgent_tag_id(self):
+        tag = self.env.ref('vd_crm_lead.nego_problem_urgent_construction',
+                           raise_if_not_found=False)
+        return tag.id if tag else 0
+
+    def _vd_lead_has_real_problem(self, urgent_tag_id):
+        """KH 'đã có vấn đề' = có >=1 vấn đề open/in_progress NGOÀI tag 'Thi công
+        gấp' (khớp đúng badge ⚠️ TÌM VẤN ĐỀ ở dashboard = problems_non_urgent)."""
+        self.ensure_one()
+        return bool(self.vd_lead_problem_ids.filtered(
+            lambda p: p.status in ('open', 'in_progress')
+            and not (p.tag_id and p.tag_id.id == urgent_tag_id)
+        ))
+
+    @api.model
+    def _vd_problem_find_stats(self, domain_user):
+        """Đếm % KH 'chưa có vấn đề' RIÊNG cho từng bảng THI CÔNG GẤP + XỬ LÝ
+        VẤN ĐỀ (dùng đúng tập lead như 2 hàm dashboard_leads_* tương ứng).
+        Trả: {enabled, threshold_pct, urgent:{...}, xlvd:{...}, violating}."""
+        enabled, pct, _grace = self._vd_problem_find_config()
+        urgent_tag_id = self._vd_urgent_tag_id()
+
+        # THI CÔNG GẤP = _dashboard_urgent_construction_ids
+        urgent_leads = self.browse(self._dashboard_urgent_construction_ids(domain_user))
+        # XỬ LÝ VẤN ĐỀ = mirror dashboard_leads_with_problems
+        mid_stage_ids = self.env['crm.stage'].search([('code', 'in', ['quote', 'negotiate'])]).ids
+        xlvd_leads = self.browse()
+        if mid_stage_ids:
+            xlvd_leads = self.search(domain_user + [
+                ('stage_id', 'in', mid_stage_ids),
+                ('active', '=', True),
+                ('vd_intake_complete', '=', True),
+                ('vd_intake_locked', '=', True),
+                ('id', 'not in', urgent_leads.ids),
+            ])
+
+        def _tbl(leads):
+            total = len(leads)
+            no_problem = sum(
+                1 for l in leads if not l._vd_lead_has_real_problem(urgent_tag_id)
+            )
+            ratio = (no_problem / total * 100.0) if total else 0.0
+            return {
+                'total': total,
+                'no_problem': no_problem,
+                'pct': round(ratio),
+                'over': bool(enabled and total > 0 and ratio > pct),
+            }
+
+        urgent = _tbl(urgent_leads)
+        xlvd = _tbl(xlvd_leads)
+        return {
+            'enabled': enabled,
+            'threshold_pct': pct,
+            'urgent': urgent,
+            'xlvd': xlvd,
+            'violating': urgent['over'] or xlvd['over'],
+        }
+
+    @api.model
+    def _vd_cron_eval_problem_find_lock(self):
+        """CRON hằng ngày: với mỗi NV sales, đánh giá vi phạm 'tìm vấn đề'.
+        - Vi phạm (bảng bất kỳ > ngưỡng): set mốc vd_problem_find_since (nếu
+          chưa có); nếu vi phạm liên tục >= grace_days → vd_problem_lock=True.
+        - Không vi phạm: gỡ khoá + xoá mốc.
+        Bị tắt (enabled=False) → gỡ mọi khoá."""
+        enabled, _pct, grace = self._vd_problem_find_config()
+        Users = self.env['res.users'].sudo()
+        sales_users = Users.search([
+            ('share', '=', False),
+            ('active', '=', True),
+            ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
+        ])
+        now = fields.Datetime.now()
+        for u in sales_users:
+            if not enabled:
+                if u.vd_problem_lock or u.vd_problem_find_since:
+                    u.write({'vd_problem_lock': False, 'vd_problem_find_since': False})
+                continue
+            stats = self._vd_problem_find_stats([('user_id', '=', u.id)])
+            if stats['violating']:
+                vals = {}
+                since = u.vd_problem_find_since
+                if not since:
+                    vals['vd_problem_find_since'] = now
+                    since = now
+                # Quá hạn gia hạn → khoá
+                if (now - since).total_seconds() >= grace * 86400 and not u.vd_problem_lock:
+                    vals['vd_problem_lock'] = True
+                if vals:
+                    u.write(vals)
+            else:
+                if u.vd_problem_lock or u.vd_problem_find_since:
+                    u.write({'vd_problem_lock': False, 'vd_problem_find_since': False})
+        return True
+
     @api.model
     def dashboard_data(self, user_id=None):
         """Single-payload data for the OWL dashboard."""
@@ -5493,6 +5608,19 @@ class CrmLead(models.Model):
                 'overdue_count': scope_user.vd_overdue_lead_count,
                 'threshold': scope_user.vd_overdue_threshold,
             }
+
+        # ===== YÊU CẦU TÌM VẤN ĐỀ — số liệu 2 banner + trạng thái khoá =====
+        # Banner riêng cho từng bảng (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ). days_left =
+        # số ngày còn lại trước khi cron áp khoá (đếm từ vd_problem_find_since).
+        _pf_enabled, _pf_pct, _pf_grace = self._vd_problem_find_config()
+        problem_find = self._vd_problem_find_stats(domain_user)
+        problem_find['grace_days'] = _pf_grace
+        problem_find['locked'] = bool(scope_user and scope_user.vd_problem_lock)
+        days_left = _pf_grace
+        if scope_user and scope_user.vd_problem_find_since:
+            elapsed = (now - scope_user.vd_problem_find_since).total_seconds() / 86400.0
+            days_left = max(0, int(round(_pf_grace - elapsed + 0.4999)))
+        problem_find['days_left'] = days_left
 
         # ===== PERFORMANCE — leaderboard + bonus calculation =====
         # Tính số HĐ chốt tháng + năm + bonus theo cơ cấu chỉ tiêu 2026.
@@ -5597,6 +5725,7 @@ class CrmLead(models.Model):
             'errors': errors,
             'stages': stage_payload,
             'block_status': block_status,
+            'problem_find': problem_find,
             'performance': performance,
         }
 
@@ -7173,6 +7302,9 @@ class CrmLead(models.Model):
         urgent_by_user = defaultdict(list)
         for l in self.browse(all_urgent_ids):
             urgent_by_user[l.user_id.id].append(l)
+        # Tag 'Thi công gấp' để tách "đã có vấn đề thật" vs "chưa tìm vấn đề"
+        # (khớp badge ⚠️ TÌM VẤN ĐỀ = problems_non_urgent) cho popover NHẮC NHỞ.
+        _rem_urgent_tag_id = self._vd_urgent_tag_id()
 
         xlvd_stage_ids = Stage.search([('code', 'in', ['quote', 'negotiate'])]).ids
         xlvd_by_user = defaultdict(list)
@@ -7369,6 +7501,18 @@ class CrmLead(models.Model):
             if n_resolved + n_in_prog + n_no_problem + n_new == 0 and total_managed == 0:
                 continue
 
+            # ===== NHẮC NHỞ NHÂN VIÊN — số liệu tồn đọng cần xử lý =====
+            _nv_urgent = urgent_by_user.get(u.id, [])
+            _nv_xlvd = xlvd_by_user.get(u.id, [])
+            rem_new_not_called = sum(1 for l in nv_new if (l.call_count or 0) == 0)
+            rem_urgent_no_problem = sum(
+                1 for l in _nv_urgent if not l._vd_lead_has_real_problem(_rem_urgent_tag_id)
+            )
+            rem_xlvd_no_problem = sum(
+                1 for l in _nv_xlvd if not l._vd_lead_has_real_problem(_rem_urgent_tag_id)
+            )
+            rem_xlvd_open_problem = len(_nv_xlvd) - rem_xlvd_no_problem
+
             nv_unified_flat.append({
                 'user_id': u.id,
                 'name': _short_name(u.name),
@@ -7401,6 +7545,14 @@ class CrmLead(models.Model):
                 'urgent_leads': [_ld_basic(l) for l in urgent_by_user.get(u.id, [])[:50]],
                 'xlvd_count': len(xlvd_by_user.get(u.id, [])),
                 'xlvd_leads': [_ld_with_problems(l) for l in xlvd_by_user.get(u.id, [])[:50]],
+                # 🔔 NHẮC NHỞ NHÂN VIÊN (user spec 2026-06-01)
+                'reminder_level': u.vd_reminder_level or 0,
+                'rem_new_not_called': rem_new_not_called,
+                'rem_callback': u.vd_overdue_lead_count or 0,
+                'rem_urgent': len(_nv_urgent),
+                'rem_urgent_no_problem': rem_urgent_no_problem,
+                'rem_xlvd_no_problem': rem_xlvd_no_problem,
+                'rem_xlvd_open_problem': rem_xlvd_open_problem,
             })
         kh_by_team = _group_by_team(nv_unified_flat)
 

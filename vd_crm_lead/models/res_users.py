@@ -30,6 +30,42 @@ class ResUsers(models.Model):
         compute='_compute_vd_overdue_count',
         help='Lấy từ ir.config_parameter vd_crm_lead.overdue_block_threshold (default 3).',
     )
+    # ===== KHOÁ DO CHƯA TÌM VẤN ĐỀ (user spec 2026-06-01) =====
+    # Khi > ngưỡng % KH (trong bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) chưa có vấn đề
+    # liên tục quá số ngày gia hạn → cron bật vd_problem_lock=True. Dashboard
+    # chặn mở thẻ KHÁCH MỚI cho tới khi NV xử lý xong (cả 2 bảng <= ngưỡng).
+    vd_problem_lock = fields.Boolean(
+        string='Khoá do chưa tìm vấn đề', default=False, copy=False,
+        help='True khi NV quá hạn xử lý "tìm vấn đề". Khi True dashboard chặn '
+             'bấm mở KHÁCH MỚI. Tự gỡ khi NV xử lý xong (cả 2 bảng <= ngưỡng).',
+    )
+    vd_problem_find_since = fields.Datetime(
+        string='Vi phạm tìm vấn đề từ', copy=False,
+        help='Mốc NV bắt đầu vượt ngưỡng % KH chưa có vấn đề. Cron đếm từ đây '
+             'để áp khoá sau số ngày gia hạn. Reset khi NV xử lý xong.',
+    )
+
+    # ===== NHẮC NHỞ NHÂN VIÊN — admin tick Lần 1..5 (user spec 2026-06-01) =====
+    # Mỗi lần admin nhắc 1 NV thì tick lên 1 mức. Hiển thị ✓ cho mức 1..N + câu
+    # nhắc tương ứng (admin chụp màn hình gửi NV). 0 = chưa nhắc lần nào.
+    vd_reminder_level = fields.Integer(
+        string='Mức nhắc nhở (0-5)', default=0, copy=False,
+        help='Số lần admin đã nhắc NV xử lý KH tồn đọng (0..5). Set qua popover '
+             'NHẮC NHỞ trên dashboard.',
+    )
+
+    @api.model
+    def vd_set_reminder_level(self, user_id, level):
+        """Admin set mức nhắc nhở cho 1 NV (0..5). Trả mức mới."""
+        try:
+            level = max(0, min(5, int(level)))
+        except (TypeError, ValueError):
+            level = 0
+        user = self.browse(int(user_id))
+        if user.exists():
+            user.sudo().vd_reminder_level = level
+        return level
+
     # ===== TOGGLE NHẬN KH TỪ PANCAKE =====
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.
     vd_can_receive_pancake = fields.Boolean(

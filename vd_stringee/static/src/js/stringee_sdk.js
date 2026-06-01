@@ -518,15 +518,33 @@ export const stringeeService = {
                 //   toNumber   = phone number của KH (PSTN)
                 // Đổi sang v1 theo yêu cầu đối tác: call thường dùng StringeeCall
                 // thay vì StringeeCall2 (StringeeCall2 cho video / advanced).
-                if (!state.fromNumber) {
+                // GỌI CÙNG MẠNG (user spec 2026-06-01): hỏi server đầu số cùng
+                // mạng KH ngay lúc bấm gọi (fromNumber phụ thuộc số KH, không
+                // cố định theo token). Không có số cùng mạng → BÁO LỖI, KHÔNG gọi.
+                let fromNumber = "";
+                try {
+                    const r = await rpc("/stringee/resolve_from_number", { callee: targetNumber });
+                    if (r && r.error) {
+                        notification.add(r.error, { type: "danger", title: "Không gọi được cùng mạng" });
+                        return null;
+                    }
+                    fromNumber = (r && r.from_number) || "";
+                } catch (_e) {
                     notification.add(
-                        "Chưa cấu hình hotline Stringee (vd_stringee.from_number).",
+                        "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.",
+                        { type: "danger" },
+                    );
+                    return null;
+                }
+                if (!fromNumber) {
+                    notification.add(
+                        "Bạn chưa được gán số cùng mạng với khách này — báo admin gán số.",
                         { type: "danger" },
                     );
                     return null;
                 }
                 const call2 = new window.StringeeCall(
-                    client, state.fromNumber, targetNumber, false,
+                    client, fromNumber, targetNumber, false,
                 );
                 try {
                     call2.custom = JSON.stringify({

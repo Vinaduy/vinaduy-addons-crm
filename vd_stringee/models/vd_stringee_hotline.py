@@ -15,6 +15,37 @@ def _digits_only(s):
     return ''.join(c for c in (s or '') if c.isdigit())
 
 
+# Map đầu số (prefix 2 chữ số national, đã bỏ 0/84) → nhà mạng.
+# Nguồn: quy hoạch số di động VN sau chuyển đổi 11→10 số.
+_CARRIER_PREFIX = {
+    'viettel': {'96', '97', '98', '86', '32', '33', '34', '35', '36', '37', '38', '39'},
+    'vina':    {'91', '94', '88', '81', '82', '83', '84', '85'},
+    'mobi':    {'90', '93', '89', '70', '76', '77', '78', '79'},
+    'vietnamobile': {'92', '52', '56', '58'},
+    'gmobile': {'99', '59'},
+    'itelecom': {'87'},
+}
+
+
+def vd_carrier_from_number(number):
+    """Suy nhà mạng từ số điện thoại theo đầu số. Trả carrier code hoặc 'other'.
+    Chuẩn hoá: bỏ ký tự lạ, bỏ '84'/'0' đầu để lấy prefix national 2 chữ số."""
+    d = _digits_only(number)
+    if not d:
+        return 'other'
+    if d.startswith('84'):
+        nat = d[2:]
+    elif d.startswith('0'):
+        nat = d[1:]
+    else:
+        nat = d
+    pref = nat[:2]
+    for carrier, prefixes in _CARRIER_PREFIX.items():
+        if pref in prefixes:
+            return carrier
+    return 'other'
+
+
 class VdStringeeHotline(models.Model):
     _name = 'vd.stringee.hotline'
     _description = 'Số tổng đài Stringee'
@@ -44,8 +75,14 @@ class VdStringeeHotline(models.Model):
     note = fields.Text(string='Ghi chú nội bộ')
     active = fields.Boolean(default=True)
 
+    # Legacy: số đơn cũ (1 NV = 1 số). Giữ để tương thích + migration.
     user_ids = fields.One2many(
-        'res.users', 'stringee_from_number_id', string='NV đang dùng',
+        'res.users', 'stringee_from_number_id', string='NV (số đơn cũ)',
+    )
+    # Gán theo mạng (mới): 1 NV có nhiều số (mỗi mạng 1), 1 số dùng chung nhiều NV.
+    assigned_user_ids = fields.Many2many(
+        'res.users', 'vd_stringee_hotline_user_rel', 'hotline_id', 'user_id',
+        string='NV được gán',
     )
     user_count = fields.Integer(
         string='Số NV dùng', compute='_compute_user_count',
@@ -55,11 +92,11 @@ class VdStringeeHotline(models.Model):
         help='Danh sách NV đang dùng số này (1 số có thể gán cho nhiều NV).',
     )
 
-    @api.depends('user_ids', 'user_ids.name')
+    @api.depends('assigned_user_ids', 'assigned_user_ids.name')
     def _compute_assigned_user_names(self):
         for rec in self:
             rec.assigned_user_names = ', '.join(
-                rec.user_ids.sorted('name').mapped('name')
+                rec.assigned_user_ids.sorted('name').mapped('name')
             ) or '—'
 
     _sql_constraints = [
@@ -67,10 +104,10 @@ class VdStringeeHotline(models.Model):
          'Số tổng đài này đã được tạo trước đó — kiểm tra lại danh sách.'),
     ]
 
-    @api.depends('user_ids')
+    @api.depends('assigned_user_ids')
     def _compute_user_count(self):
         for rec in self:
-            rec.user_count = len(rec.user_ids)
+            rec.user_count = len(rec.assigned_user_ids)
 
     @api.constrains('number')
     def _check_number_e164(self):
@@ -87,11 +124,16 @@ class VdStringeeHotline(models.Model):
             if vals.get('number'):
                 # Normalize: chỉ giữ chữ số
                 vals['number'] = _digits_only(vals['number'])
+                # Auto phân loại nhà mạng theo đầu số (user spec 2026-06-01):
+                # admin không cần tự chọn — đầu số là nguồn chuẩn.
+                vals['carrier'] = vd_carrier_from_number(vals['number'])
         return super().create(vals_list)
 
     def write(self, vals):
         if 'number' in vals and vals['number']:
             vals['number'] = _digits_only(vals['number'])
+            # Số đổi → tự cập nhật lại nhà mạng theo đầu số mới.
+            vals['carrier'] = vd_carrier_from_number(vals['number'])
         return super().write(vals)
 
     def action_open_assign_wizard(self):

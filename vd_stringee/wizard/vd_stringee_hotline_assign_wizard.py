@@ -14,8 +14,8 @@ class VdStringeeHotlineAssignWizard(models.TransientModel):
     user_ids = fields.Many2many(
         'res.users', string='NV dùng số này',
         domain="[('share','=',False),('active','=',True)]",
-        help='Chọn NV sẽ dùng số tổng đài này để gọi ra. Mỗi NV chỉ dùng 1 số — '
-             'NV đang dùng số khác sẽ được chuyển sang số này.',
+        help='Chọn NV được gán số tổng đài này. 1 số có thể gán cho NHIỀU NV, '
+             '1 NV có nhiều số (mỗi mạng 1 số) — gọi sẽ tự lấy số cùng mạng KH.',
     )
     moved_user_ids = fields.Many2many(
         'res.users', 'vd_stringee_hotline_assign_moved_rel',
@@ -26,13 +26,10 @@ class VdStringeeHotlineAssignWizard(models.TransientModel):
 
     @api.depends('user_ids', 'hotline_id')
     def _compute_moved_users(self):
+        # Model m2m: gán thêm 1 số KHÔNG đẩy NV khỏi số khác → không còn "move".
         for wiz in self:
-            moved = wiz.user_ids.filtered(
-                lambda u: u.stringee_from_number_id
-                and u.stringee_from_number_id != wiz.hotline_id
-            )
-            wiz.moved_user_ids = moved
-            wiz.moved_count = len(moved)
+            wiz.moved_user_ids = self.env['res.users']
+            wiz.moved_count = 0
 
     @api.model
     def default_get(self, fields_list):
@@ -44,17 +41,18 @@ class VdStringeeHotlineAssignWizard(models.TransientModel):
         if hotline_id:
             hotline = self.env['vd.stringee.hotline'].browse(hotline_id)
             res['hotline_id'] = hotline.id
-            res['user_ids'] = [(6, 0, hotline.user_ids.ids)]
+            res['user_ids'] = [(6, 0, hotline.assigned_user_ids.ids)]
         return res
 
     def action_apply(self):
         self.ensure_one()
         new_users = self.user_ids
-        old_users = self.hotline_id.user_ids
+        old_users = self.hotline_id.assigned_user_ids
         to_remove = old_users - new_users
         to_add = new_users - old_users
-        if to_remove:
-            to_remove.write({'stringee_from_number_id': False})
-        if to_add:
-            to_add.write({'stringee_from_number_id': self.hotline_id.id})
+        # m2m: chỉ thêm/bớt số NÀY cho NV, không đụng các số mạng khác của NV.
+        for u in to_remove:
+            u.stringee_hotline_ids = [(3, self.hotline_id.id)]
+        for u in to_add:
+            u.stringee_hotline_ids = [(4, self.hotline_id.id)]
         return {'type': 'ir.actions.act_window_close'}

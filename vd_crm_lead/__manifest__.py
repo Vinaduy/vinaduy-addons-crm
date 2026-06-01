@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.207.0',
+    'version': '18.0.9.208.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -40,6 +40,7 @@
         'views/vd_role_config_views.xml',
         'views/vd_pancake_page_views.xml',
         'views/res_users_vd_settings_views.xml',
+        'views/res_config_settings_views.xml',
         'views/menus.xml',
         # Seed default 4 vị trí (load SAU view + group)
         'data/role_config_data.xml',
@@ -58,6 +59,7 @@
             'vd_crm_lead/static/src/js/vd_timeline_chips.js',
             'vd_crm_lead/static/src/js/vd_floor_function_chips.js',
             'vd_crm_lead/static/src/js/vd_m2o_hover_picker.js',
+            'vd_crm_lead/static/src/js/vd_m2o_dropdown.js',
             'vd_crm_lead/static/src/js/vd_selection_hover_picker.js',
             'vd_crm_lead/static/src/js/vd_selection_chips.js',
             'vd_crm_lead/static/src/js/vd_audio_player.js',
@@ -75,6 +77,7 @@
             'vd_crm_lead/static/src/xml/vd_timeline_chips.xml',
             'vd_crm_lead/static/src/xml/vd_floor_function_chips.xml',
             'vd_crm_lead/static/src/xml/vd_m2o_hover_picker.xml',
+            'vd_crm_lead/static/src/xml/vd_m2o_dropdown.xml',
             'vd_crm_lead/static/src/xml/vd_selection_hover_picker.xml',
             'vd_crm_lead/static/src/xml/vd_selection_chips.xml',
             'vd_crm_lead/static/src/xml/vd_audio_player.xml',

@@ -242,6 +242,58 @@
                                                             <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
                                                             <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>
+
+                                                        <!-- 🔔 POPOVER NHẮC NHỞ NHÂN VIÊN (hover tên NV) -->
+                                                        <div class="o_vd_kh_reminder_popover" t-on-click.stop="() => {}">
+                                                            <div class="o_vd_kh_rem_head">🔔 NHẮC NHỞ — <t t-esc="nv.full_name"/></div>
+                                                            <div class="o_vd_kh_rem_body">
+                                                                <!-- ① CẦN GỌI -->
+                                                                <div class="o_vd_kh_rem_grp">
+                                                                    <div class="o_vd_kh_rem_gtitle">① CẦN GỌI</div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_new_not_called or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        📞 <b><t t-esc="nv.rem_new_not_called or 0"/></b> khách mới CHƯA gọi
+                                                                    </div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_callback or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        🔁 <b><t t-esc="nv.rem_callback or 0"/></b> khách cần gọi lại (quá hạn)
+                                                                    </div>
+                                                                </div>
+                                                                <!-- ② THI CÔNG GẤP -->
+                                                                <div class="o_vd_kh_rem_grp">
+                                                                    <div class="o_vd_kh_rem_gtitle">② THI CÔNG GẤP</div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_urgent or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        ⚡ <b><t t-esc="nv.rem_urgent or 0"/></b> khách gấp — cần lên phương án CHỐT
+                                                                    </div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_urgent_no_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        ❓ <b><t t-esc="nv.rem_urgent_no_problem or 0"/></b> khách gấp CHƯA tìm vấn đề
+                                                                    </div>
+                                                                </div>
+                                                                <!-- ③ XỬ LÝ VẤN ĐỀ -->
+                                                                <div class="o_vd_kh_rem_grp">
+                                                                    <div class="o_vd_kh_rem_gtitle">③ XỬ LÝ VẤN ĐỀ</div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_xlvd_no_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        ❓ <b><t t-esc="nv.rem_xlvd_no_problem or 0"/></b> khách CHƯA tìm vấn đề
+                                                                    </div>
+                                                                    <div t-att-class="'o_vd_kh_rem_line' + ((nv.rem_xlvd_open_problem or 0) ? ' o_vd_kh_rem_hot' : ' o_vd_kh_rem_zero')">
+                                                                        🛠️ <b><t t-esc="nv.rem_xlvd_open_problem or 0"/></b> khách đã có vấn đề CHƯA xử lý
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <!-- 5 mức nhắc -->
+                                                            <div class="o_vd_kh_rem_ticks">
+                                                                <span class="o_vd_kh_rem_ticks_lbl">Nhắc:</span>
+                                                                <button t-foreach="[1,2,3,4,5]" t-as="lvl" t-key="lvl"
+                                                                        type="button"
+                                                                        t-att-class="'o_vd_kh_rem_tick' + ((nv.reminder_level or 0) >= lvl ? ' o_vd_kh_rem_tick_on' : '')"
+                                                                        t-on-click.stop="() => this.setReminderLevel(nv, lvl)">
+                                                                    <t t-if="(nv.reminder_level or 0) >= lvl">✓ </t>Lần <t t-esc="lvl"/>
+                                                                </button>
+                                                                <button type="button" class="o_vd_kh_rem_reset"
+                                                                        t-on-click.stop="() => this.setReminderLevel(nv, 0)">Gỡ</button>
+                                                            </div>
+                                                            <div t-if="(nv.reminder_level or 0) > 0" class="o_vd_kh_rem_msg">
+                                                                <t t-esc="reminderSentence(nv)"/>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <!-- Round 13: bỏ Số tháng + Năng lực. -->
                                                 </div>
@@ -1784,6 +1836,8 @@
                              (list left + side panel right với icon Im lặng). -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
+                            <t t-set="pf" t-value="state.problem_find and state.problem_find.urgent"/>
+                            <t t-call="vd_crm_lead.ProblemFindBanner"/>
                             <div class="o_vd_split_table o_vd_split_table_single">
                             <div class="o_vd_filter_table o_vd_filter_table_urgent o_vd_split_half">
                                 <div class="o_vd_filter_table_left">
@@ -1959,6 +2013,8 @@
                         <!-- ===== SECTION 2: XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">
+                            <t t-set="pf" t-value="state.problem_find and state.problem_find.xlvd"/>
+                            <t t-call="vd_crm_lead.ProblemFindBanner"/>
                             <div class="o_vd_split_table o_vd_split_table_single">
                             <div class="o_vd_filter_table o_vd_filter_table_warn o_vd_split_half">
                                 <div class="o_vd_filter_table_left">
@@ -2214,6 +2270,37 @@
                         title="KH sau (→)">
                     <i class="fa fa-chevron-right"/>
                 </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================================
+         BANNER "YÊU CẦU TÌM VẤN ĐỀ" — trên đầu mỗi bảng (TCG / XLVD).
+         User spec 2026-06-01: > ngưỡng % KH chưa có vấn đề → cảnh báo to,
+         đậm + đếm ngày; quá hạn → cron khoá mở KHÁCH MỚI.
+         Dùng: t-set pf = state.problem_find.urgent | .xlvd  rồi t-call.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.ProblemFindBanner">
+        <div t-if="pf and pf.over"
+             t-att-class="'o_vd_pf_banner' + (state.problem_find.locked ? ' o_vd_pf_banner_locked' : '')">
+            <i t-att-class="'fa o_vd_pf_banner_ico ' + (state.problem_find.locked ? 'fa-lock' : 'fa-exclamation-triangle')"/>
+            <div class="o_vd_pf_banner_text">
+                <div class="o_vd_pf_banner_main">
+                    <t t-if="state.problem_find.locked">ĐÃ KHOÁ — YÊU CẦU TÌM VẤN ĐỀ</t>
+                    <t t-else="">⚠️ YÊU CẦU TÌM VẤN ĐỀ</t>
+                </div>
+                <div class="o_vd_pf_banner_sub">
+                    <b><t t-esc="pf.no_problem"/>/<t t-esc="pf.total"/></b> khách
+                    (<b><t t-esc="pf.pct"/>%</b>) CHƯA có vấn đề.
+                    <t t-if="state.problem_find.locked">
+                        Đang bị KHOÁ mở khách mới — hãy tạo vấn đề cho khách để MỞ LẠI.
+                    </t>
+                    <t t-else="">
+                        Xử lý trong <t t-esc="state.problem_find.grace_days"/> ngày —
+                        <b>CÒN <t t-esc="state.problem_find.days_left"/> NGÀY</b>.
+                        Quá hạn sẽ KHOÁ không mở được khách mới.
+                    </t>
+                </div>
             </div>
         </div>
     </t>

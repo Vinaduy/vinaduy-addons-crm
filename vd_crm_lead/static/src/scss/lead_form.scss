@@ -11702,3 +11702,148 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     margin-left: 4px;
 }
 .o_vd_chs_dl:hover { color: #155a9c; }
+
+/* ============================================================
+   vd_m2o_dropdown — Tỉnh/Huyện preload dropdown (giống ô Thời gian)
+   Bar gọn 1 dòng + dropdown 1 cột + ô lọc. Theme navy như panel intake.
+   ============================================================ */
+.o_vd_m2od {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+.o_vd_m2od_bar {
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0.3rem 2.2rem 0.3rem 0.6rem;   /* chừa phải cho caret + clear */
+    background: #fff;
+    border: 1px solid var(--vd-border, #ced4da);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.15s ease;
+    &:hover { border-color: var(--vd-navy-s, #4263eb); }
+}
+.o_vd_m2od_open .o_vd_m2od_bar {
+    border-color: var(--vd-navy, #1c3d5a);
+    box-shadow: 0 0 0 2px rgba(28, 61, 90, 0.12);
+}
+.o_vd_m2od_val {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--vd-text, #212529);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_vd_m2od_placeholder {
+    color: #adb5bd;
+    font-style: italic;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_vd_m2od_caret {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--vd-navy, #1c3d5a);
+    font-size: 0.8rem;
+    transition: transform 0.15s ease;
+    pointer-events: none;
+}
+.o_vd_m2od_open .o_vd_m2od_caret { transform: translateY(-50%) rotate(180deg); }
+.o_vd_m2od_clear {
+    all: unset;
+    position: absolute;
+    right: 1.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    line-height: 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #868e96;
+    border: 1px solid #ced4da;
+    border-radius: 50%;
+    cursor: pointer;
+    box-sizing: border-box;
+    &:hover { background: #fa5252; color: #fff; border-color: #fa5252; }
+}
+.o_vd_m2od_menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid var(--vd-navy, #1c3d5a);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(28, 61, 90, 0.18);
+    padding: 0.4rem;
+    animation: vd-popup-fade-in 0.15s ease-out;
+}
+.o_vd_m2od_search_wrap {
+    position: relative;
+    margin-bottom: 0.35rem;
+    .o_vd_m2od_search_icon {
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+        font-size: 0.78rem;
+        pointer-events: none;
+    }
+}
+.o_vd_m2od_search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.32rem 0.5rem 0.32rem 1.7rem;
+    border: 1px solid var(--vd-border, #ced4da);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    outline: none;
+    &:focus { border-color: var(--vd-navy, #1c3d5a); }
+}
+.o_vd_m2od_list {
+    max-height: 240px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.o_vd_m2od_item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    color: var(--vd-text, #212529);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    &:hover { background: var(--vd-navy-x, #edf2ff); color: var(--vd-navy, #1c3d5a); }
+}
+.o_vd_m2od_item_active {
+    background: var(--vd-navy, #1c3d5a) !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+.o_vd_m2od_item_check { font-size: 0.75rem; margin-left: 0.5rem; }
+.o_vd_m2od_empty {
+    padding: 0.6rem;
+    color: #adb5bd;
+    font-size: 0.8rem;
+    font-style: italic;
+    text-align: center;
+}
