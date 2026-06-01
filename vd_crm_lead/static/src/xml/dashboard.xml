@@ -41,6 +41,34 @@
                 </div>
             </div>
 
+            <!-- 🎧 BẢNG GHI ÂM (hover tên NV) — fixed, hiện bên trái; nghe + tải ngay -->
+            <div t-if="state.recHover" class="o_vd_rec_pop o_vd_rem_fixed"
+                 t-attf-style="{{ recPopStyle }}"
+                 t-on-mouseenter="() => this.onRecPopEnter()"
+                 t-on-mouseleave="() => this.onRecLeave()"
+                 t-on-click.stop="() => {}">
+                <div class="o_vd_rec_head">
+                    <i class="fa fa-headphones me-1"/>20 GHI ÂM &gt; 5 PHÚT — <t t-esc="state.recHover.name"/>
+                </div>
+                <div t-if="state.recHover.loading" class="o_vd_rec_loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                </div>
+                <div t-elif="!state.recHover.recordings.length" class="o_vd_rec_empty">
+                    Chưa có ghi âm nào trên 5 phút.
+                </div>
+                <div t-else="" class="o_vd_rec_list">
+                    <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_item">
+                        <div class="o_vd_rec_meta">
+                            <span class="o_vd_rec_callee"><t t-esc="rec.callee"/></span>
+                            <span class="o_vd_rec_dim"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
+                            <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
+                               title="Tải file ghi âm"><i class="fa fa-download"/></a>
+                        </div>
+                        <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
+                    </div>
+                </div>
+            </div>
+
             <div t-if="state.loading" class="o_vd_dash_loader">
                 <i class="fa fa-spinner fa-spin fa-2x"/>
                 <div class="mt-2">Đang tải dashboard...</div>
@@ -269,16 +297,21 @@
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
                                                     <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
                                                          t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
-                                                         t-on-click="() => this.selectNvFromDashboard(nv.user_id)"
-                                                         t-on-mouseenter="(ev) => this.onReminderEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onReminderLeave()">
-                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
-                                                        <span class="o_vd_kh_nv_link_name">
+                                                         t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
+                                                        <!-- Hover TÊN/avatar → bảng GHI ÂM (hiện bên trái) -->
+                                                        <span class="o_vd_kh_nv_avatar"
+                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onRecLeave()"><i class="fa fa-user-circle"/></span>
+                                                        <span class="o_vd_kh_nv_link_name"
+                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onRecLeave()">
                                                             <t t-esc="nv.name"/>
                                                         </span>
-                                                        <!-- Tổng KH — số TO, không khung, chỉ 1 đường kẻ ngăn cách -->
+                                                        <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
                                                         <span class="o_vd_kh_nv_total"
-                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)">
+                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)"
+                                                              t-on-mouseenter="(ev) => this.onReminderEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onReminderLeave()">
                                                             <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
                                                             <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>

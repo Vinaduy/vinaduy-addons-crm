@@ -7079,6 +7079,56 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     left: auto;
     display: flex;
 }
+
+/* 🎧 Bảng GHI ÂM (hover tên NV) — fixed, hiện bên trái NV */
+.o_vd_rec_pop.o_vd_rem_fixed {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    width: 440px;
+    max-width: 440px;
+    max-height: 70vh;
+    background: #fff;
+    border: 2px solid #1971c2;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px -8px rgba(0,0,0,0.45), 0 6px 16px -2px rgba(0,0,0,0.2);
+    z-index: 10000;
+    overflow: hidden;
+    cursor: default;
+}
+.o_vd_rec_head {
+    padding: 0.7rem 0.95rem;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #1971c2, #0b4f8a);
+    flex: 0 0 auto;
+}
+.o_vd_rec_loading, .o_vd_rec_empty {
+    padding: 1rem; color: #868e96; font-size: 0.9rem;
+}
+.o_vd_rec_list { overflow-y: auto; padding: 0.5rem 0.7rem; }
+.o_vd_rec_item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f3f5;
+    &:last-child { border-bottom: 0; }
+}
+.o_vd_rec_meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+.o_vd_rec_callee { font-weight: 700; color: #1d2939; font-variant-numeric: tabular-nums; }
+.o_vd_rec_dim { color: #98a2b3; font-size: 0.82rem; }
+.o_vd_rec_dl {
+    margin-left: auto;
+    color: #1971c2;
+    font-size: 1.05rem;
+    text-decoration: none;
+    &:hover { color: #0b4f8a; }
+}
+.o_vd_rec_audio { width: 100%; height: 34px; }
 .o_vd_kh_rem_head {
     display: flex;
     align-items: center;

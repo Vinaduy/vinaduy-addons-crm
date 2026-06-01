@@ -66,6 +66,33 @@ class ResUsers(models.Model):
             user.sudo().vd_reminder_level = level
         return level
 
+    @api.model
+    def vd_recent_recordings(self, user_id, limit=20, min_seconds=300):
+        """20 cuộc ghi âm GẦN NHẤT > 5 phút của 1 NV — để nghe/tải ngay trên
+        dashboard (hover tên NV). Trả list {callee, duration, date, play_url,
+        download_url}."""
+        Call = self.env['stringee.call'].sudo()
+        calls = Call.search([
+            ('user_id', '=', int(user_id)),
+            ('duration', '>=', int(min_seconds)),
+            ('recording_attachment_id', '!=', False),
+        ], order='create_date desc', limit=int(limit))
+        res = []
+        for c in calls:
+            att = c.recording_attachment_id
+            if not att:
+                continue
+            local_dt = fields.Datetime.context_timestamp(c, c.create_date) if c.create_date else None
+            res.append({
+                'id': c.id,
+                'callee': c.callee_number or c.caller_number or '',
+                'duration': c.duration or 0,
+                'date': local_dt.strftime('%d/%m %H:%M') if local_dt else '',
+                'play_url': '/web/content/%s?download=false' % att.id,
+                'download_url': '/web/content/%s?download=true' % att.id,
+            })
+        return res
+
     # ===== TOGGLE NHẬN KH TỪ PANCAKE =====
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.
     vd_can_receive_pancake = fields.Boolean(

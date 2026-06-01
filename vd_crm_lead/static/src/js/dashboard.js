@@ -46,9 +46,11 @@ export class VdCrmDashboard extends Component {
         // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
-            // Popover NHẮC NHỞ (hover tên NV) — fixed theo viewport để thoát mọi
-            // khung overflow cắt; {nv, top, left} hoặc null.
+            // Popover NHẮC NHỞ (hover TỔNG KH) — fixed, ghim sát phải; {nv, top} | null.
             reminderHover: null,
+            // Popover GHI ÂM (hover TÊN NV) — fixed, hiện bên trái; {user_id, name,
+            // top, left, loading, recordings} | null.
+            recHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
             current_user_id: 0,
@@ -866,6 +868,7 @@ export class VdCrmDashboard extends Component {
             this._remTimer = null;
         }
     }
+    // NHẮC NHỞ ghim SÁT GÓC PHẢI (user spec) → không che tên NV, vẫn bấm được NV.
     get reminderPopStyle() {
         const h = this.state.reminderHover;
         if (!h) {
@@ -874,15 +877,78 @@ export class VdCrmDashboard extends Component {
         const vw = window.innerWidth || 1280;
         const vh = window.innerHeight || 800;
         const W = 720;
-        let left = h.left;
-        if (left + W > vw - 12) {
-            left = Math.max(12, vw - W - 12);
-        }
+        const left = Math.max(12, vw - W - 16);
         let top = h.top;
-        if (top > vh - 200) {
-            top = Math.max(12, vh - 360);
+        if (top > vh - 220) {
+            top = Math.max(12, vh - 380);
         }
         return `top:${top}px; left:${left}px;`;
+    }
+
+    // ===== GHI ÂM (hover tên NV) — hiện BÊN TRÁI, nghe + tải ngay =====
+    async onRecEnter(ev, nv) {
+        if (this._recTimer) {
+            clearTimeout(this._recTimer);
+            this._recTimer = null;
+        }
+        const r = ev.currentTarget.getBoundingClientRect();
+        this.state.recHover = {
+            user_id: nv.user_id,
+            name: nv.full_name,
+            anchorLeft: Math.round(r.left),
+            top: Math.round(r.bottom + 6),
+            loading: true,
+            recordings: [],
+        };
+        try {
+            const recs = await this.orm.call("res.users", "vd_recent_recordings", [nv.user_id]);
+            if (this.state.recHover && this.state.recHover.user_id === nv.user_id) {
+                this.state.recHover.recordings = recs || [];
+                this.state.recHover.loading = false;
+            }
+        } catch (e) {
+            if (this.state.recHover && this.state.recHover.user_id === nv.user_id) {
+                this.state.recHover.loading = false;
+            }
+        }
+    }
+    onRecLeave() {
+        if (this._recTimer) {
+            clearTimeout(this._recTimer);
+        }
+        this._recTimer = setTimeout(() => {
+            this.state.recHover = null;
+            this._recTimer = null;
+        }, 320);
+    }
+    onRecPopEnter() {
+        if (this._recTimer) {
+            clearTimeout(this._recTimer);
+            this._recTimer = null;
+        }
+    }
+    get recPopStyle() {
+        const h = this.state.recHover;
+        if (!h) {
+            return "display:none;";
+        }
+        const vh = window.innerHeight || 800;
+        const W = 440;
+        let left = h.anchorLeft - W - 10; // bên TRÁI nhân viên
+        if (left < 8) {
+            left = 8;
+        }
+        let top = h.top;
+        if (top > vh - 240) {
+            top = Math.max(12, vh - 420);
+        }
+        return `top:${top}px; left:${left}px;`;
+    }
+    fmtDur(sec) {
+        const s = Math.max(0, parseInt(sec || 0, 10));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m}:${r < 10 ? "0" : ""}${r}`;
     }
 
     // Tên gọi NGẮN cho tiêu đề (lấy từ cuối tên, viết HOA). Vd "HN - Lâm Văn Hậu" → "HẬU".
