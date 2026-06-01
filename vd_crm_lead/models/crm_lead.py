@@ -783,9 +783,16 @@ class CrmLead(models.Model):
         Tránh lưu cặp Tỉnh/Huyện lệch nhau (vd: Tỉnh Bắc Ninh + Huyện của Hà Nội).
         """
         for rec in self:
+            _logger.info(
+                "VD_DEBUG province_onchange: province=%r district=%r district.state=%r",
+                rec.vd_intake_province_id.display_name if rec.vd_intake_province_id else None,
+                rec.vd_intake_district.display_name if rec.vd_intake_district else None,
+                rec.vd_intake_district.state_id.display_name if rec.vd_intake_district else None,
+            )
             if (rec.vd_intake_district
                     and rec.vd_intake_district.state_id != rec.vd_intake_province_id):
                 rec.vd_intake_district = False
+                _logger.info("VD_DEBUG province_onchange -> RESET district")
 
     @api.onchange('vd_intake_district')
     def _onchange_intake_district_sync_province(self):
@@ -797,8 +804,18 @@ class CrmLead(models.Model):
         có tạm xoá. (user spec 2026-06-01)
         """
         for rec in self:
+            _logger.info(
+                "VD_DEBUG district_onchange BEFORE: district=%r district.state=%r province=%r",
+                rec.vd_intake_district.display_name if rec.vd_intake_district else None,
+                rec.vd_intake_district.state_id.display_name if rec.vd_intake_district else None,
+                rec.vd_intake_province_id.display_name if rec.vd_intake_province_id else None,
+            )
             if rec.vd_intake_district and rec.vd_intake_district.state_id:
                 rec.vd_intake_province_id = rec.vd_intake_district.state_id
+            _logger.info(
+                "VD_DEBUG district_onchange AFTER: province=%r",
+                rec.vd_intake_province_id.display_name if rec.vd_intake_province_id else None,
+            )
     vd_intake_timeline = fields.Char(
         string='Thời gian dự kiến',
         help='Tháng dự kiến khởi công (vd: Tháng 6/2026). NV gõ → autocomplete '
