@@ -7539,12 +7539,14 @@ class CrmLead(models.Model):
                     'label': label,
                     'over': bool(_rem_enabled and total > 0 and count > 0 and pct > _rem_pct),
                 }
+            # 3 nhóm gọn (user spec 2026-06-01): chưa gọi / chưa tìm vấn đề /
+            # chưa xử lý vấn đề. "Chưa tìm vấn đề" gộp cả thi công gấp + sau báo giá.
+            _chua_tim = rem_urgent_no_problem + rem_xlvd_no_problem
+            _chua_tim_total = _n_urgent + _n_xlvd
             reminder_items = [
-                _rem_item('📞', rem_new_not_called, n_new, 'khách mới CHƯA gọi'),
-                _rem_item('🔁', u.vd_overdue_lead_count or 0, total_managed, 'khách cần gọi lại (quá hạn)'),
-                _rem_item('⚡', rem_urgent_no_problem, _n_urgent, 'khách thi công gấp CHƯA tìm vấn đề'),
-                _rem_item('❓', rem_xlvd_no_problem, _n_xlvd, 'khách sau báo giá CHƯA tìm vấn đề'),
-                _rem_item('🛠️', rem_xlvd_open_problem, _n_xlvd, 'khách đã có vấn đề CHƯA xử lý'),
+                _rem_item('📞', rem_new_not_called, n_new, '(Mới) - CHƯA GỌI'),
+                _rem_item('❓', _chua_tim, _chua_tim_total, '- CHƯA Tìm vấn đề'),
+                _rem_item('🛠️', rem_xlvd_open_problem, _n_xlvd, '- CHƯA Xử lý vấn đề'),
             ]
 
             nv_unified_flat.append({

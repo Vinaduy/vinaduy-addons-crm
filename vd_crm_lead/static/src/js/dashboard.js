@@ -829,6 +829,13 @@ export class VdCrmDashboard extends Component {
         return items.filter((it) => it && it.over);
     }
 
+    // Tên gọi NGẮN cho tiêu đề (lấy từ cuối tên, viết HOA). Vd "HN - Lâm Văn Hậu" → "HẬU".
+    reminderName(nv) {
+        const f = ((nv && nv.full_name) || "").trim();
+        const last = f.split(/\s+/).filter(Boolean).pop() || f;
+        return last.toUpperCase();
+    }
+
     // Câu nhắc đầy đủ (admin copy gửi NV nếu cần). Khớp nội dung popover.
     reminderSentence(nv) {
         const items = this.reminderOverItems(nv);
