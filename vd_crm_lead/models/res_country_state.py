@@ -28,47 +28,36 @@ class ResCountryState(models.Model):
     ]
 
     @api.model
-    def _name_search(self, name='', domain=None, operator='ilike', limit=None, order=None):
-        """Override để sort priority cho VN states khi domain match.
-        Tăng limit để hiển thị tất cả 34 tỉnh inline (không 'Tìm kiếm thêm').
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        """Lọc danh sách Tỉnh cho picker khai thác QUA name_search (Odoo 18).
+
+        QUAN TRỌNG: KHÔNG lọc bằng `domain` trên field nữa — domain tham chiếu
+        vd_is_active_2025 (field của bản ghi liên kết) khiến Odoo 18 client TỰ
+        XOÁ giá trị Tỉnh khi onchange (đã xác nhận qua log). Thay vào đó, view
+        truyền context {'vd_province_picker': 1}; ở đây ta chèn domain lọc 34
+        tỉnh server-side → dropdown vẫn đúng, field không có domain nên client
+        không xoá. (fix mất tỉnh 2026-06-01)
         """
-        # Detect VN picker: qua context vd_province_picker (cách mới — field
-        # KHÔNG còn đặt domain để tránh client tự xoá giá trị) HOẶC qua domain
-        # clause vd_is_active_2025 (backward compat các view khác).
-        is_vd_picker = bool(self.env.context.get('vd_province_picker'))
-        if not is_vd_picker and domain:
-            for clause in domain:
-                if isinstance(clause, (list, tuple)) and len(clause) >= 1:
-                    if clause[0] == 'vd_is_active_2025':
-                        is_vd_picker = True
-                        break
-        if not is_vd_picker:
-            return super()._name_search(name, domain=domain, operator=operator,
-                                         limit=limit, order=order)
-        # Đảm bảo lọc đúng 34 tỉnh sau cải cách (kể cả khi field không truyền domain).
-        picker_domain = list(domain or [])
-        existing = {c[0] for c in picker_domain
-                    if isinstance(c, (list, tuple)) and len(c) >= 1}
-        if 'vd_is_active_2025' not in existing:
-            picker_domain.append(('vd_is_active_2025', '=', True))
-        if 'country_id' not in existing:
-            vn = self.env.ref('base.vn', raise_if_not_found=False)
-            if vn:
-                picker_domain.append(('country_id', '=', vn.id))
-        # Bump limit để return tất cả 34
-        all_ids = super()._name_search(
-            name, domain=picker_domain, operator=operator,
-            limit=100, order=order,
-        )
-        if not all_ids:
-            return all_ids
-        # Sort theo priority list rồi đến alphabetical
-        states = self.browse(all_ids)
-        priority_map = {n: i for i, n in enumerate(self._VD_PROVINCE_PRIORITY)}
-        sorted_states = states.sorted(
-            key=lambda s: (
-                priority_map.get(s.name, len(self._VD_PROVINCE_PRIORITY)),
-                s.name or '',
-            )
-        )
-        return sorted_states.ids
+        if self.env.context.get('vd_province_picker'):
+            args = list(args or [])
+            keys = {a[0] for a in args
+                    if isinstance(a, (list, tuple)) and len(a) >= 1}
+            if 'vd_is_active_2025' not in keys:
+                args.append(('vd_is_active_2025', '=', True))
+            if 'country_id' not in keys:
+                vn = self.env.ref('base.vn', raise_if_not_found=False)
+                if vn:
+                    args.append(('country_id', '=', vn.id))
+            limit = max(limit or 0, 100)  # trả hết 34 tỉnh, không "Tìm thêm"
+            res = super().name_search(name, args, operator=operator, limit=limit)
+            # Sort ưu tiên: 6 TP trực thuộc TW + tỉnh lớn lên đầu
+            prio = self._VD_PROVINCE_PRIORITY
+
+            def _key(t):
+                dn = t[1] or ''
+                for i, p in enumerate(prio):
+                    if dn.startswith(p):
+                        return (i, dn)
+                return (len(prio), dn)
+            return sorted(res, key=_key)
+        return super().name_search(name, args, operator=operator, limit=limit)
