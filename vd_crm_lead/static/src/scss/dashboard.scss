@@ -11,6 +11,16 @@
        dashboard ngắn. Dashboard giờ chỉ cao bằng content thực. */
     padding: 1rem 1.25rem 0;
 
+    /* SCROLL DỌC — client action render thẳng trong .o_action_manager (cao
+       100%). Cho chính dashboard thành vùng cuộn dọc → khi phóng to / content
+       dài hơn màn hình, NV cuộn xuống xem được phần dưới (user spec 2026-06-01).
+       overflow-x:hidden để không sinh scroll ngang; tooltip Thưởng bung trong
+       bề ngang dashboard nên không bị cắt. */
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+
     /* COMPACT 70% — chỉ scope vào dashboard, không ảnh hưởng module khác.
        Dùng zoom CSS (giữ click point chính xác, khác transform:scale). */
     zoom: 0.7;
