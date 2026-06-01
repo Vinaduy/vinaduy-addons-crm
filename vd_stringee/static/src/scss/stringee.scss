@@ -37,3 +37,150 @@
         word-break: break-word;
     }
 }
+
+/* ===== Bảng KÉO-THẢ phân bổ số theo NV (OWL client action) ===== */
+.o_vd_board {
+    height: 100%;
+    overflow: hidden;
+    background: #f4f5f7;
+
+    .o_vd_board_wrap {
+        display: flex;
+        height: 100%;
+        align-items: stretch;
+    }
+
+    .o_vd_dim { color: #98a2b3; font-weight: 400; }
+
+    /* --- Kho số (trái) --- */
+    .o_vd_palette {
+        flex: 0 0 280px;
+        overflow-y: auto;
+        padding: 12px;
+        border-right: 1px solid #e3e6ea;
+        background: #fff;
+    }
+    .o_vd_palette_title {
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #344054;
+    }
+    .o_vd_pal_carrier { margin-bottom: 12px; }
+    .o_vd_pal_carrier_h {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #475467;
+        padding: 2px 0 6px;
+        border-bottom: 1px solid #eef0f2;
+        margin-bottom: 6px;
+    }
+    .o_vd_pal_nums { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    /* --- Khu NV (phải) --- */
+    .o_vd_users {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .o_vd_users_toolbar {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3e6ea;
+        background: #fff;
+    }
+    .o_vd_search { max-width: 320px; }
+    .o_vd_user_grid {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+        align-content: start;
+    }
+    .o_vd_user_box {
+        background: #fff;
+        border: 1px solid #e3e6ea;
+        border-radius: 8px;
+        padding: 10px 12px;
+        min-height: 96px;
+        transition: box-shadow .12s, border-color .12s, background .12s;
+        &.o_vd_drop_hover {
+            border-color: #1570ef;
+            background: #eff6ff;
+            box-shadow: 0 0 0 2px rgba(21, 112, 239, .2);
+        }
+    }
+    .o_vd_user_name {
+        font-weight: 700;
+        color: #1d2939;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #f0f1f3;
+    }
+    .o_vd_user_chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .o_vd_empty { color: #98a2b3; font-size: 12px; font-style: italic; }
+
+    /* --- Chip số --- */
+    .o_vd_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 8px;
+        border-radius: 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.4;
+        cursor: grab;
+        user-select: none;
+        border: 1px solid transparent;
+        background: #eef2f6;
+        color: #344054;
+        white-space: nowrap;
+        &:active { cursor: grabbing; }
+    }
+    .o_vd_chip_num { font-variant-numeric: tabular-nums; }
+    .o_vd_chip_count {
+        font-size: 10.5px;
+        background: rgba(0, 0, 0, .12);
+        border-radius: 8px;
+        padding: 0 5px;
+    }
+    .o_vd_chip_assigned { cursor: default; }
+    .o_vd_chip_x {
+        cursor: pointer;
+        font-weight: 700;
+        opacity: .55;
+        padding: 0 2px;
+        &:hover { opacity: 1; }
+    }
+
+    /* Màu theo nhà mạng — nhìn phát biết mạng nào. */
+    .o_vd_chip[data-carrier="viettel"]      { background: #fde2e1; color: #b42318; }
+    .o_vd_chip[data-carrier="mobi"]         { background: #e0ecfe; color: #1849a9; }
+    .o_vd_chip[data-carrier="vina"]         { background: #e6f4ea; color: #1c7c3e; }
+    .o_vd_chip[data-carrier="vietnamobile"] { background: #fce7f6; color: #9e165f; }
+    .o_vd_chip[data-carrier="itelecom"]     { background: #fff1d6; color: #b54708; }
+    .o_vd_chip[data-carrier="gmobile"]      { background: #eae3fb; color: #5925dc; }
+    .o_vd_chip[data-carrier="other"]        { background: #e9edf2; color: #475467; }
+
+    .o_vd_pal_carrier_h::before {
+        content: "";
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+        vertical-align: middle;
+        background: #cbd5e1;
+    }
+    .o_vd_pal_carrier[data-carrier="viettel"]      .o_vd_pal_carrier_h::before { background: #d92d20; }
+    .o_vd_pal_carrier[data-carrier="mobi"]         .o_vd_pal_carrier_h::before { background: #2e6be6; }
+    .o_vd_pal_carrier[data-carrier="vina"]         .o_vd_pal_carrier_h::before { background: #21a366; }
+    .o_vd_pal_carrier[data-carrier="vietnamobile"] .o_vd_pal_carrier_h::before { background: #d6409f; }
+    .o_vd_pal_carrier[data-carrier="itelecom"]     .o_vd_pal_carrier_h::before { background: #f79009; }
+    .o_vd_pal_carrier[data-carrier="gmobile"]      .o_vd_pal_carrier_h::before { background: #7a5af8; }
+}

@@ -5,10 +5,16 @@
     <menuitem id="menu_stringee_calls" name="Lịch sử cuộc gọi"
               parent="menu_stringee_root" action="action_stringee_call" sequence="10"/>
 
-    <!-- Menu CHÍNH: bảng ma trận NV x nha mang (tra 1 NV thay ngay du so). -->
+    <!-- Menu CHÍNH: bảng KÉO-THẢ phân bổ số theo NV. -->
     <menuitem id="menu_stringee_matrix" name="Số tổng đài theo NV"
-              parent="menu_stringee_root" action="action_users_stringee_matrix"
+              parent="menu_stringee_root" action="action_vd_stringee_board"
               sequence="12"
+              groups="base.group_system,sales_team.group_sale_manager"/>
+
+    <!-- Bảng tra cứu chỉ-xem (list ma trận), bổ trợ cho bảng kéo-thả. -->
+    <menuitem id="menu_stringee_matrix_list" name="Bảng tra cứu (chỉ xem)"
+              parent="menu_stringee_root" action="action_users_stringee_matrix"
+              sequence="13"
               groups="base.group_system,sales_team.group_sale_manager"/>
 
     <menuitem id="menu_stringee_distribute" name="Thêm NV và chia đều số"

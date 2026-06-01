@@ -8,7 +8,18 @@ Khi NV gọi ra:
 Đặt model trong vd_stringee để không phụ thuộc vd_crm_lead.
 """
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
+
+# Thứ tự + label cột nhà mạng hiển thị trên bảng kéo-thả.
+_CARRIER_ORDER = [
+    ('viettel', 'Viettel'),
+    ('mobi', 'MobiFone'),
+    ('vina', 'Vinaphone'),
+    ('vietnamobile', 'Vietnamobile'),
+    ('itelecom', 'iTel'),
+    ('gmobile', 'Gmobile'),
+    ('other', 'Khác'),
+]
 
 
 def _digits_only(s):
@@ -135,6 +146,79 @@ class VdStringeeHotline(models.Model):
             # Số đổi → tự cập nhật lại nhà mạng theo đầu số mới.
             vals['carrier'] = vd_carrier_from_number(vals['number'])
         return super().write(vals)
+
+    # ===================== BẢNG KÉO-THẢ (OWL client action) =====================
+    def _check_board_access(self):
+        """Chỉ admin / quản lý sale được thao tác bảng phân số."""
+        if not (self.env.user.has_group('base.group_system')
+                or self.env.user.has_group('sales_team.group_sale_manager')):
+            raise AccessError(_('Bạn không có quyền phân bổ số tổng đài.'))
+
+    @api.model
+    def get_assignment_board(self):
+        """Dữ liệu cho bảng kéo-thả: kho số gom theo mạng + danh sách NV kèm số đã gán."""
+        self._check_board_access()
+        hotlines = self.search([('active', '=', True)])
+        by_carrier = {}
+        for h in hotlines:
+            by_carrier.setdefault(h.carrier, []).append({
+                'id': h.id,
+                'number': h.number,
+                'name': h.name or '',
+                'user_count': len(h.assigned_user_ids),
+            })
+        carriers = []
+        for code, label in _CARRIER_ORDER:
+            nums = by_carrier.get(code)
+            if nums:
+                carriers.append({
+                    'code': code,
+                    'label': label,
+                    'numbers': sorted(nums, key=lambda x: x['number']),
+                })
+
+        users = self.env['res.users'].search(
+            [('share', '=', False), ('active', '=', True)], order='name')
+        user_list = []
+        for u in users:
+            assigned = [
+                {'id': h.id, 'number': h.number, 'carrier': h.carrier}
+                for h in u.stringee_hotline_ids if h.active
+            ]
+            assigned.sort(key=lambda x: x['carrier'])
+            user_list.append({
+                'id': u.id,
+                'name': u.name,
+                'login': u.login,
+                'hotlines': assigned,
+            })
+        return {'carriers': carriers, 'users': user_list}
+
+    @api.model
+    def assign_user_hotline(self, user_id, hotline_id):
+        """Gán số cho NV. 1 mạng 1 số → bỏ số cùng mạng cũ trước khi gán số mới."""
+        self._check_board_access()
+        user = self.env['res.users'].browse(user_id).sudo()
+        hotline = self.browse(hotline_id)
+        if not user.exists() or not hotline.exists() or not hotline.active:
+            return False
+        same_carrier = user.stringee_hotline_ids.filtered(
+            lambda h: h.active and h.carrier == hotline.carrier and h.id != hotline.id
+        )
+        cmds = [(3, h.id) for h in same_carrier]
+        cmds.append((4, hotline.id))
+        user.stringee_hotline_ids = cmds
+        return True
+
+    @api.model
+    def unassign_user_hotline(self, user_id, hotline_id):
+        """Gỡ 1 số khỏi NV."""
+        self._check_board_access()
+        user = self.env['res.users'].browse(user_id).sudo()
+        if not user.exists():
+            return False
+        user.stringee_hotline_ids = [(3, hotline_id)]
+        return True
 
     def action_open_assign_wizard(self):
         self.ensure_one()

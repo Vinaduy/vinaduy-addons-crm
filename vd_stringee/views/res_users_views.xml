@@ -72,6 +72,12 @@
         </field>
     </record>
 
+    <!-- Bảng KÉO-THẢ phân bổ số theo NV (OWL client action). -->
+    <record id="action_vd_stringee_board" model="ir.actions.client">
+        <field name="name">Số tổng đài theo NV</field>
+        <field name="tag">vd_stringee_assignment_board</field>
+    </record>
+
     <record id="action_users_stringee_matrix" model="ir.actions.act_window">
         <field name="name">Số tổng đài theo NV</field>
         <field name="res_model">res.users</field>

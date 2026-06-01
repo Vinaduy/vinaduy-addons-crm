@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_stringee.AssignmentBoard">
+        <div class="o_vd_board">
+            <div t-if="state.loading" class="o_vd_board_loading text-muted p-4">
+                Đang tải bảng phân số...
+            </div>
+            <div t-else="" class="o_vd_board_wrap">
+
+                <!-- KHO SỐ: gom theo nhà mạng, kéo chip thả vào NV -->
+                <div class="o_vd_palette">
+                    <div class="o_vd_palette_title">
+                        <i class="fa fa-th-large me-1"/>Kho số — kéo thả vào NV
+                    </div>
+                    <t t-foreach="state.carriers" t-as="c" t-key="c.code">
+                        <div class="o_vd_pal_carrier" t-att-data-carrier="c.code">
+                            <div class="o_vd_pal_carrier_h">
+                                <t t-esc="c.label"/> <span class="o_vd_dim">(<t t-esc="c.numbers.length"/>)</span>
+                            </div>
+                            <div class="o_vd_pal_nums">
+                                <t t-foreach="c.numbers" t-as="n" t-key="n.id">
+                                    <span class="o_vd_chip" t-att-data-carrier="c.code"
+                                          draggable="true"
+                                          t-att-title="'Đang dùng bởi ' + n.user_count + ' NV'"
+                                          t-on-dragstart="(ev) => this.onDragStart(ev, n, c.code)">
+                                        <span class="o_vd_chip_num" t-esc="n.number"/>
+                                        <span class="o_vd_chip_count" t-esc="n.user_count"/>
+                                    </span>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- NHÂN VIÊN: mỗi NV 1 ô, thả số vào -->
+                <div class="o_vd_users">
+                    <div class="o_vd_users_toolbar">
+                        <input type="text" class="form-control o_vd_search"
+                               placeholder="Tìm nhân viên..." t-model="state.search"/>
+                        <span class="o_vd_dim ms-2">
+                            <t t-esc="filteredUsers.length"/>/<t t-esc="state.users.length"/> NV
+                        </span>
+                    </div>
+                    <div class="o_vd_user_grid">
+                        <t t-foreach="filteredUsers" t-as="u" t-key="u.id">
+                            <div class="o_vd_user_box"
+                                 t-on-dragover="(ev) => this.onDragOver(ev)"
+                                 t-on-dragleave="(ev) => this.onDragLeave(ev)"
+                                 t-on-drop="(ev) => this.onDrop(ev, u)">
+                                <div class="o_vd_user_name">
+                                    <i class="fa fa-user me-1"/><t t-esc="u.name"/>
+                                </div>
+                                <div class="o_vd_user_chips">
+                                    <t t-foreach="u.hotlines" t-as="h" t-key="h.id">
+                                        <span class="o_vd_chip o_vd_chip_assigned"
+                                              t-att-data-carrier="h.carrier">
+                                            <span class="o_vd_chip_num" t-esc="h.number"/>
+                                            <span class="o_vd_chip_x"
+                                                  t-on-click="() => this.onRemove(u, h)">×</span>
+                                        </span>
+                                    </t>
+                                    <span t-if="!u.hotlines.length" class="o_vd_empty">
+                                        Chưa có số — kéo số vào đây
+                                    </span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </t>
+
+</templates>
