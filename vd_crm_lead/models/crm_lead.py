@@ -2574,7 +2574,11 @@ class CrmLead(models.Model):
     def _vd_auto_budget_problem(self):
         """Tự sinh/cập nhật vấn đề 'Cân đối ngân sách' (code='cost_diff').
         User spec 2026-05-31: TẠO khi tầm tài chính KH THẤP HƠN GIÁ BÁO > 15%.
-        Gọi ngay khi tạo báo giá hoặc khi NS KH / giá báo thay đổi."""
+        Gọi ngay khi tạo báo giá hoặc khi NS KH / giá báo thay đổi.
+
+        User spec 2026-06-01: KH CHƯA xác định tài chính (NS = 0) thì KHÔNG
+        sinh vấn đề 'Cân đối ngân sách' — chưa biết NS thì không có gì để cân
+        đối. Chỉ tạo khi biết CẢ NS KH lẫn giá báo VÀ chênh > 15%."""
         Problem = self.env['vd.lead.problem']
         THRESHOLD = 0.15  # > 15% so với GIÁ BÁO
         for rec in self:
@@ -2604,11 +2608,9 @@ class CrmLead(models.Model):
                         '{:,.0f}'.format(kh_budget), '{:,.0f}'.format(quote),
                     )
                     status = 'resolved'
-            elif quote:
-                name = '⚠️ CÂN ĐỐI NGÂN SÁCH: chưa biết NS KH (giá báo %s đ — hỏi NS dự kiến)' % (
-                    '{:,.0f}'.format(quote),
-                )
-                status = 'open'
+            # User spec 2026-06-01: BỎ nhánh "elif quote" (có giá báo nhưng
+            # chưa biết NS) — không sinh vấn đề khi KH chưa xác định tài chính.
+            # name=None → resolve vấn đề cost_diff cũ (nếu có) ở khối dưới.
             # Áp dụng
             if name is None:
                 if existing and existing.status != 'resolved':
