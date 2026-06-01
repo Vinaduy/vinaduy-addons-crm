@@ -105,13 +105,19 @@
                     <div class="o_vd_summary_header o_vd_customer_frame">
                         <div class="o_vd_header_row o_vd_header_row1 o_vd_header_row_single">
                             <div class="o_vd_name_chip_wrap">
-                                <button name="action_copy_name" type="object"
-                                        class="o_vd_name_chip o_vd_name_chip_btn"
-                                        title="Bấm để copy tên khách hàng">
+                                <!-- Tên KH SỬA ĐƯỢC: input inline trong chip (không còn bọc trong
+                                     nút copy). Copy tách ra icon nhỏ bên phải để click sửa không
+                                     bị trigger copy. (user spec 2026-06-01) -->
+                                <div class="o_vd_name_chip o_vd_name_chip_edit">
                                     <span class="o_vd_name_text">
-                                        <field name="name" placeholder="Tên khách hàng" nolabel="1" readonly="1"/>
+                                        <field name="name" placeholder="Tên khách hàng" nolabel="1"/>
                                     </span>
-                                </button>
+                                    <button name="action_copy_name" type="object"
+                                            class="o_vd_name_copy_ico"
+                                            title="Bấm để copy tên khách hàng">
+                                        <i class="fa fa-clone"/>
+                                    </button>
+                                </div>
                                 <button name="action_copy_phone" type="object"
                                         class="o_vd_name_phone_btn"
                                         title="Bấm để copy số điện thoại"

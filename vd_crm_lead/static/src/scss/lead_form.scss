@@ -7798,6 +7798,42 @@ $vd-panel-head-radius: 10px;
         &:active { transform: translateY(0); }
     }
 
+    /* === Chip TÊN KH SỬA ĐƯỢC — input inline + icon copy =========== */
+    .o_vd_name_chip_edit {
+        cursor: text !important;
+        &:hover { transform: none; box-shadow: 0 1px 2px rgba(24, 100, 171, 0.08); }
+
+        /* Cho input nhận click/gõ (override pointer-events:none của bản readonly) */
+        .o_vd_name_text {
+            .o_field_widget,
+            .o_field_widget > *,
+            input {
+                pointer-events: auto !important;
+                cursor: text !important;
+            }
+            input {
+                min-width: 9ch !important;
+                width: auto !important;
+            }
+        }
+
+        /* Icon copy nhỏ bên phải input — mờ, hover rõ */
+        .o_vd_name_copy_ico {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 0 0 0.35rem !important;
+            margin: 0 !important;
+            color: #1971c2 !important;
+            cursor: pointer;
+            font-size: 0.8rem;
+            line-height: 1;
+            opacity: 0.55;
+            box-shadow: none !important;
+            transition: opacity 0.15s ease;
+            &:hover { opacity: 1; }
+        }
+    }
+
     /* === Salesperson — plain text (KHÔNG viền), nằm trái hàng 2,
        dưới chip tên KH. Avatar nhỏ + tên gọn. */
     .o_vd_header_user {
