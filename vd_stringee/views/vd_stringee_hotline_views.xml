@@ -34,10 +34,11 @@
                 <field name="number"/>
                 <field name="name"/>
                 <field name="user_count" readonly="1"/>
+                <field name="assigned_user_names" readonly="1" string="NV đã gán"/>
                 <button name="action_open_assign_wizard" type="object"
                         string="Gán NV" icon="fa-user-plus"
                         class="btn-link"
-                        help="Mở popup chọn NV được gán số này"/>
+                        help="Mở popup chọn NV được gán số này (chọn được NHIỀU NV cho 1 số)"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>

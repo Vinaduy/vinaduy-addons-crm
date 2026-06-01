@@ -50,6 +50,17 @@ class VdStringeeHotline(models.Model):
     user_count = fields.Integer(
         string='Số NV dùng', compute='_compute_user_count',
     )
+    assigned_user_names = fields.Char(
+        string='NV đã gán', compute='_compute_assigned_user_names',
+        help='Danh sách NV đang dùng số này (1 số có thể gán cho nhiều NV).',
+    )
+
+    @api.depends('user_ids', 'user_ids.name')
+    def _compute_assigned_user_names(self):
+        for rec in self:
+            rec.assigned_user_names = ', '.join(
+                rec.user_ids.sorted('name').mapped('name')
+            ) or '—'
 
     _sql_constraints = [
         ('number_unique', 'unique(number)',
