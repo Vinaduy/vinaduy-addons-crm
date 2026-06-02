@@ -124,15 +124,28 @@ export class VdCallStatusWidget extends Component {
         this.state.elapsed = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
     }
 
+    // Reload record từ server NHƯNG bỏ qua nếu NV đang nhập dở (dirty) —
+    // record.load() vứt mọi thay đổi chưa lưu. NV khai thác thông tin TRONG
+    // lúc gọi → poller 2s từng xoá sạch chữ vừa gõ (dài/rộng/tầng...).
+    // Trạng thái call vẫn cập nhật tức thì qua callClientState (Stringee SDK),
+    // không phụ thuộc lần load() này. (Fallback an toàn nếu isDirty thiếu.)
+    async _safeLoad() {
+        if (this.props.record && this.props.record.isDirty) {
+            return false;   // có thay đổi chưa lưu → KHÔNG clobber
+        }
+        try {
+            await this.props.record.load();
+        } catch (e) {
+            // record might be unloading
+        }
+        return true;
+    }
+
     async _maybePoll() {
         // Only poll while there's a transient active call — avoids load on idle records.
         const s = this.callState;
         if (RINGING_STATES.has(s) || s === "answered") {
-            try {
-                await this.props.record.load();
-            } catch (e) {
-                // record might be unloading
-            }
+            await this._safeLoad();
             // SAFETY: nếu kẹt RINGING > 60s (Stringee timeout = 50s + buffer 10s)
             // → call orm để force finalize (chặn UI kẹt "Đang đổ chuông")
             if (RINGING_STATES.has(s)) {
@@ -144,7 +157,7 @@ export class VdCallStatusWidget extends Component {
                         await this.orm.call(
                             "stringee.call", "cron_finalize_stale_calls", [],
                         );
-                        await this.props.record.load();
+                        await this._safeLoad();
                     } catch (_e) {}
                 }
             } else {
@@ -166,7 +179,8 @@ export class VdCallStatusWidget extends Component {
                        : "warning";
             this.notification.add(payload.terminal_message, { type, sticky: false });
         }
-        this.props.record.load();
+        // Bỏ qua reload nếu NV đang nhập dở — tránh xoá chữ chưa lưu giữa cuộc gọi.
+        this._safeLoad();
     }
 
     get callState() {
