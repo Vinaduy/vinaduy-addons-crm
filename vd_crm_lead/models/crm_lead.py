@@ -789,7 +789,11 @@ class CrmLead(models.Model):
                 rec.vd_intake_district.display_name if rec.vd_intake_district else None,
                 rec.vd_intake_district.state_id.display_name if rec.vd_intake_district else None,
             )
-            if (rec.vd_intake_district
+            # CHỈ reset Huyện khi Tỉnh CÓ giá trị và khác tỉnh của huyện.
+            # KHÔNG reset khi Tỉnh tạm None (tránh xoá lây Huyện khi client
+            # chớp tắt giá trị Tỉnh).
+            if (rec.vd_intake_province_id
+                    and rec.vd_intake_district
                     and rec.vd_intake_district.state_id != rec.vd_intake_province_id):
                 rec.vd_intake_district = False
                 _logger.info("VD_DEBUG province_onchange -> RESET district")
