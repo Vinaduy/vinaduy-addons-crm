@@ -55,8 +55,20 @@ class PancakeWebhookController(http.Controller):
             _logger.warning('Pancake webhook %s: JSON decode lỗi: %s', page.name, e)
             return self._ok()
 
-        # Cập nhật timestamp ngay — kể cả event không phải messaging
-        page.sudo().write({'last_event_at': fields.Datetime.now()})
+        # Cập nhật timestamp — THROTTLE: chỉ ghi nếu đã cũ hơn 60s.
+        # Pancake dội event (delivered/read/typing...) dồn dập vào CÙNG 1 row
+        # vd_pancake_page → ghi mỗi event gây bão "could not serialize access"
+        # (Odoo retry 5 lần → Pancake resend → vòng xoáy đốt CPU/DB). 60s là đủ
+        # cho mục đích hiển thị "webhook lần cuối".
+        now = fields.Datetime.now()
+        last = page.last_event_at
+        if not last or (now - last).total_seconds() > 60:
+            try:
+                page.sudo().write({'last_event_at': now})
+                request.env.cr.commit()
+            except Exception:
+                # Timestamp không quan trọng — bỏ qua nếu đụng độ ghi đồng thời.
+                request.env.cr.rollback()
 
         event_type = payload.get('event_type') or ''
         if event_type != 'messaging':
