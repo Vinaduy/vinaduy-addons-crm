@@ -800,3 +800,37 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     opacity: 0.7;
     margin-left: 0.5rem;
 }
+
+/* ============================================================
+   MOBILE DASHBOARD (≤575px) — CHỈ điện thoại, KHÔNG đụng desktop/laptop.
+   Mọi rule bọc trong @media max-width 575px nên màn hình lớn giữ nguyên.
+   ============================================================ */
+@media (max-width: 575px) {
+    /* 3 ô thống kê THAM KHẢO / CHƯA GỌI ĐƯỢC / KH HỦY:
+       desktop = cột dọc icon 4.5-5.5rem chiếm cả màn; mobile = hàng ngang gọn. */
+    .o_vd_split_table .o_vd_trash_box.o_vd_split_trash {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 0.7rem !important;
+        padding: 0.55rem 0.9rem !important;
+        background: #fff5f5 !important;
+        border: 1.5px dashed #fa5252 !important;
+        border-radius: 10px !important;
+        min-height: 0 !important;
+    }
+    .o_vd_split_table .o_vd_trash_box.o_vd_split_trash .o_vd_trash_icon i.fa {
+        font-size: 2rem !important;
+    }
+    .o_vd_split_table .o_vd_trash_box.o_vd_split_trash .o_vd_trash_icon_emoji {
+        font-size: 2rem !important;
+    }
+    .o_vd_split_table .o_vd_trash_box.o_vd_split_trash .o_vd_trash_meta {
+        flex-direction: row !important;
+        align-items: baseline !important;
+        gap: 0.5rem !important;
+    }
+    .o_vd_split_table .o_vd_trash_box.o_vd_split_trash .o_vd_trash_count {
+        font-size: 1.5rem !important;
+    }
+}
