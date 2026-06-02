@@ -242,6 +242,10 @@ export const stringeeService = {
             const callId = call && (call.callId || call.id || '');
             logToServer("attachCallEvents", { customData: call?.customDataFromYourServer }, callId);
 
+            // Track: call đã từng đổ chuông/answered chưa → phân biệt "kết thúc
+            // bình thường" vs "bị CHẶN ngay" (số tổng đài bị nhà mạng khoá/khác mạng).
+            let reachedTalkPath = false;
+
             // Failsafe lâu hơn: 120s — KHÔNG hangup nếu call đang active (answered).
             // Trước đây 45s quá ngắn, nếu KH nói chuyện lâu sẽ bị cắt.
             const failsafe = setTimeout(() => {
@@ -320,12 +324,29 @@ export const stringeeService = {
                 const label = SIGNALING_LABEL[code] || `UNKNOWN(${code})`;
                 console.log("[VD-STRINGEE] signalingstate:", label, s);
                 logToServer("signalingstate", { code, label, raw: s }, callId);
+                if (code === 2 || code === 3) {
+                    reachedTalkPath = true;  // đã đổ chuông/answered → call hợp lệ
+                }
                 if (code === 4) {
                     notification.add("KH bận máy", { type: "warning" });
                 } else if (code === 5) {
                     notification.add("KH từ chối cuộc gọi", { type: "warning" });
                 } else if (code === 6) {
-                    notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                    if (!reachedTalkPath && call._vdFromNumber) {
+                        // Kết thúc TRƯỚC khi kịp đổ chuông = bị nhà mạng CHẶN:
+                        // số tổng đài bị khoá (do gọi ngoại mạng) hoặc khách khác mạng.
+                        const cl = { viettel: "Viettel", vina: "Vinaphone", mobi: "MobiFone" }[call._vdCarrier]
+                            || (call._vdCarrier || "");
+                        notification.add(
+                            "Cuộc gọi bị CHẶN khi chưa kịp đổ chuông. Thường do số tổng đài "
+                            + cl + " " + call._vdFromNumber + " đang bị nhà mạng chặn "
+                            + "(do gọi ngoại mạng trước đó) hoặc số khách khác mạng. "
+                            + "Nếu lặp lại → báo admin kiểm tra/đổi số " + cl + ".",
+                            { type: "danger", title: "Bị chặn gọi — kiểm tra số " + cl, sticky: true },
+                        );
+                    } else {
+                        notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                    }
                 }
                 // Cập nhật derived state cho UI re-render
                 // v1 codes: 0/1=CALLING, 2=RINGING, 3=ANSWERED đều là "in call"
@@ -522,13 +543,18 @@ export const stringeeService = {
                 // mạng KH ngay lúc bấm gọi (fromNumber phụ thuộc số KH, không
                 // cố định theo token). Không có số cùng mạng → BÁO LỖI, KHÔNG gọi.
                 let fromNumber = "";
+                let fromCarrier = "";
                 try {
                     const r = await rpc("/stringee/resolve_from_number", { callee: targetNumber });
                     if (r && r.error) {
-                        notification.add(r.error, { type: "danger", title: "Không gọi được cùng mạng" });
+                        // Server soạn sẵn thông báo rõ: thiếu số mạng nào / khách khác mạng.
+                        notification.add(r.error, {
+                            type: "danger", title: "Không gọi được — sai/thiếu số cùng mạng", sticky: true,
+                        });
                         return null;
                     }
                     fromNumber = (r && r.from_number) || "";
+                    fromCarrier = (r && r.carrier) || "";
                 } catch (_e) {
                     notification.add(
                         "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.",
@@ -539,13 +565,16 @@ export const stringeeService = {
                 if (!fromNumber) {
                     notification.add(
                         "Bạn chưa được gán số cùng mạng với khách này — báo admin gán số.",
-                        { type: "danger" },
+                        { type: "danger", sticky: true },
                     );
                     return null;
                 }
                 const call2 = new window.StringeeCall(
                     client, fromNumber, targetNumber, false,
                 );
+                // Đính kèm để event signalingstate báo rõ khi bị chặn lúc gọi.
+                call2._vdFromNumber = fromNumber;
+                call2._vdCarrier = fromCarrier;
                 try {
                     call2.custom = JSON.stringify({
                         source: "vd_crm_lead",

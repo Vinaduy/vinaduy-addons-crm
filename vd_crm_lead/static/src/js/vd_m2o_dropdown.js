@@ -24,6 +24,31 @@ import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
 
+// ===== GLOBAL CLICK HANDLER (1 lần cho cả app) — bypass OWL t-on-click/mousedown =====
+// OWL handler trên các button render động trong popup KHÔNG fire ổn định (đã
+// verify ở vd_m2o_hover_picker / vd_selection_hover_picker). Bắt click ở
+// document (capture phase), đọc data-rec-id, tìm component qua __vdM2od.
+if (!window.__vdM2odClickHandlerInstalled) {
+    window.__vdM2odClickHandlerInstalled = true;
+    document.addEventListener("click", (ev) => {
+        const target = ev.target;
+        if (!(target instanceof Element)) return;
+        // Chip chọn (nút × clear vẫn dùng t-on-click ở bar — không động vào đây)
+        const chip = target.closest(".o_vd_m2od_chip");
+        if (!chip) return;
+        const el = chip.closest(".o_vd_m2od");
+        const comp = el && el.__vdM2od;
+        if (!comp) return;
+        const id = parseInt(chip.dataset.recId, 10);
+        if (!id) return;
+        const rec = (comp.state.options || []).find((o) => o.id === id);
+        if (!rec) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        comp.selectRecord(rec, ev);
+    }, true);
+}
+
 const FALLBACK_REL = {
     vd_intake_province_id: "res.country.state",
     vd_intake_district: "vd.district",
@@ -65,8 +90,13 @@ export class VdM2oDropdown extends Component {
         };
 
         onWillStart(async () => { await this._fetchIfNeeded(); });
-        onMounted(() => document.addEventListener("click", this._onDocClick, true));
+        onMounted(() => {
+            // Expose instance qua DOM → global click handler gọi selectRecord được.
+            if (this.rootRef.el) this.rootRef.el.__vdM2od = this;
+            document.addEventListener("click", this._onDocClick, true);
+        });
         onWillUnmount(() => {
+            if (this.rootRef.el) delete this.rootRef.el.__vdM2od;
             document.removeEventListener("click", this._onDocClick, true);
             if (this._closeTimer) clearTimeout(this._closeTimer);
         });
@@ -219,23 +249,46 @@ export class VdM2oDropdown extends Component {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         const fname = this.props.name;
         const disp = rec.display_name || rec.name || "";
+        // Chọn Huyện → set luôn Tỉnh = huyện.state_id (client-side, không chờ
+        // onchange server) → không bao giờ "mất Tỉnh".
+        const vals = { [fname]: { id: rec.id, display_name: disp } };
+        if (this.isDistrict && rec.state_id) {
+            const sid = Array.isArray(rec.state_id) ? rec.state_id[0] : this._extractId(rec.state_id);
+            const sname = Array.isArray(rec.state_id) ? rec.state_id[1] : "";
+            if (sid) vals["vd_intake_province_id"] = { id: sid, display_name: sname };
+        }
+        let updated = false;
         try {
-            const vals = { [fname]: { id: rec.id, display_name: disp } };
-            // Chọn Huyện → set luôn Tỉnh = huyện.state_id (client-side, không
-            // chờ onchange server) → không bao giờ "mất Tỉnh" khi rớt mạng.
-            if (this.isDistrict && rec.state_id) {
-                const sid = Array.isArray(rec.state_id) ? rec.state_id[0] : this._extractId(rec.state_id);
-                const sname = Array.isArray(rec.state_id) ? rec.state_id[1] : "";
-                if (sid) vals["vd_intake_province_id"] = { id: sid, display_name: sname };
-            }
             await this.props.record.update(vals);
+            updated = true;
         } catch (e) {
-            console.error("[vd_m2o_dropdown] update failed:", e);
+            console.warn("[vd_m2o_dropdown] record.update failed:", e);
+        }
+        // VERIFY giá trị đã vào record; chưa vào → ORM write thẳng rồi reload
+        // (brute force, đảm bảo LƯU đúng — fix 'bấm chọn tỉnh không lưu').
+        const curId = this._extractId(this.props.record.data[fname]);
+        if (!updated || curId !== rec.id) {
+            try {
+                const resId = this.props.record.resId;
+                if (resId) {
+                    const wvals = { [fname]: rec.id };
+                    if (vals["vd_intake_province_id"]) {
+                        wvals["vd_intake_province_id"] = this._extractId(vals["vd_intake_province_id"]);
+                    }
+                    await this.orm.write(this.props.record.resModel, [resId], wvals);
+                    await this.props.record.load();
+                    updated = true;
+                } else {
+                    console.warn("[vd_m2o_dropdown] no resId — can't ORM write");
+                }
+            } catch (e) {
+                console.error("[vd_m2o_dropdown] ORM write fallback failed:", e);
+            }
         }
         this._close();
-        // Auto-save → backend compute vd_intake_complete + auto-lock. Lỗi mạng
-        // ở bước này KHÔNG làm mất hiển thị (giá trị đã nằm trong record).
+        // Auto-save → backend compute vd_intake_complete + auto-lock.
         try { await this.props.record.save(); } catch (_) {}
+        try { this.render(true); } catch (_) {}
     }
 
     async clearValue(ev) {

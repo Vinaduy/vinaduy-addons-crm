@@ -3703,8 +3703,14 @@ class CrmLead(models.Model):
             }
 
         _logger.info("[VD-CALL] action_call → REST callout fallback (user %s has NO sui)", user.login)
+        # CHỈ GỌI NỘI MẠNG: resolve số tổng đài CÙNG MẠNG với khách trước.
+        # Không có số cùng mạng (thiếu/khác mạng) → chặn + báo rõ cho NV.
+        resolved = user._vd_resolve_outbound(phone)
+        if resolved.get('error'):
+            raise UserError(resolved['error'])
         # Fallback REST callout cho NV không có stringee_user_id (no Web SDK)
-        call = Call.make_call(callee_number=phone, user_id=user.id)
+        call = Call.make_call(callee_number=phone, user_id=user.id,
+                              from_number=resolved.get('from_number'))
         call.write({'lead_id': self.id})
         return {
             'type': 'ir.actions.client',

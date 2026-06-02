@@ -20,6 +20,15 @@ import requests
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .vd_stringee_hotline import vd_carrier_from_number
+
+# Nhãn nhà mạng tiếng Việt cho thông báo lỗi.
+_CARRIER_LABELS = {
+    'viettel': 'Viettel', 'vina': 'Vinaphone', 'mobi': 'MobiFone',
+    'vietnamobile': 'Vietnamobile', 'gmobile': 'Gmobile', 'itelecom': 'iTel',
+    'other': 'mạng khác',
+}
+
 
 def _phone_field(payload_value):
     """Extract a phone string from a Stringee payload value that can be str or dict."""
@@ -242,6 +251,27 @@ class StringeeCall(models.Model):
             raise UserError(_('Chưa cấu hình "From Number".'))
         if not callee_e164:
             raise UserError(_('Số gọi đến không hợp lệ.'))
+
+        # === CHỈ GỌI NỘI MẠNG (Stringee cấm gọi ngoại mạng, 2026-06) ===
+        # Số gọi đi PHẢI cùng nhà mạng với số khách. Gọi ngoại mạng bị nhà mạng
+        # chặn (~97% rớt trước đổ chuông) VÀ có thể khoá số gọi đi → không bao
+        # giờ fallback số khác mạng; chặn ngay + báo rõ cho NV.
+        from_carrier = vd_carrier_from_number(from_number)
+        callee_carrier = vd_carrier_from_number(callee_e164)
+        if from_carrier != callee_carrier or callee_carrier == 'other':
+            self.write({'state': 'failed', 'hangup_cause': 'CROSS_NETWORK_BLOCKED'})
+            from_lbl = _CARRIER_LABELS.get(from_carrier, from_carrier)
+            callee_lbl = _CARRIER_LABELS.get(callee_carrier, callee_carrier)
+            if callee_carrier == 'other':
+                raise UserError(_(
+                    'CHẶN gọi ngoại mạng: số khách %s thuộc %s — Stringee chỉ cho '
+                    'gọi NỘI MẠNG Viettel/Vinaphone/MobiFone.'
+                ) % (callee_e164, callee_lbl))
+            raise UserError(_(
+                'CHẶN gọi ngoại mạng: số gọi đi %s (%s) KHÁC mạng với số khách '
+                '%s (%s). Cần số tổng đài %s để gọi cùng mạng — báo admin gán số %s.'
+            ) % (from_number, from_lbl, callee_e164, callee_lbl, callee_lbl, callee_lbl))
+
         base_url = (Param.get_param('web.base.url') or '').rstrip('/')
 
         # Body callout: CHỈ record (evidence-based decision 2026-05-16):

@@ -49,11 +49,12 @@
                         </div>
                     </t>
                     <t t-else="">
-                        <!-- BIND mousedown (fire TRƯỚC input blur) → chống race chọn khó -->
+                        <!-- Click bắt bằng global capture handler (đọc data-rec-id) —
+                             OWL t-on-click/mousedown không fire ổn định trong popup này. -->
                         <button t-foreach="filteredOptions" t-as="opt" t-key="opt.id"
                                 type="button" class="o_vd_m2od_chip"
-                                t-att-class="{ 'o_vd_m2od_chip_active': isCurrent(opt) }"
-                                t-on-mousedown.prevent.stop="(ev) => this.selectRecord(opt, ev)">
+                                t-att-data-rec-id="opt.id"
+                                t-att-class="{ 'o_vd_m2od_chip_active': isCurrent(opt) }">
                             <t t-esc="opt.display_name or opt.name"/>
                         </button>
                     </t>
