@@ -333,16 +333,20 @@ export const stringeeService = {
                     notification.add("KH từ chối cuộc gọi", { type: "warning" });
                 } else if (code === 6) {
                     if (!reachedTalkPath && call._vdFromNumber) {
-                        // Kết thúc TRƯỚC khi kịp đổ chuông = bị nhà mạng CHẶN:
-                        // số tổng đài bị khoá (do gọi ngoại mạng) hoặc khách khác mạng.
+                        // Kết thúc TRƯỚC khi đổ chuông = số tổng đài KHÔNG gọi ra được.
+                        // Nguyên nhân hay gặp: số CHƯA được kích hoạt outbound trên
+                        // STRINGEE (server trả 503 Service Unavailable), hoặc số lỗi.
+                        // KHÔNG kết luận do nhà mạng — nhà mạng từ chối thì đã đổ
+                        // chuông rồi mới cúp (Stringee ≠ nhà mạng).
                         const cl = { viettel: "Viettel", vina: "Vinaphone", mobi: "MobiFone" }[call._vdCarrier]
                             || (call._vdCarrier || "");
+                        const rs = (s && (s.sipReason || s.reason)) ? (" [" + (s.sipReason || s.reason) + "]") : "";
                         notification.add(
-                            "Cuộc gọi bị CHẶN khi chưa kịp đổ chuông. Thường do số tổng đài "
-                            + cl + " " + call._vdFromNumber + " đang bị nhà mạng chặn "
-                            + "(do gọi ngoại mạng trước đó) hoặc số khách khác mạng. "
-                            + "Nếu lặp lại → báo admin kiểm tra/đổi số " + cl + ".",
-                            { type: "danger", title: "Bị chặn gọi — kiểm tra số " + cl, sticky: true },
+                            "Không gọi ra được — cuộc gọi kết thúc trước khi đổ chuông" + rs + ". "
+                            + "Số tổng đài " + cl + " " + call._vdFromNumber + " nhiều khả năng CHƯA "
+                            + "được kích hoạt gọi ra (outbound) trên Stringee, hoặc đang lỗi. "
+                            + "→ Báo admin kiểm tra số này trên Stringee Dashboard.",
+                            { type: "danger", title: "Không gọi ra được — kiểm tra số " + cl + " trên Stringee", sticky: true },
                         );
                     } else {
                         notification.add("Cuộc gọi đã kết thúc", { type: "info" });
