@@ -833,4 +833,50 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     .o_vd_split_table .o_vd_trash_box.o_vd_split_trash .o_vd_trash_count {
         font-size: 1.5rem !important;
     }
+
+    /* ===== Card KH (lane THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) — gom còn 2 DÒNG =====
+       Dòng 1: [tên KH | khớp tài chính]
+       Dòng 2: [badge vấn đề + 📞 📅 + SOS + Gọi lại]  (gọn, chuyên nghiệp)
+       Desktop (>575px) giữ nguyên grid 3 cột 1 dòng. */
+    .o_vd_problem_row {
+        grid-template-columns: 1fr auto !important;
+        align-items: center !important;
+        gap: 0.25rem 0.4rem !important;
+        padding: 0.45rem 0.6rem !important;
+    }
+    .o_vd_problem_row .o_vd_problem_row_name {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    /* Dòng 2: cụm badge + nút chiếm trọn chiều ngang, canh trái */
+    .o_vd_problem_row .o_vd_problem_row_problems {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 0.3rem !important;
+        margin-top: 0.1rem !important;
+    }
+    /* Badge nhỏ gọn lại */
+    .o_vd_problem_row .o_vd_problem_row_badge,
+    .o_vd_problem_row .o_vd_budget_fit_cell .o_vd_bf_badge {
+        font-size: 0.68rem !important;
+        padding: 0.15rem 0.45rem !important;
+    }
+    .o_vd_problem_row .o_vd_budget_fit_cell {
+        min-width: 0 !important;
+        justify-content: flex-end !important;
+    }
+    /* Nút Gọi lại + SOS gọn, đều nhau, chuyên nghiệp */
+    .o_vd_problem_row .o_vd_callback_btn {
+        padding: 0.28rem 0.65rem !important;
+        font-size: 0.72rem !important;
+        border-radius: 7px !important;
+        white-space: nowrap !important;
+    }
+    .o_vd_problem_row .o_vd_sos {
+        font-size: 0.72rem !important;
+    }
+    .o_vd_problem_row .o_vd_sos .o_vd_sos_face {
+        padding: 0.28rem 0.55rem !important;
+    }
 }
