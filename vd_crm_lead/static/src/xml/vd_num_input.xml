@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdNumInput">
+        <input type="text"
+               inputmode="decimal"
+               class="o_input o_vd_num_input"
+               autocomplete="off"
+               t-att-value="displayValue"
+               t-att-placeholder="props.placeholder"
+               t-att-readonly="props.readonly"
+               t-on-input="onInput"
+               t-on-change="onChange"/>
+    </t>
+
+</templates>

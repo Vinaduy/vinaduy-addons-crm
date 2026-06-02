@@ -297,14 +297,14 @@
                                             <span class="o_vd_dim_lbl"
                                                   invisible="not vd_intake_show_house_area">Ngang:</span>
                                             <field name="vd_intake_house_width_m" nolabel="1"
-                                                   class="o_vd_area_dim" placeholder="m"
+                                                   class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
                                                    invisible="not vd_intake_show_house_area"/>
                                             <span class="o_vd_area_sep"
                                                   invisible="not vd_intake_show_house_area">×</span>
                                             <span class="o_vd_dim_lbl"
                                                   invisible="not vd_intake_show_house_area">Dài:</span>
                                             <field name="vd_intake_house_length_m" nolabel="1"
-                                                   class="o_vd_area_dim" placeholder="m"
+                                                   class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
                                                    invisible="not vd_intake_show_house_area"/>
                                         </div>
                                         <!-- ===== Diện tích ĐẤT (SAU — xuống dưới, default OFF) ===== -->
@@ -326,14 +326,14 @@
                                             <span class="o_vd_dim_lbl"
                                                   invisible="vd_intake_land_unlimited or not vd_intake_show_land_area">Ngang:</span>
                                             <field name="vd_intake_width_m" nolabel="1"
-                                                   class="o_vd_area_dim" placeholder="m"
+                                                   class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
                                                    invisible="vd_intake_land_unlimited or not vd_intake_show_land_area"/>
                                             <span class="o_vd_area_sep"
                                                   invisible="vd_intake_land_unlimited or not vd_intake_show_land_area">×</span>
                                             <span class="o_vd_dim_lbl"
                                                   invisible="vd_intake_land_unlimited or not vd_intake_show_land_area">Dài:</span>
                                             <field name="vd_intake_length_m" nolabel="1"
-                                                   class="o_vd_area_dim" placeholder="m"
+                                                   class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
                                                    invisible="vd_intake_land_unlimited or not vd_intake_show_land_area"/>
                                         </div>
                                     </div>
@@ -409,47 +409,47 @@
                                     <!-- Tầng 1 ALWAYS visible (default tầng đầu, không cần bấm + Tầng) -->
                                     <span class="o_vd_floor_pair">
                                         <span class="o_vd_dim_lbl">Tầng 1</span>
-                                        <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 2">
                                         <span class="o_vd_dim_lbl">Tầng 2</span>
-                                        <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 3">
                                         <span class="o_vd_dim_lbl">Tầng 3</span>
-                                        <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 4">
                                         <span class="o_vd_dim_lbl">Tầng 4</span>
-                                        <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 5">
                                         <span class="o_vd_dim_lbl">Tầng 5</span>
-                                        <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 6">
                                         <span class="o_vd_dim_lbl">Tầng 6</span>
-                                        <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 7">
                                         <span class="o_vd_dim_lbl">Tầng 7</span>
-                                        <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
 
                                     <!-- Tum input (button đã ở group trên) -->
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_tum">
                                         <span class="o_vd_dim_lbl">Tum</span>
-                                        <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
 
                                     <!-- Lửng + Thông tầng inputs (button đã ở group trên) -->
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
                                         <span class="o_vd_dim_lbl">Lửng</span>
-                                        <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
                                     <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
                                         <span class="o_vd_dim_lbl">Thông tầng</span>
-                                        <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²"/>
+                                        <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
                                     </span>
 
                                     <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->

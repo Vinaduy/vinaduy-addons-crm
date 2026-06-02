@@ -130,8 +130,13 @@ export class VdCallStatusWidget extends Component {
     // Trạng thái call vẫn cập nhật tức thì qua callClientState (Stringee SDK),
     // không phụ thuộc lần load() này. (Fallback an toàn nếu isDirty thiếu.)
     async _safeLoad() {
-        if (this.props.record && this.props.record.isDirty) {
-            return false;   // có thay đổi chưa lưu → KHÔNG clobber
+        // isDirty() là ASYNC method (Odoo 18) — PHẢI await, không phải getter.
+        try {
+            if (await this.props.record.isDirty()) {
+                return false;   // có thay đổi chưa lưu → KHÔNG clobber
+            }
+        } catch (_e) {
+            // không xác định được dirty → cho load (hành vi cũ, an toàn)
         }
         try {
             await this.props.record.load();
