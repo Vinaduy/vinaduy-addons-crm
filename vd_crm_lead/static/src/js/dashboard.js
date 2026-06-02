@@ -136,7 +136,10 @@ export class VdCrmDashboard extends Component {
             window.addEventListener('keydown', this._onKeydown);
             // User spec 2026-05-29: poll trạng thái cuộc gọi LIVE mỗi 5s
             this._refreshActiveCalls();
-            this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 5000);
+            // Tối ưu tải cho nhiều NV (2026-06-03): 5s -> 8s, và bỏ poll khi
+            // tab ẩn (_refreshActiveCalls tự skip nếu document.hidden) → 20+ NV
+            // mở tab nền không còn spam request.
+            this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 8000);
             // Nút "Quay lại" trên navbar (vd_back_button.js) sẽ gọi handler này
             // TRƯỚC khi history.back(). Khi manager đang xem 1 NV cụ thể → pop về
             // danh sách NV thay vì rời khỏi dashboard (user spec 2026-05-31 r2).
@@ -253,6 +256,8 @@ export class VdCrmDashboard extends Component {
      * → update badge "Đang gọi / Không gọi" cuối row NV không cần reload.
      */
     async _refreshActiveCalls() {
+        // Bỏ qua khi tab ẩn (NV để dashboard ở tab nền) → giảm tải server.
+        if (typeof document !== "undefined" && document.hidden) return;
         try {
             const data = await this.orm.call(
                 "crm.lead", "vd_dashboard_active_calls", []
