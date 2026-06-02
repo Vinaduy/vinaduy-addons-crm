@@ -11812,35 +11812,46 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     &:focus { border-color: var(--vd-navy, #1c3d5a); }
 }
 .o_vd_m2od_list {
-    max-height: 240px;
+    max-height: 280px;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
 }
-.o_vd_m2od_item {
-    all: unset;
+/* ===== Chip lưới (giống ô Thời gian) — pill bo tròn, wrap nhiều hàng ===== */
+.o_vd_m2od_chips {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding-top: 0.1rem;
+}
+.o_vd_m2od_chip {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-block;
+    padding: 0.28rem 0.7rem;
+    border: 1.5px solid var(--vd-navy-s, #4263eb);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--vd-navy, #1c3d5a);
     font-size: 0.82rem;
-    color: var(--vd-text, #212529);
+    font-weight: 600;
+    line-height: 1.25;
     cursor: pointer;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    box-sizing: border-box;
-    &:hover { background: var(--vd-navy-x, #edf2ff); color: var(--vd-navy, #1c3d5a); }
+    transition: all 0.15s ease;
+    &:hover {
+        background: var(--vd-navy-x, #edf2ff);
+        border-color: var(--vd-navy, #1c3d5a);
+        transform: translateY(-1px);
+    }
 }
-.o_vd_m2od_item_active {
+.o_vd_m2od_chip_active {
     background: var(--vd-navy, #1c3d5a) !important;
     color: #fff !important;
-    font-weight: 600;
+    border-color: var(--vd-navy, #1c3d5a) !important;
+    box-shadow: 0 3px 10px rgba(28, 61, 90, 0.3) !important;
+    &:hover { color: #fff !important; }
 }
-.o_vd_m2od_item_check { font-size: 0.75rem; margin-left: 0.5rem; }
 .o_vd_m2od_empty {
+    width: 100%;
     padding: 0.6rem;
     color: #adb5bd;
     font-size: 0.8rem;

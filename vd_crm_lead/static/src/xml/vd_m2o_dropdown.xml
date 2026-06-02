@@ -30,7 +30,8 @@
                            t-on-keydown="onSearchKeydown"/>
                 </div>
 
-                <div class="o_vd_m2od_list">
+                <!-- CHIP LƯỚI (giống ô Thời gian) — wrap nhiều hàng, vẫn lọc qua ô search trên -->
+                <div class="o_vd_m2od_list o_vd_m2od_chips">
                     <!-- District chưa chọn Tỉnh -->
                     <t t-if="isDistrict and !state.options.length and !_provinceId">
                         <div class="o_vd_m2od_empty">
@@ -50,11 +51,10 @@
                     <t t-else="">
                         <!-- BIND mousedown (fire TRƯỚC input blur) → chống race chọn khó -->
                         <button t-foreach="filteredOptions" t-as="opt" t-key="opt.id"
-                                type="button" class="o_vd_m2od_item"
-                                t-att-class="{ 'o_vd_m2od_item_active': isCurrent(opt) }"
+                                type="button" class="o_vd_m2od_chip"
+                                t-att-class="{ 'o_vd_m2od_chip_active': isCurrent(opt) }"
                                 t-on-mousedown.prevent.stop="(ev) => this.selectRecord(opt, ev)">
                             <t t-esc="opt.display_name or opt.name"/>
-                            <i t-if="isCurrent(opt)" class="fa fa-check o_vd_m2od_item_check"/>
                         </button>
                     </t>
                 </div>
