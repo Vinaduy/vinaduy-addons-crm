@@ -1056,18 +1056,20 @@ class CrmLead(models.Model):
         help='Tum là tầng trên cùng (≈ 15-30m²). Bắt buộc đã chọn số tầng (1-7) trước.',
     )
 
-    vd_intake_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1), tracking=True)
+    # Diện tích từng tầng — Integer (m² số nguyên). Float + digits(10,1) trước đây
+    # render '0,0' (locale VN dấu phẩy) + parse lỗi khi gõ → giá trị bị 'tự xoá'.
+    vd_intake_floor_1_m2 = fields.Integer(string='Tầng 1 (m²)', tracking=True)
+    vd_intake_floor_2_m2 = fields.Integer(string='Tầng 2 (m²)', tracking=True)
+    vd_intake_floor_3_m2 = fields.Integer(string='Tầng 3 (m²)', tracking=True)
+    vd_intake_floor_4_m2 = fields.Integer(string='Tầng 4 (m²)', tracking=True)
+    vd_intake_floor_5_m2 = fields.Integer(string='Tầng 5 (m²)', tracking=True)
+    vd_intake_floor_6_m2 = fields.Integer(string='Tầng 6 (m²)', tracking=True)
+    vd_intake_floor_7_m2 = fields.Integer(string='Tầng 7 (m²)', tracking=True)
+    vd_intake_floor_tum_m2 = fields.Integer(string='Tum (m²)', tracking=True)
     # ===== Lửng (mezzanine) — NV bấm '+ Lửng' để mở 2 ô: Lửng + Thông tầng =====
     vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False, tracking=True)
-    vd_intake_floor_lung_m2 = fields.Float(string='Lửng (m²)', digits=(10, 1), tracking=True)
-    vd_intake_floor_thongtang_m2 = fields.Float(string='Thông tầng (m²)', digits=(10, 1))
+    vd_intake_floor_lung_m2 = fields.Integer(string='Lửng (m²)', tracking=True)
+    vd_intake_floor_thongtang_m2 = fields.Integer(string='Thông tầng (m²)')
     # ===== Counter cho UI '+ Tầng' button — sync 2 chiều với floors_select =====
     vd_intake_floors_count = fields.Integer(
         string='Số tầng đã thêm', default=1,
@@ -1180,12 +1182,13 @@ class CrmLead(models.Model):
         for i in range(n + 1, 8):
             fname = f'vd_intake_floor_{i}_m2'
             if self[fname]:
-                self[fname] = 0.0
+                self[fname] = 0
         if not self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
-            self.vd_intake_floor_tum_m2 = 0.0
+            self.vd_intake_floor_tum_m2 = 0
 
         # Auto-fill diện tích từng tầng từ L×R (chỉ điền nếu trường tầng đang trống)
-        area = self.vd_intake_area_m2 or 0.0
+        # area_m2 là Float (footprint) → làm tròn về số nguyên cho ô tầng (Integer)
+        area = int(round(self.vd_intake_area_m2 or 0.0))
         if area > 0:
             for i in range(1, n + 1):
                 fname = f'vd_intake_floor_{i}_m2'
@@ -1203,12 +1206,12 @@ class CrmLead(models.Model):
         base = mapping.get(self.vd_intake_floors_select, 0.0)
         self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
         if self.vd_intake_has_tum:
-            # Auto-fill tum area từ area_m2 nếu vừa bật
+            # Auto-fill tum area từ area_m2 nếu vừa bật (làm tròn về số nguyên)
             if self.vd_intake_area_m2 and not self.vd_intake_floor_tum_m2:
-                self.vd_intake_floor_tum_m2 = self.vd_intake_area_m2
+                self.vd_intake_floor_tum_m2 = int(round(self.vd_intake_area_m2))
         else:
             # Tắt → clear m² + function_ids
-            self.vd_intake_floor_tum_m2 = 0.0
+            self.vd_intake_floor_tum_m2 = 0
             self.vd_intake_floor_tum_function_ids = [(5, 0, 0)]
         return True
 
@@ -1227,7 +1230,7 @@ class CrmLead(models.Model):
         self.ensure_one()
         if self.vd_intake_floors_count > 0:
             last = self.vd_intake_floors_count
-            setattr(self, f'vd_intake_floor_{last}_m2', 0.0)
+            setattr(self, f'vd_intake_floor_{last}_m2', 0)
             new_count = last - 1
             self.vd_intake_floors_count = new_count
             self.vd_intake_floors_select = str(new_count) if new_count > 0 else False
@@ -1273,15 +1276,14 @@ class CrmLead(models.Model):
         self.ensure_one()
         self.vd_intake_has_lung = not self.vd_intake_has_lung
         if not self.vd_intake_has_lung:
-            self.vd_intake_floor_lung_m2 = 0.0
-            self.vd_intake_floor_thongtang_m2 = 0.0
+            self.vd_intake_floor_lung_m2 = 0
+            self.vd_intake_floor_thongtang_m2 = 0
             self.vd_intake_floor_lung_function_ids = [(5, 0, 0)]
         return True
 
     # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
-    vd_intake_total_m2 = fields.Float(
+    vd_intake_total_m2 = fields.Integer(
         string='Diện tích nhà',
-        digits=(10, 1),
         compute='_compute_total_m2', store=True, readonly=False,
         help='Auto = sum diện tích các tầng. NV có thể gõ tay để override.',
     )
@@ -1311,7 +1313,7 @@ class CrmLead(models.Model):
             if total <= 0 and rec.vd_intake_house_length_m and rec.vd_intake_house_width_m:
                 total = rec.vd_intake_house_length_m * rec.vd_intake_house_width_m
             if total > 0:
-                rec.vd_intake_total_m2 = total
+                rec.vd_intake_total_m2 = int(round(total))
     vd_intake_foundation_type = fields.Selection(
         selection=lambda self: self._vd_ext_selection('vd_intake_foundation_type'),
         string='Loại móng', tracking=True,

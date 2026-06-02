@@ -402,14 +402,15 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         ('7', '7 tầng'), ('7t', '7 tầng + tum'),
     ], string='Số tầng')
     i_area_m2 = fields.Float(string='Tổng DT đất (m²)', digits=(10, 1))
-    i_floor_1_m2 = fields.Float(string='Tầng 1 (m²)', digits=(10, 1))
-    i_floor_2_m2 = fields.Float(string='Tầng 2 (m²)', digits=(10, 1))
-    i_floor_3_m2 = fields.Float(string='Tầng 3 (m²)', digits=(10, 1))
-    i_floor_4_m2 = fields.Float(string='Tầng 4 (m²)', digits=(10, 1))
-    i_floor_5_m2 = fields.Float(string='Tầng 5 (m²)', digits=(10, 1))
-    i_floor_6_m2 = fields.Float(string='Tầng 6 (m²)', digits=(10, 1))
-    i_floor_7_m2 = fields.Float(string='Tầng 7 (m²)', digits=(10, 1))
-    i_floor_tum_m2 = fields.Float(string='Tum (m²)', digits=(10, 1))
+    # Integer (m² số nguyên) — đồng bộ với crm.lead, tránh '0,0' + parse lỗi.
+    i_floor_1_m2 = fields.Integer(string='Tầng 1 (m²)')
+    i_floor_2_m2 = fields.Integer(string='Tầng 2 (m²)')
+    i_floor_3_m2 = fields.Integer(string='Tầng 3 (m²)')
+    i_floor_4_m2 = fields.Integer(string='Tầng 4 (m²)')
+    i_floor_5_m2 = fields.Integer(string='Tầng 5 (m²)')
+    i_floor_6_m2 = fields.Integer(string='Tầng 6 (m²)')
+    i_floor_7_m2 = fields.Integer(string='Tầng 7 (m²)')
+    i_floor_tum_m2 = fields.Integer(string='Tum (m²)')
     i_province_id = fields.Many2one('res.country.state', string='Tỉnh/Thành',
                                     domain="[('country_id.code', '=', 'VN')]")
     i_district = fields.Many2one('vd.district', string='Huyện/Quận')
