@@ -15,6 +15,10 @@ import { Component } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
+// Debounce CHUNG cho mọi ô — chỉ thật sự lưu khi NV đã rời hẳn khu nhập intake,
+// tránh save() (kéo theo reload) chen vào lúc đang gõ ô kế → xoá mất chữ.
+let _vdNumSaveTimer = null;
+
 export class VdNumInput extends Component {
     static template = "vd_crm_lead.VdNumInput";
     static props = {
@@ -57,12 +61,23 @@ export class VdNumInput extends Component {
             val = this.isInteger ? parseInt(s, 10) : parseFloat(s);
             if (isNaN(val)) val = 0;
         }
+        // Commit giá trị vào record (in-memory) ngay — luôn an toàn, không reload.
         await this.props.record.update({ [this.props.name]: val });
-        try {
-            await this.props.record.save();
-        } catch (_e) {
-            // save có thể fail nếu thiếu field bắt buộc — giá trị vẫn ở memory.
+        // Lên lịch AUTOSAVE: chỉ lưu khi NV đã rời hẳn khu nhập (không còn focus
+        // ô nào trong .o_vd_steps_panel) → reload sau save không thể xoá chữ
+        // đang gõ ở ô khác.
+        const record = this.props.record;
+        if (_vdNumSaveTimer) {
+            clearTimeout(_vdNumSaveTimer);
         }
+        _vdNumSaveTimer = setTimeout(() => {
+            _vdNumSaveTimer = null;
+            const ae = document.activeElement;
+            if (ae && ae.closest && ae.closest(".o_vd_steps_panel")) {
+                return;     // vẫn đang nhập ô intake khác → khoan lưu
+            }
+            record.save().catch(() => {});
+        }, 450);
     }
 }
 

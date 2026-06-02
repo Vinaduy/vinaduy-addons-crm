@@ -276,8 +276,10 @@ function attachZeroFocusAll() {
         const selectors = [
             ".o_vd_hero_budget input",
             ".o_vd_dim_input input",
-            ".o_vd_area_dim input",       // Dài/Rộng (đất + nhà) — new grid
-            ".o_vd_area_input input",     // Diện tích đất + nhà — new grid
+            // .o_vd_num_input do widget vd_num_input tự quản (blank-when-zero) →
+            // KHÔNG để legacy setNativeValue đè lên OWL gây desync/mất chữ.
+            ".o_vd_area_dim input:not(.o_vd_num_input)",   // Dài/Rộng (đất + nhà)
+            ".o_vd_area_input input:not(.o_vd_num_input)", // Diện tích đất + nhà
             ".o_vd_tech_field input[type=number]",
             ".o_vd_tech_field input[type=text]",
         ];
@@ -310,8 +312,9 @@ function clearZeroDisplays() {
         const writableSelectors = [
             ".o_vd_hero_budget input:not([readonly])",
             ".o_vd_dim_input input:not([readonly])",
-            ".o_vd_area_dim input:not([readonly])",      // Dài/Rộng (đất + nhà)
-            ".o_vd_area_input input:not([readonly])",    // Diện tích đất + nhà
+            // Bỏ qua .o_vd_num_input (widget tự quản blank-when-zero).
+            ".o_vd_area_dim input:not([readonly]):not(.o_vd_num_input)",
+            ".o_vd_area_input input:not([readonly]):not(.o_vd_num_input)",
             ".o_vd_tech_field input:not([readonly])",
         ];
         document.querySelectorAll(writableSelectors.join(", ")).forEach((input) => {
@@ -485,6 +488,13 @@ function schedule() {
 // auto-save-blur; Tỉnh/Huyện vẫn được lưu khi user bấm CHỐT hoặc blur ô khác.
 function _autoSaveFormSafe() {
     try {
+        // NẾU NV vẫn đang focus 1 ô trong khu nhập (steps panel) → KHOAN save.
+        // Save kéo theo reload form → xoá chữ đang gõ ở ô kế. Chỉ save khi user
+        // đã rời hẳn khu intake. (Fix mất dữ liệu khi nhảy giữa các ô.)
+        const ae = document.activeElement;
+        if (ae && ae.closest && ae.closest(".o_vd_steps_panel")) {
+            return;
+        }
         // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
         const btn = document.querySelector(
             ".o_form_view.o_form_dirty button.o_form_button_save, " +
