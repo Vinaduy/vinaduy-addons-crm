@@ -3,20 +3,21 @@
  * vd_num_input — ô nhập số gọn cho form khai thác (intake).
  *
  *  - Chỉ nhận CHỮ SỐ (field Integer) hoặc số có 1 dấu thập phân (field Float).
- *    → hết lỗi locale VN gõ "," / "." parse sai.
- *  - TRỐNG khi giá trị = 0 (không hiện sẵn "0,0" để phải xoá) → gõ là ăn ngay.
- *  - AUTOSAVE ngay khi rời ô (change/blur) → lần reload tự động giữa cuộc gọi
- *    KHÔNG thể xoá dữ liệu vừa nhập nữa (đã lưu xuống server).
+ *  - TRỐNG khi giá trị = 0 (không hiện sẵn "0,0") → gõ là ăn ngay.
+ *  - Dùng useInputField (hook chuẩn Odoo): KHÔNG reset input khi đang focus/gõ
+ *    dở → gõ nhanh rồi nhảy ô khác KHÔNG mất chữ (kể cả khi có onchange/re-render
+ *    do tính lại TỔNG). Commit value vào record lúc change/blur.
+ *  - AUTOSAVE debounce + biết focus: chỉ thật lưu (kéo reload) khi NV đã rời hẳn
+ *    khu nhập intake → reload không thể xoá chữ đang gõ.
  *
- * Gắn vào view: <field name="..." widget="vd_num_input"/>
- * Backend KHÔNG đổi — vẫn field Integer/Float cũ, mọi onchange/compute giữ nguyên.
+ * Gắn: <field name="..." widget="vd_num_input"/>  — backend KHÔNG đổi.
  */
-import { Component } from "@odoo/owl";
+import { Component, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { useInputField } from "@web/views/fields/input_field_hook";
 
-// Debounce CHUNG cho mọi ô — chỉ thật sự lưu khi NV đã rời hẳn khu nhập intake,
-// tránh save() (kéo theo reload) chen vào lúc đang gõ ô kế → xoá mất chữ.
+// Debounce CHUNG cho mọi ô — chỉ thật lưu khi NV đã rời hẳn khu nhập.
 let _vdNumSaveTimer = null;
 
 export class VdNumInput extends Component {
@@ -26,14 +27,31 @@ export class VdNumInput extends Component {
         placeholder: { type: String, optional: true },
     };
 
+    setup() {
+        this.inputRef = useRef("input");
+        // Hook chuẩn Odoo: tự set value từ record CHỈ khi input không dirty/không
+        // focus, tự commit (record.update) lúc change. Tránh ghi đè chữ đang gõ.
+        useInputField({
+            getValue: () => {
+                const v = this.props.record.data[this.props.name];
+                return v ? String(v) : "";
+            },
+            refName: "input",
+            parse: (value) => this._parse(value),
+        });
+    }
+
     get isInteger() {
         return this.props.record.fields[this.props.name].type === "integer";
     }
 
-    get displayValue() {
-        const v = this.props.record.data[this.props.name];
-        if (!v) return "";              // 0 / false → để TRỐNG
-        return String(v);
+    _parse(value) {
+        const s = (value || "").replace(/,/g, ".").replace(/[^0-9.]/g, "");
+        if (!s) {
+            return 0;
+        }
+        const v = this.isInteger ? parseInt(s, 10) : parseFloat(s);
+        return isNaN(v) ? 0 : v;
     }
 
     // Lọc ký tự ngay khi gõ — chỉ giữ số (+ 1 dấu thập phân nếu Float).
@@ -53,19 +71,8 @@ export class VdNumInput extends Component {
         }
     }
 
-    // Rời ô → commit giá trị + AUTOSAVE.
-    async onChange(ev) {
-        const s = (ev.target.value || "").replace(/,/g, ".").replace(/[^0-9.]/g, "");
-        let val = 0;
-        if (s) {
-            val = this.isInteger ? parseInt(s, 10) : parseFloat(s);
-            if (isNaN(val)) val = 0;
-        }
-        // Commit giá trị vào record (in-memory) ngay — luôn an toàn, không reload.
-        await this.props.record.update({ [this.props.name]: val });
-        // Lên lịch AUTOSAVE: chỉ lưu khi NV đã rời hẳn khu nhập (không còn focus
-        // ô nào trong .o_vd_steps_panel) → reload sau save không thể xoá chữ
-        // đang gõ ở ô khác.
+    // useInputField đã commit value vào record. Ở đây chỉ lên lịch autosave.
+    onChange() {
         const record = this.props.record;
         if (_vdNumSaveTimer) {
             clearTimeout(_vdNumSaveTimer);

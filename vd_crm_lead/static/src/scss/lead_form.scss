@@ -11367,6 +11367,18 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_floors_oneline .o_vd_area_d
     box-sizing: border-box !important;
     flex: 0 0 108px !important;
 }
+/* ===== Chữ SỐ trong ô widget vd_num_input — TO + ĐẬM =====
+   Specificity cao (nhiều class + input.o_vd_num_input) + đặt SAU để thắng mọi
+   rule trên. Form intake có zoom 0.7 nên đặt cỡ lớn để nhìn rõ. */
+div.o_vd_layout_grid div.o_vd_intake_inline input.o_vd_num_input,
+div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
+.o_vd_layout_grid .o_vd_intake_inline input.o_vd_num_input,
+.o_vd_intake_inline input.o_vd_num_input {
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+}
 /* Tổng diện tích sàn — pill xanh ngắn 'TỔNG: 60 M²' */
 .o_vd_intake_inline .o_vd_floors_total_inline {
     display: inline-flex !important;
