@@ -142,6 +142,47 @@
                 </t>
             </div>
 
+            <!-- 🆕 POPOVER KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, hiện tại
+                 vị trí chuột; render 1 lần ở gốc để thoát mọi khung cắt + theo
+                 đúng con trỏ (newTodayPopStyle). -->
+            <div t-if="state.newTodayHover" class="o_vd_kh_nv_popover o_vd_newtoday_pop"
+                 t-attf-style="{{ newTodayPopStyle }}"
+                 t-on-mouseenter="() => this.onNewTodayPopEnter()"
+                 t-on-mouseleave="() => this.onNewTodayLeave()"
+                 t-on-click.stop="() => {}">
+                <t t-set="ntnv" t-value="state.newTodayHover.nv"/>
+                <div class="o_vd_kh_popover_head">
+                    🆕 KHÁCH MỚI - <t t-esc="ntnv.full_name"/>
+                </div>
+                <div class="o_vd_kh_popover_body">
+                    <!-- Section 1: HÔM NAY -->
+                    <div class="o_vd_kh_popover_section_head o_vd_kh_popover_section_today">
+                        🆕 Hôm nay (<t t-esc="ntnv.new_today_count or 0"/>)
+                    </div>
+                    <div t-if="!ntnv.new_today_count" class="o_vd_kh_popover_empty">
+                        Hôm nay chưa có KH mới
+                    </div>
+                    <div t-foreach="ntnv.new_today_leads or []" t-as="ld" t-key="'today_' + ld.lead_id"
+                         class="o_vd_kh_lead_item o_vd_kh_lead_item_today"
+                         t-on-click="() => this.openLead(ld.lead_id)">
+                        <div class="o_vd_kh_lead_main">
+                            <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                        </div>
+                    </div>
+                    <!-- Section 2: TOÀN BỘ KH mới -->
+                    <div class="o_vd_kh_popover_section_head">
+                        📋 Toàn bộ (<t t-esc="ntnv.new_count or 0"/>)
+                    </div>
+                    <div t-foreach="ntnv.new_leads" t-as="ld" t-key="'all_' + ld.lead_id"
+                         class="o_vd_kh_lead_item"
+                         t-on-click="() => this.openLead(ld.lead_id)">
+                        <div class="o_vd_kh_lead_main">
+                            <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 🗑️ POPUP THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy -->
             <div t-if="state.companyTrash.open" class="o_vd_trashpop_overlay"
                  t-on-click="() => this.closeCompanyTrash()">
@@ -413,7 +454,9 @@
                                             <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
                                         </div>
                                         <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
-                                            <div class="o_vd_kh_th o_vd_kh_th_today">📅 HÔM NAY</div>
+                                            <!-- r14: BỎ tiêu đề "HÔM NAY" — 2 nút bên dưới tự
+                                                 mang nhãn "Hôm nay". Giữ ô rỗng để khỏi vỡ grid. -->
+                                            <div class="o_vd_kh_th o_vd_kh_th_today o_vd_kh_th_blank"/>
                                             <!-- 3 cột đóng khung chung 1 nền (user spec r5) -->
                                             <div class="o_vd_kh_th_trio">
                                                 <div class="o_vd_kh_th o_vd_kh_th_trio_cell">🆕 Khách mới</div>
@@ -470,56 +513,36 @@
                                                 <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
-                                                <!-- Round 13: khung HÔM NAY chứa 3 chỉ số:
-                                                     - KH mới hôm nay
-                                                     - Tổng KH đã gọi hôm nay
-                                                     - KH gọi thành công hôm nay (answered/duration>0)
-                                                     -->
+                                                <!-- r14: ô HÔM NAY = 2 NÚT riêng (KH mới | Cuộc gọi),
+                                                     mỗi nút tự mang nhãn "Hôm nay". Popover render ở
+                                                     gốc, định vị theo con trỏ. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
-                                                    <!-- r5: phẳng — KHÔNG còn thẻ-chồng-thẻ, bỏ icon 🆕, chỉ "N Mới" -->
-                                                    <span class="o_vd_today_new"
-                                                          t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <strong><t t-esc="nv.new_today_count or 0"/></strong> Mới
-                                                    </span>
-                                                    <span class="o_vd_today_sep">·</span>
-                                                    <span class="o_vd_today_calls"
-                                                          t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
-                                                          t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                          title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
-                                                        <i class="fa fa-phone"/> <strong><t t-esc="nv.calls_today_total or 0"/></strong>
-                                                        <span class="o_vd_today_calls_ok"><i class="fa fa-check-circle"/> <strong><t t-esc="nv.calls_today_success or 0"/></strong></span>
-                                                    </span>
-                                                    <div t-if="nv.new_count or nv.new_today_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            KHÁCH MỚI - <t t-esc="nv.full_name"/>
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <!-- Section 1: HÔM NAY -->
-                                                            <div class="o_vd_kh_popover_section_head o_vd_kh_popover_section_today">
-                                                                🆕 Hôm nay (<t t-esc="nv.new_today_count or 0"/>)
-                                                            </div>
-                                                            <div t-if="!nv.new_today_count" class="o_vd_kh_popover_empty">
-                                                                Hôm nay chưa có KH mới
-                                                            </div>
-                                                            <div t-foreach="nv.new_today_leads or []" t-as="ld" t-key="'today_' + ld.lead_id"
-                                                                 class="o_vd_kh_lead_item o_vd_kh_lead_item_today"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                            </div>
-                                                            <!-- Section 2: TOÀN BỘ KH mới -->
-                                                            <div class="o_vd_kh_popover_section_head">
-                                                                📋 Toàn bộ (<t t-esc="nv.new_count or 0"/>)
-                                                            </div>
-                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="'all_' + ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                    <!-- NÚT 1: KHÁCH MỚI HÔM NAY -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_new"
+                                                         t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onNewTodayLeave()"
+                                                         t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> Hôm nay</span>
+                                                        <span class="o_vd_today_main">
+                                                            <i class="fa fa-user-plus o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
+                                                            <span class="o_vd_today_lbl">KH mới</span>
+                                                        </span>
+                                                    </div>
+                                                    <!-- NÚT 2: CUỘC GỌI HÔM NAY -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_call"
+                                                         t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onTodayCallsLeave()"
+                                                         title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> Hôm nay</span>
+                                                        <span class="o_vd_today_main">
+                                                            <i class="fa fa-phone o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                            <span class="o_vd_today_lbl">Cuộc gọi</span>
+                                                            <span class="o_vd_today_ok" t-att-title="(nv.calls_today_success or 0) + ' KH nghe máy'">
+                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
+                                                            </span>
+                                                        </span>
                                                     </div>
                                                 </div>
 

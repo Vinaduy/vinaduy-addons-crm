@@ -3784,40 +3784,85 @@
             font-weight: 700;
         }
     }
-    /* Khung HÔM NAY — bao toàn bộ 3 chỉ số per NV row */
+    /* r14: ô HÔM NAY = container 2 NÚT (KH mới | Cuộc gọi). Bỏ khung/nền cũ —
+       mỗi nút tự có khung + nhãn "Hôm nay" riêng. */
     .o_vd_kh_metric_today_box {
-        /* r5: 1 thẻ PHẲNG (không còn thẻ-chồng-thẻ) */
-        background: linear-gradient(180deg, #fffbeb 0%, #fff 100%);
-        border: 1.5px solid #f59e0b;
-        border-radius: 8px;
-        padding: 2px 8px !important;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 0 !important;
         display: flex !important;
         flex-wrap: nowrap;
-        gap: 0.45rem;
-        align-items: center;
+        gap: 0.4rem;
+        align-items: stretch;
         justify-content: center;
-        box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
     }
-    .o_vd_today_new {
-        font-size: 1.02rem;        /* r6: to lên */
-        color: #92400e;
-        white-space: nowrap;
-        strong { font-size: 1.45rem; font-weight: 800; margin-right: 2px; }
+    .o_vd_today_btn {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 4px 6px 5px;
+        border-radius: 9px;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+        transition: transform .12s ease, box-shadow .12s ease;
+        &:hover { transform: translateY(-1px); }
     }
-    .o_vd_today_sep { color: #d6d3d1; font-weight: 700; font-size: 1.1rem; }
-    .o_vd_today_calls {
+    /* Nhãn "HÔM NAY" — pill nhỏ, viết hoa, để nhìn 1 phát biết là số của hôm nay */
+    .o_vd_today_tag {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        font-size: 1rem;           /* r6: to lên */
-        color: #075985;
+        gap: 3px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        line-height: 1;
+        padding: 1px 6px;
+        border-radius: 999px;
         white-space: nowrap;
-        strong { font-weight: 800; font-size: 1.15rem; }
-        i.fa { font-size: 1rem; }   /* r6: icon to lên */
-        .o_vd_today_calls_ok {
-            display: inline-flex; align-items: center; gap: 0.2rem;
-            color: #15803d; margin-left: 0.3rem;
-        }
+        i.fa { font-size: 0.6rem; }
+    }
+    .o_vd_today_main {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    .o_vd_today_ico { font-size: 0.95rem; }
+    .o_vd_today_num { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .o_vd_today_lbl { font-size: 0.78rem; font-weight: 600; }
+    .o_vd_today_ok {
+        display: inline-flex; align-items: center; gap: 2px;
+        margin-left: 3px; padding-left: 5px;
+        border-left: 1px solid rgba(0,0,0,0.12);
+        font-size: 0.95rem; font-weight: 800; color: #15803d;
+        i.fa { font-size: 0.82rem; }
+    }
+    /* NÚT KHÁCH MỚI — tông hổ phách/cam (giữ nhận diện "hôm nay") */
+    .o_vd_today_btn_new {
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7e6 100%);
+        border-color: #f59e0b;
+        box-shadow: 0 1px 3px rgba(245,158,11,0.18);
+        .o_vd_today_tag { background: #f59e0b; color: #fff; }
+        .o_vd_today_ico, .o_vd_today_num { color: #b45309; }
+        .o_vd_today_lbl { color: #92400e; }
+        &:hover { box-shadow: 0 5px 12px rgba(245,158,11,0.32); }
+    }
+    /* NÚT CUỘC GỌI — tông xanh dương */
+    .o_vd_today_btn_call {
+        background: linear-gradient(180deg, #eff6ff 0%, #e0f2fe 100%);
+        border-color: #0ea5e9;
+        box-shadow: 0 1px 3px rgba(14,165,233,0.18);
+        .o_vd_today_tag { background: #0ea5e9; color: #fff; }
+        .o_vd_today_ico, .o_vd_today_num { color: #0369a1; }
+        .o_vd_today_lbl { color: #075985; }
+        &:hover { box-shadow: 0 5px 12px rgba(14,165,233,0.32); }
     }
     /* Header column HÔM NAY — vàng nổi bật */
     .o_vd_kh_th_today {
@@ -3825,6 +3870,13 @@
         color: #fff !important;
         font-weight: 800 !important;
         letter-spacing: 0.6px !important;
+    }
+    /* r14: ô header HÔM NAY để TRỐNG (2 nút bên dưới tự mang nhãn) — trong suốt,
+       không viền, giữ chỗ cho grid 4 cột. */
+    .o_vd_kh_th_blank {
+        background: transparent !important;
+        border-right: none !important;
+        padding: 0 !important;
     }
     .o_vd_kh_metric_done .o_vd_kh_metric_num     { color: #16a34a; }
     .o_vd_kh_metric_progress .o_vd_kh_metric_num { color: #d97706; }
@@ -7668,12 +7720,17 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 
 /* ====================================================================
-   BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — to rộng, fixed.
+   BẢNG CUỘC GỌI HÔM NAY (hover nút "Cuộc gọi" ô HÔM NAY) — to rộng, fixed.
    ==================================================================== */
-.o_vd_today_calls { cursor: pointer; }
-/* Khi hover icon 📞 → ẩn popover KHÁCH MỚI của ô HÔM NAY để khỏi chồng. */
-.o_vd_kh_metric_today_box:has(.o_vd_today_calls:hover) .o_vd_kh_nv_popover {
-    display: none !important;
+/* r14: popover KHÁCH MỚI HÔM NAY render ở gốc, định vị theo con trỏ
+   (newTodayPopStyle). Override mặc định position:absolute của .o_vd_kh_nv_popover. */
+.o_vd_kh_nv_popover.o_vd_newtoday_pop {
+    display: flex;
+    position: fixed;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
 }
 .o_vd_tc_pop {
     position: fixed;
