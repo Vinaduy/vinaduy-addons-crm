@@ -7330,3 +7330,64 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     line-height: 1;
     color: #2f9e44;
 }
+
+/* ====================================================================
+   BANNER "YÊU CẦU TÌM VẤN ĐỀ" chuyển VÀO TRONG bảng THI CÔNG GẤP /
+   XỬ LÝ VẤN ĐỀ — nằm trên cùng danh sách KH, dài từ mép trái tên KH
+   đến hết ô BÁO GIÁ XONG MẤT TÍCH. Bỏ wrapper .o_vd_filter_table nên
+   tự dựng lại nền/bo góc/shadow cho cụm nhãn + danh sách.
+   Nest trong .o_vd_crm_dashboard để đủ specificity đè rule grid gốc.
+   ==================================================================== */
+.o_vd_crm_dashboard {
+    .o_vd_split_table.o_vd_split_table_single.o_vd_split_with_banner {
+        grid-template-columns: 150px 1fr 170px;   /* nhãn | danh sách | ô mất tích */
+        grid-template-rows: auto auto;            /* hàng 1: banner · hàng 2: list */
+        column-gap: 0;
+        row-gap: 0.4rem;
+        align-items: stretch;
+
+        /* Nhãn dọc (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) cao suốt 2 hàng, bên trái */
+        > .o_vd_filter_table_left {
+            grid-row: 1 / 3;
+            grid-column: 1;
+            border-radius: 10px 0 0 10px;
+        }
+        /* Banner: hàng trên cùng, trải từ mép trái tên KH (cột 2) đến hết
+           ô BÁO GIÁ XONG MẤT TÍCH (hết cột 3). Giữ nguyên thiết kế banner. */
+        > .o_vd_pf_banner {
+            grid-row: 1;
+            grid-column: 2 / 4;
+            margin: 0;
+        }
+        /* Danh sách KH: hàng 2, cột 2; chừa khoảng cách nhỏ với ô mất tích */
+        > .o_vd_filter_table_right {
+            grid-row: 2;
+            grid-column: 2;
+            margin-right: 0.6rem;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
+                        0 4px 14px -4px rgba(15, 23, 42, 0.05);
+        }
+        /* Ô BÁO GIÁ XONG MẤT TÍCH: hàng 2, cột 3 — canh phải bằng banner */
+        > .o_vd_trash_box.o_vd_split_quoted_lost {
+            grid-row: 2;
+            grid-column: 3;
+            align-self: start;
+        }
+
+        /* Mobile: xếp dọc nhãn → banner → list → ô mất tích */
+        @media (max-width: 720px) {
+            grid-template-columns: 1fr;
+            > .o_vd_filter_table_left,
+            > .o_vd_pf_banner,
+            > .o_vd_filter_table_right,
+            > .o_vd_trash_box.o_vd_split_quoted_lost {
+                grid-row: auto;
+                grid-column: 1;
+                margin-right: 0;
+            }
+            > .o_vd_filter_table_left { border-radius: 10px 10px 0 0; }
+            > .o_vd_filter_table_right { border-radius: 0 0 10px 10px; }
+        }
+    }
+}

@@ -1901,9 +1901,10 @@
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
                             <t t-set="pf" t-value="state.problem_find and state.problem_find.urgent"/>
-                            <t t-call="vd_crm_lead.ProblemFindBanner"/>
-                            <div class="o_vd_split_table o_vd_split_table_single">
-                            <div class="o_vd_filter_table o_vd_filter_table_urgent o_vd_split_half">
+                            <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng: nằm trên
+                                 cùng danh sách KH, dài từ mép trái tên KH đến hết ô BÁO GIÁ
+                                 XONG MẤT TÍCH. Giữ nguyên thiết kế banner, chỉ đổi vị trí. -->
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_urgent">
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-bolt o_vd_filter_funnel_urgent"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -1912,6 +1913,7 @@
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsUrgentConstruction.length"/></div>
                                 </div>
+                                <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsUrgentConstruction.length">
                                         <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
@@ -2029,7 +2031,6 @@
                                         Không có KH thi công gấp.
                                     </div>
                                 </div>
-                            </div>
                             <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
                             <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
                                  t-on-click="() => this.openCategoryList(leadsQuotedLost)"
@@ -2078,9 +2079,9 @@
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_problem_section">
                             <t t-set="pf" t-value="state.problem_find and state.problem_find.xlvd"/>
-                            <t t-call="vd_crm_lead.ProblemFindBanner"/>
-                            <div class="o_vd_split_table o_vd_split_table_single">
-                            <div class="o_vd_filter_table o_vd_filter_table_warn o_vd_split_half">
+                            <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng (xem ghi chú
+                                 ở section THI CÔNG GẤP). Giữ nguyên thiết kế, chỉ đổi vị trí. -->
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_warn">
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-filter o_vd_filter_funnel_warn"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -2089,6 +2090,7 @@
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsWithProblems.length"/></div>
                                 </div>
+                                <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsWithProblems.length">
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
@@ -2204,7 +2206,6 @@
                                         Chưa có KH nào đang xử lý vấn đề.
                                     </div>
                                 </div>
-                            </div>
                             <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
                             <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
                                  t-on-click="() => this.openCategoryList(leadsQuotedLost)"
