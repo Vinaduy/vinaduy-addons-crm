@@ -9,7 +9,7 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, markup, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
+import { Component, markup, onMounted, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
@@ -113,7 +113,21 @@ export class VdCrmDashboard extends Component {
             // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
             // trên 3 ngày khác nhau.
             sos_guide: { show: false, count: 0 },
+            // Thùng rác CÔNG TY — tổng KH huỷ toàn công ty (manager).
+            company_trash_count: 0,
+            // ===== KHOÁ "CHỐT BÁO GIÁ" — > 3 KH báo giá chưa chốt =====
+            // Coachmark hướng dẫn ẩn trong phiên khi NV bấm "Đã hiểu" (reset
+            // mỗi lần loadDashboard → hiện lại nếu vẫn đang khoá).
+            quoteGuideDismissed: false,
+            // ===== BẢNG KHÁCH MỚI — thu gọn tối đa ~10 dòng + nút mở rộng =====
+            // newPillsOverflow: đo bằng JS, chỉ hiện nút khi nội dung thực sự tràn.
+            newTableExpanded: false,
+            newPillsOverflow: false,
         });
+        // Ref vùng pill KHÁCH MỚI để đo overflow (quyết định hiện nút mở rộng).
+        this.newPillsRef = useRef("newPillsWrap");
+        // Ngưỡng px ~ 10 dòng pill (khớp max-height CSS .o_vd_new_pills_collapsed).
+        this._newPillsCollapsedPx = 248;
         this._searchDebounce = null;
 
         // User spec 2026-05-31: khôi phục NV đang xem sau khi F5 (trước đây luôn
@@ -161,7 +175,10 @@ export class VdCrmDashboard extends Component {
             // còn back được = manager đang xem 1 NV cụ thể.
             window.__vdDashCanBack = () =>
                 !!(this.state.is_manager && this.state.selected_user_id);
+            this._measureNewPills();
         });
+        // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
+        onPatched(() => this._measureNewPills());
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
             if (window.__vdDashBackHandler) {
@@ -194,6 +211,10 @@ export class VdCrmDashboard extends Component {
 
     async loadDashboard() {
         this.state.loading = true;
+        // Mỗi lần tải (đổi NV) → bảng KHÁCH MỚI về dạng thu gọn mặc định.
+        this.state.newTableExpanded = false;
+        // Reset coachmark CHỐT BÁO GIÁ → hiện lại nếu NV này vẫn đang bị khoá.
+        this.state.quoteGuideDismissed = false;
         const args = this.state.selected_user_id ? [this.state.selected_user_id] : [];
         const data = await this.orm.call("crm.lead", "dashboard_data", args);
         Object.assign(this.state, data);
@@ -828,6 +849,40 @@ export class VdCrmDashboard extends Component {
     clearSelection() {
         this.state.selectedLeadIds = {};
     }
+    // ===== BẢNG KHÁCH MỚI — thu gọn ~10 dòng + nút mở rộng =====
+    _measureNewPills() {
+        const el = this.newPillsRef.el;
+        if (!el) {
+            if (this.state.newPillsOverflow) this.state.newPillsOverflow = false;
+            return;
+        }
+        // scrollHeight = chiều cao toàn bộ pill (kể cả phần bị cắt khi thu gọn)
+        // → so với ngưỡng thu gọn để biết có cần nút mở rộng không.
+        const over = el.scrollHeight > this._newPillsCollapsedPx + 6;
+        if (over !== this.state.newPillsOverflow) {
+            this.state.newPillsOverflow = over;
+        }
+    }
+    toggleNewTable() {
+        this.state.newTableExpanded = !this.state.newTableExpanded;
+    }
+
+    // 🗑️ Thùng rác CÔNG TY — mở danh sách toàn bộ KH huỷ của công ty.
+    async openCompanyTrash() {
+        try {
+            const leads = await this.orm.call("crm.lead", "dashboard_company_trash", []);
+            if (!leads || !leads.length) {
+                this.notification.add("Công ty chưa có khách huỷ nào.",
+                    { type: "info", title: "Thùng rác công ty" });
+                return;
+            }
+            this.openCategoryList(leads);
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg,
+                { type: "danger", title: "Thùng rác công ty" });
+        }
+    }
     get selectedLeadIdList() {
         return Object.keys(this.state.selectedLeadIds)
             .filter((k) => this.state.selectedLeadIds[k])
@@ -911,7 +966,47 @@ export class VdCrmDashboard extends Component {
         }
     }
 
+    // ========================================================================
+    // KHOÁ "CHỐT BÁO GIÁ" — ép NV chốt khi có > 3 KH đã báo giá mà chưa CHỐT
+    // ========================================================================
+    // KH đã có báo giá chi tiết (intake_complete) nhưng CHƯA CHỐT (intake_locked
+    // = false) → pill xanh lá + 💰.
+    get quoteUnchotLeads() {
+        return (this.leadsNoProblems || []).filter(
+            l => l.intake_complete && !l.intake_locked);
+    }
+    // Khoá khi: NV xem dashboard CỦA CHÍNH MÌNH + có > 3 KH báo giá chưa chốt.
+    // Admin xem hộ KHÔNG bị khoá.
+    get quoteChotLockActive() {
+        return !!(this.state.selected_user_id
+            && this.state.current_user_id === this.state.selected_user_id
+            && this.quoteUnchotLeads.length > 3);
+    }
+    // Chỉ các KH báo giá chưa chốt mới được phép mở khi đang khoá.
+    get quoteChotAllowedIds() {
+        return new Set(this.quoteUnchotLeads.map(l => l.id));
+    }
+    // True nếu lead đang bị khoá mở (để làm mờ pill/row + chặn click).
+    isLeadLocked(leadId) {
+        return this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId);
+    }
+    dismissQuoteGuide() {
+        this.state.quoteGuideDismissed = true;
+    }
+
     openLead(leadId) {
+        // KHOÁ "CHỐT BÁO GIÁ" (user spec 2026-06-03): > 3 KH báo giá chưa CHỐT
+        // → chỉ cho mở các KH báo giá (để vào CHỐT), khoá mở mọi KH khác.
+        if (this.isLeadLocked(leadId)) {
+            this.notification.add(
+                "🔒 Bạn có hơn 3 khách đã BÁO GIÁ nhưng CHƯA CHỐT. Hãy mở từng "
+                + "khách MÀU XANH LÁ (💰) → vào THÔNG TIN TƯ VẤN → bấm "
+                + "🔒 CHỐT BÁO GIÁ. Khi còn ≤ 3 khách chưa chốt, các khách khác "
+                + "sẽ mở lại bình thường.",
+                { type: "warning", title: "Khoá — chưa CHỐT báo giá" },
+            );
+            return;
+        }
         // KHOÁ "Yêu cầu tìm vấn đề" (user spec 2026-06-01): khi NV bị khoá,
         // CHẶN mở thẻ KHÁCH MỚI (ép NV xử lý KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ
         // trước). KHÔNG chặn TCG/XLVD để NV còn vào tạo vấn đề mà gỡ khoá.
@@ -1166,8 +1261,14 @@ export class VdCrmDashboard extends Component {
     }
 
     closePreview() {
+        // Nếu đang KHOÁ CHỐT báo giá: NV có thể vừa bấm CHỐT trong preview →
+        // tải lại để cập nhật số KH chưa chốt và gỡ khoá khi còn ≤ 3.
+        const wasQuoteLocked = this.quoteChotLockActive;
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
+        if (wasQuoteLocked) {
+            this.loadDashboard();
+        }
     }
 
     /**

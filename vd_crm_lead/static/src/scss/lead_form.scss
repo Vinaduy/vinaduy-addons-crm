@@ -11563,6 +11563,39 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     width: 100% !important;
 }
 
+/* ============================================================
+   MOBILE (<=575px): hàng "Diện tích" dùng cột px cố định (~772px) +
+   nowrap → trên điện thoại tràn ngang, ô Ngang/Dài bị cắt khỏi khung.
+   → Chuyển flex-wrap + thu nhỏ ô để KHÔNG trường nào tràn ra ngoài.
+   ============================================================ */
+@media (max-width: 575px) {
+    .o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        column-gap: 0.4rem !important;
+        row-gap: 0.35rem !important;
+        align-items: center !important;
+    }
+    .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_lbl,
+    .o_vd_intake_inline .o_vd_area_row_grid .o_vd_dim_lbl {
+        flex: 0 0 auto !important;
+    }
+    .o_vd_intake_inline .o_vd_subtoggle_cell {
+        grid-column: auto !important;
+        padding-left: 0 !important;
+    }
+    /* Ô Ngang/Dài: bỏ fix 108px → co giãn nhỏ để vừa khung mobile */
+    div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim,
+    div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim > input,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_dim,
+    .o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_dim input {
+        width: 84px !important;
+        min-width: 62px !important;
+        max-width: 96px !important;
+        flex: 0 1 84px !important;
+    }
+}
+
 /* Step 4 Kiểu nhà / Loại móng — bỏ label → input rộng full step_field */
 .o_vd_intake_inline .o_vd_step_field_nolbl {
     grid-template-columns: 1fr !important;

@@ -48,13 +48,13 @@
                  t-on-mouseleave="() => this.onRecLeave()"
                  t-on-click.stop="() => {}">
                 <div class="o_vd_rec_head">
-                    <i class="fa fa-headphones me-1"/>20 GHI ÂM &gt; 5 PHÚT — <t t-esc="state.recHover.name"/>
+                    <i class="fa fa-headphones me-1"/>20 GHI ÂM &gt; 3 PHÚT — <t t-esc="state.recHover.name"/>
                 </div>
                 <div t-if="state.recHover.loading" class="o_vd_rec_loading">
                     <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
                 </div>
                 <div t-elif="!state.recHover.recordings.length" class="o_vd_rec_empty">
-                    Chưa có ghi âm nào trên 5 phút.
+                    Chưa có ghi âm nào trên 3 phút.
                 </div>
                 <div t-else="" class="o_vd_rec_list">
                     <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_item">
@@ -1559,6 +1559,17 @@
                                 <t t-if="state.selectMode">✖ Thoát chọn</t>
                                 <t t-else="">🖊️ Chọn KH</t>
                             </button>
+                            <!-- 🗑️ THÙNG RÁC CÔNG TY — toàn bộ KH huỷ của công ty (mọi NV),
+                                 khác thùng rác KH HỦY của từng NV ở bảng KHÁCH MỚI. Luôn hiện. -->
+                            <button class="o_vd_company_trash_btn"
+                                    t-on-click="() => this.openCompanyTrash()"
+                                    title="Thùng rác công ty — toàn bộ khách huỷ của công ty (mọi nhân viên)">
+                                <i class="fa fa-trash"/>
+                                <span class="o_vd_company_trash_lbl">Thùng rác công ty</span>
+                                <span t-if="state.company_trash_count" class="o_vd_company_trash_count">
+                                    <t t-esc="state.company_trash_count"/>
+                                </span>
+                            </button>
                             <t t-if="state.selectMode">
                                 <span class="o_vd_bulk_count">
                                     Đã chọn <b><t t-esc="selectedCount"/></b> KH
@@ -1611,10 +1622,38 @@
                                             </button>
                                         </div>
                                         <div class="o_vd_filter_table_right">
+                                            <!-- COACHMARK KHOÁ CHỐT BÁO GIÁ — tự hiện khi > 3 KH
+                                                 báo giá chưa chốt; hướng dẫn NV cách xử lý. -->
+                                            <div t-if="quoteChotLockActive and !state.quoteGuideDismissed"
+                                                 class="o_vd_quote_guide" t-on-click.stop="">
+                                                <div class="o_vd_quote_guide_head">🔒 Còn khách CHƯA CHỐT báo giá</div>
+                                                <div class="o_vd_quote_guide_body">
+                                                    Bạn có <b><t t-esc="quoteUnchotLeads.length"/></b> khách đã có báo giá chi tiết nhưng <b>CHƯA CHỐT</b>.
+                                                    Hãy bấm vào từng khách <b>màu xanh lá 💰</b> bên dưới → mở
+                                                    <b>THÔNG TIN TƯ VẤN</b> → bấm <b>🔒 CHỐT BÁO GIÁ</b>.<br/>
+                                                    ⚠️ Đang tạm <b>khoá mở các khách khác</b> cho tới khi còn ≤ 3 khách chưa chốt.
+                                                </div>
+                                                <button class="o_vd_quote_guide_btn"
+                                                        t-on-click.stop="() => this.dismissQuoteGuide()">
+                                                    ✅ Đã hiểu
+                                                </button>
+                                                <div class="o_vd_quote_guide_arrow"/>
+                                            </div>
                                             <t t-if="leadsNoProblems.length">
-                                                <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
-                                                    <t t-call="vd_crm_lead.LeadPill"/>
-                                                </t>
+                                                <!-- Thu gọn tối đa ~10 dòng; nút Mở rộng trượt mép
+                                                     dưới xuống để hiện toàn bộ KH. -->
+                                                <div t-ref="newPillsWrap"
+                                                     t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
+                                                    <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
+                                                        <t t-call="vd_crm_lead.LeadPill"/>
+                                                    </t>
+                                                </div>
+                                                <button t-if="state.newPillsOverflow"
+                                                        class="o_vd_new_pills_toggle"
+                                                        t-on-click="() => this.toggleNewTable()">
+                                                    <t t-if="state.newTableExpanded">▴ Thu gọn bảng</t>
+                                                    <t t-else="">▾ Mở rộng — xem tất cả <t t-esc="leadsNoProblems.length"/> khách</t>
+                                                </button>
                                             </t>
                                             <div t-else="" class="o_vd_filter_table_empty">
                                                 <i class="fa fa-check-circle text-success me-1"/>
@@ -1925,7 +1964,7 @@
                                     <t t-if="leadsUrgentConstruction.length">
                                         <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '')">
+                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
                                                 <t t-if="isLeadSelected(lead.id)">☑</t>
                                                 <t t-else="">☐</t>
@@ -2129,7 +2168,7 @@
                                     <t t-if="leadsWithProblems.length">
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '')">
+                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
                                                 <t t-if="isLeadSelected(lead.id)">☑</t>
                                                 <t t-else="">☐</t>
@@ -2587,7 +2626,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '')">
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span t-if="state.selectMode" class="o_vd_pill_check">
                     <t t-if="isLeadSelected(lead.id)">☑</t>
                     <t t-else="">☐</t>

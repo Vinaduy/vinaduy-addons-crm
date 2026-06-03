@@ -105,8 +105,8 @@ class ResUsers(models.Model):
         return level
 
     @api.model
-    def vd_recent_recordings(self, user_id, limit=20, min_seconds=300):
-        """20 cuộc ghi âm GẦN NHẤT > 5 phút của 1 NV — để nghe/tải ngay trên
+    def vd_recent_recordings(self, user_id, limit=20, min_seconds=180):
+        """20 cuộc ghi âm GẦN NHẤT >= 3 phút của 1 NV — để nghe/tải ngay trên
         dashboard (hover tên NV). Trả list {callee, duration, date, play_url,
         download_url}."""
         Call = self.env['stringee.call'].sudo()

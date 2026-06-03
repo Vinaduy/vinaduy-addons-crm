@@ -7488,3 +7488,147 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     from { opacity: 0; transform: translateY(-50%) scale(0.92); }
     to   { opacity: 1; transform: translateY(-50%) scale(1); }
 }
+
+/* 🗑️ THÙNG RÁC CÔNG TY — nút nhỏ trong bulk bar (toàn bộ KH huỷ công ty) */
+.o_vd_company_trash_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;          /* đẩy sang phải cho tách biệt */
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.3rem 0.7rem;
+    color: #c92a2a;
+    background: #fff;
+    border: 1px dashed #fa5252;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { background: #fff5f5; border-style: solid; }
+    i.fa { font-size: 0.95rem; }
+}
+.o_vd_company_trash_count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    padding: 0 0.35rem;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #fff;
+    background: #fa5252;
+    border-radius: 999px;
+}
+
+/* ====================================================================
+   BẢNG KHÁCH MỚI — thu gọn tối đa ~10 dòng pill + nút Mở rộng.
+   Bấm Mở rộng → max-height tăng → mép dưới TRƯỢT xuống hiện toàn bộ KH.
+   ==================================================================== */
+.o_vd_new_pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: center;
+    gap: 0.25rem 0.35rem;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+.o_vd_new_pills_collapsed { max-height: 248px; }   /* ~10 dòng pill */
+.o_vd_new_pills_expanded  { max-height: 4000px; }  /* đủ cho mọi KH */
+/* Fade nhẹ ở mép dưới khi còn KH bị ẩn — gợi ý "còn nữa" */
+.o_vd_new_pills_fade::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 26px;
+    background: linear-gradient(to top, #fff 10%, rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+.o_vd_new_pills_toggle {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1971c2;
+    background: #e7f5ff;
+    border: 1px solid #74c0fc;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover { background: #d0ebff; }
+}
+
+/* ====================================================================
+   KHOÁ "CHỐT BÁO GIÁ" — coachmark hướng dẫn (giống style nút SOS) +
+   làm mờ các KH bị khoá mở khi có > 3 KH báo giá chưa chốt.
+   ==================================================================== */
+.o_vd_quote_guide {
+    position: relative;
+    width: 100%;            /* chiếm trọn 1 dòng trong flex → pill xuống dưới */
+    margin: 0 0 0.95rem;
+    padding: 0.7rem 0.9rem 0.75rem;
+    background: linear-gradient(135deg, #fff9db, #ffec99);
+    border: 2px solid #f59f00;
+    border-radius: 11px;
+    box-shadow: 0 8px 22px rgba(245, 159, 0, 0.3);
+    cursor: default;
+    animation: vd-sos-guide-pop 0.25s ease;   /* dùng lại keyframe pop của SOS */
+}
+.o_vd_quote_guide_head {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #b35900;
+    margin-bottom: 0.35rem;
+}
+.o_vd_quote_guide_body {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #5c3b00;
+    line-height: 1.55;
+    b { color: #c92a2a; font-weight: 800; }
+}
+.o_vd_quote_guide_btn {
+    margin-top: 0.55rem;
+    padding: 0.38rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #51cf66, #2b8a3e);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { filter: brightness(1.05); }
+}
+/* Mũi tên chỉ XUỐNG vào nhóm pill xanh lá bên dưới */
+.o_vd_quote_guide_arrow {
+    position: absolute;
+    bottom: -11px;
+    left: 26px;
+    width: 0; height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 11px solid #f59f00;
+    &::after {
+        content: '';
+        position: absolute;
+        left: -7px; top: -11px;
+        width: 0; height: 0;
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+        border-top: 8px solid #ffec99;
+    }
+}
+/* KH bị khoá mở — làm mờ, vẫn click được để hiện cảnh báo */
+.o_vd_won_pill.o_vd_pill_locked {
+    opacity: 0.4;
+    filter: grayscale(0.4);
+    cursor: not-allowed;
+}
+.o_vd_problem_row.o_vd_row_locked {
+    opacity: 0.42;
+    filter: grayscale(0.4);
+    cursor: not-allowed;
+}

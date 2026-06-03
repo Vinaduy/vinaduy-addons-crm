@@ -866,13 +866,22 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
         min-width: 0 !important;
         justify-content: flex-end !important;
     }
+    /* Badge "TÌM VẤN ĐỀ + Còn N ngày" quá rộng → cho chiếm TRỌN 1 dòng để
+       cụm 📞📅 + SOS + Gọi lại nằm chung 1 dòng bên dưới, KHÔNG để nút Gọi
+       lại rớt xuống dòng riêng. */
+    .o_vd_problem_row .o_vd_prb_req2_main {
+        flex: 1 1 100% !important;
+        justify-content: flex-start !important;
+    }
     /* Nút Gọi lại + SOS gọn, đều nhau, chuyên nghiệp */
     .o_vd_problem_row .o_vd_callback_btn {
         padding: 0.28rem 0.65rem !important;
         font-size: 0.72rem !important;
         border-radius: 7px !important;
         white-space: nowrap !important;
+        flex: 0 0 auto !important;
     }
+    .o_vd_problem_row .o_vd_sos { flex: 0 0 auto !important; }
     .o_vd_problem_row .o_vd_sos {
         font-size: 0.72rem !important;
     }

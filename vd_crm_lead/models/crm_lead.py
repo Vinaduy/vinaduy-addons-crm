@@ -5820,6 +5820,13 @@ class CrmLead(models.Model):
                 'show': self.env['res.users'].vd_sos_guide_should_show(self.env.user),
                 'count': self.env.user.vd_sos_guide_ack_count or 0,
             },
+            # Thùng rác CÔNG TY — tổng KH huỷ toàn công ty (mọi NV). Chỉ manager.
+            # Khác thùng rác KH HỦY của TỪNG NV ở bảng KHÁCH MỚI (đã scope theo NV).
+            'company_trash_count': (
+                self.with_context(active_test=False).search_count(
+                    [('stage_is_lost', '=', True)])
+                if is_manager else 0
+            ),
             'kpi': kpi,
             'errors': errors,
             'stages': stage_payload,
@@ -6320,6 +6327,22 @@ class CrmLead(models.Model):
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         leads = self.with_context(active_test=False).search(
             domain_user + [('stage_is_lost', '=', True)],
+            limit=limit,
+            order='write_date desc, create_date desc',
+        )
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
+    def dashboard_company_trash(self, limit=1000):
+        """Thùng rác CÔNG TY — toàn bộ KH đã huỷ (stage_is_lost) của MỌI NV.
+        Chỉ manager. Khác dashboard_leads_lost (scope theo từng NV).
+
+        Dùng active_test=False vì KH huỷ bị archive (active=False).
+        """
+        if not self._dashboard_is_manager():
+            return []
+        leads = self.with_context(active_test=False).search(
+            [('stage_is_lost', '=', True)],
             limit=limit,
             order='write_date desc, create_date desc',
         )
