@@ -69,6 +69,78 @@
                 </div>
             </div>
 
+            <!-- 📞 BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — to rộng:
+                 báo cáo tổng hợp trên cùng + danh sách KH đã gọi + ghi âm. -->
+            <div t-if="state.todayCallsHover" class="o_vd_tc_pop"
+                 t-attf-style="{{ todayCallsPopStyle }}"
+                 t-on-mouseenter="() => this.onTodayCallsPopEnter()"
+                 t-on-mouseleave="() => this.onTodayCallsLeave()"
+                 t-on-click.stop="() => {}">
+                <div class="o_vd_tc_head">
+                    <i class="fa fa-phone me-1"/> CUỘC GỌI HÔM NAY — <t t-esc="state.todayCallsHover.name"/>
+                </div>
+                <div t-if="state.todayCallsHover.loading" class="o_vd_tc_loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                </div>
+                <t t-else="">
+                    <!-- BÁO CÁO TỔNG HỢP -->
+                    <t t-set="sm" t-value="state.todayCallsHover.summary or {}"/>
+                    <div class="o_vd_tc_report">
+                        <div class="o_vd_tc_stat o_vd_tc_stat_total">
+                            <span class="o_vd_tc_stat_num"><t t-esc="sm.total_calls or 0"/></span>
+                            <span class="o_vd_tc_stat_lbl">cuộc gọi</span>
+                        </div>
+                        <div class="o_vd_tc_stat">
+                            <span class="o_vd_tc_stat_num"><t t-esc="sm.customers or 0"/></span>
+                            <span class="o_vd_tc_stat_lbl">khách đã gọi</span>
+                        </div>
+                        <div class="o_vd_tc_stat o_vd_tc_stat_ok">
+                            <span class="o_vd_tc_stat_num"><t t-esc="sm.answered_customers or 0"/></span>
+                            <span class="o_vd_tc_stat_lbl">KH nghe máy</span>
+                        </div>
+                        <div class="o_vd_tc_stat o_vd_tc_stat_ok">
+                            <span class="o_vd_tc_stat_num"><t t-esc="fmtMmSs(sm.talk_seconds or 0)"/></span>
+                            <span class="o_vd_tc_stat_lbl">tổng đàm thoại</span>
+                        </div>
+                        <div class="o_vd_tc_stat o_vd_tc_stat_sub">
+                            <span class="o_vd_tc_stat_num"><t t-esc="sm.subscriber or 0"/></span>
+                            <span class="o_vd_tc_stat_lbl">thuê bao</span>
+                        </div>
+                    </div>
+                    <div t-if="!state.todayCallsHover.customers.length" class="o_vd_tc_empty">
+                        Hôm nay chưa phát sinh cuộc gọi nào.
+                    </div>
+                    <!-- DANH SÁCH KH ĐÃ GỌI -->
+                    <div t-else="" class="o_vd_tc_list">
+                        <div t-foreach="state.todayCallsHover.customers" t-as="kh" t-key="kh.lead_id"
+                             class="o_vd_tc_cust">
+                            <div class="o_vd_tc_cust_head">
+                                <span t-att-class="'o_vd_tc_cat o_vd_tc_cat_' + (kh.cat_class || 'other')"><t t-esc="kh.category"/></span>
+                                <span class="o_vd_tc_cust_name" t-on-click="() => this.openLead(kh.lead_id)">
+                                    <t t-esc="kh.name"/>
+                                </span>
+                                <span t-if="kh.phone" class="o_vd_tc_cust_phone">📞 <t t-esc="kh.phone"/></span>
+                                <span class="o_vd_tc_cust_meta">
+                                    <b><t t-esc="kh.call_count"/></b> cuộc · <t t-esc="fmtMmSs(kh.total_duration)"/>
+                                </span>
+                            </div>
+                            <div class="o_vd_tc_calls">
+                                <div t-foreach="kh.calls" t-as="c" t-key="c_index" class="o_vd_tc_call">
+                                    <span class="o_vd_tc_call_time"><t t-esc="c.time"/></span>
+                                    <span t-att-class="'o_vd_tc_call_res o_vd_tc_res_' + c.result_class">
+                                        <t t-esc="c.result"/>
+                                    </span>
+                                    <span class="o_vd_tc_call_dur"><t t-esc="fmtMmSs(c.duration)"/></span>
+                                    <audio t-if="c.recording_url" class="o_vd_tc_audio"
+                                           controls="controls" preload="none" t-att-src="c.recording_url"/>
+                                    <span t-else="" class="o_vd_tc_norec">— không ghi âm —</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
             <div t-if="state.loading" class="o_vd_dash_loader">
                 <i class="fa fa-spinner fa-spin fa-2x"/>
                 <div class="mt-2">Đang tải dashboard...</div>
@@ -150,6 +222,16 @@
                                 <span class="o_vd_admin_nav_kpi_lbl">Tổng khách hàng công ty</span>
                                 <span class="o_vd_admin_nav_kpi_val"><t t-esc="state.kpi.total or 0"/></span>
                             </div>
+                            <!-- 🗑️ THÙNG RÁC CÔNG TY — toàn bộ KH huỷ của công ty (mọi NV) -->
+                            <button class="o_vd_admin_trash_btn"
+                                    t-on-click="() => this.openCompanyTrash()"
+                                    title="Thùng rác công ty — toàn bộ khách huỷ của công ty (mọi nhân viên)">
+                                <i class="fa fa-trash"/>
+                                <span class="o_vd_admin_trash_lbl">Thùng rác công ty</span>
+                                <span t-if="state.company_trash_count" class="o_vd_admin_trash_count">
+                                    <t t-esc="state.company_trash_count"/>
+                                </span>
+                            </button>
                         </div>
                     </aside>
 
@@ -336,7 +418,9 @@
                                                     </span>
                                                     <span class="o_vd_today_sep">·</span>
                                                     <span class="o_vd_today_calls"
-                                                          t-att-title="'KH gọi thành công ' + (nv.calls_today_success or 0) + ' / Đã gọi ' + (nv.calls_today_total or 0)">
+                                                          t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
+                                                          t-on-mouseleave="() => this.onTodayCallsLeave()"
+                                                          title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
                                                         <i class="fa fa-phone"/> <strong><t t-esc="nv.calls_today_total or 0"/></strong>
                                                         <span class="o_vd_today_calls_ok"><i class="fa fa-check-circle"/> <strong><t t-esc="nv.calls_today_success or 0"/></strong></span>
                                                     </span>
@@ -2658,7 +2742,7 @@
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
                 <!-- Icon "đã có báo giá" — KH complete + chưa CHỐT (user spec 2026-05-27) -->
-                <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked"
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked and !lead.quote_cancelled"
                       class="o_vd_pill_quote_badge"
                       title="Đã có báo giá chi tiết — chưa CHỐT THÔNG TIN">
                     💰

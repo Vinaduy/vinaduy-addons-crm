@@ -743,6 +743,7 @@
                                          Khi intake complete → CHỐT BÁO GIÁ hiện, CHƯA BÁO GIÁ ẩn. -->
                                     <field name="vd_intake_locked" invisible="1"/>
                                     <field name="vd_intake_complete" invisible="1"/>
+                                    <field name="vd_quote_cancelled" invisible="1"/>
                                     <field name="vd_no_quote_state" invisible="1"/>
                                     <button string="⏸️ KHÁCH THAM KHẢO"
                                             name="action_open_no_quote_wizard" type="object"
@@ -757,8 +758,19 @@
                                     <button string="🔒 CHỐT BÁO GIÁ"
                                             name="action_save_intake_done" type="object"
                                             class="btn btn-sm btn-success o_vd_btn_intake_lock"
-                                            invisible="vd_intake_locked or not vd_intake_complete"
+                                            invisible="vd_intake_locked or not vd_intake_complete or vd_quote_cancelled"
                                             title="Khoá thông tin tư vấn + chuyển sang BÁO GIÁ. Phải điền đủ 11 trường bắt buộc."/>
+                                    <!-- HUỶ BÁO GIÁ ↔ LÀM BÁO GIÁ: chỉ khi đã có báo giá (chưa CHỐT) -->
+                                    <button string="🗑️ HUỶ BÁO GIÁ"
+                                            name="action_cancel_quote" type="object"
+                                            class="btn btn-sm btn-outline-danger o_vd_btn_cancel_quote"
+                                            invisible="not vd_intake_complete or vd_intake_locked or vd_quote_cancelled"
+                                            title="Tạm huỷ báo giá để sửa lại THÔNG TIN TƯ VẤN. KH coi như chưa làm báo giá; data giữ nguyên."/>
+                                    <button string="📝 LÀM BÁO GIÁ"
+                                            name="action_redo_quote" type="object"
+                                            class="btn btn-sm btn-primary o_vd_btn_redo_quote"
+                                            invisible="not vd_quote_cancelled"
+                                            title="Khôi phục / làm lại báo giá sau khi đã sửa thông tin tư vấn."/>
                                     <button string="🔓 Mở khoá"
                                             name="action_unlock_intake" type="object"
                                             class="btn btn-sm btn-warning o_vd_btn_unlock"
@@ -817,7 +829,7 @@
                      (auto-lock đã trigger). Stage 'negotiate'/'won' vẫn hiện
                      để xem lại báo giá đã chốt. -->
                 <div class="o_vd_quote_panel"
-                     invisible="not vd_intake_complete and stage_code not in ['negotiate', 'won']">
+                     invisible="(not vd_intake_complete and stage_code not in ['negotiate', 'won']) or vd_quote_cancelled">
                     <div class="o_vd_quote_head">
                         <i class="fa fa-money"/>
                         <span>Báo giá chi tiết</span>

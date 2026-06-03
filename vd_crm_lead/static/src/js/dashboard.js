@@ -51,6 +51,9 @@ export class VdCrmDashboard extends Component {
             // Popover GHI ÂM (hover TÊN NV) — fixed, hiện bên trái; {user_id, name,
             // top, left, loading, recordings} | null.
             recHover: null,
+            // Bảng CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — {user_id, name,
+            // top, anchorLeft, loading, summary, customers} | null.
+            todayCallsHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
             current_user_id: 0,
@@ -124,10 +127,8 @@ export class VdCrmDashboard extends Component {
             newTableExpanded: false,
             newPillsOverflow: false,
         });
-        // Ref vùng pill KHÁCH MỚI để đo overflow (quyết định hiện nút mở rộng).
+        // Ref vùng pill KHÁCH MỚI để đếm số dòng (quyết định hiện nút mở rộng).
         this.newPillsRef = useRef("newPillsWrap");
-        // Ngưỡng px ~ 10 dòng pill (khớp max-height CSS .o_vd_new_pills_collapsed).
-        this._newPillsCollapsedPx = 248;
         this._searchDebounce = null;
 
         // User spec 2026-05-31: khôi phục NV đang xem sau khi F5 (trước đây luôn
@@ -532,7 +533,8 @@ export class VdCrmDashboard extends Component {
     pillCallClass(lead) {
         // User spec 2026-05-27: KH có báo giá (complete=True) nhưng chưa CHỐT
         // → pill xanh lá ĐẬM (o_vd_pill_has_quote), ưu tiên hơn các màu khác.
-        if (lead.intake_complete && !lead.intake_locked) {
+        // 2026-06-03: KH bấm HUỶ BÁO GIÁ (quote_cancelled) → coi như chưa báo giá.
+        if (lead.intake_complete && !lead.intake_locked && !lead.quote_cancelled) {
             return 'o_vd_pill_has_quote';
         }
         const s = lead.call_stats || {};
@@ -589,7 +591,8 @@ export class VdCrmDashboard extends Component {
             const answered = s.answered || 0;
             const daysNoAns = s.days_no_answer || 0;
             // Tier -1: KH có báo giá (chưa CHỐT) — TOP ưu tiên (sắp đóng deal)
-            if (l.intake_complete && !l.intake_locked) {
+            // KH đã HUỶ BÁO GIÁ (quote_cancelled) → KHÔNG tier -1 (coi như chưa báo giá).
+            if (l.intake_complete && !l.intake_locked && !l.quote_cancelled) {
                 return { tier: -1, calls: total };
             }
             if (total === 0)                            return { tier: 0, calls: 0 };
@@ -849,18 +852,32 @@ export class VdCrmDashboard extends Component {
     clearSelection() {
         this.state.selectedLeadIds = {};
     }
-    // ===== BẢNG KHÁCH MỚI — thu gọn ~10 dòng + nút mở rộng =====
+    // ===== BẢNG KHÁCH MỚI — thu gọn ĐÚNG 10 dòng + nút mở rộng =====
+    // Đếm SỐ DÒNG pill thực tế qua offsetTop (pill cùng dòng có cùng top).
+    // Chỉ hiện nút "Mở rộng" khi > 10 dòng; cắt chính xác sau dòng thứ 10.
     _measureNewPills() {
         const el = this.newPillsRef.el;
         if (!el) {
             if (this.state.newPillsOverflow) this.state.newPillsOverflow = false;
             return;
         }
-        // scrollHeight = chiều cao toàn bộ pill (kể cả phần bị cắt khi thu gọn)
-        // → so với ngưỡng thu gọn để biết có cần nút mở rộng không.
-        const over = el.scrollHeight > this._newPillsCollapsedPx + 6;
+        const rowTops = [];
+        for (const p of el.children) {
+            const t = p.offsetTop;
+            if (rowTops.every(x => Math.abs(x - t) > 4)) rowTops.push(t);
+        }
+        rowTops.sort((a, b) => a - b);
+        const over = rowTops.length > 10;   // chỉ "tràn" khi QUÁ 10 dòng
         if (over !== this.state.newPillsOverflow) {
             this.state.newPillsOverflow = over;
+        }
+        // Điều khiển max-height bằng inline (chính xác theo dòng), KHÔNG dựa CSS:
+        //  - thu gọn + tràn → cắt tại đầu dòng 11 (hiện đúng 10 dòng)
+        //  - còn lại → full chiều cao nội dung.
+        if (!this.state.newTableExpanded && over) {
+            el.style.maxHeight = rowTops[10] + 'px';
+        } else {
+            el.style.maxHeight = el.scrollHeight + 'px';
         }
     }
     toggleNewTable() {
@@ -973,7 +990,7 @@ export class VdCrmDashboard extends Component {
     // = false) → pill xanh lá + 💰.
     get quoteUnchotLeads() {
         return (this.leadsNoProblems || []).filter(
-            l => l.intake_complete && !l.intake_locked);
+            l => l.intake_complete && !l.intake_locked && !l.quote_cancelled);
     }
     // Khoá khi: NV xem dashboard CỦA CHÍNH MÌNH + có > 3 KH báo giá chưa chốt.
     // Admin xem hộ KHÔNG bị khoá.
@@ -1168,6 +1185,75 @@ export class VdCrmDashboard extends Component {
             this._recTimer = null;
         }, 320);
     }
+
+    // ===== BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) =====
+    async onTodayCallsEnter(ev, nv) {
+        if (this._todayCallsTimer) {
+            clearTimeout(this._todayCallsTimer);
+            this._todayCallsTimer = null;
+        }
+        const r = ev.currentTarget.getBoundingClientRect();
+        this.state.todayCallsHover = {
+            user_id: nv.user_id,
+            name: nv.full_name,
+            anchorLeft: Math.round(r.left),
+            anchorRight: Math.round(r.right),
+            top: Math.round(r.bottom + 6),
+            loading: true,
+            summary: {},
+            customers: [],
+        };
+        try {
+            const data = await this.orm.call(
+                "crm.lead", "dashboard_nv_today_calls", [nv.user_id]);
+            if (this.state.todayCallsHover
+                    && this.state.todayCallsHover.user_id === nv.user_id) {
+                this.state.todayCallsHover.summary = (data && data.summary) || {};
+                this.state.todayCallsHover.customers = (data && data.customers) || [];
+                this.state.todayCallsHover.loading = false;
+            }
+        } catch (e) {
+            if (this.state.todayCallsHover
+                    && this.state.todayCallsHover.user_id === nv.user_id) {
+                this.state.todayCallsHover.loading = false;
+            }
+        }
+    }
+    onTodayCallsLeave() {
+        if (this._todayCallsTimer) {
+            clearTimeout(this._todayCallsTimer);
+        }
+        this._todayCallsTimer = setTimeout(() => {
+            this.state.todayCallsHover = null;
+            this._todayCallsTimer = null;
+        }, 320);
+    }
+    onTodayCallsPopEnter() {
+        if (this._todayCallsTimer) {
+            clearTimeout(this._todayCallsTimer);
+            this._todayCallsTimer = null;
+        }
+    }
+    get todayCallsPopStyle() {
+        const h = this.state.todayCallsHover;
+        if (!h) return "display:none;";
+        const vw = window.innerWidth || 1200;
+        const vh = window.innerHeight || 800;
+        const W = 680;
+        // Mặc định bung sang phải mép icon; nếu tràn thì kéo về cho vừa.
+        let left = h.anchorLeft;
+        if (left + W > vw - 12) left = Math.max(12, vw - W - 12);
+        let top = h.top;
+        if (top > vh - 200) top = Math.max(12, vh - 460);
+        return `top:${top}px; left:${left}px; width:${W}px;`;
+    }
+    // mm:ss từ giây
+    fmtMmSs(sec) {
+        const s = Math.max(0, parseInt(sec || 0, 10));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m}:${r < 10 ? "0" : ""}${r}`;
+    }
     onRecPopEnter() {
         if (this._recTimer) {
             clearTimeout(this._recTimer);
@@ -1261,12 +1347,13 @@ export class VdCrmDashboard extends Component {
     }
 
     closePreview() {
-        // Nếu đang KHOÁ CHỐT báo giá: NV có thể vừa bấm CHỐT trong preview →
-        // tải lại để cập nhật số KH chưa chốt và gỡ khoá khi còn ≤ 3.
-        const wasQuoteLocked = this.quoteChotLockActive;
+        // Ở view KHÁCH MỚI (có pill xanh "đã báo giá"): NV có thể vừa bấm CHỐT /
+        // HUỶ BÁO GIÁ trong preview → tải lại để pill cập nhật màu ngay (mất/ra
+        // xanh) + gỡ khoá CHỐT nếu còn ≤ 3.
+        const needReload = this.quoteChotLockActive || this.isNewStageSplit;
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
-        if (wasQuoteLocked) {
+        if (needReload) {
             this.loadDashboard();
         }
     }

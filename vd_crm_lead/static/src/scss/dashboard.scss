@@ -7536,8 +7536,9 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow: hidden;
     transition: max-height 0.3s ease;
 }
-.o_vd_new_pills_collapsed { max-height: 248px; }   /* ~10 dòng pill */
-.o_vd_new_pills_expanded  { max-height: 4000px; }  /* đủ cho mọi KH */
+/* max-height điều khiển bằng JS (inline) theo ĐÚNG số dòng — xem _measureNewPills.
+   Chỉ đặt fallback mềm cho FRAME đầu (JS override ngay sau mount). */
+.o_vd_new_pills_collapsed { max-height: 280px; }
 /* Fade nhẹ ở mép dưới khi còn KH bị ẩn — gợi ý "còn nữa" */
 .o_vd_new_pills_fade::after {
     content: '';
@@ -7632,3 +7633,164 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     filter: grayscale(0.4);
     cursor: not-allowed;
 }
+
+/* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
+.o_vd_admin_trash_btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #c92a2a;
+    background: #fff5f5;
+    border: 1px dashed #fa5252;
+    border-radius: 9px;
+    cursor: pointer;
+    &:hover { background: #ffe3e3; border-style: solid; }
+    i.fa { font-size: 1rem; }
+}
+.o_vd_admin_trash_lbl { flex: 1 1 auto; text-align: left; }
+.o_vd_admin_trash_count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #fff;
+    background: #fa5252;
+    border-radius: 999px;
+}
+
+/* ====================================================================
+   BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — to rộng, fixed.
+   ==================================================================== */
+.o_vd_today_calls { cursor: pointer; }
+/* Khi hover icon 📞 → ẩn popover KHÁCH MỚI của ô HÔM NAY để khỏi chồng. */
+.o_vd_kh_metric_today_box:has(.o_vd_today_calls:hover) .o_vd_kh_nv_popover {
+    display: none !important;
+}
+.o_vd_tc_pop {
+    position: fixed;
+    z-index: 4000;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.32);
+    overflow: hidden;
+}
+.o_vd_tc_head {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #1971c2, #1098ad);
+    flex: 0 0 auto;
+}
+.o_vd_tc_loading, .o_vd_tc_empty {
+    padding: 1.1rem;
+    text-align: center;
+    color: #868e96;
+    font-size: 0.86rem;
+}
+/* Báo cáo tổng hợp */
+.o_vd_tc_report {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    background: #f1f3f5;
+    border-bottom: 1px solid #e9ecef;
+    flex: 0 0 auto;
+}
+.o_vd_tc_stat {
+    flex: 1 1 0;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 9px;
+}
+.o_vd_tc_stat_num { font-size: 1.15rem; font-weight: 800; color: #1f2a44; line-height: 1.1; }
+.o_vd_tc_stat_lbl { font-size: 0.7rem; color: #868e96; margin-top: 0.1rem; text-align: center; }
+.o_vd_tc_stat_total { border-color: #74c0fc; .o_vd_tc_stat_num { color: #1971c2; } }
+.o_vd_tc_stat_ok    { border-color: #69db7c; .o_vd_tc_stat_num { color: #2b8a3e; } }
+.o_vd_tc_stat_sub   { border-color: #ffa8a8; .o_vd_tc_stat_num { color: #c92a2a; } }
+/* Danh sách KH */
+.o_vd_tc_list {
+    overflow-y: auto;
+    padding: 0.5rem 0.7rem 0.7rem;
+    flex: 1 1 auto;
+}
+.o_vd_tc_cust {
+    padding: 0.5rem 0.2rem;
+    border-bottom: 1px solid #f1f3f5;
+    &:last-child { border-bottom: none; }
+}
+.o_vd_tc_cust_head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+}
+.o_vd_tc_cat {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    color: #fff;
+    white-space: nowrap;
+}
+.o_vd_tc_cat_new    { background: #4c6ef5; }
+.o_vd_tc_cat_urgent { background: #e8590c; }
+.o_vd_tc_cat_xlvd   { background: #f08c00; }
+.o_vd_tc_cat_won    { background: #2b8a3e; }
+.o_vd_tc_cat_lost   { background: #868e96; }
+.o_vd_tc_cat_other  { background: #495057; }
+.o_vd_tc_cust_name {
+    font-weight: 700;
+    color: #1971c2;
+    cursor: pointer;
+    &:hover { text-decoration: underline; }
+}
+.o_vd_tc_cust_phone { font-size: 0.78rem; color: #495057; }
+.o_vd_tc_cust_meta { margin-left: auto; font-size: 0.78rem; color: #5c5f66; b { color: #1f2a44; } }
+.o_vd_tc_calls { display: flex; flex-direction: column; gap: 0.3rem; }
+.o_vd_tc_call {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    background: #f8f9fa;
+    border-radius: 7px;
+}
+.o_vd_tc_call_time { font-size: 0.76rem; font-weight: 700; color: #495057; flex: 0 0 42px; }
+.o_vd_tc_call_res {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.1rem 0.45rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+.o_vd_tc_res_ok     { background: #d3f9d8; color: #2b8a3e; }
+.o_vd_tc_res_noans  { background: #fff3bf; color: #b35900; }
+.o_vd_tc_res_busy   { background: #ffe3e3; color: #c92a2a; }
+.o_vd_tc_res_sub    { background: #f8d7da; color: #a61e1e; }
+.o_vd_tc_res_cancel { background: #e9ecef; color: #868e96; }
+.o_vd_tc_res_ring   { background: #e7f5ff; color: #1971c2; }
+.o_vd_tc_call_dur { font-size: 0.76rem; color: #5c5f66; flex: 0 0 44px; }
+.o_vd_tc_audio { height: 30px; flex: 1 1 auto; max-width: 280px; }
+.o_vd_tc_norec { font-size: 0.74rem; color: #adb5bd; font-style: italic; flex: 1 1 auto; }

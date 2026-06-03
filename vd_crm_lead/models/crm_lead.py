@@ -751,6 +751,12 @@ class CrmLead(models.Model):
         string='Đã khoá thông tin tư vấn', default=False, copy=False,
         help='True sau khi NV bấm Lưu & Chuyển sang Báo giá. Admin/Leader có thể mở khoá.',
     )
+    vd_quote_cancelled = fields.Boolean(
+        string='Tạm huỷ báo giá', default=False, copy=False,
+        help='NV bấm HUỶ BÁO GIÁ khi thông tin tư vấn chưa chính xác → tạm ẩn '
+             'BÁO GIÁ CHI TIẾT, KH coi như CHƯA làm báo giá (pill mất màu xanh). '
+             'Data tư vấn giữ nguyên; bấm LÀM BÁO GIÁ để khôi phục.',
+    )
     vd_quote_created_date = fields.Datetime(
         string='Ngày tạo báo giá chi tiết', copy=False, readonly=True,
         help='Latch lần đầu intake đủ → khoá → báo giá chi tiết hiện ra. '
@@ -3779,6 +3785,33 @@ class CrmLead(models.Model):
         )
         return True
 
+    def action_cancel_quote(self):
+        """🗑️ HUỶ BÁO GIÁ (tạm thời) — KH coi như CHƯA làm báo giá: ẩn BÁO GIÁ
+        CHI TIẾT + pill mất màu xanh. Data tư vấn GIỮ NGUYÊN để LÀM BÁO GIÁ
+        lại sau khi sửa thông tin. Chỉ khi chưa CHỐT (locked=False)."""
+        self.ensure_one()
+        if self.vd_intake_locked:
+            raise UserError(_(
+                'Báo giá đã CHỐT — không thể huỷ. Liên hệ Admin để Mở khoá trước.'
+            ))
+        self.with_context(mail_notrack=True, tracking_disable=True).write({
+            'vd_quote_cancelled': True,
+        })
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_('🗑️ <b>%s</b> đã HUỶ BÁO GIÁ tạm thời (sửa lại thông tin tư vấn).')
+            % self.env.user.name,
+        )
+        return True
+
+    def action_redo_quote(self):
+        """📝 LÀM BÁO GIÁ — khôi phục báo giá đã tạm huỷ (sau khi đã sửa thông tin)."""
+        self.ensure_one()
+        self.with_context(mail_notrack=True, tracking_disable=True).write({
+            'vd_quote_cancelled': False,
+        })
+        return True
+
     def action_open_intake_popup(self):
         """LEGACY: redirect về chính lead form (popup đã bị xóa).
         Giữ lại stub để tương thích nếu có button cũ còn gọi."""
@@ -6348,6 +6381,144 @@ class CrmLead(models.Model):
         )
         return self._dashboard_serialize_leads(leads)
 
+    def _today_call_category(self, lead, urgent_ids):
+        """Nhãn nhóm KH cho bảng cuộc gọi hôm nay."""
+        if lead.stage_is_lost:
+            return 'KH huỷ'
+        if lead.stage_is_won:
+            return 'Đã chốt'
+        if lead.id in urgent_ids:
+            return 'Thi công gấp'
+        code = lead.stage_id.code
+        if code in ('quote', 'negotiate') and lead.vd_intake_locked:
+            return 'Xử lý vấn đề'
+        if code == 'new' or code in ('quote', 'negotiate'):
+            return 'Khách mới'
+        return lead.stage_id.name or '—'
+
+    def _today_call_result(self, call):
+        """(nhãn, class) kết quả 1 cuộc gọi."""
+        if call.state == 'answered' or (call.state == 'ended' and (call.duration or 0) > 0):
+            return ('Nghe máy', 'ok')
+        return {
+            'no_answer': ('Không nghe máy', 'noans'),
+            'busy': ('Máy bận', 'busy'),
+            'declined': ('Từ chối', 'busy'),
+            'failed': ('Thuê bao', 'sub'),
+            'cancelled': ('Đã huỷ', 'cancel'),
+            'ringing': ('Đang đổ chuông', 'ring'),
+            'initiated': ('Đang gọi', 'ring'),
+            'ended': ('Không kết nối', 'cancel'),
+        }.get(call.state, (call.state or '—', 'cancel'))
+
+    @api.model
+    def dashboard_nv_today_calls(self, user_id):
+        """Danh sách KH mà NV (user_id) đã GỌI hôm nay + báo cáo tổng hợp.
+
+        Mỗi KH: tên, SĐT, nhóm (Khách mới / Thi công gấp / Xử lý vấn đề / ...),
+        danh sách cuộc gọi (giờ, thời lượng, kết quả, link ghi âm) + tổng hợp.
+        Chỉ manager (hoặc chính NV) xem.
+        """
+        uid = int(user_id)
+        if not self._dashboard_is_manager() and uid != self.env.user.id:
+            return {'summary': {}, 'customers': []}
+        today = fields.Date.context_today(self)
+        today_start = fields.Datetime.to_datetime(today)
+        today_end = today_start + timedelta(days=1)
+        Call = self.env['stringee.call'].sudo()
+        calls = Call.search([
+            ('user_id', '=', uid),
+            ('create_date', '>=', today_start),
+            ('create_date', '<', today_end),
+            ('lead_id', '!=', False),
+        ], order='create_date desc')
+        empty_summary = {
+            'total_calls': 0, 'customers': 0, 'answered_customers': 0,
+            'talk_seconds': 0, 'answered': 0, 'no_answer': 0, 'busy': 0,
+            'subscriber': 0,
+        }
+        if not calls:
+            return {'summary': empty_summary, 'customers': []}
+
+        def is_success(c):
+            return c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0)
+
+        from collections import OrderedDict
+        by_lead = OrderedDict()
+        n_ans = n_noans = n_busy = n_sub = 0
+        talk_seconds = 0
+        answered_lead_ids = set()
+        for c in calls:
+            lid = c.lead_id.id
+            if is_success(c):
+                n_ans += 1
+                talk_seconds += (c.duration or 0)
+                answered_lead_ids.add(lid)
+            elif c.state == 'no_answer':
+                n_noans += 1
+            elif c.state in ('busy', 'declined'):
+                n_busy += 1
+            elif c.state == 'failed':
+                n_sub += 1
+            local_dt = (fields.Datetime.context_timestamp(c, c.start_time or c.create_date)
+                        if (c.start_time or c.create_date) else None)
+            att = c.recording_attachment_id
+            result, rcls = self._today_call_result(c)
+            by_lead.setdefault(lid, []).append({
+                'time': local_dt.strftime('%H:%M') if local_dt else '',
+                'duration': c.duration or 0,
+                'result': result,
+                'result_class': rcls,
+                'recording_url': ('/web/content/%s?download=false' % att.id) if att else '',
+            })
+
+        lead_id_list = list(by_lead.keys())
+        # 'Thi công gấp' = lead có problem urgent đang mở — TRA CỨU read-only
+        # (KHÔNG gọi _dashboard_urgent_construction_ids vì hàm đó auto-tạo problem).
+        urgent_ids = set()
+        urgent_tag = self.env.ref(
+            'vd_crm_lead.nego_problem_urgent_construction', raise_if_not_found=False)
+        if urgent_tag:
+            urgent_ids = set(self.env['vd.lead.problem'].sudo().search([
+                ('lead_id', 'in', lead_id_list),
+                ('tag_id', '=', urgent_tag.id),
+                ('status', 'in', ['open', 'in_progress']),
+            ]).mapped('lead_id').ids)
+        leads = self.with_context(active_test=False).browse(lead_id_list)
+        cat_by_lead = {l.id: self._today_call_category(l, urgent_ids) for l in leads}
+        name_by_lead = {l.id: (l.name or l.partner_name or 'KH') for l in leads}
+        phone_by_lead = {l.id: (l.phone or '') for l in leads}
+        cat_class_map = {
+            'Khách mới': 'new', 'Thi công gấp': 'urgent', 'Xử lý vấn đề': 'xlvd',
+            'Đã chốt': 'won', 'KH huỷ': 'lost',
+        }
+
+        customers = []
+        for lid, cl in by_lead.items():
+            cat = cat_by_lead.get(lid, '')
+            customers.append({
+                'lead_id': lid,
+                'name': name_by_lead.get(lid, 'KH'),
+                'phone': phone_by_lead.get(lid, ''),
+                'category': cat,
+                'cat_class': cat_class_map.get(cat, 'other'),
+                'call_count': len(cl),
+                'total_duration': sum(x['duration'] for x in cl),
+                'has_success': lid in answered_lead_ids,
+                'calls': cl,
+            })
+        summary = {
+            'total_calls': len(calls),
+            'customers': len(by_lead),
+            'answered_customers': len(answered_lead_ids),
+            'talk_seconds': talk_seconds,
+            'answered': n_ans,
+            'no_answer': n_noans,
+            'busy': n_busy,
+            'subscriber': n_sub,
+        }
+        return {'summary': summary, 'customers': customers}
+
     @api.model
     def dashboard_nv_active_leads(self, user_id, limit=30):
         """Danh sách KH đang active của 1 NV — dùng cho NV detail panel
@@ -6471,6 +6642,8 @@ class CrmLead(models.Model):
             # chưa CHỐT (locked=False).
             'intake_complete': bool(l.vd_intake_complete),
             'intake_locked': bool(l.vd_intake_locked),
+            # Tạm huỷ báo giá → pill mất xanh, coi như chưa làm báo giá.
+            'quote_cancelled': bool(l.vd_quote_cancelled),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill
             'pancake_platform': (
                 l.vd_pancake_page_id.platform if l.vd_pancake_page_id else 'manual'
