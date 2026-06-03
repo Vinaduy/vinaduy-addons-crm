@@ -1719,7 +1719,7 @@ export class VdCrmDashboard extends Component {
         }
         try {
             await this.stringee.call(lead.phone, lead.name || "");
-            this.notification.add(`Đang gọi ${lead.name} (${lead.phone})`, { type: "info" });
+            // KHÔNG toast "Đang gọi" — popup cuộc gọi đã hiện đầy đủ trạng thái.
         } catch (e) {
             this.notification.add(e.message || "Gọi thất bại", { type: "danger" });
         }

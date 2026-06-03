@@ -216,6 +216,15 @@ class VdLeadQuickAddWizard(models.TransientModel):
         if not lines:
             raise UserError(_('Phải có ít nhất 1 dòng có Tên + SĐT.'))
 
+        # CHẶN TRÙNG SỐ — không cho tạo nếu có số đã có trong hệ thống / nhập 2 lần.
+        dups = lines.filtered(lambda l: l.phone_is_dup)
+        if dups:
+            raise UserError(_(
+                'Có %d số bị TRÙNG (đã có trong hệ thống hoặc nhập 2 lần) — '
+                'vui lòng sửa/xoá trước khi chia số:\n%s'
+            ) % (len(dups), '\n'.join(
+                '• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in dups)))
+
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
         Stage = self.env['crm.stage'].sudo()
@@ -470,6 +479,57 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
                 '📋 %d mới · 📵 %d chưa gọi%s'
                 % (total, nc, ' ⚠️ QUÁ TẢI' if over else '')
             )
+
+    # ===== CHẶN TRÙNG SỐ — đã có trong hệ thống / nhập 2 lần trong danh sách =====
+    phone_is_dup = fields.Boolean(compute='_compute_phone_dup')
+    phone_dup_label = fields.Char(string='Cảnh báo', compute='_compute_phone_dup')
+
+    @api.depends('phone', 'wizard_id.line_ids.phone')
+    def _compute_phone_dup(self):
+        Lead = self.env['crm.lead'].sudo()
+
+        def norm(p):
+            s = Lead._vd_normalize_phones_set(p)
+            return next(iter(s)) if s else ''
+
+        # Đếm trùng TRONG wizard (cùng số nhập nhiều dòng)
+        wiz_count = {}
+        for wiz in self.mapped('wizard_id'):
+            cnt = {}
+            for l in wiz.line_ids:
+                c = norm(l.phone)
+                if c:
+                    cnt[c] = cnt.get(c, 0) + 1
+            wiz_count[wiz.id] = cnt
+        # Số đã có TRONG HỆ THỐNG (mọi lead, kể cả đã archive)
+        cores = {norm(l.phone) for l in self if l.phone}
+        cores.discard('')
+        sys_cores = set()
+        if cores:
+            variants = []
+            for c in cores:
+                variants += [c, '0' + c, '84' + c, '+84' + c]
+            rows = Lead.with_context(active_test=False).search_read(
+                [('phone', 'in', variants)], ['phone'])
+            for r in rows:
+                cc = norm(r.get('phone'))
+                if cc:
+                    sys_cores.add(cc)
+        for rec in self:
+            c = norm(rec.phone)
+            if not c:
+                rec.phone_is_dup = False
+                rec.phone_dup_label = ''
+                continue
+            in_sys = c in sys_cores
+            in_wiz = wiz_count.get(rec.wizard_id.id, {}).get(c, 0) > 1
+            rec.phone_is_dup = bool(in_sys or in_wiz)
+            if in_sys:
+                rec.phone_dup_label = '⛔ TRÙNG — số đã có trong hệ thống'
+            elif in_wiz:
+                rec.phone_dup_label = '⛔ TRÙNG — nhập 2 lần trong danh sách'
+            else:
+                rec.phone_dup_label = ''
 
     # ===== MIRROR các trường intake từ crm.lead — admin bật tắt qua ⋮ menu =====
     # Khi NV nhập giá trị → action_create_leads sẽ ghi xuống crm.lead tương ứng.

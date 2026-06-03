@@ -37,10 +37,7 @@ async function vdStringeeCallAction(env, action) {
         console.log("[VD-STRINGEE] Calling stringee.call(%s)...", phone);
         const result = await stringee.call(phone, leadName);
         console.log("[VD-STRINGEE] stringee.call() returned:", result);
-        env.services.notification.add(
-            `Đang gọi ${leadName} (${phone})`,
-            { type: "info" },
-        );
+        // KHÔNG toast "Đang gọi" — popup cuộc gọi đã hiện đầy đủ trạng thái.
     } catch (e) {
         console.error("[VD-STRINGEE] stringee.call() threw:", e);
         env.services.notification.add(
@@ -62,7 +59,7 @@ async function vdStringeeHangupAction(env, _action) {
     const stringee = env.services.stringee;
     if (stringee && stringee.hangup) {
         stringee.hangup();
-        env.services.notification.add("Đã cúp máy", { type: "info" });
+        // KHÔNG toast — popup tự ẩn/đổi sang kết quả khi cúp máy.
     }
     return false;
 }

@@ -10,10 +10,14 @@
                 <field name="show_distribute" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
-                    <list editable="bottom" string="Danh sách KH cần thêm">
+                    <list editable="bottom" string="Danh sách KH cần thêm"
+                          decoration-danger="phone_is_dup">
                         <field name="sequence" widget="handle"/>
+                        <field name="phone_is_dup" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..." widget="phone"/>
+                        <field name="phone_dup_label" string="Cảnh báo" readonly="1"
+                               decoration-danger="phone_is_dup" decoration-bf="phone_is_dup"/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
