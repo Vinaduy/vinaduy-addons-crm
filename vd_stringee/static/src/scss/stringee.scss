@@ -241,3 +241,83 @@
 .o_dialog:has(.o_vd_dlg_fs) .modal-content {
     height: 90vh;
 }
+
+/* ===== Bảng nổi trạng thái cuộc gọi (góc phải-dưới, toàn màn hình) ===== */
+.o_vd_call_panel {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1080;                 /* trên content, dưới modal/toast */
+    width: 260px;
+    max-width: calc(100vw - 24px);
+    padding: 12px 14px;
+    border-radius: 12px;
+    color: #fff;
+    background: #1f6feb;           /* mặc định: đang gọi */
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+    font-size: 13px;
+    animation: o_vd_cp_in 0.18s ease-out;
+
+    .o_vd_cp_head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .o_vd_cp_status { font-weight: 600; }
+    .o_vd_cp_timer {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        opacity: 0.95;
+    }
+    .o_vd_cp_dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+        animation: o_vd_cp_pulse 1.2s infinite;
+    }
+    .o_vd_cp_name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .o_vd_cp_num {
+        opacity: 0.92;
+        margin-bottom: 10px;
+    }
+    .o_vd_cp_carrier { opacity: 0.85; }
+
+    .o_vd_cp_hangup {
+        width: 100%;
+        border: 0;
+        border-radius: 8px;
+        padding: 7px 10px;
+        font-weight: 600;
+        color: #fff;
+        background: #d11a2a;
+        cursor: pointer;
+        transition: filter 0.12s ease;
+
+        &:hover { filter: brightness(1.08); }
+        .o_vd_cp_hangup_icon { transform: rotate(135deg); }
+    }
+}
+/* Đang đổ chuông: cam. Đang nói chuyện: xanh lá. */
+.o_vd_call_panel_ringing { background: #d9730d; }
+.o_vd_call_panel_incall { background: #1a7f37; }
+
+@keyframes o_vd_cp_in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes o_vd_cp_pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+    70%  { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}

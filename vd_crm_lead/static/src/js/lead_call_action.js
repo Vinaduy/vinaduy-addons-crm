@@ -35,7 +35,7 @@ async function vdStringeeCallAction(env, action) {
     }
     try {
         console.log("[VD-STRINGEE] Calling stringee.call(%s)...", phone);
-        const result = await stringee.call(phone);
+        const result = await stringee.call(phone, leadName);
         console.log("[VD-STRINGEE] stringee.call() returned:", result);
         env.services.notification.add(
             `Đang gọi ${leadName} (${phone})`,

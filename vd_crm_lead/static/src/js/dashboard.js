@@ -1718,7 +1718,7 @@ export class VdCrmDashboard extends Component {
             }, 2000);
         }
         try {
-            await this.stringee.call(lead.phone);
+            await this.stringee.call(lead.phone, lead.name || "");
             this.notification.add(`Đang gọi ${lead.name} (${lead.phone})`, { type: "info" });
         } catch (e) {
             this.notification.add(e.message || "Gọi thất bại", { type: "danger" });

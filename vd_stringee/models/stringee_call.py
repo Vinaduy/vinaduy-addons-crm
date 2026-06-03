@@ -175,6 +175,91 @@ class StringeeCall(models.Model):
             return current
         return target if _STATE_RANK.get(target, 0) >= _STATE_RANK.get(current or 'draft', 0) else current
 
+    # ---------- Chẩn đoán sức khỏe số tổng đài (outbound) ----------
+
+    @api.model
+    def _vd_number_health(self, from_number, carrier=None):
+        """Chẩn đoán 1 số tổng đài có còn GỌI RA được không, dựa lịch sử cuộc gọi.
+
+        Mục đích: khi 1 cuộc rớt TRƯỚC khi đổ chuông, thay vì luôn đoán mò
+        "số chưa kích hoạt outbound", ta tra lịch sử số đó để báo ĐÚNG:
+          - dead    : chưa từng nối được cuộc nào → số HỎNG outbound (đổi số).
+          - suspect : trước nối được nhưng gần đây loạt cuộc rớt → đang trục trặc.
+          - alive   : số vẫn nối được bình thường → cuộc này khách không nghe/bận.
+
+        Tín hiệu cốt lõi: `duration > 0` nghĩa là cuộc đã RA TỚI nhà mạng (có
+        thời gian đổ chuông/đàm thoại). `duration = 0` = chết ngay trước đổ
+        chuông = không ra được mạng — đúng dấu vết số chưa thông outbound.
+        """
+        digits9 = re.sub(r'\D', '', from_number or '')[-9:]
+        if not digits9:
+            return {'state': 'alive', 'level': 'info', 'title': '', 'message': ''}
+        carrier = carrier or vd_carrier_from_number(from_number)
+        label = _CARRIER_LABELS.get(carrier, carrier or '')
+        like = '%' + digits9
+        cr = self.env.cr
+        # (1) Tổng quan toàn lịch sử: đã bao giờ ra tới mạng (duration>0) chưa?
+        cr.execute("""
+            SELECT count(*) AS total,
+                   count(*) FILTER (WHERE duration > 0) AS reached,
+                   COALESCE(max(duration), 0) AS max_dur
+            FROM stringee_call
+            WHERE direction = 'outbound' AND caller_number LIKE %s
+        """, [like])
+        total, reached, max_dur = cr.fetchone()
+        # (2) Chuỗi cuộc GẦN NHẤT liên tục KHÔNG ra tới mạng (duration=0).
+        cr.execute("""
+            SELECT duration FROM stringee_call
+            WHERE direction = 'outbound' AND caller_number LIKE %s
+            ORDER BY create_date DESC LIMIT 30
+        """, [like])
+        streak = 0
+        for (d,) in cr.fetchall():
+            if (d or 0) > 0:
+                break
+            streak += 1
+
+        num_disp = digits9 if not from_number else re.sub(r'\D', '', from_number)
+        # === Phân loại ===
+        if reached == 0 and total >= 3:
+            # Chưa từng nối được cuộc nào dù đã thử nhiều lần → SỐ CHẾT.
+            return {
+                'state': 'dead', 'level': 'danger',
+                'title': f'Số {label} hỏng gọi ra — kiểm tra trên Stringee',
+                'message': (
+                    f'🔴 Số tổng đài {label} {num_disp} KHÔNG gọi ra được — '
+                    f'đã thử {total} cuộc nhưng CHƯA cuộc nào nối tới khách '
+                    f'(rớt trước khi đổ chuông). Số này nhiều khả năng chưa được '
+                    f'mở gọi ra (outbound) trên Stringee, hoặc đã hỏng. '
+                    f'→ Báo admin đổi số / kiểm tra số này trên Stringee Dashboard.'
+                ),
+                'total': total, 'reached': reached, 'streak': streak,
+            }
+        if reached > 0 and streak >= 6:
+            # Trước nối được, gần đây loạt cuộc rớt trước đổ chuông → ĐANG TRỤC TRẶC.
+            return {
+                'state': 'suspect', 'level': 'warning',
+                'title': f'Số {label} đang trục trặc gọi ra',
+                'message': (
+                    f'🟠 Số tổng đài {label} {num_disp} trước đây gọi được nhưng '
+                    f'{streak} cuộc gần đây LIÊN TIẾP rớt trước khi đổ chuông. '
+                    f'Số đang trục trặc đường gọi ra — nếu tiếp tục, báo admin '
+                    f'kiểm tra trên Stringee.'
+                ),
+                'total': total, 'reached': reached, 'streak': streak,
+            }
+        # Số vẫn bình thường (có lịch sử nối) → cuộc này lỗi do phía khách/tạm thời.
+        return {
+            'state': 'alive', 'level': 'info',
+            'title': 'Khách chưa kết nối',
+            'message': (
+                f'Cuộc này chưa kết nối được (khách không nghe/bận hoặc nghẽn '
+                f'tạm thời). Số tổng đài {label} {num_disp} vẫn hoạt động bình '
+                f'thường — thử gọi lại sau.'
+            ),
+            'total': total, 'reached': reached, 'streak': streak,
+        }
+
     # ---------- REST helpers ----------
 
     @api.model

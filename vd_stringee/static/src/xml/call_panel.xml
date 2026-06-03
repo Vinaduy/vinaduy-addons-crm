@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Bảng nổi trạng thái cuộc gọi — góc phải-dưới, chỉ hiện khi đang gọi. -->
+    <t t-name="vd_stringee.CallPanel">
+        <div t-if="call.inCall"
+             class="o_vd_call_panel"
+             t-att-class="{
+                 'o_vd_call_panel_ringing': !answered,
+                 'o_vd_call_panel_incall': answered,
+             }">
+            <div class="o_vd_cp_head">
+                <span class="o_vd_cp_dot"/>
+                <span class="o_vd_cp_status" t-esc="statusLabel"/>
+                <span class="o_vd_cp_timer" t-esc="formatted"/>
+            </div>
+            <div t-if="call.callName" class="o_vd_cp_name" t-esc="call.callName"/>
+            <div class="o_vd_cp_num">
+                <i class="fa fa-phone me-1"/>
+                <t t-esc="call.callNumber"/>
+                <span t-if="carrierLabel" class="o_vd_cp_carrier">
+                    · <t t-esc="carrierLabel"/>
+                </span>
+            </div>
+            <button type="button" class="o_vd_cp_hangup" t-on-click="onHangup">
+                <i class="fa fa-phone o_vd_cp_hangup_icon"/> Cúp máy
+            </button>
+        </div>
+    </t>
+
+</templates>

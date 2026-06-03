@@ -1,6 +1,6 @@
 {
     'name': 'VD Stringee Connector',
-    'version': '18.0.1.12.0',
+    'version': '18.0.1.13.0',
     'category': 'Productivity/Telephony',
     'summary': 'Stringee integration: REST callout, Web SDK click-to-call, recording download',
     'author': 'VINADUY',
@@ -21,9 +21,11 @@
         'web.assets_backend': [
             'vd_stringee/static/src/js/stringee_sdk.js',
             'vd_stringee/static/src/js/click_to_call.js',
+            'vd_stringee/static/src/js/call_panel.js',
             'vd_stringee/static/src/js/audio_player_field.js',
             'vd_stringee/static/src/js/assignment_board.js',
             'vd_stringee/static/src/xml/click_to_call.xml',
+            'vd_stringee/static/src/xml/call_panel.xml',
             'vd_stringee/static/src/xml/assignment_board.xml',
             'vd_stringee/static/src/scss/stringee.scss',
         ],

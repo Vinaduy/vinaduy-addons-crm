@@ -331,6 +331,18 @@ class StringeeController(http.Controller):
             'state': rec.state,
         }
 
+    @http.route('/stringee/number_health', type='json', auth='user')
+    def number_health(self, from_number='', carrier=''):
+        """JS hỏi server: số tổng đài này còn GỌI RA được không?
+        Dùng khi 1 cuộc rớt trước khi đổ chuông → báo ĐÚNG nguyên nhân
+        (số chết / số trục trặc / khách không nghe) thay vì đoán mò.
+        Trả {state,level,title,message,...} đã soạn sẵn tiếng Việt."""
+        if not from_number:
+            return {'state': 'alive', 'level': 'info', 'title': '', 'message': ''}
+        return request.env['stringee.call'].sudo()._vd_number_health(
+            from_number, carrier or None,
+        )
+
     @http.route('/stringee/js_event', type='json', auth='user')
     def js_event(self, event='', data=None, call_id=''):
         """JS log events lên server log để debug call flow khi user không mở

@@ -122,8 +122,62 @@ export const stringeeService = {
             inCall: false,        // true khi có call đang active (calling/ringing/answered)
             callStatus: "",       // CALLING | RINGING | ANSWERED | ""
             callNumber: "",       // số đang gọi — hiển thị trên UI
-            answerStartedAt: 0,   // timestamp ms — khi KH bắt máy (code 3 ANSWERED)
+            callName: "",         // tên KH (nếu gọi từ lead) — hiển thị trên bảng nổi
+            callCarrier: "",      // nhà mạng số gọi đi (viettel/vina/mobi)
+            callStartedAt: 0,     // timestamp ms — khi bấm gọi (đếm giây CHỜ đổ chuông)
+            answerStartedAt: 0,   // timestamp ms — khi KH bắt máy (đếm giây ĐÀM THOẠI)
         });
+
+        // ===================================================================
+        // RINGBACK TONE — Stringee App-to-Phone KHÔNG stream tiếng đổ chuông
+        // (tút...tút) về browser, nên NV không biết máy đang reo. Ta tự sinh
+        // tiếng tút chuẩn VN bằng WebAudio: 425Hz, kêu 1s / nghỉ 4s, lặp lại.
+        // Bắt đầu khi đang gọi/đổ chuông, TẮT NGAY khi KH bắt máy hoặc cúp.
+        // ===================================================================
+        let _ringCtx = null;
+        let _ringTimer = null;
+        function startRingback() {
+            stopRingback();
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return;
+                _ringCtx = new Ctx();
+                // call() chạy trong user-gesture (bấm nút Gọi) nên resume được.
+                if (_ringCtx.state === "suspended") {
+                    _ringCtx.resume().catch(() => {});
+                }
+                const beep = () => {
+                    if (!_ringCtx) return;
+                    try {
+                        const osc = _ringCtx.createOscillator();
+                        const gain = _ringCtx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.value = 425;          // tone chuẩn VN
+                        const t = _ringCtx.currentTime;
+                        // fade nhẹ 2 đầu để không bị "tách" chói tai
+                        gain.gain.setValueAtTime(0.0001, t);
+                        gain.gain.exponentialRampToValueAtTime(0.18, t + 0.05);
+                        gain.gain.setValueAtTime(0.18, t + 0.95);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+                        osc.connect(gain).connect(_ringCtx.destination);
+                        osc.start(t);
+                        osc.stop(t + 1.0);
+                    } catch (_e) { /* noop */ }
+                };
+                beep();
+                _ringTimer = setInterval(beep, 5000);       // 1s kêu + 4s nghỉ
+            } catch (_e) { /* WebAudio không khả dụng → bỏ qua */ }
+        }
+        function stopRingback() {
+            if (_ringTimer) {
+                clearInterval(_ringTimer);
+                _ringTimer = null;
+            }
+            if (_ringCtx) {
+                try { _ringCtx.close(); } catch (_e) { /* noop */ }
+                _ringCtx = null;
+            }
+        }
 
         // ===================================================================
         // Setup events theo doc: connect, authen, requestnewtoken,
@@ -253,10 +307,14 @@ export const stringeeService = {
                     console.warn("[VD-STRINGEE] FAILSAFE 120s → check state before hangup");
                     logToServer("failsafe_check", { state: "?" }, callId);
                     // Không hangup blind — chỉ clear nếu call đã ended thực sự
+                    stopRingback();
                     state.currentCall = null;
                     state.lastCallTo = "";
                     state.lastCallAt = 0;
                     state.inFlight = null;
+                    state.inCall = false;
+                    state.callStatus = "";
+                    state.callStartedAt = 0;
                 }
             }, 120_000);
 
@@ -278,6 +336,7 @@ export const stringeeService = {
             const cleanupState = (reason) => {
                 logToServer("cleanupState", { reason: reason || 'unknown' }, callId);
                 clearTimeout(failsafe);
+                stopRingback();
                 state.currentCall = null;
                 state.lastCallTo = "";
                 state.lastCallAt = 0;
@@ -285,6 +344,9 @@ export const stringeeService = {
                 state.inCall = false;
                 state.callStatus = "";
                 state.callNumber = "";
+                state.callName = "";
+                state.callCarrier = "";
+                state.callStartedAt = 0;
                 state.answerStartedAt = 0;
                 // CRITICAL: notify server để finalize placeholder record NGAY
                 // (không chờ cron 60s) → CRM lead's vd_active_call_state clear
@@ -297,8 +359,57 @@ export const stringeeService = {
                 } catch (_e) { /* noop */ }
             };
 
+            // Báo ĐÚNG nguyên nhân khi cuộc kết thúc (terminal code 4/5/6).
+            //   - Đã đổ chuông/bắt máy (reachedTalkPath) → lỗi phía KH: bận / từ
+            //     chối / kết thúc bình thường.
+            //   - Chết TRƯỚC khi đổ chuông → hỏi server chẩn đoán SỐ TỔNG ĐÀI:
+            //     số chết (đổi số) / số trục trặc / số ổn (khách không nghe).
+            const handleTerminalNotice = (code, s, reached, c) => {
+                if (reached) {
+                    if (code === 4) {
+                        notification.add("Khách bận máy", { type: "warning" });
+                    } else if (code === 5) {
+                        notification.add("Khách từ chối / cúp máy", { type: "warning" });
+                    } else if (state.answerStartedAt) {
+                        // Đã nói chuyện rồi mới kết thúc → bình thường.
+                        notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                    } else {
+                        // Đổ chuông nhưng KH không bắt máy.
+                        notification.add("Khách không nghe máy", { type: "warning" });
+                    }
+                    return;
+                }
+                if (!c._vdFromNumber) {
+                    notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                    return;
+                }
+                rpc("/stringee/number_health", {
+                    from_number: c._vdFromNumber,
+                    carrier: c._vdCarrier || "",
+                }).then((h) => {
+                    if (!h || !h.message) {
+                        notification.add(
+                            "Cuộc gọi kết thúc trước khi đổ chuông — chưa gọi ra được.",
+                            { type: "warning" },
+                        );
+                        return;
+                    }
+                    notification.add(h.message, {
+                        type: h.level || "warning",
+                        title: h.title || undefined,
+                        sticky: h.state === "dead" || h.state === "suspect",
+                    });
+                }).catch(() => {
+                    notification.add(
+                        "Cuộc gọi kết thúc trước khi đổ chuông — chưa gọi ra được.",
+                        { type: "warning" },
+                    );
+                });
+            };
+
             call.on("addremotestream", (stream) => {
                 console.log("[VD-STRINGEE] addremotestream — KH bắt máy, bind audio");
+                stopRingback();   // có audio thật từ KH → tắt tiếng tút giả lập
                 logToServer("addremotestream", {
                     active: !!stream?.active,
                     tracks: stream?.getTracks?.()?.length,
@@ -324,33 +435,18 @@ export const stringeeService = {
                 const label = SIGNALING_LABEL[code] || `UNKNOWN(${code})`;
                 console.log("[VD-STRINGEE] signalingstate:", label, s);
                 logToServer("signalingstate", { code, label, raw: s }, callId);
-                if (code === 2 || code === 3) {
-                    reachedTalkPath = true;  // đã đổ chuông/answered → call hợp lệ
+                if (code === 2) {
+                    reachedTalkPath = true;  // đã đổ chuông → cuộc đã ra tới mạng
+                    state.callStatus = "RINGING";
                 }
-                if (code === 4) {
-                    notification.add("KH bận máy", { type: "warning" });
-                } else if (code === 5) {
-                    notification.add("KH từ chối cuộc gọi", { type: "warning" });
-                } else if (code === 6) {
-                    if (!reachedTalkPath && call._vdFromNumber) {
-                        // Kết thúc TRƯỚC khi đổ chuông = số tổng đài KHÔNG gọi ra được.
-                        // Nguyên nhân hay gặp: số CHƯA được kích hoạt outbound trên
-                        // STRINGEE (server trả 503 Service Unavailable), hoặc số lỗi.
-                        // KHÔNG kết luận do nhà mạng — nhà mạng từ chối thì đã đổ
-                        // chuông rồi mới cúp (Stringee ≠ nhà mạng).
-                        const cl = { viettel: "Viettel", vina: "Vinaphone", mobi: "MobiFone" }[call._vdCarrier]
-                            || (call._vdCarrier || "");
-                        const rs = (s && (s.sipReason || s.reason)) ? (" [" + (s.sipReason || s.reason) + "]") : "";
-                        notification.add(
-                            "Không gọi ra được — cuộc gọi kết thúc trước khi đổ chuông" + rs + ". "
-                            + "Số tổng đài " + cl + " " + call._vdFromNumber + " nhiều khả năng CHƯA "
-                            + "được kích hoạt gọi ra (outbound) trên Stringee, hoặc đang lỗi. "
-                            + "→ Báo admin kiểm tra số này trên Stringee Dashboard.",
-                            { type: "danger", title: "Không gọi ra được — kiểm tra số " + cl + " trên Stringee", sticky: true },
-                        );
-                    } else {
-                        notification.add("Cuộc gọi đã kết thúc", { type: "info" });
-                    }
+                if (code === 3) {
+                    reachedTalkPath = true;  // KH bắt máy → call hợp lệ
+                    stopRingback();
+                }
+                if (code === 4 || code === 5 || code === 6) {
+                    // === TERMINAL: tắt ringback + báo ĐÚNG nguyên nhân ===
+                    stopRingback();
+                    handleTerminalNotice(code, s, reachedTalkPath, call);
                 }
                 // Cập nhật derived state cho UI re-render
                 // v1 codes: 0/1=CALLING, 2=RINGING, 3=ANSWERED đều là "in call"
@@ -471,7 +567,7 @@ export const stringeeService = {
         // ===================================================================
         // Outbound call — qua Web SDK nếu có user, ngược lại fallback REST.
         // ===================================================================
-        async function call(targetNumberRaw) {
+        async function call(targetNumberRaw, displayName) {
             console.log("[VD-STRINGEE] call() invoked with:", targetNumberRaw,
                         " | currentCall:", !!state.currentCall,
                         " | inFlight:", !!state.inFlight,
@@ -593,6 +689,11 @@ export const stringeeService = {
                 state.inCall = true;
                 state.callStatus = "CALLING";
                 state.callNumber = targetNumber;
+                state.callName = displayName || "";
+                state.callCarrier = fromCarrier || "";
+                state.callStartedAt = Date.now();   // mốc đếm giây CHỜ đổ chuông
+                state.answerStartedAt = 0;
+                startRingback();   // tút...tút cho NV nghe trong lúc chờ KH bắt máy
 
                 call2.makeCall((res) => {
                     console.log("[VD-STRINGEE] makeCall result:", res);
@@ -601,6 +702,7 @@ export const stringeeService = {
                         callId: res?.callId || call2?.callId,
                     }, call2?.callId);
                     if (res && res.r !== 0) {
+                        stopRingback();
                         notification.add(
                             `Gọi thất bại: ${res.message}`,
                             { type: "danger" },
@@ -611,6 +713,9 @@ export const stringeeService = {
                         state.inCall = false;
                         state.callStatus = "";
                         state.callNumber = "";
+                        state.callName = "";
+                        state.callCarrier = "";
+                        state.callStartedAt = 0;
                         state.answerStartedAt = 0;
                         // Clear server placeholder ngay — không để kẹt block call mới
                         try {
@@ -650,6 +755,7 @@ export const stringeeService = {
                     console.warn("[VD-STRINGEE] hangup throw:", e);
                 }
             }
+            stopRingback();
             state.currentCall = null;
             state.lastCallTo = "";
             state.lastCallAt = 0;
@@ -657,6 +763,9 @@ export const stringeeService = {
             state.inCall = false;
             state.callStatus = "";
             state.callNumber = "";
+            state.callName = "";
+            state.callCarrier = "";
+            state.callStartedAt = 0;
             state.answerStartedAt = 0;
             // Báo server finalize placeholder + ghi nhận USER_HANGUP_CLICK
             try {
