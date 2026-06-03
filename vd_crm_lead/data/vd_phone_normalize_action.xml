@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- LỆNH: ép toàn bộ SĐT KH còn đầu 84 → về đầu số 0.
+         Chạy từ: Cài đặt → Kỹ thuật → Server Actions → "Chuẩn hoá SĐT..." → Run,
+         hoặc trong list KH: menu Hành động (gắn binding bên dưới). -->
+    <record id="action_vd_fix_phones_to_local" model="ir.actions.server">
+        <field name="name">Chuẩn hoá SĐT KH về đầu số 0 (bỏ 84)</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+fixed = env['crm.lead'].vd_fix_phones_to_local()
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Chuẩn hoá SĐT',
+        'message': 'Đã đưa %s khách hàng về đầu số 0 (bỏ 84).' % fixed,
+        'type': 'success',
+        'sticky': False,
+    },
+}
+        </field>
+    </record>
+</odoo>

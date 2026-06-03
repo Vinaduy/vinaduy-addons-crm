@@ -12,6 +12,7 @@
         'security/ir.model.access.csv',
         'security/security_rules.xml',
         'data/crm_stage_data.xml',
+        'data/vd_phone_normalize_action.xml',
         'data/vd_pricing_data.xml',
         'data/vd_floor_function_tag_data.xml',
         'data/vd_nego_problem_data.xml',

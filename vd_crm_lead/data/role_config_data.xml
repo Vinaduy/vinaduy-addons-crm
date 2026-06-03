@@ -30,7 +30,7 @@
     </record>
 
     <record id="role_config_deputy" model="vd.crm.role.config">
-        <field name="name">Phó Giám đốc</field>
+        <field name="name">Giám đốc</field>
         <field name="role_code">deputy</field>
         <field name="group_id" ref="vd_crm_group_deputy_director"/>
         <field name="sequence">30</field>

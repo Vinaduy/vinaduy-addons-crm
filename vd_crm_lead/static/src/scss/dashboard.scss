@@ -7797,3 +7797,93 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_tc_res_ring   { background: #e7f5ff; color: #1971c2; }
 .o_vd_tc_call_dur { font-size: 0.76rem; color: #5c5f66; flex: 0 0 auto; }
 .o_vd_tc_audio { height: 30px; flex: 1 1 auto; min-width: 220px; max-width: 360px; }
+
+/* ===== Popup THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy ===== */
+.o_vd_trashpop_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4200;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2vh 2vw;
+}
+.o_vd_trashpop {
+    width: 96vw;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+.o_vd_trashpop_head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.2rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #c92a2a, #e8590c);
+    .o_vd_trashpop_cnt { opacity: 0.85; font-weight: 600; margin-left: 0.3rem; }
+    .o_vd_trashpop_close {
+        margin-left: auto;
+        border: 0;
+        background: transparent;
+        color: #fff;
+        font-size: 1.6rem;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.9;
+        &:hover { opacity: 1; }
+    }
+}
+.o_vd_trashpop_body { flex: 1 1 auto; overflow-y: auto; padding: 0.6rem 1rem 1rem; }
+.o_vd_trashpop_loading, .o_vd_trashpop_empty {
+    padding: 2rem; text-align: center; color: #868e96;
+}
+.o_vd_trashpop_tbl {
+    width: 100%;
+    border-collapse: collapse;
+    th {
+        position: sticky; top: 0;
+        background: #f8f9fa;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #667085;
+        font-weight: 700;
+        padding: 0.5rem 0.6rem;
+        border-bottom: 2px solid #e9ecef;
+        text-align: left;
+    }
+    td {
+        padding: 0.5rem 0.6rem;
+        border-bottom: 1px solid #f1f3f5;
+        color: #344054;
+        font-size: 0.86rem;
+        vertical-align: top;
+    }
+    tr:hover td { background: #fcfcfd; }
+}
+.o_vd_trashpop_name { font-weight: 700; color: #1971c2; cursor: pointer; &:hover { text-decoration: underline; } }
+.o_vd_trashpop_phone { font-size: 0.78rem; color: #495057; }
+.o_vd_trashpop_topic {
+    font-size: 0.74rem; font-weight: 700; padding: 0.1rem 0.5rem;
+    border-radius: 999px; background: #fff3bf; color: #b35900; white-space: nowrap;
+}
+.o_vd_trashpop_sum {
+    max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.o_vd_trashpop_act { white-space: nowrap; }
+.o_vd_trash_restore, .o_vd_trash_del {
+    border: 0; border-radius: 7px; padding: 0.32rem 0.7rem;
+    font-size: 0.8rem; font-weight: 700; cursor: pointer; color: #fff;
+    &:disabled { opacity: 0.5; cursor: default; }
+}
+.o_vd_trash_restore { background: #2b8a3e; margin-right: 0.4rem; &:hover:not(:disabled) { filter: brightness(1.08); } }
+.o_vd_trash_del { background: #c92a2a; &:hover:not(:disabled) { filter: brightness(1.08); } }

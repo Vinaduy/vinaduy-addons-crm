@@ -3367,6 +3367,54 @@ class CrmLead(models.Model):
             if f in vals and isinstance(vals[f], str):
                 vals[f] = self._vd_normalize_kh_name(vals[f])
 
+    @staticmethod
+    def _vd_phone_to_local(num):
+        """Chuẩn hoá SĐT KH về ĐẦU SỐ 0 (nội địa VN) — bỏ hết mã nước 84.
+        '+84xxxxxxxxx' / '84xxxxxxxxx' / '0084..' / '8484..' (nhân đôi) → '0xxxxxxxxx'.
+        Số đã '0...' giữ nguyên. KHÔNG dùng cho số tổng đài (hotline cần 84).
+
+        Guard len>9 để KHÔNG cắt nhầm số Vinaphone national bắt đầu '84x'
+        (vd '0848446886' giữ nguyên; '84848446886' → '0848446886')."""
+        if not num or not isinstance(num, str):
+            return num
+        digits = re.sub(r'\D', '', num)
+        if not digits:
+            return num  # không có chữ số → giữ nguyên (có thể là text)
+        if digits.startswith('00'):
+            digits = digits[2:]
+        # bỏ các tiền tố '84' lặp ở đầu, dừng khi còn ~9 số national
+        while digits.startswith('84') and len(digits) > 9:
+            digits = digits[2:]
+        if digits.startswith('0'):
+            return digits
+        return '0' + digits
+
+    def _vd_normalize_phones_in_vals(self, vals):
+        """Đưa phone/mobile trong vals về đầu số 0 (nhập 84 → tự về 0)."""
+        for f in ('phone', 'mobile'):
+            if f in vals and isinstance(vals[f], str) and vals[f].strip():
+                vals[f] = self._vd_phone_to_local(vals[f])
+
+    @api.model
+    def vd_fix_phones_to_local(self):
+        """LỆNH: ép TOÀN BỘ KH còn SĐT đầu 84 → về đầu số 0. Chạy 1 lần / khi cần.
+        Trả số KH đã sửa. Gọi qua Server Action 'Chuẩn hoá SĐT về đầu số 0'."""
+        leads = self.with_context(active_test=False).search(
+            ['|', ('phone', 'like', '84'), ('mobile', 'like', '84')])
+        fixed = 0
+        for lead in leads:
+            vals = {}
+            for f in ('phone', 'mobile'):
+                cur = lead[f]
+                if cur:
+                    new = self._vd_phone_to_local(cur)
+                    if new != cur:
+                        vals[f] = new
+            if vals:
+                lead.with_context(mail_notrack=True, tracking_disable=True).write(vals)
+                fixed += 1
+        return fixed
+
     @api.model_create_multi
     def create(self, vals_list):
         """Override create — auto round-robin nếu NV được assign đã block
@@ -3376,6 +3424,7 @@ class CrmLead(models.Model):
             vals_list = [vals_list]
         for vals in vals_list:
             self._vd_normalize_kh_names_in_vals(vals)
+            self._vd_normalize_phones_in_vals(vals)   # SĐT → đầu số 0
         Users = self.env['res.users']
         used_users = []  # tránh phân tất cả vào 1 NV trong cùng batch
         for vals in vals_list:
@@ -3459,6 +3508,8 @@ class CrmLead(models.Model):
         self._sync_budget_range_to_amount(vals)
         # ============ Normalize tên KH viết HOA → Title Case ============
         self._vd_normalize_kh_names_in_vals(vals)
+        # ============ SĐT KH → đầu số 0 (nhập 84 → tự về 0) ============
+        self._vd_normalize_phones_in_vals(vals)
 
         # ============ Chặn NV/Leader sửa intake khi đã khoá — chỉ admin bypass ============
         # ALSO bypass khi write đến từ section 'Cân đối ngân sách' trong popup
@@ -5358,6 +5409,15 @@ class CrmLead(models.Model):
             or u._is_admin()
         )
 
+    def _can_see_company_trash(self):
+        """CHỈ Admin + Giám đốc được xem THÙNG RÁC CÔNG TY (KH đã duyệt hủy).
+        Khác _dashboard_is_manager (rộng hơn, gồm sale_manager thường)."""
+        u = self.env.user
+        return (
+            u.has_group('base.group_system')
+            or u.has_group('vd_crm_lead.vd_crm_group_deputy_director')
+        )
+
     def _dashboard_resolve_scope(self, user_id):
         """Trả về (user_record_or_None, scope_label, lead_user_domain, call_user_domain).
         - user_id = 'all' hoặc 0 → toàn bộ NV (chỉ cho phép manager)
@@ -5902,9 +5962,11 @@ class CrmLead(models.Model):
             # Khác thùng rác KH HỦY của TỪNG NV ở bảng KHÁCH MỚI (đã scope theo NV).
             'company_trash_count': (
                 self.with_context(active_test=False).search_count(
-                    [('stage_is_lost', '=', True)])
-                if is_manager else 0
+                    [('stage_is_lost', '=', True),
+                     ('vd_cancel_state', '=', 'approved')])
+                if self._can_see_company_trash() else 0
             ),
+            'can_see_company_trash': self._can_see_company_trash(),
             'kpi': kpi,
             'errors': errors,
             'stages': stage_payload,
@@ -6403,8 +6465,11 @@ class CrmLead(models.Model):
         search cả archived records, nếu không sẽ không tìm thấy KH nào.
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        # CHỜ DUYỆT thôi: KH đã DUYỆT hủy biến mất khỏi bảng KH HỦY (đã chuyển
+        # sang thùng rác công ty). approved → ẩn; proposed/legacy(None) → hiện.
         leads = self.with_context(active_test=False).search(
-            domain_user + [('stage_is_lost', '=', True)],
+            domain_user + [('stage_is_lost', '=', True),
+                           ('vd_cancel_state', '!=', 'approved')],
             limit=limit,
             order='write_date desc, create_date desc',
         )
@@ -6412,19 +6477,61 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_company_trash(self, limit=1000):
-        """Thùng rác CÔNG TY — toàn bộ KH đã huỷ (stage_is_lost) của MỌI NV.
-        Chỉ manager. Khác dashboard_leads_lost (scope theo từng NV).
+        """Thùng rác CÔNG TY — KH đã được admin DUYỆT hủy (vd_cancel_state=
+        'approved') của MỌI NV. CHỈ Admin + Giám đốc xem.
 
         Dùng active_test=False vì KH huỷ bị archive (active=False).
         """
-        if not self._dashboard_is_manager():
+        if not self._can_see_company_trash():
             return []
         leads = self.with_context(active_test=False).search(
-            [('stage_is_lost', '=', True)],
+            [('stage_is_lost', '=', True), ('vd_cancel_state', '=', 'approved')],
             limit=limit,
-            order='write_date desc, create_date desc',
+            order='vd_cancel_approved_date desc, write_date desc',
         )
         return self._dashboard_serialize_leads(leads)
+
+    @api.model
+    def dashboard_trash_restore(self, lead_ids):
+        """Khôi phục KH khỏi thùng rác → trả về pipeline (stage 'new', bỏ
+        archive, xoá trạng thái hủy). CHỈ Admin + Giám đốc."""
+        if not self._can_see_company_trash():
+            return {'ok': False, 'message': 'Bạn không có quyền.'}
+        leads = self.with_context(active_test=False).browse(lead_ids or [])
+        leads = leads.exists()
+        if not leads:
+            return {'ok': False, 'message': 'Không tìm thấy KH.'}
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False) \
+            or self.env['crm.stage'].search([('code', '=', 'new')], limit=1)
+        vals = {
+            'active': True,
+            'vd_cancel_state': False,
+            'vd_cancel_approved_by_id': False,
+            'vd_cancel_approved_date': False,
+        }
+        if new_stage:
+            vals['stage_id'] = new_stage.id
+        leads.with_context(mail_notrack=True, tracking_disable=True).write(vals)
+        for rec in leads:
+            rec.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('♻️ <b>Khôi phục từ thùng rác</b> bởi %s — KH trở lại pipeline.')
+                % self.env.user.name,
+            )
+        return {'ok': True, 'message': 'Đã khôi phục %d KH về pipeline.' % len(leads)}
+
+    @api.model
+    def dashboard_trash_delete(self, lead_ids):
+        """Xoá VĨNH VIỄN KH khỏi DB. CHỈ Admin + Giám đốc. Không khôi phục được."""
+        if not self._can_see_company_trash():
+            return {'ok': False, 'message': 'Bạn không có quyền.'}
+        leads = self.with_context(active_test=False).browse(lead_ids or [])
+        leads = leads.exists()
+        if not leads:
+            return {'ok': False, 'message': 'Không tìm thấy KH.'}
+        n = len(leads)
+        leads.sudo().unlink()
+        return {'ok': True, 'message': 'Đã xoá vĩnh viễn %d KH.' % n}
 
     def _today_call_category(self, lead, urgent_ids):
         """Nhãn nhóm KH cho bảng cuộc gọi hôm nay."""

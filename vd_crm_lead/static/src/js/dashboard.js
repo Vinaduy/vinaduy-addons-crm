@@ -116,8 +116,11 @@ export class VdCrmDashboard extends Component {
             // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
             // trên 3 ngày khác nhau.
             sos_guide: { show: false, count: 0 },
-            // Thùng rác CÔNG TY — tổng KH huỷ toàn công ty (manager).
+            // Thùng rác CÔNG TY — tổng KH ĐÃ DUYỆT hủy (chỉ Admin + Giám đốc).
             company_trash_count: 0,
+            can_see_company_trash: false,
+            // Popup thùng rác công ty (full màn hình): danh sách KH đã duyệt hủy.
+            companyTrash: { open: false, loading: false, leads: [] },
             // ===== KHOÁ "CHỐT BÁO GIÁ" — > 3 KH báo giá chưa chốt =====
             // Coachmark hướng dẫn ẩn trong phiên khi NV bấm "Đã hiểu" (reset
             // mỗi lần loadDashboard → hiện lại nếu vẫn đang khoá).
@@ -884,20 +887,59 @@ export class VdCrmDashboard extends Component {
         this.state.newTableExpanded = !this.state.newTableExpanded;
     }
 
-    // 🗑️ Thùng rác CÔNG TY — mở danh sách toàn bộ KH huỷ của công ty.
+    // 🗑️ Thùng rác CÔNG TY — popup FULL màn hình, danh sách KH đã DUYỆT hủy.
     async openCompanyTrash() {
+        this.state.companyTrash = { open: true, loading: true, leads: [] };
+        this._lockScroll();
         try {
             const leads = await this.orm.call("crm.lead", "dashboard_company_trash", []);
-            if (!leads || !leads.length) {
-                this.notification.add("Công ty chưa có khách huỷ nào.",
-                    { type: "info", title: "Thùng rác công ty" });
-                return;
-            }
-            this.openCategoryList(leads);
+            this.state.companyTrash.leads = leads || [];
+            this.state.companyTrash.loading = false;
         } catch (e) {
+            this.state.companyTrash.loading = false;
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg,
-                { type: "danger", title: "Thùng rác công ty" });
+            this.notification.add(msg, { type: "danger", title: "Thùng rác công ty" });
+        }
+    }
+    closeCompanyTrash() {
+        this.state.companyTrash = { open: false, loading: false, leads: [] };
+        this._unlockScroll();
+    }
+    async trashRestore(lead) {
+        if (this.state.companyTrash.loading) return;
+        this.state.companyTrash.loading = true;
+        try {
+            const res = await this.orm.call(
+                "crm.lead", "dashboard_trash_restore", [[lead.id]]);
+            this.notification.add(res.message || "Đã khôi phục",
+                { type: res.ok ? "success" : "warning" });
+            if (res.ok) {
+                this.state.companyTrash.leads =
+                    this.state.companyTrash.leads.filter((l) => l.id !== lead.id);
+                if (this.state.company_trash_count > 0) this.state.company_trash_count -= 1;
+            }
+        } finally {
+            this.state.companyTrash.loading = false;
+        }
+    }
+    async trashDelete(lead) {
+        if (this.state.companyTrash.loading) return;
+        const ok = window.confirm(
+            `Xoá VĨNH VIỄN khách "${lead.name || ""}"? Không khôi phục được.`);
+        if (!ok) return;
+        this.state.companyTrash.loading = true;
+        try {
+            const res = await this.orm.call(
+                "crm.lead", "dashboard_trash_delete", [[lead.id]]);
+            this.notification.add(res.message || "Đã xoá",
+                { type: res.ok ? "success" : "warning" });
+            if (res.ok) {
+                this.state.companyTrash.leads =
+                    this.state.companyTrash.leads.filter((l) => l.id !== lead.id);
+                if (this.state.company_trash_count > 0) this.state.company_trash_count -= 1;
+            }
+        } finally {
+            this.state.companyTrash.loading = false;
         }
     }
     get selectedLeadIdList() {

@@ -142,6 +142,70 @@
                 </t>
             </div>
 
+            <!-- 🗑️ POPUP THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy -->
+            <div t-if="state.companyTrash.open" class="o_vd_trashpop_overlay"
+                 t-on-click="() => this.closeCompanyTrash()">
+                <div class="o_vd_trashpop" t-on-click.stop="() => {}">
+                    <div class="o_vd_trashpop_head">
+                        <span><i class="fa fa-trash me-2"/>Thùng rác công ty — KH đã duyệt hủy
+                            <span class="o_vd_trashpop_cnt">(<t t-esc="state.companyTrash.leads.length"/>)</span>
+                        </span>
+                        <button type="button" class="o_vd_trashpop_close"
+                                t-on-click="() => this.closeCompanyTrash()">×</button>
+                    </div>
+                    <div class="o_vd_trashpop_body">
+                        <div t-if="state.companyTrash.loading" class="o_vd_trashpop_loading">
+                            <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                        </div>
+                        <div t-elif="!state.companyTrash.leads.length" class="o_vd_trashpop_empty">
+                            Chưa có khách hàng nào đã duyệt hủy.
+                        </div>
+                        <table t-else="" class="o_vd_trashpop_tbl">
+                            <thead>
+                                <tr>
+                                    <th>Khách hàng</th>
+                                    <th>NV phụ trách</th>
+                                    <th>Chủ đề</th>
+                                    <th>Tóm tắt</th>
+                                    <th>Người duyệt</th>
+                                    <th class="text-end">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.companyTrash.leads" t-as="ld" t-key="ld.id">
+                                    <td>
+                                        <div class="o_vd_trashpop_name"
+                                             t-on-click="() => this.openLead(ld.id)"><t t-esc="ld.name"/></div>
+                                        <div t-if="ld.phone" class="o_vd_trashpop_phone">📞 <t t-esc="ld.phone"/></div>
+                                    </td>
+                                    <td><t t-esc="ld.user_name or '—'"/></td>
+                                    <td>
+                                        <span t-if="ld.cancel_category_label" class="o_vd_trashpop_topic"><t t-esc="ld.cancel_category_label"/></span>
+                                        <span t-else="" class="text-muted">— (legacy)</span>
+                                    </td>
+                                    <td class="o_vd_trashpop_sum" t-att-title="ld.cancel_reason_short or ''">
+                                        <t t-esc="ld.cancel_reason_short or '—'"/>
+                                    </td>
+                                    <td><t t-esc="ld.cancel_approved_by_name or '—'"/></td>
+                                    <td class="text-end o_vd_trashpop_act">
+                                        <button type="button" class="o_vd_trash_restore"
+                                                t-att-disabled="state.companyTrash.loading"
+                                                t-on-click="() => this.trashRestore(ld)">
+                                            <i class="fa fa-undo me-1"/>Khôi phục
+                                        </button>
+                                        <button type="button" class="o_vd_trash_del"
+                                                t-att-disabled="state.companyTrash.loading"
+                                                t-on-click="() => this.trashDelete(ld)">
+                                            <i class="fa fa-times me-1"/>Xoá vĩnh viễn
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div t-if="state.loading" class="o_vd_dash_loader">
                 <i class="fa fa-spinner fa-spin fa-2x"/>
                 <div class="mt-2">Đang tải dashboard...</div>
@@ -223,10 +287,10 @@
                                 <span class="o_vd_admin_nav_kpi_lbl">Tổng khách hàng công ty</span>
                                 <span class="o_vd_admin_nav_kpi_val"><t t-esc="state.kpi.total or 0"/></span>
                             </div>
-                            <!-- 🗑️ THÙNG RÁC CÔNG TY — toàn bộ KH huỷ của công ty (mọi NV) -->
-                            <button class="o_vd_admin_trash_btn"
+                            <!-- 🗑️ THÙNG RÁC CÔNG TY — chỉ Admin + Giám đốc thấy -->
+                            <button t-if="state.can_see_company_trash" class="o_vd_admin_trash_btn"
                                     t-on-click="() => this.openCompanyTrash()"
-                                    title="Thùng rác công ty — toàn bộ khách huỷ của công ty (mọi nhân viên)">
+                                    title="Thùng rác công ty — KH đã duyệt hủy (chỉ Admin + Giám đốc)">
                                 <i class="fa fa-trash"/>
                                 <span class="o_vd_admin_trash_lbl">Thùng rác công ty</span>
                                 <span t-if="state.company_trash_count" class="o_vd_admin_trash_count">
@@ -1644,11 +1708,10 @@
                                 <t t-if="state.selectMode">✖ Thoát chọn</t>
                                 <t t-else="">🖊️ Chọn KH</t>
                             </button>
-                            <!-- 🗑️ THÙNG RÁC CÔNG TY — toàn bộ KH huỷ của công ty (mọi NV),
-                                 khác thùng rác KH HỦY của từng NV ở bảng KHÁCH MỚI. Luôn hiện. -->
-                            <button class="o_vd_company_trash_btn"
+                            <!-- 🗑️ THÙNG RÁC CÔNG TY — KH đã duyệt hủy. Chỉ Admin + Giám đốc. -->
+                            <button t-if="state.can_see_company_trash" class="o_vd_company_trash_btn"
                                     t-on-click="() => this.openCompanyTrash()"
-                                    title="Thùng rác công ty — toàn bộ khách huỷ của công ty (mọi nhân viên)">
+                                    title="Thùng rác công ty — KH đã duyệt hủy (chỉ Admin + Giám đốc)">
                                 <i class="fa fa-trash"/>
                                 <span class="o_vd_company_trash_lbl">Thùng rác công ty</span>
                                 <span t-if="state.company_trash_count" class="o_vd_company_trash_count">
