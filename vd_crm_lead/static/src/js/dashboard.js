@@ -100,6 +100,15 @@ export class VdCrmDashboard extends Component {
             // ===== LIVE CALL STATUS — user spec 2026-05-29 =====
             // {user_id: {is_calling, since_min, state}} — poll mỗi 5s
             activeCalls: {},
+            // ===== CHỌN NHIỀU KH + CHUYỂN NV (admin/người chia số/giám đốc) =====
+            // can_reassign: từ payload dashboard_data — quyết định có hiện nút
+            // "Chọn KH" hay không. selectMode: đang bật chế độ tick chọn.
+            // selectedLeadIds: {leadId: true}. reassignTargetId: NV nhận.
+            can_reassign: false,
+            selectMode: false,
+            selectedLeadIds: {},
+            reassignTargetId: 0,
+            reassignBusy: false,
         });
         this._searchDebounce = null;
 
@@ -761,6 +770,115 @@ export class VdCrmDashboard extends Component {
             return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
         } catch (_e) {
             return s.slice(0, 16).replace('T', ' ');
+        }
+    }
+
+    // ========================================================================
+    // CHỌN NHIỀU KH → CHUYỂN SANG NV KHÁC (admin / người chia số / giám đốc)
+    // ========================================================================
+    // Quyền hiển thị nút: manager đang xem dashboard + backend cho phép reassign.
+    get canBulkReassign() {
+        return !!(this.state.is_manager && this.state.can_reassign);
+    }
+    // Click 1 pill KH: ở chế độ chọn → tick/bỏ tick; bình thường → mở thẻ.
+    onPillClick(leadId) {
+        if (this.state.selectMode) {
+            this.toggleLeadSelect(leadId);
+            return;
+        }
+        this.openLead(leadId);
+    }
+    toggleSelectMode() {
+        this.state.selectMode = !this.state.selectMode;
+        if (!this.state.selectMode) {
+            // Thoát chế độ chọn → xoá hết lựa chọn cho sạch.
+            this.state.selectedLeadIds = {};
+        }
+    }
+    isLeadSelected(leadId) {
+        return !!this.state.selectedLeadIds[leadId];
+    }
+    toggleLeadSelect(leadId) {
+        // Gán object mới để OWL reactive bắt được thay đổi.
+        const next = Object.assign({}, this.state.selectedLeadIds);
+        if (next[leadId]) {
+            delete next[leadId];
+        } else {
+            next[leadId] = true;
+        }
+        this.state.selectedLeadIds = next;
+    }
+    // Chọn tất cả KH trong 1 cột/lane (truyền mảng id). Nếu đã chọn hết rồi
+    // thì bỏ chọn hết (toggle) → 1 nút làm cả "chọn" lẫn "bỏ" cho gọn.
+    toggleSelectAll(leadIds) {
+        const ids = (leadIds || []).filter((x) => x != null);
+        if (!ids.length) return;
+        const next = Object.assign({}, this.state.selectedLeadIds);
+        const allSelected = ids.every((id) => next[id]);
+        for (const id of ids) {
+            if (allSelected) delete next[id];
+            else next[id] = true;
+        }
+        this.state.selectedLeadIds = next;
+    }
+    clearSelection() {
+        this.state.selectedLeadIds = {};
+    }
+    get selectedLeadIdList() {
+        return Object.keys(this.state.selectedLeadIds)
+            .filter((k) => this.state.selectedLeadIds[k])
+            .map((k) => parseInt(k, 10));
+    }
+    get selectedCount() {
+        return this.selectedLeadIdList.length;
+    }
+    onChangeReassignTarget(ev) {
+        this.state.reassignTargetId = parseInt(ev.target.value, 10) || 0;
+    }
+    // Tên NV nhận (để hiện trong câu xác nhận).
+    get reassignTargetName() {
+        const u = (this.state.users || []).find(
+            (x) => x.id === this.state.reassignTargetId);
+        return u ? u.name : "";
+    }
+    async doBulkReassign() {
+        const ids = this.selectedLeadIdList;
+        const targetId = this.state.reassignTargetId;
+        if (!ids.length) {
+            this.notification.add("Chưa chọn khách hàng nào.",
+                { type: "warning" });
+            return;
+        }
+        if (!targetId) {
+            this.notification.add("Chưa chọn nhân viên nhận.",
+                { type: "warning" });
+            return;
+        }
+        const ok = window.confirm(
+            `Chuyển ${ids.length} khách hàng sang nhân viên "${this.reassignTargetName}"?`
+        );
+        if (!ok) return;
+        this.state.reassignBusy = true;
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_reassign", [ids, targetId],
+            );
+            this.notification.add(
+                `Đã chuyển ${moved} khách hàng sang "${this.reassignTargetName}".`,
+                { type: "success", title: "Chuyển KH thành công" },
+            );
+            // Reset chọn + tắt chế độ + tải lại dashboard (KH đã chuyển sẽ
+            // biến mất khỏi màn NV hiện tại).
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            this.state.reassignTargetId = 0;
+            await this.loadDashboard();
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg,
+                { type: "danger", title: "Không chuyển được KH" });
+        } finally {
+            this.state.reassignBusy = false;
         }
     }
 

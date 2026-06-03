@@ -1550,6 +1550,42 @@
                             </div>
                         </div>
 
+                        <!-- ===== TOOLBAR CHỌN NHIỀU KH → CHUYỂN NV =====
+                             Chỉ admin / người chia số / giám đốc (canBulkReassign). -->
+                        <div t-if="canBulkReassign" class="o_vd_bulk_bar">
+                            <button class="o_vd_bulk_toggle"
+                                    t-att-class="state.selectMode ? 'o_vd_bulk_toggle o_active' : 'o_vd_bulk_toggle'"
+                                    t-on-click="() => this.toggleSelectMode()">
+                                <t t-if="state.selectMode">✖ Thoát chọn</t>
+                                <t t-else="">🖊️ Chọn KH</t>
+                            </button>
+                            <t t-if="state.selectMode">
+                                <span class="o_vd_bulk_count">
+                                    Đã chọn <b><t t-esc="selectedCount"/></b> KH
+                                </span>
+                                <span class="o_vd_bulk_arrow">→ chuyển sang</span>
+                                <select class="o_vd_bulk_nv_select"
+                                        t-on-change="(ev) => this.onChangeReassignTarget(ev)">
+                                    <option value="0">— Chọn NV nhận —</option>
+                                    <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                            t-att-value="u.id"
+                                            t-att-selected="u.id === state.reassignTargetId">
+                                        <t t-esc="u.name"/>
+                                    </option>
+                                </select>
+                                <button class="o_vd_bulk_apply"
+                                        t-att-disabled="state.reassignBusy or !selectedCount or !state.reassignTargetId"
+                                        t-on-click="() => this.doBulkReassign()">
+                                    <t t-if="state.reassignBusy"><i class="fa fa-spinner fa-spin me-1"/>Đang chuyển...</t>
+                                    <t t-else="">🔄 Chuyển</t>
+                                </button>
+                                <button t-if="selectedCount" class="o_vd_bulk_clear"
+                                        t-on-click="() => this.clearSelection()">
+                                    Bỏ chọn
+                                </button>
+                            </t>
+                        </div>
+
                         <div class="o_vd_lead_dual_cols">
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
@@ -1566,6 +1602,12 @@
                                             <div class="o_vd_filter_table_count">
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
+                                            <button t-if="state.selectMode and leadsNoProblems.length"
+                                                    class="o_vd_select_all_btn"
+                                                    t-on-click.stop="() => this.toggleSelectAll(leadsNoProblems.map(l => l.id))"
+                                                    title="Chọn / bỏ chọn tất cả KH trong cột này">
+                                                ☑ Tất cả
+                                            </button>
                                         </div>
                                         <div class="o_vd_filter_table_right">
                                             <t t-if="leadsNoProblems.length">
@@ -2464,6 +2506,12 @@
                     </span>
                     <span class="o_vd_pill_col_nv_name"><t t-esc="grp.label"/></span>
                     <span class="o_vd_pill_col_count"><t t-esc="grp.leads.length"/></span>
+                    <button t-if="state.selectMode and grp.leads.length"
+                            class="o_vd_select_all_btn"
+                            t-on-click.stop="() => this.toggleSelectAll(grp.leads.map(l => l.id))"
+                            title="Chọn / bỏ chọn tất cả KH của NV này">
+                        ☑ Tất cả
+                    </button>
                 </div>
                 <div class="o_vd_pill_col_body">
                     <t t-foreach="grp.leads" t-as="lead" t-key="lead.id">
@@ -2482,8 +2530,12 @@
 
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
-        <div t-on-click="() => this.openLead(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '')">
+        <div t-on-click="() => this.onPillClick(lead.id)"
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '')">
+                <span t-if="state.selectMode" class="o_vd_pill_check">
+                    <t t-if="isLeadSelected(lead.id)">☑</t>
+                    <t t-else="">☐</t>
+                </span>
                 <span class="o_vd_won_pill_icon">
                     <!-- Stage WON: urgency icon -->
                     <t t-if="selectedStage and selectedStage.code === 'won'">

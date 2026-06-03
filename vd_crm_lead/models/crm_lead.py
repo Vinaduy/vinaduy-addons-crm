@@ -5413,6 +5413,46 @@ class CrmLead(models.Model):
         )
         return [{'id': u.id, 'name': u.name, 'login': u.login} for u in sales_users]
 
+    @api.model
+    def dashboard_bulk_reassign(self, lead_ids, target_user_id):
+        """Chuyển HÀNG LOẠT KH (lead_ids) sang NV target_user_id.
+
+        Quyền: chỉ admin + role có can_reassign_lead=True (người chia số /
+        giám đốc). Dùng can_user_reassign (KHÔNG chỉ is_manager) để khớp đúng
+        yêu cầu: admin + người chia số hàng ngày + giám đốc.
+
+        Trả về số KH thực sự đã chuyển (bỏ qua KH vốn đã thuộc target).
+        """
+        from odoo.exceptions import AccessError
+        role_model = self.env['vd.crm.role.config'].sudo()
+        if not (self.env.user._is_superuser() or role_model.can_user_reassign(self.env.user)):
+            raise AccessError(_(
+                'Bạn không có quyền chuyển KH cho NV khác. '
+                'Chỉ Admin, người chia số hoặc giám đốc mới được làm.'
+            ))
+        try:
+            target_id = int(target_user_id)
+        except (TypeError, ValueError):
+            target_id = 0
+        ids = [int(i) for i in (lead_ids or [])]
+        if not ids or not target_id:
+            return 0
+        target = self.env['res.users'].sudo().browse(target_id)
+        if not target.exists():
+            raise UserError(_('Nhân viên nhận không tồn tại.'))
+        leads = self.sudo().browse(ids).exists()
+        # Bỏ qua KH đã thuộc về target (tránh write thừa)
+        leads = leads.filtered(lambda l: l.user_id.id != target_id)
+        if leads:
+            # vd_skip_reassign_check: đã tự kiểm tra quyền ở trên → bỏ qua
+            # check lặp trong write(). mail_notrack tránh lỗi gửi email tracking.
+            leads.with_context(
+                vd_skip_reassign_check=True,
+                mail_notrack=True,
+                tracking_disable=True,
+            ).write({'user_id': target_id})
+        return len(leads)
+
     # ========================================================================
     # YÊU CẦU TÌM VẤN ĐỀ — cảnh báo + auto-khoá (user spec 2026-06-01)
     # ========================================================================
@@ -5742,6 +5782,9 @@ class CrmLead(models.Model):
                 'is_all': scope_user is None,
             },
             'is_manager': is_manager,
+            # Quyền chuyển KH hàng loạt (admin + role có can_reassign_lead =
+            # người chia số / giám đốc). Client dùng để hiện nút "Chọn KH".
+            'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
             'current_user_id': self.env.user.id,
             'selected_user_id': scope_user.id if scope_user else 0,
             'kpi': kpi,

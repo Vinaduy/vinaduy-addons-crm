@@ -7229,3 +7229,104 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     line-height: 1.45;
     user-select: all;   /* dễ bôi chọn copy nếu cần */
 }
+
+/* ====================================================================
+   CHỌN NHIỀU KH → CHUYỂN NV (admin / người chia số / giám đốc)
+   ==================================================================== */
+.o_vd_bulk_bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.45rem 0.7rem;
+    margin: 0 0 0.5rem;
+    background: #f1f3f5;
+    border: 1px solid #dee2e6;
+    border-radius: 9px;
+}
+.o_vd_bulk_toggle {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.32rem 0.8rem;
+    color: #1971c2;
+    background: #fff;
+    border: 1px solid #74c0fc;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover { background: #e7f5ff; }
+    &.o_active {
+        color: #fff;
+        background: #1971c2;
+        border-color: #1971c2;
+    }
+}
+.o_vd_bulk_count {
+    font-size: 0.82rem;
+    color: #343a40;
+    b { color: #1971c2; }
+}
+.o_vd_bulk_arrow {
+    font-size: 0.8rem;
+    color: #868e96;
+    font-weight: 600;
+}
+.o_vd_bulk_nv_select {
+    font-size: 0.82rem;
+    padding: 0.28rem 0.5rem;
+    border: 1px solid #adb5bd;
+    border-radius: 7px;
+    background: #fff;
+    max-width: 220px;
+}
+.o_vd_bulk_apply {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.32rem 0.85rem;
+    color: #fff;
+    background: #2f9e44;
+    border: 1px solid #2b8a3e;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover:not(:disabled) { background: #2b8a3e; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.o_vd_bulk_clear {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    color: #868e96;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover { color: #c92a2a; border-color: #fa5252; }
+}
+/* Nút "Chọn tất cả" trên header cột/lane */
+.o_vd_select_all_btn {
+    margin-left: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.12rem 0.5rem;
+    color: #1971c2;
+    background: #e7f5ff;
+    border: 1px solid #74c0fc;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { background: #d0ebff; }
+}
+/* Pill ở chế độ chọn */
+.o_vd_won_pill.o_vd_pill_selectable {
+    cursor: pointer;
+    &:hover { box-shadow: 0 0 0 2px #74c0fc inset; }
+}
+.o_vd_won_pill.o_vd_pill_selected {
+    background: #d3f9d8 !important;
+    box-shadow: 0 0 0 2px #2f9e44 inset !important;
+}
+.o_vd_pill_check {
+    margin-right: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    color: #2f9e44;
+}
