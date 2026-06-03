@@ -126,7 +126,35 @@ export const stringeeService = {
             callCarrier: "",      // nhà mạng số gọi đi (viettel/vina/mobi)
             callStartedAt: 0,     // timestamp ms — khi bấm gọi (đếm giây CHỜ đổ chuông)
             answerStartedAt: 0,   // timestamp ms — khi KH bắt máy (đếm giây ĐÀM THOẠI)
+            // === Popup thông báo cuộc gọi (căn giữa trên cùng màn hình) ===
+            alertShow: false,
+            alertLevel: "info",   // danger | warning | info | success
+            alertTitle: "",
+            alertMessage: "",
+            alertSeq: 0,          // tăng mỗi lần show → component re-trigger animation
         });
+
+        // Popup thông báo cuộc gọi — thay cho toast, hiện NỔI BẬT giữa-trên màn hình.
+        // danger = giữ tới khi đóng; còn lại auto-tắt sau vài giây.
+        let _alertTimer = null;
+        function showCallAlert(level, title, message, opts = {}) {
+            if (_alertTimer) { clearTimeout(_alertTimer); _alertTimer = null; }
+            state.alertLevel = level || "info";
+            state.alertTitle = title || "";
+            state.alertMessage = message || "";
+            state.alertShow = true;
+            state.alertSeq += 1;
+            const ms = opts.autoMs !== undefined
+                ? opts.autoMs
+                : (level === "danger" ? 0 : 6000);
+            if (ms > 0) {
+                _alertTimer = setTimeout(() => { state.alertShow = false; }, ms);
+            }
+        }
+        function hideCallAlert() {
+            if (_alertTimer) { clearTimeout(_alertTimer); _alertTimer = null; }
+            state.alertShow = false;
+        }
 
         // ===================================================================
         // RINGBACK TONE — Stringee App-to-Phone KHÔNG stream tiếng đổ chuông
@@ -367,20 +395,23 @@ export const stringeeService = {
             const handleTerminalNotice = (code, s, reached, c) => {
                 if (reached) {
                     if (code === 4) {
-                        notification.add("Khách bận máy", { type: "warning" });
+                        showCallAlert("warning", "Khách bận máy",
+                            "Máy khách đang bận. Thử gọi lại sau.");
                     } else if (code === 5) {
-                        notification.add("Khách từ chối / cúp máy", { type: "warning" });
+                        showCallAlert("warning", "Khách từ chối",
+                            "Khách từ chối / cúp máy.");
                     } else if (state.answerStartedAt) {
                         // Đã nói chuyện rồi mới kết thúc → bình thường.
-                        notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                        showCallAlert("success", "Cuộc gọi đã kết thúc", "", { autoMs: 3000 });
                     } else {
                         // Đổ chuông nhưng KH không bắt máy.
-                        notification.add("Khách không nghe máy", { type: "warning" });
+                        showCallAlert("warning", "Khách không nghe máy",
+                            "Đã đổ chuông nhưng khách không bắt máy. Thử gọi lại sau.");
                     }
                     return;
                 }
                 if (!c._vdFromNumber) {
-                    notification.add("Cuộc gọi đã kết thúc", { type: "info" });
+                    showCallAlert("info", "Cuộc gọi đã kết thúc", "", { autoMs: 3000 });
                     return;
                 }
                 rpc("/stringee/number_health", {
@@ -388,22 +419,15 @@ export const stringeeService = {
                     carrier: c._vdCarrier || "",
                 }).then((h) => {
                     if (!h || !h.message) {
-                        notification.add(
-                            "Cuộc gọi kết thúc trước khi đổ chuông — chưa gọi ra được.",
-                            { type: "warning" },
-                        );
+                        showCallAlert("warning", "Chưa gọi ra được",
+                            "Cuộc gọi kết thúc trước khi đổ chuông.");
                         return;
                     }
-                    notification.add(h.message, {
-                        type: h.level || "warning",
-                        title: h.title || undefined,
-                        sticky: h.state === "dead",   // chỉ số chết mới giữ sticky
-                    });
+                    showCallAlert(h.level || "warning", h.title || "Thông báo cuộc gọi",
+                        h.message);
                 }).catch(() => {
-                    notification.add(
-                        "Cuộc gọi kết thúc trước khi đổ chuông — chưa gọi ra được.",
-                        { type: "warning" },
-                    );
+                    showCallAlert("warning", "Chưa gọi ra được",
+                        "Cuộc gọi kết thúc trước khi đổ chuông.");
                 });
             };
 
@@ -648,25 +672,20 @@ export const stringeeService = {
                     const r = await rpc("/stringee/resolve_from_number", { callee: targetNumber });
                     if (r && r.error) {
                         // Server soạn sẵn thông báo rõ: thiếu số mạng nào / khách khác mạng.
-                        notification.add(r.error, {
-                            type: "danger", title: "Không gọi được — sai/thiếu số cùng mạng", sticky: true,
-                        });
+                        showCallAlert("danger", "Không gọi được — không có số cùng mạng", r.error);
                         return null;
                     }
                     fromNumber = (r && r.from_number) || "";
                     fromCarrier = (r && r.carrier) || "";
                 } catch (_e) {
-                    notification.add(
-                        "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.",
-                        { type: "danger" },
-                    );
+                    showCallAlert("danger", "Không gọi được",
+                        "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.");
                     return null;
                 }
                 if (!fromNumber) {
-                    notification.add(
-                        "Bạn chưa được gán số cùng mạng với khách này — báo admin gán số.",
-                        { type: "danger", sticky: true },
-                    );
+                    showCallAlert("danger", "Bạn không có số để gọi",
+                        "Bạn chưa được gán số cùng mạng với khách này. Bạn KHÔNG được "
+                        + "gọi ngoại mạng — báo admin gán số.");
                     return null;
                 }
                 const call2 = new window.StringeeCall(
@@ -703,10 +722,8 @@ export const stringeeService = {
                     }, call2?.callId);
                     if (res && res.r !== 0) {
                         stopRingback();
-                        notification.add(
-                            `Gọi thất bại: ${res.message}`,
-                            { type: "danger" },
-                        );
+                        showCallAlert("danger", "Gọi thất bại",
+                            `Stringee từ chối cuộc gọi: ${res.message || "lỗi không rõ"}.`);
                         state.currentCall = null;
                         state.lastCallTo = "";
                         state.lastCallAt = 0;
@@ -776,7 +793,7 @@ export const stringeeService = {
             } catch (_e) { /* noop */ }
         }
 
-        return { state, call, hangup, ensureConnected };
+        return { state, call, hangup, ensureConnected, showCallAlert, hideCallAlert };
     },
 };
 

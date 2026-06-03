@@ -79,9 +79,10 @@ class ResUsers(models.Model):
         carrier = vd_carrier_from_number(to_number)
         if carrier not in _SAME_CARRIER_SUPPORTED:
             return {'error': (
-                'KHÔNG gọi được số "%s": Stringee chỉ cho gọi NỘI MẠNG '
-                '(Viettel / Vinaphone / MobiFone). Số khách thuộc nhà mạng khác '
-                '(Vietnamobile/Gmobile/iTel...) hoặc đầu số lạ → bị chặn gọi.'
+                'KHÔNG GỌI ĐƯỢC số "%s": số khách thuộc nhà mạng khác '
+                '(Vietnamobile / Gmobile / iTel...) hoặc đầu số lạ. Bạn KHÔNG '
+                'được gọi ngoại mạng — chỉ gọi nội mạng Viettel / Vinaphone / '
+                'MobiFone.'
             ) % (to_number or '')}
         label = _CARRIER_LABELS.get(carrier, carrier)
         hotline = self.stringee_hotline_ids.filtered(
@@ -89,9 +90,9 @@ class ResUsers(models.Model):
         )[:1]
         if not hotline:
             return {'error': (
-                'THIẾU SỐ %s: khách này dùng mạng %s, mà BẠN chưa được gán số '
-                'tổng đài %s nào (Stringee chỉ cho gọi cùng mạng nên không thể '
-                'dùng số mạng khác). → Báo admin gán cho bạn 1 số %s.'
+                'BẠN KHÔNG CÓ SỐ %s ĐỂ GỌI: khách này dùng mạng %s, mà bạn chưa '
+                'được gán số tổng đài %s nào. Bạn KHÔNG được gọi ngoại mạng. '
+                '→ Báo admin gán cho bạn 1 số %s.'
             ) % (label, label, label, label)}
         return {'from_number': hotline.number, 'carrier': carrier}
 

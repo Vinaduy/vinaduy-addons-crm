@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Popup thông báo cuộc gọi — căn giữa trên cùng màn hình, nổi bật. -->
+    <t t-name="vd_stringee.CallAlert">
+        <div t-if="s.alertShow"
+             t-att-key="s.alertSeq"
+             class="o_vd_call_alert"
+             t-att-class="'o_vd_ca_' + s.alertLevel">
+            <div class="o_vd_ca_icon">
+                <i class="fa" t-att-class="iconClass"/>
+            </div>
+            <div class="o_vd_ca_body">
+                <div t-if="s.alertTitle" class="o_vd_ca_title" t-esc="s.alertTitle"/>
+                <div t-if="s.alertMessage" class="o_vd_ca_msg" t-esc="s.alertMessage"/>
+            </div>
+            <button type="button" class="o_vd_ca_close" t-on-click="onClose"
+                    title="Đóng">
+                <i class="fa fa-times"/>
+            </button>
+        </div>
+    </t>
+
+</templates>
