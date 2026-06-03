@@ -3377,6 +3377,7 @@ class CrmLead(models.Model):
         (vd '0848446886' giữ nguyên; '84848446886' → '0848446886')."""
         if not num or not isinstance(num, str):
             return num
+        import re
         digits = re.sub(r'\D', '', num)
         if not digits:
             return num  # không có chữ số → giữ nguyên (có thể là text)
