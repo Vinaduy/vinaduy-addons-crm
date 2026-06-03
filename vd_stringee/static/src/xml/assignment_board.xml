@@ -79,7 +79,10 @@
                                 <div class="o_vd_user_chips">
                                     <t t-foreach="u.hotlines" t-as="h" t-key="h.id">
                                         <span class="o_vd_chip o_vd_chip_assigned"
-                                              t-att-data-carrier="h.carrier">
+                                              t-att-data-carrier="h.carrier"
+                                              t-att-class="'o_vd_health_' + (h.health || 'unused')">
+                                            <span class="o_vd_health_dot"
+                                                  t-att-class="'o_vd_health_' + (h.health || 'unused')"/>
                                             <span class="o_vd_chip_num" t-esc="h.number"/>
                                             <span class="o_vd_chip_x"
                                                   t-on-click="() => this.onRemove(u, h)">×</span>

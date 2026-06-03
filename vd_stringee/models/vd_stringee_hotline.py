@@ -251,7 +251,8 @@ class VdStringeeHotline(models.Model):
         user_list = []
         for u in users:
             assigned = [
-                {'id': h.id, 'number': h.number, 'carrier': h.carrier}
+                {'id': h.id, 'number': h.number, 'carrier': h.carrier,
+                 'health': (num_stats.get(h.number) or {}).get('health') or 'unused'}
                 for h in u.stringee_hotline_ids if h.active
             ]
             assigned.sort(key=lambda x: x['carrier'])

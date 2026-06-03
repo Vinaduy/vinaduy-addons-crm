@@ -1186,19 +1186,35 @@ export class VdCrmDashboard extends Component {
         }, 320);
     }
 
+    // Zoom của dashboard (.o_vd_crm_dashboard có zoom:0.7). getBoundingClientRect
+    // trả toạ độ LOCAL (chưa nhân zoom), còn popup position:fixed nằm ở hệ
+    // VISUAL → phải NHÂN zoom để khớp. Đọc động để không hardcode.
+    _dashZoom() {
+        const host = document.querySelector(".o_vd_crm_dashboard");
+        const z = host ? parseFloat(getComputedStyle(host).zoom) : 1;
+        return z && z > 0 ? z : 1;
+    }
+
     // ===== BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) =====
     async onTodayCallsEnter(ev, nv) {
         if (this._todayCallsTimer) {
             clearTimeout(this._todayCallsTimer);
             this._todayCallsTimer = null;
         }
+        // Đã mở đúng NV này rồi → chỉ giữ, KHÔNG dựng lại + nạp lại (tránh nhảy/nháy).
+        if (this.state.todayCallsHover
+                && this.state.todayCallsHover.user_id === nv.user_id) {
+            return;
+        }
+        const z = this._dashZoom();
         const r = ev.currentTarget.getBoundingClientRect();
         this.state.todayCallsHover = {
             user_id: nv.user_id,
             name: nv.full_name,
-            anchorLeft: Math.round(r.left),
-            anchorRight: Math.round(r.right),
-            top: Math.round(r.bottom + 6),
+            anchorLeft: Math.round(r.left * z),
+            anchorRight: Math.round(r.right * z),
+            cellTop: Math.round(r.top * z),
+            cellBottom: Math.round(r.bottom * z),
             loading: true,
             summary: {},
             customers: [],
@@ -1239,13 +1255,18 @@ export class VdCrmDashboard extends Component {
         if (!h) return "display:none;";
         const vw = window.innerWidth || 1200;
         const vh = window.innerHeight || 800;
-        const W = 680;
-        // Mặc định bung sang phải mép icon; nếu tràn thì kéo về cho vừa.
+        const W = 760;
+        // Bung từ mép TRÁI ô; nếu tràn phải thì kéo về cho vừa màn hình.
         let left = h.anchorLeft;
         if (left + W > vw - 12) left = Math.max(12, vw - W - 12);
-        let top = h.top;
-        if (top > vh - 200) top = Math.max(12, vh - 460);
-        return `top:${top}px; left:${left}px; width:${W}px;`;
+        // Mặc định đặt NGAY DƯỚI ô. Nếu sát đáy → neo bằng `bottom` để bung
+        // LÊN TRÊN ô (không bao giờ che ô đang hover → hết nhảy/nháy).
+        const EST = 440;
+        if (h.cellBottom + EST <= vh - 8) {
+            return `top:${h.cellBottom + 6}px; left:${left}px; width:${W}px;`;
+        }
+        const bottom = Math.max(8, vh - h.cellTop + 6);
+        return `bottom:${bottom}px; left:${left}px; width:${W}px;`;
     }
     // mm:ss từ giây
     fmtMmSs(sec) {

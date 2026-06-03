@@ -125,7 +125,9 @@
                                 </span>
                             </div>
                             <div class="o_vd_tc_calls">
-                                <div t-foreach="kh.calls" t-as="c" t-key="c_index" class="o_vd_tc_call">
+                                <div t-foreach="kh.calls" t-as="c" t-key="c_index"
+                                     class="o_vd_tc_call"
+                                     t-att-class="{'o_vd_tc_call_rec': c.recording_url}">
                                     <span class="o_vd_tc_call_time"><t t-esc="c.time"/></span>
                                     <span t-att-class="'o_vd_tc_call_res o_vd_tc_res_' + c.result_class">
                                         <t t-esc="c.result"/>
@@ -133,7 +135,6 @@
                                     <span class="o_vd_tc_call_dur"><t t-esc="fmtMmSs(c.duration)"/></span>
                                     <audio t-if="c.recording_url" class="o_vd_tc_audio"
                                            controls="controls" preload="none" t-att-src="c.recording_url"/>
-                                    <span t-else="" class="o_vd_tc_norec">— không ghi âm —</span>
                                 </div>
                             </div>
                         </div>
