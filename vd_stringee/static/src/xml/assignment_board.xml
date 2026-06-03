@@ -28,7 +28,10 @@
                                           t-on-mouseenter="(ev) => this.onChipEnter(ev, n)"
                                           t-on-mouseleave="() => this.onChipLeave()">
                                         <span class="o_vd_health_dot"/>
-                                        <span class="o_vd_chip_num" t-esc="n.number"/>
+                                        <span class="o_vd_chip_num o_vd_chip_copy" title="Bấm để copy số"
+                                              t-on-click="(ev) => this.copyNumber(ev, n.number)"
+                                              t-esc="n.number"/>
+                                        <span class="o_vd_chip_net"/>
                                         <span class="o_vd_chip_count" t-esc="n.user_count"/>
                                     </span>
                                 </t>
@@ -83,7 +86,10 @@
                                               t-att-class="'o_vd_health_' + (h.health || 'unused')">
                                             <span class="o_vd_health_dot"
                                                   t-att-class="'o_vd_health_' + (h.health || 'unused')"/>
-                                            <span class="o_vd_chip_num" t-esc="h.number"/>
+                                            <span class="o_vd_chip_num o_vd_chip_copy" title="Bấm để copy số"
+                                                  t-on-click="(ev) => this.copyNumber(ev, h.number)"
+                                                  t-esc="h.number"/>
+                                            <span class="o_vd_chip_net"/>
                                             <span class="o_vd_chip_x"
                                                   t-on-click="() => this.onRemove(u, h)">×</span>
                                         </span>

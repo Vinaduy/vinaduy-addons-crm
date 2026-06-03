@@ -34,10 +34,23 @@ const SDK_URL = "https://cdn.stringee.com/sdk/web/latest/stringee-web-sdk.min.js
  */
 function normalizeVnPhone(num, defaultCountry = "84") {
     if (!num) return "";
-    const digits = String(num).replace(/\D/g, "");
+    let digits = String(num).replace(/\D/g, "");
     if (!digits) return "";
-    if (digits.startsWith(defaultCountry)) return digits;
-    if (digits.startsWith("0")) return defaultCountry + digits.slice(1);
+    if (digits.startsWith("00")) digits = digits.slice(2);   // 0084... quốc tế
+    if (digits.startsWith("0")) {
+        const rest = digits.slice(1);
+        // "084xxxxxxxxx" = SĐT thừa số 0 trước E.164 → bỏ, không prepend 84 lại
+        // (tránh "8484..."). len>=11 để không nhầm Vina national 9 số bắt đầu 84x.
+        if (rest.startsWith(defaultCountry) && rest.length >= 11) return rest;
+        return defaultCountry + rest;
+    }
+    if (digits.startsWith(defaultCountry)) {
+        // Đã nhân đôi: 84+84+9 = 13 số → bỏ 1 cái 84.
+        if (digits.length === 13 && digits.startsWith(defaultCountry + defaultCountry)) {
+            return digits.slice(defaultCountry.length);
+        }
+        return digits;
+    }
     return defaultCountry + digits;
 }
 

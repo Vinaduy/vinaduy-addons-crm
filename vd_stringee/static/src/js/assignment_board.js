@@ -52,6 +52,17 @@ export class VdStringeeAssignmentBoard extends Component {
         );
     }
 
+    // Click vào số = COPY (giống click tên KH). Dùng action copy chế độ silent
+    // (copy ngay trong user-gesture, không mở dialog).
+    copyNumber(ev, num) {
+        ev.stopPropagation();
+        this.action.doAction({
+            type: "ir.actions.client",
+            tag: "vd_copy_to_clipboard",
+            params: { text: num, silent: true, message: `Đã copy số ${num}` },
+        });
+    }
+
     onDragStart(ev, number, carrier) {
         this.state.hover = null; // ẩn popover khi bắt đầu kéo
         ev.dataTransfer.setData(

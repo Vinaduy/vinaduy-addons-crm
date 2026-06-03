@@ -160,6 +160,7 @@
         &:active { cursor: grabbing; }
     }
     .o_vd_chip_num { font-variant-numeric: tabular-nums; }
+    .o_vd_chip_copy { cursor: pointer; &:hover { text-decoration: underline; } }
     .o_vd_chip_count {
         font-size: 10.5px;
         background: rgba(0, 0, 0, .12);
@@ -204,6 +205,24 @@
         .o_vd_chip_num { text-decoration: line-through; opacity: .7; }
     }
     .o_vd_chip.o_vd_health_alive { border-color: #75e0a7; }
+
+    /* --- Logo nhỏ nhà mạng ở cuối số (text mã ngắn theo màu chip) --- */
+    .o_vd_chip_net {
+        align-self: center;
+        font-size: 8px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        opacity: 0.82;
+    }
+    .o_vd_chip[data-carrier="viettel"]      .o_vd_chip_net::after { content: "VT"; }
+    .o_vd_chip[data-carrier="mobi"]         .o_vd_chip_net::after { content: "MB"; }
+    .o_vd_chip[data-carrier="vina"]         .o_vd_chip_net::after { content: "VINA"; }
+    .o_vd_chip[data-carrier="vietnamobile"] .o_vd_chip_net::after { content: "VNM"; }
+    .o_vd_chip[data-carrier="gmobile"]      .o_vd_chip_net::after { content: "GM"; }
+    .o_vd_chip[data-carrier="itelecom"]     .o_vd_chip_net::after { content: "ITEL"; }
+    .o_vd_chip[data-carrier="other"]        .o_vd_chip_net::after { content: "?"; }
 
     .o_vd_pal_carrier_h::before {
         content: "";

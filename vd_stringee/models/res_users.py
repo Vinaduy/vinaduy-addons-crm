@@ -7,7 +7,10 @@ _CARRIER_LABELS = {
     'viettel': 'Viettel', 'vina': 'Vinaphone', 'mobi': 'MobiFone',
     'vietnamobile': 'Vietnamobile', 'gmobile': 'Gmobile', 'itelecom': 'iTel',
 }
-_SAME_CARRIER_SUPPORTED = ('viettel', 'vina', 'mobi')
+# Mạng được gọi NỘI MẠNG (có đầu số tổng đài tương ứng trên Stringee).
+# Bật thêm Vietnamobile + iTel (2026-06-03): có hotline 84922039966 (VNM) +
+# 84872446886 (iTel) → cho gọi KH cùng 2 mạng này thay vì chặn.
+_SAME_CARRIER_SUPPORTED = ('viettel', 'vina', 'mobi', 'vietnamobile', 'itelecom')
 
 
 class ResUsers(models.Model):
@@ -87,9 +90,9 @@ class ResUsers(models.Model):
         if carrier not in _SAME_CARRIER_SUPPORTED:
             return {'error': (
                 'KHÔNG GỌI ĐƯỢC số "%s": số khách thuộc nhà mạng khác '
-                '(Vietnamobile / Gmobile / iTel...) hoặc đầu số lạ. Bạn KHÔNG '
-                'được gọi ngoại mạng — chỉ gọi nội mạng Viettel / Vinaphone / '
-                'MobiFone.'
+                '(Gmobile...) hoặc đầu số lạ. Bạn KHÔNG được gọi ngoại mạng — '
+                'chỉ gọi nội mạng Viettel / Vinaphone / MobiFone / Vietnamobile '
+                '/ iTel.'
             ) % (to_number or '')}
         label = _CARRIER_LABELS.get(carrier, carrier)
         hotline = self.stringee_hotline_ids.filtered(

@@ -89,10 +89,21 @@ def _to_stringee_number(num, default_country='84'):
     digits = re.sub(r'\D', '', str(num))
     if not digits:
         return ''
-    if digits.startswith(default_country):
-        return digits
+    if digits.startswith('00'):           # 0084... = quốc tế kèu 00
+        digits = digits[2:]
     if digits.startswith('0'):
-        return default_country + digits[1:]
+        rest = digits[1:]
+        # "084xxxxxxxxx" = SĐT lưu THỪA số 0 trước E.164 (0 + 84...) → bỏ luôn,
+        # không prepend 84 lần nữa (tránh nhân đôi "8484..."). len>=11 để KHÔNG
+        # nhầm số Vina national 9 chữ số bắt đầu 84x (vd 0848446886 → 84848446886).
+        if rest.startswith(default_country) and len(rest) >= 11:
+            return rest
+        return default_country + rest
+    if digits.startswith(default_country):
+        # Đã bị nhân đôi sẵn: 84 + 84 + 9 = 13 chữ số → bỏ 1 cái 84.
+        if len(digits) == 13 and digits.startswith(default_country * 2):
+            return digits[len(default_country):]
+        return digits
     return default_country + digits
 
 
@@ -416,8 +427,8 @@ class StringeeCall(models.Model):
             callee_lbl = _CARRIER_LABELS.get(callee_carrier, callee_carrier)
             if callee_carrier == 'other':
                 raise UserError(_(
-                    'CHẶN gọi ngoại mạng: số khách %s thuộc %s — Stringee chỉ cho '
-                    'gọi NỘI MẠNG Viettel/Vinaphone/MobiFone.'
+                    'CHẶN gọi ngoại mạng: số khách %s thuộc %s — chỉ cho gọi '
+                    'NỘI MẠNG Viettel/Vinaphone/MobiFone/Vietnamobile/iTel.'
                 ) % (callee_e164, callee_lbl))
             raise UserError(_(
                 'CHẶN gọi ngoại mạng: số gọi đi %s (%s) KHÁC mạng với số khách '
