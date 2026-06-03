@@ -20,11 +20,14 @@
                             </div>
                             <div class="o_vd_pal_nums">
                                 <t t-foreach="c.numbers" t-as="n" t-key="n.id">
-                                    <span class="o_vd_chip" t-att-data-carrier="c.code"
+                                    <span class="o_vd_chip"
+                                          t-att-data-carrier="c.code"
+                                          t-att-class="'o_vd_health_' + (n.health || 'unused')"
                                           draggable="true"
                                           t-on-dragstart="(ev) => this.onDragStart(ev, n, c.code)"
                                           t-on-mouseenter="(ev) => this.onChipEnter(ev, n)"
                                           t-on-mouseleave="() => this.onChipLeave()">
+                                        <span class="o_vd_health_dot"/>
                                         <span class="o_vd_chip_num" t-esc="n.number"/>
                                         <span class="o_vd_chip_count" t-esc="n.user_count"/>
                                     </span>
@@ -43,7 +46,12 @@
                             <t t-esc="filteredUsers.length"/>/<t t-esc="state.users.length"/> NV
                         </span>
                         <div class="o_vd_toolbar_btns ms-auto">
-                            <button type="button" class="btn btn-primary btn-sm"
+                            <button type="button" class="btn btn-success btn-sm"
+                                    t-att-disabled="state.busy"
+                                    t-on-click="() => this.distributeViettel()">
+                                <i class="fa fa-random me-1"/>Chia đều Viettel (số sống)
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm ms-2"
                                     t-on-click="() => this.openDistribute()">
                                 <i class="fa fa-magic me-1"/>Thêm NV &amp; chia đều
                             </button>
@@ -60,7 +68,14 @@
                                  t-on-dragleave="(ev) => this.onDragLeave(ev)"
                                  t-on-drop="(ev) => this.onDrop(ev, u)">
                                 <div class="o_vd_user_name">
-                                    <i class="fa fa-user me-1"/><t t-esc="u.name"/>
+                                    <span class="o_vd_user_name_txt">
+                                        <i class="fa fa-user me-1"/><t t-esc="u.name"/>
+                                    </span>
+                                    <label class="o_vd_noshare" t-att-title="u.no_share ? 'NV này KHÔNG nhận số khi chia đều' : 'Tick để loại NV khỏi chia đều'">
+                                        <input type="checkbox" t-att-checked="u.no_share"
+                                               t-on-change="() => this.toggleNoShare(u)"/>
+                                        <span>Không chia số</span>
+                                    </label>
                                 </div>
                                 <div class="o_vd_user_chips">
                                     <t t-foreach="u.hotlines" t-as="h" t-key="h.id">
@@ -85,9 +100,41 @@
             <!-- Popover chi tiết số (hiện khi hover chip kho số) -->
             <div t-if="state.hover" class="o_vd_pop" t-att-style="popStyle">
                 <div class="o_vd_pop_h">
-                    <i class="fa fa-phone me-1"/><t t-esc="state.hover.number.number"/>
-                    <span class="o_vd_dim ms-1">· <t t-esc="state.hover.number.detail.length"/> NV</span>
+                    <span class="o_vd_health_dot" t-att-class="'o_vd_health_' + (state.hover.number.health || 'unused')"/>
+                    <i class="fa fa-phone ms-1 me-1"/><t t-esc="state.hover.number.number"/>
+                    <span class="o_vd_pop_badge" t-att-class="'o_vd_health_' + (state.hover.number.health || 'unused')">
+                        <t t-if="state.hover.number.health === 'alive'">CÒN SỐNG</t>
+                        <t t-elif="state.hover.number.health === 'dead'">SỐ CHẾT</t>
+                        <t t-else="">CHƯA DÙNG</t>
+                    </span>
                 </div>
+
+                <!-- Thống kê tổng của SỐ -->
+                <div class="o_vd_pop_stats">
+                    <div class="o_vd_pop_stat">
+                        <span class="o_vd_pop_stat_v"><t t-esc="state.hover.number.total_calls"/></span>
+                        <span class="o_vd_pop_stat_l">cuộc gọi</span>
+                    </div>
+                    <div class="o_vd_pop_stat">
+                        <span class="o_vd_pop_stat_v"><t t-esc="state.hover.number.reached"/></span>
+                        <span class="o_vd_pop_stat_l">đổ chuông</span>
+                    </div>
+                    <div class="o_vd_pop_stat">
+                        <span class="o_vd_pop_stat_v"><t t-esc="state.hover.number.talk_hm"/></span>
+                        <span class="o_vd_pop_stat_l">thời lượng gọi</span>
+                    </div>
+                    <div class="o_vd_pop_stat">
+                        <span class="o_vd_pop_stat_v"><t t-esc="state.hover.number.per_day"/></span>
+                        <span class="o_vd_pop_stat_l">cuộc/ngày (TB)</span>
+                    </div>
+                </div>
+                <div class="o_vd_pop_span" t-if="state.hover.number.first">
+                    Hoạt động: <b t-esc="state.hover.number.first"/> → <b t-esc="state.hover.number.last"/>
+                    <span class="o_vd_dim">(<t t-esc="state.hover.number.active_days"/> ngày)</span>
+                </div>
+                <div class="o_vd_pop_span o_vd_dim" t-else="">Chưa phát sinh cuộc gọi nào.</div>
+
+                <div class="o_vd_pop_sub">Nhân viên được gán (<t t-esc="state.hover.number.detail.length"/>)</div>
                 <table class="o_vd_pop_tbl" t-if="state.hover.number.detail.length">
                     <thead>
                         <tr><th>Nhân viên</th><th>Dùng từ</th><th class="text-end">Phút gọi</th><th class="text-end">Cuộc</th></tr>

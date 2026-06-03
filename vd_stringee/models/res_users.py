@@ -38,6 +38,13 @@ class ResUsers(models.Model):
              'thống TỰ lấy số CÙNG MẠNG với KH; không có số cùng mạng → báo lỗi.',
     )
 
+    # Cờ loại NV khỏi "chia đều số" (admin / quản lý / NV không trực tiếp gọi).
+    vd_no_number_share = fields.Boolean(
+        string='Không tham gia chia số',
+        default=False,
+        help='Tick để NV này KHÔNG được nhận số khi bấm "Chia đều" trên bảng kho số.',
+    )
+
     # Số đang gán theo từng mạng — để dựng bảng MA TRẬN "NV × nhà mạng":
     # mỗi dòng 1 NV, mỗi cột 1 mạng, ô = số được gán. Tra 1 NV thấy ngay đủ số.
     stringee_num_viettel = fields.Char(string='Viettel', compute='_compute_stringee_nums')

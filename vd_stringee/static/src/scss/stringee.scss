@@ -116,11 +116,27 @@
         }
     }
     .o_vd_user_name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-weight: 700;
         color: #1d2939;
         margin-bottom: 8px;
         padding-bottom: 6px;
         border-bottom: 1px solid #f0f1f3;
+        .o_vd_user_name_txt { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
+    .o_vd_noshare {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+        font-weight: 500;
+        font-size: 11px;
+        color: #98a2b3;
+        cursor: pointer;
+        white-space: nowrap;
+        input { cursor: pointer; margin: 0; }
     }
     .o_vd_user_chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .o_vd_empty { color: #98a2b3; font-size: 12px; font-style: italic; }
@@ -168,6 +184,23 @@
     .o_vd_chip[data-carrier="gmobile"]      { background: #eae3fb; color: #5925dc; }
     .o_vd_chip[data-carrier="other"]        { background: #e9edf2; color: #475467; }
 
+    /* --- Sức khoẻ số: chấm + làm rõ số chết --- */
+    .o_vd_health_dot {
+        flex: 0 0 auto;
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #cbd5e1;            /* unused mặc định */
+    }
+    .o_vd_chip.o_vd_health_alive  .o_vd_health_dot { background: #17b26a; box-shadow: 0 0 0 2px rgba(23,178,106,.18); }
+    .o_vd_chip.o_vd_health_dead   .o_vd_health_dot { background: #f04438; }
+    .o_vd_chip.o_vd_health_unused .o_vd_health_dot { background: #cbd5e1; }
+    /* Số chết: gạch mờ con số để nhìn phát biết */
+    .o_vd_chip.o_vd_health_dead {
+        border-color: #fda29b;
+        .o_vd_chip_num { text-decoration: line-through; opacity: .7; }
+    }
+    .o_vd_chip.o_vd_health_alive { border-color: #75e0a7; }
+
     .o_vd_pal_carrier_h::before {
         content: "";
         display: inline-block;
@@ -203,10 +236,64 @@
     font-size: 12.5px;
 
     .o_vd_pop_h {
+        display: flex;
+        align-items: center;
+        gap: 2px;
         font-weight: 700;
         color: #1d2939;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         font-variant-numeric: tabular-nums;
+        .o_vd_health_dot { width: 8px; height: 8px; }
+        .o_vd_health_dot.o_vd_health_alive  { background: #17b26a; }
+        .o_vd_health_dot.o_vd_health_dead   { background: #f04438; }
+        .o_vd_health_dot.o_vd_health_unused { background: #cbd5e1; }
+    }
+    .o_vd_pop_badge {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .3px;
+        padding: 1px 7px;
+        border-radius: 9px;
+        &.o_vd_health_alive  { background: #e6f7ee; color: #087443; }
+        &.o_vd_health_dead   { background: #fee4e2; color: #b42318; }
+        &.o_vd_health_unused { background: #eef0f2; color: #667085; }
+    }
+    /* Hàng thống kê 4 ô */
+    .o_vd_pop_stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+    .o_vd_pop_stat {
+        background: #f8f9fb;
+        border: 1px solid #eef0f2;
+        border-radius: 7px;
+        padding: 5px 4px;
+        text-align: center;
+        .o_vd_pop_stat_v {
+            display: block;
+            font-weight: 700;
+            font-size: 14px;
+            color: #1d2939;
+            font-variant-numeric: tabular-nums;
+        }
+        .o_vd_pop_stat_l {
+            display: block;
+            font-size: 10px;
+            color: #667085;
+            margin-top: 1px;
+        }
+    }
+    .o_vd_pop_span { margin-bottom: 8px; color: #344054; }
+    .o_vd_pop_sub {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        color: #667085;
+        margin-bottom: 4px;
     }
     .o_vd_pop_tbl {
         width: 100%;

@@ -76,6 +76,40 @@ export class VdStringeeAssignmentBoard extends Component {
         return `top:${h.top}px; left:${h.left}px;`;
     }
 
+    // ---- Chia đều số Viettel còn sống cho NV đủ điều kiện ----
+    async distributeViettel() {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const res = await this.orm.call(
+                MODEL, "distribute_carrier_evenly", ["viettel"]
+            );
+            await this.load();
+            this.notification.add(res.message || "Đã chia số", {
+                type: res.ok ? "success" : "warning",
+                sticky: !res.ok,
+            });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    // ---- Bật/tắt cờ "không chia số" cho 1 NV ----
+    async toggleNoShare(user) {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            await this.orm.call(MODEL, "toggle_user_no_share", [user.id, !user.no_share]);
+            await this.load();
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
     // ---- Nút mở popup (full màn hình) ----
     openDistribute() {
         this.action.doAction("vd_stringee.action_vd_stringee_distribute_wizard", {

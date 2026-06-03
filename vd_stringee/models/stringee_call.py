@@ -265,6 +265,68 @@ class StringeeCall(models.Model):
             **common,
         }
 
+    @api.model
+    def _vd_numbers_stats(self, numbers, alive_days=30):
+        """Thống kê theo LÔ số tổng đài (cho bảng kho số). Trả dict:
+            number -> {total, reached, reached_recent, secs, first, last,
+                       active_days, per_day, health}
+        - reached/reached_recent đếm cuộc ĐỔ CHUÔNG/NGHE MÁY thật (raw_events
+          ringing/answered hoặc answer_time) — KHÔNG dùng duration (hay = 0).
+        - health: 'alive' (đổ chuông trong `alive_days` ngày) / 'dead' (đã gọi
+          nhưng gần đây không đổ chuông) / 'unused' (chưa gọi cuộc nào).
+        """
+        out = {}
+        nums = [n for n in (numbers or []) if n]
+        if not nums:
+            return out
+        cr = self.env.cr
+        reached = ("(raw_events ILIKE '%%ringing%%' OR raw_events ILIKE "
+                   "'%%answered%%' OR answer_time IS NOT NULL)")
+        cr.execute(
+            "SELECT caller_number, "
+            "  count(*) AS total, "
+            "  count(*) FILTER (WHERE " + reached + ") AS reached, "
+            "  count(*) FILTER (WHERE " + reached + " AND create_date > "
+            "      (now() at time zone 'utc') - (%s || ' days')::interval) AS reached_recent, "
+            "  COALESCE(sum(duration),0) AS secs, "
+            "  min(create_date) AS first_at, max(create_date) AS last_at "
+            "FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number IN %s "
+            "GROUP BY caller_number",
+            [str(alive_days), tuple(nums)],
+        )
+        today = fields.Date.context_today(self)
+        for row in cr.fetchall():
+            number, total, rch, rch_recent, secs, first_at, last_at = row
+            first_d = first_at.date() if first_at else None
+            last_d = last_at.date() if last_at else None
+            active_days = ((today - first_d).days + 1) if first_d else 0
+            per_day = round(total / active_days, 1) if active_days else 0
+            if total == 0:
+                health = 'unused'
+            elif rch_recent > 0:
+                health = 'alive'
+            elif rch > 0:
+                health = 'dead'   # từng đổ chuông nhưng gần đây tịt
+            else:
+                health = 'dead'   # gọi nhiều nhưng chưa cuộc nào đổ chuông
+            out[number] = {
+                'total': total, 'reached': rch, 'reached_recent': rch_recent,
+                'secs': int(secs or 0),
+                'first': first_d.strftime('%d/%m/%Y') if first_d else '',
+                'last': last_d.strftime('%d/%m/%Y') if last_d else '',
+                'active_days': active_days, 'per_day': per_day,
+                'health': health,
+            }
+        # Số chưa có cuộc nào → unused
+        for n in nums:
+            out.setdefault(n, {
+                'total': 0, 'reached': 0, 'reached_recent': 0, 'secs': 0,
+                'first': '', 'last': '', 'active_days': 0, 'per_day': 0,
+                'health': 'unused',
+            })
+        return out
+
     # ---------- REST helpers ----------
 
     @api.model

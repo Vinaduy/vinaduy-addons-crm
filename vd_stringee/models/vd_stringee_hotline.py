@@ -185,7 +185,9 @@ class VdStringeeHotline(models.Model):
         Mỗi số kèm 'detail' = NV nào / dùng từ bao giờ / tổng phút gọi / số cuộc."""
         self._check_board_access()
         hotlines = self.search([('active', '=', True)])
-        stats = self._board_call_stats(hotlines.mapped('number'))
+        all_numbers = hotlines.mapped('number')
+        stats = self._board_call_stats(all_numbers)
+        num_stats = self.env['stringee.call']._vd_numbers_stats(all_numbers)
         today = fields.Date.context_today(self)
 
         def _detail(h):
@@ -207,14 +209,32 @@ class VdStringeeHotline(models.Model):
                 })
             return rows
 
+        def _fmt_hm(secs):
+            secs = int(secs or 0)
+            h = secs // 3600
+            m = (secs % 3600) // 60
+            if h:
+                return f'{h}h{m:02d}'
+            return f'{m} phút'
+
         by_carrier = {}
         for h in hotlines:
+            ns = num_stats.get(h.number) or {}
             by_carrier.setdefault(h.carrier, []).append({
                 'id': h.id,
                 'number': h.number,
                 'name': h.name or '',
                 'user_count': len(h.assigned_user_ids),
                 'detail': _detail(h),
+                # --- Thống kê + sức khoẻ số (cho chip màu + bảng hover) ---
+                'health': ns.get('health') or 'unused',
+                'total_calls': ns.get('total') or 0,
+                'reached': ns.get('reached') or 0,
+                'talk_hm': _fmt_hm(ns.get('secs')),
+                'first': ns.get('first') or '',
+                'last': ns.get('last') or '',
+                'active_days': ns.get('active_days') or 0,
+                'per_day': ns.get('per_day') or 0,
             })
         carriers = []
         for code, label in _CARRIER_ORDER:
@@ -240,8 +260,64 @@ class VdStringeeHotline(models.Model):
                 'name': u.name,
                 'login': u.login,
                 'hotlines': assigned,
+                'no_share': bool(u.vd_no_number_share),
             })
         return {'carriers': carriers, 'users': user_list}
+
+    @api.model
+    def toggle_user_no_share(self, user_id, value):
+        """Bật/tắt cờ 'không tham gia chia số' cho 1 NV (từ bảng kho số)."""
+        self._check_board_access()
+        user = self.env['res.users'].browse(user_id).sudo()
+        if user.exists():
+            user.vd_no_number_share = bool(value)
+        return True
+
+    @api.model
+    def distribute_carrier_evenly(self, carrier='viettel'):
+        """Chia ĐỀU các số CÒN SỐNG của 1 nhà mạng cho NV đủ điều kiện.
+
+        - NV đủ điều kiện: active, không phải share-user, KHÔNG tick
+          vd_no_number_share (admin/quản lý/Thành đã tick sẵn).
+        - Số tham gia: hotline active của mạng đó VÀ đang 'alive' (đổ chuông
+          gần đây — theo _vd_numbers_stats). Tránh gán số chết.
+        - Round-robin: xoá số cũ CÙNG MẠNG của NV đủ điều kiện rồi gán lại đều.
+        Trả {'ok', 'message'} để client toast.
+        """
+        self._check_board_access()
+        hotlines = self.search([('active', '=', True), ('carrier', '=', carrier)])
+        if not hotlines:
+            return {'ok': False, 'message': 'Không có số %s nào trong kho.' % carrier}
+        stats = self.env['stringee.call']._vd_numbers_stats(hotlines.mapped('number'))
+        alive = hotlines.filtered(
+            lambda h: (stats.get(h.number) or {}).get('health') == 'alive'
+        )
+        if not alive:
+            return {'ok': False, 'message':
+                    'Không có số %s nào CÒN SỐNG (đổ chuông gần đây) để chia. '
+                    'Kiểm tra/mở outbound trên Stringee trước.' % carrier}
+        users = self.env['res.users'].search([
+            ('share', '=', False), ('active', '=', True),
+            ('vd_no_number_share', '=', False),
+        ], order='name')
+        if not users:
+            return {'ok': False, 'message': 'Không có NV đủ điều kiện để chia số.'}
+
+        alive_sorted = alive.sorted('number')
+        n_alive = len(alive_sorted)
+        for idx, u in enumerate(users):
+            target = alive_sorted[idx % n_alive]
+            # bỏ mọi số cùng mạng đang gán, gán đúng 1 số target
+            same = u.stringee_hotline_ids.filtered(
+                lambda h: h.active and h.carrier == carrier and h.id != target.id
+            )
+            cmds = [(3, h.id) for h in same]
+            cmds.append((4, target.id))
+            u.sudo().stringee_hotline_ids = cmds
+        _lbl = dict(_CARRIER_ORDER).get(carrier, carrier)
+        return {'ok': True, 'message':
+                'Đã chia đều %d số %s (còn sống) cho %d NV.'
+                % (n_alive, _lbl, len(users))}
 
     @api.model
     def assign_user_hotline(self, user_id, hotline_id):
