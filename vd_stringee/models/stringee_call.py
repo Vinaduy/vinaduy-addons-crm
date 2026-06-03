@@ -183,13 +183,14 @@ class StringeeCall(models.Model):
 
         Mục đích: khi 1 cuộc rớt TRƯỚC khi đổ chuông, thay vì luôn đoán mò
         "số chưa kích hoạt outbound", ta tra lịch sử số đó để báo ĐÚNG:
-          - dead    : chưa từng nối được cuộc nào → số HỎNG outbound (đổi số).
-          - suspect : trước nối được nhưng gần đây loạt cuộc rớt → đang trục trặc.
-          - alive   : số vẫn nối được bình thường → cuộc này khách không nghe/bận.
+          - dead  : gần đây KHÔNG cuộc nào đổ chuông → số HỎNG outbound (đổi số).
+          - alive : số vẫn đổ chuông/nối được → cuộc này khách không nghe/bận.
 
-        Tín hiệu cốt lõi: `duration > 0` nghĩa là cuộc đã RA TỚI nhà mạng (có
-        thời gian đổ chuông/đàm thoại). `duration = 0` = chết ngay trước đổ
-        chuông = không ra được mạng — đúng dấu vết số chưa thông outbound.
+        ⚠️ Tín hiệu PHẢI là "đã đổ chuông / khách nghe máy" lấy từ raw_events
+        (webhook Stringee: call_status='ringing'/'answered') hoặc answer_time —
+        KHÔNG dùng `duration` vì field này hay = 0 do placeholder record không
+        khớp được webhook (lỗi ghi nhận giây), KHÔNG phản ánh số có hỏng hay
+        không. Một số gọi rất nhiều, khách nghe máy thật nhưng duration vẫn 0.
         """
         digits9 = re.sub(r'\D', '', from_number or '')[-9:]
         if not digits9:
@@ -198,66 +199,70 @@ class StringeeCall(models.Model):
         label = _CARRIER_LABELS.get(carrier, carrier or '')
         like = '%' + digits9
         cr = self.env.cr
-        # (1) Tổng quan toàn lịch sử: đã bao giờ ra tới mạng (duration>0) chưa?
-        cr.execute("""
-            SELECT count(*) AS total,
-                   count(*) FILTER (WHERE duration > 0) AS reached,
-                   COALESCE(max(duration), 0) AS max_dur
-            FROM stringee_call
-            WHERE direction = 'outbound' AND caller_number LIKE %s
-        """, [like])
-        total, reached, max_dur = cr.fetchone()
-        # (2) Chuỗi cuộc GẦN NHẤT liên tục KHÔNG ra tới mạng (duration=0).
-        cr.execute("""
-            SELECT duration FROM stringee_call
-            WHERE direction = 'outbound' AND caller_number LIKE %s
-            ORDER BY create_date DESC LIMIT 30
-        """, [like])
-        streak = 0
-        for (d,) in cr.fetchall():
-            if (d or 0) > 0:
-                break
-            streak += 1
+        # "Đã RA TỚI nhà mạng" = webhook báo ringing/answered, hoặc có answer_time.
+        # (% literal trong ILIKE phải double thành %% vì câu lệnh có param %s.)
+        reached_sql = (
+            "(raw_events ILIKE '%%ringing%%' "
+            " OR raw_events ILIKE '%%answered%%' "
+            " OR answer_time IS NOT NULL)"
+        )
+        # (1) Toàn lịch sử: đã bao giờ đổ chuông tới khách chưa?
+        cr.execute(
+            "SELECT count(*), count(*) FILTER (WHERE " + reached_sql + ") "
+            "FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number LIKE %s",
+            [like],
+        )
+        total_all, reached_all = cr.fetchone()
+        # (2) Cửa sổ GẦN ĐÂY (3 ngày): hiện số còn đổ chuông được không?
+        cr.execute(
+            "SELECT count(*), count(*) FILTER (WHERE " + reached_sql + ") "
+            "FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number LIKE %s "
+            "  AND create_date > (now() at time zone 'utc') - interval '3 days'",
+            [like],
+        )
+        recent_total, recent_reached = cr.fetchone()
 
-        num_disp = digits9 if not from_number else re.sub(r'\D', '', from_number)
-        # === Phân loại ===
-        if reached == 0 and total >= 3:
-            # Chưa từng nối được cuộc nào dù đã thử nhiều lần → SỐ CHẾT.
+        num_disp = re.sub(r'\D', '', from_number) if from_number else digits9
+        common = {
+            'total': total_all, 'reached': reached_all,
+            'recent_total': recent_total, 'recent_reached': recent_reached,
+        }
+        # === Phân loại (CHỈ dead vs alive, dựa tín hiệu đổ chuông thật) ===
+        never_reached = (reached_all == 0 and total_all >= 3)
+        broke_recently = (recent_reached == 0 and recent_total >= 8)
+        if never_reached or broke_recently:
+            if never_reached:
+                detail = (
+                    f'đã thử {total_all} cuộc nhưng CHƯA cuộc nào đổ chuông tới '
+                    f'khách. Số chưa được mở gọi ra (outbound) trên Stringee, '
+                    f'hoặc đã hỏng.'
+                )
+            else:
+                detail = (
+                    f'{recent_total} cuộc gần đây KHÔNG cuộc nào đổ chuông được '
+                    f'(trước đây vẫn gọi được). Số đang bị chặn/lỗi đường gọi ra.'
+                )
             return {
                 'state': 'dead', 'level': 'danger',
-                'title': f'Số {label} hỏng gọi ra — kiểm tra trên Stringee',
+                'title': f'Số {label} không gọi ra được — kiểm tra Stringee',
                 'message': (
-                    f'🔴 Số tổng đài {label} {num_disp} KHÔNG gọi ra được — '
-                    f'đã thử {total} cuộc nhưng CHƯA cuộc nào nối tới khách '
-                    f'(rớt trước khi đổ chuông). Số này nhiều khả năng chưa được '
-                    f'mở gọi ra (outbound) trên Stringee, hoặc đã hỏng. '
+                    f'🔴 Số tổng đài {label} {num_disp} — {detail} '
                     f'→ Báo admin đổi số / kiểm tra số này trên Stringee Dashboard.'
                 ),
-                'total': total, 'reached': reached, 'streak': streak,
+                **common,
             }
-        if reached > 0 and streak >= 6:
-            # Trước nối được, gần đây loạt cuộc rớt trước đổ chuông → ĐANG TRỤC TRẶC.
-            return {
-                'state': 'suspect', 'level': 'warning',
-                'title': f'Số {label} đang trục trặc gọi ra',
-                'message': (
-                    f'🟠 Số tổng đài {label} {num_disp} trước đây gọi được nhưng '
-                    f'{streak} cuộc gần đây LIÊN TIẾP rớt trước khi đổ chuông. '
-                    f'Số đang trục trặc đường gọi ra — nếu tiếp tục, báo admin '
-                    f'kiểm tra trên Stringee.'
-                ),
-                'total': total, 'reached': reached, 'streak': streak,
-            }
-        # Số vẫn bình thường (có lịch sử nối) → cuộc này lỗi do phía khách/tạm thời.
+        # Số vẫn đổ chuông/nối được → cuộc này lỗi phía khách/tạm thời.
         return {
             'state': 'alive', 'level': 'info',
             'title': 'Khách chưa kết nối',
             'message': (
                 f'Cuộc này chưa kết nối được (khách không nghe/bận hoặc nghẽn '
-                f'tạm thời). Số tổng đài {label} {num_disp} vẫn hoạt động bình '
+                f'tạm thời). Số tổng đài {label} {num_disp} vẫn gọi ra bình '
                 f'thường — thử gọi lại sau.'
             ),
-            'total': total, 'reached': reached, 'streak': streak,
+            **common,
         }
 
     # ---------- REST helpers ----------

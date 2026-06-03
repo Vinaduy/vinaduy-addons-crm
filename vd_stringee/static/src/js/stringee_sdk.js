@@ -397,7 +397,7 @@ export const stringeeService = {
                     notification.add(h.message, {
                         type: h.level || "warning",
                         title: h.title || undefined,
-                        sticky: h.state === "dead" || h.state === "suspect",
+                        sticky: h.state === "dead",   // chỉ số chết mới giữ sticky
                     });
                 }).catch(() => {
                     notification.add(
