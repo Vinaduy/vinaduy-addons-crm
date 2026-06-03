@@ -1186,13 +1186,18 @@ export class VdCrmDashboard extends Component {
         }, 320);
     }
 
-    // Zoom của dashboard (.o_vd_crm_dashboard có zoom:0.7). getBoundingClientRect
-    // trả toạ độ LOCAL (chưa nhân zoom), còn popup position:fixed nằm ở hệ
-    // VISUAL → phải NHÂN zoom để khớp. Đọc động để không hardcode.
+    // Dashboard có zoom:0.7. Popup position:fixed NẰM TRONG vùng zoom nên toạ
+    // độ style của nó ở hệ LOCAL (sẽ được nhân zoom khi render), trong khi
+    // getBoundingClientRect() trả VISUAL → phải CHIA cho zoom để ra local.
+    // Đo trực tiếp tỷ lệ render (rect/offsetWidth) — chắc chắn, không phụ thuộc
+    // getComputedStyle (vốn hay trả rỗng cho `zoom`).
     _dashZoom() {
         const host = document.querySelector(".o_vd_crm_dashboard");
-        const z = host ? parseFloat(getComputedStyle(host).zoom) : 1;
-        return z && z > 0 ? z : 1;
+        if (host && host.offsetWidth) {
+            const ratio = host.getBoundingClientRect().width / host.offsetWidth;
+            if (ratio > 0.2 && ratio <= 1.05) return ratio;
+        }
+        return 0.7;
     }
 
     // ===== BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) =====
@@ -1206,15 +1211,15 @@ export class VdCrmDashboard extends Component {
                 && this.state.todayCallsHover.user_id === nv.user_id) {
             return;
         }
-        const z = this._dashZoom();
         const r = ev.currentTarget.getBoundingClientRect();
+        // Lưu toạ độ VISUAL (raw); quy đổi sang local theo zoom trong popStyle.
         this.state.todayCallsHover = {
             user_id: nv.user_id,
             name: nv.full_name,
-            anchorLeft: Math.round(r.left * z),
-            anchorRight: Math.round(r.right * z),
-            cellTop: Math.round(r.top * z),
-            cellBottom: Math.round(r.bottom * z),
+            anchorLeft: Math.round(r.left),
+            anchorRight: Math.round(r.right),
+            cellTop: Math.round(r.top),
+            cellBottom: Math.round(r.bottom),
             loading: true,
             summary: {},
             customers: [],
@@ -1253,20 +1258,25 @@ export class VdCrmDashboard extends Component {
     get todayCallsPopStyle() {
         const h = this.state.todayCallsHover;
         if (!h) return "display:none;";
-        const vw = window.innerWidth || 1200;
-        const vh = window.innerHeight || 800;
+        const z = this._dashZoom();
+        // Quy về hệ LOCAL của popup (chia zoom): toạ độ rect (visual) ÷ z,
+        // và viewport ÷ z. Popup là position:fixed trong vùng zoom nên style
+        // tính theo local rồi được render nhân z → khớp đúng ô.
+        const vw = (window.innerWidth || 1200) / z;
+        const vh = (window.innerHeight || 800) / z;
         const W = 760;
-        // Bung từ mép TRÁI ô; nếu tràn phải thì kéo về cho vừa màn hình.
-        let left = h.anchorLeft;
+        let left = h.anchorLeft / z;
         if (left + W > vw - 12) left = Math.max(12, vw - W - 12);
         // Mặc định đặt NGAY DƯỚI ô. Nếu sát đáy → neo bằng `bottom` để bung
         // LÊN TRÊN ô (không bao giờ che ô đang hover → hết nhảy/nháy).
         const EST = 440;
-        if (h.cellBottom + EST <= vh - 8) {
-            return `top:${h.cellBottom + 6}px; left:${left}px; width:${W}px;`;
+        const cellBottom = h.cellBottom / z;
+        const cellTop = h.cellTop / z;
+        if (cellBottom + EST <= vh - 8) {
+            return `top:${Math.round(cellBottom + 6)}px; left:${Math.round(left)}px; width:${W}px;`;
         }
-        const bottom = Math.max(8, vh - h.cellTop + 6);
-        return `bottom:${bottom}px; left:${left}px; width:${W}px;`;
+        const bottom = Math.max(8, vh - cellTop + 6);
+        return `bottom:${Math.round(bottom)}px; left:${Math.round(left)}px; width:${W}px;`;
     }
     // mm:ss từ giây
     fmtMmSs(sec) {
