@@ -1571,6 +1571,7 @@
                                             t-att-value="u.id"
                                             t-att-selected="u.id === state.reassignTargetId">
                                         <t t-esc="u.name"/>
+                                        <t t-if="u.new_total != null"> — <t t-esc="u.new_not_called or 0"/> chưa gọi · <t t-esc="u.new_total or 0"/> mới</t>
                                     </option>
                                 </select>
                                 <button class="o_vd_bulk_apply"
@@ -1912,15 +1913,25 @@
                                         <span>GẤP</span>
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsUrgentConstruction.length"/></div>
+                                    <button t-if="state.selectMode and leadsUrgentConstruction.length"
+                                            class="o_vd_select_all_btn"
+                                            t-on-click.stop="() => this.toggleSelectAll(leadsUrgentConstruction.map(l => l.id))"
+                                            title="Chọn / bỏ chọn tất cả KH bảng này">
+                                        ☑ Tất cả
+                                    </button>
                                 </div>
                                 <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsUrgentConstruction.length">
                                         <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
-                                             t-on-click="() => this.openLead(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '')">
+                                             t-on-click="() => this.onPillClick(lead.id)"
+                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '')">
+                                            <span t-if="state.selectMode" class="o_vd_row_check">
+                                                <t t-if="isLeadSelected(lead.id)">☑</t>
+                                                <t t-else="">☐</t>
+                                            </span>
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
-                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
+                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
                                                 <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
@@ -2089,15 +2100,25 @@
                                         <span>VẤN ĐỀ</span>
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsWithProblems.length"/></div>
+                                    <button t-if="state.selectMode and leadsWithProblems.length"
+                                            class="o_vd_select_all_btn"
+                                            t-on-click.stop="() => this.toggleSelectAll(leadsWithProblems.map(l => l.id))"
+                                            title="Chọn / bỏ chọn tất cả KH bảng này">
+                                        ☑ Tất cả
+                                    </button>
                                 </div>
                                 <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsWithProblems.length">
                                         <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
-                                             t-on-click="() => this.openLead(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '')">
+                                             t-on-click="() => this.onPillClick(lead.id)"
+                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '')">
+                                            <span t-if="state.selectMode" class="o_vd_row_check">
+                                                <t t-if="isLeadSelected(lead.id)">☑</t>
+                                                <t t-else="">☐</t>
+                                            </span>
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
-                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name)"
+                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
                                                 <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->

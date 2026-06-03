@@ -5399,19 +5399,47 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_users(self):
-        """Danh sách NV để manager chọn xem dashboard theo từng NV."""
+        """Danh sách NV để manager chọn xem dashboard theo từng NV.
+
+        Mỗi NV kèm 2 số liệu cho dropdown CHUYỂN KH:
+          - new_not_called: KH mới CHƯA gọi cuộc nào (call_count = 0).
+          - new_total: tổng KH trong bảng KHÁCH MỚI = bucket KHÁCH MỚI TRỪ
+            nhóm 'CHƯA GỌI ĐƯỢC' (unreachable, call_count >= 3) → khớp đúng
+            con số hiển thị ở bảng KHÁCH MỚI trên UI (leadsNoProblems).
+        """
         if not self._dashboard_is_manager():
             u = self.env.user
             return [{'id': u.id, 'name': u.name}]
+        from collections import defaultdict
         users = self.env['res.users'].search([
             ('share', '=', False),
             ('active', '=', True),
         ], order='name')
-        # Chỉ giữ NV có ít nhất 1 lead — bớt nhiễu
-        sales_users = users.filtered(
-            lambda u: self.env['crm.lead'].sudo().search_count([('user_id', '=', u.id)]) > 0
-        )
-        return [{'id': u.id, 'name': u.name, 'login': u.login} for u in sales_users]
+        Lead = self.env['crm.lead'].sudo()
+        # NV có ít nhất 1 lead (1 query read_group thay vì N search_count).
+        groups = Lead.read_group([('user_id', '!=', False)], ['user_id'], ['user_id'])
+        user_ids_with_lead = {g['user_id'][0] for g in groups if g['user_id']}
+        sales_users = users.filtered(lambda u: u.id in user_ids_with_lead)
+        # Toàn bộ bucket KHÁCH MỚI của mọi NV — 1 query.
+        all_new = Lead.search(
+            self._dashboard_new_bucket_domain([('user_id', '!=', False)]))
+        new_by_user = defaultdict(list)
+        for l in all_new:
+            new_by_user[l.user_id.id].append(l)
+        # 'CHƯA GỌI ĐƯỢC' ∩ bucket mới = unreachable trên lead call_count >= 3.
+        unreach_cand = all_new.filtered(lambda l: (l.call_count or 0) >= 3)
+        unreachable_ids = set(self._dashboard_unreachable_ids(unreach_cand, limit=100000))
+        result = []
+        for u in sales_users:
+            leads = new_by_user.get(u.id, [])
+            not_called = sum(1 for l in leads if (l.call_count or 0) == 0)
+            in_table = sum(1 for l in leads if l.id not in unreachable_ids)
+            result.append({
+                'id': u.id, 'name': u.name, 'login': u.login,
+                'new_not_called': not_called,
+                'new_total': in_table,
+            })
+        return result
 
     @api.model
     def dashboard_bulk_reassign(self, lead_ids, target_user_id):

@@ -7391,3 +7391,23 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         }
     }
 }
+
+/* Chọn KH ở 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ (dạng row, không phải pill).
+   Row là grid 3 cột (name|khớp tài chính|problems) → khi bật chọn thêm 1 cột
+   đầu cho ô tick, nếu không item tick sẽ tràn xuống dòng mới làm vỡ layout. */
+.o_vd_problem_row.o_vd_row_selectable {
+    grid-template-columns: auto auto auto 1fr;   /* tick | name | tài chính | problems */
+    cursor: pointer;
+    &:hover { box-shadow: 0 0 0 2px #74c0fc inset; }
+}
+.o_vd_problem_row.o_vd_row_selected {
+    background: #d3f9d8 !important;
+    box-shadow: 0 0 0 2px #2f9e44 inset !important;
+}
+.o_vd_row_check {
+    flex: 0 0 auto;
+    margin-right: 0.4rem;
+    font-size: 1rem;
+    line-height: 1;
+    color: #2f9e44;
+}

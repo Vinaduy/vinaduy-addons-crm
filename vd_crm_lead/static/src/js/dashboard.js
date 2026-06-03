@@ -873,6 +873,10 @@ export class VdCrmDashboard extends Component {
             this.state.selectMode = false;
             this.state.reassignTargetId = 0;
             await this.loadDashboard();
+            // Cập nhật lại số liệu (chưa gọi / tổng mới) trên dropdown NV.
+            if (this.state.is_manager) {
+                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
+            }
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
             this.notification.add(msg,
@@ -1318,8 +1322,14 @@ export class VdCrmDashboard extends Component {
     }
     // Click tên KH (pill ở bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) → copy tên,
     // KHÔNG mở lead (stopPropagation để không trigger row openLead).
-    copyLeadName(ev, name) {
+    copyLeadName(ev, name, leadId) {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        // Ở chế độ CHỌN KH: click tên = tick chọn (không copy) để chọn được
+        // KH ngay trên 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ.
+        if (this.state.selectMode && leadId != null) {
+            this.toggleLeadSelect(leadId);
+            return;
+        }
         this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
     }
     // 🆘 NV gửi yêu cầu hỗ trợ. scope: 'today' (trong ngày) | 'multi' (đến khi chốt).
