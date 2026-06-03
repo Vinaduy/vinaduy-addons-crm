@@ -142,9 +142,8 @@
                 </t>
             </div>
 
-            <!-- 🆕 POPOVER KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, hiện tại
-                 vị trí chuột; render 1 lần ở gốc để thoát mọi khung cắt + theo
-                 đúng con trỏ (newTodayPopStyle). -->
+            <!-- 🆕 POPOVER KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, render 1
+                 lần ở gốc để thoát mọi khung cắt; dính MÉP THẺ NV (newTodayPopStyle). -->
             <div t-if="state.newTodayHover" class="o_vd_kh_nv_popover o_vd_newtoday_pop"
                  t-attf-style="{{ newTodayPopStyle }}"
                  t-on-mouseenter="() => this.onNewTodayPopEnter()"
@@ -173,7 +172,7 @@
                     <div class="o_vd_kh_popover_section_head">
                         📋 Toàn bộ (<t t-esc="ntnv.new_count or 0"/>)
                     </div>
-                    <div t-foreach="ntnv.new_leads" t-as="ld" t-key="'all_' + ld.lead_id"
+                    <div t-foreach="ntnv.new_leads or []" t-as="ld" t-key="'all_' + ld.lead_id"
                          class="o_vd_kh_lead_item"
                          t-on-click="() => this.openLead(ld.lead_id)">
                         <div class="o_vd_kh_lead_main">

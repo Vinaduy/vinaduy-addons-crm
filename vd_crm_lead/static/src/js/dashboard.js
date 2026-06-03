@@ -1154,13 +1154,8 @@ export class VdCrmDashboard extends Component {
             this.state.reminderHover = null;
             return;
         }
-        // Định vị theo VỊ TRÍ CHUỘT (visual viewport px) — quy đổi sang local
-        // theo zoom trong reminderPopStyle.
-        this.state.reminderHover = {
-            nv,
-            cx: ev.clientX,
-            cy: ev.clientY,
-        };
+        // Neo theo MÉP THẺ NV — quy đổi sang local theo zoom trong reminderPopStyle.
+        this.state.reminderHover = { nv, rect: this._rowRect(ev) };
     }
     // Đóng có TRỄ để chuột kịp di từ tên NV xuống popover (bấm nút Lần/Gỡ).
     onReminderLeave() {
@@ -1184,7 +1179,7 @@ export class VdCrmDashboard extends Component {
         if (!h) {
             return "display:none;";
         }
-        return this._popAtCursor(h.cx, h.cy, 720, 380);
+        return this._popAtRect(h.rect, 720);
     }
 
     // ===== GHI ÂM (hover tên NV) — hiện BÊN TRÁI, nghe + tải ngay =====
@@ -1196,8 +1191,7 @@ export class VdCrmDashboard extends Component {
         this.state.recHover = {
             user_id: nv.user_id,
             name: nv.full_name,
-            cx: ev.clientX,
-            cy: ev.clientY,
+            rect: this._rowRect(ev),
             loading: true,
             recordings: [],
         };
@@ -1237,33 +1231,38 @@ export class VdCrmDashboard extends Component {
         return 0.7;
     }
 
-    // Định vị 1 popup position:fixed NGAY TẠI VỊ TRÍ CHUỘT.
-    // cx/cy là toạ độ VISUAL (ev.clientX/Y). Dashboard có zoom → popup fixed bên
-    // trong vùng zoom bị nhân zoom khi render, nên style phải tính ở hệ LOCAL
-    // (chia zoom). Mặc định bung xuống-phải con trỏ; sát cạnh thì lật lại để
-    // không tràn viewport.
-    _popAtCursor(cx, cy, W, estH) {
+    // Lấy rect (VISUAL px) của THẺ NV chứa phần tử hover — để popup dính mép thẻ.
+    _rowRect(ev) {
+        const el = ev.currentTarget;
+        const row = (el.closest && el.closest(".o_vd_kh_nv_row")) || el;
+        const r = row.getBoundingClientRect();
+        return { left: r.left, top: r.top, bottom: r.bottom };
+    }
+
+    // Định vị popup position:fixed DÍNH MÉP thẻ NV (rect = hệ VISUAL).
+    // Dashboard có zoom → popup fixed trong vùng zoom bị nhân zoom khi render →
+    // style phải tính ở hệ LOCAL (chia zoom).
+    // - Còn chỗ bên dưới ≥ bên trên → bung XUỐNG, mép trên dính ĐÁY thẻ.
+    // - Ngược lại → neo bằng `bottom` (dính ĐỈNH thẻ) để bung LÊN. Dùng `bottom`
+    //   nên KHÔNG phụ thuộc chiều cao popup → không bao giờ che thẻ → hết nhảy/nháy
+    //   ở các NV cuối bảng.
+    _popAtRect(rect, W) {
         const z = this._dashZoom();
         const vw = (window.innerWidth || 1280) / z;
         const vh = (window.innerHeight || 800) / z;
-        const px = (cx || 0) / z;
-        const py = (cy || 0) / z;
-        const GAP = 14;
-        let left = px + GAP;
+        const elTop = rect.top / z;
+        const elBottom = rect.bottom / z;
+        let left = rect.left / z;
         if (left + W > vw - 8) {
-            left = px - W - GAP;            // lật sang TRÁI con trỏ
+            left = Math.max(8, vw - W - 8);
         }
         if (left < 8) {
-            left = Math.max(8, vw - W - 8); // vẫn tràn → ghim trong viewport
+            left = 8;
         }
-        let top = py + GAP;
-        if (top + estH > vh - 8) {
-            top = py - estH - GAP;          // lật LÊN TRÊN con trỏ
+        if ((vh - elBottom) >= elTop) {
+            return `top:${Math.round(elBottom + 4)}px; left:${Math.round(left)}px; width:${W}px;`;
         }
-        if (top < 8) {
-            top = 8;
-        }
-        return `top:${Math.round(top)}px; left:${Math.round(left)}px; width:${W}px;`;
+        return `bottom:${Math.round(vh - elTop + 4)}px; left:${Math.round(left)}px; width:${W}px;`;
     }
 
     // ===== BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) =====
@@ -1277,12 +1276,11 @@ export class VdCrmDashboard extends Component {
                 && this.state.todayCallsHover.user_id === nv.user_id) {
             return;
         }
-        // Lưu toạ độ CHUỘT (visual); quy đổi sang local theo zoom trong popStyle.
+        // Neo theo MÉP THẺ NV (visual); quy đổi sang local theo zoom trong popStyle.
         this.state.todayCallsHover = {
             user_id: nv.user_id,
             name: nv.full_name,
-            cx: ev.clientX,
-            cy: ev.clientY,
+            rect: this._rowRect(ev),
             loading: true,
             summary: {},
             customers: [],
@@ -1321,11 +1319,11 @@ export class VdCrmDashboard extends Component {
     get todayCallsPopStyle() {
         const h = this.state.todayCallsHover;
         if (!h) return "display:none;";
-        return this._popAtCursor(h.cx, h.cy, 760, 440);
+        return this._popAtRect(h.rect, 760);
     }
 
-    // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed tại vị trí
-    // chuột (dữ liệu đã có sẵn trong nv → không cần nạp). =====
+    // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed dính mép thẻ
+    // NV (dữ liệu đã có sẵn trong nv → không cần nạp). =====
     onNewTodayEnter(ev, nv) {
         if (this._newTodayTimer) {
             clearTimeout(this._newTodayTimer);
@@ -1335,7 +1333,7 @@ export class VdCrmDashboard extends Component {
             this.state.newTodayHover = null;
             return;
         }
-        this.state.newTodayHover = { nv, cx: ev.clientX, cy: ev.clientY };
+        this.state.newTodayHover = { nv, rect: this._rowRect(ev) };
     }
     onNewTodayLeave() {
         if (this._newTodayTimer) {
@@ -1355,7 +1353,7 @@ export class VdCrmDashboard extends Component {
     get newTodayPopStyle() {
         const h = this.state.newTodayHover;
         if (!h) return "display:none;";
-        return this._popAtCursor(h.cx, h.cy, 420, 360);
+        return this._popAtRect(h.rect, 420);
     }
     // mm:ss từ giây
     fmtMmSs(sec) {
@@ -1375,7 +1373,7 @@ export class VdCrmDashboard extends Component {
         if (!h) {
             return "display:none;";
         }
-        return this._popAtCursor(h.cx, h.cy, 440, 420);
+        return this._popAtRect(h.rect, 440);
     }
     fmtDur(sec) {
         const s = Math.max(0, parseInt(sec || 0, 10));

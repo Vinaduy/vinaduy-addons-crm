@@ -3805,44 +3805,47 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
-        padding: 4px 6px 5px;
-        border-radius: 9px;
+        gap: 1px;
+        padding: 3px 4px 4px;
+        border-radius: 8px;
         border: 1.5px solid transparent;
         cursor: pointer;
+        overflow: hidden;          /* chặn chữ tràn ra ngoài khung nút */
         transition: transform .12s ease, box-shadow .12s ease;
         &:hover { transform: translateY(-1px); }
     }
-    /* Nhãn "HÔM NAY" — pill nhỏ, viết hoa, để nhìn 1 phát biết là số của hôm nay */
+    /* Nhãn "HÔM NAY" — pill RẤT nhỏ, viết hoa, để nhìn 1 phát biết là của hôm nay */
     .o_vd_today_tag {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        font-size: 0.58rem;
+        gap: 2px;
+        font-size: 0.46rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.2px;
         line-height: 1;
-        padding: 1px 6px;
+        padding: 1px 4px;
         border-radius: 999px;
         white-space: nowrap;
-        i.fa { font-size: 0.6rem; }
+        max-width: 100%;
+        i.fa { font-size: 0.48rem; }
     }
     .o_vd_today_main {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         white-space: nowrap;
+        max-width: 100%;
     }
-    .o_vd_today_ico { font-size: 0.95rem; }
-    .o_vd_today_num { font-size: 1.4rem; font-weight: 800; line-height: 1; }
-    .o_vd_today_lbl { font-size: 0.78rem; font-weight: 600; }
+    .o_vd_today_ico { font-size: 0.8rem; }
+    .o_vd_today_num { font-size: 1.12rem; font-weight: 800; line-height: 1; }
+    .o_vd_today_lbl { font-size: 0.64rem; font-weight: 600; }
     .o_vd_today_ok {
         display: inline-flex; align-items: center; gap: 2px;
-        margin-left: 3px; padding-left: 5px;
+        margin-left: 2px; padding-left: 4px;
         border-left: 1px solid rgba(0,0,0,0.12);
-        font-size: 0.95rem; font-weight: 800; color: #15803d;
-        i.fa { font-size: 0.82rem; }
+        font-size: 0.78rem; font-weight: 800; color: #15803d;
+        i.fa { font-size: 0.66rem; }
     }
     /* NÚT KHÁCH MỚI — tông hổ phách/cam (giữ nhận diện "hôm nay") */
     .o_vd_today_btn_new {
