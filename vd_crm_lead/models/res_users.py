@@ -54,6 +54,44 @@ class ResUsers(models.Model):
              'NHẮC NHỞ trên dashboard.',
     )
 
+    # ===== HƯỚNG DẪN NÚT SOS — coachmark tự hiện cho NV (user spec 2026-06-03) =====
+    # Bảng nhỏ hướng dẫn cách dùng nút SOS, neo vào 1 nút SOS. NV bấm "Đã đọc"
+    # = 1 lần (chỉ tính 1 lần/ngày). Đủ 3 lần trên 3 NGÀY KHÁC NHAU → ẩn vĩnh
+    # viễn. Default 0 → mọi NV (kể cả NV tạo mới) đều thấy lúc đầu.
+    vd_sos_guide_ack_count = fields.Integer(
+        string='Số ngày đã đọc hướng dẫn SOS', default=0, copy=False,
+        help='Số NGÀY KHÁC NHAU NV đã bấm "Đã đọc" bảng hướng dẫn SOS. '
+             '>= 3 thì ẩn hướng dẫn vĩnh viễn.',
+    )
+    vd_sos_guide_last_ack = fields.Date(
+        string='Ngày đọc hướng dẫn SOS gần nhất', copy=False,
+        help='Chỉ tính 1 lần/ngày — bấm "Đã đọc" lại trong cùng ngày không cộng thêm.',
+    )
+
+    @api.model
+    def vd_sos_guide_should_show(self, user=None):
+        """True nếu user còn phải xem hướng dẫn SOS: chưa đủ 3 ngày VÀ hôm nay
+        chưa bấm 'Đã đọc'."""
+        user = user or self.env.user
+        today = fields.Date.context_today(self)
+        return (user.vd_sos_guide_ack_count or 0) < 3 and user.vd_sos_guide_last_ack != today
+
+    @api.model
+    def vd_sos_guide_ack(self):
+        """NV bấm 'Đã đọc'. Chỉ cộng 1 lần/ngày → cần 3 ngày khác nhau mới đủ.
+        Trả {show, count}."""
+        user = self.env.user
+        today = fields.Date.context_today(self)
+        if user.vd_sos_guide_last_ack != today:
+            user.sudo().write({
+                'vd_sos_guide_ack_count': (user.vd_sos_guide_ack_count or 0) + 1,
+                'vd_sos_guide_last_ack': today,
+            })
+        return {
+            'show': self.vd_sos_guide_should_show(user),
+            'count': user.vd_sos_guide_ack_count or 0,
+        }
+
     @api.model
     def vd_set_reminder_level(self, user_id, level):
         """Admin set mức nhắc nhở cho 1 NV (0..5). Trả mức mới."""

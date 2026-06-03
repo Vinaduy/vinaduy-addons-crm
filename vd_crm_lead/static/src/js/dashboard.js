@@ -109,6 +109,10 @@ export class VdCrmDashboard extends Component {
             selectedLeadIds: {},
             reassignTargetId: 0,
             reassignBusy: false,
+            // ===== HƯỚNG DẪN NÚT SOS (coachmark tự hiện) =====
+            // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
+            // trên 3 ngày khác nhau.
+            sos_guide: { show: false, count: 0 },
         });
         this._searchDebounce = null;
 
@@ -883,6 +887,27 @@ export class VdCrmDashboard extends Component {
                 { type: "danger", title: "Không chuyển được KH" });
         } finally {
             this.state.reassignBusy = false;
+        }
+    }
+
+    // ========================================================================
+    // HƯỚNG DẪN NÚT SOS — coachmark neo vào 1 nút SOS, NV bấm "Đã đọc"
+    // ========================================================================
+    // Lead đầu tiên có nút SOS để neo coachmark (ưu tiên bảng THI CÔNG GẤP).
+    get firstSosLeadId() {
+        const u = this.leadsUrgentConstruction;
+        if (u && u.length) return u[0].id;
+        const p = this.leadsWithProblems;
+        if (p && p.length) return p[0].id;
+        return null;
+    }
+    async ackSosGuide() {
+        try {
+            const res = await this.orm.call("res.users", "vd_sos_guide_ack", []);
+            this.state.sos_guide = res || { show: false, count: 0 };
+        } catch (_e) {
+            // Lỗi mạng → vẫn ẩn trong phiên này, lần sau payload quyết định lại.
+            this.state.sos_guide = { ...this.state.sos_guide, show: false };
         }
     }
 

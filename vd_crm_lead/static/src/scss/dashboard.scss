@@ -7394,9 +7394,14 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 
 /* Chọn KH ở 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ (dạng row, không phải pill).
    Row là grid 3 cột (name|khớp tài chính|problems) → khi bật chọn thêm 1 cột
-   đầu cho ô tick, nếu không item tick sẽ tràn xuống dòng mới làm vỡ layout. */
-.o_vd_problem_row.o_vd_row_selectable {
+   đầu cho ô tick, nếu không item tick sẽ tràn xuống dòng mới làm vỡ layout.
+   Selector phải >= .o_vd_filter_table_right_rows .o_vd_problem_row (0,3,0)
+   nên thêm .o_vd_crm_dashboard để đè grid-template-columns gốc. */
+.o_vd_crm_dashboard .o_vd_filter_table_right_rows .o_vd_problem_row.o_vd_row_selectable {
     grid-template-columns: auto auto auto 1fr;   /* tick | name | tài chính | problems */
+    @media (max-width: 600px) { grid-template-columns: 1fr; }   /* mobile: stack như gốc */
+}
+.o_vd_problem_row.o_vd_row_selectable {
     cursor: pointer;
     &:hover { box-shadow: 0 0 0 2px #74c0fc inset; }
 }
@@ -7410,4 +7415,76 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     font-size: 1rem;
     line-height: 1;
     color: #2f9e44;
+}
+
+/* ====================================================================
+   COACHMARK HƯỚNG DẪN NÚT SOS — tự hiện, neo BÊN TRÁI nút SOS, mũi tên
+   chỉ sang phải vào nút. Ẩn sau 3 lần "Đã đọc" (3 ngày khác nhau).
+   Đặt trong .o_vd_sos (position:relative) nên absolute theo nút SOS.
+   ==================================================================== */
+.o_vd_sos_guide {
+    position: absolute;
+    right: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 90;
+    width: 262px;
+    padding: 0.7rem 0.85rem 0.75rem;
+    background: linear-gradient(135deg, #fff9db, #ffec99);
+    border: 2px solid #f59f00;
+    border-radius: 11px;
+    box-shadow: 0 12px 30px rgba(245, 159, 0, 0.35);
+    cursor: default;
+    text-align: left;
+    white-space: normal;
+    animation: vd-sos-guide-pop 0.25s ease;
+}
+.o_vd_sos_guide_arrow {
+    position: absolute;
+    right: -11px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-left: 11px solid #f59f00;
+    &::after {
+        content: '';
+        position: absolute;
+        right: 3px; top: -7px;
+        width: 0; height: 0;
+        border-top: 7px solid transparent;
+        border-bottom: 7px solid transparent;
+        border-left: 8px solid #ffec99;
+    }
+}
+.o_vd_sos_guide_head {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #b35900;
+    margin-bottom: 0.35rem;
+}
+.o_vd_sos_guide_body {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #5c3b00;
+    line-height: 1.5;
+    b { color: #c92a2a; font-weight: 800; }
+}
+.o_vd_sos_guide_btn {
+    margin-top: 0.6rem;
+    width: 100%;
+    padding: 0.42rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #51cf66, #2b8a3e);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { filter: brightness(1.05); }
+}
+@keyframes vd-sos-guide-pop {
+    from { opacity: 0; transform: translateY(-50%) scale(0.92); }
+    to   { opacity: 1; transform: translateY(-50%) scale(1); }
 }

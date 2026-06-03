@@ -5815,6 +5815,11 @@ class CrmLead(models.Model):
             'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
             'current_user_id': self.env.user.id,
             'selected_user_id': scope_user.id if scope_user else 0,
+            # Hướng dẫn nút SOS (coachmark) — theo user ĐANG đăng nhập.
+            'sos_guide': {
+                'show': self.env['res.users'].vd_sos_guide_should_show(self.env.user),
+                'count': self.env.user.vd_sos_guide_ack_count or 0,
+            },
             'kpi': kpi,
             'errors': errors,
             'stages': stage_payload,

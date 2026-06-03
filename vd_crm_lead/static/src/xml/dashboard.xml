@@ -1981,6 +1981,23 @@
                                                 <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"
                                                      t-on-click.stop="(ev) => (!lead.need_help ? this.requestHelp(ev, lead.id, 'today') : null)">
                                                     <span class="o_vd_sos_face">SOS</span>
+                                                    <!-- Coachmark hướng dẫn SOS — tự hiện, neo vào nút SOS đầu tiên;
+                                                         ẩn sau 3 lần "Đã đọc" trên 3 ngày khác nhau (per-user). -->
+                                                    <div t-if="state.sos_guide and state.sos_guide.show and lead.id === firstSosLeadId"
+                                                         class="o_vd_sos_guide" t-on-click.stop="">
+                                                        <div class="o_vd_sos_guide_arrow"/>
+                                                        <div class="o_vd_sos_guide_head">🆘 Nút SOS — gọi cấp trên hỗ trợ</div>
+                                                        <div class="o_vd_sos_guide_body">
+                                                            Gặp khách khó, cần hỗ trợ? Bấm <b>SOS</b> để cấp trên vào giúp.<br/>
+                                                            • Bấm thẳng nút SOS = hỗ trợ <b>trong ngày</b>.<br/>
+                                                            • Mở menu chọn <b>🤝 Hỗ trợ CHỐT</b> nếu cần nhiều ngày.<br/>
+                                                            ⚠️ Đã gửi <b>không huỷ được</b> · mỗi NV tối đa <b>3 KH</b>.
+                                                        </div>
+                                                        <button class="o_vd_sos_guide_btn"
+                                                                t-on-click.stop="() => this.ackSosGuide()">
+                                                            ✅ Đã đọc (<t t-esc="(state.sos_guide.count or 0) + 1"/>/3 ngày)
+                                                        </button>
+                                                    </div>
                                                     <div class="o_vd_sos_pop" t-on-click.stop="">
                                                         <t t-if="!lead.need_help">
                                                             <div class="o_vd_sos_pop_head">🆘 Cần cấp trên hỗ trợ</div>
@@ -2166,6 +2183,23 @@
                                                 <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"
                                                      t-on-click.stop="(ev) => (!lead.need_help ? this.requestHelp(ev, lead.id, 'today') : null)">
                                                     <span class="o_vd_sos_face">SOS</span>
+                                                    <!-- Coachmark hướng dẫn SOS — tự hiện, neo vào nút SOS đầu tiên;
+                                                         ẩn sau 3 lần "Đã đọc" trên 3 ngày khác nhau (per-user). -->
+                                                    <div t-if="state.sos_guide and state.sos_guide.show and lead.id === firstSosLeadId"
+                                                         class="o_vd_sos_guide" t-on-click.stop="">
+                                                        <div class="o_vd_sos_guide_arrow"/>
+                                                        <div class="o_vd_sos_guide_head">🆘 Nút SOS — gọi cấp trên hỗ trợ</div>
+                                                        <div class="o_vd_sos_guide_body">
+                                                            Gặp khách khó, cần hỗ trợ? Bấm <b>SOS</b> để cấp trên vào giúp.<br/>
+                                                            • Bấm thẳng nút SOS = hỗ trợ <b>trong ngày</b>.<br/>
+                                                            • Mở menu chọn <b>🤝 Hỗ trợ CHỐT</b> nếu cần nhiều ngày.<br/>
+                                                            ⚠️ Đã gửi <b>không huỷ được</b> · mỗi NV tối đa <b>3 KH</b>.
+                                                        </div>
+                                                        <button class="o_vd_sos_guide_btn"
+                                                                t-on-click.stop="() => this.ackSosGuide()">
+                                                            ✅ Đã đọc (<t t-esc="(state.sos_guide.count or 0) + 1"/>/3 ngày)
+                                                        </button>
+                                                    </div>
                                                     <div class="o_vd_sos_pop" t-on-click.stop="">
                                                         <t t-if="!lead.need_help">
                                                             <div class="o_vd_sos_pop_head">🆘 Cần cấp trên hỗ trợ</div>
