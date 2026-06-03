@@ -54,16 +54,23 @@ class VdLeadQuickAddWizard(models.TransientModel):
         'vd.lead.quick.add.wizard.line', 'wizard_id',
         string='Danh sách KH',
     )
-    # User spec 2026-05-29: mutually exclusive — manual per-line user_id
-    # vs auto round-robin distribute on save. Ẩn cột NV khi chọn 'even'.
-    assign_mode = fields.Selection(
+    # User spec 2026-06-03: bỏ "chia đều" cũ. Flow mới: nhập KH trước → bấm
+    # CHỌN NHÂN VIÊN (show_distribute=True) → chọn 1 trong 4 cách chia → cột NV
+    # tự điền → bấm CHIA SỐ (action_create_leads) để tạo.
+    show_distribute = fields.Boolean(default=False)
+    distribute_mode = fields.Selection(
         [
-            ('manual', '👤 Tự chọn NV cho từng KH'),
-            ('even', '🎯 Chia đều cho tất cả NV'),
+            ('even_all', '⚖️ Chia đều cho TẤT CẢ nhân viên'),
+            ('least', '📉 Dồn cho nhân viên ÍT SỐ nhất'),
+            ('per_line', '✍️ Chọn nhân viên theo từng khách'),
+            ('group', '👥 Chia đều theo NHÓM nhân viên đã chọn'),
         ],
-        string='Phân bổ NV',
-        default='manual',
-        required=True,
+        string='Cách chia số',
+    )
+    group_user_ids = fields.Many2many(
+        'res.users', string='Nhóm NV nhận',
+        domain="[('share', '=', False)]",
+        help='Chọn 2+ nhân viên — khách sẽ được chia đều trong nhóm này.',
     )
     # Quick-create field: admin gõ tên → tạo vd.intake.custom.field → cột
     # tương ứng xuất hiện trong bảng (qua fields_get override trên line model).
@@ -103,60 +110,100 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 },
             }
 
-    def action_distribute_evenly(self):
-        """User spec 2026-05-29: chia đều các dòng cho tất cả NV eligible.
-        Round-robin theo thứ tự dòng trong wizard. Override user_id hiện tại.
-
-        Only Leader/Admin được dùng (NV thường không được phân lead cho NV khác).
-        """
-        self.ensure_one()
-        user = self.env.user
-        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
-        if not is_leader:
+    def _vd_check_leader(self):
+        if not self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
             raise UserError(_(
-                'Chỉ Trưởng nhóm / Admin mới được chia KH cho tất cả NV.'
+                'Chỉ Trưởng nhóm / Admin mới được chia KH cho nhân viên.'
             ))
 
+    def _vd_eligible_users(self):
+        """POOL NV nhận KH: salesman, không phải lãnh đạo, đang nhận KH mới."""
         ResUsers = self.env['res.users'].sudo()
-        # Lấy POOL NV sales eligible (loại lãnh đạo, chỉ NV có vd_can_receive_new_leads)
-        domain = [
+        candidates = ResUsers.search([
             ('share', '=', False),
             ('active', '=', True),
             ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
-        ]
-        candidates = ResUsers.search(domain)
-        eligible = candidates.filtered(
+        ])
+        return candidates.filtered(
             lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
                       and u.vd_can_receive_new_leads
         )
-        if not eligible:
-            raise UserError(_('Không có NV nào đủ điều kiện nhận KH mới (kiểm tra quá hạn chăm sóc).'))
 
-        # Sort theo số lead active asc → NV ít lead nhận trước
-        users_sorted = sorted(
-            eligible,
-            key=lambda u: self.env['crm.lead'].sudo().search_count([
-                ('user_id', '=', u.id),
-                ('stage_is_won', '=', False),
-                ('stage_is_lost', '=', False),
-            ]),
-        )
-        # Round-robin gán
-        lines = self.line_ids.filtered(lambda l: l.name and l.phone)
-        n = len(users_sorted)
-        for i, line in enumerate(lines):
-            line.user_id = users_sorted[i % n].id
+    def _vd_user_new_total(self, uid):
+        """Tổng KH MỚI hiện tại của 1 NV (bucket KHÁCH MỚI)."""
+        Lead = self.env['crm.lead'].sudo()
+        return Lead.search_count(
+            Lead._dashboard_new_bucket_domain([('user_id', '=', uid)]))
 
-        # Notification: bao nhiêu lines / bao nhiêu NV
+    def action_show_distribute(self):
+        """Bấm CHỌN NHÂN VIÊN → hiện bộ chọn cách chia (sau khi đã nhập KH)."""
+        self.ensure_one()
+        self._vd_check_leader()
+        if not self.line_ids.filtered(lambda l: l.name and l.phone):
+            raise UserError(_('Hãy nhập ít nhất 1 khách (Tên + SĐT) trước khi chia số.'))
+        self.show_distribute = True
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Đã chia đều'),
-                'message': _('Đã chia %d KH cho %d NV (round-robin theo NV ít lead nhất).') % (len(lines), n),
-                'type': 'success',
-                'sticky': False,
-            },
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': dict(self.env.context, dialog_size='fullscreen'),
+        }
+
+    @api.onchange('distribute_mode', 'group_user_ids')
+    def _onchange_distribute_mode(self):
+        """Chọn cách chia → tự ĐIỀN cột Nhân viên cho từng dòng."""
+        if not self.show_distribute or not self.distribute_mode:
+            return
+        self._vd_apply_distribution()
+
+    def _vd_apply_distribution(self):
+        """Điền user_id cho từng dòng KH theo distribute_mode."""
+        lines = self.line_ids.filtered(lambda l: l.name and l.phone)
+        if not lines:
+            return
+        mode = self.distribute_mode
+        if mode == 'per_line':
+            # NV chọn tay → không tự điền (giữ nguyên / xoá để chọn lại)
+            return
+        if mode == 'group':
+            pool = list(self.group_user_ids)
+            if not pool:
+                return
+        else:
+            pool = list(self._vd_eligible_users())
+        if not pool:
+            raise UserError(_(
+                'Không có NV nào đủ điều kiện nhận KH mới (kiểm tra quá hạn chăm sóc).'
+            ))
+        # Tải hiện tại (tổng KH mới) — dùng cho 'least' và để chia đều cân bằng.
+        load = {u.id: self._vd_user_new_total(u.id) for u in pool}
+        if mode == 'least':
+            # Greedy: mỗi KH → NV đang ít số nhất (tính cả KH vừa gán trong đợt).
+            assigned = dict(load)
+            for line in lines:
+                uid = min(assigned, key=lambda k: assigned[k])
+                line.user_id = uid
+                assigned[uid] += 1
+        else:
+            # even_all / group: round-robin theo thứ tự NV ít số → nhiều số.
+            order = sorted(pool, key=lambda u: load.get(u.id, 0))
+            n = len(order)
+            for i, line in enumerate(lines):
+                line.user_id = order[i % n].id
+
+    def action_redistribute(self):
+        """Nút 'Chia lại' — áp dụng lại distribution với cấu hình hiện tại."""
+        self.ensure_one()
+        self._vd_apply_distribution()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': dict(self.env.context, dialog_size='fullscreen'),
         }
 
     def action_create_leads(self):
@@ -172,14 +219,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
         Stage = self.env['crm.stage'].sudo()
-
-        # User spec 2026-05-29: mode='even' → distribute round-robin trước khi tạo
-        if self.assign_mode == 'even':
-            if not is_leader:
-                raise UserError(_(
-                    'Chỉ Trưởng nhóm / Admin mới được chọn "Chia đều cho NV".'
-                ))
-            self.action_distribute_evenly()
 
         # Cache stage lookups for 3 status options
         stage_cache = {}
@@ -381,6 +420,56 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         domain="[('share', '=', False)]",
         help='Chọn NV phụ trách. Để trống = round-robin (leader) hoặc gán cho chính mình (NV).',
     )
+
+    # ===== Chỉ số tải NV — hiện CẠNH tên NV sau khi chia số =====
+    assignee_new_total = fields.Integer(
+        string='Tổng KH mới', compute='_compute_assignee_stats')
+    assignee_not_called = fields.Integer(
+        string='Chưa gọi', compute='_compute_assignee_stats')
+    assignee_overloaded = fields.Boolean(compute='_compute_assignee_stats')
+    assignee_stat_label = fields.Char(
+        string='Tải NV (KH mới)', compute='_compute_assignee_stats')
+
+    @api.depends('user_id', 'wizard_id.line_ids.user_id')
+    def _compute_assignee_stats(self):
+        Lead = self.env['crm.lead'].sudo()
+        stat = {}
+
+        def _stat(uid):
+            if uid not in stat:
+                base = Lead._dashboard_new_bucket_domain([('user_id', '=', uid)])
+                stat[uid] = (Lead.search_count(base),
+                             Lead.search_count(base + [('call_count', '=', 0)]))
+            return stat[uid]
+
+        # Tải hiệu dụng theo từng wizard (tổng KH mới + KH vừa gán trong đợt)
+        wiz_loads = {}
+        for wiz in self.mapped('wizard_id'):
+            assigned = {}
+            for l in wiz.line_ids:
+                if l.user_id and l.name:
+                    assigned[l.user_id.id] = assigned.get(l.user_id.id, 0) + 1
+            loads = {uid: _stat(uid)[0] + cnt for uid, cnt in assigned.items()}
+            avg = (sum(loads.values()) / len(loads)) if loads else 0
+            wiz_loads[wiz.id] = (loads, avg)
+        for rec in self:
+            if not rec.user_id:
+                rec.assignee_new_total = 0
+                rec.assignee_not_called = 0
+                rec.assignee_overloaded = False
+                rec.assignee_stat_label = ''
+                continue
+            total, nc = _stat(rec.user_id.id)
+            rec.assignee_new_total = total
+            rec.assignee_not_called = nc
+            loads, avg = wiz_loads.get(rec.wizard_id.id, ({}, 0))
+            eff = loads.get(rec.user_id.id, total)
+            over = bool(avg and len(loads) >= 2 and eff > avg * 1.5 and eff >= 10)
+            rec.assignee_overloaded = over
+            rec.assignee_stat_label = (
+                '📋 %d mới · 📵 %d chưa gọi%s'
+                % (total, nc, ' ⚠️ QUÁ TẢI' if over else '')
+            )
 
     # ===== MIRROR các trường intake từ crm.lead — admin bật tắt qua ⋮ menu =====
     # Khi NV nhập giá trị → action_create_leads sẽ ghi xuống crm.lead tương ứng.

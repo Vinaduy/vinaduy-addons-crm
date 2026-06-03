@@ -5,15 +5,9 @@
         <field name="model">vd.lead.quick.add.wizard</field>
         <field name="arch" type="xml">
             <form string="Thêm khách hàng mới" class="o_vd_quick_add_form o_vd_quick_add_compact o_vd_quick_add_v2">
-                <!-- User spec 2026-05-29 (round 3): bỏ alert Mẹo + ô tạo cột mới,
-                     chỉ giữ assign_mode toggle dạng segmented button group. -->
-                <div groups="vd_crm_lead.vd_crm_group_team_leader"
-                     class="o_vd_quick_assign_bar">
-                    <span class="o_vd_quick_assign_lbl">Phân bổ NV:</span>
-                    <field name="assign_mode" widget="radio" options="{'horizontal': true}" nolabel="1"
-                           class="o_vd_quick_assign_radio"/>
-                </div>
-                <field name="assign_mode" invisible="1"/>
+                <!-- User spec 2026-06-03: nhập KH trước → CHỌN NHÂN VIÊN (4 cách
+                     chia) → cột NV tự điền + chỉ số tải NV → CHIA SỐ để tạo. -->
+                <field name="show_distribute" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm">
@@ -25,11 +19,14 @@
                         <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
                         <field name="status" column_invisible="1"/>
-                        <!-- NV: ẩn khi assign_mode='even' (user spec 2026-05-29) -->
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
-                               placeholder="(Auto)"
-                               column_invisible="parent.assign_mode == 'even'"/>
+                               placeholder="(Chưa chia)"/>
+                        <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
+                        <field name="assignee_overloaded" column_invisible="1"/>
+                        <field name="assignee_stat_label" string="Tải NV" readonly="1"
+                               decoration-danger="assignee_overloaded"
+                               decoration-bf="assignee_overloaded"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
                         <field name="i_house_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_foundation_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
@@ -66,9 +63,37 @@
                         <field name="extra_10" optional="hide"/>
                     </list>
                 </field>
+
+                <!-- ===== BỘ CHỌN CÁCH CHIA — leader, hiện sau khi bấm CHỌN NHÂN VIÊN ===== -->
+                <div groups="vd_crm_lead.vd_crm_group_team_leader"
+                     invisible="not show_distribute"
+                     class="o_vd_distribute_bar">
+                    <span class="o_vd_distribute_lbl">🎯 Cách chia số:</span>
+                    <field name="distribute_mode" widget="radio" options="{'horizontal': true}"
+                           nolabel="1" class="o_vd_distribute_radio"/>
+                    <field name="group_user_ids" widget="many2many_tags" nolabel="1"
+                           invisible="distribute_mode != 'group'"
+                           options="{'no_create': True, 'no_open': True}"
+                           placeholder="👥 Chọn 2+ nhân viên để chia đều trong nhóm..."
+                           class="o_vd_distribute_group"/>
+                    <div class="o_vd_distribute_hint" invisible="distribute_mode">
+                        Chọn 1 cách chia ở trên — cột Nhân viên sẽ tự điền. Bấm CHIA SỐ để tạo khách.
+                    </div>
+                </div>
+
                 <footer>
+                    <button name="action_show_distribute" type="object"
+                            string="👥 CHỌN NHÂN VIÊN"
+                            class="btn-primary"
+                            groups="vd_crm_lead.vd_crm_group_team_leader"
+                            invisible="show_distribute"/>
+                    <button name="action_redistribute" type="object"
+                            string="🔄 Chia lại"
+                            class="btn-secondary"
+                            groups="vd_crm_lead.vd_crm_group_team_leader"
+                            invisible="not show_distribute or not distribute_mode"/>
                     <button name="action_create_leads" type="object"
-                            string="💾 Tạo tất cả"
+                            string="💾 CHIA SỐ"
                             class="btn-primary"/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>

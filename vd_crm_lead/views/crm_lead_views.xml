@@ -898,8 +898,11 @@
                         </span>
                     </div>
 
-                    <!-- THÊM VẤN ĐỀ — button sát trên kanban, hover xổ menu 11 tags -->
+                    <!-- THÊM VẤN ĐỀ — button sát trên kanban, hover xổ menu tags.
+                         Mỗi nút TỰ ẨN khi lead đã có vấn đề cùng loại đang mở
+                         (vd_problem_used_codes) → không cho tạo trùng. -->
                     <div class="o_vd_problem_picker_dropdown" invisible="vd_contract_signed">
+                        <field name="vd_problem_used_codes" invisible="1"/>
                         <span class="o_vd_problem_picker_btn">
                             <i class="fa fa-plus"/> Thêm vấn đề
                         </span>
@@ -908,32 +911,42 @@
                             <div class="o_vd_picker_group o_vd_picker_group_financial">
                                 <div class="o_vd_picker_group_lbl">💼 Tài chính</div>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        invisible="',budget_balance,' in vd_problem_used_codes"
                                         context="{'tag_xmlid': 'vd_crm_lead.nego_problem_budget_balance'}">⚖️ Cân đối ngân sách</button>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        invisible="',extra_material,' in vd_problem_used_codes"
                                         context="{'tag_xmlid': 'vd_crm_lead.nego_problem_extra_material'}">🧰 Phát sinh vật tư</button>
                                 <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                        invisible="',promotion,' in vd_problem_used_codes"
                                         context="{'tag_xmlid': 'vd_crm_lead.nego_problem_promotion'}">🎁 Khuyến mãi</button>
                             </div>
 
                             <!-- ===== Thi công gấp — manual (auto-sinh khi intake_timeline ≤ 3 tháng) ===== -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',urgent_construction,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_urgent_construction'}">⚡ Thi công gấp</button>
 
                             <!-- ===== Tham khảo giá ===== -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',reference_price,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_reference_price'}">💰 Tham khảo giá</button>
 
                             <!-- ===== Nhóm khác — vấn đề giấy tờ/thi công ===== -->
                             <!-- Gộp 3 vấn đề (chưa sổ / chưa mua đất / chưa sang tên) → 1 thẻ Pháp lý đất -->
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',land_legal,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_land_legal'}">📜 Pháp lý đất</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',family_not_agree,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_family_not_agree'}">👨‍👩‍👧 Gia đình không đồng ý</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',disagree_material,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_disagree_material'}">🧱 Không đồng ý vật tư</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',bad_date,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_bad_date'}">🗓️ Không được tuổi / chưa xem ngày</button>
                             <button name="action_add_problem_tag" type="object" class="o_vd_picker_item"
+                                    invisible="',no_design,' in vd_problem_used_codes"
                                     context="{'tag_xmlid': 'vd_crm_lead.nego_problem_no_design'}">🏠 Chưa chọn được mẫu</button>
                         </div>
                     </div>

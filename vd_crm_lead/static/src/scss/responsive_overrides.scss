@@ -889,3 +889,37 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
         padding: 0.28rem 0.55rem !important;
     }
 }
+
+/* ====================================================================
+   Quick Add Wizard — thanh CHỌN CÁCH CHIA SỐ (hiện sau khi bấm CHỌN NHÂN VIÊN)
+   ==================================================================== */
+.o_vd_quick_add_form .o_vd_distribute_bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    margin: 0.6rem 0 0.2rem;
+    padding: 0.7rem 1rem;
+    background: #f3f0ff;
+    border: 1px solid #d0bfff;
+    border-radius: 10px;
+}
+.o_vd_quick_add_form .o_vd_distribute_lbl {
+    font-weight: 800;
+    color: #5f3dc4;
+    white-space: nowrap;
+}
+.o_vd_quick_add_form .o_vd_distribute_radio .o_radio_item {
+    margin-right: 1rem;
+    font-weight: 600;
+}
+.o_vd_quick_add_form .o_vd_distribute_group {
+    min-width: 280px;
+    flex: 1 1 320px;
+}
+.o_vd_quick_add_form .o_vd_distribute_hint {
+    flex: 1 1 100%;
+    font-size: 0.82rem;
+    font-style: italic;
+    color: #7048e8;
+}

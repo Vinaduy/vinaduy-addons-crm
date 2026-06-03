@@ -2554,6 +2554,34 @@ class CrmLead(models.Model):
                 rec.vd_lead_problem_ids.filtered(lambda p: p.status != 'resolved')
             )
 
+    # Code các vấn đề ĐANG MỞ (chuẩn hoá), bọc dấu ',' → dùng cho invisible
+    # ẩn nút trùng trong picker "Thêm vấn đề" (vd ',budget_balance,').
+    vd_problem_used_codes = fields.Char(
+        compute='_compute_problem_used_codes',
+        help='Danh sách code vấn đề đang mở (đã chuẩn hoá) — ẩn nút tạo trùng.',
+    )
+
+    @api.model
+    def _vd_norm_problem_code(self, code):
+        """Chuẩn hoá code vấn đề: auto 'cost_diff' ≡ thủ công 'budget_balance'
+        (cùng là 'Cân đối ngân sách') → tránh tạo trùng 2 thẻ cùng nội dung."""
+        return 'budget_balance' if code == 'cost_diff' else (code or '')
+
+    @api.depends('vd_lead_problem_ids', 'vd_lead_problem_ids.status',
+                 'vd_lead_problem_ids.tag_id', 'vd_lead_problem_ids.code')
+    def _compute_problem_used_codes(self):
+        for rec in self:
+            codes = set()
+            for p in rec.vd_lead_problem_ids:
+                if p.status == 'resolved':
+                    continue
+                raw = (p.tag_id.code if p.tag_id else False) or p.code or ''
+                norm = rec._vd_norm_problem_code(raw)
+                if norm:
+                    codes.add(norm)
+            rec.vd_problem_used_codes = (
+                ',' + ','.join(sorted(codes)) + ',') if codes else ','
+
     @api.onchange('vd_problem_tag_picker')
     def _onchange_vd_problem_tag_picker(self):
         """NV chọn 1 thẻ từ dropdown → auto-tạo row vấn đề mới + reset picker.
@@ -2579,7 +2607,15 @@ class CrmLead(models.Model):
         tag = self.env.ref(tag_xmlid, raise_if_not_found=False)
         if not tag:
             return
-        if self.vd_lead_problem_ids.filtered(lambda p: p.tag_id.id == tag.id):
+        # Chặn TRÙNG: nếu lead đã có vấn đề ĐANG MỞ cùng loại (chuẩn hoá code —
+        # auto 'cost_diff' ≡ thủ công 'budget_balance') → không tạo thêm.
+        new_norm = self._vd_norm_problem_code(tag.code)
+        dup = self.vd_lead_problem_ids.filtered(
+            lambda p: p.status != 'resolved'
+            and self._vd_norm_problem_code(
+                (p.tag_id.code if p.tag_id else False) or p.code or '') == new_norm
+        )
+        if dup:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -2616,6 +2652,15 @@ class CrmLead(models.Model):
             kh_budget = rec.vd_intake_budget_amount or 0
             quote = rec.vd_quote_price or 0
             existing = rec.vd_lead_problem_ids.filtered(lambda p: p.code == 'cost_diff')[:1]
+            # Tránh TRÙNG: nếu NV đã tạo THỦ CÔNG vấn đề "Cân đối ngân sách"
+            # (tag budget_balance) đang mở → coi như đã có, KHÔNG auto-sinh
+            # cost_diff. (Không động vào vấn đề thủ công của NV.)
+            if not existing:
+                manual_budget = rec.vd_lead_problem_ids.filtered(
+                    lambda p: p.status != 'resolved' and p.tag_id
+                    and p.tag_id.code == 'budget_balance')
+                if manual_budget:
+                    continue
             name = None
             status = None
             if quote and kh_budget:
