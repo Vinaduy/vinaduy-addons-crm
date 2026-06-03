@@ -274,6 +274,41 @@ class VdStringeeHotline(models.Model):
         return True
 
     @api.model
+    def distribute_numbers_to_users(self, number_ids, user_ids):
+        """Chia ĐỀU các số ĐÃ CHỌN cho các NV ĐÃ CHỌN (popup chia số).
+
+        Gom số theo nhà mạng → round-robin từng mạng cho danh sách NV: mỗi NV
+        nhận 1 số/mạng, thay số CÙNG MẠNG đang có. (1 mạng 1 số / NV.)
+        """
+        self._check_board_access()
+        numbers = self.browse(number_ids or []).filtered(lambda h: h.active)
+        users = self.env['res.users'].browse(user_ids or []).filtered('active')
+        if not numbers:
+            return {'ok': False, 'message': 'Chưa chọn số nào để chia.'}
+        if not users:
+            return {'ok': False, 'message': 'Chưa chọn nhân viên nào.'}
+        by_carrier = {}
+        for h in numbers.sorted('number'):
+            by_carrier.setdefault(h.carrier, []).append(h)
+        users_sorted = users.sorted('name')
+        for carrier, hs in by_carrier.items():
+            n = len(hs)
+            for idx, u in enumerate(users_sorted):
+                target = hs[idx % n]
+                same = u.stringee_hotline_ids.filtered(
+                    lambda h: h.active and h.carrier == carrier and h.id != target.id
+                )
+                cmds = [(3, h.id) for h in same]
+                cmds.append((4, target.id))
+                u.sudo().stringee_hotline_ids = cmds
+        labels = ', '.join(
+            dict(_CARRIER_ORDER).get(c, c) for c in by_carrier
+        )
+        return {'ok': True, 'message':
+                'Đã chia %d số (%s) cho %d NV.'
+                % (len(numbers), labels, len(users))}
+
+    @api.model
     def distribute_carrier_evenly(self, carrier='viettel'):
         """Chia ĐỀU các số CÒN SỐNG của 1 nhà mạng cho NV đủ điều kiện.
 

@@ -184,16 +184,20 @@
     .o_vd_chip[data-carrier="gmobile"]      { background: #eae3fb; color: #5925dc; }
     .o_vd_chip[data-carrier="other"]        { background: #e9edf2; color: #475467; }
 
-    /* --- Sức khoẻ số: chấm + làm rõ số chết --- */
+    /* --- Sức khoẻ số: chấm (to +50%) + làm rõ số chết --- */
     .o_vd_health_dot {
         flex: 0 0 auto;
-        width: 7px; height: 7px;
+        width: 11px; height: 11px;     /* trước 7px → +~57% cho dễ nhìn */
         border-radius: 50%;
         background: #cbd5e1;            /* unused mặc định */
     }
-    .o_vd_chip.o_vd_health_alive  .o_vd_health_dot { background: #17b26a; box-shadow: 0 0 0 2px rgba(23,178,106,.18); }
+    .o_vd_chip.o_vd_health_alive  .o_vd_health_dot { background: #17b26a; box-shadow: 0 0 0 3px rgba(23,178,106,.18); }
     .o_vd_chip.o_vd_health_dead   .o_vd_health_dot { background: #f04438; }
     .o_vd_chip.o_vd_health_unused .o_vd_health_dot { background: #cbd5e1; }
+    /* Chấm tự mang class màu (dùng trong popover header + popup chia số) */
+    .o_vd_health_dot.o_vd_health_alive  { background: #17b26a; }
+    .o_vd_health_dot.o_vd_health_dead   { background: #f04438; }
+    .o_vd_health_dot.o_vd_health_unused { background: #cbd5e1; }
     /* Số chết: gạch mờ con số để nhìn phát biết */
     .o_vd_chip.o_vd_health_dead {
         border-color: #fda29b;
@@ -243,7 +247,7 @@
         color: #1d2939;
         margin-bottom: 8px;
         font-variant-numeric: tabular-nums;
-        .o_vd_health_dot { width: 8px; height: 8px; }
+        .o_vd_health_dot { width: 12px; height: 12px; }
         .o_vd_health_dot.o_vd_health_alive  { background: #17b26a; }
         .o_vd_health_dot.o_vd_health_dead   { background: #f04438; }
         .o_vd_health_dot.o_vd_health_unused { background: #cbd5e1; }
@@ -327,6 +331,150 @@
 }
 .o_dialog:has(.o_vd_dlg_fs) .modal-content {
     height: 90vh;
+}
+
+/* ===== Popup CHIA SỐ (chọn số → chọn NV → CHIA SỐ) ===== */
+.o_vd_dist_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    background: rgba(16, 24, 40, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.o_vd_dist_modal {
+    width: 780px;
+    max-width: 94vw;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .32);
+    overflow: hidden;
+    animation: o_vd_dist_in .18s ease-out;
+}
+@keyframes o_vd_dist_in {
+    from { opacity: 0; transform: translateY(10px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.o_vd_dist_head {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #eef0f2;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1d2939;
+    .o_vd_dist_close {
+        margin-left: auto;
+        border: 0;
+        background: transparent;
+        font-size: 24px;
+        line-height: 1;
+        color: #98a2b3;
+        cursor: pointer;
+        &:hover { color: #1d2939; }
+    }
+}
+.o_vd_dist_body {
+    padding: 14px 18px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.o_vd_dist_step_h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #1d2939;
+    margin-bottom: 8px;
+    .o_vd_dist_no {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: #7a5af8;
+        color: #fff;
+        font-size: 13px;
+    }
+    .o_vd_dist_quick {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        a { color: #1570ef; cursor: pointer; &:hover { text-decoration: underline; } }
+    }
+}
+.o_vd_dist_carrier {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: #667085;
+    margin: 8px 0 4px;
+}
+.o_vd_dist_chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.o_vd_dist_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 5px 11px;
+    border-radius: 16px;
+    border: 1px solid #e4e7ec;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    transition: border-color .1s, background .1s;
+    input { display: none; }
+    &.o_vd_sel {
+        border-color: #7a5af8;
+        background: #f4f1ff;
+        box-shadow: inset 0 0 0 1px #7a5af8;
+    }
+}
+.o_vd_dist_users {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 2px 14px;
+}
+.o_vd_dist_user {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    padding: 5px 7px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #344054;
+    &:hover { background: #f8f9fb; }
+    &.o_vd_sel { background: #f4f1ff; }
+    input { cursor: pointer; margin: 0; }
+    .o_vd_dist_user_n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+.o_vd_dist_foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    border-top: 1px solid #eef0f2;
+    font-size: 12px;
+    .o_vd_dist_go {
+        margin-left: auto;
+        font-weight: 700;
+        letter-spacing: .3px;
+        white-space: nowrap;
+    }
 }
 
 /* ============================================================

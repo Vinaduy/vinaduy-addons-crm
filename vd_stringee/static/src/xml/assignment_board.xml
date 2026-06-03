@@ -47,9 +47,8 @@
                         </span>
                         <div class="o_vd_toolbar_btns ms-auto">
                             <button type="button" class="btn btn-success btn-sm"
-                                    t-att-disabled="state.busy"
-                                    t-on-click="() => this.distributeViettel()">
-                                <i class="fa fa-random me-1"/>Chia đều Viettel (số sống)
+                                    t-on-click="() => this.openDistModal()">
+                                <i class="fa fa-random me-1"/>Chia số
                             </button>
                             <button type="button" class="btn btn-primary btn-sm ms-2"
                                     t-on-click="() => this.openDistribute()">
@@ -154,6 +153,82 @@
                     </tbody>
                 </table>
                 <div t-else="" class="o_vd_dim o_vd_pop_empty">Chưa gán cho NV nào.</div>
+            </div>
+
+            <!-- ===== POPUP CHIA SỐ: chọn số → chọn NV → CHIA SỐ ===== -->
+            <div t-if="state.dist.open" class="o_vd_dist_overlay"
+                 t-on-click="() => this.closeDistModal()">
+                <div class="o_vd_dist_modal" t-on-click.stop="() => {}">
+                    <div class="o_vd_dist_head">
+                        <span><i class="fa fa-random me-2"/>Chia số tổng đài</span>
+                        <button type="button" class="o_vd_dist_close"
+                                t-on-click="() => this.closeDistModal()">×</button>
+                    </div>
+
+                    <div class="o_vd_dist_body">
+                        <!-- Bước 1: chọn số -->
+                        <div class="o_vd_dist_step">
+                            <div class="o_vd_dist_step_h">
+                                <span class="o_vd_dist_no">1</span> Chọn số
+                                <span class="o_vd_dim ms-2"><t t-esc="distNumIds.length"/> số đã chọn</span>
+                                <div class="o_vd_dist_quick ms-auto">
+                                    <a t-on-click="() => this.distSelectAlive()">Chọn số sống</a>
+                                    <a t-on-click="() => this.distClearNums()">Bỏ chọn hết</a>
+                                </div>
+                            </div>
+                            <t t-foreach="state.carriers" t-as="c" t-key="c.code">
+                                <div class="o_vd_dist_carrier"><t t-esc="c.label"/></div>
+                                <div class="o_vd_dist_chips">
+                                    <t t-foreach="c.numbers" t-as="n" t-key="n.id">
+                                        <label class="o_vd_dist_chip"
+                                               t-att-data-carrier="c.code"
+                                               t-att-class="{'o_vd_sel': state.dist.nums[n.id]}">
+                                            <input type="checkbox"
+                                                   t-att-checked="state.dist.nums[n.id]"
+                                                   t-on-change="() => this.toggleDistNum(n.id)"/>
+                                            <span class="o_vd_health_dot"
+                                                  t-att-class="'o_vd_health_' + (n.health || 'unused')"/>
+                                            <span t-esc="n.number"/>
+                                        </label>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Bước 2: chọn nhân viên -->
+                        <div class="o_vd_dist_step">
+                            <div class="o_vd_dist_step_h">
+                                <span class="o_vd_dist_no">2</span> Chọn nhân viên
+                                <span class="o_vd_dim ms-2"><t t-esc="distUserIds.length"/> NV đã chọn</span>
+                                <div class="o_vd_dist_quick ms-auto">
+                                    <a t-on-click="() => this.distSelectEligible()">Chọn NV đủ ĐK</a>
+                                    <a t-on-click="() => this.distClearUsers()">Bỏ chọn hết</a>
+                                </div>
+                            </div>
+                            <div class="o_vd_dist_users">
+                                <t t-foreach="state.users" t-as="u" t-key="u.id">
+                                    <label class="o_vd_dist_user"
+                                           t-att-class="{'o_vd_sel': state.dist.users[u.id]}">
+                                        <input type="checkbox"
+                                               t-att-checked="state.dist.users[u.id]"
+                                               t-on-change="() => this.toggleDistUser(u.id)"/>
+                                        <span class="o_vd_dist_user_n" t-esc="u.name"/>
+                                        <span t-if="u.no_share" class="o_vd_dim">(không chia)</span>
+                                    </label>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="o_vd_dist_foot">
+                        <span class="o_vd_dim">Chia đều round-robin: mỗi NV nhận 1 số/mạng, thay số cùng mạng đang có.</span>
+                        <button type="button" class="btn btn-success o_vd_dist_go"
+                                t-att-disabled="state.busy"
+                                t-on-click="() => this.doDistribute()">
+                            <i class="fa fa-check me-1"/>CHIA SỐ
+                        </button>
+                    </div>
+                </div>
             </div>
 
         </div>

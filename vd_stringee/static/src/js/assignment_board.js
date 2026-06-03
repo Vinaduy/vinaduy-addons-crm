@@ -27,6 +27,8 @@ export class VdStringeeAssignmentBoard extends Component {
             search: "",
             busy: false,
             hover: null, // {number, top, left}
+            // Popup chia số: open + map chọn số/NV theo id
+            dist: { open: false, nums: {}, users: {} },
         });
         onWillStart(() => this.load());
     }
@@ -76,16 +78,79 @@ export class VdStringeeAssignmentBoard extends Component {
         return `top:${h.top}px; left:${h.left}px;`;
     }
 
-    // ---- Chia đều số Viettel còn sống cho NV đủ điều kiện ----
-    async distributeViettel() {
+    // ============ POPUP CHIA SỐ (chọn số → chọn NV → CHIA SỐ) ============
+    openDistModal() {
+        const nums = {};
+        for (const c of this.state.carriers) {
+            for (const n of c.numbers) {
+                nums[n.id] = n.health === "alive"; // mặc định: chọn số CÒN SỐNG
+            }
+        }
+        const users = {};
+        for (const u of this.state.users) {
+            users[u.id] = !u.no_share;             // mặc định: NV không bị loại
+        }
+        this.state.dist = { open: true, nums, users };
+    }
+    closeDistModal() {
+        this.state.dist.open = false;
+    }
+    toggleDistNum(id) {
+        this.state.dist.nums[id] = !this.state.dist.nums[id];
+    }
+    toggleDistUser(id) {
+        this.state.dist.users[id] = !this.state.dist.users[id];
+    }
+    get distNumIds() {
+        return Object.keys(this.state.dist.nums)
+            .filter((id) => this.state.dist.nums[id])
+            .map(Number);
+    }
+    get distUserIds() {
+        return Object.keys(this.state.dist.users)
+            .filter((id) => this.state.dist.users[id])
+            .map(Number);
+    }
+    distSelectAlive() {
+        for (const c of this.state.carriers) {
+            for (const n of c.numbers) {
+                this.state.dist.nums[n.id] = n.health === "alive";
+            }
+        }
+    }
+    distClearNums() {
+        for (const k of Object.keys(this.state.dist.nums)) {
+            this.state.dist.nums[k] = false;
+        }
+    }
+    distSelectEligible() {
+        for (const u of this.state.users) {
+            this.state.dist.users[u.id] = !u.no_share;
+        }
+    }
+    distClearUsers() {
+        for (const k of Object.keys(this.state.dist.users)) {
+            this.state.dist.users[k] = false;
+        }
+    }
+    async doDistribute() {
+        const numIds = this.distNumIds;
+        const userIds = this.distUserIds;
+        if (!numIds.length || !userIds.length) {
+            this.notification.add("Chọn ít nhất 1 số và 1 nhân viên.", {
+                type: "warning",
+            });
+            return;
+        }
         if (this.state.busy) {
             return;
         }
         this.state.busy = true;
         try {
             const res = await this.orm.call(
-                MODEL, "distribute_carrier_evenly", ["viettel"]
+                MODEL, "distribute_numbers_to_users", [numIds, userIds]
             );
+            this.state.dist.open = false;
             await this.load();
             this.notification.add(res.message || "Đã chia số", {
                 type: res.ok ? "success" : "warning",
