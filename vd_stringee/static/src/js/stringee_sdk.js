@@ -123,6 +123,7 @@ export const stringeeService = {
             callStatus: "",       // CALLING | RINGING | ANSWERED | ""
             callNumber: "",       // số đang gọi — hiển thị trên UI
             callName: "",         // tên KH (nếu gọi từ lead) — hiển thị trên bảng nổi
+            callDirection: "out", // out = gọi đi | in = cuộc gọi đến
             callCarrier: "",      // nhà mạng số gọi đi (viettel/vina/mobi)
             callStartedAt: 0,     // timestamp ms — khi bấm gọi (đếm giây CHỜ đổ chuông)
             answerStartedAt: 0,   // timestamp ms — khi KH bắt máy (đếm giây ĐÀM THOẠI)
@@ -154,6 +155,18 @@ export const stringeeService = {
         function hideCallAlert() {
             if (_alertTimer) { clearTimeout(_alertTimer); _alertTimer = null; }
             state.alertShow = false;
+        }
+
+        // Đánh dấu live state cho CUỘC GỌI ĐẾN (auto-answer) → popup hiện ngay.
+        function markIncomingLive(c) {
+            state.inCall = true;
+            state.callStatus = "ANSWERED";
+            state.callDirection = "in";
+            state.callName = (c && c.fromAlias) || "";
+            state.callNumber = (c && c.fromNumber) || "";
+            state.callStartedAt = Date.now();
+            state.answerStartedAt = Date.now();
+            hideCallAlert();
         }
 
         // ===================================================================
@@ -252,6 +265,7 @@ export const stringeeService = {
                 }
                 attachCallEvents(incomingCall);
                 state.currentCall = incomingCall;
+                markIncomingLive(incomingCall);
                 try {
                     incomingCall.answer((res) => {
                         console.log("[VD-STRINGEE] incomingcall.answer callback:", res);
@@ -282,6 +296,7 @@ export const stringeeService = {
                 }
                 attachCallEvents(incomingCall);
                 state.currentCall = incomingCall;
+                markIncomingLive(incomingCall);
                 try {
                     if (typeof incomingCall.initAnswer === "function") {
                         incomingCall.initAnswer((initRes) => {
@@ -374,6 +389,7 @@ export const stringeeService = {
                 state.callNumber = "";
                 state.callName = "";
                 state.callCarrier = "";
+                state.callDirection = "out";
                 state.callStartedAt = 0;
                 state.answerStartedAt = 0;
                 // CRITICAL: notify server để finalize placeholder record NGAY
@@ -707,11 +723,13 @@ export const stringeeService = {
                 // Flip UI ngay (k đợi signalingstate) — user bấm "Gọi" là thấy chuyển sang "Đang gọi…"
                 state.inCall = true;
                 state.callStatus = "CALLING";
+                state.callDirection = "out";
                 state.callNumber = targetNumber;
                 state.callName = displayName || "";
                 state.callCarrier = fromCarrier || "";
                 state.callStartedAt = Date.now();   // mốc đếm giây CHỜ đổ chuông
                 state.answerStartedAt = 0;
+                hideCallAlert();   // xoá thông báo kết quả cuộc trước (nếu còn)
                 startRingback();   // tút...tút cho NV nghe trong lúc chờ KH bắt máy
 
                 call2.makeCall((res) => {
@@ -782,6 +800,7 @@ export const stringeeService = {
             state.callNumber = "";
             state.callName = "";
             state.callCarrier = "";
+            state.callDirection = "out";
             state.callStartedAt = 0;
             state.answerStartedAt = 0;
             // Báo server finalize placeholder + ghi nhận USER_HANGUP_CLICK

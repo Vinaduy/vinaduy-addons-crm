@@ -1,24 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <!-- Popup thông báo cuộc gọi — căn giữa trên cùng màn hình, nổi bật. -->
+    <!-- Popup cuộc gọi hợp nhất — căn giữa trên cùng màn hình. -->
     <t t-name="vd_stringee.CallAlert">
-        <div t-if="s.alertShow"
+
+        <!-- LIVE: cuộc gọi đang diễn ra (đến/đi, đổ chuông, đàm thoại) -->
+        <div t-if="live"
+             class="o_vd_callpop o_vd_callpop_live"
+             t-att-class="phaseClass">
+            <span class="o_vd_cp_dot"/>
+            <div class="o_vd_cp_main">
+                <div class="o_vd_cp_l1">
+                    <span class="o_vd_cp_state" t-esc="statusLabel"/>
+                    <span class="o_vd_cp_dur" t-esc="formatted"/>
+                </div>
+                <div class="o_vd_cp_l2">
+                    <span t-if="s.callName" class="o_vd_cp_name" t-esc="s.callName"/>
+                    <span class="o_vd_cp_num">
+                        <t t-esc="s.callNumber"/><t t-if="carrierLabel"> · <t t-esc="carrierLabel"/></t>
+                    </span>
+                </div>
+            </div>
+            <button type="button" class="o_vd_cp_hang" t-on-click="onHangup" title="Cúp máy">
+                <i class="fa fa-phone"/>
+            </button>
+        </div>
+
+        <!-- OUTCOME: kết quả cuộc gọi -->
+        <div t-elif="s.alertShow"
              t-att-key="s.alertSeq"
-             class="o_vd_call_alert"
-             t-att-class="'o_vd_ca_' + s.alertLevel">
-            <div class="o_vd_ca_icon">
-                <i class="fa" t-att-class="iconClass"/>
+             class="o_vd_callpop o_vd_callpop_out"
+             t-att-class="'o_vd_co_' + s.alertLevel">
+            <span class="o_vd_co_icon">
+                <i class="fa" t-att-class="outcomeIcon"/>
+            </span>
+            <div class="o_vd_cp_main">
+                <div t-if="s.alertTitle" class="o_vd_co_title" t-esc="s.alertTitle"/>
+                <div t-if="s.alertMessage" class="o_vd_co_msg" t-esc="s.alertMessage"/>
             </div>
-            <div class="o_vd_ca_body">
-                <div t-if="s.alertTitle" class="o_vd_ca_title" t-esc="s.alertTitle"/>
-                <div t-if="s.alertMessage" class="o_vd_ca_msg" t-esc="s.alertMessage"/>
-            </div>
-            <button type="button" class="o_vd_ca_close" t-on-click="onClose"
-                    title="Đóng">
+            <button type="button" class="o_vd_co_close" t-on-click="onClose" title="Đóng">
                 <i class="fa fa-times"/>
             </button>
         </div>
+
     </t>
 
 </templates>
