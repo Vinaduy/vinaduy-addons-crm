@@ -7097,24 +7097,53 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pf_banner_main { color: #c92a2a; }
     .o_vd_pf_banner_sub { color: #7a1212; b { color: #c92a2a; } }
 }
-/* CALL-WATCH banner (2026-06-04): danh sách KH chưa gọi + nút admin mở khoá */
-.o_vd_cw_leads {
+/* CALL-WATCH (2026-06-05): KHÔNG banner to — chỉ 1 button gọn + popover hover.
+   Khi khoá thêm dải đỏ + nút admin mở khoá. */
+.o_vd_cw_row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-top: 0.4rem;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.55rem 0;
 }
+/* Button gọn — override layout grid to của .o_vd_trash_box thành pill vàng.
+   GIỮ .o_vd_split_trash để thừa hưởng popover hover thuần CSS. */
+.o_vd_trash_box.o_vd_cw_btn {
+    display: inline-flex;
+    grid-template-columns: none;     /* huỷ grid 60px/auto/1fr của trash_box */
+    align-items: center;
+    gap: 0.45rem;
+    width: auto;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #fff3bf, #ffe066);
+    border: 2px solid #f59f00;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(245, 159, 0, 0.3);
+    cursor: pointer;
+    .o_vd_cw_btn_ico { color: #e8590c; font-size: 1.05rem; }
+    .o_vd_cw_btn_lbl {
+        font-weight: 800;
+        font-size: 0.92rem;
+        letter-spacing: 0.2px;
+        color: #b35900;
+        text-transform: uppercase;
+        b { color: #c92a2a; font-size: 1.05rem; }
+    }
+    &:hover { box-shadow: 0 3px 14px rgba(245, 159, 0, 0.5); }
+}
+/* Chip ngày trong popover */
 .o_vd_cw_chip {
     display: inline-flex;
     align-items: baseline;
     gap: 0.25rem;
-    padding: 0.1rem 0.45rem;
+    padding: 0.1rem 0.5rem;
     border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 600;
     background: #fff;
     border: 1px solid #f59f00;
     color: #5c3b00;
+    white-space: nowrap;
     b { color: #c92a2a; }
     .o_vd_cw_chip_dl { font-size: 0.72rem; opacity: 0.8; }
 }
@@ -7123,23 +7152,30 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-color: #e03131;
     color: #7a1212;
 }
-/* Banner CALL-WATCH: text co gian de button + popover dat ben phai */
-.o_vd_cw_banner .o_vd_pf_banner_text { flex: 1 1 auto; }
-.o_vd_cw_box {
-    flex: 0 0 auto;
-    align-self: center;
-    /* Box dung lai layout o_vd_trash_box co san; popover hover thuan CSS */
+/* Dải đỏ — chỉ hiện khi đã khoá */
+.o_vd_cw_locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ffe3e3, #ffa8a8);
+    border: 2px solid #e03131;
+    color: #7a1212;
+    font-size: 0.85rem;
+    .fa-lock { color: #c92a2a; }
+    .o_vd_cw_locked_txt b { color: #c92a2a; }
 }
 .o_vd_cw_unlock_btn {
     flex: 0 0 auto;
     align-self: center;
-    padding: 0.45rem 0.85rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 8px;
     border: 0;
     background: #2f9e44;
     color: #fff;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(47, 158, 68, 0.35);
