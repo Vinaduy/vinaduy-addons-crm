@@ -1,10 +1,12 @@
-"""CALL-WATCH — giám sát NV gọi KH MỚI (user spec 2026-06-04).
+"""CALL-WATCH — giám sát NV gọi KH MỚI (user spec 2026-06-04, sửa 2026-06-05).
 
 Luật (chốt với user):
-  * Cuộc gọi HỢP LỆ = cuộc gọi ĐI (outbound) có thời lượng (end_time - start_time)
-    TRÊN 5 giây. KHÔNG dùng field `duration` vì hay = 0 dù cuộc nối thật.
-  * KH MỚI (mọi KH trong bucket "Khách mới"): trong 7 NGÀY LÀM VIỆC kể từ ngày
-    thêm, NV phải có cuộc gọi hợp lệ ở >= 3 NGÀY LÀM VIỆC khác nhau.
+  * Cuộc gọi tính 1 NGÀY = có >=1 cuộc gọi ĐI (outbound) trong ngày đó, BẤT KỂ
+    thời lượng/nghe máy (user 2026-06-05: cuộc declined 1s vẫn tính — chỉ cần
+    NV bấm gọi). KHÔNG dùng field `duration`.
+  * KH MỚI = chỉ pill "Khách mới" THẬT trên dashboard (loại THAM KHẢO / CHƯA GỌI
+    ĐƯỢC / HUỶ / THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ). Trong 7 NGÀY LÀM VIỆC kể từ ngày
+    thêm, NV phải gọi ở >= 3 NGÀY LÀM VIỆC khác nhau.
   * Ngày làm việc = T2..T7, BỎ Chủ nhật + ngày lễ (ir.config_parameter
     'vd_crm_lead.holidays', danh sách YYYY-MM-DD admin tự khai báo).
   * 15h mỗi ngày làm việc (cron): KH "chưa gọi" (chưa đạt 3 ngày & hôm nay chưa
@@ -60,7 +62,6 @@ class CrmLeadCallWatch(models.Model):
 
         return {
             'enabled': (ICP.get_param('vd_crm_lead.callwatch_enabled', '1') or '1') != '0',
-            'min_seconds': _i('vd_crm_lead.callwatch_min_seconds', 5),
             'window_workdays': _i('vd_crm_lead.callwatch_window_workdays', 7),
             'required_days': _i('vd_crm_lead.callwatch_required_days', 3),
             # lock_all=True: còn SÓT KH chưa gọi -> khoá ("phải gọi hết").
@@ -122,10 +123,14 @@ class CrmLeadCallWatch(models.Model):
     def _vd_vn_today(self):
         return self._vd_localdate(fields.Datetime.now())
 
-    # --------------------------------------------------- cuộc gọi hợp lệ / ngày
+    # --------------------------------------------------- cuộc gọi / ngày gọi
     @api.model
-    def _vd_lead_call_workdays(self, lead_ids, min_seconds):
-        """{lead_id: set(ngày làm việc có >=1 cuộc gọi ĐI > min_seconds giây)}."""
+    def _vd_lead_call_workdays(self, lead_ids):
+        """{lead_id: set(NGÀY có >=1 cuộc gọi ĐI)}.
+
+        User 2026-06-05: ĐẾM MỌI cuộc gọi đi (bỏ ngưỡng >5s cũ). Cuộc declined
+        1 giây vẫn tính là "đã gọi trong ngày" — chỉ cần NV bấm gọi. Đếm theo
+        NGÀY (giờ VN) của start_time; nhiều cuộc cùng ngày = 1 ngày."""
         res = defaultdict(set)
         if not lead_ids:
             return res
@@ -133,33 +138,45 @@ class CrmLeadCallWatch(models.Model):
             ('lead_id', 'in', list(lead_ids)),
             ('direction', '=', 'outbound'),
             ('start_time', '!=', False),
-            ('end_time', '!=', False),
         ])
         for c in calls:
-            try:
-                span = (c.end_time - c.start_time).total_seconds()
-            except Exception:
-                continue
-            if span > min_seconds:
-                res[c.lead_id.id].add(self._vd_localdate(c.start_time))
+            d = self._vd_localdate(c.start_time)
+            if d:
+                res[c.lead_id.id].add(d)
         return res
+
+    @api.model
+    def _vd_callwatch_new_bucket(self, user):
+        """Recordset KH MỚI THẬT của NV — KHỚP đúng pill "Khách mới" trên
+        dashboard (user 2026-06-05). Loại KH thuộc bảng KHÁC:
+          - THAM KHẢO (vd_no_quote_state='pending') + HUỶ (active=False) +
+            THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ (locked+complete): đã bị domain
+            _dashboard_new_bucket_domain loại sẵn.
+          - CHƯA GỌI ĐƯỢC (_dashboard_unreachable_ids): trừ thêm ở đây."""
+        leads = self.search(self._dashboard_new_bucket_domain([('user_id', '=', user.id)]))
+        if not leads:
+            return leads
+        notcalled = set(self._dashboard_unreachable_ids(leads))   # read-only
+        if notcalled:
+            leads = leads.filtered(lambda l: l.id not in notcalled)
+        return leads
 
     @api.model
     def _vd_callwatch_uncalled(self, user, cfg, today=None):
         """Recordset KH MỚI mà NV CHƯA gọi xong: chưa đạt required_days ngày gọi
-        VÀ hôm nay chưa có cuộc gọi hợp lệ."""
+        VÀ hôm nay chưa có cuộc gọi."""
         today = today or self._vd_vn_today()
-        leads = self.search(self._dashboard_new_bucket_domain([('user_id', '=', user.id)]))
+        leads = self._vd_callwatch_new_bucket(user)
         if not leads:
             return leads
-        daymap = self._vd_lead_call_workdays(leads.ids, cfg['min_seconds'])
+        daymap = self._vd_lead_call_workdays(leads.ids)
         keep_ids = []
         for ld in leads:
             days = daymap.get(ld.id, set())
             if len(days) >= cfg['required_days']:
                 continue          # đã đạt chuẩn -> thôi
             if today in days:
-                continue          # hôm nay đã gọi hợp lệ rồi
+                continue          # hôm nay đã gọi rồi
             keep_ids.append(ld.id)
         return self.browse(keep_ids)
 
@@ -259,7 +276,7 @@ class CrmLeadCallWatch(models.Model):
             warned = self._vd_parse_ids(scope_user.vd_call_warned_lead_ids)
             if warned and not (warned & uncalled_ids):
                 scope_user.sudo().write({'vd_call_lock': False, 'vd_call_lock_reason': False})
-        daymap = self._vd_lead_call_workdays(list(uncalled_ids), cfg['min_seconds']) if uncalled_ids else {}
+        daymap = self._vd_lead_call_workdays(list(uncalled_ids)) if uncalled_ids else {}
         leads_payload = []
         for ld in uncalled[:60]:
             ndays = len(daymap.get(ld.id, set()))

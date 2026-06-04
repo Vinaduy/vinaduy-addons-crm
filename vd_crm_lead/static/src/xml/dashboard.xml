@@ -1805,19 +1805,48 @@
                                                     </div>
                                                     <div class="o_vd_pf_banner_sub">
                                                         <t t-if="state.call_watch.locked"><t t-esc="state.call_watch.reason"/></t>
-                                                        <t t-else="">Mỗi KH cần cuộc gọi đi (&gt;5s) ở ít nhất
+                                                        <t t-else="">Mỗi KH cần ít nhất
                                                             <b><t t-esc="state.call_watch.required_days"/></b> ngày làm việc khác nhau
                                                             trong <t t-esc="state.call_watch.window_workdays"/> ngày.</t>
                                                     </div>
-                                                    <div t-if="state.call_watch.uncalled_leads.length" class="o_vd_cw_leads">
-                                                        <t t-foreach="state.call_watch.uncalled_leads" t-as="cwl" t-key="cwl.id">
-                                                            <span t-att-class="'o_vd_cw_chip' + (cwl.overdue ? ' o_vd_cw_chip_overdue' : '')"
-                                                                  t-att-title="(cwl.phone || '') + ' — hạn ' + cwl.deadline">
-                                                                <t t-esc="cwl.name"/>
-                                                                <b><t t-esc="cwl.days"/>/<t t-esc="cwl.required"/></b>
-                                                                <span class="o_vd_cw_chip_dl">⏰<t t-esc="cwl.deadline"/></span>
-                                                            </span>
-                                                        </t>
+                                                </div>
+                                                <!-- BUTTON + popover hover (mirror "CHƯA GỌI ĐƯỢC"):
+                                                     KHÔNG đổ danh sách inline (tốn diện tích) -->
+                                                <div t-if="state.call_watch.uncalled_leads.length"
+                                                     class="o_vd_trash_box o_vd_cw_box">
+                                                    <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📞</div>
+                                                    <div class="o_vd_trash_meta">
+                                                        <div class="o_vd_trash_label">CHƯA GỌI</div>
+                                                        <div class="o_vd_trash_count"><t t-esc="state.call_watch.uncalled_count"/></div>
+                                                    </div>
+                                                    <div class="o_vd_trash_popover o_vd_popover_anchor_center">
+                                                        <div class="o_vd_trash_popover_head">
+                                                            📞 KHÁCH MỚI CHƯA GỌI ĐỦ (<t t-esc="state.call_watch.uncalled_count"/>)
+                                                            <div class="o_vd_trash_popover_hint">
+                                                                Cần gọi ở ≥<t t-esc="state.call_watch.required_days"/> ngày làm việc khác nhau trong <t t-esc="state.call_watch.window_workdays"/> ngày
+                                                            </div>
+                                                        </div>
+                                                        <div class="o_vd_trash_popover_body">
+                                                            <div t-foreach="state.call_watch.uncalled_leads" t-as="cwl" t-key="cwl.id"
+                                                                 class="o_vd_trash_popover_item o_vd_notcalled_row"
+                                                                 t-on-click.stop="() => this.openLead(cwl.id)">
+                                                                <span class="o_vd_trash_popover_name"><t t-esc="cwl.name"/></span>
+                                                                <span class="o_vd_trash_popover_phone">
+                                                                    📞 <t t-esc="cwl.phone or '—'"/>
+                                                                </span>
+                                                                <span t-att-class="'o_vd_cw_chip' + (cwl.overdue ? ' o_vd_cw_chip_overdue' : '')"
+                                                                      t-att-title="'Hạn ' + cwl.deadline">
+                                                                    <b><t t-esc="cwl.days"/>/<t t-esc="cwl.required"/></b> ngày
+                                                                    <span class="o_vd_cw_chip_dl">⏰<t t-esc="cwl.deadline"/></span>
+                                                                </span>
+                                                                <button t-if="cwl.phone"
+                                                                        class="btn btn-sm btn-success o_vd_notcalled_call_btn"
+                                                                        t-on-click="(ev) => this.callLeadDirect(ev, cwl.id)"
+                                                                        title="Gọi KH ngay">
+                                                                    <i class="fa fa-phone me-1"/> Gọi
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <button t-if="state.call_watch.locked and state.is_manager and state.selected_user_id"

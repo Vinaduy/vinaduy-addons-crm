@@ -7123,9 +7123,15 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-color: #e03131;
     color: #7a1212;
 }
+/* Banner CALL-WATCH: text co gian de button + popover dat ben phai */
+.o_vd_cw_banner .o_vd_pf_banner_text { flex: 1 1 auto; }
+.o_vd_cw_box {
+    flex: 0 0 auto;
+    align-self: center;
+    /* Box dung lai layout o_vd_trash_box co san; popover hover thuan CSS */
+}
 .o_vd_cw_unlock_btn {
     flex: 0 0 auto;
-    margin-left: auto;
     align-self: center;
     padding: 0.45rem 0.85rem;
     border-radius: 8px;
