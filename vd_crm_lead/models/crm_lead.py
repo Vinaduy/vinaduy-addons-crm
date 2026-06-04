@@ -14,7 +14,7 @@ import logging
 from datetime import timedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -5699,12 +5699,61 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def _vd_apply_problem_lock(self, user, grace=None, now=None, stats=None):
+        """Đánh giá + áp/gỡ khoá 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ cho 1 NV
+        (user spec 2026-06-05: "bảng nào vi phạm thì khoá bảng đó"), mốc gia hạn
+        RIÊNG từng bảng.
+
+        - Vượt ngưỡng % chưa-có-vấn-đề + quá hạn gia hạn → khoá ĐÚNG bảng đó.
+        - Hết vượt ngưỡng ở bảng nào → gỡ + reset mốc bảng đó.
+        - CHỈ ADMIN gỡ thủ công (cron không tự gỡ khi NV vẫn vượt ngưỡng — vì
+          bảng bị khoá NV không bấm vào tạo vấn đề được). Admin gỡ -> còn 1 ngày
+          (xem vd_admin_clear_problem_lock) rồi tự khoá lại nếu vẫn vi phạm.
+        Dùng chung cho CRON (mọi NV) và LIVE (1 NV khi mở dashboard)."""
+        enabled, _pct, g = self._vd_problem_find_config()
+        grace = g if grace is None else grace
+        now = now or fields.Datetime.now()
+        if enabled:
+            stats = stats or self._vd_problem_find_stats([('user_id', '=', user.id)])
+        vals = {}
+        any_lock = False
+        for key in ('urgent', 'xlvd'):
+            lock_f = 'vd_pf_lock_' + key
+            since_f = 'vd_pf_since_' + key
+            over = bool(enabled and stats and stats[key]['over'])
+            if not over:
+                # hết vượt ngưỡng (hoặc tắt tính năng) -> gỡ + reset mốc bảng đó
+                if user[lock_f]:
+                    vals[lock_f] = False
+                if user[since_f]:
+                    vals[since_f] = False
+                continue
+            since = user[since_f]
+            if not since:
+                since = now
+                vals[since_f] = now
+            overdue = (now - since).total_seconds() >= grace * 86400
+            if overdue != user[lock_f]:
+                vals[lock_f] = overdue
+            any_lock = any_lock or overdue
+        # cờ tổng (tương thích chỗ khác) + mốc tổng cho hiển thị days_left
+        if bool(any_lock) != bool(user.vd_problem_lock):
+            vals['vd_problem_lock'] = bool(any_lock)
+        if vals:
+            user.sudo().write(vals)   # LIVE: NV không có quyền ghi res.users
+
+    @api.model
+    def _vd_pf_days_left(self, since, grace, now=None):
+        """Số ngày còn lại trước khi khoá, tính từ mốc `since` (None -> grace)."""
+        if not since:
+            return grace
+        now = now or fields.Datetime.now()
+        elapsed = (now - since).total_seconds() / 86400.0
+        return max(0, int(round(grace - elapsed + 0.4999)))
+
+    @api.model
     def _vd_cron_eval_problem_find_lock(self):
-        """CRON hằng ngày: với mỗi NV sales, đánh giá vi phạm 'tìm vấn đề'.
-        - Vi phạm (bảng bất kỳ > ngưỡng): set mốc vd_problem_find_since (nếu
-          chưa có); nếu vi phạm liên tục >= grace_days → vd_problem_lock=True.
-        - Không vi phạm: gỡ khoá + xoá mốc.
-        Bị tắt (enabled=False) → gỡ mọi khoá."""
+        """CRON hằng ngày: đánh giá khoá per-bảng cho mọi NV sales."""
         enabled, _pct, grace = self._vd_problem_find_config()
         Users = self.env['res.users'].sudo()
         sales_users = Users.search([
@@ -5714,25 +5763,37 @@ class CrmLead(models.Model):
         ])
         now = fields.Datetime.now()
         for u in sales_users:
-            if not enabled:
-                if u.vd_problem_lock or u.vd_problem_find_since:
-                    u.write({'vd_problem_lock': False, 'vd_problem_find_since': False})
-                continue
-            stats = self._vd_problem_find_stats([('user_id', '=', u.id)])
-            if stats['violating']:
-                vals = {}
-                since = u.vd_problem_find_since
-                if not since:
-                    vals['vd_problem_find_since'] = now
-                    since = now
-                # Quá hạn gia hạn → khoá
-                if (now - since).total_seconds() >= grace * 86400 and not u.vd_problem_lock:
-                    vals['vd_problem_lock'] = True
-                if vals:
-                    u.write(vals)
-            else:
-                if u.vd_problem_lock or u.vd_problem_find_since:
-                    u.write({'vd_problem_lock': False, 'vd_problem_find_since': False})
+            self._vd_apply_problem_lock(u, grace=grace, now=now)
+        return True
+
+    @api.model
+    def vd_admin_clear_problem_lock(self, user_id, which='all'):
+        """ADMIN gỡ khoá bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ cho 1 NV (2026-06-05).
+        which: 'urgent' | 'xlvd' | 'all'.
+
+        Gỡ = mở NHƯNG chỉ 1 NGÀY: đặt mốc gia hạn của bảng đó = now-(grace-1)d
+        nên nếu NV vẫn không xử lý thì sau 1 ngày cron/live TỰ KHOÁ LẠI."""
+        from datetime import timedelta
+        if not self._dashboard_is_manager():
+            raise AccessError(_('Chỉ quản lý/admin được gỡ khoá.'))
+        u = self.env['res.users'].sudo().browse(int(user_id))
+        if not u.exists():
+            return False
+        _enabled, _pct, grace = self._vd_problem_find_config()
+        # Mốc lùi về quá khứ (grace-1) ngày -> còn đúng 1 ngày là tới hạn.
+        reprieve = fields.Datetime.now() - timedelta(days=max(0, grace - 1))
+        vals = {}
+        if which in ('urgent', 'all'):
+            vals['vd_pf_lock_urgent'] = False
+            vals['vd_pf_since_urgent'] = reprieve
+        if which in ('xlvd', 'all'):
+            vals['vd_pf_lock_xlvd'] = False
+            vals['vd_pf_since_xlvd'] = reprieve
+        # cờ tổng = còn khoá bảng nào không
+        still_u = (which == 'xlvd') and u.vd_pf_lock_urgent
+        still_x = (which == 'urgent') and u.vd_pf_lock_xlvd
+        vals['vd_problem_lock'] = bool(still_u or still_x)
+        u.write(vals)
         return True
 
     @api.model
@@ -5838,6 +5899,10 @@ class CrmLead(models.Model):
         # bỏ tính ở view tổng cho nhẹ.
         if scope_user:
             problem_find = self._vd_problem_find_stats(domain_user)
+            # LIVE (2026-06-05): áp/gỡ khoá NGAY khi mở dashboard — không chờ
+            # cron hằng ngày (trước đây khoá trễ tới ~1 ngày). "bảng nào vi
+            # phạm khoá bảng đó". Truyền lại stats để khỏi tính 2 lần.
+            self._vd_apply_problem_lock(scope_user, now=now, stats=problem_find)
         else:
             _z = {'total': 0, 'no_problem': 0, 'pct': 0, 'over': False}
             problem_find = {
@@ -5845,12 +5910,19 @@ class CrmLead(models.Model):
                 'urgent': dict(_z), 'xlvd': dict(_z), 'violating': False,
             }
         problem_find['grace_days'] = _pf_grace
+        # Cờ khoá + đếm ngày RIÊNG TỪNG BẢNG (frontend chặn + banner đếm đúng bảng).
+        problem_find['urgent']['locked'] = bool(scope_user and scope_user.vd_pf_lock_urgent)
+        problem_find['xlvd']['locked'] = bool(scope_user and scope_user.vd_pf_lock_xlvd)
+        problem_find['urgent']['days_left'] = (
+            self._vd_pf_days_left(scope_user.vd_pf_since_urgent, _pf_grace, now)
+            if scope_user else _pf_grace)
+        problem_find['xlvd']['days_left'] = (
+            self._vd_pf_days_left(scope_user.vd_pf_since_xlvd, _pf_grace, now)
+            if scope_user else _pf_grace)
         problem_find['locked'] = bool(scope_user and scope_user.vd_problem_lock)
-        days_left = _pf_grace
-        if scope_user and scope_user.vd_problem_find_since:
-            elapsed = (now - scope_user.vd_problem_find_since).total_seconds() / 86400.0
-            days_left = max(0, int(round(_pf_grace - elapsed + 0.4999)))
-        problem_find['days_left'] = days_left
+        # days_left tổng = nhỏ nhất của 2 bảng đang vi phạm (cho chỗ cũ tham chiếu)
+        problem_find['days_left'] = min(
+            problem_find['urgent']['days_left'], problem_find['xlvd']['days_left'])
 
         # ===== PERFORMANCE — leaderboard + bonus calculation =====
         # Tính số HĐ chốt tháng + năm + bonus theo cơ cấu chỉ tiêu 2026.

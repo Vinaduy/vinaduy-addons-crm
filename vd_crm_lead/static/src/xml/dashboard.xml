@@ -1775,7 +1775,9 @@
                             <t t-if="isNewStageSplit">
                                 <div class="o_vd_split_table">
                                     <!-- NỬA TRÁI: KHÁCH MỚI -->
-                                    <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half">
+                                    <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
+                                        <t t-set="lockWhich" t-value="'new'"/>
+                                        <t t-call="vd_crm_lead.TableLockShield"/>
                                         <div class="o_vd_filter_table_left">
                                             <i class="fa fa-filter o_vd_filter_funnel"/>
                                             <div class="o_vd_filter_table_lbl">
@@ -1846,7 +1848,7 @@
                                                 </div>
                                                 <button t-if="state.call_watch.locked and state.is_manager and state.selected_user_id"
                                                         class="o_vd_cw_unlock_btn"
-                                                        t-on-click.stop="() => this.adminClearCallLock()">
+                                                        t-on-click.stop="() => this.adminClearTableLock('new')">
                                                     🔓 Mở khoá ngay
                                                 </button>
                                             </div>
@@ -2172,7 +2174,9 @@
                             <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng: nằm trên
                                  cùng danh sách KH, dài từ mép trái tên KH đến hết ô BÁO GIÁ
                                  XONG MẤT TÍCH. Giữ nguyên thiết kế banner, chỉ đổi vị trí. -->
-                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_urgent">
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_urgent o_vd_lockable">
+                                <t t-set="lockWhich" t-value="'urgent'"/>
+                                <t t-call="vd_crm_lead.TableLockShield"/>
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-bolt o_vd_filter_funnel_urgent"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -2376,7 +2380,9 @@
                             <t t-set="pf" t-value="state.problem_find and state.problem_find.xlvd"/>
                             <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng (xem ghi chú
                                  ở section THI CÔNG GẤP). Giữ nguyên thiết kế, chỉ đổi vị trí. -->
-                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_warn">
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_warn o_vd_lockable">
+                                <t t-set="lockWhich" t-value="'xlvd'"/>
+                                <t t-call="vd_crm_lead.TableLockShield"/>
                                 <div class="o_vd_filter_table_left">
                                     <i class="fa fa-filter o_vd_filter_funnel_warn"/>
                                     <div class="o_vd_filter_table_lbl">
@@ -2668,26 +2674,44 @@
          Dùng: t-set pf = state.problem_find.urgent | .xlvd  rồi t-call.
          ============================================================ -->
     <t t-name="vd_crm_lead.ProblemFindBanner">
-        <div t-if="pf and pf.over"
-             t-att-class="'o_vd_pf_banner' + (state.problem_find.locked ? ' o_vd_pf_banner_locked' : '')">
-            <i t-att-class="'fa o_vd_pf_banner_ico ' + (state.problem_find.locked ? 'fa-lock' : 'fa-exclamation-triangle')"/>
+        <div t-if="pf and (pf.over or pf.locked)"
+             t-att-class="'o_vd_pf_banner' + (pf.locked ? ' o_vd_pf_banner_locked' : '')">
+            <i t-att-class="'fa o_vd_pf_banner_ico ' + (pf.locked ? 'fa-lock' : 'fa-exclamation-triangle')"/>
             <div class="o_vd_pf_banner_text">
                 <div class="o_vd_pf_banner_main">
-                    <t t-if="state.problem_find.locked">ĐÃ KHOÁ — YÊU CẦU TÌM VẤN ĐỀ</t>
+                    <t t-if="pf.locked">ĐÃ KHOÁ — YÊU CẦU TÌM VẤN ĐỀ</t>
                     <t t-else="">⚠️ YÊU CẦU TÌM VẤN ĐỀ</t>
                 </div>
                 <div class="o_vd_pf_banner_sub">
                     <b><t t-esc="pf.no_problem"/>/<t t-esc="pf.total"/></b> khách
                     (<b><t t-esc="pf.pct"/>%</b>) CHƯA có vấn đề.
-                    <t t-if="state.problem_find.locked">
-                        Đang bị KHOÁ mở khách mới — hãy tạo vấn đề cho khách để MỞ LẠI.
+                    <t t-if="pf.locked">
+                        Bảng này đang bị KHOÁ (không bấm được) — liên hệ quản lý để mở.
                     </t>
                     <t t-else="">
                         Xử lý trong <t t-esc="state.problem_find.grace_days"/> ngày —
-                        <b>CÒN <t t-esc="state.problem_find.days_left"/> NGÀY</b>.
-                        Quá hạn sẽ KHOÁ không mở được khách mới.
+                        <b>CÒN <t t-esc="pf.days_left"/> NGÀY</b>.
+                        Quá hạn sẽ KHOÁ bảng này.
                     </t>
                 </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================================
+         TẤM CHE KHOÁ BẢNG (user spec 2026-06-05): phủ lên bảng đang khoá,
+         CHẶN mọi click + icon ổ khoá to góc trên-phải + nút admin gỡ.
+         Dùng: t-set lockWhich = 'new' | 'urgent' | 'xlvd'  rồi t-call.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.TableLockShield">
+        <div t-if="isTableLocked(lockWhich)" class="o_vd_lock_shield" t-on-click.stop="">
+            <div class="o_vd_lock_shield_corner">
+                <i class="fa fa-lock o_vd_lock_shield_ico"/>
+                <div class="o_vd_lock_shield_lbl">ĐÃ KHOÁ</div>
+                <button t-if="canAdminUnlock" class="o_vd_lock_unlock_btn"
+                        t-on-click.stop="() => this.adminClearTableLock(lockWhich)">
+                    🔓 Mở khoá
+                </button>
             </div>
         </div>
     </t>

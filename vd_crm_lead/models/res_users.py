@@ -44,6 +44,25 @@ class ResUsers(models.Model):
         help='Mốc NV bắt đầu vượt ngưỡng % KH chưa có vấn đề. Cron đếm từ đây '
              'để áp khoá sau số ngày gia hạn. Reset khi NV xử lý xong.',
     )
+    # KHOÁ THEO TỪNG BẢNG (user spec 2026-06-05): "bảng nào vi phạm khoá bảng đó".
+    # Quá hạn gia hạn mà bảng còn vượt ngưỡng -> khoá đúng bảng đó. CHỈ ADMIN GỠ
+    # (NV không tự gỡ vì bảng bị khoá không bấm được). vd_problem_lock cũ giữ làm
+    # cờ tổng (= urgent OR xlvd) cho tương thích chỗ khác.
+    vd_pf_lock_urgent = fields.Boolean(
+        string='Khoá bảng THI CÔNG GẤP', default=False, copy=False,
+        help='True khi bảng THI CÔNG GẤP quá hạn tìm vấn đề. Chặn bấm cả bảng. '
+             'Chỉ admin gỡ.',
+    )
+    vd_pf_lock_xlvd = fields.Boolean(
+        string='Khoá bảng XỬ LÝ VẤN ĐỀ', default=False, copy=False,
+        help='True khi bảng XỬ LÝ VẤN ĐỀ quá hạn tìm vấn đề. Chặn bấm cả bảng. '
+             'Chỉ admin gỡ.',
+    )
+    # Mốc gia hạn RIÊNG từng bảng (đếm ngày để áp khoá). Admin gỡ khoá -> đặt
+    # mốc sao cho CÒN ĐÚNG 1 NGÀY (user spec 2026-06-05: mở 1 ngày, không xử lý
+    # thì tự khoá lại). Tách riêng để gỡ bảng này không ảnh hưởng bảng kia.
+    vd_pf_since_urgent = fields.Datetime(string='Vi phạm THI CÔNG GẤP từ', copy=False)
+    vd_pf_since_xlvd = fields.Datetime(string='Vi phạm XỬ LÝ VẤN ĐỀ từ', copy=False)
 
     # ===== NHẮC NHỞ NHÂN VIÊN — admin tick Lần 1..5 (user spec 2026-06-01) =====
     # Mỗi lần admin nhắc 1 NV thì tick lên 1 mức. Hiển thị ✓ cho mức 1..N + câu

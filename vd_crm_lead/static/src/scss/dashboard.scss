@@ -7184,6 +7184,59 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 
 /* ============================================================
+   TẤM CHE KHOÁ BẢNG (user spec 2026-06-05): phủ bảng vi phạm, chặn click,
+   icon ổ khoá to góc trên-phải + nút admin gỡ. 3 bảng dùng chung.
+   ============================================================ */
+.o_vd_lockable { position: relative; }
+.o_vd_lock_shield {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: rgba(120, 120, 120, 0.18);
+    backdrop-filter: grayscale(0.5) blur(0.5px);
+    border-radius: 12px;
+    cursor: not-allowed;
+}
+.o_vd_lock_shield_corner {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    pointer-events: auto;   /* nút gỡ vẫn bấm được dù tấm che chặn click */
+}
+.o_vd_lock_shield_ico {
+    font-size: 3.2rem;
+    color: #c92a2a;
+    filter: drop-shadow(0 3px 8px rgba(201, 42, 42, 0.45));
+}
+.o_vd_lock_shield_lbl {
+    font-weight: 900;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #c92a2a;
+    background: #fff;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1.5px solid #c92a2a;
+}
+.o_vd_lock_unlock_btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    border: 0;
+    background: #2f9e44;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(47, 158, 68, 0.4);
+    &:hover { background: #2b8a3e; }
+}
+
+/* ============================================================
    POPOVER NHẮC NHỞ NHÂN VIÊN — hover tên NV trong bảng admin
    (user spec 2026-06-01).
    ============================================================ */

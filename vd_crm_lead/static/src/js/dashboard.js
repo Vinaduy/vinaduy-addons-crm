@@ -1069,33 +1069,34 @@ export class VdCrmDashboard extends Component {
             );
             return;
         }
-        // KHOÁ "Yêu cầu tìm vấn đề" (user spec 2026-06-01): khi NV bị khoá,
-        // CHẶN mở thẻ KHÁCH MỚI (ép NV xử lý KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ
-        // trước). KHÔNG chặn TCG/XLVD để NV còn vào tạo vấn đề mà gỡ khoá.
-        // Chỉ áp cho NV xem dashboard của CHÍNH MÌNH (admin xem hộ vẫn mở được).
-        if (this.state.problem_find?.locked
-                && this.state.selected_user_id
-                && this.state.current_user_id === this.state.selected_user_id
+        // KHOÁ THEO TỪNG BẢNG (user spec 2026-06-05): "bảng nào vi phạm khoá
+        // bảng đó". Chặn bấm KH thuộc bảng đang khoá. Chỉ áp khi NV xem dashboard
+        // CHÍNH MÌNH (admin xem hộ vẫn mở + có nút gỡ). Chỉ admin gỡ khoá.
+        if (this.isTableLockedForSelf('new')
                 && (this.leadsNoProblems || []).some(l => l.id === leadId)) {
             this.notification.add(
-                "🔒 Bạn đang bị KHOÁ do chưa tìm vấn đề. Hãy vào THI CÔNG GẤP / "
-                + "XỬ LÝ VẤN ĐỀ tạo vấn đề cho khách để được mở lại.",
-                { type: "warning", title: "Khoá mở khách mới" },
+                "🔒 Bảng KHÁCH MỚI đang bị KHOÁ do chưa gọi đủ. "
+                + (this.state.call_watch?.reason || "")
+                + " Liên hệ quản lý để được mở khoá.",
+                { type: "warning", title: "Khoá bảng Khách mới" },
             );
             return;
         }
-        // KHOÁ "Chưa gọi Khách mới" (user spec 2026-06-04): cron 15h khoá bảng
-        // KHÁCH MỚI khi NV chưa gọi (>5s) đủ KH mới. Chặn mở KH mới cho tới khi
-        // gọi hết tập bị cảnh báo. Admin xem hộ vẫn mở được.
-        if (this.state.call_watch?.locked
-                && this.state.selected_user_id
-                && this.state.current_user_id === this.state.selected_user_id
-                && (this.leadsNoProblems || []).some(l => l.id === leadId)) {
+        if (this.isTableLockedForSelf('urgent')
+                && (this.leadsUrgentConstruction || []).some(l => l.id === leadId)) {
             this.notification.add(
-                "🔒 Bạn bị KHOÁ do chưa gọi đủ khách mới. "
-                + (this.state.call_watch.reason || "")
-                + " Hãy gọi (>5s) hết các khách bị cảnh báo để được mở lại.",
-                { type: "warning", title: "Khoá mở khách mới — chưa gọi" },
+                "🔒 Bảng THI CÔNG GẤP đang bị KHOÁ do quá hạn tìm vấn đề. "
+                + "Liên hệ quản lý để được mở khoá.",
+                { type: "warning", title: "Khoá bảng Thi công gấp" },
+            );
+            return;
+        }
+        if (this.isTableLockedForSelf('xlvd')
+                && (this.leadsWithProblems || []).some(l => l.id === leadId)) {
+            this.notification.add(
+                "🔒 Bảng XỬ LÝ VẤN ĐỀ đang bị KHOÁ do quá hạn tìm vấn đề. "
+                + "Liên hệ quản lý để được mở khoá.",
+                { type: "warning", title: "Khoá bảng Xử lý vấn đề" },
             );
             return;
         }
@@ -1137,20 +1138,48 @@ export class VdCrmDashboard extends Component {
         this._lockScroll();
     }
 
-    // ADMIN mở khoá NGAY bảng Khách mới cho NV đang xem (user spec 2026-06-04).
-    // Chỉ hiện khi quản lý drill-in 1 NV đang bị khoá. Cập nhật state tại chỗ để
-    // banner đỏ tắt ngay không cần F5.
-    async adminClearCallLock() {
+    // ===== KHOÁ THEO BẢNG (user spec 2026-06-05) =====
+    // which: 'new' (Khách mới ← chưa gọi) | 'urgent' (Thi công gấp) | 'xlvd'
+    // (Xử lý vấn đề ← quá hạn tìm vấn đề). isTableLocked = có khoá (hiện icon ổ
+    // khoá + chặn). isTableLockedForSelf = khoá VÀ NV đang xem chính mình (chặn
+    // bấm; admin xem hộ vẫn mở + có nút gỡ).
+    isTableLocked(which) {
+        if (which === 'new') return !!this.state.call_watch?.locked;
+        if (which === 'urgent') return !!this.state.problem_find?.urgent?.locked;
+        if (which === 'xlvd') return !!this.state.problem_find?.xlvd?.locked;
+        return false;
+    }
+    isTableLockedForSelf(which) {
+        return this.isTableLocked(which)
+            && !!this.state.selected_user_id
+            && this.state.current_user_id === this.state.selected_user_id;
+    }
+    // Quản lý đang drill-in 1 NV → được phép bấm nút gỡ khoá.
+    get canAdminUnlock() {
+        return !!(this.state.is_manager && this.state.selected_user_id);
+    }
+
+    // ADMIN gỡ khoá bảng cho NV đang xem. which: 'new' | 'urgent' | 'xlvd'.
+    // Cập nhật state tại chỗ để icon ổ khoá tắt ngay không cần F5.
+    async adminClearTableLock(which) {
         const uid = this.state.selected_user_id;
         if (!uid) return;
         try {
-            await this.orm.call("crm.lead", "vd_admin_clear_call_lock", [uid]);
-            if (this.state.call_watch) {
-                this.state.call_watch.locked = false;
-                this.state.call_watch.reason = "";
+            if (which === 'new') {
+                await this.orm.call("crm.lead", "vd_admin_clear_call_lock", [uid]);
+                if (this.state.call_watch) {
+                    this.state.call_watch.locked = false;
+                    this.state.call_watch.reason = "";
+                }
+            } else {
+                await this.orm.call(
+                    "crm.lead", "vd_admin_clear_problem_lock", [uid, which],
+                );
+                if (this.state.problem_find?.[which]) {
+                    this.state.problem_find[which].locked = false;
+                }
             }
-            this.notification.add("✅ Đã mở khoá bảng Khách mới cho NV.",
-                { type: "success" });
+            this.notification.add("✅ Đã mở khoá bảng cho NV.", { type: "success" });
         } catch (err) {
             this.notification.add("Không mở khoá được (cần quyền quản lý).",
                 { type: "danger" });
