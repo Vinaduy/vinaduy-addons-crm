@@ -39,6 +39,7 @@
                         string="Gán NV" icon="fa-user-plus"
                         class="btn-link"
                         help="Mở popup chọn NV được gán số này (chọn được NHIỀU NV cho 1 số)"/>
+                <field name="vd_force_alive" widget="boolean_toggle" string="Còn sống (ép)"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -107,6 +108,7 @@
                             <field name="carrier"/>
                             <field name="team_label" placeholder="HCM1 / HCM2 / HN..."/>
                             <field name="active"/>
+                            <field name="vd_force_alive"/>
                         </group>
                         <group>
                             <field name="user_count" readonly="1"/>

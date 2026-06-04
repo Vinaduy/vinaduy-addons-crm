@@ -7097,6 +7097,48 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pf_banner_main { color: #c92a2a; }
     .o_vd_pf_banner_sub { color: #7a1212; b { color: #c92a2a; } }
 }
+/* CALL-WATCH banner (2026-06-04): danh sách KH chưa gọi + nút admin mở khoá */
+.o_vd_cw_leads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+}
+.o_vd_cw_chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid #f59f00;
+    color: #5c3b00;
+    b { color: #c92a2a; }
+    .o_vd_cw_chip_dl { font-size: 0.72rem; opacity: 0.8; }
+}
+.o_vd_cw_chip_overdue {
+    background: #fff0f0;
+    border-color: #e03131;
+    color: #7a1212;
+}
+.o_vd_cw_unlock_btn {
+    flex: 0 0 auto;
+    margin-left: auto;
+    align-self: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: 0;
+    background: #2f9e44;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(47, 158, 68, 0.35);
+    &:hover { background: #2b8a3e; }
+}
 @keyframes vd-pf-pulse {
     0%, 100% { box-shadow: 0 3px 12px rgba(245, 159, 0, 0.22); }
     50%      { box-shadow: 0 3px 18px rgba(245, 159, 0, 0.45); }

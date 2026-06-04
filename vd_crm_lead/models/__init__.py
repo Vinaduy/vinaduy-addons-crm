@@ -17,4 +17,5 @@ from . import res_users
 from . import res_config_settings
 from . import res_country_state
 from . import crm_lead
+from . import vd_call_watch
 from . import stringee_call

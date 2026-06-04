@@ -5973,6 +5973,8 @@ class CrmLead(models.Model):
             'stages': stage_payload,
             'block_status': block_status,
             'problem_find': problem_find,
+            # CALL-WATCH (2026-06-04): banner "chưa gọi" + khoá bảng Khách mới.
+            'call_watch': self._vd_callwatch_payload(scope_user),
             'performance': performance,
         }
 

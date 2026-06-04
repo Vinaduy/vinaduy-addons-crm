@@ -85,6 +85,13 @@ class VdStringeeHotline(models.Model):
     )
     note = fields.Text(string='Ghi chú nội bộ')
     active = fields.Boolean(default=True)
+    # Admin ÉP đánh dấu số CÒN SỐNG (xanh) dù lịch sử gọi chưa có/đứt — dùng cho
+    # số mới gắn SIM còn hoạt động nhưng chưa phát sinh cuộc nối trong hệ thống.
+    vd_force_alive = fields.Boolean(
+        string='Đánh dấu còn sống (ép xanh)', default=False,
+        help='Bật: số luôn hiện CÒN SỐNG trên bảng kho số + được tính khi "Chia số", '
+             'bất kể lịch sử cuộc gọi. Dùng cho số mới/SIM còn sống chưa có cuộc nối.',
+    )
 
     # Legacy: số đơn cũ (1 NV = 1 số). Giữ để tương thích + migration.
     user_ids = fields.One2many(
@@ -227,7 +234,8 @@ class VdStringeeHotline(models.Model):
                 'user_count': len(h.assigned_user_ids),
                 'detail': _detail(h),
                 # --- Thống kê + sức khoẻ số (cho chip màu + bảng hover) ---
-                'health': ns.get('health') or 'unused',
+                # force_alive: admin ép xanh dù lịch sử chưa có cuộc nối.
+                'health': 'alive' if h.vd_force_alive else (ns.get('health') or 'unused'),
                 'total_calls': ns.get('total') or 0,
                 'reached': ns.get('reached') or 0,
                 'talk_hm': _fmt_hm(ns.get('secs')),
@@ -252,7 +260,8 @@ class VdStringeeHotline(models.Model):
         for u in users:
             assigned = [
                 {'id': h.id, 'number': h.number, 'carrier': h.carrier,
-                 'health': (num_stats.get(h.number) or {}).get('health') or 'unused'}
+                 'health': 'alive' if h.vd_force_alive
+                           else ((num_stats.get(h.number) or {}).get('health') or 'unused')}
                 for h in u.stringee_hotline_ids if h.active
             ]
             assigned.sort(key=lambda x: x['carrier'])
@@ -326,7 +335,8 @@ class VdStringeeHotline(models.Model):
             return {'ok': False, 'message': 'Không có số %s nào trong kho.' % carrier}
         stats = self.env['stringee.call']._vd_numbers_stats(hotlines.mapped('number'))
         alive = hotlines.filtered(
-            lambda h: (stats.get(h.number) or {}).get('health') == 'alive'
+            lambda h: h.vd_force_alive
+            or (stats.get(h.number) or {}).get('health') == 'alive'
         )
         if not alive:
             return {'ok': False, 'message':

@@ -1792,6 +1792,40 @@
                                             </button>
                                         </div>
                                         <div class="o_vd_filter_table_right">
+                                            <!-- CALL-WATCH (user spec 2026-06-04): cảnh báo KH mới
+                                                 chưa gọi đủ (vàng) / ĐÃ KHOÁ (đỏ). Admin drill-in 1
+                                                 NV thấy nút "Mở khoá ngay". -->
+                                            <div t-if="state.call_watch and state.call_watch.enabled and (state.call_watch.locked or state.call_watch.uncalled_count)"
+                                                 t-att-class="'o_vd_pf_banner o_vd_cw_banner' + (state.call_watch.locked ? ' o_vd_pf_banner_locked' : '')">
+                                                <i t-att-class="'fa o_vd_pf_banner_ico ' + (state.call_watch.locked ? 'fa-lock' : 'fa-phone')"/>
+                                                <div class="o_vd_pf_banner_text">
+                                                    <div class="o_vd_pf_banner_main">
+                                                        <t t-if="state.call_watch.locked">ĐÃ KHOÁ — CHƯA GỌI ĐỦ KHÁCH MỚI</t>
+                                                        <t t-else=""><t t-esc="state.call_watch.uncalled_count"/> KHÁCH MỚI CHƯA GỌI ĐỦ</t>
+                                                    </div>
+                                                    <div class="o_vd_pf_banner_sub">
+                                                        <t t-if="state.call_watch.locked"><t t-esc="state.call_watch.reason"/></t>
+                                                        <t t-else="">Mỗi KH cần cuộc gọi đi (&gt;5s) ở ít nhất
+                                                            <b><t t-esc="state.call_watch.required_days"/></b> ngày làm việc khác nhau
+                                                            trong <t t-esc="state.call_watch.window_workdays"/> ngày.</t>
+                                                    </div>
+                                                    <div t-if="state.call_watch.uncalled_leads.length" class="o_vd_cw_leads">
+                                                        <t t-foreach="state.call_watch.uncalled_leads" t-as="cwl" t-key="cwl.id">
+                                                            <span t-att-class="'o_vd_cw_chip' + (cwl.overdue ? ' o_vd_cw_chip_overdue' : '')"
+                                                                  t-att-title="(cwl.phone || '') + ' — hạn ' + cwl.deadline">
+                                                                <t t-esc="cwl.name"/>
+                                                                <b><t t-esc="cwl.days"/>/<t t-esc="cwl.required"/></b>
+                                                                <span class="o_vd_cw_chip_dl">⏰<t t-esc="cwl.deadline"/></span>
+                                                            </span>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                                <button t-if="state.call_watch.locked and state.is_manager and state.selected_user_id"
+                                                        class="o_vd_cw_unlock_btn"
+                                                        t-on-click.stop="() => this.adminClearCallLock()">
+                                                    🔓 Mở khoá ngay
+                                                </button>
+                                            </div>
                                             <!-- COACHMARK KHOÁ CHỐT BÁO GIÁ — tự hiện khi > 3 KH
                                                  báo giá chưa chốt; hướng dẫn NV cách xử lý. -->
                                             <div t-if="quoteChotLockActive and !state.quoteGuideDismissed"

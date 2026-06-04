@@ -1084,6 +1084,21 @@ export class VdCrmDashboard extends Component {
             );
             return;
         }
+        // KHOÁ "Chưa gọi Khách mới" (user spec 2026-06-04): cron 15h khoá bảng
+        // KHÁCH MỚI khi NV chưa gọi (>5s) đủ KH mới. Chặn mở KH mới cho tới khi
+        // gọi hết tập bị cảnh báo. Admin xem hộ vẫn mở được.
+        if (this.state.call_watch?.locked
+                && this.state.selected_user_id
+                && this.state.current_user_id === this.state.selected_user_id
+                && (this.leadsNoProblems || []).some(l => l.id === leadId)) {
+            this.notification.add(
+                "🔒 Bạn bị KHOÁ do chưa gọi đủ khách mới. "
+                + (this.state.call_watch.reason || "")
+                + " Hãy gọi (>5s) hết các khách bị cảnh báo để được mở lại.",
+                { type: "warning", title: "Khoá mở khách mới — chưa gọi" },
+            );
+            return;
+        }
         // Mở preview INLINE — render từ data đã cache → 0 RPC, mở instantly.
         let ids;
         if (this.isNewStageSplit) {
@@ -1120,6 +1135,26 @@ export class VdCrmDashboard extends Component {
         const ids = leads.map(l => l.id);
         this.state.previewLead = { open: true, ids, index: 0 };
         this._lockScroll();
+    }
+
+    // ADMIN mở khoá NGAY bảng Khách mới cho NV đang xem (user spec 2026-06-04).
+    // Chỉ hiện khi quản lý drill-in 1 NV đang bị khoá. Cập nhật state tại chỗ để
+    // banner đỏ tắt ngay không cần F5.
+    async adminClearCallLock() {
+        const uid = this.state.selected_user_id;
+        if (!uid) return;
+        try {
+            await this.orm.call("crm.lead", "vd_admin_clear_call_lock", [uid]);
+            if (this.state.call_watch) {
+                this.state.call_watch.locked = false;
+                this.state.call_watch.reason = "";
+            }
+            this.notification.add("✅ Đã mở khoá bảng Khách mới cho NV.",
+                { type: "success" });
+        } catch (err) {
+            this.notification.add("Không mở khoá được (cần quyền quản lý).",
+                { type: "danger" });
+        }
     }
 
     // ===== NHẮC NHỞ NHÂN VIÊN (user spec 2026-06-01) =====
