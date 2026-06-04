@@ -10472,33 +10472,41 @@ $vd-panel-head-radius: 10px;
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input::placeholder,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_value,
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_mhp_placeholder {
-    font-size: 18px !important;
+    font-size: 16px !important;
 }
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker .o_vd_mhp_bar {
-    min-width: 320px !important;
-    width: 320px !important;
-    max-width: 320px !important;
+    /* Bar fill theo wrapper (wrapper quyết định 320px 2-cột / 460px 1-cột) */
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 41px !important;
     min-height: 41px !important;
     max-height: 41px !important;
-    font-size: 18px !important;
+    font-size: 16px !important;
     padding: 0 0.7rem !important;
     box-sizing: border-box !important;
 }
-/* Wrapper field cũng cố định width để picker bar không bị flex co lại */
+/* Wrapper 2-CỘT (trong o_vd_step_field): giữ 320px — chữ ngắn, không tràn hàng. */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_m2o_hover_picker,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_selection_hover_picker,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_m2o_hover_picker,
-.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_selection_hover_picker {
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > .o_field_vd_selection_hover_picker {
     flex: 0 0 320px !important;
     width: 320px !important;
     min-width: 320px !important;
     max-width: 320px !important;
 }
-/* Inner picker container: cho phép width fit 320px */
+/* Wrapper 1-CỘT (trực tiếp trong o_vd_step_body): nới 460px để placeholder dài
+   (Mái nhà / Chỗ để đất / Sổ đỏ...) hiển thị trên 1 DÒNG. (user 2026-06-04) */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_m2o_hover_picker,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_body > .o_field_vd_selection_hover_picker {
+    flex: 0 0 460px !important;
+    width: 460px !important;
+    min-width: 460px !important;
+    max-width: 100% !important;
+}
+/* Inner picker container: fill theo wrapper (320px hoặc 460px) */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_m2o_hover_picker {
-    width: 320px !important;
-    max-width: 320px !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 .o_vd_m2o_hover_picker .o_vd_mhp_item {
     font-size: 18px !important;
@@ -10576,6 +10584,10 @@ $vd-panel-head-radius: 10px;
     flex: 1 1 auto;
     color: #6b7a93;
     font-style: normal;
+    /* Luôn 1 dòng — không xuống dòng lung tung (user 2026-06-04) */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 /* Input MỚI: gõ trực tiếp trong bar để search */
 .o_vd_m2o_hover_picker .o_vd_mhp_input {
