@@ -1159,6 +1159,21 @@ export class VdCrmDashboard extends Component {
         return !!(this.state.is_manager && this.state.selected_user_id);
     }
 
+    // Mô tả NGUYÊN NHÂN khoá (coachmark cạnh ổ khoá). which: new|urgent|xlvd.
+    lockReason(which) {
+        if (which === 'new') {
+            return this.state.call_watch?.reason
+                || "Chưa gọi đủ số ngày yêu cầu cho khách mới.";
+        }
+        const pf = this.state.problem_find?.[which];
+        const name = which === 'urgent' ? 'THI CÔNG GẤP' : 'XỬ LÝ VẤN ĐỀ';
+        const pct = pf ? pf.pct : 0;
+        const np = pf ? pf.no_problem : 0;
+        const tot = pf ? pf.total : 0;
+        return `Bảng ${name}: ${np}/${tot} khách (${pct}%) CHƯA có vấn đề — `
+            + `quá hạn xử lý nên bị khoá.`;
+    }
+
     // ADMIN gỡ khoá bảng cho NV đang xem. which: 'new' | 'urgent' | 'xlvd'.
     // Cập nhật state tại chỗ để icon ổ khoá tắt ngay không cần F5.
     async adminClearTableLock(which) {

@@ -2712,6 +2712,16 @@
                         t-on-click.stop="() => this.adminClearTableLock(lockWhich)">
                     🔓 Mở khoá
                 </button>
+                <!-- Coachmark TỰ HIỆN chỉ vào ổ khoá: nguyên nhân + cách xử lý -->
+                <div class="o_vd_lock_coach">
+                    <div class="o_vd_lock_coach_arrow"/>
+                    <div class="o_vd_lock_coach_title">🔒 Bảng này đang bị KHOÁ</div>
+                    <div class="o_vd_lock_coach_body"><t t-esc="lockReason(lockWhich)"/></div>
+                    <div class="o_vd_lock_coach_how">
+                        👉 Cách xử lý: liên hệ <b>Trưởng phòng kinh doanh</b> hoặc
+                        <b>Giám đốc</b> để được mở khoá.
+                    </div>
+                </div>
             </div>
         </div>
     </t>
