@@ -779,8 +779,8 @@ class CrmLead(models.Model):
         help='Hỏi: "Anh/chị xây ở tỉnh / thành nào ạ?"',
     )
     vd_intake_district = fields.Many2one(
-        'vd.district', string='Huyện / Quận',
-        help='Hỏi: "Khu vực huyện / quận nào?"',
+        'vd.district', string='Phường / Xã',
+        help='Hỏi: "Khu vực phường / xã nào?" (sau sáp nhập 01/07/2025 — bỏ cấp huyện)',
     )
 
     @api.onchange('vd_intake_province_id')

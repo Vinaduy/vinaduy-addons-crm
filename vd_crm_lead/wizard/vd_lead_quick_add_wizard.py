@@ -562,7 +562,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     i_floor_tum_m2 = fields.Integer(string='Tum (m²)')
     i_province_id = fields.Many2one('res.country.state', string='Tỉnh/Thành',
                                     domain="[('country_id.code', '=', 'VN')]")
-    i_district = fields.Many2one('vd.district', string='Huyện/Quận')
+    i_district = fields.Many2one('vd.district', string='Phường/Xã')
     # Base keys PHẢI khớp 1-1 với crm.lead.vd_intake_dimensions để mirror_map
     # copy thẳng được mà không cần convert key.
     i_dimensions = fields.Selection(

@@ -256,7 +256,7 @@
                                         <field name="vd_intake_district" nolabel="1"
                                                widget="vd_m2o_dropdown"
                                                options="{'no_create': True, 'no_open': True}"
-                                               placeholder="Huyện / Quận?"/>
+                                               placeholder="Phường / Xã?"/>
                                     </div>
                                 </div>
                             </div>

@@ -3,11 +3,11 @@ from odoo import fields, models
 
 class VdDistrict(models.Model):
     _name = 'vd.district'
-    _description = 'Huyện / Quận'
+    _description = 'Phường / Xã'
     _order = 'state_id, name'
     _rec_name = 'name'
 
-    name = fields.Char(string='Tên huyện / quận', required=True, index=True)
+    name = fields.Char(string='Tên phường / xã', required=True, index=True)
     state_id = fields.Many2one(
         'res.country.state', string='Tỉnh / Thành',
         required=True, ondelete='cascade', index=True,
@@ -17,7 +17,7 @@ class VdDistrict(models.Model):
 
     _sql_constraints = [
         ('name_state_unique', 'unique(name, state_id)',
-         'Huyện/Quận đã tồn tại trong tỉnh này.'),
+         'Phường/Xã đã tồn tại trong tỉnh này.'),
     ]
 
     def name_get(self):
