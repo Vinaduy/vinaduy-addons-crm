@@ -7099,13 +7099,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 /* CALL-WATCH (2026-06-05): KHÔNG banner to — chỉ 1 button gọn + popover hover.
    Khi khoá thêm dải đỏ + nút admin mở khoá. */
-.o_vd_cw_row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 0.55rem 0;
-}
+/* Bảng vàng: text co giãn để button + nút mở khoá nằm bên phải */
+.o_vd_cw_banner .o_vd_pf_banner_text { flex: 1 1 auto; min-width: 0; }
+.o_vd_cw_banner .o_vd_cw_btn,
+.o_vd_cw_banner .o_vd_cw_unlock_btn { flex: 0 0 auto; align-self: center; }
 /* Button gọn — override layout grid to của .o_vd_trash_box thành pill vàng.
    GIỮ .o_vd_split_trash để thừa hưởng popover hover thuần CSS. */
 .o_vd_trash_box.o_vd_cw_btn {
