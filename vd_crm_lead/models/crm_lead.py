@@ -5881,11 +5881,11 @@ class CrmLead(models.Model):
         return True
 
     @api.model
-    def _vd_pancake_report(self):
-        """Báo cáo chia số PANCAKE TỰ ĐỘNG (user spec 2026-06-05).
+    def _vd_distribution_report(self, pancake=True):
+        """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH tự động
+        Pancake; False → KH nhập TAY (chia số thủ công).
         Trả {today, month} mỗi cái: total, rows[{name,count}], eligible, uneven.
-        uneven (chỉ hôm nay) = chia KHÔNG đều: chênh lệch max-min giữa các NV đủ
-        điều kiện nhận Pancake > 1 (vd 12 số dồn 3 người → đỏ)."""
+        uneven (chỉ hôm nay) = chênh lệch max-min giữa các NV đủ điều kiện > 1."""
         Users = self.env['res.users'].sudo()
         salesman_gid = self.env.ref('sales_team.group_sale_salesman').id
         sales = Users.search([
@@ -5897,10 +5897,11 @@ class CrmLead(models.Model):
         today = fields.Date.context_today(self)
         today_start = fields.Datetime.to_datetime(today)
         month_start = fields.Datetime.to_datetime(today.replace(day=1))
+        src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
+            else [('vd_pancake_page_id', '=', False)]
 
         def _build(since, eval_even):
-            leads = self.sudo().search([
-                ('vd_pancake_page_id', '!=', False),
+            leads = self.sudo().search(src_dom + [
                 ('create_date', '>=', since),
                 ('user_id', '!=', False),
             ])
@@ -6181,9 +6182,10 @@ class CrmLead(models.Model):
             'problem_find': problem_find,
             # CALL-WATCH (2026-06-04): banner "chưa gọi" + khoá bảng Khách mới.
             'call_watch': self._vd_callwatch_payload(scope_user),
-            # PANCAKE (2026-06-05): báo cáo chia số tự động hôm nay/tháng + cảnh báo
-            # chia không đều. Chỉ tính ở màn quản lý (toàn cty).
-            'pancake_report': self._vd_pancake_report() if is_manager else {},
+            # CHIA SỐ (2026-06-05): báo cáo chia số tự động (Pancake) + thủ công
+            # (nhập tay) hôm nay/tháng + cảnh báo chia không đều. Chỉ ở màn quản lý.
+            'pancake_report': self._vd_distribution_report(pancake=True) if is_manager else {},
+            'manual_report': self._vd_distribution_report(pancake=False) if is_manager else {},
             'performance': performance,
         }
 

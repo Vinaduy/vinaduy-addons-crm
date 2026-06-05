@@ -8328,27 +8328,24 @@ body.o_vd_preview_active .o_vd_preview_body_form {
    FILTER PANCAKE (user spec 2026-06-05) — giữa tab & bảng NV.
    Hover → báo cáo chia số hôm nay/tháng. Chia không đều → đỏ.
    ============================================================ */
+/* 2 filter cạnh nhau, mỗi cái GỌN vừa chữ */
+.o_vd_dist_filters { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 0.7rem; }
 .o_vd_pancake_filter {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    margin: 0 0 0.7rem 0;
-    padding: 0.5rem 0.9rem;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
     background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
     border: 2px solid #4dabf7;
     border-radius: 12px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(77, 171, 247, 0.22);
-    .o_vd_pancake_ico { font-size: 1.4rem; color: #1971c2; }
-    .o_vd_pancake_lbl { display: flex; flex-direction: column; line-height: 1.15; }
-    .o_vd_pancake_title { font-weight: 900; font-size: 0.95rem; color: #1864ab; letter-spacing: 0.4px; }
-    .o_vd_pancake_sub { font-size: 0.74rem; color: #1971c2; b { color: #c92a2a; } }
-    .o_vd_pancake_badge {
-        margin-left: 0.2rem; min-width: 1.8rem; padding: 0.1rem 0.5rem;
-        background: #1971c2; color: #fff; border-radius: 999px;
-        font-weight: 800; font-size: 0.9rem; text-align: center;
-    }
+    .o_vd_pancake_ico { font-size: 1.5rem; color: #1971c2; }
+    .o_vd_pancake_lbl { display: flex; flex-direction: column; line-height: 1.1; }
+    /* Tiêu đề TO + đậm */
+    .o_vd_pancake_title { font-weight: 900; font-size: 1.25rem; color: #1864ab; letter-spacing: 0.3px; white-space: nowrap; }
+    .o_vd_pancake_warn { font-size: 0.74rem; font-weight: 800; color: #c92a2a; white-space: nowrap; }
 }
 /* CHIA KHÔNG ĐỀU → đỏ + nhấp nháy */
 .o_vd_pancake_filter.o_vd_pancake_uneven {

@@ -469,61 +469,17 @@
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
                             <div t-if="state.dashSubView === 'nv'" class="o_vd_kh_box">
-                                <!-- FILTER PANCAKE (user 2026-06-05): nằm giữa tab & bảng NV.
-                                     Hover → báo cáo chia số (hôm nay + tháng). Chia không đều → đỏ. -->
-                                <div t-if="state.pancake_report and state.pancake_report.today"
-                                     t-att-class="'o_vd_pancake_filter' + (state.pancake_report.today.uneven ? ' o_vd_pancake_uneven' : '')">
-                                    <i class="fa fa-bolt o_vd_pancake_ico"/>
-                                    <div class="o_vd_pancake_lbl">
-                                        <span class="o_vd_pancake_title">PANCAKE</span>
-                                        <span t-if="state.pancake_report.today.uneven" class="o_vd_pancake_warn">
-                                            ⚠️ PANCAKE chia không đều
-                                        </span>
-                                        <span t-else="" class="o_vd_pancake_sub">
-                                            Tự động hôm nay: <b><t t-esc="state.pancake_report.today.total"/></b> số
-                                        </span>
-                                    </div>
-                                    <span class="o_vd_pancake_badge"><t t-esc="state.pancake_report.today.total"/></span>
-                                    <!-- POPOVER hover: báo cáo chia số -->
-                                    <div class="o_vd_pancake_pop">
-                                        <div class="o_vd_pancake_pop_head">⚡ CHIA SỐ PANCAKE TỰ ĐỘNG</div>
-                                        <!-- HÔM NAY -->
-                                        <div class="o_vd_pancake_sec">
-                                            <div class="o_vd_pancake_sec_head">
-                                                📅 Hôm nay — <b><t t-esc="state.pancake_report.today.total"/></b> số,
-                                                chia cho <t t-esc="state.pancake_report.today.nv_count"/>/<t t-esc="state.pancake_report.today.eligible"/> NV
-                                            </div>
-                                            <div t-if="state.pancake_report.today.uneven" class="o_vd_pancake_pop_warn">
-                                                ⚠️ Chia KHÔNG đều — cần chia đều cho toàn bộ NV (dư chia tiếp).
-                                            </div>
-                                            <div t-if="!state.pancake_report.today.rows.length" class="o_vd_pancake_empty">
-                                                Hôm nay chưa có số Pancake nào.
-                                            </div>
-                                            <div t-else="" class="o_vd_pancake_rows">
-                                                <div t-foreach="state.pancake_report.today.rows" t-as="r" t-key="r_index"
-                                                     class="o_vd_pancake_row">
-                                                    <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
-                                                    <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- THÁNG NÀY -->
-                                        <div class="o_vd_pancake_sec">
-                                            <div class="o_vd_pancake_sec_head">
-                                                🗓️ Tháng này — <b><t t-esc="state.pancake_report.month.total"/></b> số
-                                            </div>
-                                            <div t-if="!state.pancake_report.month.rows.length" class="o_vd_pancake_empty">
-                                                Tháng này chưa có số Pancake.
-                                            </div>
-                                            <div t-else="" class="o_vd_pancake_rows">
-                                                <div t-foreach="state.pancake_report.month.rows" t-as="r" t-key="r_index"
-                                                     class="o_vd_pancake_row">
-                                                    <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
-                                                    <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <!-- FILTER CHIA SỐ (user 2026-06-05): PANCAKE (tự động) +
+                                     THỦ CÔNG (nhập tay), gọn vừa chữ, hover ra báo cáo. -->
+                                <div class="o_vd_dist_filters">
+                                    <t t-set="distRep" t-value="state.pancake_report"/>
+                                    <t t-set="distTitle" t-value="'PANCAKE'"/>
+                                    <t t-set="distIcon" t-value="'fa-bolt'"/>
+                                    <t t-call="vd_crm_lead.DistFilter"/>
+                                    <t t-set="distRep" t-value="state.manual_report"/>
+                                    <t t-set="distTitle" t-value="'CHIA SỐ THỦ CÔNG'"/>
+                                    <t t-set="distIcon" t-value="'fa-hand-pointer-o'"/>
+                                    <t t-call="vd_crm_lead.DistFilter"/>
                                 </div>
                                 <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
                                      Trạng thái) — mỗi thẻ NV đã tự mang nhãn. -->
@@ -2831,6 +2787,57 @@
             <button t-if="state.is_manager" class="o_vd_kh_lock_mini_btn"
                     t-on-click.stop="() => this.adminClearTableLockFor(cellNv, cellWhich)"
                     title="Mở khoá bảng này cho NV">🔓</button>
+        </div>
+    </t>
+
+    <!-- ============================================================
+         FILTER CHIA SỐ (PANCAKE / THỦ CÔNG) — vars: distRep, distTitle, distIcon.
+         Gọn vừa chữ; hover ra báo cáo hôm nay + tháng; chia không đều → đỏ.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.DistFilter">
+        <div t-if="distRep and distRep.today"
+             t-att-class="'o_vd_pancake_filter' + (distRep.today.uneven ? ' o_vd_pancake_uneven' : '')">
+            <i t-att-class="'fa o_vd_pancake_ico ' + distIcon"/>
+            <div class="o_vd_pancake_lbl">
+                <span class="o_vd_pancake_title"><t t-esc="distTitle"/></span>
+                <span t-if="distRep.today.uneven" class="o_vd_pancake_warn">Chia không đều số</span>
+            </div>
+            <!-- POPOVER hover -->
+            <div class="o_vd_pancake_pop">
+                <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
+                <div class="o_vd_pancake_sec">
+                    <div class="o_vd_pancake_sec_head">
+                        📅 Hôm nay — <b><t t-esc="distRep.today.total"/></b> số,
+                        chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV
+                    </div>
+                    <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
+                        ⚠️ Chia KHÔNG đều — cần chia đều cho toàn bộ NV (dư chia tiếp).
+                    </div>
+                    <div t-if="!distRep.today.rows.length" class="o_vd_pancake_empty">
+                        Hôm nay chưa có số.
+                    </div>
+                    <div t-else="" class="o_vd_pancake_rows">
+                        <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index" class="o_vd_pancake_row">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                            <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="o_vd_pancake_sec">
+                    <div class="o_vd_pancake_sec_head">
+                        🗓️ Tháng này — <b><t t-esc="distRep.month.total"/></b> số
+                    </div>
+                    <div t-if="!distRep.month.rows.length" class="o_vd_pancake_empty">
+                        Tháng này chưa có số.
+                    </div>
+                    <div t-else="" class="o_vd_pancake_rows">
+                        <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index" class="o_vd_pancake_row">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                            <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </t>
 
