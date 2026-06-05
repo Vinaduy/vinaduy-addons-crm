@@ -965,9 +965,13 @@
                          Mỗi card = 1 row flat. Hover card → popover panel slide xuống
                          chứa Ghi chú (editable) + Tips gợi ý (từ tag catalog). -->
                     <div class="o_vd_problem_tracker" invisible="vd_contract_signed">
-                        <span invisible="vd_lead_problem_open_count != 0"
+                        <span invisible="vd_lead_problem_open_count != 0 or not vd_lead_problem_ids"
                               class="o_vd_problem_all_resolved">
                             ✅ Tất cả vấn đề đã giải quyết — sẵn sàng ký HĐ
+                        </span>
+                        <span invisible="vd_lead_problem_ids"
+                              class="o_vd_problem_none_yet text-muted">
+                            📝 Chưa ghi nhận vấn đề nào cho KH này.
                         </span>
                         <field name="vd_lead_problem_ids" nolabel="1" mode="kanban">
                             <kanban class="o_vd_problem_kanban" records_draggable="0"

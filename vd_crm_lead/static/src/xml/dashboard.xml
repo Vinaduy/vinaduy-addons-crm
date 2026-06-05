@@ -2293,7 +2293,7 @@
                                             <span class="o_vd_problem_row_problems">
                                                 <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
+                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                     <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
@@ -2500,7 +2500,7 @@
                                             <span class="o_vd_problem_row_problems">
                                                 <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
                                                 <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
+                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
                                                     <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
