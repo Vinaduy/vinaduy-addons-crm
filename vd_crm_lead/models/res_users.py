@@ -125,12 +125,14 @@ class ResUsers(models.Model):
 
     @api.model
     def vd_recent_recordings(self, user_id, limit=20, min_seconds=180):
-        """20 cuộc ghi âm GẦN NHẤT >= 3 phút của 1 NV — để nghe/tải ngay trên
-        dashboard (hover tên NV). Trả list {callee, duration, date, play_url,
-        download_url}."""
+        """Hover thẻ "Cuộc gọi tháng này" → trả 2 phần (user spec 2026-06-05):
+          - stats: thống kê cuộc gọi THÁNG (tổng, % nghe máy, % >3', % >5').
+          - recordings: 20 ghi âm gần nhất >= 3 phút (nghe/tải ngay).
+        """
         Call = self.env['stringee.call'].sudo()
+        uid = int(user_id)
         calls = Call.search([
-            ('user_id', '=', int(user_id)),
+            ('user_id', '=', uid),
             ('duration', '>=', int(min_seconds)),
             ('recording_attachment_id', '!=', False),
         ], order='create_date desc', limit=int(limit))
@@ -148,7 +150,30 @@ class ResUsers(models.Model):
                 'play_url': '/web/content/%s?download=false' % att.id,
                 'download_url': '/web/content/%s?download=true' % att.id,
             })
-        return res
+        # ===== Thống kê cuộc gọi THÁNG hiện tại =====
+        month_start = fields.Datetime.to_datetime(date.today().replace(day=1))
+        base = [
+            ('user_id', '=', uid),
+            ('create_date', '>=', month_start),
+            ('lead_id', '!=', False),
+        ]
+        answered_dom = ['|', ('state', '=', 'answered'),
+                        '&', ('state', '=', 'ended'), ('duration', '>', 0)]
+        total = Call.search_count(base)
+        answered = Call.search_count(base + answered_dom)
+        over3 = Call.search_count(base + [('duration', '>=', 180)])
+        over5 = Call.search_count(base + [('duration', '>=', 300)])
+
+        def _pct(x):
+            return round(x / total * 100) if total else 0
+
+        stats = {
+            'total': total,
+            'answered': answered, 'answered_pct': _pct(answered),
+            'over3': over3, 'over3_pct': _pct(over3),
+            'over5': over5, 'over5_pct': _pct(over5),
+        }
+        return {'stats': stats, 'recordings': res}
 
     # ===== TOGGLE NHẬN KH TỪ PANCAKE =====
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.

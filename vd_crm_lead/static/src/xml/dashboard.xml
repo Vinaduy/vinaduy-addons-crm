@@ -48,25 +48,51 @@
                  t-on-mouseleave="() => this.onRecLeave()"
                  t-on-click.stop="() => {}">
                 <div class="o_vd_rec_head">
-                    <i class="fa fa-headphones me-1"/>20 GHI ÂM &gt; 3 PHÚT — <t t-esc="state.recHover.name"/>
+                    <i class="fa fa-phone me-1"/>CUỘC GỌI THÁNG NÀY — <t t-esc="state.recHover.name"/>
                 </div>
                 <div t-if="state.recHover.loading" class="o_vd_rec_loading">
                     <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
                 </div>
-                <div t-elif="!state.recHover.recordings.length" class="o_vd_rec_empty">
-                    Chưa có ghi âm nào trên 3 phút.
-                </div>
-                <div t-else="" class="o_vd_rec_list">
-                    <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_item">
-                        <div class="o_vd_rec_meta">
-                            <span class="o_vd_rec_callee"><t t-esc="rec.callee"/></span>
-                            <span class="o_vd_rec_dim"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
-                            <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
-                               title="Tải file ghi âm"><i class="fa fa-download"/></a>
+                <t t-else="">
+                    <!-- BẢNG 1: thống kê cuộc gọi trong tháng -->
+                    <t t-set="rs" t-value="state.recHover.stats or {}"/>
+                    <div class="o_vd_rec_stats">
+                        <div class="o_vd_rec_stat o_vd_rec_stat_total">
+                            <span class="o_vd_rec_stat_num"><t t-esc="rs.total or 0"/></span>
+                            <span class="o_vd_rec_stat_lbl">cuộc gọi</span>
                         </div>
-                        <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
+                        <div class="o_vd_rec_stat o_vd_rec_stat_ok">
+                            <span class="o_vd_rec_stat_num"><t t-esc="rs.answered_pct or 0"/>%</span>
+                            <span class="o_vd_rec_stat_lbl">nghe máy (<t t-esc="rs.answered or 0"/>)</span>
+                        </div>
+                        <div class="o_vd_rec_stat o_vd_rec_stat_3">
+                            <span class="o_vd_rec_stat_num"><t t-esc="rs.over3_pct or 0"/>%</span>
+                            <span class="o_vd_rec_stat_lbl">&gt; 3 phút (<t t-esc="rs.over3 or 0"/>)</span>
+                        </div>
+                        <div class="o_vd_rec_stat o_vd_rec_stat_5">
+                            <span class="o_vd_rec_stat_num"><t t-esc="rs.over5_pct or 0"/>%</span>
+                            <span class="o_vd_rec_stat_lbl">&gt; 5 phút (<t t-esc="rs.over5 or 0"/>)</span>
+                        </div>
                     </div>
-                </div>
+                    <!-- BẢNG 2: 20 ghi âm > 3 phút -->
+                    <div class="o_vd_rec_sub_head">
+                        <i class="fa fa-headphones me-1"/>20 ghi âm gần nhất &gt; 3 phút
+                    </div>
+                    <div t-if="!state.recHover.recordings.length" class="o_vd_rec_empty">
+                        Chưa có ghi âm nào trên 3 phút.
+                    </div>
+                    <div t-else="" class="o_vd_rec_list">
+                        <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_item">
+                            <div class="o_vd_rec_meta">
+                                <span class="o_vd_rec_callee"><t t-esc="rec.callee"/></span>
+                                <span class="o_vd_rec_dim"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
+                                <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
+                                   title="Tải file ghi âm"><i class="fa fa-download"/></a>
+                            </div>
+                            <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
+                        </div>
+                    </div>
+                </t>
             </div>
 
             <!-- 📞 BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — to rộng:
@@ -443,31 +469,9 @@
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
                             <div t-if="state.dashSubView === 'nv'" class="o_vd_kh_box">
-                                <!-- Header row (table-style) — thay cho box_head + legend cũ -->
-                                <div class="o_vd_kh_table_header">
-                                    <div class="o_vd_kh_table_header_sidebar"/>
-                                    <div class="o_vd_kh_table_header_cells">
-                                        <!-- Round 13: Bỏ cột Số tháng + Năng lực. Khách mới đổi
-                                             tiêu đề HÔM NAY (đóng khung toàn bộ NV). -->
-                                        <div class="o_vd_kh_th_group o_vd_kh_th_group_info">
-                                            <div class="o_vd_kh_th o_vd_kh_th_name">👤 Nhân viên</div>
-                                        </div>
-                                        <div class="o_vd_kh_th_group o_vd_kh_th_group_kh">
-                                            <!-- r14: BỎ tiêu đề "HÔM NAY" — 2 nút bên dưới tự
-                                                 mang nhãn "Hôm nay". Giữ ô rỗng để khỏi vỡ grid. -->
-                                            <div class="o_vd_kh_th o_vd_kh_th_today o_vd_kh_th_blank"/>
-                                            <!-- r2026-06-05: BỎ tiêu đề 3 cột — mỗi thẻ NV tự mang
-                                                 icon+nhãn (giống ô Cuộc gọi). Giữ ô rỗng giữ grid. -->
-                                            <div class="o_vd_kh_th_trio">
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
-                                            </div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_help">🆘 Cần hỗ trợ</div>
-                                            <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
+                                     Trạng thái) — mỗi thẻ NV đã tự mang nhãn. -->
+
                                 <div class="o_vd_kh_team_list">
                                     <div t-if="!state.analytics.kh_by_team.length" class="o_vd_kh_empty">
                                         ✓ Không có dữ liệu KH trong khoảng lọc
@@ -488,13 +492,9 @@
                                                     <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
                                                          t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                        <!-- Hover TÊN/avatar → bảng GHI ÂM (hiện bên trái) -->
-                                                        <span class="o_vd_kh_nv_avatar"
-                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                              t-on-mouseleave="() => this.onRecLeave()"><i class="fa fa-user-circle"/></span>
-                                                        <span class="o_vd_kh_nv_link_name"
-                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                              t-on-mouseleave="() => this.onRecLeave()">
+                                                        <!-- 2026-06-05: bỏ hover ghi âm ở tên NV — chuyển sang thẻ "Tháng này" -->
+                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
+                                                        <span class="o_vd_kh_nv_link_name">
                                                             <t t-esc="nv.name"/>
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
@@ -517,43 +517,49 @@
                                                      mỗi nút tự mang nhãn "Hôm nay". Popover render ở
                                                      gốc, định vị theo con trỏ. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
-                                                    <!-- NÚT 1: KHÁCH MỚI HÔM NAY — thu nhỏ (user 2026-06-05) -->
+                                                    <!-- THẺ 1: KHÁCH MỚI HÔM NAY (thu nhỏ) — tag dán mép trên -->
                                                     <div class="o_vd_today_btn o_vd_today_btn_new o_vd_today_btn_sm"
                                                          t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
                                                          t-on-mouseleave="() => this.onNewTodayLeave()"
                                                          t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> Hôm nay</span>
-                                                        <span class="o_vd_today_main">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
+                                                        <span class="o_vd_today_line">
                                                             <i class="fa fa-user-plus o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
                                                             <span class="o_vd_today_lbl">KH mới</span>
                                                         </span>
                                                     </div>
-                                                    <!-- NÚT 2: CUỘC GỌI HÔM NAY — báo ĐỎ khi yếu (0 cuộc
-                                                         hoặc < 50% người gọi cao nhất) (user 2026-06-05) -->
+                                                    <!-- THẺ 2: CUỘC GỌI HÔM NAY — 1 dòng: số + ✓ nghe máy + %, báo ĐỎ khi yếu -->
                                                     <div t-att-class="'o_vd_today_btn o_vd_today_btn_call' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
                                                          t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
                                                          t-on-mouseleave="() => this.onTodayCallsLeave()"
                                                          title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> Hôm nay</span>
-                                                        <span class="o_vd_today_main">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
+                                                        <span class="o_vd_today_line">
                                                             <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
                                                             <i class="fa fa-phone o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
                                                             <span class="o_vd_today_lbl">Cuộc gọi</span>
-                                                            <span class="o_vd_today_ok" t-att-title="(nv.calls_today_success or 0) + ' KH nghe máy'">
+                                                            <span class="o_vd_today_ok">
                                                                 <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
+                                                                · <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
                                                             </span>
                                                         </span>
                                                     </div>
-                                                    <!-- NÚT 3: CUỘC GỌI THÁNG — thống kê, KHÔNG cảnh báo -->
+                                                    <!-- THẺ 3: CUỘC GỌI THÁNG — hover → bảng thống kê tháng + 20 ghi âm -->
                                                     <div class="o_vd_today_btn o_vd_today_btn_month"
-                                                         t-att-title="'Tổng cuộc gọi trong tháng: ' + (nv.calls_month_total or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> Tháng này</span>
-                                                        <span class="o_vd_today_main">
+                                                         t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onRecLeave()"
+                                                         t-att-title="'Cuộc gọi trong tháng: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0)">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
+                                                        <span class="o_vd_today_line">
                                                             <i class="fa fa-phone o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
                                                             <span class="o_vd_today_lbl">Cuộc gọi</span>
+                                                            <span class="o_vd_today_ok">
+                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_month_success or 0"/>
+                                                                · <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
+                                                            </span>
                                                         </span>
                                                     </div>
                                                 </div>

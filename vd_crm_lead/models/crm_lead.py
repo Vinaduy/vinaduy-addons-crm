@@ -8080,12 +8080,19 @@ class CrmLead(models.Model):
             # User spec 2026-06-05: cuộc gọi THEO THÁNG (tháng hiện tại) — thẻ
             # thống kê cạnh ô hôm nay, KHÔNG cảnh báo. Dùng search_count cho nhẹ.
             _month_start_dt = fields.Datetime.to_datetime(today.replace(day=1))
-            calls_month_total = self.env['stringee.call'].sudo().search_count([
+            _month_base_dom = [
                 ('user_id', '=', u.id),
                 ('create_date', '>=', _month_start_dt),
                 ('create_date', '<', today_end),
                 ('lead_id', '!=', False),
-            ])
+            ]
+            calls_month_total = self.env['stringee.call'].sudo().search_count(_month_base_dom)
+            # Cuộc gọi NGHE MÁY trong tháng (để quy ra % giống thẻ Hôm nay).
+            calls_month_success = self.env['stringee.call'].sudo().search_count(
+                _month_base_dom + ['|',
+                    ('state', '=', 'answered'),
+                    '&', ('state', '=', 'ended'), ('duration', '>', 0)]
+            )
 
             # 🆘 CẦN HỖ TRỢ — KH mà NV này đã bấm yêu cầu cấp trên hỗ trợ và còn
             # hiệu lực (today/multi, chưa won/lost). Độc lập với khoảng lọc ngày
@@ -8179,6 +8186,7 @@ class CrmLead(models.Model):
                 'calls_today_success': len(success_call_lead_ids),
                 # 2026-06-05: tổng cuộc gọi THÁNG (thẻ thống kê, không cảnh báo)
                 'calls_month_total': calls_month_total,
+                'calls_month_success': calls_month_success,
                 # 🆘 Cần hỗ trợ (user spec 2026-05-31): count + danh sách ≤3 KH
                 'help_count': len(help_active),
                 'help_waiting': n_help_waiting,

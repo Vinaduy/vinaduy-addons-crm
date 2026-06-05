@@ -1170,6 +1170,12 @@ export class VdCrmDashboard extends Component {
         }
         return mx;
     }
+    // Tỷ lệ % cuộc gọi có nghe máy (dùng cho cả thẻ Hôm nay + Tháng này).
+    answeredPct(total, success) {
+        const t = total || 0, s = success || 0;
+        return t > 0 ? Math.round(s / t * 100) : 0;
+    }
+
     // Báo đỏ khi: KHÔNG gọi (0 cuộc) HOẶC < 50% so với người gọi cao nhất.
     isCallTodayWeak(nv) {
         const c = (nv && nv.calls_today_total) || 0;
@@ -1314,11 +1320,13 @@ export class VdCrmDashboard extends Component {
             rect: this._rowRect(ev),
             loading: true,
             recordings: [],
+            stats: {},
         };
         try {
-            const recs = await this.orm.call("res.users", "vd_recent_recordings", [nv.user_id]);
+            const data = await this.orm.call("res.users", "vd_recent_recordings", [nv.user_id]);
             if (this.state.recHover && this.state.recHover.user_id === nv.user_id) {
-                this.state.recHover.recordings = recs || [];
+                this.state.recHover.recordings = (data && data.recordings) || [];
+                this.state.recHover.stats = (data && data.stats) || {};
                 this.state.recHover.loading = false;
             }
         } catch (e) {
