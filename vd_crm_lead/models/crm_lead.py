@@ -2729,9 +2729,21 @@ class CrmLead(models.Model):
             elif existing:
                 existing.with_context(mail_notrack=True).write({'name': name, 'status': status})
             else:
+                # User spec 2026-06-06: HỢP NHẤT bản tự động với bản thủ công —
+                # gán tag 'budget_balance' để vấn đề tự sinh CŨNG hiện đầy đủ
+                # section SỬA THÔNG TIN BÁO GIÁ (diện tích/móng/tầng) như bản NV
+                # tự tạo. Bỏ qua nếu lead đã có thẻ tag này (tránh phạm unique).
+                budget_tag = self.env.ref(
+                    'vd_crm_lead.nego_problem_budget_balance',
+                    raise_if_not_found=False)
+                tag_id = budget_tag.id if budget_tag else False
+                if tag_id and rec.vd_lead_problem_ids.filtered(
+                        lambda p: p.tag_id.id == tag_id):
+                    tag_id = False
                 Problem.create({
                     'lead_id': rec.id, 'code': 'cost_diff', 'name': name,
                     'status': status, 'sequence': 10, 'is_default': True,
+                    'tag_id': tag_id,
                 })
 
     def _vd_ensure_default_problems(self):
@@ -5836,6 +5848,27 @@ class CrmLead(models.Model):
         return max(0, int(round(grace - elapsed + 0.4999)))
 
     @api.model
+    def _vd_cron_notify_overdue_problems(self):
+        """CRON hằng ngày: báo TRƯỞNG PHÒNG các vấn đề KH ĐÃ QUÁ HẠN xử lý mà
+        chưa giải quyết (user spec 2026-06-06). Mỗi vấn đề chỉ báo 1 lần
+        (overdue_notified) — gia hạn/sửa hạn sẽ reset cờ để báo lại nếu lại quá."""
+        Problem = self.env['vd.lead.problem'].sudo()
+        now = fields.Datetime.now()
+        overdue = Problem.search([
+            ('deadline', '!=', False),
+            ('deadline', '<', now),
+            ('status', '!=', 'resolved'),
+            ('overdue_notified', '=', False),
+        ])
+        for p in overdue:
+            days = (now - p.deadline).days
+            p._vd_notify_leaders(_(
+                '⏰ QUÁ HẠN xử lý: vấn đề "%s" của KH %s (NV %s) đã quá hạn %d '
+                'ngày mà chưa giải quyết.'
+            ) % (p.name, p.lead_id.name or '', p.lead_id.user_id.name or '?', days))
+            p.overdue_notified = True
+
+    @api.model
     def _vd_cron_eval_problem_find_lock(self):
         """CRON hằng ngày: đánh giá khoá per-bảng cho mọi NV sales."""
         enabled, _pct, grace = self._vd_problem_find_config()
@@ -7001,7 +7034,13 @@ class CrmLead(models.Model):
                             nm = text.split(sep, 1)[0].strip()
                             break
                     ic = '🔸'
-                out.append({'name': nm, 'icon': ic, 'status': p.status})
+                out.append({
+                    'name': nm, 'icon': ic, 'status': p.status,
+                    # Đếm ngược hạn xử lý (user spec 2026-06-06) — chỉ theo NGÀY.
+                    'deadline_state': p.deadline_state,
+                    'days_left': p.days_left,
+                    'deadline_label': p.deadline_label or '',
+                })
             return out
 
         def _lead_urgent_label(l):

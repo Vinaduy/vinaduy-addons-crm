@@ -1027,6 +1027,51 @@
                                         <field name="tag_id" invisible="1"/>
                                     </div>
 
+                                    <!-- ===== HẠN XỬ LÝ (đếm ngược theo ngày) — mọi vấn đề ===== -->
+                                    <field name="deadline_state" invisible="1"/>
+                                    <field name="days_left" invisible="1"/>
+                                    <field name="extension_count" invisible="1"/>
+                                    <field name="ext_pending" invisible="1"/>
+                                    <div class="o_vd_pf_deadline_bar"
+                                         t-att-class="{
+                                            'o_vd_dl_ok': deadline_state == 'ok',
+                                            'o_vd_dl_warn': deadline_state == 'warn',
+                                            'o_vd_dl_overdue': deadline_state == 'overdue',
+                                            'o_vd_dl_done': deadline_state == 'done'}"
+                                         invisible="deadline_state == 'none'">
+                                        <span class="o_vd_pf_dl_label">
+                                            <field name="deadline_label" readonly="1" nolabel="1"/>
+                                        </span>
+                                        <span class="o_vd_pf_dl_date" invisible="not deadline">
+                                            (hạn: <field name="deadline" readonly="1" nolabel="1"/>
+                                            <span invisible="extension_count == 0">
+                                                · đã gia hạn <field name="extension_count" readonly="1" nolabel="1"/> lần</span>)
+                                        </span>
+                                        <span class="o_vd_pf_dl_actions" invisible="deadline_state == 'done'">
+                                            <button name="action_extend_deadline" type="object"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    invisible="ext_pending">
+                                                <i class="fa fa-clock-o me-1"/>Gia hạn +1 tuần
+                                            </button>
+                                            <span class="o_vd_pf_dl_pending" invisible="not ext_pending">
+                                                ⏳ Đang chờ trưởng phòng duyệt gia hạn
+                                            </span>
+                                            <!-- Duyệt/từ chối: chỉ trưởng nhóm trở lên -->
+                                            <button name="action_ext_approve" type="object"
+                                                    class="btn btn-sm btn-success"
+                                                    invisible="not ext_pending"
+                                                    groups="vd_crm_lead.vd_crm_group_team_leader">
+                                                <i class="fa fa-check me-1"/>Duyệt
+                                            </button>
+                                            <button name="action_ext_reject" type="object"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    invisible="not ext_pending"
+                                                    groups="vd_crm_lead.vd_crm_group_team_leader">
+                                                <i class="fa fa-times me-1"/>Từ chối
+                                            </button>
+                                        </span>
+                                    </div>
+
                                     <!-- ===== 1. LIÊN HỆ KH =====
                                          NV phải tick để xác nhận đã trao đổi vấn đề này với KH -->
                                     <div class="o_vd_pf_section o_vd_pf_section_contact">

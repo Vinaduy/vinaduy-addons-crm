@@ -2296,6 +2296,9 @@
                                                 <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                    <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
+                                                          t-att-class="'o_vd_prb_countdown o_vd_dlc_' + p.deadline_state"
+                                                          t-esc="p.deadline_label"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
                                                 <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"
@@ -2500,6 +2503,9 @@
                                                 <span t-foreach="lead.problems_non_urgent or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                    <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
+                                                          t-att-class="'o_vd_prb_countdown o_vd_dlc_' + p.deadline_state"
+                                                          t-esc="p.deadline_label"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
                                                 <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"

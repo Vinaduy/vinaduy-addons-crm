@@ -5939,6 +5939,19 @@
                 strong { color: #ffd43b; font-weight: 800; font-size: 0.85rem; }
             }
         }
+
+        /* HẠN XỬ LÝ — chip đếm ngược theo ngày (user spec 2026-06-06) */
+        .o_vd_prb_countdown {
+            margin-left: 0.3rem;
+            padding: 0.02rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            white-space: nowrap;
+            &.o_vd_dlc_ok      { background: #e7f5ff; color: #1971c2; border: 1px solid #a5d8ff; }
+            &.o_vd_dlc_warn    { background: #fff3bf; color: #b8860b; border: 1px solid #ffe066; }
+            &.o_vd_dlc_overdue { background: #c92a2a; color: #fff; border: 1px solid #ff8787; animation: vd-blink-urgent 0.9s ease-in-out infinite; }
+        }
     }
     @keyframes vd-pulse-required {
         0%, 100% { box-shadow: 0 0 0 2px rgba(255, 212, 59, 0.35); }

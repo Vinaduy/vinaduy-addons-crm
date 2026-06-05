@@ -34,6 +34,12 @@
                         <field name="vd_pf_xlvd_pct"/>
                         <field name="vd_pf_xlvd_grace"/>
                     </group>
+
+                    <group string="⏱️ HẠN XỬ LÝ VẤN ĐỀ (đếm ngược + gia hạn)">
+                        <field name="vd_problem_deadline_days"/>
+                        <field name="vd_problem_extension_days"/>
+                        <field name="vd_problem_extension_max"/>
+                    </group>
                 </sheet>
                 <footer>
                     <button string="Lưu" type="object" name="execute"

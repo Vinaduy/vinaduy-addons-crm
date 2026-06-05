@@ -8,6 +8,8 @@ Mục đích: ép NV phải XỬ LÝ TỪNG VẤN ĐỀ cụ thể, không nói 
 - THỜI GIAN KHỞI CÔNG
 NV có thể thêm vấn đề khác qua nút "+ Thêm vấn đề".
 """
+from datetime import timedelta
+
 from odoo import models, fields, api, _
 
 
@@ -59,6 +61,41 @@ class VdLeadProblem(models.Model):
     is_default = fields.Boolean(
         string='Mặc định', default=False,
         help='True nếu là 1 trong 2 vấn đề mặc định (không cho xoá).',
+    )
+
+    # ============================================================
+    # HẠN XỬ LÝ (deadline) — áp dụng cho MỌI vấn đề (user spec 2026-06-06)
+    # Tự đặt = ngày tạo + cấu hình (mặc định 7 ngày). NV gia hạn thêm được;
+    # vượt số lần cho phép thì cần trưởng phòng/admin duyệt. Quá hạn → báo
+    # trưởng phòng (cron) + thẻ đỏ đếm ngược trên danh sách KH.
+    # ============================================================
+    deadline = fields.Datetime(
+        string='Hạn xử lý', copy=False, index=True,
+        help='Hạn hoàn thành xử lý vấn đề. Tự đặt khi tạo = ngày tạo + cấu hình.',
+    )
+    extension_count = fields.Integer(
+        string='Số lần đã gia hạn', default=0, copy=False,
+    )
+    ext_pending = fields.Boolean(
+        string='Chờ duyệt gia hạn', default=False, copy=False,
+        help='True khi NV xin gia hạn vượt số lần cho phép → chờ trưởng phòng duyệt.',
+    )
+    overdue_notified = fields.Boolean(
+        string='Đã báo quá hạn', default=False, copy=False,
+        help='Đánh dấu đã báo trưởng phòng để cron không báo lặp.',
+    )
+    days_left = fields.Integer(
+        string='Số ngày còn lại', compute='_compute_deadline_info', store=False,
+    )
+    deadline_state = fields.Selection([
+        ('none', 'Không hạn'),
+        ('ok', 'Còn hạn'),
+        ('warn', 'Sắp hết hạn'),
+        ('overdue', 'Quá hạn'),
+        ('done', 'Đã giải quyết'),
+    ], string='Tình trạng hạn', compute='_compute_deadline_info', store=False)
+    deadline_label = fields.Char(
+        string='Nhãn đếm ngược', compute='_compute_deadline_info', store=False,
     )
 
     # ============================================================
@@ -510,7 +547,15 @@ class VdLeadProblem(models.Model):
                 continue
             lead = self.env['crm.lead'].browse(vals['lead_id'])
             vals['old_quote_html'] = lead.vd_quote_breakdown_html or ''
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        # User spec 2026-06-06: MỌI vấn đề tự có hạn xử lý = ngày tạo + cấu hình
+        # (mặc định 7 ngày). Bỏ qua nếu vals đã set deadline (vd copy/migrate).
+        dd = self._vd_deadline_cfg()[0]
+        for rec in records:
+            if not rec.deadline:
+                base = rec.create_date or fields.Datetime.now()
+                rec.deadline = base + timedelta(days=dd)
+        return records
 
     def write(self, vals):
         """Khi NV sửa intake qua section 'Cân đối ngân sách':
@@ -561,6 +606,154 @@ class VdLeadProblem(models.Model):
         """Khi NV pick tag → tự fill name từ tag để hiển thị nhất quán."""
         if self.tag_id:
             self.name = self.tag_id.name
+
+    # ============================================================
+    # HẠN XỬ LÝ — compute đếm ngược + gia hạn + duyệt + báo trưởng phòng
+    # ============================================================
+    @api.model
+    def _vd_deadline_cfg(self):
+        """Đọc cấu hình hạn xử lý: (số ngày hạn, số ngày mỗi lần gia hạn,
+        số lần gia hạn không cần duyệt)."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        dd = int(ICP.get_param('vd_crm_lead.problem_deadline_days', 7) or 7)
+        ed = int(ICP.get_param('vd_crm_lead.problem_extension_days', 7) or 7)
+        em = int(ICP.get_param('vd_crm_lead.problem_extension_max', 3) or 3)
+        return dd, ed, em
+
+    @api.depends('deadline', 'status')
+    def _compute_deadline_info(self):
+        """Đếm ngược THEO NGÀY (user spec 2026-06-06): còn X ngày / quá hạn N ngày.
+        Vấn đề đã giải quyết → dừng đếm."""
+        today = fields.Date.context_today(self)
+        for rec in self:
+            if rec.status == 'resolved':
+                rec.deadline_state = 'done'
+                rec.days_left = 0
+                rec.deadline_label = '✓ Đã giải quyết'
+                continue
+            if not rec.deadline:
+                rec.deadline_state = 'none'
+                rec.days_left = 0
+                rec.deadline_label = ''
+                continue
+            dl_date = fields.Datetime.context_timestamp(rec, rec.deadline).date()
+            days = (dl_date - today).days
+            rec.days_left = days
+            if days < 0:
+                rec.deadline_state = 'overdue'
+                rec.deadline_label = '⏰ QUÁ HẠN %d ngày' % (-days)
+            elif days == 0:
+                rec.deadline_state = 'warn'
+                rec.deadline_label = '⏰ Hết hạn HÔM NAY'
+            elif days <= 2:
+                rec.deadline_state = 'warn'
+                rec.deadline_label = '⏳ Còn %d ngày' % days
+            else:
+                rec.deadline_state = 'ok'
+                rec.deadline_label = '⏳ Còn %d ngày' % days
+
+    def _vd_is_leader(self):
+        """True nếu user hiện tại là trưởng nhóm trở lên (đủ quyền duyệt gia hạn)."""
+        user = self.env.user
+        return (
+            user._is_admin()
+            or user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+
+    def _vd_notify_action(self, message, sticky=False, danger=False):
+        """Toast thông báo cho NV sau khi bấm nút."""
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': message,
+                'type': 'danger' if danger else 'success',
+                'sticky': sticky,
+            },
+        }
+
+    def _vd_notify_leaders(self, body):
+        """Gửi thông báo (inbox) cho TRƯỞNG PHÒNG quản lý KH này.
+        Ưu tiên trưởng nhóm của team (crm.team.user_id); fallback nhóm
+        Trưởng nhóm."""
+        self.ensure_one()
+        lead = self.lead_id
+        partners = self.env['res.partner']
+        if lead.team_id and lead.team_id.user_id:
+            partners |= lead.team_id.user_id.partner_id
+        if not partners:
+            leader_grp = self.env.ref(
+                'vd_crm_lead.vd_crm_group_team_leader', raise_if_not_found=False)
+            if leader_grp:
+                leaders = self.env['res.users'].sudo().search([
+                    ('groups_id', 'in', leader_grp.id),
+                    ('share', '=', False), ('active', '=', True),
+                ])
+                partners = leaders.mapped('partner_id')
+        if partners:
+            lead.message_notify(
+                partner_ids=partners.ids,
+                body=body,
+                subject=_('Hạn xử lý vấn đề KH'),
+            )
+
+    def action_extend_deadline(self):
+        """NV bấm GIA HẠN. Trong số lần cho phép → cộng hạn ngay. Vượt → gửi
+        trưởng phòng duyệt (user spec 2026-06-06)."""
+        self.ensure_one()
+        dd, ed, em = self._vd_deadline_cfg()
+        base = self.deadline or fields.Datetime.now()
+        if self.extension_count < em:
+            self.write({
+                'deadline': base + timedelta(days=ed),
+                'extension_count': self.extension_count + 1,
+                'overdue_notified': False,
+            })
+            self.lead_id.message_post(body=_(
+                '⏳ %s gia hạn xử lý vấn đề "%s" thêm %d ngày (lần %d/%d).'
+            ) % (self.env.user.name, self.name, ed, self.extension_count, em))
+            return self._vd_notify_action(_('Đã gia hạn thêm %d ngày.') % ed)
+        # Hết lượt tự gia hạn → cần duyệt
+        if not self.ext_pending:
+            self.ext_pending = True
+            self._vd_notify_leaders(_(
+                '🙋 NV %s xin GIA HẠN vấn đề "%s" của KH %s (đã dùng hết %d lần '
+                'gia hạn) — cần duyệt.'
+            ) % (self.env.user.name, self.name, self.lead_id.name or '', em))
+        return self._vd_notify_action(_(
+            'Đã hết %d lần gia hạn tự do — đã gửi trưởng phòng DUYỆT.') % em,
+            sticky=True)
+
+    def action_ext_approve(self):
+        """Trưởng phòng/admin DUYỆT gia hạn vượt hạn mức."""
+        self.ensure_one()
+        from odoo.exceptions import UserError
+        if not self._vd_is_leader():
+            raise UserError(_('Chỉ trưởng phòng/admin được duyệt gia hạn.'))
+        dd, ed, em = self._vd_deadline_cfg()
+        base = self.deadline or fields.Datetime.now()
+        self.write({
+            'deadline': base + timedelta(days=ed),
+            'extension_count': self.extension_count + 1,
+            'ext_pending': False,
+            'overdue_notified': False,
+        })
+        self.lead_id.message_post(body=_(
+            '✅ %s DUYỆT gia hạn vấn đề "%s" thêm %d ngày.'
+        ) % (self.env.user.name, self.name, ed))
+        return self._vd_notify_action(_('Đã duyệt gia hạn thêm %d ngày.') % ed)
+
+    def action_ext_reject(self):
+        """Trưởng phòng/admin TỪ CHỐI yêu cầu gia hạn vượt hạn mức."""
+        self.ensure_one()
+        from odoo.exceptions import UserError
+        if not self._vd_is_leader():
+            raise UserError(_('Chỉ trưởng phòng/admin được từ chối gia hạn.'))
+        self.ext_pending = False
+        self.lead_id.message_post(body=_(
+            '❌ %s TỪ CHỐI gia hạn vấn đề "%s".'
+        ) % (self.env.user.name, self.name))
+        return self._vd_notify_action(_('Đã từ chối yêu cầu gia hạn.'), danger=True)
 
     # ============================================================
     # SCRIPTS XỬ LÝ "Tham khảo giá" — 4 mẫu copy-paste sang Zalo

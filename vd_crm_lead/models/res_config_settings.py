@@ -74,3 +74,23 @@ class ResConfigSettings(models.TransientModel):
         default=3,
         help='Vượt ngưỡng liên tục quá số ngày này → khoá bảng XỬ LÝ VẤN ĐỀ.',
     )
+
+    # ===== HẠN XỬ LÝ VẤN ĐỀ (deadline + gia hạn) — user spec 2026-06-06 =====
+    vd_problem_deadline_days = fields.Integer(
+        string='Hạn xử lý mỗi vấn đề (ngày)',
+        config_parameter='vd_crm_lead.problem_deadline_days',
+        default=7,
+        help='Khi tạo vấn đề mới → tự đặt hạn xử lý = ngày tạo + N ngày.',
+    )
+    vd_problem_extension_days = fields.Integer(
+        string='Mỗi lần gia hạn thêm (ngày)',
+        config_parameter='vd_crm_lead.problem_extension_days',
+        default=7,
+        help='Mỗi lần bấm "Gia hạn" → cộng thêm N ngày vào hạn xử lý.',
+    )
+    vd_problem_extension_max = fields.Integer(
+        string='Số lần gia hạn không cần duyệt',
+        config_parameter='vd_crm_lead.problem_extension_max',
+        default=3,
+        help='NV được tự gia hạn tối đa N lần. Vượt quá phải trưởng phòng/admin duyệt.',
+    )
