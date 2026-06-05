@@ -1037,11 +1037,11 @@ export class VdCrmDashboard extends Component {
         return (this.leadsNoProblems || []).filter(
             l => l.intake_complete && !l.intake_locked && !l.quote_cancelled);
     }
-    // Khoá khi: NV xem dashboard CỦA CHÍNH MÌNH + có > 3 KH báo giá chưa chốt.
-    // Admin xem hộ KHÔNG bị khoá.
+    // Khoá khi xem 1 NV cụ thể có > 3 KH báo giá chưa chốt (user spec 2026-06-05:
+    // ADMIN cũng THẤY ổ khoá + chịu khoá; KHÔNG có nút gỡ — chỉ CHỐT BÁO GIÁ
+    // để bớt khách xuống <= 3 mới tự gỡ). Màn "Tất cả NV" (selected=0) không khoá.
     get quoteChotLockActive() {
         return !!(this.state.selected_user_id
-            && this.state.current_user_id === this.state.selected_user_id
             && this.quoteUnchotLeads.length > 3);
     }
     // Chỉ các KH báo giá chưa chốt mới được phép mở khi đang khoá.

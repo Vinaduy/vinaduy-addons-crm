@@ -7310,6 +7310,33 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     color: #c92a2a;
     filter: drop-shadow(0 3px 8px rgba(201, 42, 42, 0.45));
 }
+/* Badge KHOÁ CHỐT BÁO GIÁ — góc trên-phải bảng Khách mới, KHÔNG phủ kín
+   (vẫn mở được KH 💰 xanh lá để CHỐT). user spec 2026-06-05. */
+.o_vd_chot_lock_badge {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    max-width: 210px;
+    padding: 6px 9px;
+    background: rgba(255, 240, 240, 0.97);
+    border: 1.5px solid #e03131;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(201, 42, 42, 0.28);
+    pointer-events: none;            /* chỉ báo hiệu — không chặn click thẻ */
+    .o_vd_lock_shield_ico { font-size: 1.7rem; }
+    .o_vd_lock_shield_lbl {
+        font-weight: 900; font-size: 0.72rem; color: #c92a2a; letter-spacing: 0.4px;
+    }
+    .o_vd_chot_lock_note {
+        font-size: 0.68rem; line-height: 1.25; color: #7a1212; text-align: center;
+        b { color: #c92a2a; }
+    }
+}
 .o_vd_lock_shield_lbl {
     font-weight: 900;
     font-size: 0.8rem;

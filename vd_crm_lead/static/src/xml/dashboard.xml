@@ -1815,6 +1815,17 @@
                                     <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
                                         <t t-set="lockWhich" t-value="'new'"/>
                                         <t t-call="vd_crm_lead.TableLockShield"/>
+                                        <!-- KHOÁ CHỐT BÁO GIÁ (user 2026-06-05): >3 KH báo giá chưa CHỐT.
+                                             Badge ổ khoá góc trên-phải (admin cũng thấy); KHÔNG nút gỡ —
+                                             CHỐT bớt khách để gỡ. Không phủ kín để vẫn mở KH 💰 xanh lá. -->
+                                        <div t-if="quoteChotLockActive" class="o_vd_chot_lock_badge">
+                                            <i class="fa fa-lock o_vd_lock_shield_ico"/>
+                                            <div class="o_vd_lock_shield_lbl">ĐÃ KHOÁ</div>
+                                            <div class="o_vd_chot_lock_note">
+                                                Hơn 3 KH đã báo giá <b>CHƯA CHỐT</b>.<br/>
+                                                Mở khách <b>💰 xanh lá</b> → CHỐT BÁO GIÁ để gỡ.
+                                            </div>
+                                        </div>
                                         <div class="o_vd_filter_table_left">
                                             <i class="fa fa-filter o_vd_filter_funnel"/>
                                             <div class="o_vd_filter_table_lbl">
@@ -1891,21 +1902,8 @@
                                             </div>
                                             <!-- COACHMARK KHOÁ CHỐT BÁO GIÁ — tự hiện khi > 3 KH
                                                  báo giá chưa chốt; hướng dẫn NV cách xử lý. -->
-                                            <div t-if="quoteChotLockActive and !state.quoteGuideDismissed"
-                                                 class="o_vd_quote_guide" t-on-click.stop="">
-                                                <div class="o_vd_quote_guide_head">🔒 Còn khách CHƯA CHỐT báo giá</div>
-                                                <div class="o_vd_quote_guide_body">
-                                                    Bạn có <b><t t-esc="quoteUnchotLeads.length"/></b> khách đã có báo giá chi tiết nhưng <b>CHƯA CHỐT</b>.
-                                                    Hãy bấm vào từng khách <b>màu xanh lá 💰</b> bên dưới → mở
-                                                    <b>THÔNG TIN TƯ VẤN</b> → bấm <b>🔒 CHỐT BÁO GIÁ</b>.<br/>
-                                                    ⚠️ Đang tạm <b>khoá mở các khách khác</b> cho tới khi còn ≤ 3 khách chưa chốt.
-                                                </div>
-                                                <button class="o_vd_quote_guide_btn"
-                                                        t-on-click.stop="() => this.dismissQuoteGuide()">
-                                                    ✅ Đã hiểu
-                                                </button>
-                                                <div class="o_vd_quote_guide_arrow"/>
-                                            </div>
+                                            <!-- Coachmark bong bóng cũ đã thay bằng badge ổ khoá góc
+                                                 trên-phải (o_vd_chot_lock_badge) — 2026-06-05. -->
                                             <t t-if="leadsNoProblems.length">
                                                 <!-- Thu gọn tối đa ~10 dòng; nút Mở rộng trượt mép
                                                      dưới xuống để hiện toàn bộ KH. -->
