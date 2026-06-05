@@ -456,11 +456,12 @@
                                             <!-- r14: BỎ tiêu đề "HÔM NAY" — 2 nút bên dưới tự
                                                  mang nhãn "Hôm nay". Giữ ô rỗng để khỏi vỡ grid. -->
                                             <div class="o_vd_kh_th o_vd_kh_th_today o_vd_kh_th_blank"/>
-                                            <!-- 3 cột đóng khung chung 1 nền (user spec r5) -->
+                                            <!-- r2026-06-05: BỎ tiêu đề 3 cột — mỗi thẻ NV tự mang
+                                                 icon+nhãn (giống ô Cuộc gọi). Giữ ô rỗng giữ grid. -->
                                             <div class="o_vd_kh_th_trio">
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">🆕 Khách mới</div>
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">⚡ Thi công gấp</div>
-                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell">🛠️ Xử lý vấn đề</div>
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
+                                                <div class="o_vd_kh_th o_vd_kh_th_trio_cell o_vd_kh_th_blank"/>
                                             </div>
                                             <div class="o_vd_kh_th o_vd_kh_th_help">🆘 Cần hỗ trợ</div>
                                             <div class="o_vd_kh_th o_vd_kh_th_call">📞 Trạng thái</div>
@@ -516,8 +517,8 @@
                                                      mỗi nút tự mang nhãn "Hôm nay". Popover render ở
                                                      gốc, định vị theo con trỏ. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
-                                                    <!-- NÚT 1: KHÁCH MỚI HÔM NAY -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_new"
+                                                    <!-- NÚT 1: KHÁCH MỚI HÔM NAY — thu nhỏ (user 2026-06-05) -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_new o_vd_today_btn_sm"
                                                          t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
                                                          t-on-mouseleave="() => this.onNewTodayLeave()"
                                                          t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
@@ -528,13 +529,15 @@
                                                             <span class="o_vd_today_lbl">KH mới</span>
                                                         </span>
                                                     </div>
-                                                    <!-- NÚT 2: CUỘC GỌI HÔM NAY -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_call"
+                                                    <!-- NÚT 2: CUỘC GỌI HÔM NAY — báo ĐỎ khi yếu (0 cuộc
+                                                         hoặc < 50% người gọi cao nhất) (user 2026-06-05) -->
+                                                    <div t-att-class="'o_vd_today_btn o_vd_today_btn_call' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
                                                          t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
                                                          t-on-mouseleave="() => this.onTodayCallsLeave()"
                                                          title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
                                                         <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> Hôm nay</span>
                                                         <span class="o_vd_today_main">
+                                                            <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
                                                             <i class="fa fa-phone o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
                                                             <span class="o_vd_today_lbl">Cuộc gọi</span>
@@ -543,15 +546,31 @@
                                                             </span>
                                                         </span>
                                                     </div>
+                                                    <!-- NÚT 3: CUỘC GỌI THÁNG — thống kê, KHÔNG cảnh báo -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_month"
+                                                         t-att-title="'Tổng cuộc gọi trong tháng: ' + (nv.calls_month_total or 0)">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> Tháng này</span>
+                                                        <span class="o_vd_today_main">
+                                                            <i class="fa fa-phone o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                            <span class="o_vd_today_lbl">Cuộc gọi</span>
+                                                        </span>
+                                                    </div>
                                                 </div>
 
                                                 <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
                                                 <div class="o_vd_kh_trio">
                                                 <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
-                                                    <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg">
-                                                        <t t-esc="nv.new_count or 0"/>
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell' + (nv.lock_new ? ' o_vd_kh_locked' : '')">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">🆕</span>
+                                                        <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Khách mới</span>
                                                     </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'new'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_new"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
                                                     <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             🆕 KHÁCH MỚI - <t t-esc="nv.full_name"/>
@@ -571,10 +590,16 @@
                                                 </div>
 
                                                 <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell">
-                                                    <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.urgent_count or 0"/>
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">⚡</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.urgent_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Thi công gấp</span>
                                                     </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'urgent'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_urgent"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
                                                     <div t-if="nv.urgent_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             ⚡ THI CÔNG GẤP - <t t-esc="nv.full_name"/>
@@ -594,10 +619,16 @@
                                                 </div>
 
                                                 <!-- 🛠️ XỬ LÝ VẤN ĐỀ — KH đã chốt báo giá (quote/negotiate) có vấn đề -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell">
-                                                    <span class="o_vd_kh_metric_num">
-                                                        <t t-esc="nv.xlvd_count or 0"/>
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">🛠️</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
                                                     </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'xlvd'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_xlvd"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
                                                     <div t-if="nv.xlvd_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             🛠️ XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
@@ -2689,7 +2720,7 @@
                         Bảng này đang bị KHOÁ (không bấm được) — liên hệ quản lý để mở.
                     </t>
                     <t t-else="">
-                        Xử lý trong <t t-esc="state.problem_find.grace_days"/> ngày —
+                        Xử lý trong <t t-esc="pf.grace_days"/> ngày —
                         <b>CÒN <t t-esc="pf.days_left"/> NGÀY</b>.
                         Quá hạn sẽ KHOÁ bảng này.
                     </t>
@@ -2723,6 +2754,21 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </t>
+
+    <!-- ============================================================
+         LOCK MINI — phủ 1 THẺ trong bảng tổng khi bảng đó của NV bị khoá.
+         Chặn click thẻ + icon ổ khoá + nút admin gỡ. Dùng: t-set cellNv,
+         cellWhich ('new'|'urgent'|'xlvd'), cellLocked rồi t-call.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.OverviewLockMini">
+        <div t-if="cellLocked" class="o_vd_kh_lock_mini" t-on-click.stop=""
+             title="Bảng này của NV đang bị KHOÁ">
+            <i class="fa fa-lock o_vd_kh_lock_mini_ico"/>
+            <button t-if="state.is_manager" class="o_vd_kh_lock_mini_btn"
+                    t-on-click.stop="() => this.adminClearTableLockFor(cellNv, cellWhich)"
+                    title="Mở khoá bảng này cho NV">🔓</button>
         </div>
     </t>
 

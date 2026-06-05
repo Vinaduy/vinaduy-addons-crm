@@ -5639,6 +5639,22 @@ class CrmLead(models.Model):
             grace = 3
         return enabled, pct, grace
 
+    def _vd_pf_table_cfg(self, key):
+        """(pct, grace) RIÊNG cho 'urgent' / 'xlvd' (user spec 2026-06-05).
+        Fallback: tham số per-bảng -> tham số chung cũ -> default."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        _en, base_pct, base_grace = self._vd_problem_find_config()
+
+        def _i(k, d):
+            try:
+                return int(ICP.get_param(k, d) or d)
+            except (TypeError, ValueError):
+                return d
+
+        pct = _i('vd_crm_lead.problem_find_%s_pct' % key, base_pct)
+        grace = _i('vd_crm_lead.problem_find_%s_grace' % key, base_grace)
+        return pct, grace
+
     def _vd_urgent_tag_id(self):
         tag = self.env.ref('vd_crm_lead.nego_problem_urgent_construction',
                            raise_if_not_found=False)
@@ -5675,7 +5691,7 @@ class CrmLead(models.Model):
                 ('id', 'not in', urgent_leads.ids),
             ])
 
-        def _tbl(leads):
+        def _tbl(leads, tbl_pct):
             total = len(leads)
             no_problem = sum(
                 1 for l in leads if not l._vd_lead_has_real_problem(urgent_tag_id)
@@ -5685,11 +5701,14 @@ class CrmLead(models.Model):
                 'total': total,
                 'no_problem': no_problem,
                 'pct': round(ratio),
-                'over': bool(enabled and total > 0 and ratio > pct),
+                'threshold_pct': tbl_pct,
+                'over': bool(enabled and total > 0 and ratio > tbl_pct),
             }
 
-        urgent = _tbl(urgent_leads)
-        xlvd = _tbl(xlvd_leads)
+        u_pct, _ug = self._vd_pf_table_cfg('urgent')
+        x_pct, _xg = self._vd_pf_table_cfg('xlvd')
+        urgent = _tbl(urgent_leads, u_pct)
+        xlvd = _tbl(xlvd_leads, x_pct)
         return {
             'enabled': enabled,
             'threshold_pct': pct,
@@ -5728,11 +5747,12 @@ class CrmLead(models.Model):
                 if user[since_f]:
                     vals[since_f] = False
                 continue
+            _pct_k, grace_k = self._vd_pf_table_cfg(key)   # grace RIÊNG từng bảng
             since = user[since_f]
             if not since:
                 since = now
                 vals[since_f] = now
-            overdue = (now - since).total_seconds() >= grace * 86400
+            overdue = (now - since).total_seconds() >= grace_k * 86400
             if overdue != user[lock_f]:
                 vals[lock_f] = overdue
             any_lock = any_lock or overdue
@@ -5910,15 +5930,19 @@ class CrmLead(models.Model):
                 'urgent': dict(_z), 'xlvd': dict(_z), 'violating': False,
             }
         problem_find['grace_days'] = _pf_grace
-        # Cờ khoá + đếm ngày RIÊNG TỪNG BẢNG (frontend chặn + banner đếm đúng bảng).
+        # Cờ khoá + đếm ngày RIÊNG TỪNG BẢNG (grace per-bảng từ Cài đặt khoá).
+        _u_pct, _u_grace = self._vd_pf_table_cfg('urgent')
+        _x_pct, _x_grace = self._vd_pf_table_cfg('xlvd')
         problem_find['urgent']['locked'] = bool(scope_user and scope_user.vd_pf_lock_urgent)
         problem_find['xlvd']['locked'] = bool(scope_user and scope_user.vd_pf_lock_xlvd)
+        problem_find['urgent']['grace_days'] = _u_grace
+        problem_find['xlvd']['grace_days'] = _x_grace
         problem_find['urgent']['days_left'] = (
-            self._vd_pf_days_left(scope_user.vd_pf_since_urgent, _pf_grace, now)
-            if scope_user else _pf_grace)
+            self._vd_pf_days_left(scope_user.vd_pf_since_urgent, _u_grace, now)
+            if scope_user else _u_grace)
         problem_find['xlvd']['days_left'] = (
-            self._vd_pf_days_left(scope_user.vd_pf_since_xlvd, _pf_grace, now)
-            if scope_user else _pf_grace)
+            self._vd_pf_days_left(scope_user.vd_pf_since_xlvd, _x_grace, now)
+            if scope_user else _x_grace)
         problem_find['locked'] = bool(scope_user and scope_user.vd_problem_lock)
         # days_left tổng = nhỏ nhất của 2 bảng đang vi phạm (cho chỗ cũ tham chiếu)
         problem_find['days_left'] = min(
@@ -7992,6 +8016,15 @@ class CrmLead(models.Model):
                     lambda c: c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0)
                 ).mapped('lead_id').ids
             )
+            # User spec 2026-06-05: cuộc gọi THEO THÁNG (tháng hiện tại) — thẻ
+            # thống kê cạnh ô hôm nay, KHÔNG cảnh báo. Dùng search_count cho nhẹ.
+            _month_start_dt = fields.Datetime.to_datetime(today.replace(day=1))
+            calls_month_total = self.env['stringee.call'].sudo().search_count([
+                ('user_id', '=', u.id),
+                ('create_date', '>=', _month_start_dt),
+                ('create_date', '<', today_end),
+                ('lead_id', '!=', False),
+            ])
 
             # 🆘 CẦN HỖ TRỢ — KH mà NV này đã bấm yêu cầu cấp trên hỗ trợ và còn
             # hiệu lực (today/multi, chưa won/lost). Độc lập với khoảng lọc ngày
@@ -8083,6 +8116,8 @@ class CrmLead(models.Model):
                 # Round 13: số KH đã gọi / gọi thành công hôm nay
                 'calls_today_total': len(calls_today_lead_ids),
                 'calls_today_success': len(success_call_lead_ids),
+                # 2026-06-05: tổng cuộc gọi THÁNG (thẻ thống kê, không cảnh báo)
+                'calls_month_total': calls_month_total,
                 # 🆘 Cần hỗ trợ (user spec 2026-05-31): count + danh sách ≤3 KH
                 'help_count': len(help_active),
                 'help_waiting': n_help_waiting,
@@ -8092,6 +8127,11 @@ class CrmLead(models.Model):
                 'urgent_leads': [_ld_basic(l) for l in urgent_by_user.get(u.id, [])[:50]],
                 'xlvd_count': len(xlvd_by_user.get(u.id, [])),
                 'xlvd_leads': [_ld_with_problems(l) for l in xlvd_by_user.get(u.id, [])[:50]],
+                # 🔒 Trạng thái KHOÁ từng bảng (user spec 2026-06-05) — thẻ overview
+                # khoá theo + admin gỡ ngay. Dùng cờ đã lưu (cron/live set).
+                'lock_new': bool(u.vd_call_lock),
+                'lock_urgent': bool(u.vd_pf_lock_urgent),
+                'lock_xlvd': bool(u.vd_pf_lock_xlvd),
                 # 🔔 NHẮC NHỞ NHÂN VIÊN (user spec 2026-06-01)
                 'reminder_level': u.vd_reminder_level or 0,
                 'rem_new_not_called': rem_new_not_called,

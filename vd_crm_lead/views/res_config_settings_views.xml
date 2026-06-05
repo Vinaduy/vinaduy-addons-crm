@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- ============ Cài đặt CRM — Yêu cầu tìm vấn đề (user spec 2026-06-01) ============ -->
+    <!-- ============ CÀI ĐẶT KHOÁ — 3 bảng dashboard (user spec 2026-06-05) ============ -->
     <record id="view_vd_crm_config_settings_form" model="ir.ui.view">
         <field name="name">vd.crm.config.settings.form</field>
         <field name="model">res.config.settings</field>
         <field name="arch" type="xml">
-            <form string="Cài đặt CRM" class="oe_form_configuration">
+            <form string="Cài đặt khoá" class="oe_form_configuration">
                 <sheet>
                     <div class="oe_title">
-                        <h1>⚠️ Yêu cầu tìm vấn đề</h1>
+                        <h1>🔒 Cài đặt khoá dashboard</h1>
                         <p class="text-muted">
-                            Nhắc NV tìm/tạo vấn đề cho khách sau báo giá. Vượt ngưỡng
-                            quá số ngày gia hạn → tự khoá không cho mở khách mới.
+                            Cấu hình điều kiện tự khoá cho 3 bảng. Khi 1 bảng của NV
+                            quá hạn → khoá bảng đó (chặn bấm), chỉ quản lý/giám đốc gỡ.
                         </p>
                     </div>
-                    <group>
+
+                    <group string="🆕 KHÁCH MỚI (chưa gọi đủ)">
+                        <field name="vd_callwatch_enabled"/>
+                        <field name="vd_callwatch_required_days"
+                               invisible="not vd_callwatch_enabled"/>
+                        <field name="vd_callwatch_window_workdays"
+                               invisible="not vd_callwatch_enabled"/>
+                    </group>
+
+                    <group string="⚡ THI CÔNG GẤP + 🛠️ XỬ LÝ VẤN ĐỀ (tìm vấn đề)">
                         <field name="vd_problem_find_enabled"/>
-                        <field name="vd_problem_find_pct"
-                               invisible="not vd_problem_find_enabled"/>
-                        <field name="vd_problem_find_grace_days"
-                               invisible="not vd_problem_find_enabled"/>
+                    </group>
+                    <group string="⚡ Thi công gấp" invisible="not vd_problem_find_enabled">
+                        <field name="vd_pf_urgent_pct"/>
+                        <field name="vd_pf_urgent_grace"/>
+                    </group>
+                    <group string="🛠️ Xử lý vấn đề" invisible="not vd_problem_find_enabled">
+                        <field name="vd_pf_xlvd_pct"/>
+                        <field name="vd_pf_xlvd_grace"/>
                     </group>
                 </sheet>
                 <footer>
@@ -33,7 +46,7 @@
     </record>
 
     <record id="action_vd_crm_config_settings" model="ir.actions.act_window">
-        <field name="name">⚙️ Cài đặt CRM — Tìm vấn đề</field>
+        <field name="name">🔒 Cài đặt khoá</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_vd_crm_config_settings_form"/>

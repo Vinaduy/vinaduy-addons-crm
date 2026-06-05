@@ -1159,6 +1159,25 @@ export class VdCrmDashboard extends Component {
         return !!(this.state.is_manager && this.state.selected_user_id);
     }
 
+    // ===== CẢNH BÁO CUỘC GỌI HÔM NAY (user spec 2026-06-05) =====
+    // Người gọi nhiều nhất hôm nay (toàn bộ NV) — mốc so sánh.
+    get maxCallsToday() {
+        let mx = 0;
+        for (const grp of (this.state.analytics?.kh_by_team || [])) {
+            for (const nv of (grp.nvs || [])) {
+                mx = Math.max(mx, nv.calls_today_total || 0);
+            }
+        }
+        return mx;
+    }
+    // Báo đỏ khi: KHÔNG gọi (0 cuộc) HOẶC < 50% so với người gọi cao nhất.
+    isCallTodayWeak(nv) {
+        const c = (nv && nv.calls_today_total) || 0;
+        if (c === 0) return true;
+        const mx = this.maxCallsToday;
+        return mx > 0 && c < mx * 0.5;
+    }
+
     // Mô tả NGUYÊN NHÂN khoá (coachmark cạnh ổ khoá). which: new|urgent|xlvd.
     lockReason(which) {
         if (which === 'new') {
@@ -1193,6 +1212,28 @@ export class VdCrmDashboard extends Component {
                 if (this.state.problem_find?.[which]) {
                     this.state.problem_find[which].locked = false;
                 }
+            }
+            this.notification.add("✅ Đã mở khoá bảng cho NV.", { type: "success" });
+        } catch (err) {
+            this.notification.add("Không mở khoá được (cần quyền quản lý).",
+                { type: "danger" });
+        }
+    }
+
+    // ADMIN gỡ khoá thẻ ngay trên BẢNG TỔNG (chỉ rõ NV qua nv.user_id).
+    // which: 'new' | 'urgent' | 'xlvd'. Cập nhật nv tại chỗ để thẻ mở ngay.
+    async adminClearTableLockFor(nv, which) {
+        if (!nv || !nv.user_id) return;
+        try {
+            if (which === 'new') {
+                await this.orm.call("crm.lead", "vd_admin_clear_call_lock", [nv.user_id]);
+                nv.lock_new = false;
+            } else {
+                await this.orm.call(
+                    "crm.lead", "vd_admin_clear_problem_lock", [nv.user_id, which],
+                );
+                if (which === 'urgent') nv.lock_urgent = false;
+                else nv.lock_xlvd = false;
             }
             this.notification.add("✅ Đã mở khoá bảng cho NV.", { type: "success" });
         } catch (err) {
