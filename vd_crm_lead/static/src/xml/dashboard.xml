@@ -2896,8 +2896,12 @@
              B) 📞 N · 📅 M — hover hiện popup chi tiết + recording
              - problems_non_urgent: exclude 'Thi công gấp' (round 6.1) -->
         <t t-set="cs" t-value="lead.call_stats or {}"/>
-        <!-- THẺ A: yêu cầu + countdown — CHỈ khi KH CHƯA tìm được vấn đề -->
-        <t t-if="!lead.problems_non_urgent or !lead.problems_non_urgent.length">
+        <!-- THẺ A: yêu cầu + countdown — CHỈ khi KH CHƯA có vấn đề nào CHƯA giải
+             quyết. Dùng problem_open_count (open+in_progress, GỒM cả Thi công gấp)
+             thay vì problems_non_urgent — user spec 2026-06-06: KH đang có bất kỳ
+             vấn đề chưa xong (kể cả Thi công gấp / Cân đối ngân sách) thì KHÔNG
+             nhắc TÌM VẤN ĐỀ nữa; chỉ nhắc khi không có vấn đề hoặc đã giải quyết hết. -->
+        <t t-if="!lead.problem_open_count">
             <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
             <t t-set="dleft" t-value="15 - qd"/>
             <span class="o_vd_prb_req2 o_vd_prb_req2_main"
