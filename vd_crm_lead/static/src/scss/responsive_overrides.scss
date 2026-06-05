@@ -909,9 +909,40 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     color: #5f3dc4;
     white-space: nowrap;
 }
-.o_vd_quick_add_form .o_vd_distribute_radio .o_radio_item {
-    margin-right: 1rem;
-    font-weight: 600;
+/* Cách chia số = filter CHIP, active rõ ràng (user spec 2026-06-05) */
+.o_vd_quick_add_form .o_vd_distribute_radio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    .o_radio_item { margin: 0; }
+    /* Giấu nút tròn radio mặc định */
+    .o_radio_input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+    label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin: 0;
+        padding: 0.42rem 0.9rem;
+        background: #fff;
+        border: 1.5px solid #d0bfff;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #5f3dc4;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        white-space: nowrap;
+    }
+    label:hover { border-color: #845ef7; background: #f8f5ff; transform: translateY(-1px); }
+    /* ACTIVE — chip được chọn: nền tím đậm + chữ trắng + bóng */
+    .o_radio_input:checked + label,
+    .o_radio_item:has(.o_radio_input:checked) label {
+        background: linear-gradient(135deg, #7048e8 0%, #9775fa 100%);
+        border-color: #7048e8;
+        color: #fff;
+        font-weight: 800;
+        box-shadow: 0 3px 10px rgba(112, 72, 232, 0.4);
+    }
 }
 .o_vd_quick_add_form .o_vd_distribute_group {
     min-width: 280px;

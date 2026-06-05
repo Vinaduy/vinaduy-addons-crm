@@ -58,6 +58,22 @@ class VdLeadQuickAddWizard(models.TransientModel):
     # CHỌN NHÂN VIÊN (show_distribute=True) → chọn 1 trong 4 cách chia → cột NV
     # tự điền → bấm CHIA SỐ (action_create_leads) để tạo.
     show_distribute = fields.Boolean(default=False)
+    # User spec 2026-06-05: nút CHIA SỐ chỉ hiện khi TẤT CẢ khách (Tên+SĐT) đã
+    # có nhân viên. NV thường (không phải leader) tự gán mình -> luôn cho CHIA.
+    can_chia_so = fields.Boolean(compute='_compute_can_chia_so')
+
+    @api.depends('line_ids.user_id', 'line_ids.name', 'line_ids.phone')
+    def _compute_can_chia_so(self):
+        is_leader = self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        for w in self:
+            valid = w.line_ids.filtered(lambda l: l.name and l.phone)
+            if not valid:
+                w.can_chia_so = False
+            elif is_leader:
+                w.can_chia_so = all(l.user_id for l in valid)
+            else:
+                w.can_chia_so = True
+
     distribute_mode = fields.Selection(
         [
             ('even_all', '⚖️ Chia đều cho TẤT CẢ nhân viên'),
@@ -141,6 +157,21 @@ class VdLeadQuickAddWizard(models.TransientModel):
         self._vd_check_leader()
         if not self.line_ids.filtered(lambda l: l.name and l.phone):
             raise UserError(_('Hãy nhập ít nhất 1 khách (Tên + SĐT) trước khi chia số.'))
+        # CHẶN TRÙNG NGAY (user 2026-06-05): nhập 2 số giống nhau (kể cả số chưa
+        # chuẩn) hoặc đã có trong hệ thống -> không cho sang bước chia.
+        dups = self.line_ids.filtered(lambda l: l.name and l.phone and l.phone_is_dup)
+        if dups:
+            raise UserError(_(
+                'Có %d số bị TRÙNG (nhập 2 lần hoặc đã có trong hệ thống) — '
+                'sửa/xoá trước khi chia số:\n%s'
+            ) % (len(dups), '\n'.join(
+                '• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in dups)))
+        # BẮT BUỘC chọn NGUỒN (user 2026-06-05).
+        no_src = self.line_ids.filtered(lambda l: l.name and l.phone and not l.source)
+        if no_src:
+            raise UserError(_(
+                'Vui lòng chọn NGUỒN cho các khách:\n%s'
+            ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
         self.show_distribute = True
         return {
             'type': 'ir.actions.act_window',
@@ -224,6 +255,12 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'vui lòng sửa/xoá trước khi chia số:\n%s'
             ) % (len(dups), '\n'.join(
                 '• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in dups)))
+        # BẮT BUỘC chọn NGUỒN (user 2026-06-05).
+        no_src = lines.filtered(lambda l: not l.source)
+        if no_src:
+            raise UserError(_(
+                'Vui lòng chọn NGUỒN cho các khách:\n%s'
+            ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
 
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
@@ -490,7 +527,10 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
 
         def norm(p):
             s = Lead._vd_normalize_phones_set(p)
-            return next(iter(s)) if s else ''
+            if s:
+                return next(iter(s))
+            # Fallback: số CHƯA chuẩn (vd '33') vẫn so THÔ để bắt trùng trong bảng.
+            return (p or '').strip()
 
         # Đếm trùng TRONG wizard (cùng số nhập nhiều dòng)
         wiz_count = {}

@@ -8063,13 +8063,16 @@ class CrmLead(models.Model):
                     ('create_date', '<', dt_to),
                 ], order='create_date desc', limit=100)
 
-            # User spec 2026-05-29: Metric 3a — KH mới HÔM NAY (subset of new_leads_qs)
-            # Big number trên dashboard = today's new; badge = total trong khoảng lọc.
+            # KH MỚI HÔM NAY (user spec 2026-06-05): KH được TẠO MỚI hôm nay của
+            # NV — KHÔNG phụ thuộc stage hiện tại hay khoảng lọc ngày dashboard.
             today_start = fields.Datetime.to_datetime(today)
             today_end = today_start + _td(days=1)
-            new_today_qs = new_leads_qs.filtered(
-                lambda l: l.create_date and today_start <= l.create_date < today_end
-            )
+            new_today_qs = self.search([
+                ('user_id', '=', u.id),
+                ('create_date', '>=', today_start),
+                ('create_date', '<', today_end),
+                ('active', '=', True),
+            ], order='create_date desc', limit=100)
             # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG
             # (success = at least 1 call with state='answered' OR ended+duration>0)
             calls_today = self.env['stringee.call'].sudo().search([

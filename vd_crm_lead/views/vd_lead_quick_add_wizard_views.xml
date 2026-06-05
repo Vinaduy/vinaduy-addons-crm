@@ -8,6 +8,7 @@
                 <!-- User spec 2026-06-03: nhập KH trước → CHỌN NHÂN VIÊN (4 cách
                      chia) → cột NV tự điền + chỉ số tải NV → CHIA SỐ để tạo. -->
                 <field name="show_distribute" invisible="1"/>
+                <field name="can_chia_so" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm"
@@ -96,9 +97,12 @@
                             class="btn-secondary"
                             groups="vd_crm_lead.vd_crm_group_team_leader"
                             invisible="not show_distribute or not distribute_mode"/>
+                    <!-- CHIA SỐ chỉ hiện khi TẤT CẢ khách đã có nhân viên
+                         (leader); NV thường tự gán mình -> luôn hiện. -->
                     <button name="action_create_leads" type="object"
                             string="💾 CHIA SỐ"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            invisible="not can_chia_so"/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
             </form>
