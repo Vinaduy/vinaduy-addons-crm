@@ -2807,7 +2807,7 @@
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
                 <div class="o_vd_pancake_sec">
                     <div class="o_vd_pancake_sec_head">
-                        📅 <t t-esc="distRep.today.label"/> (15h→24h) —
+                        📅 <t t-esc="distRep.today.label"/> (cả ngày) —
                         <b><t t-esc="distRep.today.total"/></b> số,
                         chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV
                     </div>

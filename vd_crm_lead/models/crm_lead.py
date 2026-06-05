@@ -5899,12 +5899,26 @@ class CrmLead(models.Model):
             ('share', '=', False), ('active', '=', True),
             ('groups_id', 'in', salesman_gid),
         ])
-        eligible = sales.filtered(lambda u: u.vd_can_receive_pancake)
+        # CHỈ tính NV THẬT: loại admin / quản lý / trưởng phòng (user 2026-06-05).
+        leader_gid = self.env.ref('vd_crm_lead.vd_crm_group_team_leader', raise_if_not_found=False)
+        mgr_gid = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
+
+        def _is_real_nv(u):
+            if u._is_admin() or u.has_group('base.group_system'):
+                return False
+            if mgr_gid and u.has_group('sales_team.group_sale_manager'):
+                return False
+            if leader_gid and u.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+                return False
+            return bool(u.vd_can_receive_pancake)
+
+        eligible = sales.filtered(_is_real_nv)
         name_by = {u.id: (u.name or '') for u in sales}
         src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
             else [('vd_pancake_page_id', '=', False)]
 
-        # ===== Mốc 15h (giờ VN) -> batch day + label =====
+        # ===== Mốc 15h chỉ để HIỆN cảnh báo; ĐẾM cả ngày 0h→24h (user 2026-06-05).
+        # now>=15h -> lô HÔM NAY; trước 15h -> đang xem lô HÔM QUA (tới 15h thì reset).
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
         now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
         if now_vn.hour >= 15:
@@ -5915,7 +5929,7 @@ class CrmLead(models.Model):
         def _utc(d, t):
             return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
 
-        today_since = _utc(batch_day, _time(15, 0))
+        today_since = _utc(batch_day, _time(0, 0))                  # 0h cả ngày
         today_until = _utc(batch_day + _tdd(days=1), _time(0, 0))   # 24h = 0h hôm sau
         month_since = _utc(now_vn.date().replace(day=1), _time(0, 0))
         month_until = fields.Datetime.now() + _tdd(days=1)
