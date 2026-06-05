@@ -5881,6 +5881,52 @@ class CrmLead(models.Model):
         return True
 
     @api.model
+    def _vd_pancake_report(self):
+        """Báo cáo chia số PANCAKE TỰ ĐỘNG (user spec 2026-06-05).
+        Trả {today, month} mỗi cái: total, rows[{name,count}], eligible, uneven.
+        uneven (chỉ hôm nay) = chia KHÔNG đều: chênh lệch max-min giữa các NV đủ
+        điều kiện nhận Pancake > 1 (vd 12 số dồn 3 người → đỏ)."""
+        Users = self.env['res.users'].sudo()
+        salesman_gid = self.env.ref('sales_team.group_sale_salesman').id
+        sales = Users.search([
+            ('share', '=', False), ('active', '=', True),
+            ('groups_id', 'in', salesman_gid),
+        ])
+        eligible = sales.filtered(lambda u: u.vd_can_receive_pancake)
+        name_by = {u.id: (u.name or '') for u in sales}
+        today = fields.Date.context_today(self)
+        today_start = fields.Datetime.to_datetime(today)
+        month_start = fields.Datetime.to_datetime(today.replace(day=1))
+
+        def _build(since, eval_even):
+            leads = self.sudo().search([
+                ('vd_pancake_page_id', '!=', False),
+                ('create_date', '>=', since),
+                ('user_id', '!=', False),
+            ])
+            per = {}
+            for l in leads:
+                per[l.user_id.id] = per.get(l.user_id.id, 0) + 1
+            rows = sorted(
+                ({'name': name_by.get(uid) or 'NV #%s' % uid, 'count': c}
+                 for uid, c in per.items()),
+                key=lambda r: -r['count'])
+            out = {
+                'total': sum(per.values()),
+                'nv_count': len(per),
+                'eligible': len(eligible),
+                'rows': rows,
+                'uneven': False,
+            }
+            if eval_even and out['total'] > 0 and eligible:
+                counts = [per.get(u.id, 0) for u in eligible]
+                # chia không đều nếu chênh lệch > 1 (round-robin chuẩn chênh <=1)
+                out['uneven'] = (max(counts) - min(counts)) > 1
+            return out
+
+        return {'today': _build(today_start, True), 'month': _build(month_start, False)}
+
+    @api.model
     def dashboard_data(self, user_id=None):
         """Single-payload data for the OWL dashboard."""
         scope_user, scope_label, domain_user, call_user_domain = self._dashboard_resolve_scope(user_id)
@@ -6135,6 +6181,9 @@ class CrmLead(models.Model):
             'problem_find': problem_find,
             # CALL-WATCH (2026-06-04): banner "chưa gọi" + khoá bảng Khách mới.
             'call_watch': self._vd_callwatch_payload(scope_user),
+            # PANCAKE (2026-06-05): báo cáo chia số tự động hôm nay/tháng + cảnh báo
+            # chia không đều. Chỉ tính ở màn quản lý (toàn cty).
+            'pancake_report': self._vd_pancake_report() if is_manager else {},
             'performance': performance,
         }
 
