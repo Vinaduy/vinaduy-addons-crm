@@ -5882,10 +5882,17 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_distribution_report(self, pancake=True):
-        """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH tự động
-        Pancake; False → KH nhập TAY (chia số thủ công).
-        Trả {today, month} mỗi cái: total, rows[{name,count}], eligible, uneven.
-        uneven (chỉ hôm nay) = chênh lệch max-min giữa các NV đủ điều kiện > 1."""
+        """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH Pancake tự
+        động; False → KH nhập TAY.
+
+        Cửa sổ "hôm nay" theo MỐC 15h: tính từ 15h ngày D đến 24h ngày D, hiển
+        thị (kèm cảnh báo) tới 15h ngày D+1 thì reset. Trước 15h hôm nay → đang
+        xem lô NGÀY HÔM QUA (label 'Hôm qua'); từ 15h → 'Hôm nay'.
+
+        Mỗi section: total, eligible, uneven, rows[{name,count,eval}] — eval ∈
+        few/ok/many; rows sắp NV ÍT số nhất lên đầu."""
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _tdd
         Users = self.env['res.users'].sudo()
         salesman_gid = self.env.ref('sales_team.group_sale_salesman').id
         sales = Users.search([
@@ -5894,38 +5901,58 @@ class CrmLead(models.Model):
         ])
         eligible = sales.filtered(lambda u: u.vd_can_receive_pancake)
         name_by = {u.id: (u.name or '') for u in sales}
-        today = fields.Date.context_today(self)
-        today_start = fields.Datetime.to_datetime(today)
-        month_start = fields.Datetime.to_datetime(today.replace(day=1))
         src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
             else [('vd_pancake_page_id', '=', False)]
 
-        def _build(since, eval_even):
+        # ===== Mốc 15h (giờ VN) -> batch day + label =====
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        if now_vn.hour >= 15:
+            batch_day, today_label = now_vn.date(), 'Hôm nay'
+        else:
+            batch_day, today_label = now_vn.date() - _tdd(days=1), 'Hôm qua'
+
+        def _utc(d, t):
+            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
+
+        today_since = _utc(batch_day, _time(15, 0))
+        today_until = _utc(batch_day + _tdd(days=1), _time(0, 0))   # 24h = 0h hôm sau
+        month_since = _utc(now_vn.date().replace(day=1), _time(0, 0))
+        month_until = fields.Datetime.now() + _tdd(days=1)
+
+        n = len(eligible)
+
+        def _build(since, until, eval_even, label):
             leads = self.sudo().search(src_dom + [
                 ('create_date', '>=', since),
+                ('create_date', '<', until),
                 ('user_id', '!=', False),
             ])
             per = {}
             for l in leads:
                 per[l.user_id.id] = per.get(l.user_id.id, 0) + 1
-            rows = sorted(
-                ({'name': name_by.get(uid) or 'NV #%s' % uid, 'count': c}
-                 for uid, c in per.items()),
-                key=lambda r: -r['count'])
-            out = {
-                'total': sum(per.values()),
-                'nv_count': len(per),
-                'eligible': len(eligible),
-                'rows': rows,
-                'uneven': False,
-            }
-            if eval_even and out['total'] > 0 and eligible:
+            total = sum(per.values())
+            fair_low = total // n if n else 0
+            fair_high = -(-total // n) if n else 0   # ceil
+            rows = []
+            for u in eligible:
+                c = per.get(u.id, 0)
+                ev = 'few' if c < fair_low else ('many' if c > fair_high else 'ok')
+                rows.append({'name': name_by.get(u.id) or 'NV #%s' % u.id,
+                             'count': c, 'eval': ev})
+            # ÍT số nhất lên đầu
+            rows.sort(key=lambda r: (r['count'], r['name']))
+            uneven = False
+            if eval_even and total > 0 and n:
                 counts = [per.get(u.id, 0) for u in eligible]
-                # chia không đều nếu chênh lệch > 1 (round-robin chuẩn chênh <=1)
-                out['uneven'] = (max(counts) - min(counts)) > 1
-            return out
+                uneven = (max(counts) - min(counts)) > 1
+            return {'total': total, 'nv_count': len(per), 'eligible': n,
+                    'rows': rows, 'uneven': uneven, 'label': label}
 
-        return {'today': _build(today_start, True), 'month': _build(month_start, False)}
+        return {
+            'today': _build(today_since, today_until, True, today_label),
+            'month': _build(month_since, month_until, False, 'Tháng này'),
+        }
 
     @api.model
     def dashboard_data(self, user_id=None):

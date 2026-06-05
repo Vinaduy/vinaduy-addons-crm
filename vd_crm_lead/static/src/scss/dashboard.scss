@@ -8394,11 +8394,32 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pancake_empty { font-size: 0.78rem; color: #adb5bd; font-style: italic; }
 .o_vd_pancake_rows { display: flex; flex-direction: column; gap: 0.2rem; }
 .o_vd_pancake_row {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; gap: 0.4rem;
     padding: 0.25rem 0.5rem; background: #f8f9fa; border-radius: 6px; font-size: 0.8rem;
-    .o_vd_pancake_row_nv { font-weight: 600; color: #1f2a44; }
+    .o_vd_pancake_row_nv { font-weight: 600; color: #1f2a44; flex: 1 1 auto; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_vd_pancake_row_eval {
+        flex: 0 0 auto; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.2px;
+        padding: 0.05rem 0.4rem; border-radius: 999px; text-transform: uppercase;
+    }
     .o_vd_pancake_row_cnt {
+        flex: 0 0 auto;
         min-width: 1.6rem; text-align: center; font-weight: 800; color: #fff;
         background: #1971c2; border-radius: 999px; padding: 0.05rem 0.45rem;
     }
+}
+/* Màu đánh giá: QUÁ ÍT (cam) / QUÁ NHIỀU (đỏ) / đủ (xanh) */
+.o_vd_pancake_row.o_vd_pk_few {
+    background: #fff4e6;
+    .o_vd_pancake_row_eval { background: #ffd8a8; color: #d9480f; }
+    .o_vd_pancake_row_cnt { background: #f59f00; }
+}
+.o_vd_pancake_row.o_vd_pk_many {
+    background: #fff0f0;
+    .o_vd_pancake_row_eval { background: #ffc9c9; color: #c92a2a; }
+    .o_vd_pancake_row_cnt { background: #e03131; }
+}
+.o_vd_pancake_row.o_vd_pk_ok {
+    .o_vd_pancake_row_eval { background: #d3f9d8; color: #2b8a3e; }
+    .o_vd_pancake_row_cnt { background: #2f9e44; }
 }

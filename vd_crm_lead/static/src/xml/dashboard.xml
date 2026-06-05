@@ -2807,18 +2807,25 @@
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
                 <div class="o_vd_pancake_sec">
                     <div class="o_vd_pancake_sec_head">
-                        📅 Hôm nay — <b><t t-esc="distRep.today.total"/></b> số,
+                        📅 <t t-esc="distRep.today.label"/> (15h→24h) —
+                        <b><t t-esc="distRep.today.total"/></b> số,
                         chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV
                     </div>
                     <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
                         ⚠️ Chia KHÔNG đều — cần chia đều cho toàn bộ NV (dư chia tiếp).
                     </div>
                     <div t-if="!distRep.today.rows.length" class="o_vd_pancake_empty">
-                        Hôm nay chưa có số.
+                        Chưa có số trong khung giờ này.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
-                        <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index" class="o_vd_pancake_row">
+                        <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index"
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                            <span class="o_vd_pancake_row_eval">
+                                <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
+                                <t t-else="">đủ</t>
+                            </span>
                             <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                         </div>
                     </div>
@@ -2831,8 +2838,14 @@
                         Tháng này chưa có số.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
-                        <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index" class="o_vd_pancake_row">
+                        <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index"
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                            <span class="o_vd_pancake_row_eval">
+                                <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
+                                <t t-else="">đủ</t>
+                            </span>
                             <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                         </div>
                     </div>
