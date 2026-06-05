@@ -1079,7 +1079,22 @@ class CrmLead(models.Model):
     # ===== Lửng (mezzanine) — NV bấm '+ Lửng' để mở 2 ô: Lửng + Thông tầng =====
     vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False, tracking=True)
     vd_intake_floor_lung_m2 = fields.Integer(string='Lửng (m²)', tracking=True)
-    vd_intake_floor_thongtang_m2 = fields.Integer(string='Thông tầng (m²)')
+    # Thông tầng — TỰ TÍNH = DT sàn Tầng 1 − DT Lửng (user spec 2026-06-05),
+    # nhưng NV SỬA lại được (compute store readonly=False). Reset 0 khi tắt Lửng.
+    vd_intake_floor_thongtang_m2 = fields.Integer(
+        string='Thông tầng (m²)', tracking=True,
+        compute='_compute_intake_thongtang_m2', store=True, readonly=False,
+        help='Mặc định = DT sàn Tầng 1 − DT Lửng. NV có thể sửa lại.',
+    )
+
+    @api.depends('vd_intake_has_lung', 'vd_intake_floor_1_m2', 'vd_intake_floor_lung_m2')
+    def _compute_intake_thongtang_m2(self):
+        for rec in self:
+            if rec.vd_intake_has_lung:
+                rec.vd_intake_floor_thongtang_m2 = max(
+                    0, (rec.vd_intake_floor_1_m2 or 0) - (rec.vd_intake_floor_lung_m2 or 0))
+            else:
+                rec.vd_intake_floor_thongtang_m2 = 0
     # ===== Counter cho UI '+ Tầng' button — sync 2 chiều với floors_select =====
     vd_intake_floors_count = fields.Integer(
         string='Số tầng đã thêm', default=1,
@@ -1989,6 +2004,24 @@ class CrmLead(models.Model):
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(floor_cost)} VNĐ</td>
         </tr>'''
 
+            # THÔNG TẦNG (user spec 2026-06-05): có Lửng → tự thêm 1 dòng thông
+            # tầng = DT thông tầng (Tầng1 − Lửng, NV sửa được) × 40% × đơn giá sàn.
+            thongtang_cost = 0.0
+            thongtang_extra_rows = 0
+            if rec.vd_intake_has_lung:
+                tt_base = rec.vd_intake_floor_thongtang_m2 or 0.0
+                if tt_base > 0:
+                    tt_pct = rec._get_roof_pct(pricing, 'thong_tang') or 0.0
+                    thongtang_cost = tt_base * (tt_pct / 100.0) * san_unit
+                    thongtang_extra_rows = 1
+                    floor_rows_html += f'''
+        <tr>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">Thông tầng</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{tt_base:.0f} M2 x {tt_pct:.0f}%</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(thongtang_cost)} VNĐ</td>
+        </tr>'''
+
             # Round 12: TRỪ KM (khuyến mãi) — approved problems tag_code='promotion'
             km_problems = rec.vd_lead_problem_ids.filtered(
                 lambda p: p.tag_code == 'promotion' and p.km_state == 'approved' and (p.km_amount or 0) > 0
@@ -1999,9 +2032,10 @@ class CrmLead(models.Model):
                 lambda p: p.tag_code == 'extra_material' and p.ps_state == 'approved' and (p.ps_amount or 0) > 0
             )
             ps_total = sum(p.ps_amount or 0 for p in ps_problems)
-            total = found_cost + floor_cost + roof_cost + ps_total - km_total
-            # rowspan = móng + N tầng + mái + N dòng PS + N dòng KM
-            num_rows = 2 + max(len(per_floor_data), 1) + len(ps_problems) + len(km_problems)
+            total = found_cost + floor_cost + roof_cost + thongtang_cost + ps_total - km_total
+            # rowspan = móng + N tầng + (thông tầng) + mái + N dòng PS + N dòng KM
+            num_rows = (2 + max(len(per_floor_data), 1) + thongtang_extra_rows
+                        + len(ps_problems) + len(km_problems))
 
             # Build PS rows HTML (xanh — cộng tiền)
             ps_rows_html = ''
@@ -4352,6 +4386,19 @@ class CrmLead(models.Model):
                 'area': f'{la:.0f}',
                 'cost': f'{la * san_unit:,.0f}'.replace(',', '.'),
             })
+        # Thông tầng — có Lửng → DT thông tầng (Tầng1−Lửng) × 40% × đơn giá
+        thongtang_cost = 0.0
+        if self.vd_intake_has_lung and pricing:
+            tt_base = self.vd_intake_floor_thongtang_m2 or 0.0
+            if tt_base > 0:
+                tt_pct = self._get_roof_pct(pricing, 'thong_tang') or 0.0
+                thongtang_cost = tt_base * (tt_pct / 100.0) * san_unit
+                floor_breakdown.append({
+                    'label': 'Thông tầng',
+                    'area': f'{tt_base:.0f}',
+                    'pct': f'{tt_pct:.0f}',
+                    'cost': f'{thongtang_cost:,.0f}'.replace(',', '.'),
+                })
         # Tum — tầng trên cùng
         if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
             ta = self.vd_intake_floor_tum_m2
@@ -4366,7 +4413,7 @@ class CrmLead(models.Model):
         # lock báo giá → quote_price stored bị lệch với các dòng đang hiển thị
         # → PDF tổng = 1.228B nhưng các dòng cộng lại 937M (mismatch).
         # Fix: LUÔN ưu tiên components_total để toán PDF chính xác.
-        components_total = found_cost + floor_cost + roof_cost
+        components_total = found_cost + floor_cost + roof_cost + thongtang_cost
         # Cộng các item phát sinh (Thêm WC, cầu thang...) vào tổng
         surcharges_total = sum(self.vd_surcharge_ids.mapped('total'))
         components_total += surcharges_total

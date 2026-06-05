@@ -445,6 +445,7 @@ class VdLeadProblem(models.Model):
     i_floor_7_m2 = fields.Integer(related='lead_id.vd_intake_floor_7_m2', readonly=False, string='Tầng 7 (m²)')
     i_floor_tum_m2 = fields.Integer(related='lead_id.vd_intake_floor_tum_m2', readonly=False, string='Tum (m²)')
     i_floor_lung_m2 = fields.Integer(related='lead_id.vd_intake_floor_lung_m2', readonly=False, string='Lửng (m²)')
+    i_floor_thongtang_m2 = fields.Integer(related='lead_id.vd_intake_floor_thongtang_m2', readonly=False, string='Thông tầng (m²)')
     i_has_tum = fields.Boolean(related='lead_id.vd_intake_has_tum', readonly=False, string='Có Tum')
     i_has_lung = fields.Boolean(related='lead_id.vd_intake_has_lung', readonly=False, string='Có Lửng')
     i_floors_select = fields.Selection(

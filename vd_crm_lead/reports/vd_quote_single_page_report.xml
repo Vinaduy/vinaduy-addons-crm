@@ -144,7 +144,7 @@
                                 <t t-foreach="floor_rows" t-as="fr" t-key="fr_index">
                                     <tr>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="fr['label']"/></td>
-                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="fr['area']"/> M2</td>
+                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="fr['area']"/> M2<t t-if="fr.get('pct')"> x <t t-esc="fr['pct']"/>%</t></td>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
                                         <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="fr['cost']"/> VNĐ</td>
                                     </tr>

@@ -1380,6 +1380,12 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                                     <field name="i_floor_lung_m2" nolabel="1"
                                                            readonly="status == 'resolved'"/>
                                                 </div>
+                                                <div class="o_vd_pf_intake_field"
+                                                     invisible="not i_has_lung">
+                                                    <label for="i_floor_thongtang_m2">Thông tầng (m²)</label>
+                                                    <field name="i_floor_thongtang_m2" nolabel="1"
+                                                           readonly="status == 'resolved'"/>
+                                                </div>
                                             </div>
 
                                             <div class="o_vd_pf_intake_hint">
