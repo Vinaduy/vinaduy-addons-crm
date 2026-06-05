@@ -2146,6 +2146,15 @@
     }
 
     /* Badge cuộc gọi trên pill: 📞<total> 📅<distinct_days> */
+    /* Badge ⚡ AUTO — KH tự động từ Pancake (user 2026-06-05) */
+    .o_vd_pill_auto {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.2rem;
+        font-size: 0.8rem;
+        line-height: 1;
+        filter: drop-shadow(0 0 1px rgba(245, 159, 0, 0.5));
+    }
     .o_vd_pill_call_badge {
         display: inline-flex;
         align-items: center;

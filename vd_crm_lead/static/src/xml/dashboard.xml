@@ -2986,6 +2986,11 @@
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
 
+                <!-- Badge AUTO — KH do Pancake TỰ ĐỘNG đẩy lên (user 2026-06-05).
+                     KH NV tự thêm thủ công thì KHÔNG có badge này. -->
+                <span t-if="lead.pancake_platform and lead.pancake_platform !== 'manual'"
+                      class="o_vd_pill_auto" title="Khách TỰ ĐỘNG từ Pancake">⚡</span>
+
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">
                     <!-- Badge trạng thái nổi bật ở đầu — chỉ stage KH MỚI -->
