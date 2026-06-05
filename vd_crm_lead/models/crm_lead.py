@@ -2981,6 +2981,7 @@ class CrmLead(models.Model):
     })
     _TRUNG_PROVINCES = frozenset({
         'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị', 'Thừa Thiên Huế',
+        'Huế',   # tên mới sau sáp nhập 01/07/2025 (trước là Thừa Thiên Huế)
         'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định', 'Phú Yên', 'Khánh Hòa',
         'Ninh Thuận', 'Bình Thuận',
         'Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông', 'Lâm Đồng',
@@ -2993,10 +2994,22 @@ class CrmLead(models.Model):
     # Phụ phí +300k/m² cho HUYỆN của tỉnh (TP/thị xã của tỉnh đó miễn phụ phí):
     _SURCHARGE_DISTRICT_PROVINCES = frozenset({'Hà Giang', 'Lạng Sơn'})
 
+    @api.model
+    def _vd_norm_province(self, name):
+        """Chuẩn hoá tên tỉnh để map vùng — bỏ hậu tố sau sáp nhập 01/07/2025
+        ('... (cũ - đã sáp nhập)') để tỉnh cũ vẫn khớp tên gốc."""
+        if not name:
+            return name
+        for sfx in (' (cũ - đã sáp nhập)', ' (cũ)', '(cũ - đã sáp nhập)'):
+            if name.endswith(sfx):
+                name = name[:-len(sfx)]
+        return name.strip()
+
     @api.depends('vd_intake_province_id')
     def _compute_intake_region(self):
         for rec in self:
-            province = rec.vd_intake_province_id.name if rec.vd_intake_province_id else None
+            province = self._vd_norm_province(
+                rec.vd_intake_province_id.name) if rec.vd_intake_province_id else None
             if province in self._BAC_PROVINCES:
                 rec.vd_intake_region = 'bac'
             elif province in self._TRUNG_PROVINCES:
@@ -3160,7 +3173,8 @@ class CrmLead(models.Model):
             # Phụ phí móng đơn 10% / móng băng-cọc 15% đã BỎ (2026-05-21 spec).
 
             # Phụ phí tỉnh vùng cao (+300k/m² × total_floor_area)
-            province_name = rec.vd_intake_province_id.name if rec.vd_intake_province_id else None
+            province_name = self._vd_norm_province(
+                rec.vd_intake_province_id.name) if rec.vd_intake_province_id else None
             if province_name in self._SURCHARGE_PROVINCES:
                 total += 300_000 * total_floor_area
             elif province_name in self._SURCHARGE_DISTRICT_PROVINCES:
