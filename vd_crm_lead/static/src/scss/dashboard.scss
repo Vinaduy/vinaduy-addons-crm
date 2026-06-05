@@ -5348,6 +5348,13 @@
                     background: linear-gradient(135deg, #37b24d 0%, #51cf66 100%);
                 }
             }
+            /* Đến/quá hạn → nút nổi bật (cam + nhấp nháy) */
+            .o_vd_ref_call_btn.o_vd_ref_call_btn_due {
+                background: linear-gradient(135deg, #e8590c 0%, #f76707 100%);
+                box-shadow: 0 2px 6px rgba(232, 89, 12, 0.4);
+                animation: vd-pulse-required 1.8s ease-in-out infinite;
+                &:hover { background: linear-gradient(135deg, #f76707 0%, #ff922b 100%); }
+            }
             .o_vd_ref_action_done {
                 color: #adb5bd;
                 font-size: 1rem;

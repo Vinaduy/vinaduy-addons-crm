@@ -2012,10 +2012,10 @@
                                                                 <span t-else="" class="o_vd_ref_chip_legacy">—</span>
                                                             </td>
                                                             <td class="o_vd_ref_action">
-                                                                <button t-if="ld.no_quote_callback_due"
-                                                                        class="btn btn-sm o_vd_ref_call_btn"
+                                                                <button t-if="ld.phone"
+                                                                        t-att-class="'btn btn-sm o_vd_ref_call_btn' + (ld.no_quote_callback_due ? ' o_vd_ref_call_btn_due' : '')"
                                                                         t-on-click.stop.prevent="(ev) => this.callLeadDirect(ev, ld.id)"
-                                                                        title="Gọi lại ngay">
+                                                                        title="Gọi lại KH">
                                                                     <i class="fa fa-phone"/> Gọi lại
                                                                 </button>
                                                                 <span t-else="" class="o_vd_ref_action_done">—</span>
