@@ -2004,8 +2004,10 @@
                                                                 <span t-if="ld.no_quote_callback_due" class="o_vd_ref_chip_due">
                                                                     🔥 Hôm nay/quá hạn
                                                                 </span>
-                                                                <span t-elif="ld.no_quote_callback_date" class="o_vd_ref_chip_future">
-                                                                    📅 <t t-esc="ld.no_quote_callback_date"/>
+                                                                <span t-elif="ld.no_quote_callback_days != null"
+                                                                      t-att-class="'o_vd_ref_countdown' + (ld.no_quote_callback_days &lt; 5 ? ' o_vd_ref_countdown_urgent' : '')">
+                                                                    ⏳ còn <b><t t-esc="ld.no_quote_callback_days"/></b> ngày
+                                                                    <span class="o_vd_ref_cd_date">(<t t-esc="ld.no_quote_callback_date"/>)</span>
                                                                 </span>
                                                                 <span t-else="" class="o_vd_ref_chip_legacy">—</span>
                                                             </td>

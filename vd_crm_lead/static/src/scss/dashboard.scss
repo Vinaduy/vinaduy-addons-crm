@@ -5311,6 +5311,24 @@
                 font-style: italic;
                 font-size: 0.78rem;
             }
+            /* Đếm ngược ngày gọi lại (user 2026-06-05) */
+            .o_vd_ref_countdown {
+                display: inline-flex;
+                align-items: baseline;
+                gap: 0.2rem;
+                font-size: 0.74rem;
+                font-weight: 700;
+                color: #1864ab;
+                white-space: nowrap;
+                b { font-size: 0.84rem; }
+                .o_vd_ref_cd_date { font-size: 0.66rem; font-weight: 500; color: #868e96; }
+            }
+            /* < 5 ngày → KHẨN: số ngày to thêm 30% + đỏ */
+            .o_vd_ref_countdown_urgent {
+                color: #c92a2a;
+                b { font-size: 1.09rem; }   /* +30% so với 0.84rem */
+                .o_vd_ref_cd_date { color: #c92a2a; }
+            }
             .o_vd_ref_call_btn {
                 background: linear-gradient(135deg, #2b8a3e 0%, #37b24d 100%);
                 color: #fff;

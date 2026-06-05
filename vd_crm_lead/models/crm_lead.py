@@ -1508,6 +1508,9 @@ class CrmLead(models.Model):
         help='Khai thác cụ thể: tài chính bao nhiêu, đất ở đâu, pháp lý gì, '
              'thời gian khi nào… do wizard sinh ra.',
     )
+    # JSON các trường wizard THAM KHẢO đã nhập — để mở lại wizard hiện đúng dữ
+    # liệu đã chọn trước đó (user spec 2026-06-05).
+    vd_no_quote_data = fields.Char(string='Dữ liệu wizard THAM KHẢO (JSON)', copy=False)
     vd_no_quote_callback_date = fields.Date(
         string='Ngày gọi lại (THAM KHẢO)', copy=False, tracking=True,
         help='Ngày NV phải gọi lại để follow up. Dashboard THAM KHẢO hiển '
@@ -7009,6 +7012,10 @@ class CrmLead(models.Model):
             'no_quote_callback_due': bool(
                 l.vd_no_quote_callback_date and l.vd_no_quote_callback_date <= fields.Date.today()
             ),
+            # Số ngày ĐẾM NGƯỢC tới ngày gọi lại (âm/0 = tới hạn). None = legacy.
+            'no_quote_callback_days': (
+                (l.vd_no_quote_callback_date - fields.Date.today()).days
+                if l.vd_no_quote_callback_date else None),
             'no_quote_reason_short': (l.vd_no_quote_reason or '').strip()[:160],
             # ===== Đề xuất hủy info (cho thùng rác) =====
             'cancel_state': l.vd_cancel_state or '',

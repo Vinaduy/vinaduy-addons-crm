@@ -5,7 +5,9 @@ chưa xong pháp lý, chưa muốn xây ngay) → bấm CHƯA BÁO GIÁ → wiza
 form khai thác chi tiết theo 4 nhóm + đặt ngày gọi lại → KH tự chuyển
 từ KHÁCH MỚI sang THAM KHẢO (👀 icon).
 """
+import json
 from datetime import datetime, time, timedelta
+from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -91,6 +93,45 @@ class VdLeadNoQuoteWizard(models.TransientModel):
              'sẽ hiển thị nút GỌI LẠI khi đến ngày này.',
     )
 
+    # Các trường wizard cần LƯU/KHÔI PHỤC khi mở lại (bỏ lead_id/lead_name).
+    @api.model
+    def _no_quote_persist_fields(self):
+        return [
+            'category',
+            'fi_have', 'fi_need', 'fi_when_enough', 'fi_note',
+            'la_status', 'la_where', 'la_when_have', 'la_note',
+            'le_missing', 'le_who_handles', 'le_when_done', 'le_note',
+            'ti_when_start', 'ti_why_wait', 'ti_note',
+            'callback_date',
+        ]
+
+    @api.model
+    def default_get(self, fields_list):
+        """Mở lại wizard cho KH ĐÃ ở THAM KHẢO → nạp lại dữ liệu đã chọn trước
+        đó (user spec 2026-06-05) từ lead.vd_no_quote_data (JSON)."""
+        res = super().default_get(fields_list)
+        lead_id = self.env.context.get('default_lead_id')
+        if not lead_id:
+            return res
+        lead = self.env['crm.lead'].browse(lead_id)
+        loaded = False
+        if lead.vd_no_quote_data:
+            try:
+                data = json.loads(lead.vd_no_quote_data)
+                for k, v in data.items():
+                    if k in self._fields and v not in (None, ''):
+                        res[k] = v
+                loaded = True
+            except Exception:
+                loaded = False
+        if not loaded:
+            # Fallback (data cũ chưa có JSON): tối thiểu nạp lý do + ngày gọi lại.
+            if lead.vd_no_quote_category:
+                res['category'] = lead.vd_no_quote_category
+            if lead.vd_no_quote_callback_date:
+                res['callback_date'] = lead.vd_no_quote_callback_date
+        return res
+
     def _build_reason_summary(self):
         """Đóng gói toàn bộ data thành text block lưu vào lead."""
         self.ensure_one()
@@ -140,8 +181,18 @@ class VdLeadNoQuoteWizard(models.TransientModel):
         return '\n'.join(parts)
 
     def _validate(self):
-        """Đảm bảo NV nhập đủ thông tin theo category."""
+        """Đảm bảo NV nhập đủ thông tin theo category + ngày gọi lại hợp lệ."""
         self.ensure_one()
+        # Ngày gọi lại KHÔNG quá 1 tháng kể từ hôm nay (user spec 2026-06-05).
+        today = fields.Date.today()
+        if self.callback_date:
+            if self.callback_date < today:
+                raise UserError(_('Ngày gọi lại không được ở quá khứ.'))
+            max_cb = today + relativedelta(months=1)
+            if self.callback_date > max_cb:
+                raise UserError(_(
+                    'Ngày gọi lại không được quá 1 tháng kể từ hôm nay '
+                    '(tối đa %s).') % max_cb.strftime('%d/%m/%Y'))
         cat = self.category
         if cat == 'financial' and not (self.fi_have or self.fi_when_enough or self.fi_note):
             raise UserError(_('Vui lòng khai thác ít nhất 1 trường tài chính.'))
@@ -160,10 +211,18 @@ class VdLeadNoQuoteWizard(models.TransientModel):
         self._validate()
 
         summary = self._build_reason_summary()
+        # Đóng gói toàn bộ field wizard -> JSON để mở lại hiện đúng dữ liệu cũ.
+        data = {}
+        for f in self._no_quote_persist_fields():
+            v = self[f]
+            if f == 'callback_date' and v:
+                v = fields.Date.to_string(v)
+            data[f] = v or ''
         self.lead_id.with_context(mail_notrack=True, tracking_disable=True).write({
             'vd_no_quote_state': 'pending',
             'vd_no_quote_category': self.category,
             'vd_no_quote_reason': summary,
+            'vd_no_quote_data': json.dumps(data, ensure_ascii=False),
             'vd_no_quote_callback_date': self.callback_date,
             'vd_no_quote_date': fields.Datetime.now(),
             'vd_no_quote_user_id': self.env.user.id,
