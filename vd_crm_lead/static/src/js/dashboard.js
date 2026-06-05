@@ -1317,7 +1317,7 @@ export class VdCrmDashboard extends Component {
         this.state.recHover = {
             user_id: nv.user_id,
             name: nv.full_name,
-            rect: this._rowRect(ev),
+            rect: this._elRect(ev),   // neo theo THẺ "Tháng này" được hover
             loading: true,
             recordings: [],
             stats: {},
@@ -1364,6 +1364,13 @@ export class VdCrmDashboard extends Component {
         const el = ev.currentTarget;
         const row = (el.closest && el.closest(".o_vd_kh_nv_row")) || el;
         const r = row.getBoundingClientRect();
+        return { left: r.left, top: r.top, bottom: r.bottom };
+    }
+
+    // Rect của CHÍNH phần tử hover (không phải cả hàng) — để popup neo đúng vị trí
+    // thẻ được rê chuột (vd thẻ "Tháng này"), không nhảy về tên NV.
+    _elRect(ev) {
+        const r = ev.currentTarget.getBoundingClientRect();
         return { left: r.left, top: r.top, bottom: r.bottom };
     }
 

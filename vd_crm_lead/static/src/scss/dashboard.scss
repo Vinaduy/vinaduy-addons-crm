@@ -3443,10 +3443,10 @@
     .o_vd_kh_row_group_kh {
         /* 4 super-cột — 3 THẺ thống kê | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
            2026-06-05: nới cột thống kê (3.4fr) để mỗi thẻ đủ 1 dòng, không wrap. */
-        grid-template-columns: 3.4fr 2.6fr 0.8fr 1.1fr;
+        grid-template-columns: 2.9fr 2.9fr 0.8fr 1.1fr;
         background: transparent;
         align-items: stretch;
-        grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không cho cao thêm */
+        grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
     }
     /* Khung chung 3 cột Khách mới | Thi công gấp | Xử lý vấn đề — 1 nền dùng chung */
     .o_vd_kh_trio {
@@ -3831,64 +3831,67 @@
     }
     /* r14: ô HÔM NAY = container 2 NÚT (KH mới | Cuộc gọi). Bỏ khung/nền cũ —
        mỗi nút tự có khung + nhãn "Hôm nay" riêng. */
+    /* GRID 3 cột cố định -> 3 thẻ THẲNG HÀNG từ trên xuống mọi NV (2026-06-05).
+       Width vừa đủ theo chữ (KH mới hẹp, 2 thẻ gọi rộng bằng nhau). */
     .o_vd_kh_metric_today_box {
         background: transparent;
         border: 0;
         box-shadow: none;
         border-radius: 0;
         padding: 0 !important;
-        display: flex !important;
-        flex-wrap: nowrap;
-        gap: 0.6rem;               /* tách rõ 3 thẻ */
+        display: grid !important;
+        grid-template-columns: 66px 1fr 1fr;
+        gap: 0.4rem;
         align-items: stretch;
-        justify-content: center;
     }
     .o_vd_today_btn {
         position: relative;
-        flex: 1 1 auto;            /* co/giãn theo nội dung — không ép wrap/clip */
         min-width: 0;
+        height: 100%;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        padding: 0 5px 5px;        /* KHÔNG padding top — ribbon dán sát mép trên */
-        border-radius: 9px;
+        align-items: stretch;
+        padding: 0 4px;            /* KHÔNG padding trên/dưới: ribbon top, nội dung center */
+        border-radius: 8px;
         border: 1.5px solid transparent;
         cursor: pointer;
-        overflow: hidden;          /* để ribbon bo góc theo thẻ */
+        overflow: hidden;
         transition: transform .12s ease, box-shadow .12s ease;
         &:hover { transform: translateY(-1px); }
     }
-    /* Ribbon "HÔM NAY / THÁNG NÀY" — DÁN sát mép trên + full chiều ngang thẻ */
+    /* Ribbon — DÁN sát mép trên, MỎNG (lấy đất cho nội dung), full ngang */
     .o_vd_today_tag {
-        align-self: stretch;
-        margin: 0 -5px 4px;        /* bleed sang trái/phải = -padding để chạm mép */
+        margin: 0 -4px;            /* chạm mép trái/phải + trên */
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 3px;
-        font-size: 0.52rem;
+        font-size: 0.5rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.3px;
         line-height: 1;
-        padding: 3px 4px;
+        padding: 1.5px 4px;        /* mỏng hơn */
         border-radius: 0;
         white-space: nowrap;
-        i.fa { font-size: 0.55rem; }
+        flex: 0 0 auto;
+        i.fa { font-size: 0.52rem; }
     }
-    /* DÒNG NỘI DUNG DUY NHẤT — KHÔNG xuống dòng, KHÔNG tăng chiều cao (chỉ nới
-       ngang). icon + số + nhãn + ✓ nghe máy + % nằm cùng 1 hàng. */
+    /* DÒNG NỘI DUNG — 1 hàng, CĂN GIỮA dọc trong phần còn lại (không bị mép
+       dưới / ribbon che). Font +20%. */
     .o_vd_today_line {
-        display: inline-flex;
+        flex: 1 1 auto;
+        display: flex;
         align-items: center;
+        justify-content: center;
         gap: 4px;
         white-space: nowrap;
+        min-height: 0;
         max-width: 100%;
     }
-    .o_vd_today_ico { font-size: 0.85rem; }
-    .o_vd_today_num { font-size: 1.2rem; font-weight: 800; line-height: 1; }
-    .o_vd_today_lbl { font-size: 0.64rem; font-weight: 600; }
+    .o_vd_today_ico { font-size: 1rem; }
+    .o_vd_today_num { font-size: 1.45rem; font-weight: 800; line-height: 1; }
+    .o_vd_today_lbl { font-size: 0.77rem; font-weight: 600; }
     /* ✓ nghe máy + % — cùng dòng, ngăn cách bằng vạch dọc */
     .o_vd_today_ok {
         display: inline-flex;
@@ -3897,12 +3900,12 @@
         margin-left: 2px;
         padding-left: 5px;
         border-left: 1px solid rgba(0,0,0,0.14);
-        font-size: 0.66rem;
+        font-size: 0.79rem;
         font-weight: 700;
         color: #15803d;
         white-space: nowrap;
-        b { font-size: 0.72rem; font-weight: 800; }
-        i.fa { font-size: 0.62rem; }
+        b { font-size: 0.86rem; font-weight: 800; }
+        i.fa { font-size: 0.74rem; }
     }
     /* NÚT KHÁCH MỚI — tông hổ phách/cam (giữ nhận diện "hôm nay") */
     .o_vd_today_btn_new {
@@ -3924,14 +3927,13 @@
         .o_vd_today_lbl { color: #075985; }
         &:hover { box-shadow: 0 5px 12px rgba(14,165,233,0.32); }
     }
-    /* KH mới THU NHỎ (user 2026-06-05) — chiếm ít chỗ hơn 2 thẻ cuộc gọi */
+    /* KH mới — thẻ hẹp (cột 58px), font nhỏ hơn 2 thẻ gọi nhưng vẫn rõ */
     .o_vd_today_btn_sm {
-        flex: 0 1 auto;
-        padding: 2px 6px 3px;
-        .o_vd_today_num { font-size: 0.92rem; }
-        .o_vd_today_lbl { font-size: 0.56rem; }
-        .o_vd_today_ico { font-size: 0.7rem; }
-        .o_vd_today_tag { font-size: 0.42rem; }
+        .o_vd_today_num { font-size: 1.15rem; }
+        .o_vd_today_lbl { font-size: 0.62rem; }
+        .o_vd_today_ico { font-size: 0.82rem; }
+        .o_vd_today_tag { font-size: 0.46rem; }
+        .o_vd_today_line { gap: 2px; }
     }
     /* NÚT CUỘC GỌI THÁNG — tông xanh ngọc (thống kê, không cảnh báo) */
     .o_vd_today_btn_month {
