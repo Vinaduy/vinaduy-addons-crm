@@ -439,8 +439,10 @@
                                                 <span t-if="r.phone" class="o_vd_an_search_item_phone">📞 <t t-esc="r.phone"/></span>
                                             </div>
                                             <div class="o_vd_an_search_item_meta">
-                                                <span t-if="r.stage_name" class="o_vd_an_search_item_stage"><t t-esc="r.stage_name"/></span>
+                                                <span t-if="r.state_label"
+                                                      t-att-class="'o_vd_an_search_item_stage' + (r.archived ? ' o_vd_an_search_item_archived' : '')"><t t-esc="r.state_label"/></span>
                                                 <span t-if="r.user_name" class="o_vd_an_search_item_user">👤 <t t-esc="r.user_name"/></span>
+                                                <span t-else="" class="o_vd_an_search_item_user o_vd_an_search_item_nouser">👤 Chưa giao</span>
                                             </div>
                                         </div>
                                         <div t-if="!state.searchLoading and !state.searchResults.length"

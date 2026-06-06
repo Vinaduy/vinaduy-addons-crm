@@ -1865,7 +1865,7 @@ export class VdCrmDashboard extends Component {
             const uid = this.state.selected_user_id || null;
             const rows = await this.orm.call(
                 "crm.lead", "vd_dashboard_search_leads",
-                [q, uid, 20],
+                [q, uid, 30],
             );
             this.state.searchResults = rows || [];
         } catch (e) {

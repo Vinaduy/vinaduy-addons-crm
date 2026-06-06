@@ -6542,17 +6542,24 @@ class CrmLead(models.Model):
         return data
 
     @api.model
-    def vd_dashboard_search_leads(self, query, user_id=None, limit=20):
-        """User spec 2026-05-29: search KH theo SĐT hoặc TÊN không dấu.
-        Scope: nếu user_id specified → chỉ leads của user đó; else all (admin).
+    def vd_dashboard_search_leads(self, query, user_id=None, limit=30):
+        """User spec 2026-05-29 + 2026-06-06: search KH theo SĐT hoặc TÊN không dấu.
+
+        Nâng cấp 2026-06-06:
+        - TÌM CẢ lead LƯU TRỮ + THÙNG RÁC công ty (active_test=False), không chỉ active.
+        - SĐT chuẩn hoá về dạng NỘI ĐỊA (bỏ 0 / 84 / +84) → gõ '09...' ra cả '084.../84...'.
+        - Trả về NV quản lý + TRẠNG THÁI (đang xử lý / lưu trữ / thùng rác).
+        Scope theo quyền: user_id chỉ định → leads của NV đó; None → theo quyền user
+        hiện tại (ir.rules vẫn áp — NV thường không thấy KH người khác).
         """
         import unicodedata
+        import re
         q = (query or '').strip()
         if not q:
             return []
 
         def _norm(s):
-            """Lowercase + strip diacritics + collapse spaces. 'Hà Nội' → 'ha noi'."""
+            """Lowercase + strip diacritics. 'Hà Nội' → 'ha noi'."""
             if not s:
                 return ''
             s = unicodedata.normalize('NFD', s)
@@ -6560,39 +6567,61 @@ class CrmLead(models.Model):
             s = s.replace('đ', 'd').replace('Đ', 'd')
             return s.lower().strip()
 
-        q_norm = _norm(q)
-        # Phone: chỉ digits → so sánh substring
-        q_digits = ''.join(c for c in q if c.isdigit())
+        def _nat(s):
+            """SĐT về dạng nội địa: bỏ ký tự không phải số, bỏ tiền tố 84/+84/0.
+            '0977261290' / '84977261290' / '+84977261290' → '977261290'."""
+            d = re.sub(r'\D', '', s or '')
+            while d.startswith('84') and len(d) > 9:
+                d = d[2:]
+            if d.startswith('0'):
+                d = d[1:]
+            return d
 
-        # Domain scope
+        q_norm = _norm(q)
+        q_nat = _nat(q)  # national-form digits của query
+        is_phone_q = len(q_nat) >= 4
+
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
-        # Fetch wider — filter Python (cần normalize)
-        leads = self.search(
-            domain_user + [('active', '=', True)],
-            limit=200,
-            order='write_date desc',
-        )
+
+        # active_test=False → bao gồm lead LƯU TRỮ + THÙNG RÁC (active=False).
+        Lead = self.with_context(active_test=False)
+        if is_phone_q:
+            # Phone: prefilter domain bằng national digits → tìm cả 0xxx/84xxx,
+            # không bị giới hạn fetch khi có nhiều lead lưu trữ.
+            cand = Lead.search(
+                domain_user + ['|', ('phone', 'ilike', q_nat), ('mobile', 'ilike', q_nat)],
+                limit=300, order='write_date desc',
+            )
+        else:
+            cand = Lead.search(domain_user, limit=400, order='write_date desc')
+
         matches = []
-        for l in leads:
-            name_norm = _norm(l.name or '')
-            partner_norm = _norm(l.partner_name or '')
-            phone = (l.phone or '').replace(' ', '').replace('.', '').replace('-', '')
-            mobile = (l.mobile or '').replace(' ', '').replace('.', '').replace('-', '')
+        for l in cand:
             hit = False
-            if q_norm and (q_norm in name_norm or q_norm in partner_norm):
+            if is_phone_q and (q_nat in _nat(l.phone) or q_nat in _nat(l.mobile)):
                 hit = True
-            elif q_digits and (q_digits in phone or q_digits in mobile):
+            if not hit and q_norm and (q_norm in _norm(l.name) or q_norm in _norm(l.partner_name)):
                 hit = True
-            if hit:
-                matches.append({
-                    'id': l.id,
-                    'name': l.partner_name or l.name or '(không tên)',
-                    'phone': l.phone or '',
-                    'stage_name': l.stage_id.name or '',
-                    'user_name': l.user_id.name or '',
-                })
-                if len(matches) >= limit:
-                    break
+            if not hit:
+                continue
+            # Trạng thái hiển thị
+            if l.vd_cancel_state == 'approved':
+                state_label = '🗑️ Thùng rác công ty'
+            elif not l.active:
+                state_label = '🗄️ Lưu trữ'
+            else:
+                state_label = l.stage_id.name or ''
+            matches.append({
+                'id': l.id,
+                'name': l.partner_name or l.name or '(không tên)',
+                'phone': l.phone or l.mobile or '',
+                'stage_name': l.stage_id.name or '',
+                'state_label': state_label,
+                'archived': not l.active,
+                'user_name': l.user_id.name or '',
+            })
+            if len(matches) >= limit:
+                break
         return matches
 
     @api.model

@@ -2810,6 +2810,15 @@
                 margin-top: 0.15rem;
                 font-size: 0.75rem;
                 color: var(--bs-secondary-color, #6c757d);
+                .o_vd_an_search_item_archived {
+                    color: #ad6800;
+                    background: #fff8e1;
+                    border: 1px solid #ffe69c;
+                    border-radius: 4px;
+                    padding: 0 0.35rem;
+                    font-weight: 700;
+                }
+                .o_vd_an_search_item_nouser { color: #adb5bd; font-style: italic; }
             }
         }
     }
