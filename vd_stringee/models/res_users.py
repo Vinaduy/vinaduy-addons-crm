@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import _, api, fields, models, SUPERUSER_ID
 
 from .vd_stringee_hotline import vd_carrier_from_number
 
@@ -78,6 +78,23 @@ class ResUsers(models.Model):
                 ('viettel', 'Viettel'), ('vina', 'Vinaphone'), ('mobi', 'MobiFone'))
                 if not buckets[code]]
             user.stringee_missing_main = ', '.join(missing)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Tự sinh Stringee User ID cho NV nội bộ mới (user spec 2026-06-06).
+        Stringee định danh client bằng userId ký trong JWT — không cần đăng ký
+        trước trên Dashboard → auto-gán = NV mới gọi được ngay."""
+        users = super().create(vals_list)
+        users._vd_ensure_stringee_user_id()
+        return users
+
+    def _vd_ensure_stringee_user_id(self):
+        """Gán stringee_user_id = 'vduser_<id>' cho NV nội bộ chưa có.
+        Bỏ qua user chia sẻ (portal/public) + superuser/OdooBot."""
+        for user in self:
+            if user.share or user.id == SUPERUSER_ID or user.stringee_user_id:
+                continue
+            user.sudo().write({'stringee_user_id': 'vduser_%d' % user.id})
 
     def _vd_resolve_outbound(self, to_number):
         """Chọn số gọi ra CÙNG MẠNG với KH (to_number).
