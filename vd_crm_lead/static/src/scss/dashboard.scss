@@ -7339,6 +7339,91 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     white-space: nowrap;
     &:hover { filter: brightness(1.08); color: #fff; }
 }
+
+/* Icon ổ khoá + bảng giải thích "Khi nào bị KHOÁ" (user spec 2026-06-08) */
+.o_vd_cw_help { position: relative; display: inline-flex; align-items: center; }
+.o_vd_cw_help_ico { cursor: help; }
+.o_vd_cw_help_panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -8px;
+    width: 580px;
+    max-width: 92vw;
+    background: #fff;
+    color: #1f2a44;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 16px 42px rgba(15, 23, 42, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    z-index: 10000;
+    overflow: hidden;
+    text-align: left;
+    white-space: normal;
+    font-weight: 400;
+}
+.o_vd_cw_help:hover .o_vd_cw_help_panel { opacity: 1; visibility: visible; transform: translateY(0); }
+.o_vd_cw_help_head {
+    background: linear-gradient(135deg, #f59f00, #e8590c);
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.08rem;
+    padding: 0.7rem 1rem;
+    letter-spacing: 0.2px;
+}
+.o_vd_cw_help_body {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    b { color: #1f2a44; }
+}
+.o_vd_cw_help_flow { display: flex; flex-direction: column; gap: 0.5rem; }
+.o_vd_cw_help_step {
+    background: #fff9db;
+    border: 1px solid #ffe08a;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    .o_vd_cw_help_num {
+        display: inline-block;
+        background: #f59f00;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.72rem;
+        border-radius: 6px;
+        padding: 0.06rem 0.5rem;
+        margin-right: 0.45rem;
+        white-space: nowrap;
+    }
+}
+.o_vd_cw_help_red { color: #c92a2a !important; }
+.o_vd_cw_help_key {
+    background: #fff4e6;
+    border-left: 4px solid #f59f00;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.o_vd_cw_help_ex { background: #f8f9fa; border-radius: 8px; padding: 0.55rem 0.7rem; }
+.o_vd_cw_help_ok {
+    background: #ebfbee;
+    border: 1px solid #b2f2bb;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    color: #2b8a3e;
+    b { color: #2b8a3e; }
+}
+.o_vd_cw_help_note {
+    font-size: 0.82rem;
+    color: #868e96;
+    border-top: 1px dashed #dee2e6;
+    padding-top: 0.55rem;
+    b { color: #495057; }
+}
 /* Chip ngày trong popover */
 .o_vd_cw_chip {
     display: inline-flex;
