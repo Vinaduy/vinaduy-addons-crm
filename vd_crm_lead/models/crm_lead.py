@@ -360,15 +360,63 @@ class CrmLead(models.Model):
     # Zalo. KH đã tư vấn Zalo VÀ có báo giá chi tiết (vd_intake_complete) → MIỄN
     # yêu cầu gọi điện (call-watch). Chưa có báo giá thì vẫn phải gọi đủ.
     vd_zalo_consulted_date = fields.Datetime(
-        string='Zalo: đã chuyển tư vấn', copy=False, readonly=True,
-        help='Thời điểm NV bấm "TƯ VẤN QUA ZALO". Dùng để miễn khoá "chưa gọi" '
-             'khi KH đã có báo giá chi tiết.',
+        string='Zalo: bắt đầu tư vấn', copy=False, readonly=True,
+        help='Set khi xác nhận NGÀY 1. Miễn khoá "chưa gọi" khi KH đã có báo giá '
+             'chi tiết.',
     )
-    vd_zalo_history_html = fields.Html(
-        string='Lịch sử tư vấn Zalo', sanitize=False, copy=False, readonly=True,
-        help='Nhật ký các lần NV xác nhận tư vấn qua Zalo (kết bạn / tìm vấn đề / '
-             'chốt lịch gặp).',
-    )
+    # Quy trình chăm Zalo 3 NGÀY (user spec 2026-06-07) — mỗi bước xác nhận ở 1
+    # NGÀY khác nhau, trong hạn 7 ngày (tạo → chuyển bảng "không gọi được").
+    vd_zalo_day1_date = fields.Datetime(
+        string='Zalo Ngày 1: Kết bạn + chào', copy=False, readonly=True)
+    vd_zalo_day2_date = fields.Datetime(
+        string='Zalo Ngày 2: Gọi + nhắn', copy=False, readonly=True)
+    vd_zalo_day3_date = fields.Datetime(
+        string='Zalo Ngày 3: Gọi + nhắn', copy=False, readonly=True)
+    vd_zalo_care_deadline = fields.Datetime(
+        string='Hạn chăm Zalo (7 ngày)', compute='_compute_vd_zalo_care', store=False)
+    vd_zalo_care_html = fields.Html(
+        string='Lịch sử chăm Zalo', compute='_compute_vd_zalo_care',
+        sanitize=False, store=False)
+
+    _ZALO_DAY_LABELS = {
+        1: 'Kết bạn + gửi tin nhắn chào khách',
+        2: 'Gọi điện và nhắn tin qua Zalo',
+        3: 'Gọi điện và nhắn tin qua Zalo',
+    }
+
+    @api.depends('vd_zalo_day1_date', 'vd_zalo_day2_date', 'vd_zalo_day3_date',
+                 'create_date')
+    def _compute_vd_zalo_care(self):
+        for rec in self:
+            deadline = (rec.create_date + timedelta(days=7)) if rec.create_date else False
+            rec.vd_zalo_care_deadline = deadline
+            rows = []
+            for n, dt in ((1, rec.vd_zalo_day1_date), (2, rec.vd_zalo_day2_date),
+                          (3, rec.vd_zalo_day3_date)):
+                label = rec._ZALO_DAY_LABELS[n]
+                if dt:
+                    ts = fields.Datetime.context_timestamp(rec, dt).strftime('%H:%M · %d/%m/%Y')
+                    rows.append(
+                        '<div class="o_vd_zcare_row o_vd_zcare_done">'
+                        '<span class="o_vd_zcare_ico">✅</span>'
+                        '<span class="o_vd_zcare_lbl"><b>NGÀY %d:</b> %s</span>'
+                        '<span class="o_vd_zcare_meta">%s</span></div>' % (n, label, ts))
+                else:
+                    rows.append(
+                        '<div class="o_vd_zcare_row o_vd_zcare_todo">'
+                        '<span class="o_vd_zcare_ico">⬜</span>'
+                        '<span class="o_vd_zcare_lbl"><b>NGÀY %d:</b> %s</span>'
+                        '<span class="o_vd_zcare_meta">chưa xác nhận</span></div>' % (n, label))
+            dl_html = ''
+            if deadline:
+                dl_local = fields.Datetime.context_timestamp(rec, deadline)
+                days_left = (dl_local.date() - fields.Date.context_today(rec)).days
+                cls = 'o_vd_zcare_dl_over' if days_left < 0 else 'o_vd_zcare_dl'
+                txt = ('QUÁ HẠN %d ngày' % (-days_left)) if days_left < 0 else ('còn %d ngày' % days_left)
+                dl_html = ('<div class="%s">⏳ Hạn chăm Zalo: <b>%s</b> (%s)</div>'
+                           % (cls, dl_local.strftime('%d/%m/%Y'), txt))
+            rec.vd_zalo_care_html = (
+                '<div class="o_vd_zcare">' + ''.join(rows) + dl_html + '</div>')
     vd_zalo_care_overdue = fields.Boolean(
         string='Zalo: quá hạn chăm sóc', compute='_compute_zalo_care_overdue',
     )
@@ -409,30 +457,36 @@ class CrmLead(models.Model):
             raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
         return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
 
-    def action_vd_consult_zalo(self, mode=None):
-        """Xác nhận tư vấn qua Zalo (user spec 2026-06-07). CHỈ ghi nhận trạng thái
-        + 1 dòng lịch sử (KHÔNG mở zalo.me). mode: consult/problem/meeting → nhãn
-        hành động. KH đã tư vấn Zalo + có báo giá chi tiết → miễn khoá "chưa gọi"."""
+    def action_vd_zalo_confirm_day(self, day):
+        """Xác nhận 1 bước chăm Zalo (user spec 2026-06-07).
+        - NGÀY 1: Kết bạn + gửi tin chào.  NGÀY 2/3: Gọi + nhắn qua Zalo.
+        - NGÀY N chỉ xác nhận được khi NGÀY N-1 đã xác nhận VÀ vào NGÀY KHÁC.
+        - NGÀY 1 set vd_zalo_consulted_date → miễn khoá "chưa gọi" khi có báo giá."""
         self.ensure_one()
-        labels = {
-            'consult': 'Đã kết bạn — tư vấn qua Zalo',
-            'problem': 'Khai thác / tìm vấn đề qua Zalo',
-            'meeting': 'Chốt lịch gặp qua Zalo',
-        }
-        label = labels.get(mode, 'Tư vấn qua Zalo')
+        from odoo.exceptions import UserError
+        day = int(day)
+        field_by_day = {1: 'vd_zalo_day1_date', 2: 'vd_zalo_day2_date', 3: 'vd_zalo_day3_date'}
+        if day not in field_by_day:
+            return False
+        fname = field_by_day[day]
+        if self[fname]:
+            return True  # đã xác nhận rồi
+        if day > 1 and not self[field_by_day[day - 1]]:
+            raise UserError(_('Phải xác nhận NGÀY %d trước.') % (day - 1))
+        if day > 1:
+            prev_d = fields.Datetime.context_timestamp(self, self[field_by_day[day - 1]]).date()
+            today = fields.Date.context_today(self)
+            if today <= prev_d:
+                raise UserError(_(
+                    'NGÀY %d phải xác nhận vào NGÀY KHÁC (sau NGÀY %d) — mỗi ngày '
+                    'chỉ xác nhận 1 bước.') % (day, day - 1))
         now = fields.Datetime.now()
+        self[fname] = now
         if not self.vd_zalo_consulted_date:
             self.vd_zalo_consulted_date = now
-        ts = fields.Datetime.context_timestamp(self, now).strftime('%H:%M · %d/%m/%Y')
-        entry = (
-            '<div class="o_vd_zalo_log_item">'
-            '<span class="o_vd_zalo_log_dot">💬</span>'
-            '<span class="o_vd_zalo_log_act">%s</span>'
-            '<span class="o_vd_zalo_log_meta">%s · %s</span>'
-            '</div>'
-        ) % (label, ts, self.env.user.name)
-        self.vd_zalo_history_html = (self.vd_zalo_history_html or '') + entry
-        self.message_post(subtype_xmlid='mail.mt_note', body=_('💬 %s') % label)
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_('💬 Zalo NGÀY %d: %s') % (day, self._ZALO_DAY_LABELS[day]))
         return True
 
     # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.

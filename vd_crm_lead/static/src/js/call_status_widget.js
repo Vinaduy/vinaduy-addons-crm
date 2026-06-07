@@ -38,7 +38,6 @@ export class VdCallStatusWidget extends Component {
         // ở phía client. Server state vẫn dùng làm fallback cho timer.
         this.callClientState = useState(this.stringee.state);
         this.state = useState({ elapsed: 0, busy: false });
-        this.zaloState = useState({ confirmed: false });
         this._lastSeenState = null;
         this._ringStartedAt = null;
 
@@ -103,23 +102,6 @@ export class VdCallStatusWidget extends Component {
 
     // TƯ VẤN QUA ZALO (nút dưới nút gọi): mở Zalo KH + ghi nhận đã chuyển kênh.
     // KH có báo giá chi tiết + đã tư vấn Zalo → backend miễn khoá "chưa gọi".
-    // Bấm XÁC NHẬN: CHỈ ghi nhận trạng thái tư vấn Zalo (KHÔNG mở zalo.me — user
-    // spec 2026-06-07). Ghi 1 dòng lịch sử Zalo theo trạng thái hiện tại.
-    async onZaloClick() {
-        try {
-            await this.orm.call(
-                "crm.lead", "action_vd_consult_zalo",
-                [[this.props.record.resId], this.zaloMode],
-            );
-            this.zaloState.confirmed = true;
-            this.notification.add("Đã xác nhận tư vấn qua Zalo.", { type: "success" });
-            // Reload để hiện nút "Lịch sử Zalo" + cập nhật log.
-            try { await this.props.record.load(); } catch (_e) {}
-        } catch (e) {
-            console.error("[VD] consultZalo failed", e);
-        }
-    }
-
     _tick() {
         // Timer chỉ chạy khi đang in-call. Ưu tiên client `answerStartedAt`
         // (instant, từ Stringee SDK code 3 ANSWERED), fallback server
@@ -217,10 +199,34 @@ export class VdCallStatusWidget extends Component {
         return !!(d.phone || d.mobile);
     }
 
-    // Đã xác nhận tư vấn Zalo? Ưu tiên field ĐÃ LƯU (giữ sau reload), fallback
-    // state local (phản hồi tức thì khi vừa bấm) — fix bug "reload về như cũ".
-    get isZaloConfirmed() {
-        return !!this.props.record.data.vd_zalo_consulted_date || this.zaloState.confirmed;
+    // Quy trình chăm Zalo 3 NGÀY (đọc từ field ĐÃ LƯU → giữ sau reload).
+    get zaloDays() {
+        const d = this.props.record.data;
+        return {
+            d1: !!d.vd_zalo_day1_date,
+            d2: !!d.vd_zalo_day2_date,
+            d3: !!d.vd_zalo_day3_date,
+        };
+    }
+    get zaloProgress() {
+        const z = this.zaloDays;
+        return (z.d1 ? 1 : 0) + (z.d2 ? 1 : 0) + (z.d3 ? 1 : 0);
+    }
+
+    async confirmZaloDay(day) {
+        try {
+            await this.orm.call(
+                "crm.lead", "action_vd_zalo_confirm_day",
+                [[this.props.record.resId], day],
+            );
+            try { await this.props.record.load(); } catch (_e) {}
+            this.notification.add("Đã xác nhận Zalo NGÀY " + day, { type: "success" });
+        } catch (e) {
+            this.notification.add(
+                e?.data?.message || e?.message || "Không xác nhận được",
+                { type: "danger" },
+            );
+        }
     }
 
     // Trạng thái KH → quyết định nội dung bảng hover Zalo (user spec 2026-06-07):

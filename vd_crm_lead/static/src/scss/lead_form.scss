@@ -5239,6 +5239,55 @@ div.o_vd_layout_right {
     }
 }
 
+/* Quy trình chăm Zalo 3 NGÀY trong bảng hover (user spec 2026-06-07) */
+.o_vd_zalo_head_active { background: linear-gradient(135deg, #f59f00 0%, #e8590c 100%) !important; }
+.o_vd_zalo_panel_note { font-size: 0.8rem; color: #868e96; margin-top: 0.6rem; }
+.o_vd_zalo_steps { display: flex; flex-direction: column; gap: 0.5rem; }
+.o_vd_zstep {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 9px;
+    background: #f1f3f5;
+    border: 1px solid #e9ecef;
+    .o_vd_zstep_lbl { flex: 1; font-size: 0.86rem; color: #333; b { color: #0068ff; } }
+    .o_vd_zstep_btn {
+        flex-shrink: 0;
+        border: none;
+        border-radius: 7px;
+        background: linear-gradient(135deg, #0068ff 0%, #0050c8 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.82rem;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        &:hover { filter: brightness(1.08); }
+    }
+    .o_vd_zstep_ok { flex-shrink: 0; color: #2b8a3e; font-weight: 800; font-size: 0.84rem; i { margin-right: 2px; } }
+    &.o_vd_zstep_done { background: #ebfbee; border-color: #b2f2bb; .o_vd_zstep_lbl b { color: #2b8a3e; } }
+}
+.o_vd_zalo_fab_active { box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.65), 0 8px 20px -6px rgba(0, 104, 255, 0.5) !important; }
+.o_vd_zalo_fab_done { box-shadow: 0 0 0 3px rgba(75, 210, 143, 0.75), 0 8px 20px -6px rgba(0, 104, 255, 0.5) !important; }
+
+/* Lịch sử chăm Zalo — rows từ vd_zalo_care_html (rendered HTML) */
+.o_vd_zcare { display: flex; flex-direction: column; gap: 0.4rem; }
+.o_vd_zcare_row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0.55rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    .o_vd_zcare_ico { flex-shrink: 0; }
+    .o_vd_zcare_lbl { flex: 1; }
+    .o_vd_zcare_meta { margin-left: auto; color: #868e96; font-size: 0.78rem; white-space: nowrap; }
+    &.o_vd_zcare_done { background: #ebfbee; .o_vd_zcare_lbl b { color: #2b8a3e; } }
+    &.o_vd_zcare_todo { background: #f8f9fa; color: #909296; }
+}
+.o_vd_zcare_dl { margin-top: 0.5rem; font-weight: 700; color: #1971c2; font-size: 0.86rem; }
+.o_vd_zcare_dl_over { margin-top: 0.5rem; font-weight: 800; color: #c92a2a; font-size: 0.86rem; }
+
 /* LỊCH SỬ ZALO — nút cạnh "Lịch sử cuộc gọi" + log items (user spec 2026-06-07) */
 .o_vd_zalohist_ico {
     width: 14px; height: 14px; border-radius: 3px;
