@@ -6400,66 +6400,19 @@
         font-weight: 600;
         margin: 0 0.15rem;
     }
-    /* YÊU CẦU KẾT BẠN GỌI BẰNG ZALO (user spec 2026-06-07) */
-    .o_vd_zalo_req_badge {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        background: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%);
-        color: #fff;
-        border-radius: 999px;
-        padding: 0.35rem 0.85rem;
-        font-size: 0.95rem;
-        font-weight: 800;
+    /* NÚT "KHÁCH NÊN TƯ VẤN QUA ZALO" trong banner vàng (user spec 2026-06-07) —
+       dùng chung .o_vd_cw_btn, chỉ đổi tông xanh Zalo để phân biệt. */
+    .o_vd_cw_btn_zalo {
+        background: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%) !important;
+        border-color: #1864ab !important;
+        .o_vd_cw_btn_ico, .o_vd_cw_btn_lbl, .o_vd_cw_btn_lbl b { color: #fff !important; }
+    }
+    .o_vd_zalo_req_nv {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #6741d9;
+        font-weight: 600;
         white-space: nowrap;
-        cursor: default;
-        .o_vd_zalo_req_count {
-            background: rgba(255, 255, 255, 0.22);
-            padding: 0.1rem 0.5rem;
-            border-radius: 999px;
-            b { color: #fff; font-size: 1.05rem; }
-        }
-    }
-    .o_vd_zalo_req_panel {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        width: 470px;
-        max-width: 80vw;
-        background: #fff;
-        color: #1f2a44;
-        border: 1px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.22);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-6px);
-        transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
-        z-index: 9999;
-        overflow: hidden;
-        white-space: normal;
-    }
-    .o_vd_zalo_req_badge:hover .o_vd_zalo_req_panel {
-        opacity: 1; visibility: visible; transform: translateY(0);
-    }
-    .o_vd_zalo_req_panel_head {
-        background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
-        padding: 0.6rem 0.85rem;
-        font-weight: 800;
-        color: #1971c2;
-        font-size: 0.95rem;
-    }
-    .o_vd_zalo_req_panel_hint { font-weight: 500; font-size: 0.8rem; color: #495057; margin-top: 2px; }
-    .o_vd_zalo_req_table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.86rem;
-        th { text-align: left; padding: 0.4rem 0.7rem; background: #f8f9fa; color: #868e96; font-weight: 700; }
-        td { padding: 0.4rem 0.7rem; border-top: 1px solid #f1f3f5; }
-        tr { cursor: pointer; }
-        tr:hover td { background: #f1f3f9; }
-        .o_vd_zalo_req_kh { font-weight: 700; color: #1971c2; }
     }
 
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */

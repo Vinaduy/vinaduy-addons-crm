@@ -1859,19 +1859,22 @@
                                             <!-- CALL-WATCH (user 2026-06-05): GIỮ bảng thông báo VÀNG,
                                                  bên trong KHÔNG đổ danh sách dài — chỉ 1 BUTTON
                                                  "N KHÁCH CHƯA GỌI" + popover hover (bỏ SĐT). Khoá -> đỏ. -->
-                                            <div t-if="state.call_watch and state.call_watch.enabled and (state.call_watch.locked or state.call_watch.uncalled_count)"
+                                            <t t-set="zaloCand" t-value="zaloFriendCandidates"/>
+                                            <div t-if="state.call_watch and state.call_watch.enabled and (state.call_watch.locked or state.call_watch.uncalled_count or zaloCand.length)"
                                                  t-att-class="'o_vd_pf_banner o_vd_cw_banner' + (state.call_watch.locked ? ' o_vd_pf_banner_locked' : '')">
                                                 <i t-att-class="'fa o_vd_pf_banner_ico ' + (state.call_watch.locked ? 'fa-lock' : 'fa-phone')"/>
                                                 <div class="o_vd_pf_banner_text">
                                                     <div class="o_vd_pf_banner_main">
                                                         <t t-if="state.call_watch.locked">ĐÃ KHOÁ — CHƯA GỌI ĐỦ KHÁCH MỚI</t>
-                                                        <t t-else="">KHÁCH MỚI CHƯA GỌI ĐỦ</t>
+                                                        <t t-elif="state.call_watch.uncalled_count">KHÁCH MỚI CHƯA GỌI ĐỦ</t>
+                                                        <t t-else="">NHẮC CHĂM SÓC KHÁCH MỚI</t>
                                                     </div>
                                                     <div class="o_vd_pf_banner_sub">
                                                         <t t-if="state.call_watch.locked"><t t-esc="state.call_watch.reason"/></t>
-                                                        <t t-else="">Mỗi KH cần ít nhất
+                                                        <t t-elif="state.call_watch.uncalled_count">Mỗi KH cần được gọi ở ít nhất
                                                             <b><t t-esc="state.call_watch.required_days"/></b> ngày làm việc khác nhau
                                                             trong <t t-esc="state.call_watch.window_workdays"/> ngày.</t>
+                                                        <t t-else="">Một số khách đã gọi điện nhưng chưa kết nối được — nên kết bạn Zalo để tiếp tục tư vấn.</t>
                                                     </div>
                                                 </div>
                                                 <!-- BUTTON + popover hover (mirror "CHƯA GỌI ĐƯỢC") -->
@@ -1904,6 +1907,34 @@
                                                                         title="Gọi KH ngay">
                                                                     <i class="fa fa-phone me-1"/> Gọi
                                                                 </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- NÚT: KH nên kết bạn Zalo để tư vấn (user spec 2026-06-07) -->
+                                                <div t-if="zaloCand.length"
+                                                     class="o_vd_trash_box o_vd_split_trash o_vd_cw_btn o_vd_cw_btn_zalo">
+                                                    <i class="fa fa-comments o_vd_cw_btn_ico"/>
+                                                    <span class="o_vd_cw_btn_lbl">
+                                                        <b><t t-esc="zaloCand.length"/></b> KHÁCH NÊN TƯ VẤN QUA ZALO
+                                                    </span>
+                                                    <div class="o_vd_trash_popover o_vd_popover_anchor_right">
+                                                        <div class="o_vd_trash_popover_head">
+                                                            💬 Khách mới nên KẾT BẠN ZALO để tư vấn (<t t-esc="zaloCand.length"/>)
+                                                            <div class="o_vd_trash_popover_hint">
+                                                                Đã tạo ≥2 ngày và đã gọi điện — chủ động kết bạn Zalo để tiếp cận, gọi &amp; tư vấn khách.
+                                                            </div>
+                                                        </div>
+                                                        <div class="o_vd_trash_popover_body">
+                                                            <div t-foreach="zaloCand" t-as="zc" t-key="zc.id"
+                                                                 class="o_vd_trash_popover_item o_vd_cw_row_item"
+                                                                 t-on-click.stop="() => this.openLead(zc.id)">
+                                                                <span class="o_vd_trash_popover_name"><t t-esc="zc.name"/></span>
+                                                                <span class="o_vd_cw_chip">
+                                                                    <b><t t-esc="zc.create_days"/></b> ngày
+                                                                    <span class="o_vd_cw_chip_dl">📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></span>
+                                                                </span>
+                                                                <span class="o_vd_zalo_req_nv"><t t-esc="zc.user_name"/></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1949,8 +1980,7 @@
                                             <t t-set="newNotCalledCount" t-value="leadsNoProblems.filter(l => !l.call_stats || !l.call_stats.total).length"/>
                                             <t t-set="callbackCount" t-value="leadsNoProblems.filter(l => l.call_stats and l.call_stats.total &gt; 0).length"/>
                                             <t t-set="hasNeedCall" t-value="newNotCalledCount &gt; 0 or callbackCount &gt; 0"/>
-                                            <t t-set="zaloCand" t-value="zaloFriendCandidates"/>
-                                            <div t-if="hasBlock or hasNeedCall or zaloCand.length"
+                                            <div t-if="hasBlock or hasNeedCall"
                                                  class="o_vd_new_required_wrap o_vd_new_required_combo">
                                                 <span t-if="hasBlock" class="o_vd_new_required_badge">
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
@@ -1959,36 +1989,6 @@
                                                     📞 <b><t t-esc="newNotCalledCount"/></b> Khách mới
                                                     <span class="o_vd_need_call_sep">—</span>
                                                     <b><t t-esc="callbackCount"/></b> Khách cần gọi lại
-                                                </span>
-                                                <!-- YÊU CẦU KẾT BẠN GỌI BẰNG ZALO (user spec 2026-06-07) -->
-                                                <span t-if="zaloCand.length" class="o_vd_zalo_req_badge">
-                                                    💬 YÊU CẦU KẾT BẠN GỌI BẰNG ZALO
-                                                    <span class="o_vd_zalo_req_count">
-                                                        <b><t t-esc="zaloCand.length"/></b> KHÁCH CÓ THỂ TƯ VẤN ZALO
-                                                    </span>
-                                                    <!-- Bảng hover: danh sách KH cần kết bạn Zalo -->
-                                                    <div class="o_vd_zalo_req_panel">
-                                                        <div class="o_vd_zalo_req_panel_head">
-                                                            💬 Khách cần KẾT BẠN để gọi &amp; tư vấn qua Zalo (<t t-esc="zaloCand.length"/>)
-                                                            <div class="o_vd_zalo_req_panel_hint">
-                                                                Đã tạo ≥2 ngày + đã gọi điện thật nhưng chưa kết bạn Zalo.
-                                                            </div>
-                                                        </div>
-                                                        <table class="o_vd_zalo_req_table">
-                                                            <thead>
-                                                                <tr><th>Khách hàng</th><th>NV</th><th>Ngày</th><th>Cuộc gọi</th></tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr t-foreach="zaloCand" t-as="zc" t-key="zc.id"
-                                                                    t-on-click.stop="() => this.openLead(zc.id)">
-                                                                    <td class="o_vd_zalo_req_kh"><t t-esc="zc.name"/></td>
-                                                                    <td><t t-esc="zc.user_name"/></td>
-                                                                    <td><t t-esc="zc.create_days"/>n</td>
-                                                                    <td>📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
                                                 </span>
                                             </div>
                                         </div>
