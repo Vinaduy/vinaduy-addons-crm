@@ -34,7 +34,7 @@
                  Hover hiện bảng xác nhận "KH này tư vấn qua Zalo để lấy thông tin". -->
             <div t-if="hasPhone" class="o_vd_zalo_box">
                 <button type="button" class="o_vd_zalo_fab"
-                        t-att-class="{ o_vd_zalo_fab_done: zaloState.confirmed }"
+                        t-att-class="{ o_vd_zalo_fab_done: isZaloConfirmed }"
                         t-on-click="onZaloClick"
                         title="Tư vấn qua Zalo — đưa chuột vào để xác nhận.">
                     <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
@@ -50,10 +50,10 @@
                         <div class="o_vd_zalo_panel_warn">📵 Gọi không nghe máy!</div>
                         <div class="o_vd_zalo_panel_hint"><t t-esc="zaloPanel.hint"/></div>
                         <button type="button" class="o_vd_zalo_panel_btn"
-                                t-att-class="{ o_vd_zalo_panel_btn_done: zaloState.confirmed }"
+                                t-att-class="{ o_vd_zalo_panel_btn_done: isZaloConfirmed }"
                                 t-on-click="onZaloClick">
                             <i class="fa fa-check me-1"/>
-                            <t t-if="zaloState.confirmed">ĐÃ XÁC NHẬN QUA ZALO</t>
+                            <t t-if="isZaloConfirmed">ĐÃ XÁC NHẬN QUA ZALO</t>
                             <t t-else=""><t t-esc="zaloPanel.btn"/></t>
                         </button>
                     </div>

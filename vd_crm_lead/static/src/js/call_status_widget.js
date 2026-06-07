@@ -217,6 +217,12 @@ export class VdCallStatusWidget extends Component {
         return !!(d.phone || d.mobile);
     }
 
+    // Đã xác nhận tư vấn Zalo? Ưu tiên field ĐÃ LƯU (giữ sau reload), fallback
+    // state local (phản hồi tức thì khi vừa bấm) — fix bug "reload về như cũ".
+    get isZaloConfirmed() {
+        return !!this.props.record.data.vd_zalo_consulted_date || this.zaloState.confirmed;
+    }
+
     // Trạng thái KH → quyết định nội dung bảng hover Zalo (user spec 2026-06-07):
     //  - consult: chưa CHỐT báo giá        → tư vấn / kết bạn
     //  - problem: đã CHỐT + còn vấn đề mở   → khai thác vấn đề

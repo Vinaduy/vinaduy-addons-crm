@@ -723,6 +723,16 @@
                                             <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
                                         </div>
                                     </div>
+                                    <!-- LỊCH SỬ ZALO (giai đoạn intake) — hiện khi đã xác nhận tư vấn Zalo -->
+                                    <div class="o_vd_callhist_wrap o_vd_callhist_left o_vd_zalohist_wrap"
+                                         invisible="not vd_zalo_consulted_date">
+                                        <span class="btn btn-sm btn-outline-primary o_vd_cr_history_btn o_vd_callhist_trigger o_vd_zalohist_trigger">
+                                            <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
+                                        </span>
+                                        <div class="o_vd_callhist_panel">
+                                            <field name="vd_zalo_history_html" widget="html" nolabel="1" readonly="1"/>
+                                        </div>
+                                    </div>
                                     <!-- Hủy / ĐÃ HUỶ — toggle theo stage_is_lost -->
                                     <field name="stage_is_lost" invisible="1"/>
                                     <button name="action_mark_no_demand" type="object"
