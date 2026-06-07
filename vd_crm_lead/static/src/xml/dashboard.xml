@@ -1927,14 +1927,18 @@
                                                         </div>
                                                         <div class="o_vd_trash_popover_body">
                                                             <div t-foreach="zaloCand" t-as="zc" t-key="zc.id"
-                                                                 class="o_vd_trash_popover_item o_vd_cw_row_item"
-                                                                 t-on-click.stop="() => this.openLead(zc.id)">
+                                                                 class="o_vd_trash_popover_item o_vd_cw_row_item">
                                                                 <span class="o_vd_trash_popover_name"><t t-esc="zc.name"/></span>
+                                                                <span class="o_vd_zalo_req_nv"><t t-esc="zc.user_name"/></span>
                                                                 <span class="o_vd_cw_chip">
                                                                     <b><t t-esc="zc.create_days"/></b> ngày
                                                                     <span class="o_vd_cw_chip_dl">📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></span>
                                                                 </span>
-                                                                <span class="o_vd_zalo_req_nv"><t t-esc="zc.user_name"/></span>
+                                                                <button class="btn btn-sm o_vd_zalo_ketban_btn"
+                                                                        t-on-click.stop="() => this.openLead(zc.id)"
+                                                                        title="Mở khách để KẾT BẠN &amp; tư vấn qua Zalo">
+                                                                    💬 Kết bạn Zalo
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>

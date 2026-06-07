@@ -6400,20 +6400,6 @@
         font-weight: 600;
         margin: 0 0.15rem;
     }
-    /* NÚT "KHÁCH NÊN TƯ VẤN QUA ZALO" trong banner vàng (user spec 2026-06-07) —
-       dùng chung .o_vd_cw_btn, chỉ đổi tông xanh Zalo để phân biệt. */
-    .o_vd_cw_btn_zalo {
-        background: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%) !important;
-        border-color: #1864ab !important;
-        .o_vd_cw_btn_ico, .o_vd_cw_btn_lbl, .o_vd_cw_btn_lbl b { color: #fff !important; }
-    }
-    .o_vd_zalo_req_nv {
-        margin-left: auto;
-        font-size: 0.8rem;
-        color: #6741d9;
-        font-weight: 600;
-        white-space: nowrap;
-    }
 
     /* Cột số ngày — chữ to hơn ~50% font row bình thường (0.82rem → ~1.25rem) */
     .o_vd_problem_row_days {
@@ -7319,6 +7305,35 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         b { color: #c92a2a; font-size: 1.05rem; }
     }
     &:hover { box-shadow: 0 3px 14px rgba(245, 159, 0, 0.5); }
+}
+/* NÚT "KHÁCH NÊN TƯ VẤN QUA ZALO" — tông xanh Zalo (user spec 2026-06-07).
+   Specificity cao hơn .o_vd_trash_box.o_vd_cw_btn nên KHÔNG cần !important. */
+.o_vd_trash_box.o_vd_cw_btn.o_vd_cw_btn_zalo {
+    background: linear-gradient(135deg, #4dabf7, #1971c2);
+    border-color: #1864ab;
+    box-shadow: 0 2px 8px rgba(25, 113, 194, 0.35);
+    .o_vd_cw_btn_ico { color: #fff; }
+    .o_vd_cw_btn_lbl { color: #fff; b { color: #fff; } }
+    &:hover { box-shadow: 0 3px 14px rgba(25, 113, 194, 0.55); }
+}
+.o_vd_cw_banner .o_vd_zalo_req_nv {
+    font-size: 0.8rem;
+    color: #6741d9;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.o_vd_zalo_ketban_btn {
+    margin-left: auto;
+    flex: 0 0 auto;
+    background: linear-gradient(135deg, #4dabf7, #1971c2);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 7px;
+    white-space: nowrap;
+    &:hover { filter: brightness(1.08); color: #fff; }
 }
 /* Chip ngày trong popover */
 .o_vd_cw_chip {
