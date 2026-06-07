@@ -15,7 +15,7 @@
                     }"
                     t-att-disabled="statusType === 'no_phone' or state.busy"
                     t-on-click="onCallClick">
-                <i t-if="statusType === 'idle'" class="fa fa-phone"/>
+                <img t-if="statusType === 'idle'" src="/vd_crm_lead/static/src/img/phone.png" class="o_vd_call_icon_img" alt="Gọi"/>
                 <i t-elif="statusType === 'no_phone'" class="fa fa-phone o_vd_icon_slash"/>
                 <i t-elif="statusType === 'ringing'" class="fa fa-bell o_vd_ring_pulse"/>
                 <i t-elif="statusType === 'in_call'" class="fa fa-phone o_vd_icon_hangup"/>
