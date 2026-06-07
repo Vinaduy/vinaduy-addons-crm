@@ -2672,25 +2672,26 @@
                                     <i class="fa fa-clone"/>
                                 </button>
                             </span>
-                            <button class="o_vd_preview_phone o_vd_preview_copy_btn"
-                                    t-if="L.phone"
-                                    t-on-click.stop="() => this.copyPreviewPhone()"
-                                    title="Bấm để copy số điện thoại">
-                                <i class="fa fa-phone"/>
-                                <span><t t-esc="L.phone"/></span>
-                            </button>
-                            <!-- TƯ VẤN QUA ZALO — kênh tư vấn HỢP LỆ ngang hàng gọi điện.
-                                 Bấm: mở Zalo KH + ghi nhận đã tư vấn Zalo (miễn khoá
-                                 "chưa gọi" nếu KH đã có báo giá chi tiết). -->
-                            <button class="o_vd_preview_zalo"
-                                    t-if="L.phone"
-                                    t-att-class="{ o_vd_preview_zalo_done: L.zalo_consulted }"
-                                    t-on-click.stop="() => this.consultZalo(L)"
-                                    title="Tư vấn qua Zalo — mở Zalo của khách. Gọi không được vẫn tư vấn Zalo được, không vi phạm quy định gọi điện.">
-                                <img class="o_vd_zalo_icon" src="/vd_crm_lead/static/src/img/zalo.svg" alt="Zalo"/>
-                                <span>TƯ VẤN QUA ZALO</span>
-                                <i class="fa fa-check o_vd_zalo_check" t-if="L.zalo_consulted"/>
-                            </button>
+                            <!-- Cột dọc: nút GỌI ĐIỆN ở trên, TƯ VẤN QUA ZALO ngay DƯỚI. -->
+                            <div class="o_vd_preview_contact_col" t-if="L.phone">
+                                <button class="o_vd_preview_phone o_vd_preview_copy_btn"
+                                        t-on-click.stop="() => this.copyPreviewPhone()"
+                                        title="Bấm để copy số điện thoại">
+                                    <i class="fa fa-phone"/>
+                                    <span><t t-esc="L.phone"/></span>
+                                </button>
+                                <!-- TƯ VẤN QUA ZALO — kênh tư vấn HỢP LỆ, đặt dưới nút gọi.
+                                     Bấm: mở Zalo KH + ghi nhận đã tư vấn Zalo (miễn khoá
+                                     "chưa gọi" nếu KH đã có báo giá chi tiết). -->
+                                <button class="o_vd_preview_zalo"
+                                        t-att-class="{ o_vd_preview_zalo_done: L.zalo_consulted }"
+                                        t-on-click.stop="() => this.consultZalo(L)"
+                                        title="Tư vấn qua Zalo — mở Zalo của khách. Gọi không được vẫn tư vấn Zalo được, không vi phạm quy định gọi điện.">
+                                    <img class="o_vd_zalo_icon" src="/vd_crm_lead/static/src/img/zalo.svg" alt="Zalo"/>
+                                    <span>TƯ VẤN QUA ZALO</span>
+                                    <i class="fa fa-check o_vd_zalo_check" t-if="L.zalo_consulted"/>
+                                </button>
+                            </div>
                             <span class="o_vd_preview_user" t-if="L.user_name">
                                 <i class="fa fa-user-circle"/>
                                 <t t-esc="L.user_name"/>

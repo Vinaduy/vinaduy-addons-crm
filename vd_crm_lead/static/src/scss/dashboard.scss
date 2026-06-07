@@ -6723,6 +6723,16 @@
         background: rgba(201, 162, 106, 0.28);
     }
 }
+/* Cột dọc GỌI ĐIỆN (trên) + TƯ VẤN QUA ZALO (dưới) — user spec 2026-06-07 */
+.o_vd_preview_contact_col {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+/* Phóng TO icon điện thoại — CHỈ icon, không đổi nút (vòng) */
+.o_vd_preview_phone .fa-phone { font-size: 1.45rem; }
+
 /* TƯ VẤN QUA ZALO — button xanh Zalo trên header (user spec 2026-06-07) */
 .o_vd_preview_zalo {
     display: inline-flex;
