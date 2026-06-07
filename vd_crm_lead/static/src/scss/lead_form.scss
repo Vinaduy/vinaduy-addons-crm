@@ -5077,7 +5077,7 @@ div.o_vd_layout_right {
 /* Floating call button — bottom-right corner of viewport (FAB pattern) */
 .o_vd_call_fab {
     position: fixed;
-    bottom: 4rem;          /* user spec 2026-06-07: đưa lên cao hơn */
+    bottom: 6.5rem;        /* user spec 2026-06-07: lên cao hơn để không bị nút Lịch sử Zalo che */
     right: 2rem;
     z-index: 1040;
     pointer-events: auto;
@@ -5418,6 +5418,45 @@ div.o_vd_layout_right {
 .o_vd_zguide_ok { background: #ebfbee; border-color: #b2f2bb; }
 .o_vd_zguide_warn { background: #fff5f5; border-color: #ffc9c9; b { color: #c92a2a; } }
 .o_vd_zguide_goal { background: #e7f5ff; border-color: #74c0fc; b { color: #1565c0; } }
+
+/* Cụm hành động intake (KHÁCH THAM KHẢO / CHỐT BÁO GIÁ...) — đẩy CUỐI hàng + nổi bật */
+.o_vd_intake_actions {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.o_vd_act_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem;
+    font-weight: 800;
+    font-size: 0.92rem;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 5px 14px -5px rgba(0, 0, 0, 0.35);
+    transition: filter 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+    &:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 9px 22px -6px rgba(0, 0, 0, 0.45); }
+    &:active { transform: translateY(0); }
+}
+/* CHỐT BÁO GIÁ — CTA chính, xanh lá to nổi bật */
+.o_vd_act_lock {
+    background: linear-gradient(135deg, #2bc467 0%, #1f9d52 100%);
+    box-shadow: 0 7px 20px -5px rgba(43, 196, 103, 0.65);
+    font-size: 1.02rem;
+    padding: 0.58rem 1.5rem;
+    animation: vd-breathe 2.8s ease-in-out infinite;
+}
+.o_vd_act_ref { background: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%); }
+.o_vd_act_ref_active { background: linear-gradient(135deg, #ffd43b 0%, #f59f00 100%); color: #5c3d00; }
+.o_vd_act_cancelq { background: linear-gradient(135deg, #ff8787 0%, #e03131 100%); }
+.o_vd_act_redo { background: linear-gradient(135deg, #748ffc 0%, #4263eb 100%); }
+.o_vd_act_unlock { background: linear-gradient(135deg, #ffd43b 0%, #f59f00 100%); color: #5c3d00; }
 
 /* LỊCH SỬ ZALO — nút cạnh "Lịch sử cuộc gọi" + log items (user spec 2026-06-07) */
 .o_vd_zalohist_ico {
