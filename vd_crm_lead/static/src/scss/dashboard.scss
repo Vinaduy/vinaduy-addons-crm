@@ -6723,6 +6723,37 @@
         background: rgba(201, 162, 106, 0.28);
     }
 }
+/* TƯ VẤN QUA ZALO — button xanh Zalo trên header (user spec 2026-06-07) */
+.o_vd_preview_zalo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem 0.3rem 0.35rem;
+    border-radius: 999px;
+    background: #0068ff;
+    border: 1px solid #0068ff;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 104, 255, 0.35);
+
+    .o_vd_zalo_icon { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; }
+    .o_vd_zalo_check { color: #b9f6ca; font-size: 0.8rem; }
+    &:hover {
+        background: #0056d6;
+        box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.25);
+        transform: translateY(-1px);
+    }
+    &:active { transform: translateY(0); }
+    /* Đã tư vấn Zalo → viền xanh lá nhấn nhẹ */
+    &.o_vd_preview_zalo_done {
+        background: #0068ff;
+        box-shadow: 0 0 0 2px rgba(75, 210, 143, 0.55);
+    }
+}
 .o_vd_preview_name {
     font-size: 1.05rem;
     font-weight: 700;

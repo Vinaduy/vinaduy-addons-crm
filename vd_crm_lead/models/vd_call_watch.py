@@ -156,6 +156,13 @@ class CrmLeadCallWatch(models.Model):
         leads = self.search(self._dashboard_new_bucket_domain([('user_id', '=', user.id)]))
         if not leads:
             return leads
+        # User spec 2026-06-07: KH đã "TƯ VẤN QUA ZALO" VÀ đã có BÁO GIÁ CHI TIẾT
+        # (vd_intake_complete) → Zalo là kênh tư vấn hợp lệ → MIỄN yêu cầu gọi.
+        # Chưa có báo giá chi tiết thì vẫn phải gọi đủ như bình thường.
+        leads = leads.filtered(
+            lambda l: not (l.vd_zalo_consulted_date and l.vd_intake_complete))
+        if not leads:
+            return leads
         notcalled = set(self._dashboard_unreachable_ids(leads))   # read-only
         if notcalled:
             leads = leads.filtered(lambda l: l.id not in notcalled)

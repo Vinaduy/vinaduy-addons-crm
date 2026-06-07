@@ -53,6 +53,7 @@ class CrmLead(models.Model):
             ('co_so_can_phep', 'CÓ SỔ - Phải làm cấp phép'),
             ('co_so_khong_phep', 'CÓ SỔ - Không cần cấp phép'),
             ('khong_so_khong_phep', 'KHÔNG SỔ - Không cần cấp phép'),
+            ('chua_xac_dinh', 'CHƯA XÁC ĐỊNH'),
         ],
         'vd_intake_land_type': [
             ('dat_cung', 'ĐẤT CỨNG - Liền thổ'),
@@ -355,6 +356,14 @@ class CrmLead(models.Model):
     # ----- CHĂM SÓC các ngày tiếp theo (cái cần kiểm soát chính) -----
     vd_zalo_last_care = fields.Datetime(string='Zalo: lần chăm sóc cuối')
     vd_zalo_care_count = fields.Integer(string='Zalo: tổng số lần chăm', default=0)
+    # User spec 2026-06-07: NV bấm "TƯ VẤN QUA ZALO" → đánh dấu đã chuyển kênh
+    # Zalo. KH đã tư vấn Zalo VÀ có báo giá chi tiết (vd_intake_complete) → MIỄN
+    # yêu cầu gọi điện (call-watch). Chưa có báo giá thì vẫn phải gọi đủ.
+    vd_zalo_consulted_date = fields.Datetime(
+        string='Zalo: đã chuyển tư vấn', copy=False, readonly=True,
+        help='Thời điểm NV bấm "TƯ VẤN QUA ZALO". Dùng để miễn khoá "chưa gọi" '
+             'khi KH đã có báo giá chi tiết.',
+    )
     vd_zalo_care_overdue = fields.Boolean(
         string='Zalo: quá hạn chăm sóc', compute='_compute_zalo_care_overdue',
     )
@@ -394,6 +403,20 @@ class CrmLead(models.Model):
         if not phone:
             raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
         return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
+
+    def action_vd_consult_zalo(self):
+        """Button "TƯ VẤN QUA ZALO" (header popup) — đánh dấu đã chuyển kênh Zalo
+        + ghi log. User spec 2026-06-07: tư vấn Zalo là kênh HỢP LỆ; KH đã tư vấn
+        Zalo VÀ có BÁO GIÁ CHI TIẾT (vd_intake_complete) thì được miễn yêu cầu gọi
+        điện (call-watch). Frontend tự mở zalo.me; method này chỉ ghi nhận."""
+        self.ensure_one()
+        if not self.vd_zalo_consulted_date:
+            self.vd_zalo_consulted_date = fields.Datetime.now()
+            self.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('💬 NV chuyển sang TƯ VẤN QUA ZALO cho khách này.'),
+            )
+        return True
 
     # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.
     # Auto-gen từ mẫu (.docx) trộn dữ liệu KH + bảng giá + đợt ứng: xử lý sau. =====
@@ -728,7 +751,9 @@ class CrmLead(models.Model):
         'vd_intake_soil_dump',                                # 8. Chỗ để đất móng
         'vd_intake_car_access_select',                        # 9. Ô tô vào
         'vd_intake_budget_range',                             # 10. Tầm tài chính
-        'vd_intake_dimensions',                               # 11. Sổ đỏ / cấp phép
+        # User spec 2026-06-07: BỎ 'vd_intake_dimensions' (Sổ đỏ/cấp phép) khỏi
+        # điều kiện → báo giá chi tiết hiện chỉ cần 11 trường. Trường Sổ đỏ vẫn
+        # BẮT BUỘC khi bấm CHỐT BÁO GIÁ (validate trong action_save_intake_done).
     )
     def _compute_intake_complete(self):
         for rec in self:
@@ -744,7 +769,6 @@ class CrmLead(models.Model):
                 and rec.vd_intake_soil_dump
                 and rec.vd_intake_car_access_select
                 and rec.vd_intake_budget_range
-                and rec.vd_intake_dimensions
             )
 
     vd_intake_locked = fields.Boolean(
@@ -3988,9 +4012,10 @@ class CrmLead(models.Model):
     def action_save_intake_done(self):
         """🔒 CHỐT THÔNG TIN — khoá phiếu khai thác + chuyển stage sang Báo giá.
 
-        Validate ĐỦ 11 trường bắt buộc (same logic với vd_intake_complete).
-        Áp dụng cho TẤT CẢ user (kể cả admin/leader) — không cho chốt khi
-        thiếu thông tin. Nếu cần edge-case, admin có thể sửa trực tiếp DB.
+        Validate ĐỦ 12 trường bắt buộc — GỒM cả Sổ đỏ/cấp phép. Lưu ý (user spec
+        2026-06-07): báo giá chi tiết chỉ cần 11 trường để HIỆN (vd_intake_complete),
+        nhưng để CHỐT thì BẮT BUỘC đủ 12 (phải chọn Sổ đỏ/cấp phép, kể cả 'Chưa
+        xác định'). Áp dụng cho TẤT CẢ user (kể cả admin/leader).
         """
         self.ensure_one()
 
@@ -7117,6 +7142,8 @@ class CrmLead(models.Model):
             # chưa CHỐT (locked=False).
             'intake_complete': bool(l.vd_intake_complete),
             'intake_locked': bool(l.vd_intake_locked),
+            # Đã bấm "TƯ VẤN QUA ZALO" chưa (hiện ✓ trên header popup).
+            'zalo_consulted': bool(l.vd_zalo_consulted_date),
             # Tạm huỷ báo giá → pill mất xanh, coi như chưa làm báo giá.
             'quote_cancelled': bool(l.vd_quote_cancelled),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill
