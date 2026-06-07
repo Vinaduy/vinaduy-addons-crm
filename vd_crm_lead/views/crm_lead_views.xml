@@ -1834,15 +1834,15 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     <!-- 2 nút LỊCH SỬ đặt DƯỚI nút Zalo (user spec 2026-06-07) -->
                     <div class="o_vd_fab_hist">
                         <div class="o_vd_callhist_wrap">
-                            <span class="btn btn-sm btn-outline-info o_vd_callhist_trigger">
-                                <i class="fa fa-history me-1"/>Lịch sử cuộc gọi
+                            <span class="o_vd_callhist_trigger">
+                                <i class="fa fa-history"/>Lịch sử gọi
                             </span>
                             <div class="o_vd_callhist_panel">
                                 <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
                             </div>
                         </div>
                         <div class="o_vd_callhist_wrap o_vd_zalohist_wrap" invisible="not vd_zalo_consulted_date">
-                            <span class="btn btn-sm btn-outline-primary o_vd_callhist_trigger o_vd_zalohist_trigger">
+                            <span class="o_vd_callhist_trigger o_vd_zalohist_trigger">
                                 <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
                             </span>
                             <div class="o_vd_callhist_panel">

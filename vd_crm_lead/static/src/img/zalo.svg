@@ -1,5 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <rect width="48" height="48" rx="11" fill="#0068FF"/>
-  <text x="24" y="32" font-family="Arial, Helvetica, sans-serif" font-size="18"
-        font-weight="700" font-style="italic" fill="#ffffff" text-anchor="middle">Zalo</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" rx="23" fill="#0068FF"/>
+  <!-- dải xanh đậm phản chiếu phía dưới -->
+  <path d="M2 80 Q42 98 98 82 L98 100 L2 100 Z" fill="#0050C8" opacity="0.5"/>
+  <!-- bong bóng chat trắng, đuôi góc dưới-trái, mở hình C bên trái -->
+  <path d="M52 15 C27 15 9 31 9 51 C9 63 16 74 28 80 L23 92 L39 84
+           C43 85 47 86 52 86 C77 86 95 70 95 50 C95 30 77 15 52 15 Z" fill="#FFFFFF"/>
+  <text x="57" y="60" font-family="Arial, Helvetica, sans-serif" font-size="30"
+        font-weight="800" fill="#0068FF" text-anchor="middle">Zalo</text>
 </svg>

@@ -37,13 +37,8 @@
                         t-att-class="{ o_vd_zalo_fab_active: zaloProgress > 0 and zaloProgress &lt; 3,
                                        o_vd_zalo_fab_done: zaloProgress === 3 }"
                         title="Chăm khách qua Zalo — đưa chuột vào để xác nhận từng ngày.">
-                    <img src="/vd_crm_lead/static/src/img/zalo_white.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
+                    <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
                 </button>
-                <div class="o_vd_call_caption o_vd_zalo_caption">
-                    <t t-if="zaloProgress === 0">TƯ VẤN QUA ZALO</t>
-                    <t t-elif="zaloProgress &lt; 3">ĐANG TƯ VẤN ZALO (<t t-esc="zaloProgress"/>/3)</t>
-                    <t t-else="">ĐÃ TƯ VẤN ZALO 3/3</t>
-                </div>
                 <!-- Bảng hover — quy trình chăm Zalo 3 NGÀY (progressive) -->
                 <div class="o_vd_zalo_panel">
                     <div class="o_vd_zalo_panel_head"
