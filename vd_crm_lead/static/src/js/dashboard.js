@@ -613,6 +613,23 @@ export class VdCrmDashboard extends Component {
         });
     }
 
+    // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
+    // ≥2 ngày, đã có ≥1 cuộc gọi THẬT, và CHƯA kết bạn Zalo → nên kết bạn để
+    // gọi + tư vấn qua Zalo.
+    _hasRealCall(lead) {
+        const s = lead.call_stats || {};
+        return ((s.answered || 0) + (s.no_answer || 0)
+                + (s.busy_like || 0) + (s.subscriber || 0)) > 0;
+    }
+    get zaloFriendCandidates() {
+        return (this.leadsNoProblems || []).filter(
+            l => (l.create_days || 0) >= 2
+                && this._hasRealCall(l)
+                && !l.zalo_consulted
+                && !l.intake_complete
+        );
+    }
+
     // Trả label trạng thái cuộc gọi cho header tooltip
     pillCallStatusLabel(lead) {
         const cls = this.pillCallClass(lead);

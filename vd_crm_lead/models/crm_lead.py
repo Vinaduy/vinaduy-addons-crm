@@ -7260,6 +7260,8 @@ class CrmLead(models.Model):
             'intake_locked': bool(l.vd_intake_locked),
             # Đã bấm "TƯ VẤN QUA ZALO" chưa (hiện ✓ trên header popup).
             'zalo_consulted': bool(l.vd_zalo_consulted_date),
+            # Số ngày từ lúc tạo KH (cho cảnh báo "có thể tư vấn Zalo" — ≥2 ngày).
+            'create_days': (fields.Datetime.now() - l.create_date).days if l.create_date else 0,
             # Tạm huỷ báo giá → pill mất xanh, coi như chưa làm báo giá.
             'quote_cancelled': bool(l.vd_quote_cancelled),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill

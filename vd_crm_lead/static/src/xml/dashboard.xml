@@ -1949,7 +1949,8 @@
                                             <t t-set="newNotCalledCount" t-value="leadsNoProblems.filter(l => !l.call_stats || !l.call_stats.total).length"/>
                                             <t t-set="callbackCount" t-value="leadsNoProblems.filter(l => l.call_stats and l.call_stats.total &gt; 0).length"/>
                                             <t t-set="hasNeedCall" t-value="newNotCalledCount &gt; 0 or callbackCount &gt; 0"/>
-                                            <div t-if="hasBlock or hasNeedCall"
+                                            <t t-set="zaloCand" t-value="zaloFriendCandidates"/>
+                                            <div t-if="hasBlock or hasNeedCall or zaloCand.length"
                                                  class="o_vd_new_required_wrap o_vd_new_required_combo">
                                                 <span t-if="hasBlock" class="o_vd_new_required_badge">
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
@@ -1958,6 +1959,36 @@
                                                     📞 <b><t t-esc="newNotCalledCount"/></b> Khách mới
                                                     <span class="o_vd_need_call_sep">—</span>
                                                     <b><t t-esc="callbackCount"/></b> Khách cần gọi lại
+                                                </span>
+                                                <!-- YÊU CẦU KẾT BẠN GỌI BẰNG ZALO (user spec 2026-06-07) -->
+                                                <span t-if="zaloCand.length" class="o_vd_zalo_req_badge">
+                                                    💬 YÊU CẦU KẾT BẠN GỌI BẰNG ZALO
+                                                    <span class="o_vd_zalo_req_count">
+                                                        <b><t t-esc="zaloCand.length"/></b> KHÁCH CÓ THỂ TƯ VẤN ZALO
+                                                    </span>
+                                                    <!-- Bảng hover: danh sách KH cần kết bạn Zalo -->
+                                                    <div class="o_vd_zalo_req_panel">
+                                                        <div class="o_vd_zalo_req_panel_head">
+                                                            💬 Khách cần KẾT BẠN để gọi &amp; tư vấn qua Zalo (<t t-esc="zaloCand.length"/>)
+                                                            <div class="o_vd_zalo_req_panel_hint">
+                                                                Đã tạo ≥2 ngày + đã gọi điện thật nhưng chưa kết bạn Zalo.
+                                                            </div>
+                                                        </div>
+                                                        <table class="o_vd_zalo_req_table">
+                                                            <thead>
+                                                                <tr><th>Khách hàng</th><th>NV</th><th>Ngày</th><th>Cuộc gọi</th></tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr t-foreach="zaloCand" t-as="zc" t-key="zc.id"
+                                                                    t-on-click.stop="() => this.openLead(zc.id)">
+                                                                    <td class="o_vd_zalo_req_kh"><t t-esc="zc.name"/></td>
+                                                                    <td><t t-esc="zc.user_name"/></td>
+                                                                    <td><t t-esc="zc.create_days"/>n</td>
+                                                                    <td>📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </span>
                                             </div>
                                         </div>
