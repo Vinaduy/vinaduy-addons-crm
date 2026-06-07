@@ -3059,12 +3059,8 @@
                 </span>
                 <span class="o_vd_won_pill_date"><t t-esc="pillTitle(lead)"/></span>
 
-                <!-- Icon "đã có báo giá" — KH complete + chưa CHỐT (user spec 2026-05-27) -->
-                <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked and !lead.quote_cancelled"
-                      class="o_vd_pill_quote_badge"
-                      title="Đã có báo giá chi tiết — chưa CHỐT THÔNG TIN">
-                    💰
-                </span>
+                <!-- Icon túi tiền 💰 đã BỎ (user spec 2026-06-07) — màu pill xanh lá đậm
+                     đã thể hiện "đã có báo giá" rồi. -->
 
                 <!-- Badge cuộc gọi: 📞 <total> 📅 <distinct_days>. Chỉ stage 'new'. -->
                 <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
