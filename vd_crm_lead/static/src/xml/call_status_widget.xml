@@ -46,7 +46,7 @@
                         <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_zalo_panel_logo" alt="Zalo"/>
                         <span class="o_vd_zalo_panel_title">
                             <t t-if="zaloProgress === 0"><t t-esc="zaloPanel.title"/></t>
-                            <t t-elif="zaloProgress &lt; 3">ĐANG LẤY TƯ VẤN QUA ZALO</t>
+                            <t t-elif="zaloProgress &lt; 3">ĐANG TƯ VẤN QUA ZALO ĐỂ LẤY THÔNG TIN</t>
                             <t t-else="">ĐÃ TƯ VẤN ĐỦ QUA ZALO</t>
                         </span>
                     </div>

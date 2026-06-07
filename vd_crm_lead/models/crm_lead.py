@@ -450,8 +450,18 @@ class CrmLead(models.Model):
                 txt = ('QUÁ HẠN %d ngày' % (-days_left)) if days_left < 0 else ('còn %d ngày' % days_left)
                 dl_html = ('<div class="%s">⏳ Hạn chăm Zalo: <b>%s</b> (%s)</div>'
                            % (cls, dl_local.strftime('%d/%m/%Y'), txt))
-            rec.vd_zalo_care_html = (
+            html = (
+                '<div class="o_vd_zcare_title">💬 ĐANG TƯ VẤN QUA ZALO ĐỂ LẤY THÔNG TIN</div>'
                 '<div class="o_vd_zcare">' + ''.join(rows) + dl_html + '</div>')
+            # Sau khi có BÁO GIÁ → thêm phần KHAI THÁC VẤN ĐỀ (user spec 2026-06-07).
+            if rec.vd_intake_complete:
+                open_n = rec.vd_lead_problem_open_count or 0
+                note = ('Tiếp tục khai thác &amp; xử lý <b>%d vấn đề</b> của khách qua Zalo.'
+                        % open_n) if open_n else 'Tiếp tục khai thác vấn đề của khách qua Zalo.'
+                html += (
+                    '<div class="o_vd_zcare_title o_vd_zcare_title2">🔍 ĐANG KHAI THÁC VẤN ĐỀ</div>'
+                    '<div class="o_vd_zcare2">' + note + '</div>')
+            rec.vd_zalo_care_html = html
     vd_zalo_care_overdue = fields.Boolean(
         string='Zalo: quá hạn chăm sóc', compute='_compute_zalo_care_overdue',
     )

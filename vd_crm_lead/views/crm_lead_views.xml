@@ -836,8 +836,8 @@
                         </div>
                         <div class="o_vd_zguide_rules">
                             <div class="o_vd_zguide_rule o_vd_zguide_ok">
-                                ✅ <b>MIỄN SAO LẤY ĐƯỢC ĐỦ THÔNG TIN</b>
-                                <span style="color:#868e96;">(Không quá 7 ngày — sau 7 ngày sẽ chuyển sang khách CHƯA GỌI ĐƯỢC.)</span>
+                                <div class="o_vd_zguide_big">✅ MIỄN SAO LẤY ĐƯỢC ĐỦ THÔNG TIN</div>
+                                <div class="o_vd_zguide_sub">⏳ Không quá 7 ngày — sau 7 ngày sẽ chuyển sang khách CHƯA GỌI ĐƯỢC.</div>
                             </div>
                             <div class="o_vd_zguide_rule">
                                 ➡️ Sau đó bạn được tự chọn: <b>GỌI TIẾP</b>, hoặc <b>KẾT BẠN ZALO</b> để tư vấn luôn.

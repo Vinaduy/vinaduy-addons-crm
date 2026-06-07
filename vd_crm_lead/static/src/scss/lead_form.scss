@@ -5145,7 +5145,7 @@ div.o_vd_layout_right {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 2rem;          /* user spec 2026-06-07: tách nút gọi khỏi nút Zalo (kẻo chạm nhau) */
 }
 
 .o_vd_call_btn {
@@ -5209,7 +5209,7 @@ div.o_vd_layout_right {
     position: absolute;
     right: calc(100% + 16px);     /* hiện sang TRÁI nút Zalo (FAB sát mép phải) */
     bottom: 0;
-    width: 360px;
+    width: 430px;
     background: #fff;
     border-radius: 14px;
     box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.42);
@@ -5258,7 +5258,7 @@ div.o_vd_layout_right {
         width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
     }
-    .o_vd_zalo_panel_title { font-weight: 800; font-size: 1.08rem; letter-spacing: 0.2px; }
+    .o_vd_zalo_panel_title { font-weight: 800; font-size: 0.92rem; letter-spacing: 0.1px; white-space: nowrap; }
 }
 .o_vd_zalo_panel_body { padding: 0.9rem 1rem; }
 .o_vd_zalo_panel_warn {
@@ -5364,6 +5364,29 @@ div.o_vd_layout_right {
 }
 
 /* Lịch sử chăm Zalo — rows từ vd_zalo_care_html (rendered HTML) */
+.o_vd_zcare_title {
+    font-weight: 900;
+    font-size: 0.98rem;
+    color: #0068ff;
+    padding: 0.35rem 0;
+    margin-bottom: 0.35rem;
+    border-bottom: 2px solid #d0ebff;
+}
+.o_vd_zcare_title2 {
+    color: #e8590c;
+    border-bottom-color: #ffd8a8;
+    margin-top: 0.8rem;
+}
+.o_vd_zcare2 {
+    font-size: 0.9rem;
+    color: #444;
+    background: #fff4e6;
+    border: 1px solid #ffd8a8;
+    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    line-height: 1.5;
+    b { color: #e8590c; }
+}
 .o_vd_zcare { display: flex; flex-direction: column; gap: 0.4rem; }
 .o_vd_zcare_row {
     display: flex;
@@ -5417,7 +5440,21 @@ div.o_vd_layout_right {
 }
 .o_vd_zguide_ok {
     background: #ebfbee; border-color: #b2f2bb;
-    b { font-size: 1.45rem; color: #2b8a3e; letter-spacing: 0.2px; }
+    text-align: center;
+    padding: 0.8rem 0.75rem;
+}
+.o_vd_zguide_big {
+    font-size: 1.95rem;       /* gấp đôi (user spec 2026-06-07) */
+    font-weight: 900;
+    color: #2b8a3e;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+}
+.o_vd_zguide_sub {
+    font-size: 0.92rem;
+    color: #868e96;
+    margin-top: 0.45rem;      /* xuống dòng riêng */
+    font-weight: 600;
 }
 .o_vd_zguide_warn { background: #fff5f5; border-color: #ffc9c9; b { color: #c92a2a; } }
 .o_vd_zguide_goal { background: #e7f5ff; border-color: #74c0fc; b { color: #1565c0; } }
