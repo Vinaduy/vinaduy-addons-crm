@@ -364,6 +364,11 @@ class CrmLead(models.Model):
         help='Thời điểm NV bấm "TƯ VẤN QUA ZALO". Dùng để miễn khoá "chưa gọi" '
              'khi KH đã có báo giá chi tiết.',
     )
+    vd_zalo_history_html = fields.Html(
+        string='Lịch sử tư vấn Zalo', sanitize=False, copy=False, readonly=True,
+        help='Nhật ký các lần NV xác nhận tư vấn qua Zalo (kết bạn / tìm vấn đề / '
+             'chốt lịch gặp).',
+    )
     vd_zalo_care_overdue = fields.Boolean(
         string='Zalo: quá hạn chăm sóc', compute='_compute_zalo_care_overdue',
     )
@@ -404,18 +409,30 @@ class CrmLead(models.Model):
             raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
         return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
 
-    def action_vd_consult_zalo(self):
-        """Button "TƯ VẤN QUA ZALO" (header popup) — đánh dấu đã chuyển kênh Zalo
-        + ghi log. User spec 2026-06-07: tư vấn Zalo là kênh HỢP LỆ; KH đã tư vấn
-        Zalo VÀ có BÁO GIÁ CHI TIẾT (vd_intake_complete) thì được miễn yêu cầu gọi
-        điện (call-watch). Frontend tự mở zalo.me; method này chỉ ghi nhận."""
+    def action_vd_consult_zalo(self, mode=None):
+        """Xác nhận tư vấn qua Zalo (user spec 2026-06-07). CHỈ ghi nhận trạng thái
+        + 1 dòng lịch sử (KHÔNG mở zalo.me). mode: consult/problem/meeting → nhãn
+        hành động. KH đã tư vấn Zalo + có báo giá chi tiết → miễn khoá "chưa gọi"."""
         self.ensure_one()
+        labels = {
+            'consult': 'Đã kết bạn — tư vấn qua Zalo',
+            'problem': 'Khai thác / tìm vấn đề qua Zalo',
+            'meeting': 'Chốt lịch gặp qua Zalo',
+        }
+        label = labels.get(mode, 'Tư vấn qua Zalo')
+        now = fields.Datetime.now()
         if not self.vd_zalo_consulted_date:
-            self.vd_zalo_consulted_date = fields.Datetime.now()
-            self.message_post(
-                subtype_xmlid='mail.mt_note',
-                body=_('💬 NV chuyển sang TƯ VẤN QUA ZALO cho khách này.'),
-            )
+            self.vd_zalo_consulted_date = now
+        ts = fields.Datetime.context_timestamp(self, now).strftime('%H:%M · %d/%m/%Y')
+        entry = (
+            '<div class="o_vd_zalo_log_item">'
+            '<span class="o_vd_zalo_log_dot">💬</span>'
+            '<span class="o_vd_zalo_log_act">%s</span>'
+            '<span class="o_vd_zalo_log_meta">%s · %s</span>'
+            '</div>'
+        ) % (label, ts, self.env.user.name)
+        self.vd_zalo_history_html = (self.vd_zalo_history_html or '') + entry
+        self.message_post(subtype_xmlid='mail.mt_note', body=_('💬 %s') % label)
         return True
 
     # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.

@@ -1691,6 +1691,17 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                 <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
                             </div>
                         </div>
+                        <!-- LỊCH SỬ ZALO — chỉ hiện khi đã xác nhận tư vấn Zalo -->
+                        <field name="vd_zalo_consulted_date" invisible="1"/>
+                        <div class="o_vd_callhist_wrap o_vd_callhist_right o_vd_zalohist_wrap"
+                             invisible="not vd_zalo_consulted_date">
+                            <span class="btn btn-sm btn-outline-primary o_vd_pq_history_btn o_vd_callhist_trigger o_vd_zalohist_trigger">
+                                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
+                            </span>
+                            <div class="o_vd_callhist_panel">
+                                <field name="vd_zalo_history_html" widget="html" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
                         <button name="action_toggle_contract_panel" type="object"
                                 class="btn btn-sm o_vd_pq_contract_btn"
                                 invisible="vd_contract_open or vd_contract_signed">

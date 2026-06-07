@@ -5099,8 +5099,8 @@ div.o_vd_layout_right {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 104px;
-    height: 104px;
+    width: 116px;
+    height: 116px;
     border-radius: 50%;
     border: none;
     color: #fff;
@@ -5112,7 +5112,7 @@ div.o_vd_layout_right {
         transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     i {
-        font-size: 80px !important;  /* user spec 2026-06-07: icon TO hẳn */
+        font-size: 100px !important;  /* user spec 2026-06-07: icon TO hẳn (bù zoom 0.7 form) */
         line-height: 1;
         position: relative;
         z-index: 1;
@@ -5237,6 +5237,24 @@ div.o_vd_layout_right {
         background: linear-gradient(135deg, #2b8a3e 0%, #237032 100%);
         box-shadow: 0 5px 14px -4px rgba(43, 138, 62, 0.5);
     }
+}
+
+/* LỊCH SỬ ZALO — nút cạnh "Lịch sử cuộc gọi" + log items (user spec 2026-06-07) */
+.o_vd_zalohist_ico {
+    width: 14px; height: 14px; border-radius: 3px;
+    margin-right: 4px; vertical-align: -2px;
+}
+.o_vd_zalo_log_item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.4rem 0.15rem;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.85rem;
+    &:last-child { border-bottom: none; }
+    .o_vd_zalo_log_dot { flex-shrink: 0; }
+    .o_vd_zalo_log_act { font-weight: 700; color: #0068ff; }
+    .o_vd_zalo_log_meta { margin-left: auto; color: #868e96; font-size: 0.76rem; white-space: nowrap; }
 }
 
 /* TƯ VẤN QUA ZALO — nút dưới nút gọi tròn (user spec 2026-06-07) */

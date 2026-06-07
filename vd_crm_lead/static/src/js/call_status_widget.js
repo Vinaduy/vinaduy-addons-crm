@@ -103,19 +103,18 @@ export class VdCallStatusWidget extends Component {
 
     // TƯ VẤN QUA ZALO (nút dưới nút gọi): mở Zalo KH + ghi nhận đã chuyển kênh.
     // KH có báo giá chi tiết + đã tư vấn Zalo → backend miễn khoá "chưa gọi".
+    // Bấm XÁC NHẬN: CHỈ ghi nhận trạng thái tư vấn Zalo (KHÔNG mở zalo.me — user
+    // spec 2026-06-07). Ghi 1 dòng lịch sử Zalo theo trạng thái hiện tại.
     async onZaloClick() {
-        const d = this.props.record.data;
-        const phone = (d.phone || d.mobile || "").replace(/\D/g, "");
-        if (!phone) {
-            this.notification.add("KH chưa có SĐT để mở Zalo.", { type: "warning" });
-            return;
-        }
-        // Mở Zalo NGAY trong handler click (tránh popup-blocker).
-        window.open(`https://zalo.me/${phone}`, "_blank");
         try {
-            await this.orm.call("crm.lead", "action_vd_consult_zalo", [[this.props.record.resId]]);
+            await this.orm.call(
+                "crm.lead", "action_vd_consult_zalo",
+                [[this.props.record.resId], this.zaloMode],
+            );
             this.zaloState.confirmed = true;
-            this.notification.add("Đã xác nhận: KH tư vấn qua Zalo để lấy thông tin.", { type: "success" });
+            this.notification.add("Đã xác nhận tư vấn qua Zalo.", { type: "success" });
+            // Reload để hiện nút "Lịch sử Zalo" + cập nhật log.
+            try { await this.props.record.load(); } catch (_e) {}
         } catch (e) {
             console.error("[VD] consultZalo failed", e);
         }
