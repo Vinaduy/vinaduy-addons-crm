@@ -25,12 +25,28 @@
     <!-- Menu Nhóm template báo giá đã xoá — quản lý nhóm qua nút trong list
          Template hoặc tạo nhanh từ Many2one dropdown khi thêm template. -->
 
-    <!-- ⚙️ Cấu hình → Cài đặt thông tin NV (ngày bắt đầu + năng lực) -->
+    <!-- ⚙️ Cấu hình → Cài đặt người dùng (ngày bắt đầu + năng lực + chỉ tiêu) -->
     <menuitem id="menu_vd_users_settings"
-              name="Cài đặt thông tin NV"
+              name="Cài đặt người dùng"
               parent="crm.crm_menu_config"
               action="action_vd_users_settings"
               sequence="60"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- ⚙️ Cấu hình → Kho số tổng đài (danh sách số Stringee) -->
+    <menuitem id="menu_vd_hotline_pool"
+              name="Kho số tổng đài"
+              parent="crm.crm_menu_config"
+              action="vd_stringee.action_vd_stringee_hotline"
+              sequence="62"
+              groups="sales_team.group_sale_manager"/>
+
+    <!-- ⚙️ Cấu hình → Chia số cho nhân viên (bảng gán số theo NV) -->
+    <menuitem id="menu_vd_assign_numbers"
+              name="Chia số cho nhân viên"
+              parent="crm.crm_menu_config"
+              action="vd_stringee.action_vd_stringee_board"
+              sequence="63"
               groups="sales_team.group_sale_manager"/>
 
     <!-- ⚙️ Cấu hình → Cài đặt khoá (3 bảng: Khách mới / Thi công gấp / Xử lý vấn đề) -->
@@ -38,6 +54,6 @@
               name="Cài đặt khoá"
               parent="crm.crm_menu_config"
               action="action_vd_crm_config_settings"
-              sequence="61"
+              sequence="64"
               groups="sales_team.group_sale_manager"/>
 </odoo>
