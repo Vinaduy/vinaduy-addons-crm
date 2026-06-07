@@ -7306,46 +7306,35 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
     &:hover { box-shadow: 0 3px 14px rgba(245, 159, 0, 0.5); }
 }
-/* NÚT "KHÁCH NÊN TƯ VẤN QUA ZALO" — tông xanh Zalo, chữ TRẮNG rõ (user spec
-   2026-06-07). Dùng !important + scope banner để chắc chắn đè nền vàng cw_btn. */
+/* Nút trong banner: GIỮ nền vàng (đã ở bảng vàng sẵn), chỉ đổi chữ + viền ĐỎ để
+   TÁCH BIỆT với "KHÁCH CHƯA GỌI" (cam). User spec 2026-06-07. */
 .o_vd_cw_banner .o_vd_cw_btn.o_vd_cw_btn_zalo {
-    background: linear-gradient(135deg, #4dabf7, #1971c2) !important;
-    border-color: #1864ab !important;
-    box-shadow: 0 2px 8px rgba(25, 113, 194, 0.35);
-    .o_vd_cw_btn_ico { color: #fff !important; }
-    .o_vd_cw_btn_lbl { color: #fff !important; b { color: #fff !important; } }
-    &:hover { box-shadow: 0 3px 14px rgba(25, 113, 194, 0.55); }
+    border-color: #c92a2a !important;
+    box-shadow: 0 2px 8px rgba(201, 42, 42, 0.22);
+    .o_vd_cw_btn_ico { color: #c92a2a !important; }
+    .o_vd_cw_btn_lbl { color: #c92a2a !important; b { color: #c92a2a !important; } }
+    &:hover { box-shadow: 0 3px 14px rgba(201, 42, 42, 0.42); }
 }
-/* Popover nút Zalo: rộng hơn + MỖI KH 1 DÒNG */
-.o_vd_cw_btn_zalo .o_vd_trash_popover { width: 540px; max-width: 92vw; }
-.o_vd_cw_btn_zalo .o_vd_cw_row_item {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.5rem;
-    .o_vd_trash_popover_name {
-        flex: 1 1 auto;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+/* Popover: TO + DÀI hơn; mỗi KH 1 DÒNG (grid 4 cột: tên | NV | ngày | nút) */
+.o_vd_cw_btn_zalo .o_vd_trash_popover { width: 600px; max-width: 94vw; }
+.o_vd_cw_btn_zalo .o_vd_trash_popover_body { max-height: 72vh; }
+.o_vd_cw_btn_zalo .o_vd_trash_popover_item {
+    grid-template-columns: 1fr auto auto auto !important;
+    .o_vd_trash_popover_name { min-width: 0; }
 }
 .o_vd_cw_banner .o_vd_zalo_req_nv {
-    flex: 0 0 auto;
     font-size: 0.8rem;
     color: #6741d9;
     font-weight: 600;
     white-space: nowrap;
 }
 .o_vd_zalo_ketban_btn {
-    flex: 0 0 auto;
     background: linear-gradient(135deg, #2bc467, #1f9d52);  /* xanh lá = hành động xác nhận */
     border: none;
     color: #fff;
     font-weight: 700;
     font-size: 0.82rem;
-    padding: 0.25rem 0.7rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 7px;
     white-space: nowrap;
     &:hover { filter: brightness(1.08); color: #fff; }
