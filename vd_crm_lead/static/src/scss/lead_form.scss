@@ -5443,23 +5443,38 @@ div.o_vd_layout_right {
     margin-top: 0.2rem;
 }
 
-/* IDLE — xanh + pulse + float (giữ feel cũ) */
+/* IDLE — chỉ logo, không nền + vòng lan toả (radar) màu xanh lá */
 .o_vd_call_btn_idle {
     background: transparent !important;   /* user spec 2026-06-07: bỏ nền, chỉ để logo */
     box-shadow: none !important;
     animation: vd-breathe 2.6s ease-in-out infinite;   /* to-nhỏ nhẹ nhàng */
-    &::before {
+    &::before, &::after {
         content: "";
         position: absolute;
-        inset: -3px;
+        inset: 4px;
         border-radius: 50%;
-        background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.5), transparent 30%);
-        animation: vd-spin 3s linear infinite;
+        border: 3px solid rgba(45, 196, 103, 0.55);
+        animation: vd-radar 2.4s ease-out infinite;
         pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.3s;
     }
-    &:hover::before { opacity: 1; }
+    &::after { animation-delay: 1.2s; }
+}
+/* vòng lan toả (radar) màu xanh Zalo quanh nút Zalo */
+.o_vd_zalo_fab {
+    &::before, &::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border-radius: 24px;
+        border: 3px solid rgba(0, 104, 255, 0.5);
+        animation: vd-radar 2.4s ease-out infinite;
+        pointer-events: none;
+    }
+    &::after { animation-delay: 1.2s; }
+}
+@keyframes vd-radar {
+    0%   { transform: scale(1);    opacity: 0.75; }
+    100% { transform: scale(1.5);  opacity: 0; }
 }
 
 /* NO-PHONE — xám disabled */
