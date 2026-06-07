@@ -5415,7 +5415,10 @@ div.o_vd_layout_right {
     padding: 0.6rem 0.75rem; border-radius: 9px;
     background: #fff; border: 1px solid #ffe8a3;
 }
-.o_vd_zguide_ok { background: #ebfbee; border-color: #b2f2bb; }
+.o_vd_zguide_ok {
+    background: #ebfbee; border-color: #b2f2bb;
+    b { font-size: 1.45rem; color: #2b8a3e; letter-spacing: 0.2px; }
+}
 .o_vd_zguide_warn { background: #fff5f5; border-color: #ffc9c9; b { color: #c92a2a; } }
 .o_vd_zguide_goal { background: #e7f5ff; border-color: #74c0fc; b { color: #1565c0; } }
 
