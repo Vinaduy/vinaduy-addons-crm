@@ -823,7 +823,7 @@
                      THẬT, CHƯA làm báo giá: hiện ở vị trí bảng báo giá chi tiết. -->
                 <div class="o_vd_zguide_panel"
                      invisible="stage_code != 'new' or not vd_has_real_call or vd_intake_complete or vd_quote_cancelled">
-                    <div class="o_vd_zguide_head">🔔 HƯỚNG DẪN CHĂM KHÁCH MỚI</div>
+                    <div class="o_vd_zguide_head">📞 TƯ VẤN QUA ĐIỆN THOẠI // ZALO ĐỀU ĐƯỢC 💬</div>
                     <div class="o_vd_zguide_body">
                         <div class="o_vd_zguide_intro">
                             Ở giai đoạn <b>KHÁCH MỚI</b> (chưa làm báo giá), bạn được
@@ -836,8 +836,8 @@
                         </div>
                         <div class="o_vd_zguide_rules">
                             <div class="o_vd_zguide_rule o_vd_zguide_ok">
-                                ✅ <b>Bắt buộc gọi tối thiểu 1 cuộc THẬT</b> — bạn đã làm rồi (nên bảng này hiện).
-                                <span style="color:#868e96;">(Cuộc thật: kể cả bận / thuê bao / sai số / đổ chuông không nghe — chỉ trừ bấm gọi rồi tắt luôn.)</span>
+                                ✅ <b>MIỄN SAO LẤY ĐƯỢC ĐỦ THÔNG TIN</b>
+                                <span style="color:#868e96;">(Không quá 7 ngày — sau 7 ngày sẽ chuyển sang khách CHƯA GỌI ĐƯỢC.)</span>
                             </div>
                             <div class="o_vd_zguide_rule">
                                 ➡️ Sau đó bạn được tự chọn: <b>GỌI TIẾP</b>, hoặc <b>KẾT BẠN ZALO</b> để tư vấn luôn.
