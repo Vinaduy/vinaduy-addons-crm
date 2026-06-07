@@ -1596,6 +1596,28 @@ export class VdCrmDashboard extends Component {
         }
     }
 
+    // Xác nhận KẾT BẠN Zalo (Ngày 1) thẳng từ dashboard — giống nút Zalo trong
+    // form (user spec 2026-06-07). Sau Ngày 1, KH vào quy trình chăm Zalo (Ngày
+    // 2/3 xử lý tiếp trong form KH).
+    async confirmZaloFriend(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call(
+                "crm.lead", "action_vd_zalo_confirm_day", [[leadId], 1],
+            );
+            this.notification.add(
+                "Đã xác nhận KẾT BẠN Zalo (Ngày 1). Ngày 2 & 3 chăm tiếp trong KH.",
+                { type: "success" },
+            );
+            await this.loadDashboard();
+        } catch (e) {
+            console.error("[dashboard] confirmZaloFriend failed:", e);
+            const msg = (e && e.data && e.data.message) || e.message
+                || "Không xác nhận được kết bạn Zalo.";
+            this.notification.add(msg, { type: "danger" });
+        }
+    }
+
     closePreview() {
         // Ở view KHÁCH MỚI (có pill xanh "đã báo giá"): NV có thể vừa bấm CHỐT /
         // HUỶ BÁO GIÁ trong preview → tải lại để pill cập nhật màu ngay (mất/ra

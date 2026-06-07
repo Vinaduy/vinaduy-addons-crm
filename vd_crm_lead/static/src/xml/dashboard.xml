@@ -1935,9 +1935,9 @@
                                                                     <span class="o_vd_cw_chip_dl">📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></span>
                                                                 </span>
                                                                 <button class="btn btn-sm o_vd_zalo_ketban_btn"
-                                                                        t-on-click.stop="() => this.openLead(zc.id)"
-                                                                        title="Mở khách để KẾT BẠN &amp; tư vấn qua Zalo">
-                                                                    💬 Kết bạn Zalo
+                                                                        t-on-click="(ev) => this.confirmZaloFriend(ev, zc.id)"
+                                                                        title="Xác nhận đã KẾT BẠN Zalo (Ngày 1) — KH vào quy trình chăm Zalo">
+                                                                    💬 Xác nhận kết bạn Zalo
                                                                 </button>
                                                             </div>
                                                         </div>
