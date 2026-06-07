@@ -5330,6 +5330,38 @@ div.o_vd_layout_right {
     border-radius: 8px;
     padding: 0.45rem 0.6rem;
 }
+/* Button XÁC NHẬN gọn 2 dòng + dòng "đã xong" (user spec 2026-06-07) */
+.o_vd_zbig_btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0068ff 0%, #0050c8 100%);
+    color: #fff;
+    padding: 0.6rem;
+    cursor: pointer;
+    box-shadow: 0 5px 14px -4px rgba(0, 104, 255, 0.55);
+    transition: filter 0.15s ease, transform 0.12s ease;
+    .o_vd_zbig_main { font-weight: 900; font-size: 0.98rem; letter-spacing: 0.2px; }
+    .o_vd_zbig_sub { font-weight: 600; font-size: 0.8rem; opacity: 0.92; margin-top: 1px; }
+    &:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    &:active { transform: translateY(0); }
+}
+.o_vd_zstep_done_line {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #ebfbee;
+    border: 1px solid #b2f2bb;
+    border-radius: 9px;
+    padding: 0.45rem 0.6rem;
+    color: #2b8a3e;
+    font-weight: 800;
+    font-size: 0.86rem;
+    i { color: #2b8a3e; }
+}
 
 /* Lịch sử chăm Zalo — rows từ vd_zalo_care_html (rendered HTML) */
 .o_vd_zcare { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -5397,11 +5429,11 @@ div.o_vd_layout_right {
     animation: none !important;
     transform: scale(1.2) !important;
 }
-/* icon GỌI ĐIỆN dùng ảnh phone.png thay glyph — TO hơn */
+/* icon GỌI ĐIỆN = ảnh phone-1.png FILL nút (bằng size logo Zalo), KHÔNG nền */
 .o_vd_call_icon_img {
-    width: 84px; height: 84px; object-fit: contain;
+    width: 100%; height: 100%; object-fit: contain;
     position: relative; z-index: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28));
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
 }
 .o_vd_zalo_caption {
     color: #0068ff !important;
@@ -5413,8 +5445,8 @@ div.o_vd_layout_right {
 
 /* IDLE — xanh + pulse + float (giữ feel cũ) */
 .o_vd_call_btn_idle {
-    background: linear-gradient(135deg, #2bc467 0%, #20a04a 100%);
-    box-shadow: 0 14px 36px -8px rgba(0, 0, 0, 0.35);
+    background: transparent !important;   /* user spec 2026-06-07: bỏ nền, chỉ để logo */
+    box-shadow: none !important;
     animation: vd-breathe 2.6s ease-in-out infinite;   /* to-nhỏ nhẹ nhàng */
     &::before {
         content: "";

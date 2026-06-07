@@ -53,35 +53,39 @@
                     <div class="o_vd_zalo_panel_body">
                         <div class="o_vd_zalo_panel_warn">📵 Gọi không nghe máy! Chăm khách qua Zalo 3 ngày:</div>
                         <div class="o_vd_zalo_steps">
-                            <!-- NGÀY 1 -->
-                            <div class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d1 }">
-                                <div class="o_vd_zstep_lbl"><b>NGÀY 1:</b> Kết bạn + gửi tin nhắn chào khách</div>
-                                <button t-if="!zaloDays.d1" type="button" class="o_vd_zstep_btn"
-                                        t-on-click="() => this.confirmZaloDay(1)">Xác nhận</button>
-                                <span t-else="" class="o_vd_zstep_ok"><i class="fa fa-check"/> Đã xác nhận</span>
-                            </div>
+                            <!-- NGÀY 1 — phần mềm tự hiểu là ngày 1, chỉ cần 1 button -->
+                            <div t-if="zaloDays.d1" class="o_vd_zstep_done_line"><i class="fa fa-check"/> Đã KẾT BẠN — tư vấn Zalo</div>
+                            <button t-else="" type="button" class="o_vd_zbig_btn"
+                                    t-on-click="() => this.confirmZaloDay(1)">
+                                <span class="o_vd_zbig_main">✓ XÁC NHẬN KẾT BẠN</span>
+                                <span class="o_vd_zbig_sub">Để tư vấn Zalo</span>
+                            </button>
                             <!-- Chờ sang ngày mai mới hiện NGÀY 2 -->
                             <div t-if="zaloDays.d1 and !zaloDays.d2avail" class="o_vd_zstep_wait">
-                                ⏳ Quay lại <b>NGÀY MAI</b> để xác nhận NGÀY 2.
+                                ⏳ Quay lại <b>NGÀY MAI</b> để gọi điện + nhắn Zalo.
                             </div>
                             <!-- NGÀY 2 — chỉ hiện khi đã SANG NGÀY mới sau Ngày 1 -->
-                            <div t-if="zaloDays.d2avail" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d2 }">
-                                <div class="o_vd_zstep_lbl"><b>NGÀY 2:</b> Gọi điện và nhắn tin qua Zalo</div>
-                                <button t-if="!zaloDays.d2" type="button" class="o_vd_zstep_btn"
-                                        t-on-click="() => this.confirmZaloDay(2)">Xác nhận</button>
-                                <span t-else="" class="o_vd_zstep_ok"><i class="fa fa-check"/> Đã xác nhận</span>
-                            </div>
+                            <t t-if="zaloDays.d2avail">
+                                <div t-if="zaloDays.d2" class="o_vd_zstep_done_line"><i class="fa fa-check"/> Đã GỌI + NHẮN Zalo (ngày 2)</div>
+                                <button t-else="" type="button" class="o_vd_zbig_btn"
+                                        t-on-click="() => this.confirmZaloDay(2)">
+                                    <span class="o_vd_zbig_main">✓ XÁC NHẬN GỌI + NHẮN ZALO</span>
+                                    <span class="o_vd_zbig_sub">Chăm khách ngày 2</span>
+                                </button>
+                            </t>
                             <!-- Chờ sang ngày mai mới hiện NGÀY 3 -->
                             <div t-if="zaloDays.d2 and !zaloDays.d3avail" class="o_vd_zstep_wait">
-                                ⏳ Quay lại <b>NGÀY MAI</b> để xác nhận NGÀY 3.
+                                ⏳ Quay lại <b>NGÀY MAI</b> để gọi điện + nhắn Zalo.
                             </div>
                             <!-- NGÀY 3 — chỉ hiện khi đã SANG NGÀY mới sau Ngày 2 -->
-                            <div t-if="zaloDays.d3avail" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d3 }">
-                                <div class="o_vd_zstep_lbl"><b>NGÀY 3:</b> Gọi điện và nhắn tin qua Zalo</div>
-                                <button t-if="!zaloDays.d3" type="button" class="o_vd_zstep_btn"
-                                        t-on-click="() => this.confirmZaloDay(3)">Xác nhận</button>
-                                <span t-else="" class="o_vd_zstep_ok"><i class="fa fa-check"/> Đã xác nhận</span>
-                            </div>
+                            <t t-if="zaloDays.d3avail">
+                                <div t-if="zaloDays.d3" class="o_vd_zstep_done_line"><i class="fa fa-check"/> Đã GỌI + NHẮN Zalo (ngày 3)</div>
+                                <button t-else="" type="button" class="o_vd_zbig_btn"
+                                        t-on-click="() => this.confirmZaloDay(3)">
+                                    <span class="o_vd_zbig_main">✓ XÁC NHẬN GỌI + NHẮN ZALO</span>
+                                    <span class="o_vd_zbig_sub">Chăm khách ngày 3</span>
+                                </button>
+                            </t>
                         </div>
                         <div class="o_vd_zalo_panel_note">⏳ Mỗi bước xác nhận vào 1 NGÀY KHÁC NHAU · hạn 7 ngày.</div>
                     </div>
