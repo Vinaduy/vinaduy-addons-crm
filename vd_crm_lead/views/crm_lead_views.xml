@@ -834,14 +834,14 @@
                         <div class="o_vd_zguide_rules">
                             <div class="o_vd_zguide_rule o_vd_zguide_ok">
                                 ✅ <b>Bắt buộc gọi tối thiểu 1 cuộc THẬT</b> — bạn đã làm rồi (nên bảng này hiện).
+                                <span style="color:#868e96;">(Cuộc thật: kể cả bận / thuê bao / sai số / đổ chuông không nghe — chỉ trừ bấm gọi rồi tắt luôn.)</span>
                             </div>
                             <div class="o_vd_zguide_rule">
-                                ➡️ Sau đó bạn được chọn: <b>GỌI TIẾP</b>, hoặc <b>KẾT BẠN ZALO</b> để tư vấn luôn.
+                                ➡️ Sau đó bạn được tự chọn: <b>GỌI TIẾP</b>, hoặc <b>KẾT BẠN ZALO</b> để tư vấn luôn.
                             </div>
-                            <div class="o_vd_zguide_rule o_vd_zguide_warn">
-                                ⚠️ Nếu <b>CHỈ gọi điện</b> (không Zalo): bạn vẫn phải hoàn thành
-                                <b>ĐỦ 3 NGÀY chăm sóc Zalo</b> thì KH mới được chuyển vào bảng
-                                <b>"CHƯA GỌI ĐƯỢC"</b>.
+                            <div class="o_vd_zguide_rule o_vd_zguide_goal">
+                                🎯 <b>MỤC TIÊU:</b> lấy ĐỦ thông tin để <b>🔒 CHỐT THÔNG TIN + có BÁO GIÁ</b>
+                                — bằng gọi điện hay Zalo <b>đều được</b>, miễn sao đủ thông tin.
                             </div>
                         </div>
                     </div>

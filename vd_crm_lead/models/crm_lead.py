@@ -374,13 +374,16 @@ class CrmLead(models.Model):
                  'call_ids.duration', 'call_ids.recording_url',
                  'call_ids.recording_attachment_id', 'call_ids.direction')
     def _compute_vd_has_real_call(self):
+        # User spec 2026-06-07: cuộc gọi THẬT = đã gọi đi tới nhà mạng, KỂ CẢ
+        # bận/thuê bao/sai số/đổ chuông không nghe/từ chối. CHỈ loại 'cancelled'
+        # (bấm gọi rồi tắt luôn, chưa đi đâu) — trừ khi nó đã đổ chuông (duration).
+        real_states = ('answered', 'ended', 'no_answer', 'busy', 'declined', 'failed')
         for rec in self:
             rec.vd_has_real_call = any(
                 c.direction == 'outbound' and (
-                    c.state == 'answered' or c.answer_time
-                    or (c.duration or 0) > 0
+                    c.state in real_states
+                    or c.answer_time or (c.duration or 0) > 0
                     or c.recording_url or c.recording_attachment_id
-                    or c.state in ('no_answer', 'busy', 'declined')
                 )
                 for c in rec.call_ids
             )
