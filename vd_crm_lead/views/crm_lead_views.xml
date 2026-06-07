@@ -710,29 +710,7 @@
                                             <span class="o_vd_cr_badge o_vd_cr_unreachable" invisible="vd_lead_call_rating != 'unreachable'">📵 Thuê bao</span>
                                         </span>
                                     </div>
-                                    <!-- HOVER (không click) → bung panel 2 bảng (sau/trước báo giá) -->
-                                    <div class="o_vd_callhist_wrap o_vd_callhist_left">
-                                        <span class="btn btn-sm btn-outline-info o_vd_cr_history_btn o_vd_callhist_trigger">
-                                            <i class="fa fa-history me-1"/>
-                                            Lịch sử cuộc gọi
-                                            <span class="badge bg-info ms-1" invisible="not call_count">
-                                                <field name="call_count" nolabel="1" readonly="1"/>
-                                            </span>
-                                        </span>
-                                        <div class="o_vd_callhist_panel">
-                                            <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
-                                        </div>
-                                    </div>
-                                    <!-- LỊCH SỬ ZALO (giai đoạn intake) — hiện khi đã xác nhận tư vấn Zalo -->
-                                    <div class="o_vd_callhist_wrap o_vd_callhist_left o_vd_zalohist_wrap"
-                                         invisible="not vd_zalo_consulted_date">
-                                        <span class="btn btn-sm btn-outline-primary o_vd_cr_history_btn o_vd_callhist_trigger o_vd_zalohist_trigger">
-                                            <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
-                                        </span>
-                                        <div class="o_vd_callhist_panel">
-                                            <field name="vd_zalo_care_html" widget="html" nolabel="1" readonly="1"/>
-                                        </div>
-                                    </div>
+                                    <!-- Lịch sử cuộc gọi + Lịch sử Zalo đã CHUYỂN xuống FAB (dưới nút Zalo) -->
                                     <!-- Hủy / ĐÃ HUỶ — toggle theo stage_is_lost -->
                                     <field name="stage_is_lost" invisible="1"/>
                                     <button name="action_mark_no_demand" type="object"
@@ -1692,29 +1670,11 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                          đóng khung — LUÔN hiện khi panel VẤN ĐỀ hiện ===== -->
                     <div class="o_vd_pq_call_report o_vd_pq_toolbar">
                         <field name="vd_post_quote_call_report" widget="html" nolabel="1" readonly="1"/>
-                        <!-- HOVER (không click) → bung panel 2 bảng (sau/trước báo giá) -->
-                        <div class="o_vd_callhist_wrap o_vd_callhist_right">
-                            <span class="btn btn-sm btn-outline-info o_vd_pq_history_btn o_vd_callhist_trigger">
-                                <i class="fa fa-history me-1"/>Lịch sử cuộc gọi
-                            </span>
-                            <div class="o_vd_callhist_panel">
-                                <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
-                            </div>
-                        </div>
-                        <!-- LỊCH SỬ ZALO — chỉ hiện khi đã xác nhận tư vấn Zalo -->
-                        <field name="vd_zalo_consulted_date" invisible="1"/>
+                        <!-- Lịch sử cuộc gọi + Lịch sử Zalo đã CHUYỂN xuống FAB (dưới nút Zalo).
+                             Giữ field declaration ẩn ở đây cho widget đọc trạng thái. -->
                         <field name="vd_zalo_day1_date" invisible="1"/>
                         <field name="vd_zalo_day2_date" invisible="1"/>
                         <field name="vd_zalo_day3_date" invisible="1"/>
-                        <div class="o_vd_callhist_wrap o_vd_callhist_right o_vd_zalohist_wrap"
-                             invisible="not vd_zalo_consulted_date">
-                            <span class="btn btn-sm btn-outline-primary o_vd_pq_history_btn o_vd_callhist_trigger o_vd_zalohist_trigger">
-                                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
-                            </span>
-                            <div class="o_vd_callhist_panel">
-                                <field name="vd_zalo_care_html" widget="html" nolabel="1" readonly="1"/>
-                            </div>
-                        </div>
                         <button name="action_toggle_contract_panel" type="object"
                                 class="btn btn-sm o_vd_pq_contract_btn"
                                 invisible="vd_contract_open or vd_contract_signed">
@@ -1870,6 +1830,26 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                      đổi màu/text/icon theo state (idle/ringing/in_call/no_phone) -->
                 <div class="o_vd_call_fab">
                     <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
+                    <field name="vd_zalo_consulted_date" invisible="1"/>
+                    <!-- 2 nút LỊCH SỬ đặt DƯỚI nút Zalo (user spec 2026-06-07) -->
+                    <div class="o_vd_fab_hist">
+                        <div class="o_vd_callhist_wrap">
+                            <span class="btn btn-sm btn-outline-info o_vd_callhist_trigger">
+                                <i class="fa fa-history me-1"/>Lịch sử cuộc gọi
+                            </span>
+                            <div class="o_vd_callhist_panel">
+                                <field name="vd_call_history_split" widget="html" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                        <div class="o_vd_callhist_wrap o_vd_zalohist_wrap" invisible="not vd_zalo_consulted_date">
+                            <span class="btn btn-sm btn-outline-primary o_vd_callhist_trigger o_vd_zalohist_trigger">
+                                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
+                            </span>
+                            <div class="o_vd_callhist_panel">
+                                <field name="vd_zalo_care_html" widget="html" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </xpath>
         </field>

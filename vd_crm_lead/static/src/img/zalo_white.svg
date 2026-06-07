@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="7" y="11" width="50" height="35" rx="11" fill="#ffffff"/>
+  <polygon points="19,43 19,57 35,45" fill="#ffffff"/>
+  <text x="32" y="35" font-family="Arial, Helvetica, sans-serif" font-size="19"
+        font-weight="800" font-style="italic" fill="#0068ff" text-anchor="middle">Zalo</text>
+</svg>

@@ -33,11 +33,11 @@
             <!-- TƯ VẤN QUA ZALO — ngay DƯỚI nút gọi (user spec 2026-06-07).
                  Hover hiện bảng xác nhận "KH này tư vấn qua Zalo để lấy thông tin". -->
             <div t-if="hasPhone" class="o_vd_zalo_box">
-                <button type="button" class="o_vd_zalo_fab"
+                <button type="button" class="o_vd_call_btn o_vd_zalo_fab"
                         t-att-class="{ o_vd_zalo_fab_active: zaloProgress > 0 and zaloProgress &lt; 3,
                                        o_vd_zalo_fab_done: zaloProgress === 3 }"
                         title="Chăm khách qua Zalo — đưa chuột vào để xác nhận từng ngày.">
-                    <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
+                    <img src="/vd_crm_lead/static/src/img/zalo_white.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
                 </button>
                 <div class="o_vd_call_caption o_vd_zalo_caption">
                     <t t-if="zaloProgress === 0">TƯ VẤN QUA ZALO</t>
