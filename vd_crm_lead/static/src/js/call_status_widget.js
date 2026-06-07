@@ -100,6 +100,25 @@ export class VdCallStatusWidget extends Component {
         }
     }
 
+    // TƯ VẤN QUA ZALO (nút dưới nút gọi): mở Zalo KH + ghi nhận đã chuyển kênh.
+    // KH có báo giá chi tiết + đã tư vấn Zalo → backend miễn khoá "chưa gọi".
+    async onZaloClick() {
+        const d = this.props.record.data;
+        const phone = (d.phone || d.mobile || "").replace(/\D/g, "");
+        if (!phone) {
+            this.notification.add("KH chưa có SĐT để mở Zalo.", { type: "warning" });
+            return;
+        }
+        // Mở Zalo NGAY trong handler click (tránh popup-blocker).
+        window.open(`https://zalo.me/${phone}`, "_blank");
+        try {
+            await this.orm.call("crm.lead", "action_vd_consult_zalo", [[this.props.record.resId]]);
+            this.notification.add("Đã ghi nhận TƯ VẤN QUA ZALO.", { type: "success" });
+        } catch (e) {
+            console.error("[VD] consultZalo failed", e);
+        }
+    }
+
     _tick() {
         // Timer chỉ chạy khi đang in-call. Ưu tiên client `answerStartedAt`
         // (instant, từ Stringee SDK code 3 ANSWERED), fallback server

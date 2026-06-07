@@ -30,6 +30,14 @@
             <div t-elif="statusType === 'no_phone'" class="o_vd_call_caption o_vd_caption_no_phone">
                 Thiếu SĐT
             </div>
+            <!-- TƯ VẤN QUA ZALO — ngay DƯỚI nút gọi (user spec 2026-06-07).
+                 Gọi không được vẫn tư vấn Zalo hợp lệ; bấm: mở Zalo KH + ghi nhận. -->
+            <button t-if="hasPhone" type="button" class="o_vd_zalo_fab"
+                    t-on-click="onZaloClick"
+                    title="Tư vấn qua Zalo — mở Zalo của khách. Gọi không được vẫn tư vấn Zalo được, không vi phạm quy định gọi điện.">
+                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
+            </button>
+            <div t-if="hasPhone" class="o_vd_call_caption o_vd_zalo_caption">TƯ VẤN QUA ZALO</div>
         </div>
     </t>
 

@@ -1767,26 +1767,6 @@ export class VdCrmDashboard extends Component {
         this._copyToClipboard(L.phone, `Đã copy SĐT: ${L.phone}`, "Chưa có số điện thoại.");
     }
 
-    // TƯ VẤN QUA ZALO (header popup): mở Zalo KH + ghi nhận đã chuyển kênh Zalo.
-    // KH có báo giá chi tiết + đã tư vấn Zalo → backend miễn khoá "chưa gọi".
-    async consultZalo(L) {
-        if (!L) return;
-        const phone = (L.phone || "").replace(/\D/g, "");
-        if (!phone) {
-            this.notification.add("KH chưa có số điện thoại để mở Zalo.", { type: "warning" });
-            return;
-        }
-        // Mở Zalo NGAY trong handler click (tránh popup-blocker chặn).
-        window.open(`https://zalo.me/${phone}`, "_blank");
-        try {
-            await this.orm.call("crm.lead", "action_vd_consult_zalo", [[L.id]]);
-            L.zalo_consulted = true;
-            this.notification.add("Đã ghi nhận TƯ VẤN QUA ZALO cho khách này.", { type: "success" });
-            this.refreshAfterPreview();
-        } catch (e) {
-            console.error("[VD] consultZalo failed", e);
-        }
-    }
     // Click tên KH (pill ở bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) → copy tên,
     // KHÔNG mở lead (stopPropagation để không trigger row openLead).
     copyLeadName(ev, name, leadId) {
