@@ -15,7 +15,7 @@
                     }"
                     t-att-disabled="statusType === 'no_phone' or state.busy"
                     t-on-click="onCallClick">
-                <img t-if="statusType === 'idle'" src="/vd_crm_lead/static/src/img/phone.png" class="o_vd_call_icon_img" alt="Gọi"/>
+                <img t-if="statusType === 'idle'" src="/vd_crm_lead/static/src/img/phone-1.png" class="o_vd_call_icon_img" alt="Gọi"/>
                 <i t-elif="statusType === 'no_phone'" class="fa fa-phone o_vd_icon_slash"/>
                 <i t-elif="statusType === 'ringing'" class="fa fa-bell o_vd_ring_pulse"/>
                 <i t-elif="statusType === 'in_call'" class="fa fa-phone o_vd_icon_hangup"/>
@@ -60,15 +60,23 @@
                                         t-on-click="() => this.confirmZaloDay(1)">Xác nhận</button>
                                 <span t-else="" class="o_vd_zstep_ok"><i class="fa fa-check"/> Đã xác nhận</span>
                             </div>
-                            <!-- NGÀY 2 — chỉ hiện khi NGÀY 1 đã xác nhận -->
-                            <div t-if="zaloDays.d1" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d2 }">
+                            <!-- Chờ sang ngày mai mới hiện NGÀY 2 -->
+                            <div t-if="zaloDays.d1 and !zaloDays.d2avail" class="o_vd_zstep_wait">
+                                ⏳ Quay lại <b>NGÀY MAI</b> để xác nhận NGÀY 2.
+                            </div>
+                            <!-- NGÀY 2 — chỉ hiện khi đã SANG NGÀY mới sau Ngày 1 -->
+                            <div t-if="zaloDays.d2avail" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d2 }">
                                 <div class="o_vd_zstep_lbl"><b>NGÀY 2:</b> Gọi điện và nhắn tin qua Zalo</div>
                                 <button t-if="!zaloDays.d2" type="button" class="o_vd_zstep_btn"
                                         t-on-click="() => this.confirmZaloDay(2)">Xác nhận</button>
                                 <span t-else="" class="o_vd_zstep_ok"><i class="fa fa-check"/> Đã xác nhận</span>
                             </div>
-                            <!-- NGÀY 3 — chỉ hiện khi NGÀY 2 đã xác nhận -->
-                            <div t-if="zaloDays.d2" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d3 }">
+                            <!-- Chờ sang ngày mai mới hiện NGÀY 3 -->
+                            <div t-if="zaloDays.d2 and !zaloDays.d3avail" class="o_vd_zstep_wait">
+                                ⏳ Quay lại <b>NGÀY MAI</b> để xác nhận NGÀY 3.
+                            </div>
+                            <!-- NGÀY 3 — chỉ hiện khi đã SANG NGÀY mới sau Ngày 2 -->
+                            <div t-if="zaloDays.d3avail" class="o_vd_zstep" t-att-class="{ o_vd_zstep_done: zaloDays.d3 }">
                                 <div class="o_vd_zstep_lbl"><b>NGÀY 3:</b> Gọi điện và nhắn tin qua Zalo</div>
                                 <button t-if="!zaloDays.d3" type="button" class="o_vd_zstep_btn"
                                         t-on-click="() => this.confirmZaloDay(3)">Xác nhận</button>

@@ -5321,6 +5321,15 @@ div.o_vd_layout_right {
     .o_vd_zstep_ok { flex-shrink: 0; color: #2b8a3e; font-weight: 800; font-size: 0.84rem; i { margin-right: 2px; } }
     &.o_vd_zstep_done { background: #ebfbee; border-color: #b2f2bb; .o_vd_zstep_lbl b { color: #2b8a3e; } }
 }
+.o_vd_zstep_wait {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #e8590c;
+    background: #fff4e6;
+    border: 1px dashed #ffc078;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+}
 
 /* Lịch sử chăm Zalo — rows từ vd_zalo_care_html (rendered HTML) */
 .o_vd_zcare { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -5377,10 +5386,16 @@ div.o_vd_layout_right {
         animation: vd-breathe 2.6s ease-in-out infinite;
     }
 }
-/* hiệu ứng TO-NHỎ nhẹ nhàng (user spec 2026-06-07) — dùng cho nút gọi + Zalo */
+/* hiệu ứng TO-NHỎ (user spec 2026-06-07) — dùng cho nút gọi + Zalo */
 @keyframes vd-breathe {
     0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.08); }
+    50%      { transform: scale(1.13); }
+}
+/* hover → phóng to hẳn (ngừng breathe) */
+.o_vd_call_btn_idle:hover,
+.o_vd_zalo_fab:hover {
+    animation: none !important;
+    transform: scale(1.2) !important;
 }
 /* icon GỌI ĐIỆN dùng ảnh phone.png thay glyph — TO hơn */
 .o_vd_call_icon_img {

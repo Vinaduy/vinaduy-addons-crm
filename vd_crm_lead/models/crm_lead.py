@@ -377,6 +377,12 @@ class CrmLead(models.Model):
     vd_zalo_care_html = fields.Html(
         string='Lịch sử chăm Zalo', compute='_compute_vd_zalo_care',
         sanitize=False, store=False)
+    # Cờ "đã sang ngày mới để hiện bước kế" (user spec 2026-06-07): Ngày 2 chỉ
+    # hiện khi đã SANG NGÀY sau Ngày 1; Ngày 3 chỉ hiện khi đã sang ngày sau Ngày 2.
+    vd_zalo_day2_available = fields.Boolean(
+        compute='_compute_vd_zalo_care', store=False)
+    vd_zalo_day3_available = fields.Boolean(
+        compute='_compute_vd_zalo_care', store=False)
 
     _ZALO_DAY_LABELS = {
         1: 'Kết bạn + gửi tin nhắn chào khách',
@@ -390,6 +396,12 @@ class CrmLead(models.Model):
         for rec in self:
             deadline = (rec.create_date + timedelta(days=7)) if rec.create_date else False
             rec.vd_zalo_care_deadline = deadline
+            # Cờ hiện bước kế: đã xác nhận bước trước VÀ hôm nay đã SANG NGÀY KHÁC.
+            today = fields.Date.context_today(rec)
+            d1 = fields.Datetime.context_timestamp(rec, rec.vd_zalo_day1_date).date() if rec.vd_zalo_day1_date else None
+            d2 = fields.Datetime.context_timestamp(rec, rec.vd_zalo_day2_date).date() if rec.vd_zalo_day2_date else None
+            rec.vd_zalo_day2_available = bool(rec.vd_zalo_day2_date) or bool(d1 and today > d1)
+            rec.vd_zalo_day3_available = bool(rec.vd_zalo_day3_date) or bool(d2 and today > d2)
             rows = []
             for n, dt in ((1, rec.vd_zalo_day1_date), (2, rec.vd_zalo_day2_date),
                           (3, rec.vd_zalo_day3_date)):

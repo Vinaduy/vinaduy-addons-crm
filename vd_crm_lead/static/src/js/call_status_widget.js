@@ -206,6 +206,9 @@ export class VdCallStatusWidget extends Component {
             d1: !!d.vd_zalo_day1_date,
             d2: !!d.vd_zalo_day2_date,
             d3: !!d.vd_zalo_day3_date,
+            // Ngày 2/3 chỉ "có sẵn" khi đã SANG NGÀY mới (backend tính theo lịch).
+            d2avail: !!d.vd_zalo_day2_available,
+            d3avail: !!d.vd_zalo_day3_available,
         };
     }
     get zaloProgress() {

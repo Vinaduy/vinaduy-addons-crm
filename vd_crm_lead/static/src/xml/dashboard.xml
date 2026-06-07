@@ -3079,6 +3079,10 @@
                 <span t-if="lead.pancake_platform and lead.pancake_platform !== 'manual'"
                       class="o_vd_pill_auto" title="Khách TỰ ĐỘNG từ Pancake">⚡</span>
 
+                <!-- Logo Zalo nhỏ ở CUỐI thẻ — KH đã/đang tư vấn qua Zalo (user spec 2026-06-07) -->
+                <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"
+                     class="o_vd_pill_zalo" title="Đã/đang tư vấn qua Zalo"/>
+
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">
                     <!-- Badge trạng thái nổi bật ở đầu — chỉ stage KH MỚI -->

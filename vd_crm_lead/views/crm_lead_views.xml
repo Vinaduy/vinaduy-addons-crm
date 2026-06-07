@@ -1675,6 +1675,8 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         <field name="vd_zalo_day1_date" invisible="1"/>
                         <field name="vd_zalo_day2_date" invisible="1"/>
                         <field name="vd_zalo_day3_date" invisible="1"/>
+                        <field name="vd_zalo_day2_available" invisible="1"/>
+                        <field name="vd_zalo_day3_available" invisible="1"/>
                         <button name="action_toggle_contract_panel" type="object"
                                 class="btn btn-sm o_vd_pq_contract_btn"
                                 invisible="vd_contract_open or vd_contract_signed">

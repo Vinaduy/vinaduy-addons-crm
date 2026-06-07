@@ -2155,6 +2155,15 @@
         line-height: 1;
         filter: drop-shadow(0 0 1px rgba(245, 159, 0, 0.5));
     }
+    /* Logo Zalo nhỏ ở cuối thẻ KH — đã/đang tư vấn Zalo (user spec 2026-06-07) */
+    .o_vd_pill_zalo {
+        width: 15px;
+        height: 15px;
+        margin-left: 0.25rem;
+        border-radius: 3px;
+        vertical-align: -3px;
+        flex-shrink: 0;
+    }
     .o_vd_pill_call_badge {
         display: inline-flex;
         align-items: center;
