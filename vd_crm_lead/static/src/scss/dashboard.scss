@@ -2331,6 +2331,21 @@
         background: rgba(255, 255, 255, 0.25) !important;
         color: #ffffff !important;
     }
+    /* ĐÃ NGHE MÁY (≥1 cuộc) — XANH DƯƠNG ĐẬM (user spec 2026-06-07).
+       (Xanh lá giờ CHỈ dành cho "đã có báo giá".) */
+    .o_vd_won_pill.o_vd_pill_call_answered {
+        background: linear-gradient(135deg, #1c7ed6 0%, #1864ab 100%) !important;
+        color: #ffffff !important;
+        border: 2px solid #1864ab !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 6px rgba(24, 100, 171, 0.4) !important;
+    }
+    .o_vd_won_pill.o_vd_pill_call_answered .o_vd_won_pill_icon,
+    .o_vd_won_pill.o_vd_pill_call_answered .o_vd_won_pill_date { color: #ffffff !important; }
+    .o_vd_won_pill.o_vd_pill_call_answered .o_vd_pill_call_badge {
+        background: rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
+    }
     .o_vd_pill_quote_badge {
         display: inline-flex;
         align-items: center;
@@ -7995,9 +8010,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     gap: 0.25rem 0.35rem;
     width: 100%;
     position: relative;
-    overflow: hidden;
+    overflow: visible;          /* user spec 2026-06-07: KHÔNG cắt tooltip hover */
     transition: max-height 0.3s ease;
 }
+/* CHỈ cắt (overflow hidden) khi THỰC SỰ còn KH bị ẩn (fade) — lúc đó mới cần thu
+   gọn; bình thường để overflow visible cho tooltip hiện đủ. */
+.o_vd_new_pills_fade { overflow: hidden; }
 /* max-height điều khiển bằng JS (inline) theo ĐÚNG số dòng — xem _measureNewPills.
    Chỉ đặt fallback mềm cho FRAME đầu (JS override ngay sau mount). */
 .o_vd_new_pills_collapsed { max-height: 280px; }
