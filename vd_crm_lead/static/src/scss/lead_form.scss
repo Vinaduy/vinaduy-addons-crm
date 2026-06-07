@@ -5364,23 +5364,27 @@ div.o_vd_layout_right {
     background: transparent !important;   /* logo TRONG — KHÔNG nền màu (bỏ viền cam) */
     border-radius: 26px !important;
     box-shadow: none !important;
-    animation: vd-float 4s ease-in-out infinite;
+    animation: vd-breathe 2.6s ease-in-out infinite;   /* to-nhỏ nhẹ nhàng */
 
     .o_vd_zalo_fab_icon {
         width: 100%; height: 100%; object-fit: contain;
         display: block;
         filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
     }
-    /* không đổi nền theo trạng thái — giữ logo sạch */
     &.o_vd_zalo_fab_active, &.o_vd_zalo_fab_done {
         background: transparent !important;
         box-shadow: none !important;
-        animation: vd-float 4s ease-in-out infinite;
+        animation: vd-breathe 2.6s ease-in-out infinite;
     }
 }
-/* icon GỌI ĐIỆN dùng ảnh phone.png thay glyph (user spec 2026-06-07) */
+/* hiệu ứng TO-NHỎ nhẹ nhàng (user spec 2026-06-07) — dùng cho nút gọi + Zalo */
+@keyframes vd-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+}
+/* icon GỌI ĐIỆN dùng ảnh phone.png thay glyph — TO hơn */
 .o_vd_call_icon_img {
-    width: 58px; height: 58px; object-fit: contain;
+    width: 84px; height: 84px; object-fit: contain;
     position: relative; z-index: 1;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28));
 }
@@ -5395,10 +5399,8 @@ div.o_vd_layout_right {
 /* IDLE — xanh + pulse + float (giữ feel cũ) */
 .o_vd_call_btn_idle {
     background: linear-gradient(135deg, #2bc467 0%, #20a04a 100%);
-    box-shadow:
-        0 0 0 0 rgba(40, 167, 69, 0.7),
-        0 14px 36px -8px rgba(0, 0, 0, 0.35);
-    animation: vd-pulse-green 2s infinite, vd-float 4s ease-in-out infinite;
+    box-shadow: 0 14px 36px -8px rgba(0, 0, 0, 0.35);
+    animation: vd-breathe 2.6s ease-in-out infinite;   /* to-nhỏ nhẹ nhàng */
     &::before {
         content: "";
         position: absolute;
