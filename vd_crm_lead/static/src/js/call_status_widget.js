@@ -199,6 +199,11 @@ export class VdCallStatusWidget extends Component {
         return !!(d.phone || d.mobile);
     }
 
+    // Nút Zalo chỉ hiện khi đã phát sinh ≥1 CUỘC GỌI THẬT (user spec 2026-06-07).
+    get hasRealCall() {
+        return !!this.props.record.data.vd_has_real_call;
+    }
+
     // Quy trình chăm Zalo 3 NGÀY (đọc từ field ĐÃ LƯU → giữ sau reload).
     get zaloDays() {
         const d = this.props.record.data;

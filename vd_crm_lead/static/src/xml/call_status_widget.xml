@@ -32,7 +32,7 @@
             </div>
             <!-- TƯ VẤN QUA ZALO — ngay DƯỚI nút gọi (user spec 2026-06-07).
                  Hover hiện bảng xác nhận "KH này tư vấn qua Zalo để lấy thông tin". -->
-            <div t-if="hasPhone" class="o_vd_zalo_box">
+            <div t-if="hasPhone and hasRealCall" class="o_vd_zalo_box">
                 <button type="button" class="o_vd_call_btn o_vd_zalo_fab"
                         t-att-class="{ o_vd_zalo_fab_active: zaloProgress > 0 and zaloProgress &lt; 3,
                                        o_vd_zalo_fab_done: zaloProgress === 3 }"

@@ -816,6 +816,37 @@
                 <!-- Báo giá panel: chỉ hiện khi intake đã ĐỦ THÔNG TIN
                      (auto-lock đã trigger). Stage 'negotiate'/'won' vẫn hiện
                      để xem lại báo giá đã chốt. -->
+                <!-- BẢNG HƯỚNG DẪN (user spec 2026-06-07) — KH MỚI + đã có ≥1 cuộc gọi
+                     THẬT, CHƯA làm báo giá: hiện ở vị trí bảng báo giá chi tiết. -->
+                <div class="o_vd_zguide_panel"
+                     invisible="stage_code != 'new' or not vd_has_real_call or vd_intake_complete or vd_quote_cancelled">
+                    <div class="o_vd_zguide_head">🔔 HƯỚNG DẪN CHĂM KHÁCH MỚI</div>
+                    <div class="o_vd_zguide_body">
+                        <div class="o_vd_zguide_intro">
+                            Ở giai đoạn <b>KHÁCH MỚI</b> (chưa làm báo giá), bạn được
+                            <b>TOÀN QUYỀN CHỌN</b> 1 trong 2 cách tư vấn:
+                        </div>
+                        <div class="o_vd_zguide_choices">
+                            <div class="o_vd_zguide_choice o_vd_zguide_call">📞<br/>GỌI ĐIỆN</div>
+                            <div class="o_vd_zguide_or">HOẶC</div>
+                            <div class="o_vd_zguide_choice o_vd_zguide_zalo">💬<br/>TƯ VẤN ZALO</div>
+                        </div>
+                        <div class="o_vd_zguide_rules">
+                            <div class="o_vd_zguide_rule o_vd_zguide_ok">
+                                ✅ <b>Bắt buộc gọi tối thiểu 1 cuộc THẬT</b> — bạn đã làm rồi (nên bảng này hiện).
+                            </div>
+                            <div class="o_vd_zguide_rule">
+                                ➡️ Sau đó bạn được chọn: <b>GỌI TIẾP</b>, hoặc <b>KẾT BẠN ZALO</b> để tư vấn luôn.
+                            </div>
+                            <div class="o_vd_zguide_rule o_vd_zguide_warn">
+                                ⚠️ Nếu <b>CHỈ gọi điện</b> (không Zalo): bạn vẫn phải hoàn thành
+                                <b>ĐỦ 3 NGÀY chăm sóc Zalo</b> thì KH mới được chuyển vào bảng
+                                <b>"CHƯA GỌI ĐƯỢC"</b>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="o_vd_quote_panel"
                      invisible="(not vd_intake_complete and stage_code not in ['negotiate', 'won']) or vd_quote_cancelled">
                     <div class="o_vd_quote_head">
@@ -1833,6 +1864,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                 <div class="o_vd_call_fab">
                     <field name="vd_in_call" widget="vd_call_status" nolabel="1"/>
                     <field name="vd_zalo_consulted_date" invisible="1"/>
+                    <field name="vd_has_real_call" invisible="1"/>
                     <!-- 2 nút LỊCH SỬ đặt DƯỚI nút Zalo (user spec 2026-06-07) -->
                     <div class="o_vd_fab_hist">
                         <div class="o_vd_callhist_wrap">

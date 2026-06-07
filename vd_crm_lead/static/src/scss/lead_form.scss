@@ -5381,6 +5381,43 @@ div.o_vd_layout_right {
 .o_vd_zcare_dl { margin-top: 0.5rem; font-weight: 700; color: #1971c2; font-size: 0.86rem; }
 .o_vd_zcare_dl_over { margin-top: 0.5rem; font-weight: 800; color: #c92a2a; font-size: 0.86rem; }
 
+/* BẢNG HƯỚNG DẪN khách mới (vị trí bảng báo giá) — user spec 2026-06-07 */
+.o_vd_zguide_panel {
+    border: 2px solid #ffd43b;
+    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+    border-radius: 14px;
+    margin: 0.8rem 0;
+    overflow: hidden;
+    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.28);
+}
+.o_vd_zguide_head {
+    background: linear-gradient(135deg, #f59f00 0%, #e8590c 100%);
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 0.75rem 1rem;
+    letter-spacing: 0.3px;
+}
+.o_vd_zguide_body { padding: 1rem 1.1rem; }
+.o_vd_zguide_intro { font-size: 1rem; color: #5c3d00; margin-bottom: 0.85rem; b { color: #e8590c; } }
+.o_vd_zguide_choices { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem; }
+.o_vd_zguide_choice {
+    flex: 1; max-width: 190px; text-align: center;
+    font-weight: 900; font-size: 1.05rem; line-height: 1.5;
+    padding: 0.9rem 0.5rem; border-radius: 12px;
+}
+.o_vd_zguide_call { background: #ebfbee; border: 2px solid #69db7c; color: #2b8a3e; }
+.o_vd_zguide_zalo { background: #e7f5ff; border: 2px solid #74c0fc; color: #1971c2; }
+.o_vd_zguide_or { font-weight: 900; color: #868e96; font-size: 0.95rem; }
+.o_vd_zguide_rules { display: flex; flex-direction: column; gap: 0.5rem; }
+.o_vd_zguide_rule {
+    font-size: 0.96rem; color: #333; line-height: 1.5;
+    padding: 0.6rem 0.75rem; border-radius: 9px;
+    background: #fff; border: 1px solid #ffe8a3;
+}
+.o_vd_zguide_ok { background: #ebfbee; border-color: #b2f2bb; }
+.o_vd_zguide_warn { background: #fff5f5; border-color: #ffc9c9; b { color: #c92a2a; } }
+
 /* LỊCH SỬ ZALO — nút cạnh "Lịch sử cuộc gọi" + log items (user spec 2026-06-07) */
 .o_vd_zalohist_ico {
     width: 14px; height: 14px; border-radius: 3px;
@@ -5408,9 +5445,9 @@ div.o_vd_layout_right {
     animation: vd-breathe 2.6s ease-in-out infinite;   /* to-nhỏ nhẹ nhàng */
 
     .o_vd_zalo_fab_icon {
-        width: 100%; height: 100%; object-fit: contain;
+        width: 84%; height: 84%; object-fit: contain;  /* nhỏ lại cho bằng logo điện thoại */
         display: block;
-        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
     }
     &.o_vd_zalo_fab_active, &.o_vd_zalo_fab_done {
         background: transparent !important;

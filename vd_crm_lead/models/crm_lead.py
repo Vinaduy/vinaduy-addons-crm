@@ -364,6 +364,26 @@ class CrmLead(models.Model):
         help='Set khi xác nhận NGÀY 1. Miễn khoá "chưa gọi" khi KH đã có báo giá '
              'chi tiết.',
     )
+    # Đã phát sinh ≥1 CUỘC GỌI THẬT (đã đổ chuông/nghe máy) — user spec 2026-06-07.
+    # Điều kiện hiện nút Zalo + bảng hướng dẫn. Loại cuộc 'failed'/'cancelled'.
+    vd_has_real_call = fields.Boolean(
+        string='Đã có cuộc gọi thật', compute='_compute_vd_has_real_call',
+        store=False)
+
+    @api.depends('call_ids', 'call_ids.state', 'call_ids.answer_time',
+                 'call_ids.duration', 'call_ids.recording_url',
+                 'call_ids.recording_attachment_id', 'call_ids.direction')
+    def _compute_vd_has_real_call(self):
+        for rec in self:
+            rec.vd_has_real_call = any(
+                c.direction == 'outbound' and (
+                    c.state == 'answered' or c.answer_time
+                    or (c.duration or 0) > 0
+                    or c.recording_url or c.recording_attachment_id
+                    or c.state in ('no_answer', 'busy', 'declined')
+                )
+                for c in rec.call_ids
+            )
     # Quy trình chăm Zalo 3 NGÀY (user spec 2026-06-07) — mỗi bước xác nhận ở 1
     # NGÀY khác nhau, trong hạn 7 ngày (tạo → chuyển bảng "không gọi được").
     vd_zalo_day1_date = fields.Datetime(
