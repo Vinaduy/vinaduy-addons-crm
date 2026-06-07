@@ -40,19 +40,23 @@
                     <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
                 </button>
                 <div class="o_vd_call_caption o_vd_zalo_caption">TƯ VẤN QUA ZALO</div>
-                <!-- Bảng hover -->
+                <!-- Bảng hover — nội dung đổi theo trạng thái KH (consult/problem/meeting) -->
                 <div class="o_vd_zalo_panel">
-                    <div class="o_vd_zalo_panel_head">💬 Tư vấn qua Zalo</div>
-                    <div class="o_vd_zalo_panel_text">
-                        Gọi không được? KH này có thể tư vấn qua <b>Zalo</b> để lấy đủ
-                        thông tin — hoàn toàn hợp lệ, không vi phạm quy định gọi điện.
+                    <div class="o_vd_zalo_panel_head">
+                        <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_panel_logo" alt="Zalo"/>
+                        <span class="o_vd_zalo_panel_title"><t t-esc="zaloPanel.title"/></span>
                     </div>
-                    <button type="button" class="o_vd_zalo_panel_btn"
-                            t-att-class="{ o_vd_zalo_panel_btn_done: zaloState.confirmed }"
-                            t-on-click="onZaloClick">
-                        <t t-if="!zaloState.confirmed">✓ Xác nhận: KH này tư vấn qua Zalo để lấy thông tin</t>
-                        <t t-else="">✓ Đã xác nhận — tư vấn qua Zalo</t>
-                    </button>
+                    <div class="o_vd_zalo_panel_body">
+                        <div class="o_vd_zalo_panel_warn">📵 Gọi không nghe máy!</div>
+                        <div class="o_vd_zalo_panel_hint"><t t-esc="zaloPanel.hint"/></div>
+                        <button type="button" class="o_vd_zalo_panel_btn"
+                                t-att-class="{ o_vd_zalo_panel_btn_done: zaloState.confirmed }"
+                                t-on-click="onZaloClick">
+                            <i class="fa fa-check me-1"/>
+                            <t t-if="zaloState.confirmed">ĐÃ XÁC NHẬN QUA ZALO</t>
+                            <t t-else=""><t t-esc="zaloPanel.btn"/></t>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

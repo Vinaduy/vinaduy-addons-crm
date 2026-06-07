@@ -218,6 +218,40 @@ export class VdCallStatusWidget extends Component {
         return !!(d.phone || d.mobile);
     }
 
+    // Trạng thái KH → quyết định nội dung bảng hover Zalo (user spec 2026-06-07):
+    //  - consult: chưa CHỐT báo giá        → tư vấn / kết bạn
+    //  - problem: đã CHỐT + còn vấn đề mở   → khai thác vấn đề
+    //  - meeting: đã CHỐT + hết vấn đề      → chốt lịch gặp
+    get zaloMode() {
+        const d = this.props.record.data;
+        if (!d.vd_intake_locked) return "consult";
+        if ((d.vd_lead_problem_open_count || 0) > 0) return "problem";
+        return "meeting";
+    }
+
+    get zaloPanel() {
+        switch (this.zaloMode) {
+            case "problem":
+                return {
+                    title: "KHAI THÁC VẤN ĐỀ QUA ZALO",
+                    hint: "Nhắn Zalo để khai thác & xử lý vấn đề của khách.",
+                    btn: "XÁC NHẬN TÌM VẤN ĐỀ QUA ZALO",
+                };
+            case "meeting":
+                return {
+                    title: "CHỐT LỊCH GẶP QUA ZALO",
+                    hint: "Nhắn Zalo để chốt lịch gặp / ký hợp đồng với khách.",
+                    btn: "XÁC NHẬN CHỐT LỊCH GẶP QUA ZALO",
+                };
+            default:
+                return {
+                    title: "TƯ VẤN KHÁCH QUA ZALO",
+                    hint: "Kết bạn Zalo để tư vấn lấy thông tin trước khi làm báo giá.",
+                    btn: "XÁC NHẬN ĐÃ KẾT BẠN",
+                };
+        }
+    }
+
     get statusType() {
         // Ưu tiên client reactive state (Stringee service) → đổi NGAY khi
         // user click hoặc Stringee SDK fire event, KHÔNG cần đợi server.
