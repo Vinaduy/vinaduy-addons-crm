@@ -2807,7 +2807,45 @@
     <t t-name="vd_crm_lead.ProblemFindBanner">
         <div t-if="pf and (pf.over or pf.locked)"
              t-att-class="'o_vd_pf_banner' + (pf.locked ? ' o_vd_pf_banner_locked' : '')">
-            <i t-att-class="'fa o_vd_pf_banner_ico ' + (pf.locked ? 'fa-lock' : 'fa-exclamation-triangle')"/>
+            <!-- Icon ổ khoá (mở khi chưa khoá) + hover ra bảng giải thích cơ chế khoá -->
+            <div class="o_vd_cw_help">
+                <i t-att-class="'fa o_vd_pf_banner_ico o_vd_cw_help_ico ' + (pf.locked ? 'fa-lock' : 'fa-unlock-alt')"
+                   title="Khi nào bị KHOÁ bảng này? (đưa chuột vào xem)"/>
+                <div class="o_vd_cw_help_panel">
+                    <div class="o_vd_cw_help_head">🔒 Khi nào bị KHOÁ bảng này?</div>
+                    <div class="o_vd_cw_help_body">
+                        <div class="o_vd_cw_help_sec">
+                            <b>① "KH chưa có vấn đề":</b> khách trong bảng này mà <b>chưa được tạo ≥1 vấn đề</b>
+                            (ngoài tag "Thi công gấp"). Mỗi KH cần được NV <b>tìm &amp; ghi nhận vấn đề</b> để chăm sóc.
+                        </div>
+                        <div class="o_vd_cw_help_sec">
+                            <b>② Ngưỡng:</b> nếu <b>% KH chưa có vấn đề VƯỢT <t t-esc="pf.threshold_pct"/>%</b> thì bảng bị tính "vi phạm".
+                        </div>
+                        <div class="o_vd_cw_help_flow">
+                            <div class="o_vd_cw_help_step">
+                                <span class="o_vd_cw_help_num">VƯỢT NGƯỠNG</span>
+                                Khi vượt <t t-esc="pf.threshold_pct"/>% → hệ thống bắt đầu <b>đếm gia hạn</b>. Banner hiện <b>"CÒN X NGÀY"</b>.
+                            </div>
+                            <div class="o_vd_cw_help_step">
+                                <span class="o_vd_cw_help_num">HẾT <t t-esc="pf.grace_days"/> NGÀY</span>
+                                Quá <b><t t-esc="pf.grace_days"/> ngày</b> mà vẫn vượt ngưỡng (chưa tạo đủ vấn đề) → <b class="o_vd_cw_help_red">KHOÁ bảng</b> (không bấm được).
+                            </div>
+                        </div>
+                        <div class="o_vd_cw_help_key">🔑 Tóm gọn: quá <t t-esc="pf.threshold_pct"/>% KH chưa có vấn đề, để quá <t t-esc="pf.grace_days"/> ngày không xử lý → <b>KHOÁ</b>.</div>
+                        <div class="o_vd_cw_help_sec o_vd_cw_help_ex">
+                            <b>📌 Ví dụ</b> (ngưỡng <t t-esc="pf.threshold_pct"/>%, gia hạn <t t-esc="pf.grace_days"/> ngày): bảng 20 KH, 6 KH (30%) chưa có vấn đề → vượt ngưỡng.
+                            Trong <t t-esc="pf.grace_days"/> ngày bạn tạo vấn đề để còn ≤ <t t-esc="pf.threshold_pct"/>% → không khoá. Quá hạn vẫn 30% → <b>KHOÁ</b>.
+                        </div>
+                        <div class="o_vd_cw_help_ok">
+                            ✅ <b>Gỡ khoá:</b> chỉ <b>Quản lý / Giám đốc</b> mở được (bảng khoá thì NV không tạo vấn đề được).
+                            Admin mở → còn 1 ngày; nếu vẫn vượt ngưỡng thì <b>tự khoá lại</b>.
+                        </div>
+                        <div class="o_vd_cw_help_note">
+                            ⚙️ Khoá <b>RIÊNG từng bảng</b> (Thi công gấp / Xử lý vấn đề). Admin chỉnh được: ngưỡng % (mặc định 20%), số ngày gia hạn (mặc định 3), bật/tắt.
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="o_vd_pf_banner_text">
                 <div class="o_vd_pf_banner_main">
                     <t t-if="pf.locked">ĐÃ KHOÁ — YÊU CẦU TÌM VẤN ĐỀ</t>
