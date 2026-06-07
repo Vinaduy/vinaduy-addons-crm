@@ -1,10 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" rx="23" fill="#0068FF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <rect width="800" height="800" rx="176" fill="#0068FF"/>
   <!-- dải xanh đậm phản chiếu phía dưới -->
-  <path d="M2 80 Q42 98 98 82 L98 100 L2 100 Z" fill="#0050C8" opacity="0.5"/>
-  <!-- bong bóng chat trắng, đuôi góc dưới-trái, mở hình C bên trái -->
-  <path d="M52 15 C27 15 9 31 9 51 C9 63 16 74 28 80 L23 92 L39 84
-           C43 85 47 86 52 86 C77 86 95 70 95 50 C95 30 77 15 52 15 Z" fill="#FFFFFF"/>
-  <text x="57" y="60" font-family="Arial, Helvetica, sans-serif" font-size="30"
-        font-weight="800" fill="#0068FF" text-anchor="middle">Zalo</text>
+  <path d="M150 612 C 320 712 520 712 692 624 C 702 688 660 730 596 742 L 232 742 C 176 734 150 690 150 612 Z" fill="#0E55CB"/>
+  <!-- bong bóng chat trắng — mở hình C bên trái, đuôi góc dưới-trái -->
+  <path d="M410 120
+           C 248 120 122 232 122 384
+           C 122 470 164 546 234 596
+           C 226 634 214 670 198 702
+           C 240 692 286 668 322 640
+           C 350 648 380 652 410 652
+           C 572 652 698 540 698 388
+           C 698 232 572 120 410 120 Z" fill="#FFFFFF"/>
+  <!-- chữ Zalo màu xanh -->
+  <text x="432" y="452" font-family="Arial, Helvetica, sans-serif" font-size="210"
+        font-weight="900" letter-spacing="-8" fill="#0068FF" text-anchor="middle">Zalo</text>
 </svg>
