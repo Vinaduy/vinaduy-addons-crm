@@ -5112,7 +5112,7 @@ div.o_vd_layout_right {
         transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     i {
-        font-size: 52px;        /* user spec 2026-06-07: icon TO hơn, giữ nguyên vòng 92px */
+        font-size: 58px;        /* user spec 2026-06-07: icon TO hơn, giữ nguyên vòng 92px */
         line-height: 1;
         position: relative;
         z-index: 1;
@@ -5141,6 +5141,74 @@ div.o_vd_layout_right {
     &:active:not(:disabled) { transform: scale(0.95); }
     &:focus { outline: none; }
     &:disabled { cursor: not-allowed; opacity: 0.85; }
+}
+
+/* TƯ VẤN QUA ZALO — box + bảng hover xác nhận (user spec 2026-06-07) */
+.o_vd_zalo_box {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+.o_vd_zalo_panel {
+    position: absolute;
+    right: calc(100% + 14px);     /* hiện sang TRÁI nút Zalo (FAB sát mép phải) */
+    bottom: 0;
+    width: 270px;
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 12px;
+    box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.32);
+    padding: 0.75rem 0.85rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 1100;
+    text-align: left;
+    /* cầu nối trong suốt lấp khoảng hở button↔panel để hover không rớt */
+    &::after {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 0;
+        width: 18px;
+        height: 100%;
+    }
+}
+.o_vd_zalo_box:hover .o_vd_zalo_panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+.o_vd_zalo_panel_head {
+    font-weight: 800;
+    color: #0068ff;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+}
+.o_vd_zalo_panel_text {
+    font-size: 0.82rem;
+    color: #444;
+    line-height: 1.45;
+    margin-bottom: 0.65rem;
+    b { color: #0068ff; }
+}
+.o_vd_zalo_panel_btn {
+    width: 100%;
+    border: none;
+    border-radius: 9px;
+    background: #0068ff;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.6rem;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease;
+    &:hover { background: #0056d6; transform: translateY(-1px); }
+    &:active { transform: translateY(0); }
+    &.o_vd_zalo_panel_btn_done { background: #2b8a3e; }
 }
 
 /* TƯ VẤN QUA ZALO — nút dưới nút gọi tròn (user spec 2026-06-07) */

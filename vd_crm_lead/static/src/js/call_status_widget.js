@@ -38,6 +38,7 @@ export class VdCallStatusWidget extends Component {
         // ở phía client. Server state vẫn dùng làm fallback cho timer.
         this.callClientState = useState(this.stringee.state);
         this.state = useState({ elapsed: 0, busy: false });
+        this.zaloState = useState({ confirmed: false });
         this._lastSeenState = null;
         this._ringStartedAt = null;
 
@@ -113,7 +114,8 @@ export class VdCallStatusWidget extends Component {
         window.open(`https://zalo.me/${phone}`, "_blank");
         try {
             await this.orm.call("crm.lead", "action_vd_consult_zalo", [[this.props.record.resId]]);
-            this.notification.add("Đã ghi nhận TƯ VẤN QUA ZALO.", { type: "success" });
+            this.zaloState.confirmed = true;
+            this.notification.add("Đã xác nhận: KH tư vấn qua Zalo để lấy thông tin.", { type: "success" });
         } catch (e) {
             console.error("[VD] consultZalo failed", e);
         }

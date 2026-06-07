@@ -31,13 +31,30 @@
                 Thiếu SĐT
             </div>
             <!-- TƯ VẤN QUA ZALO — ngay DƯỚI nút gọi (user spec 2026-06-07).
-                 Gọi không được vẫn tư vấn Zalo hợp lệ; bấm: mở Zalo KH + ghi nhận. -->
-            <button t-if="hasPhone" type="button" class="o_vd_zalo_fab"
-                    t-on-click="onZaloClick"
-                    title="Tư vấn qua Zalo — mở Zalo của khách. Gọi không được vẫn tư vấn Zalo được, không vi phạm quy định gọi điện.">
-                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
-            </button>
-            <div t-if="hasPhone" class="o_vd_call_caption o_vd_zalo_caption">TƯ VẤN QUA ZALO</div>
+                 Hover hiện bảng xác nhận "KH này tư vấn qua Zalo để lấy thông tin". -->
+            <div t-if="hasPhone" class="o_vd_zalo_box">
+                <button type="button" class="o_vd_zalo_fab"
+                        t-att-class="{ o_vd_zalo_fab_done: zaloState.confirmed }"
+                        t-on-click="onZaloClick"
+                        title="Tư vấn qua Zalo — đưa chuột vào để xác nhận.">
+                    <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalo_fab_icon" alt="Zalo"/>
+                </button>
+                <div class="o_vd_call_caption o_vd_zalo_caption">TƯ VẤN QUA ZALO</div>
+                <!-- Bảng hover -->
+                <div class="o_vd_zalo_panel">
+                    <div class="o_vd_zalo_panel_head">💬 Tư vấn qua Zalo</div>
+                    <div class="o_vd_zalo_panel_text">
+                        Gọi không được? KH này có thể tư vấn qua <b>Zalo</b> để lấy đủ
+                        thông tin — hoàn toàn hợp lệ, không vi phạm quy định gọi điện.
+                    </div>
+                    <button type="button" class="o_vd_zalo_panel_btn"
+                            t-att-class="{ o_vd_zalo_panel_btn_done: zaloState.confirmed }"
+                            t-on-click="onZaloClick">
+                        <t t-if="!zaloState.confirmed">✓ Xác nhận: KH này tư vấn qua Zalo để lấy thông tin</t>
+                        <t t-else="">✓ Đã xác nhận — tư vấn qua Zalo</t>
+                    </button>
+                </div>
+            </div>
         </div>
     </t>
 

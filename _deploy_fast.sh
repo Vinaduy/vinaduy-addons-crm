@@ -19,10 +19,13 @@ WHERE name LIKE 'web.assets_%'
    OR url LIKE '/web/assets/%';
 " | xargs -I {} echo "Deleted {} cached attachments"
 
-echo '====== REGEN TEMPLATES (clear ir.qweb cache) ======'
-# Touch __manifest__ timestamp để Odoo reload module manifest (rẻ, không -u)
-# Không cần vì assets sẽ tự rebuild
-echo 'OK — assets sẽ rebuild ở HTTP request kế tiếp'
+echo '====== SIGNAL WORKERS RELOAD (fix bug 2026-06-07) ======'
+# CHỈ xoá attachment KHÔNG đủ: worker đang chạy giữ HASH bundle CŨ trong RAM →
+# trang bootstrap vẫn trỏ bundle cũ → browser nạp bản cũ (suốt nhiều lần deploy
+# trước "không thấy đổi"). Bơm registry signaling → MỌI worker tự reload registry
+# ở request kế (xoá cache bundle hash), KHÔNG cần restart → vẫn no-downtime.
+sudo -u postgres psql -d vinaduy_crm -tAc "SELECT nextval('base_registry_signaling');" \
+  | xargs -I {} echo "registry_signaling -> {}"
 
 echo '====== STATUS ======'
 systemctl is-active odoo18 && echo 'Odoo vẫn đang chạy (không downtime)' || echo 'CẢNH BÁO: Odoo không active'
