@@ -822,7 +822,7 @@
                 <!-- BẢNG HƯỚNG DẪN (user spec 2026-06-07) — KH MỚI + đã có ≥1 cuộc gọi
                      THẬT, CHƯA làm báo giá: hiện ở vị trí bảng báo giá chi tiết. -->
                 <div class="o_vd_zguide_panel"
-                     invisible="stage_code != 'new' or not vd_has_real_call or vd_intake_complete or vd_quote_cancelled">
+                     invisible="stage_code != 'new' or not vd_has_real_call or vd_intake_complete or vd_quote_cancelled or vd_zalo_consulted_date">
                     <div class="o_vd_zguide_head">📞 TƯ VẤN QUA ĐIỆN THOẠI // ZALO ĐỀU ĐƯỢC 💬</div>
                     <div class="o_vd_zguide_body">
                         <div class="o_vd_zguide_intro">
