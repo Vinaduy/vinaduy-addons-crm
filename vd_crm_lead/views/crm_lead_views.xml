@@ -1843,7 +1843,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         </div>
                         <div class="o_vd_callhist_wrap o_vd_zalohist_wrap" invisible="not vd_zalo_consulted_date">
                             <span class="o_vd_callhist_trigger o_vd_zalohist_trigger">
-                                <img src="/vd_crm_lead/static/src/img/zalo.svg" class="o_vd_zalohist_ico"/>Lịch sử Zalo
+                                <img src="/vd_crm_lead/static/src/img/zalo.png" class="o_vd_zalohist_ico"/>Lịch sử Zalo
                             </span>
                             <div class="o_vd_callhist_panel">
                                 <field name="vd_zalo_care_html" widget="html" nolabel="1" readonly="1"/>
