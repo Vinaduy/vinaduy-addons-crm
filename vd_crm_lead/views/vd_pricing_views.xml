@@ -44,7 +44,7 @@
                                     <field name="mong_bang_lon"/>
                                     <field name="mong_coc_lon"/>
                                 </group>
-                                <group string="&lt; 70m²">
+                                <group string="≤ 69m²">
                                     <field name="mong_don_nho"/>
                                     <field name="mong_bang_nho"/>
                                     <field name="mong_coc_nho"/>
@@ -60,17 +60,17 @@
                             <group>
                                 <group string="Ô tô vào được">
                                     <field name="san_75_oto" string="≥ 75m²"/>
-                                    <field name="san_65_oto" string="65 – &lt;75m²"/>
-                                    <field name="san_50_oto" string="50 – &lt;65m²"/>
-                                    <field name="san_40_oto" string="40 – &lt;50m²"/>
-                                    <field name="san_lt40_oto" string="&lt; 40m²"/>
+                                    <field name="san_65_oto" string="65 – 74m²"/>
+                                    <field name="san_50_oto" string="50 – 64m²"/>
+                                    <field name="san_40_oto" string="40 – 49m²"/>
+                                    <field name="san_lt40_oto" string="≤ 39m²"/>
                                 </group>
                                 <group string="Ô tô KHÔNG vào được">
                                     <field name="san_75_kxe" string="≥ 75m²"/>
-                                    <field name="san_65_kxe" string="65 – &lt;75m²"/>
-                                    <field name="san_50_kxe" string="50 – &lt;65m²"/>
-                                    <field name="san_40_kxe" string="40 – &lt;50m²"/>
-                                    <field name="san_lt40_kxe" string="&lt; 40m²"/>
+                                    <field name="san_65_kxe" string="65 – 74m²"/>
+                                    <field name="san_50_kxe" string="50 – 64m²"/>
+                                    <field name="san_40_kxe" string="40 – 49m²"/>
+                                    <field name="san_lt40_kxe" string="≤ 39m²"/>
                                 </group>
                             </group>
                         </page>
@@ -78,7 +78,7 @@
                         <page string="📦 XÂY THÔ TRỌN GÓI (đ/m²)">
                             <group>
                                 <field name="tho_lon" string="≥ 70m²"/>
-                                <field name="tho_nho" string="&lt; 70m²"/>
+                                <field name="tho_nho" string="≤ 69m²"/>
                             </group>
                         </page>
 
