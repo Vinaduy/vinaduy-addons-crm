@@ -1735,52 +1735,49 @@
                         </div>
 
                         <!-- 3. BÁO CÁO CUỘC GỌI (thay card "Hoạt động hôm nay" cũ —
-                             user spec 2026-06-08). Tái dùng thiết kế badge ở trang
-                             DANH SÁCH NV (o_vd_today_btn) + giữ ô "KH mới hôm nay".
-                             Số liệu lấy từ kpi (nguồn chung _vd_call_report) nên KHỚP
-                             100% với badge trang danh sách. Đếm theo SỐ CUỘC GỌI;
-                             % = nghe máy / tổng cuộc. 3 nút xếp dọc cho vừa sidebar. -->
-                        <div class="o_vd_side_card o_vd_side_callreport">
+                             user spec 2026-06-08). Thiết kế lại dạng thẻ thống kê
+                             sạch: mỗi dòng = icon chip màu + nhãn + số to căn phải,
+                             tỉ lệ nghe máy là pill xanh riêng. Số liệu từ kpi (nguồn
+                             chung _vd_call_report). Đếm theo SỐ CUỘC GỌI. -->
+                        <div class="o_vd_side_card o_vd_cr_card">
                             <div class="o_vd_side_card_title">
                                 <i class="fa fa-phone"/> Báo cáo cuộc gọi
                             </div>
-                            <!-- KH mới hôm nay -->
-                            <div class="o_vd_today_btn o_vd_today_btn_new"
-                                 t-att-title="'KH mới được giao hôm nay: ' + (state.kpi.new_today or 0)">
-                                <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                <span class="o_vd_today_line">
-                                    <i class="fa fa-user-plus o_vd_today_ico"/>
-                                    <span class="o_vd_today_num"><t t-esc="state.kpi.new_today or 0"/></span>
-                                    <span class="o_vd_today_lbl">KH mới</span>
-                                </span>
-                            </div>
-                            <!-- Cuộc gọi HÔM NAY: tổng + nghe máy + % -->
-                            <div class="o_vd_today_btn o_vd_today_btn_call"
-                                 t-att-title="'Cuộc gọi hôm nay: ' + (state.kpi.calls_today_total or 0) + ' — nghe máy ' + (state.kpi.calls_today_success or 0)">
-                                <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                <span class="o_vd_today_line">
-                                    <i class="fa fa-phone o_vd_today_ico"/>
-                                    <span class="o_vd_today_num"><t t-esc="state.kpi.calls_today_total or 0"/></span>
-                                    <span class="o_vd_today_lbl">Cuộc gọi</span>
-                                    <span class="o_vd_today_ok">
-                                        <i class="fa fa-check-circle"/> <t t-esc="state.kpi.calls_today_success or 0"/>
-                                        · <b><t t-esc="answeredPct(state.kpi.calls_today_total, state.kpi.calls_today_success)"/>%</b>
-                                    </span>
-                                </span>
-                            </div>
-                            <!-- Cuộc gọi THÁNG NÀY: tổng + nghe máy + % -->
-                            <div class="o_vd_today_btn o_vd_today_btn_month"
-                                 t-att-title="'Cuộc gọi trong tháng: ' + (state.kpi.calls_month_total or 0) + ' — nghe máy ' + (state.kpi.calls_month_success or 0)">
-                                <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                <span class="o_vd_today_line">
-                                    <i class="fa fa-phone o_vd_today_ico"/>
-                                    <span class="o_vd_today_num"><t t-esc="state.kpi.calls_month_total or 0"/></span>
-                                    <span class="o_vd_today_lbl">Cuộc gọi</span>
-                                    <span class="o_vd_today_ok">
-                                        <i class="fa fa-check-circle"/> <t t-esc="state.kpi.calls_month_success or 0"/>
-                                        · <b><t t-esc="answeredPct(state.kpi.calls_month_total, state.kpi.calls_month_success)"/>%</b>
-                                    </span>
-                                </span>
+                            <div class="o_vd_cr_list">
+                                <!-- KH mới hôm nay -->
+                                <div class="o_vd_cr_row o_vd_cr_new">
+                                    <span class="o_vd_cr_icon"><i class="fa fa-user-plus"/></span>
+                                    <div class="o_vd_cr_body">
+                                        <span class="o_vd_cr_label">KH mới hôm nay</span>
+                                    </div>
+                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.new_today or 0"/></span>
+                                </div>
+                                <!-- Cuộc gọi hôm nay -->
+                                <div class="o_vd_cr_row o_vd_cr_today">
+                                    <span class="o_vd_cr_icon"><i class="fa fa-phone"/></span>
+                                    <div class="o_vd_cr_body">
+                                        <span class="o_vd_cr_label">Cuộc gọi hôm nay</span>
+                                        <span class="o_vd_cr_sub">
+                                            <i class="fa fa-check-circle"/>
+                                            <t t-esc="state.kpi.calls_today_success or 0"/> nghe máy
+                                            · <b><t t-esc="answeredPct(state.kpi.calls_today_total, state.kpi.calls_today_success)"/>%</b>
+                                        </span>
+                                    </div>
+                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.calls_today_total or 0"/></span>
+                                </div>
+                                <!-- Cuộc gọi tháng này -->
+                                <div class="o_vd_cr_row o_vd_cr_month">
+                                    <span class="o_vd_cr_icon"><i class="fa fa-calendar"/></span>
+                                    <div class="o_vd_cr_body">
+                                        <span class="o_vd_cr_label">Cuộc gọi tháng này</span>
+                                        <span class="o_vd_cr_sub">
+                                            <i class="fa fa-check-circle"/>
+                                            <t t-esc="state.kpi.calls_month_success or 0"/> nghe máy
+                                            · <b><t t-esc="answeredPct(state.kpi.calls_month_total, state.kpi.calls_month_success)"/>%</b>
+                                        </span>
+                                    </div>
+                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.calls_month_total or 0"/></span>
+                                </div>
                             </div>
                         </div>
 

@@ -3999,20 +3999,89 @@
         .o_vd_today_lbl { color: #9f1239; }
     }
     .o_vd_today_warn_ico { color: #e11d48; font-size: 0.78rem; }
-    /* Card BÁO CÁO CUỘC GỌI ở sidebar trang cá nhân NV (user spec 2026-06-08) —
-       tái dùng thiết kế badge .o_vd_today_btn nhưng XẾP DỌC cho vừa bề ngang
-       sidebar (thay card "Hoạt động hôm nay" cũ). */
-    .o_vd_side_callreport {
+    /* ===== Card BÁO CÁO CUỘC GỌI — sidebar trang cá nhân NV (2026-06-08) =====
+       Thẻ thống kê sạch: mỗi dòng = icon chip màu + nhãn + số to căn phải,
+       tỉ lệ nghe máy là pill xanh. Thay thiết kế badge cũ (chật, số dính chữ). */
+    .o_vd_cr_list {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        .o_vd_today_btn {
-            height: auto;
-            min-height: 48px;
-            padding-bottom: 5px;        /* nội dung không chạm mép dưới */
+        gap: 0.45rem;
+    }
+    .o_vd_cr_row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: 10px;
+        background: #f8fafc;
+        border: 1px solid #eef2f6;
+        transition: background .12s ease, box-shadow .12s ease, transform .12s ease;
+        &:hover {
+            background: #fff;
+            box-shadow: 0 4px 12px -3px rgba(15, 23, 42, 0.12);
+            transform: translateY(-1px);
         }
-        .o_vd_today_line { padding: 5px 2px 2px; flex-wrap: wrap; }
-        .o_vd_today_num { font-size: 1.25rem; }
+    }
+    .o_vd_cr_icon {
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 1rem;
+        box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.25);
+    }
+    .o_vd_cr_body {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .o_vd_cr_label {
+        font-size: 0.82rem;
+        font-weight: 650;
+        color: #334155;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .o_vd_cr_sub {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #16a34a;
+        white-space: nowrap;
+        i.fa { font-size: 0.72rem; }
+        b { font-weight: 800; }
+    }
+    .o_vd_cr_value {
+        flex: 0 0 auto;
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.5px;
+        font-variant-numeric: tabular-nums;
+        color: #0f172a;
+    }
+    /* Accent màu theo từng loại */
+    .o_vd_cr_new {
+        .o_vd_cr_icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .o_vd_cr_value { color: #b45309; }
+    }
+    .o_vd_cr_today {
+        .o_vd_cr_icon { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+        .o_vd_cr_value { color: #0369a1; }
+    }
+    .o_vd_cr_month {
+        .o_vd_cr_icon { background: linear-gradient(135deg, #10b981, #047857); }
+        .o_vd_cr_value { color: #047857; }
     }
     /* Header column HÔM NAY — vàng nổi bật */
     .o_vd_kh_th_today {
