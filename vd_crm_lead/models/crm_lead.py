@@ -8437,8 +8437,13 @@ class CrmLead(models.Model):
                 ('create_date', '<', today_end),
                 ('active', '=', True),
             ], order='create_date desc', limit=100)
-            # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG
-            # (success = at least 1 call with state='answered' OR ended+duration>0)
+            # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG.
+            # FIX 2026-06-08: "thành công / nghe máy" PHẢI lấy từ answer_time hoặc
+            # raw_events ILIKE '%answered%' — KHÔNG dùng state='answered'/duration.
+            # Lý do: webhook Stringee lọc/chuẩn hoá nên state KHÔNG bao giờ lưu
+            # 'answered' (30 ngày = 0 cái) và duration gần như luôn = 0 → công thức
+            # cũ ra 0 cho mọi NV mọi ngày. Dùng cùng tín hiệu với _vd_number_health
+            # / reached (stringee_call.py). Trước fix: green badge "0 · 0%" sai.
             calls_today = self.env['stringee.call'].sudo().search([
                 ('user_id', '=', u.id),
                 ('create_date', '>=', today_start),
@@ -8448,7 +8453,7 @@ class CrmLead(models.Model):
             calls_today_lead_ids = set(calls_today.mapped('lead_id').ids)
             success_call_lead_ids = set(
                 calls_today.filtered(
-                    lambda c: c.state == 'answered' or (c.state == 'ended' and (c.duration or 0) > 0)
+                    lambda c: c.answer_time or ('answered' in (c.raw_events or ''))
                 ).mapped('lead_id').ids
             )
             # User spec 2026-06-05: cuộc gọi THEO THÁNG (tháng hiện tại) — thẻ
@@ -8462,10 +8467,12 @@ class CrmLead(models.Model):
             ]
             calls_month_total = self.env['stringee.call'].sudo().search_count(_month_base_dom)
             # Cuộc gọi NGHE MÁY trong tháng (để quy ra % giống thẻ Hôm nay).
+            # FIX 2026-06-08: dùng answer_time / raw_events answered thay cho
+            # state='answered'/duration (xem ghi chú khối calls_today ở trên).
             calls_month_success = self.env['stringee.call'].sudo().search_count(
                 _month_base_dom + ['|',
-                    ('state', '=', 'answered'),
-                    '&', ('state', '=', 'ended'), ('duration', '>', 0)]
+                    ('answer_time', '!=', False),
+                    ('raw_events', 'ilike', 'answered')]
             )
 
             # 🆘 CẦN HỖ TRỢ — KH mà NV này đã bấm yêu cầu cấp trên hỗ trợ và còn
