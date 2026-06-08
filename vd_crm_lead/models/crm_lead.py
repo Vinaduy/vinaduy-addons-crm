@@ -3874,11 +3874,13 @@ class CrmLead(models.Model):
         return nm.strip() or 'KH'
 
     def _vd_build_quote_name(self):
-        """Build "VINADUY - <Tên KH> - <TỈNH>".
+        """Build "VINADUY - <Tên KH> - <MÃ TỈNH> - T<tháng>/<năm>".
         Trả '' nếu thiếu data buộc — caller giữ tên cũ.
 
-        Format đã đổi (bỏ MM/YY): "VINADUY - Nguyễn Linh Vân - HN"
-        (trước đây: "VINADUY - Nguyễn Linh Vân HN - 05/26").
+        Vd: "VINADUY - Lê Văn Duẩn - TH - T5/2026"
+        - MÃ TỈNH: viết tắt tỉnh (Thanh Hóa→TH). Thiếu tỉnh → bỏ đoạn này.
+        - T<tháng>/<năm>: THỜI ĐIỂM TẠO BÁO GIÁ (vd_quote_created_date, giờ VN);
+          chưa có thì lấy hiện tại. (user spec 2026-06-08)
         """
         self.ensure_one()
         kh_name = self._vd_extract_customer_name()
@@ -3887,9 +3889,14 @@ class CrmLead(models.Model):
         province_code = self._vd_province_code(
             self.vd_intake_province_id.name if self.vd_intake_province_id else ''
         )
+        qdt = self.vd_quote_created_date or fields.Datetime.now()
+        local = fields.Datetime.context_timestamp(self, qdt)
+        my_str = 'T%d/%d' % (local.month, local.year)
+        parts = ['VINADUY', kh_name]
         if province_code:
-            return 'VINADUY - %s - %s' % (kh_name, province_code)
-        return 'VINADUY - %s' % kh_name
+            parts.append(province_code)
+        parts.append(my_str)
+        return ' - '.join(parts)
 
     def _message_compute_author(self, author_id=None, email_from=None, raise_on_email=True):
         """Fallback email_from khi user không config email → tránh
@@ -7571,17 +7578,15 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_apply_quote_name_pattern(self):
-        """Đổi tên lead sang format: VINADUY - <Tên KH> - <Team>.
-        Idempotent: nếu name đã đúng format → bỏ qua."""
+        """Đổi tên lead khi TẠO BÁO GIÁ sang format:
+        VINADUY - <Tên KH> - <MÃ TỈNH> - T<tháng>/<năm tạo báo giá>.
+        (user spec 2026-06-08 — dùng MÃ TỈNH + tháng/năm thay cho Team.)
+        Idempotent: name đã có prefix 'VINADUY - ' → bỏ qua."""
         self.ensure_one()
-        team = self._vd_team_label_for(self.user_id) or 'KHÁC'
-        contact = (self.contact_name or self.partner_name or self.name or 'KH').strip()
-        # Strip lại pattern VINADUY nếu contact đã chứa (đề phòng user nhập kiểu rởm)
-        contact = self._vd_clean_input_name(contact) or contact
         if (self.name or '').startswith('VINADUY - '):
             return
-        new_name = f'VINADUY - {contact} - {team}'
-        if new_name != self.name:
+        new_name = self._vd_build_quote_name()
+        if new_name and new_name != self.name:
             self.with_context(mail_notrack=True).write({'name': new_name})
 
     @api.model
