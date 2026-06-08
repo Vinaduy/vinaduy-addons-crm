@@ -293,6 +293,11 @@ class StringeeCall(models.Model):
         cr = self.env.cr
         reached = ("(raw_events ILIKE '%%ringing%%' OR raw_events ILIKE "
                    "'%%answered%%' OR answer_time IS NOT NULL)")
+        # QUAN TRỌNG: tính `today` TRƯỚC execute. fields.Date.context_today có thể
+        # chạy 1 query phụ (đọc timezone user) — nếu xen GIỮA execute và fetchall
+        # sẽ ĐÈ kết quả con trỏ → fetchall ra rỗng (bug lộ khi cron chạy đầu
+        # transaction, lúc tz chưa cache). Fix 2026-06-09.
+        today = fields.Date.context_today(self)
         cr.execute(
             "SELECT caller_number, "
             "  count(*) AS total, "
@@ -306,8 +311,8 @@ class StringeeCall(models.Model):
             "GROUP BY caller_number",
             [str(alive_days), tuple(nums)],
         )
-        today = fields.Date.context_today(self)
-        for row in cr.fetchall():
+        rows = cr.fetchall()
+        for row in rows:
             number, total, rch, rch_recent, secs, first_at, last_at = row
             first_d = first_at.date() if first_at else None
             last_d = last_at.date() if last_at else None
