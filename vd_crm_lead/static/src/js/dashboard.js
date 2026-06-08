@@ -1024,6 +1024,109 @@ export class VdCrmDashboard extends Component {
         }
     }
 
+    // ====================== CHIA SỐ (user spec 2026-06-08) ===================
+    // Mở bảng giống "Thêm KH mới", đổ sẵn KH đã chọn, chia mỗi KH cho 1 NV.
+    async openDistribute() {
+        const ids = this.selectedLeadIdList;
+        if (!ids.length) {
+            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
+            return;
+        }
+        let recs = [];
+        try {
+            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile"]);
+        } catch (e) {
+            recs = ids.map((id) => ({ id, name: "KH #" + id, phone: "" }));
+        }
+        this.state.distribute = {
+            open: true,
+            mode: "",
+            busy: false,
+            lines: recs.map((r) => ({
+                lead_id: r.id,
+                name: r.name || ("KH #" + r.id),
+                phone: r.phone || r.mobile || "",
+                user_id: 0,
+            })),
+        };
+        this._lockScroll();
+    }
+    closeDistribute() {
+        this.state.distribute = { open: false, mode: "", busy: false, lines: [] };
+        this._unlockScroll();
+    }
+    setDistributeLineUser(idx, ev) {
+        const uid = parseInt(ev.target.value, 10) || 0;
+        if (this.state.distribute.lines[idx]) {
+            this.state.distribute.lines[idx].user_id = uid;
+            this.state.distribute.mode = "";  // NV tự chọn → bỏ chế độ tự động
+        }
+    }
+    distributeUserLoad(userId) {
+        const u = (this.state.users || []).find((x) => x.id === userId);
+        if (!u) return "";
+        return `📋 ${u.new_total || 0} mới · 📵 ${u.new_not_called || 0} chưa gọi`;
+    }
+    applyDistributeMode(mode) {
+        const lines = this.state.distribute.lines || [];
+        const users = (this.state.users || []).filter((u) => u.id);
+        if (!users.length) {
+            this.notification.add("Không có nhân viên để chia.", { type: "warning" });
+            return;
+        }
+        this.state.distribute.mode = mode;
+        if (mode === "per_line") return;  // để NV tự chọn từng dòng
+        if (mode === "even_all") {
+            lines.forEach((ln, i) => { ln.user_id = users[i % users.length].id; });
+        } else if (mode === "least") {
+            // Dồn cho NV đang ÍT SỐ nhất (cân theo new_total + số vừa gán).
+            const load = {};
+            users.forEach((u) => { load[u.id] = u.new_total || 0; });
+            lines.forEach((ln) => {
+                let best = users[0].id, bestv = load[users[0].id];
+                for (const u of users) {
+                    if (load[u.id] < bestv) { best = u.id; bestv = load[u.id]; }
+                }
+                ln.user_id = best;
+                load[best] += 1;
+            });
+        }
+    }
+    get distributeAssignedCount() {
+        return (this.state.distribute?.lines || []).filter((l) => l.user_id).length;
+    }
+    async confirmDistribute() {
+        const lines = this.state.distribute.lines || [];
+        const assignments = lines
+            .filter((l) => l.user_id)
+            .map((l) => [l.lead_id, l.user_id]);
+        if (!assignments.length) {
+            this.notification.add("Chưa chia KH nào cho NV.", { type: "warning" });
+            return;
+        }
+        this.state.distribute.busy = true;
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_distribute", [assignments],
+            );
+            this.notification.add(
+                `Đã chia ${moved} khách hàng cho các nhân viên (giữ nguyên dữ liệu).`,
+                { type: "success", title: "Chia số thành công" },
+            );
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            this.closeDistribute();
+            await this.loadDashboard();
+            if (this.state.is_manager) {
+                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
+            }
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chia được số" });
+            if (this.state.distribute) this.state.distribute.busy = false;
+        }
+    }
+
     // ========================================================================
     // HƯỚNG DẪN NÚT SOS — coachmark neo vào 1 nút SOS, NV bấm "Đã đọc"
     // ========================================================================

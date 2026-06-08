@@ -5837,6 +5837,52 @@ class CrmLead(models.Model):
             ).write({'user_id': target_id})
         return len(leads)
 
+    @api.model
+    def dashboard_bulk_distribute(self, assignments):
+        """CHIA SỐ: mỗi KH chuyển sang 1 NV KHÁC NHAU (user spec 2026-06-08).
+
+        assignments = [[lead_id, user_id], ...] — chỉ ĐỔI user_id từng KH, GIỮ
+        NGUYÊN mọi data bên trong (lịch sử gọi, vấn đề, báo giá...). Cùng quyền
+        + cùng cách write như dashboard_bulk_reassign.
+
+        Trả về số KH thực sự đã chuyển.
+        """
+        from collections import defaultdict
+        from odoo.exceptions import AccessError
+        role_model = self.env['vd.crm.role.config'].sudo()
+        if not (self.env.user._is_superuser() or role_model.can_user_reassign(self.env.user)):
+            raise AccessError(_(
+                'Bạn không có quyền chia số cho NV khác. '
+                'Chỉ Admin, người chia số hoặc giám đốc mới được làm.'
+            ))
+        by_user = defaultdict(list)
+        for pair in (assignments or []):
+            try:
+                lid = int(pair[0])
+                uid = int(pair[1])
+            except (TypeError, ValueError, IndexError):
+                continue
+            if lid and uid:
+                by_user[uid].append(lid)
+        if not by_user:
+            return 0
+        # Gom theo NV để write 1 lần/NV (đổi đúng user_id, KHÔNG đụng field khác).
+        valid_uids = set(self.env['res.users'].sudo().browse(list(by_user)).exists().ids)
+        moved = 0
+        for uid, lids in by_user.items():
+            if uid not in valid_uids:
+                continue
+            leads = self.sudo().browse(lids).exists().filtered(
+                lambda l: l.user_id.id != uid)
+            if leads:
+                leads.with_context(
+                    vd_skip_reassign_check=True,
+                    mail_notrack=True,
+                    tracking_disable=True,
+                ).write({'user_id': uid})
+                moved += len(leads)
+        return moved
+
     # ========================================================================
     # YÊU CẦU TÌM VẤN ĐỀ — cảnh báo + auto-khoá (user spec 2026-06-01)
     # ========================================================================

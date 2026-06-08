@@ -208,6 +208,68 @@
                 </div>
             </div>
 
+            <!-- 📊 POPUP CHIA SỐ (user spec 2026-06-08) — chia KH đã chọn cho nhiều NV.
+                 GIỮ NGUYÊN dữ liệu KH, chỉ đổi NV phụ trách (user_id). -->
+            <div t-if="state.distribute and state.distribute.open" class="o_vd_trashpop_overlay"
+                 t-on-click="() => this.closeDistribute()">
+                <div class="o_vd_distrib" t-on-click.stop="() => {}">
+                    <div class="o_vd_distrib_head">
+                        <span>📊 CHIA SỐ — <b><t t-esc="state.distribute.lines.length"/></b> khách
+                            <span class="o_vd_distrib_head_note">(chuyển NV phụ trách — KHÔNG đổi dữ liệu bên trong KH)</span>
+                        </span>
+                        <button type="button" class="o_vd_trashpop_close"
+                                t-on-click="() => this.closeDistribute()">×</button>
+                    </div>
+                    <div class="o_vd_distrib_modes">
+                        <span class="o_vd_distrib_modes_lbl">Cách chia nhanh:</span>
+                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'even_all' ? ' o_active' : '')"
+                                t-on-click="() => this.applyDistributeMode('even_all')">⚖️ Chia đều TẤT CẢ NV</button>
+                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'least' ? ' o_active' : '')"
+                                t-on-click="() => this.applyDistributeMode('least')">📉 Dồn NV ÍT SỐ nhất</button>
+                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'per_line' ? ' o_active' : '')"
+                                t-on-click="() => this.applyDistributeMode('per_line')">✍️ Tự chọn từng KH</button>
+                    </div>
+                    <div class="o_vd_distrib_body">
+                        <table class="o_vd_distrib_table">
+                            <thead>
+                                <tr><th>#</th><th>Tên KH</th><th>SĐT</th><th>Nhân viên nhận</th><th>Tải NV</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.distribute.lines" t-as="ln" t-key="ln.lead_id"
+                                    t-att-class="ln.user_id ? 'o_vd_distrib_row o_assigned' : 'o_vd_distrib_row'">
+                                    <td class="o_vd_distrib_idx"><t t-esc="ln_index + 1"/></td>
+                                    <td class="o_vd_distrib_kh"><t t-esc="ln.name"/></td>
+                                    <td class="o_vd_distrib_phone"><t t-esc="ln.phone"/></td>
+                                    <td>
+                                        <select class="o_vd_distrib_nv"
+                                                t-on-change="(ev) => this.setDistributeLineUser(ln_index, ev)">
+                                            <option value="0" t-att-selected="!ln.user_id">— Chọn NV —</option>
+                                            <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                                    t-att-value="u.id" t-att-selected="u.id === ln.user_id">
+                                                <t t-esc="u.name"/>
+                                            </option>
+                                        </select>
+                                    </td>
+                                    <td class="o_vd_distrib_load"><t t-esc="ln.user_id ? distributeUserLoad(ln.user_id) : ''"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="o_vd_distrib_foot">
+                        <div class="o_vd_distrib_summary">
+                            Đã chia <b><t t-esc="distributeAssignedCount"/></b>/<t t-esc="state.distribute.lines.length"/> KH
+                        </div>
+                        <button class="o_vd_distrib_confirm"
+                                t-att-disabled="state.distribute.busy or !distributeAssignedCount"
+                                t-on-click="() => this.confirmDistribute()">
+                            <t t-if="state.distribute.busy"><i class="fa fa-spinner fa-spin me-1"/>Đang chia...</t>
+                            <t t-else="">✅ Xác nhận chia số</t>
+                        </button>
+                        <button class="o_vd_distrib_cancel" t-on-click="() => this.closeDistribute()">Huỷ</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 🗑️ POPUP THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy -->
             <div t-if="state.companyTrash.open" class="o_vd_trashpop_overlay"
                  t-on-click="() => this.closeCompanyTrash()">
@@ -1795,22 +1857,11 @@
                                 <span class="o_vd_bulk_count">
                                     Đã chọn <b><t t-esc="selectedCount"/></b> KH
                                 </span>
-                                <span class="o_vd_bulk_arrow">→ chuyển sang</span>
-                                <select class="o_vd_bulk_nv_select"
-                                        t-on-change="(ev) => this.onChangeReassignTarget(ev)">
-                                    <option value="0">— Chọn NV nhận —</option>
-                                    <option t-foreach="state.users" t-as="u" t-key="u.id"
-                                            t-att-value="u.id"
-                                            t-att-selected="u.id === state.reassignTargetId">
-                                        <t t-esc="u.name"/>
-                                        <t t-if="u.new_total != null"> — <t t-esc="u.new_not_called or 0"/> chưa gọi · <t t-esc="u.new_total or 0"/> mới</t>
-                                    </option>
-                                </select>
-                                <button class="o_vd_bulk_apply"
-                                        t-att-disabled="state.reassignBusy or !selectedCount or !state.reassignTargetId"
-                                        t-on-click="() => this.doBulkReassign()">
-                                    <t t-if="state.reassignBusy"><i class="fa fa-spinner fa-spin me-1"/>Đang chuyển...</t>
-                                    <t t-else="">🔄 Chuyển</t>
+                                <span class="o_vd_bulk_arrow">→</span>
+                                <button class="o_vd_bulk_apply o_vd_bulk_distribute"
+                                        t-att-disabled="!selectedCount"
+                                        t-on-click="() => this.openDistribute()">
+                                    📊 CHIA SỐ
                                 </button>
                                 <button t-if="selectedCount" class="o_vd_bulk_clear"
                                         t-on-click="() => this.clearSelection()">
