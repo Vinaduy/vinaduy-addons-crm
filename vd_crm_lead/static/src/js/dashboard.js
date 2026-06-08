@@ -588,29 +588,11 @@ export class VdCrmDashboard extends Component {
         const notCalledIds = new Set(
             (this.state.leadsNotCalledAll || []).map(l => l.id)
         );
-        const base = (this.state.leads || []).filter(
-            l => !notCalledIds.has(l.id)
-        );
-        const tierAndCalls = (l) => {
-            const s = l.call_stats || {};
-            const total = s.total || 0;
-            const answered = s.answered || 0;
-            const daysNoAns = s.days_no_answer || 0;
-            // Tier -1: KH có báo giá (chưa CHỐT) — TOP ưu tiên (sắp đóng deal)
-            // KH đã HUỶ BÁO GIÁ (quote_cancelled) → KHÔNG tier -1 (coi như chưa báo giá).
-            if (l.intake_complete && !l.intake_locked && !l.quote_cancelled) {
-                return { tier: -1, calls: total };
-            }
-            if (total === 0)                            return { tier: 0, calls: 0 };
-            if (daysNoAns >= 3 && answered === 0)       return { tier: 3, calls: total };
-            if (answered > 0)                           return { tier: 2, calls: total };
-            return { tier: 1, calls: total };
-        };
-        return [...base].sort((a, b) => {
-            const A = tierAndCalls(a), B = tierAndCalls(b);
-            if (A.tier !== B.tier) return A.tier - B.tier;
-            return A.calls - B.calls;
-        });
+        // User spec 2026-06-08: GIỮ NGUYÊN thứ tự backend (sắp theo LẦN GỌI gần
+        // nhất — chưa gọi / lâu chưa gọi lên ĐẦU, gọi mới nhất xuống CUỐI). KHÔNG
+        // re-sort theo tier+số cuộc gọi nữa vì nó làm KH nhảy lung tung sau mỗi
+        // cuộc gọi, rất khó tìm.
+        return (this.state.leads || []).filter(l => !notCalledIds.has(l.id));
     }
 
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo

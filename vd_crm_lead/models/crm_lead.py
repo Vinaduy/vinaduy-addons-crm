@@ -6501,7 +6501,15 @@ class CrmLead(models.Model):
             domain = domain_user + [('stage_id', '=', stage_id)]
         leads = self.search(
             domain, limit=limit,
-            order='probability desc, callback_date asc, create_date desc',
+            order='last_call_date desc, create_date desc',
+        )
+        # User spec 2026-06-08: sắp theo LẦN GỌI gần nhất cho ỔN ĐỊNH, dễ tìm —
+        # KH chưa gọi / lâu chưa gọi lên ĐẦU, KH vừa gọi xong xuống CUỐI. Tránh
+        # nhảy lung tung do probability/callback_date đổi sau mỗi cuộc gọi.
+        # (KH chưa gọi: last_call_date rỗng -> coi như cũ nhất -> lên đầu.)
+        from datetime import datetime as _dt
+        leads = leads.sorted(
+            key=lambda l: (l.last_call_date or _dt.min, l.create_date or _dt.min)
         )
         return self._dashboard_serialize_leads(leads)
 
