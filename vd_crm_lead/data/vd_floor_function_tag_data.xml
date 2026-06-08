@@ -7,37 +7,6 @@
              DELETE old tags (set from before 2026-05-26 redesign).
              User chốt lại danh sách công năng theo COUNT (1 Khách, 2 Ngủ...).
              ============================================================ -->
-        <delete model="vd.floor.function.tag" id="tag_phong_khach"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_bep"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_an"/>
-        <delete model="vd.floor.function.tag" id="tag_wc_khach"/>
-        <delete model="vd.floor.function.tag" id="tag_garage"/>
-        <delete model="vd.floor.function.tag" id="tag_san_truoc"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_master"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_ngu"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_ngu_con"/>
-        <delete model="vd.floor.function.tag" id="tag_wc_chung"/>
-        <delete model="vd.floor.function.tag" id="tag_wc_rieng"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_lam_viec"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_thay_do"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_tho"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_giai_tri"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_karaoke"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_gym"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_film"/>
-        <delete model="vd.floor.function.tag" id="tag_san_thuong"/>
-        <delete model="vd.floor.function.tag" id="tag_san_phoi"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_giat"/>
-        <delete model="vd.floor.function.tag" id="tag_be_nuoc"/>
-        <delete model="vd.floor.function.tag" id="tag_thang_may"/>
-        <delete model="vd.floor.function.tag" id="tag_ho_boi"/>
-        <delete model="vd.floor.function.tag" id="tag_spa"/>
-        <delete model="vd.floor.function.tag" id="tag_bar"/>
-        <delete model="vd.floor.function.tag" id="tag_phong_doc_sach"/>
-        <delete model="vd.floor.function.tag" id="tag_cau_thang"/>
-        <delete model="vd.floor.function.tag" id="tag_hanh_lang"/>
-        <delete model="vd.floor.function.tag" id="tag_giếng_troi"/>
-        <delete model="vd.floor.function.tag" id="tag_ban_cong"/>
 
         <!-- ============================================================
              NEW TAG SET (2026-05-26):
@@ -56,8 +25,6 @@
             <field name="fit_floors">f1</field>
         </record>
         <!-- DELETE 2 tag tách rời cũ — đã gộp thành 1 -->
-        <delete model="vd.floor.function.tag" id="tag_1_khach"/>
-        <delete model="vd.floor.function.tag" id="tag_1_bep"/>
 
         <!-- ===== Ngủ (count) ===== -->
         <record id="tag_1_ngu" model="vd.floor.function.tag">
