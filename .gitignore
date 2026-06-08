@@ -18,3 +18,10 @@ oca_web/
 
 # Temp commit-message files (Claude deploy helper)
 _commitmsg.tmp
+_commit_msg.txt
+
+# Claude Code local settings (per-machine, not shared)
+.claude/
+
+# Ghi chu dieu tra noi bo — chua account_sid Stringee, KHONG day len repo
+_stringee_outbound_evidence.md
