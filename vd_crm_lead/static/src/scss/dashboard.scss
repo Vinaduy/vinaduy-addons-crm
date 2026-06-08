@@ -3999,6 +3999,21 @@
         .o_vd_today_lbl { color: #9f1239; }
     }
     .o_vd_today_warn_ico { color: #e11d48; font-size: 0.78rem; }
+    /* Card BÁO CÁO CUỘC GỌI ở sidebar trang cá nhân NV (user spec 2026-06-08) —
+       tái dùng thiết kế badge .o_vd_today_btn nhưng XẾP DỌC cho vừa bề ngang
+       sidebar (thay card "Hoạt động hôm nay" cũ). */
+    .o_vd_side_callreport {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        .o_vd_today_btn {
+            height: auto;
+            min-height: 48px;
+            padding-bottom: 5px;        /* nội dung không chạm mép dưới */
+        }
+        .o_vd_today_line { padding: 5px 2px 2px; flex-wrap: wrap; }
+        .o_vd_today_num { font-size: 1.25rem; }
+    }
     /* Header column HÔM NAY — vàng nổi bật */
     .o_vd_kh_th_today {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;

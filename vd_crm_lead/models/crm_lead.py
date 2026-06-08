@@ -6196,6 +6196,47 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def _vd_call_report(self, user_ids, today=None):
+        """NGUỒN DUY NHẤT cho báo cáo cuộc gọi HÔM NAY + THÁNG NÀY của từng NV.
+
+        Dùng chung cho trang cá nhân NV (dashboard_data) lẫn trang danh sách NV
+        (nv_unified_flat) → số liệu 2 nơi LUÔN khớp.
+
+        Đếm theo SỐ CUỘC GỌI thực tế (user spec 2026-06-08), KHÔNG phải số KH.
+        'Nghe máy' (success) = answer_time IS NOT NULL HOẶC raw_events ILIKE
+        '%answered%' — KHÔNG dùng state/duration (state không bao giờ lưu
+        'answered', duration hay = 0; cùng tín hiệu với _vd_number_health/reached
+        trong vd_stringee). Toàn bộ bằng search_count cho nhẹ (không load raw_events).
+
+        Trả: {uid: {calls_today_total, calls_today_success,
+                    calls_month_total, calls_month_success}}.
+        """
+        today = today or fields.Date.context_today(self)
+        today_start = fields.Datetime.to_datetime(today)
+        today_end = today_start + timedelta(days=1)
+        month_start = fields.Datetime.to_datetime(today.replace(day=1))
+        Call = self.env['stringee.call'].sudo()
+        ANSWERED = ['|', ('answer_time', '!=', False),
+                    ('raw_events', 'ilike', 'answered')]
+        out = {}
+        for uid in user_ids:
+            base_today = [
+                ('user_id', '=', uid), ('lead_id', '!=', False),
+                ('create_date', '>=', today_start), ('create_date', '<', today_end),
+            ]
+            base_month = [
+                ('user_id', '=', uid), ('lead_id', '!=', False),
+                ('create_date', '>=', month_start), ('create_date', '<', today_end),
+            ]
+            out[uid] = {
+                'calls_today_total': Call.search_count(base_today),
+                'calls_today_success': Call.search_count(base_today + ANSWERED),
+                'calls_month_total': Call.search_count(base_month),
+                'calls_month_success': Call.search_count(base_month + ANSWERED),
+            }
+        return out
+
+    @api.model
     def dashboard_data(self, user_id=None):
         """Single-payload data for the OWL dashboard."""
         scope_user, scope_label, domain_user, call_user_domain = self._dashboard_resolve_scope(user_id)
@@ -6249,13 +6290,16 @@ class CrmLead(models.Model):
                 ('callback_date', '<', today_end),
             ]),
             'calls_today': Call.search_count(call_today_domain),
-            'calls_answered_today': Call.search_count(
-                call_today_domain + [('state', 'in', ['answered', 'ended']), ('duration', '>', 0)],
-            ),
             'recordings_today': Call.search_count(
                 call_today_domain + [('recording_attachment_id', '!=', False)],
             ),
         }
+        # Báo cáo cuộc gọi HÔM NAY + THÁNG NÀY cho card sidebar trang cá nhân NV.
+        # Lấy từ NGUỒN CHUNG _vd_call_report (cùng số với badge trang danh sách NV).
+        # Chỉ tính khi xem 1 NV cụ thể; màn "Tất cả NV" không hiện card này.
+        # (Thay ô "Nghe" cũ tính bằng duration>0 — sai vì duration hay = 0.)
+        if scope_user:
+            kpi.update(self._vd_call_report([scope_user.id], today=today)[scope_user.id])
 
         errors = {
             'overdue_callback': self.search_count(domain_user + active_only + [
@@ -8376,6 +8420,12 @@ class CrmLead(models.Model):
             self.env['res.users']._fields['vd_capacity_level'].selection
         )
         nv_unified_flat = []
+        # Báo cáo cuộc gọi HÔM NAY + THÁNG NÀY — NGUỒN CHUNG với trang cá nhân NV
+        # (_vd_call_report). Tính 1 lần cho toàn bộ NV trước vòng lặp → số ở badge
+        # danh sách NV KHỚP 100% với card sidebar trang cá nhân. Đếm theo SỐ CUỘC GỌI.
+        call_report_map = self._vd_call_report(sales_users.ids, today=today)
+        _empty_cr = {'calls_today_total': 0, 'calls_today_success': 0,
+                     'calls_month_total': 0, 'calls_month_success': 0}
         for u in sales_users:
             # Metric 1: ĐANG CHỐT = lead ở stage 'won' (đang trong giai đoạn ký HĐ /
             # chốt — bao gồm cả đã ký lẫn chưa ký). Không yêu cầu vấn đề đã giải quyết.
@@ -8438,42 +8488,8 @@ class CrmLead(models.Model):
                 ('active', '=', True),
             ], order='create_date desc', limit=100)
             # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG.
-            # FIX 2026-06-08: "thành công / nghe máy" PHẢI lấy từ answer_time hoặc
-            # raw_events ILIKE '%answered%' — KHÔNG dùng state='answered'/duration.
-            # Lý do: webhook Stringee lọc/chuẩn hoá nên state KHÔNG bao giờ lưu
-            # 'answered' (30 ngày = 0 cái) và duration gần như luôn = 0 → công thức
-            # cũ ra 0 cho mọi NV mọi ngày. Dùng cùng tín hiệu với _vd_number_health
-            # / reached (stringee_call.py). Trước fix: green badge "0 · 0%" sai.
-            calls_today = self.env['stringee.call'].sudo().search([
-                ('user_id', '=', u.id),
-                ('create_date', '>=', today_start),
-                ('create_date', '<', today_end),
-                ('lead_id', '!=', False),
-            ])
-            calls_today_lead_ids = set(calls_today.mapped('lead_id').ids)
-            success_call_lead_ids = set(
-                calls_today.filtered(
-                    lambda c: c.answer_time or ('answered' in (c.raw_events or ''))
-                ).mapped('lead_id').ids
-            )
-            # User spec 2026-06-05: cuộc gọi THEO THÁNG (tháng hiện tại) — thẻ
-            # thống kê cạnh ô hôm nay, KHÔNG cảnh báo. Dùng search_count cho nhẹ.
-            _month_start_dt = fields.Datetime.to_datetime(today.replace(day=1))
-            _month_base_dom = [
-                ('user_id', '=', u.id),
-                ('create_date', '>=', _month_start_dt),
-                ('create_date', '<', today_end),
-                ('lead_id', '!=', False),
-            ]
-            calls_month_total = self.env['stringee.call'].sudo().search_count(_month_base_dom)
-            # Cuộc gọi NGHE MÁY trong tháng (để quy ra % giống thẻ Hôm nay).
-            # FIX 2026-06-08: dùng answer_time / raw_events answered thay cho
-            # state='answered'/duration (xem ghi chú khối calls_today ở trên).
-            calls_month_success = self.env['stringee.call'].sudo().search_count(
-                _month_base_dom + ['|',
-                    ('answer_time', '!=', False),
-                    ('raw_events', 'ilike', 'answered')]
-            )
+            # Số cuộc gọi HÔM NAY + THÁNG NÀY lấy từ map nguồn chung (đã tính ở trên).
+            _cr = call_report_map.get(u.id, _empty_cr)
 
             # 🆘 CẦN HỖ TRỢ — KH mà NV này đã bấm yêu cầu cấp trên hỗ trợ và còn
             # hiệu lực (today/multi, chưa won/lost). Độc lập với khoảng lọc ngày
@@ -8562,12 +8578,12 @@ class CrmLead(models.Model):
                 # User spec 2026-05-29: KH mới HÔM NAY
                 'new_today_count': len(new_today_qs),
                 'new_today_leads': [_ld_basic(l) for l in new_today_qs[:50]],
-                # Round 13: số KH đã gọi / gọi thành công hôm nay
-                'calls_today_total': len(calls_today_lead_ids),
-                'calls_today_success': len(success_call_lead_ids),
-                # 2026-06-05: tổng cuộc gọi THÁNG (thẻ thống kê, không cảnh báo)
-                'calls_month_total': calls_month_total,
-                'calls_month_success': calls_month_success,
+                # Số cuộc gọi HÔM NAY + THÁNG NÀY (nguồn chung _vd_call_report,
+                # đếm theo SỐ CUỘC GỌI — khớp card sidebar trang cá nhân NV).
+                'calls_today_total': _cr['calls_today_total'],
+                'calls_today_success': _cr['calls_today_success'],
+                'calls_month_total': _cr['calls_month_total'],
+                'calls_month_success': _cr['calls_month_success'],
                 # 🆘 Cần hỗ trợ (user spec 2026-05-31): count + danh sách ≤3 KH
                 'help_count': len(help_active),
                 'help_waiting': n_help_waiting,
