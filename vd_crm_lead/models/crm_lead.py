@@ -6907,9 +6907,13 @@ class CrmLead(models.Model):
         if not candidates:
             return []
         Call = self.env['stringee.call']
+        # User spec 2026-06-09: bỏ qua cuộc gọi từ SỐ CHẾT (không đổ chuông) →
+        # khách chỉ-bị-gọi-bằng-số-chết KHÔNG bị coi là "chưa gọi được" (oan).
+        dead_numbers = self._vd_dead_caller_numbers()
         calls = Call.search_read(
             [('lead_id', 'in', candidates.ids)],
-            ['lead_id', 'state', 'duration', 'answer_time', 'start_time'],
+            ['lead_id', 'state', 'duration', 'answer_time', 'start_time',
+             'caller_number'],
         )
         from collections import defaultdict
         by_lead = defaultdict(list)
@@ -6922,6 +6926,17 @@ class CrmLead(models.Model):
         now_dt = fields.Datetime.now()
         for lead in candidates:
             lcalls = by_lead.get(lead.id) or []
+            # Loại cuộc VÔ GIÁ TRỊ từ số chết (không answer_time, không nghe máy).
+            if dead_numbers and lcalls:
+                lcalls = [
+                    c for c in lcalls
+                    if not (
+                        c.get('caller_number') in dead_numbers
+                        and not c.get('answer_time')
+                        and not ((c.get('state') in ('answered', 'ended'))
+                                 and (c.get('duration') or 0) > 0)
+                    )
+                ]
             if not lcalls:
                 continue
             # User spec 2026-05-28 (round 2): answered = state ∈ {answered, ended}
@@ -7403,6 +7418,10 @@ class CrmLead(models.Model):
                 'recent_calls': [],
                 'unreachable': 0, 'distinct_days_unreachable': 0,
             }),
+            # ÉP ZALO (user spec 2026-06-09): KH 'new' đã ≥2 lần đổ chuông không
+            # nghe (số khỏe) mà chưa kết bạn Zalo/chưa báo giá → cảnh báo mạnh.
+            'must_zalo': self._vd_lead_must_zalo(
+                l, call_stats_by_lead.get(l.id, {})),
             # Cảnh báo "cần gọi hôm nay" — chỉ stage 'new':
             #   Day 1 (ngày tạo): skip
             #   Day 2: cumulative distinct_days >= 1
@@ -7505,6 +7524,35 @@ class CrmLead(models.Model):
         })
 
     @api.model
+    @api.model
+    def _vd_dead_caller_numbers(self):
+        """Set số tổng đài đang CHẾT (vd.stringee.hotline.vd_health='dead', không
+        ép xanh). Cuộc gọi từ các số này KHÔNG đổ chuông tới khách → bỏ qua khi
+        phân loại 'đã gọi / chưa gọi được' (user spec 2026-06-09). Guard nếu
+        module vd_stringee chưa cài."""
+        Hotline = self.env.get('vd.stringee.hotline')
+        if Hotline is None:
+            return set()
+        deads = Hotline.sudo().with_context(active_test=False).search([
+            ('vd_health', '=', 'dead'),
+            ('vd_force_alive', '=', False),
+        ])
+        return set(n for n in deads.mapped('number') if n)
+
+    def _vd_lead_must_zalo(self, lead, stats):
+        """User spec 2026-06-09: KH ở stage 'new' đã ≥2 lần ĐỔ CHUÔNG KHÔNG NGHE
+        (từ số khỏe — reached_no_answer) mà CHƯA kết bạn Zalo và CHƯA báo giá
+        → BẮT BUỘC chuyển hướng Zalo (cảnh báo mạnh, KHÔNG chặn gọi).
+        Đã từng nghe máy (answered>0) → thôi (đã liên lạc được)."""
+        if (lead.stage_code or '') != 'new':
+            return False
+        if lead.vd_zalo_consulted_date or lead.vd_intake_complete:
+            return False
+        s = stats or {}
+        if s.get('answered', 0) > 0:
+            return False
+        return s.get('reached_no_answer', 0) >= 2
+
     def _dashboard_compute_call_stats(self, leads, since_by_lead=None):
         """Trả dict {lead_id: {total, answered, no_answer, busy_like,
         subscriber, distinct_days, distinct_days_subscriber}} cho batch leads.
@@ -7522,9 +7570,14 @@ class CrmLead(models.Model):
         result = {}
         if not leads:
             return result
+        # User spec 2026-06-09: BỎ QUA cuộc gọi từ SỐ TỔNG ĐÀI CHẾT mà không đổ
+        # chuông (cuộc "ma" do số công ty hỏng, không phải khách sai số) → khách
+        # chỉ-bị-gọi-bằng-số-chết tự quay về "chưa gọi".
+        dead_numbers = self._vd_dead_caller_numbers()
         calls = self.env['stringee.call'].search_read(
             [('lead_id', 'in', leads.ids)],
-            ['lead_id', 'state', 'duration', 'answer_time', 'start_time', 'recording_url'],
+            ['lead_id', 'state', 'duration', 'answer_time', 'start_time',
+             'recording_url', 'caller_number'],
         )
         by_lead = defaultdict(list)
         for c in calls:
@@ -7539,6 +7592,18 @@ class CrmLead(models.Model):
                 lcalls = [
                     c for c in lcalls
                     if c.get('start_time') and c['start_time'] >= since
+                ]
+            # Loại cuộc VÔ GIÁ TRỊ: từ số chết + chưa từng nghe máy (không
+            # answer_time, không duration>0). Cuộc nghe máy thật vẫn giữ.
+            if dead_numbers:
+                lcalls = [
+                    c for c in lcalls
+                    if not (
+                        c.get('caller_number') in dead_numbers
+                        and not c.get('answer_time')
+                        and not ((c.get('state') in ('answered', 'ended'))
+                                 and (c.get('duration') or 0) > 0)
+                    )
                 ]
             total = len(lcalls)
             # Sort desc by start_time để recent_calls hiển thị mới nhất trước
@@ -7612,6 +7677,10 @@ class CrmLead(models.Model):
                 'distinct_days': len(all_days),
                 'distinct_days_subscriber': len(subscriber_days),
                 'days_no_answer': days_no_answer,
+                # Cuộc ĐỔ CHUÔNG nhưng KHÔNG NGHE (từ số khỏe): no_answer + máy bận/
+                # từ chối. Dùng cho "ép Zalo" (≥2 → must_zalo). subscriber=failed
+                # = số khách sai → KHÔNG tính là đổ chuông.
+                'reached_no_answer': no_answer + busy_like,
                 'has_call_today': has_call_today,
                 'recent_calls': recent_calls,
                 # giữ field cũ để backward compatible nếu nơi nào còn ref

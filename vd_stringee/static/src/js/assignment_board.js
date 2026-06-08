@@ -23,6 +23,7 @@ export class VdStringeeAssignmentBoard extends Component {
         this.state = useState({
             carriers: [],
             users: [],
+            alerts: [],   // NV thiếu số sống theo mạng (báo admin)
             loading: true,
             search: "",
             busy: false,
@@ -37,6 +38,7 @@ export class VdStringeeAssignmentBoard extends Component {
         const data = await this.orm.call(MODEL, "get_assignment_board", []);
         this.state.carriers = data.carriers;
         this.state.users = data.users;
+        this.state.alerts = data.alerts || [];
         this.state.loading = false;
     }
 

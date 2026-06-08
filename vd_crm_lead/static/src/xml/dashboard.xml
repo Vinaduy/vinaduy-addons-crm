@@ -3203,7 +3203,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (lead.must_zalo ? ' o_vd_pill_must_zalo' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span t-if="state.selectMode" class="o_vd_pill_check">
                     <t t-if="isLeadSelected(lead.id)">☑</t>
                     <t t-else="">☐</t>
@@ -3243,6 +3243,15 @@
                       t-att-title="'Đã gọi ' + lead.call_stats.total + ' cuộc trong ' + lead.call_stats.distinct_days + ' ngày khác nhau'">
                     📞 <t t-esc="lead.call_stats.total"/>
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
+                </span>
+
+                <!-- ÉP ZALO (user spec 2026-06-09): KH đã ≥2 lần đổ chuông không
+                     nghe → badge đỏ kiêm nút "Gửi kết bạn Zalo" (bấm = xác nhận
+                     đã kết bạn). Chỉ stage 'new'. -->
+                <span t-if="lead.must_zalo" class="o_vd_pill_zalo_force"
+                      t-on-click.stop="(ev) => this.confirmZaloFriend(ev, lead.id)"
+                      title="Khách đã GỌI 2+ LẦN đổ chuông nhưng KHÔNG nghe máy. Hãy GỬI KẾT BẠN ZALO để tư vấn qua Zalo. Bấm vào đây để xác nhận đã kết bạn (Ngày 1).">
+                    💬 KẾT BẠN ZALO
                 </span>
 
                 <!-- Badge AUTO — KH do Pancake TỰ ĐỘNG đẩy lên (user 2026-06-05).

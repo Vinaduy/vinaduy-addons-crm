@@ -92,6 +92,17 @@ class VdStringeeHotline(models.Model):
         help='Bật: số luôn hiện CÒN SỐNG trên bảng kho số + được tính khi "Chia số", '
              'bất kể lịch sử cuộc gọi. Dùng cho số mới/SIM còn sống chưa có cuộc nối.',
     )
+    # Sức khoẻ số — cron _vd_cron_sync_hotline_health ghi định kỳ. Nguồn:
+    # stringee.call._vd_numbers_stats (alive/dead/unused theo raw_events đổ chuông,
+    # KHÔNG dùng duration). Số 'dead' (không vd_force_alive) bị TỰ GỠ khỏi mọi NV
+    # + chặn gán lại tới khi đổ chuông trở lại (user spec 2026-06-09).
+    vd_health = fields.Selection([
+        ('alive', 'Còn sống'),
+        ('dead', 'CHẾT'),
+        ('unused', 'Chưa dùng'),
+    ], string='Sức khoẻ số', default='unused', readonly=True, copy=False, index=True)
+    vd_health_at = fields.Datetime(
+        string='Cập nhật sức khoẻ lúc', readonly=True, copy=False)
 
     # Legacy: số đơn cũ (1 NV = 1 số). Giữ để tương thích + migration.
     user_ids = fields.One2many(
@@ -153,6 +164,39 @@ class VdStringeeHotline(models.Model):
             # Số đổi → tự cập nhật lại nhà mạng theo đầu số mới.
             vals['carrier'] = vd_carrier_from_number(vals['number'])
         return super().write(vals)
+
+    def _vd_is_dead(self):
+        """True nếu số coi như CHẾT (chặn gọi ra + chặn gán). vd_force_alive
+        (admin ép xanh) luôn được coi an toàn."""
+        self.ensure_one()
+        return self.vd_health == 'dead' and not self.vd_force_alive
+
+    @api.model
+    def _vd_cron_sync_hotline_health(self):
+        """Cron (~1h): cập nhật vd_health mọi hotline + TỰ GỠ số CHẾT khỏi mọi NV.
+
+        Nguồn health: stringee.call._vd_numbers_stats (alive/dead/unused theo
+        raw_events đổ chuông). Số 'dead' (không vd_force_alive) → bỏ khỏi
+        assigned_user_ids (m2m) + user_ids (legacy 1-1) → NV chỉ còn gọi bằng số
+        sống. Khi số đổ chuông trở lại → health về 'alive', admin chia lại qua
+        bảng kho số (đã lọc số sống). User spec 2026-06-09: chỉ gỡ + báo admin,
+        KHÔNG tự cấp số thay.
+        """
+        hotlines = self.with_context(active_test=False).search([])
+        if not hotlines:
+            return True
+        stats = self.env['stringee.call']._vd_numbers_stats(hotlines.mapped('number'))
+        now = fields.Datetime.now()
+        for h in hotlines:
+            health = (stats.get(h.number) or {}).get('health') or 'unused'
+            h.write({'vd_health': health, 'vd_health_at': now})
+            # Số CHẾT (không ép xanh) → gỡ khỏi tất cả NV ngay.
+            if health == 'dead' and not h.vd_force_alive:
+                if h.assigned_user_ids:
+                    h.assigned_user_ids = [(5, 0, 0)]
+                if h.user_ids:
+                    h.user_ids.write({'stringee_from_number_id': False})
+        return True
 
     # ===================== BẢNG KÉO-THẢ (OWL client action) =====================
     def _check_board_access(self):
@@ -254,25 +298,40 @@ class VdStringeeHotline(models.Model):
                     'numbers': sorted(nums, key=lambda x: x['number']),
                 })
 
+        def _eff_health(h):
+            return ('alive' if h.vd_force_alive
+                    else ((num_stats.get(h.number) or {}).get('health') or 'unused'))
+
+        # Mạng mà CÔNG TY còn ít nhất 1 số SỐNG (để biết NV nào đang thiếu).
+        company_alive_carriers = {h.carrier for h in hotlines if _eff_health(h) == 'alive'}
+
         users = self.env['res.users'].search(
             [('share', '=', False), ('active', '=', True)], order='name')
         user_list = []
+        carrier_labels = dict(_CARRIER_ORDER)
+        alerts = []  # NV thiếu số sống theo mạng (user spec 2026-06-09: báo admin)
         for u in users:
             assigned = [
                 {'id': h.id, 'number': h.number, 'carrier': h.carrier,
-                 'health': 'alive' if h.vd_force_alive
-                           else ((num_stats.get(h.number) or {}).get('health') or 'unused')}
+                 'health': _eff_health(h)}
                 for h in u.stringee_hotline_ids if h.active
             ]
             assigned.sort(key=lambda x: x['carrier'])
+            # Mạng NV đang có số SỐNG; thiếu = công ty có số sống mà NV không có.
+            user_alive = {a['carrier'] for a in assigned if a['health'] == 'alive'}
+            missing = sorted(company_alive_carriers - user_alive)
+            missing_labels = [carrier_labels.get(c, c) for c in missing]
+            if missing_labels and not u.vd_no_number_share:
+                alerts.append({'user': u.name, 'carriers': missing_labels})
             user_list.append({
                 'id': u.id,
                 'name': u.name,
                 'login': u.login,
                 'hotlines': assigned,
                 'no_share': bool(u.vd_no_number_share),
+                'missing_carriers': missing_labels,
             })
-        return {'carriers': carriers, 'users': user_list}
+        return {'carriers': carriers, 'users': user_list, 'alerts': alerts}
 
     @api.model
     def toggle_user_no_share(self, user_id, value):
@@ -291,10 +350,14 @@ class VdStringeeHotline(models.Model):
         nhận 1 số/mạng, thay số CÙNG MẠNG đang có. (1 mạng 1 số / NV.)
         """
         self._check_board_access()
-        numbers = self.browse(number_ids or []).filtered(lambda h: h.active)
+        # Chặn gán SỐ CHẾT (user spec 2026-06-09): chỉ chia số active + không chết.
+        numbers = self.browse(number_ids or []).filtered(
+            lambda h: h.active and not h._vd_is_dead())
         users = self.env['res.users'].browse(user_ids or []).filtered('active')
         if not numbers:
-            return {'ok': False, 'message': 'Chưa chọn số nào để chia.'}
+            return {'ok': False, 'message':
+                    'Các số đã chọn đều CHẾT (không đổ chuông) hoặc không hợp lệ — '
+                    'không chia được. Mở outbound trên Stringee hoặc ép xanh trước.'}
         if not users:
             return {'ok': False, 'message': 'Chưa chọn nhân viên nào.'}
         by_carrier = {}
@@ -372,6 +435,9 @@ class VdStringeeHotline(models.Model):
         user = self.env['res.users'].browse(user_id).sudo()
         hotline = self.browse(hotline_id)
         if not user.exists() or not hotline.exists() or not hotline.active:
+            return False
+        # Chặn gán SỐ CHẾT (user spec 2026-06-09).
+        if hotline._vd_is_dead():
             return False
         same_carrier = user.stringee_hotline_ids.filtered(
             lambda h: h.active and h.carrier == hotline.carrier and h.id != hotline.id

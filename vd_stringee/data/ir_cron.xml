@@ -20,5 +20,17 @@
             <field name="interval_type">seconds</field>
             <field name="active" eval="True"/>
         </record>
+
+        <!-- Sức khoẻ số tổng đài: cập nhật vd_health + tự gỡ số CHẾT khỏi NV
+             (user spec 2026-06-09). 1h/lần. -->
+        <record id="ir_cron_sync_hotline_health" model="ir.cron">
+            <field name="name">Stringee: Sync hotline health + gỡ số chết</field>
+            <field name="model_id" ref="model_vd_stringee_hotline"/>
+            <field name="state">code</field>
+            <field name="code">model._vd_cron_sync_hotline_health()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
+        </record>
     </data>
 </odoo>

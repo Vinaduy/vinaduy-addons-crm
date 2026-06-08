@@ -112,10 +112,18 @@ class ResUsers(models.Model):
                 '/ iTel.'
             ) % (to_number or '')}
         label = _CARRIER_LABELS.get(carrier, carrier)
-        hotline = self.stringee_hotline_ids.filtered(
+        same_carrier = self.stringee_hotline_ids.filtered(
             lambda h: h.active and h.carrier == carrier
-        )[:1]
+        )
+        # Bỏ qua SỐ CHẾT (user spec 2026-06-09): không gọi ra bằng số không đổ chuông.
+        hotline = same_carrier.filtered(lambda h: not h._vd_is_dead())[:1]
         if not hotline:
+            if same_carrier:
+                # Có số mạng đó nhưng tất cả đã CHẾT → cron đã/đang gỡ; báo admin.
+                return {'error': (
+                    'SỐ %s CỦA BẠN ĐÃ CHẾT (không đổ chuông được nữa): hệ thống đã '
+                    'gỡ số hỏng. → Báo admin cấp cho bạn 1 số %s khác đang sống.'
+                ) % (label, label)}
             return {'error': (
                 'BẠN KHÔNG CÓ SỐ %s ĐỂ GỌI: khách này dùng mạng %s, mà bạn chưa '
                 'được gán số tổng đài %s nào. Bạn KHÔNG được gọi ngoại mạng. '

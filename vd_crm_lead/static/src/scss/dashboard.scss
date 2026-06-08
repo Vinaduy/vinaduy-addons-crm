@@ -2155,6 +2155,31 @@
         line-height: 1;
         filter: drop-shadow(0 0 1px rgba(245, 159, 0, 0.5));
     }
+    /* ÉP ZALO (user spec 2026-06-09): KH ≥2 lần đổ chuông không nghe.
+       Badge đỏ kiêm nút "Kết bạn Zalo" + viền đỏ nhấp nháy quanh pill. */
+    .o_vd_pill_zalo_force {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin-left: 0.25rem;
+        padding: 1px 7px;
+        border-radius: 999px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: #fff;
+        background: linear-gradient(135deg, #e11d48, #be123c);
+        box-shadow: 0 1px 4px rgba(225, 29, 72, 0.4);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform .1s ease, box-shadow .1s ease;
+        &:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(225,29,72,0.5); }
+    }
+    .o_vd_won_pill.o_vd_pill_must_zalo {
+        border-color: #e11d48 !important;
+        box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.35),
+                    0 2px 8px rgba(225, 29, 72, 0.28);
+    }
     /* Logo Zalo nhỏ ở cuối thẻ KH — đã/đang tư vấn Zalo (user spec 2026-06-07) */
     .o_vd_pill_zalo {
         width: 15px;

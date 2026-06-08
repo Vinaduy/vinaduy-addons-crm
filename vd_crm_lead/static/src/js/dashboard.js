@@ -2062,6 +2062,18 @@ export class VdCrmDashboard extends Component {
             this.notification.add("KH chưa có SĐT.", { type: "warning" });
             return;
         }
+        // ÉP ZALO (user spec 2026-06-09): KH đã ≥2 lần đổ chuông không nghe →
+        // cảnh báo MẠNH nên gửi kết bạn Zalo, nhưng KHÔNG chặn (vẫn cho gọi nếu
+        // NV xác nhận muốn gọi tiếp).
+        if (lead.must_zalo) {
+            const ok = window.confirm(
+                "⚠️ Khách này đã GỌI 2+ LẦN ĐỔ CHUÔNG NHƯNG KHÔNG NGHE MÁY.\n\n"
+                + "Khách kiểu này thường KHÔNG bắt máy số lạ. NÊN bấm "
+                + "\"💬 KẾT BẠN ZALO\" để tư vấn qua Zalo thay vì gọi tiếp.\n\n"
+                + "Bạn VẪN muốn gọi điện?"
+            );
+            if (!ok) return;
+        }
         // Debounce: chặn double-click cùng button trong 2s
         const btn = ev.currentTarget;
         if (btn && btn.dataset.vdCalling === "1") {

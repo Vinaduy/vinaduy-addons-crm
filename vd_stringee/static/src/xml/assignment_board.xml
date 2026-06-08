@@ -8,6 +8,23 @@
             </div>
             <div t-else="" class="o_vd_board_wrap">
 
+                <!-- CẢNH BÁO: NV thiếu số SỐNG theo mạng (số chết đã tự gỡ —
+                     user spec 2026-06-09). Admin chia lại số sống cho các NV này. -->
+                <div t-if="state.alerts and state.alerts.length"
+                     class="o_vd_board_alerts alert alert-warning py-2 px-3 mb-2">
+                    <div class="fw-bold mb-1">
+                        <i class="fa fa-exclamation-triangle me-1"/>
+                        <t t-esc="state.alerts.length"/> NV đang THIẾU số sống — cần chia lại:
+                    </div>
+                    <div class="o_vd_alert_list">
+                        <t t-foreach="state.alerts" t-as="al" t-key="al.user">
+                            <span class="o_vd_alert_item me-3">
+                                <b t-esc="al.user"/>: thiếu <t t-esc="al.carriers.join(', ')"/>
+                            </span>
+                        </t>
+                    </div>
+                </div>
+
                 <!-- KHO SỐ: gom theo nhà mạng, kéo chip thả vào NV -->
                 <div class="o_vd_palette">
                     <div class="o_vd_palette_title">
