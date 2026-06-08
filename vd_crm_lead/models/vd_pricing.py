@@ -29,12 +29,12 @@ class VdPricingRegion(models.Model):
     # Bảng cập nhật 2026-05-20: cả 3 vùng dùng chung 1 bảng sàn.
     san_75_oto = fields.Float(string='Sàn ≥75m² · ô tô vào (đ/m²)', default=6_400_000)
     san_75_kxe = fields.Float(string='Sàn ≥75m² · ô tô KO vào (đ/m²)', default=6_700_000)
-    san_65_oto = fields.Float(string='Sàn 65–75m² · ô tô vào (đ/m²)', default=6_600_000)
-    san_65_kxe = fields.Float(string='Sàn 65–75m² · ô tô KO vào (đ/m²)', default=6_900_000)
-    san_50_oto = fields.Float(string='Sàn 50–65m² · ô tô vào (đ/m²)', default=6_800_000)
-    san_50_kxe = fields.Float(string='Sàn 50–65m² · ô tô KO vào (đ/m²)', default=7_000_000)
-    san_40_oto = fields.Float(string='Sàn 40–50m² · ô tô vào (đ/m²)', default=7_000_000)
-    san_40_kxe = fields.Float(string='Sàn 40–50m² · ô tô KO vào (đ/m²)', default=7_500_000)
+    san_65_oto = fields.Float(string='Sàn 65–<75m² · ô tô vào (đ/m²)', default=6_600_000)
+    san_65_kxe = fields.Float(string='Sàn 65–<75m² · ô tô KO vào (đ/m²)', default=6_900_000)
+    san_50_oto = fields.Float(string='Sàn 50–<65m² · ô tô vào (đ/m²)', default=6_800_000)
+    san_50_kxe = fields.Float(string='Sàn 50–<65m² · ô tô KO vào (đ/m²)', default=7_000_000)
+    san_40_oto = fields.Float(string='Sàn 40–<50m² · ô tô vào (đ/m²)', default=7_000_000)
+    san_40_kxe = fields.Float(string='Sàn 40–<50m² · ô tô KO vào (đ/m²)', default=7_500_000)
     san_lt40_oto = fields.Float(string='Sàn <40m² · ô tô vào (đ/m²)', default=7_500_000)
     san_lt40_kxe = fields.Float(string='Sàn <40m² · ô tô KO vào (đ/m²)', default=8_000_000)
 
