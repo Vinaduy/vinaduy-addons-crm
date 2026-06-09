@@ -6697,7 +6697,7 @@ class CrmLead(models.Model):
         leads = self.search(
             [('id', 'in', urgent_ids)],
             limit=limit,
-            order='vd_quote_created_date asc nulls last, create_date asc',
+            order='vd_quote_created_date desc nulls last, create_date desc',
         )
         data = self._dashboard_serialize_leads(leads)
         return self._dashboard_attach_quote_info(leads, data)
@@ -6730,7 +6730,7 @@ class CrmLead(models.Model):
             ],
             limit=limit,
             # Round 17 sort: ưu tiên KH cũ nhất (= ít ngày còn lại / quá hạn).
-            order='vd_quote_created_date asc nulls last, create_date asc',
+            order='vd_quote_created_date desc nulls last, create_date desc',
         )
         data = self._dashboard_serialize_leads(leads)
         return self._dashboard_attach_quote_info(leads, data)
@@ -8410,7 +8410,7 @@ class CrmLead(models.Model):
                 ('vd_intake_complete', '=', True),
                 ('vd_intake_locked', '=', True),
                 ('id', 'not in', all_urgent_ids),
-            ], order='vd_quote_created_date asc nulls last, create_date asc')
+            ], order='vd_quote_created_date desc nulls last, create_date desc')
             for l in xlvd_leads_all:
                 xlvd_by_user[l.user_id.id].append(l)
 
