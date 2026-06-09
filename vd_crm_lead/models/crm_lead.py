@@ -8648,8 +8648,9 @@ class CrmLead(models.Model):
                 ('user_id', '=', u.id),
                 ('active', '=', True),
             ])
-            if n_resolved + n_in_prog + n_no_problem + n_new == 0 and total_managed == 0:
-                continue
+            # User spec 2026-06-09: NV cứ có tài khoản (salesman, active) là PHẢI
+            # hiện trên danh sách, kể cả 0 khách / 0 số → bỏ skip NV rỗng (trước
+            # đây ẩn NV total_managed==0 nên NV mới giao tài khoản không thấy).
 
             # ===== NHẮC NHỞ NHÂN VIÊN — số liệu tồn đọng cần xử lý =====
             _nv_urgent = urgent_by_user.get(u.id, [])
