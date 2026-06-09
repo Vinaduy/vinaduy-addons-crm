@@ -602,7 +602,6 @@
                                                         <span class="o_vd_today_line">
                                                             <i class="fa fa-user-plus o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
-                                                            <span class="o_vd_today_lbl">KH mới</span>
                                                         </span>
                                                     </div>
                                                     <!-- THẺ 2: CUỘC GỌI HÔM NAY — 1 dòng: số + ✓ nghe máy + %, báo ĐỎ khi yếu -->

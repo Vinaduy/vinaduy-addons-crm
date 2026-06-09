@@ -7860,11 +7860,21 @@ class CrmLead(models.Model):
         ]
 
         ResUsers = self.env['res.users']
-        sales_users = ResUsers.search([
+        # User spec 2026-06-09: ADMIN + QUẢN LÝ KHÔNG phải nhân viên → loại khỏi
+        # danh sách NV (chỉ giữ salesman thuần). groups_id đã materialize cả group
+        # implied nên manager/admin vẫn có group_salesman → phải loại tường minh.
+        _sale_dom = [
             ('share', '=', False),
             ('active', '=', True),
             ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
-        ])
+        ]
+        _mgr_g = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
+        _sys_g = self.env.ref('base.group_system', raise_if_not_found=False)
+        if _mgr_g:
+            _sale_dom.append(('groups_id', 'not in', _mgr_g.id))
+        if _sys_g:
+            _sale_dom.append(('groups_id', 'not in', _sys_g.id))
+        sales_users = ResUsers.search(_sale_dom)
         sales_user_ids = sales_users.ids
 
         def _short_name(name):

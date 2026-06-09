@@ -33,20 +33,27 @@
               sequence="60"
               groups="sales_team.group_sale_manager"/>
 
-    <!-- ⚙️ Cấu hình → Kho số tổng đài (danh sách số Stringee) -->
+    <!-- ⚙️ Cấu hình → Kho số tổng đài (danh sách thô) — ĐÃ ẨN (user spec 2026-06-09):
+         dùng "Chia số cho nhân viên" (bảng kéo-thả) làm màn CHÍNH thay danh sách này.
+         Action vd_stringee.action_vd_stringee_hotline vẫn còn (vào bằng URL khi cần
+         thêm số mới). -->
+    <!--
     <menuitem id="menu_vd_hotline_pool"
               name="Kho số tổng đài"
               parent="crm.crm_menu_config"
               action="vd_stringee.action_vd_stringee_hotline"
               sequence="62"
               groups="sales_team.group_sale_manager"/>
+    -->
 
-    <!-- ⚙️ Cấu hình → Chia số cho nhân viên (bảng gán số theo NV) -->
+    <!-- ⚙️ Cấu hình → Kho số tổng đài (bảng kéo-thả gán số theo NV).
+         User spec 2026-06-09: gộp về 1 menu — đổi tên "Chia số cho nhân viên"
+         thành "Kho số tổng đài", bỏ menu danh sách thô trùng ở trên. -->
     <menuitem id="menu_vd_assign_numbers"
-              name="Chia số cho nhân viên"
+              name="Kho số tổng đài"
               parent="crm.crm_menu_config"
               action="vd_stringee.action_vd_stringee_board"
-              sequence="63"
+              sequence="62"
               groups="sales_team.group_sale_manager"/>
 
     <!-- ⚙️ Cấu hình → Cài đặt khoá (3 bảng: Khách mới / Thi công gấp / Xử lý vấn đề) -->
