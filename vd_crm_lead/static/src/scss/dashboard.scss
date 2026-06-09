@@ -7558,6 +7558,26 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     gap: 0.55rem;
     b { color: #1f2a44; }
 }
+/* Bảng 3 quy tắc khoá bảng Khách mới (hover ổ khoá) — user spec 2026-06-10 */
+.o_vd_lockrules_tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    th, td {
+        border: 1px solid #e5e9f0;
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+    }
+    thead th {
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    tbody td:first-child { white-space: nowrap; color: #be123c; }
+    tbody tr:nth-child(even) td { background: #fafbfc; }
+}
 .o_vd_cw_help_flow { display: flex; flex-direction: column; gap: 0.5rem; }
 .o_vd_cw_help_step {
     background: #fff9db;
