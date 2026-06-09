@@ -1175,11 +1175,19 @@ export class VdCrmDashboard extends Component {
     get _newTableLeadIds() {
         return new Set((this.leadsNoProblems || []).map(l => l.id));
     }
-    // True nếu lead đang bị khoá mở (làm mờ pill + chặn click). 2 khoá Khách mới
-    // (chốt báo giá / kết bạn Zalo) CHỈ áp cho lead THUỘC bảng Khách mới —
-    // KHÔNG lan sang Thi công gấp / Xử lý vấn đề (user spec 2026-06-10).
+    // KH bị NHẮC (chưa gọi đủ) — vẫn được mở khi khoá "chưa gọi đủ" để NV gọi.
+    get callWatchAllowedIds() {
+        return new Set(this.state.call_watch?.allowed_ids || []);
+    }
+    // True nếu lead đang bị khoá mở (làm mờ pill + chặn click). CẢ 3 khoá Khách
+    // mới CHỈ áp cho lead THUỘC bảng Khách mới — KHÔNG lan sang Thi công gấp /
+    // Xử lý vấn đề (user spec 2026-06-10). Mỗi khoá chừa loại KH cần xử lý:
+    //   - chưa gọi đủ → chừa KH bị nhắc (gọi để gỡ)
+    //   - chốt báo giá → chừa KH đã báo giá (chốt để gỡ)
+    //   - nhắn Zalo → chừa KH chưa nhắn (nhắn để gỡ)
     isLeadLocked(leadId) {
         if (!this._newTableLeadIds.has(leadId)) return false;
+        if (this.isTableLockedForSelf('new') && !this.callWatchAllowedIds.has(leadId)) return true;
         if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) return true;
         if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
         return false;
@@ -1195,10 +1203,10 @@ export class VdCrmDashboard extends Component {
         if (this.zaloFriendLockActive && this._newTableLeadIds.has(leadId)
                 && !this.zaloFriendAllowedIds.has(leadId)) {
             this.notification.add(
-                "🔒 Bạn có HƠN 10 khách CHƯA KẾT BẠN ZALO. Hãy mở từng khách "
-                + "VIỀN ĐỎ → KẾT BẠN + tư vấn qua Zalo. Khi còn ≤ 10 khách chưa kết "
-                + "bạn, các khách khác sẽ mở lại bình thường.",
-                { type: "warning", title: "Khoá — chưa KẾT BẠN ZALO" },
+                "🔒 Bạn có HƠN 10 khách CHƯA NHẮN ZALO. Hãy mở từng khách VIỀN ĐỎ "
+                + "→ NHẮN tin Zalo (kết bạn khi khách trả lời). Khi còn ≤ 10 khách "
+                + "chưa nhắn, các khách khác sẽ mở lại bình thường.",
+                { type: "warning", title: "Khoá — chưa NHẮN ZALO" },
             );
             return;
         }
@@ -1219,13 +1227,16 @@ export class VdCrmDashboard extends Component {
         // KHOÁ THEO TỪNG BẢNG (user spec 2026-06-05): "bảng nào vi phạm khoá
         // bảng đó". Chặn bấm KH thuộc bảng đang khoá. Chỉ áp khi NV xem dashboard
         // CHÍNH MÌNH (admin xem hộ vẫn mở + có nút gỡ). Chỉ admin gỡ khoá.
+        // KHOÁ "CHƯA GỌI ĐỦ" (user spec 2026-06-10): CHỈ khoá các KH khác; KH bị
+        // NHẮC (chưa gọi) vẫn mở được để NV gọi → gọi đủ là TỰ GỠ.
         if (this.isTableLockedForSelf('new')
-                && (this.leadsNoProblems || []).some(l => l.id === leadId)) {
+                && this._newTableLeadIds.has(leadId)
+                && !this.callWatchAllowedIds.has(leadId)) {
             this.notification.add(
-                "🔒 Bảng KHÁCH MỚI đang bị KHOÁ do chưa gọi đủ. "
-                + (this.state.call_watch?.reason || "")
-                + " Liên hệ quản lý để được mở khoá.",
-                { type: "warning", title: "Khoá bảng Khách mới" },
+                "🔒 Bảng KHÁCH MỚI đang KHOÁ do CHƯA GỌI ĐỦ. Hãy mở các khách "
+                + "CHƯA BỊ MỜ (khách bị nhắc) → GỌI cho đủ, bảng sẽ TỰ MỞ ngay. "
+                + (this.state.call_watch?.reason || ""),
+                { type: "warning", title: "Khoá bảng Khách mới — chưa gọi đủ" },
             );
             return;
         }
@@ -2124,8 +2135,8 @@ export class VdCrmDashboard extends Component {
         if (lead.must_zalo) {
             const ok = window.confirm(
                 "⚠️ Khách này đã GỌI 2+ LẦN ĐỔ CHUÔNG NHƯNG KHÔNG NGHE MÁY.\n\n"
-                + "Khách kiểu này thường KHÔNG bắt máy số lạ. NÊN bấm "
-                + "\"💬 KẾT BẠN ZALO\" để tư vấn qua Zalo thay vì gọi tiếp.\n\n"
+                + "Khách kiểu này thường KHÔNG bắt máy số lạ. NÊN NHẮN TIN ZALO "
+                + "(kết bạn khi khách trả lời) thay vì gọi tiếp.\n\n"
                 + "Bạn VẪN muốn gọi điện?"
             );
             if (!ok) return;

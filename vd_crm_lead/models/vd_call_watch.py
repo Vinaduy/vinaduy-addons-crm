@@ -298,10 +298,16 @@ class CrmLeadCallWatch(models.Model):
                 'deadline': deadline.strftime('%d/%m'),
                 'overdue': today > deadline,
             })
+        # User spec 2026-06-10: khoá CHƯA GỌI ĐỦ chỉ khoá các KH KHÁC trong bảng;
+        # các KH bị NHẮC (warned) vẫn mở được để NV gọi → tự gỡ. allowed_ids =
+        # tập KH bị cảnh báo hôm trước (đang giữ khoá).
+        allowed_ids = (sorted(self._vd_parse_ids(scope_user.vd_call_warned_lead_ids))
+                       if scope_user.vd_call_lock else [])
         base.update({
             'locked': bool(scope_user.vd_call_lock),
             'reason': scope_user.vd_call_lock_reason or '',
             'uncalled_count': len(uncalled_ids),
             'uncalled_leads': leads_payload,
+            'allowed_ids': allowed_ids,
         })
         return base

@@ -1900,8 +1900,20 @@
                                 <div class="o_vd_split_table">
                                     <!-- NỬA TRÁI: KHÁCH MỚI -->
                                     <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
-                                        <t t-set="lockWhich" t-value="'new'"/>
-                                        <t t-call="vd_crm_lead.TableLockShield"/>
+                                        <!-- KHOÁ "CHƯA GỌI ĐỦ" (user spec 2026-06-10): KHÔNG phủ kín bảng nữa
+                                             — chỉ badge góc + làm mờ KH khác; KH bị nhắc (allowed) vẫn mở để gọi. -->
+                                        <div t-if="isTableLocked('new')" class="o_vd_chot_lock_badge o_vd_cw_lock_badge">
+                                            <i class="fa fa-lock o_vd_lock_shield_ico"/>
+                                            <div class="o_vd_lock_shield_lbl">ĐÃ KHOÁ</div>
+                                            <div class="o_vd_chot_lock_note">
+                                                <t t-esc="state.call_watch.reason"/><br/>
+                                                Mở các khách <b>CHƯA BỊ MỜ</b> (bị nhắc) → GỌI đủ là <b>tự mở</b>.
+                                            </div>
+                                            <button t-if="canAdminUnlock" class="o_vd_lock_unlock_btn"
+                                                    t-on-click.stop="() => this.adminClearTableLock('new')">
+                                                🔓 Mở khoá
+                                            </button>
+                                        </div>
                                         <!-- KHOÁ CHỐT BÁO GIÁ (user 2026-06-05): >3 KH báo giá chưa CHỐT.
                                              Badge ổ khoá góc trên-phải (admin cũng thấy); KHÔNG nút gỡ —
                                              CHỐT bớt khách để gỡ. Không phủ kín để vẫn mở KH 💰 xanh lá. -->
@@ -1940,37 +1952,32 @@
                                                     <i t-att-class="'fa o_vd_pf_banner_ico o_vd_cw_help_ico ' + (state.call_watch.locked ? 'fa-lock' : 'fa-unlock-alt')"
                                                        title="Khi nào bị KHOÁ bảng Khách mới? (đưa chuột vào xem)"/>
                                                     <div class="o_vd_cw_help_panel">
-                                                        <div class="o_vd_cw_help_head">🔒 Khi nào bị KHOÁ bảng KHÁCH MỚI?</div>
+                                                        <div class="o_vd_cw_help_head">🔒 3 TRƯỜNG HỢP KHOÁ BẢNG KHÁCH MỚI</div>
                                                         <div class="o_vd_cw_help_body">
-                                                            <div class="o_vd_cw_help_sec">
-                                                                <b>① "KH mới" tính khoá:</b> chỉ KH ở bảng <b>Khách mới THẬT</b>.
-                                                                KHÔNG tính THAM KHẢO / HUỶ / THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ / CHƯA GỌI ĐƯỢC,
-                                                                và KH đã <b>tư vấn Zalo + có báo giá chi tiết</b> (được miễn).
-                                                            </div>
-                                                            <div class="o_vd_cw_help_sec">
-                                                                <b>② "Đã gọi trong 1 ngày":</b> ngày đó <b>bấm gọi đi ≥1 lần</b> là tính (kể cả khách dập máy 1 giây).
-                                                                Mỗi KH cần được gọi ở <b>3 NGÀY LÀM VIỆC khác nhau</b> (T2–T7, bỏ Chủ nhật + lễ).
-                                                            </div>
-                                                            <div class="o_vd_cw_help_flow">
-                                                                <div class="o_vd_cw_help_step">
-                                                                    <span class="o_vd_cw_help_num">15h HÔM NAY</span>
-                                                                    Hệ thống lập <b>"danh sách nhắc"</b> = KH <i>(chưa gọi đủ 3 ngày)</i> <b>VÀ</b> <i>(hôm nay chưa bấm gọi)</i>. Ghi lại để mai đối chiếu.
-                                                                </div>
-                                                                <div class="o_vd_cw_help_step">
-                                                                    <span class="o_vd_cw_help_num">15h NGÀY LV KẾ</span>
-                                                                    Nếu trong "danh sách nhắc" hôm trước <b>còn BẤT KỲ KH nào vẫn chưa gọi</b> → <b class="o_vd_cw_help_red">KHOÁ bảng Khách mới</b>.
-                                                                </div>
-                                                            </div>
-                                                            <div class="o_vd_cw_help_key">🔑 Tóm gọn: KH đã bị nhắc hôm trước, qua ngày làm việc sau <b>vẫn không gọi → KHOÁ</b>.</div>
-                                                            <div class="o_vd_cw_help_sec o_vd_cw_help_ex">
-                                                                <b>📌 Ví dụ:</b> Thứ 2 15h — KH "A" chưa gọi đủ → A vào danh sách nhắc.
-                                                                Thứ 3 15h — A vẫn chưa được gọi → <b>KHOÁ</b>. Nếu <b>trước 15h Thứ 3</b> đã gọi A → không khoá.
-                                                            </div>
-                                                            <div class="o_vd_cw_help_ok">
-                                                                ✅ <b>Gỡ khoá:</b> gọi hết KH trong danh sách nhắc → bảng <b>tự mở ngay</b> (không chờ 15h). Quản lý/giám đốc mở khoá ngay được.
-                                                            </div>
+                                                            <table class="o_vd_lockrules_tbl">
+                                                                <thead>
+                                                                    <tr><th>Khoá</th><th>VI PHẠM khi</th><th>TỰ MỞ khi</th></tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td><b>① Chưa gọi đủ</b></td>
+                                                                        <td>KH bị nhắc hôm trước (chưa gọi đủ <b>3 ngày làm việc</b>), qua ngày làm việc sau <b>vẫn chưa gọi</b>.</td>
+                                                                        <td>Gọi đủ các KH bị nhắc → <b>tự mở ngay</b>.</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td><b>② Chốt báo giá</b></td>
+                                                                        <td>Có <b>hơn 3 KH</b> đã BÁO GIÁ nhưng <b>chưa CHỐT</b>.</td>
+                                                                        <td>CHỐT bớt → còn <b>≤ 3</b> tự mở.</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td><b>③ Nhắn Zalo</b></td>
+                                                                        <td>Có <b>hơn 10 KH</b> gọi không được mà <b>chưa NHẮN Zalo</b>.</td>
+                                                                        <td>Nhắn cho họ → còn <b>≤ 10</b> tự mở.</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
                                                             <div class="o_vd_cw_help_note">
-                                                                ⚙️ Mặc định <b>còn sót 1 KH chưa gọi là khoá</b>. Admin chỉnh được: số ngày (3), cửa sổ (7 ngày làm việc), bật/tắt, ngày lễ.
+                                                                ⚙️ Mỗi khoá CHỈ khoá <b>bảng Khách mới</b> + chỉ làm mờ KH KHÁC — các KH thuộc diện cần xử lý (bị nhắc / đã báo giá / chưa nhắn) <b>vẫn mở được</b> để xử lý cho hết. Quản lý/giám đốc mở khoá ngay được; admin chỉnh được ngưỡng.
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3277,8 +3284,8 @@
                              gọi nhiều lần không nghe → yêu cầu kết bạn + tư vấn Zalo. -->
                         <div t-if="lead.must_zalo" class="o_vd_tt_zalo_warn">
                             <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_tt_zalo_logo"/>
-                            <span>⚠️ CHƯA KẾT BẠN ZALO — đã gọi nhiều lần không nghe máy.
-                                Hãy <b>KẾT BẠN + TƯ VẤN, GỌI QUA ZALO</b> cho khách này.</span>
+                            <span>⚠️ CHƯA NHẮN ZALO — đã gọi nhiều lần không nghe máy.
+                                Hãy <b>NHẮN TIN ZALO</b> cho khách này (kết bạn khi khách trả lời).</span>
                         </div>
                     </t>
                     <div class="o_vd_won_tt_row">

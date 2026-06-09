@@ -265,8 +265,8 @@ export class VdCallStatusWidget extends Component {
             default:
                 return {
                     title: "TƯ VẤN KHÁCH QUA ZALO",
-                    hint: "Kết bạn Zalo để tư vấn lấy thông tin trước khi làm báo giá.",
-                    btn: "XÁC NHẬN ĐÃ KẾT BẠN",
+                    hint: "Nhắn tin Zalo để tư vấn (kết bạn khi khách trả lời).",
+                    btn: "XÁC NHẬN ĐÃ NHẮN ZALO",
                 };
         }
     }

@@ -408,7 +408,7 @@ class CrmLead(models.Model):
         compute='_compute_vd_zalo_care', store=False)
 
     _ZALO_DAY_LABELS = {
-        1: 'Kết bạn + gửi tin nhắn chào khách',
+        1: 'Nhắn tin Zalo chào khách (kết bạn khi khách trả lời)',
         2: 'Gọi điện và nhắn tin qua Zalo',
         3: 'Gọi điện và nhắn tin qua Zalo',
     }
@@ -567,10 +567,10 @@ class CrmLead(models.Model):
         done = self._vd_zalo_friend_today(user)
         if done >= cap:
             raise UserError(_(
-                '🔒 Hôm nay bạn đã KẾT BẠN ZALO %d khách — ĐẠT HẠN MỨC AN TOÀN '
-                '(%d/ngày).\n\nKết bạn quá nhiều trong ngày khiến Zalo KHOÁ tính '
-                'năng kết bạn (nặng hơn là khoá tài khoản). Hãy NHẮN/GỌI tiếp các '
-                'khách đã kết bạn hôm nay; mai kết bạn thêm.'
+                '🔒 Hôm nay bạn đã NHẮN ZALO %d khách — ĐẠT HẠN MỨC AN TOÀN '
+                '(%d/ngày).\n\nNhắn người lạ quá nhiều trong ngày khiến Zalo HẠN '
+                'CHẾ/KHOÁ tài khoản. Hãy chăm tiếp các khách đã nhắn hôm nay '
+                '(kết bạn khi khách trả lời); mai nhắn thêm khách mới.'
             ) % (done, cap))
 
     def vd_dashboard_zalo_friend(self):
