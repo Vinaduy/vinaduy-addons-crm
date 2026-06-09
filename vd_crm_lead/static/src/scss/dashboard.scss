@@ -2157,16 +2157,14 @@
     }
     /* ÉP ZALO (user spec 2026-06-09): KH ≥2 lần đổ chuông không nghe.
        Badge đỏ kiêm nút "Kết bạn Zalo" + viền đỏ nhấp nháy quanh pill. */
+    /* Rút gọn (2026-06-09): chỉ logo Zalo + dấu "+" = "kết bạn Zalo" (bỏ chữ dài). */
     .o_vd_pill_zalo_force {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
+        gap: 1px;
         margin-left: 0.25rem;
-        padding: 1px 7px;
+        padding: 1px 5px 1px 3px;
         border-radius: 999px;
-        font-size: 0.62rem;
-        font-weight: 800;
-        letter-spacing: 0.2px;
         color: #fff;
         background: linear-gradient(135deg, #e11d48, #be123c);
         box-shadow: 0 1px 4px rgba(225, 29, 72, 0.4);
@@ -2174,6 +2172,19 @@
         white-space: nowrap;
         transition: transform .1s ease, box-shadow .1s ease;
         &:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(225,29,72,0.5); }
+    }
+    .o_vd_zalo_force_logo {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        background: #fff;
+        flex-shrink: 0;
+    }
+    .o_vd_zalo_force_plus {
+        font-size: 0.85rem;
+        font-weight: 900;
+        line-height: 1;
+        color: #fff;
     }
     .o_vd_won_pill.o_vd_pill_must_zalo {
         border-color: #e11d48 !important;
@@ -3956,7 +3967,7 @@
         min-height: 0;
         max-width: 100%;
     }
-    .o_vd_today_ico { font-size: 1rem; }
+    .o_vd_today_ico { font-size: 1.45rem; }   /* icon ĐT to + đậm hơn (user 2026-06-09) */
     .o_vd_today_num { font-size: 1.45rem; font-weight: 800; line-height: 1; }
     .o_vd_today_lbl { font-size: 0.77rem; font-weight: 600; }
     /* ✓ nghe máy + % — cùng dòng, ngăn cách bằng vạch dọc */

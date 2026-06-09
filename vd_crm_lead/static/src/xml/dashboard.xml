@@ -614,7 +614,6 @@
                                                             <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
                                                             <i class="fa fa-phone o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                            <span class="o_vd_today_lbl">Cuộc gọi</span>
                                                             <span class="o_vd_today_ok">
                                                                 <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
                                                                 · <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
@@ -630,7 +629,6 @@
                                                         <span class="o_vd_today_line">
                                                             <i class="fa fa-phone o_vd_today_ico"/>
                                                             <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                            <span class="o_vd_today_lbl">Cuộc gọi</span>
                                                             <span class="o_vd_today_ok">
                                                                 <i class="fa fa-check-circle"/> <t t-esc="nv.calls_month_success or 0"/>
                                                                 · <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
@@ -3249,8 +3247,9 @@
                      đã kết bạn). Chỉ stage 'new'. -->
                 <span t-if="lead.must_zalo" class="o_vd_pill_zalo_force"
                       t-on-click.stop="(ev) => this.confirmZaloFriend(ev, lead.id)"
-                      title="Khách đã GỌI 2+ LẦN đổ chuông nhưng KHÔNG nghe máy. Hãy GỬI KẾT BẠN ZALO để tư vấn qua Zalo. Bấm vào đây để xác nhận đã kết bạn (Ngày 1).">
-                    💬 KẾT BẠN ZALO
+                      title="CHƯA KẾT BẠN ZALO — khách đã gọi 2+ lần đổ chuông nhưng không nghe máy. Bấm để xác nhận đã KẾT BẠN Zalo (rồi tư vấn qua Zalo).">
+                    <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_zalo_force_logo"/>
+                    <span class="o_vd_zalo_force_plus">+</span>
                 </span>
 
                 <!-- Badge AUTO — KH do Pancake TỰ ĐỘNG đẩy lên (user 2026-06-05).
