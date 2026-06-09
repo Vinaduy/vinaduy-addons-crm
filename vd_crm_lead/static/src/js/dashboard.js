@@ -1171,8 +1171,15 @@ export class VdCrmDashboard extends Component {
     get zaloFriendAllowedIds() {
         return new Set(this.zaloUnfriendedLeads.map(l => l.id));
     }
-    // True nếu lead đang bị khoá mở (để làm mờ pill/row + chặn click) — gộp 2 khoá.
+    // Set id các KH thuộc BẢNG KHÁCH MỚI (để khoá chỉ áp đúng bảng này).
+    get _newTableLeadIds() {
+        return new Set((this.leadsNoProblems || []).map(l => l.id));
+    }
+    // True nếu lead đang bị khoá mở (làm mờ pill + chặn click). 2 khoá Khách mới
+    // (chốt báo giá / kết bạn Zalo) CHỈ áp cho lead THUỘC bảng Khách mới —
+    // KHÔNG lan sang Thi công gấp / Xử lý vấn đề (user spec 2026-06-10).
     isLeadLocked(leadId) {
+        if (!this._newTableLeadIds.has(leadId)) return false;
         if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) return true;
         if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
         return false;
@@ -1184,7 +1191,9 @@ export class VdCrmDashboard extends Component {
     openLead(leadId) {
         // KHOÁ "KẾT BẠN ZALO" (user spec 2026-06-09): > 10 KH chưa kết bạn Zalo
         // → chỉ cho mở các KH CHƯA KẾT BẠN (viền đỏ) để ép NV kết bạn + tư vấn Zalo.
-        if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) {
+        // CHỈ áp cho lead thuộc bảng Khách mới (user spec 2026-06-10).
+        if (this.zaloFriendLockActive && this._newTableLeadIds.has(leadId)
+                && !this.zaloFriendAllowedIds.has(leadId)) {
             this.notification.add(
                 "🔒 Bạn có HƠN 10 khách CHƯA KẾT BẠN ZALO. Hãy mở từng khách "
                 + "VIỀN ĐỎ → KẾT BẠN + tư vấn qua Zalo. Khi còn ≤ 10 khách chưa kết "
@@ -1195,7 +1204,9 @@ export class VdCrmDashboard extends Component {
         }
         // KHOÁ "CHỐT BÁO GIÁ" (user spec 2026-06-03): > 3 KH báo giá chưa CHỐT
         // → chỉ cho mở các KH báo giá (để vào CHỐT), khoá mở mọi KH khác.
-        if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) {
+        // CHỈ áp cho lead thuộc bảng Khách mới (user spec 2026-06-10).
+        if (this.quoteChotLockActive && this._newTableLeadIds.has(leadId)
+                && !this.quoteChotAllowedIds.has(leadId)) {
             this.notification.add(
                 "🔒 Bạn có hơn 3 khách đã BÁO GIÁ nhưng CHƯA CHỐT. Hãy mở từng "
                 + "khách MÀU XANH LÁ (💰) → vào THÔNG TIN TƯ VẤN → bấm "
