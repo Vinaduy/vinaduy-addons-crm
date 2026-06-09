@@ -3260,6 +3260,13 @@
                             <t t-esc="cstatus.icon"/>
                             <span class="o_vd_won_tt_status_text"><t t-esc="cstatus.text"/></span>
                         </div>
+                        <!-- CẢNH BÁO ZALO (user spec 2026-06-09): KH chưa kết bạn,
+                             gọi nhiều lần không nghe → yêu cầu kết bạn + tư vấn Zalo. -->
+                        <div t-if="lead.must_zalo" class="o_vd_tt_zalo_warn">
+                            <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_tt_zalo_logo"/>
+                            <span>⚠️ CHƯA KẾT BẠN ZALO — đã gọi nhiều lần không nghe máy.
+                                Hãy <b>KẾT BẠN + TƯ VẤN, GỌI QUA ZALO</b> cho khách này.</span>
+                        </div>
                     </t>
                     <div class="o_vd_won_tt_row">
                         <span class="o_vd_won_tt_lbl">👤 Tên KH:</span>

@@ -589,18 +589,17 @@ export class VdCrmDashboard extends Component {
             (this.state.leadsNotCalledAll || []).map(l => l.id)
         );
         const base = (this.state.leads || []).filter(l => !notCalledIds.has(l.id));
-        // User spec 2026-06-09: GOM NHÓM cho đỏ/xanh KHÔNG lẫn lộn, nhưng GIỮ
-        // thứ tự backend TRONG mỗi nhóm (sort ỔN ĐỊNH → không nhảy sau mỗi cuộc
-        // gọi như bản tier+calls cũ). 4 nhóm theo thứ tự:
-        //   0) 💰 đã báo giá chưa chốt   1) ⚪ chưa gọi (total=0)
-        //   2) 🔴 must_zalo (gọi không được → cần Zalo)   3) còn lại (🔵 xanh / 🟢)
-        const grp = (l) => {
-            if (l.intake_complete && !l.intake_locked && !l.quote_cancelled) return 0;
-            if (((l.call_stats || {}).total || 0) === 0) return 1;
-            if (l.must_zalo) return 2;
-            return 3;
+        // User spec 2026-06-09 (r2): sắp theo SỐ NGÀY GỌI ÍT → NHIỀU. Chưa gọi (0
+        // ngày) lên ĐẦU; gọi nhiều ngày (đỏ must_zalo, ~3 ngày) xuống CUỐI cùng.
+        // 💰 đã báo giá pin đầu. Cùng số ngày: đỏ must_zalo xếp sau (đỏ gom cuối
+        // nhóm, không lẫn xanh). Sort ỔN ĐỊNH (JS stable) → giữ thứ tự backend.
+        const _hasQuote = (l) => l.intake_complete && !l.intake_locked && !l.quote_cancelled;
+        const _key = (l) => {
+            if (_hasQuote(l)) return -1;
+            const days = (l.call_stats || {}).distinct_days || 0;
+            return days * 2 + (l.must_zalo ? 1 : 0);
         };
-        return [...base].sort((a, b) => grp(a) - grp(b));
+        return [...base].sort((a, b) => _key(a) - _key(b));
     }
 
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
@@ -1158,18 +1157,45 @@ export class VdCrmDashboard extends Component {
     get quoteChotAllowedIds() {
         return new Set(this.quoteUnchotLeads.map(l => l.id));
     }
-    // True nếu lead đang bị khoá mở (để làm mờ pill/row + chặn click).
+    // ===== KHOÁ "KẾT BẠN ZALO" (user spec 2026-06-09) =====
+    // > 10 KH CHƯA KẾT BẠN ZALO (must_zalo = đã gọi nhiều lần không nghe) → khoá
+    // cả bảng KHÁCH MỚI, CHỈ cho mở các KH chưa kết bạn để ép NV kết bạn + tư vấn
+    // Zalo. Khi còn ≤ 10 thì tự gỡ. Chỉ khi xem 1 NV cụ thể.
+    get zaloUnfriendedLeads() {
+        return (this.leadsNoProblems || []).filter(l => l.must_zalo);
+    }
+    get zaloFriendLockActive() {
+        return !!(this.state.selected_user_id
+            && this.zaloUnfriendedLeads.length > 10);
+    }
+    get zaloFriendAllowedIds() {
+        return new Set(this.zaloUnfriendedLeads.map(l => l.id));
+    }
+    // True nếu lead đang bị khoá mở (để làm mờ pill/row + chặn click) — gộp 2 khoá.
     isLeadLocked(leadId) {
-        return this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId);
+        if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) return true;
+        if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
+        return false;
     }
     dismissQuoteGuide() {
         this.state.quoteGuideDismissed = true;
     }
 
     openLead(leadId) {
+        // KHOÁ "KẾT BẠN ZALO" (user spec 2026-06-09): > 10 KH chưa kết bạn Zalo
+        // → chỉ cho mở các KH CHƯA KẾT BẠN (viền đỏ) để ép NV kết bạn + tư vấn Zalo.
+        if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) {
+            this.notification.add(
+                "🔒 Bạn có HƠN 10 khách CHƯA KẾT BẠN ZALO. Hãy mở từng khách "
+                + "VIỀN ĐỎ → KẾT BẠN + tư vấn qua Zalo. Khi còn ≤ 10 khách chưa kết "
+                + "bạn, các khách khác sẽ mở lại bình thường.",
+                { type: "warning", title: "Khoá — chưa KẾT BẠN ZALO" },
+            );
+            return;
+        }
         // KHOÁ "CHỐT BÁO GIÁ" (user spec 2026-06-03): > 3 KH báo giá chưa CHỐT
         // → chỉ cho mở các KH báo giá (để vào CHỐT), khoá mở mọi KH khác.
-        if (this.isLeadLocked(leadId)) {
+        if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) {
             this.notification.add(
                 "🔒 Bạn có hơn 3 khách đã BÁO GIÁ nhưng CHƯA CHỐT. Hãy mở từng "
                 + "khách MÀU XANH LÁ (💰) → vào THÔNG TIN TƯ VẤN → bấm "
@@ -1726,7 +1752,7 @@ export class VdCrmDashboard extends Component {
         // Ở view KHÁCH MỚI (có pill xanh "đã báo giá"): NV có thể vừa bấm CHỐT /
         // HUỶ BÁO GIÁ trong preview → tải lại để pill cập nhật màu ngay (mất/ra
         // xanh) + gỡ khoá CHỐT nếu còn ≤ 3.
-        const needReload = this.quoteChotLockActive || this.isNewStageSplit;
+        const needReload = this.quoteChotLockActive || this.zaloFriendLockActive || this.isNewStageSplit;
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
         if (needReload) {
