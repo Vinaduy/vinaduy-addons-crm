@@ -361,6 +361,12 @@
 
                     <!-- ===== ADMIN MENU (vertical sidebar) ===== -->
                     <aside class="o_vd_admin_nav">
+                        <!-- Logo công ty — góc trên trái, đồng nhất khối nội dung -->
+                        <div class="o_vd_brand o_vd_brand_nav">
+                            <img class="o_vd_brand_img"
+                                 src="/vd_crm_lead/static/src/img/vinaduy_logo_header.png"
+                                 alt="Vinaduy"/>
+                        </div>
                         <div class="o_vd_admin_nav_header">
                             <div class="o_vd_admin_nav_avatar"><i class="fa fa-shield"/></div>
                             <div class="o_vd_admin_nav_meta">
@@ -1601,6 +1607,13 @@
 
                     <!-- ===== SIDEBAR ===== -->
                     <aside class="o_vd_sidebar_v2">
+
+                        <!-- Logo công ty — góc trên trái, card trắng đồng nhất -->
+                        <div class="o_vd_side_card o_vd_brand o_vd_brand_card">
+                            <img class="o_vd_brand_img"
+                                 src="/vd_crm_lead/static/src/img/vinaduy_logo_header.png"
+                                 alt="Vinaduy"/>
+                        </div>
 
                         <!-- 1. NV Info card -->
                         <div class="o_vd_side_card o_vd_side_user">
