@@ -1687,12 +1687,23 @@ export class VdCrmDashboard extends Component {
     async confirmZaloFriend(ev, leadId) {
         try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
         try {
-            await this.orm.call(
-                "crm.lead", "action_vd_zalo_confirm_day", [[leadId], 1],
+            // vd_dashboard_zalo_friend: kết bạn (Ngày 1) + trả tiến độ hạn mức/ngày
+            // (đã chặn nếu vượt hạn mức → ném UserError, bắt ở catch bên dưới).
+            const r = await this.orm.call(
+                "crm.lead", "vd_dashboard_zalo_friend", [[leadId]],
             );
+            const done = (r && r.done) || 0;
+            const cap = (r && r.cap) || 0;
+            const warn = (r && r.warn) || 0;
+            const near = warn && done >= warn;
             this.notification.add(
-                "Đã xác nhận KẾT BẠN Zalo (Ngày 1). Ngày 2 & 3 chăm tiếp trong KH.",
-                { type: "success" },
+                `Đã kết bạn Zalo (${done}/${cap} hôm nay).`
+                + (near
+                    ? ` ⚠️ Gần hạn mức — còn ${Math.max(cap - done, 0)} lượt. Đừng `
+                      + `kết bạn dồn dập kẻo Zalo KHOÁ tài khoản; nhắn/gọi tiếp các `
+                      + `khách đã kết bạn.`
+                    : ""),
+                { type: near ? "warning" : "success" },
             );
             await this.loadDashboard();
         } catch (e) {

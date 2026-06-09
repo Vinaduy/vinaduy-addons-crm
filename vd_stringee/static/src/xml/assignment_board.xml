@@ -6,12 +6,13 @@
             <div t-if="state.loading" class="o_vd_board_loading text-muted p-4">
                 Đang tải bảng phân số...
             </div>
-            <div t-else="" class="o_vd_board_wrap">
+            <t t-else="">
 
                 <!-- CẢNH BÁO: NV thiếu số SỐNG theo mạng (số chết đã tự gỡ —
-                     user spec 2026-06-09). Admin chia lại số sống cho các NV này. -->
+                     user spec 2026-06-09). Banner FULL-WIDTH nằm TRÊN CÙNG,
+                     ngoài hàng flex kho-số/NV. -->
                 <div t-if="state.alerts and state.alerts.length"
-                     class="o_vd_board_alerts alert alert-warning py-2 px-3 mb-2">
+                     class="o_vd_board_alerts alert alert-warning py-2 px-3 mb-0">
                     <div class="fw-bold mb-1">
                         <i class="fa fa-exclamation-triangle me-1"/>
                         <t t-esc="state.alerts.length"/> NV đang THIẾU số sống — cần chia lại:
@@ -25,6 +26,7 @@
                     </div>
                 </div>
 
+                <div class="o_vd_board_wrap">
                 <!-- KHO SỐ: gom theo nhà mạng, kéo chip thả vào NV -->
                 <div class="o_vd_palette">
                     <div class="o_vd_palette_title">
@@ -173,6 +175,7 @@
                 </table>
                 <div t-else="" class="o_vd_dim o_vd_pop_empty">Chưa gán cho NV nào.</div>
             </div>
+            </t>
 
             <!-- ===== POPUP CHIA SỐ: chọn số → chọn NV → CHIA SỐ ===== -->
             <div t-if="state.dist.open" class="o_vd_dist_overlay"

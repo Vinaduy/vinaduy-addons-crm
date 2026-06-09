@@ -525,6 +525,10 @@ class CrmLead(models.Model):
                 raise UserError(_(
                     'NGÀY %d phải xác nhận vào NGÀY KHÁC (sau NGÀY %d) — mỗi ngày '
                     'chỉ xác nhận 1 bước.') % (day, day - 1))
+        # HẠN MỨC KẾT BẠN ZALO/NGÀY (user spec 2026-06-09): NGÀY 1 = kết bạn mới.
+        # Chặn khi NV đã đạt hạn mức để Zalo KHÔNG khoá tài khoản cá nhân của NV.
+        if day == 1:
+            self._vd_check_zalo_friend_daily_cap()
         now = fields.Datetime.now()
         self[fname] = now
         if not self.vd_zalo_consulted_date:
@@ -533,6 +537,50 @@ class CrmLead(models.Model):
             subtype_xmlid='mail.mt_note',
             body=_('💬 Zalo NGÀY %d: %s') % (day, self._ZALO_DAY_LABELS[day]))
         return True
+
+    def _vd_zalo_friend_today(self, user=None):
+        """Số KH mà NV (user) đã KẾT BẠN Zalo (vd_zalo_day1_date) trong HÔM NAY."""
+        user = user or self.user_id or self.env.user
+        today = fields.Date.context_today(self)
+        start = fields.Datetime.to_datetime(today)
+        return self.env['crm.lead'].sudo().search_count([
+            ('user_id', '=', user.id),
+            ('vd_zalo_day1_date', '>=', start),
+            ('vd_zalo_day1_date', '<', start + timedelta(days=1)),
+        ])
+
+    def _vd_zalo_friend_cap(self):
+        """(cap, warn) hạn mức kết bạn Zalo/ngày — chỉnh qua System Parameter
+        vd_crm_lead.zalo_friend_daily_cap / _warn. Mặc định 15 / 10."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        cap = int(ICP.get_param('vd_crm_lead.zalo_friend_daily_cap', 15) or 15)
+        warn = int(ICP.get_param('vd_crm_lead.zalo_friend_daily_warn', 10) or 10)
+        return cap, warn
+
+    def _vd_check_zalo_friend_daily_cap(self):
+        """Chặn kết bạn Zalo khi NV đã đạt hạn mức/ngày (user spec 2026-06-09).
+        Kết bạn quá nhiều/ngày → Zalo khoá tính năng kết bạn / khoá tài khoản NV."""
+        self.ensure_one()
+        from odoo.exceptions import UserError
+        user = self.user_id or self.env.user
+        cap, _warn = self._vd_zalo_friend_cap()
+        done = self._vd_zalo_friend_today(user)
+        if done >= cap:
+            raise UserError(_(
+                '🔒 Hôm nay bạn đã KẾT BẠN ZALO %d khách — ĐẠT HẠN MỨC AN TOÀN '
+                '(%d/ngày).\n\nKết bạn quá nhiều trong ngày khiến Zalo KHOÁ tính '
+                'năng kết bạn (nặng hơn là khoá tài khoản). Hãy NHẮN/GỌI tiếp các '
+                'khách đã kết bạn hôm nay; mai kết bạn thêm.'
+            ) % (done, cap))
+
+    def vd_dashboard_zalo_friend(self):
+        """Dashboard: kết bạn Zalo (NGÀY 1) + trả tiến độ hạn mức để toast cảnh
+        báo. action_vd_zalo_confirm_day đã tự kiểm tra/chặn hạn mức."""
+        self.ensure_one()
+        self.action_vd_zalo_confirm_day(1)
+        cap, warn = self._vd_zalo_friend_cap()
+        done = self._vd_zalo_friend_today()
+        return {'done': done, 'cap': cap, 'warn': warn}
 
     # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.
     # Auto-gen từ mẫu (.docx) trộn dữ liệu KH + bảng giá + đợt ứng: xử lý sau. =====
@@ -6947,6 +6995,16 @@ class CrmLead(models.Model):
                 for c in lcalls
             )
             if had_success:
+                continue
+            # User spec 2026-06-09: KH đã ĐỔ CHUÔNG (số đúng, máy reo) nhưng không
+            # bắt máy → KHÔNG còn coi là "chưa gọi được" (số sai/thuê bao). Đẩy về
+            # KHÁCH MỚI để chuyển kênh (kết bạn Zalo). "Chưa gọi được" CHỈ còn KH
+            # toàn 'failed' (thuê bao/sai số). reached = có cuộc reo/kết nối.
+            reached = any(
+                c.get('state') in ('answered', 'ended', 'no_answer', 'busy', 'declined')
+                for c in lcalls
+            )
+            if reached:
                 continue
             # Cuộc gọi đầy đủ: thuê bao + ngày khác nhau
             subscriber_days = set()
