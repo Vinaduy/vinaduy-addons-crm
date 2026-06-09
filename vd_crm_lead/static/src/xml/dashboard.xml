@@ -3242,20 +3242,10 @@
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
 
-                <!-- ÉP ZALO (user spec 2026-06-09): KH đã ≥2 lần đổ chuông không
-                     nghe → badge đỏ kiêm nút "Gửi kết bạn Zalo" (bấm = xác nhận
-                     đã kết bạn). Chỉ stage 'new'. -->
-                <span t-if="lead.must_zalo" class="o_vd_pill_zalo_force"
-                      t-on-click.stop="(ev) => this.confirmZaloFriend(ev, lead.id)"
-                      title="CHƯA KẾT BẠN ZALO — khách đã gọi 2+ lần đổ chuông nhưng không nghe máy. Bấm để xác nhận đã KẾT BẠN Zalo (rồi tư vấn qua Zalo).">
-                    <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_zalo_force_logo"/>
-                    <span class="o_vd_zalo_force_plus">+</span>
-                </span>
-
-                <!-- Badge AUTO — KH do Pancake TỰ ĐỘNG đẩy lên (user 2026-06-05).
-                     KH NV tự thêm thủ công thì KHÔNG có badge này. -->
-                <span t-if="lead.pancake_platform and lead.pancake_platform !== 'manual'"
-                      class="o_vd_pill_auto" title="Khách TỰ ĐỘNG từ Pancake">⚡</span>
+                <!-- User spec 2026-06-09: KH CHƯA kết bạn Zalo → KHÔNG hiện icon
+                     Zalo (đỏ must_zalo đã đủ báo "cần Zalo"). Badge ⚡ auto cũng bỏ
+                     (logo FB/TikTok đã ngụ ý đẩy số tự động). Chỉ giữ logo Zalo
+                     cho khách ĐÃ kết bạn (bên dưới). -->
 
                 <!-- Logo Zalo nhỏ ở CUỐI thẻ — KH đã/đang tư vấn qua Zalo (user spec 2026-06-07) -->
                 <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"

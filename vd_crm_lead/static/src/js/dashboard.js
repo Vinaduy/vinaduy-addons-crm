@@ -588,11 +588,19 @@ export class VdCrmDashboard extends Component {
         const notCalledIds = new Set(
             (this.state.leadsNotCalledAll || []).map(l => l.id)
         );
-        // User spec 2026-06-08: GIỮ NGUYÊN thứ tự backend (sắp theo LẦN GỌI gần
-        // nhất — chưa gọi / lâu chưa gọi lên ĐẦU, gọi mới nhất xuống CUỐI). KHÔNG
-        // re-sort theo tier+số cuộc gọi nữa vì nó làm KH nhảy lung tung sau mỗi
-        // cuộc gọi, rất khó tìm.
-        return (this.state.leads || []).filter(l => !notCalledIds.has(l.id));
+        const base = (this.state.leads || []).filter(l => !notCalledIds.has(l.id));
+        // User spec 2026-06-09: GOM NHÓM cho đỏ/xanh KHÔNG lẫn lộn, nhưng GIỮ
+        // thứ tự backend TRONG mỗi nhóm (sort ỔN ĐỊNH → không nhảy sau mỗi cuộc
+        // gọi như bản tier+calls cũ). 4 nhóm theo thứ tự:
+        //   0) 💰 đã báo giá chưa chốt   1) ⚪ chưa gọi (total=0)
+        //   2) 🔴 must_zalo (gọi không được → cần Zalo)   3) còn lại (🔵 xanh / 🟢)
+        const grp = (l) => {
+            if (l.intake_complete && !l.intake_locked && !l.quote_cancelled) return 0;
+            if (((l.call_stats || {}).total || 0) === 0) return 1;
+            if (l.must_zalo) return 2;
+            return 3;
+        };
+        return [...base].sort((a, b) => grp(a) - grp(b));
     }
 
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
