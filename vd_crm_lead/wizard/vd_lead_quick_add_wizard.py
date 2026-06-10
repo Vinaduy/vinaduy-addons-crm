@@ -558,30 +558,39 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
                 % (total, nc, ' ⚠️ QUÁ TẢI' if over else '')
             )
 
-    def action_copy_user_down(self):
-        """User spec 2026-06-10: sao chép NHÂN VIÊN của dòng này XUỐNG tất cả các
-        dòng dưới (có tên KH). Tiện chia 1 NV cho cả loạt khách bên dưới."""
-        self.ensure_one()
-        if not self.user_id:
-            raise UserError(_('Hãy chọn nhân viên cho dòng này trước khi sao chép xuống.'))
-        below = self.wizard_id.line_ids.filtered(
-            lambda l: l.id != self.id
-            and (l.sequence, l.id) > (self.sequence, self.id)
-            and l.name)
-        if below:
-            below.write({'user_id': self.user_id.id})
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'vd.lead.quick.add.wizard',
-            'res_id': self.wizard_id.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': dict(self.env.context, dialog_size='fullscreen'),
-        }
+    # Anchor cho widget "sao chép NV xuống" (client-side, vd_copy_user_down.js) —
+    # giá trị không dùng, chỉ để re-render nút khi user_id đổi (user spec 2026-06-10).
+    vd_copydown = fields.Boolean(compute='_compute_vd_copydown', store=False)
+
+    @api.depends('user_id')
+    def _compute_vd_copydown(self):
+        for rec in self:
+            rec.vd_copydown = bool(rec.user_id)
 
     # ===== CHẶN TRÙNG SỐ — đã có trong hệ thống / nhập 2 lần trong danh sách =====
     phone_is_dup = fields.Boolean(compute='_compute_phone_dup')
-    phone_dup_label = fields.Char(string='Cảnh báo', compute='_compute_phone_dup')
+    phone_dup_label = fields.Char(string='Trùng', compute='_compute_phone_dup')
+
+    # ===== CẢNH BÁO NGAY khi nhập (user spec 2026-06-10): sai tên/SĐT + trùng =====
+    vd_warn_bad = fields.Boolean(compute='_compute_vd_warn')
+    vd_warn_label = fields.Char(string='Cảnh báo', compute='_compute_vd_warn')
+
+    @api.depends('name', 'phone', 'phone_is_dup', 'phone_dup_label')
+    def _compute_vd_warn(self):
+        Wiz = self.env['vd.lead.quick.add.wizard']
+        for rec in self:
+            msgs, bad = [], False
+            if rec.name and not Wiz._vd_name_is_valid(rec.name):
+                msgs.append('⛔ Tên sai (cần ≥2 chữ cái)')
+                bad = True
+            if rec.phone and not Wiz._vd_phone_is_valid(rec.phone):
+                msgs.append('⛔ SĐT sai (di động VN 10 số)')
+                bad = True
+            if rec.phone_is_dup and rec.phone_dup_label:
+                msgs.append(rec.phone_dup_label)
+                bad = True
+            rec.vd_warn_label = ' · '.join(msgs)
+            rec.vd_warn_bad = bad
 
     @api.depends('phone', 'wizard_id.line_ids.phone')
     def _compute_phone_dup(self):

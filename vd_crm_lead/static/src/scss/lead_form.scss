@@ -5379,6 +5379,29 @@ div.o_vd_layout_right {
     .o_vd_zalo_cap_main { font-weight: 900; font-size: 0.92rem; }
     .o_vd_zalo_cap_sub { font-weight: 600; font-size: 0.78rem; margin-top: 2px; line-height: 1.3; }
 }
+/* Nút "Sao chép NV xuống dòng dưới" trong wizard Thêm KH (user spec 2026-06-10) */
+.o_vd_copydown_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 5px -1px rgba(25, 113, 194, 0.45);
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    i.fa { font-size: 0.9rem; line-height: 1; }
+    &:hover {
+        transform: translateY(1px) scale(1.1);
+        filter: brightness(1.12);
+        box-shadow: 0 4px 10px -2px rgba(25, 113, 194, 0.6);
+    }
+    &:active { transform: scale(0.95); }
+}
 /* Nút "Không tìm thấy Zalo" (user spec 2026-06-10) — xám, phụ, dưới nút nhắn */
 .o_vd_znotfound_btn {
     width: 100%;

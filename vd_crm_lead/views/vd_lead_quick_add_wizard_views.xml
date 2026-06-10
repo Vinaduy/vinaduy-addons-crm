@@ -12,13 +12,14 @@
                 <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm"
-                          decoration-danger="phone_is_dup">
+                          decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
                         <field name="phone_is_dup" column_invisible="1"/>
+                        <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..." widget="phone"/>
-                        <field name="phone_dup_label" string="Cảnh báo" readonly="1"
-                               decoration-danger="phone_is_dup" decoration-bf="phone_is_dup"/>
+                        <field name="vd_warn_label" string="Cảnh báo" readonly="1"
+                               decoration-danger="vd_warn_bad" decoration-bf="vd_warn_bad"/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
@@ -27,11 +28,9 @@
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Chưa chia)"/>
-                        <!-- Sao chép NV này xuống tất cả dòng dưới (user spec 2026-06-10) -->
-                        <button name="action_copy_user_down" type="object"
-                                icon="fa-angle-double-down"
-                                title="Sao chép nhân viên này xuống tất cả các dòng dưới"
-                                invisible="not user_id"/>
+                        <!-- Sao chép NV xuống dòng dưới — CLIENT-SIDE, không cần lưu
+                             (widget vd_copy_user_down, user spec 2026-06-10) -->
+                        <field name="vd_copydown" widget="vd_copy_user_down" nolabel="1" string=" "/>
                         <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" string="Tải NV" readonly="1"
