@@ -54,6 +54,52 @@ function normalizeVnPhone(num, defaultCountry = "84") {
     return defaultCountry + digits;
 }
 
+// ===== Micro + thiết bị (user spec 2026-06-11) =====
+function vdIsMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+}
+function vdIsOdooApp() {
+    const ua = navigator.userAgent || "";
+    return /Odoo/i.test(ua) || !!window.OdooMobile || !!window.odooMobile;
+}
+function vdIsMobileWeb() {
+    return vdIsMobileDevice() && !vdIsOdooApp();
+}
+function vdMicErrorMessage(err) {
+    if (!navigator.mediaDevices || !window.isSecureContext) {
+        return "Trang chưa chạy HTTPS nên trình duyệt không bật được micro. "
+            + "Hãy vào bằng https:// (hoặc dùng APP ODOO để gọi).";
+    }
+    const name = (err && err.name) || "";
+    if (name === "NotAllowedError" || name === "SecurityError" || name === "PermissionDeniedError") {
+        return "Bạn CHƯA CẤP QUYỀN MICRO cho trình duyệt nên không gọi được. "
+            + "→ Vào CÀI ĐẶT → trình duyệt (Safari/Chrome) → cho phép MICRO cho "
+            + "trang này → tải lại trang → gọi lại. (Trên điện thoại nên dùng APP "
+            + "ODOO để gọi cho ổn định.)";
+    }
+    if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        return "Không tìm thấy MICRO trên thiết bị. Kiểm tra micro hoặc đổi máy.";
+    }
+    if (name === "NotReadableError" || name === "TrackStartError") {
+        return "MICRO đang bị app khác chiếm (Zalo call, ghi âm...). Đóng app đó rồi gọi lại.";
+    }
+    return "Không truy cập được MICRO. Hãy cấp quyền micro cho trình duyệt rồi gọi lại "
+        + "(hoặc dùng APP ODOO để gọi).";
+}
+async function vdEnsureMic() {
+    // Xin quyền micro TRƯỚC khi gọi → kích hoạt popup cấp quyền của trình duyệt.
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return { ok: false, err: { name: "NoMediaDevices" } };
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());   // nhả mic ngay cho Stringee dùng
+        return { ok: true };
+    } catch (err) {
+        return { ok: false, err };
+    }
+}
+
 // Per-number debounce window — chặn accidental double-click trong 3s
 const DEBOUNCE_MS = 3_000;
 
@@ -636,6 +682,21 @@ export const stringeeService = {
             if (!targetNumber) {
                 throw new Error(`Số không hợp lệ: ${targetNumberRaw}`);
             }
+            // (0) GỌI TRÊN WEB ĐIỆN THOẠI (user spec 2026-06-11): ép NV dùng APP
+            // ODOO để gọi cho ổn định (tránh lỗi micro của trình duyệt mobile).
+            if (vdIsMobileWeb()) {
+                const ok = window.confirm(
+                    "⚠️ GỌI TRÊN TRÌNH DUYỆT ĐIỆN THOẠI HAY LỖI MICRO / KHÔNG ỔN ĐỊNH.\n\n"
+                    + "Hãy TẢI APP ODOO về máy rồi ĐĂNG NHẬP để gọi cho ổn định:\n"
+                    + "• iPhone: App Store → tìm \"Odoo\"\n"
+                    + "• Android: CH Play → tìm \"Odoo\"\n\n"
+                    + "Bấm OK để VẪN thử gọi trên web (phải cấp quyền MICRO).\n"
+                    + "Bấm Huỷ để dừng và tải app.",
+                );
+                if (!ok) {
+                    return null;
+                }
+            }
             // (1) Đang có call() in-flight → return promise đó
             if (state.inFlight) {
                 return state.inFlight;
@@ -717,6 +778,14 @@ export const stringeeService = {
                         + "gọi ngoại mạng — báo admin gán số.");
                     return null;
                 }
+                // XIN QUYỀN MICRO trước khi gọi (user spec 2026-06-11) — kích hoạt
+                // popup cấp quyền + báo RÕ nếu thiếu (thay vì "Stringee từ chối").
+                const _mic = await vdEnsureMic();
+                if (!_mic.ok) {
+                    showCallAlert("danger", "⚠️ CHƯA GỌI ĐƯỢC — CẦN QUYỀN MICRO",
+                        vdMicErrorMessage(_mic.err));
+                    return null;
+                }
                 const call2 = new window.StringeeCall(
                     client, fromNumber, targetNumber, false,
                 );
@@ -753,8 +822,17 @@ export const stringeeService = {
                     }, call2?.callId);
                     if (res && res.r !== 0) {
                         stopRingback();
-                        showCallAlert("danger", "Gọi thất bại",
-                            `Stringee từ chối cuộc gọi: ${res.message || "lỗi không rõ"}.`);
+                        const _rm = String(res.message || "").toUpperCase();
+                        if (_rm.includes("MEDIA") || _rm.includes("MIC")
+                                || _rm.includes("PERMISSION") || _rm.includes("AUDIO")) {
+                            // GET_USER_MEDIA_ERROR... → lỗi MICRO, không phải Stringee.
+                            showCallAlert("danger", "⚠️ CHƯA GỌI ĐƯỢC — CẦN QUYỀN MICRO",
+                                vdMicErrorMessage({ name: "NotAllowedError" }));
+                        } else {
+                            showCallAlert("danger", "Gọi thất bại",
+                                `Không gọi được (mã: ${res.message || "không rõ"}). Thử lại `
+                                + "hoặc báo admin. Trên điện thoại nên dùng APP ODOO để gọi.");
+                        }
                         state.currentCall = null;
                         state.lastCallTo = "";
                         state.lastCallAt = 0;
