@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="vd_crm_lead.CopyUserDown">
-        <button t-if="hasUser" type="button"
+    <t t-name="vd_crm_lead.CopyDown">
+        <button t-if="hasValue" type="button"
                 class="o_vd_copydown_btn"
                 t-on-click="onCopyDown"
-                title="Sao chép nhân viên này xuống TẤT CẢ khách bên dưới">
+                title="Sao chép giá trị này xuống TẤT CẢ khách bên dưới">
             <i class="fa fa-angle-double-down"/>
         </button>
     </t>

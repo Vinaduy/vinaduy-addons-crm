@@ -9,6 +9,7 @@
                      chia) → cột NV tự điền + chỉ số tải NV → CHIA SỐ để tạo. -->
                 <field name="show_distribute" invisible="1"/>
                 <field name="can_chia_so" invisible="1"/>
+                <field name="vd_all_assigned" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm"
@@ -17,10 +18,11 @@
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
-                        <field name="phone" placeholder="0901..." widget="phone"/>
-                        <field name="vd_warn_label" string="Cảnh báo" readonly="1"
-                               decoration-danger="vd_warn_bad" decoration-bf="vd_warn_bad"/>
+                        <field name="phone" placeholder="0901..."/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                        <!-- Sao chép NGUỒN xuống dòng dưới — client-side (user spec 2026-06-10) -->
+                        <field name="vd_copydown_src" widget="vd_copy_down" nolabel="1" string=" "
+                               options="{'field': 'source'}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
@@ -30,7 +32,8 @@
                                placeholder="(Chưa chia)"/>
                         <!-- Sao chép NV xuống dòng dưới — CLIENT-SIDE, không cần lưu
                              (widget vd_copy_user_down, user spec 2026-06-10) -->
-                        <field name="vd_copydown" widget="vd_copy_user_down" nolabel="1" string=" "/>
+                        <field name="vd_copydown" widget="vd_copy_down" nolabel="1" string=" "
+                               options="{'field': 'user_id'}"/>
                         <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" string="Tải NV" readonly="1"
@@ -95,7 +98,7 @@
                             string="👥 CHỌN NHÂN VIÊN"
                             class="btn-primary"
                             groups="vd_crm_lead.vd_crm_group_team_leader"
-                            invisible="show_distribute"/>
+                            invisible="show_distribute or vd_all_assigned"/>
                     <button name="action_redistribute" type="object"
                             string="🔄 Chia lại"
                             class="btn-secondary"

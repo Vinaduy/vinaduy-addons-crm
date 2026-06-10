@@ -61,6 +61,14 @@ class VdLeadQuickAddWizard(models.TransientModel):
     # User spec 2026-06-05: nút CHIA SỐ chỉ hiện khi TẤT CẢ khách (Tên+SĐT) đã
     # có nhân viên. NV thường (không phải leader) tự gán mình -> luôn cho CHIA.
     can_chia_so = fields.Boolean(compute='_compute_can_chia_so')
+    # User spec 2026-06-10: TẤT CẢ khách (Tên+SĐT) đã có NV → ẩn nút CHỌN NHÂN VIÊN.
+    vd_all_assigned = fields.Boolean(compute='_compute_vd_all_assigned')
+
+    @api.depends('line_ids.user_id', 'line_ids.name', 'line_ids.phone')
+    def _compute_vd_all_assigned(self):
+        for w in self:
+            valid = w.line_ids.filtered(lambda l: l.name and l.phone)
+            w.vd_all_assigned = bool(valid) and all(l.user_id for l in valid)
 
     @api.depends('line_ids.user_id', 'line_ids.name', 'line_ids.phone')
     def _compute_can_chia_so(self):
@@ -566,6 +574,14 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     def _compute_vd_copydown(self):
         for rec in self:
             rec.vd_copydown = bool(rec.user_id)
+
+    # Anchor cho widget copy-down cột NGUỒN (user spec 2026-06-10).
+    vd_copydown_src = fields.Boolean(compute='_compute_vd_copydown_src', store=False)
+
+    @api.depends('source')
+    def _compute_vd_copydown_src(self):
+        for rec in self:
+            rec.vd_copydown_src = bool(rec.source)
 
     # ===== CHẶN TRÙNG SỐ — đã có trong hệ thống / nhập 2 lần trong danh sách =====
     phone_is_dup = fields.Boolean(compute='_compute_phone_dup')

@@ -331,6 +331,11 @@ html, body {
     border: none !important;
     box-shadow: none !important;
 }
+/* Cột "Tải NV" không bị XUỐNG DÒNG khi chọn NV (user spec 2026-06-10) */
+.o_vd_quick_add_form .o_list_table td[name="assignee_stat_label"],
+.o_vd_quick_add_form .o_list_table td[name="assignee_stat_label"] * {
+    white-space: nowrap !important;
+}
 .o_vd_quick_add_form .o_list_table .o_vd_select_dd .o_vd_select_dd_input,
 .o_vd_quick_add_form .o_list_table .o_field_many2one input,
 .o_vd_quick_add_form .o_list_table .o_field_many2one .o_input,
