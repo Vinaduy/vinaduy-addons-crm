@@ -2256,6 +2256,11 @@
         vertical-align: -3px;
         flex-shrink: 0;
     }
+    /* Zalo XÁM TỐI = không tìm thấy Zalo của khách (user spec 2026-06-10) */
+    .o_vd_pill_zalo_gray {
+        filter: grayscale(1) brightness(0.55);
+        opacity: 0.85;
+    }
     .o_vd_pill_call_badge {
         display: inline-flex;
         align-items: center;
@@ -8440,6 +8445,39 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-radius: 7px;
     cursor: pointer;
     &:hover { background: #d0ebff; }
+}
+/* Nút MỞ RỘNG to + nổi bật + mũi tên xuống nhảy (user spec 2026-06-10):
+   nhiều NV không biết bấm để xem hết khách → làm thật rõ. */
+.o_vd_new_pills_toggle_big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    background: linear-gradient(180deg, #e7f5ff 0%, #d0ebff 100%);
+    border: 2px dashed #1971c2;
+    box-shadow: 0 2px 8px rgba(25, 113, 194, 0.18);
+    &:hover { background: linear-gradient(180deg, #d0ebff 0%, #a5d8ff 100%); }
+    .o_vd_expand_main {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: #1864ab;
+    }
+    .o_vd_expand_sub { font-size: 0.74rem; font-weight: 600; color: #4dabf7; }
+    .o_vd_expand_chevron {
+        font-size: 1.1rem;
+        color: #1971c2;
+        animation: vd-expand-bounce 1.1s ease-in-out infinite;
+    }
+}
+@keyframes vd-expand-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
 }
 
 /* ====================================================================

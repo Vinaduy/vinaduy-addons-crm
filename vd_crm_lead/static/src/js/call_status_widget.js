@@ -237,6 +237,22 @@ export class VdCallStatusWidget extends Component {
         }
     }
 
+    // User spec 2026-06-10: khách KHÔNG có Zalo / không tìm thấy → đánh dấu để bỏ
+    // ép nhắn Zalo + thẻ hiện icon Zalo xám.
+    async confirmZaloNotFound() {
+        try {
+            await this.orm.call(
+                "crm.lead", "action_vd_zalo_not_found",
+                [[this.props.record.resId]],
+            );
+            try { await this.props.record.load(); } catch (_e) {}
+            this.notification.add("Đã đánh dấu KHÔNG TÌM THẤY Zalo", { type: "success" });
+        } catch (e) {
+            this.notification.add(
+                e?.data?.message || e?.message || "Lỗi", { type: "danger" });
+        }
+    }
+
     // Trạng thái KH → quyết định nội dung bảng hover Zalo (user spec 2026-06-07):
     //  - consult: chưa CHỐT báo giá        → tư vấn / kết bạn
     //  - problem: đã CHỐT + còn vấn đề mở   → khai thác vấn đề

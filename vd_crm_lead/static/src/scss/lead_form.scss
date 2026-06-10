@@ -5349,6 +5349,24 @@ div.o_vd_layout_right {
     &:hover { filter: brightness(1.08); transform: translateY(-1px); }
     &:active { transform: translateY(0); }
 }
+/* Nút "Không tìm thấy Zalo" (user spec 2026-06-10) — xám, phụ, dưới nút nhắn */
+.o_vd_znotfound_btn {
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.45rem;
+    border: 1px solid #adb5bd;
+    border-radius: 9px;
+    background: #f1f3f5;
+    color: #495057;
+    font-weight: 700;
+    font-size: 0.84rem;
+    cursor: pointer;
+    &:hover { background: #e9ecef; }
+}
+.o_vd_znotfound_done {
+    color: #868e96 !important;
+    i.fa { color: #868e96; }
+}
 .o_vd_zstep_done_line {
     display: flex;
     align-items: center;

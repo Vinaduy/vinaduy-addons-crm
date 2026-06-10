@@ -2082,10 +2082,19 @@
                                                     </t>
                                                 </div>
                                                 <button t-if="state.newPillsOverflow"
-                                                        class="o_vd_new_pills_toggle"
+                                                        t-att-class="'o_vd_new_pills_toggle' + (state.newTableExpanded ? '' : ' o_vd_new_pills_toggle_big')"
                                                         t-on-click="() => this.toggleNewTable()">
-                                                    <t t-if="state.newTableExpanded">▴ Thu gọn bảng</t>
-                                                    <t t-else="">▾ Mở rộng — xem tất cả <t t-esc="leadsNoProblems.length"/> khách</t>
+                                                    <t t-if="state.newTableExpanded">
+                                                        <i class="fa fa-chevron-up me-1"/> Thu gọn bảng
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="o_vd_expand_main">
+                                                            <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                            XEM TẤT CẢ <t t-esc="leadsNoProblems.length"/> KHÁCH
+                                                            <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                        </span>
+                                                        <span class="o_vd_expand_sub">Bấm vào đây để mở rộng bảng</span>
+                                                    </t>
                                                 </button>
                                             </t>
                                             <div t-else="" class="o_vd_filter_table_empty">
@@ -2307,12 +2316,13 @@
                                                                 </span>
                                                             </td>
                                                             <td class="o_vd_cancel_action">
-                                                                <button t-if="ld.cancel_state !== 'approved'"
+                                                                <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
                                                                         class="btn btn-sm o_vd_cancel_approve_btn"
                                                                         t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
                                                                         title="Duyệt đề xuất hủy này">
                                                                     <i class="fa fa-check"/> Duyệt hủy
                                                                 </button>
+                                                                <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
                                                                 <span t-else="" class="o_vd_cancel_action_done">—</span>
                                                             </td>
                                                         </tr>
@@ -3269,7 +3279,10 @@
 
                 <!-- Logo Zalo nhỏ ở CUỐI thẻ — KH đã/đang tư vấn qua Zalo (user spec 2026-06-07) -->
                 <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"
-                     class="o_vd_pill_zalo" title="Đã/đang tư vấn qua Zalo"/>
+                     class="o_vd_pill_zalo" title="Đã/đang nhắn Zalo"/>
+                <!-- Icon Zalo XÁM = không tìm thấy Zalo của khách (user spec 2026-06-10) -->
+                <img t-elif="lead.zalo_not_found" src="/vd_crm_lead/static/src/img/zalo.webp"
+                     class="o_vd_pill_zalo o_vd_pill_zalo_gray" title="Không tìm thấy Zalo của khách này"/>
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">

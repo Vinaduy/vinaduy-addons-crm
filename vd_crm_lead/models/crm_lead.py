@@ -364,6 +364,11 @@ class CrmLead(models.Model):
         help='Set khi xác nhận NGÀY 1. Miễn khoá "chưa gọi" khi KH đã có báo giá '
              'chi tiết.',
     )
+    # User spec 2026-06-10: NV bấm "KHÔNG TÌM THẤY ZALO" khi SĐT khách không có
+    # Zalo / không tìm được → khỏi ép nhắn Zalo nữa; thẻ hiện icon Zalo XÁM.
+    vd_zalo_not_found = fields.Boolean(
+        string='Không tìm thấy Zalo', default=False, copy=False,
+        help='Khách không có Zalo / không tìm thấy → bỏ khỏi diện ép nhắn Zalo.')
     # Đã phát sinh ≥1 CUỘC GỌI THẬT (đã đổ chuông/nghe máy) — user spec 2026-06-07.
     # Điều kiện hiện nút Zalo + bảng hướng dẫn. Loại cuộc 'failed'/'cancelled'.
     vd_has_real_call = fields.Boolean(
@@ -536,6 +541,17 @@ class CrmLead(models.Model):
         self.message_post(
             subtype_xmlid='mail.mt_note',
             body=_('💬 Zalo NGÀY %d: %s') % (day, self._ZALO_DAY_LABELS[day]))
+        return True
+
+    def action_vd_zalo_not_found(self):
+        """User spec 2026-06-10: SĐT khách KHÔNG có Zalo / không tìm thấy → đánh
+        dấu vd_zalo_not_found (bỏ khỏi diện ép nhắn Zalo, thẻ hiện icon Zalo xám)."""
+        self.ensure_one()
+        if not self.vd_zalo_not_found:
+            self.vd_zalo_not_found = True
+            self.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('🚫 Đã đánh dấu <b>KHÔNG TÌM THẤY ZALO</b> của khách này.'))
         return True
 
     def _vd_zalo_friend_today(self, user=None):
@@ -1754,7 +1770,18 @@ class CrmLead(models.Model):
         + stage_is_lost=True → đã exclude từ mọi domain pipeline chuẩn).
 
         Round 7 phase 2.1: cho phép duyệt CẢ legacy leads (vd_cancel_state=None)
-        — KH lost trước Phase 2 vẫn cần audit trail admin duyệt."""
+        — KH lost trước Phase 2 vẫn cần audit trail admin duyệt.
+
+        User spec 2026-06-10: CHỈ ADMIN được duyệt hủy (NV chỉ ĐỀ XUẤT)."""
+        is_admin = (
+            self.env.user._is_superuser()
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
+        )
+        if not is_admin:
+            raise UserError(_(
+                'Chỉ ADMIN mới được DUYỆT hủy khách. Nhân viên chỉ được ĐỀ XUẤT '
+                'hủy; Admin xem trong thùng rác rồi duyệt.'
+            ))
         for rec in self:
             if rec.vd_cancel_state == 'approved':
                 continue  # đã duyệt rồi, skip
@@ -6516,6 +6543,10 @@ class CrmLead(models.Model):
                 'is_all': scope_user is None,
             },
             'is_manager': is_manager,
+            # CHỈ ADMIN được DUYỆT hủy KH (user spec 2026-06-10) — ẩn nút Duyệt
+            # khỏi NV (backend action_approve_cancel cũng chặn).
+            'is_admin': bool(self.env.user._is_superuser()
+                             or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')),
             # Quyền chuyển KH hàng loạt (admin + role có can_reassign_lead =
             # người chia số / giám đốc). Client dùng để hiện nút "Chọn KH".
             'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
@@ -7443,6 +7474,7 @@ class CrmLead(models.Model):
             'intake_locked': bool(l.vd_intake_locked),
             # Đã bấm "TƯ VẤN QUA ZALO" chưa (hiện ✓ trên header popup).
             'zalo_consulted': bool(l.vd_zalo_consulted_date),
+            'zalo_not_found': bool(l.vd_zalo_not_found),
             # Số ngày từ lúc tạo KH (cho cảnh báo "có thể tư vấn Zalo" — ≥2 ngày).
             'create_days': (fields.Datetime.now() - l.create_date).days if l.create_date else 0,
             # Tạm huỷ báo giá → pill mất xanh, coi như chưa làm báo giá.
@@ -7609,7 +7641,9 @@ class CrmLead(models.Model):
         Đã từng nghe máy (answered>0) → thôi (đã liên lạc được)."""
         if (lead.stage_code or '') != 'new':
             return False
-        if lead.vd_zalo_consulted_date or lead.vd_intake_complete:
+        # Đã nhắn Zalo / đã báo giá / KHÔNG TÌM THẤY Zalo → thôi ép (2026-06-10).
+        if (lead.vd_zalo_consulted_date or lead.vd_intake_complete
+                or lead.vd_zalo_not_found):
             return False
         s = stats or {}
         if s.get('answered', 0) > 0:

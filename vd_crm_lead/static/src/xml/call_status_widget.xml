@@ -60,6 +60,14 @@
                                 <span class="o_vd_zbig_main">✓ ĐÃ NHẮN ZALO</span>
                                 <span class="o_vd_zbig_sub">Kết bạn khi khách trả lời</span>
                             </button>
+                            <!-- Không tìm thấy Zalo (user spec 2026-06-10) -->
+                            <div t-if="props.record.data.vd_zalo_not_found" class="o_vd_zstep_done_line o_vd_znotfound_done">
+                                <i class="fa fa-ban"/> Đã đánh dấu: KHÔNG TÌM THẤY Zalo
+                            </div>
+                            <button t-elif="!zaloDays.d1" type="button" class="o_vd_znotfound_btn"
+                                    t-on-click="() => this.confirmZaloNotFound()">
+                                🚫 Không tìm thấy Zalo của khách
+                            </button>
                             <!-- Chờ sang ngày mai mới hiện NGÀY 2 -->
                             <div t-if="zaloDays.d1 and !zaloDays.d2avail" class="o_vd_zstep_wait">
                                 ⏳ Quay lại <b>NGÀY MAI</b> để gọi điện + nhắn Zalo.
