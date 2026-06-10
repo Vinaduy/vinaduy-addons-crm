@@ -151,12 +151,50 @@ class VdLeadQuickAddWizard(models.TransientModel):
         return Lead.search_count(
             Lead._dashboard_new_bucket_domain([('user_id', '=', uid)]))
 
+    @api.model
+    def _vd_phone_is_valid(self, phone):
+        """SĐT hợp lệ = số di động VN: 10 số (0 + 9 số), đầu số 03/05/07/08/09.
+        Chặn nhập linh tinh ('2', '3434'...)."""
+        s = self.env['crm.lead']._vd_normalize_phones_set(phone)
+        if not s:
+            return False
+        nat = next(iter(s))   # đã strip 0/84
+        return len(nat) == 9 and nat[0] in '35789'
+
+    @api.model
+    def _vd_name_is_valid(self, name):
+        """Tên hợp lệ = có ≥2 CHỮ CÁI (chặn 'A2', '22', ký tự linh tinh)."""
+        import re
+        return len(re.findall(r'[^\W\d_]', name or '', re.UNICODE)) >= 2
+
+    def _vd_validate_quick_lines(self, lines):
+        """Chặn dòng nhập linh tinh (tên/SĐT không hợp lệ) — user spec 2026-06-10."""
+        bad = []
+        for l in lines:
+            errs = []
+            if not self._vd_name_is_valid(l.name):
+                errs.append('TÊN không hợp lệ')
+            if not self._vd_phone_is_valid(l.phone):
+                errs.append('SĐT không hợp lệ')
+            if errs:
+                bad.append('• %s — %s: %s' % (
+                    l.name or '(trống)', l.phone or '(trống)', ', '.join(errs)))
+        if bad:
+            raise UserError(_(
+                'Có %d dòng nhập SAI — sửa lại trước khi chia số:\n%s\n\n'
+                'Quy tắc: TÊN phải có ≥2 chữ cái · SĐT phải là số di động VN '
+                '(10 số, đầu 03/05/07/08/09).'
+            ) % (len(bad), '\n'.join(bad)))
+
     def action_show_distribute(self):
         """Bấm CHỌN NHÂN VIÊN → hiện bộ chọn cách chia (sau khi đã nhập KH)."""
         self.ensure_one()
         self._vd_check_leader()
-        if not self.line_ids.filtered(lambda l: l.name and l.phone):
+        valid_lines = self.line_ids.filtered(lambda l: l.name and l.phone)
+        if not valid_lines:
             raise UserError(_('Hãy nhập ít nhất 1 khách (Tên + SĐT) trước khi chia số.'))
+        # CHẶN NHẬP LINH TINH (tên/SĐT sai) trước khi sang bước chia.
+        self._vd_validate_quick_lines(valid_lines)
         # CHẶN TRÙNG NGAY (user 2026-06-05): nhập 2 số giống nhau (kể cả số chưa
         # chuẩn) hoặc đã có trong hệ thống -> không cho sang bước chia.
         dups = self.line_ids.filtered(lambda l: l.name and l.phone and l.phone_is_dup)
@@ -246,6 +284,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
         lines = self.line_ids.filtered(lambda l: l.name and l.phone)
         if not lines:
             raise UserError(_('Phải có ít nhất 1 dòng có Tên + SĐT.'))
+
+        # CHẶN NHẬP LINH TINH (tên/SĐT sai) — user spec 2026-06-10.
+        self._vd_validate_quick_lines(lines)
 
         # CHẶN TRÙNG SỐ — không cho tạo nếu có số đã có trong hệ thống / nhập 2 lần.
         dups = lines.filtered(lambda l: l.phone_is_dup)
@@ -516,6 +557,27 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
                 '📋 %d mới · 📵 %d chưa gọi%s'
                 % (total, nc, ' ⚠️ QUÁ TẢI' if over else '')
             )
+
+    def action_copy_user_down(self):
+        """User spec 2026-06-10: sao chép NHÂN VIÊN của dòng này XUỐNG tất cả các
+        dòng dưới (có tên KH). Tiện chia 1 NV cho cả loạt khách bên dưới."""
+        self.ensure_one()
+        if not self.user_id:
+            raise UserError(_('Hãy chọn nhân viên cho dòng này trước khi sao chép xuống.'))
+        below = self.wizard_id.line_ids.filtered(
+            lambda l: l.id != self.id
+            and (l.sequence, l.id) > (self.sequence, self.id)
+            and l.name)
+        if below:
+            below.write({'user_id': self.user_id.id})
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'vd.lead.quick.add.wizard',
+            'res_id': self.wizard_id.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': dict(self.env.context, dialog_size='fullscreen'),
+        }
 
     # ===== CHẶN TRÙNG SỐ — đã có trong hệ thống / nhập 2 lần trong danh sách =====
     phone_is_dup = fields.Boolean(compute='_compute_phone_dup')

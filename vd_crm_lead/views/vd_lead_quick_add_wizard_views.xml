@@ -27,6 +27,11 @@
                         <field name="user_id"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Chưa chia)"/>
+                        <!-- Sao chép NV này xuống tất cả dòng dưới (user spec 2026-06-10) -->
+                        <button name="action_copy_user_down" type="object"
+                                icon="fa-angle-double-down"
+                                title="Sao chép nhân viên này xuống tất cả các dòng dưới"
+                                invisible="not user_id"/>
                         <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" string="Tải NV" readonly="1"
