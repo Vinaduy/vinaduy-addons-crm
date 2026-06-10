@@ -1165,7 +1165,11 @@ export class VdCrmDashboard extends Component {
         return (this.leadsNoProblems || []).filter(l => l.must_zalo);
     }
     get zaloFriendLockActive() {
-        return !!(this.state.selected_user_id
+        // Công tắc cấu hình (user spec 2026-06-10): khoá cứng "chưa nhắn Zalo"
+        // hay gây phản tác dụng (backlog lớn → khoá sạch) → mặc định TẮT, giữ pill
+        // đỏ hướng dẫn thôi. Bật lại qua System Parameter zalo_lock_enabled=1.
+        return !!(this.state.zalo_lock_enabled
+            && this.state.selected_user_id
             && this.zaloUnfriendedLeads.length > 10);
     }
     get zaloFriendAllowedIds() {

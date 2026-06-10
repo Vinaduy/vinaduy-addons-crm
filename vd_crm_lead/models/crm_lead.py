@@ -6542,6 +6542,11 @@ class CrmLead(models.Model):
             'problem_find': problem_find,
             # CALL-WATCH (2026-06-04): banner "chưa gọi" + khoá bảng Khách mới.
             'call_watch': self._vd_callwatch_payload(scope_user),
+            # Công tắc khoá cứng "chưa nhắn Zalo" (>10) — mặc định TẮT (user spec
+            # 2026-06-10: khoá cứng phản tác dụng). Bật: System Parameter
+            # vd_crm_lead.zalo_lock_enabled = 1.
+            'zalo_lock_enabled': (self.env['ir.config_parameter'].sudo()
+                                  .get_param('vd_crm_lead.zalo_lock_enabled', '0') == '1'),
             # CHIA SỐ (2026-06-05): báo cáo chia số tự động (Pancake) + thủ công
             # (nhập tay) hôm nay/tháng + cảnh báo chia không đều. Chỉ ở màn quản lý.
             'pancake_report': self._vd_distribution_report(pancake=True) if is_manager else {},
