@@ -645,8 +645,10 @@
 
                                                 <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
                                                 <div class="o_vd_kh_trio">
-                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV. -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell' + (nv.lock_new ? ' o_vd_kh_locked' : '')">
+                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV.
+                                                     User spec 2026-06-11: BỎ ổ khoá cột Khách mới (kiểu
+                                                     việc-hôm-nay, không khoá doạ) — không thêm o_vd_kh_locked. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
                                                     <span class="o_vd_kh_metric_chip">
                                                         <span class="o_vd_kh_metric_ico">🆕</span>
                                                         <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
@@ -2980,7 +2982,9 @@
          cellWhich ('new'|'urgent'|'xlvd'), cellLocked rồi t-call.
          ============================================================ -->
     <t t-name="vd_crm_lead.OverviewLockMini">
-        <div t-if="cellLocked" class="o_vd_kh_lock_mini" t-on-click.stop=""
+        <!-- User spec 2026-06-11: cột 'new' (Khách mới) KHÔNG hiện ổ khoá nữa
+             (chuyển kiểu việc-hôm-nay). Giữ ổ khoá cho urgent/xlvd. -->
+        <div t-if="cellLocked and cellWhich !== 'new'" class="o_vd_kh_lock_mini" t-on-click.stop=""
              title="Bảng này của NV đang bị KHOÁ">
             <i class="fa fa-lock o_vd_kh_lock_mini_ico"/>
             <button t-if="state.is_manager" class="o_vd_kh_lock_mini_btn"
