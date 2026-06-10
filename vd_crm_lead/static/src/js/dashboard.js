@@ -1191,7 +1191,11 @@ export class VdCrmDashboard extends Component {
     //   - nhắn Zalo → chừa KH chưa nhắn (nhắn để gỡ)
     isLeadLocked(leadId) {
         if (!this._newTableLeadIds.has(leadId)) return false;
-        if (this.isTableLockedForSelf('new') && !this.callWatchAllowedIds.has(leadId)) return true;
+        // Làm MỜ thẻ bị khoá khi đang xem 1 NV cụ thể — ADMIN xem hộ cũng THẤY mờ
+        // (đồng nhất với khoá chốt báo giá / nhắn Zalo). Admin vẫn bấm mở được vì
+        // openLead chặn theo ...ForSelf (user spec 2026-06-11).
+        if (this.isTableLocked('new') && this.state.selected_user_id
+                && !this.callWatchAllowedIds.has(leadId)) return true;
         if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) return true;
         if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
         return false;
