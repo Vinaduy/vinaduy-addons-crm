@@ -68,6 +68,11 @@
                             <div t-if="zaloDays.d1" class="o_vd_zalo_done_green">
                                 <i class="fa fa-check-circle me-1"/> ĐÃ NHẮN ZALO
                             </div>
+                            <!-- ĐỦ HẠN MỨC hôm nay → badge VÀNG ghi rõ lý do (không cho nhắn thêm) -->
+                            <div t-elif="props.record.data.vd_zalo_msg_cap_reached" class="o_vd_zalo_cap_yellow">
+                                <div class="o_vd_zalo_cap_main"><i class="fa fa-exclamation-triangle me-1"/> ĐÃ NHẮN ĐỦ HẠN MỨC ZALO HÔM NAY</div>
+                                <div class="o_vd_zalo_cap_sub">Nhắn thêm người lạ dễ bị Zalo KHÓA tài khoản — mai nhắn tiếp khách này nhé.</div>
+                            </div>
                             <!-- CHƯA bấm → nút XANH DƯƠNG "NHẮN ZALO" (bấm xác nhận sau khi nhắn) -->
                             <button t-else="" type="button" class="o_vd_zbig_btn"
                                     t-on-click="() => this.confirmZaloDay(1)">

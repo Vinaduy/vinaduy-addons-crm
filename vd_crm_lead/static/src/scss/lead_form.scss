@@ -5367,6 +5367,18 @@ div.o_vd_layout_right {
     box-shadow: 0 4px 12px -4px rgba(47, 158, 68, 0.5);
     i.fa { color: #fff; }
 }
+/* Đụng hạn mức nhắn Zalo/ngày → badge VÀNG ghi rõ lý do (user spec 2026-06-10) */
+.o_vd_zalo_cap_yellow {
+    width: 100%;
+    padding: 0.6rem 0.7rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffe08a 0%, #ffd43b 100%);
+    border: 1.5px solid #f59f00;
+    color: #663c00;
+    text-align: center;
+    .o_vd_zalo_cap_main { font-weight: 900; font-size: 0.92rem; }
+    .o_vd_zalo_cap_sub { font-weight: 600; font-size: 0.78rem; margin-top: 2px; line-height: 1.3; }
+}
 /* Nút "Không tìm thấy Zalo" (user spec 2026-06-10) — xám, phụ, dưới nút nhắn */
 .o_vd_znotfound_btn {
     width: 100%;

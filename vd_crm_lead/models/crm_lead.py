@@ -369,6 +369,18 @@ class CrmLead(models.Model):
     vd_zalo_not_found = fields.Boolean(
         string='Không tìm thấy Zalo', default=False, copy=False,
         help='Khách không có Zalo / không tìm thấy → bỏ khỏi diện ép nhắn Zalo.')
+    # User spec 2026-06-10: NV (chủ KH) đã nhắn ĐỦ hạn mức Zalo hôm nay (mặc định
+    # 15) → nút "NHẮN ZALO" chuyển VÀNG báo "mai nhắn tiếp" thay vì lỗi im lặng.
+    vd_zalo_msg_cap_reached = fields.Boolean(
+        string='Đã đủ hạn mức nhắn Zalo hôm nay',
+        compute='_compute_vd_zalo_msg_cap_reached', store=False)
+
+    def _compute_vd_zalo_msg_cap_reached(self):
+        cap, _w = self._vd_zalo_friend_cap()
+        for rec in self:
+            user = rec.user_id or rec.env.user
+            rec.vd_zalo_msg_cap_reached = bool(
+                user and rec._vd_zalo_friend_today(user) >= cap)
     # Đã phát sinh ≥1 CUỘC GỌI THẬT (đã đổ chuông/nghe máy) — user spec 2026-06-07.
     # Điều kiện hiện nút Zalo + bảng hướng dẫn. Loại cuộc 'failed'/'cancelled'.
     vd_has_real_call = fields.Boolean(
