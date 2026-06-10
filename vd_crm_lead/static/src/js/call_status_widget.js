@@ -253,6 +253,46 @@ export class VdCallStatusWidget extends Component {
         }
     }
 
+    // SĐT khách dạng digit (cho link zalo.me) — bỏ ký tự lạ.
+    get _custPhoneDigits() {
+        const d = this.props.record.data;
+        return String(d.phone || d.mobile || "").replace(/[^0-9]/g, "");
+    }
+    // Lời chào mẫu — chèn TÊN NHÂN VIÊN (strip prefix team "HCM1 - ...").
+    get zaloGreeting() {
+        let nv = (this.props.record.data.user_id && this.props.record.data.user_id[1]) || "";
+        nv = nv.replace(/^[A-ZĐ0-9]+\s*[-–—]\s*/, "").trim() || nv;
+        return "Em chào anh, em là " + nv + ", em là kiến trúc sư Vinaduy, em nhắn "
+            + "cho anh để hỗ trợ mình tư vấn mẫu nhà và hỗ trợ mình trong kế hoạch "
+            + "xây nhà ạ";
+    }
+    // Bấm logo Zalo → mở thẳng Zalo của khách (zalo.me/<SĐT>).
+    openCustomerZalo() {
+        const phone = this._custPhoneDigits;
+        if (!phone) {
+            this.notification.add("Khách chưa có SĐT để mở Zalo.", { type: "warning" });
+            return;
+        }
+        window.open("https://zalo.me/" + phone, "_blank", "noopener");
+    }
+    async copyZaloGreeting() {
+        const txt = this.zaloGreeting;
+        try {
+            await navigator.clipboard.writeText(txt);
+            this.notification.add("Đã copy lời chào — dán vào Zalo gửi khách.", { type: "success" });
+        } catch (_e) {
+            // Fallback cho trình duyệt chặn clipboard API.
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = txt; document.body.appendChild(ta); ta.select();
+                document.execCommand("copy"); document.body.removeChild(ta);
+                this.notification.add("Đã copy lời chào.", { type: "success" });
+            } catch (_e2) {
+                this.notification.add("Không copy được — hãy copy thủ công.", { type: "warning" });
+            }
+        }
+    }
+
     // Trạng thái KH → quyết định nội dung bảng hover Zalo (user spec 2026-06-07):
     //  - consult: chưa CHỐT báo giá        → tư vấn / kết bạn
     //  - problem: đã CHỐT + còn vấn đề mở   → khai thác vấn đề

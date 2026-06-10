@@ -5367,6 +5367,28 @@ div.o_vd_layout_right {
     color: #868e96 !important;
     i.fa { color: #868e96; }
 }
+/* Lời chào mẫu Zalo + nút copy (user spec 2026-06-10) */
+.o_vd_zalo_greeting {
+    margin: 6px 0;
+    padding: 7px 9px;
+    background: #eef6ff;
+    border: 1px solid #b8daff;
+    border-radius: 9px;
+}
+.o_vd_zalo_greeting_lbl { font-size: 0.74rem; font-weight: 700; color: #1864ab; margin-bottom: 3px; }
+.o_vd_zalo_greeting_txt { font-size: 0.8rem; color: #334155; line-height: 1.35; font-style: italic; }
+.o_vd_zalo_copy_btn {
+    margin-top: 6px;
+    padding: 5px 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0068ff, #0050c8);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    &:hover { filter: brightness(1.08); }
+}
 .o_vd_zstep_done_line {
     display: flex;
     align-items: center;

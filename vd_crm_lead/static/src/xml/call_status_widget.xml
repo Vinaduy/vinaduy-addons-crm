@@ -36,7 +36,8 @@
                 <button type="button" class="o_vd_call_btn o_vd_zalo_fab"
                         t-att-class="{ o_vd_zalo_fab_active: zaloProgress > 0 and zaloProgress &lt; 3,
                                        o_vd_zalo_fab_done: zaloProgress === 3 }"
-                        title="Chăm khách qua Zalo — đưa chuột vào để xác nhận từng ngày.">
+                        t-on-click="() => this.openCustomerZalo()"
+                        title="BẤM: mở Zalo của khách · Đưa chuột vào: xác nhận chăm Zalo + copy lời chào.">
                     <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_zalo_fab_icon" alt="Zalo"/>
                 </button>
                 <!-- Bảng hover — quy trình chăm Zalo 3 NGÀY (progressive) -->
@@ -52,6 +53,15 @@
                     </div>
                     <div class="o_vd_zalo_panel_body">
                         <div class="o_vd_zalo_panel_warn">📵 Gọi không nghe máy! Chăm khách qua Zalo 3 ngày:</div>
+                        <!-- Lời chào mẫu + nút COPY (user spec 2026-06-10) -->
+                        <div class="o_vd_zalo_greeting">
+                            <div class="o_vd_zalo_greeting_lbl">📋 Lời chào mẫu — Copy rồi dán vào Zalo:</div>
+                            <div class="o_vd_zalo_greeting_txt"><t t-esc="zaloGreeting"/></div>
+                            <button type="button" class="o_vd_zalo_copy_btn"
+                                    t-on-click="() => this.copyZaloGreeting()">
+                                <i class="fa fa-copy me-1"/> Copy lời chào
+                            </button>
+                        </div>
                         <div class="o_vd_zalo_steps">
                             <!-- NGÀY 1 — phần mềm tự hiểu là ngày 1, chỉ cần 1 button -->
                             <div t-if="zaloDays.d1" class="o_vd_zstep_done_line"><i class="fa fa-check"/> Đã NHẮN Zalo — tư vấn</div>
