@@ -8551,6 +8551,18 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     filter: grayscale(0.4);
     cursor: not-allowed;
 }
+/* TÔ SÁNG khách CẦN GỌI hôm nay (user spec 2026-06-11) — "việc hôm nay" nổi bật,
+   thay cho khoá doạ. Viền vàng + glow nhẹ nhấp nháy để NV nhìn là biết phải gọi. */
+.o_vd_won_pill.o_vd_pill_tocall {
+    border: 2px solid #f59f00 !important;
+    background: linear-gradient(180deg, #fff9db 0%, #ffec99 100%) !important;
+    font-weight: 700;
+    animation: vd-tocall-glow 1.8s ease-in-out infinite;
+}
+@keyframes vd-tocall-glow {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.16), 0 3px 9px -3px rgba(245, 159, 0, 0.45); }
+    50%      { box-shadow: 0 0 0 5px rgba(245, 159, 0, 0.32), 0 4px 12px -3px rgba(245, 159, 0, 0.6); }
+}
 
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
 .o_vd_admin_trash_btn {

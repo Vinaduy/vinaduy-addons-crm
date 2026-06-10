@@ -1900,20 +1900,9 @@
                                 <div class="o_vd_split_table">
                                     <!-- NỬA TRÁI: KHÁCH MỚI -->
                                     <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
-                                        <!-- KHOÁ "CHƯA GỌI ĐỦ" (user spec 2026-06-10): KHÔNG phủ kín bảng nữa
-                                             — chỉ badge góc + làm mờ KH khác; KH bị nhắc (allowed) vẫn mở để gọi. -->
-                                        <div t-if="isTableLocked('new')" class="o_vd_chot_lock_badge o_vd_cw_lock_badge">
-                                            <i class="fa fa-lock o_vd_lock_shield_ico"/>
-                                            <div class="o_vd_lock_shield_lbl">ĐÃ KHOÁ</div>
-                                            <div class="o_vd_chot_lock_note">
-                                                <t t-esc="state.call_watch.reason"/><br/>
-                                                Mở các khách <b>CHƯA BỊ MỜ</b> (bị nhắc) → GỌI đủ là <b>tự mở</b>.
-                                            </div>
-                                            <button t-if="canAdminUnlock" class="o_vd_lock_unlock_btn"
-                                                    t-on-click.stop="() => this.adminClearTableLock('new')">
-                                                🔓 Mở khoá
-                                            </button>
-                                        </div>
+                                        <!-- User spec 2026-06-11: BỎ badge "ĐÃ KHOÁ" doạ — chuyển sang
+                                             kiểu "VIỆC HÔM NAY": tô sáng KH cần gọi (o_vd_pill_tocall),
+                                             làm mờ KH khác. Cơ chế khoá vẫn giữ (chặn mở KH khác). -->
                                         <!-- KHOÁ CHỐT BÁO GIÁ (user 2026-06-05): >3 KH báo giá chưa CHỐT.
                                              Badge ổ khoá góc trên-phải (admin cũng thấy); KHÔNG nút gỡ —
                                              CHỐT bớt khách để gỡ. Không phủ kín để vẫn mở KH 💰 xanh lá. -->
@@ -1946,10 +1935,10 @@
                                                  "N KHÁCH CHƯA GỌI" + popover hover (bỏ SĐT). Khoá -> đỏ. -->
                                             <t t-set="zaloCand" t-value="zaloFriendCandidates"/>
                                             <div t-if="state.call_watch and state.call_watch.enabled and (state.call_watch.locked or state.call_watch.uncalled_count or zaloCand.length)"
-                                                 t-att-class="'o_vd_pf_banner o_vd_cw_banner' + (state.call_watch.locked ? ' o_vd_pf_banner_locked' : '')">
-                                                <!-- Icon ổ khoá (mở khi chưa khoá) + hover ra bảng giải thích cơ chế khoá -->
+                                                 class="o_vd_pf_banner o_vd_cw_banner">
+                                                <!-- User spec 2026-06-11: bỏ màu đỏ doạ — banner VÀNG kiểu nhắc việc -->
                                                 <div class="o_vd_cw_help">
-                                                    <i t-att-class="'fa o_vd_pf_banner_ico o_vd_cw_help_ico ' + (state.call_watch.locked ? 'fa-lock' : 'fa-unlock-alt')"
+                                                    <i t-att-class="'fa o_vd_pf_banner_ico o_vd_cw_help_ico ' + (state.call_watch.locked ? 'fa-phone' : 'fa-unlock-alt')"
                                                        title="Khi nào bị KHOÁ bảng Khách mới? (đưa chuột vào xem)"/>
                                                     <div class="o_vd_cw_help_panel">
                                                         <div class="o_vd_cw_help_head">🔒 3 TRƯỜNG HỢP KHOÁ BẢNG KHÁCH MỚI</div>
@@ -1984,7 +1973,7 @@
                                                 </div>
                                                 <div class="o_vd_pf_banner_text">
                                                     <div class="o_vd_pf_banner_main">
-                                                        <t t-if="state.call_watch.locked">ĐÃ KHOÁ — CHƯA GỌI ĐỦ KHÁCH MỚI</t>
+                                                        <t t-if="state.call_watch.locked">📞 HÔM NAY CẦN GỌI — các khách TÔ SÁNG VÀNG</t>
                                                         <t t-elif="state.call_watch.uncalled_count">KHÁCH MỚI CHƯA GỌI ĐỦ</t>
                                                         <t t-else="">NHẮC CHĂM SÓC KHÁCH MỚI</t>
                                                     </div>
@@ -3230,7 +3219,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (lead.must_zalo ? ' o_vd_pill_must_zalo' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (lead.must_zalo ? ' o_vd_pill_must_zalo' : '') + (isLeadToCall(lead.id) ? ' o_vd_pill_tocall' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span t-if="state.selectMode" class="o_vd_pill_check">
                     <t t-if="isLeadSelected(lead.id)">☑</t>
                     <t t-else="">☐</t>

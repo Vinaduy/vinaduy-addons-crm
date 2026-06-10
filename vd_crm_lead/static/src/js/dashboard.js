@@ -1183,6 +1183,16 @@ export class VdCrmDashboard extends Component {
     get callWatchAllowedIds() {
         return new Set(this.state.call_watch?.allowed_ids || []);
     }
+    // KH CẦN GỌI hôm nay (chưa gọi đủ) — để TÔ SÁNG việc cần làm (user spec
+    // 2026-06-11). Tập này CO LẠI khi NV gọi → gọi xong là tắt tô sáng (KHÔNG
+    // khoá khách đó). Gọi hết là khoá tự gỡ.
+    get callWatchUncalledIds() {
+        return new Set((this.state.call_watch?.uncalled_leads || []).map((l) => l.id));
+    }
+    isLeadToCall(leadId) {
+        return !!(this.state.call_watch?.enabled
+            && this.callWatchUncalledIds.has(leadId));
+    }
     // True nếu lead đang bị khoá mở (làm mờ pill + chặn click). CẢ 3 khoá Khách
     // mới CHỈ áp cho lead THUỘC bảng Khách mới — KHÔNG lan sang Thi công gấp /
     // Xử lý vấn đề (user spec 2026-06-10). Mỗi khoá chừa loại KH cần xử lý:
