@@ -5349,6 +5349,11 @@ div.o_vd_layout_right {
     &:hover { filter: brightness(1.08); transform: translateY(-1px); }
     &:active { transform: translateY(0); }
 }
+/* Nút xác nhận "ĐÃ NHẮN ZALO" — nền XANH LÁ (user spec 2026-06-10) */
+.o_vd_zbig_btn.o_vd_zbig_btn_green {
+    background: linear-gradient(135deg, #2f9e44 0%, #2b8a3e 100%);
+    box-shadow: 0 5px 14px -4px rgba(47, 158, 68, 0.55);
+}
 /* Nút "Không tìm thấy Zalo" (user spec 2026-06-10) — xám, phụ, dưới nút nhắn */
 .o_vd_znotfound_btn {
     width: 100%;
