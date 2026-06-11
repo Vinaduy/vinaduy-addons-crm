@@ -819,6 +819,40 @@ class StringeeCall(models.Model):
 
     # ---------- Recording download ----------
 
+    def _vd_audio_seconds(self, raw):
+        """Đo ĐỘ DÀI THẬT của file ghi âm (giây) bằng ffprobe.
+
+        Lý do (2026-06-11): Stringee KHÔNG gửi answerDuration/duration về webhook
+        (payload rỗng) → field `duration` kẹt = 0 dù cuộc gọi có nói chuyện thật.
+        Độ dài file ghi âm mới là con số đúng → dùng nó cho `duration`.
+        Trả 0 nếu không đo được (ffprobe thiếu / file lỗi)."""
+        if not raw:
+            return 0
+        import subprocess
+        import tempfile
+        import os as _os
+        path = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as f:
+                f.write(raw)
+                path = f.name
+            out = subprocess.run(
+                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                 '-of', 'csv=p=0', path],
+                capture_output=True, timeout=20,
+            )
+            val = (out.stdout or b'').decode().strip()
+            return int(round(float(val))) if val else 0
+        except Exception:
+            _logger.warning("ffprobe duration failed for %s", self.name, exc_info=True)
+            return 0
+        finally:
+            if path:
+                try:
+                    _os.unlink(path)
+                except OSError:
+                    pass
+
     def _download_recording(self):
         """Download the call's recording from Stringee REST and attach it.
 
@@ -883,14 +917,37 @@ class StringeeCall(models.Model):
             'res_id': self.id,
             'mimetype': 'audio/mpeg',
         })
-        self.write({
+        rec_vals = {
             'recording_url': url,
             'recording_id': rid,
             'recording_attachment_id': attachment.id,
-        })
-        _logger.info("Recording DOWNLOADED for %s: %sB → attachment %s",
-                     self.name, len(resp.content), attachment.id)
+        }
+        # Stringee không gửi thời lượng → đo từ chính file ghi âm (đúng thực tế).
+        secs = self._vd_audio_seconds(resp.content)
+        if secs > 0:
+            rec_vals['duration'] = secs
+        self.write(rec_vals)
+        _logger.info("Recording DOWNLOADED for %s: %sB → attachment %s (dur=%ss)",
+                     self.name, len(resp.content), attachment.id, secs)
         return attachment
+
+    @api.model
+    def _vd_backfill_durations(self, limit=5000):
+        """Backfill `duration` từ độ dài file ghi âm cho các cuộc cũ (duration=0).
+        Chạy 1 lần qua odoo shell sau khi deploy. Trả số bản ghi đã cập nhật."""
+        recs = self.search([
+            ('recording_attachment_id', '!=', False),
+            ('duration', '<=', 0),
+        ], limit=limit)
+        n = 0
+        for rec in recs:
+            att = rec.recording_attachment_id
+            secs = rec._vd_audio_seconds(att.raw if att else None)
+            if secs > 0:
+                rec.duration = secs
+                n += 1
+        _logger.info("Backfill recording durations: updated %s/%s", n, len(recs))
+        return n
 
     def action_download_recording(self):
         """🎵 Button: Force-retry download recording từ Stringee.
