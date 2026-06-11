@@ -2133,6 +2133,14 @@
         /* Stage khác — neutral */
         &.o_vd_pill_neutral       { border-color: #ced4da; background: #fff; }
 
+        /* Khách mới — THẺ TRƠN (user spec 2026-06-11): bỏ 8 màu theo cuộc gọi,
+           phân loại bằng 3 VÙNG. Thẻ chỉ trắng nhạt, viền xám nhẹ. */
+        &.o_vd_pill_plain {
+            border-color: #d4dae3;
+            background: #fff;
+            .o_vd_won_pill_date { color: #1f2a44; }
+        }
+
         /* ===== Khách mới — Màu theo TRẠNG THÁI CUỘC GỌI ===== */
         /* ⚪ Trắng: chưa gọi cuộc nào (default border-color #dee2e6, background #fff) */
         &.o_vd_pill_call_white {
@@ -8418,15 +8426,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow: visible;          /* user spec 2026-06-07: KHÔNG cắt tooltip hover */
     transition: max-height 0.3s ease;
 }
-/* Gạch mờ ngăn các DẢI màu trong KHÁCH MỚI (user spec 2026-06-11). Full-width
-   → ép xuống dòng trong flex-wrap, tách rõ nhóm chưa gọi / đã gọi / khó. */
-.o_vd_band_sep {
-    flex: 0 0 100%;
-    width: 100%;
-    height: 0;
-    border-top: 2px dashed rgba(73, 80, 87, 0.22);
-    margin: 0.5rem 0;
-}
 /* CHỈ cắt (overflow hidden) khi THỰC SỰ còn KH bị ẩn (fade) — lúc đó mới cần thu
    gọn; bình thường để overflow visible cho tooltip hiện đủ. */
 .o_vd_new_pills_fade { overflow: hidden; }
@@ -8560,17 +8559,72 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     filter: grayscale(0.4);
     cursor: not-allowed;
 }
-/* TÔ SÁNG khách CẦN GỌI hôm nay (user spec 2026-06-11) — "việc hôm nay" nổi bật,
-   thay cho khoá doạ. Viền vàng + glow nhẹ nhấp nháy để NV nhìn là biết phải gọi. */
-.o_vd_won_pill.o_vd_pill_tocall {
-    border: 2px solid #f59f00 !important;
-    background: linear-gradient(180deg, #fff9db 0%, #ffec99 100%) !important;
-    font-weight: 700;
-    animation: vd-tocall-glow 1.8s ease-in-out infinite;
+/* TÔ SÁNG "việc hôm nay" ĐÃ BỎ (user spec 2026-06-11) — thay bằng 3 VÙNG phễu.
+   Giữ lại định nghĩa class rỗng phòng chỗ khác còn tham chiếu, KHÔNG còn glow. */
+
+/* ====================================================================
+   3 VÙNG cột KHÁCH MỚI (user spec 2026-06-11): tiêu đề vùng full-width
+   vừa là vạch ngăn, vừa là nhãn "việc cần làm". Thẻ trong vùng để trơn.
+   ==================================================================== */
+.o_vd_pill_zone_head {
+    flex-basis: 100%;
+    width: 100%;            /* chiếm trọn 1 dòng trong flex → pill xuống dưới */
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.55rem 0 0.15rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    /* dòng đầu tiên không cần margin-top */
+    &:first-child { margin-top: 0; }
 }
-@keyframes vd-tocall-glow {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.16), 0 3px 9px -3px rgba(245, 159, 0, 0.45); }
-    50%      { box-shadow: 0 0 0 5px rgba(245, 159, 0, 0.32), 0 4px 12px -3px rgba(245, 159, 0, 0.6); }
+.o_vd_pill_zone_ico { font-size: 0.95rem; line-height: 1; }
+.o_vd_pill_zone_name { text-transform: uppercase; }
+.o_vd_pill_zone_count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.75);
+}
+.o_vd_pill_zone_hint {
+    font-size: 0.72rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-left: auto;
+    white-space: nowrap;
+}
+/* Vùng 1 — CHƯA GỌI: xám trung tính (việc đầu tiên) */
+.o_vd_pill_zone_z1 {
+    background: #eef1f5; color: #364152;
+    border: 1px solid #d4dae3;
+    .o_vd_pill_zone_count { color: #1f2a44; }
+}
+/* Vùng 2 — CẦN KẾT BẠN ZALO: vàng nhạt (đang cần hành động Zalo) */
+.o_vd_pill_zone_z2 {
+    background: #fff7e0; color: #92590a;
+    border: 1px solid #ffe08a;
+    .o_vd_pill_zone_count { color: #92590a; }
+}
+/* Vùng 3 — ĐÃ KẾT BẠN ZALO: xanh nhạt (đang chăm tốt) */
+.o_vd_pill_zone_z3 {
+    background: #e7f7ec; color: #1b6b39;
+    border: 1px solid #a6e3bb;
+    .o_vd_pill_zone_count { color: #1b6b39; }
+}
+/* Badge 💰 nhỏ — đã đủ thông tin báo giá, chờ CHỐT */
+.o_vd_pill_quote_dot {
+    font-size: 0.82rem;
+    line-height: 1;
+    margin-left: 0.1rem;
 }
 
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */

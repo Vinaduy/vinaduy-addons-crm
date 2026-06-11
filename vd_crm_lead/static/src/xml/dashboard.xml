@@ -1975,7 +1975,7 @@
                                                 </div>
                                                 <div class="o_vd_pf_banner_text">
                                                     <div class="o_vd_pf_banner_main">
-                                                        <t t-if="state.call_watch.locked">📞 HÔM NAY CẦN GỌI — các khách TÔ SÁNG VÀNG</t>
+                                                        <t t-if="state.call_watch.locked">📞 KHÁCH MỚI CHƯA GỌI ĐỦ — xem vùng "CHƯA GỌI"</t>
                                                         <t t-elif="state.call_watch.uncalled_count">KHÁCH MỚI CHƯA GỌI ĐỦ</t>
                                                         <t t-else="">NHẮC CHĂM SÓC KHÁCH MỚI</t>
                                                     </div>
@@ -2066,14 +2066,24 @@
                                             <t t-if="leadsNoProblems.length">
                                                 <!-- Thu gọn tối đa ~10 dòng; nút Mở rộng trượt mép
                                                      dưới xuống để hiện toàn bộ KH. -->
+                                                <!-- User spec 2026-06-11: chia 3 VÙNG phễu (chưa gọi /
+                                                     cần Zalo / đã Zalo). Tiêu đề vùng full-width tự xuống
+                                                     dòng → vừa là vạch ngăn vừa là nhãn việc cần làm. Các
+                                                     thẻ + tiêu đề đều là con TRỰC TIẾP của newPillsWrap để
+                                                     _measureNewPills đếm dòng đúng. -->
                                                 <div t-ref="newPillsWrap"
                                                      t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
-                                                    <!-- Chia dải ngang theo màu, ngăn bằng gạch mờ
-                                                         (user spec 2026-06-11) — KHÔNG tiêu đề. -->
-                                                    <t t-foreach="leadBands" t-as="band" t-key="band.key">
-                                                        <div t-if="band_index > 0" class="o_vd_band_sep"/>
-                                                        <t t-foreach="band.leads" t-as="lead" t-key="lead.id">
-                                                            <t t-call="vd_crm_lead.LeadPill"/>
+                                                    <t t-foreach="newPillsZones" t-as="zone" t-key="zone.key">
+                                                        <t t-if="zone.leads.length">
+                                                            <div t-att-class="'o_vd_pill_zone_head o_vd_pill_zone_' + zone.key">
+                                                                <span class="o_vd_pill_zone_ico"><t t-esc="zone.icon"/></span>
+                                                                <span class="o_vd_pill_zone_name"><t t-esc="zone.label"/></span>
+                                                                <span class="o_vd_pill_zone_count"><t t-esc="zone.leads.length"/></span>
+                                                                <span class="o_vd_pill_zone_hint"><t t-esc="zone.hint"/></span>
+                                                            </div>
+                                                            <t t-foreach="zone.leads" t-as="lead" t-key="lead.id">
+                                                                <t t-call="vd_crm_lead.LeadPill"/>
+                                                            </t>
                                                         </t>
                                                     </t>
                                                 </div>
@@ -3228,7 +3238,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (lead.needs_call_today ? ' o_vd_pill_needs_call' : '') + (lead.must_zalo ? ' o_vd_pill_must_zalo' : '') + (isLeadToCall(lead.id) ? ' o_vd_pill_tocall' : '') + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span t-if="state.selectMode" class="o_vd_pill_check">
                     <t t-if="isLeadSelected(lead.id)">☑</t>
                     <t t-else="">☐</t>
@@ -3269,6 +3279,13 @@
                     📞 <t t-esc="lead.call_stats.total"/>
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
+
+                <!-- Badge 💰: đã điền đủ báo giá nhưng CHƯA bấm CHỐT (user spec
+                     2026-06-11). Nằm yên trong vùng của nó — nhắc NV bấm CHỐT để
+                     KH tự xuống bảng BÁO GIÁ. -->
+                <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked and !lead.quote_cancelled"
+                      class="o_vd_pill_quote_dot"
+                      title="Đã đủ thông tin báo giá — bấm CHỐT để chuyển sang bảng Báo giá">💰</span>
 
                 <!-- User spec 2026-06-09: KH CHƯA kết bạn Zalo → KHÔNG hiện icon
                      Zalo (đỏ must_zalo đã đủ báo "cần Zalo"). Badge ⚡ auto cũng bỏ

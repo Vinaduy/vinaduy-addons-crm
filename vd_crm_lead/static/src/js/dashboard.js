@@ -519,10 +519,9 @@ export class VdCrmDashboard extends Component {
                 + (lead.contract_signed ? ' o_vd_won_signed' : '');
         }
         if (code === 'new') {
-            const callCls = this.pillCallClass(lead);
-            if (callCls) return callCls;
-            // Chưa gọi → pill trắng neutral (KHÔNG fallback Pancake color)
-            return 'o_vd_pill_call_white';
+            // User spec 2026-06-11: BỎ 8 màu theo trạng thái gọi — thẻ TRƠN,
+            // phân loại bằng 3 VÙNG (chưa gọi / cần Zalo / đã Zalo) thay cho màu.
+            return 'o_vd_pill_plain';
         }
         return 'o_vd_pill_neutral';
     }
@@ -602,26 +601,24 @@ export class VdCrmDashboard extends Component {
         return [...base].sort((a, b) => _key(a) - _key(b));
     }
 
-    // Chia KHÁCH MỚI thành các DẢI ngang theo màu (user spec 2026-06-11):
-    //   💚 đã báo giá · ⚪ chưa gọi · 🔵 đã gọi (chưa nghe/đã nghe) · 🔴 khó (3 ngày/Zalo)
-    // Giữ NGUYÊN kiểu xếp ngang + thứ tự sort sẵn; chỉ chèn gạch mờ ngăn dải.
-    // Không tiêu đề. Trả [{key, leads}] cho các dải KHÔNG rỗng, theo đúng thứ tự.
-    _leadBandTier(l) {
-        const cls = this.pillCallClass(l);
-        if (cls === 'o_vd_pill_has_quote') return 0;                       // 💚 đã báo giá
-        if (!cls) return 1;                                                // ⚪ chưa gọi
-        if (cls === 'o_vd_pill_call_darkred' || l.must_zalo) return 3;     // 🔴 khó
-        return 2;                                                          // 🔵 đã gọi
-    }
-    get leadBands() {
-        const order = [0, 1, 2, 3];
-        const map = { 0: [], 1: [], 2: [], 3: [] };
-        for (const l of this.leadsNoProblems) {
-            map[this._leadBandTier(l)].push(l);
+    // ===== 3 VÙNG cột KHÁCH MỚI (user spec 2026-06-11) — phễu rõ ràng, thay
+    // cho tô sáng + 8 màu. Vùng 1: chưa gọi cuộc nào · Vùng 2: đã gọi nhưng
+    // CHƯA kết bạn Zalo · Vùng 3: ĐÃ kết bạn Zalo (hoặc đã đánh dấu không tìm
+    // thấy Zalo → coi như xong bước Zalo). KH điền đủ báo giá nằm YÊN trong
+    // vùng của nó (chỉ gắn badge 💰), KHÔNG tách vùng riêng. =====
+    get newPillsZones() {
+        const z1 = [], z2 = [], z3 = [];
+        for (const l of (this.leadsNoProblems || [])) {
+            const total = (l.call_stats || {}).total || 0;
+            if (total === 0) { z1.push(l); continue; }   // chưa gọi
+            if (l.zalo_consulted || l.zalo_not_found) z3.push(l);  // đã xong bước Zalo
+            else z2.push(l);                              // đã gọi, chưa Zalo
         }
-        return order
-            .filter((k) => map[k].length)
-            .map((k) => ({ key: k, leads: map[k] }));
+        return [
+            { key: 'z1', icon: '📞', label: 'CHƯA GỌI', hint: 'Gọi ngay', leads: z1 },
+            { key: 'z2', icon: '💬', label: 'CẦN KẾT BẠN ZALO', hint: 'Đã gọi — kết bạn Zalo để chăm', leads: z2 },
+            { key: 'z3', icon: '✅', label: 'ĐÃ KẾT BẠN ZALO', hint: 'Đang chăm → đẩy lên Báo giá', leads: z3 },
+        ];
     }
 
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
