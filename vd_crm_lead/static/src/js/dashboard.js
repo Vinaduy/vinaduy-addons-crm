@@ -674,45 +674,6 @@ export class VdCrmDashboard extends Component {
         return this.selectedStage?.code === 'new' && !this.state.alertFilter;
     }
 
-    // True khi KHÁCH MỚI chia 4 CỘT THEO MÀU (xem 1 NV) → render cột cạnh nhau.
-    // Khớp đúng điều kiện color-grouping trong leadGroups('new').
-    get isCallColumnView() {
-        return this.selectedStage?.code === 'new'
-            && !this.state.alertFilter
-            && (this.state.selected_user_id || !this.state.is_manager);
-    }
-
-    // 4 CỘT KHÁCH MỚI theo TIẾN TRÌNH GỌI (user spec 2026-06-11). Trong cột:
-    // gọi xong (last_call mới) xuống CUỐI; cột "chưa liên lạc" dồn 🔴 3-ngày
-    // xuống cuối. Khối o_vd_new_pills (render phẳng) dùng getter này để chia cột.
-    get callColumns() {
-        const leads = this.isNewStageSplit
-            ? this.leadsNoProblems
-            : (this.state.leads || []);
-        const _t = (s) => (s ? Date.parse(s.replace(' ', 'T') + 'Z') : 0);
-        const COLS = [
-            { key: 'white',    label: '⚪ CHƯA GỌI',           cssColor: '#868e96' },
-            { key: 'pending',  label: '🔵 CHƯA LIÊN LẠC ĐƯỢC', cssColor: '#1971c2' },
-            { key: 'answered', label: '💙 ĐÃ NGHE MÁY',         cssColor: '#1864ab' },
-            { key: 'quote',    label: '💚 ĐÃ BÁO GIÁ',          cssColor: '#2b8a3e' },
-        ];
-        const b = { white: [], pending: [], answered: [], quote: [] };
-        for (const ld of leads) {
-            const cls = this.pillCallClass(ld);
-            if (cls === 'o_vd_pill_has_quote') b.quote.push(ld);
-            else if (cls === 'o_vd_pill_call_answered') b.answered.push(ld);
-            else if (!cls) b.white.push(ld);          // chưa gọi
-            else b.pending.push(ld);                  // blue/red/darkred = đã gọi chưa nghe
-        }
-        const isDark = (l) => this.pillCallClass(l) === 'o_vd_pill_call_darkred';
-        const byRecent = (x, y) => _t(x.last_call_date) - _t(y.last_call_date);
-        b.white.sort(byRecent);
-        b.answered.sort(byRecent);
-        b.quote.sort(byRecent);
-        b.pending.sort((x, y) => ((isDark(x) ? 1 : 0) - (isDark(y) ? 1 : 0)) || byRecent(x, y));
-        return COLS.map((c) => ({ key: c.key, label: c.label, cssColor: c.cssColor, leads: b[c.key] }));
-    }
-
     get leadGroups() {
         // Trả về [{key, label, icon, color, leads}] để render columns.
         // Stage 'new' → group theo nguồn Pancake.
@@ -725,8 +686,6 @@ export class VdCrmDashboard extends Component {
             : (this.state.leads || []);
 
         if (code === 'new') {
-            // Xem 1 NV → 4 cột theo tiến trình gọi (dùng chung getter callColumns).
-            if (this.isCallColumnView) return this.callColumns;
             // Group theo NV (user_name) — mỗi NV 1 column liệt kê toàn bộ KH mới
             // của họ. Header label = "Team | NV name", color theo team.
             const TEAM_COLORS = {

@@ -2067,25 +2067,10 @@
                                                 <!-- Thu gọn tối đa ~10 dòng; nút Mở rộng trượt mép
                                                      dưới xuống để hiện toàn bộ KH. -->
                                                 <div t-ref="newPillsWrap"
-                                                     t-att-class="'o_vd_new_pills o_vd_new_pills_cols' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
-                                                    <!-- 4 CỘT theo tiến trình gọi (user spec 2026-06-11):
-                                                         ⚪ chưa gọi | 🔵 chưa liên lạc được | 💙 đã nghe | 💚 đã báo giá.
-                                                         Trong cột: gọi xong (last_call mới) xuống cuối. -->
-                                                    <div t-foreach="callColumns" t-as="col" t-key="col.key"
-                                                         class="o_vd_callcol"
-                                                         t-att-style="`border-top-color:${col.cssColor}`">
-                                                        <div class="o_vd_callcol_head" t-att-style="`color:${col.cssColor}`">
-                                                            <span class="o_vd_callcol_label"><t t-esc="col.label"/></span>
-                                                            <span class="o_vd_callcol_n"
-                                                                  t-att-style="`background:${col.cssColor}1a;color:${col.cssColor};`"><t t-esc="col.leads.length"/></span>
-                                                        </div>
-                                                        <div class="o_vd_callcol_body">
-                                                            <t t-foreach="col.leads" t-as="lead" t-key="lead.id">
-                                                                <t t-call="vd_crm_lead.LeadPill"/>
-                                                            </t>
-                                                            <div t-if="!col.leads.length" class="o_vd_callcol_empty">—</div>
-                                                        </div>
-                                                    </div>
+                                                     t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
+                                                    <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
+                                                        <t t-call="vd_crm_lead.LeadPill"/>
+                                                    </t>
                                                 </div>
                                                 <button t-if="state.newPillsOverflow"
                                                         t-att-class="'o_vd_new_pills_toggle' + (state.newTableExpanded ? '' : ' o_vd_new_pills_toggle_big')"
@@ -3202,7 +3187,7 @@
         </div>
 
         <!-- ===== PILL VIEW: chia cột theo nhóm hoặc flex wrap ===== -->
-        <div t-elif="leadGroups" t-attf-class="o_vd_pill_columns {{ isCallColumnView ? 'o_vd_pill_columns_side' : '' }}">
+        <div t-elif="leadGroups" class="o_vd_pill_columns">
             <div t-foreach="leadGroups" t-as="grp" t-key="grp.key" class="o_vd_pill_column"
                  t-att-style="`border-left-color:${grp.cssColor}`">
                 <div class="o_vd_pill_col_header" t-att-style="`color:${grp.cssColor}`">
