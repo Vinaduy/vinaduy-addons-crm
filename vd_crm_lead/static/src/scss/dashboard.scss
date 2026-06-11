@@ -8441,6 +8441,67 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow: visible;          /* user spec 2026-06-07: KHÔNG cắt tooltip hover */
     transition: max-height 0.3s ease;
 }
+
+/* ===== 4 CỘT theo TIẾN TRÌNH GỌI (KHÁCH MỚI, xem 1 NV) — user 2026-06-11.
+   ⚪ chưa gọi | 🔵 chưa liên lạc | 💙 đã nghe | 💚 đã báo giá. Cột đứng cạnh
+   nhau, pill xếp dọc → gọi xong (last_call mới) xuống cuối cột nhìn rõ. ===== */
+.o_vd_new_pills.o_vd_new_pills_cols {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.55rem;
+}
+.o_vd_callcol {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #fafbfc;
+    border: 1px solid #eef1f4;
+    border-top: 3px solid #ced4da;
+    border-radius: 10px;
+    padding: 0.5rem 0.5rem 0.6rem;
+}
+.o_vd_callcol_head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-bottom: 0.45rem;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.o_vd_callcol_label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_vd_callcol_n {
+    flex: none;
+    min-width: 1.5em;
+    padding: 0.05em 0.45em;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: center;
+}
+.o_vd_callcol_body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    .o_vd_won_pill {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+.o_vd_callcol_empty {
+    text-align: center;
+    color: #adb5bd;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+}
 /* CHỈ cắt (overflow hidden) khi THỰC SỰ còn KH bị ẩn (fade) — lúc đó mới cần thu
    gọn; bình thường để overflow visible cho tooltip hiện đủ. */
 .o_vd_new_pills_fade { overflow: hidden; }
