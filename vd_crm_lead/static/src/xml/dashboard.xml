@@ -1899,7 +1899,9 @@
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
                             <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
                             <t t-if="isNewStageSplit">
-                                <div class="o_vd_split_table">
+                                <!-- User spec 2026-06-12: >40 KH → 3 nút (Tham khảo/Chưa gọi
+                                     được/Hủy) xếp DỌC cột hẹp bên phải, ô thẻ nới rộng. -->
+                                <div t-att-class="'o_vd_split_table' + (leadsNoProblems.length > 40 ? ' o_vd_split_table_stacked' : '')">
                                     <!-- NỬA TRÁI: KHÁCH MỚI -->
                                     <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
                                         <!-- User spec 2026-06-11: BỎ badge "ĐÃ KHOÁ" doạ — chuyển sang
@@ -1935,130 +1937,6 @@
                                             <!-- CALL-WATCH (user 2026-06-05): GIỮ bảng thông báo VÀNG,
                                                  bên trong KHÔNG đổ danh sách dài — chỉ 1 BUTTON
                                                  "N KHÁCH CHƯA GỌI" + popover hover (bỏ SĐT). Khoá -> đỏ. -->
-                                            <t t-set="zaloCand" t-value="zaloFriendCandidates"/>
-                                            <div t-if="state.call_watch and state.call_watch.enabled and (state.call_watch.locked or state.call_watch.uncalled_count or zaloCand.length)"
-                                                 class="o_vd_pf_banner o_vd_cw_banner">
-                                                <!-- User spec 2026-06-11: bỏ màu đỏ doạ — banner VÀNG kiểu nhắc việc -->
-                                                <div class="o_vd_cw_help">
-                                                    <i t-att-class="'fa o_vd_pf_banner_ico o_vd_cw_help_ico ' + (state.call_watch.locked ? 'fa-phone' : 'fa-unlock-alt')"
-                                                       title="Khi nào bị KHOÁ bảng Khách mới? (đưa chuột vào xem)"/>
-                                                    <div class="o_vd_cw_help_panel">
-                                                        <div class="o_vd_cw_help_head">🔒 3 TRƯỜNG HỢP KHOÁ BẢNG KHÁCH MỚI</div>
-                                                        <div class="o_vd_cw_help_body">
-                                                            <table class="o_vd_lockrules_tbl">
-                                                                <thead>
-                                                                    <tr><th>Khoá</th><th>VI PHẠM khi</th><th>TỰ MỞ khi</th></tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td><b>① Chưa gọi đủ</b></td>
-                                                                        <td>KH bị nhắc hôm trước (chưa gọi đủ <b>3 ngày làm việc</b>), qua ngày làm việc sau <b>vẫn chưa gọi</b>.</td>
-                                                                        <td>Gọi đủ các KH bị nhắc → <b>tự mở ngay</b>.</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td><b>② Chốt báo giá</b></td>
-                                                                        <td>Có <b>hơn 3 KH</b> đã BÁO GIÁ nhưng <b>chưa CHỐT</b>.</td>
-                                                                        <td>CHỐT bớt → còn <b>≤ 3</b> tự mở.</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td><b>③ Nhắn Zalo</b></td>
-                                                                        <td>Có <b>hơn 10 KH</b> gọi không được mà <b>chưa NHẮN Zalo</b>.</td>
-                                                                        <td>Nhắn cho họ → còn <b>≤ 10</b> tự mở.</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                            <div class="o_vd_cw_help_note">
-                                                                ⚙️ Mỗi khoá CHỈ khoá <b>bảng Khách mới</b> + chỉ làm mờ KH KHÁC — các KH thuộc diện cần xử lý (bị nhắc / đã báo giá / chưa nhắn) <b>vẫn mở được</b> để xử lý cho hết. Quản lý/giám đốc mở khoá ngay được; admin chỉnh được ngưỡng.
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="o_vd_pf_banner_text">
-                                                    <div class="o_vd_pf_banner_main">
-                                                        <t t-if="state.call_watch.locked">📞 KHÁCH MỚI CHƯA GỌI ĐỦ — xem vùng "CHƯA GỌI"</t>
-                                                        <t t-elif="state.call_watch.uncalled_count">KHÁCH MỚI CHƯA GỌI ĐỦ</t>
-                                                        <t t-else="">NHẮC CHĂM SÓC KHÁCH MỚI</t>
-                                                    </div>
-                                                    <div class="o_vd_pf_banner_sub">
-                                                        <t t-if="state.call_watch.locked"><t t-esc="state.call_watch.reason"/></t>
-                                                        <t t-elif="state.call_watch.uncalled_count">Mỗi KH cần được gọi ở ít nhất
-                                                            <b><t t-esc="state.call_watch.required_days"/></b> ngày làm việc khác nhau
-                                                            trong <t t-esc="state.call_watch.window_workdays"/> ngày.</t>
-                                                        <t t-else="">Một số khách đã gọi điện nhưng chưa kết nối được — nên kết bạn Zalo để tiếp tục tư vấn.</t>
-                                                    </div>
-                                                </div>
-                                                <!-- BUTTON + popover hover (mirror "CHƯA GỌI ĐƯỢC") -->
-                                                <div t-if="state.call_watch.uncalled_leads.length"
-                                                     class="o_vd_trash_box o_vd_split_trash o_vd_cw_btn">
-                                                    <i class="fa fa-phone o_vd_cw_btn_ico"/>
-                                                    <span class="o_vd_cw_btn_lbl">
-                                                        <b><t t-esc="state.call_watch.uncalled_count"/></b> KHÁCH CHƯA GỌI
-                                                    </span>
-                                                    <div class="o_vd_trash_popover o_vd_popover_anchor_right">
-                                                        <div class="o_vd_trash_popover_head">
-                                                            📞 KHÁCH MỚI CHƯA GỌI ĐỦ (<t t-esc="state.call_watch.uncalled_count"/>)
-                                                            <div class="o_vd_trash_popover_hint">
-                                                                Cần gọi ở ≥<t t-esc="state.call_watch.required_days"/> ngày làm việc khác nhau trong <t t-esc="state.call_watch.window_workdays"/> ngày
-                                                            </div>
-                                                        </div>
-                                                        <div class="o_vd_trash_popover_body">
-                                                            <div t-foreach="state.call_watch.uncalled_leads" t-as="cwl" t-key="cwl.id"
-                                                                 class="o_vd_trash_popover_item o_vd_cw_row_item"
-                                                                 t-on-click.stop="() => this.openLead(cwl.id)">
-                                                                <span class="o_vd_trash_popover_name"><t t-esc="cwl.name"/></span>
-                                                                <span t-att-class="'o_vd_cw_chip' + (cwl.overdue ? ' o_vd_cw_chip_overdue' : '')"
-                                                                      t-att-title="'Hạn ' + cwl.deadline">
-                                                                    <b><t t-esc="cwl.days"/>/<t t-esc="cwl.required"/></b> ngày
-                                                                    <span class="o_vd_cw_chip_dl">⏰<t t-esc="cwl.deadline"/></span>
-                                                                </span>
-                                                                <button t-if="cwl.phone"
-                                                                        class="btn btn-sm btn-success o_vd_notcalled_call_btn"
-                                                                        t-on-click="(ev) => this.callLeadDirect(ev, cwl.id)"
-                                                                        title="Gọi KH ngay">
-                                                                    <i class="fa fa-phone me-1"/> Gọi
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- NÚT: KH nên kết bạn Zalo để tư vấn (user spec 2026-06-07) -->
-                                                <div t-if="zaloCand.length"
-                                                     class="o_vd_trash_box o_vd_split_trash o_vd_cw_btn o_vd_cw_btn_zalo">
-                                                    <i class="fa fa-comments o_vd_cw_btn_ico"/>
-                                                    <span class="o_vd_cw_btn_lbl">
-                                                        <b><t t-esc="zaloCand.length"/></b> KHÁCH NÊN TƯ VẤN QUA ZALO
-                                                    </span>
-                                                    <div class="o_vd_trash_popover o_vd_popover_anchor_right">
-                                                        <div class="o_vd_trash_popover_head">
-                                                            💬 Khách mới nên KẾT BẠN ZALO để tư vấn (<t t-esc="zaloCand.length"/>)
-                                                            <div class="o_vd_trash_popover_hint">
-                                                                Đã tạo ≥2 ngày và đã gọi điện — chủ động kết bạn Zalo để tiếp cận, gọi &amp; tư vấn khách.
-                                                            </div>
-                                                        </div>
-                                                        <div class="o_vd_trash_popover_body">
-                                                            <div t-foreach="zaloCand" t-as="zc" t-key="zc.id"
-                                                                 class="o_vd_trash_popover_item o_vd_cw_row_item">
-                                                                <span class="o_vd_trash_popover_name"><t t-esc="zc.name"/></span>
-                                                                <span class="o_vd_zalo_req_nv"><t t-esc="zc.user_name"/></span>
-                                                                <span class="o_vd_cw_chip">
-                                                                    <b><t t-esc="zc.create_days"/></b> ngày
-                                                                    <span class="o_vd_cw_chip_dl">📞 <t t-esc="(zc.call_stats and zc.call_stats.total) or 0"/></span>
-                                                                </span>
-                                                                <button class="btn btn-sm o_vd_zalo_ketban_btn"
-                                                                        t-on-click="(ev) => this.confirmZaloFriend(ev, zc.id)"
-                                                                        title="Xác nhận đã KẾT BẠN Zalo (Ngày 1) — KH vào quy trình chăm Zalo">
-                                                                    💬 Xác nhận kết bạn Zalo
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <button t-if="state.call_watch.locked and state.is_manager and state.selected_user_id"
-                                                        class="o_vd_cw_unlock_btn"
-                                                        t-on-click.stop="() => this.adminClearTableLock('new')">
-                                                    🔓 Mở khoá ngay
-                                                </button>
-                                            </div>
                                             <!-- COACHMARK KHOÁ CHỐT BÁO GIÁ — tự hiện khi > 3 KH
                                                  báo giá chưa chốt; hướng dẫn NV cách xử lý. -->
                                             <!-- Coachmark bong bóng cũ đã thay bằng badge ổ khoá góc
@@ -2131,9 +2009,13 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- User spec 2026-06-12: gom 3 nút vào 1 cột → xếp DỌC khi >40 KH.
+                                         display:contents khi ≤40 (giữ grid 3 ô như cũ). -->
+                                    <div class="o_vd_split_trash_col">
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"
                                          t-on-click="() => this.openCategoryList(leadsReference)"
+                                         t-on-mousemove="onTrashPopoverMove"
                                          title="Click để mở popup danh sách KH tham khảo">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
                                         <div class="o_vd_trash_meta">
@@ -2212,6 +2094,7 @@
                                     <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
                                          t-on-click="() => this.openCategoryList(leadsNotCalled)"
+                                         t-on-mousemove="onTrashPopoverMove"
                                          title="Click để mở popup danh sách KH chưa gọi được">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
@@ -2260,6 +2143,7 @@
                                     <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
                                     <div class="o_vd_trash_box o_vd_split_trash"
                                          t-on-click="() => this.openCategoryList(leadsLost)"
+                                         t-on-mousemove="onTrashPopoverMove"
                                          title="Click để mở popup danh sách KH hủy">
                                         <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
                                         <div class="o_vd_trash_meta">
@@ -2337,6 +2221,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    </div><!-- /.o_vd_split_trash_col -->
                                 </div>
                             </t>
                             <t t-else="">
@@ -3280,6 +3165,13 @@
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
 
+                <!-- Logo Zalo nhỏ — GOM cạnh badge cuộc gọi 📞📅 (user spec 2026-06-12).
+                     Xanh = đã kết bạn/nhắn Zalo; Xám = không tìm thấy Zalo. -->
+                <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"
+                     class="o_vd_pill_zalo" title="Đã/đang nhắn Zalo"/>
+                <img t-elif="lead.zalo_not_found" src="/vd_crm_lead/static/src/img/zalo.webp"
+                     class="o_vd_pill_zalo o_vd_pill_zalo_gray" title="Không tìm thấy Zalo của khách này"/>
+
                 <!-- Badge ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B):
                      đã gọi rồi + chưa đủ 3 ngày gọi + hôm nay chưa gọi. Thay cho
                      viền glow cũ — chỉ chip nhỏ, không nhấp nháy. -->
@@ -3293,18 +3185,6 @@
                 <span t-if="selectedStage and selectedStage.code === 'new' and lead.intake_complete and !lead.intake_locked and !lead.quote_cancelled"
                       class="o_vd_pill_quote_dot"
                       title="Đã đủ thông tin báo giá — bấm CHỐT để chuyển sang bảng Báo giá">💰</span>
-
-                <!-- User spec 2026-06-09: KH CHƯA kết bạn Zalo → KHÔNG hiện icon
-                     Zalo (đỏ must_zalo đã đủ báo "cần Zalo"). Badge ⚡ auto cũng bỏ
-                     (logo FB/TikTok đã ngụ ý đẩy số tự động). Chỉ giữ logo Zalo
-                     cho khách ĐÃ kết bạn (bên dưới). -->
-
-                <!-- Logo Zalo nhỏ ở CUỐI thẻ — KH đã/đang tư vấn qua Zalo (user spec 2026-06-07) -->
-                <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"
-                     class="o_vd_pill_zalo" title="Đã/đang nhắn Zalo"/>
-                <!-- Icon Zalo XÁM = không tìm thấy Zalo của khách (user spec 2026-06-10) -->
-                <img t-elif="lead.zalo_not_found" src="/vd_crm_lead/static/src/img/zalo.webp"
-                     class="o_vd_pill_zalo o_vd_pill_zalo_gray" title="Không tìm thấy Zalo của khách này"/>
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">

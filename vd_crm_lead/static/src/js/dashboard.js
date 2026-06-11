@@ -1233,11 +1233,8 @@ export class VdCrmDashboard extends Component {
     //   - nhắn Zalo → chừa KH chưa nhắn (nhắn để gỡ)
     isLeadLocked(leadId) {
         if (!this._newTableLeadIds.has(leadId)) return false;
-        // Làm MỜ thẻ bị khoá khi đang xem 1 NV cụ thể — ADMIN xem hộ cũng THẤY mờ
-        // (đồng nhất với khoá chốt báo giá / nhắn Zalo). Admin vẫn bấm mở được vì
-        // openLead chặn theo ...ForSelf (user spec 2026-06-11).
-        if (this.isTableLocked('new') && this.state.selected_user_id
-                && !this.callWatchAllowedIds.has(leadId)) return true;
+        // User spec 2026-06-12: BỎ khoá "chưa gọi đủ" — 3 vùng + badge ⏰ đã thay
+        // vai trò nhắc, không làm mờ/chặn nữa. CHỈ giữ khoá chốt báo giá (+ Zalo).
         if (this.quoteChotLockActive && !this.quoteChotAllowedIds.has(leadId)) return true;
         if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
         return false;
@@ -1274,22 +1271,8 @@ export class VdCrmDashboard extends Component {
             );
             return;
         }
-        // KHOÁ THEO TỪNG BẢNG (user spec 2026-06-05): "bảng nào vi phạm khoá
-        // bảng đó". Chặn bấm KH thuộc bảng đang khoá. Chỉ áp khi NV xem dashboard
-        // CHÍNH MÌNH (admin xem hộ vẫn mở + có nút gỡ). Chỉ admin gỡ khoá.
-        // KHOÁ "CHƯA GỌI ĐỦ" (user spec 2026-06-10): CHỈ khoá các KH khác; KH bị
-        // NHẮC (chưa gọi) vẫn mở được để NV gọi → gọi đủ là TỰ GỠ.
-        if (this.isTableLockedForSelf('new')
-                && this._newTableLeadIds.has(leadId)
-                && !this.callWatchAllowedIds.has(leadId)) {
-            this.notification.add(
-                "🔒 Bảng KHÁCH MỚI đang KHOÁ do CHƯA GỌI ĐỦ. Hãy mở các khách "
-                + "CHƯA BỊ MỜ (khách bị nhắc) → GỌI cho đủ, bảng sẽ TỰ MỞ ngay. "
-                + (this.state.call_watch?.reason || ""),
-                { type: "warning", title: "Khoá bảng Khách mới — chưa gọi đủ" },
-            );
-            return;
-        }
+        // KHOÁ "CHƯA GỌI ĐỦ" đã BỎ (user spec 2026-06-12) — không chặn mở KH nữa;
+        // 3 vùng + badge ⏰ thay vai trò nhắc. Khoá theo bảng còn lại: TCG/XLVĐ.
         if (this.isTableLockedForSelf('urgent')
                 && (this.leadsUrgentConstruction || []).some(l => l.id === leadId)) {
             this.notification.add(
@@ -1344,6 +1327,33 @@ export class VdCrmDashboard extends Component {
         const ids = leads.map(l => l.id);
         this.state.previewLead = { open: true, ids, index: 0 };
         this._lockScroll();
+    }
+
+    // Popover 3 nút (Tham khảo / Chưa gọi được / Hủy) BÁM theo con trỏ chuột
+    // (user spec 2026-06-12) — position:fixed theo clientX/Y, kẹp trong màn hình
+    // để KHÔNG bị che mép. Khi chuột vào trong popover thì NGỪNG bám để bấm được.
+    onTrashPopoverMove(ev) {
+        const box = ev.currentTarget;
+        const pop = box.querySelector(".o_vd_trash_popover");
+        if (!pop) return;
+        if (pop.contains(ev.target)) return;   // đang rê trong popover → giữ yên
+        const pad = 16, edge = 8;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const pw = pop.offsetWidth || 520;
+        const ph = pop.offsetHeight || 300;
+        let x = ev.clientX + pad;
+        let y = ev.clientY + pad;
+        if (x + pw > vw - edge) x = ev.clientX - pw - pad;   // lật trái nếu tràn phải
+        if (x < edge) x = edge;
+        if (y + ph > vh - edge) y = vh - ph - edge;          // đẩy lên nếu tràn dưới
+        if (y < edge) y = edge;
+        pop.style.position = "fixed";
+        pop.style.left = x + "px";
+        pop.style.top = y + "px";
+        pop.style.right = "auto";
+        pop.style.bottom = "auto";
+        pop.style.margin = "0";
+        pop.style.transform = "none";
     }
 
     // ===== KHOÁ THEO BẢNG (user spec 2026-06-05) =====
