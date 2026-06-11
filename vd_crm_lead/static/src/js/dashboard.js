@@ -621,6 +621,19 @@ export class VdCrmDashboard extends Component {
         ];
     }
 
+    // CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B) — badge ⏰, thay cho
+    // viền glow cũ. Đơn giản: đã gọi rồi (total>0) + CHƯA đủ 3 ngày gọi khác
+    // nhau + HÔM NAY chưa gọi cuộc nào. Gọi 1 cuộc hôm nay hoặc đủ 3 ngày → tắt.
+    // Vùng 1 (total=0) không bao giờ dính → badge chỉ hiện ở vùng 2 & 3.
+    needsCallToday(lead) {
+        if (this.selectedStage?.code !== 'new') return false;
+        const s = lead.call_stats || {};
+        if ((s.total || 0) === 0) return false;          // chưa gọi → thuộc vùng 1
+        if ((s.distinct_days || 0) >= 3) return false;   // đủ 3 ngày → thôi
+        if (s.has_call_today) return false;              // hôm nay gọi rồi → thôi
+        return true;
+    }
+
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
     // ≥2 ngày, đã có ≥1 cuộc gọi THẬT, và CHƯA kết bạn Zalo → nên kết bạn để
     // gọi + tư vấn qua Zalo.

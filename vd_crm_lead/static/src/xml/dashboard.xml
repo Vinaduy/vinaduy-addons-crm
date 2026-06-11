@@ -3280,6 +3280,13 @@
                     <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
                 </span>
 
+                <!-- Badge ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B):
+                     đã gọi rồi + chưa đủ 3 ngày gọi + hôm nay chưa gọi. Thay cho
+                     viền glow cũ — chỉ chip nhỏ, không nhấp nháy. -->
+                <span t-if="needsCallToday(lead)"
+                      class="o_vd_pill_recall"
+                      title="Cần gọi lại HÔM NAY — chưa đủ 3 ngày gọi, hôm nay chưa gọi cuộc nào">⏰</span>
+
                 <!-- Badge 💰: đã điền đủ báo giá nhưng CHƯA bấm CHỐT (user spec
                      2026-06-11). Nằm yên trong vùng của nó — nhắc NV bấm CHỐT để
                      KH tự xuống bảng BÁO GIÁ. -->

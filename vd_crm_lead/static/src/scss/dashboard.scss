@@ -8626,6 +8626,19 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     line-height: 1;
     margin-left: 0.1rem;
 }
+/* Chip ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12) — cam nhạt, KHÔNG glow */
+.o_vd_pill_recall {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.74rem;
+    line-height: 1;
+    padding: 0.08rem 0.32rem;
+    margin-left: 0.1rem;
+    border-radius: 999px;
+    background: #fff3bf;
+    color: #92590a;
+    font-weight: 800;
+}
 
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
 .o_vd_admin_trash_btn {
