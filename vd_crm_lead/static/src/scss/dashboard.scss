@@ -5184,36 +5184,18 @@
     }
 
     /* >40 KH (màn rộng) → 3 nút xếp DỌC cột hẹp bên phải, ô thẻ (1fr) nới rộng.
-       Mỗi nút thu nhỏ: icon trái + nhãn/số phải. (user spec 2026-06-12) */
+       User spec 2026-06-12: GIỮ NGUYÊN icon to + chữ nằm DƯỚI icon (layout cột
+       mặc định của mỗi nút) — chỉ stack 3 nút theo chiều dọc, KHÔNG thu nhỏ. */
     @media (min-width: 1281px) {
         .o_vd_split_table.o_vd_split_table_stacked {
-            grid-template-columns: 1fr 168px;
+            grid-template-columns: 1fr 180px;
             > .o_vd_split_trash_col {
                 display: flex;
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.7rem;
                 align-self: start;
                 min-width: 0;
             }
-            .o_vd_split_trash {
-                flex-direction: row;
-                justify-content: flex-start;
-                align-items: center;
-                gap: 0.55rem;
-                padding: 0.5rem 0.65rem;
-                min-height: 0;
-                border-radius: 12px;
-            }
-            .o_vd_split_trash .o_vd_trash_icon_emoji { font-size: 2.1rem !important; }
-            .o_vd_split_trash .o_vd_trash_icon { font-size: 1.7rem !important; }
-            .o_vd_split_trash .o_vd_trash_meta {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0;
-            }
-            .o_vd_split_trash .o_vd_trash_label { font-size: 0.72rem; }
-            .o_vd_split_trash .o_vd_trash_count { font-size: 1.2rem; line-height: 1.05; }
         }
     }
 
