@@ -674,6 +674,14 @@ export class VdCrmDashboard extends Component {
         return this.selectedStage?.code === 'new' && !this.state.alertFilter;
     }
 
+    // True khi KHÁCH MỚI chia 4 CỘT THEO MÀU (xem 1 NV) → render cột cạnh nhau.
+    // Khớp đúng điều kiện color-grouping trong leadGroups('new').
+    get isCallColumnView() {
+        return this.selectedStage?.code === 'new'
+            && !this.state.alertFilter
+            && (this.state.selected_user_id || !this.state.is_manager);
+    }
+
     get leadGroups() {
         // Trả về [{key, label, icon, color, leads}] để render columns.
         // Stage 'new' → group theo nguồn Pancake.

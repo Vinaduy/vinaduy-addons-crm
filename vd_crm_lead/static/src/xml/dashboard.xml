@@ -3187,7 +3187,7 @@
         </div>
 
         <!-- ===== PILL VIEW: chia cột theo nhóm hoặc flex wrap ===== -->
-        <div t-elif="leadGroups" class="o_vd_pill_columns">
+        <div t-elif="leadGroups" t-attf-class="o_vd_pill_columns {{ isCallColumnView ? 'o_vd_pill_columns_side' : '' }}">
             <div t-foreach="leadGroups" t-as="grp" t-key="grp.key" class="o_vd_pill_column"
                  t-att-style="`border-left-color:${grp.cssColor}`">
                 <div class="o_vd_pill_col_header" t-att-style="`color:${grp.cssColor}`">

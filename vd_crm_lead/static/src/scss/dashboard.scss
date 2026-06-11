@@ -2716,6 +2716,29 @@
             max-width: 320px;
         }
     }
+
+    /* 4 CỘT THEO MÀU cạnh nhau (KHÁCH MỚI xem 1 NV) — user spec 2026-06-11.
+       Mặc định o_vd_pill_columns xếp băng dọc; bản _side này cho 4 cột ĐỨNG
+       CẠNH NHAU, pill xếp dọc trong cột → gọi xong xuống cuối cột nhìn rõ. */
+    .o_vd_pill_columns.o_vd_pill_columns_side {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0.6rem;
+
+        .o_vd_pill_column {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .o_vd_pill_col_body {
+            flex-direction: column;
+            flex-wrap: nowrap;
+
+            .o_vd_won_pill {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    }
     .o_vd_pill_col_empty {
         text-align: center;
         color: #adb5bd;
