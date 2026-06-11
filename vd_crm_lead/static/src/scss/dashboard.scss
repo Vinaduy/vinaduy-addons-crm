@@ -8626,7 +8626,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     line-height: 1;
     margin-left: 0.1rem;
 }
-/* Chip ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12) — cam nhạt, KHÔNG glow */
+/* Chip ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12) — cam nhạt, KHÔNG glow.
+   User spec 2026-06-12: ⏰ LẮC LẮC liên tục như chuông báo thức để hút mắt. */
 .o_vd_pill_recall {
     display: inline-flex;
     align-items: center;
@@ -8638,6 +8639,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     background: #fff3bf;
     color: #92590a;
     font-weight: 800;
+    transform-origin: center;
+    animation: vd-recall-ring 1s ease-in-out infinite;
+}
+@keyframes vd-recall-ring {
+    0%, 55%, 100% { transform: rotate(0deg); }
+    8%, 24%, 40%  { transform: rotate(-15deg); }
+    16%, 32%, 48% { transform: rotate(15deg); }
 }
 
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
