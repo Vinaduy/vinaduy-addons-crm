@@ -8418,6 +8418,15 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow: visible;          /* user spec 2026-06-07: KHÔNG cắt tooltip hover */
     transition: max-height 0.3s ease;
 }
+/* Gạch mờ ngăn các DẢI màu trong KHÁCH MỚI (user spec 2026-06-11). Full-width
+   → ép xuống dòng trong flex-wrap, tách rõ nhóm chưa gọi / đã gọi / khó. */
+.o_vd_band_sep {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 0;
+    border-top: 2px dashed rgba(73, 80, 87, 0.22);
+    margin: 0.5rem 0;
+}
 /* CHỈ cắt (overflow hidden) khi THỰC SỰ còn KH bị ẩn (fade) — lúc đó mới cần thu
    gọn; bình thường để overflow visible cho tooltip hiện đủ. */
 .o_vd_new_pills_fade { overflow: hidden; }

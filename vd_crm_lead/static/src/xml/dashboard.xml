@@ -2068,8 +2068,13 @@
                                                      dưới xuống để hiện toàn bộ KH. -->
                                                 <div t-ref="newPillsWrap"
                                                      t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
-                                                    <t t-foreach="leadsNoProblems" t-as="lead" t-key="lead.id">
-                                                        <t t-call="vd_crm_lead.LeadPill"/>
+                                                    <!-- Chia dải ngang theo màu, ngăn bằng gạch mờ
+                                                         (user spec 2026-06-11) — KHÔNG tiêu đề. -->
+                                                    <t t-foreach="leadBands" t-as="band" t-key="band.key">
+                                                        <div t-if="band_index > 0" class="o_vd_band_sep"/>
+                                                        <t t-foreach="band.leads" t-as="lead" t-key="lead.id">
+                                                            <t t-call="vd_crm_lead.LeadPill"/>
+                                                        </t>
                                                     </t>
                                                 </div>
                                                 <button t-if="state.newPillsOverflow"
