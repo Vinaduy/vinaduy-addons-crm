@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ APP CONFIG ============ -->
+    <record id="view_vd_fb_app_form" model="ir.ui.view">
+        <field name="name">vd.fb.app.form</field>
+        <field name="model">vd.fb.app</field>
+        <field name="arch" type="xml">
+            <form string="Facebook App">
+                <header>
+                    <button name="action_rotate_verify_token" type="object"
+                            string="Sinh lại Verify Token" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Tên App"/></h1>
+                    </div>
+                    <group>
+                        <group string="Thông tin App (Meta)">
+                            <field name="app_id"/>
+                            <field name="app_secret" password="True"/>
+                            <field name="graph_version"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Webhook (dán vào Meta)">
+                            <field name="webhook_url" readonly="1"/>
+                            <field name="verify_token" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="page_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="fb_page_id"/>
+                            <field name="platform"/>
+                            <field name="page_access_token" password="True"/>
+                            <field name="auto_create_lead"/>
+                            <field name="team_id"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_fb_app" model="ir.actions.act_window">
+        <field name="name">Kết nối Facebook</field>
+        <field name="res_model">vd.fb.app</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============ PAGE ============ -->
+    <record id="view_vd_fb_page_form" model="ir.ui.view">
+        <field name="name">vd.fb.page.form</field>
+        <field name="model">vd.fb.page</field>
+        <field name="arch" type="xml">
+            <form string="Fanpage">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_conversations" type="object"
+                                class="oe_stat_button" icon="fa-comments">
+                            <field name="conversation_count" widget="statinfo" string="Hội thoại"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="fb_page_id"/>
+                            <field name="platform"/>
+                            <field name="app_id"/>
+                        </group>
+                        <group>
+                            <field name="page_access_token" password="True"/>
+                            <field name="auto_create_lead"/>
+                            <field name="team_id"/>
+                            <field name="last_event_at" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============ CONVERSATION (inbox) ============ -->
+    <record id="view_vd_fb_conversation_list" model="ir.ui.view">
+        <field name="name">vd.fb.conversation.list</field>
+        <field name="model">vd.fb.conversation</field>
+        <field name="arch" type="xml">
+            <list string="Hội thoại" default_order="last_message_at desc">
+                <field name="customer_name"/>
+                <field name="platform"/>
+                <field name="snippet"/>
+                <field name="lead_id"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="unread"/>
+                <field name="last_message_at"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'" decoration-info="state == 'open'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_fb_conversation_form" model="ir.ui.view">
+        <field name="name">vd.fb.conversation.form</field>
+        <field name="model">vd.fb.conversation</field>
+        <field name="arch" type="xml">
+            <form string="Hội thoại">
+                <header>
+                    <button name="action_send_reply" type="object" string="📤 Gửi trả lời"
+                            class="btn-primary" invisible="not reply_text"/>
+                    <button name="action_mark_read" type="object" string="Đánh dấu đã đọc"/>
+                    <button name="action_mark_done" type="object" string="Xong"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="customer_name"/>
+                            <field name="platform"/>
+                            <field name="page_id"/>
+                        </group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="last_inbound_at"/>
+                        </group>
+                    </group>
+                    <separator string="Tin nhắn"/>
+                    <field name="message_ids" readonly="1">
+                        <list default_order="sent_at" create="false" edit="false">
+                            <field name="sent_at"/>
+                            <field name="direction" widget="badge"
+                                   decoration-info="direction == 'in'" decoration-success="direction == 'out'"/>
+                            <field name="body"/>
+                            <field name="attachment_url" widget="url"/>
+                            <field name="send_error"/>
+                        </list>
+                    </field>
+                    <separator string="Trả lời khách"/>
+                    <field name="reply_text" placeholder="Nhập nội dung trả lời rồi bấm 'Gửi trả lời'..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_fb_conversation" model="ir.actions.act_window">
+        <field name="name">Hộp thư hội thoại</field>
+        <field name="res_model">vd.fb.conversation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============ COMMENT ============ -->
+    <record id="view_vd_fb_comment_list" model="ir.ui.view">
+        <field name="name">vd.fb.comment.list</field>
+        <field name="model">vd.fb.comment</field>
+        <field name="arch" type="xml">
+            <list string="Bình luận">
+                <field name="created_time"/>
+                <field name="from_name"/>
+                <field name="body"/>
+                <field name="lead_id"/>
+                <field name="replied" widget="boolean_toggle"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_fb_comment_form" model="ir.ui.view">
+        <field name="name">vd.fb.comment.form</field>
+        <field name="model">vd.fb.comment</field>
+        <field name="arch" type="xml">
+            <form string="Bình luận">
+                <header>
+                    <button name="action_send_reply" type="object" string="📤 Trả lời bình luận"
+                            class="btn-primary" invisible="not reply_text"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="from_name"/>
+                            <field name="created_time"/>
+                            <field name="page_id"/>
+                        </group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="replied"/>
+                            <field name="post_id"/>
+                        </group>
+                    </group>
+                    <separator string="Nội dung bình luận"/>
+                    <field name="body" readonly="1"/>
+                    <separator string="Trả lời"/>
+                    <field name="reply_text" placeholder="Nhập trả lời bình luận..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_fb_comment" model="ir.actions.act_window">
+        <field name="name">Bình luận</field>
+        <field name="res_model">vd.fb.comment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============ MENU ============ -->
+    <menuitem id="menu_vd_fb_root" name="Hộp thư FB/TikTok"
+              parent="vd_crm_lead.menu_vd_crm_dashboard" sequence="25"/>
+    <menuitem id="menu_vd_fb_inbox" name="Hội thoại"
+              parent="menu_vd_fb_root" action="action_vd_fb_conversation" sequence="10"/>
+    <menuitem id="menu_vd_fb_comments" name="Bình luận"
+              parent="menu_vd_fb_root" action="action_vd_fb_comment" sequence="20"/>
+    <menuitem id="menu_vd_fb_app" name="Kết nối Facebook"
+              parent="menu_vd_fb_root" action="action_vd_fb_app" sequence="90"
+              groups="vd_crm_lead.vd_crm_group_admin"/>
+
+</odoo>

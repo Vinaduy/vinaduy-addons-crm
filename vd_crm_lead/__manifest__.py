@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.233.0',
+    'version': '18.0.9.234.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -43,6 +43,8 @@
         'views/res_users_vd_settings_views.xml',
         'views/res_config_settings_views.xml',
         'views/menus.xml',
+        # Hộp thư hội thoại Facebook (kết nối thẳng Meta) — GĐ1
+        'views/vd_fb_inbox_views.xml',
         # Seed default 4 vị trí (load SAU view + group)
         'data/role_config_data.xml',
         # Ẩn các menu Sales/Reporting/Sales app theo yêu cầu user
