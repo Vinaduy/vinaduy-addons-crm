@@ -34,9 +34,15 @@ class VdFbWebhookController(http.Controller):
             return request.make_response('forbidden', status=403)
 
         # ----- POST: event payload -----
+        raw_bytes = request.httprequest.get_data() or b'{}'
+        # Xác thực chữ ký Meta (X-Hub-Signature-256) bằng app_secret
+        sig = request.httprequest.headers.get('X-Hub-Signature-256', '')
+        if not request.env['vd.fb.app'].sudo().verify_signature(raw_bytes, sig):
+            _logger.warning('[FB webhook] chữ ký KHÔNG hợp lệ — bỏ qua payload')
+            return request.make_response('EVENT_RECEIVED', headers=[('Content-Type', 'text/plain')])
         try:
-            raw = request.httprequest.get_data(as_text=True) or '{}'
-            payload = json.loads(raw)
+            raw = raw_bytes.decode('utf-8') if isinstance(raw_bytes, bytes) else raw_bytes
+            payload = json.loads(raw or '{}')
         except Exception:
             _logger.warning('[FB webhook] payload không parse được')
             payload = {}

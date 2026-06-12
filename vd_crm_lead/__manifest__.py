@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.234.0',
+    'version': '18.0.9.235.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -36,6 +36,7 @@
         'views/vd_lead_cancel_history_wizard_views.xml',
         'views/vd_lead_callback_wizard_views.xml',
         'views/vd_contract_sign_wizard_views.xml',
+        'views/vd_meeting_schedule_wizard_views.xml',
         'views/vd_quote_preview_wizard_views.xml',
         'views/vd_lead_quick_add_wizard_views.xml',
         'views/vd_role_config_views.xml',

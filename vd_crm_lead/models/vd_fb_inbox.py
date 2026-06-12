@@ -18,6 +18,8 @@ Cấu trúc:
    pages_manage_engagement + App Review của Meta. Chưa duyệt chỉ nhắn được
    tài khoản test.
 """
+import hashlib
+import hmac
 import logging
 import re
 import secrets
@@ -70,6 +72,25 @@ class VdFbApp(models.Model):
         for rec in self:
             rec.verify_token = secrets.token_urlsafe(20)
         return True
+
+    @api.model
+    def verify_signature(self, raw_body, header):
+        """Xác thực payload Meta qua header X-Hub-Signature-256 = HMAC-SHA256(body,
+        app_secret). Trả True nếu hợp lệ HOẶC chưa cấu hình app_secret (GĐ1).
+        raw_body: bytes."""
+        apps = self.sudo().search([('active', '=', True), ('app_secret', '!=', False)])
+        if not apps:
+            return True  # chưa set app_secret → chưa enforce (sẽ enforce khi có)
+        if not header or not header.startswith('sha256='):
+            return False
+        provided = header.split('=', 1)[1]
+        if isinstance(raw_body, str):
+            raw_body = raw_body.encode('utf-8')
+        for app in apps:
+            expected = hmac.new(app.app_secret.encode(), raw_body, hashlib.sha256).hexdigest()
+            if hmac.compare_digest(expected, provided):
+                return True
+        return False
 
     # ---------- WEBHOOK dispatch ----------
     @api.model
@@ -142,15 +163,34 @@ class VdFbPage(models.Model):
         return (self.app_id.graph_version or 'v21.0')
 
     # ---------- Graph API ----------
-    def _graph_post(self, path, payload):
-        """POST tới Graph API. path = 'me/messages' hoặc '<id>/comments'."""
+    def _appsecret_proof(self):
+        """Meta khuyến nghị kèm appsecret_proof = HMAC-SHA256(token, app_secret)
+        cho mọi server-side call → chặn token bị dùng từ nơi khác."""
+        self.ensure_one()
+        secret = (self.app_id.app_secret or '').encode()
+        token = (self.page_access_token or '').encode()
+        if not secret or not token:
+            return None
+        return hmac.new(secret, token, hashlib.sha256).hexdigest()
+
+    def _graph_params(self, extra=None):
+        p = {'access_token': self.page_access_token}
+        proof = self._appsecret_proof()
+        if proof:
+            p['appsecret_proof'] = proof
+        if extra:
+            p.update(extra)
+        return p
+
+    def _graph_post(self, path, payload=None, params=None):
+        """POST tới Graph API. path = 'me/messages' / '<id>/comments' / '<page>/subscribed_apps'."""
         self.ensure_one()
         url = '%s/%s/%s' % (_GRAPH, self._gver, path)
         try:
             resp = requests.post(
                 url,
-                params={'access_token': self.page_access_token},
-                json=payload,
+                params=self._graph_params(params),
+                json=payload or None,
                 timeout=20,
             )
             data = resp.json() if resp.content else {}
@@ -160,6 +200,49 @@ class VdFbPage(models.Model):
         if resp.status_code != 200:
             _logger.warning('[FB Graph] POST %s status=%s body=%s', path, resp.status_code, data)
         return data
+
+    def _graph_get(self, path, fields=None):
+        """GET tới Graph API (vd lấy tên KH theo PSID)."""
+        self.ensure_one()
+        url = '%s/%s/%s' % (_GRAPH, self._gver, path)
+        try:
+            resp = requests.get(
+                url, params=self._graph_params({'fields': fields} if fields else None),
+                timeout=20,
+            )
+            return resp.json() if resp.content else {}
+        except Exception as e:
+            _logger.warning('[FB Graph] GET %s lỗi: %s', path, e)
+            return {'error': str(e)}
+
+    def _fetch_psid_name(self, psid):
+        """Lấy tên hiển thị của khách theo PSID (best-effort)."""
+        if not psid:
+            return None
+        data = self._graph_get(psid, fields='name')
+        if isinstance(data, dict) and not data.get('error'):
+            return data.get('name')
+        return None
+
+    def action_subscribe_page(self):
+        """Đăng ký fanpage này nhận webhook events từ App (BẮT BUỘC để Meta đẩy
+        tin nhắn/bình luận về). Tương đương: POST /<page_id>/subscribed_apps."""
+        self.ensure_one()
+        res = self._graph_post(
+            '%s/subscribed_apps' % self.fb_page_id,
+            params={'subscribed_fields': 'messages,messaging_postbacks,messaging_optins,feed'},
+        )
+        if isinstance(res, dict) and res.get('error'):
+            raise UserError(_('Đăng ký webhook thất bại: %s') % res['error'])
+        self.last_event_at = fields.Datetime.now()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': _('✅ Đã đăng ký fanpage "%s" nhận tin nhắn + bình luận.') % self.name,
+                'type': 'success', 'sticky': False,
+            },
+        }
 
     def send_message(self, psid, text):
         """Gửi tin nhắn tới khách (PSID) qua Send API."""
@@ -180,6 +263,9 @@ class VdFbPage(models.Model):
         self.ensure_one()
         Conv = self.env['vd.fb.conversation'].sudo()
         conv = Conv.search([('page_id', '=', self.id), ('psid', '=', psid)], limit=1)
+        # Lấy tên thật từ Graph nếu chưa biết (đẹp cho hộp thư + video demo)
+        if not name:
+            name = self._fetch_psid_name(psid)
         if not conv:
             conv = Conv.create({
                 'page_id': self.id,

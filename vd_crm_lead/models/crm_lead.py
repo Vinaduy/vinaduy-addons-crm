@@ -3064,6 +3064,13 @@ class CrmLead(models.Model):
         help='Nhà KH / VP VINADUY / quán cafe...',
     )
     vd_planned_sign_note = fields.Text(string='Ghi chú lịch hẹn ký', copy=False)
+
+    # ===== LỊCH GẶP (user spec 2026-06-12) — card văn bản để NV chụp gửi KH =====
+    vd_meet_created = fields.Boolean(string='Đã tạo lịch gặp', copy=False, default=False)
+    vd_meet_address = fields.Char(string='Địa chỉ gặp', copy=False)
+    vd_meet_maps_link = fields.Char(string='Link Maps lịch gặp', copy=False)
+    vd_meet_datetime = fields.Datetime(string='Ngày giờ gặp', copy=False)
+    vd_meet_content = fields.Text(string='Nội dung lịch gặp', copy=False)
     vd_planned_sign_countdown = fields.Char(
         string='Đếm ngược ký HĐ',
         compute='_compute_vd_planned_sign_countdown',
@@ -5620,6 +5627,19 @@ class CrmLead(models.Model):
                 'default_lead_id': self.id,
                 'dialog_size': 'medium',
             },
+        }
+
+    def action_open_meeting_wizard(self):
+        """📅 Mở popup TẠO LỊCH GẶP — nhập info, lưu xong ra card văn bản chụp gửi KH."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Thông tin lịch gặp'),
+            'res_model': 'vd.meeting.schedule.wizard',
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'new',
+            'context': {'default_lead_id': self.id, 'dialog_size': 'medium'},
         }
 
     def action_mark_contract_signed(self):

@@ -35,6 +35,9 @@
                             <field name="page_access_token" password="True"/>
                             <field name="auto_create_lead"/>
                             <field name="team_id"/>
+                            <button name="action_subscribe_page" type="object"
+                                    string="Đăng ký webhook" icon="fa-bell"
+                                    help="Đăng ký page nhận tin nhắn + bình luận"/>
                         </list>
                     </field>
                 </sheet>
@@ -54,6 +57,12 @@
         <field name="model">vd.fb.page</field>
         <field name="arch" type="xml">
             <form string="Fanpage">
+                <header>
+                    <button name="action_subscribe_page" type="object"
+                            string="🔔 Đăng ký nhận tin nhắn + bình luận"
+                            class="btn-primary"
+                            help="Đăng ký fanpage với App để Meta đẩy webhook về. Bấm sau khi đã dán Page Access Token."/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_conversations" type="object"

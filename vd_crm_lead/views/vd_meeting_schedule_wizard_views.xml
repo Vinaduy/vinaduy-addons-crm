@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_meeting_schedule_wizard_form" model="ir.ui.view">
+        <field name="name">vd.meeting.schedule.wizard.form</field>
+        <field name="model">vd.meeting.schedule.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin lịch gặp" class="o_vd_meet_wizard">
+                <field name="lead_id" invisible="1"/>
+                <field name="state" invisible="1"/>
+                <field name="meet_datetime_display" invisible="1"/>
+
+                <!-- ============ CHẾ ĐỘ NHẬP ============ -->
+                <div class="o_vd_meet_edit" invisible="state == 'view'">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;">
+                        <span style="font-size:1.3rem;">📅</span>
+                        <span style="font-size:1.05rem;font-weight:800;color:#5d3d54;">THÔNG TIN LỊCH GẶP</span>
+                    </div>
+                    <div class="o_vd_meet_grid" style="display:grid;grid-template-columns:130px 1fr;gap:0.55rem 0.8rem;align-items:center;">
+                        <span style="font-weight:700;color:#495057;">👤 Tên</span>
+                        <field name="cust_name" nolabel="1" readonly="1"/>
+                        <span style="font-weight:700;color:#495057;">📞 Số ĐT</span>
+                        <field name="cust_phone" nolabel="1" readonly="1"/>
+                        <span style="font-weight:700;color:#495057;">📍 Địa chỉ</span>
+                        <field name="address" nolabel="1" placeholder="Nhập địa chỉ điểm gặp..."/>
+                        <span style="font-weight:700;color:#495057;">🗺️ Link Maps</span>
+                        <field name="maps_link" nolabel="1" placeholder="Dán link Google Maps..."/>
+                        <span style="font-weight:700;color:#495057;">🕒 Ngày gặp</span>
+                        <field name="meet_datetime" nolabel="1" widget="datetime"/>
+                        <span style="font-weight:700;color:#495057;align-self:start;padding-top:0.3rem;">📝 Nội dung</span>
+                        <field name="content" nolabel="1" placeholder="Nội dung buổi gặp..."
+                               style="min-height:54px;"/>
+                    </div>
+                </div>
+
+                <!-- ============ CHẾ ĐỘ VĂN BẢN (đóng khung, để chụp màn hình) ============ -->
+                <div class="o_vd_meet_card" invisible="state == 'edit'"
+                     style="border:2px solid #714B67;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(93,61,84,0.12);">
+                    <div style="background:#714B67;color:#fff;padding:0.6rem 1rem;font-size:1.02rem;font-weight:800;letter-spacing:0.5px;text-align:center;">
+                        📅 THÔNG TIN LỊCH GẶP
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:140px;padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;background:#faf6f9;font-weight:700;color:#5d3d54;">👤 Tên</td>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;color:#1f2a44;font-weight:600;">
+                                <field name="cust_name" nolabel="1" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;background:#faf6f9;font-weight:700;color:#5d3d54;">📞 Số ĐT</td>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;color:#1f2a44;font-weight:600;">
+                                <field name="cust_phone" nolabel="1" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;background:#faf6f9;font-weight:700;color:#5d3d54;">📍 Địa chỉ</td>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;color:#1f2a44;">
+                                <field name="address" nolabel="1" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;background:#faf6f9;font-weight:700;color:#5d3d54;">🗺️ Link Maps</td>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;">
+                                <field name="maps_link" nolabel="1" widget="url" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;background:#faf6f9;font-weight:700;color:#5d3d54;">🕒 Ngày gặp</td>
+                            <td style="padding:0.55rem 0.9rem;border-bottom:1px solid #efe6ed;color:#c0392b;font-weight:700;">
+                                <field name="meet_datetime_display" nolabel="1" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.55rem 0.9rem;background:#faf6f9;font-weight:700;color:#5d3d54;vertical-align:top;">📝 Nội dung</td>
+                            <td style="padding:0.55rem 0.9rem;color:#1f2a44;white-space:pre-wrap;">
+                                <field name="content" nolabel="1" readonly="1"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <footer>
+                    <button name="action_save" type="object" string="💾 Lưu"
+                            class="btn-primary" invisible="state == 'view'"/>
+                    <button name="action_edit" type="object" string="✏️ Sửa"
+                            class="btn-primary" invisible="state == 'edit'"/>
+                    <button special="cancel" string="Đóng" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

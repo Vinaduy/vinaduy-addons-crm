@@ -1834,11 +1834,22 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                 <i class="fa fa-download me-1"/>Tải file phụ lục
                             </button>
                         </div>
-                        <!-- Tạo lịch gặp — đặt CUỐI panel làm hợp đồng (user spec 2026-05-31) -->
+                        <!-- Tạo lịch gặp + Đặt lịch ký — CUỐI panel làm hợp đồng -->
                         <div class="o_vd_contract_appt_row" invisible="vd_contract_signed">
-                            <button name="action_sign_contract" type="object"
-                                    class="btn btn-success o_vd_nego_sign_btn o_vd_contract_appt_btn">
+                            <field name="vd_meet_created" invisible="1"/>
+                            <button name="action_open_meeting_wizard" type="object"
+                                    class="btn btn-success o_vd_nego_sign_btn o_vd_contract_appt_btn"
+                                    invisible="vd_meet_created">
                                 <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
+                            </button>
+                            <button name="action_open_meeting_wizard" type="object"
+                                    class="btn btn-outline-success o_vd_contract_appt_btn"
+                                    invisible="not vd_meet_created">
+                                <i class="fa fa-calendar-check-o me-1"/>📅 Xem / Sửa lịch gặp
+                            </button>
+                            <button name="action_sign_contract" type="object"
+                                    class="btn btn-primary o_vd_contract_appt_btn">
+                                <i class="fa fa-pencil-square-o me-1"/>✍️ Đặt lịch ký HĐ
                             </button>
                         </div>
                     </div>
