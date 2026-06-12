@@ -8937,6 +8937,191 @@ $vd-panel-head-radius: 10px;
     }
 }
 
+/* === KHUYẾN MÃI — redesign gọn 2026-06-12 ===
+   Mục tiêu: 1 dòng trạng thái, segmented chọn phương án, field inline gọn. */
+.o_vd_km {
+    /* Thanh đầu: tiêu đề + chip trạng thái trên cùng 1 dòng */
+    .o_vd_km_bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.7rem;
+
+        .o_vd_km_bar_title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #5d3d54;
+            margin-right: auto;
+        }
+        .o_vd_km_chip {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.16rem 0.6rem;
+            border-radius: 999px;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+        .o_vd_km_chip_draft   { background: #fff3bf; color: #846100; }
+        .o_vd_km_chip_pending { background: #d0ebff; color: #1864ab; }
+        .o_vd_km_chip_ok      { background: #d3f9d8; color: #2b8a3e; }
+        .o_vd_km_chip_rej     { background: #ffe3e3; color: #c92a2a; }
+    }
+
+    /* Segmented control — radio nằm ngang dạng pill */
+    .o_vd_km_seg {
+        margin-bottom: 0.7rem;
+
+        .o_radio,
+        > .o_field_radio {
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .o_radio_input,
+        input[type="radio"] { display: none !important; }
+
+        .o_radio_item {
+            margin: 0 !important;
+            label, .o_form_label {
+                display: inline-flex;
+                align-items: center;
+                cursor: pointer;
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: #5d3d54;
+                background: #faf6f9;
+                border: 1px solid #e1d4dc;
+                border-radius: 8px;
+                padding: 0.38rem 0.8rem;
+                margin: 0;
+                transition: all 0.12s ease;
+                white-space: nowrap;
+            }
+            label:hover { background: #f1e6ee; }
+        }
+        /* Item đang chọn → tô nền tím */
+        .o_radio_item:has(input:checked) label,
+        .o_radio_item.active label {
+            background: #714B67;
+            border-color: #714B67;
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(113, 75, 103, 0.3);
+        }
+    }
+
+    /* Panel của phương án đang chọn */
+    .o_vd_km_panel {
+        background: #fffdf5;
+        border: 1px solid #ffe066;
+        border-radius: 8px;
+        padding: 0.55rem 0.7rem;
+        margin-bottom: 0.7rem;
+    }
+
+    /* Mỗi dòng: label trái + input phải, inline */
+    .o_vd_km_row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.22rem 0;
+
+        & + .o_vd_km_row { border-top: 1px dashed #f1e3b8; }
+
+        .o_vd_km_lbl {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #495057;
+            min-width: 78px;
+            flex-shrink: 0;
+        }
+        .o_vd_km_lbl_x {
+            min-width: 0;
+            color: #adb5bd;
+            font-weight: 500;
+        }
+        .o_field_widget {
+            margin: 0 !important;
+            max-width: 200px;
+        }
+        .o_field_widget.o_vd_km_coef { max-width: 80px; }
+        .o_field_widget.o_vd_km_grow { max-width: none; flex: 1; }
+
+        input {
+            width: 100% !important;
+            font-size: 0.86rem !important;
+            padding: 0.3rem 0.5rem !important;
+            border: 1px solid #e1d4dc !important;
+            border-radius: 6px !important;
+            background: #fff !important;
+            box-shadow: none !important;
+            &:focus {
+                border-color: #714B67 !important;
+                outline: 2px solid rgba(113, 75, 103, 0.18) !important;
+            }
+        }
+        .o_vd_km_hint {
+            font-size: 0.74rem;
+            font-style: italic;
+            color: #adb5bd;
+        }
+    }
+    /* Dòng tổng tiền — nổi bật cam */
+    .o_vd_km_row_total {
+        margin-top: 0.15rem;
+        .o_vd_km_lbl { color: #d9480f; font-weight: 800; }
+        input { font-weight: 800 !important; color: #d9480f !important; }
+    }
+
+    .o_vd_km_reject {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
+        .o_vd_km_lbl { font-size: 0.82rem; font-weight: 700; color: #c92a2a; }
+        input { color: #c92a2a; border: 0 !important; background: transparent !important; }
+    }
+
+    /* Thanh nút — gọn, có icon */
+    .o_vd_km_actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        .btn { font-size: 0.82rem; font-weight: 600; }
+        .o_vd_km_reject_input {
+            flex: 1;
+            min-width: 200px;
+            input {
+                width: 100% !important;
+                font-size: 0.82rem !important;
+                padding: 0.3rem 0.55rem !important;
+                border: 1px solid #ffc9c9 !important;
+                border-radius: 6px !important;
+            }
+        }
+        .o_vd_km_revert { color: #868e96; text-decoration: none; }
+    }
+
+    /* Lịch sử */
+    .o_vd_km_history {
+        margin-top: 0.7rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed #e9ddd5;
+
+        .o_vd_km_history_lbl {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #868e96;
+            margin-bottom: 0.25rem;
+        }
+        .o_field_widget { font-size: 0.82rem; color: #495057; }
+    }
+}
+
 /* === Section 3: Fears + Trust actions === */
 .o_vd_pf_fears_grid {
     display: grid;
