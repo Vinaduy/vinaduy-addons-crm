@@ -375,8 +375,20 @@ class ResUsers(models.Model):
             eligible = eligible.filtered('vd_can_receive_pancake')
         if not eligible:
             return self.env['res.users']  # empty
-        # Pick NV có ÍT active leads nhất (load-balanced round-robin)
         Lead = self.env['crm.lead'].sudo()
+        # CHẶN CHIA SỐ (user spec 2026-06-12): loại NV đang tồn >= ngưỡng KH mới
+        # CHƯA gọi. Nếu TẤT CẢ đều đầy → fallback chọn NV ÍT tồn nhất (Pancake /
+        # auto KHÔNG được rớt lead).
+        threshold = Lead._vd_distribute_block_threshold()
+        if threshold > 0:
+            uncalled = Lead._vd_uncalled_new_count_map(eligible.ids)
+            with_cap = eligible.filtered(
+                lambda u: uncalled.get(u.id, 0) < threshold)
+            if with_cap:
+                eligible = with_cap
+            else:
+                return min(eligible, key=lambda u: uncalled.get(u.id, 0))
+        # Pick NV có ÍT active leads nhất (load-balanced round-robin)
         def active_load(user):
             return Lead.search_count([
                 ('user_id', '=', user.id),

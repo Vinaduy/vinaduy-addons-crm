@@ -5962,6 +5962,32 @@ class CrmLead(models.Model):
             return 0
         # Gom theo NV để write 1 lần/NV (đổi đúng user_id, KHÔNG đụng field khác).
         valid_uids = set(self.env['res.users'].sudo().browse(list(by_user)).exists().ids)
+        # CHẶN CHIA SỐ (user spec 2026-06-12): TỔNG dự kiến KH mới CHƯA gọi của 1
+        # NV không được vượt ngưỡng (đang tồn + số chưa gọi sắp chia vào). Vi phạm
+        # → chặn cả cụm cho NV đó (buộc chọn NV khác). Frontend đã chặn, đây là rào.
+        threshold = self._vd_distribute_block_threshold()
+        if threshold > 0:
+            current = self._vd_uncalled_new_count_map(list(valid_uids))
+            Users = self.env['res.users'].sudo()
+            over = []
+            for uid, lids in by_user.items():
+                if uid not in valid_uids:
+                    continue
+                incoming = self.sudo().browse(lids).exists().filtered(
+                    lambda l: l.user_id.id != uid and (l.call_count or 0) == 0)
+                projected = current.get(uid, 0) + len(incoming)
+                if projected > threshold:
+                    cap = max(0, threshold - current.get(uid, 0))
+                    over.append('• %s — đang tồn %d KH mới chưa gọi, chỉ nhận thêm '
+                                '%d (ngưỡng %d)' % (
+                                    Users.browse(uid).name, current.get(uid, 0),
+                                    cap, threshold))
+            if over:
+                raise UserError(_(
+                    'KHÔNG chia được — các NV sau sẽ VƯỢT ngưỡng khách mới chưa '
+                    'gọi:\n%s\n\nChọn NV khác cho các số dư (gọi bớt khách cũ để '
+                    'mở thêm chỗ).'
+                ) % '\n'.join(over))
         moved = 0
         for uid, lids in by_user.items():
             if uid not in valid_uids:
@@ -6587,6 +6613,8 @@ class CrmLead(models.Model):
             'call_watch': self._vd_callwatch_payload(scope_user),
             # KHOÁ TOÀN BỘ khi tồn quá nhiều KH mới chưa gọi (user spec 2026-06-12)
             'uncalled_new_lock': self._vd_uncalled_new_lock_payload(scope_user),
+            # Ngưỡng CHẶN CHIA SỐ (KH mới chưa gọi) — frontend dùng tính sức chứa NV
+            'distribute_block_threshold': self._vd_distribute_block_threshold(),
             # Công tắc khoá cứng "chưa nhắn Zalo" (>10) — mặc định TẮT (user spec
             # 2026-06-10: khoá cứng phản tác dụng). Bật: System Parameter
             # vd_crm_lead.zalo_lock_enabled = 1.
@@ -6656,6 +6684,30 @@ class CrmLead(models.Model):
             1 for l in new_leads if (stats.get(l.id, {}).get('total') or 0) == 0)
         base['locked'] = base['count'] > threshold
         return base
+
+    @api.model
+    def _vd_distribute_block_threshold(self):
+        """Ngưỡng CHẶN CHIA SỐ theo KH mới chưa gọi. 0 = tắt (user spec 2026-06-12)."""
+        return int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.distribute_block_uncalled', 20) or 20)
+
+    @api.model
+    def _vd_uncalled_new_count_map(self, user_ids):
+        """Map {user_id: số KH MỚI CHƯA gọi cuộc nào (call_count=0) trong bucket
+        KHÁCH MỚI}. Dùng CHẶN CHIA SỐ (user spec 2026-06-12) — khớp 'new_not_called'
+        ở dashboard_users."""
+        from collections import defaultdict
+        uids = [int(u) for u in (user_ids or []) if u]
+        if not uids:
+            return {}
+        leads = self.sudo().search(
+            self._dashboard_new_bucket_domain([('user_id', 'in', uids)])
+            + [('call_count', '=', 0)])
+        cnt = defaultdict(int)
+        for l in leads:
+            if l.user_id:
+                cnt[l.user_id.id] += 1
+        return dict(cnt)
 
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=500):
@@ -7140,6 +7192,27 @@ class CrmLead(models.Model):
         if not matched_ids:
             return []
         return self._dashboard_serialize_leads(self.browse(matched_ids))
+
+    @api.model
+    def dashboard_leads_planned_sign(self, user_id=None, limit=200):
+        """KH "GỬI HỢP ĐỒNG" — đã KÍCH HOẠT "Làm hợp đồng - Hẹn gặp"
+        (đã đặt lịch ký HĐ: vd_planned_sign_date) nhưng CHƯA ký xong. Hiển thị ở
+        box "KHÁCH GỬI HỢP ĐỒNG" cuối 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ
+        (user spec 2026-06-12)."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        leads = self.search(
+            domain_user + [
+                ('vd_planned_sign_date', '!=', False),
+                ('vd_contract_signed', '=', False),
+                ('stage_is_lost', '=', False),
+                ('active', '=', True),
+            ],
+            order='vd_planned_sign_date asc',
+            limit=limit,
+        )
+        if not leads:
+            return []
+        return self._dashboard_serialize_leads(leads)
 
     @api.model
     def dashboard_leads_reference(self, user_id=None, limit=200):

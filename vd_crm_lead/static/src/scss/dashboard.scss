@@ -5155,59 +5155,50 @@
     }
 
     /* ===== SPLIT WRAPPER: KHÁCH MỚI (full) + 3 counters naked (THAM KHẢO / CHƯA GỌI / KH HỦY) ===== */
+    /* User spec 2026-06-12: TOÀN BỘ icon đã tách ra o_vd_icon_panel riêng → các
+       bảng KHÁCH MỚI / TCG / XLVĐ chỉ còn nội dung, chiếm full bề ngang cột bảng. */
     .o_vd_split_table {
-        display: grid;
-        grid-template-columns: 1fr 170px 170px 170px;   /* KH mới flex + 3 counters cố định */
-        gap: 0.9rem;
+        display: block;
         margin-bottom: 0.85rem;
-        align-items: stretch;
+        > .o_vd_split_half { margin-bottom: 0; min-width: 0; }
+    }
 
-        @media (max-width: 1280px) {
-            grid-template-columns: 1fr 1fr 1fr;
-            > .o_vd_split_half { grid-column: 1 / -1; }
-        }
-        @media (max-width: 720px) {
-            grid-template-columns: 1fr;
-        }
-
-        > .o_vd_split_half {
-            margin-bottom: 0;
-            min-width: 0;
-        }
-        /* User spec 2026-06-12: 3 nút gom trong wrapper. ≤40 KH → display:contents
-           để 3 ô VẪN là grid item như cũ (giữ nguyên layout 3 ô ngang). */
-        > .o_vd_split_trash_col { display: contents; }
-        .o_vd_split_trash {
+    /* ===== BẢNG ICON RIÊNG bên phải, dọc theo 3 bảng (user spec 2026-06-12) ===== */
+    .o_vd_lead_dual_cols {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+    }
+    .o_vd_boards_col {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .o_vd_icon_panel {
+        flex: 0 0 auto;
+        width: 172px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        align-self: flex-start;
+        position: sticky;
+        top: 0.6rem;
+        z-index: 30;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.7rem 0.55rem;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06),
+                    0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        /* các box bên trong: full bề ngang panel, KHÔNG sticky riêng (panel đã
+           sticky), giữ position relative cho popover neo đúng. */
+        > .o_vd_trash_box {
+            position: relative !important;
+            top: auto !important;
+            z-index: auto !important;
+            align-self: stretch !important;
             margin: 0;
             min-width: 0;
-        }
-    }
-
-    /* >40 KH (màn rộng) → 3 nút xếp DỌC cột hẹp bên phải, ô thẻ (1fr) nới rộng.
-       User spec 2026-06-12: GIỮ NGUYÊN icon to + chữ nằm DƯỚI icon (layout cột
-       mặc định của mỗi nút) — chỉ stack 3 nút theo chiều dọc, KHÔNG thu nhỏ. */
-    @media (min-width: 1281px) {
-        .o_vd_split_table.o_vd_split_table_stacked {
-            grid-template-columns: 1fr 180px;
-            > .o_vd_split_trash_col {
-                display: flex;
-                flex-direction: column;
-                gap: 0.7rem;
-                align-self: start;
-                min-width: 0;
-            }
-        }
-    }
-
-    /* Variant grid 1 box: bảng (THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) flex + 1 box
-       "BÁO GIÁ XONG MẤT TÍCH" ở cuối. Box 170px → mép phải canh BẰNG mép
-       thùng rác KH HỦY phía trên (cùng container full-width). */
-    .o_vd_split_table.o_vd_split_table_single {
-        grid-template-columns: 1fr 170px;
-        > * { min-width: 0; }
-
-        @media (max-width: 720px) {
-            grid-template-columns: 1fr;
+            width: 100%;
         }
     }
 
@@ -5234,6 +5225,37 @@
             line-height: 1.18;
         }
         .o_vd_trash_count { color: #e8590c; text-align: center; }
+    }
+
+    /* 2 box xếp DỌC cột phải bảng TCG/XLVĐ: Báo giá xong mất tích + Khách gửi
+       hợp đồng (user spec 2026-06-12). Wrapper STICKY chung; box con bỏ sticky
+       riêng để 2 cái đứng liền nhau, không chồng. */
+    /* Variant KHÁCH GỬI HỢP ĐỒNG — tím (đã đặt lịch ký HĐ - Hẹn gặp) */
+    .o_vd_trash_box.o_vd_split_planned_sign {
+        cursor: pointer;
+        background: linear-gradient(135deg, #ede7ff 0%, #d8c9ff 100%);
+        border-color: #7048e8;
+        .o_vd_trash_icon { color: #7048e8; }
+        .o_vd_trash_icon_emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 8px rgba(112, 72, 232, 0.35));
+            user-select: none;
+        }
+        .o_vd_trash_label { color: #5f3dc4; text-align: center; line-height: 1.18; }
+        .o_vd_trash_count { color: #5f3dc4; text-align: center; }
+    }
+    .o_vd_trash_popover.o_vd_trash_popover_planned_sign .o_vd_trash_popover_head {
+        background: linear-gradient(135deg, #d0bfff, #b197fc);
+        border-bottom: 2px solid #7048e8;
+    }
+    .o_vd_planned_sign_row { display: flex; align-items: center; gap: 0.5em; }
+    .o_vd_planned_sign_cd {
+        white-space: nowrap;
+        font-size: 0.85em;
+        font-weight: 700;
+        color: #5f3dc4;
+        min-width: 96px;
     }
 
     /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
@@ -7700,6 +7722,30 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
 }
 .o_vd_distrib_body { overflow-y: auto; flex: 1; }
+/* CHẶN CHIA SỐ — dòng/NV vượt ngưỡng KH mới chưa gọi (user spec 2026-06-12) */
+.o_vd_distrib_row.o_vd_distrib_over {
+    background: #fff0f0 !important;
+    box-shadow: inset 3px 0 0 #e03131;
+    .o_vd_distrib_nv { border-color: #e03131 !important; color: #c92a2a; font-weight: 700; }
+}
+.o_vd_distrib_over_tag {
+    display: inline-block;
+    margin-left: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #c92a2a;
+    white-space: nowrap;
+}
+.o_vd_distrib_over_warn {
+    display: inline-block;
+    margin-left: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    background: #ffe3e3;
+    color: #c92a2a;
+    font-weight: 800;
+    font-size: 0.78rem;
+}
 .o_vd_distrib_table {
     width: 100%;
     border-collapse: collapse;
@@ -8249,8 +8295,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
    ==================================================================== */
 .o_vd_crm_dashboard {
     .o_vd_split_table.o_vd_split_table_single.o_vd_split_with_banner {
-        grid-template-columns: 150px 1fr 170px;   /* nhãn | danh sách | ô mất tích */
-        grid-template-rows: auto auto;            /* hàng 1: banner · hàng 2: list */
+        display: grid;
+        /* User spec 2026-06-12: ô mất tích đã sang BẢNG ICON riêng → còn 2 cột. */
+        grid-template-columns: 150px 1fr;   /* nhãn | danh sách */
+        grid-template-rows: auto auto;      /* hàng 1: banner · hàng 2: list */
         column-gap: 0;
         row-gap: 0.4rem;
         align-items: stretch;
@@ -8261,36 +8309,28 @@ body.o_vd_preview_active .o_vd_preview_body_form {
             grid-column: 1;
             border-radius: 10px 0 0 10px;
         }
-        /* Banner: hàng trên cùng, trải từ mép trái tên KH (cột 2) đến hết
-           ô BÁO GIÁ XONG MẤT TÍCH (hết cột 3). Giữ nguyên thiết kế banner. */
+        /* Banner: hàng trên cùng, cột 2 (hết bề ngang danh sách). */
         > .o_vd_pf_banner {
             grid-row: 1;
-            grid-column: 2 / 4;
+            grid-column: 2;
             margin: 0;
         }
-        /* Danh sách KH: hàng 2, cột 2; chừa khoảng cách nhỏ với ô mất tích */
+        /* Danh sách KH: hàng 2, cột 2 */
         > .o_vd_filter_table_right {
             grid-row: 2;
             grid-column: 2;
-            margin-right: 0.6rem;
+            margin-right: 0;
             border-radius: 0 10px 10px 0;
             box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
                         0 4px 14px -4px rgba(15, 23, 42, 0.05);
         }
-        /* Ô BÁO GIÁ XONG MẤT TÍCH: hàng 2, cột 3 — canh phải bằng banner */
-        > .o_vd_trash_box.o_vd_split_quoted_lost {
-            grid-row: 2;
-            grid-column: 3;
-            align-self: start;
-        }
 
-        /* Mobile: xếp dọc nhãn → banner → list → ô mất tích */
+        /* Mobile: xếp dọc nhãn → banner → list */
         @media (max-width: 720px) {
             grid-template-columns: 1fr;
             > .o_vd_filter_table_left,
             > .o_vd_pf_banner,
-            > .o_vd_filter_table_right,
-            > .o_vd_trash_box.o_vd_split_quoted_lost {
+            > .o_vd_filter_table_right {
                 grid-row: auto;
                 grid-column: 1;
                 margin-right: 0;

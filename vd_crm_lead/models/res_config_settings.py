@@ -51,6 +51,15 @@ class ResConfigSettings(models.TransientModel):
              'bảng (trừ chính các khách mới đó) ép NV gọi cho đến khi còn ≤ N thì '
              'tự mở. Admin xem NV đó cũng thấy khoá. Đặt 0 = TẮT tính năng.',
     )
+    # User spec 2026-06-12: CHẶN chia/up thêm số mới cho NV đang tồn nhiều KH chưa gọi.
+    vd_distribute_block_uncalled = fields.Integer(
+        string='Chặn chia thêm số khi KH mới CHƯA GỌI vượt',
+        config_parameter='vd_crm_lead.distribute_block_uncalled',
+        default=20,
+        help='KHÔNG cho chia/up thêm số mới cho 1 NV nếu TỔNG dự kiến (đang tồn + '
+             'sắp chia) khách MỚI chưa gọi VƯỢT N. Mỗi NV chỉ nhận tới khi đủ N. '
+             'Đặt 0 = TẮT tính năng.',
+    )
 
     # ===== THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (tìm vấn đề) =====
     vd_problem_find_enabled = fields.Boolean(

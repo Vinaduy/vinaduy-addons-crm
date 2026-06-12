@@ -32,6 +32,15 @@
                         </div>
                     </group>
 
+                    <group string="🚫 CHẶN CHIA SỐ — KH mới chưa gọi tồn quá nhiều">
+                        <field name="vd_distribute_block_uncalled"/>
+                        <div class="text-muted" colspan="2">
+                            Không cho chia/up thêm số mới cho NV nếu TỔNG dự kiến
+                            (đang tồn + sắp chia) khách MỚI chưa gọi vượt số này.
+                            Mỗi NV chỉ nhận tới khi đủ số này. Đặt <b>0</b> = tắt.
+                        </div>
+                    </group>
+
                     <group string="⚡ THI CÔNG GẤP + 🛠️ XỬ LÝ VẤN ĐỀ (tìm vấn đề)">
                         <field name="vd_problem_find_enabled"/>
                     </group>

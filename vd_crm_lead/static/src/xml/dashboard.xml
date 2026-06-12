@@ -236,7 +236,7 @@
                             </thead>
                             <tbody>
                                 <tr t-foreach="state.distribute.lines" t-as="ln" t-key="ln.lead_id"
-                                    t-att-class="ln.user_id ? 'o_vd_distrib_row o_assigned' : 'o_vd_distrib_row'">
+                                    t-att-class="(ln.user_id ? 'o_vd_distrib_row o_assigned' : 'o_vd_distrib_row') + (isDistributeLineOver(ln) ? ' o_vd_distrib_over' : '')">
                                     <td class="o_vd_distrib_idx"><t t-esc="ln_index + 1"/></td>
                                     <td class="o_vd_distrib_kh"><t t-esc="ln.name"/></td>
                                     <td class="o_vd_distrib_phone"><t t-esc="ln.phone"/></td>
@@ -246,11 +246,14 @@
                                             <option value="0" t-att-selected="!ln.user_id">— Chọn NV —</option>
                                             <option t-foreach="state.users" t-as="u" t-key="u.id"
                                                     t-att-value="u.id" t-att-selected="u.id === ln.user_id">
-                                                <t t-esc="u.name"/>
+                                                <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
                                             </option>
                                         </select>
                                     </td>
-                                    <td class="o_vd_distrib_load"><t t-esc="ln.user_id ? distributeUserLoad(ln.user_id) : ''"/></td>
+                                    <td class="o_vd_distrib_load">
+                                        <t t-if="ln.user_id"><t t-esc="distributeUserLoad(ln.user_id)"/></t>
+                                        <span t-if="isDistributeLineOver(ln)" class="o_vd_distrib_over_tag">⚠️ VƯỢT — chọn NV khác</span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -258,9 +261,12 @@
                     <div class="o_vd_distrib_foot">
                         <div class="o_vd_distrib_summary">
                             Đã chia <b><t t-esc="distributeAssignedCount"/></b>/<t t-esc="state.distribute.lines.length"/> KH
+                            <span t-if="distributeHasOver" class="o_vd_distrib_over_warn">
+                                🚫 Có NV VƯỢT ngưỡng khách mới chưa gọi — chọn NV khác cho dòng ĐỎ
+                            </span>
                         </div>
                         <button class="o_vd_distrib_confirm"
-                                t-att-disabled="state.distribute.busy or !distributeAssignedCount"
+                                t-att-disabled="state.distribute.busy or !distributeAssignedCount or distributeHasOver"
                                 t-on-click="() => this.confirmDistribute()">
                             <t t-if="state.distribute.busy"><i class="fa fa-spinner fa-spin me-1"/>Đang chia...</t>
                             <t t-else="">✅ Xác nhận chia số</t>
@@ -574,9 +580,12 @@
                                                     <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
                                                          t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                        <!-- 2026-06-05: bỏ hover ghi âm ở tên NV — chuyển sang thẻ "Tháng này" -->
+                                                        <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
+                                                             TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->
                                                         <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
-                                                        <span class="o_vd_kh_nv_link_name">
+                                                        <span class="o_vd_kh_nv_link_name"
+                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onRecLeave()">
                                                             <t t-esc="nv.name"/>
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
@@ -1894,7 +1903,11 @@
                             </t>
                         </div>
 
+                        <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
+                             riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong
+                             o_vd_boards_col. dual_cols giờ là flex NGANG. -->
                         <div class="o_vd_lead_dual_cols">
+                        <div class="o_vd_boards_col">
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
                             <!-- KHOÁ TOÀN BỘ (user spec 2026-06-12): tồn >ngưỡng KH mới
@@ -1912,9 +1925,7 @@
                             </div>
                             <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
                             <t t-if="isNewStageSplit">
-                                <!-- User spec 2026-06-12: >40 KH → 3 nút (Tham khảo/Chưa gọi
-                                     được/Hủy) xếp DỌC cột hẹp bên phải, ô thẻ nới rộng. -->
-                                <div t-att-class="'o_vd_split_table' + (leadsNoProblems.length > 40 ? ' o_vd_split_table_stacked' : '')">
+                                <div class="o_vd_split_table">
                                     <!-- NỬA TRÁI: KHÁCH MỚI -->
                                     <div class="o_vd_filter_table o_vd_filter_table_new o_vd_split_half o_vd_lockable">
                                         <!-- User spec 2026-06-11: BỎ badge "ĐÃ KHOÁ" doạ — chuyển sang
@@ -2024,217 +2035,7 @@
                                     </div>
                                     <!-- User spec 2026-06-12: gom 3 nút vào 1 cột → xếp DỌC khi >40 KH.
                                          display:contents khi ≤40 (giữ grid 3 ô như cũ). -->
-                                    <div class="o_vd_split_trash_col">
-                                    <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"
-                                         t-on-click="() => this.openCategoryList(leadsReference)"
-                                         t-on-mousemove="onTrashPopoverMove"
-                                         title="Click để mở popup danh sách KH tham khảo">
-                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
-                                        <div class="o_vd_trash_meta">
-                                            <div class="o_vd_trash_label">THAM KHẢO</div>
-                                            <div class="o_vd_trash_count"><t t-esc="leadsReference.length"/></div>
-                                        </div>
-                                        <!-- Round 11: popover wide với chủ đề CHƯA BÁO GIÁ +
-                                             callback date + nút GỌI LẠI nếu đến ngày. -->
-                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_right o_vd_popover_ref_shift">
-                                            <div class="o_vd_trash_popover_head">
-                                                👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
-                                                <div class="o_vd_trash_popover_hint">
-                                                    KH CHƯA BÁO GIÁ · Đang nuôi dưỡng · Đến ngày callback hiện nút GỌI LẠI
-                                                </div>
-                                            </div>
-                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
-                                                <div t-if="!leadsReference.length" class="o_vd_trash_popover_empty">
-                                                    ✓ Không có KH nào trong nhóm này
-                                                </div>
-                                                <table t-if="leadsReference.length" class="o_vd_reference_table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Khách hàng</th>
-                                                            <th>NV</th>
-                                                            <th>Chủ đề</th>
-                                                            <th>Tóm tắt</th>
-                                                            <th>Gọi lại</th>
-                                                            <th>Hành động</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr t-foreach="leadsReference" t-as="ld" t-key="ld.id"
-                                                            t-att-class="'o_vd_ref_row ' + (ld.no_quote_callback_due ? 'o_vd_ref_due' : '')"
-                                                            t-on-click.stop="() => this.openLead(ld.id)">
-                                                            <td class="o_vd_ref_kh">
-                                                                <div class="o_vd_ref_name"><t t-esc="ld.name"/></div>
-                                                                <div class="o_vd_ref_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
-                                                            </td>
-                                                            <td class="o_vd_ref_nv"><t t-esc="ld.user_name or '—'"/></td>
-                                                            <td class="o_vd_ref_topic">
-                                                                <span t-if="ld.no_quote_category_label" class="o_vd_ref_topic_pill">
-                                                                    <t t-esc="ld.no_quote_category_label"/>
-                                                                </span>
-                                                                <span t-else="" class="o_vd_ref_topic_legacy">— (legacy)</span>
-                                                            </td>
-                                                            <td class="o_vd_ref_summary" t-att-title="ld.no_quote_reason_short or ''">
-                                                                <t t-if="ld.no_quote_reason_short"><t t-esc="ld.no_quote_reason_short"/></t>
-                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
-                                                            </td>
-                                                            <td class="o_vd_ref_callback">
-                                                                <span t-if="ld.no_quote_callback_due" class="o_vd_ref_chip_due">
-                                                                    🔥 Hôm nay/quá hạn
-                                                                </span>
-                                                                <span t-elif="ld.no_quote_callback_days != null"
-                                                                      t-att-class="'o_vd_ref_countdown' + (ld.no_quote_callback_days &lt; 5 ? ' o_vd_ref_countdown_urgent' : '')">
-                                                                    ⏳ còn <b><t t-esc="ld.no_quote_callback_days"/></b> ngày
-                                                                    <span class="o_vd_ref_cd_date">(<t t-esc="ld.no_quote_callback_date"/>)</span>
-                                                                </span>
-                                                                <span t-else="" class="o_vd_ref_chip_legacy">—</span>
-                                                            </td>
-                                                            <td class="o_vd_ref_action">
-                                                                <button t-if="ld.phone"
-                                                                        t-att-class="'btn btn-sm o_vd_ref_call_btn' + (ld.no_quote_callback_due ? ' o_vd_ref_call_btn_due' : '')"
-                                                                        t-on-click.stop.prevent="(ev) => this.callLeadDirect(ev, ld.id)"
-                                                                        title="Gọi lại KH">
-                                                                    <i class="fa fa-phone"/> Gọi lại
-                                                                </button>
-                                                                <span t-else="" class="o_vd_ref_action_done">—</span>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
-                                         t-on-click="() => this.openCategoryList(leadsNotCalled)"
-                                         t-on-mousemove="onTrashPopoverMove"
-                                         title="Click để mở popup danh sách KH chưa gọi được">
-                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
-                                        <div class="o_vd_trash_meta">
-                                            <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
-                                            <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
-                                        </div>
-                                        <div class="o_vd_trash_popover o_vd_popover_anchor_center">
-                                            <div class="o_vd_trash_popover_head">
-                                                📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
-                                                <div class="o_vd_trash_popover_hint">
-                                                    ≥3 cuộc gọi · ≥3 ngày khác nhau · toàn thuê bao / không bắt máy
-                                                </div>
-                                            </div>
-                                            <div class="o_vd_trash_popover_body">
-                                                <div t-if="!leadsNotCalled.length" class="o_vd_trash_popover_empty">
-                                                    ✓ Không có KH nào trong nhóm này
-                                                </div>
-                                                <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
-                                                     class="o_vd_trash_popover_item o_vd_notcalled_row"
-                                                     t-on-click.stop="() => this.openLead(ld.id)">
-                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
-                                                    <span class="o_vd_trash_popover_phone">
-                                                        📞 <t t-esc="ld.phone or '—'"/>
-                                                    </span>
-                                                    <!-- User spec 2026-05-28: hien so cuoc + so ngay -->
-                                                    <span class="o_vd_notcalled_stats"
-                                                          t-if="ld.call_stats"
-                                                          t-att-title="ld.call_stats.total + ' cuoc trong ' + ld.call_stats.distinct_days + ' ngay khac nhau'">
-                                                        📞 <t t-esc="ld.call_stats.total or 0"/>
-                                                        · 📅 <t t-esc="ld.call_stats.distinct_days or 0"/>N
-                                                    </span>
-                                                    <span class="o_vd_trash_popover_nv">
-                                                        <t t-esc="ld.user_name or '—'"/>
-                                                    </span>
-                                                    <!-- Gọi lại — click trực tiếp, không cần mở form -->
-                                                    <button t-if="ld.phone"
-                                                            class="btn btn-sm btn-success o_vd_notcalled_call_btn"
-                                                            t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
-                                                            title="Goi lai KH ngay">
-                                                        <i class="fa fa-phone me-1"/> Gọi lại
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash"
-                                         t-on-click="() => this.openCategoryList(leadsLost)"
-                                         t-on-mousemove="onTrashPopoverMove"
-                                         title="Click để mở popup danh sách KH hủy">
-                                        <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
-                                        <div class="o_vd_trash_meta">
-                                            <div class="o_vd_trash_label">KH HỦY</div>
-                                            <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
-                                        </div>
-                                        <!-- User spec round 7 phase 2: panel rộng, table 5 cột với
-                                             chủ đề hủy + nội dung tóm tắt + nút Duyệt hủy. -->
-                                        <div class="o_vd_trash_popover o_vd_trash_popover_lost o_vd_trash_popover_wide o_vd_popover_anchor_right">
-                                            <div class="o_vd_trash_popover_head">
-                                                🗑️ KH HỦY (<t t-esc="leadsLost.length"/>)
-                                                <div class="o_vd_trash_popover_hint">
-                                                    NV đề xuất hủy → Admin duyệt → KH archive thực sự
-                                                </div>
-                                            </div>
-                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
-                                                <div t-if="!leadsLost.length" class="o_vd_trash_popover_empty">
-                                                    ✓ Không có KH nào trong nhóm này
-                                                </div>
-                                                <table t-if="leadsLost.length" class="o_vd_cancel_table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Khách hàng</th>
-                                                            <th>NV phụ trách</th>
-                                                            <th>Chủ đề</th>
-                                                            <th>Tóm tắt</th>
-                                                            <th>Trạng thái</th>
-                                                            <th>Hành động</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr t-foreach="leadsLost" t-as="ld" t-key="ld.id"
-                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
-                                                            t-on-click.stop="() => this.openLead(ld.id)">
-                                                            <td class="o_vd_cancel_kh">
-                                                                <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
-                                                                <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
-                                                            </td>
-                                                            <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
-                                                            <td class="o_vd_cancel_topic">
-                                                                <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
-                                                                    <t t-esc="ld.cancel_category_label"/>
-                                                                </span>
-                                                                <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
-                                                            </td>
-                                                            <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
-                                                                <t t-if="ld.cancel_reason_short">
-                                                                    <t t-esc="ld.cancel_reason_short"/>
-                                                                </t>
-                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
-                                                            </td>
-                                                            <td class="o_vd_cancel_status">
-                                                                <!-- Round 7 phase 2.1: NULL state = legacy lead chưa duyệt
-                                                                     → treat same as 'proposed' → admin có thể duyệt. -->
-                                                                <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
-                                                                    ✓ Đã duyệt
-                                                                </span>
-                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
-                                                                    ⏳ Chờ duyệt
-                                                                </span>
-                                                            </td>
-                                                            <td class="o_vd_cancel_action">
-                                                                <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
-                                                                        class="btn btn-sm o_vd_cancel_approve_btn"
-                                                                        t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
-                                                                        title="Duyệt đề xuất hủy này">
-                                                                    <i class="fa fa-check"/> Duyệt hủy
-                                                                </button>
-                                                                <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
-                                                                <span t-else="" class="o_vd_cancel_action_done">—</span>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </div><!-- /.o_vd_split_trash_col -->
+                                    
                                 </div>
                             </t>
                             <t t-else="">
@@ -2452,47 +2253,7 @@
                                         Không có KH thi công gấp.
                                     </div>
                                 </div>
-                            <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
-                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
-                                 t-on-click="() => this.openCategoryList(leadsQuotedLost)"
-                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
-                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
-                                <div class="o_vd_trash_meta">
-                                    <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
-                                    <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
-                                </div>
-                                <!-- Hover popover: danh sách KH + số ngày từ ngày báo giá + nút Gọi lại.
-                                     anchor_right vì box ở mép phải → bung sang trái, không bị che. -->
-                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_quoted_lost">
-                                    <div class="o_vd_trash_popover_head">
-                                        📵 BÁO GIÁ XONG MẤT TÍCH (<t t-esc="leadsQuotedLost.length"/>)
-                                        <div class="o_vd_trash_popover_hint">
-                                            Đã báo giá nhưng không liên lạc được · Số ngày = kể từ ngày báo giá
-                                        </div>
-                                    </div>
-                                    <div class="o_vd_trash_popover_body">
-                                        <div t-if="!leadsQuotedLost.length" class="o_vd_trash_popover_empty">
-                                            ✓ Không có KH nào trong nhóm này
-                                        </div>
-                                        <div t-foreach="leadsQuotedLost" t-as="ld" t-key="ld.id"
-                                             class="o_vd_trash_popover_item o_vd_quoted_lost_row"
-                                             t-on-click.stop="() => this.openLead(ld.id)">
-                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
-                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
-                                            <span class="o_vd_quoted_lost_days" title="Số ngày kể từ ngày báo giá">
-                                                📅 <t t-esc="ld.quote_days != null ? ld.quote_days : '—'"/><t t-if="ld.quote_days != null">N</t>
-                                            </span>
-                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
-                                            <button t-if="ld.phone"
-                                                    class="btn btn-sm o_vd_notcalled_call_btn"
-                                                    t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
-                                                    title="Gọi lại KH ngay">
-                                                <i class="fa fa-phone me-1"/> Gọi lại
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                             </div><!-- /.o_vd_split_table_single -->
                         </section>
 
@@ -2659,7 +2420,225 @@
                                         Chưa có KH nào đang xử lý vấn đề.
                                     </div>
                                 </div>
-                            <!-- BOX cuối: KHÁCH BÁO GIÁ XONG MẤT TÍCH (đã báo giá + không liên lạc được) -->
+                            
+                            </div><!-- /.o_vd_split_table_single -->
+                        </section>
+                                                </div><!-- /.o_vd_boards_col -->
+                        <div class="o_vd_icon_panel">
+                        <!-- BANG ICON RIENG (user spec 2026-06-12): gom Tham khao / Chua goi
+                             duoc / Huy / Bao gia mat tich / Gui hop dong - doc, vien rieng. -->
+
+                                    <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"
+                                         t-on-click="() => this.openCategoryList(leadsReference)"
+                                         t-on-mousemove="onTrashPopoverMove"
+                                         title="Click để mở popup danh sách KH tham khảo">
+                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">THAM KHẢO</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsReference.length"/></div>
+                                        </div>
+                                        <!-- Round 11: popover wide với chủ đề CHƯA BÁO GIÁ +
+                                             callback date + nút GỌI LẠI nếu đến ngày. -->
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_right o_vd_popover_ref_shift">
+                                            <div class="o_vd_trash_popover_head">
+                                                👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    KH CHƯA BÁO GIÁ · Đang nuôi dưỡng · Đến ngày callback hiện nút GỌI LẠI
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
+                                                <div t-if="!leadsReference.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
+                                                <table t-if="leadsReference.length" class="o_vd_reference_table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Khách hàng</th>
+                                                            <th>NV</th>
+                                                            <th>Chủ đề</th>
+                                                            <th>Tóm tắt</th>
+                                                            <th>Gọi lại</th>
+                                                            <th>Hành động</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr t-foreach="leadsReference" t-as="ld" t-key="ld.id"
+                                                            t-att-class="'o_vd_ref_row ' + (ld.no_quote_callback_due ? 'o_vd_ref_due' : '')"
+                                                            t-on-click.stop="() => this.openLead(ld.id)">
+                                                            <td class="o_vd_ref_kh">
+                                                                <div class="o_vd_ref_name"><t t-esc="ld.name"/></div>
+                                                                <div class="o_vd_ref_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
+                                                            </td>
+                                                            <td class="o_vd_ref_nv"><t t-esc="ld.user_name or '—'"/></td>
+                                                            <td class="o_vd_ref_topic">
+                                                                <span t-if="ld.no_quote_category_label" class="o_vd_ref_topic_pill">
+                                                                    <t t-esc="ld.no_quote_category_label"/>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_ref_topic_legacy">— (legacy)</span>
+                                                            </td>
+                                                            <td class="o_vd_ref_summary" t-att-title="ld.no_quote_reason_short or ''">
+                                                                <t t-if="ld.no_quote_reason_short"><t t-esc="ld.no_quote_reason_short"/></t>
+                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
+                                                            </td>
+                                                            <td class="o_vd_ref_callback">
+                                                                <span t-if="ld.no_quote_callback_due" class="o_vd_ref_chip_due">
+                                                                    🔥 Hôm nay/quá hạn
+                                                                </span>
+                                                                <span t-elif="ld.no_quote_callback_days != null"
+                                                                      t-att-class="'o_vd_ref_countdown' + (ld.no_quote_callback_days &lt; 5 ? ' o_vd_ref_countdown_urgent' : '')">
+                                                                    ⏳ còn <b><t t-esc="ld.no_quote_callback_days"/></b> ngày
+                                                                    <span class="o_vd_ref_cd_date">(<t t-esc="ld.no_quote_callback_date"/>)</span>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_ref_chip_legacy">—</span>
+                                                            </td>
+                                                            <td class="o_vd_ref_action">
+                                                                <button t-if="ld.phone"
+                                                                        t-att-class="'btn btn-sm o_vd_ref_call_btn' + (ld.no_quote_callback_due ? ' o_vd_ref_call_btn_due' : '')"
+                                                                        t-on-click.stop.prevent="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                                        title="Gọi lại KH">
+                                                                    <i class="fa fa-phone"/> Gọi lại
+                                                                </button>
+                                                                <span t-else="" class="o_vd_ref_action_done">—</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
+                                         t-on-click="() => this.openCategoryList(leadsNotCalled)"
+                                         t-on-mousemove="onTrashPopoverMove"
+                                         title="Click để mở popup danh sách KH chưa gọi được">
+                                        <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
+                                        </div>
+                                        <div class="o_vd_trash_popover o_vd_popover_anchor_center">
+                                            <div class="o_vd_trash_popover_head">
+                                                📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    ≥3 cuộc gọi · ≥3 ngày khác nhau · toàn thuê bao / không bắt máy
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body">
+                                                <div t-if="!leadsNotCalled.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
+                                                <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
+                                                     class="o_vd_trash_popover_item o_vd_notcalled_row"
+                                                     t-on-click.stop="() => this.openLead(ld.id)">
+                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                                    <span class="o_vd_trash_popover_phone">
+                                                        📞 <t t-esc="ld.phone or '—'"/>
+                                                    </span>
+                                                    <!-- User spec 2026-05-28: hien so cuoc + so ngay -->
+                                                    <span class="o_vd_notcalled_stats"
+                                                          t-if="ld.call_stats"
+                                                          t-att-title="ld.call_stats.total + ' cuoc trong ' + ld.call_stats.distinct_days + ' ngay khac nhau'">
+                                                        📞 <t t-esc="ld.call_stats.total or 0"/>
+                                                        · 📅 <t t-esc="ld.call_stats.distinct_days or 0"/>N
+                                                    </span>
+                                                    <span class="o_vd_trash_popover_nv">
+                                                        <t t-esc="ld.user_name or '—'"/>
+                                                    </span>
+                                                    <!-- Gọi lại — click trực tiếp, không cần mở form -->
+                                                    <button t-if="ld.phone"
+                                                            class="btn btn-sm btn-success o_vd_notcalled_call_btn"
+                                                            t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                            title="Goi lai KH ngay">
+                                                        <i class="fa fa-phone me-1"/> Gọi lại
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
+                                    <div class="o_vd_trash_box o_vd_split_trash"
+                                         t-on-click="() => this.openCategoryList(leadsLost)"
+                                         t-on-mousemove="onTrashPopoverMove"
+                                         title="Click để mở popup danh sách KH hủy">
+                                        <div class="o_vd_trash_icon"><i class="fa fa-trash"/></div>
+                                        <div class="o_vd_trash_meta">
+                                            <div class="o_vd_trash_label">KH HỦY</div>
+                                            <div class="o_vd_trash_count"><t t-esc="leadsLost.length"/></div>
+                                        </div>
+                                        <!-- User spec round 7 phase 2: panel rộng, table 5 cột với
+                                             chủ đề hủy + nội dung tóm tắt + nút Duyệt hủy. -->
+                                        <div class="o_vd_trash_popover o_vd_trash_popover_lost o_vd_trash_popover_wide o_vd_popover_anchor_right">
+                                            <div class="o_vd_trash_popover_head">
+                                                🗑️ KH HỦY (<t t-esc="leadsLost.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    NV đề xuất hủy → Admin duyệt → KH archive thực sự
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body">
+                                                <div t-if="!leadsLost.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
+                                                <table t-if="leadsLost.length" class="o_vd_cancel_table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Khách hàng</th>
+                                                            <th>NV phụ trách</th>
+                                                            <th>Chủ đề</th>
+                                                            <th>Tóm tắt</th>
+                                                            <th>Trạng thái</th>
+                                                            <th>Hành động</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr t-foreach="leadsLost" t-as="ld" t-key="ld.id"
+                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
+                                                            t-on-click.stop="() => this.openLead(ld.id)">
+                                                            <td class="o_vd_cancel_kh">
+                                                                <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
+                                                                <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
+                                                            </td>
+                                                            <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
+                                                            <td class="o_vd_cancel_topic">
+                                                                <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
+                                                                    <t t-esc="ld.cancel_category_label"/>
+                                                                </span>
+                                                                <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
+                                                            </td>
+                                                            <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
+                                                                <t t-if="ld.cancel_reason_short">
+                                                                    <t t-esc="ld.cancel_reason_short"/>
+                                                                </t>
+                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
+                                                            </td>
+                                                            <td class="o_vd_cancel_status">
+                                                                <!-- Round 7 phase 2.1: NULL state = legacy lead chưa duyệt
+                                                                     → treat same as 'proposed' → admin có thể duyệt. -->
+                                                                <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
+                                                                    ✓ Đã duyệt
+                                                                </span>
+                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
+                                                                    ⏳ Chờ duyệt
+                                                                </span>
+                                                            </td>
+                                                            <td class="o_vd_cancel_action">
+                                                                <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
+                                                                        class="btn btn-sm o_vd_cancel_approve_btn"
+                                                                        t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
+                                                                        title="Duyệt đề xuất hủy này">
+                                                                    <i class="fa fa-check"/> Duyệt hủy
+                                                                </button>
+                                                                <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
+                                                                <span t-else="" class="o_vd_cancel_action_done">—</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+
                             <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
                                  t-on-click="() => this.openCategoryList(leadsQuotedLost)"
                                  title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
@@ -2700,8 +2679,48 @@
                                     </div>
                                 </div>
                             </div>
-                            </div><!-- /.o_vd_split_table_single -->
-                        </section>
+                            <!-- BOX: KHÁCH GỬI HỢP ĐỒNG — đã kích hoạt "Làm hợp đồng - Hẹn
+                                 gặp" (đặt lịch ký HĐ) chưa ký xong (user spec 2026-06-12). -->
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_planned_sign"
+                                 t-on-click="() => this.openCategoryList(leadsPlannedSign)"
+                                 title="KH đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp). Click để xem danh sách.">
+                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📝</div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">KHÁCH GỬI<br/>HỢP ĐỒNG</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsPlannedSign.length"/></div>
+                                </div>
+                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_planned_sign">
+                                    <div class="o_vd_trash_popover_head">
+                                        📝 KHÁCH GỬI HỢP ĐỒNG (<t t-esc="leadsPlannedSign.length"/>)
+                                        <div class="o_vd_trash_popover_hint">
+                                            Đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp) · chưa ký xong
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_trash_popover_body">
+                                        <div t-if="!leadsPlannedSign.length" class="o_vd_trash_popover_empty">
+                                            ✓ Không có KH nào trong nhóm này
+                                        </div>
+                                        <div t-foreach="leadsPlannedSign" t-as="ld" t-key="ld.id"
+                                             class="o_vd_trash_popover_item o_vd_planned_sign_row"
+                                             t-on-click.stop="() => this.openLead(ld.id)">
+                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <span class="o_vd_planned_sign_cd" t-att-title="ld.planned_sign_date">
+                                                <t t-esc="ld.planned_sign_countdown or '📝 chờ ký'"/>
+                                            </span>
+                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
+                                            <button t-if="ld.phone"
+                                                    class="btn btn-sm o_vd_notcalled_call_btn"
+                                                    t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                    title="Gọi KH ngay">
+                                                <i class="fa fa-phone me-1"/> Gọi
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div><!-- /.o_vd_icon_panel -->
                         </div><!-- /.o_vd_lead_dual_cols -->
 
                         <!-- Thùng rác KH hủy đã merge vào split row trên cùng với CHƯA GỌI ĐƯỢC. -->

@@ -84,6 +84,9 @@ export class VdCrmDashboard extends Component {
             // KH "BÁO GIÁ XONG MẤT TÍCH": đã sang stage Báo giá/Đàm phán nhưng
             // không liên lạc được — box cuối bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ
             leadsQuotedLostAll: [],
+            // KH "GỬI HỢP ĐỒNG": đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp) chưa
+            // ký xong — box cuối bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (2026-06-12)
+            leadsPlannedSignAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -473,7 +476,7 @@ export class VdCrmDashboard extends Component {
             // Khi vào stage "Khách mới" → render thêm các bảng THI CÔNG GẤP /
             // XỬ LÝ VẤN ĐỀ / tham khảo / mất tích... → gộp tất cả query 1 lần.
             const [
-                leads, withProblems, urgent, lost, notCalled, reference, quotedLost,
+                leads, withProblems, urgent, lost, notCalled, reference, quotedLost, plannedSign,
             ] = await Promise.all([
                 call("dashboard_leads", args),
                 call("dashboard_leads_with_problems", probArgs),
@@ -482,6 +485,7 @@ export class VdCrmDashboard extends Component {
                 call("dashboard_leads_not_called", probArgs),
                 call("dashboard_leads_reference", probArgs),
                 call("dashboard_leads_quoted_lost", probArgs),
+                call("dashboard_leads_planned_sign", probArgs),
             ]);
             this.state.leads = leads;
             this.state.leadsWithProblemsAll = this._markupBreakdown(withProblems);
@@ -490,6 +494,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsNotCalledAll = notCalled;
             this.state.leadsReferenceAll = reference;
             this.state.leadsQuotedLostAll = quotedLost;
+            this.state.leadsPlannedSignAll = plannedSign;
         } else {
             this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];
@@ -498,6 +503,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsNotCalledAll = [];
             this.state.leadsReferenceAll = [];
             this.state.leadsQuotedLostAll = [];
+            this.state.leadsPlannedSignAll = [];
         }
         this.state.leadsLoading = false;
     }
@@ -688,6 +694,10 @@ export class VdCrmDashboard extends Component {
     // Box cuối 2 bảng — KH đã báo giá rồi mất tích (không liên lạc được).
     get leadsQuotedLost() {
         return this.state.leadsQuotedLostAll || [];
+    }
+    // Box "KHÁCH GỬI HỢP ĐỒNG" — đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp).
+    get leadsPlannedSign() {
+        return this.state.leadsPlannedSignAll || [];
     }
     // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
@@ -1055,7 +1065,7 @@ export class VdCrmDashboard extends Component {
         }
         let recs = [];
         try {
-            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile"]);
+            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile", "call_count"]);
         } catch (e) {
             recs = ids.map((id) => ({ id, name: "KH #" + id, phone: "" }));
         }
@@ -1068,6 +1078,8 @@ export class VdCrmDashboard extends Component {
                 name: r.name || ("KH #" + r.id),
                 phone: r.phone || r.mobile || "",
                 user_id: 0,
+                // KH MỚI chưa gọi (call_count=0) — chỉ dòng này ăn "sức chứa" NV.
+                uncalled: (r.call_count || 0) === 0,
             })),
         };
         this._lockScroll();
@@ -1088,6 +1100,48 @@ export class VdCrmDashboard extends Component {
         if (!u) return "";
         return `📋 ${u.new_total || 0} mới · 📵 ${u.new_not_called || 0} chưa gọi`;
     }
+    // ===== CHẶN CHIA SỐ — sức chứa NV theo KH mới chưa gọi (user spec 2026-06-12) =====
+    get distributeThreshold() {
+        return this.state.distribute_block_threshold || 0;
+    }
+    _userUncalled(userId) {
+        const u = (this.state.users || []).find((x) => x.id === userId);
+        return u ? (u.new_not_called || 0) : 0;
+    }
+    // {userId: số dòng CHƯA GỌI đang gán cho NV đó trong popup}
+    get distributeAssignedUncalled() {
+        const m = {};
+        for (const ln of (this.state.distribute?.lines || [])) {
+            if (ln.user_id && ln.uncalled) m[ln.user_id] = (m[ln.user_id] || 0) + 1;
+        }
+        return m;
+    }
+    // {userId: {current, cap}} cho NV bị VƯỢT sức chứa
+    get distributeOverUsers() {
+        const th = this.distributeThreshold;
+        if (!th) return {};
+        const assigned = this.distributeAssignedUncalled;
+        const over = {};
+        for (const k of Object.keys(assigned)) {
+            const id = parseInt(k, 10);
+            const cur = this._userUncalled(id);
+            if (cur + assigned[k] > th) over[id] = { current: cur, cap: Math.max(0, th - cur) };
+        }
+        return over;
+    }
+    isDistributeLineOver(ln) {
+        return !!(ln && ln.user_id && this.distributeOverUsers[ln.user_id]);
+    }
+    get distributeHasOver() {
+        return Object.keys(this.distributeOverUsers).length > 0;
+    }
+    // Nhãn sức chứa cho dropdown NV
+    distributeCapLabel(userId) {
+        const th = this.distributeThreshold;
+        if (!th) return "";
+        const cur = this._userUncalled(userId);
+        return ` — còn ${Math.max(0, th - cur)}/${th}`;
+    }
     applyDistributeMode(mode) {
         const lines = this.state.distribute.lines || [];
         const users = (this.state.users || []).filter((u) => u.id);
@@ -1097,20 +1151,41 @@ export class VdCrmDashboard extends Component {
         }
         this.state.distribute.mode = mode;
         if (mode === "per_line") return;  // để NV tự chọn từng dòng
+        const th = this.distributeThreshold;
+        // sức chứa còn lại (theo KH mới chưa gọi); tắt → vô hạn
+        const remain = {};
+        users.forEach((u) => {
+            remain[u.id] = th > 0 ? Math.max(0, th - (u.new_not_called || 0)) : Infinity;
+        });
+        const load = {};
+        users.forEach((u) => { load[u.id] = u.new_total || 0; });
+        const order = [...users].sort((a, b) => load[a.id] - load[b.id]);
         if (mode === "even_all") {
-            lines.forEach((ln, i) => { ln.user_id = users[i % users.length].id; });
-        } else if (mode === "least") {
-            // Dồn cho NV đang ÍT SỐ nhất (cân theo new_total + số vừa gán).
-            const load = {};
-            users.forEach((u) => { load[u.id] = u.new_total || 0; });
-            lines.forEach((ln) => {
-                let best = users[0].id, bestv = load[users[0].id];
-                for (const u of users) {
-                    if (load[u.id] < bestv) { best = u.id; bestv = load[u.id]; }
+            let i = 0;
+            for (const ln of lines) {
+                // dòng CHƯA gọi: bỏ qua NV hết chỗ; dòng đã gọi: gán bình thường
+                if (ln.uncalled && th > 0) {
+                    let guard = 0;
+                    while (remain[order[i % order.length].id] <= 0 && guard < order.length) { i++; guard++; }
                 }
+                const u = order[i % order.length];
+                ln.user_id = u.id;
+                if (ln.uncalled && th > 0 && remain[u.id] > 0) remain[u.id] -= 1;
+                i++;
+            }
+        } else if (mode === "least") {
+            for (const ln of lines) {
+                let avail = users;
+                if (ln.uncalled && th > 0) {
+                    const withCap = users.filter((u) => remain[u.id] > 0);
+                    if (withCap.length) avail = withCap;   // hết chỗ hẳn → vẫn gán (đỏ)
+                }
+                let best = avail[0].id, bestv = load[avail[0].id];
+                for (const u of avail) { if (load[u.id] < bestv) { best = u.id; bestv = load[u.id]; } }
                 ln.user_id = best;
                 load[best] += 1;
-            });
+                if (ln.uncalled && th > 0 && remain[best] > 0) remain[best] -= 1;
+            }
         }
     }
     get distributeAssignedCount() {
@@ -1123,6 +1198,19 @@ export class VdCrmDashboard extends Component {
             .map((l) => [l.lead_id, l.user_id]);
         if (!assignments.length) {
             this.notification.add("Chưa chia KH nào cho NV.", { type: "warning" });
+            return;
+        }
+        // CHẶN CHIA SỐ (user spec 2026-06-12): có NV vượt ngưỡng → bắt chọn NV khác.
+        if (this.distributeHasOver) {
+            const names = Object.keys(this.distributeOverUsers).map((id) => {
+                const u = (this.state.users || []).find((x) => x.id === parseInt(id, 10));
+                const o = this.distributeOverUsers[id];
+                return `• ${u ? u.name : "NV"} — đang tồn ${o.current}, chỉ nhận thêm ${o.cap} (ngưỡng ${this.distributeThreshold})`;
+            }).join("\n");
+            this.notification.add(
+                "🚫 Vượt ngưỡng khách mới chưa gọi — hãy CHỌN NV KHÁC cho các dòng ĐỎ:\n" + names,
+                { type: "danger", title: "Không chia được — NV đã đầy" },
+            );
             return;
         }
         this.state.distribute.busy = true;
@@ -1362,13 +1450,19 @@ export class VdCrmDashboard extends Component {
         const pop = box.querySelector(".o_vd_trash_popover");
         if (!pop) return;
         if (pop.contains(ev.target)) return;   // đang rê trong popover → giữ yên
-        const pad = 16, edge = 8;
-        const vw = window.innerWidth, vh = window.innerHeight;
+        // FIX (user spec 2026-06-12): dashboard có zoom:0.7 → position:fixed nằm
+        // trong hệ toạ độ ĐÃ ZOOM, còn clientX/Y là toạ độ THẬT của màn hình →
+        // popover lệch. Quy đổi: chia cho hệ số zoom (= rect.width / offsetWidth).
+        const rect = box.getBoundingClientRect();
+        const z = box.offsetWidth ? (rect.width / box.offsetWidth) : 1;
+        const pad = 14, edge = 10;
+        const cx = ev.clientX / z, cy = ev.clientY / z;          // con trỏ (hệ zoom)
+        const vw = window.innerWidth / z, vh = window.innerHeight / z;
         const pw = pop.offsetWidth || 520;
         const ph = pop.offsetHeight || 300;
-        let x = ev.clientX + pad;
-        let y = ev.clientY + pad;
-        if (x + pw > vw - edge) x = ev.clientX - pw - pad;   // lật trái nếu tràn phải
+        let x = cx + pad;
+        let y = cy + pad;
+        if (x + pw > vw - edge) x = cx - pw - pad;            // lật trái nếu tràn phải
         if (x < edge) x = edge;
         if (y + ph > vh - edge) y = vh - ph - edge;          // đẩy lên nếu tràn dưới
         if (y < edge) y = edge;

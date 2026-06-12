@@ -256,19 +256,46 @@ class VdLeadQuickAddWizard(models.TransientModel):
             ))
         # Tải hiện tại (tổng KH mới) — dùng cho 'least' và để chia đều cân bằng.
         load = {u.id: self._vd_user_new_total(u.id) for u in pool}
+        # CHẶN CHIA SỐ (user spec 2026-06-12): SỨC CHỨA mỗi NV = ngưỡng - đang tồn
+        # KH mới CHƯA gọi. KH wizard đều là KH MỚI chưa gọi → mỗi KH ăn 1 chỗ.
+        Lead = self.env['crm.lead'].sudo()
+        threshold = Lead._vd_distribute_block_threshold()
+        uncalled = Lead._vd_uncalled_new_count_map([u.id for u in pool]) if threshold > 0 else {}
+        remain = {
+            u.id: (10 ** 9 if threshold <= 0
+                   else max(0, threshold - uncalled.get(u.id, 0)))
+            for u in pool
+        }
+        if threshold > 0 and len(lines) > sum(remain.values()):
+            raise UserError(_(
+                'Các NV chỉ còn nhận thêm %d khách mới (ngưỡng %d/NV) nhưng đang '
+                'chia %d khách. Gọi bớt khách cũ hoặc giảm số chia, hoặc chọn cách '
+                '"Tự chọn từng KH" để chia tay cho NV còn chỗ.'
+            ) % (sum(remain.values()), threshold, len(lines)))
+        assigned = dict(load)
         if mode == 'least':
-            # Greedy: mỗi KH → NV đang ít số nhất (tính cả KH vừa gán trong đợt).
-            assigned = dict(load)
+            # Greedy: mỗi KH → NV ít số nhất CÒN sức chứa.
             for line in lines:
-                uid = min(assigned, key=lambda k: assigned[k])
-                line.user_id = uid
-                assigned[uid] += 1
+                avail = [u for u in pool if remain[u.id] > 0]
+                u = min(avail, key=lambda x: assigned[x.id])
+                line.user_id = u.id
+                assigned[u.id] += 1
+                remain[u.id] -= 1
         else:
-            # even_all / group: round-robin theo thứ tự NV ít số → nhiều số.
+            # even_all / group: round-robin theo thứ tự ít số → nhiều, BỎ QUA NV
+            # hết chỗ.
             order = sorted(pool, key=lambda u: load.get(u.id, 0))
             n = len(order)
-            for i, line in enumerate(lines):
-                line.user_id = order[i % n].id
+            i = 0
+            for line in lines:
+                guard = 0
+                while remain[order[i % n].id] <= 0 and guard < n:
+                    i += 1
+                    guard += 1
+                u = order[i % n]
+                line.user_id = u.id
+                remain[u.id] -= 1
+                i += 1
 
     def action_redistribute(self):
         """Nút 'Chia lại' — áp dụng lại distribution với cấu hình hiện tại."""
@@ -310,6 +337,33 @@ class VdLeadQuickAddWizard(models.TransientModel):
             raise UserError(_(
                 'Vui lòng chọn NGUỒN cho các khách:\n%s'
             ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
+
+        # CHẶN CHIA SỐ (user spec 2026-06-12): TỔNG dự kiến KH mới chưa gọi của mỗi
+        # NV (đang tồn + số gán trong đợt) không vượt ngưỡng — áp cho dòng đã gán NV
+        # cụ thể (nhất là cách "Tự chọn từng KH"). Auto modes đã tự tôn trọng.
+        threshold = Lead._vd_distribute_block_threshold()
+        if threshold > 0:
+            from collections import defaultdict
+            by_uid = defaultdict(int)
+            for l in lines:
+                if l.user_id:
+                    by_uid[l.user_id.id] += 1
+            if by_uid:
+                current = Lead.sudo()._vd_uncalled_new_count_map(list(by_uid))
+                over = []
+                for uid, n in by_uid.items():
+                    cap = max(0, threshold - current.get(uid, 0))
+                    if n > cap:
+                        over.append('• %s — đang tồn %d KH mới chưa gọi, chỉ nhận '
+                                    'thêm %d (ngưỡng %d)' % (
+                                        ResUsers.sudo().browse(uid).name,
+                                        current.get(uid, 0), cap, threshold))
+                if over:
+                    raise UserError(_(
+                        'KHÔNG chia được — các NV sau sẽ VƯỢT ngưỡng khách mới chưa '
+                        'gọi:\n%s\n\nChọn NV khác cho các số dư (gọi bớt khách cũ để '
+                        'mở thêm chỗ).'
+                    ) % '\n'.join(over))
 
         user = self.env.user
         is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
