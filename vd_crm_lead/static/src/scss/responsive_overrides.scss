@@ -517,6 +517,38 @@ html, body {
 }
 
 /* ============================================================
+   8d. MOBILE (≤900px) — POPUP XEM KH: mũi tên chuyển KH + nút gọi
+   đang ĐÈ lên form (user spec 2026-06-13). Sửa: ẩn hint bàn phím,
+   đưa mũi tên xuống góc TRÁI dưới (nhỏ tròn), thu nút gọi + chừa đáy.
+   ============================================================ */
+@media (max-width: 900px) {
+    /* Hint "← → · Esc" vô dụng trên touch → ẩn */
+    .o_vd_preview_footer_hint { display: none !important; }
+
+    /* Mũi tên ◀▶: từ 2 cạnh GIỮA (đè form) → góc TRÁI DƯỚI, nhỏ tròn.
+       Nút gọi ở góc PHẢI dưới nên không đụng nhau. */
+    .o_vd_preview_arrow {
+        top: auto !important;
+        bottom: 1.2rem !important;
+        transform: none !important;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        font-size: 1.3rem !important;
+        opacity: 0.95;
+    }
+    .o_vd_preview_arrow.o_vd_preview_arrow_left  { left: 1rem !important;  right: auto !important; }
+    .o_vd_preview_arrow.o_vd_preview_arrow_right { left: 4.6rem !important; right: auto !important; }
+    .o_vd_preview_arrow:hover { transform: scale(1.08) !important; }
+
+    /* Nút gọi FAB nhỏ lại cho đỡ che + form chừa ĐÁY để field cuối
+       (Sổ đỏ / Tầm tài chính) không bị nút gọi che. */
+    .o_vd_call_fab { right: 1rem !important; bottom: 4.5rem !important; }
+    .o_vd_call_fab .o_vd_call_btn { width: 78px !important; height: 78px !important; }
+    body.o_vd_preview_active .o_vd_preview_body_form { padding-bottom: 8rem !important; }
+}
+
+/* ============================================================
    9. LIST/TABLE — scroll TRONG container, không tràn page
    ============================================================ */
 .o_form_view .o_field_one2many,
