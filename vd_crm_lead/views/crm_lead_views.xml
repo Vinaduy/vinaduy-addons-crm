@@ -1484,6 +1484,15 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                             <span class="o_vd_km_chip o_vd_km_chip_rej" invisible="km_state != 'rejected'">✗ Bị từ chối</span>
                                         </div>
 
+                                        <!-- Trạng thái xử lý — NV chuyển ngay tại đây (thay section 5) -->
+                                        <div class="o_vd_km_statusrow">
+                                            <span class="o_vd_km_lbl">Trạng thái xử lý</span>
+                                            <div class="o_vd_km_seg o_vd_km_seg_status">
+                                                <field name="status" nolabel="1" widget="radio"
+                                                       options="{'horizontal': true}"/>
+                                            </div>
+                                        </div>
+
                                         <!-- Segmented chọn phương án -->
                                         <div class="o_vd_km_seg">
                                             <field name="km_type" nolabel="1" widget="radio"
@@ -1552,13 +1561,8 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                             <field name="km_reject_reason" nolabel="1" readonly="1"/>
                                         </div>
 
-                                        <!-- Thanh nút hành động -->
+                                        <!-- Thanh nút hành động (Gửi duyệt đã chuyển xuống footer cạnh nút Lưu) -->
                                         <div class="o_vd_km_actions">
-                                            <button name="action_km_submit" type="object"
-                                                    class="btn btn-primary btn-sm"
-                                                    invisible="km_state != 'draft'">
-                                                <i class="fa fa-paper-plane me-1"/>Gửi duyệt
-                                            </button>
                                             <field name="km_reject_reason" nolabel="1"
                                                    class="o_vd_km_reject_input"
                                                    invisible="km_state != 'pending'"
@@ -1721,7 +1725,9 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                     </div>
 
                                     <!-- ===== 5. KẾT QUẢ + TỔNG KẾT ===== -->
-                                    <div class="o_vd_pf_section o_vd_pf_section_outcome">
+                                    <!-- KM có trạng thái + lịch sử riêng ở mục KM → ẩn section 5 (2026-06-12) -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_outcome"
+                                         invisible="tag_code == 'promotion'">
                                         <div class="o_vd_pf_section_head">
                                             <span class="o_vd_pf_section_icon">🎯</span>
                                             <span class="o_vd_pf_section_title">5. KẾT QUẢ SAU XỬ LÝ</span>
@@ -1749,6 +1755,15 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                         <field name="tag_tip_html" widget="html" readonly="1"/>
                                     </details>
                                 </sheet>
+                                <!-- Footer dialog: Gửi duyệt (KM nháp) ĐỨNG TRƯỚC Lưu, cùng style primary.
+                                     special=save/cancel = nút Lưu / Huỷ mặc định của Odoo. -->
+                                <footer>
+                                    <button name="action_km_submit" type="object"
+                                            string="🎁 Gửi duyệt" class="btn-primary"
+                                            invisible="tag_code != 'promotion' or km_state != 'draft'"/>
+                                    <button special="save" string="Lưu" class="btn-primary"/>
+                                    <button special="cancel" string="Huỷ bỏ" class="btn-secondary"/>
+                                </footer>
                             </form>
                         </field>
                     </div>

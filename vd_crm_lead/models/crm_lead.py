@@ -2193,7 +2193,8 @@ class CrmLead(models.Model):
             # MÓNG: diện tích Tầng 1; MÁI: diện tích tầng trên cùng;
             # SÀN: tổng diện tích các tầng (giữ nguyên).
             found_area, roof_area = rec._vd_get_found_roof_areas()
-            san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
+            # Đơn giá sàn theo DT 1 SÀN (footprint), KHÔNG theo tổng sàn (fix 2026-06-12)
+            san_unit = rec._vd_san_unit_for(pricing)
             # Threshold % móng theo DT MÓNG (Tầng 1), KHÔNG phải tổng sàn (fix 2026-05-28)
             found_pct = rec._get_foundation_pct(pricing, rec.vd_intake_foundation_type, found_area >= 70)
             roof_pct = rec._get_roof_pct(pricing, rec._vd_resolve_roof_type())
@@ -2468,7 +2469,7 @@ class CrmLead(models.Model):
             if sum_floor_areas <= 0:
                 sum_floor_areas = total_m2  # fallback total_m2 (NV nhập tay)
 
-            san_unit = rec._get_san_unit_price(pricing, total_m2, rec.vd_intake_car_access)
+            san_unit = rec._vd_san_unit_for(pricing)  # bậc giá theo DT 1 sàn (fix 2026-06-12)
             # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
             _found_area_th, _ = rec._vd_get_found_roof_areas()
             found_pct = rec._get_foundation_pct(
@@ -3304,7 +3305,12 @@ class CrmLead(models.Model):
                 rec.vd_intake_region = False
 
     def _get_san_unit_price(self, pricing, area_per_floor, has_car):
-        """Đơn giá sàn (đ/m²) tùy DT 1 sàn & ô tô vào được không."""
+        """Đơn giá sàn (đ/m²) tùy DT 1 sàn & ô tô vào được không.
+
+        LƯU Ý: bậc giá tính theo DIỆN TÍCH 1 SÀN (footprint = Tầng 1),
+        KHÔNG phải tổng diện tích sàn. Nhà to nhiều tầng nhưng mặt sàn nhỏ
+        vẫn phải dùng đơn giá cao. Dùng _vd_san_unit_for() để khỏi truyền nhầm.
+        """
         suffix = 'oto' if has_car else 'kxe'
         if area_per_floor >= 75:
             return getattr(pricing, f'san_75_{suffix}')
@@ -3315,6 +3321,15 @@ class CrmLead(models.Model):
         if area_per_floor >= 40:
             return getattr(pricing, f'san_40_{suffix}')
         return getattr(pricing, f'san_lt40_{suffix}')
+
+    def _vd_san_unit_for(self, pricing):
+        """Đơn giá sàn cho lead này — bậc giá theo DT 1 SÀN (Tầng 1 footprint).
+        Fix 2026-06-12: trước đây mọi call site truyền TỔNG diện tích sàn →
+        nhà tổng ≥75m² luôn rơi bậc rẻ nhất (6.4tr) dù mặt sàn chỉ 40-65m²."""
+        if not pricing:
+            return 0.0
+        found_area, _ = self._vd_get_found_roof_areas()
+        return self._get_san_unit_price(pricing, found_area, self.vd_intake_car_access)
 
     def _get_foundation_pct(self, pricing, ftype, is_lon):
         if ftype == 'don':
@@ -3443,7 +3458,7 @@ class CrmLead(models.Model):
             # MÁI : dùng diện tích tầng trên cùng (Tum hoặc tầng N cao nhất)
             # SÀN : dùng TỔNG diện tích các tầng (giữ nguyên)
             found_area, roof_area = rec._vd_get_found_roof_areas()
-            san_unit = rec._get_san_unit_price(pricing, total_floor_area, rec.vd_intake_car_access)
+            san_unit = rec._vd_san_unit_for(pricing)  # bậc giá theo DT 1 sàn (fix 2026-06-12)
             # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
             found_pct = rec._get_foundation_pct(
                 pricing, rec.vd_intake_foundation_type, found_area >= 70,
@@ -4468,8 +4483,7 @@ class CrmLead(models.Model):
         total_m2 = self.vd_intake_total_m2 or 0.0
         floors = self.vd_intake_floors_num or 1.0
         if pricing and total_m2:
-            san_unit = self._get_san_unit_price(pricing, total_m2,
-                                                 self.vd_intake_car_access)
+            san_unit = self._vd_san_unit_for(pricing)  # bậc giá theo DT 1 sàn (fix 2026-06-12)
             # Threshold % móng theo DT MÓNG (Tầng 1) — fix 2026-05-28
             _found_area_th, _ = self._vd_get_found_roof_areas()
             found_pct = self._get_foundation_pct(
@@ -4615,7 +4629,7 @@ class CrmLead(models.Model):
             sum_floor_areas += self.vd_intake_floor_tum_m2
         total_floor_area = sum_floor_areas or self.vd_intake_total_m2 or 0.0
 
-        san_unit = self._get_san_unit_price(pricing, total_floor_area, self.vd_intake_car_access) if pricing and total_floor_area else 0
+        san_unit = self._vd_san_unit_for(pricing) if pricing and total_floor_area else 0  # bậc giá theo DT 1 sàn (fix 2026-06-12)
         # Móng dùng DT TẦNG 1; Mái dùng DT tầng trên cùng (fix 2026-05-29: trước
         # đây dùng total_floor_area → PDF lệch với UI breakdown panel).
         found_area, roof_area = self._vd_get_found_roof_areas() if pricing else (0.0, 0.0)

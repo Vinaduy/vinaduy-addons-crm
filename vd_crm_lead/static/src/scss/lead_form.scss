@@ -9011,6 +9011,24 @@ $vd-panel-head-radius: 10px;
         }
     }
 
+    /* Dòng trạng thái xử lý — label + segmented inline */
+    .o_vd_km_statusrow {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.7rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px dashed #e9ddd5;
+
+        > .o_vd_km_lbl {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #5d3d54;
+            flex-shrink: 0;
+        }
+        .o_vd_km_seg { margin-bottom: 0; }
+    }
+
     /* Panel của phương án đang chọn */
     .o_vd_km_panel {
         background: #fffdf5;
