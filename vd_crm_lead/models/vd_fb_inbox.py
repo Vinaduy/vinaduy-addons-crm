@@ -26,7 +26,6 @@ import secrets
 from datetime import datetime
 
 import requests
-from markupsafe import Markup
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
@@ -302,24 +301,25 @@ class VdFbPage(models.Model):
         except Exception:
             feed_state = '?'
 
-        lines = [
-            'Token hợp lệ: %s · loại: %s' % (data.get('is_valid'), data.get('type')),
-            '✅ Có quyền: %s' % (', '.join(have) or '(không có)'),
-        ]
+        token_type = data.get('type')
+        parts = ['Token: %s, loại %s.' % (data.get('is_valid'), token_type)]
+        if token_type == 'USER':
+            parts.append('⚠ ĐANG LÀ USER TOKEN — phải dán PAGE TOKEN (lấy qua /me/accounts).')
+        parts.append('Có quyền: %s.' % (', '.join(have) or 'không có'))
         if missing:
-            lines.append('❌ THIẾU: %s' % ', '.join(missing))
-            lines.append('→ Lấy lại Page Token có đủ 5 quyền (Graph Explorer / System User).')
+            parts.append('THIẾU: %s.' % ', '.join(missing))
+            parts.append('→ Lấy lại token đủ 5 quyền (gỡ app khỏi FB rồi cấp lại).')
         else:
-            lines.append('✅ Đủ toàn bộ quyền cần thiết.')
-        lines.append('Page subscribe "feed" (bình luận): %s' % feed_state)
+            parts.append('Đủ toàn bộ quyền cần thiết.')
+        parts.append('Feed (bình luận): %s.' % feed_state)
 
-        ok = (not missing) and feed_state.startswith('CÓ')
+        ok = (not missing) and token_type == 'PAGE' and feed_state.startswith('CÓ')
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': _('Kiểm tra token — %s') % self.name,
-                'message': Markup('<br/>').join(lines),
+                'message': '  •  '.join(parts),
                 'type': 'success' if ok else 'warning',
                 'sticky': True,
             },
