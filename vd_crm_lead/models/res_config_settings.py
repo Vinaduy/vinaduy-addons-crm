@@ -42,6 +42,15 @@ class ResConfigSettings(models.TransientModel):
         default=7,
         help='Tính trong W ngày làm việc kể từ ngày thêm khách.',
     )
+    # User spec 2026-06-12: KHOÁ TOÀN BỘ bảng khi tồn quá nhiều KH mới CHƯA gọi.
+    vd_uncalled_new_lock_threshold = fields.Integer(
+        string='Khoá toàn bộ khi KH mới CHƯA GỌI vượt số',
+        config_parameter='vd_crm_lead.uncalled_new_lock_threshold',
+        default=15,
+        help='Khi 1 NV tồn HƠN N khách MỚI chưa có cuộc gọi nào → KHOÁ TẤT CẢ '
+             'bảng (trừ chính các khách mới đó) ép NV gọi cho đến khi còn ≤ N thì '
+             'tự mở. Admin xem NV đó cũng thấy khoá. Đặt 0 = TẮT tính năng.',
+    )
 
     # ===== THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (tìm vấn đề) =====
     vd_problem_find_enabled = fields.Boolean(

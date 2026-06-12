@@ -8667,6 +8667,32 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     16%, 32%, 48% { transform: rotate(15deg); }
 }
 
+/* KHOÁ TOÀN BỘ — banner đỏ nổi bật trên cùng (user spec 2026-06-12) */
+.o_vd_global_lock_banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0 0 0.9rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e03131;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff0f0 0%, #ffe3e3 100%);
+    box-shadow: 0 6px 18px rgba(224, 49, 49, 0.22);
+    animation: vd-global-lock-pulse 1.6s ease-in-out infinite;
+}
+.o_vd_global_lock_ico { font-size: 1.85rem; color: #c92a2a; flex: 0 0 auto; }
+.o_vd_global_lock_main {
+    font-size: 1rem; font-weight: 900; color: #c92a2a; letter-spacing: 0.02em;
+}
+.o_vd_global_lock_sub {
+    font-size: 0.82rem; font-weight: 600; color: #842029;
+    margin-top: 0.15rem; line-height: 1.4;
+}
+@keyframes vd-global-lock-pulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(224, 49, 49, 0.22); }
+    50%      { box-shadow: 0 6px 22px rgba(224, 49, 49, 0.42); }
+}
+
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
 .o_vd_admin_trash_btn {
     display: flex;

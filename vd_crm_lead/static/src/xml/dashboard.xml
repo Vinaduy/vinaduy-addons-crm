@@ -1897,6 +1897,19 @@
                         <div class="o_vd_lead_dual_cols">
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
+                            <!-- KHOÁ TOÀN BỘ (user spec 2026-06-12): tồn >ngưỡng KH mới
+                                 chưa gọi → banner đỏ trên cùng, chặn mở mọi KH khác. -->
+                            <div t-if="uncalledNewLockActive" class="o_vd_global_lock_banner">
+                                <i class="fa fa-lock o_vd_global_lock_ico"/>
+                                <div class="o_vd_global_lock_text">
+                                    <div class="o_vd_global_lock_main">KHOÁ TOÀN BỘ — KHÁCH MỚI CHƯA GỌI QUÁ NHIỀU</div>
+                                    <div class="o_vd_global_lock_sub">
+                                        Còn <b><t t-esc="state.uncalled_new_lock.count"/></b> khách mới <b>CHƯA GỌI</b> cuộc nào
+                                        (cần ≤ <b><t t-esc="state.uncalled_new_lock.threshold"/></b>).
+                                        Vào bảng <b>KHÁCH MỚI</b> → mở khách ở vùng <b>CHƯA GỌI</b> và GỌI cho đủ — gọi bớt xuống là <b>TỰ MỞ</b>.
+                                    </div>
+                                </div>
+                            </div>
                             <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
                             <t t-if="isNewStageSplit">
                                 <!-- User spec 2026-06-12: >40 KH → 3 nút (Tham khảo/Chưa gọi

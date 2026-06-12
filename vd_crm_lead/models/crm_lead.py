@@ -6585,6 +6585,8 @@ class CrmLead(models.Model):
             'problem_find': problem_find,
             # CALL-WATCH (2026-06-04): banner "chưa gọi" + khoá bảng Khách mới.
             'call_watch': self._vd_callwatch_payload(scope_user),
+            # KHOÁ TOÀN BỘ khi tồn quá nhiều KH mới chưa gọi (user spec 2026-06-12)
+            'uncalled_new_lock': self._vd_uncalled_new_lock_payload(scope_user),
             # Công tắc khoá cứng "chưa nhắn Zalo" (>10) — mặc định TẮT (user spec
             # 2026-06-10: khoá cứng phản tác dụng). Bật: System Parameter
             # vd_crm_lead.zalo_lock_enabled = 1.
@@ -6632,6 +6634,28 @@ class CrmLead(models.Model):
             ('active', '=', True),
             ('vd_no_quote_state', '!=', 'pending'),
         ] + stage_clause
+
+    def _vd_uncalled_new_lock_payload(self, scope_user):
+        """KHOÁ TOÀN BỘ bảng khi NV tồn quá nhiều KH mới CHƯA GỌI (user spec
+        2026-06-12). Đếm KH bucket KHÁCH MỚI có 0 cuộc gọi (call_stats.total==0
+        → khớp ĐÚNG 'vùng CHƯA GỌI' frontend, cùng cách lọc số chết). Chỉ áp khi
+        xem 1 NV cụ thể; >ngưỡng → khoá; gọi cho ≤ngưỡng → tự mở. Ngưỡng 0 = tắt."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        threshold = int(ICP.get_param(
+            'vd_crm_lead.uncalled_new_lock_threshold', 15) or 15)
+        base = {'enabled': threshold > 0, 'threshold': threshold,
+                'count': 0, 'locked': False}
+        if threshold <= 0 or not scope_user:
+            return base
+        new_leads = self.search(
+            self._dashboard_new_bucket_domain([('user_id', '=', scope_user.id)]))
+        if not new_leads:
+            return base
+        stats = self._dashboard_compute_call_stats(new_leads)
+        base['count'] = sum(
+            1 for l in new_leads if (stats.get(l.id, {}).get('total') or 0) == 0)
+        base['locked'] = base['count'] > threshold
+        return base
 
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=500):

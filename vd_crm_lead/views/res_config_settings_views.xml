@@ -23,6 +23,15 @@
                                invisible="not vd_callwatch_enabled"/>
                     </group>
 
+                    <group string="🔒 KHOÁ TOÀN BỘ — KH mới chưa gọi tồn quá nhiều">
+                        <field name="vd_uncalled_new_lock_threshold"/>
+                        <div class="text-muted" colspan="2">
+                            Tồn HƠN số này khách MỚI chưa gọi cuộc nào → khoá TẤT CẢ
+                            bảng (trừ chính các khách đó), gọi cho ≤ số này thì tự mở.
+                            Đặt <b>0</b> = tắt.
+                        </div>
+                    </group>
+
                     <group string="⚡ THI CÔNG GẤP + 🛠️ XỬ LÝ VẤN ĐỀ (tìm vấn đề)">
                         <field name="vd_problem_find_enabled"/>
                     </group>

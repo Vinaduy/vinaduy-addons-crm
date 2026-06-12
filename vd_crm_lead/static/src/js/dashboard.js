@@ -1243,7 +1243,32 @@ export class VdCrmDashboard extends Component {
         this.state.quoteGuideDismissed = true;
     }
 
+    // KHOÁ TOÀN BỘ (user spec 2026-06-12): NV tồn > ngưỡng KH mới CHƯA GỌI →
+    // khoá MỌI bảng, chỉ cho mở chính các KH mới chưa gọi (vùng CHƯA GỌI) để ép
+    // gọi. Admin xem NV đó cũng thấy khoá. Gọi cho ≤ ngưỡng → tự mở.
+    get uncalledNewLockActive() {
+        const u = this.state.uncalled_new_lock;
+        return !!(u && u.locked && this.state.selected_user_id);
+    }
+    // KH "mới chưa gọi" = đang ở bảng KHÁCH MỚI và chưa có cuộc gọi nào (total=0).
+    _isUncalledNewLead(leadId) {
+        if (this.selectedStage?.code !== "new") return false;
+        const lead = (this.state.leads || []).find((l) => l.id === leadId);
+        return !!lead && (((lead.call_stats || {}).total || 0) === 0);
+    }
+
     openLead(leadId) {
+        // KHOÁ TOÀN BỘ — chặn mở MỌI KH trừ KH mới chưa gọi (vùng CHƯA GỌI).
+        if (this.uncalledNewLockActive && !this._isUncalledNewLead(leadId)) {
+            const u = this.state.uncalled_new_lock;
+            this.notification.add(
+                "🔒 KHOÁ TOÀN BỘ: còn " + (u.count || 0) + " khách MỚI CHƯA GỌI "
+                + "(cần ≤ " + (u.threshold || 0) + "). Vào bảng KHÁCH MỚI → mở các "
+                + "khách ở vùng CHƯA GỌI và GỌI cho đủ — gọi bớt xuống là TỰ MỞ.",
+                { type: "warning", title: "Khoá toàn bộ — khách mới chưa gọi quá nhiều" },
+            );
+            return;
+        }
         // KHOÁ "KẾT BẠN ZALO" (user spec 2026-06-09): > 10 KH chưa kết bạn Zalo
         // → chỉ cho mở các KH CHƯA KẾT BẠN (viền đỏ) để ép NV kết bạn + tư vấn Zalo.
         // CHỈ áp cho lead thuộc bảng Khách mới (user spec 2026-06-10).
