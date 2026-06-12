@@ -472,6 +472,51 @@ html, body {
 }
 
 /* ============================================================
+   8c. MOBILE (≤900px) — dashboard NV xếp 1 CỘT (user spec 2026-06-13):
+   bảng icon (Tham khảo/Chưa gọi/Hủy...) ĐANG là cột phải chiếm width →
+   ép nát thẻ KH. Mobile: thẻ KH FULL ngang, bảng icon thành HÀNG NGANG
+   gọn đưa LÊN TRÊN. Bỏ sticky + thu nhỏ icon cho vừa.
+   ============================================================ */
+@media (max-width: 900px) {
+    .o_vd_main_v2 .o_vd_lead_dual_cols {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .o_vd_main_v2 .o_vd_boards_col {
+        width: 100%;
+        min-width: 0;
+    }
+    .o_vd_main_v2 .o_vd_icon_panel {
+        order: -1;                       /* lên TRÊN các bảng */
+        width: auto !important;
+        align-self: stretch !important;
+        position: static !important;     /* bỏ sticky */
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        gap: 0.4rem !important;
+        padding: 0.5rem 0.45rem !important;
+    }
+    .o_vd_main_v2 .o_vd_icon_panel > .o_vd_trash_box {
+        flex: 1 1 30% !important;        /* ~3 ô / hàng */
+        min-width: 0 !important;
+        padding: 0.45rem 0.15rem !important;
+        gap: 0.25rem !important;
+    }
+    /* icon nhỏ lại CHỈ trên mobile cho hàng ngang gọn */
+    .o_vd_main_v2 .o_vd_icon_panel .o_vd_trash_icon_emoji { font-size: 2.3rem !important; }
+    .o_vd_main_v2 .o_vd_icon_panel .o_vd_trash_icon {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .o_vd_main_v2 .o_vd_icon_panel .o_vd_trash_label { font-size: 0.66rem !important; }
+    .o_vd_main_v2 .o_vd_icon_panel .o_vd_trash_count { font-size: 1.1rem !important; }
+    /* bỏ đường kẻ dọc giữa icon (giờ là hàng ngang) */
+    .o_vd_main_v2 .o_vd_icon_panel > .o_vd_trash_box:not(:last-child)::after {
+        display: none !important;
+    }
+}
+
+/* ============================================================
    9. LIST/TABLE — scroll TRONG container, không tràn page
    ============================================================ */
 .o_form_view .o_field_one2many,
