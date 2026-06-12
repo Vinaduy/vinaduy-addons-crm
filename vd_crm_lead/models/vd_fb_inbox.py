@@ -26,6 +26,7 @@ import secrets
 from datetime import datetime
 
 import requests
+from markupsafe import Markup
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
@@ -241,6 +242,86 @@ class VdFbPage(models.Model):
             'params': {
                 'message': _('✅ Đã đăng ký fanpage "%s" nhận tin nhắn + bình luận.') % self.name,
                 'type': 'success', 'sticky': False,
+            },
+        }
+
+    # Quyền BẮT BUỘC để nhận tin nhắn + bình luận + trả lời.
+    _REQUIRED_SCOPES = [
+        'pages_messaging',          # nhận/gửi tin nhắn
+        'pages_read_engagement',    # NHẬN bình luận (event feed)
+        'pages_manage_engagement',  # TRẢ LỜI bình luận
+        'pages_manage_metadata',    # đăng ký page nhận webhook (subscribed_apps)
+        'pages_show_list',          # liệt kê page
+    ]
+
+    def action_check_token(self):
+        """🔍 Soát Page Access Token: gọi debug_token (xem scope) + subscribed_apps
+        (xem page đã subscribe field 'feed' chưa). Hiện kết quả ngay trên màn —
+        khỏi phải SSH dò token thủ công."""
+        self.ensure_one()
+        app = self.app_id
+        if not (app.app_id and app.app_secret):
+            raise UserError(_('Chưa cấu hình App ID / App Secret ở màn Kết nối Facebook.'))
+        if not self.page_access_token:
+            raise UserError(_('Page chưa có Page Access Token.'))
+        app_token = '%s|%s' % (app.app_id, app.app_secret)
+        gver = self._gver
+
+        # 1) Scope của token
+        try:
+            r = requests.get(
+                '%s/%s/debug_token' % (_GRAPH, gver),
+                params={'input_token': self.page_access_token, 'access_token': app_token},
+                timeout=20,
+            )
+            data = (r.json() or {}).get('data', {}) if r.content else {}
+        except Exception as e:
+            raise UserError(_('Không gọi được Graph API: %s') % e)
+        if not data or data.get('error'):
+            raise UserError(_('Token không đọc được — kiểm tra lại App Secret/Token.\n%s')
+                            % (r.text[:300] if r.content else ''))
+        scopes = set(data.get('scopes') or [])
+        have = [s for s in self._REQUIRED_SCOPES if s in scopes]
+        missing = [s for s in self._REQUIRED_SCOPES if s not in scopes]
+
+        # 2) Page đã subscribe field 'feed' chưa
+        feed_state = '?'
+        try:
+            r2 = requests.get(
+                '%s/%s/%s/subscribed_apps' % (_GRAPH, gver, self.fb_page_id),
+                params={'access_token': self.page_access_token}, timeout=20,
+            )
+            d2 = r2.json() if r2.content else {}
+            if isinstance(d2, dict) and d2.get('error'):
+                feed_state = '⚠ không đọc được (%s)' % ((d2['error'].get('message') or '')[:70])
+            else:
+                fields_sub = []
+                for sub in (d2.get('data') or []):
+                    fields_sub += sub.get('subscribed_fields') or []
+                feed_state = 'CÓ ✅' if 'feed' in fields_sub else 'CHƯA ❌ — bấm "Đăng ký nhận tin nhắn + bình luận"'
+        except Exception:
+            feed_state = '?'
+
+        lines = [
+            'Token hợp lệ: %s · loại: %s' % (data.get('is_valid'), data.get('type')),
+            '✅ Có quyền: %s' % (', '.join(have) or '(không có)'),
+        ]
+        if missing:
+            lines.append('❌ THIẾU: %s' % ', '.join(missing))
+            lines.append('→ Lấy lại Page Token có đủ 5 quyền (Graph Explorer / System User).')
+        else:
+            lines.append('✅ Đủ toàn bộ quyền cần thiết.')
+        lines.append('Page subscribe "feed" (bình luận): %s' % feed_state)
+
+        ok = (not missing) and feed_state.startswith('CÓ')
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Kiểm tra token — %s') % self.name,
+                'message': Markup('<br/>').join(lines),
+                'type': 'success' if ok else 'warning',
+                'sticky': True,
             },
         }
 

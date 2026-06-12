@@ -38,6 +38,9 @@
                             <button name="action_subscribe_page" type="object"
                                     string="Đăng ký webhook" icon="fa-bell"
                                     help="Đăng ký page nhận tin nhắn + bình luận"/>
+                            <button name="action_check_token" type="object"
+                                    string="Kiểm tra token" icon="fa-search"
+                                    help="Soát quyền token + subscribe feed"/>
                         </list>
                     </field>
                 </sheet>
@@ -62,6 +65,10 @@
                             string="🔔 Đăng ký nhận tin nhắn + bình luận"
                             class="btn-primary"
                             help="Đăng ký fanpage với App để Meta đẩy webhook về. Bấm sau khi đã dán Page Access Token."/>
+                    <button name="action_check_token" type="object"
+                            string="🔍 Kiểm tra token"
+                            class="btn-secondary"
+                            help="Soát Page Token: xem có đủ quyền (messaging/read_engagement/manage_engagement/metadata) và đã subscribe field 'feed' (bình luận) chưa"/>
                     <button name="action_create_test_conversation" type="object"
                             string="🧪 Tạo hội thoại thử nghiệm"
                             class="btn-secondary" groups="vd_crm_lead.vd_crm_group_admin"
