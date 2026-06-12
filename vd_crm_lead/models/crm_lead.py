@@ -7195,19 +7195,19 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_planned_sign(self, user_id=None, limit=200):
-        """KH "GỬI HỢP ĐỒNG" — đã KÍCH HOẠT "Làm hợp đồng - Hẹn gặp"
-        (đã đặt lịch ký HĐ: vd_planned_sign_date) nhưng CHƯA ký xong. Hiển thị ở
-        box "KHÁCH GỬI HỢP ĐỒNG" cuối 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ
-        (user spec 2026-06-12)."""
+        """KH "ĐÃ LÀM HỢP ĐỒNG" — NV đã bấm nút "Làm hợp đồng" mở panel làm HĐ /
+        hẹn gặp ký (vd_contract_open=True). Dùng cho bucket "KHÁCH GỬI HỢP ĐỒNG"
+        + board "KHÁCH ĐÃ LÀM HỢP ĐỒNG" trên cùng (user spec 2026-06-12).
+        (Trước dùng vd_planned_sign_date — SAI vì KH bấm 'Làm hợp đồng' chưa chắc
+        đã đặt lịch ký.)"""
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         leads = self.search(
             domain_user + [
-                ('vd_planned_sign_date', '!=', False),
-                ('vd_contract_signed', '=', False),
+                ('vd_contract_open', '=', True),
                 ('stage_is_lost', '=', False),
                 ('active', '=', True),
             ],
-            order='vd_planned_sign_date asc',
+            order='vd_planned_sign_date asc, id desc',
             limit=limit,
         )
         if not leads:
