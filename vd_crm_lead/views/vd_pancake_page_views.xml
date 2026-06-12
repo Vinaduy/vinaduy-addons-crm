@@ -85,7 +85,8 @@
                         </p>
                     </div>
                 </sheet>
-                <chatter/>
+                <!-- BỎ <chatter/> (user spec 2026-06-12): model vd.pancake.page KHÔNG
+                     inherit mail.thread → chatter gọi _get_thread_with_access lỗi RPC. -->
             </form>
         </field>
     </record>
