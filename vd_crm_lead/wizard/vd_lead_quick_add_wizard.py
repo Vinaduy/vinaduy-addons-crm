@@ -502,6 +502,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
             ('mai_bang', 'Nhà mái bằng'),
             ('mai_thai', 'Nhà mái thái'),
             ('mai_nhat', 'Nhà mái nhật'),
+            ('mai_ton', 'Nhà mái tôn'),
         ],
         'i_foundation_type': [
             ('don', 'Móng đơn'),

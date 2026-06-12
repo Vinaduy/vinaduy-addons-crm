@@ -30,6 +30,7 @@ class CrmLead(models.Model):
             ('mai_bang', 'Nhà mái bằng'),
             ('mai_thai', 'Nhà mái thái'),
             ('mai_nhat', 'Nhà mái nhật'),
+            ('mai_ton', 'Nhà mái tôn'),
         ],
         'vd_intake_foundation_type': [
             ('don', 'Móng đơn'),
@@ -42,6 +43,7 @@ class CrmLead(models.Model):
             ('mai_nhat_cdt', 'Mái nhật — Có đổ trần (48%)'),
             ('mai_thai_kdt', 'Mái thái — Không đổ trần (45%)'),
             ('mai_thai_cdt', 'Mái thái — Có đổ trần (55%)'),
+            ('mai_ton', 'Mái tôn (13%)'),
             ('thong_tang', 'Thông tầng (40%)'),
             ('mai_trang_tri', 'Mái trang trí (50%)'),
             ('mai_trang_tri_dt', 'Mái trang trí — Đổ trần (100%)'),
@@ -1572,6 +1574,7 @@ class CrmLead(models.Model):
             'mai_bang': ['mai_bang'],
             'mai_thai': ['mai_thai_kdt', 'mai_thai_cdt'],
             'mai_nhat': ['mai_nhat_kdt', 'mai_nhat_cdt'],
+            'mai_ton': ['mai_ton'],
             # Nhà phố / biệt thự / ống / cấp 4 / tum / chung cư / khác → tất cả
         }
         for rec in self:
@@ -3342,17 +3345,19 @@ class CrmLead(models.Model):
 
     def _vd_resolve_roof_type(self):
         """Trả về effective roof_type. Ưu tiên vd_intake_roof_type (NV chọn explicit).
-        Fallback derive từ vd_intake_house_type (Kiểu nhà):
-        - Nhà mái bằng → mai_bang
-        - Nhà mái thái → mai_thai_kdt (không đổ trần làm default)
-        - Nhà mái nhật → mai_nhat_kdt
+        Fallback derive từ vd_intake_house_type (Kiểu nhà) — UI chỉ cho chọn Mẫu nhà:
+        - Nhà mái bằng → mai_bang (20%)
+        - Nhà mái thái → mai_thai_cdt (55%)   (fix 2026-06-12: trước là kdt 45%)
+        - Nhà mái nhật → mai_nhat_cdt (48%)   (fix 2026-06-12: trước là kdt 42%)
+        - Nhà mái tôn  → mai_ton (13%)        (mới 2026-06-12)
         """
         if self.vd_intake_roof_type:
             return self.vd_intake_roof_type
         return {
             'mai_bang': 'mai_bang',
-            'mai_thai': 'mai_thai_kdt',
-            'mai_nhat': 'mai_nhat_kdt',
+            'mai_thai': 'mai_thai_cdt',
+            'mai_nhat': 'mai_nhat_cdt',
+            'mai_ton': 'mai_ton',
         }.get(self.vd_intake_house_type, False)
 
     def _vd_get_found_roof_areas(self):
@@ -3396,6 +3401,7 @@ class CrmLead(models.Model):
             'thong_tang': pricing.thong_tang,
             'mai_trang_tri': pricing.mai_trang_tri,
             'mai_trang_tri_dt': pricing.mai_trang_tri_dt,
+            'mai_ton': pricing.mai_ton,
             'mai_ton_1m': pricing.mai_ton_1m,
             'mai_ton_2m': pricing.mai_ton_2m,
             'mai_ton_3m': pricing.mai_ton_3m,

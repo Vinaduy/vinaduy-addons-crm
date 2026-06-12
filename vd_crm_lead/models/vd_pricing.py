@@ -52,6 +52,7 @@ class VdPricingRegion(models.Model):
     mai_trang_tri = fields.Float(string='Mái trang trí (%)', default=50.0,
                                   help='Khoảng 40–60%, lấy giữa.')
     mai_trang_tri_dt = fields.Float(string='Mái trang trí ĐỔ TRẦN (%)', default=100.0)
+    mai_ton = fields.Float(string='Mái tôn (%)', default=13.0)
     mai_ton_1m = fields.Float(string='Mái tôn 1 mặt (%)', default=13.0)
     mai_ton_2m = fields.Float(string='Mái tôn 2 mặt (%)', default=16.0)
     mai_ton_3m = fields.Float(string='Mái tôn 3 mặt (%)', default=20.0)
