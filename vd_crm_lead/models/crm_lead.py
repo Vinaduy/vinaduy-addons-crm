@@ -2154,10 +2154,21 @@ class CrmLead(models.Model):
         # Round 12: KM từ problems
         'vd_lead_problem_ids.km_state', 'vd_lead_problem_ids.km_amount',
         'vd_lead_problem_ids.km_type', 'vd_lead_problem_ids.km_material_name',
+        'vd_lead_problem_ids.km_price_old', 'vd_lead_problem_ids.km_price_new',
         # Round 12.1: PS (phát sinh vật tư) từ problems
         'vd_lead_problem_ids.ps_state', 'vd_lead_problem_ids.ps_amount',
         'vd_lead_problem_ids.ps_material_name',
     )
+    def _vd_km_row_label(self, p):
+        """Nhãn dòng KM trong báo giá chi tiết — theo 3 loại KM."""
+        if p.km_type == 'discount_price':
+            def _f(n):
+                return '{:,.0f}'.format(n or 0).replace(',', '.')
+            return '🏷️ Giảm đơn giá: %s→%s' % (_f(p.km_price_old), _f(p.km_price_new))
+        if p.km_type == 'promo_material' and p.km_material_name:
+            return f'🎁 KM: {p.km_material_name}'
+        return '💸 Khuyến mãi tiền'
+
     def _compute_quote_breakdown_html(self):
         Pricing = self.env['vd.pricing.region']
         for rec in self:
@@ -2282,10 +2293,7 @@ class CrmLead(models.Model):
             # Build KM rows HTML (vàng — trừ tiền)
             km_rows_html = ''
             for km in km_problems:
-                if km.km_type == 'promo' and km.km_material_name:
-                    km_label = f'🎁 KM: {km.km_material_name}'
-                else:
-                    km_label = '💸 Giảm giá'
+                km_label = self._vd_km_row_label(km)
                 km_rows_html += (
                     '<tr style="background:#fff8e1;">'
                     f'<td style="padding:0.5rem 0.55rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;font-size:0.85rem;">{km_label}</td>'
@@ -4722,10 +4730,7 @@ class CrmLead(models.Model):
             'roof_cost': fmt(roof_cost),
             # Round 12: list KM approved (mỗi item 1 row trong PDF — TRỪ)
             'km_items': [{
-                'label': (
-                    f'🎁 KM: {p.km_material_name}' if p.km_type == 'promo' and p.km_material_name
-                    else '💸 Giảm giá'
-                ),
+                'label': self._vd_km_row_label(p),
                 'amount': fmt(p.km_amount),
                 'amount_raw': p.km_amount,
             } for p in km_problems],

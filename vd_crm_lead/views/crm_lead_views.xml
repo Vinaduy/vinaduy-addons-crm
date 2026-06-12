@@ -1099,8 +1099,10 @@
                                     </div>
 
                                     <!-- ===== 1. LIÊN HỆ KH =====
-                                         NV phải tick để xác nhận đã trao đổi vấn đề này với KH -->
-                                    <div class="o_vd_pf_section o_vd_pf_section_contact">
+                                         NV phải tick để xác nhận đã trao đổi vấn đề này với KH.
+                                         User spec 2026-06-12: ẩn với vấn đề Khuyến mãi. -->
+                                    <div class="o_vd_pf_section o_vd_pf_section_contact"
+                                         invisible="tag_code == 'promotion'">
                                         <div class="o_vd_pf_section_head">
                                             <span class="o_vd_pf_section_icon">📞</span>
                                             <span class="o_vd_pf_section_title">1. ĐÃ LIÊN HỆ KH VỀ VẤN ĐỀ NÀY CHƯA?</span>
@@ -1482,23 +1484,80 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                         <div class="o_vd_pf_section_body">
                                             <field name="km_state" invisible="1"/>
                                             <field name="km_currency_id" invisible="1"/>
+                                            <!-- Chọn 1 trong 3 phương án — chọn loại nào thì chỉ bảng đó hiện -->
                                             <div class="o_vd_pf_field">
-                                                <span class="o_form_label o_vd_pf_field_lbl">Loại</span>
+                                                <span class="o_form_label o_vd_pf_field_lbl">Chọn phương án</span>
                                                 <field name="km_type" nolabel="1" widget="radio"
                                                        readonly="km_state in ('approved', 'pending')"/>
                                             </div>
-                                            <div class="o_vd_pf_field" invisible="km_type != 'promo'">
-                                                <span class="o_form_label o_vd_pf_field_lbl">Tên vật tư khuyến mãi</span>
-                                                <field name="km_material_name" nolabel="1"
-                                                       placeholder="VD: Tặng máy nước nóng Ariston 30L, Nâng cấp sơn ngoài Dulux..."
-                                                       readonly="km_state in ('approved', 'pending')"/>
+
+                                            <!-- ===== A. GIẢM ĐƠN GIÁ ===== -->
+                                            <div class="o_vd_pf_km_box" invisible="km_type != 'discount_price'"
+                                                 style="border:1px solid #ffd43b;background:#fffdf5;border-radius:6px;padding:0.6rem;margin-top:0.4rem;">
+                                                <div class="o_vd_pf_explore_card_head" style="margin-bottom:0.4rem;">🏷️ GIẢM ĐƠN GIÁ</div>
+                                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                                                    <div class="o_vd_pf_field">
+                                                        <span class="o_form_label o_vd_pf_field_lbl">Giá gốc (đơn giá sàn)</span>
+                                                        <field name="km_price_old" nolabel="1"
+                                                               widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                               readonly="km_state in ('approved', 'pending')"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <span class="o_form_label o_vd_pf_field_lbl">Giá mới (đơn giá sàn)</span>
+                                                        <field name="km_price_new" nolabel="1"
+                                                               widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                               readonly="km_state in ('approved', 'pending')"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <span class="o_form_label o_vd_pf_field_lbl">Hệ số cũ</span>
+                                                        <field name="km_coef_old" nolabel="1"
+                                                               readonly="km_state in ('approved', 'pending')"/>
+                                                    </div>
+                                                    <div class="o_vd_pf_field">
+                                                        <span class="o_form_label o_vd_pf_field_lbl">Hệ số mới</span>
+                                                        <field name="km_coef_new" nolabel="1"
+                                                               readonly="km_state in ('approved', 'pending')"/>
+                                                    </div>
+                                                </div>
+                                                <div class="o_vd_pf_field" style="margin-top:0.4rem;">
+                                                    <span class="o_form_label o_vd_pf_field_lbl" style="color:#d9480f;font-weight:700;">⇒ Số tiền giảm tương ứng</span>
+                                                    <field name="km_amount" nolabel="1"
+                                                           widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                           readonly="km_state in ('approved', 'pending')"/>
+                                                    <div class="o_vd_pf_intake_hint">💡 Tự tính = Tổng m² sàn × (giá gốc×hệ số cũ − giá mới×hệ số mới). Sửa tay được nếu cần.</div>
+                                                </div>
                                             </div>
-                                            <div class="o_vd_pf_field">
-                                                <span class="o_form_label o_vd_pf_field_lbl">Số tiền</span>
-                                                <field name="km_amount" nolabel="1"
-                                                       widget="monetary" options="{'currency_field': 'km_currency_id'}"
-                                                       readonly="km_state in ('approved', 'pending')"/>
+
+                                            <!-- ===== B. KHUYẾN MÃI TIỀN ===== -->
+                                            <div class="o_vd_pf_km_box" invisible="km_type != 'discount_money'"
+                                                 style="border:1px solid #ffd43b;background:#fffdf5;border-radius:6px;padding:0.6rem;margin-top:0.4rem;">
+                                                <div class="o_vd_pf_explore_card_head" style="margin-bottom:0.4rem;">💸 KHUYẾN MÃI TIỀN</div>
+                                                <div class="o_vd_pf_field">
+                                                    <span class="o_form_label o_vd_pf_field_lbl">Số tiền giảm khuyến mãi</span>
+                                                    <field name="km_amount" nolabel="1"
+                                                           widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                           readonly="km_state in ('approved', 'pending')"/>
+                                                </div>
                                             </div>
+
+                                            <!-- ===== C. KHUYẾN MÃI THIẾT BỊ / VẬT TƯ ===== -->
+                                            <div class="o_vd_pf_km_box" invisible="km_type != 'promo_material'"
+                                                 style="border:1px solid #ffd43b;background:#fffdf5;border-radius:6px;padding:0.6rem;margin-top:0.4rem;">
+                                                <div class="o_vd_pf_explore_card_head" style="margin-bottom:0.4rem;">🎁 KHUYẾN MÃI THIẾT BỊ / VẬT TƯ</div>
+                                                <div class="o_vd_pf_field">
+                                                    <span class="o_form_label o_vd_pf_field_lbl">Vật tư / thiết bị tặng</span>
+                                                    <field name="km_material_name" nolabel="1"
+                                                           placeholder="VD: Tặng máy nước nóng Ariston 30L, Nâng cấp sơn ngoài Dulux..."
+                                                           readonly="km_state in ('approved', 'pending')"/>
+                                                </div>
+                                                <div class="o_vd_pf_field">
+                                                    <span class="o_form_label o_vd_pf_field_lbl">Số tiền (giá trị quy đổi)</span>
+                                                    <field name="km_amount" nolabel="1"
+                                                           widget="monetary" options="{'currency_field': 'km_currency_id'}"
+                                                           readonly="km_state in ('approved', 'pending')"/>
+                                                </div>
+                                            </div>
+
                                             <div class="o_vd_pf_field" invisible="km_state != 'rejected'">
                                                 <span class="o_form_label o_vd_pf_field_lbl">Lý do từ chối</span>
                                                 <field name="km_reject_reason" nolabel="1" readonly="1"/>
@@ -1533,6 +1592,13 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                                         invisible="km_state not in ('pending', 'rejected')">
                                                     ↩️ Đưa về nháp
                                                 </button>
+                                            </div>
+
+                                            <!-- ===== LỊCH SỬ THAY ĐỔI KM ===== -->
+                                            <div class="o_vd_pf_field" invisible="not km_history_html"
+                                                 style="margin-top:0.7rem;border-top:1px solid #ffe066;padding-top:0.4rem;">
+                                                <span class="o_form_label o_vd_pf_field_lbl" style="color:#868e96;">🕘 Lịch sử thay đổi</span>
+                                                <field name="km_history_html" nolabel="1" readonly="1"/>
                                             </div>
                                         </div>
                                     </div>

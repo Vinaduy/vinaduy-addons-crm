@@ -199,9 +199,14 @@ class VdLeadProblem(models.Model):
     # → Gửi duyệt → trưởng nhóm hoặc admin duyệt → tự động thành dòng
     # trong báo giá chi tiết + PDF.
     # ============================================================
+    # User spec 2026-06-12: 3 phương án KM, chọn loại nào thì chỉ bảng đó hiện.
+    # discount_price : GIẢM ĐƠN GIÁ — giá gốc/mới + hệ số cũ/mới → tự tính tiền giảm
+    # discount_money : KHUYẾN MÃI TIỀN — chỉ số tiền giảm
+    # promo_material : KHUYẾN MÃI THIẾT BỊ / VẬT TƯ — tên vật tư + số tiền quy đổi
     km_type = fields.Selection([
-        ('discount', '💸 Giảm giá (số tiền trực tiếp)'),
-        ('promo', '🎁 Khuyến mãi (tên vật tư tặng + số tiền quy đổi)'),
+        ('discount_price', '🏷️ Giảm đơn giá'),
+        ('discount_money', '💸 Khuyến mãi tiền'),
+        ('promo_material', '🎁 Khuyến mãi thiết bị / vật tư'),
     ], string='Loại')
     km_material_name = fields.Char(
         string='Tên vật tư khuyến mãi',
@@ -209,7 +214,29 @@ class VdLeadProblem(models.Model):
     )
     km_amount = fields.Monetary(
         string='Số tiền', currency_field='km_currency_id', default=0,
-        help='Giảm giá: số tiền trừ trực tiếp. Khuyến mãi: giá trị quy đổi của quà tặng.',
+        help='Số tiền TRỪ vào báo giá. Giảm đơn giá: tự tính từ giá/hệ số. '
+             'Khuyến mãi tiền / vật tư: số tiền nhập trực tiếp.',
+    )
+    # GIẢM ĐƠN GIÁ — 4 trường, tự tính ra km_amount (xem _onchange_km_price_calc)
+    km_price_old = fields.Monetary(
+        string='Giá gốc (đơn giá sàn)', currency_field='km_currency_id', default=0,
+        help='Đơn giá sàn hiện tại (VNĐ/m²) — đọc từ bảng báo giá chi tiết.',
+    )
+    km_price_new = fields.Monetary(
+        string='Giá mới (đơn giá sàn)', currency_field='km_currency_id', default=0,
+        help='Đơn giá sàn đề xuất sau khi giảm (VNĐ/m²).',
+    )
+    km_coef_old = fields.Float(
+        string='Hệ số cũ', default=1.0,
+        help='Hệ số nhân hiện tại (mặc định 1.0).',
+    )
+    km_coef_new = fields.Float(
+        string='Hệ số mới', default=1.0,
+        help='Hệ số nhân sau khi điều chỉnh (mặc định 1.0).',
+    )
+    km_history_html = fields.Html(
+        string='Lịch sử thay đổi KM', sanitize=False, copy=False, readonly=True,
+        help='Nhật ký các lần gửi duyệt / duyệt / từ chối — append 1 dòng mỗi lần.',
     )
     km_currency_id = fields.Many2one(
         'res.currency', related='lead_id.vd_currency_vnd_id',
@@ -228,6 +255,46 @@ class VdLeadProblem(models.Model):
     km_approved_date = fields.Datetime(string='Ngày duyệt', readonly=True, copy=False)
     km_reject_reason = fields.Text(string='Lý do từ chối', copy=False)
 
+    @api.onchange('km_type', 'km_price_old', 'km_price_new', 'km_coef_old', 'km_coef_new')
+    def _onchange_km_price_calc(self):
+        """GIẢM ĐƠN GIÁ: tự tính số tiền giảm từ giá + hệ số × tổng m² sàn.
+        Công thức: km_amount = tổng_m²_sàn × (giá_gốc×hệ_số_cũ − giá_mới×hệ_số_mới).
+        NV vẫn sửa lại km_amount tay được nếu muốn."""
+        for rec in self:
+            if rec.km_type != 'discount_price':
+                continue
+            total_m2 = rec.lead_id.vd_intake_total_m2 or 0.0
+            old_eff = (rec.km_price_old or 0.0) * (rec.km_coef_old or 0.0)
+            new_eff = (rec.km_price_new or 0.0) * (rec.km_coef_new or 0.0)
+            diff = (old_eff - new_eff) * total_m2
+            rec.km_amount = diff if diff > 0 else 0.0
+
+    def _km_log(self, action_html):
+        """Append 1 dòng vào lịch sử KM (hiện ở cuối mục). user = người thao tác."""
+        self.ensure_one()
+        when = fields.Datetime.context_timestamp(
+            self, fields.Datetime.now()).strftime('%d/%m/%Y %H:%M')
+        line = (
+            '<div style="padding:2px 0;border-bottom:1px dashed #e9ecef;font-size:0.82rem;">'
+            '<span style="color:#868e96;">%s</span> · '
+            '<b>%s</b> — %s</div>'
+        ) % (when, self.env.user.name, action_html)
+        self.km_history_html = (self.km_history_html or '') + line
+
+    def _km_detail_text(self):
+        """Mô tả ngắn nội dung KM hiện tại để ghi log."""
+        self.ensure_one()
+        amt = '{:,.0f}'.format(self.km_amount or 0).replace(',', '.')
+        if self.km_type == 'discount_price':
+            return _('Giảm đơn giá %s→%s (hệ số %s→%s) ⇒ −%s đ') % (
+                '{:,.0f}'.format(self.km_price_old or 0).replace(',', '.'),
+                '{:,.0f}'.format(self.km_price_new or 0).replace(',', '.'),
+                ('%g' % (self.km_coef_old or 0)), ('%g' % (self.km_coef_new or 0)), amt,
+            )
+        if self.km_type == 'promo_material':
+            return _('KM vật tư "%s" ⇒ −%s đ') % (self.km_material_name or '?', amt)
+        return _('Khuyến mãi tiền ⇒ −%s đ') % amt
+
     def action_km_submit(self):
         """NV bấm 'Gửi duyệt' → state='pending'."""
         from odoo.exceptions import UserError
@@ -235,21 +302,23 @@ class VdLeadProblem(models.Model):
             if rec.tag_code != 'promotion':
                 raise UserError(_('Chỉ vấn đề "Khuyến mãi" mới gửi duyệt được.'))
             if not rec.km_type:
-                raise UserError(_('Vui lòng chọn loại (Giảm giá / Khuyến mãi).'))
+                raise UserError(_('Vui lòng chọn loại khuyến mãi.'))
+            if rec.km_type == 'discount_price':
+                if not (rec.km_price_old and rec.km_price_new):
+                    raise UserError(_('Giảm đơn giá: nhập đủ giá gốc và giá mới.'))
             if not rec.km_amount or rec.km_amount <= 0:
-                raise UserError(_('Số tiền phải > 0.'))
-            if rec.km_type == 'promo' and not (rec.km_material_name or '').strip():
-                raise UserError(_('Khuyến mãi phải nhập tên vật tư.'))
+                raise UserError(_('Số tiền giảm phải > 0.'))
+            if rec.km_type == 'promo_material' and not (rec.km_material_name or '').strip():
+                raise UserError(_('Khuyến mãi thiết bị/vật tư phải nhập tên vật tư.'))
             rec.write({
                 'km_state': 'pending',
                 'km_submitted_date': fields.Datetime.now(),
             })
+            rec._km_log(_('⏳ Gửi duyệt: %s') % rec._km_detail_text())
             rec.lead_id.message_post(
                 subtype_xmlid='mail.mt_note',
-                body=_('🎁 NV %s gửi duyệt KM: <b>%s %s đ</b>') % (
-                    self.env.user.name,
-                    rec.km_material_name or '(giảm giá)',
-                    '{:,.0f}'.format(rec.km_amount).replace(',', '.'),
+                body=_('🎁 NV %s gửi duyệt KM: <b>%s</b>') % (
+                    self.env.user.name, rec._km_detail_text(),
                 ),
             )
 
@@ -272,12 +341,12 @@ class VdLeadProblem(models.Model):
             })
             # Trigger recompute breakdown
             rec.lead_id._compute_quote_breakdown_html()
+            rec._km_log(_('✓ ĐÃ DUYỆT — cập nhật vào báo giá chi tiết: %s')
+                        % rec._km_detail_text())
             rec.lead_id.message_post(
                 subtype_xmlid='mail.mt_note',
-                body=_('✓ <b>%s</b> đã duyệt KM: %s — %s đ') % (
-                    user.name,
-                    rec.km_material_name or 'Giảm giá',
-                    '{:,.0f}'.format(rec.km_amount).replace(',', '.'),
+                body=_('✓ <b>%s</b> đã duyệt KM: %s') % (
+                    user.name, rec._km_detail_text(),
                 ),
             )
 
@@ -298,6 +367,8 @@ class VdLeadProblem(models.Model):
                 'km_approved_date': fields.Datetime.now(),
             })
             rec.lead_id._compute_quote_breakdown_html()
+            rec._km_log(_('✗ TỪ CHỐI: %s')
+                        % (rec.km_reject_reason or _('(không rõ lý do)')))
             rec.lead_id.message_post(
                 subtype_xmlid='mail.mt_note',
                 body=_('✗ <b>%s</b> từ chối KM: %s') % (
@@ -309,6 +380,7 @@ class VdLeadProblem(models.Model):
     def action_km_revert_to_draft(self):
         """Đưa về nháp để sửa lại."""
         for rec in self:
+            rec._km_log(_('↩️ Đưa về nháp để chỉnh sửa'))
             rec.km_state = 'draft'
 
     # ============================================================
