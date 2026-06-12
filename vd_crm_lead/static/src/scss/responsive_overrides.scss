@@ -458,13 +458,16 @@ html, body {
 }
 
 /* ============================================================
-   8b. Dashboard NV: 2 sections "Khách mới" + "XỬ LÝ VẤN ĐỀ" STACK DỌC
-   (1 trên 1 dưới) theo yêu cầu user. KHÔNG để cạnh nhau.
+   8b. Dashboard NV (user spec 2026-06-12): dual_cols = flex NGANG
+   [cột 3 bảng (boards_col) | BẢNG ICON dọc riêng]. Các section vẫn
+   STACK DỌC bên trong boards_col (1 trên 1 dưới).
    ============================================================ */
 .o_vd_main_v2 .o_vd_lead_dual_cols {
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
 }
-.o_vd_main_v2 .o_vd_lead_dual_cols > section {
+.o_vd_main_v2 .o_vd_boards_col > section {
     margin: 0 0 0.85rem 0;
 }
 
