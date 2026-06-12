@@ -391,6 +391,39 @@ class VdFbPage(models.Model):
             'domain': [('page_id', '=', self.id)],
         }
 
+    def action_create_test_conversation(self):
+        """[TEST] Tạo 1 hội thoại giả + tin khách đầu tiên để thử cửa sổ chat
+        trước khi quay video Facebook (không gọi Graph API, không gửi gì ra
+        ngoài). Chỉ admin dùng."""
+        self.ensure_one()
+        now = fields.Datetime.now()
+        Conv = self.env['vd.fb.conversation'].sudo()
+        seq = Conv.search_count([('psid', '=like', 'TEST-%')]) + 1
+        conv = Conv.create({
+            'page_id': self.id,
+            'psid': 'TEST-%03d' % seq,
+            'customer_name': 'Khách thử nghiệm %d' % seq,
+        })
+        self.env['vd.fb.message'].sudo().create({
+            'conversation_id': conv.id,
+            'direction': 'in',
+            'body': 'Chào shop, cho mình hỏi về sản phẩm với ạ?',
+            'sent_at': now,
+        })
+        conv.write({
+            'last_message_at': now, 'last_inbound_at': now,
+            'snippet': 'Chào shop, cho mình hỏi về sản phẩm với ạ?',
+            'unread': 1, 'state': 'open',
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Hội thoại thử nghiệm',
+            'res_model': 'vd.fb.conversation',
+            'res_id': conv.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
 
 # ============================================================
 # CONVERSATION
@@ -454,6 +487,32 @@ class VdFbConversation(models.Model):
 
     def action_mark_read(self):
         self.write({'unread': 0})
+
+    def action_refresh(self):
+        """Nút 'Tải lại' — re-read record để hứng tin nhắn webhook mới gửi tới
+        (dùng khi quay video demo, không cần F5 cả trang)."""
+        self.ensure_one()
+        if self.unread:
+            self.unread = 0
+        return True
+
+    def action_simulate_inbound(self):
+        """[TEST] Giả lập 1 tin khách vừa gửi tới — thử bong bóng tin đến +
+        luồng trả lời trước khi quay video. KHÔNG gọi Graph API. Chỉ admin."""
+        self.ensure_one()
+        now = fields.Datetime.now()
+        body = 'Tin thử nghiệm lúc %s — shop trả lời giúp em nhé!' % now.strftime('%H:%M:%S')
+        self.env['vd.fb.message'].sudo().create({
+            'conversation_id': self.id,
+            'direction': 'in',
+            'body': body,
+            'sent_at': now,
+        })
+        self.write({
+            'last_message_at': now, 'last_inbound_at': now,
+            'snippet': body[:200], 'unread': self.unread + 1, 'state': 'open',
+        })
+        return True
 
 
 # ============================================================

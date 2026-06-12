@@ -1,0 +1,274 @@
+// ============================================================
+// GIAO DIỆN PANCAKE — client action 3 cột (vd_crm_lead.fb_chat)
+// TRÁI danh sách · GIỮA khung chat · PHẢI thông tin khách.
+// ============================================================
+.vd_fb_app {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    background: #fff;
+    font-size: 14px;
+    color: #050505;
+
+    // ---- chung: avatar tròn ----
+    .vd_fb_conv_av {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0084ff, #0064d1);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 16px;
+        flex: 0 0 auto;
+        &.vd_fb_av_lg { width: 44px; height: 44px; font-size: 18px; }
+    }
+    .vd_fb_empty {
+        padding: 20px; text-align: center; color: #8a8d91; font-size: 13px;
+    }
+
+    // ---- CỘT TRÁI ----
+    .vd_fb_left {
+        width: 320px; flex: 0 0 320px;
+        border-right: 1px solid #e4e6eb;
+        display: flex; flex-direction: column; min-height: 0;
+    }
+    .vd_fb_left_head {
+        padding: 12px 14px; border-bottom: 1px solid #e4e6eb;
+        display: flex; align-items: center; gap: 10px;
+        .vd_fb_left_title { font-weight: 700; font-size: 17px; }
+        .vd_fb_page_sel {
+            margin-left: auto; max-width: 160px;
+            border: 1px solid #ccd0d5; border-radius: 8px; padding: 4px 8px; font-size: 12px;
+        }
+    }
+    .vd_fb_conv_list { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+    .vd_fb_conv_item {
+        display: flex; gap: 10px; align-items: center;
+        padding: 10px 14px; cursor: pointer;
+        border-bottom: 1px solid #f2f2f2;
+        &:hover { background: #f5f6f7; }
+        &.vd_fb_conv_active { background: #e7f3ff; }
+    }
+    .vd_fb_conv_body { flex: 1 1 auto; min-width: 0; }
+    .vd_fb_conv_top {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 6px;
+        .vd_fb_conv_name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vd_fb_conv_time { font-size: 11px; color: #8a8d91; flex: 0 0 auto; }
+    }
+    .vd_fb_conv_bottom {
+        display: flex; justify-content: space-between; align-items: center; gap: 6px;
+        .vd_fb_conv_snip {
+            font-size: 13px; color: #65676b;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .vd_fb_unread {
+            flex: 0 0 auto; background: #0084ff; color: #fff;
+            font-size: 11px; font-weight: 700;
+            min-width: 18px; height: 18px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center; padding: 0 5px;
+        }
+    }
+
+    // ---- CỘT GIỮA ----
+    .vd_fb_center { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .vd_fb_no_conv { margin: auto; color: #8a8d91; }
+    .vd_fb_chat_top {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 16px; border-bottom: 1px solid #e4e6eb;
+        .vd_fb_chat_top_info { display: flex; flex-direction: column; line-height: 1.25; }
+        .vd_fb_chat_top_name { font-weight: 700; font-size: 16px; }
+        .vd_fb_chat_top_sub { font-size: 12px; color: #65676b; }
+        .vd_fb_chat_top_actions { margin-left: auto; display: flex; gap: 6px; }
+    }
+    .vd_fb_stream_app {
+        flex: 1 1 auto; overflow-y: auto; min-height: 0;
+        background: #f0f2f5; padding: 16px;
+    }
+    .vd_fb_composer_app {
+        display: flex; align-items: flex-end; gap: 8px;
+        padding: 10px 16px; border-top: 1px solid #e4e6eb;
+        .vd_fb_input {
+            flex: 1 1 auto; border: 1px solid #ccd0d5; border-radius: 18px;
+            padding: 9px 14px; resize: none; min-height: 40px; max-height: 120px; font-size: 14px;
+        }
+        .vd_fb_send_app { flex: 0 0 auto; border-radius: 18px; height: 40px; padding: 0 22px; }
+    }
+
+    // ---- CỘT PHẢI ----
+    .vd_fb_right {
+        width: 280px; flex: 0 0 280px;
+        border-left: 1px solid #e4e6eb;
+        padding: 20px 16px; overflow-y: auto;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .vd_fb_right_av {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, #0084ff, #0064d1); color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 30px; font-weight: 700; margin-bottom: 10px;
+    }
+    .vd_fb_right_name { font-weight: 700; font-size: 16px; margin-bottom: 16px; text-align: center; }
+    .vd_fb_right_rows { width: 100%; }
+    .vd_fb_right_row {
+        display: flex; justify-content: space-between; gap: 10px;
+        padding: 7px 0; border-bottom: 1px solid #f2f2f2; font-size: 13px;
+        span { color: #8a8d91; }
+        b { text-align: right; word-break: break-word; }
+        .vd_fb_psid { font-weight: 400; font-size: 11px; color: #65676b; }
+    }
+    .vd_fb_right_lead { width: 100%; margin-top: 16px; }
+
+    // ---- bong bóng (dùng chung với form) — định nghĩa lại trong app ----
+    .vd_fb_row {
+        display: flex; margin: 6px 0;
+        &.vd_fb_row_in  { justify-content: flex-start; }
+        &.vd_fb_row_out { justify-content: flex-end; }
+    }
+    .vd_fb_bubble {
+        max-width: 70%; padding: 8px 12px; border-radius: 18px;
+        font-size: 14px; line-height: 1.4; word-break: break-word; white-space: pre-wrap;
+        .vd_fb_att a { font-size: 12px; text-decoration: underline; }
+        .vd_fb_meta { font-size: 10px; opacity: .7; margin-top: 3px; }
+    }
+    .vd_fb_bubble_in  { background: #e4e6eb; color: #050505; border-bottom-left-radius: 4px; }
+    .vd_fb_bubble_out { background: #0084ff; color: #fff; border-bottom-right-radius: 4px;
+        .vd_fb_att a { color: #fff; } }
+}
+
+// ============================================================
+// Cửa sổ chat hội thoại Facebook (vd.fb.conversation form)
+// Kiểu Messenger: khách = trái/xám, page = phải/xanh.
+// Dùng cho hộp thư + quay video demo Facebook App Review.
+// ============================================================
+
+.vd_fb_chat_form {
+
+    // ---- Header hội thoại (avatar + tên khách) ----
+    .vd_fb_chat_head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 4px 12px;
+        border-bottom: 1px solid #e4e6eb;
+        margin-bottom: 8px;
+
+        .vd_fb_avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0084ff, #0064d1);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex: 0 0 auto;
+        }
+        .vd_fb_head_info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+            .vd_fb_head_name {
+                font-weight: 700;
+                font-size: 16px;
+            }
+            .vd_fb_head_sub {
+                font-size: 12px;
+                color: #65676b;
+            }
+        }
+    }
+
+    // ---- Khung tin nhắn (cuộn) ----
+    .vd_fb_stream {
+        .o_kanban_renderer {
+            display: block !important;        // bỏ grid mặc định → xếp dọc
+            background: #f0f2f5;
+            border-radius: 10px;
+            padding: 14px 16px;
+            max-height: 460px;
+            min-height: 220px;
+            overflow-y: auto;
+        }
+        // mỗi record kanban = 1 dòng full chiều ngang
+        .o_kanban_record {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            border: 0 !important;
+            cursor: default !important;
+            &:hover { box-shadow: none !important; }
+        }
+    }
+
+    // ---- 1 dòng bong bóng ----
+    .vd_fb_row {
+        display: flex;
+        margin: 6px 0;
+        &.vd_fb_row_in  { justify-content: flex-start; }
+        &.vd_fb_row_out { justify-content: flex-end; }
+    }
+
+    .vd_fb_bubble {
+        max-width: 72%;
+        padding: 8px 12px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.4;
+        word-break: break-word;
+        white-space: pre-wrap;
+
+        .vd_fb_text { display: block; }
+
+        .vd_fb_att a {
+            font-size: 12px;
+            text-decoration: underline;
+        }
+        .vd_fb_meta {
+            font-size: 10px;
+            opacity: .7;
+            margin-top: 3px;
+        }
+    }
+    // khách gửi — xám, góc trái dưới nhọn
+    .vd_fb_bubble_in {
+        background: #e4e6eb;
+        color: #050505;
+        border-bottom-left-radius: 4px;
+    }
+    // page gửi — xanh, góc phải dưới nhọn
+    .vd_fb_bubble_out {
+        background: #0084ff;
+        color: #fff;
+        border-bottom-right-radius: 4px;
+        .vd_fb_att a { color: #fff; }
+    }
+
+    // ---- Thanh soạn tin ----
+    .vd_fb_composer {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e4e6eb;
+
+        textarea {
+            flex: 1 1 auto;
+            border: 1px solid #ccd0d5;
+            border-radius: 18px;
+            padding: 9px 14px;
+            resize: vertical;
+            min-height: 40px;
+            font-size: 14px;
+        }
+        .vd_fb_send {
+            flex: 0 0 auto;
+            border-radius: 18px;
+            padding: 8px 22px;
+            height: 40px;
+        }
+    }
+}

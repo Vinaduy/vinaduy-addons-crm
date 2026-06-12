@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.FbChat">
+        <div class="vd_fb_app">
+
+            <!-- ===== CỘT TRÁI: danh sách hội thoại ===== -->
+            <div class="vd_fb_left">
+                <div class="vd_fb_left_head">
+                    <span class="vd_fb_left_title">💬 Hội thoại</span>
+                    <select class="vd_fb_page_sel" t-on-change="(ev) => this.setPageFilter(ev.target.value)">
+                        <option value="">Tất cả page</option>
+                        <t t-foreach="state.pages" t-as="p" t-key="p.id">
+                            <option t-att-value="p.id"><t t-esc="p.name"/></option>
+                        </t>
+                    </select>
+                </div>
+
+                <div class="vd_fb_conv_list">
+                    <t t-if="state.loading">
+                        <div class="vd_fb_empty">Đang tải…</div>
+                    </t>
+                    <t t-elif="!state.conversations.length">
+                        <div class="vd_fb_empty">Chưa có hội thoại nào.</div>
+                    </t>
+                    <t t-foreach="state.conversations" t-as="c" t-key="c.id">
+                        <div class="vd_fb_conv_item"
+                             t-att-class="c.id === state.activeId ? 'vd_fb_conv_active' : ''"
+                             t-on-click="() => this.selectConv(c.id)">
+                            <div class="vd_fb_conv_av"><t t-esc="initial(convName(c))"/></div>
+                            <div class="vd_fb_conv_body">
+                                <div class="vd_fb_conv_top">
+                                    <span class="vd_fb_conv_name"><t t-esc="convName(c)"/></span>
+                                    <span class="vd_fb_conv_time"><t t-esc="fmtTime(c.last_message_at)"/></span>
+                                </div>
+                                <div class="vd_fb_conv_bottom">
+                                    <span class="vd_fb_conv_snip"><t t-esc="c.snippet || ''"/></span>
+                                    <span t-if="c.unread" class="vd_fb_unread"><t t-esc="c.unread"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ===== CỘT GIỮA: khung chat ===== -->
+            <div class="vd_fb_center">
+                <t t-if="!activeConv">
+                    <div class="vd_fb_no_conv">Chọn một hội thoại bên trái để xem tin nhắn.</div>
+                </t>
+                <t t-else="">
+                    <!-- header -->
+                    <div class="vd_fb_chat_top">
+                        <div class="vd_fb_conv_av vd_fb_av_lg"><t t-esc="initial(convName(activeConv))"/></div>
+                        <div class="vd_fb_chat_top_info">
+                            <span class="vd_fb_chat_top_name"><t t-esc="convName(activeConv)"/></span>
+                            <span class="vd_fb_chat_top_sub">
+                                <t t-esc="activeConv.platform === 'instagram' ? 'Instagram' : 'Facebook'"/>
+                                <t t-if="activeConv.page_id"> · <t t-esc="activeConv.page_id[1]"/></t>
+                            </span>
+                        </div>
+                        <div class="vd_fb_chat_top_actions">
+                            <button t-if="state.isAdmin" class="btn btn-sm btn-light"
+                                    t-on-click="() => this.simulateInbound()"
+                                    title="[TEST] Tạo 1 tin khách giả để thử — không gửi ra Facebook">🧪 Giả lập tin khách</button>
+                            <button class="btn btn-sm btn-light" t-on-click="() => this.markDone()">✓ Xong</button>
+                        </div>
+                    </div>
+
+                    <!-- luồng tin -->
+                    <div class="vd_fb_stream_app" t-ref="stream">
+                        <t t-if="!state.messages.length">
+                            <div class="vd_fb_empty">Chưa có tin nhắn.</div>
+                        </t>
+                        <t t-foreach="state.messages" t-as="m" t-key="m.id">
+                            <div class="vd_fb_row" t-att-class="m.direction === 'out' ? 'vd_fb_row_out' : 'vd_fb_row_in'">
+                                <div class="vd_fb_bubble" t-att-class="m.direction === 'out' ? 'vd_fb_bubble_out' : 'vd_fb_bubble_in'">
+                                    <span class="vd_fb_text" t-if="m.body"><t t-esc="m.body"/></span>
+                                    <div class="vd_fb_att" t-if="m.attachment_url">
+                                        <a t-att-href="m.attachment_url" target="_blank">📎 Xem đính kèm</a>
+                                    </div>
+                                    <div class="vd_fb_meta">
+                                        <t t-esc="fmtTime(m.sent_at)"/>
+                                        <t t-if="m.send_error"> · <span class="text-danger">⚠ lỗi gửi</span></t>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- ô soạn tin -->
+                    <div class="vd_fb_composer_app">
+                        <textarea class="vd_fb_input" placeholder="Nhập tin nhắn trả lời khách… (Enter để gửi)"
+                                  t-att-value="state.replyText"
+                                  t-on-input="(ev) => state.replyText = ev.target.value"
+                                  t-on-keydown="(ev) => this.onKeydown(ev)"/>
+                        <button class="btn btn-primary vd_fb_send_app"
+                                t-att-disabled="state.sending"
+                                t-on-click="() => this.sendReply()">Gửi ➤</button>
+                    </div>
+                </t>
+            </div>
+
+            <!-- ===== CỘT PHẢI: thông tin khách ===== -->
+            <div class="vd_fb_right" t-if="activeConv">
+                <div class="vd_fb_right_av"><t t-esc="initial(convName(activeConv))"/></div>
+                <div class="vd_fb_right_name"><t t-esc="convName(activeConv)"/></div>
+                <div class="vd_fb_right_rows">
+                    <div class="vd_fb_right_row"><span>Nền tảng</span><b><t t-esc="activeConv.platform === 'instagram' ? 'Instagram' : 'Facebook'"/></b></div>
+                    <div class="vd_fb_right_row"><span>Page</span><b><t t-esc="activeConv.page_id ? activeConv.page_id[1] : '—'"/></b></div>
+                    <div class="vd_fb_right_row"><span>PSID</span><b class="vd_fb_psid"><t t-esc="activeConv.psid"/></b></div>
+                    <div class="vd_fb_right_row"><span>Khách nhắn cuối</span><b><t t-esc="fmtTime(activeConv.last_inbound_at)"/></b></div>
+                    <div class="vd_fb_right_row"><span>Trạng thái</span><b><t t-esc="activeConv.state === 'done' ? 'Đã xong' : 'Đang mở'"/></b></div>
+                </div>
+                <div class="vd_fb_right_lead">
+                    <t t-if="activeConv.lead_id">
+                        <button class="btn btn-sm btn-outline-primary w-100" t-on-click="() => this.openLead()">
+                            👤 Mở KH: <t t-esc="activeConv.lead_id[1]"/>
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <div class="vd_fb_empty">Chưa gắn khách hàng CRM.</div>
+                    </t>
+                </div>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

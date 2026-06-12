@@ -62,6 +62,10 @@
                             string="🔔 Đăng ký nhận tin nhắn + bình luận"
                             class="btn-primary"
                             help="Đăng ký fanpage với App để Meta đẩy webhook về. Bấm sau khi đã dán Page Access Token."/>
+                    <button name="action_create_test_conversation" type="object"
+                            string="🧪 Tạo hội thoại thử nghiệm"
+                            class="btn-secondary" groups="vd_crm_lead.vd_crm_group_admin"
+                            help="[TEST] Tạo hội thoại giả + tin khách để thử cửa sổ chat trước khi quay video"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -112,40 +116,77 @@
         <field name="name">vd.fb.conversation.form</field>
         <field name="model">vd.fb.conversation</field>
         <field name="arch" type="xml">
-            <form string="Hội thoại">
+            <form string="Hội thoại" class="vd_fb_chat_form">
                 <header>
-                    <button name="action_send_reply" type="object" string="📤 Gửi trả lời"
-                            class="btn-primary" invisible="not reply_text"/>
-                    <button name="action_mark_read" type="object" string="Đánh dấu đã đọc"/>
-                    <button name="action_mark_done" type="object" string="Xong"/>
+                    <button name="action_refresh" type="object" string="🔄 Tải lại"
+                            class="btn-secondary"
+                            help="Hứng tin nhắn mới khách vừa gửi (không cần F5 cả trang)"/>
+                    <button name="action_mark_read" type="object" string="Đánh dấu đã đọc"
+                            invisible="unread == 0"/>
+                    <button name="action_mark_done" type="object" string="Xong"
+                            invisible="state == 'done'"/>
+                    <button name="action_simulate_inbound" type="object" string="🧪 Giả lập tin khách"
+                            class="btn-secondary" groups="vd_crm_lead.vd_crm_group_admin"
+                            help="[TEST] Tạo 1 tin khách giả để thử cửa sổ chat — không gửi gì ra Facebook"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <group>
-                        <group>
-                            <field name="customer_name"/>
-                            <field name="platform"/>
-                            <field name="page_id"/>
-                        </group>
-                        <group>
-                            <field name="lead_id"/>
-                            <field name="user_id" widget="many2one_avatar_user"/>
-                            <field name="last_inbound_at"/>
-                        </group>
+                    <!-- Header hội thoại kiểu Messenger -->
+                    <div class="vd_fb_chat_head">
+                        <div class="vd_fb_avatar"><i class="fa fa-user"/></div>
+                        <div class="vd_fb_head_info">
+                            <span class="vd_fb_head_name"><field name="customer_name" nolabel="1" readonly="1"/></span>
+                            <span class="vd_fb_head_sub">
+                                <field name="platform" nolabel="1" readonly="1"/> ·
+                                <field name="page_id" nolabel="1" readonly="1"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin gắn KH CRM (gọn) -->
+                    <group col="4">
+                        <field name="lead_id"/>
+                        <field name="user_id" widget="many2one_avatar_user"/>
+                        <field name="last_inbound_at" readonly="1"/>
+                        <field name="unread" readonly="1"/>
                     </group>
-                    <separator string="Tin nhắn"/>
-                    <field name="message_ids" readonly="1">
-                        <list default_order="sent_at" create="false" edit="false">
-                            <field name="sent_at"/>
-                            <field name="direction" widget="badge"
-                                   decoration-info="direction == 'in'" decoration-success="direction == 'out'"/>
+
+                    <!-- Khung tin nhắn — bong bóng chat -->
+                    <field name="message_ids" mode="kanban" nolabel="1" readonly="1" class="vd_fb_stream">
+                        <kanban class="vd_fb_chat_kanban" create="false" edit="false"
+                                records_draggable="0" default_order="sent_at">
+                            <field name="direction"/>
                             <field name="body"/>
-                            <field name="attachment_url" widget="url"/>
+                            <field name="sent_at"/>
+                            <field name="attachment_url"/>
+                            <field name="attachment_type"/>
                             <field name="send_error"/>
-                        </list>
+                            <templates>
+                                <t t-name="kanban-box">
+                                    <div t-attf-class="vd_fb_row #{record.direction.raw_value == 'out' ? 'vd_fb_row_out' : 'vd_fb_row_in'}">
+                                        <div t-attf-class="vd_fb_bubble #{record.direction.raw_value == 'out' ? 'vd_fb_bubble_out' : 'vd_fb_bubble_in'}">
+                                            <span class="vd_fb_text"><field name="body"/></span>
+                                            <div class="vd_fb_att" t-if="record.attachment_url.raw_value">
+                                                <a t-att-href="record.attachment_url.raw_value" target="_blank">📎 Xem đính kèm</a>
+                                            </div>
+                                            <div class="vd_fb_meta">
+                                                <field name="sent_at" widget="datetime"/>
+                                                <t t-if="record.send_error.raw_value"> · <span class="text-danger">⚠ lỗi gửi</span></t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </templates>
+                        </kanban>
                     </field>
-                    <separator string="Trả lời khách"/>
-                    <field name="reply_text" placeholder="Nhập nội dung trả lời rồi bấm 'Gửi trả lời'..."/>
+
+                    <!-- Thanh soạn tin + nút Gửi -->
+                    <div class="vd_fb_composer">
+                        <field name="reply_text" nolabel="1"
+                               placeholder="Nhập tin nhắn trả lời khách rồi bấm Gửi..."/>
+                        <button name="action_send_reply" type="object" string="Gửi ➤"
+                                class="btn-primary vd_fb_send"/>
+                    </div>
                 </sheet>
             </form>
         </field>
@@ -155,6 +196,12 @@
         <field name="name">Hộp thư hội thoại</field>
         <field name="res_model">vd.fb.conversation</field>
         <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Giao diện chat kiểu Pancake (client action OWL 3 cột) -->
+    <record id="action_vd_fb_chat" model="ir.actions.client">
+        <field name="name">Hộp thư chat</field>
+        <field name="tag">vd_crm_lead.fb_chat</field>
     </record>
 
     <!-- ============ COMMENT ============ -->
@@ -213,7 +260,9 @@
     <!-- ============ MENU ============ -->
     <menuitem id="menu_vd_fb_root" name="Hộp thư FB/TikTok"
               parent="vd_crm_lead.menu_vd_crm_dashboard" sequence="25"/>
-    <menuitem id="menu_vd_fb_inbox" name="Hội thoại"
+    <menuitem id="menu_vd_fb_chat" name="Chat (Pancake)"
+              parent="menu_vd_fb_root" action="action_vd_fb_chat" sequence="5"/>
+    <menuitem id="menu_vd_fb_inbox" name="Hội thoại (bảng)"
               parent="menu_vd_fb_root" action="action_vd_fb_conversation" sequence="10"/>
     <menuitem id="menu_vd_fb_comments" name="Bình luận"
               parent="menu_vd_fb_root" action="action_vd_fb_comment" sequence="20"/>
