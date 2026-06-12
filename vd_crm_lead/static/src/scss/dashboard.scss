@@ -5199,8 +5199,90 @@
             margin: 0;
             min-width: 0;
             width: 100%;
+            /* B (user spec 2026-06-12): icon ↔ chữ thoáng, KHÔNG đè lên nhau. */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 0.2rem 0.8rem;
+            .o_vd_trash_icon,
+            .o_vd_trash_icon_emoji { line-height: 1; margin: 0; }
+            .o_vd_trash_meta { margin: 0; }
+            .o_vd_trash_label { margin-top: 0.12rem; }
+        }
+        /* A (user spec 2026-06-12): đường kẻ NGẮN MỜ giữa các icon (giữa ~56%). */
+        > .o_vd_trash_box:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 22%;
+            right: 22%;
+            bottom: -0.37rem;
+            border-top: 1px dashed #cfd8e3;
         }
     }
+
+    /* C (user spec 2026-06-12): ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG */
+    .o_vd_topbar_row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.6rem;
+        > .o_vd_nv_search_wrap { flex: 1 1 320px; min-width: 0; margin: 0; }
+        > .o_vd_bulk_bar { flex: 0 0 auto; margin: 0; }
+    }
+
+    /* D (user spec 2026-06-12): bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG — trên cùng, xanh mừng */
+    .o_vd_signed_board {
+        margin-bottom: 0.7rem;
+        padding: 0.5rem 0.75rem 0.6rem;
+        border: 1px solid #a6e3bb;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ebfbee 0%, #d3f9d8 100%);
+    }
+    .o_vd_signed_head {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #1b6b39;
+        margin-bottom: 0.4rem;
+    }
+    .o_vd_signed_count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5rem;
+        height: 1.5rem;
+        padding: 0 0.4rem;
+        border-radius: 999px;
+        background: #2b8a3e;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+    .o_vd_signed_pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .o_vd_signed_pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: #fff;
+        border: 1.5px solid #51cf66;
+        cursor: pointer;
+        font-size: 0.82rem;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        &:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(43, 138, 62, 0.2); }
+    }
+    .o_vd_signed_pill_ico { font-size: 0.85rem; line-height: 1; }
+    .o_vd_signed_pill_name { font-weight: 700; color: #1b5e20; }
+    .o_vd_signed_pill_date { font-size: 0.74rem; color: #2b8a3e; }
 
     /* Variant BÁO GIÁ XONG MẤT TÍCH — đỏ-cam (đã báo giá nhưng mất liên lạc) */
     .o_vd_trash_box.o_vd_split_quoted_lost {

@@ -1824,6 +1824,9 @@
                             </div>
                         </div>
 
+                        <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
+                             (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
+                        <div class="o_vd_topbar_row">
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
                         <div class="o_vd_nv_search_wrap" t-if="!isAdminView">
                             <div class="o_vd_nv_search">
@@ -1901,6 +1904,27 @@
                                     Bỏ chọn
                                 </button>
                             </t>
+                        </div>
+                        </div><!-- /.o_vd_topbar_row -->
+
+                        <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-12) — trên cùng,
+                             KH đã ký HĐ (vd_contract_signed) tháng này. -->
+                        <div t-if="state.performance and state.performance.closed_contracts and state.performance.closed_contracts.length"
+                             class="o_vd_signed_board">
+                            <div class="o_vd_signed_head">
+                                🏆 KHÁCH ĐÃ LÀM HỢP ĐỒNG
+                                <span class="o_vd_signed_count"><t t-esc="state.performance.closed_contracts.length"/></span>
+                            </div>
+                            <div class="o_vd_signed_pills">
+                                <div t-foreach="state.performance.closed_contracts" t-as="c" t-key="c.id"
+                                     class="o_vd_signed_pill"
+                                     t-on-click="() => this.openLead(c.id)"
+                                     t-att-title="c.name + ' — ký ' + c.date">
+                                    <span class="o_vd_signed_pill_ico">🏆</span>
+                                    <span class="o_vd_signed_pill_name"><t t-esc="c.name"/></span>
+                                    <span class="o_vd_signed_pill_date"><t t-esc="c.date"/></span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
