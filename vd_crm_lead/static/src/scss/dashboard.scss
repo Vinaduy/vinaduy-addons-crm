@@ -5178,7 +5178,7 @@
         width: 172px;
         display: flex;
         flex-direction: column;
-        gap: 0.7rem;
+        gap: 1.25rem;                 /* rộng để divider + icon thoáng */
         align-self: flex-start;
         position: sticky;
         top: 0.6rem;
@@ -5186,7 +5186,7 @@
         background: #fff;
         border: 1px solid #e2e8f0;
         border-radius: 14px;
-        padding: 0.7rem 0.55rem;
+        padding: 0.85rem 0.55rem;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06),
                     0 4px 14px -2px rgba(15, 23, 42, 0.05);
         /* các box bên trong: full bề ngang panel, KHÔNG sticky riêng (panel đã
@@ -5196,28 +5196,42 @@
             top: auto !important;
             z-index: auto !important;
             align-self: stretch !important;
-            margin: 0;
+            margin: 0 !important;
             min-width: 0;
             width: 100%;
-            /* B (user spec 2026-06-12): icon ↔ chữ thoáng, KHÔNG đè lên nhau. */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.65rem 0.2rem 0.8rem;
-            .o_vd_trash_icon,
-            .o_vd_trash_icon_emoji { line-height: 1; margin: 0; }
-            .o_vd_trash_meta { margin: 0; }
-            .o_vd_trash_label { margin-top: 0.12rem; }
+            /* B (user spec 2026-06-12): icon ↔ chữ thoáng, KHÔNG đè. !important để
+               THẮNG base .o_vd_split_trash (cùng specificity, source sau). */
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 0.55rem !important;
+            padding: 0.45rem 0.2rem 0.55rem !important;
         }
-        /* A (user spec 2026-06-12): đường kẻ NGẮN MỜ giữa các icon (giữa ~56%). */
+        /* B: emoji 4.5rem ĐANG nằm trong hộp tròn 50px (.o_vd_trash_icon) → tràn
+           xuống đè chữ. Bỏ hộp cố định cho emoji → emoji tự cao, chữ nằm dưới. */
+        .o_vd_trash_icon_emoji {
+            width: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            background: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            line-height: 1 !important;
+        }
+        .o_vd_trash_meta { margin: 0 !important; }
+        .o_vd_trash_label { margin-top: 0.15rem !important; }
+        /* A (user spec 2026-06-12): đường kẻ tách icon — RÕ + chuyên nghiệp:
+           gradient mờ 2 đầu, đậm giữa, dày 2px, nằm giữa khoảng cách. */
         > .o_vd_trash_box:not(:last-child)::after {
             content: '';
             position: absolute;
-            left: 22%;
-            right: 22%;
-            bottom: -0.37rem;
-            border-top: 1px dashed #cfd8e3;
+            left: 10%;
+            right: 10%;
+            bottom: -0.65rem;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, #9aa7b8 16%, #9aa7b8 84%, transparent);
         }
     }
 

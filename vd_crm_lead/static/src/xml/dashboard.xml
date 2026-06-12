@@ -1907,22 +1907,22 @@
                         </div>
                         </div><!-- /.o_vd_topbar_row -->
 
-                        <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-12) — trên cùng,
-                             KH đã ký HĐ (vd_contract_signed) tháng này. -->
-                        <div t-if="state.performance and state.performance.closed_contracts and state.performance.closed_contracts.length"
-                             class="o_vd_signed_board">
+                        <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-12) — trên cùng:
+                             KH đã kích hoạt "Làm hợp đồng - Hẹn gặp" (vd_planned_sign_date),
+                             dùng chung dữ liệu leadsPlannedSign. -->
+                        <div t-if="leadsPlannedSign.length" class="o_vd_signed_board">
                             <div class="o_vd_signed_head">
                                 🏆 KHÁCH ĐÃ LÀM HỢP ĐỒNG
-                                <span class="o_vd_signed_count"><t t-esc="state.performance.closed_contracts.length"/></span>
+                                <span class="o_vd_signed_count"><t t-esc="leadsPlannedSign.length"/></span>
                             </div>
                             <div class="o_vd_signed_pills">
-                                <div t-foreach="state.performance.closed_contracts" t-as="c" t-key="c.id"
+                                <div t-foreach="leadsPlannedSign" t-as="c" t-key="c.id"
                                      class="o_vd_signed_pill"
                                      t-on-click="() => this.openLead(c.id)"
-                                     t-att-title="c.name + ' — ký ' + c.date">
+                                     t-att-title="c.name + (c.planned_sign_countdown ? ' — ' + c.planned_sign_countdown : '')">
                                     <span class="o_vd_signed_pill_ico">🏆</span>
                                     <span class="o_vd_signed_pill_name"><t t-esc="c.name"/></span>
-                                    <span class="o_vd_signed_pill_date"><t t-esc="c.date"/></span>
+                                    <span t-if="c.planned_sign_countdown" class="o_vd_signed_pill_date"><t t-esc="c.planned_sign_countdown"/></span>
                                 </div>
                             </div>
                         </div>
