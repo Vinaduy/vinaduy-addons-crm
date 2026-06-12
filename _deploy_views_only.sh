@@ -44,7 +44,9 @@ for rel in files:
         print('SKIP missing:', full)
         continue
     print('LOAD:', rel)
-    convert_file(env, mod, inner, idref={}, mode='update', noupdate=False, kind='data', pathname=full)
+    # KHÔNG truyền pathname tuyệt đối — file_path() chặn path ngoài addons →
+    # FileNotFoundError. Để convert_file tự resolve qua module addons path.
+    convert_file(env, mod, inner, idref={}, mode='update', noupdate=False, kind='data')
     ok += 1
 env.cr.commit()
 # Clear caches để view mới hiển thị ngay
