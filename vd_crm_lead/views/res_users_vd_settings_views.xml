@@ -10,7 +10,7 @@
                  User spec 2026-06-13: gọn gàng, đóng khung, bỏ helper/tooltip thừa.
                  Phòng ban = thẻ chọn được (đổi thẻ = chuyển phòng ban). -->
             <xpath expr="//field[@name='email']" position="after">
-                <group string="Phòng ban &amp; Cài đặt CRM" name="vd_crm_user_settings" col="2">
+                <group string="Phòng ban và Cài đặt CRM" name="vd_crm_user_settings" col="2">
                     <group>
                         <field name="vd_team" string="Phòng ban"
                                widget="radio" options="{'horizontal': true}" help=""/>
