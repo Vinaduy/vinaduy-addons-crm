@@ -60,6 +60,26 @@ class ResUsers(models.Model):
         help='Phòng ban hiệu lực: ưu tiên thẻ "Phòng ban", nếu trống thì suy từ '
              'tiền tố TÊN ("HCM1 - Tên" → HCM1).')
 
+    def _vd_autoset_team(self):
+        """Gán vd_team từ tiền tố TÊN nếu CHƯA set (để record rule theo phòng ban
+        luôn đúng cho NV mới / đổi tên). KHÔNG đè khi admin đã chọn thẻ thủ công."""
+        import re
+        valid = dict(_VD_TEAM_SELECTION)
+        for u in self:
+            if u.vd_team:
+                continue
+            m = re.match(r'^([A-ZĐ]+\d*)\s*[-–—]\s*', u.name or '')
+            prefix = m.group(1) if m else ''
+            if prefix in valid:
+                u.sudo().vd_team = prefix
+
+    def write(self, vals):
+        res = super().write(vals)
+        # Đổi TÊN mà chưa set thẻ phòng ban → tự suy lại từ tiền tố.
+        if 'name' in vals and 'vd_team' not in vals:
+            self._vd_autoset_team()
+        return res
+
     @api.depends('name', 'vd_team', 'sale_team_id')
     def _compute_vd_team_label(self):
         import re
@@ -139,6 +159,8 @@ class ResUsers(models.Model):
                     u.sudo().write({'groups_id': [(4, gid) for gid in nv_gids]})
         except Exception:
             pass
+        # Tự gán thẻ phòng ban từ tiền tố tên (record rule theo nhóm cần vd_team).
+        users._vd_autoset_team()
         return users
 
     # ===== KHOÁ DO CHƯA TÌM VẤN ĐỀ (user spec 2026-06-01) =====

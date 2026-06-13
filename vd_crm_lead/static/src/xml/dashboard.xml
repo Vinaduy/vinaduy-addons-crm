@@ -1658,10 +1658,13 @@
                                     </t>
                                 </div>
                             </div>
-                            <div t-if="state.is_manager" class="o_vd_side_user_picker">
+                            <div t-if="state.is_manager or state.is_team_leader" class="o_vd_side_user_picker">
                                 <select class="o_vd_user_picker"
                                         t-on-change="(ev) => this.onChangeUser(ev)">
-                                    <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
+                                    <option value="all" t-att-selected="state.user.is_all">
+                                        <t t-if="state.is_team_leader and !state.is_manager">🌐 Cả nhóm</t>
+                                        <t t-else="">🌐 Tất cả NV</t>
+                                    </option>
                                     <option t-foreach="state.users" t-as="u" t-key="u.id"
                                             t-att-value="u.id"
                                             t-att-selected="!state.user.is_all and state.selected_user_id === u.id">

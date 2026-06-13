@@ -20,8 +20,12 @@
     <record id="vd_crm_group_employee" model="res.groups">
         <field name="name">2. Nhân viên</field>
         <field name="category_id" ref="module_category_vd_crm"/>
-        <field name="implied_ids" eval="[(4, ref('vd_crm_group_collaborator')), (4, ref('sales_team.group_sale_salesman_all_leads'))]"/>
-        <field name="comment">Nhân viên CRM — thấy KH được giao cho mình + xem lead toàn team. Không được chuyển KH cho người khác.</field>
+        <!-- User spec 2026-06-14: SIẾT quyền — BỎ group_sale_salesman_all_leads
+             (vốn cho "xem mọi lead"). Nhân viên giờ CHỈ thấy KH của mình (record
+             rule vd_crm_rule_lead_own). Trưởng nhóm thấy thêm KH của phòng ban
+             mình (vd_crm_rule_lead_team theo vd_team). -->
+        <field name="implied_ids" eval="[(4, ref('vd_crm_group_collaborator'))]"/>
+        <field name="comment">Nhân viên CRM — CHỈ thấy KH được giao cho mình. Không xem KH của NV khác, không được chuyển KH cho người khác.</field>
     </record>
 
     <record id="vd_crm_group_team_leader" model="res.groups">

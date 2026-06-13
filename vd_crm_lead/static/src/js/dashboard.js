@@ -59,6 +59,8 @@ export class VdCrmDashboard extends Component {
             newTodayHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
+            // Trưởng nhóm (không phải manager): mở picker + xem NV CÙNG NHÓM.
+            is_team_leader: false,
             current_user_id: 0,
             selected_user_id: 0,   // 0 = "all"
             users: [],             // [{id, name, login}] — NV để manager chọn
@@ -184,7 +186,7 @@ export class VdCrmDashboard extends Component {
             // Predicate THUẦN (không side-effect) cho syncVisibility navbar:
             // còn back được = manager đang xem 1 NV cụ thể.
             window.__vdDashCanBack = () =>
-                !!(this.state.is_manager && this.state.selected_user_id);
+                !!(this.isTeamManager && this.state.selected_user_id);
             this._measureNewPills();
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
@@ -209,7 +211,8 @@ export class VdCrmDashboard extends Component {
 
         onWillStart(async () => {
             await this.loadDashboard();
-            if (this.state.is_manager) {
+            if (this.isTeamManager) {
+                // Manager: danh sách toàn NV. Trưởng nhóm: NV cùng nhóm (backend scope).
                 this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
                 // Manager + xem "Tất cả NV" → auto load insights cho tab overview
                 if (this.isAdminView && this.state.adminTab === 'overview') {
@@ -262,7 +265,14 @@ export class VdCrmDashboard extends Component {
     }
 
     // ===== ADMIN VIEW HELPERS =====
-    // True khi manager đang xem "Tất cả NV" → render layout admin (menu dọc + content).
+    // "Quản lý" theo nghĩa rộng: manager (toàn công ty) HOẶC trưởng nhóm (cùng
+    // nhóm) → đều được mở picker chọn NV + xem dashboard từng NV.
+    get isTeamManager() {
+        return this.state.is_manager || this.state.is_team_leader;
+    }
+    // True khi MANAGER đang xem "Tất cả NV" → render layout admin (menu dọc +
+    // tab overview/team toàn công ty). Trưởng nhóm KHÔNG vào layout này (chỉ
+    // xem dashboard từng NV trong nhóm qua picker).
     get isAdminView() {
         return this.state.is_manager && !this.state.selected_user_id;
     }
@@ -275,7 +285,7 @@ export class VdCrmDashboard extends Component {
      * navbar dùng hành vi back mặc định.
      */
     _vdBackToEmployeeList() {
-        if (this.state.is_manager && this.state.selected_user_id) {
+        if (this.isTeamManager && this.state.selected_user_id) {
             this.state.selected_user_id = 0;
             this._persistSelectedNv();
             this.state.nvDetail = null;
