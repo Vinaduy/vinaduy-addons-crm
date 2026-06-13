@@ -6,50 +6,27 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
-            <!-- Chèn vào sau email (top form), trước notebook tabs -->
+            <!-- Chèn vào sau email (top form), trước notebook tabs.
+                 User spec 2026-06-13: gọn gàng, đóng khung, bỏ helper/tooltip thừa.
+                 Phòng ban = thẻ chọn được (đổi thẻ = chuyển phòng ban). -->
             <xpath expr="//field[@name='email']" position="after">
-                <group string="🏢 Phòng ban &amp; Cài đặt CRM" name="vd_crm_user_settings">
-                    <field name="vd_team_label" string="🏢 Phòng ban (theo TÊN NV)" readonly="1"/>
-                    <div class="text-muted" colspan="2">
-                        Team lấy từ TIỀN TỐ TÊN. Đặt tên dạng <b>"HCM1 - Tên"</b> /
-                        <b>"HN - Tên"</b> để vào đúng phòng ban.
-                    </div>
-                    <field name="vd_work_start_date" string="📅 Ngày bắt đầu làm việc"/>
-                    <field name="vd_work_months" string="📊 Số tháng làm việc" readonly="1"/>
-                    <field name="vd_capacity_level" string="⭐ Năng lực" widget="badge"/>
-                    <field name="vd_target_month" string="🎯 Chỉ tiêu HĐ/tháng"/>
+                <group string="Phòng ban &amp; Cài đặt CRM" name="vd_crm_user_settings" col="2">
+                    <group>
+                        <field name="vd_team" string="Phòng ban"
+                               widget="radio" options="{'horizontal': true}" help=""/>
+                        <field name="vd_crm_role" string="Phân quyền" help=""/>
+                    </group>
+                    <group>
+                        <field name="vd_work_start_date" string="Ngày bắt đầu làm việc" help=""/>
+                        <field name="vd_work_months" string="Số tháng làm việc" help=""/>
+                        <field name="vd_target_month" string="Chỉ tiêu HĐ/tháng" help=""/>
+                    </group>
                 </group>
             </xpath>
         </field>
     </record>
 
-    <!-- ============ LIST: Cài đặt NV — ngày bắt đầu + năng lực ============ -->
-    <record id="view_vd_users_settings_list" model="ir.ui.view">
-        <field name="name">res.users.vd.settings.list</field>
-        <field name="model">res.users</field>
-        <field name="arch" type="xml">
-            <!-- User spec 2026-06-13: BỎ editable inline → click mở FORM NV đầy đủ. -->
-            <list string="Cài đặt thông tin NV" create="false" delete="false">
-                <field name="name" readonly="1"/>
-                <field name="login" readonly="1"/>
-                <field name="vd_team_label" string="🏢 Team" readonly="1"/>
-                <field name="vd_work_start_date" string="📅 Ngày bắt đầu"/>
-                <field name="vd_work_months" string="📊 Số tháng" readonly="1"/>
-                <field name="vd_capacity_level" string="⭐ Năng lực" widget="badge"/>
-                <field name="vd_target_month" string="🎯 Chỉ tiêu/tháng"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="action_vd_users_settings" model="ir.actions.act_window">
-        <field name="name">⚙️ Cài đặt thông tin NV</field>
-        <field name="res_model">res.users</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_id" ref="view_vd_users_settings_list"/>
-        <field name="domain" eval="[('share', '=', False), ('active', '=', True), ('groups_id', 'in', [ref('sales_team.group_sale_salesman')])]"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Cài đặt thông tin từng NV</p>
-            <p>Set ngày bắt đầu làm việc + năng lực. Click trực tiếp vào ô để chỉnh.</p>
-        </field>
-    </record>
+    <!-- User spec 2026-06-13: list + action tùy biến "Cài đặt thông tin NV" đã
+         BỎ — menu Cấu hình → Cài đặt người dùng giờ trỏ thẳng base.action_res_users
+         (màn Người dùng chuẩn) để chỉ còn 1 thiết kế. Chỉ giữ form inherit ở trên. -->
 </odoo>

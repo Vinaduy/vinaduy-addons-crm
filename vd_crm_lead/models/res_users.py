@@ -8,6 +8,21 @@ from odoo import models, fields, api
 # Mặc định 3 — có thể đổi qua ir.config_parameter 'vd_crm_lead.overdue_block_threshold'
 _DEFAULT_OVERDUE_THRESHOLD = 15
 
+# Danh sách phòng ban chọn được trên thẻ (user spec 2026-06-13).
+_VD_TEAM_SELECTION = [
+    ('HCM1', 'HCM1'), ('HCM2', 'HCM2'), ('HN', 'HN'),
+    ('CTV', 'CTV'), ('VINADUY', 'VINADUY'),
+]
+
+# 5 vai trò CRM — XML id nhóm, xếp từ CAO xuống THẤP (admin → CTV).
+_VD_ROLE_GROUPS = [
+    ('admin', 'vd_crm_lead.vd_crm_group_admin'),
+    ('director', 'vd_crm_lead.vd_crm_group_deputy_director'),
+    ('team_leader', 'vd_crm_lead.vd_crm_group_team_leader'),
+    ('employee', 'vd_crm_lead.vd_crm_group_employee'),
+    ('collaborator', 'vd_crm_lead.vd_crm_group_collaborator'),
+]
+
 
 class ResUsers(models.Model):
     _inherit = 'res.users'
@@ -34,18 +49,67 @@ class ResUsers(models.Model):
     # ===== TEAM/PHÒNG BAN suy từ TÊN (user spec 2026-06-13) =====
     # Hệ thống lấy team theo TIỀN TỐ TÊN ("HCM1 - Tên" → HCM1), KHÔNG dùng
     # crm.team. Field này hiện rõ team để admin biết NV thuộc HN/HCM1/HCM2...
+    # Phòng ban CHỌN ĐƯỢC (thẻ) — admin đổi thẻ = chuyển NV sang phòng ban khác.
+    # Bỏ trống → tự suy từ tiền tố TÊN (tương thích NV cũ).
+    vd_team = fields.Selection(
+        _VD_TEAM_SELECTION, string='Phòng ban',
+        help='Phòng ban của nhân viên. Đổi thẻ để chuyển NV sang phòng ban khác '
+             '(KH + dashboard nhóm theo trường này). Bỏ trống = tự suy từ tiền tố TÊN.')
     vd_team_label = fields.Char(
-        string='Team (theo tên)', compute='_compute_vd_team_label',
-        help='Phòng ban suy từ TIỀN TỐ TÊN: "HCM1 - Tên" → HCM1. Muốn đổi team '
-             'thì sửa tiền tố trong TÊN nhân viên.')
+        string='Team', compute='_compute_vd_team_label',
+        help='Phòng ban hiệu lực: ưu tiên thẻ "Phòng ban", nếu trống thì suy từ '
+             'tiền tố TÊN ("HCM1 - Tên" → HCM1).')
 
-    @api.depends('name')
+    @api.depends('name', 'vd_team', 'sale_team_id')
     def _compute_vd_team_label(self):
         import re
         for u in self:
+            if u.vd_team:
+                u.vd_team_label = u.vd_team
+                continue
             m = re.match(r'^([A-ZĐ]+\d*)\s*[-–—]\s*', u.name or '')
             u.vd_team_label = (m.group(1) if m
                                else (u.sale_team_id.name if u.sale_team_id else 'KHÁC'))
+
+    # ===== PHÂN QUYỀN CRM — chọn nhanh 1 trong 5 vai trò (đồng bộ nhóm) =====
+    vd_crm_role = fields.Selection(
+        [('collaborator', '1. Cộng tác viên'), ('employee', '2. Nhân viên'),
+         ('team_leader', '3. Trưởng nhóm'), ('director', '4. Giám đốc'),
+         ('admin', '5. Admin')],
+        string='Phân quyền', compute='_compute_vd_crm_role',
+        inverse='_inverse_vd_crm_role',
+        help='Vai trò trong hệ thống CRM của VINADUY. Đổi để cấp/thu quyền — '
+             'hệ thống tự đồng bộ nhóm bảo mật tương ứng.')
+
+    @api.depends('groups_id')
+    def _compute_vd_crm_role(self):
+        refs = {code: self.env.ref(xid, raise_if_not_found=False)
+                for code, xid in _VD_ROLE_GROUPS}
+        for u in self:
+            role = False
+            for code, _xid in _VD_ROLE_GROUPS:  # CAO → THẤP, lấy vai trò cao nhất
+                g = refs.get(code)
+                if g and g in u.groups_id:
+                    role = code
+                    break
+            u.vd_crm_role = role
+
+    def _inverse_vd_crm_role(self):
+        all_groups = self.env['res.groups']
+        refs = {}
+        for code, xid in _VD_ROLE_GROUPS:
+            g = self.env.ref(xid, raise_if_not_found=False)
+            refs[code] = g
+            if g:
+                all_groups |= g
+        for u in self:
+            if not u.vd_crm_role:
+                continue
+            target = refs.get(u.vd_crm_role)
+            cmds = [(3, g.id) for g in all_groups]  # gỡ cả 5 vai trò trước
+            if target:
+                cmds.append((4, target.id))  # gán vai trò mới (tự kéo theo cấp dưới)
+            u.sudo().write({'groups_id': cmds})
 
     @api.model_create_multi
     def create(self, vals_list):

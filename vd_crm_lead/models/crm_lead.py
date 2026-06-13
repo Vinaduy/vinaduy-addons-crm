@@ -7975,6 +7975,9 @@ class CrmLead(models.Model):
         Fallback dùng sale_team_id.name nếu không match prefix."""
         if not user:
             return 'KHÁC'
+        # Ưu tiên thẻ Phòng ban admin gán (user spec 2026-06-13).
+        if user.vd_team:
+            return user.vd_team
         import re
         name = user.name or ''
         # Match prefix dạng "HCM1 - ", "HN - ", "QN - "...
