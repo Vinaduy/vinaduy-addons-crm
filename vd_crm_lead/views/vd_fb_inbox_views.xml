@@ -69,6 +69,10 @@
                             string="🔍 Kiểm tra token"
                             class="btn-secondary"
                             help="Soát Page Token: xem có đủ quyền (messaging/read_engagement/manage_engagement/metadata) và đã subscribe field 'feed' (bình luận) chưa"/>
+                    <button name="action_pull_comments" type="object"
+                            string="🔄 Tải bình luận mới"
+                            class="btn-secondary"
+                            help="Quét bình luận mới qua Graph API (dùng khi Dev mode chưa có webhook feed). Cron cũng tự quét mỗi 2 phút."/>
                     <button name="action_create_test_conversation" type="object"
                             string="🧪 Tạo hội thoại thử nghiệm"
                             class="btn-secondary" groups="vd_crm_lead.vd_crm_group_admin"
@@ -106,6 +110,8 @@
         <field name="model">vd.fb.conversation</field>
         <field name="arch" type="xml">
             <list string="Hội thoại" default_order="last_message_at desc">
+                <field name="kind" widget="badge"
+                       decoration-info="kind == 'message'" decoration-warning="kind == 'comment'"/>
                 <field name="customer_name"/>
                 <field name="platform"/>
                 <field name="snippet"/>
@@ -258,10 +264,13 @@
         </field>
     </record>
 
+    <!-- Bình luận = hội thoại kind='comment' (đã gộp inbox 2026-06-13) -->
     <record id="action_vd_fb_comment" model="ir.actions.act_window">
         <field name="name">Bình luận</field>
-        <field name="res_model">vd.fb.comment</field>
+        <field name="res_model">vd.fb.conversation</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('kind', '=', 'comment')]</field>
+        <field name="context">{'default_kind': 'comment'}</field>
     </record>
 
     <!-- ============ MENU ============ -->

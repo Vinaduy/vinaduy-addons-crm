@@ -23,7 +23,7 @@ import hmac
 import logging
 import re
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -403,39 +403,63 @@ class VdFbPage(models.Model):
             self._maybe_link_lead(conv, text)
 
     def _process_feed_change(self, value):
-        """Feed change: chỉ lấy item='comment', verb='add'."""
+        """Feed change (webhook): chỉ lấy item='comment'. Gộp vào hội thoại."""
         self.ensure_one()
         if value.get('item') != 'comment':
             return
         if value.get('verb') not in ('add', 'edited', None):
             return
-        comment_id = str(value.get('comment_id') or '')
-        if not comment_id:
-            return
-        Cmt = self.env['vd.fb.comment'].sudo()
-        existing = Cmt.search([('comment_id', '=', comment_id)], limit=1)
         frm = value.get('from') or {}
-        # Bỏ qua comment do chính page tạo (tránh tự nhân đôi)
-        if str(frm.get('id') or '') == self.fb_page_id:
-            return
         ts = value.get('created_time')
         ctime = datetime.utcfromtimestamp(int(ts)) if ts else fields.Datetime.now()
-        body = value.get('message') or ''
-        vals = {
-            'page_id': self.id,
-            'post_id': str(value.get('post_id') or ''),
-            'comment_id': comment_id,
-            'parent_comment_id': str(value.get('parent_id') or ''),
-            'from_id': str(frm.get('id') or ''),
-            'from_name': frm.get('name') or '',
-            'body': body,
-            'created_time': ctime,
-        }
-        if existing:
-            existing.write({'body': body})
-        else:
-            cmt = Cmt.create(vals)
-            self._maybe_link_lead(cmt, body)
+        self._ingest_comment(
+            comment_id=value.get('comment_id'),
+            post_id=value.get('post_id'),
+            parent_id=value.get('parent_id'),
+            from_id=frm.get('id'),
+            from_name=frm.get('name'),
+            body=value.get('message') or '',
+            created_at=ctime,
+        )
+
+    def _ingest_comment(self, comment_id, post_id=None, parent_id=None,
+                        from_id=None, from_name=None, body='', created_at=None):
+        """Gộp inbox: nạp 1 bình luận thành hội thoại kind='comment' + 1 message.
+        Dedup theo comment_id. Bỏ qua comment của chính page. Trả conv hoặc False."""
+        self.ensure_one()
+        comment_id = str(comment_id or '')
+        if not comment_id:
+            return False
+        if str(from_id or '') == self.fb_page_id:
+            return False  # comment của chính page → bỏ
+        Msg = self.env['vd.fb.message'].sudo()
+        if Msg.search_count([('comment_id', '=', comment_id)]):
+            return False  # đã có
+        Conv = self.env['vd.fb.conversation'].sudo()
+        psid = str(from_id or '') or ('cmt-%s' % comment_id)
+        conv = Conv.search([
+            ('page_id', '=', self.id), ('kind', '=', 'comment'), ('psid', '=', psid),
+        ], limit=1)
+        if not conv:
+            conv = Conv.create({
+                'page_id': self.id, 'kind': 'comment', 'psid': psid,
+                'customer_name': from_name or psid, 'post_id': str(post_id or ''),
+            })
+        elif from_name and conv.customer_name in (False, '', psid):
+            conv.customer_name = from_name
+        ts = created_at or fields.Datetime.now()
+        Msg.create({
+            'conversation_id': conv.id, 'direction': 'in', 'is_comment': True,
+            'comment_id': comment_id, 'post_id': str(post_id or ''),
+            'body': body or '', 'sent_at': ts,
+        })
+        conv.write({
+            'last_message_at': ts, 'last_inbound_at': ts,
+            'snippet': (body or '[bình luận]')[:200],
+            'unread': conv.unread + 1, 'state': 'open',
+        })
+        self._maybe_link_lead(conv, body or '')
+        return conv
 
     def _maybe_link_lead(self, record, text):
         """Nếu text chứa SĐT VN và record chưa gắn lead → (tuỳ chọn) tạo lead."""
@@ -461,6 +485,81 @@ class VdFbPage(models.Model):
                 vals['team_id'] = self.team_id.id
             lead = Lead.create(vals)
         record.lead_id = lead.id
+
+    # ---------- POLLING bình luận (Dev mode không đẩy webhook feed) ----------
+    @staticmethod
+    def _parse_fb_time(s):
+        """'2026-06-12T15:16:11+0000' → naive UTC datetime (chuẩn lưu Odoo)."""
+        if not s:
+            return fields.Datetime.now()
+        try:
+            dt = datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z')
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        except Exception:
+            return fields.Datetime.now()
+
+    def _pull_comments_once(self, limit_posts=25):
+        """Quét bình luận mới qua Graph API → import vào vd.fb.comment (dedup).
+        Dùng được ở Development mode (webhook feed không bắn). Trả số comment MỚI."""
+        self.ensure_one()
+        if not self.page_access_token:
+            return 0
+        url = '%s/%s/%s/feed' % (_GRAPH, self._gver, self.fb_page_id)
+        params = self._graph_params({
+            'fields': 'id,comments.limit(100){id,message,from,created_time,parent}',
+            'limit': limit_posts,
+        })
+        try:
+            resp = requests.get(url, params=params, timeout=30)
+            data = resp.json() if resp.content else {}
+        except Exception as e:
+            _logger.warning('[FB] pull comments lỗi: %s', e)
+            return 0
+        if isinstance(data, dict) and data.get('error'):
+            _logger.warning('[FB] pull comments error: %s', data['error'])
+            return 0
+        new_count = 0
+        for post in (data.get('data') or []):
+            post_id = str(post.get('id') or '')
+            for c in ((post.get('comments') or {}).get('data') or []):
+                frm = c.get('from') or {}
+                parent = c.get('parent') or {}
+                conv = self._ingest_comment(
+                    comment_id=c.get('id'),
+                    post_id=post_id,
+                    parent_id=parent.get('id'),
+                    from_id=frm.get('id'),
+                    from_name=frm.get('name'),
+                    body=c.get('message') or '',
+                    created_at=self._parse_fb_time(c.get('created_time')),
+                )
+                if conv:
+                    new_count += 1
+        self.last_event_at = fields.Datetime.now()
+        return new_count
+
+    def action_pull_comments(self):
+        """Nút bấm tay: quét bình luận mới ngay (cho NV / lúc quay video)."""
+        n = 0
+        for page in self:
+            n += page._pull_comments_once()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': _('Đã quét xong — %s bình luận mới.') % n,
+                'type': 'success', 'sticky': False, 'next': {'type': 'ir.actions.act_window_close'},
+            },
+        }
+
+    @api.model
+    def _cron_pull_comments(self):
+        """Cron tự quét bình luận mọi page (vì Dev mode không có webhook feed)."""
+        for page in self.search([('active', '=', True), ('page_access_token', '!=', False)]):
+            try:
+                page._pull_comments_once()
+            except Exception:
+                _logger.exception('[FB] cron pull comments lỗi page %s', page.id)
 
     def action_view_conversations(self):
         self.ensure_one()
@@ -517,6 +616,12 @@ class VdFbConversation(models.Model):
 
     page_id = fields.Many2one('vd.fb.page', string='Page', required=True, ondelete='cascade', index=True)
     psid = fields.Char(string='PSID khách', required=True, index=True)
+    # Gộp inbox (2026-06-13): 1 model chứa cả chat lẫn bình luận
+    kind = fields.Selection(
+        [('message', '💬 Tin nhắn'), ('comment', '📝 Bình luận')],
+        string='Loại', default='message', required=True, index=True,
+    )
+    post_id = fields.Char(string='Bài viết (nếu là bình luận)')
     customer_name = fields.Char(string='Tên khách')
     lead_id = fields.Many2one('crm.lead', string='Khách hàng (CRM)', index=True)
     user_id = fields.Many2one('res.users', string='NV phụ trách', index=True)
@@ -542,20 +647,37 @@ class VdFbConversation(models.Model):
         return True
 
     def post_reply(self, text):
-        """Gửi trả lời cho khách + lưu tin out."""
+        """Gửi trả lời cho khách + lưu tin out. Tự định tuyến theo kind:
+        - message → Send API (Messenger)
+        - comment → trả lời vào bình luận cuối khách gửi (reply_comment)."""
         self.ensure_one()
         if not text:
             raise UserError(_('Nội dung trả lời trống.'))
-        res = self.page_id.send_message(self.psid, text)
-        err = res.get('error') if isinstance(res, dict) else None
-        self.env['vd.fb.message'].sudo().create({
+        msg_vals = {
             'conversation_id': self.id,
             'direction': 'out',
             'body': text,
-            'mid': res.get('message_id') if isinstance(res, dict) else False,
             'sent_at': fields.Datetime.now(),
-            'send_error': str(err) if err else False,
-        })
+        }
+        if self.kind == 'comment':
+            last = self.message_ids.filtered(
+                lambda m: m.is_comment and m.direction == 'in' and m.comment_id
+            ).sorted('sent_at')
+            if not last:
+                raise UserError(_('Chưa xác định được bình luận để trả lời.'))
+            cid = last[-1].comment_id
+            res = self.page_id.reply_comment(cid, text)
+            msg_vals.update({
+                'is_comment': True,
+                'comment_id': res.get('id') if isinstance(res, dict) else False,
+                'post_id': self.post_id,
+            })
+        else:
+            res = self.page_id.send_message(self.psid, text)
+            msg_vals['mid'] = res.get('message_id') if isinstance(res, dict) else False
+        err = res.get('error') if isinstance(res, dict) else None
+        msg_vals['send_error'] = str(err) if err else False
+        self.env['vd.fb.message'].sudo().create(msg_vals)
         self.write({
             'last_message_at': fields.Datetime.now(),
             'snippet': text[:200],
@@ -612,6 +734,10 @@ class VdFbMessage(models.Model):
     attachment_url = fields.Char(string='Link đính kèm')
     sent_at = fields.Datetime(string='Thời điểm', default=lambda s: fields.Datetime.now())
     send_error = fields.Char(string='Lỗi gửi')
+    # Gộp bình luận vào hội thoại (2026-06-13): message kiểu bình luận
+    is_comment = fields.Boolean(string='Là bình luận', default=False)
+    comment_id = fields.Char(string='Comment ID', index=True)
+    post_id = fields.Char(string='Post ID')
 
 
 # ============================================================

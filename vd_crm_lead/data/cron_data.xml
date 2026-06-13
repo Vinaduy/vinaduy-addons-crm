@@ -56,6 +56,20 @@
             <field name="user_id" ref="base.user_root"/>
         </record>
 
+        <!-- QUÉT BÌNH LUẬN FACEBOOK (user spec 2026-06-13): Dev mode KHÔNG đẩy
+             webhook feed → Odoo tự gọi Graph API quét comment mới mỗi 2 phút.
+             Khi app lên Live + đã subscribe feed thì webhook chạy song song (dedup). -->
+        <record id="ir_cron_vd_fb_pull_comments" model="ir.cron">
+            <field name="name">VD CRM: Quét bình luận Facebook (poll)</field>
+            <field name="model_id" ref="model_vd_fb_page"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_pull_comments()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">2</field>
+            <field name="interval_type">minutes</field>
+            <field name="user_id" ref="base.user_root"/>
+        </record>
+
         <!-- Seed cấu hình HẠN XỬ LÝ (admin chỉnh sau qua menu Cài đặt) -->
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_deadline_days', '7')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_extension_days', '7')"/>
