@@ -143,9 +143,10 @@ class ResUsers(models.Model):
             internal = self.env.ref('base.group_user', raise_if_not_found=False)
             portal = self.env.ref('base.group_portal', raise_if_not_found=False)
             public = self.env.ref('base.group_public', raise_if_not_found=False)
+            # User spec 2026-06-14: KHÔNG cấp 'group_sale_salesman_all_leads' nữa
+            # (vốn cho NV xem mọi lead). NV mới chỉ thấy KH của mình.
             nv_gids = []
             for x in ('base.group_user', 'sales_team.group_sale_salesman',
-                      'sales_team.group_sale_salesman_all_leads',
                       'vd_crm_lead.vd_crm_group_collaborator',
                       'vd_crm_lead.vd_crm_group_employee'):
                 g = self.env.ref(x, raise_if_not_found=False)
