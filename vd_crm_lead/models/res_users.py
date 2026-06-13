@@ -30,6 +30,53 @@ class ResUsers(models.Model):
         compute='_compute_vd_overdue_count',
         help='Lấy từ ir.config_parameter vd_crm_lead.overdue_block_threshold (default 3).',
     )
+
+    # ===== TEAM/PHÒNG BAN suy từ TÊN (user spec 2026-06-13) =====
+    # Hệ thống lấy team theo TIỀN TỐ TÊN ("HCM1 - Tên" → HCM1), KHÔNG dùng
+    # crm.team. Field này hiện rõ team để admin biết NV thuộc HN/HCM1/HCM2...
+    vd_team_label = fields.Char(
+        string='Team (theo tên)', compute='_compute_vd_team_label',
+        help='Phòng ban suy từ TIỀN TỐ TÊN: "HCM1 - Tên" → HCM1. Muốn đổi team '
+             'thì sửa tiền tố trong TÊN nhân viên.')
+
+    @api.depends('name')
+    def _compute_vd_team_label(self):
+        import re
+        for u in self:
+            m = re.match(r'^([A-ZĐ]+\d*)\s*[-–—]\s*', u.name or '')
+            u.vd_team_label = (m.group(1) if m
+                               else (u.sale_team_id.name if u.sale_team_id else 'KHÁC'))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """User spec 2026-06-13: NV tạo MỚI thường bị 'trần' (0 nhóm) → thành user
+        portal (share=True) → KHÔNG đăng nhập backend được. Tự gán 5 nhóm NV chuẩn
+        cho user mới KHÔNG có nhóm loại (internal/portal/public) → mặc định = NV
+        nội bộ, đăng nhập được ngay. User portal/public CÓ CHỦ ĐÍCH (đã set nhóm)
+        thì giữ nguyên."""
+        users = super().create(vals_list)
+        try:
+            internal = self.env.ref('base.group_user', raise_if_not_found=False)
+            portal = self.env.ref('base.group_portal', raise_if_not_found=False)
+            public = self.env.ref('base.group_public', raise_if_not_found=False)
+            nv_gids = []
+            for x in ('base.group_user', 'sales_team.group_sale_salesman',
+                      'sales_team.group_sale_salesman_all_leads',
+                      'vd_crm_lead.vd_crm_group_collaborator',
+                      'vd_crm_lead.vd_crm_group_employee'):
+                g = self.env.ref(x, raise_if_not_found=False)
+                if g:
+                    nv_gids.append(g.id)
+            for u in users:
+                has_type = ((internal and internal in u.groups_id)
+                            or (portal and portal in u.groups_id)
+                            or (public and public in u.groups_id))
+                if not has_type and nv_gids:
+                    u.sudo().write({'groups_id': [(4, gid) for gid in nv_gids]})
+        except Exception:
+            pass
+        return users
+
     # ===== KHOÁ DO CHƯA TÌM VẤN ĐỀ (user spec 2026-06-01) =====
     # Khi > ngưỡng % KH (trong bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) chưa có vấn đề
     # liên tục quá số ngày gia hạn → cron bật vd_problem_lock=True. Dashboard

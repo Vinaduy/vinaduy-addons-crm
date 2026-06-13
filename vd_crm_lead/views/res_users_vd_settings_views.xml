@@ -9,8 +9,11 @@
             <!-- Chèn vào sau email (top form), trước notebook tabs -->
             <xpath expr="//field[@name='email']" position="after">
                 <group string="🏢 Phòng ban &amp; Cài đặt CRM" name="vd_crm_user_settings">
-                    <field name="sale_team_id" string="Phòng ban (Team)"
-                           options="{'no_create': True}"/>
+                    <field name="vd_team_label" string="🏢 Phòng ban (theo TÊN NV)" readonly="1"/>
+                    <div class="text-muted" colspan="2">
+                        Team lấy từ TIỀN TỐ TÊN. Đặt tên dạng <b>"HCM1 - Tên"</b> /
+                        <b>"HN - Tên"</b> để vào đúng phòng ban.
+                    </div>
                     <field name="vd_work_start_date" string="📅 Ngày bắt đầu làm việc"/>
                     <field name="vd_work_months" string="📊 Số tháng làm việc" readonly="1"/>
                     <field name="vd_capacity_level" string="⭐ Năng lực" widget="badge"/>
@@ -25,10 +28,11 @@
         <field name="name">res.users.vd.settings.list</field>
         <field name="model">res.users</field>
         <field name="arch" type="xml">
-            <list string="Cài đặt thông tin NV" create="false" delete="false" editable="bottom">
+            <!-- User spec 2026-06-13: BỎ editable inline → click mở FORM NV đầy đủ. -->
+            <list string="Cài đặt thông tin NV" create="false" delete="false">
                 <field name="name" readonly="1"/>
                 <field name="login" readonly="1"/>
-                <field name="sale_team_id" string="Team" readonly="1"/>
+                <field name="vd_team_label" string="🏢 Team" readonly="1"/>
                 <field name="vd_work_start_date" string="📅 Ngày bắt đầu"/>
                 <field name="vd_work_months" string="📊 Số tháng" readonly="1"/>
                 <field name="vd_capacity_level" string="⭐ Năng lực" widget="badge"/>
@@ -40,7 +44,7 @@
     <record id="action_vd_users_settings" model="ir.actions.act_window">
         <field name="name">⚙️ Cài đặt thông tin NV</field>
         <field name="res_model">res.users</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_vd_users_settings_list"/>
         <field name="domain" eval="[('share', '=', False), ('active', '=', True), ('groups_id', 'in', [ref('sales_team.group_sale_salesman')])]"/>
         <field name="help" type="html">
