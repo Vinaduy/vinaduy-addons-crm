@@ -685,9 +685,18 @@ export class VdCrmDashboard extends Component {
         const hasProblem = (l) => !!(l.problems_non_urgent && l.problems_non_urgent.length);
         const qd = (l) => (l.quote_days != null && l.quote_days !== undefined ? l.quote_days : 0);
         if (f === 'problem') return list.filter(hasProblem);
-        const noProb = list.filter((l) => !hasProblem(l));
-        if (f === 'newest')   return [...noProb].sort((a, b) => qd(a) - qd(b));
-        if (f === 'expiring') return [...noProb].sort((a, b) => qd(b) - qd(a));
+        // User spec 2026-06-13: 'Mới nhất'/'Sắp hết hạn' giờ chỉ SẮP XẾP (KH CHƯA
+        // có vấn đề lên TRÊN), KHÔNG ẩn KH đã có vấn đề — tránh KH "biến mất" ngay
+        // sau khi vừa tạo vấn đề (chip bật do lỡ rê chuột).
+        if (f === 'newest' || f === 'expiring') {
+            const dir = f === 'newest' ? 1 : -1;
+            return [...list].sort((a, b) => {
+                const pa = hasProblem(a) ? 1 : 0;
+                const pb = hasProblem(b) ? 1 : 0;
+                if (pa !== pb) return pa - pb;          // chưa có vấn đề lên trước
+                return dir * (qd(a) - qd(b));
+            });
+        }
         return list;
     }
     setProblemSort(f) { this.state.problemSort = f; }
