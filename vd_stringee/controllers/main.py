@@ -192,14 +192,24 @@ class StringeeController(http.Controller):
             and not is_web_sdk_origin
         )
 
+        # === Cuộc gọi ĐẾN (khách gọi vào hotline): tra NV quản lý KH ===
+        # user spec 2026-06-13: khách gọi lại phải đổ chuông ĐÚNG NV quản lý số
+        # khách đó (lead.user_id), fallback NV được gán DID.
+        treat_inbound = bool(to_num) and not (is_rest_outbound or is_web_sdk_origin)
+        inbound_nv = Call.browse()
+        if treat_inbound:
+            inbound_nv = Call._vd_resolve_inbound_user(from_num, to_num)
+
         # Pre-create record để webhook tiếp theo find được.
         if call_id and not existing:
-            Call.create({
+            existing = Call.create({
                 'name': call_id,
                 'caller_number': from_num,
                 'callee_number': to_num,
                 'direction': 'outbound' if (is_rest_outbound or is_web_sdk_origin) else 'inbound',
                 'state': 'initiated',
+                # Gán NV quản lý cho cuộc gọi đến để hiển thị + bus push đúng người.
+                'user_id': inbound_nv.id if (treat_inbound and inbound_nv) else False,
             })
 
         # SCCO record action standalone.
@@ -256,12 +266,27 @@ class StringeeController(http.Controller):
                     to_num,
                 ))
             else:
-                # PSTN inbound (KH gọi vào hotline) hoặc unknown origin.
-                actions.append(_build_connect(
-                    {'type': 'external', 'number': effective_from or from_num,
-                     'alias': effective_from or from_num},
-                    to_num,
-                ))
+                # PSTN inbound (KH gọi vào hotline). Định tuyến về browser NV
+                # quản lý KH (incomingcall2 → auto-answer) thay vì bridge
+                # external→external vô nghĩa như trước (gốc lỗi "gọi lại không
+                # vào được"). user spec 2026-06-13.
+                nv_sui = (inbound_nv.stringee_user_id or '').strip() if inbound_nv else ''
+                if nv_sui:
+                    actions.append({
+                        'action': 'connect',
+                        'to': {'type': 'internal', 'number': nv_sui, 'alias': ''},
+                        'peerToPeerCall': False,
+                        'timeout': 30,
+                        'continueOnFail': True,
+                    })
+                else:
+                    # Không xác định được NV quản lý (KH lạ / NV chưa có
+                    # stringee_user_id) → giữ hành vi cũ.
+                    actions.append(_build_connect(
+                        {'type': 'external', 'number': effective_from or from_num,
+                         'alias': effective_from or from_num},
+                        to_num,
+                    ))
 
         _logger.info(
             "[Stringee answer_url] callId=%s from=%s to=%s rest_out=%s web_sdk=%s actions=%s",
@@ -308,6 +333,26 @@ class StringeeController(http.Controller):
         if not callee:
             return {'error': 'missing callee'}
         return request.env.user._vd_resolve_outbound(callee)
+
+    @http.route('/stringee/lookup_number', type='json', auth='user')
+    def lookup_number(self, number):
+        """Keypad gọi tay: nhập số → tra KH đã có + NV quản lý.
+        Trả {found, lead_name, owner_name, is_mine, owned_by_other,...}."""
+        if not number:
+            return {'found': False}
+        return request.env['stringee.call'].sudo()._vd_lookup_number_owner(
+            number, request.env.user.id,
+        )
+
+    @http.route('/stringee/ensure_lead_for_dial', type='json', auth='user')
+    def ensure_lead_for_dial(self, number):
+        """Sau khi bấm gọi số MỚI (chưa có KH) → tự lưu vào KH mới (tên = SĐT).
+        Đã có KH thì không tạo trùng."""
+        if not number:
+            return {'created': False}
+        return request.env['stringee.call']._vd_ensure_dialed_lead(
+            number, request.env.user.id,
+        )
 
     @http.route('/stringee/click_to_call', type='json', auth='user')
     def click_to_call(self, callee, partner_id=None):

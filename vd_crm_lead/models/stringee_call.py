@@ -2,6 +2,7 @@
 lead activity stats when a call reaches a terminal state.
 """
 import logging
+import re
 
 from odoo import api, fields, models
 
@@ -14,6 +15,75 @@ class StringeeCall(models.Model):
     lead_id = fields.Many2one('crm.lead', string='Khách hàng', ondelete='set null', index=True)
     lead_stage_name = fields.Char(related='lead_id.stage_id.name', string='Stage KH')
     lead_probability = fields.Float(related='lead_id.probability', string='Tỉ lệ chốt')
+
+    # ================= Tra số / định tuyến cuộc gọi đến =================
+
+    @api.model
+    def _vd_find_lead_by_phone(self, number, user_id=None):
+        """Tìm crm.lead theo số điện thoại (khớp 9 chữ số cuối — bỏ qua 0/84).
+
+        - user_id truyền vào → ưu tiên lead của NV đó trước, rồi nới ra mọi NV.
+        - active_test=False: link cả KH đã hủy (archived).
+        Trả 1 record crm.lead (rỗng nếu không có).
+        """
+        digits = re.sub(r'\D', '', number or '')
+        Lead = self.env['crm.lead'].with_context(active_test=False)
+        if len(digits) < 8:
+            return Lead.browse()
+        last9 = digits[-9:]
+        domain = ['|', ('phone', 'like', last9), ('mobile', 'like', last9)]
+        if user_id:
+            owned = Lead.search(
+                domain + [('user_id', '=', user_id)], limit=1, order='create_date desc')
+            if owned:
+                return owned
+        return Lead.search(domain, limit=1, order='create_date desc')
+
+    @api.model
+    def _vd_lookup_number_owner(self, number, current_uid=None):
+        """Tra số → KH + NV quản lý (cho keypad gọi tay hiển thị khi nhập số)."""
+        lead = self._vd_find_lead_by_phone(number)
+        if not lead:
+            return {'found': False}
+        owner = lead.user_id
+        return {
+            'found': True,
+            'lead_id': lead.id,
+            'lead_name': lead.name or (number or ''),
+            'owner_id': owner.id or False,
+            'owner_name': owner.name or '',
+            'is_mine': bool(owner and owner.id == current_uid),
+            'owned_by_other': bool(owner and owner.id != current_uid),
+        }
+
+    @api.model
+    def _vd_ensure_dialed_lead(self, number, user_id):
+        """Số mới gọi tay xong → tạo KH mới với tên = chính SĐT (user spec 2026-06-13).
+        Đã có KH (bất kỳ NV nào) → KHÔNG tạo trùng."""
+        existing = self._vd_find_lead_by_phone(number)
+        if existing:
+            return {'created': False, 'lead_id': existing.id, 'name': existing.name}
+        digits = re.sub(r'\D', '', number or '')
+        display = ('0' + digits[-9:]) if len(digits) >= 9 else (number or '')
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
+        lead = self.env['crm.lead'].create({
+            'name': display,
+            'phone': display,
+            'user_id': user_id or self.env.user.id,
+            'type': 'opportunity',
+            'stage_id': new_stage.id if new_stage else False,
+            'description': 'Tự tạo từ bàn phím gọi tay.',
+        })
+        return {'created': True, 'lead_id': lead.id, 'name': lead.name}
+
+    @api.model
+    def _vd_resolve_inbound_user(self, caller, callee):
+        """Khách gọi vào → ƯU TIÊN ring NV quản lý KH theo số khách `caller`.
+        Không có lead/owner gọi được → fallback NV gán DID (super)."""
+        lead = self._vd_find_lead_by_phone(caller)
+        if lead and lead.user_id and lead.user_id.active and lead.user_id.stringee_user_id:
+            return lead.user_id
+        return super()._vd_resolve_inbound_user(caller, callee)
 
     def action_open_lead(self):
         self.ensure_one()

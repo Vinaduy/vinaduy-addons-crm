@@ -537,6 +537,51 @@ class StringeeCall(models.Model):
         rec.with_context(vd_from_number_override=from_number).action_callout()
         return rec
 
+    # ---------- Tra số / định tuyến (hook cho vd_crm_lead) ----------
+
+    @api.model
+    def _vd_lookup_number_owner(self, number, current_uid=None):
+        """Tra 1 số điện thoại → KH đã có + NV quản lý.
+
+        STUB ở vd_stringee (không có crm.lead). vd_crm_lead override để trả:
+            {found, lead_id, lead_name, owner_id, owner_name,
+             is_mine, owned_by_other}
+        Mặc định trả {'found': False}.
+        """
+        return {'found': False}
+
+    @api.model
+    def _vd_ensure_dialed_lead(self, number, user_id):
+        """Số mới (chưa có KH) gọi tay xong → tự lưu vào danh sách KH mới.
+
+        STUB ở vd_stringee. vd_crm_lead override để tạo crm.lead.
+        """
+        return {'created': False}
+
+    @api.model
+    def _vd_resolve_inbound_user(self, caller, callee):
+        """Cuộc gọi ĐẾN (khách gọi vào hotline `callee`) thì ring NV nào?
+
+        Mặc định (vd_stringee): NV đang được gán số tổng đài `callee` đó và có
+        stringee_user_id (browser gọi được). vd_crm_lead override để ƯU TIÊN
+        NV quản lý KH theo số khách `caller` (lead.user_id), fallback về super().
+        Trả về recordset res.users (rỗng nếu không xác định được).
+        """
+        Users = self.env['res.users']
+        did9 = _digits_only(callee)[-9:]
+        if not did9:
+            return Users
+        hotline = self.env['vd.stringee.hotline'].sudo().search([]).filtered(
+            lambda h: _digits_only(h.number)[-9:] == did9
+        )[:1]
+        if hotline:
+            cand = hotline.assigned_user_ids.filtered(
+                lambda u: u.active and u.stringee_user_id
+            )[:1]
+            if cand:
+                return cand
+        return Users
+
     def action_hangup(self):
         """Stop an active call via REST. Idempotent — silent if already ended."""
         self.ensure_one()

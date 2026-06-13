@@ -11,6 +11,7 @@
 import { Component, useState, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class VdDialpadFab extends Component {
     static template = "vd_stringee.DialpadFab";
@@ -19,8 +20,11 @@ export class VdDialpadFab extends Component {
     setup() {
         this.stringee = useService("stringee");
         this.notification = useService("notification");
-        this.state = useState({ open: false, number: "", calling: false });
+        // lookup: null = chưa tra; {found, text, type} sau khi tra số.
+        this.state = useState({ open: false, number: "", calling: false, lookup: null });
         this.inputRef = useRef("numInput");
+        this._lookupTimer = null;
+        this._lookupSeq = 0;
     }
 
     // iPhone keypad: chữ cái dưới số cho giống bàn phím gọi thật.
@@ -52,12 +56,57 @@ export class VdDialpadFab extends Component {
     press(d) {
         if (this.state.number.length >= 15) return;
         this.state.number += d;
+        this.scheduleLookup();
     }
-    backspace() { this.state.number = this.state.number.slice(0, -1); }
+    backspace() {
+        this.state.number = this.state.number.slice(0, -1);
+        this.scheduleLookup();
+    }
 
     onInput(ev) {
         // Cho phép gõ/dán: chỉ giữ số + dấu + * #
         this.state.number = (ev.target.value || "").replace(/[^\d+*#]/g, "");
+        this.scheduleLookup();
+    }
+
+    // ===== Tra số → hiện tên KH / cảnh báo NV khác quản lý (debounce) =====
+    scheduleLookup() {
+        if (this._lookupTimer) clearTimeout(this._lookupTimer);
+        const digits = (this.state.number || "").replace(/\D/g, "");
+        if (digits.length < 8) {
+            this.state.lookup = null;
+            return;
+        }
+        this._lookupTimer = setTimeout(() => this.doLookup(), 350);
+    }
+
+    async doLookup() {
+        const num = (this.state.number || "").trim();
+        const seq = ++this._lookupSeq;
+        try {
+            const res = await rpc("/stringee/lookup_number", { number: num });
+            if (seq !== this._lookupSeq) return; // số đã đổi, bỏ kết quả cũ
+            if (!res || !res.found) {
+                this.state.lookup = { found: false, text: "Số mới — chưa có khách hàng.", type: "new" };
+                return;
+            }
+            if (res.owned_by_other) {
+                const who = res.owner_name || "NV khác";
+                this.state.lookup = {
+                    found: true,
+                    text: `${res.lead_name} — ⚠ đã có ${who} quản lý`,
+                    type: "warn",
+                };
+            } else {
+                this.state.lookup = {
+                    found: true,
+                    text: `${res.lead_name}${res.is_mine ? " (KH của bạn)" : ""}`,
+                    type: "mine",
+                };
+            }
+        } catch (e) {
+            if (seq === this._lookupSeq) this.state.lookup = null;
+        }
     }
 
     async paste() {
@@ -66,6 +115,7 @@ export class VdDialpadFab extends Component {
             const cleaned = (txt || "").replace(/[^\d+]/g, "");
             if (cleaned) {
                 this.state.number = cleaned;
+                this.scheduleLookup();
             } else {
                 this.notification.add("Clipboard không có số.", { type: "warning" });
             }
@@ -96,10 +146,26 @@ export class VdDialpadFab extends Component {
         this.state.calling = true;
         try {
             await this.stringee.call(num, "Gọi tay");
+            // Số mới (chưa có KH) → tự lưu vào danh sách KH mới (tên = SĐT).
+            this.ensureLeadSaved(num);
         } catch (e) {
             this.notification.add(e.message || "Gọi thất bại", { type: "danger" });
         } finally {
             setTimeout(() => { this.state.calling = false; }, 1500);
+        }
+    }
+
+    async ensureLeadSaved(num) {
+        try {
+            const res = await rpc("/stringee/ensure_lead_for_dial", { number: num });
+            if (res && res.created) {
+                this.notification.add(
+                    `Đã lưu số ${res.name} vào danh sách khách mới.`,
+                    { type: "success" },
+                );
+            }
+        } catch (e) {
+            // Lỗi lưu KH không được chặn cuộc gọi — bỏ qua im lặng.
         }
     }
 }

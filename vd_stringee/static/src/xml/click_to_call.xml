@@ -42,6 +42,14 @@
                     </button>
                 </div>
 
+                <div t-if="state.lookup" class="vd_dp_lookup"
+                     t-att-class="'vd_dp_lk_' + state.lookup.type">
+                    <i t-if="state.lookup.type === 'warn'" class="fa fa-exclamation-triangle me-1"/>
+                    <i t-elif="state.lookup.type === 'mine'" class="fa fa-user me-1"/>
+                    <i t-else="" class="fa fa-user-plus me-1"/>
+                    <t t-esc="state.lookup.text"/>
+                </div>
+
                 <div class="vd_dp_grid">
                     <button t-foreach="keys" t-as="k" t-key="k.d" class="vd_dp_key"
                             t-on-click="() => this.press(k.d)">
