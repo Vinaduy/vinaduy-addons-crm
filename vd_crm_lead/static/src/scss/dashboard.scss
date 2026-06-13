@@ -9190,3 +9190,47 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pancake_row_eval { background: #d3f9d8; color: #2b8a3e; }
     .o_vd_pancake_row_cnt { background: #2f9e44; }
 }
+
+/* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) ===== */
+.o_vd_tl_panel {
+    background: #fff;
+    border: 1px solid #e4e7ec;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .06);
+}
+.o_vd_tl_head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; gap: 12px; flex-wrap: wrap;
+}
+.o_vd_tl_title { font-size: 15px; font-weight: 700; color: #1d2939; }
+.o_vd_tl_back {
+    border: 1px solid #d0d5dd; background: #f9fafb; color: #344054;
+    border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    &:hover { background: #eef2f6; }
+}
+.o_vd_tl_self { font-size: 12px; color: #667085; font-style: italic; }
+.o_vd_tl_table {
+    width: 100%; border-collapse: collapse; font-size: 13.5px;
+    thead th {
+        text-align: left; color: #667085; font-weight: 600; font-size: 12px;
+        text-transform: uppercase; letter-spacing: .03em;
+        padding: 6px 10px; border-bottom: 2px solid #eaecf0;
+    }
+    th.o_vd_tl_num, td.o_vd_tl_num { text-align: center; }
+}
+.o_vd_tl_row {
+    cursor: pointer; transition: background .12s ease;
+    td { padding: 9px 10px; border-bottom: 1px solid #f2f4f7; }
+    &:hover { background: #f5f8ff; }
+    &.o_active { background: #eaf1ff; }
+    &.o_active .o_vd_tl_name { color: #1d4ed8; font-weight: 700; }
+}
+.o_vd_tl_name { font-weight: 600; color: #1d2939; }
+.o_vd_tl_num.o_vd_tl_warn { color: #b42318; font-weight: 700; }
+.o_vd_tl_calling { color: #027a48; font-weight: 600; white-space: nowrap; }
+.o_vd_tl_idle { color: #98a2b3; }
+.o_vd_tl_act { text-align: right; }
+.o_vd_tl_view { color: #1d4ed8; font-weight: 600; white-space: nowrap; }

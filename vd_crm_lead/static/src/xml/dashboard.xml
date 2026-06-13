@@ -1658,13 +1658,10 @@
                                     </t>
                                 </div>
                             </div>
-                            <div t-if="state.is_manager or state.is_team_leader" class="o_vd_side_user_picker">
+                            <div t-if="state.is_manager" class="o_vd_side_user_picker">
                                 <select class="o_vd_user_picker"
                                         t-on-change="(ev) => this.onChangeUser(ev)">
-                                    <option value="all" t-att-selected="state.user.is_all">
-                                        <t t-if="state.is_team_leader and !state.is_manager">🌐 Cả nhóm</t>
-                                        <t t-else="">🌐 Tất cả NV</t>
-                                    </option>
+                                    <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
                                     <option t-foreach="state.users" t-as="u" t-key="u.id"
                                             t-att-value="u.id"
                                             t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
@@ -1811,6 +1808,59 @@
 
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
                     <main class="o_vd_main_v2">
+
+                        <!-- ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (cùng phòng ban) =====
+                             Trưởng nhóm (vd: Trần Mứt Sen) thấy dashboard của CHÍNH MÌNH
+                             bên dưới + bảng này ở trên để bấm xem từng NV trong nhóm. -->
+                        <div t-if="state.is_team_leader" class="o_vd_tl_panel">
+                            <div class="o_vd_tl_head">
+                                <span class="o_vd_tl_title">
+                                    <i class="fa fa-users me-1"/>
+                                    Nhân viên dưới quyền — Nhóm <t t-esc="state.team_label"/>
+                                    (<t t-esc="teamMembers.length"/>)
+                                </span>
+                                <button t-if="viewingTeamMember" class="o_vd_tl_back"
+                                        t-on-click="() => this.backToMyDashboard()">
+                                    <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
+                                </button>
+                                <span t-else="" class="o_vd_tl_self">Đang xem: dashboard của tôi</span>
+                            </div>
+                            <table class="o_vd_tl_table">
+                                <thead>
+                                    <tr>
+                                        <th>Nhân viên</th>
+                                        <th class="o_vd_tl_num">Tổng KH</th>
+                                        <th class="o_vd_tl_num">KH mới chưa gọi</th>
+                                        <th class="o_vd_tl_num">Trạng thái</th>
+                                        <th/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="teamMembers" t-as="m" t-key="m.id"
+                                        t-att-class="'o_vd_tl_row ' + (state.selected_user_id === m.id ? 'o_active' : '')"
+                                        t-on-click="() => this.viewTeamUser(m.id)">
+                                        <td class="o_vd_tl_name"><t t-esc="m.name"/></td>
+                                        <td class="o_vd_tl_num"><t t-esc="m.total or 0"/></td>
+                                        <td class="o_vd_tl_num"
+                                            t-att-class="'o_vd_tl_num ' + ((m.new_not_called or 0) > 0 ? 'o_vd_tl_warn' : '')">
+                                            <t t-esc="m.new_not_called or 0"/>
+                                        </td>
+                                        <td class="o_vd_tl_num">
+                                            <span t-if="state.activeCalls[m.id]" class="o_vd_tl_calling">
+                                                <i class="fa fa-phone"/> Đang gọi
+                                            </span>
+                                            <span t-else="" class="o_vd_tl_idle">—</span>
+                                        </td>
+                                        <td class="o_vd_tl_act">
+                                            <span class="o_vd_tl_view">
+                                                <t t-if="state.selected_user_id === m.id">Đang xem</t>
+                                                <t t-else="">Xem ›</t>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
                              quote/negotiate hiển thị trực tiếp ở section "ĐANG XỬ LÝ

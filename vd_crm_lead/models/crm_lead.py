@@ -5797,23 +5797,21 @@ class CrmLead(models.Model):
 
     def _dashboard_resolve_scope(self, user_id):
         """Trả về (user_record_or_None, scope_label, lead_user_domain, call_user_domain).
-        - user_id = 'all' hoặc 0 → toàn bộ NV (manager) / cả NHÓM (trưởng nhóm)
+        - user_id = 'all' hoặc 0 → toàn bộ NV (manager) / CHÍNH MÌNH (trưởng nhóm)
         - user_id = int → 1 NV cụ thể (manager: mọi NV; trưởng nhóm: NV trong nhóm;
           NV thường: chỉ chính họ)
-        - user_id = None → mặc định: manager → 'all'; trưởng nhóm → cả nhóm; NV → chính họ
+        - user_id = None → mặc định: manager → 'all'; trưởng nhóm + NV → chính họ
+
+        Trưởng nhóm: dashboard MẶC ĐỊNH là CỦA CHÍNH HỌ (như 1 NV) — chọn xem NV
+        trong nhóm qua bảng "nhân viên dưới quyền" (không có chế độ gộp nhóm).
         """
         is_manager = self._dashboard_is_manager()
         is_team_leader = self._dashboard_is_team_leader()
         team_ids = self._dashboard_team_member_ids() if is_team_leader else []
 
-        # Chuẩn hoá input: 'all' = toàn bộ (manager) hoặc cả nhóm (trưởng nhóm).
+        # Chuẩn hoá input: manager → 'all'; trưởng nhóm/NV → chính mình.
         if user_id in ('all', 0, '0') or user_id is None:
-            if is_manager:
-                user_id = 'all'
-            elif is_team_leader:
-                user_id = 'team'
-            else:
-                user_id = self.env.user.id
+            user_id = 'all' if is_manager else self.env.user.id
 
         if user_id == 'all':
             # Manager: toàn bộ NV (lead đã giao).
@@ -5821,15 +5819,6 @@ class CrmLead(models.Model):
                 None, 'Tất cả nhân viên',
                 [('user_id', '!=', False)],
                 [('user_id', '!=', False)],
-            )
-
-        if user_id == 'team':
-            # Trưởng nhóm: gộp toàn NHÓM (cùng phòng ban).
-            label = self._vd_team_label_for(self.env.user)
-            return (
-                None, 'Nhóm %s' % (label or ''),
-                [('user_id', 'in', team_ids)],
-                [('user_id', 'in', team_ids)],
             )
 
         # 1 NV cụ thể.
@@ -5953,10 +5942,13 @@ class CrmLead(models.Model):
             user_domain.append(('id', 'in', self._dashboard_team_member_ids()))
         users = self.env['res.users'].search(user_domain, order='name')
         Lead = self.env['crm.lead'].sudo()
-        # NV có ít nhất 1 lead (1 query read_group thay vì N search_count).
+        # NV có ít nhất 1 lead + TỔNG KH/NV (1 query read_group).
         groups = Lead.read_group([('user_id', '!=', False)], ['user_id'], ['user_id'])
         user_ids_with_lead = {g['user_id'][0] for g in groups if g['user_id']}
-        sales_users = users.filtered(lambda u: u.id in user_ids_with_lead)
+        total_by_user = {g['user_id'][0]: g['__count'] for g in groups if g['user_id']}
+        # Manager: chỉ NV có lead. Trưởng nhóm: LIỆT KÊ ĐỦ NV trong nhóm (kể cả 0 KH).
+        listing = users if is_team_leader else users.filtered(
+            lambda u: u.id in user_ids_with_lead)
         # Toàn bộ bucket KHÁCH MỚI của mọi NV — 1 query.
         all_new = Lead.search(
             self._dashboard_new_bucket_domain([('user_id', '!=', False)]))
@@ -5967,12 +5959,13 @@ class CrmLead(models.Model):
         unreach_cand = all_new.filtered(lambda l: (l.call_count or 0) >= 3)
         unreachable_ids = set(self._dashboard_unreachable_ids(unreach_cand, limit=100000))
         result = []
-        for u in sales_users:
+        for u in listing:
             leads = new_by_user.get(u.id, [])
             not_called = sum(1 for l in leads if (l.call_count or 0) == 0)
             in_table = sum(1 for l in leads if l.id not in unreachable_ids)
             result.append({
                 'id': u.id, 'name': u.name, 'login': u.login,
+                'total': total_by_user.get(u.id, 0),
                 'new_not_called': not_called,
                 'new_total': in_table,
             })
@@ -6671,6 +6664,7 @@ class CrmLead(models.Model):
             # Trưởng nhóm: mở "giao diện quản lý NHÓM" (chọn/xem NV cùng phòng ban),
             # KHÔNG có quyền toàn công ty / thùng rác công ty (giữ cho Giám đốc+).
             'is_team_leader': self._dashboard_is_team_leader(),
+            'team_label': self._vd_team_label_for(self.env.user),
             # CHỈ ADMIN được DUYỆT hủy KH (user spec 2026-06-10) — ẩn nút Duyệt
             # khỏi NV (backend action_approve_cancel cũng chặn).
             'is_admin': bool(self.env.user._is_superuser()

@@ -59,8 +59,10 @@ export class VdCrmDashboard extends Component {
             newTodayHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
-            // Trưởng nhóm (không phải manager): mở picker + xem NV CÙNG NHÓM.
+            // Trưởng nhóm (không phải manager): xem dashboard của CHÍNH MÌNH +
+            // bảng NV dưới quyền (cùng phòng ban) để bấm xem từng người.
             is_team_leader: false,
+            team_label: "",
             current_user_id: 0,
             selected_user_id: 0,   // 0 = "all"
             users: [],             // [{id, name, login}] — NV để manager chọn
@@ -269,6 +271,32 @@ export class VdCrmDashboard extends Component {
     // nhóm) → đều được mở picker chọn NV + xem dashboard từng NV.
     get isTeamManager() {
         return this.state.is_manager || this.state.is_team_leader;
+    }
+    // NV dưới quyền trưởng nhóm (loại chính mình ra khỏi bảng "nhân viên dưới quyền").
+    get teamMembers() {
+        return (this.state.users || []).filter(
+            (u) => u.id !== this.state.current_user_id);
+    }
+    // True khi trưởng nhóm đang xem dashboard của 1 NV trong nhóm (không phải của mình).
+    get viewingTeamMember() {
+        return !!(this.state.is_team_leader
+            && this.state.selected_user_id
+            && this.state.selected_user_id !== this.state.current_user_id);
+    }
+
+    // Trưởng nhóm bấm 1 NV trong bảng → xem dashboard của NV đó.
+    async viewTeamUser(userId) {
+        this.state.selected_user_id = userId;
+        this._persistSelectedNv();
+        this.state.nvDetail = null;
+        await this.loadDashboard();
+    }
+    // Quay về dashboard của chính trưởng nhóm.
+    async backToMyDashboard() {
+        this.state.selected_user_id = 0;
+        this._persistSelectedNv();
+        this.state.nvDetail = null;
+        await this.loadDashboard();
     }
     // True khi MANAGER đang xem "Tất cả NV" → render layout admin (menu dọc +
     // tab overview/team toàn công ty). Trưởng nhóm KHÔNG vào layout này (chỉ
