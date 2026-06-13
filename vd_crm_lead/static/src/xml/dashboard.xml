@@ -3233,7 +3233,7 @@
                      viền glow cũ — chỉ chip nhỏ, không nhấp nháy. -->
                 <span t-if="needsCallToday(lead)"
                       class="o_vd_pill_recall"
-                      title="Cần gọi lại HÔM NAY — chưa đủ 3 ngày gọi, hôm nay chưa gọi cuộc nào">⏰</span>
+                      title="Cần gọi lại HÔM NAY — chưa đủ 3 ngày gọi, hôm nay chưa gọi cuộc nào"><i class="fa fa-clock-o"/></span>
 
                 <!-- Badge 💰: đã điền đủ báo giá nhưng CHƯA bấm CHỐT (user spec
                      2026-06-11). Nằm yên trong vùng của nó — nhắc NV bấm CHỐT để

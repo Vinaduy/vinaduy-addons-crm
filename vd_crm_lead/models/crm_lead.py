@@ -7089,13 +7089,11 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_leads_not_called(self, user_id=None, limit=200):
-        """KH "chưa gọi được" — NV đã cố gắng nhưng KH chưa bao giờ nghe máy.
+        """KH "CHƯA GỌI ĐƯỢC" (user spec 2026-06-13) — số ĐÚNG, đã ĐỔ CHUÔNG nhưng
+        KH KHÔNG NGHE máy, trên ≥3 NGÀY khác nhau (chưa từng nghe máy lần nào).
 
-        Conditions (OR — match 1 trong 2):
-        A) ≥3 cuộc gọi THUÊ BAO (state='failed') trên ≥3 ngày khác nhau
-        B) Days_since_create ≥ 5 + distinct_days ≥ 3 (NV gọi đủ pace, KH ko bắt)
-
-        Loại trừ: KH đã từng nghe máy (had_success=True).
+        KH thuê bao/sai số THUẦN (chưa từng đổ chuông) KHÔNG ở đây — bị HỦY tự
+        động (xem _vd_auto_trash_no_answer_leads). KH đã nghe máy cũng loại.
         """
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
         candidates = self.search(
@@ -7165,48 +7163,20 @@ class CrmLead(models.Model):
             )
             if had_success:
                 continue
-            # User spec 2026-06-09: KH đã ĐỔ CHUÔNG (số đúng, máy reo) nhưng không
-            # bắt máy → KHÔNG còn coi là "chưa gọi được" (số sai/thuê bao). Đẩy về
-            # KHÁCH MỚI để chuyển kênh (kết bạn Zalo). "Chưa gọi được" CHỈ còn KH
-            # toàn 'failed' (thuê bao/sai số). reached = có cuộc reo/kết nối.
-            reached = any(
-                c.get('state') in ('answered', 'ended', 'no_answer', 'busy', 'declined')
-                for c in lcalls
-            )
-            if reached:
-                continue
-            # Cuộc gọi đầy đủ: thuê bao + ngày khác nhau
-            subscriber_days = set()
-            subscriber_count = 0
+            # User spec 2026-06-13: CHƯA GỌI ĐƯỢC = KH đã ĐỔ CHUÔNG (số ĐÚNG, máy
+            # reo) nhưng KHÔNG NGHE máy, trên ≥3 NGÀY khác nhau. Thuê bao/sai số
+            # THUẦN (chưa từng reo) → HỦY tự động (_vd_auto_trash_no_answer_leads),
+            # KHÔNG nằm ở đây. (Đảo lại logic 2026-06-09.)
             all_days = set()
-            latest_call_dt = None
+            rang = 0          # cuộc ĐỔ CHUÔNG: no_answer / busy / declined
             for c in lcalls:
                 s = c.get('start_time')
                 day = s.date() if s and hasattr(s, 'date') else None
                 if day:
                     all_days.add(day)
-                if s and (latest_call_dt is None or s > latest_call_dt):
-                    latest_call_dt = s
-                if c.get('state') == 'failed':
-                    subscriber_count += 1
-                    if day:
-                        subscriber_days.add(day)
-            # Condition A: 3+ thuê bao trên 3+ ngày
-            cond_a = subscriber_count >= 3 and len(subscriber_days) >= 3
-            # Condition B (user spec 2026-05-27): KH tạo ≥5 ngày + NV gọi ≥3 ngày
-            days_since = (
-                (today - lead.create_date.date()).days
-                if lead.create_date else 0
-            )
-            cond_b = days_since >= 5 and len(all_days) >= 3
-            # Condition C (user spec 2026-05-28): ≥4 ngày khác nhau có cuộc gọi
-            # + đã qua ≥1 giờ kể từ cuộc gọi cuối → auto move sang "CHƯA GỌI ĐƯỢC"
-            cond_c = (
-                len(all_days) >= 4
-                and latest_call_dt is not None
-                and (now_dt - latest_call_dt) >= timedelta(hours=1)
-            )
-            if cond_a or cond_b or cond_c:
+                if c.get('state') in ('no_answer', 'busy', 'declined'):
+                    rang += 1
+            if rang >= 1 and len(all_days) >= 3:
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
@@ -7742,13 +7712,15 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_auto_trash_no_answer_leads(self, domain_user):
-        """Auto-archive KH ở stage 'new' có ≥4 ngày khác nhau gọi nhưng
-        không nghe máy lần nào → chuyển sang stage lost + lý do tự động."""
+        """Auto-HỦY KH stage 'new' bị THUÊ BAO / SAI SỐ (state 'failed') trên ≥3
+        NGÀY khác nhau mà CHƯA TỪNG đổ chuông (số hỏng/sai) → chuyển stage 'lost'
+        (user spec 2026-06-13). KH ĐỔ CHUÔNG nhưng không nghe (số ĐÚNG) KHÔNG bị
+        huỷ — thuộc 'CHƯA GỌI ĐƯỢC' để gọi lại / chuyển kênh."""
         candidates = self.search(
             domain_user + [
                 ('stage_id.code', '=', 'new'),
                 ('active', '=', True),
-                ('call_count', '>=', 4),
+                ('call_count', '>=', 3),
             ],
         )
         if not candidates:
@@ -7756,14 +7728,16 @@ class CrmLead(models.Model):
         stats = self._dashboard_compute_call_stats(candidates)
         to_archive_ids = [
             lid for lid, s in stats.items()
-            if s.get('days_no_answer', 0) >= 4 and s.get('answered', 0) == 0
+            if s.get('answered', 0) == 0
+            and s.get('reached_no_answer', 0) == 0      # chưa từng đổ chuông
+            and s.get('distinct_days_subscriber', 0) >= 3   # thuê bao ≥3 ngày
         ]
         if not to_archive_ids:
             return
         lost_stage = self.env['crm.stage'].search([('is_lost', '=', True)], limit=1)
         if not lost_stage:
             return
-        reason = 'Tự động: 4+ ngày khác nhau gọi nhưng KH không nghe máy'
+        reason = 'Tự động: thuê bao/sai số 3+ ngày khác nhau (số hỏng)'
         self.browse(to_archive_ids).with_context(mail_notrack=True).write({
             'stage_id': lost_stage.id,
             'vd_lost_reason': reason,
