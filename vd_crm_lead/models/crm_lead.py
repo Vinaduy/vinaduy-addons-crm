@@ -5945,7 +5945,10 @@ class CrmLead(models.Model):
         # NV có ít nhất 1 lead + TỔNG KH/NV (1 query read_group).
         groups = Lead.read_group([('user_id', '!=', False)], ['user_id'], ['user_id'])
         user_ids_with_lead = {g['user_id'][0] for g in groups if g['user_id']}
-        total_by_user = {g['user_id'][0]: g['__count'] for g in groups if g['user_id']}
+        total_by_user = {
+            g['user_id'][0]: (g.get('user_id_count') or g.get('__count') or 0)
+            for g in groups if g['user_id']
+        }
         # Manager: chỉ NV có lead. Trưởng nhóm: LIỆT KÊ ĐỦ NV trong nhóm (kể cả 0 KH).
         listing = users if is_team_leader else users.filtered(
             lambda u: u.id in user_ids_with_lead)
