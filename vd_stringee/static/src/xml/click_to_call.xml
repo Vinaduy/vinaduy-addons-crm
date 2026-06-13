@@ -8,4 +8,56 @@
         <div t-else="" class="text-muted">(Chưa có file ghi âm)</div>
     </t>
 
+    <!-- ====== BÀN PHÍM GỌI TAY kiểu iPhone (FAB nổi + keypad) ====== -->
+    <t t-name="vd_stringee.DialpadFab">
+        <div class="vd_dialpad_root">
+            <button t-if="!state.open" class="vd_dialpad_fab"
+                    t-on-click="() => this.toggle()"
+                    title="Gọi điện — nhập / dán số">
+                <i class="fa fa-phone"/>
+            </button>
+
+            <div t-if="state.open" class="vd_dialpad_backdrop" t-on-click="() => this.close()"/>
+
+            <div t-if="state.open" class="vd_dialpad_panel">
+                <div class="vd_dp_head">
+                    <span class="vd_dp_title"><i class="fa fa-phone me-1"/> Gọi điện</span>
+                    <button class="vd_dp_close" t-on-click="() => this.close()" title="Đóng">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+
+                <div class="vd_dp_display">
+                    <input type="tel" t-ref="numInput" class="vd_dp_input"
+                           t-att-value="state.number"
+                           t-on-input="(ev) => this.onInput(ev)"
+                           t-on-keydown="(ev) => this.onKeydown(ev)"
+                           placeholder="Nhập / dán số…"/>
+                    <button class="vd_dp_mini" t-on-click="() => this.paste()" title="Dán số">
+                        <i class="fa fa-clipboard"/>
+                    </button>
+                    <button class="vd_dp_mini" t-att-class="state.number ? '' : 'vd_dp_dim'"
+                            t-on-click="() => this.backspace()" title="Xoá 1 số">
+                        <i class="fa fa-long-arrow-left"/>
+                    </button>
+                </div>
+
+                <div class="vd_dp_grid">
+                    <button t-foreach="keys" t-as="k" t-key="k.d" class="vd_dp_key"
+                            t-on-click="() => this.press(k.d)">
+                        <span class="vd_dp_digit"><t t-esc="k.d"/></span>
+                        <span class="vd_dp_letters"><t t-esc="k.s"/></span>
+                    </button>
+                </div>
+
+                <div class="vd_dp_actions">
+                    <button class="vd_dp_call" t-att-disabled="state.calling"
+                            t-on-click="() => this.callNow()" title="Gọi">
+                        <i class="fa fa-phone"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+
 </templates>
