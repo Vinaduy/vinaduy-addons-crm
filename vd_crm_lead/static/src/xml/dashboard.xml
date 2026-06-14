@@ -3115,16 +3115,6 @@
                                                             <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>
                                                     </div>
-                                                    <!-- ⚠️ CẢNH BÁO TỒN ĐỌNG KH MỚI CHƯA GỌI (user spec 2026-06-14):
-                                                         NV vượt ngưỡng quy định → thẻ đỏ để trưởng nhóm đôn đốc. -->
-                                                    <div t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
-                                                         class="o_vd_kh_uncalled_warn"
-                                                         t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
-                                                        <i class="fa fa-exclamation-triangle o_vd_kh_uncalled_ico"/>
-                                                        <span class="o_vd_kh_uncalled_txt">
-                                                            Tồn <b><t t-esc="nv.rem_new_not_called or 0"/></b> KH chưa gọi
-                                                        </span>
-                                                    </div>
                                                     <!-- Popover NHẮC NHỞ render 1 lần ở gốc (.o_vd_crm_dashboard) -->
                                                     <!-- Round 13: bỏ Số tháng + Năng lực. -->
                                                 </div>
@@ -3178,6 +3168,19 @@
                                                             </span>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <!-- ⚠️ CẢNH BÁO TỒN KH MỚI CHƯA GỌI (user spec 2026-06-14):
+                                                     1 thẻ metric CÙNG DÒNG NV, nằm GIỮA thẻ Tháng và thẻ Khách mới.
+                                                     CHỈ hiện khi NV vượt ngưỡng; NV ok -> ô trống (giữ canh cột). -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_uncalled">
+                                                    <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
+                                                          class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
+                                                          t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
+                                                        <span class="o_vd_kh_metric_ico">⚠️</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">KH chưa gọi</span>
+                                                    </span>
                                                 </div>
 
                                                 <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
