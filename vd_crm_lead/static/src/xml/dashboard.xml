@@ -1358,6 +1358,23 @@
                      ============================================================ -->
                 <div t-else="" class="o_vd_dash_grid">
 
+                    <!-- ===== BẢNG TRƯỞNG NHÓM (full-width, GIỐNG HỆT admin) =====
+                         User spec 2026-06-14: span cả 2 cột (grid-column 1/-1) NẰM TRÊN
+                         sidebar+main để không bị bóp hẹp → đồng nhất với giao diện admin.
+                         Dùng CHUNG template VdKhTeamList. -->
+                    <div t-if="state.is_team_leader" class="o_vd_tl_panel">
+                        <button t-if="viewingTeamMember" class="o_vd_tl_back"
+                                t-on-click="() => this.backToMyDashboard()">
+                            <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
+                        </button>
+                        <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
+                             class="o_vd_analytics o_vd_tl_team_box">
+                            <div class="o_vd_kh_box">
+                                <t t-call="vd_crm_lead.VdKhTeamList"/>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ===== SIDEBAR ===== -->
                     <aside class="o_vd_sidebar_v2">
 
@@ -1550,27 +1567,6 @@
 
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
                     <main class="o_vd_main_v2">
-
-                        <!-- ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (cùng phòng ban) =====
-                             Trưởng nhóm (vd: Trần Mứt Sen) thấy dashboard của CHÍNH MÌNH
-                             bên dưới + bảng này ở trên để bấm xem từng NV trong nhóm. -->
-                        <!-- User spec 2026-06-14: trưởng nhóm dùng CHUNG bảng team của
-                             admin (vd_crm_lead.VdKhTeamList) — admin sửa gì đồng bộ theo.
-                             Backend scope analytics chỉ NV trong nhóm. -->
-                        <div t-if="state.is_team_leader" class="o_vd_tl_panel">
-                            <button t-if="viewingTeamMember" class="o_vd_tl_back"
-                                    t-on-click="() => this.backToMyDashboard()">
-                                <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
-                            </button>
-                            <!-- Bọc class o_vd_analytics để CSS bảng team (scope dưới
-                                 .o_vd_analytics) áp dụng y hệt admin. -->
-                            <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
-                                 class="o_vd_analytics o_vd_tl_team_box">
-                                <div class="o_vd_kh_box">
-                                    <t t-call="vd_crm_lead.VdKhTeamList"/>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
                              quote/negotiate hiển thị trực tiếp ở section "ĐANG XỬ LÝ

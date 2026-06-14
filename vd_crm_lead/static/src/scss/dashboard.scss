@@ -9305,6 +9305,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_tl_panel {
     margin: 0 0 0.85rem;
 }
+/* Bảng team trưởng nhóm span CẢ 2 CỘT của grid (sidebar+main) → full-width,
+   bố cục cột giống HỆT admin, không bị bóp trong khu main hẹp. */
+.o_vd_dash_grid > .o_vd_tl_panel {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
 /* Bảng team (dùng chung admin) trong panel trưởng nhóm — bỏ min-height cao,
    gọn lại vì nằm TRÊN dashboard cá nhân của trưởng nhóm. */
 .o_vd_tl_team_box .o_vd_kh_box {
