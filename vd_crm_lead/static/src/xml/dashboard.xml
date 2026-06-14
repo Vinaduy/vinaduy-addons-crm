@@ -3095,8 +3095,8 @@
                                                  class="o_vd_kh_nv_row">
                                                 <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
-                                                    <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
-                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
+                                                    <div t-att-class="'o_vd_kh_col_name' + (canDrillNv ? ' o_vd_kh_col_name_link' : '')"
+                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + (canDrillNv ? ' — Click để xem dashboard' : '')"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
                                                         <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
                                                              TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->

@@ -438,9 +438,15 @@ export class VdCrmDashboard extends Component {
         this.state.nvDetail = null;
     }
 
+    // Chỉ MANAGER/ADMIN được mở dashboard cá nhân của NV. Trưởng nhóm CHỈ xem
+    // bảng tổng, KHÔNG bao giờ vào trang cá nhân NV (user spec 2026-06-14).
+    get canDrillNv() {
+        return !!this.state.is_manager;
+    }
+
     // Click tên NV trong bảng → switch dashboard sang NV cụ thể đó
     async selectNvFromDashboard(userId) {
-        if (!userId) return;
+        if (!userId || !this.canDrillNv) return;
         this.state.selected_user_id = userId;
         this._persistSelectedNv();
         this.state.nvDetail = null;

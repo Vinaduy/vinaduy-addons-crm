@@ -78,11 +78,27 @@ class StringeeCall(models.Model):
 
     @api.model
     def _vd_resolve_inbound_user(self, caller, callee):
-        """Khách gọi vào → ƯU TIÊN ring NV quản lý KH theo số khách `caller`.
-        Không có lead/owner gọi được → fallback NV gán DID (super)."""
-        lead = self._vd_find_lead_by_phone(caller)
-        if lead and lead.user_id and lead.user_id.active and lead.user_id.stringee_user_id:
-            return lead.user_id
+        """Khách gọi vào → ƯU TIÊN ring NV BÁN HÀNG quản lý KH theo số khách `caller`.
+
+        BUG cũ (2026-06-14): chỉ lấy lead MỚI NHẤT → dính lead rác 'KH Gọi Đến'
+        do public/admin sở hữu (mỗi inbound tự tạo 1 lead) → ring nhầm admin
+        (có stringee_user_id) thay vì NV thật. Sửa: duyệt TẤT CẢ lead trùng số,
+        bỏ qua public/admin/NV chưa cấu hình, lấy NV bán hàng gọi-được mới nhất.
+        Không có → fallback NV gán DID (super)."""
+        digits = re.sub(r'\D', '', caller or '')
+        if len(digits) >= 8:
+            last9 = digits[-9:]
+            sys_g = self.env.ref('base.group_system', raise_if_not_found=False)
+            sale_g = self.env.ref('sales_team.group_sale_salesman', raise_if_not_found=False)
+            leads = self.env['crm.lead'].with_context(active_test=False).search(
+                ['|', ('phone', 'like', last9), ('mobile', 'like', last9)],
+                order='create_date desc')
+            for ld in leads:
+                u = ld.user_id
+                if (u and u.active and u.stringee_user_id and not u.share
+                        and (not sys_g or sys_g not in u.groups_id)
+                        and (not sale_g or sale_g in u.groups_id)):
+                    return u
         return super()._vd_resolve_inbound_user(caller, callee)
 
     def action_open_lead(self):
