@@ -494,6 +494,12 @@ class StringeeController(http.Controller):
             bool(user_hotline),
         )
         if not user.stringee_user_id:
+            # Lazy-backfill (user spec 2026-06-14): user nội bộ cũ / import / tạo
+            # qua đường bỏ qua create() override mà chưa có ID → TỰ SINH vduser_<id>
+            # ngay lúc xin token để LẦN ĐẦU đăng nhập gọi/nhận được luôn, không lỗi.
+            user.sudo()._vd_ensure_stringee_user_id()
+        if not user.stringee_user_id:
+            # Chỉ còn lại share/portal/public (không phải NV) → đúng là không cấp token.
             _logger.warning(
                 "[Stringee user_token] uid=%s login=%s HAS NO stringee_user_id → empty token",
                 user.id, user.login,
