@@ -4118,7 +4118,7 @@
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
         cursor: default;
         padding: 0 4px;
-        .o_vd_today_num { color: #0f172a; font-size: 1.02rem; font-weight: 800; line-height: 1; }
+        .o_vd_today_num { color: #0f172a; font-size: 1.4rem; font-weight: 800; line-height: 1; }
         &:hover { transform: none; }   /* không nhấc cả thẻ — hover ở từng nửa */
     }
     .o_vd_merged_line {
@@ -4149,7 +4149,7 @@
         &:hover { background: rgba(15, 23, 42, 0.07); }   /* hover không đổi kích thước */
     }
     .o_vd_merged_lbl {
-        font-size: 0.55rem;
+        font-size: 0.46rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.2px;
@@ -4160,11 +4160,11 @@
     .o_vd_merged_val {
         display: inline-flex;
         align-items: baseline;
-        gap: 3px;
+        gap: 7px;          /* tách % ra xa số cho thoáng */
         white-space: nowrap;
     }
     .o_vd_merged_pct {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
         color: #15803d;
     }
