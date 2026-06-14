@@ -3137,34 +3137,38 @@
                                                             <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
                                                         </span>
                                                     </div>
-                                                    <!-- THẺ 2: CUỘC GỌI HÔM NAY — 1 dòng: số + ✓ nghe máy + %, báo ĐỎ khi yếu -->
-                                                    <div t-att-class="'o_vd_today_btn o_vd_today_btn_call' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
-                                                         t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                         title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
-                                                            <i class="fa fa-phone o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                            <span class="o_vd_today_ok">
-                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
-                                                                · <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
-                                                            </span>
+                                                    <!-- THẺ 2 (GỘP HÔM NAY + THÁNG, user spec 2026-06-14):
+                                                         1 thẻ trung tính chia đôi — nửa trái HÔM NAY (☀), nửa phải
+                                                         THÁNG (lịch). Icon thay chữ cho gọn. GIỮ 2 popover riêng
+                                                         (hover từng nửa). Khung = ĐÚNG tổng 2 thẻ cũ (grid 1fr 1fr
+                                                         -> 1fr), cao KHÔNG đổi. -->
+                                                    <div class="o_vd_today_btn o_vd_today_merged">
+                                                        <span class="o_vd_today_tag o_vd_merged_tag">
+                                                            <i class="fa fa-phone"/> CUỘC GỌI
+                                                            <i class="fa fa-info-circle o_vd_merged_info"/>
                                                         </span>
-                                                    </div>
-                                                    <!-- THẺ 3: CUỘC GỌI THÁNG — hover → bảng thống kê tháng + 20 ghi âm -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_month"
-                                                         t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onRecLeave()"
-                                                         t-att-title="'Cuộc gọi trong tháng: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i class="fa fa-phone o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                            <span class="o_vd_today_ok">
-                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_month_success or 0"/>
-                                                                · <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
+                                                        <span class="o_vd_today_line o_vd_merged_line">
+                                                            <span t-att-class="'o_vd_merged_half o_vd_merged_today' + (isCallTodayWeak(nv) ? ' o_vd_merged_weak' : '')"
+                                                                  t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
+                                                                  t-on-mouseleave="() => this.onTodayCallsLeave()"
+                                                                  t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
+                                                                <i class="fa fa-sun-o o_vd_merged_ico o_vd_merged_ico_today"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                <span class="o_vd_today_ok">
+                                                                    <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
+                                                                    <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
+                                                                </span>
+                                                            </span>
+                                                            <span class="o_vd_merged_div"/>
+                                                            <span class="o_vd_merged_half o_vd_merged_month"
+                                                                  t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                                  t-on-mouseleave="() => this.onRecLeave()"
+                                                                  t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
+                                                                <i class="fa fa-calendar o_vd_merged_ico o_vd_merged_ico_month"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                <span class="o_vd_today_ok">
+                                                                    <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
+                                                                </span>
                                                             </span>
                                                         </span>
                                                     </div>
