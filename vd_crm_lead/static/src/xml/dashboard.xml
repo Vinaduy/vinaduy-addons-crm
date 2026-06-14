@@ -170,7 +170,7 @@
 
             <!-- 🆕 POPOVER KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, render 1
                  lần ở gốc để thoát mọi khung cắt; dính MÉP THẺ NV (newTodayPopStyle). -->
-            <div t-if="state.newTodayHover" class="o_vd_kh_nv_popover o_vd_newtoday_pop"
+            <div t-if="state.newTodayHover" class="o_vd_analytics o_vd_kh_nv_popover o_vd_newtoday_pop"
                  t-attf-style="{{ newTodayPopStyle }}"
                  t-on-mouseenter="() => this.onNewTodayPopEnter()"
                  t-on-mouseleave="() => this.onNewTodayLeave()"
