@@ -51,6 +51,12 @@ export class VdDialpadFab extends Component {
             setTimeout(() => this.inputRef.el && this.inputRef.el.focus(), 60);
         }
     }
+    // Đưa chuột vào nút gọi → tự bật keypad ra (user spec 2026-06-14).
+    openOnHover() {
+        if (this.state.open) return;
+        this.state.open = true;
+        setTimeout(() => this.inputRef.el && this.inputRef.el.focus(), 80);
+    }
     close() { this.state.open = false; }
 
     press(d) {

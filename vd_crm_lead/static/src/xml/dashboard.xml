@@ -1813,28 +1813,11 @@
                              Trưởng nhóm (vd: Trần Mứt Sen) thấy dashboard của CHÍNH MÌNH
                              bên dưới + bảng này ở trên để bấm xem từng NV trong nhóm. -->
                         <div t-if="state.is_team_leader" class="o_vd_tl_panel">
-                            <div class="o_vd_tl_head">
-                                <span class="o_vd_tl_title">
-                                    <i class="fa fa-users me-1"/>
-                                    Nhân viên dưới quyền — Nhóm <t t-esc="state.team_label"/>
-                                    (<t t-esc="teamMembers.length"/>)
-                                </span>
-                                <button t-if="viewingTeamMember" class="o_vd_tl_back"
-                                        t-on-click="() => this.backToMyDashboard()">
-                                    <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
-                                </button>
-                                <span t-else="" class="o_vd_tl_self">Đang xem: dashboard của tôi</span>
-                            </div>
+                            <button t-if="viewingTeamMember" class="o_vd_tl_back"
+                                    t-on-click="() => this.backToMyDashboard()">
+                                <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
+                            </button>
                             <table class="o_vd_tl_table">
-                                <thead>
-                                    <tr>
-                                        <th>Nhân viên</th>
-                                        <th class="o_vd_tl_num">Tổng KH</th>
-                                        <th class="o_vd_tl_num">KH mới chưa gọi</th>
-                                        <th class="o_vd_tl_num">Trạng thái</th>
-                                        <th/>
-                                    </tr>
-                                </thead>
                                 <tbody>
                                     <tr t-foreach="teamMembers" t-as="m" t-key="m.id"
                                         t-att-class="'o_vd_tl_row ' + (state.selected_user_id === m.id ? 'o_active' : '')"

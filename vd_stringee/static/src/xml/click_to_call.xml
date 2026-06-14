@@ -11,8 +11,9 @@
     <!-- ====== BÀN PHÍM GỌI TAY kiểu iPhone (FAB nổi + keypad) ====== -->
     <t t-name="vd_stringee.DialpadFab">
         <div class="vd_dialpad_root">
-            <button t-if="!state.open" class="vd_dialpad_fab"
+            <button t-if="!state.open" class="vd_dialpad_fab vd_dialpad_fab_pulse"
                     t-on-click="() => this.toggle()"
+                    t-on-mouseenter="() => this.openOnHover()"
                     title="Gọi điện — nhập / dán số">
                 <i class="fa fa-phone"/>
             </button>

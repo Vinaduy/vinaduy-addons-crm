@@ -692,6 +692,15 @@
 .vd_dialpad_fab:hover  { transform: scale(1.08); box-shadow: 0 9px 24px rgba(0,0,0,.34); }
 .vd_dialpad_fab:active { transform: scale(.94); }
 
+/* Nháy nháy gây chú ý (user spec 2026-06-14) — vòng sáng xanh lan toả. */
+@keyframes vd_fab_pulse {
+    0%   { box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 0 rgba(31,174,60,.55); }
+    70%  { box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 16px rgba(31,174,60,0); }
+    100% { box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 0 rgba(31,174,60,0); }
+}
+.vd_dialpad_fab_pulse { animation: vd_fab_pulse 1.5s ease-out infinite; }
+.vd_dialpad_fab_pulse:hover { animation: none; }
+
 .vd_dialpad_backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,.32);
     z-index: 1060;
@@ -709,6 +718,14 @@
     z-index: 1061;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
                  "Segoe UI", system-ui, sans-serif;
+    /* Bật ra mềm từ góc nút gọi (user spec 2026-06-14). */
+    transform-origin: bottom right;
+    animation: vd_panel_pop .26s cubic-bezier(.18, .89, .32, 1.28);
+}
+@keyframes vd_panel_pop {
+    0%   { opacity: 0; transform: translateY(14px) scale(.80); }
+    60%  { opacity: 1; transform: translateY(-2px) scale(1.03); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .vd_dp_head {
