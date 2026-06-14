@@ -3149,18 +3149,23 @@
                                                             <span t-att-class="'o_vd_merged_half o_vd_merged_today' + (isCallTodayWeak(nv) ? ' o_vd_merged_weak' : '')"
                                                                   t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
                                                                   t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                                  t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + ' (' + answeredPct(nv.calls_today_total, nv.calls_today_success) + '%). Đưa chuột xem chi tiết.'">
-                                                                <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
-                                                                <i class="fa fa-sun-o o_vd_merged_ico o_vd_merged_ico_today"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                  t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
+                                                                <span class="o_vd_merged_lbl">Hôm nay</span>
+                                                                <span class="o_vd_merged_val">
+                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                    <span class="o_vd_merged_pct"><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
+                                                                </span>
                                                             </span>
                                                             <span class="o_vd_merged_div"/>
                                                             <span class="o_vd_merged_half o_vd_merged_month"
                                                                   t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
                                                                   t-on-mouseleave="() => this.onRecLeave()"
-                                                                  t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + ' (' + answeredPct(nv.calls_month_total, nv.calls_month_success) + '%). Đưa chuột xem thống kê + ghi âm.'">
-                                                                <i class="fa fa-calendar o_vd_merged_ico o_vd_merged_ico_month"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                  t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
+                                                                <span class="o_vd_merged_lbl">Tháng</span>
+                                                                <span class="o_vd_merged_val">
+                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                    <span class="o_vd_merged_pct"><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
+                                                                </span>
                                                             </span>
                                                         </span>
                                                     </div>
