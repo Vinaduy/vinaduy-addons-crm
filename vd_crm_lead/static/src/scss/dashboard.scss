@@ -4108,6 +4108,32 @@
     }
     .o_vd_today_warn_ico { color: #e11d48; font-size: 0.78rem; }
 
+    /* ⚠️ Thẻ cảnh báo NV tồn KH mới chưa gọi (team table) — để trưởng nhóm đôn đốc */
+    .o_vd_kh_uncalled_warn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 3px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 1px solid #f87171;
+        color: #b91c1c;
+        font-size: 0.66rem;
+        font-weight: 700;
+        line-height: 1.2;
+        max-width: 100%;
+        box-shadow: 0 1px 2px rgba(185, 28, 28, 0.18);
+        animation: vd-uncalled-pulse 1.8s ease-in-out infinite;
+        b { font-size: 0.8rem; }
+    }
+    .o_vd_kh_uncalled_ico { font-size: 0.7rem; flex: 0 0 auto; }
+    .o_vd_kh_uncalled_txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    @keyframes vd-uncalled-pulse {
+        0%, 100% { box-shadow: 0 1px 2px rgba(185, 28, 28, 0.18); }
+        50%      { box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.28); }
+    }
+
     /* ===== THẺ GỘP CUỘC GỌI (Hôm nay | Tháng) — nền trung tính, ít màu =====
        Giữ ĐÚNG khung 1 thẻ (tag + 1 dòng). Chia đôi bằng vạch dọc; mỗi nửa là
        1 vùng hover riêng (cursor:help) → popover cũ. Icon ☀ = hôm nay, lịch =

@@ -3115,6 +3115,16 @@
                                                             <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>
                                                     </div>
+                                                    <!-- ⚠️ CẢNH BÁO TỒN ĐỌNG KH MỚI CHƯA GỌI (user spec 2026-06-14):
+                                                         NV vượt ngưỡng quy định → thẻ đỏ để trưởng nhóm đôn đốc. -->
+                                                    <div t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
+                                                         class="o_vd_kh_uncalled_warn"
+                                                         t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
+                                                        <i class="fa fa-exclamation-triangle o_vd_kh_uncalled_ico"/>
+                                                        <span class="o_vd_kh_uncalled_txt">
+                                                            Tồn <b><t t-esc="nv.rem_new_not_called or 0"/></b> KH chưa gọi
+                                                        </span>
+                                                    </div>
                                                     <!-- Popover NHẮC NHỞ render 1 lần ở gốc (.o_vd_crm_dashboard) -->
                                                     <!-- Round 13: bỏ Số tháng + Năng lực. -->
                                                 </div>
@@ -3185,13 +3195,18 @@
                                                     <t t-set="cellWhich" t-value="'new'"/>
                                                     <t t-set="cellLocked" t-value="nv.lock_new"/>
                                                     <t t-call="vd_crm_lead.OverviewLockMini"/>
+                                                    <!-- User spec 2026-06-14: hover hiện KH mới HÔM NAY (không phải
+                                                         toàn bộ) — đúng việc cần đôn đốc trong ngày. -->
                                                     <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
-                                                            🆕 KHÁCH MỚI - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.new_count"/>)
+                                                            🆕 KHÁCH MỚI HÔM NAY - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.new_today_count or 0"/>)
                                                         </div>
                                                         <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
+                                                            <div t-if="!nv.new_today_count" class="o_vd_kh_popover_empty">
+                                                                Hôm nay chưa có khách mới
+                                                            </div>
+                                                            <div t-foreach="nv.new_today_leads or []" t-as="ld" t-key="ld.lead_id"
                                                                  class="o_vd_kh_lead_item"
                                                                  t-on-click="() => this.openLead(ld.lead_id)">
                                                                 <div class="o_vd_kh_lead_main">

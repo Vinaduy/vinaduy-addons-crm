@@ -8990,11 +8990,17 @@ class CrmLead(models.Model):
                     'detail': 'Review chất lượng SĐT / ad creative — đang đốt tiền không ra deal.',
                 })
 
+        # Ngưỡng KH mới CHƯA gọi (user spec 2026-06-14): NV vượt ngưỡng -> hiện thẻ
+        # cảnh báo ở dòng NV để trưởng nhóm đôn đốc. Dùng chung config với KHOÁ.
+        uncalled_new_threshold = int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.uncalled_new_lock_threshold', 15) or 15)
+
         return {
             'date_from': d_from.isoformat(),
             'date_to': d_to.isoformat(),
             'generated_at': now.isoformat(),
             'kpi': kpi,
+            'uncalled_new_threshold': uncalled_new_threshold,
             'kh_moi_by_team': kh_moi_by_team,
             'kh_van_de_by_team': kh_van_de_by_team,
             'kh_by_team': kh_by_team,
