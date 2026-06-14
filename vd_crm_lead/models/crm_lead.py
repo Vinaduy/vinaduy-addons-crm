@@ -8097,6 +8097,15 @@ class CrmLead(models.Model):
         sales_users = ResUsers.search(_sale_dom)
         sales_user_ids = sales_users.ids
 
+        # User spec 2026-06-14: ĐỒNG BỘ số liệu giữa trưởng nhóm và admin. Mọi tính
+        # toán bên dưới chạy SUDO → số KHÔNG phụ thuộc record-rule người xem (admin
+        # full quyền vs trưởng nhóm). An toàn vì phạm vi đã giới hạn ở sales_user_ids
+        # (admin = toàn cty; trưởng nhóm = NV trong nhóm).
+        self = self.sudo()
+        # NV có phân quyền TRƯỞNG NHÓM (để thẻ tên hiển thị kiểu cao cấp + lên đầu).
+        _tl_group = self.env.ref('vd_crm_lead.vd_crm_group_team_leader', raise_if_not_found=False)
+        _tl_user_ids = set(_tl_group.sudo().users.ids) if _tl_group else set()
+
         def _short_name(name):
             return re.sub(r'^[A-ZĐ]+\d*\s*[-–—]\s*', '', name or '') or (name or 'NV')
 
@@ -8654,7 +8663,9 @@ class CrmLead(models.Model):
                 )
             result = []
             for team in order:
-                nvs = sorted(buckets[team], key=lambda x: -_item_total(x))
+                # Trưởng nhóm LÊN ĐẦU (user spec 2026-06-14), còn lại theo tổng giảm dần.
+                nvs = sorted(buckets[team],
+                             key=lambda x: (0 if x.get('is_team_leader') else 1, -_item_total(x)))
                 result.append({
                     'team': team,
                     'color': TEAM_COLOR.get(team, '#6c757d'),
@@ -8920,6 +8931,7 @@ class CrmLead(models.Model):
                 'user_id': u.id,
                 'name': _short_name(u.name),
                 'full_name': u.name,
+                'is_team_leader': u.id in _tl_user_ids,
                 'team': self._vd_team_label_for(u),
                 'work_months': u.vd_work_months or 0,
                 'capacity_level': u.vd_capacity_level or 'junior',

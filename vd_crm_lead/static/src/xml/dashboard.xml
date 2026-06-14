@@ -3087,19 +3087,22 @@
                                             <!-- NV rows (không có header per team — header chung
                                                  ở Box head 'Đã xong / Đang xử lý / KH mới') -->
                                             <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
-                                                 class="o_vd_kh_nv_row">
+                                                 t-att-class="'o_vd_kh_nv_row' + (nv.is_team_leader ? ' o_vd_kh_nv_row_leader' : '')">
                                                 <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
-                                                    <div t-att-class="'o_vd_kh_col_name' + (canDrillNv ? ' o_vd_kh_col_name_link' : '')"
-                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + (canDrillNv ? ' — Click để xem dashboard' : '')"
+                                                    <div t-att-class="'o_vd_kh_col_name o_vd_kh_col_name_link' + (canDrillNv ? '' : ' o_vd_kh_name_noclick') + (nv.is_team_leader ? ' o_vd_kh_col_name_leader' : '')"
+                                                         t-att-title="nv.full_name + (nv.is_team_leader ? ' — TRƯỞNG NHÓM' : '') + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + (canDrillNv ? ' — Click để xem dashboard' : '')"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
                                                         <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
                                                              TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->
-                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
+                                                        <span class="o_vd_kh_nv_avatar"><i t-att-class="nv.is_team_leader ? 'fa fa-shield' : 'fa fa-user-circle'"/></span>
                                                         <span class="o_vd_kh_nv_link_name"
                                                               t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
                                                               t-on-mouseleave="() => this.onRecLeave()">
                                                             <t t-esc="nv.name"/>
+                                                        </span>
+                                                        <span t-if="nv.is_team_leader" class="o_vd_kh_leader_badge">
+                                                            <i class="fa fa-star"/> Trưởng nhóm
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
                                                         <span class="o_vd_kh_nv_total"

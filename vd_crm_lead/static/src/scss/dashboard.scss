@@ -3706,6 +3706,51 @@
             box-shadow: 0 3px 10px -3px rgba(99, 102, 241, 0.35);
         }
     }
+    /* Trưởng nhóm KHÔNG được bấm vào trang cá nhân NV → giữ pill nhưng bỏ con trỏ
+       + bỏ hiệu ứng hover đổi nền (user spec 2026-06-14). */
+    .o_vd_kh_name_noclick {
+        cursor: default;
+        &:hover {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-color: #c7d2fe;
+            box-shadow: 0 1px 2px rgba(99, 102, 241, 0.12);
+        }
+    }
+    /* ===== THẺ TÊN TRƯỞNG NHÓM — vàng kim, đẳng cấp hơn NV thường ===== */
+    .o_vd_kh_col_name_leader {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffe9a8 100%) !important;
+        border-color: #f1c40f !important;
+        border-left-color: #d4a017 !important;
+        box-shadow: 0 2px 10px -2px rgba(212, 160, 23, 0.45) !important;
+        .o_vd_kh_nv_avatar { color: #b8860b; }
+        .o_vd_kh_nv_link_name { color: #6b4e00; font-weight: 800; }
+        &:hover {
+            background: linear-gradient(135deg, #ffe9a8 0%, #ffd95e 100%) !important;
+            border-color: #d4a017 !important;
+        }
+    }
+    .o_vd_kh_leader_badge {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #f6c343 0%, #d4a017 100%);
+        color: #4a3600;
+        font-size: 0.56rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(212, 160, 23, 0.4);
+        i.fa { font-size: 0.56rem; }
+    }
+    /* Hàng trưởng nhóm: nền nhấn nhẹ vàng để nổi bật trên cùng nhóm */
+    .o_vd_kh_nv_row_leader {
+        background: linear-gradient(90deg, rgba(241, 196, 15, 0.10), rgba(241, 196, 15, 0) 45%);
+        border-radius: 8px;
+    }
     .o_vd_kh_nv_avatar {
         flex-shrink: 0;
         display: inline-flex;
