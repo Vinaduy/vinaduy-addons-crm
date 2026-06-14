@@ -220,6 +220,11 @@ export class VdCrmDashboard extends Component {
                 if (this.isAdminView && this.state.adminTab === 'overview') {
                     await this.loadAnalytics();
                 }
+                // Trưởng nhóm: tải analytics (scope NV trong nhóm ở backend) để
+                // render CHUNG bảng team của admin (VdKhTeamList) — đồng bộ giao diện.
+                if (this.state.is_team_leader) {
+                    await this.loadAnalytics();
+                }
             }
         });
     }

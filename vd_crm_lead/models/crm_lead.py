@@ -8045,8 +8045,14 @@ class CrmLead(models.Model):
         """Insight payload cho admin dashboard — thay charts bằng list/table actionable.
         Chỉ manager được gọi.
         """
-        if not self._dashboard_is_manager():
-            raise UserError(_('Chỉ Manager / Admin được xem analytics dashboard.'))
+        # Manager (toàn cty) HOẶC trưởng nhóm (scope NV trong nhóm) — trưởng nhóm
+        # dùng CHUNG bảng team của admin (user spec 2026-06-14).
+        _is_mgr = self._dashboard_is_manager()
+        _is_tl = self._dashboard_is_team_leader()
+        if not _is_mgr and not _is_tl:
+            raise UserError(_('Chỉ Manager / Admin / Trưởng nhóm được xem analytics dashboard.'))
+        # Trưởng nhóm: chỉ NV cùng phòng ban (gồm chính họ).
+        _tl_member_ids = self._dashboard_team_member_ids() if (_is_tl and not _is_mgr) else None
 
         from datetime import timedelta as _td
         from collections import defaultdict, Counter
@@ -8086,6 +8092,8 @@ class CrmLead(models.Model):
             _sale_dom.append(('groups_id', 'not in', _mgr_g.id))
         if _sys_g:
             _sale_dom.append(('groups_id', 'not in', _sys_g.id))
+        if _tl_member_ids is not None:
+            _sale_dom.append(('id', 'in', _tl_member_ids))
         sales_users = ResUsers.search(_sale_dom)
         sales_user_ids = sales_users.ids
 

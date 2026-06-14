@@ -14,13 +14,16 @@
             <button t-if="!state.open" class="vd_dialpad_fab vd_dialpad_fab_pulse"
                     t-on-click="() => this.toggle()"
                     t-on-mouseenter="() => this.openOnHover()"
+                    t-on-mouseleave="() => this.onHoverLeave()"
                     title="Gọi điện — nhập / dán số">
                 <i class="fa fa-phone"/>
             </button>
 
             <div t-if="state.open" class="vd_dialpad_backdrop" t-on-click="() => this.close()"/>
 
-            <div t-if="state.open" class="vd_dialpad_panel">
+            <div t-if="state.open" class="vd_dialpad_panel"
+                 t-on-mouseenter="() => this.onHoverEnter()"
+                 t-on-mouseleave="() => this.onHoverLeave()">
                 <div class="vd_dp_head">
                     <span class="vd_dp_title"><i class="fa fa-phone me-1"/> Gọi điện</span>
                     <button class="vd_dp_close" t-on-click="() => this.close()" title="Đóng">

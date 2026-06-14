@@ -25,6 +25,9 @@ export class VdDialpadFab extends Component {
         this.inputRef = useRef("numInput");
         this._lookupTimer = null;
         this._lookupSeq = 0;
+        // Mở bằng hover → tự đóng khi rời chuột; mở bằng click → giữ nguyên.
+        this._hoverOpened = false;
+        this._hoverCloseTimer = null;
     }
 
     // iPhone keypad: chữ cái dưới số cho giống bàn phím gọi thật.
@@ -46,7 +49,9 @@ export class VdDialpadFab extends Component {
     }
 
     toggle() {
+        this._cancelHoverClose();
         this.state.open = !this.state.open;
+        this._hoverOpened = false;   // mở bằng click → KHÔNG tự đóng khi rời chuột
         if (this.state.open) {
             setTimeout(() => this.inputRef.el && this.inputRef.el.focus(), 60);
         }
@@ -54,10 +59,32 @@ export class VdDialpadFab extends Component {
     // Đưa chuột vào nút gọi → tự bật keypad ra (user spec 2026-06-14).
     openOnHover() {
         if (this.state.open) return;
+        this._hoverOpened = true;
         this.state.open = true;
         setTimeout(() => this.inputRef.el && this.inputRef.el.focus(), 80);
     }
-    close() { this.state.open = false; }
+    close() {
+        this._cancelHoverClose();
+        this._hoverOpened = false;
+        this.state.open = false;
+    }
+
+    _cancelHoverClose() {
+        if (this._hoverCloseTimer) {
+            clearTimeout(this._hoverCloseTimer);
+            this._hoverCloseTimer = null;
+        }
+    }
+    // Chuột vào lại panel/nút → huỷ lịch đóng (user spec 2026-06-14).
+    onHoverEnter() { this._cancelHoverClose(); }
+    // Rời chuột khỏi panel/nút: chỉ tự đóng nếu mở bằng HOVER và CHƯA nhập số
+    // (đã gõ số / đang gọi thì giữ để khỏi mất thao tác).
+    onHoverLeave() {
+        if (!this._hoverOpened) return;
+        if (this.state.number || this.state.calling) return;
+        this._cancelHoverClose();
+        this._hoverCloseTimer = setTimeout(() => this.close(), 240);
+    }
 
     press(d) {
         if (this.state.number.length >= 15) return;

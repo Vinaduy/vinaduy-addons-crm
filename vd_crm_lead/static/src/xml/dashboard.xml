@@ -560,265 +560,7 @@
                                 <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
                                      Trạng thái) — mỗi thẻ NV đã tự mang nhãn. -->
 
-                                <div class="o_vd_kh_team_list">
-                                    <div t-if="!state.analytics.kh_by_team.length" class="o_vd_kh_empty">
-                                        ✓ Không có dữ liệu KH trong khoảng lọc
-                                    </div>
-                                    <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team"
-                                         class="o_vd_kh_team_group"
-                                         t-att-style="`--team-color:${grp.color}`">
-                                        <div class="o_vd_kh_team_sidebar">
-                                            <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
-                                        </div>
-                                        <div class="o_vd_kh_nv_list">
-                                            <!-- NV rows (không có header per team — header chung
-                                                 ở Box head 'Đã xong / Đang xử lý / KH mới') -->
-                                            <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
-                                                 class="o_vd_kh_nv_row">
-                                                <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
-                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
-                                                    <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
-                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
-                                                         t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                        <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
-                                                             TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->
-                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
-                                                        <span class="o_vd_kh_nv_link_name"
-                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                              t-on-mouseleave="() => this.onRecLeave()">
-                                                            <t t-esc="nv.name"/>
-                                                        </span>
-                                                        <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
-                                                        <span class="o_vd_kh_nv_total"
-                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)"
-                                                              t-on-mouseenter="(ev) => this.onReminderEnter(ev, nv)"
-                                                              t-on-mouseleave="() => this.onReminderLeave()">
-                                                            <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
-                                                            <span class="o_vd_kh_nv_total_unit">Khách</span>
-                                                        </span>
-                                                    </div>
-                                                    <!-- Popover NHẮC NHỞ render 1 lần ở gốc (.o_vd_crm_dashboard) -->
-                                                    <!-- Round 13: bỏ Số tháng + Năng lực. -->
-                                                </div>
-
-                                                <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
-                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
-
-                                                <!-- r14: ô HÔM NAY = 2 NÚT riêng (KH mới | Cuộc gọi),
-                                                     mỗi nút tự mang nhãn "Hôm nay". Popover render ở
-                                                     gốc, định vị theo con trỏ. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
-                                                    <!-- THẺ 1: KHÁCH MỚI HÔM NAY (thu nhỏ) — tag dán mép trên -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_new o_vd_today_btn_sm"
-                                                         t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onNewTodayLeave()"
-                                                         t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i class="fa fa-user-plus o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
-                                                        </span>
-                                                    </div>
-                                                    <!-- THẺ 2: CUỘC GỌI HÔM NAY — 1 dòng: số + ✓ nghe máy + %, báo ĐỎ khi yếu -->
-                                                    <div t-att-class="'o_vd_today_btn o_vd_today_btn_call' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
-                                                         t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                         title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
-                                                            <i class="fa fa-phone o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                            <span class="o_vd_today_ok">
-                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
-                                                                · <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                    <!-- THẺ 3: CUỘC GỌI THÁNG — hover → bảng thống kê tháng + 20 ghi âm -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_month"
-                                                         t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onRecLeave()"
-                                                         t-att-title="'Cuộc gọi trong tháng: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i class="fa fa-phone o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                            <span class="o_vd_today_ok">
-                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_month_success or 0"/>
-                                                                · <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
-                                                <div class="o_vd_kh_trio">
-                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV.
-                                                     User spec 2026-06-11: BỎ ổ khoá cột Khách mới (kiểu
-                                                     việc-hôm-nay, không khoá doạ) — không thêm o_vd_kh_locked. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">🆕</span>
-                                                        <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Khách mới</span>
-                                                    </span>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'new'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_new"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🆕 KHÁCH MỚI - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.new_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">⚡</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.urgent_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Thi công gấp</span>
-                                                    </span>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'urgent'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_urgent"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.urgent_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            ⚡ THI CÔNG GẤP - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.urgent_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.urgent_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- 🛠️ XỬ LÝ VẤN ĐỀ — KH đã chốt báo giá (quote/negotiate) có vấn đề -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">🛠️</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
-                                                    </span>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'xlvd'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_xlvd"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.xlvd_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🛠️ XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.xlvd_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.xlvd_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
-                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                </div><!-- /.o_vd_kh_trio -->
-
-                                                <!-- 🆘 CẦN HỖ TRỢ (cột riêng — tách khỏi Trạng thái) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_help">
-                                                    <div t-if="nv.help_count"
-                                                         t-att-class="'o_vd_sos o_vd_sos_dash ' + (nv.help_waiting ? 'o_vd_sos_waiting' : 'o_vd_sos_helping')">
-                                                        <span class="o_vd_sos_face">SOS</span>
-                                                        <span class="o_vd_sos_dash_count"><t t-esc="nv.help_count"/></span>
-                                                    </div>
-                                                    <span t-else="" class="o_vd_kh_help_none">—</span>
-                                                    <div t-if="nv.help_count" class="o_vd_kh_nv_popover o_vd_kh_help_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🆘 CẦN HỖ TRỢ - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.help_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.help_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 t-att-class="'o_vd_kh_help_item o_vd_kh_help_' + ld.status">
-                                                                <div class="o_vd_kh_help_item_top"
-                                                                     t-on-click="() => this.openLead(ld.lead_id)">
-                                                                    <span t-att-class="'o_vd_kh_help_dot o_vd_kh_help_dot_' + ld.status"/>
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                                    <span t-att-class="'o_vd_kh_help_scope o_vd_kh_help_scope_' + ld.scope">
-                                                                        <t t-if="ld.scope === 'multi'">⏳ Nhiều ngày</t>
-                                                                        <t t-else="">📅 Trong ngày</t>
-                                                                    </span>
-                                                                </div>
-                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
-                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                                    </span>
-                                                                </div>
-                                                                <div class="o_vd_kh_help_actions">
-                                                                    <button t-if="ld.status === 'waiting'"
-                                                                            class="o_vd_help_btn o_vd_help_btn_ack"
-                                                                            t-on-click="(ev) => this.ackHelp(ev, ld.lead_id)">
-                                                                        🟢 Đang hỗ trợ
-                                                                    </button>
-                                                                    <span t-else="" class="o_vd_help_helping_lbl">🟢 Đang hỗ trợ</span>
-                                                                    <button class="o_vd_help_btn o_vd_help_btn_done"
-                                                                            t-on-click="(ev) => this.doneHelp(ev, ld.lead_id)">
-                                                                        ✓ Hoàn tất
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div><!-- /.o_vd_kh_metric_help -->
-
-                                                <!-- 📞 TRẠNG THÁI cuộc gọi LIVE (cột riêng) -->
-                                                <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>
-                                                <div class="o_vd_kh_col_metric o_vd_kh_col_call_status">
-                                                    <span t-if="ci" class="o_vd_call_status o_vd_call_status_on"
-                                                          t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
-                                                        <span class="o_vd_call_status_time"><t t-esc="ci.since_min"/>'</span>
-                                                    </span>
-                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
-                                                          title="NV không có cuộc gọi đang diễn ra">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
-                                                    </span>
-                                                </div>
-                                                </div><!-- /.o_vd_kh_row_group_kh -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <t t-call="vd_crm_lead.VdKhTeamList"/>
                             </div>
 
                             <!-- ============================================================
@@ -1812,37 +1554,22 @@
                         <!-- ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (cùng phòng ban) =====
                              Trưởng nhóm (vd: Trần Mứt Sen) thấy dashboard của CHÍNH MÌNH
                              bên dưới + bảng này ở trên để bấm xem từng NV trong nhóm. -->
+                        <!-- User spec 2026-06-14: trưởng nhóm dùng CHUNG bảng team của
+                             admin (vd_crm_lead.VdKhTeamList) — admin sửa gì đồng bộ theo.
+                             Backend scope analytics chỉ NV trong nhóm. -->
                         <div t-if="state.is_team_leader" class="o_vd_tl_panel">
                             <button t-if="viewingTeamMember" class="o_vd_tl_back"
                                     t-on-click="() => this.backToMyDashboard()">
                                 <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
                             </button>
-                            <table class="o_vd_tl_table">
-                                <tbody>
-                                    <tr t-foreach="teamMembers" t-as="m" t-key="m.id"
-                                        t-att-class="'o_vd_tl_row ' + (state.selected_user_id === m.id ? 'o_active' : '')"
-                                        t-on-click="() => this.viewTeamUser(m.id)">
-                                        <td class="o_vd_tl_name"><t t-esc="m.name"/></td>
-                                        <td class="o_vd_tl_num"><t t-esc="m.total or 0"/></td>
-                                        <td class="o_vd_tl_num"
-                                            t-att-class="'o_vd_tl_num ' + ((m.new_not_called or 0) > 0 ? 'o_vd_tl_warn' : '')">
-                                            <t t-esc="m.new_not_called or 0"/>
-                                        </td>
-                                        <td class="o_vd_tl_num">
-                                            <span t-if="state.activeCalls[m.id]" class="o_vd_tl_calling">
-                                                <i class="fa fa-phone"/> Đang gọi
-                                            </span>
-                                            <span t-else="" class="o_vd_tl_idle">—</span>
-                                        </td>
-                                        <td class="o_vd_tl_act">
-                                            <span class="o_vd_tl_view">
-                                                <t t-if="state.selected_user_id === m.id">Đang xem</t>
-                                                <t t-else="">Xem ›</t>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <!-- Bọc class o_vd_analytics để CSS bảng team (scope dưới
+                                 .o_vd_analytics) áp dụng y hệt admin. -->
+                            <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
+                                 class="o_vd_analytics o_vd_tl_team_box">
+                                <div class="o_vd_kh_box">
+                                    <t t-call="vd_crm_lead.VdKhTeamList"/>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
@@ -1973,9 +1700,12 @@
                             <!-- KHOÁ TOÀN BỘ (user spec 2026-06-12): tồn >ngưỡng KH mới
                                  chưa gọi → banner đỏ trên cùng, chặn mở mọi KH khác. -->
                             <div t-if="uncalledNewLockActive" class="o_vd_global_lock_banner">
-                                <i class="fa fa-lock o_vd_global_lock_ico"/>
+                                <div class="o_vd_global_lock_head">
+                                    <i class="fa fa-lock"/>
+                                    <span class="o_vd_global_lock_head_lbl">KHOÁ</span>
+                                </div>
                                 <div class="o_vd_global_lock_text">
-                                    <div class="o_vd_global_lock_main">KHOÁ TOÀN BỘ — KHÁCH MỚI CHƯA GỌI QUÁ NHIỀU</div>
+                                    <div class="o_vd_global_lock_main">KHÁCH MỚI CHƯA GỌI QUÁ NHIỀU</div>
                                     <div class="o_vd_global_lock_sub">
                                         Còn <b><t t-esc="state.uncalled_new_lock.count"/></b> khách mới <b>CHƯA GỌI</b> cuộc nào
                                         (cần ≤ <b><t t-esc="state.uncalled_new_lock.threshold"/></b>).
@@ -3343,6 +3073,270 @@
                     </t>
                 </div>
         </div>
+    </t>
+
+
+    <!-- ===== BẢNG TEAM (admin = nguồn gốc; trưởng nhóm dùng chung) ===== -->
+    <t t-name="vd_crm_lead.VdKhTeamList">
+                                <div class="o_vd_kh_team_list">
+                                    <div t-if="!state.analytics.kh_by_team.length" class="o_vd_kh_empty">
+                                        ✓ Không có dữ liệu KH trong khoảng lọc
+                                    </div>
+                                    <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team"
+                                         class="o_vd_kh_team_group"
+                                         t-att-style="`--team-color:${grp.color}`">
+                                        <div class="o_vd_kh_team_sidebar">
+                                            <span class="o_vd_kh_team_lbl"><t t-esc="teamFullName(grp.team)"/></span>
+                                        </div>
+                                        <div class="o_vd_kh_nv_list">
+                                            <!-- NV rows (không có header per team — header chung
+                                                 ở Box head 'Đã xong / Đang xử lý / KH mới') -->
+                                            <div t-foreach="grp.nvs" t-as="nv" t-key="nv.user_id"
+                                                 class="o_vd_kh_nv_row">
+                                                <!-- ===== NHÓM 1: Thông tin NV (khung xám) ===== -->
+                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_info">
+                                                    <div class="o_vd_kh_col_name o_vd_kh_col_name_link"
+                                                         t-att-title="nv.full_name + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — Click để xem dashboard'"
+                                                         t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
+                                                        <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
+                                                             TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->
+                                                        <span class="o_vd_kh_nv_avatar"><i class="fa fa-user-circle"/></span>
+                                                        <span class="o_vd_kh_nv_link_name"
+                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onRecLeave()">
+                                                            <t t-esc="nv.name"/>
+                                                        </span>
+                                                        <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
+                                                        <span class="o_vd_kh_nv_total"
+                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)"
+                                                              t-on-mouseenter="(ev) => this.onReminderEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onReminderLeave()">
+                                                            <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
+                                                            <span class="o_vd_kh_nv_total_unit">Khách</span>
+                                                        </span>
+                                                    </div>
+                                                    <!-- Popover NHẮC NHỞ render 1 lần ở gốc (.o_vd_crm_dashboard) -->
+                                                    <!-- Round 13: bỏ Số tháng + Năng lực. -->
+                                                </div>
+
+                                                <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
+                                                <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
+
+                                                <!-- r14: ô HÔM NAY = 2 NÚT riêng (KH mới | Cuộc gọi),
+                                                     mỗi nút tự mang nhãn "Hôm nay". Popover render ở
+                                                     gốc, định vị theo con trỏ. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
+                                                    <!-- THẺ 1: KHÁCH MỚI HÔM NAY (thu nhỏ) — tag dán mép trên -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_new o_vd_today_btn_sm"
+                                                         t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onNewTodayLeave()"
+                                                         t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
+                                                        <span class="o_vd_today_line">
+                                                            <i class="fa fa-user-plus o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
+                                                        </span>
+                                                    </div>
+                                                    <!-- THẺ 2: CUỘC GỌI HÔM NAY — 1 dòng: số + ✓ nghe máy + %, báo ĐỎ khi yếu -->
+                                                    <div t-att-class="'o_vd_today_btn o_vd_today_btn_call' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
+                                                         t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onTodayCallsLeave()"
+                                                         title="Đưa chuột vào để xem chi tiết các cuộc gọi hôm nay">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
+                                                        <span class="o_vd_today_line">
+                                                            <i t-if="isCallTodayWeak(nv)" class="fa fa-exclamation-triangle o_vd_today_warn_ico"/>
+                                                            <i class="fa fa-phone o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                            <span class="o_vd_today_ok">
+                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_today_success or 0"/>
+                                                                · <b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                    <!-- THẺ 3: CUỘC GỌI THÁNG — hover → bảng thống kê tháng + 20 ghi âm -->
+                                                    <div class="o_vd_today_btn o_vd_today_btn_month"
+                                                         t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                         t-on-mouseleave="() => this.onRecLeave()"
+                                                         t-att-title="'Cuộc gọi trong tháng: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0)">
+                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
+                                                        <span class="o_vd_today_line">
+                                                            <i class="fa fa-phone o_vd_today_ico"/>
+                                                            <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                            <span class="o_vd_today_ok">
+                                                                <i class="fa fa-check-circle"/> <t t-esc="nv.calls_month_success or 0"/>
+                                                                · <b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
+                                                <div class="o_vd_kh_trio">
+                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV.
+                                                     User spec 2026-06-11: BỎ ổ khoá cột Khách mới (kiểu
+                                                     việc-hôm-nay, không khoá doạ) — không thêm o_vd_kh_locked. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">🆕</span>
+                                                        <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Khách mới</span>
+                                                    </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'new'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_new"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
+                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            🆕 KHÁCH MỚI - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.new_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.new_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">⚡</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.urgent_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Thi công gấp</span>
+                                                    </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'urgent'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_urgent"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
+                                                    <div t-if="nv.urgent_count" class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            ⚡ THI CÔNG GẤP - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.urgent_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.urgent_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 🛠️ XỬ LÝ VẤN ĐỀ — KH đã chốt báo giá (quote/negotiate) có vấn đề -->
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
+                                                    <span class="o_vd_kh_metric_chip">
+                                                        <span class="o_vd_kh_metric_ico">🛠️</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
+                                                    </span>
+                                                    <t t-set="cellNv" t-value="nv"/>
+                                                    <t t-set="cellWhich" t-value="'xlvd'"/>
+                                                    <t t-set="cellLocked" t-value="nv.lock_xlvd"/>
+                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
+                                                    <div t-if="nv.xlvd_count" class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            🛠️ XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.xlvd_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.xlvd_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 class="o_vd_kh_lead_item"
+                                                                 t-on-click="() => this.openLead(ld.lead_id)">
+                                                                <div class="o_vd_kh_lead_main">
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                </div>
+                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
+                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                </div><!-- /.o_vd_kh_trio -->
+
+                                                <!-- 🆘 CẦN HỖ TRỢ (cột riêng — tách khỏi Trạng thái) -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_help">
+                                                    <div t-if="nv.help_count"
+                                                         t-att-class="'o_vd_sos o_vd_sos_dash ' + (nv.help_waiting ? 'o_vd_sos_waiting' : 'o_vd_sos_helping')">
+                                                        <span class="o_vd_sos_face">SOS</span>
+                                                        <span class="o_vd_sos_dash_count"><t t-esc="nv.help_count"/></span>
+                                                    </div>
+                                                    <span t-else="" class="o_vd_kh_help_none">—</span>
+                                                    <div t-if="nv.help_count" class="o_vd_kh_nv_popover o_vd_kh_help_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            🆘 CẦN HỖ TRỢ - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.help_count"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body">
+                                                            <div t-foreach="nv.help_leads" t-as="ld" t-key="ld.lead_id"
+                                                                 t-att-class="'o_vd_kh_help_item o_vd_kh_help_' + ld.status">
+                                                                <div class="o_vd_kh_help_item_top"
+                                                                     t-on-click="() => this.openLead(ld.lead_id)">
+                                                                    <span t-att-class="'o_vd_kh_help_dot o_vd_kh_help_dot_' + ld.status"/>
+                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
+                                                                    <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
+                                                                    <span t-att-class="'o_vd_kh_help_scope o_vd_kh_help_scope_' + ld.scope">
+                                                                        <t t-if="ld.scope === 'multi'">⏳ Nhiều ngày</t>
+                                                                        <t t-else="">📅 Trong ngày</t>
+                                                                    </span>
+                                                                </div>
+                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
+                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
+                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
+                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="o_vd_kh_help_actions">
+                                                                    <button t-if="ld.status === 'waiting'"
+                                                                            class="o_vd_help_btn o_vd_help_btn_ack"
+                                                                            t-on-click="(ev) => this.ackHelp(ev, ld.lead_id)">
+                                                                        🟢 Đang hỗ trợ
+                                                                    </button>
+                                                                    <span t-else="" class="o_vd_help_helping_lbl">🟢 Đang hỗ trợ</span>
+                                                                    <button class="o_vd_help_btn o_vd_help_btn_done"
+                                                                            t-on-click="(ev) => this.doneHelp(ev, ld.lead_id)">
+                                                                        ✓ Hoàn tất
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div><!-- /.o_vd_kh_metric_help -->
+
+                                                <!-- 📞 TRẠNG THÁI cuộc gọi LIVE (cột riêng) -->
+                                                <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>
+                                                <div class="o_vd_kh_col_metric o_vd_kh_col_call_status">
+                                                    <span t-if="ci" class="o_vd_call_status o_vd_call_status_on"
+                                                          t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
+                                                        <span class="o_vd_call_status_time"><t t-esc="ci.since_min"/>'</span>
+                                                    </span>
+                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
+                                                          title="NV không có cuộc gọi đang diễn ra">
+                                                        <span class="o_vd_call_status_dot"/>
+                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
+                                                    </span>
+                                                </div>
+                                                </div><!-- /.o_vd_kh_row_group_kh -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
     </t>
 
 </templates>

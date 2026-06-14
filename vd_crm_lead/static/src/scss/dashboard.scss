@@ -8807,22 +8807,46 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 
 /* KHOÁ TOÀN BỘ — banner đỏ nổi bật trên cùng (user spec 2026-06-12) */
+/* User spec 2026-06-14: banner = HÀNG ĐẦU của bảng KHÁCH MỚI — cột trái 150px
+   (đầu "KHOÁ" ngắn, đỏ đặc giống ô header cột) + nội dung bên phải, dính liền
+   đỉnh bảng (bo góc trên, không cách dưới) → cảm giác NẰM TRONG bảng. */
 .o_vd_global_lock_banner {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    /* User spec 2026-06-14: dính vào ĐỈNH bảng KHÁCH MỚI (bo góc trên,
-       không khoảng cách dưới) — như header của bảng. */
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    align-items: stretch;
+    gap: 0;
     margin: 0;
-    padding: 0.7rem 1rem;
+    padding: 0;
     border: 2px solid #e03131;
     border-bottom: none;
     border-radius: 12px 12px 0 0;
+    overflow: hidden;
     background: linear-gradient(135deg, #fff0f0 0%, #ffe3e3 100%);
     box-shadow: 0 6px 18px rgba(224, 49, 49, 0.22);
     animation: vd-global-lock-pulse 1.6s ease-in-out infinite;
+
+    @media (max-width: 720px) {
+        grid-template-columns: 1fr;
+    }
+}
+/* Đầu trái NGẮN — khớp cột 150px của bảng (giống ô header "Khách mới" bên dưới) */
+.o_vd_global_lock_head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.55rem 0.5rem;
+    background: linear-gradient(135deg, #fa5252 0%, #e03131 100%);
+    color: #fff;
+    text-align: center;
+    i.fa { font-size: 1.5rem; }
+}
+.o_vd_global_lock_head_lbl {
+    font-size: 1.05rem; font-weight: 900; letter-spacing: 0.06em;
 }
 .o_vd_global_lock_ico { font-size: 1.85rem; color: #c92a2a; flex: 0 0 auto; }
+.o_vd_global_lock_text { padding: 0.55rem 1rem; align-self: center; }
 .o_vd_global_lock_main {
     font-size: 1rem; font-weight: 900; color: #c92a2a; letter-spacing: 0.02em;
 }
@@ -9197,12 +9221,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 /* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) =====
    Gọn: bỏ tiêu đề + tên cột; sát các bảng quanh nó. */
 .o_vd_tl_panel {
-    background: #fff;
-    border: 1px solid #e4e7ec;
-    border-radius: 10px;
-    padding: 4px 10px;
-    margin: 0;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, .05);
+    margin: 0 0 0.85rem;
+}
+/* Bảng team (dùng chung admin) trong panel trưởng nhóm — bỏ min-height cao,
+   gọn lại vì nằm TRÊN dashboard cá nhân của trưởng nhóm. */
+.o_vd_tl_team_box .o_vd_kh_box {
+    min-height: auto;
+    padding: 0.6rem 0.7rem;
 }
 .o_vd_tl_back {
     display: inline-flex; align-items: center;
