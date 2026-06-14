@@ -3588,9 +3588,10 @@
         }
     }
     .o_vd_kh_row_group_kh {
-        /* 4 super-cột — 3 THẺ thống kê | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
-           2026-06-05: nới cột thống kê (3.4fr) để mỗi thẻ đủ 1 dòng, không wrap. */
-        grid-template-columns: 2.9fr 2.9fr 0.8fr 1.1fr;
+        /* 4 super-cột — [KH mới + thẻ Gọi] | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
+           User spec 2026-06-14: thu ngắn cột thẻ gọi (2.9fr -> 1.5fr) vì đã gộp +
+           bỏ tiêu đề + đẩy % vào tooltip. */
+        grid-template-columns: 1.5fr 2.9fr 0.8fr 1.1fr;
         background: transparent;
         align-items: stretch;
         grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
@@ -3987,10 +3988,10 @@
         border-radius: 0;
         padding: 0 !important;
         display: grid !important;
-        /* User spec 2026-06-14: GỘP 2 thẻ gọi (Hôm nay + Tháng) -> 1 cột 1fr.
-           Tổng chiều rộng & chiều cao GIỮ NGUYÊN (1fr 1fr + gap = 1fr mới). */
-        grid-template-columns: 66px 1fr;
-        gap: 0.4rem;
+        /* User spec 2026-06-14: GỘP 2 thẻ gọi -> 1 cột; thu KH mới còn 56px cho
+           thẻ gọi gọn lại (cột super đã giảm 2.9fr->1.5fr). */
+        grid-template-columns: 56px 1fr;
+        gap: 0.3rem;
         align-items: stretch;
     }
     .o_vd_today_btn {
@@ -4116,19 +4117,21 @@
         border-color: #cbd5e1;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
         cursor: default;
-        .o_vd_today_num { color: #0f172a; font-size: 1.22rem; }
-        .o_vd_today_ok  { color: #15803d; }
+        padding: 0 5px;
+        .o_vd_today_num { color: #0f172a; font-size: 1.18rem; }
         &:hover { transform: none; }   /* không nhấc cả thẻ — hover ở từng nửa */
     }
-    .o_vd_merged_tag {
-        background: #64748b;
-        color: #fff;
-        i.fa { font-size: 0.52rem; }
-    }
-    .o_vd_merged_info { opacity: 0.85; margin-left: 1px; }
     .o_vd_merged_line {
-        gap: 0;
-        padding: 0 1px;
+        gap: 3px;
+        padding: 0;
+        height: 100%;
+    }
+    /* Icon ☎ TO ở đầu thẻ — nhận diện "đây là cuộc gọi" */
+    .o_vd_merged_phone {
+        flex: 0 0 auto;
+        font-size: 1.4rem;
+        color: #0369a1;
+        margin-right: 1px;
     }
     .o_vd_merged_half {
         flex: 1 1 0;
@@ -4148,16 +4151,16 @@
         flex: 0 0 auto;
         width: 1px;
         align-self: stretch;
-        margin: 3px 1px;
+        margin: 4px 0;
         background: rgba(15, 23, 42, 0.16);
     }
-    .o_vd_merged_ico { flex: 0 0 auto; font-size: 0.95rem; }
+    .o_vd_merged_ico { flex: 0 0 auto; font-size: 0.9rem; }
     .o_vd_merged_ico_today { color: #f59e0b; }   /* mặt trời = HÔM NAY */
     .o_vd_merged_ico_month { color: #0d9488; }   /* lịch = THÁNG */
     /* Nửa HÔM NAY yếu → CHỈ tô nửa đó đỏ nhạt (không cả thẻ) cho dịu mắt */
     .o_vd_merged_weak {
         background: rgba(225, 29, 72, 0.09);
-        .o_vd_today_num, .o_vd_merged_ico_today, .o_vd_today_ok { color: #be123c; }
+        .o_vd_today_num, .o_vd_merged_ico_today { color: #be123c; }
         &:hover { background: rgba(225, 29, 72, 0.15); }
     }
     /* ===== Card BÁO CÁO CUỘC GỌI — sidebar trang cá nhân NV (2026-06-08) =====
