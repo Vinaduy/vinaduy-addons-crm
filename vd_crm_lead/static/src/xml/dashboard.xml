@@ -1358,23 +1358,6 @@
                      ============================================================ -->
                 <div t-else="" class="o_vd_dash_grid">
 
-                    <!-- ===== BẢNG TRƯỞNG NHÓM (full-width, GIỐNG HỆT admin) =====
-                         User spec 2026-06-14: span cả 2 cột (grid-column 1/-1) NẰM TRÊN
-                         sidebar+main để không bị bóp hẹp → đồng nhất với giao diện admin.
-                         Dùng CHUNG template VdKhTeamList. -->
-                    <div t-if="state.is_team_leader" class="o_vd_tl_panel">
-                        <button t-if="viewingTeamMember" class="o_vd_tl_back"
-                                t-on-click="() => this.backToMyDashboard()">
-                            <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
-                        </button>
-                        <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
-                             class="o_vd_analytics o_vd_tl_team_box">
-                            <div class="o_vd_kh_box">
-                                <t t-call="vd_crm_lead.VdKhTeamList"/>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- ===== SIDEBAR ===== -->
                     <aside class="o_vd_sidebar_v2">
 
@@ -1567,6 +1550,22 @@
 
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
                     <main class="o_vd_main_v2">
+
+                        <!-- ===== BẢNG TRƯỞNG NHÓM (như cũ: trong main, logo giữ góc trái) =====
+                             User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
+                             trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
+                        <div t-if="state.is_team_leader" class="o_vd_tl_panel">
+                            <button t-if="viewingTeamMember" class="o_vd_tl_back"
+                                    t-on-click="() => this.backToMyDashboard()">
+                                <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
+                            </button>
+                            <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
+                                 class="o_vd_analytics o_vd_tl_team_box">
+                                <div class="o_vd_kh_box">
+                                    <t t-call="vd_crm_lead.VdKhTeamList"/>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
                              quote/negotiate hiển thị trực tiếp ở section "ĐANG XỬ LÝ
