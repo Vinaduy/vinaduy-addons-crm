@@ -4112,75 +4112,39 @@
        Giữ ĐÚNG khung 1 thẻ (tag + 1 dòng). Chia đôi bằng vạch dọc; mỗi nửa là
        1 vùng hover riêng (cursor:help) → popover cũ. Icon ☀ = hôm nay, lịch =
        tháng → nhìn cái biết ngay, không cần chữ. */
-    .o_vd_today_merged {
-        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-        border-color: #cbd5e1;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
-        cursor: default;
-        padding: 0 4px;
-        .o_vd_today_num { color: #0f172a; font-size: 1.4rem; font-weight: 800; line-height: 1; }
-        &:hover { transform: none; }   /* không nhấc cả thẻ — hover ở từng nửa */
-    }
-    .o_vd_merged_line {
-        gap: 3px;
-        padding: 0;
-        height: 100%;
-    }
-    /* Icon ☎ TO ở đầu thẻ — nhận diện "đây là cuộc gọi" */
-    .o_vd_merged_phone {
-        flex: 0 0 auto;
-        font-size: 1.35rem;
-        color: #0369a1;
-        margin-right: 1px;
-    }
-    /* Mỗi nửa: nhãn (Hôm nay / Tháng) TRÊN — số · % DƯỚI → hẹp ngang, rõ nghĩa */
-    .o_vd_merged_half {
-        flex: 1 1 0;
-        min-width: 0;
-        height: 100%;
+    /* ===== GỘP 1 THẺ — 2 nửa màu gốc (Hôm nay xanh | Tháng lá) nối liền =====
+       Giữ nguyên giao diện gốc (ribbon màu + icon ☎ + số to + %), chỉ nối 2 thẻ
+       vào 1 khung chung + vạch ngăn. Cột đã ngắn (1.2fr) nên thu nhỏ nội dung. */
+    .o_vd_today_callpair {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        cursor: help;
-        border-radius: 6px;
-        transition: background .12s ease;
-        &:hover { background: rgba(15, 23, 42, 0.07); }   /* hover không đổi kích thước */
-    }
-    .o_vd_merged_lbl {
-        font-size: 0.46rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.2px;
-        color: #64748b;
-        line-height: 1;
-        white-space: nowrap;
-    }
-    .o_vd_merged_val {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 7px;          /* tách % ra xa số cho thoáng */
-        white-space: nowrap;
-    }
-    .o_vd_merged_pct {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #15803d;
-    }
-    /* Vạch dọc ngăn 2 nửa — vẽ trong luồng, không phình thẻ */
-    .o_vd_merged_div {
-        flex: 0 0 auto;
-        width: 1px;
-        align-self: stretch;
-        margin: 4px 0;
-        background: rgba(15, 23, 42, 0.16);
-    }
-    /* Nửa HÔM NAY yếu → CHỈ tô nửa đó đỏ nhạt (không cả thẻ) cho dịu mắt */
-    .o_vd_merged_weak {
-        background: rgba(225, 29, 72, 0.09);
-        .o_vd_today_num, .o_vd_merged_pct { color: #be123c; }
-        &:hover { background: rgba(225, 29, 72, 0.15); }
+        height: 100%;
+        border-radius: 8px;
+        border: 1.5px solid #cbd5e1;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
+
+        .o_vd_today_num { font-size: 1.18rem; }
+        .o_vd_today_ico { font-size: 0.86rem; }
+        .o_vd_today_tag { font-size: 0.46rem; i.fa { font-size: 0.46rem; } }
+        .o_vd_today_line { gap: 5px; }
+        .o_vd_today_ok {
+            border-left: none;
+            padding-left: 0;
+            margin-left: 6px;       /* tách % ra xa số */
+            font-size: 0.74rem;
+            b { font-size: 0.78rem; }
+        }
+        /* nối liền: bỏ viền/bo/đổ bóng riêng từng nửa, thêm vạch ngăn giữa */
+        .o_vd_cp_half {
+            flex: 1 1 0;
+            min-width: 0;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            cursor: help;
+            &:hover { transform: none; filter: brightness(0.96); }
+        }
+        .o_vd_today_btn_call { border-right: 1.5px solid #cbd5e1 !important; }
     }
     /* ===== Card BÁO CÁO CUỘC GỌI — sidebar trang cá nhân NV (2026-06-08) =====
        Thẻ thống kê sạch: mỗi dòng = icon chip màu + nhãn + số to căn phải,

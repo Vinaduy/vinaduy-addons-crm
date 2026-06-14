@@ -3142,32 +3142,31 @@
                                                          THÁNG (lịch). Icon thay chữ cho gọn. GIỮ 2 popover riêng
                                                          (hover từng nửa). Khung = ĐÚNG tổng 2 thẻ cũ (grid 1fr 1fr
                                                          -> 1fr), cao KHÔNG đổi. -->
-                                                    <div class="o_vd_today_btn o_vd_today_merged">
-                                                        <span class="o_vd_today_line o_vd_merged_line">
-                                                            <!-- Icon ☎ TO ở đầu thẻ = ai cũng hiểu đây là cuộc gọi -->
-                                                            <i class="fa fa-phone o_vd_merged_phone"/>
-                                                            <span t-att-class="'o_vd_merged_half o_vd_merged_today' + (isCallTodayWeak(nv) ? ' o_vd_merged_weak' : '')"
-                                                                  t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
-                                                                  t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                                  t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
-                                                                <span class="o_vd_merged_lbl">Hôm nay</span>
-                                                                <span class="o_vd_merged_val">
-                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                                    <span class="o_vd_merged_pct"><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
-                                                                </span>
+                                                    <!-- GỘP 1 THẺ kiểu giao diện gốc: 2 nửa màu (Hôm nay xanh |
+                                                         Tháng lá) nối liền trong 1 khung, vạch ngăn giữa. Giữ ngắn. -->
+                                                    <div class="o_vd_today_callpair">
+                                                        <div t-att-class="'o_vd_today_btn o_vd_today_btn_call o_vd_cp_half' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
+                                                             t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
+                                                             t-on-mouseleave="() => this.onTodayCallsLeave()"
+                                                             t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
+                                                            <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
+                                                            <span class="o_vd_today_line">
+                                                                <i class="fa fa-phone o_vd_today_ico"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b></span>
                                                             </span>
-                                                            <span class="o_vd_merged_div"/>
-                                                            <span class="o_vd_merged_half o_vd_merged_month"
-                                                                  t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                                  t-on-mouseleave="() => this.onRecLeave()"
-                                                                  t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
-                                                                <span class="o_vd_merged_lbl">Tháng</span>
-                                                                <span class="o_vd_merged_val">
-                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                                    <span class="o_vd_merged_pct"><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
-                                                                </span>
+                                                        </div>
+                                                        <div class="o_vd_today_btn o_vd_today_btn_month o_vd_cp_half"
+                                                             t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                             t-on-mouseleave="() => this.onRecLeave()"
+                                                             t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
+                                                            <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
+                                                            <span class="o_vd_today_line">
+                                                                <i class="fa fa-phone o_vd_today_ico"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b></span>
                                                             </span>
-                                                        </span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
