@@ -12,50 +12,48 @@
                         <header class="o_vd_zone_head">
                             <span class="o_vd_zone_badge" t-esc="zone.title"/>
                             <span class="o_vd_zone_count">
-                                <t t-esc="zone.courses.length"/> khóa học ·
-                                <t t-esc="zone.employees.length"/> nhân viên
+                                <t t-esc="zone.courses.length"/> khóa học
+                            </span>
+                            <span t-if="state.isAdmin" class="o_vd_zone_hint">
+                                <i class="fa fa-arrows me-1"/>Kéo-thả khóa học để đổi lộ trình
                             </span>
                         </header>
                         <div class="o_vd_zone_body">
-                            <!-- COT TRAI: the nhan vien -->
+                            <!-- ===== COT TRAI: PILL NHAN VIEN (nho gon nhu hinh 2) ===== -->
                             <aside class="o_vd_emp_col">
                                 <t t-foreach="zone.employees" t-as="emp" t-key="emp.id">
-                                    <div class="o_vd_emp_card">
-                                        <img class="o_vd_emp_avatar"
-                                            t-attf-src="/web/image/res.users/{{emp.id}}/avatar_128"
-                                            t-att-alt="emp.name"/>
-                                        <div class="o_vd_emp_meta">
-                                            <span class="o_vd_emp_name" t-esc="emp.name"/>
-                                            <span t-if="emp.team" class="o_vd_emp_team" t-esc="emp.team"/>
-                                        </div>
+                                    <div class="o_vd_emp_pill">
+                                        <span class="o_vd_emp_ava">
+                                            <img t-attf-src="/web/image/res.users/{{emp.id}}/avatar_128"/>
+                                        </span>
+                                        <span class="o_vd_emp_name" t-esc="emp.name"/>
                                     </div>
                                 </t>
-                                <div t-if="!zone.employees.length" class="o_vd_emp_empty">
-                                    Chưa có nhân viên
-                                </div>
+                                <div t-if="!zone.employees.length" class="o_vd_emp_empty">Chưa có nhân viên</div>
                             </aside>
 
-                            <!-- COT PHAI: the khoa hoc -->
+                            <!-- ===== COT PHAI: SO DO LO TRINH KHOA HOC ===== -->
                             <div class="o_vd_course_col">
-                                <div class="o_vd_course_grid">
+                                <div class="o_vd_roadmap">
                                     <t t-foreach="zone.courses" t-as="course" t-key="course.id">
-                                        <div class="o_vd_course_card" t-on-click="() => this.openCourse(course)">
-                                            <div t-if="course.has_image" class="o_vd_course_thumb"
-                                                t-attf-style="background-image:url('/web/image/slide.channel/{{course.id}}/image_512')"/>
-                                            <div t-else="" class="o_vd_course_thumb o_vd_course_thumb_empty">
-                                                <i class="fa fa-graduation-cap"/>
-                                            </div>
-                                            <div class="o_vd_course_info">
+                                        <div class="o_vd_step">
+                                            <div class="o_vd_course_card"
+                                                t-att-draggable="state.isAdmin ? 'true' : 'false'"
+                                                t-on-dragstart="(ev) => this.onDragStart(ev, course, zone)"
+                                                t-on-dragend="(ev) => this.onDragEnd(ev)"
+                                                t-on-dragover="(ev) => this.onDragOver(ev)"
+                                                t-on-drop="(ev) => this.onDrop(ev, course, zone)"
+                                                t-on-click="() => this.openCourse(course)">
+                                                <span class="o_vd_step_no" t-esc="course_index + 1"/>
+                                                <span class="o_vd_course_icon"><i class="fa fa-graduation-cap"/></span>
                                                 <span class="o_vd_course_name" t-esc="course.name"/>
-                                                <span class="o_vd_course_meta">
-                                                    <i class="fa fa-file-o me-1"/><t t-esc="course.total_slides"/> nội dung
-                                                </span>
+                                                <span class="o_vd_course_meta"><t t-esc="course.total_slides"/> ND</span>
                                             </div>
+                                            <i t-if="!course_last" class="fa fa-long-arrow-right o_vd_arrow"/>
                                         </div>
                                     </t>
                                     <div class="o_vd_course_add" t-on-click="() => this.newCourse(zone.key)">
-                                        <i class="fa fa-plus"/>
-                                        <span>Thêm khóa học</span>
+                                        <i class="fa fa-plus"/><span>Thêm</span>
                                     </div>
                                 </div>
                             </div>
