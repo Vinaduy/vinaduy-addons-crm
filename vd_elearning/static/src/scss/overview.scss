@@ -396,12 +396,19 @@ $vd-line2:   #ece7da;
     .o_vd_ce_body { flex: 1 1 auto; overflow-y: auto; padding-top: .8rem; }
     .o_vd_ce_list { display: flex; flex-direction: column; gap: .7rem; max-width: 980px; margin: 0 auto; }
 
+    .o_vd_ce_toolbar { display: flex; align-items: center; gap: .5rem; }
     .o_vd_ce_add {
         border: 0; border-radius: 999px; cursor: pointer; white-space: nowrap;
         background: linear-gradient(135deg, $vd-gold2, $vd-gold2-d); color: $vd-ink2;
         font-weight: 800; font-size: .8rem; padding: .5rem 1rem;
         &:hover { filter: brightness(1.05); }
         &.o_vd_ce_add_block { align-self: flex-start; }
+    }
+    .o_vd_ce_toggle {
+        border: 1px solid $vd-line2; border-radius: 999px; cursor: pointer; white-space: nowrap;
+        background: #fff; color: #7b7c89; font-weight: 800; font-size: .8rem; padding: .5rem 1rem;
+        &:hover { border-color: $vd-gold2-d; color: $vd-ink2; }
+        &.active { background: #2b3350; color: #fff; border-color: #2b3350; }
     }
     .o_vd_ce_item, .o_vd_ce_q {
         border: 1px solid $vd-line2; border-radius: 12px; background: #fff;

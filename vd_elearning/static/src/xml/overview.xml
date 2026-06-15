@@ -72,15 +72,32 @@
                     <t t-if="state.tab=='content'">
                         <div class="o_vd_ce_list">
                             <t t-if="props.editable">
-                                <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm nội dung</button>
-                                <t t-foreach="state.contents" t-as="c" t-key="c._k">
-                                    <div class="o_vd_ce_item">
-                                        <div class="o_vd_ce_item_top">
-                                            <input class="o_vd_ce_title" t-model="c.name" placeholder="Tiêu đề nội dung"/>
-                                            <button class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
+                                <div class="o_vd_ce_toolbar">
+                                    <button class="o_vd_ce_add" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm nội dung</button>
+                                    <button t-attf-class="o_vd_ce_toggle {{state.editMode ? 'active' : ''}}" t-on-click="toggleEdit">
+                                        <i t-attf-class="fa {{state.editMode ? 'fa-eye' : 'fa-pencil'}} me-1"/><t t-esc="state.editMode ? 'Xem trước' : 'Sửa HTML'"/>
+                                    </button>
+                                </div>
+                                <!-- XEM TRUOC (render dep) -->
+                                <t t-if="!state.editMode">
+                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                        <article class="o_vd_ce_read">
+                                            <h3 t-esc="c.name"/>
+                                            <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
+                                        </article>
+                                    </t>
+                                </t>
+                                <!-- SUA HTML -->
+                                <t t-else="">
+                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                        <div class="o_vd_ce_item">
+                                            <div class="o_vd_ce_item_top">
+                                                <input class="o_vd_ce_title" t-model="c.name" placeholder="Tiêu đề nội dung"/>
+                                                <button class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
+                                            </div>
+                                            <textarea class="o_vd_ce_body_txt" t-model="c.body" placeholder="Nội dung chi tiết (có thể dùng HTML)..."/>
                                         </div>
-                                        <textarea class="o_vd_ce_body_txt" t-model="c.body" placeholder="Nội dung chi tiết..."/>
-                                    </div>
+                                    </t>
                                 </t>
                             </t>
                             <t t-else="">

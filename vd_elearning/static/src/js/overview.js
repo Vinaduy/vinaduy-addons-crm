@@ -100,6 +100,7 @@ export class VdCourseDialog extends Component {
         const data = this.props.data || {};
         this.state = useState({
             tab: "content",
+            editMode: false,
             examStarted: false,
             examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
             contents: (data.contents || []).map((c) => ({
@@ -198,7 +199,11 @@ export class VdCourseDialog extends Component {
             .replace(/\n/g, "<br/>");
         return markup(esc);
     }
+    toggleEdit() {
+        this.state.editMode = !this.state.editMode;
+    }
     addContent() {
+        this.state.editMode = true;
         this.state.contents.push({ _k: this.key(), id: false, name: "", body: "" });
     }
     delContent(c) {
