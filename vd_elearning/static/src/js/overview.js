@@ -21,20 +21,19 @@ export class VdInputDialog extends Component {
         onConfirm: Function,
     };
     setup() {
-        this.state = useState({
-            name: this.props.name || "",
-            pathId:
-                this.props.paths && this.props.paths.length
-                    ? this.props.paths[0].id
-                    : false,
-        });
+        this.state = useState({ name: this.props.name || "", pathId: false });
+    }
+    get canConfirm() {
+        return !!(this.state.name || "").trim() && (!this.props.withPath || !!this.state.pathId);
     }
     confirm() {
-        const name = (this.state.name || "").trim();
-        if (!name) {
+        if (!this.canConfirm) {
             return;
         }
-        this.props.onConfirm({ name, pathId: parseInt(this.state.pathId, 10) || false });
+        this.props.onConfirm({
+            name: this.state.name.trim(),
+            pathId: parseInt(this.state.pathId, 10) || false,
+        });
         this.props.close();
     }
 }
@@ -102,6 +101,23 @@ export class VdElearningOverview extends Component {
                 moreRiders: Math.max(0, all.length - 3),
             };
         });
+    }
+
+    // NV dang hoc trong 1 lo trinh (theo khoa hien tai cua ho)
+    pathLearners(path, zone) {
+        const ids = new Set(path.courses.map((c) => c.id));
+        return (zone.employees || [])
+            .filter((e) => ids.has(e.course_id))
+            .map((e) => {
+                const cur = path.courses.find((c) => c.id === e.course_id);
+                return {
+                    id: e.id,
+                    name: e.name,
+                    current: cur ? cur.name : "",
+                    start: e.start || "-",
+                    end: e.end || "-",
+                };
+            });
     }
 
     get studentNodes() {

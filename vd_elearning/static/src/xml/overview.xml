@@ -10,8 +10,9 @@
                        t-att-placeholder="props.placeholder || ''" autofocus="autofocus"
                        t-on-keydown="(ev) => ev.key === 'Enter' ? this.confirm() : null"/>
                 <t t-if="props.withPath">
-                    <label class="o_vd_dlg_label mt-3">Thuộc lộ trình</label>
+                    <label class="o_vd_dlg_label mt-3">Chọn lộ trình <span class="o_vd_dlg_req">*</span></label>
                     <select class="o_vd_dlg_input" t-model="state.pathId">
+                        <option value="">-- Bắt buộc chọn lộ trình --</option>
                         <t t-foreach="props.paths" t-as="p" t-key="p.id">
                             <option t-att-value="p.id" t-esc="p.name"/>
                         </t>
@@ -19,7 +20,7 @@
                 </t>
             </div>
             <t t-set-slot="footer">
-                <button class="btn o_vd_dlg_ok" t-on-click="confirm"><t t-esc="props.confirmLabel || 'Lưu'"/></button>
+                <button class="btn o_vd_dlg_ok" t-att-disabled="!canConfirm" t-on-click="confirm"><t t-esc="props.confirmLabel || 'Lưu'"/></button>
                 <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
             </t>
         </Dialog>
@@ -58,7 +59,7 @@
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
                     </div>
-                    <i t-if="!node_last" class="fa fa-angle-right o_vd_arrow"/>
+                    <div t-if="!node_last" class="o_vd_arrow"/>
                 </div>
             </t>
             <div t-if="!nodes.length" class="o_vd_track_empty">Kéo khóa học vào đây</div>
@@ -83,10 +84,36 @@
                                 <span class="o_vd_path_name" t-esc="path.name"/>
                                 <span class="o_vd_path_sub"><t t-esc="path.courses.length"/> khóa học</span>
                             </div>
-                            <button t-if="state.isAdmin" class="o_vd_path_edit" title="Đổi tên lộ trình"
-                                t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
+                            <div class="o_vd_path_tools">
+                                <button t-if="state.isAdmin" class="o_vd_path_btn" title="Đổi tên lộ trình"
+                                    t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
+                                <div class="o_vd_path_emp">
+                                    <button class="o_vd_path_btn" title="Nhân viên đang học"><i class="fa fa-user-plus"/></button>
+                                    <div class="o_vd_learners">
+                                        <div class="o_vd_learners_head">NHÂN VIÊN ĐANG HỌC · <t t-esc="path.name"/></div>
+                                        <table class="o_vd_learners_tbl">
+                                            <thead><tr><th>Nhân viên</th><th>Đang học</th><th>Bắt đầu</th><th>Kết thúc</th></tr></thead>
+                                            <tbody>
+                                                <t t-foreach="pathLearners(path, zone)" t-as="lr" t-key="lr.id">
+                                                    <tr>
+                                                        <td class="o_vd_lr_nv">
+                                                            <img t-attf-src="/web/image/res.users/{{lr.id}}/avatar_128"/>
+                                                            <span t-esc="lr.name"/>
+                                                        </td>
+                                                        <td t-esc="lr.current"/>
+                                                        <td t-esc="lr.start"/>
+                                                        <td t-esc="lr.end"/>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                        <div t-if="!pathLearners(path, zone).length" class="o_vd_learners_empty">Chưa có nhân viên đang học.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div t-if="!path_last" class="o_vd_path_link"/>
                         </div>
-                        <i t-if="path.courses.length" class="fa fa-angle-right o_vd_arrow o_vd_arrow_lead"/>
+                        <div t-if="path.courses.length" class="o_vd_arrow o_vd_arrow_lead"/>
                         <t t-call="vd_elearning.Track">
                             <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees)"/>
                             <t t-set="dropCtx" t-value="state.isAdmin ? {zoneKey: zone.key, pathId: path.id} : false"/>

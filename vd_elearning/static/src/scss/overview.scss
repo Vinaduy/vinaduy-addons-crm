@@ -74,33 +74,69 @@ $vd-line:   #ece7da;
     // ----- 1 DONG = 1 LO TRINH -----
     .o_vd_path_row {
         display: flex; align-items: center; gap: .4rem;
-        padding: 1.2rem .4rem;
-        border-bottom: 1px solid #f1eee4;
+        padding: 1.3rem .4rem;
+        border-bottom: 2px solid #ece6d8;
         &:last-child { border-bottom: 0; }
     }
 
-    // ----- MARKER LO TRINH (badge to, khong box nen) -----
+    // ----- MARKER LO TRINH (rong co dinh -> ten khong vo dong xau, cac lane thang hang) -----
     .o_vd_path_marker {
-        flex: 0 0 auto;
+        flex: 0 0 196px; width: 196px;
         display: flex; align-items: center; gap: .6rem; position: relative;
         .o_vd_path_badge {
-            width: 58px; height: 58px; border-radius: 16px;
+            flex: 0 0 56px;
+            width: 56px; height: 56px; border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
             background: linear-gradient(150deg, $vd-gold, $vd-gold-d);
-            color: #5b4500; font-size: 1.7rem;
+            color: #5b4500; font-size: 1.6rem;
             box-shadow: 0 8px 18px rgba($vd-gold-d, .4),
                         inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.6);
         }
-        .o_vd_path_label { display: flex; flex-direction: column; line-height: 1.15; }
-        .o_vd_path_kicker { font-size: .58rem; font-weight: 800; letter-spacing: .18em; color: #b07d12; }
-        .o_vd_path_name { font-size: 1rem; font-weight: 900; color: #4a3500; max-width: 150px; }
-        .o_vd_path_sub { font-size: .68rem; font-weight: 700; color: #a08236; }
-        .o_vd_path_edit {
-            border: 0; background: transparent; color: #cbb98e; cursor: pointer;
-            padding: .2rem .3rem; font-size: .82rem; align-self: flex-start;
-            &:hover { color: $vd-gold-d; }
+        .o_vd_path_label { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.12; }
+        .o_vd_path_kicker { font-size: .56rem; font-weight: 800; letter-spacing: .16em; color: #b07d12; }
+        .o_vd_path_name { font-size: .92rem; font-weight: 900; color: #4a3500; }
+        .o_vd_path_sub { font-size: .66rem; font-weight: 700; color: #a08236; margin-top: .1rem; }
+
+        .o_vd_path_tools { position: absolute; top: -6px; right: -4px; display: flex; gap: .15rem; }
+        .o_vd_path_btn {
+            border: 0; background: rgba($vd-gold, .15); color: #a07916; cursor: pointer;
+            width: 22px; height: 22px; border-radius: 50%; font-size: .72rem;
+            display: flex; align-items: center; justify-content: center;
+            &:hover { background: $vd-gold-d; color: #fff; }
         }
     }
+
+    // day noi doc giua cac lo trinh (phai hoc tuan tu)
+    .o_vd_path_link {
+        position: absolute; top: calc(100% + 6px); left: 28px;
+        width: 4px; height: 34px; border-radius: 2px;
+        background: linear-gradient(180deg, $vd-gold, $vd-gold-d);
+        &::after {
+            content: ""; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+            border-top: 9px solid $vd-gold-d; border-left: 6px solid transparent; border-right: 6px solid transparent;
+        }
+    }
+
+    // popover NV dang hoc
+    .o_vd_path_emp { position: relative; }
+    .o_vd_learners {
+        position: absolute; top: calc(100% + 8px); left: -10px; z-index: 30;
+        width: 360px; max-width: 70vw;
+        background: #fff; border: 1px solid $vd-line; border-radius: 12px;
+        box-shadow: 0 16px 40px rgba($vd-ink, .22);
+        padding: .7rem; opacity: 0; transform: translateY(-6px); pointer-events: none;
+        transition: all .16s ease;
+    }
+    .o_vd_path_emp:hover .o_vd_learners { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .o_vd_learners_head { font-weight: 800; font-size: .72rem; letter-spacing: .04em; color: #8a6a12; margin-bottom: .5rem; }
+    .o_vd_learners_tbl {
+        width: 100%; border-collapse: collapse; font-size: .74rem;
+        th { text-align: left; color: #9a9685; font-weight: 700; padding: .3rem .4rem; border-bottom: 1px solid $vd-line; }
+        td { padding: .35rem .4rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink; }
+        .o_vd_lr_nv { display: flex; align-items: center; gap: .4rem; font-weight: 700;
+            img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; } }
+    }
+    .o_vd_learners_empty { color: #a7a395; font-size: .76rem; font-style: italic; padding: .4rem; }
 
     // ----- TRACK -----
     .o_vd_track {
@@ -162,12 +198,20 @@ $vd-line:   #ece7da;
 
     @keyframes vd-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
-    // mui ten dan huong (to, pro)
+    // mui ten = soi day + dau mui ten (to, pro)
     .o_vd_arrow {
-        color: $vd-gold-d; font-size: 1.5rem; font-weight: 900;
-        margin: 0 2px; align-self: center; flex: 0 0 auto;
+        position: relative; flex: 0 0 auto; align-self: center;
+        width: 30px; height: 5px; margin: 0 4px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, rgba($vd-gold-d, .55), $vd-gold-d);
+        &::after {
+            content: ""; position: absolute; right: -3px; top: 50%; transform: translateY(-50%);
+            border-left: 11px solid $vd-gold-d;
+            border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+        }
     }
-    .o_vd_arrow_lead { font-size: 1.9rem; margin: 0 .5rem 0 .25rem; }
+    .o_vd_arrow_lead { width: 40px; height: 6px; margin: 0 .6rem 0 .3rem;
+        &::after { border-left-width: 13px; border-top-width: 8px; border-bottom-width: 8px; } }
 
     // ----- THE TEN NHAN VIEN (bam theo khoa) -----
     .o_vd_riders {
@@ -280,6 +324,7 @@ $vd-line2:   #ece7da;
 .o_vd_dlg {
     display: flex; flex-direction: column; padding: .4rem .25rem;
     .o_vd_dlg_label { font-weight: 700; font-size: .82rem; color: $vd-ink2; margin-bottom: .35rem; }
+    .o_vd_dlg_req { color: #d23; }
     .o_vd_dlg_input {
         width: 100%; border: 1px solid $vd-line2; border-radius: 10px;
         padding: .6rem .8rem; font-size: .92rem; color: $vd-ink2; background: #fff;
@@ -290,4 +335,5 @@ $vd-line2:   #ece7da;
     background: linear-gradient(135deg, $vd-gold2, $vd-gold2-d);
     color: $vd-ink2; font-weight: 800; border: 0;
     &:hover { filter: brightness(1.04); color: $vd-ink2; }
+    &:disabled { opacity: .45; cursor: not-allowed; }
 }
