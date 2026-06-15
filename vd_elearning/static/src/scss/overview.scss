@@ -65,7 +65,7 @@ $vd-line:   #ece7da;
     // ---------------- TOOLBAR (phang) ----------------
     .o_vd_maptools {
         display: flex; align-items: center; gap: .9rem;
-        padding: .8rem 1.3rem; border-bottom: 1px solid $vd-line;
+        padding: .35rem 1.3rem; border-bottom: 1px solid $vd-line;
         .o_vd_tool_count { font-weight: 800; font-size: .9rem; color: #8a6a12; i { color: $vd-gold-d; } }
         .o_vd_tool_hint { margin-left: auto; color: #a7a395; font-size: .74rem; font-style: italic; }
     }
@@ -76,14 +76,14 @@ $vd-line:   #ece7da;
     // ----- 1 DONG = 1 LO TRINH -----
     .o_vd_path_row {
         display: flex; align-items: center; gap: .4rem;
-        padding: 1.3rem .4rem;
+        padding: .9rem .4rem;
         border-bottom: 2px solid #ece6d8;
         &:last-child { border-bottom: 0; }
     }
 
     // ----- MARKER LO TRINH (rong co dinh -> ten khong vo dong xau, cac lane thang hang) -----
     .o_vd_path_marker {
-        flex: 0 0 196px; width: 196px;
+        flex: 0 0 210px; width: 210px;
         display: flex; align-items: center; gap: .6rem; position: relative;
         .o_vd_path_badge {
             flex: 0 0 56px;
@@ -96,7 +96,7 @@ $vd-line:   #ece7da;
         }
         .o_vd_path_label { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.12; }
         .o_vd_path_kicker { font-size: .56rem; font-weight: 800; letter-spacing: .16em; color: #b07d12; }
-        .o_vd_path_name { font-size: .92rem; font-weight: 900; color: #4a3500; }
+        .o_vd_path_name { font-size: .82rem; font-weight: 900; color: #4a3500; white-space: nowrap; }
         .o_vd_path_sub { font-size: .66rem; font-weight: 700; color: #a08236; margin-top: .1rem; }
 
         .o_vd_path_tools { position: absolute; top: -6px; right: -4px; display: flex; gap: .15rem; }
@@ -144,7 +144,7 @@ $vd-line:   #ece7da;
     .o_vd_track {
         flex: 1 1 auto; min-width: 0;
         display: flex; flex-wrap: wrap; align-items: center;
-        gap: 10px 0; padding-top: 30px;
+        gap: 6px 0; padding-top: 20px;
     }
     .o_vd_track_empty {
         color: #b3ae9d; font-size: .8rem; font-style: italic; padding: .6rem 1rem;
