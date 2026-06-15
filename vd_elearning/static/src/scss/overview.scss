@@ -1,5 +1,5 @@
 // ============================================================
-//  VINADUY eLEARNING - Ban do game (gam SANG, sang trong)
+//  VINADUY eLEARNING - 1 bang, moi lo trinh 1 dong (gam SANG)
 // ============================================================
 
 $vd-ink:    #20243a;
@@ -8,10 +8,8 @@ $vd-violet: #7c3aed;
 $vd-gold:   #f5c451;
 $vd-gold-d: #caa14a;
 $vd-ivory:  #f5f3ec;
-$vd-cream:  #fcfbf6;
 $vd-line:   #ece7da;
 
-// nen "bang game" sang
 @mixin vd-board {
     background:
         radial-gradient(rgba($vd-ink, .045) 1.3px, transparent 1.3px) 0 0 / 22px 22px,
@@ -21,15 +19,13 @@ $vd-line:   #ece7da;
 }
 
 .o_vd_overview {
-    height: 100%;
-    overflow-y: auto;
+    height: 100%; overflow-y: auto;
     padding: 1.1rem 1.3rem 2.4rem;
-    background: $vd-ivory;
-    color: $vd-ink;
+    background: $vd-ivory; color: $vd-ink;
 
     .o_vd_loading { padding: 3rem; color: #8a8c98; font-size: 1.05rem; }
 
-    // ---------------- TAB FILTER (segmented + dropdown cuoi hang) ----------------
+    // ---------------- TAB FILTER ----------------
     .o_vd_tabbar {
         display: flex; align-items: center; gap: .35rem;
         margin-bottom: 1rem; flex-wrap: wrap;
@@ -37,15 +33,13 @@ $vd-line:   #ece7da;
         padding: .35rem; box-shadow: 0 4px 14px rgba($vd-ink, .05);
     }
     .o_vd_tab {
-        border: 0; background: transparent;
-        color: #7b7c89;
+        border: 0; background: transparent; color: #7b7c89;
         font-weight: 800; font-size: .82rem; letter-spacing: .03em;
         padding: .6rem 1.2rem; border-radius: 10px;
         cursor: pointer; transition: all .16s ease;
         &:hover { color: $vd-ink; background: rgba($vd-gold, .12); }
         &.active {
-            color: #fff;
-            background: linear-gradient(135deg, #2b3350, $vd-ink);
+            color: #fff; background: linear-gradient(135deg, #2b3350, $vd-ink);
             box-shadow: 0 6px 14px rgba($vd-ink, .28);
             i { color: $vd-gold; }
         }
@@ -61,21 +55,16 @@ $vd-line:   #ece7da;
 
     // ---------------- KHUNG THE ----------------
     .o_vd_card {
-        background: #fff;
-        border: 1px solid $vd-line;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 14px 36px rgba($vd-ink, .08);
+        background: #fff; border: 1px solid $vd-line; border-radius: 20px;
+        overflow: hidden; box-shadow: 0 14px 36px rgba($vd-ink, .08);
     }
-
-    // ---------------- TOOLBAR MAP ----------------
     .o_vd_panel { position: relative; }
+
+    // ---------------- TOOLBAR ----------------
     .o_vd_maptools {
         display: flex; align-items: center; gap: .9rem;
-        padding: .85rem 1.2rem;
-        border-bottom: 1px solid $vd-line;
+        padding: .85rem 1.2rem; border-bottom: 1px solid $vd-line;
         background: linear-gradient(180deg, #fffdf7, #faf8f0);
-
         .o_vd_tool_count {
             font-weight: 800; font-size: .85rem;
             background: rgba($vd-gold, .18); color: #8a6a12;
@@ -84,36 +73,130 @@ $vd-line:   #ece7da;
         .o_vd_tool_hint { margin-left: auto; color: #a7a395; font-size: .74rem; font-style: italic; }
     }
 
-    // ---------------- LO TRINH (path section) ----------------
-    .o_vd_paths { padding: .3rem 0 1rem; }
-    .o_vd_path_block { border-bottom: 1px dashed $vd-line; &:last-child { border-bottom: 0; } }
-    .o_vd_path_head {
-        display: flex; align-items: center; gap: .8rem;
-        padding: 1rem 1.3rem .2rem;
-        .o_vd_path_ribbon {
-            font-weight: 800; font-size: .9rem; letter-spacing: .02em; color: $vd-ink;
-            background: linear-gradient(135deg, rgba($vd-gold, .25), rgba($vd-gold, .12));
-            border: 1px solid rgba($vd-gold-d, .5);
-            padding: .35rem .95rem; border-radius: 999px;
-            i { color: $vd-gold-d; }
+    // ---------------- BANG (1 bang chua tat ca lo trinh) ----------------
+    .o_vd_board { @include vd-board; padding: .4rem .4rem 1rem; overflow-x: auto; }
+
+    // ----- 1 DONG = 1 LO TRINH -----
+    .o_vd_path_row {
+        display: flex; align-items: flex-start; gap: 1rem;
+        padding: 1.3rem 1rem;
+        border-bottom: 1px dashed rgba($vd-ink, .12);
+        &:last-child { border-bottom: 0; }
+    }
+
+    // ----- MARKER LO TRINH (to, noi bat hon khoa hoc) -----
+    .o_vd_path_marker {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: .7rem;
+        padding: .55rem .9rem .55rem .55rem;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #fff7e4, #ffedc2);
+        border: 1px solid rgba($vd-gold-d, .6);
+        box-shadow: 0 8px 20px rgba($vd-gold-d, .28);
+        align-self: center;
+        .o_vd_path_badge {
+            width: 60px; height: 60px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(150deg, $vd-gold, $vd-gold-d);
+            color: #5b4500; font-size: 1.8rem;
+            box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.6);
         }
-        .o_vd_path_count { color: #9a9685; font-size: .78rem; font-weight: 600; }
+        .o_vd_path_label { display: flex; flex-direction: column; line-height: 1.15; }
+        .o_vd_path_kicker { font-size: .6rem; font-weight: 800; letter-spacing: .18em; color: #b07d12; }
+        .o_vd_path_name { font-size: 1rem; font-weight: 900; color: #4a3500; max-width: 160px; }
+        .o_vd_path_sub { font-size: .68rem; font-weight: 700; color: #a08236; }
+    }
+
+    // ----- TRACK: khoa hoc chay ngang, nhoi toi da, het cho moi xuong dong -----
+    .o_vd_track {
+        flex: 1 1 auto; min-width: 0;
+        display: flex; flex-wrap: wrap; align-items: flex-start;
+        gap: 8px 2px; padding-top: 42px;
+    }
+    .o_vd_track_empty { color: #a7a395; font-size: .8rem; font-style: italic; padding: .5rem; align-self: center; }
+    .o_vd_step { display: inline-flex; align-items: flex-start; }
+
+    // ----- NODE KHOA HOC -----
+    .o_vd_level {
+        position: relative;
+        width: 86px;
+        display: flex; flex-direction: column; align-items: center;
+        cursor: pointer; text-align: center;
+        transition: transform .15s ease;
+        &:hover { transform: translateY(-3px); z-index: 5; }
+        &.o_vd_dragging { opacity: .4; }
+
+        .o_vd_level_tile {
+            position: relative;
+            width: 46px; height: 46px; border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(150deg, #8a7bff, $vd-indigo 75%);
+            border: 3px solid #fff;
+            box-shadow: 0 6px 13px rgba($vd-indigo, .35),
+                        inset 0 -4px 6px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.4);
+        }
+        .o_vd_level_logo { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; }
+        .o_vd_level_ico { color: #fff; font-size: 1.2rem; text-shadow: 0 2px 3px rgba(0,0,0,.3); }
+        .o_vd_level_num {
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            min-width: 18px; height: 18px; padding: 0 .25rem; border-radius: 999px;
+            background: #fff; color: $vd-indigo;
+            font-weight: 900; font-size: .68rem; line-height: 18px;
+            box-shadow: 0 2px 5px rgba($vd-ink, .25); border: 1px solid $vd-line;
+        }
+        .o_vd_level_name {
+            margin-top: .55rem;
+            font-weight: 700; color: $vd-ink; font-size: .64rem; line-height: 1.18;
+            max-width: 84px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        // cua CUOI (boss) - cup
+        .o_vd_emblem { position: absolute; top: -14px; right: -8px; filter: drop-shadow(0 3px 4px rgba($vd-ink,.3)); z-index: 7; }
+        .o_vd_emblem_boss { color: $vd-gold-d; font-size: 1.4rem; animation: vd-bounce 1.6s ease-in-out infinite; }
+        &.o_vd_level_boss .o_vd_level_tile {
+            background: linear-gradient(150deg, #ffe39a, $vd-gold-d 75%);
+            box-shadow: 0 6px 13px rgba($vd-gold-d,.4), inset 0 -4px 6px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.55);
+            .o_vd_level_ico { color: #6b4e00; }
+        }
+        &.o_vd_level_boss .o_vd_level_num { color: #9a6b00; }
+    }
+
+    @keyframes vd-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+    // mui ten dan huong giua cac khoa
+    .o_vd_arrow { color: $vd-gold-d; font-size: .95rem; margin: 14px 1px 0; align-self: flex-start; opacity: .8; }
+
+    // ----- THE TEN NHAN VIEN (bam theo khoa) -----
+    .o_vd_riders {
+        position: absolute; bottom: calc(100% - 14px); left: 50%; transform: translateX(-50%);
+        display: flex; flex-direction: column-reverse; align-items: center; gap: 3px; z-index: 6;
+    }
+    .o_vd_rider_card {
+        display: flex; align-items: center; gap: .26rem;
+        padding: .1rem .4rem .1rem .1rem;
+        background: #fff; border-radius: 999px; border: 1px solid $vd-line;
+        box-shadow: 0 3px 8px rgba($vd-ink,.14); white-space: nowrap;
+        .o_vd_rider_ava { width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 2px solid rgba($vd-gold,.7); }
+        .o_vd_rider_name { font-weight: 700; color: $vd-ink; font-size: .62rem; }
+    }
+    .o_vd_rider_more {
+        background: linear-gradient(135deg, $vd-gold, $vd-gold-d); color: $vd-ink;
+        font-size: .58rem; font-weight: 800; padding: .08rem .45rem; border-radius: 999px;
+        box-shadow: 0 3px 6px rgba($vd-ink,.2);
     }
 
     // ---------------- FAB + ----------------
     .o_vd_fab {
         position: sticky; bottom: 1rem; float: right;
         margin: -3.4rem 1.4rem 1rem 0;
-        display: flex; flex-direction: column; align-items: flex-end; gap: .5rem;
-        z-index: 20;
-
+        display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; z-index: 20;
         .o_vd_fab_btn {
             width: 56px; height: 56px; border-radius: 50%; border: 0;
             background: linear-gradient(135deg, $vd-gold, $vd-gold-d);
             color: $vd-ink; font-size: 1.5rem; cursor: pointer;
             box-shadow: 0 10px 24px rgba($vd-gold-d, .5);
-            transition: transform .18s ease;
-            i { transition: transform .25s ease; }
+            i { display: inline-block; transition: transform .25s ease; }
         }
         .o_vd_fab_menu {
             display: flex; flex-direction: column; gap: .5rem;
@@ -121,124 +204,24 @@ $vd-line:   #ece7da;
             pointer-events: none; transition: all .2s ease;
         }
         &:hover {
-            .o_vd_fab_btn { transform: rotate(135deg); }
+            .o_vd_fab_btn i { transform: rotate(135deg); }
             .o_vd_fab_menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
         }
         .o_vd_fab_item {
-            border: 0; border-radius: 999px;
+            border: 1px solid $vd-line; border-radius: 999px;
             background: #fff; color: $vd-ink;
             font-weight: 800; font-size: .78rem; letter-spacing: .02em;
             padding: .6rem 1.1rem; cursor: pointer; white-space: nowrap;
             box-shadow: 0 8px 20px rgba($vd-ink, .18);
-            border: 1px solid $vd-line;
             transition: all .14s ease;
             i { color: $vd-gold-d; }
             &:hover { background: linear-gradient(135deg, $vd-gold, $vd-gold-d); border-color: transparent; i { color: $vd-ink; } }
         }
     }
 
-    // ---------------- BAN DO ----------------
-    .o_vd_map_wrap { @include vd-board; padding: .6rem 1.3rem 1.4rem; overflow-x: auto; }
-    .o_vd_gamemap { position: relative; margin: 56px auto 0; }
-
-    .o_vd_path {
-        position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible;
-        fill: none; stroke-linecap: round; stroke-linejoin: round;
-    }
-    .o_vd_path_glow { stroke: rgba($vd-gold, .45); stroke-width: 11; }
-    .o_vd_path_line { stroke: $vd-gold-d; stroke-width: 5; stroke-dasharray: 1.5 12; }
-
-    // ----- CUA AI -----
-    .o_vd_level {
-        position: absolute; transform: translate(-50%, -50%);
-        width: 128px;
-        display: flex; flex-direction: column; align-items: center;
-        cursor: pointer; text-align: center; z-index: 2;
-        transition: transform .15s ease;
-        &:hover { transform: translate(-50%, -50%) scale(1.08); z-index: 5; }
-        &.o_vd_dragging { opacity: .4; }
-
-        .o_vd_level_tile {
-            position: relative;
-            width: 50px; height: 50px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(150deg, #8a7bff, $vd-indigo 75%);
-            border: 3px solid #fff;
-            box-shadow: 0 7px 14px rgba($vd-indigo, .35),
-                        inset 0 -4px 7px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.4);
-        }
-        .o_vd_level_logo { width: 100%; height: 100%; border-radius: 11px; object-fit: cover; }
-        .o_vd_level_ico { color: #fff; font-size: 1.3rem; text-shadow: 0 2px 3px rgba(0,0,0,.3); }
-        .o_vd_level_num {
-            position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
-            min-width: 19px; height: 19px; padding: 0 .25rem; border-radius: 999px;
-            background: #fff; color: $vd-indigo;
-            font-weight: 900; font-size: .72rem; line-height: 19px;
-            box-shadow: 0 2px 5px rgba($vd-ink, .25); border: 1px solid $vd-line;
-        }
-        .o_vd_level_name {
-            margin-top: .6rem;
-            font-weight: 700; color: $vd-ink; font-size: .68rem; line-height: 1.2;
-            max-width: 120px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-
-        .o_vd_emblem {
-            position: absolute; top: -12px; right: -10px;
-            filter: drop-shadow(0 3px 4px rgba($vd-ink, .3)); z-index: 7;
-        }
-        .o_vd_emblem_start { color: #16a34a; font-size: 1.25rem; }
-        .o_vd_emblem_boss  { color: $vd-gold-d; font-size: 1.55rem; top: -16px; right: -12px;
-            animation: vd-bounce 1.6s ease-in-out infinite; }
-
-        &.o_vd_level_start .o_vd_level_tile {
-            background: linear-gradient(150deg, #6ee7a8, #16a34a 75%);
-            box-shadow: 0 7px 14px rgba(22,163,74,.35), inset 0 -4px 7px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.4);
-        }
-        &.o_vd_level_start .o_vd_level_num { color: #16a34a; }
-        &.o_vd_level_boss .o_vd_level_tile {
-            width: 60px; height: 60px;
-            background: linear-gradient(150deg, #ffe39a, $vd-gold-d 75%);
-            box-shadow: 0 9px 18px rgba($vd-gold-d,.45), inset 0 -4px 7px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.55);
-            .o_vd_level_ico { color: #6b4e00; }
-        }
-        &.o_vd_level_boss .o_vd_level_num { color: #9a6b00; }
-    }
-
-    @keyframes vd-bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
-
-    // ----- THE TEN NHAN VIEN -----
-    .o_vd_riders {
-        position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%);
-        display: flex; flex-direction: column-reverse; align-items: center; gap: 3px; z-index: 6;
-    }
-    .o_vd_rider_card {
-        display: flex; align-items: center; gap: .28rem;
-        padding: .12rem .45rem .12rem .12rem;
-        background: #fff; border-radius: 999px; border: 1px solid $vd-line;
-        box-shadow: 0 3px 8px rgba($vd-ink,.14); white-space: nowrap;
-        .o_vd_rider_ava { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 2px solid rgba($vd-gold,.7); }
-        .o_vd_rider_name { font-weight: 700; color: $vd-ink; font-size: .64rem; }
-    }
-    .o_vd_rider_more {
-        background: linear-gradient(135deg, $vd-gold, $vd-gold-d); color: $vd-ink;
-        font-size: .6rem; font-weight: 800; padding: .1rem .5rem; border-radius: 999px;
-        box-shadow: 0 3px 6px rgba($vd-ink,.2);
-    }
-
-    // ----- nut them khoa hoc -----
-    .o_vd_add_btn {
-        margin: 0 1.3rem 1.2rem;
-        border: 2px dashed #d8d2c0; border-radius: 10px;
-        background: rgba($vd-gold, .06); color: #8a6a12;
-        font-weight: 700; font-size: .8rem; padding: .5rem 1rem; cursor: pointer;
-        &:hover { border-style: solid; border-color: $vd-gold-d; background: rgba($vd-gold,.14); }
-    }
-
     // ---------------- TAB NHAN VIEN: BAO CAO ----------------
     .o_vd_report_head {
-        display: flex; align-items: baseline; gap: .8rem;
-        padding: 1.1rem 1.3rem .4rem;
+        display: flex; align-items: baseline; gap: .8rem; padding: 1.1rem 1.3rem .4rem;
         h3 { margin: 0; font-size: 1.05rem; font-weight: 800; color: $vd-ink; }
         span { color: #9a9685; font-size: .82rem; font-weight: 600; }
     }
@@ -247,56 +230,40 @@ $vd-line:   #ece7da;
         gap: .8rem; padding: .6rem 1.3rem 1.4rem;
     }
     .o_vd_report_card {
-        display: flex; align-items: center; gap: .8rem;
-        padding: .8rem .9rem;
+        display: flex; align-items: center; gap: .8rem; padding: .8rem .9rem;
         border: 1px solid $vd-line; border-radius: 14px;
         background: linear-gradient(180deg, #fffdf8, #fbf9f2);
         cursor: pointer; transition: all .16s ease;
         &:hover { transform: translateY(-3px); border-color: $vd-gold-d; box-shadow: 0 12px 26px rgba($vd-ink,.1); }
-
-        .o_vd_report_ava {
-            width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex: 0 0 46px;
-            border: 2px solid rgba($vd-gold,.6);
-        }
+        .o_vd_report_ava { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex: 0 0 46px; border: 2px solid rgba($vd-gold,.6); }
         .o_vd_report_main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
         .o_vd_report_name { font-weight: 800; color: $vd-ink; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .o_vd_report_role { font-size: .72rem; color: #9a9685; font-weight: 600; display: flex; align-items: center; gap: .4rem; }
-        .o_vd_report_team {
-            background: rgba($vd-indigo,.1); color: $vd-indigo;
-            font-weight: 800; font-size: .64rem; padding: .05rem .4rem; border-radius: 6px;
-        }
+        .o_vd_report_team { background: rgba($vd-indigo,.1); color: $vd-indigo; font-weight: 800; font-size: .64rem; padding: .05rem .4rem; border-radius: 6px; }
         .o_vd_report_bar { height: 7px; border-radius: 999px; background: rgba($vd-ink,.08); overflow: hidden; margin-top: .25rem; }
         .o_vd_report_fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, $vd-gold, $vd-indigo); }
         .o_vd_report_meta { font-size: .72rem; color: #7a7c8a; font-weight: 600;
-            b { color: $vd-indigo; }
-            .o_vd_report_cur { color: $vd-gold-d; }
-        }
+            b { color: $vd-indigo; } .o_vd_report_cur { color: $vd-gold-d; } }
     }
 
     // ---------------- GIAO DIEN NHAN VIEN (header) ----------------
     .o_vd_student_head {
-        display: flex; align-items: center; gap: .9rem;
-        padding: 1rem 1.3rem;
+        display: flex; align-items: center; gap: .9rem; padding: 1rem 1.3rem;
         background: linear-gradient(120deg, #fffdf7, #f8f4e8);
         border-bottom: 2px solid rgba($vd-gold, .5);
     }
     .o_vd_back {
-        border: 1px solid $vd-line; background: #fff;
-        color: $vd-ink; border-radius: 999px; padding: .35rem .8rem;
-        font-weight: 600; font-size: .8rem; cursor: pointer;
+        border: 1px solid $vd-line; background: #fff; color: $vd-ink;
+        border-radius: 999px; padding: .35rem .8rem; font-weight: 600; font-size: .8rem; cursor: pointer;
         &:hover { border-color: $vd-gold-d; }
     }
     .o_vd_student_ava { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 3px solid rgba($vd-gold, .8); }
-    .o_vd_student_title {
-        display: flex; flex-direction: column;
+    .o_vd_student_title { display: flex; flex-direction: column;
         .o_vd_student_label { font-size: .68rem; letter-spacing: .12em; color: #a08a4a; font-weight: 800; }
-        h2 { margin: 0; font-size: 1.25rem; font-weight: 800; color: $vd-ink; }
-    }
+        h2 { margin: 0; font-size: 1.25rem; font-weight: 800; color: $vd-ink; } }
     .o_vd_student_count {
-        margin-left: auto;
-        background: linear-gradient(135deg, $vd-gold, $vd-gold-d);
-        color: $vd-ink; font-weight: 800; font-size: .8rem;
-        padding: .3rem .9rem; border-radius: 999px;
+        margin-left: auto; background: linear-gradient(135deg, $vd-gold, $vd-gold-d);
+        color: $vd-ink; font-weight: 800; font-size: .8rem; padding: .3rem .9rem; border-radius: 999px;
     }
 
     .o_vd_emp_empty { color: #a7a395; font-size: .85rem; font-style: italic; text-align: center; padding: 1.5rem; grid-column: 1 / -1; }

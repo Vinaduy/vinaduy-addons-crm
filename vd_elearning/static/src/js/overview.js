@@ -4,11 +4,6 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Component, onWillStart, useState } from "@odoo/owl";
 
-// Kich thuoc mot "o" tren ban do game.
-const CELL_W = 150;
-const CELL_H = 128;
-const MAX_COLS = 6;
-
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -48,48 +43,33 @@ export class VdElearningOverview extends Component {
         this.state.loading = false;
     }
 
-    // ---------- DUNG BAN DO GAME (serpentine) ----------
+    // ---------- DUNG NODE THEO DONG (flex-wrap) ----------
     // employees: danh sach NV co {id, name, course_id} de gan avatar vao node.
-    buildMap(courses, employees) {
-        const n = courses.length;
-        const cols = Math.max(1, Math.min(MAX_COLS, n));
-        const rows = Math.ceil(n / cols) || 1;
+    trackNodes(courses, employees) {
         const byCourse = {};
         for (const e of employees || []) {
             const cid = e.courseId !== undefined ? e.courseId : e.course_id;
             if (!cid) continue;
-            const rider = { id: e.id, name: e.name };
-            (byCourse[cid] = byCourse[cid] || []).push(rider);
+            (byCourse[cid] = byCourse[cid] || []).push({ id: e.id, name: e.name });
         }
-        const nodes = courses.map((c, i) => {
-            const row = Math.floor(i / cols);
-            const inRow = i % cols;
-            const col = row % 2 === 0 ? inRow : cols - 1 - inRow;
+        const n = courses.length;
+        return courses.map((c, i) => {
             const all = byCourse[c.id] || [];
             return {
                 course: c,
-                idx: i,
                 n: i + 1,
-                kind: i === 0 ? "start" : i === n - 1 ? "boss" : "normal",
-                x: col * CELL_W + CELL_W / 2,
-                y: row * CELL_H + CELL_H / 2,
+                kind: i === n - 1 ? "boss" : "normal",
                 riders: all.slice(0, 3),
                 moreRiders: Math.max(0, all.length - 3),
             };
         });
-        const path = nodes
-            .map((nd, i) => `${i === 0 ? "M" : "L"} ${nd.x} ${nd.y}`)
-            .join(" ");
-        return {
-            nodes,
-            path,
-            width: cols * CELL_W,
-            height: rows * CELL_H,
-        };
     }
 
-    zoneMap(zone) {
-        return this.buildMap(zone.courses, zone.employees);
+    get studentNodes() {
+        const s = this.state.selectedEmp;
+        return this.trackNodes(s.courses, [
+            { id: s.id, name: s.name, courseId: s.courseId },
+        ]);
     }
 
     setTab(tab) {

@@ -1,48 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
 
-    <!-- ============ BAN DO GAME ============ -->
-    <t t-name="vd_elearning.GameMap">
-        <div class="o_vd_gamemap" t-attf-style="width:{{map.width}}px;height:{{map.height}}px">
-            <svg class="o_vd_path" t-att-width="map.width" t-att-height="map.height"
-                 t-attf-viewBox="0 0 {{map.width}} {{map.height}}">
-                <path t-att-d="map.path" class="o_vd_path_glow"/>
-                <path t-att-d="map.path" class="o_vd_path_line"/>
-            </svg>
-            <t t-foreach="map.nodes" t-as="node" t-key="node.course.id">
-                <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
-                     t-attf-style="left:{{node.x}}px;top:{{node.y}}px"
-                     t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
-                     t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey) : null"
-                     t-on-dragend="(ev) => this.onDragEnd(ev)"
-                     t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
-                     t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.list, dropCtx.zoneKey) : null"
-                     t-on-click="() => this.openCourse(node.course)">
-                    <div t-if="node.riders.length" class="o_vd_riders">
-                        <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
-                        <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
-                            <div class="o_vd_rider_card">
-                                <img class="o_vd_rider_ava"
-                                     t-attf-src="/web/image/res.users/{{rider.id}}/avatar_128" t-att-alt="rider.name"/>
-                                <span class="o_vd_rider_name" t-esc="rider.name"/>
-                            </div>
-                        </t>
+    <!-- ============ TRACK: 1 hang khoa hoc (flex-wrap) ============ -->
+    <t t-name="vd_elearning.Track">
+        <div class="o_vd_track">
+            <t t-foreach="nodes" t-as="node" t-key="node.course.id">
+                <div class="o_vd_step">
+                    <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
+                         t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
+                         t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey) : null"
+                         t-on-dragend="(ev) => this.onDragEnd(ev)"
+                         t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
+                         t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.list, dropCtx.zoneKey) : null"
+                         t-on-click="() => this.openCourse(node.course)">
+                        <div t-if="node.riders.length" class="o_vd_riders">
+                            <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
+                            <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
+                                <div class="o_vd_rider_card">
+                                    <img class="o_vd_rider_ava"
+                                         t-attf-src="/web/image/res.users/{{rider.id}}/avatar_128" t-att-alt="rider.name"/>
+                                    <span class="o_vd_rider_name" t-esc="rider.name"/>
+                                </div>
+                            </t>
+                        </div>
+                        <i t-if="node.kind == 'boss'" class="fa fa-trophy o_vd_emblem o_vd_emblem_boss"/>
+                        <div class="o_vd_level_tile">
+                            <img t-if="node.course.has_image" class="o_vd_level_logo"
+                                 t-attf-src="/web/image/slide.channel/{{node.course.id}}/image_128"/>
+                            <i t-else="" class="fa fa-graduation-cap o_vd_level_ico"/>
+                            <span class="o_vd_level_num" t-esc="node.n"/>
+                        </div>
+                        <div class="o_vd_level_name" t-esc="node.course.name"/>
                     </div>
-                    <i t-if="node.kind == 'boss'" class="fa fa-trophy o_vd_emblem o_vd_emblem_boss"/>
-                    <i t-elif="node.kind == 'start'" class="fa fa-flag o_vd_emblem o_vd_emblem_start"/>
-                    <div class="o_vd_level_tile">
-                        <img t-if="node.course.has_image" class="o_vd_level_logo"
-                             t-attf-src="/web/image/slide.channel/{{node.course.id}}/image_128"/>
-                        <i t-else="" class="fa fa-graduation-cap o_vd_level_ico"/>
-                        <span class="o_vd_level_num" t-esc="node.n"/>
-                    </div>
-                    <div class="o_vd_level_name" t-esc="node.course.name"/>
+                    <i t-if="!node_last" class="fa fa-long-arrow-right o_vd_arrow"/>
                 </div>
             </t>
         </div>
     </t>
 
-    <!-- ============ PANEL 1 TAB DAO TAO (nhieu lo trinh) ============ -->
+    <!-- ============ PANEL 1 TAB DAO TAO (1 bang, moi lo trinh 1 dong) ============ -->
     <t t-name="vd_elearning.ZonePanel">
         <div class="o_vd_panel">
             <div class="o_vd_maptools">
@@ -50,27 +46,28 @@
                 <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả khóa học để đổi lộ trình</span>
             </div>
 
-            <div class="o_vd_paths">
+            <div class="o_vd_board">
                 <t t-foreach="zone.paths" t-as="path" t-key="path.id">
-                    <div class="o_vd_path_block">
-                        <div class="o_vd_path_head">
-                            <span class="o_vd_path_ribbon"><i class="fa fa-flag me-2"/><t t-esc="path.name"/></span>
-                            <span class="o_vd_path_count"><t t-esc="path.courses.length"/> khóa học</span>
+                    <div class="o_vd_path_row">
+                        <div class="o_vd_path_marker">
+                            <div class="o_vd_path_badge"><i class="fa fa-flag-checkered"/></div>
+                            <div class="o_vd_path_label">
+                                <span class="o_vd_path_kicker">LỘ TRÌNH</span>
+                                <span class="o_vd_path_name" t-esc="path.name"/>
+                                <span class="o_vd_path_sub"><t t-esc="path.courses.length"/> khóa học</span>
+                            </div>
                         </div>
-                        <div class="o_vd_map_wrap">
-                            <t t-call="vd_elearning.GameMap">
-                                <t t-set="map" t-value="buildMap(path.courses, zone.employees)"/>
-                                <t t-set="dropCtx" t-value="state.isAdmin ? {list: path.courses, zoneKey: zone.key} : false"/>
-                                <t t-set="draggable" t-value="state.isAdmin"/>
-                            </t>
-                            <div t-if="!path.courses.length" class="o_vd_emp_empty">Lộ trình chưa có khóa học.</div>
-                        </div>
+                        <t t-call="vd_elearning.Track">
+                            <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees)"/>
+                            <t t-set="dropCtx" t-value="state.isAdmin ? {list: path.courses, zoneKey: zone.key} : false"/>
+                            <t t-set="draggable" t-value="state.isAdmin"/>
+                        </t>
+                        <div t-if="!path.courses.length" class="o_vd_track_empty">Lộ trình chưa có khóa học.</div>
                     </div>
                 </t>
                 <div t-if="!zone.paths.length" class="o_vd_emp_empty">Chưa có lộ trình nào.</div>
             </div>
 
-            <!-- nut + (hover hien menu) -->
             <div t-if="state.isAdmin" class="o_vd_fab">
                 <div class="o_vd_fab_menu">
                     <button class="o_vd_fab_item" t-on-click="() => this.newCourse(zone.key)">
@@ -109,12 +106,14 @@
                             <t t-esc="state.selectedEmp.courses.length"/> khóa học
                         </span>
                     </header>
-                    <div class="o_vd_map_wrap">
-                        <t t-call="vd_elearning.GameMap">
-                            <t t-set="map" t-value="studentMap()"/>
-                            <t t-set="dropCtx" t-value="false"/>
-                            <t t-set="draggable" t-value="false"/>
-                        </t>
+                    <div class="o_vd_board">
+                        <div class="o_vd_path_row">
+                            <t t-call="vd_elearning.Track">
+                                <t t-set="nodes" t-value="studentNodes"/>
+                                <t t-set="dropCtx" t-value="false"/>
+                                <t t-set="draggable" t-value="false"/>
+                            </t>
+                        </div>
                         <div t-if="!state.selectedEmp.courses.length" class="o_vd_emp_empty">
                             Chưa có khóa học nào trong hành trình.
                         </div>
