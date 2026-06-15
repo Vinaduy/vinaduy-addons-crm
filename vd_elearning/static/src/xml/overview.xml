@@ -87,7 +87,7 @@
                                 <t t-foreach="state.contents" t-as="c" t-key="c._k">
                                     <article class="o_vd_ce_read">
                                         <h3 t-esc="c.name"/>
-                                        <div class="o_vd_ce_read_body" t-esc="c.body"/>
+                                        <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
                                     </article>
                                 </t>
                                 <div t-if="state.questions.length" class="o_vd_ce_gotoexam">

@@ -3,7 +3,7 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onWillStart, useState, markup } from "@odoo/owl";
 
 // ---- Popup nhap ten (dung cho them khoa hoc / them - doi ten lo trinh) ----
 export class VdInputDialog extends Component {
@@ -184,6 +184,19 @@ export class VdCourseDialog extends Component {
     isAnswerCorrect(q, a) {
         const c = this.state.examResult && this.state.examResult.correct[q.id];
         return c ? c.includes(a.id) : false;
+    }
+    // render noi dung: HTML giu nguyen, text thuong thi xuong dong
+    bodyHtml(body) {
+        const s = body || "";
+        if (/<\/?[a-z][\s\S]*>/i.test(s)) {
+            return markup(s);
+        }
+        const esc = s
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\n/g, "<br/>");
+        return markup(esc);
     }
     addContent() {
         this.state.contents.push({ _k: this.key(), id: false, name: "", body: "" });
