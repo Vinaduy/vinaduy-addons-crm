@@ -1,5 +1,5 @@
 // ============================================================
-//  VINADUY eLEARNING - Tong quan theo chuc vu (so do lo trinh)
+//  VINADUY eLEARNING - Ban do game (man chon level, nen toi)
 // ============================================================
 
 $vd-ink:    #0b1220;
@@ -7,286 +7,231 @@ $vd-indigo: #5b4be6;
 $vd-violet: #7c3aed;
 $vd-gold:   #f5c451;
 $vd-line:   #e7e9f1;
-$vd-emp-w:  236px;
+$vd-emp-w:  220px;
+
+// nen "bang game" toi
+@mixin vd-board {
+    background:
+        radial-gradient(rgba(255,255,255,.05) 1.4px, transparent 1.4px) 0 0 / 22px 22px,
+        radial-gradient(900px 380px at 12% 0%, rgba($vd-violet, .22), transparent 60%),
+        radial-gradient(800px 420px at 88% 100%, rgba($vd-indigo, .28), transparent 60%),
+        linear-gradient(160deg, #121a33, #1b2446 70%);
+}
 
 .o_vd_overview {
     height: 100%;
-    overflow-y: auto;           // thanh cuon doc
-    padding: 1.2rem 1.4rem 3rem;
-    background: #eef0f6;
+    overflow-y: auto;
+    padding: 1rem 1.2rem 2.4rem;
+    background: #e9ebf2;
 
-    .o_vd_loading { padding: 3rem; color: #6b7280; font-size: 1.1rem; }
+    .o_vd_loading { padding: 3rem; color: #6b7280; font-size: 1.05rem; }
 
     // ---------------- KHU ----------------
     .o_vd_zone {
-        margin-bottom: 1.6rem;
-        background: #fff;
-        border: 1px solid $vd-line;
-        border-radius: 20px;
+        margin-bottom: 1.4rem;
+        border: 1px solid #20294a;
+        border-radius: 18px;
         overflow: hidden;
-        box-shadow: 0 8px 26px rgba(11, 18, 32, .06);
+        box-shadow: 0 10px 30px rgba(11, 18, 32, .14);
     }
 
     .o_vd_zone_head {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: .85rem 1.3rem;
-        background: linear-gradient(120deg, $vd-ink, #1b2547 70%);
+        display: flex; align-items: center; gap: .9rem;
+        padding: .7rem 1.1rem;
+        background: linear-gradient(120deg, #0a1024, #161f3c 70%);
         color: #fff;
 
         .o_vd_zone_badge {
-            font-weight: 800; font-size: 1rem; letter-spacing: .07em;
-            padding: .35rem 1rem; border-radius: 999px;
+            font-weight: 800; font-size: .92rem; letter-spacing: .06em;
+            padding: .3rem .9rem; border-radius: 999px;
             background: linear-gradient(135deg, $vd-gold, #e0a93b);
             color: $vd-ink;
         }
-        .o_vd_zone_count { color: rgba(255,255,255,.72); font-size: .85rem; font-weight: 600; }
+        .o_vd_zone_count { color: rgba(255,255,255,.7); font-size: .8rem; font-weight: 600; }
 
-        // dropdown chon nhan vien
         .o_vd_emp_select {
-            margin-left: auto;
-            max-width: 240px;
-            border: 1px solid rgba(255,255,255,.25);
-            background: rgba(255,255,255,.1);
-            color: #fff;
-            border-radius: 999px;
-            padding: .35rem .9rem;
-            font-size: .82rem; font-weight: 600;
-            cursor: pointer;
+            margin-left: auto; max-width: 220px;
+            border: 1px solid rgba(255,255,255,.22);
+            background: rgba(255,255,255,.08); color: #fff;
+            border-radius: 999px; padding: .3rem .8rem;
+            font-size: .78rem; font-weight: 600; cursor: pointer;
             option { color: $vd-ink; }
-            &:hover { background: rgba(255,255,255,.18); }
+            &:hover { background: rgba(255,255,255,.16); }
             &:focus { outline: none; border-color: $vd-gold; }
         }
-        .o_vd_zone_hint {
-            color: rgba(255,255,255,.55);
-            font-size: .76rem; font-style: italic;
-        }
+        .o_vd_zone_hint { color: rgba(255,255,255,.5); font-size: .72rem; font-style: italic; }
     }
 
-    // ============ GIAO DIEN NHAN VIEN ============
-    .o_vd_student {
-        background: #fff;
-        border: 1px solid $vd-line;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 8px 26px rgba(11, 18, 32, .06);
+    .o_vd_zone_body { display: flex; align-items: stretch; @include vd-board; }
 
-        .o_vd_student_head {
-            display: flex; align-items: center; gap: 1rem;
-            padding: 1.2rem 1.5rem;
-            background: linear-gradient(120deg, $vd-ink, #1b2547 70%);
-            color: #fff;
-        }
-        .o_vd_back {
-            border: 1px solid rgba(255,255,255,.3);
-            background: rgba(255,255,255,.08);
-            color: #fff; border-radius: 999px;
-            padding: .4rem .9rem; font-weight: 600; font-size: .82rem;
-            cursor: pointer;
-            &:hover { background: rgba(255,255,255,.18); }
-        }
-        .o_vd_student_ava {
-            width: 52px; height: 52px; border-radius: 50%;
-            object-fit: cover; border: 3px solid rgba($vd-gold, .8);
-        }
-        .o_vd_student_title {
-            display: flex; flex-direction: column;
-            .o_vd_student_label { font-size: .72rem; letter-spacing: .12em; color: rgba(255,255,255,.6); font-weight: 700; }
-            h2 { margin: 0; font-size: 1.4rem; font-weight: 800; color: #fff; }
-        }
-        .o_vd_student_count {
-            margin-left: auto;
-            background: linear-gradient(135deg, $vd-gold, #e0a93b);
-            color: $vd-ink; font-weight: 800; font-size: .85rem;
-            padding: .35rem 1rem; border-radius: 999px;
-        }
-
-        .o_vd_roadmap_student { padding: 1.4rem 1.5rem; }
-    }
-
-    .o_vd_zone_body { display: flex; align-items: stretch; }
-
-    // ============ COT TRAI: NHAN VIEN (pill nho gon) ============
+    // ============ COT TRAI: NHAN VIEN ============
     .o_vd_emp_col {
-        flex: 0 0 $vd-emp-w;
-        width: $vd-emp-w;
-        padding: .9rem .8rem;
-        border-right: 1px solid $vd-line;
-        background: #faf9ff;
-        display: flex; flex-direction: column; gap: .45rem;
+        flex: 0 0 $vd-emp-w; width: $vd-emp-w;
+        padding: .8rem .7rem;
+        border-right: 1px solid rgba(255,255,255,.08);
+        background: rgba(0,0,0,.16);
+        display: flex; flex-direction: column; gap: .4rem;
     }
-
     .o_vd_emp_pill {
-        display: flex; align-items: center; gap: .5rem;
-        padding: .28rem .7rem .28rem .3rem;
-        border-radius: 999px;
-        background: #fff;
-        border: 1px solid #ece9fb;
-        box-shadow: 0 2px 6px rgba(91, 75, 230, .08);
-        transition: transform .14s ease, box-shadow .14s ease;
-        &:hover { transform: translateX(2px); box-shadow: 0 6px 14px rgba(91, 75, 230, .18); }
-
+        display: flex; align-items: center; gap: .45rem;
+        padding: .22rem .6rem .22rem .25rem;
+        border-radius: 999px; background: #fff;
+        border: 1px solid rgba($vd-indigo, .15);
+        box-shadow: 0 2px 6px rgba(0,0,0,.2);
+        transition: transform .14s ease;
+        &:hover { transform: translateX(2px); }
         .o_vd_emp_ava {
-            flex: 0 0 30px; width: 30px; height: 30px;
-            border-radius: 50%; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba($vd-indigo, .12);
+            flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%;
+            overflow: hidden; background: rgba($vd-indigo, .12);
             img { width: 100%; height: 100%; object-fit: cover; }
         }
         .o_vd_emp_name {
             flex: 1 1 auto; min-width: 0;
-            font-weight: 700; color: $vd-ink; font-size: .8rem;
+            font-weight: 700; color: $vd-ink; font-size: .74rem;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
     }
+    .o_vd_emp_empty { color: rgba(255,255,255,.55); font-size: .78rem; font-style: italic; text-align: center; padding: 1rem; }
 
-    .o_vd_emp_empty { color: #9aa0ad; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }
+    // ============ GIAO DIEN NHAN VIEN ============
+    .o_vd_student {
+        border: 1px solid #20294a; border-radius: 18px; overflow: hidden;
+        box-shadow: 0 10px 30px rgba(11, 18, 32, .14);
 
-    // ============ COT PHAI: BAN DO GAME ============
-    .o_vd_course_col {
-        flex: 1 1 auto; min-width: 0;
-        padding: 1.6rem 1.4rem 1.2rem;
-        overflow-x: auto;                 // map rong thi cuon ngang
-        background:
-            radial-gradient(circle at 18% 22%, rgba($vd-indigo, .06), transparent 38%),
-            radial-gradient(circle at 82% 78%, rgba($vd-violet, .07), transparent 42%),
-            #f3f1fb;
+        .o_vd_student_head {
+            display: flex; align-items: center; gap: .9rem;
+            padding: 1rem 1.3rem;
+            background: linear-gradient(120deg, #0a1024, #161f3c 70%);
+            color: #fff;
+        }
+        .o_vd_back {
+            border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.08);
+            color: #fff; border-radius: 999px; padding: .35rem .8rem;
+            font-weight: 600; font-size: .8rem; cursor: pointer;
+            &:hover { background: rgba(255,255,255,.18); }
+        }
+        .o_vd_student_ava {
+            width: 46px; height: 46px; border-radius: 50%; object-fit: cover;
+            border: 3px solid rgba($vd-gold, .8);
+        }
+        .o_vd_student_title {
+            display: flex; flex-direction: column;
+            .o_vd_student_label { font-size: .68rem; letter-spacing: .12em; color: rgba(255,255,255,.55); font-weight: 700; }
+            h2 { margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff; }
+        }
+        .o_vd_student_count {
+            margin-left: auto;
+            background: linear-gradient(135deg, $vd-gold, #e0a93b);
+            color: $vd-ink; font-weight: 800; font-size: .8rem;
+            padding: .3rem .9rem; border-radius: 999px;
+        }
+        .o_vd_map_wrap { @include vd-board; padding: .6rem 1.2rem 1.4rem; overflow-x: auto; }
     }
-    .o_vd_map_wrap { padding: 1.6rem 1.6rem 2rem; overflow-x: auto; }
 
-    // khung ban do
-    .o_vd_gamemap { position: relative; margin: 80px auto 0; }
+    // ============ BAN DO GAME ============
+    .o_vd_course_col { flex: 1 1 auto; min-width: 0; padding: .6rem 1rem 1rem; overflow-x: auto; }
+    .o_vd_gamemap { position: relative; margin: 56px auto 0; }
 
-    // duong di game (serpentine)
     .o_vd_path {
-        position: absolute; top: 0; left: 0;
-        pointer-events: none; overflow: visible;
+        position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible;
         fill: none; stroke-linecap: round; stroke-linejoin: round;
     }
-    .o_vd_path_glow { stroke: rgba($vd-gold, .35); stroke-width: 16; }
-    .o_vd_path_line {
-        stroke: #d7d2f0; stroke-width: 9;
-        stroke-dasharray: 2 18;           // cham bi -> kieu duong game
-    }
+    .o_vd_path_glow { stroke: rgba($vd-gold, .4); stroke-width: 11; }
+    .o_vd_path_line { stroke: rgba($vd-gold, .9); stroke-width: 5; stroke-dasharray: 1.5 12; }
 
-    // ----- CUA AI (level node) -----
+    // ----- CUA AI -----
     .o_vd_level {
-        position: absolute;
-        transform: translate(-50%, -50%);
-        width: 150px;
+        position: absolute; transform: translate(-50%, -50%);
+        width: 128px;
         display: flex; flex-direction: column; align-items: center;
-        cursor: pointer;
-        text-align: center;
-        z-index: 2;
+        cursor: pointer; text-align: center; z-index: 2;
         transition: transform .15s ease;
-        &:hover { transform: translate(-50%, -50%) scale(1.06); z-index: 5; }
+        &:hover { transform: translate(-50%, -50%) scale(1.08); z-index: 5; }
         &.o_vd_dragging { opacity: .4; }
 
-        // ----- TILE CUA AI (logo khoa hoc) -----
         .o_vd_level_tile {
             position: relative;
-            width: 78px; height: 78px; border-radius: 20px;
+            width: 50px; height: 50px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            overflow: visible;
             background: linear-gradient(150deg, #8a7bff, $vd-indigo 75%);
-            border: 4px solid #fff;
-            box-shadow: 0 10px 20px rgba($vd-indigo, .4),
-                        inset 0 -5px 9px rgba(0,0,0,.22),
-                        inset 0 4px 7px rgba(255,255,255,.45);
+            border: 3px solid rgba(255,255,255,.92);
+            box-shadow: 0 7px 14px rgba($vd-indigo, .5),
+                        inset 0 -4px 7px rgba(0,0,0,.25), inset 0 3px 5px rgba(255,255,255,.4);
         }
-        .o_vd_level_logo {
-            width: 100%; height: 100%; border-radius: 16px; object-fit: cover;
-        }
-        .o_vd_level_ico { color: #fff; font-size: 2.1rem; text-shadow: 0 2px 4px rgba(0,0,0,.3); }
-        // so thu tu - chip goc duoi
+        .o_vd_level_logo { width: 100%; height: 100%; border-radius: 11px; object-fit: cover; }
+        .o_vd_level_ico { color: #fff; font-size: 1.3rem; text-shadow: 0 2px 3px rgba(0,0,0,.35); }
         .o_vd_level_num {
-            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
-            min-width: 26px; height: 26px; padding: 0 .35rem; border-radius: 999px;
+            position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
+            min-width: 19px; height: 19px; padding: 0 .25rem; border-radius: 999px;
             background: #fff; color: $vd-indigo;
-            font-weight: 900; font-size: .92rem; line-height: 26px;
-            box-shadow: 0 3px 7px rgba(0,0,0,.22);
-            border: 2px solid rgba($vd-indigo, .2);
+            font-weight: 900; font-size: .72rem; line-height: 19px;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
         }
-
         .o_vd_level_name {
-            margin-top: 1rem;
-            font-weight: 800; color: $vd-ink; font-size: .78rem; line-height: 1.18;
-            max-width: 150px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-            overflow: hidden;
+            margin-top: .6rem;
+            font-weight: 700; color: #e3e7f4; font-size: .66rem; line-height: 1.2;
+            max-width: 120px; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
 
-        // ----- LA CO / CUP (to, noi bat) -----
+        // co/cup o GOC tile (khong che ten)
         .o_vd_emblem {
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-            font-size: 2rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,.35));
-            z-index: 7;
+            position: absolute; top: -12px; right: -10px;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); z-index: 7;
         }
-        .o_vd_emblem_start { color: #16a34a; }
-        .o_vd_emblem_boss  { color: $vd-gold; font-size: 2.4rem; top: -38px;
+        .o_vd_emblem_start { color: #34d27b; font-size: 1.25rem; }
+        .o_vd_emblem_boss  { color: $vd-gold; font-size: 1.55rem; top: -16px; right: -12px;
             animation: vd-bounce 1.6s ease-in-out infinite; }
 
-        // cua DAU (start) - xanh la
         &.o_vd_level_start .o_vd_level_tile {
             background: linear-gradient(150deg, #6ee7a8, #16a34a 75%);
-            box-shadow: 0 10px 20px rgba(22,163,74,.42),
-                        inset 0 -5px 9px rgba(0,0,0,.2), inset 0 4px 7px rgba(255,255,255,.45);
+            box-shadow: 0 7px 14px rgba(22,163,74,.5), inset 0 -4px 7px rgba(0,0,0,.22), inset 0 3px 5px rgba(255,255,255,.4);
         }
-        &.o_vd_level_start .o_vd_level_num { color: #16a34a; border-color: rgba(22,163,74,.25); }
-        // cua CUOI (boss) - vang kim to hon
+        &.o_vd_level_start .o_vd_level_num { color: #16a34a; }
         &.o_vd_level_boss .o_vd_level_tile {
-            width: 92px; height: 92px;
+            width: 60px; height: 60px;
             background: linear-gradient(150deg, #ffe39a, #e0a93b 75%);
-            box-shadow: 0 12px 26px rgba($vd-gold, .55),
-                        inset 0 -5px 9px rgba(0,0,0,.22), inset 0 4px 7px rgba(255,255,255,.6);
+            box-shadow: 0 9px 18px rgba($vd-gold,.55), inset 0 -4px 7px rgba(0,0,0,.22), inset 0 3px 5px rgba(255,255,255,.55);
             .o_vd_level_ico { color: #6b4e00; }
         }
-        &.o_vd_level_boss .o_vd_level_num { color: #9a6b00; border-color: rgba($vd-gold,.4); }
+        &.o_vd_level_boss .o_vd_level_num { color: #9a6b00; }
     }
 
-    @keyframes vd-bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
+    @keyframes vd-bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
 
-    // ----- THE TEN NHAN VIEN BAM THEO CUA -----
+    // ----- THE TEN NHAN VIEN -----
     .o_vd_riders {
-        position: absolute; bottom: calc(100% + 4px); left: 50%;
-        transform: translateX(-50%);
-        display: flex; flex-direction: column-reverse; align-items: center; gap: 4px;
-        z-index: 6;
+        position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%);
+        display: flex; flex-direction: column-reverse; align-items: center; gap: 3px; z-index: 6;
     }
     .o_vd_rider_card {
-        display: flex; align-items: center; gap: .35rem;
-        padding: .15rem .5rem .15rem .15rem;
+        display: flex; align-items: center; gap: .28rem;
+        padding: .12rem .45rem .12rem .12rem;
         background: #fff; border-radius: 999px;
-        border: 1px solid rgba($vd-indigo, .18);
-        box-shadow: 0 4px 10px rgba(11,18,32,.18);
-        white-space: nowrap;
+        box-shadow: 0 4px 9px rgba(0,0,0,.3); white-space: nowrap;
         .o_vd_rider_ava {
-            width: 22px; height: 22px; border-radius: 50%; object-fit: cover;
+            width: 18px; height: 18px; border-radius: 50%; object-fit: cover;
             border: 2px solid rgba($vd-gold,.7);
         }
-        .o_vd_rider_name { font-weight: 700; color: $vd-ink; font-size: .72rem; }
+        .o_vd_rider_name { font-weight: 700; color: $vd-ink; font-size: .64rem; }
     }
     .o_vd_rider_more {
-        background: $vd-ink; color: #fff; font-size: .66rem; font-weight: 700;
-        padding: .12rem .55rem; border-radius: 999px;
-        box-shadow: 0 3px 7px rgba(0,0,0,.25);
+        background: $vd-gold; color: $vd-ink; font-size: .6rem; font-weight: 800;
+        padding: .1rem .5rem; border-radius: 999px; box-shadow: 0 3px 6px rgba(0,0,0,.3);
     }
 
-    // nut them khoa hoc
+    // ----- nut them khoa hoc -----
     .o_vd_add_btn {
-        margin-top: 1rem;
-        border: 2px dashed #b9b2e6; border-radius: 12px;
-        background: rgba(255,255,255,.6);
-        color: $vd-indigo; font-weight: 700; font-size: .85rem;
-        padding: .55rem 1.1rem; cursor: pointer;
-        &:hover { border-style: solid; background: rgba($vd-indigo, .08); }
+        margin-top: .8rem;
+        border: 2px dashed rgba(255,255,255,.3); border-radius: 10px;
+        background: rgba(255,255,255,.06); color: #cfd4ec;
+        font-weight: 700; font-size: .8rem; padding: .45rem 1rem; cursor: pointer;
+        &:hover { border-style: solid; border-color: $vd-gold; color: #fff; background: rgba($vd-gold,.12); }
     }
 
     // ---------------- RESPONSIVE ----------------
     @media (max-width: 768px) {
         .o_vd_zone_body { flex-direction: column; }
-        .o_vd_emp_col { flex-basis: auto; width: 100%; border-right: 0; border-bottom: 1px solid $vd-line; }
+        .o_vd_emp_col { flex-basis: auto; width: 100%; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.1); }
     }
 }

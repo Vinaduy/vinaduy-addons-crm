@@ -5,8 +5,8 @@ import { useService } from "@web/core/utils/hooks";
 import { Component, onWillStart, useState } from "@odoo/owl";
 
 // Kich thuoc mot "o" tren ban do game.
-const CELL_W = 230;
-const CELL_H = 205;
+const CELL_W = 150;
+const CELL_H = 128;
 const MAX_COLS = 6;
 
 export class VdElearningOverview extends Component {
