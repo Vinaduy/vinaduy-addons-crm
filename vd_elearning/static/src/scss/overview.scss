@@ -1,0 +1,193 @@
+// ============================================================
+//  VINADUY eLEARNING - Trang Tong quan theo chuc vu (OWL action)
+// ============================================================
+
+$vd-ink:    #0b1220;
+$vd-indigo: #4f46e5;
+$vd-violet: #7c3aed;
+$vd-gold:   #f5c451;
+$vd-line:   #e7e9f1;
+$vd-emp-w:  210px;   // do rong cot trai (thẻ nhân viên) ~ "5 tu"
+
+.o_vd_overview {
+    padding: 1.4rem 1.6rem 2.5rem;
+    background: #f5f6fa;
+    min-height: 100%;
+
+    .o_vd_loading { padding: 3rem; color: #6b7280; font-size: 1.1rem; }
+
+    // ---------- KHU ----------
+    .o_vd_zone {
+        margin-bottom: 2rem;
+        background: #fff;
+        border: 1px solid $vd-line;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(11, 18, 32, .05);
+    }
+
+    .o_vd_zone_head {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: 1rem 1.4rem;
+        background: linear-gradient(135deg, $vd-ink, #1b2540);
+        color: #fff;
+
+        .o_vd_zone_badge {
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: .06em;
+            padding: .35rem .9rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, $vd-gold, #e0a93b);
+            color: $vd-ink;
+        }
+        .o_vd_zone_count { color: rgba(255,255,255,.7); font-size: .85rem; font-weight: 600; }
+    }
+
+    .o_vd_zone_body {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    // ---------- COT TRAI: NHAN VIEN ----------
+    .o_vd_emp_col {
+        flex: 0 0 $vd-emp-w;
+        width: $vd-emp-w;
+        padding: 1rem;
+        border-right: 1px solid $vd-line;
+        background: #fbfbfe;
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+    }
+
+    .o_vd_emp_card {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .5rem .6rem;
+        border: 1px solid $vd-line;
+        border-radius: 12px;
+        background: #fff;
+        transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+
+        &:hover {
+            transform: translateX(2px);
+            border-color: rgba($vd-indigo, .4);
+            box-shadow: 0 6px 16px rgba(11, 18, 32, .1);
+        }
+
+        .o_vd_emp_avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex: 0 0 38px;
+            border: 2px solid rgba($vd-gold, .6);
+        }
+        .o_vd_emp_meta { display: flex; flex-direction: column; min-width: 0; }
+        .o_vd_emp_name {
+            font-weight: 700; color: $vd-ink; font-size: .82rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .o_vd_emp_team {
+            font-size: .68rem; color: $vd-indigo; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .03em;
+        }
+    }
+
+    .o_vd_emp_empty {
+        color: #9aa0ad; font-size: .82rem; font-style: italic;
+        text-align: center; padding: 1rem .5rem;
+    }
+
+    // ---------- COT PHAI: KHOA HOC ----------
+    .o_vd_course_col {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 1.1rem 1.3rem;
+    }
+
+    .o_vd_course_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 1rem;
+    }
+
+    .o_vd_course_card {
+        border: 1px solid $vd-line;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(11, 18, 32, .05);
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            border-color: rgba($vd-indigo, .4);
+            box-shadow: 0 16px 34px rgba(11, 18, 32, .15);
+            .o_vd_course_thumb { transform: scale(1.05); }
+        }
+
+        .o_vd_course_thumb {
+            height: 96px;
+            background-size: cover;
+            background-position: center;
+            transition: transform .35s ease;
+        }
+        .o_vd_course_thumb_empty {
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #eef0fb, #e4e7f7);
+            color: rgba($vd-indigo, .55);
+            font-size: 2rem;
+        }
+
+        .o_vd_course_info { padding: .7rem .8rem .8rem; }
+        .o_vd_course_name {
+            display: block;
+            font-weight: 700; color: $vd-ink; font-size: .9rem;
+            line-height: 1.25;
+            min-height: 2.3em;
+        }
+        .o_vd_course_meta {
+            display: block; margin-top: .35rem;
+            color: #8a90a0; font-size: .74rem; font-weight: 600;
+        }
+    }
+
+    // nut them khoa hoc
+    .o_vd_course_add {
+        border: 2px dashed #c9cee0;
+        border-radius: 14px;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: .4rem;
+        color: #8a90a0;
+        cursor: pointer;
+        min-height: 150px;
+        transition: all .18s ease;
+
+        i { font-size: 1.4rem; }
+        span { font-size: .82rem; font-weight: 700; }
+
+        &:hover {
+            border-color: $vd-indigo;
+            color: $vd-indigo;
+            background: rgba($vd-indigo, .04);
+        }
+    }
+
+    // ---------- RESPONSIVE ----------
+    @media (max-width: 768px) {
+        .o_vd_zone_body { flex-direction: column; }
+        .o_vd_emp_col {
+            flex-basis: auto; width: 100%;
+            border-right: 0; border-bottom: 1px solid $vd-line;
+            flex-direction: row; flex-wrap: wrap;
+        }
+        .o_vd_emp_card { flex: 1 1 160px; }
+    }
+}

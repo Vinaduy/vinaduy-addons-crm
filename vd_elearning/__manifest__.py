@@ -5,9 +5,11 @@
     'summary': 'Giao dien hoc online cao cap cho Vinaduy',
     'description': 'Thiet ke lai trang tong quan khoa hoc (courses_home) theo phong cach cao cap, sac net, chuyen nghiep.',
     'author': 'Vinaduy',
-    'depends': ['website_slides'],
+    'depends': ['website_slides', 'vd_crm_lead'],
     'data': [
+        'data/courses.xml',
         'views/slides_homepage.xml',
+        'views/elearning_actions.xml',
     ],
     'assets': {
         'web.assets_frontend': [
@@ -15,6 +17,9 @@
         ],
         'web.assets_backend': [
             'vd_elearning/static/src/scss/elearning_backend.scss',
+            'vd_elearning/static/src/scss/overview.scss',
+            'vd_elearning/static/src/js/overview.js',
+            'vd_elearning/static/src/xml/overview.xml',
         ],
     },
     'installable': True,

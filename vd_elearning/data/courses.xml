@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============ KHU NHAN VIEN KINH DOANH ============ -->
+        <record id="course_a1" model="slide.channel">
+            <field name="name">A1 - Mẫu Nhà</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_a2" model="slide.channel">
+            <field name="name">A2 - Móng</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_mau_nha_mong_coc" model="slide.channel">
+            <field name="name">Mẫu nhà - Loại móng - Loại cọc</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_mong_nang_cao" model="slide.channel">
+            <field name="name">Móng nâng cao</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_b2" model="slide.channel">
+            <field name="name">B2 - Vật tư hoàn thiện</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_b3" model="slide.channel">
+            <field name="name">B3 - Vật tư không có trong HĐ</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_vat_tu_xay_tho" model="slide.channel">
+            <field name="name">Vật tư xây thô - Hoàn thiện</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_c1" model="slide.channel">
+            <field name="name">C1 - Đơn giá</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_c2" model="slide.channel">
+            <field name="name">C2 - Tính nhẩm</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d" model="slide.channel">
+            <field name="name">D - Cân Đối Tiền</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d1" model="slide.channel">
+            <field name="name">D1 - Giảm diện tích</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d2" model="slide.channel">
+            <field name="name">D2 - Chuyển đổi mẫu nhà</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d3" model="slide.channel">
+            <field name="name">D3 - Chuyển đổi loại móng</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d4" model="slide.channel">
+            <field name="name">D4 - Giảm vật tư</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d5" model="slide.channel">
+            <field name="name">D5 - Chuyển về xây thô</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+        <record id="course_d6" model="slide.channel">
+            <field name="name">D6 - Giảm đơn giá</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+        </record>
+
+        <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
+        <record id="course_tn1" model="slide.channel">
+            <field name="name">TN1 - Quản lý đội nhóm</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">leader</field>
+        </record>
+        <record id="course_tn2" model="slide.channel">
+            <field name="name">TN2 - Kèm cặp nhân viên</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">leader</field>
+        </record>
+        <record id="course_tn3" model="slide.channel">
+            <field name="name">TN3 - Đọc báo cáo nhóm</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">leader</field>
+        </record>
+
+    </data>
+</odoo>

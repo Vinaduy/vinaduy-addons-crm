@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_elearning.Overview">
+        <div class="o_vd_overview">
+            <div t-if="state.loading" class="o_vd_loading">
+                <i class="fa fa-spinner fa-spin"/> Đang tải...
+            </div>
+            <t t-else="">
+                <t t-foreach="state.zones" t-as="zone" t-key="zone.key">
+                    <section t-attf-class="o_vd_zone o_vd_zone_{{zone.key}}">
+                        <header class="o_vd_zone_head">
+                            <span class="o_vd_zone_badge" t-esc="zone.title"/>
+                            <span class="o_vd_zone_count">
+                                <t t-esc="zone.courses.length"/> khóa học ·
+                                <t t-esc="zone.employees.length"/> nhân viên
+                            </span>
+                        </header>
+                        <div class="o_vd_zone_body">
+                            <!-- COT TRAI: the nhan vien -->
+                            <aside class="o_vd_emp_col">
+                                <t t-foreach="zone.employees" t-as="emp" t-key="emp.id">
+                                    <div class="o_vd_emp_card">
+                                        <img class="o_vd_emp_avatar"
+                                            t-attf-src="/web/image/res.users/{{emp.id}}/avatar_128"
+                                            t-att-alt="emp.name"/>
+                                        <div class="o_vd_emp_meta">
+                                            <span class="o_vd_emp_name" t-esc="emp.name"/>
+                                            <span t-if="emp.team" class="o_vd_emp_team" t-esc="emp.team"/>
+                                        </div>
+                                    </div>
+                                </t>
+                                <div t-if="!zone.employees.length" class="o_vd_emp_empty">
+                                    Chưa có nhân viên
+                                </div>
+                            </aside>
+
+                            <!-- COT PHAI: the khoa hoc -->
+                            <div class="o_vd_course_col">
+                                <div class="o_vd_course_grid">
+                                    <t t-foreach="zone.courses" t-as="course" t-key="course.id">
+                                        <div class="o_vd_course_card" t-on-click="() => this.openCourse(course)">
+                                            <div t-if="course.has_image" class="o_vd_course_thumb"
+                                                t-attf-style="background-image:url('/web/image/slide.channel/{{course.id}}/image_512')"/>
+                                            <div t-else="" class="o_vd_course_thumb o_vd_course_thumb_empty">
+                                                <i class="fa fa-graduation-cap"/>
+                                            </div>
+                                            <div class="o_vd_course_info">
+                                                <span class="o_vd_course_name" t-esc="course.name"/>
+                                                <span class="o_vd_course_meta">
+                                                    <i class="fa fa-file-o me-1"/><t t-esc="course.total_slides"/> nội dung
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <div class="o_vd_course_add" t-on-click="() => this.newCourse(zone.key)">
+                                        <i class="fa fa-plus"/>
+                                        <span>Thêm khóa học</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </t>
+            </t>
+        </div>
+    </t>
+
+</templates>
