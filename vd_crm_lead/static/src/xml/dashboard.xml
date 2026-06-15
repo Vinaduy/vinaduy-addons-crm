@@ -3168,11 +3168,22 @@
                                                 <!-- 🆕 KHÁCH MỚI — TÁCH RIÊNG thành 1 thẻ độc lập (user spec
                                                      2026-06-15), KHÔNG còn chung khung với Thi công gấp. -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_metric_newcust_solo">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">🆕</span>
-                                                        <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Khách mới</span>
-                                                    </span>
+                                                    <!-- User spec 2026-06-15: GỘP 1 KHỐI — "28 khách mới, trong đó
+                                                         20 chưa gọi". Chip cảnh báo nằm NGAY TRONG thẻ Khách mới. -->
+                                                    <div class="o_vd_kh_newcust_row">
+                                                        <span class="o_vd_kh_metric_chip">
+                                                            <span class="o_vd_kh_metric_ico">🆕</span>
+                                                            <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
+                                                            <span class="o_vd_kh_metric_lbl">Khách mới</span>
+                                                        </span>
+                                                        <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
+                                                              class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
+                                                              t-att-title="'Trong số khách mới, NV còn ' + (nv.rem_new_not_called or 0) + ' khách CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
+                                                            <span class="o_vd_kh_metric_ico">⚠️</span>
+                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
+                                                            <span class="o_vd_kh_metric_lbl">chưa gọi</span>
+                                                        </span>
+                                                    </div>
                                                     <t t-set="cellNv" t-value="nv"/>
                                                     <t t-set="cellWhich" t-value="'new'"/>
                                                     <t t-set="cellLocked" t-value="nv.lock_new"/>
@@ -3196,18 +3207,6 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-
-                                                <!-- ⚠️ CẢNH BÁO TỒN KH MỚI CHƯA GỌI — nằm SÁT NGAY SAU thẻ Khách
-                                                     mới (user spec 2026-06-15). CHỈ hiện khi NV vượt ngưỡng. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_uncalled">
-                                                    <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
-                                                          class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
-                                                          t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
-                                                        <span class="o_vd_kh_metric_ico">⚠️</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">KH chưa gọi</span>
-                                                    </span>
                                                 </div>
 
                                                 <!-- ===== KHUNG: Thi công gấp | Xử lý vấn đề (đã tách Khách mới ra) ===== -->
