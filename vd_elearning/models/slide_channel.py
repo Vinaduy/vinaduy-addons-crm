@@ -61,6 +61,17 @@ class SlideChannel(models.Model):
                                  ('channel_id', 'in', all_chan_ids)]):
                 progress.setdefault(p.partner_id.id, {})[p.channel_id.id] = p.member_status
 
+        # NV duoc coi la "da gan" khi co membership o it nhat 1 khoa trong khu.
+        sales_ids = set(zone_recs['sales'].ids)
+        leader_ids = set(zone_recs['leader'].ids)
+
+        def is_assigned(user, zk):
+            mine = progress.get(user.partner_id.id)
+            if not mine:
+                return False
+            ids = sales_ids if zk == 'sales' else leader_ids
+            return any(cid in ids for cid in mine)
+
         def current_course_id(user, recs):
             """Khoa hoc NV dang dung ('cua ai' hien tai)."""
             if not recs:
@@ -77,8 +88,8 @@ class SlideChannel(models.Model):
                     return cid
             return ids[-1]                           # da pha dao het
 
-        def zone_employees(roles, recs):
-            us = internal.filtered(lambda u: u.vd_crm_role in roles)
+        def zone_employees(roles, recs, zk):
+            us = internal.filtered(lambda u: u.vd_crm_role in roles and is_assigned(u, zk))
             us = us.sorted(lambda u: (u.vd_team_label or 'KHAC', u.name or ''))
             return [{'id': u.id, 'name': u.name or '',
                      'course_id': current_course_id(u, recs)} for u in us]
@@ -122,11 +133,13 @@ class SlideChannel(models.Model):
                 'completed': completed, 'total': total,
                 'percent': round(100.0 * completed / total) if total else 0,
                 'current': cur.name if cur else '',
+                'current_id': cur_id,
                 'zone_key': zk,
             }
 
         report_users = internal.filtered(
             lambda u: u.vd_crm_role in ('employee', 'collaborator', 'team_leader')
+            and is_assigned(u, 'leader' if u.vd_crm_role == 'team_leader' else 'sales')
         ).sorted(lambda u: (u.vd_team_label or 'zz', u.name or ''))
         report = [report_row(u) for u in report_users]
 
@@ -145,15 +158,72 @@ class SlideChannel(models.Model):
             'report': report,
             'zones': [
                 {'key': 'sales', 'title': 'NHAN VIEN KINH DOANH',
-                 'employees': zone_employees(['employee', 'team_leader', 'collaborator'], zone_recs['sales']),
+                 'employees': zone_employees(['employee', 'team_leader', 'collaborator'], zone_recs['sales'], 'sales'),
                  'courses': course_list(zone_recs['sales']),
                  'paths': zone_paths('sales')},
                 {'key': 'leader', 'title': 'TRUONG NHOM',
-                 'employees': zone_employees(['team_leader'], zone_recs['leader']),
+                 'employees': zone_employees(['team_leader'], zone_recs['leader'], 'leader'),
                  'courses': course_list(zone_recs['leader']),
                  'paths': zone_paths('leader')},
             ],
         }
+
+    @staticmethod
+    def _vd_zone_roles(zk):
+        return (['employee', 'collaborator', 'team_leader'] if zk == 'sales'
+                else ['team_leader'])
+
+    @api.model
+    def vd_path_candidates(self, path_id):
+        """Danh sach NV co the gan vao lo trinh + trang thai da gan hay chua."""
+        path = self.env['vd.learning.path'].browse(path_id)
+        roles = self._vd_zone_roles(path.zone)
+        internal = self.env['res.users'].search(
+            [('share', '=', False), ('active', '=', True)])
+        us = internal.filtered(lambda u: u.vd_crm_role in roles)
+        us = us.sorted(lambda u: (u.vd_team_label or 'zz', u.name or ''))
+        course_ids = path.course_ids.ids
+        assigned = set()
+        if course_ids and us:
+            SCP = self.env['slide.channel.partner'].sudo()
+            for p in SCP.search([('channel_id', 'in', course_ids),
+                                 ('partner_id', 'in', us.partner_id.ids)]):
+                assigned.add(p.partner_id.id)
+        role_label = {'collaborator': 'CTV', 'employee': 'Nhân viên',
+                      'team_leader': 'Trưởng nhóm'}
+        return [{'id': u.id, 'name': u.name or '',
+                 'team': u.vd_team_label or 'KHAC',
+                 'role': role_label.get(u.vd_crm_role, ''),
+                 'assigned': u.partner_id.id in assigned} for u in us]
+
+    @api.model
+    def vd_set_path_members(self, path_id, user_ids):
+        """Dong bo NV duoc gan vao lo trinh = membership o moi khoa cua lo trinh.
+        Chi gan/go trong pham vi NV du dieu kien (khong dung den NV khac). Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc gan nhan vien.')
+        path = self.env['vd.learning.path'].browse(path_id)
+        courses = path.course_ids
+        if not courses:
+            return True
+        roles = self._vd_zone_roles(path.zone)
+        internal = self.env['res.users'].search(
+            [('share', '=', False), ('active', '=', True)])
+        pool = internal.filtered(lambda u: u.vd_crm_role in roles)
+        pool_pids = set(pool.partner_id.ids)
+        target_pids = set(self.env['res.users'].browse(user_ids).partner_id.ids) & pool_pids
+        SCP = self.env['slide.channel.partner'].sudo()
+        for c in courses:
+            existing = SCP.search([('channel_id', '=', c.id),
+                                   ('partner_id', 'in', list(pool_pids))])
+            existing_pids = set(existing.mapped('partner_id').ids)
+            to_remove = existing.filtered(lambda r: r.partner_id.id not in target_pids)
+            if to_remove:
+                to_remove.unlink()
+            for pid in (target_pids - existing_pids):
+                SCP.create({'channel_id': c.id, 'partner_id': pid,
+                            'member_status': 'joined'})
+        return True
 
     @api.model
     def vd_save_order(self, zone, ordered_ids):

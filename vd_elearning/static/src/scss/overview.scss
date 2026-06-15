@@ -28,7 +28,7 @@ $vd-line:   #ece7da;
     // ---------------- TAB FILTER ----------------
     .o_vd_tabbar {
         display: flex; align-items: center; gap: .35rem;
-        margin-bottom: 1rem; flex-wrap: wrap;
+        margin-bottom: 1rem; flex-wrap: nowrap;
         background: #fff; border: 1px solid $vd-line; border-radius: 14px;
         padding: .35rem; box-shadow: 0 4px 14px rgba($vd-ink, .05);
     }
@@ -44,11 +44,13 @@ $vd-line:   #ece7da;
             i { color: $vd-gold; }
         }
     }
+    .o_vd_tab { white-space: nowrap; }
     .o_vd_tabbar .o_vd_emp_select {
-        margin-left: auto;
+        margin-left: auto; flex: 0 1 240px; min-width: 150px; max-width: 280px;
         border: 1px solid $vd-line; background: #faf8f1; color: $vd-ink;
         border-radius: 10px; padding: .5rem 1rem;
         font-size: .8rem; font-weight: 700; cursor: pointer;
+        text-overflow: ellipsis;
         &:hover { border-color: $vd-gold-d; }
         &:focus { outline: none; border-color: $vd-gold-d; }
     }
@@ -336,4 +338,31 @@ $vd-line2:   #ece7da;
     color: $vd-ink2; font-weight: 800; border: 0;
     &:hover { filter: brightness(1.04); color: $vd-ink2; }
     &:disabled { opacity: .45; cursor: not-allowed; }
+}
+
+// ============ DIALOG GAN NHAN VIEN ============
+.o_vd_assign {
+    display: flex; flex-direction: column; gap: .6rem; padding: .2rem;
+    .o_vd_assign_search {
+        width: 100%; border: 1px solid $vd-line2; border-radius: 10px;
+        padding: .5rem .8rem; font-size: .88rem; color: $vd-ink2; background: #fff;
+        &:focus { outline: none; border-color: $vd-gold2-d; box-shadow: 0 0 0 3px rgba($vd-gold2, .25); }
+    }
+    .o_vd_assign_count { font-size: .76rem; font-weight: 700; color: #8a6a12; }
+    .o_vd_assign_list {
+        max-height: 48vh; overflow-y: auto; display: flex; flex-direction: column; gap: .2rem;
+        border: 1px solid $vd-line2; border-radius: 12px; padding: .35rem;
+    }
+    .o_vd_assign_row {
+        display: flex; align-items: center; gap: .6rem; padding: .4rem .55rem;
+        border-radius: 9px; cursor: pointer; transition: background .12s ease;
+        &:hover { background: rgba($vd-gold2, .12); }
+        input { width: 18px; height: 18px; cursor: pointer; accent-color: $vd-gold2-d; flex: 0 0 18px; }
+        img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: 0 0 30px; border: 2px solid rgba($vd-gold2, .55); }
+        .o_vd_assign_main { display: flex; flex-direction: column; min-width: 0; }
+        .o_vd_assign_name { font-weight: 700; color: $vd-ink2; font-size: .88rem; }
+        .o_vd_assign_sub { font-size: .7rem; color: #9a9685; font-weight: 600; }
+        .o_vd_assign_team { color: $vd-indigo; font-weight: 800; }
+    }
+    .o_vd_assign_empty { color: #a7a395; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }
 }

@@ -26,6 +26,34 @@
         </Dialog>
     </t>
 
+    <!-- ============ POPUP GAN NHAN VIEN ============ -->
+    <t t-name="vd_elearning.AssignDialog">
+        <Dialog title="props.title" size="'md'">
+            <div class="o_vd_assign">
+                <input type="text" class="o_vd_assign_search" t-model="state.search"
+                       placeholder="Tìm nhân viên..." autofocus="autofocus"/>
+                <div class="o_vd_assign_count">Đã chọn <t t-esc="selCount"/>/<t t-esc="props.candidates.length"/> nhân viên</div>
+                <div class="o_vd_assign_list">
+                    <t t-foreach="filtered" t-as="c" t-key="c.id">
+                        <label class="o_vd_assign_row">
+                            <input type="checkbox" t-att-checked="state.sel[c.id]" t-on-change="() => this.toggle(c.id)"/>
+                            <img t-attf-src="/web/image/res.users/{{c.id}}/avatar_128" t-att-alt="c.name"/>
+                            <span class="o_vd_assign_main">
+                                <span class="o_vd_assign_name" t-esc="c.name"/>
+                                <span class="o_vd_assign_sub"><span class="o_vd_assign_team" t-esc="c.team"/> · <t t-esc="c.role"/></span>
+                            </span>
+                        </label>
+                    </t>
+                    <div t-if="!filtered.length" class="o_vd_assign_empty">Không tìm thấy nhân viên.</div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-on-click="confirm">Lưu gán nhân viên</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
     <!-- ============ TRACK: 1 hang khoa hoc ============ -->
     <t t-name="vd_elearning.Track">
         <div class="o_vd_track"
@@ -75,6 +103,7 @@
             </div>
 
             <div class="o_vd_board">
+                <t t-set="entryId" t-value="zoneEntryId(zone)"/>
                 <t t-foreach="zone.paths" t-as="path" t-key="path.id">
                     <div class="o_vd_path_row">
                         <div class="o_vd_path_marker">
@@ -88,7 +117,8 @@
                                 <button t-if="state.isAdmin" class="o_vd_path_btn" title="Đổi tên lộ trình"
                                     t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
                                 <div class="o_vd_path_emp">
-                                    <button class="o_vd_path_btn" title="Nhân viên đang học"><i class="fa fa-user-plus"/></button>
+                                    <button class="o_vd_path_btn" t-att-title="state.isAdmin ? 'Gán nhân viên vào lộ trình' : 'Nhân viên đang học'"
+                                        t-on-click="() => state.isAdmin ? this.openAssign(path) : null"><i class="fa fa-user-plus"/></button>
                                     <div class="o_vd_learners">
                                         <div class="o_vd_learners_head">NHÂN VIÊN ĐANG HỌC · <t t-esc="path.name"/></div>
                                         <table class="o_vd_learners_tbl">
@@ -115,7 +145,7 @@
                         </div>
                         <div t-if="path.courses.length" class="o_vd_arrow o_vd_arrow_lead"/>
                         <t t-call="vd_elearning.Track">
-                            <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees)"/>
+                            <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees, entryId)"/>
                             <t t-set="dropCtx" t-value="state.isAdmin ? {zoneKey: zone.key, pathId: path.id} : false"/>
                             <t t-set="draggable" t-value="state.isAdmin"/>
                         </t>
@@ -159,17 +189,30 @@
                             <h2 t-esc="state.selectedEmp.name"/>
                         </div>
                         <span class="o_vd_student_count">
-                            <t t-esc="state.selectedEmp.courses.length"/> khóa học
+                            <t t-esc="studentCourseCount"/> khóa học
                         </span>
                     </header>
                     <div class="o_vd_board">
-                        <div class="o_vd_path_row">
-                            <t t-call="vd_elearning.Track">
-                                <t t-set="nodes" t-value="studentNodes"/>
-                                <t t-set="dropCtx" t-value="false"/>
-                                <t t-set="draggable" t-value="false"/>
-                            </t>
-                        </div>
+                        <t t-foreach="state.selectedEmp.paths" t-as="path" t-key="path.id">
+                            <div class="o_vd_path_row">
+                                <div class="o_vd_path_marker">
+                                    <div class="o_vd_path_badge"><i class="fa fa-flag-checkered"/></div>
+                                    <div class="o_vd_path_label">
+                                        <span class="o_vd_path_kicker">LỘ TRÌNH</span>
+                                        <span class="o_vd_path_name" t-esc="path.name"/>
+                                        <span class="o_vd_path_sub"><t t-esc="path.courses.length"/> khóa học</span>
+                                    </div>
+                                    <div t-if="!path_last" class="o_vd_path_link"/>
+                                </div>
+                                <div t-if="path.courses.length" class="o_vd_arrow o_vd_arrow_lead"/>
+                                <t t-call="vd_elearning.Track">
+                                    <t t-set="nodes" t-value="studentPathNodes(path)"/>
+                                    <t t-set="dropCtx" t-value="false"/>
+                                    <t t-set="draggable" t-value="false"/>
+                                </t>
+                            </div>
+                        </t>
+                        <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
                     </div>
                 </div>
             </t>

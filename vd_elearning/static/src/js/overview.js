@@ -38,6 +38,49 @@ export class VdInputDialog extends Component {
     }
 }
 
+// ---- Popup gan nhan vien vao lo trinh (tich chon) ----
+export class VdAssignDialog extends Component {
+    static template = "vd_elearning.AssignDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        title: String,
+        candidates: Array,
+        onConfirm: Function,
+    };
+    setup() {
+        const sel = {};
+        for (const c of this.props.candidates) {
+            sel[c.id] = !!c.assigned;
+        }
+        this.state = useState({ search: "", sel });
+    }
+    get filtered() {
+        const q = this.state.search.trim().toLowerCase();
+        if (!q) {
+            return this.props.candidates;
+        }
+        return this.props.candidates.filter(
+            (c) =>
+                (c.name || "").toLowerCase().includes(q) ||
+                (c.team || "").toLowerCase().includes(q)
+        );
+    }
+    get selCount() {
+        return Object.values(this.state.sel).filter(Boolean).length;
+    }
+    toggle(id) {
+        this.state.sel[id] = !this.state.sel[id];
+    }
+    confirm() {
+        const ids = this.props.candidates
+            .filter((c) => this.state.sel[c.id])
+            .map((c) => c.id);
+        this.props.onConfirm(ids);
+        this.props.close();
+    }
+}
+
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -71,23 +114,20 @@ export class VdElearningOverview extends Component {
                 id: data.me.id,
                 name: data.me.name,
                 courseId: data.me.course_id,
-                courses: z ? this._flatCourses(z) : [],
+                paths: z ? z.paths : [],
                 locked: true,
             };
         }
         this.state.loading = false;
     }
 
-    _flatCourses(zone) {
-        return (zone.paths || []).reduce((acc, p) => acc.concat(p.courses), []);
-    }
-
     // ---------- node theo dong ----------
-    trackNodes(courses, employees) {
+    // hideCourseId: khoa khong hien rider (vd. khoa dau "Co ban" o giao dien admin)
+    trackNodes(courses, employees, hideCourseId) {
         const byCourse = {};
         for (const e of employees || []) {
             const cid = e.courseId !== undefined ? e.courseId : e.course_id;
-            if (!cid) continue;
+            if (!cid || cid === hideCourseId) continue;
             (byCourse[cid] = byCourse[cid] || []).push({ id: e.id, name: e.name });
         }
         const n = courses.length;
@@ -120,11 +160,24 @@ export class VdElearningOverview extends Component {
             });
     }
 
-    get studentNodes() {
+    // khoa dau cua lo trinh dau (entry) — an rider tren day o giao dien admin
+    zoneEntryId(zone) {
+        const p0 = (zone.paths || [])[0];
+        const c0 = p0 && p0.courses[0];
+        return c0 ? c0.id : 0;
+    }
+
+    get studentEmp() {
         const s = this.state.selectedEmp;
-        return this.trackNodes(s.courses, [
-            { id: s.id, name: s.name, courseId: s.courseId },
-        ]);
+        return [{ id: s.id, name: s.name, courseId: s.courseId }];
+    }
+    studentPathNodes(path) {
+        return this.trackNodes(path.courses, this.studentEmp);
+    }
+    get studentCourseCount() {
+        return (this.state.selectedEmp.paths || []).reduce(
+            (n, p) => n + p.courses.length, 0
+        );
     }
 
     setTab(tab) {
@@ -140,8 +193,8 @@ export class VdElearningOverview extends Component {
         this.state.selectedEmp = {
             id: row.id,
             name: row.name,
-            courseId: false,
-            courses: z ? this._flatCourses(z) : [],
+            courseId: row.current_id || false,
+            paths: z ? z.paths : [],
             locked: false,
         };
     }
@@ -189,6 +242,23 @@ export class VdElearningOverview extends Component {
                         vd_role_zone: zone.key,
                         vd_path_id: pathId,
                     },
+                ]);
+                await this.reload();
+            },
+        });
+    }
+
+    async openAssign(path) {
+        const candidates = await this.orm.call(
+            "slide.channel", "vd_path_candidates", [path.id]
+        );
+        this.dialog.add(VdAssignDialog, {
+            title: "Gán nhân viên - " + path.name,
+            candidates,
+            onConfirm: async (userIds) => {
+                await this.orm.call("slide.channel", "vd_set_path_members", [
+                    path.id,
+                    userIds,
                 ]);
                 await this.reload();
             },
