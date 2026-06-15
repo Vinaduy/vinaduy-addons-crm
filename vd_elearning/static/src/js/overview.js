@@ -48,12 +48,10 @@ export class VdElearningOverview extends Component {
         const rows = Math.ceil(n / cols) || 1;
         const byCourse = {};
         for (const e of employees || []) {
-            if (!e.courseId && e.course_id) {
-                e = { ...e, courseId: e.course_id };
-            }
             const cid = e.courseId !== undefined ? e.courseId : e.course_id;
             if (!cid) continue;
-            (byCourse[cid] = byCourse[cid] || []).push(e);
+            const rider = { id: e.id, name: e.name };
+            (byCourse[cid] = byCourse[cid] || []).push(rider);
         }
         const nodes = courses.map((c, i) => {
             const row = Math.floor(i / cols);
