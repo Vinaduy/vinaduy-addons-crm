@@ -13,6 +13,9 @@
         'web.assets_frontend': [
             'vd_elearning/static/src/scss/elearning.scss',
         ],
+        'web.assets_backend': [
+            'vd_elearning/static/src/scss/elearning_backend.scss',
+        ],
     },
     'installable': True,
     'application': False,

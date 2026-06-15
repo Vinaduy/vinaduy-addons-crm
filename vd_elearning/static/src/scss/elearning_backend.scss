@@ -1,0 +1,97 @@
+// ============================================================
+//  VINADUY eLEARNING - Kanban backend "Tat ca cac khoa"
+//  Lam dep man hinh /odoo/e-learning (slide.channel kanban)
+// ============================================================
+
+$vd-ink:    #0b1220;
+$vd-indigo: #4f46e5;
+$vd-violet: #7c3aed;
+$vd-gold:   #f5c451;
+$vd-line:   #e8eaf2;
+
+.o_slide_channel_kanban {
+
+    // ---- the khoa hoc ----
+    .o_kanban_record {
+        border: 1px solid $vd-line !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(11, 18, 32, .06);
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        padding-top: .9rem;
+
+        // thanh accent gradient tren dau the
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, $vd-gold, $vd-indigo, $vd-violet);
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            border-color: rgba($vd-indigo, .4) !important;
+            box-shadow: 0 18px 40px rgba(11, 18, 32, .15);
+        }
+
+        // ten khoa hoc
+        .fs-4 {
+            color: $vd-ink;
+            font-weight: 800 !important;
+            letter-spacing: -.01em;
+        }
+
+        // nut "Xem khoa hoc"
+        .btn-primary {
+            border: 0;
+            font-weight: 700;
+            border-radius: 10px;
+            background: linear-gradient(135deg, $vd-indigo, $vd-violet);
+            box-shadow: 0 6px 16px rgba($vd-indigo, .3);
+            transition: transform .15s ease, box-shadow .15s ease;
+            &:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba($vd-indigo, .45); }
+        }
+
+        // khoi label Luot xem / Noi dung / Thoi han
+        label { color: #6b7280; font-weight: 600; }
+
+        // ---- hang chi so duoi: Da moi / Dang dien ra / Da ket thuc / Tong ----
+        [name="card_content"] {
+            border-top: 1px solid $vd-line;
+            padding-top: .6rem;
+            margin-top: .6rem;
+
+            > a {
+                border-radius: 10px;
+                padding: .35rem 0;
+                transition: background .15s ease;
+
+                .fw-bold {
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    background: linear-gradient(135deg, $vd-indigo, $vd-violet);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                span { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+
+                &:hover { background: rgba($vd-indigo, .06); }
+                &:hover .fw-bold {
+                    background: linear-gradient(135deg, $vd-gold, $vd-indigo);
+                    -webkit-background-clip: text; background-clip: text;
+                }
+            }
+            // bo vach ngan cu, dung khoang cach cho thoang
+            .border-end { border-right-color: $vd-line !important; }
+        }
+
+        // tag (vd "Co ban")
+        .o_field_many2many_tags .o_tag {
+            border-radius: 999px;
+            font-weight: 600;
+        }
+    }
+}
