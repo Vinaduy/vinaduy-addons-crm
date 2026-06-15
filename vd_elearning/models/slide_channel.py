@@ -16,10 +16,27 @@ class SlideChannel(models.Model):
     # Thu tu trong lo trinh hoc (admin keo-tha de sap xep).
     vd_seq = fields.Integer(string='Thu tu lo trinh', default=10, index=True)
 
+    # Lo trinh dao tao chua khoa hoc nay.
+    vd_path_id = fields.Many2one('vd.learning.path', string='Lộ trình',
+                                 index=True, ondelete='set null')
+
     # ------------------------------------------------------------------
     def _vd_is_admin(self):
         return (self.env.user.has_group('base.group_system')
                 or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin'))
+
+    @api.model
+    def _vd_assign_default_paths(self):
+        """Gan khoa hoc chua co lo trinh vao 'Lo trinh co ban' cua zone (idempotent)."""
+        refs = {'sales': self.env.ref('vd_elearning.path_sales_basic', raise_if_not_found=False),
+                'leader': self.env.ref('vd_elearning.path_leader_basic', raise_if_not_found=False)}
+        for zk, path in refs.items():
+            if not path:
+                continue
+            orphans = self.sudo().search([('vd_role_zone', '=', zk), ('vd_path_id', '=', False)])
+            if orphans:
+                orphans.write({'vd_path_id': path.id})
+        return True
 
     @api.model
     def vd_get_overview(self):
@@ -75,6 +92,16 @@ class SlideChannel(models.Model):
                 'published': bool(c.is_published),
             } for c in recs]
 
+        PathModel = self.env['vd.learning.path']
+
+        def zone_paths(zk):
+            paths = PathModel.search([('zone', '=', zk)], order='sequence, id')
+            return [{
+                'id': p.id,
+                'name': p.name or '',
+                'courses': course_list(p.course_ids.sorted(lambda c: (c.vd_seq, c.id))),
+            } for p in paths]
+
         # ----- Bao cao thanh tich tung NV (tab NHAN VIEN) -----
         role_label = {'collaborator': 'CTV', 'employee': 'Nhân viên',
                       'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc', 'admin': 'Admin'}
@@ -119,10 +146,12 @@ class SlideChannel(models.Model):
             'zones': [
                 {'key': 'sales', 'title': 'NHAN VIEN KINH DOANH',
                  'employees': zone_employees(['employee', 'team_leader', 'collaborator'], zone_recs['sales']),
-                 'courses': course_list(zone_recs['sales'])},
+                 'courses': course_list(zone_recs['sales']),
+                 'paths': zone_paths('sales')},
                 {'key': 'leader', 'title': 'TRUONG NHOM',
                  'employees': zone_employees(['team_leader'], zone_recs['leader']),
-                 'courses': course_list(zone_recs['leader'])},
+                 'courses': course_list(zone_recs['leader']),
+                 'paths': zone_paths('leader')},
             ],
         }
 

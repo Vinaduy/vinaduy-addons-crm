@@ -12,11 +12,11 @@
             <t t-foreach="map.nodes" t-as="node" t-key="node.course.id">
                 <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
                      t-attf-style="left:{{node.x}}px;top:{{node.y}}px"
-                     t-att-draggable="(draggable &amp;&amp; zone) ? 'true' : 'false'"
-                     t-on-dragstart="(ev) => zone ? this.onDragStart(ev, node.course, zone) : null"
+                     t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
+                     t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey) : null"
                      t-on-dragend="(ev) => this.onDragEnd(ev)"
-                     t-on-dragover="(ev) => zone ? this.onDragOver(ev) : null"
-                     t-on-drop="(ev) => zone ? this.onDrop(ev, node.course, zone) : null"
+                     t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
+                     t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.list, dropCtx.zoneKey) : null"
                      t-on-click="() => this.openCourse(node.course)">
                     <div t-if="node.riders.length" class="o_vd_riders">
                         <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
@@ -42,28 +42,46 @@
         </div>
     </t>
 
-    <!-- ============ TOOLBAR + MAP cua 1 tab dao tao ============ -->
+    <!-- ============ PANEL 1 TAB DAO TAO (nhieu lo trinh) ============ -->
     <t t-name="vd_elearning.ZonePanel">
         <div class="o_vd_panel">
             <div class="o_vd_maptools">
-                <span class="o_vd_tool_count"><i class="fa fa-flag-checkered me-1"/><t t-esc="zone.courses.length"/> cửa ải</span>
-                <select class="o_vd_emp_select" t-on-change="(ev) => this.selectEmp(zone, ev)">
-                    <option value="">👤 Xem theo nhân viên...</option>
-                    <t t-foreach="zone.employees" t-as="emp" t-key="emp.id">
-                        <option t-att-value="emp.id" t-esc="emp.name"/>
-                    </t>
-                </select>
-                <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả để đổi lộ trình</span>
+                <span class="o_vd_tool_count"><i class="fa fa-graduation-cap me-1"/><t t-esc="zone.courses.length"/> khóa học</span>
+                <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả khóa học để đổi lộ trình</span>
             </div>
-            <div class="o_vd_map_wrap">
-                <t t-call="vd_elearning.GameMap">
-                    <t t-set="map" t-value="zoneMap(zone)"/>
-                    <t t-set="draggable" t-value="state.isAdmin"/>
+
+            <div class="o_vd_paths">
+                <t t-foreach="zone.paths" t-as="path" t-key="path.id">
+                    <div class="o_vd_path_block">
+                        <div class="o_vd_path_head">
+                            <span class="o_vd_path_ribbon"><i class="fa fa-flag me-2"/><t t-esc="path.name"/></span>
+                            <span class="o_vd_path_count"><t t-esc="path.courses.length"/> khóa học</span>
+                        </div>
+                        <div class="o_vd_map_wrap">
+                            <t t-call="vd_elearning.GameMap">
+                                <t t-set="map" t-value="buildMap(path.courses, zone.employees)"/>
+                                <t t-set="dropCtx" t-value="state.isAdmin ? {list: path.courses, zoneKey: zone.key} : false"/>
+                                <t t-set="draggable" t-value="state.isAdmin"/>
+                            </t>
+                            <div t-if="!path.courses.length" class="o_vd_emp_empty">Lộ trình chưa có khóa học.</div>
+                        </div>
+                    </div>
                 </t>
+                <div t-if="!zone.paths.length" class="o_vd_emp_empty">Chưa có lộ trình nào.</div>
             </div>
-            <button t-if="state.isAdmin" class="o_vd_add_btn" t-on-click="() => this.newCourse(zone.key)">
-                <i class="fa fa-plus me-1"/>Thêm khóa học
-            </button>
+
+            <!-- nut + (hover hien menu) -->
+            <div t-if="state.isAdmin" class="o_vd_fab">
+                <div class="o_vd_fab_menu">
+                    <button class="o_vd_fab_item" t-on-click="() => this.newCourse(zone.key)">
+                        <i class="fa fa-graduation-cap me-2"/>THÊM KHÓA HỌC
+                    </button>
+                    <button class="o_vd_fab_item" t-on-click="() => this.newPath(zone.key)">
+                        <i class="fa fa-sitemap me-2"/>THÊM LỘ TRÌNH
+                    </button>
+                </div>
+                <button class="o_vd_fab_btn" aria-label="Thêm"><i class="fa fa-plus"/></button>
+            </div>
         </div>
     </t>
 
@@ -74,7 +92,7 @@
                 <i class="fa fa-spinner fa-spin"/> Đang tải...
             </div>
 
-            <!-- ====== GIAO DIEN NHAN VIEN (ban do cua minh) ====== -->
+            <!-- ====== GIAO DIEN NHAN VIEN ====== -->
             <t t-elif="state.selectedEmp">
                 <div class="o_vd_card">
                     <header class="o_vd_student_head">
@@ -88,41 +106,46 @@
                             <h2 t-esc="state.selectedEmp.name"/>
                         </div>
                         <span class="o_vd_student_count">
-                            <t t-esc="state.selectedEmp.courses.length"/> cửa ải
+                            <t t-esc="state.selectedEmp.courses.length"/> khóa học
                         </span>
                     </header>
                     <div class="o_vd_map_wrap">
                         <t t-call="vd_elearning.GameMap">
                             <t t-set="map" t-value="studentMap()"/>
-                            <t t-set="zone" t-value="false"/>
+                            <t t-set="dropCtx" t-value="false"/>
                             <t t-set="draggable" t-value="false"/>
                         </t>
                         <div t-if="!state.selectedEmp.courses.length" class="o_vd_emp_empty">
-                            Chưa có cửa ải nào trong hành trình.
+                            Chưa có khóa học nào trong hành trình.
                         </div>
                     </div>
                 </div>
             </t>
 
-            <!-- ====== GIAO DIEN ADMIN (tab filter) ====== -->
+            <!-- ====== GIAO DIEN ADMIN ====== -->
             <t t-else="">
-                <nav class="o_vd_tabs">
+                <nav class="o_vd_tabbar">
                     <button t-attf-class="o_vd_tab {{state.tab == 'sales' ? 'active' : ''}}"
-                        t-on-click="() => this.setTab('sales')">
+                        t-on-mouseenter="() => this.setTab('sales')" t-on-click="() => this.setTab('sales')">
                         <i class="fa fa-graduation-cap me-2"/>ĐÀO TẠO NHÂN VIÊN
                     </button>
                     <button t-attf-class="o_vd_tab {{state.tab == 'leader' ? 'active' : ''}}"
-                        t-on-click="() => this.setTab('leader')">
+                        t-on-mouseenter="() => this.setTab('leader')" t-on-click="() => this.setTab('leader')">
                         <i class="fa fa-shield me-2"/>ĐÀO TẠO TRƯỞNG NHÓM
                     </button>
                     <button t-attf-class="o_vd_tab {{state.tab == 'staff' ? 'active' : ''}}"
-                        t-on-click="() => this.setTab('staff')">
+                        t-on-mouseenter="() => this.setTab('staff')" t-on-click="() => this.setTab('staff')">
                         <i class="fa fa-users me-2"/>NHÂN VIÊN
                     </button>
+                    <select class="o_vd_emp_select" t-on-change="(ev) => this.selectEmpGlobal(ev)">
+                        <option value="">👤 Xem theo nhân viên...</option>
+                        <t t-foreach="state.report" t-as="emp" t-key="emp.id">
+                            <option t-att-value="emp.id" t-esc="emp.name"/>
+                        </t>
+                    </select>
                 </nav>
 
                 <div class="o_vd_card">
-                    <!-- TAB: bao cao thanh tich nhan vien -->
                     <t t-if="state.tab == 'staff'">
                         <div class="o_vd_report_head">
                             <h3>Báo cáo đào tạo nhân viên</h3>
@@ -143,7 +166,7 @@
                                             <div class="o_vd_report_fill" t-attf-style="width:{{row.percent}}%"/>
                                         </div>
                                         <span class="o_vd_report_meta">
-                                            <b t-esc="row.completed"/>/<t t-esc="row.total"/> cửa · <t t-esc="row.percent"/>%
+                                            <b t-esc="row.completed"/>/<t t-esc="row.total"/> khóa · <t t-esc="row.percent"/>%
                                             <span t-if="row.current" class="o_vd_report_cur">→ <t t-esc="row.current"/></span>
                                         </span>
                                     </div>
@@ -153,7 +176,6 @@
                         </div>
                     </t>
 
-                    <!-- TAB: dao tao (sales / leader) -->
                     <t t-else="">
                         <t t-set="zone" t-value="activeZone"/>
                         <t t-if="zone" t-call="vd_elearning.ZonePanel"/>

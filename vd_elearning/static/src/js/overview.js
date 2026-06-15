@@ -130,38 +130,59 @@ export class VdElearningOverview extends Component {
     }
 
     newCourse(zoneKey) {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "slide.channel",
-            views: [[false, "form"]],
-            target: "current",
-            context: { default_vd_role_zone: zoneKey },
-        });
+        const z = this.state.zones.find((zn) => zn.key === zoneKey);
+        const firstPath = z && z.paths && z.paths.length ? z.paths[0].id : false;
+        const ctx = { default_vd_role_zone: zoneKey };
+        if (firstPath) {
+            ctx.default_vd_path_id = firstPath;
+        }
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                res_model: "slide.channel",
+                views: [[false, "form"]],
+                target: "current",
+                context: ctx,
+            },
+            { onClose: () => this.reload() }
+        );
     }
 
-    selectEmp(zone, ev) {
+    newPath(zoneKey) {
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                name: "Lộ trình mới",
+                res_model: "vd.learning.path",
+                views: [[false, "form"]],
+                target: "new",
+                context: { default_zone: zoneKey },
+            },
+            { onClose: () => this.reload() }
+        );
+    }
+
+    // dropdown chon nhan vien (toan cuc, theo state.report)
+    selectEmpGlobal(ev) {
         const id = parseInt(ev.target.value, 10);
+        ev.target.value = "";
         if (!id) {
             return;
         }
-        const emp = zone.employees.find((e) => e.id === id);
-        this.state.selectedEmp = {
-            id,
-            name: emp ? emp.name : "",
-            courseId: emp ? emp.course_id : false,
-            courses: zone.courses,
-            locked: false,
-        };
+        const row = this.state.report.find((r) => r.id === id);
+        if (row) {
+            this.viewEmployee(row);
+        }
     }
 
     backToAdmin() {
         this.state.selectedEmp = null;
     }
 
-    // ---------- KEO - THA (chi admin) ----------
-    onDragStart(ev, course, zone) {
+    // ---------- KEO - THA trong 1 lo trinh (chi admin) ----------
+    onDragStart(ev, course, zoneKey) {
         if (!this.state.isAdmin) return;
-        this.dragData = { zoneKey: zone.key, id: course.id };
+        this.dragData = { zoneKey, id: course.id };
         ev.dataTransfer.effectAllowed = "move";
         ev.currentTarget.classList.add("o_vd_dragging");
     }
@@ -176,11 +197,10 @@ export class VdElearningOverview extends Component {
         ev.dataTransfer.dropEffect = "move";
     }
 
-    async onDrop(ev, targetCourse, zone) {
+    async onDrop(ev, targetCourse, list, zoneKey) {
         if (!this.state.isAdmin || !this.dragData) return;
         ev.preventDefault();
-        if (this.dragData.zoneKey !== zone.key) return;
-        const list = zone.courses;
+        if (this.dragData.zoneKey !== zoneKey) return;
         const from = list.findIndex((c) => c.id === this.dragData.id);
         const to = list.findIndex((c) => c.id === targetCourse.id);
         this.dragData = null;
@@ -188,7 +208,7 @@ export class VdElearningOverview extends Component {
         const [moved] = list.splice(from, 1);
         list.splice(to, 0, moved);
         await this.orm.call("slide.channel", "vd_save_order", [
-            zone.key,
+            zoneKey,
             list.map((c) => c.id),
         ]);
     }

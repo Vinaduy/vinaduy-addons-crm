@@ -29,23 +29,34 @@ $vd-line:   #ece7da;
 
     .o_vd_loading { padding: 3rem; color: #8a8c98; font-size: 1.05rem; }
 
-    // ---------------- TAB FILTER ----------------
-    .o_vd_tabs { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    // ---------------- TAB FILTER (segmented + dropdown cuoi hang) ----------------
+    .o_vd_tabbar {
+        display: flex; align-items: center; gap: .35rem;
+        margin-bottom: 1rem; flex-wrap: wrap;
+        background: #fff; border: 1px solid $vd-line; border-radius: 14px;
+        padding: .35rem; box-shadow: 0 4px 14px rgba($vd-ink, .05);
+    }
     .o_vd_tab {
-        border: 1px solid $vd-line;
-        background: #fff;
-        color: #6b6c79;
-        font-weight: 800; font-size: .84rem; letter-spacing: .03em;
-        padding: .6rem 1.3rem; border-radius: 999px;
+        border: 0; background: transparent;
+        color: #7b7c89;
+        font-weight: 800; font-size: .82rem; letter-spacing: .03em;
+        padding: .6rem 1.2rem; border-radius: 10px;
         cursor: pointer; transition: all .16s ease;
-        box-shadow: 0 2px 6px rgba($vd-ink, .04);
-        &:hover { color: $vd-ink; border-color: $vd-gold-d; }
+        &:hover { color: $vd-ink; background: rgba($vd-gold, .12); }
         &.active {
-            color: $vd-ink;
-            background: linear-gradient(135deg, $vd-gold, $vd-gold-d);
-            border-color: transparent;
-            box-shadow: 0 8px 18px rgba($vd-gold-d, .4);
+            color: #fff;
+            background: linear-gradient(135deg, #2b3350, $vd-ink);
+            box-shadow: 0 6px 14px rgba($vd-ink, .28);
+            i { color: $vd-gold; }
         }
+    }
+    .o_vd_tabbar .o_vd_emp_select {
+        margin-left: auto;
+        border: 1px solid $vd-line; background: #faf8f1; color: $vd-ink;
+        border-radius: 10px; padding: .5rem 1rem;
+        font-size: .8rem; font-weight: 700; cursor: pointer;
+        &:hover { border-color: $vd-gold-d; }
+        &:focus { outline: none; border-color: $vd-gold-d; }
     }
 
     // ---------------- KHUNG THE ----------------
@@ -58,6 +69,7 @@ $vd-line:   #ece7da;
     }
 
     // ---------------- TOOLBAR MAP ----------------
+    .o_vd_panel { position: relative; }
     .o_vd_maptools {
         display: flex; align-items: center; gap: .9rem;
         padding: .85rem 1.2rem;
@@ -65,19 +77,64 @@ $vd-line:   #ece7da;
         background: linear-gradient(180deg, #fffdf7, #faf8f0);
 
         .o_vd_tool_count {
-            font-weight: 800; font-size: .85rem; color: $vd-ink;
+            font-weight: 800; font-size: .85rem;
             background: rgba($vd-gold, .18); color: #8a6a12;
             padding: .3rem .85rem; border-radius: 999px;
         }
-        .o_vd_emp_select {
-            margin-left: auto; max-width: 220px;
-            border: 1px solid $vd-line; background: #fff; color: $vd-ink;
-            border-radius: 999px; padding: .35rem .9rem;
-            font-size: .8rem; font-weight: 600; cursor: pointer;
-            &:hover { border-color: $vd-gold-d; }
-            &:focus { outline: none; border-color: $vd-gold-d; }
+        .o_vd_tool_hint { margin-left: auto; color: #a7a395; font-size: .74rem; font-style: italic; }
+    }
+
+    // ---------------- LO TRINH (path section) ----------------
+    .o_vd_paths { padding: .3rem 0 1rem; }
+    .o_vd_path_block { border-bottom: 1px dashed $vd-line; &:last-child { border-bottom: 0; } }
+    .o_vd_path_head {
+        display: flex; align-items: center; gap: .8rem;
+        padding: 1rem 1.3rem .2rem;
+        .o_vd_path_ribbon {
+            font-weight: 800; font-size: .9rem; letter-spacing: .02em; color: $vd-ink;
+            background: linear-gradient(135deg, rgba($vd-gold, .25), rgba($vd-gold, .12));
+            border: 1px solid rgba($vd-gold-d, .5);
+            padding: .35rem .95rem; border-radius: 999px;
+            i { color: $vd-gold-d; }
         }
-        .o_vd_tool_hint { color: #a7a395; font-size: .74rem; font-style: italic; }
+        .o_vd_path_count { color: #9a9685; font-size: .78rem; font-weight: 600; }
+    }
+
+    // ---------------- FAB + ----------------
+    .o_vd_fab {
+        position: sticky; bottom: 1rem; float: right;
+        margin: -3.4rem 1.4rem 1rem 0;
+        display: flex; flex-direction: column; align-items: flex-end; gap: .5rem;
+        z-index: 20;
+
+        .o_vd_fab_btn {
+            width: 56px; height: 56px; border-radius: 50%; border: 0;
+            background: linear-gradient(135deg, $vd-gold, $vd-gold-d);
+            color: $vd-ink; font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 10px 24px rgba($vd-gold-d, .5);
+            transition: transform .18s ease;
+            i { transition: transform .25s ease; }
+        }
+        .o_vd_fab_menu {
+            display: flex; flex-direction: column; gap: .5rem;
+            opacity: 0; transform: translateY(10px) scale(.96);
+            pointer-events: none; transition: all .2s ease;
+        }
+        &:hover {
+            .o_vd_fab_btn { transform: rotate(135deg); }
+            .o_vd_fab_menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        }
+        .o_vd_fab_item {
+            border: 0; border-radius: 999px;
+            background: #fff; color: $vd-ink;
+            font-weight: 800; font-size: .78rem; letter-spacing: .02em;
+            padding: .6rem 1.1rem; cursor: pointer; white-space: nowrap;
+            box-shadow: 0 8px 20px rgba($vd-ink, .18);
+            border: 1px solid $vd-line;
+            transition: all .14s ease;
+            i { color: $vd-gold-d; }
+            &:hover { background: linear-gradient(135deg, $vd-gold, $vd-gold-d); border-color: transparent; i { color: $vd-ink; } }
+        }
     }
 
     // ---------------- BAN DO ----------------

@@ -7,7 +7,9 @@
     'author': 'Vinaduy',
     'depends': ['website_slides', 'vd_crm_lead'],
     'data': [
+        'security/ir.model.access.csv',
         'data/courses.xml',
+        'data/paths.xml',
         'views/slides_homepage.xml',
         'views/elearning_actions.xml',
     ],
