@@ -54,6 +54,49 @@
         </Dialog>
     </t>
 
+    <!-- ============ TRINH SOAN THAO VAN BAN (WYSIWYG) ============ -->
+    <t t-name="vd_elearning.RichEditor">
+        <div class="o_vd_rt">
+            <div class="o_vd_rt_toolbar">
+                <select class="o_vd_rt_sel" t-on-change="block" title="Kiểu chữ">
+                    <option value="">Kiểu chữ</option>
+                    <option value="h2">Tiêu đề lớn</option>
+                    <option value="h3">Tiêu đề vừa</option>
+                    <option value="h4">Tiêu đề nhỏ</option>
+                    <option value="p">Văn bản thường</option>
+                </select>
+                <select class="o_vd_rt_sel" t-on-change="fontSize" title="Cỡ chữ">
+                    <option value="">Cỡ</option>
+                    <option value="2">Nhỏ</option>
+                    <option value="3">Vừa</option>
+                    <option value="5">Lớn</option>
+                    <option value="7">Rất lớn</option>
+                </select>
+                <span class="o_vd_rt_sep"/>
+                <button class="o_vd_rt_btn" title="Đậm" t-on-click="() => this.exec('bold')"><b>B</b></button>
+                <button class="o_vd_rt_btn" title="Nghiêng" t-on-click="() => this.exec('italic')"><i>I</i></button>
+                <button class="o_vd_rt_btn" title="Gạch chân" t-on-click="() => this.exec('underline')"><u>U</u></button>
+                <button class="o_vd_rt_btn" title="Gạch ngang" t-on-click="() => this.exec('strikeThrough')"><s>S</s></button>
+                <span class="o_vd_rt_sep"/>
+                <label class="o_vd_rt_btn o_vd_rt_color" title="Màu chữ">A<input type="color" t-on-input="color"/></label>
+                <label class="o_vd_rt_btn o_vd_rt_color" title="Tô nền"><i class="fa fa-paint-brush"/><input type="color" t-on-input="highlight"/></label>
+                <span class="o_vd_rt_sep"/>
+                <button class="o_vd_rt_btn" title="Danh sách chấm" t-on-click="() => this.exec('insertUnorderedList')"><i class="fa fa-list-ul"/></button>
+                <button class="o_vd_rt_btn" title="Danh sách số" t-on-click="() => this.exec('insertOrderedList')"><i class="fa fa-list-ol"/></button>
+                <span class="o_vd_rt_sep"/>
+                <button class="o_vd_rt_btn" title="Căn trái" t-on-click="() => this.exec('justifyLeft')"><i class="fa fa-align-left"/></button>
+                <button class="o_vd_rt_btn" title="Căn giữa" t-on-click="() => this.exec('justifyCenter')"><i class="fa fa-align-center"/></button>
+                <button class="o_vd_rt_btn" title="Căn phải" t-on-click="() => this.exec('justifyRight')"><i class="fa fa-align-right"/></button>
+                <span class="o_vd_rt_sep"/>
+                <button class="o_vd_rt_btn" title="Chèn bảng" t-on-click="addTable"><i class="fa fa-table"/></button>
+                <button class="o_vd_rt_btn" title="Chèn liên kết" t-on-click="addLink"><i class="fa fa-link"/></button>
+                <button class="o_vd_rt_btn" title="Đường kẻ ngang" t-on-click="() => this.exec('insertHorizontalRule')"><i class="fa fa-minus"/></button>
+                <button class="o_vd_rt_btn" title="Xóa định dạng" t-on-click="() => this.exec('removeFormat')"><i class="fa fa-eraser"/></button>
+            </div>
+            <div class="o_vd_rt_area" t-ref="editable" contenteditable="true" t-on-input="emit"/>
+        </div>
+    </t>
+
     <!-- ============ POPUP FULL MAN HINH: KHOA HOC (noi dung + bai thi) ============ -->
     <t t-name="vd_elearning.CourseDialog">
         <Dialog title="props.title" size="'fs'" fullscreen="true">
@@ -70,52 +113,54 @@
                 <div class="o_vd_ce_body">
                     <!-- ============ TAB NOI DUNG ============ -->
                     <t t-if="state.tab=='content'">
-                        <div class="o_vd_ce_list">
-                            <t t-if="props.editable">
-                                <div class="o_vd_ce_toolbar">
-                                    <button class="o_vd_ce_add" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm nội dung</button>
-                                    <button t-attf-class="o_vd_ce_toggle {{state.editMode ? 'active' : ''}}" t-on-click="toggleEdit">
-                                        <i t-attf-class="fa {{state.editMode ? 'fa-eye' : 'fa-pencil'}} me-1"/><t t-esc="state.editMode ? 'Xem trước' : 'Sửa HTML'"/>
-                                    </button>
+                        <!-- TRINH SOAN FULL MAN HINH (admin) -->
+                        <t t-if="props.editable &amp;&amp; state.editingContent">
+                            <div class="o_vd_ed">
+                                <div class="o_vd_ed_head">
+                                    <input class="o_vd_ed_title" t-model="state.editingContent.name" placeholder="Tiêu đề trang nội dung"/>
+                                    <button class="btn o_vd_dlg_ok" t-on-click="closeEditor"><i class="fa fa-check me-1"/>Xong</button>
                                 </div>
-                                <!-- XEM TRUOC (render dep) -->
-                                <t t-if="!state.editMode">
+                                <VdRichEditor t-key="state.editingContent._k" html="state.editingContent.body" onChange.bind="onEditorChange"/>
+                            </div>
+                        </t>
+                        <!-- DANH SACH + XEM TRUOC -->
+                        <t t-else="">
+                            <div class="o_vd_ce_list">
+                                <t t-if="props.editable">
+                                    <div class="o_vd_ce_namebar">
+                                        <label class="o_vd_ce_namelbl" for="vd_ce_name">Tên khóa học</label>
+                                        <input id="vd_ce_name" class="o_vd_ce_name" t-model="state.courseName" placeholder="Tên khóa học"/>
+                                    </div>
+                                    <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm trang nội dung</button>
+                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                        <article class="o_vd_ce_read o_vd_ce_read_admin">
+                                            <div class="o_vd_ce_read_tools">
+                                                <button class="o_vd_ce_edit" t-on-click="() => this.openEditor(c)"><i class="fa fa-pencil me-1"/>Sửa</button>
+                                                <button class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
+                                            </div>
+                                            <h3 t-esc="c.name"/>
+                                            <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
+                                        </article>
+                                    </t>
+                                    <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung. Bấm "Thêm trang nội dung".</div>
+                                </t>
+                                <t t-else="">
                                     <t t-foreach="state.contents" t-as="c" t-key="c._k">
                                         <article class="o_vd_ce_read">
                                             <h3 t-esc="c.name"/>
                                             <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
                                         </article>
                                     </t>
+                                    <div t-if="state.questions.length" class="o_vd_ce_gotoexam">
+                                        <button class="o_vd_ce_start" t-on-click="startExam">
+                                            <i class="fa fa-graduation-cap me-2"/>Vào thi (<t t-esc="state.questions.length"/> câu) <i class="fa fa-arrow-right ms-2"/>
+                                        </button>
+                                        <span class="o_vd_ce_hint">Khi vào thi, toàn bộ nội dung sẽ được ẩn đi.</span>
+                                    </div>
+                                    <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung.</div>
                                 </t>
-                                <!-- SUA HTML -->
-                                <t t-else="">
-                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
-                                        <div class="o_vd_ce_item">
-                                            <div class="o_vd_ce_item_top">
-                                                <input class="o_vd_ce_title" t-model="c.name" placeholder="Tiêu đề nội dung"/>
-                                                <button class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
-                                            </div>
-                                            <textarea class="o_vd_ce_body_txt" t-model="c.body" placeholder="Nội dung chi tiết (có thể dùng HTML)..."/>
-                                        </div>
-                                    </t>
-                                </t>
-                            </t>
-                            <t t-else="">
-                                <t t-foreach="state.contents" t-as="c" t-key="c._k">
-                                    <article class="o_vd_ce_read">
-                                        <h3 t-esc="c.name"/>
-                                        <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
-                                    </article>
-                                </t>
-                                <div t-if="state.questions.length" class="o_vd_ce_gotoexam">
-                                    <button class="o_vd_ce_start" t-on-click="startExam">
-                                        <i class="fa fa-graduation-cap me-2"/>Vào thi (<t t-esc="state.questions.length"/> câu) <i class="fa fa-arrow-right ms-2"/>
-                                    </button>
-                                    <span class="o_vd_ce_hint">Khi vào thi, toàn bộ nội dung sẽ được ẩn đi.</span>
-                                </div>
-                            </t>
-                            <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung.</div>
-                        </div>
+                            </div>
+                        </t>
                     </t>
 
                     <!-- ============ TAB BAI THI ============ -->

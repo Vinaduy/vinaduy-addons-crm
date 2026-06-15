@@ -3,7 +3,66 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, onWillStart, useState, markup } from "@odoo/owl";
+import { Component, onWillStart, onMounted, useRef, useState, markup } from "@odoo/owl";
+
+// ---- Trinh soan thao van ban (WYSIWYG) kieu Word/PowerPoint ----
+export class VdRichEditor extends Component {
+    static template = "vd_elearning.RichEditor";
+    static props = { html: String, onChange: Function };
+    setup() {
+        this.ref = useRef("editable");
+        onMounted(() => {
+            this.ref.el.innerHTML = this.props.html || "";
+        });
+    }
+    exec(cmd, val = null) {
+        this.ref.el.focus();
+        document.execCommand(cmd, false, val);
+        this.emit();
+    }
+    emit() {
+        this.props.onChange(this.ref.el.innerHTML);
+    }
+    block(ev) {
+        const v = ev.target.value;
+        if (v) this.exec("formatBlock", v);
+        ev.target.value = "";
+    }
+    fontSize(ev) {
+        const v = ev.target.value;
+        if (v) this.exec("fontSize", v);
+        ev.target.value = "";
+    }
+    color(ev) {
+        this.exec("foreColor", ev.target.value);
+    }
+    highlight(ev) {
+        this.exec("hiliteColor", ev.target.value);
+    }
+    addLink() {
+        const url = window.prompt("Nhập đường dẫn (URL):", "https://");
+        if (url) this.exec("createLink", url);
+    }
+    addTable() {
+        const cols = parseInt(window.prompt("Số cột?", "3"), 10) || 0;
+        const rows = parseInt(window.prompt("Số dòng (gồm dòng tiêu đề)?", "3"), 10) || 0;
+        if (!cols || !rows) return;
+        let h = '<table style="width:100%;border-collapse:collapse;margin:8px 0;">';
+        for (let r = 0; r < rows; r++) {
+            h += "<tr>";
+            for (let c = 0; c < cols; c++) {
+                if (r === 0) {
+                    h += '<th style="border:1px solid #d9d3c4;padding:6px 8px;background:#2b3350;color:#fff;text-align:left;">Tiêu đề</th>';
+                } else {
+                    h += '<td style="border:1px solid #d9d3c4;padding:6px 8px;">&#8203;</td>';
+                }
+            }
+            h += "</tr>";
+        }
+        h += "</table><p>&#8203;</p>";
+        this.exec("insertHTML", h);
+    }
+}
 
 // ---- Popup nhap ten (dung cho them khoa hoc / them - doi ten lo trinh) ----
 export class VdInputDialog extends Component {
@@ -84,7 +143,7 @@ export class VdAssignDialog extends Component {
 // ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
 export class VdCourseDialog extends Component {
     static template = "vd_elearning.CourseDialog";
-    static components = { Dialog };
+    static components = { Dialog, VdRichEditor };
     static props = {
         close: Function,
         title: String,
@@ -100,7 +159,8 @@ export class VdCourseDialog extends Component {
         const data = this.props.data || {};
         this.state = useState({
             tab: "content",
-            editMode: false,
+            courseName: data.name || "",
+            editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
             examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
             contents: (data.contents || []).map((c) => ({
@@ -199,16 +259,24 @@ export class VdCourseDialog extends Component {
             .replace(/\n/g, "<br/>");
         return markup(esc);
     }
-    toggleEdit() {
-        this.state.editMode = !this.state.editMode;
-    }
     addContent() {
-        this.state.editMode = true;
-        this.state.contents.push({ _k: this.key(), id: false, name: "", body: "" });
+        const c = { _k: this.key(), id: false, name: "Nội dung mới", body: "" };
+        this.state.contents.push(c);
+        this.state.editingContent = c;
+    }
+    openEditor(c) {
+        this.state.editingContent = c;
+    }
+    closeEditor() {
+        this.state.editingContent = null;
+    }
+    onEditorChange(html) {
+        if (this.state.editingContent) this.state.editingContent.body = html;
     }
     delContent(c) {
         const i = this.state.contents.indexOf(c);
         if (i >= 0) this.state.contents.splice(i, 1);
+        if (this.state.editingContent === c) this.state.editingContent = null;
     }
     addQuestion() {
         this.state.questions.push({
@@ -250,6 +318,7 @@ export class VdCourseDialog extends Component {
         try {
             await this.orm.call("slide.channel", "vd_course_save", [
                 this.props.channelId,
+                this.state.courseName,
                 this.state.contents.map((c) => ({ id: c.id, name: c.name, body: c.body })),
                 this.state.questions.map((q) => ({
                     id: q.id, text: q.text,

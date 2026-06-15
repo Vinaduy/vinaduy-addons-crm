@@ -219,11 +219,13 @@ class SlideChannel(models.Model):
                 'results': results}
 
     @api.model
-    def vd_course_save(self, channel_id, contents, questions):
-        """Luu noi dung + cau hoi thi tu popup. Chi admin."""
+    def vd_course_save(self, channel_id, name, contents, questions):
+        """Luu ten + noi dung + cau hoi thi tu popup. Chi admin."""
         if not self._vd_is_admin():
             raise AccessError('Chi admin duoc sua khoa hoc.')
         ch = self.browse(channel_id)
+        if name and (name or '').strip() and name.strip() != ch.name:
+            ch.name = name.strip()
         Slide = self.env['slide.slide'].sudo()
         Question = self.env['slide.question'].sudo()
 
