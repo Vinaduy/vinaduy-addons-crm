@@ -3209,10 +3209,8 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- ===== KHUNG: Thi công gấp | Xử lý vấn đề (đã tách Khách mới ra) ===== -->
-                                                <div class="o_vd_kh_trio o_vd_kh_trio_two">
-                                                <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
+                                                <!-- ⚡ THI CÔNG GẤP — thẻ RIÊNG (user spec 2026-06-15) -->
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_metric_solo' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
                                                     <span class="o_vd_kh_metric_chip">
                                                         <span class="o_vd_kh_metric_ico">⚡</span>
                                                         <span class="o_vd_kh_metric_num"><t t-esc="nv.urgent_count or 0"/></span>
@@ -3240,13 +3238,22 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- 🛠️ XỬ LÝ VẤN ĐỀ — KH đã chốt báo giá (quote/negotiate) có vấn đề -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_trio_cell' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">🛠️</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
-                                                    </span>
+                                                <!-- 🛠️ XỬ LÝ VẤN ĐỀ — thẻ RIÊNG + cảnh báo "cần xử lý" (giống Khách mới) -->
+                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_metric_solo' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
+                                                    <div class="o_vd_kh_newcust_row">
+                                                        <span class="o_vd_kh_metric_chip">
+                                                            <span class="o_vd_kh_metric_ico">🛠️</span>
+                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
+                                                            <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
+                                                        </span>
+                                                        <span t-if="(nv.rem_xlvd_open_problem or 0) > 0"
+                                                              class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
+                                                              t-att-title="'Trong số KH xử lý vấn đề, còn ' + (nv.rem_xlvd_open_problem or 0) + ' khách có vấn đề ĐANG MỞ cần xử lý — đôn đốc giải quyết.'">
+                                                            <span class="o_vd_kh_metric_ico">⚠️</span>
+                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_xlvd_open_problem or 0"/></span>
+                                                            <span class="o_vd_kh_metric_lbl">cần xử lý</span>
+                                                        </span>
+                                                    </div>
                                                     <t t-set="cellNv" t-value="nv"/>
                                                     <t t-set="cellWhich" t-value="'xlvd'"/>
                                                     <t t-set="cellLocked" t-value="nv.lock_xlvd"/>
@@ -3273,8 +3280,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                </div><!-- /.o_vd_kh_trio -->
 
                                                 <!-- 🆘 CẦN HỖ TRỢ (cột riêng — tách khỏi Trạng thái) -->
                                                 <div class="o_vd_kh_col_metric o_vd_kh_metric_help">
