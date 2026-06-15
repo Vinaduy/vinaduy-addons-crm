@@ -2700,7 +2700,7 @@
         <div t-if="cellLocked and cellWhich !== 'new'" class="o_vd_kh_lock_mini" t-on-click.stop=""
              title="Bảng này của NV đang bị KHOÁ">
             <i class="fa fa-lock o_vd_kh_lock_mini_ico"/>
-            <button t-if="state.is_manager" class="o_vd_kh_lock_mini_btn"
+            <button t-if="state.is_manager or state.is_team_leader" class="o_vd_kh_lock_mini_btn"
                     t-on-click.stop="() => this.adminClearTableLockFor(cellNv, cellWhich)"
                     title="Mở khoá bảng này cho NV">🔓</button>
         </div>
@@ -3101,9 +3101,6 @@
                                                               t-on-mouseleave="() => this.onRecLeave()">
                                                             <t t-esc="nv.name"/>
                                                         </span>
-                                                        <span t-if="nv.is_team_leader" class="o_vd_kh_leader_badge">
-                                                            <i class="fa fa-star"/> Trưởng nhóm
-                                                        </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
                                                         <span class="o_vd_kh_nv_total"
                                                               t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)"
@@ -3168,25 +3165,9 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- ⚠️ CẢNH BÁO TỒN KH MỚI CHƯA GỌI (user spec 2026-06-14):
-                                                     1 thẻ metric CÙNG DÒNG NV, nằm GIỮA thẻ Tháng và thẻ Khách mới.
-                                                     CHỈ hiện khi NV vượt ngưỡng; NV ok -> ô trống (giữ canh cột). -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_uncalled">
-                                                    <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
-                                                          class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
-                                                          t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
-                                                        <span class="o_vd_kh_metric_ico">⚠️</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">KH chưa gọi</span>
-                                                    </span>
-                                                </div>
-
-                                                <!-- ===== KHUNG CHUNG 3 cột: Khách mới | Thi công gấp | Xử lý vấn đề ===== -->
-                                                <div class="o_vd_kh_trio">
-                                                <!-- 🆕 KHÁCH MỚI — tổng KH ở stage 'new' của NV.
-                                                     User spec 2026-06-11: BỎ ổ khoá cột Khách mới (kiểu
-                                                     việc-hôm-nay, không khoá doạ) — không thêm o_vd_kh_locked. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_trio_cell">
+                                                <!-- 🆕 KHÁCH MỚI — TÁCH RIÊNG thành 1 thẻ độc lập (user spec
+                                                     2026-06-15), KHÔNG còn chung khung với Thi công gấp. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_metric_newcust_solo">
                                                     <span class="o_vd_kh_metric_chip">
                                                         <span class="o_vd_kh_metric_ico">🆕</span>
                                                         <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
@@ -3196,8 +3177,6 @@
                                                     <t t-set="cellWhich" t-value="'new'"/>
                                                     <t t-set="cellLocked" t-value="nv.lock_new"/>
                                                     <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <!-- User spec 2026-06-14: hover hiện KH mới HÔM NAY (không phải
-                                                         toàn bộ) — đúng việc cần đôn đốc trong ngày. -->
                                                     <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
                                                         <div class="o_vd_kh_popover_head">
                                                             🆕 KHÁCH MỚI HÔM NAY - <t t-esc="nv.full_name"/>
@@ -3219,6 +3198,20 @@
                                                     </div>
                                                 </div>
 
+                                                <!-- ⚠️ CẢNH BÁO TỒN KH MỚI CHƯA GỌI — nằm SÁT NGAY SAU thẻ Khách
+                                                     mới (user spec 2026-06-15). CHỈ hiện khi NV vượt ngưỡng. -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_uncalled">
+                                                    <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
+                                                          class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
+                                                          t-att-title="'NV còn ' + (nv.rem_new_not_called or 0) + ' khách mới CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
+                                                        <span class="o_vd_kh_metric_ico">⚠️</span>
+                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
+                                                        <span class="o_vd_kh_metric_lbl">KH chưa gọi</span>
+                                                    </span>
+                                                </div>
+
+                                                <!-- ===== KHUNG: Thi công gấp | Xử lý vấn đề (đã tách Khách mới ra) ===== -->
+                                                <div class="o_vd_kh_trio o_vd_kh_trio_two">
                                                 <!-- ⚡ THI CÔNG GẤP — KH cần khởi công ≤3 tháng (mirror bảng màn NV) -->
                                                 <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_trio_cell' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
                                                     <span class="o_vd_kh_metric_chip">

@@ -3589,10 +3589,10 @@
     }
     .o_vd_kh_row_group_kh {
         /* 4 super-cột — [KH mới + thẻ Gọi] | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
-           User spec 2026-06-14: thu ngắn cột thẻ gọi (gộp + bỏ tiêu đề +
-           xếp chồng nhãn/số). 2.9 -> 1.5 -> 1.2fr (cắt thêm ~20%).
-           Thêm cột CẢNH BÁO tồn KH chưa gọi (1.3fr) GIỮA thẻ gọi và trio. */
-        grid-template-columns: 1.2fr 1.3fr 2.9fr 0.8fr 1.1fr;
+           User spec 2026-06-15: TÁCH thẻ KHÁCH MỚI ra riêng, thẻ cảnh báo "KH chưa
+           gọi" nằm NGAY SAU. 6 super-cột: Gọi | Khách mới | Cảnh báo | (Thi công +
+           Xử lý) | Cần hỗ trợ | Trạng thái. */
+        grid-template-columns: 1.2fr 0.95fr 1.3fr 2fr 0.8fr 1.1fr;
         background: transparent;
         align-items: stretch;
         grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
@@ -3608,12 +3608,23 @@
         border-radius: 8px;
         /* KHÔNG overflow:hidden — sẽ cắt popover hover. Cells trong suốt nên góc vẫn gọn. */
     }
+    /* Khung chỉ 2 ô (Thi công gấp | Xử lý vấn đề) sau khi tách Khách mới ra. */
+    .o_vd_kh_trio_two {
+        grid-template-columns: repeat(2, 1fr);
+    }
     .o_vd_kh_trio_cell {
         background: transparent !important;   /* nền do khung chung lo */
         border: none !important;
         border-radius: 0 !important;
         border-right: 1px solid #d7e0ec !important;
         &:last-child { border-right: none !important; }
+    }
+    /* 🆕 Thẻ KHÁCH MỚI ĐỘC LẬP — có khung riêng (không còn dùng nền trio chung). */
+    .o_vd_kh_metric_newcust_solo {
+        height: 100%;
+        background: #eef3f9;
+        border: 1px solid #d7e0ec;
+        border-radius: 8px;
     }
     /* ===== NHÓM 1: Thông tin NV — cells Số tháng + Năng lực ===== */
     .o_vd_kh_col_info {

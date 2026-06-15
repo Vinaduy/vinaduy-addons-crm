@@ -249,8 +249,11 @@ class CrmLeadCallWatch(models.Model):
         """ADMIN/quản lý mở khoá NGAY bảng Khách mới cho 1 NV (user spec
         2026-06-04). Xoá cờ khoá + lý do + tập cảnh báo đang treo để cron 15h
         kế KHÔNG dùng lại tập cũ mà đánh giá từ đầu (ân hạn trọn ngày)."""
+        # User spec 2026-06-15: trưởng nhóm cũng được mở khoá (NV trong nhóm).
         if not self._dashboard_is_manager():
-            raise AccessError(_('Chỉ quản lý/admin được mở khoá bảng Khách mới.'))
+            if not (self._dashboard_is_team_leader()
+                    and int(user_id) in self._dashboard_team_member_ids()):
+                raise AccessError(_('Chỉ quản lý/admin hoặc trưởng nhóm (NV trong nhóm) được mở khoá.'))
         u = self.env['res.users'].sudo().browse(int(user_id))
         if u.exists():
             u.write({

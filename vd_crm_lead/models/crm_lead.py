@@ -6281,8 +6281,12 @@ class CrmLead(models.Model):
         Gỡ = mở NHƯNG chỉ 1 NGÀY: đặt mốc gia hạn của bảng đó = now-(grace-1)d
         nên nếu NV vẫn không xử lý thì sau 1 ngày cron/live TỰ KHOÁ LẠI."""
         from datetime import timedelta
+        # User spec 2026-06-15: TRƯỞNG NHÓM cũng được gỡ khoá (giống admin) — nhưng
+        # CHỈ cho NV TRONG NHÓM mình.
         if not self._dashboard_is_manager():
-            raise AccessError(_('Chỉ quản lý/admin được gỡ khoá.'))
+            if not (self._dashboard_is_team_leader()
+                    and int(user_id) in self._dashboard_team_member_ids()):
+                raise AccessError(_('Chỉ quản lý/admin hoặc trưởng nhóm (NV trong nhóm) được gỡ khoá.'))
         u = self.env['res.users'].sudo().browse(int(user_id))
         if not u.exists():
             return False
