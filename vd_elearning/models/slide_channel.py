@@ -173,8 +173,10 @@ class SlideChannel(models.Model):
     # ==================================================================
     @api.model
     def vd_course_load(self, channel_id):
-        """Du lieu cho popup soan khoa hoc: noi dung (slide article) + cau hoi thi (quiz)."""
+        """Du lieu cho popup khoa hoc: noi dung (slide article) + cau hoi thi (quiz).
+        Hoc vien KHONG nhan duoc co is_correct (tranh lo dap an)."""
         ch = self.browse(channel_id)
+        is_admin = self._vd_is_admin()
         contents = []
         for s in ch.slide_ids.filtered(
                 lambda x: not x.is_category and x.slide_category != 'quiz'
@@ -188,11 +190,33 @@ class SlideChannel(models.Model):
                 questions.append({
                     'id': q.id, 'text': q.question or '',
                     'answers': [{'id': a.id, 'text': a.text_value or '',
-                                 'is_correct': a.is_correct}
+                                 'is_correct': a.is_correct if is_admin else False}
                                 for a in q.answer_ids.sorted(lambda x: (x.sequence, x.id))],
                 })
-        return {'id': ch.id, 'name': ch.name or '',
+        return {'id': ch.id, 'name': ch.name or '', 'is_admin': is_admin,
                 'contents': contents, 'questions': questions}
+
+    @api.model
+    def vd_course_grade(self, channel_id, answers_by_q):
+        """Cham diem bai thi tren SERVER. answers_by_q = {qid(str): [answer_id,...]}.
+        Cau dung khi tap dap an chon == tap dap an dung. Tra ve diem + dap an dung de xem lai."""
+        ch = self.browse(channel_id)
+        quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+        qs = quiz.question_ids.sorted(lambda x: (x.sequence, x.id)) if quiz else self.env['slide.question']
+        results = []
+        correct_count = 0
+        for q in qs:
+            correct_ids = set(q.answer_ids.filtered('is_correct').ids)
+            chosen = set(int(x) for x in (answers_by_q.get(str(q.id)) or []))
+            ok = bool(correct_ids) and chosen == correct_ids
+            if ok:
+                correct_count += 1
+            results.append({'qid': q.id, 'correct': ok,
+                            'correct_ids': list(correct_ids)})
+        total = len(qs)
+        return {'total': total, 'score': correct_count,
+                'percent': round(100.0 * correct_count / total) if total else 0,
+                'results': results}
 
     @api.model
     def vd_course_save(self, channel_id, contents, questions):

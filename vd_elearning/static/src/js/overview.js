@@ -99,13 +99,17 @@ export class VdCourseDialog extends Component {
         this._k = 0;
         const data = this.props.data || {};
         this.state = useState({
+            tab: "content",
+            examStarted: false,
+            examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
             contents: (data.contents || []).map((c) => ({
                 _k: this.key(), id: c.id, name: c.name, body: c.body,
             })),
             questions: (data.questions || []).map((q) => ({
                 _k: this.key(), id: q.id, text: q.text,
                 answers: (q.answers || []).map((a) => ({
-                    _k: this.key(), id: a.id, text: a.text, is_correct: a.is_correct,
+                    _k: this.key(), id: a.id, text: a.text,
+                    is_correct: a.is_correct, chosen: false,
                 })),
             })),
             saving: false,
@@ -113,6 +117,73 @@ export class VdCourseDialog extends Component {
     }
     key() {
         return "k" + this._k++;
+    }
+
+    // ---- dieu huong tab ----
+    get showContentTab() {
+        // hoc vien dang thi (chua nop) -> AN tab noi dung
+        return this.props.editable || !this.state.examStarted || !!this.state.examResult;
+    }
+    setTab(t) {
+        if (t === "content" && !this.showContentTab) return;
+        this.state.tab = t;
+    }
+
+    // ---- HOC VIEN: lam bai thi ----
+    startExam() {
+        this.state.examStarted = true;
+        this.state.examResult = null;
+        for (const q of this.state.questions) {
+            for (const a of q.answers) a.chosen = false;
+        }
+        this.state.tab = "exam";
+    }
+    chooseAnswer(q, a) {
+        if (this.props.editable || this.state.examResult) return;
+        a.chosen = !a.chosen;
+    }
+    async submitExam() {
+        if (this.state.saving) return;
+        const unanswered = this.state.questions.filter(
+            (q) => !q.answers.some((a) => a.chosen)
+        ).length;
+        if (unanswered) {
+            this.notification.add(
+                "Còn " + unanswered + " câu chưa chọn đáp án.", { type: "warning" }
+            );
+            return;
+        }
+        this.state.saving = true;
+        try {
+            const payload = {};
+            for (const q of this.state.questions) {
+                payload[String(q.id)] = q.answers.filter((a) => a.chosen).map((a) => a.id);
+            }
+            const res = await this.orm.call("slide.channel", "vd_course_grade", [
+                this.props.channelId, payload,
+            ]);
+            const map = {}, correct = {};
+            for (const r of res.results) {
+                map[r.qid] = r.correct;
+                correct[r.qid] = r.correct_ids;
+            }
+            this.state.examResult = {
+                score: res.score, total: res.total, percent: res.percent, map, correct,
+            };
+        } finally {
+            this.state.saving = false;
+        }
+    }
+    reviewContent() {
+        this.state.examStarted = false;
+        this.state.tab = "content";
+    }
+    retryExam() {
+        this.startExam();
+    }
+    isAnswerCorrect(q, a) {
+        const c = this.state.examResult && this.state.examResult.correct[q.id];
+        return c ? c.includes(a.id) : false;
     }
     addContent() {
         this.state.contents.push({ _k: this.key(), id: false, name: "", body: "" });
