@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class SlideChannel(models.Model):
@@ -167,6 +167,94 @@ class SlideChannel(models.Model):
                  'paths': zone_paths('leader')},
             ],
         }
+
+    # ==================================================================
+    #  TRINH SOAN KHOA HOC (popup full man hinh): noi dung + cau hoi thi
+    # ==================================================================
+    @api.model
+    def vd_course_load(self, channel_id):
+        """Du lieu cho popup soan khoa hoc: noi dung (slide article) + cau hoi thi (quiz)."""
+        ch = self.browse(channel_id)
+        contents = []
+        for s in ch.slide_ids.filtered(
+                lambda x: not x.is_category and x.slide_category != 'quiz'
+        ).sorted(lambda x: (x.sequence, x.id)):
+            contents.append({'id': s.id, 'name': s.name or '',
+                             'body': s.html_content or ''})
+        questions = []
+        quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+        if quiz:
+            for q in quiz.question_ids.sorted(lambda x: (x.sequence, x.id)):
+                questions.append({
+                    'id': q.id, 'text': q.question or '',
+                    'answers': [{'id': a.id, 'text': a.text_value or '',
+                                 'is_correct': a.is_correct}
+                                for a in q.answer_ids.sorted(lambda x: (x.sequence, x.id))],
+                })
+        return {'id': ch.id, 'name': ch.name or '',
+                'contents': contents, 'questions': questions}
+
+    @api.model
+    def vd_course_save(self, channel_id, contents, questions):
+        """Luu noi dung + cau hoi thi tu popup. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc sua khoa hoc.')
+        ch = self.browse(channel_id)
+        Slide = self.env['slide.slide'].sudo()
+        Question = self.env['slide.question'].sudo()
+
+        # ----- NOI DUNG (slide article) -----
+        keep = self.env['slide.slide']
+        seq = 1
+        for c in (contents or []):
+            name = (c.get('name') or '').strip() or 'Nội dung'
+            body = c.get('body') or ''
+            if c.get('id'):
+                s = Slide.browse(c['id'])
+                s.write({'name': name, 'html_content': body, 'sequence': seq})
+            else:
+                s = Slide.create({'channel_id': ch.id, 'name': name,
+                                  'slide_category': 'article', 'html_content': body,
+                                  'sequence': seq, 'is_published': True})
+            keep |= s
+            seq += 1
+        existing = ch.slide_ids.filtered(
+            lambda x: not x.is_category and x.slide_category != 'quiz')
+        (existing - keep).unlink()
+
+        # ----- CAU HOI THI (quiz slide chung) -----
+        questions = questions or []
+        quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+        if questions and not quiz:
+            quiz = Slide.create({'channel_id': ch.id, 'name': 'Bài thi',
+                                 'slide_category': 'quiz', 'sequence': 999,
+                                 'is_published': True})
+        keep_q = self.env['slide.question']
+        qseq = 1
+        for q in questions:
+            text = (q.get('text') or '').strip()
+            if not text:
+                continue
+            ans = q.get('answers') or []
+            corr = [a for a in ans if a.get('is_correct')]
+            if len(ans) < 2 or not corr or len(corr) == len(ans):
+                raise ValidationError(
+                    'Mỗi câu hỏi phải có ít nhất 1 đáp án đúng và 1 đáp án sai.\nCâu: %s' % text)
+            cmds = [(0, 0, {'text_value': (a.get('text') or '').strip() or '-',
+                            'is_correct': bool(a.get('is_correct')), 'sequence': i + 1})
+                    for i, a in enumerate(ans)]
+            if q.get('id'):
+                qq = Question.browse(q['id'])
+                qq.answer_ids.unlink()
+                qq.write({'question': text, 'sequence': qseq, 'answer_ids': cmds})
+            else:
+                qq = Question.create({'slide_id': quiz.id, 'question': text,
+                                      'sequence': qseq, 'answer_ids': cmds})
+            keep_q |= qq
+            qseq += 1
+        if quiz:
+            (quiz.question_ids - keep_q).unlink()
+        return True
 
     @staticmethod
     def _vd_zone_roles(zk):

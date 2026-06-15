@@ -81,6 +81,103 @@ export class VdAssignDialog extends Component {
     }
 }
 
+// ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
+export class VdCourseDialog extends Component {
+    static template = "vd_elearning.CourseDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        title: String,
+        channelId: Number,
+        editable: Boolean,
+        data: Object,
+        onSaved: Function,
+    };
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this._k = 0;
+        const data = this.props.data || {};
+        this.state = useState({
+            contents: (data.contents || []).map((c) => ({
+                _k: this.key(), id: c.id, name: c.name, body: c.body,
+            })),
+            questions: (data.questions || []).map((q) => ({
+                _k: this.key(), id: q.id, text: q.text,
+                answers: (q.answers || []).map((a) => ({
+                    _k: this.key(), id: a.id, text: a.text, is_correct: a.is_correct,
+                })),
+            })),
+            saving: false,
+        });
+    }
+    key() {
+        return "k" + this._k++;
+    }
+    addContent() {
+        this.state.contents.push({ _k: this.key(), id: false, name: "", body: "" });
+    }
+    delContent(c) {
+        const i = this.state.contents.indexOf(c);
+        if (i >= 0) this.state.contents.splice(i, 1);
+    }
+    addQuestion() {
+        this.state.questions.push({
+            _k: this.key(), id: false, text: "",
+            answers: [
+                { _k: this.key(), id: false, text: "", is_correct: true },
+                { _k: this.key(), id: false, text: "", is_correct: false },
+            ],
+        });
+    }
+    delQuestion(q) {
+        const i = this.state.questions.indexOf(q);
+        if (i >= 0) this.state.questions.splice(i, 1);
+    }
+    addAnswer(q) {
+        q.answers.push({ _k: this.key(), id: false, text: "", is_correct: false });
+    }
+    delAnswer(q, a) {
+        const i = q.answers.indexOf(a);
+        if (i >= 0) q.answers.splice(i, 1);
+    }
+    toggleCorrect(a) {
+        a.is_correct = !a.is_correct;
+    }
+    async save() {
+        if (this.state.saving) return;
+        for (const q of this.state.questions) {
+            if (!q.text.trim()) continue;
+            const corr = q.answers.filter((a) => a.is_correct).length;
+            if (q.answers.length < 2 || corr === 0 || corr === q.answers.length) {
+                this.notification.add(
+                    "Mỗi câu hỏi cần ít nhất 1 đáp án đúng và 1 đáp án sai: " + q.text,
+                    { type: "danger" }
+                );
+                return;
+            }
+        }
+        this.state.saving = true;
+        try {
+            await this.orm.call("slide.channel", "vd_course_save", [
+                this.props.channelId,
+                this.state.contents.map((c) => ({ id: c.id, name: c.name, body: c.body })),
+                this.state.questions.map((q) => ({
+                    id: q.id, text: q.text,
+                    answers: q.answers.map((a) => ({
+                        id: a.id, text: a.text, is_correct: a.is_correct,
+                    })),
+                })),
+            ]);
+            await this.props.onSaved();
+            this.props.close();
+        } catch (e) {
+            this.state.saving = false;
+            throw e;
+        }
+    }
+}
+
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -199,13 +296,16 @@ export class VdElearningOverview extends Component {
         };
     }
 
-    openCourse(course) {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "slide.channel",
-            res_id: course.id,
-            views: [[false, "form"]],
-            target: "current",
+    async openCourse(course) {
+        const data = await this.orm.call("slide.channel", "vd_course_load", [course.id]);
+        this.dialog.add(VdCourseDialog, {
+            title: "Khóa học - " + course.name,
+            channelId: course.id,
+            editable: this.state.isAdmin,
+            data,
+            onSaved: async () => {
+                await this.reload();
+            },
         });
     }
 

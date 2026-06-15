@@ -54,6 +54,68 @@
         </Dialog>
     </t>
 
+    <!-- ============ POPUP FULL MAN HINH: SOAN KHOA HOC ============ -->
+    <t t-name="vd_elearning.CourseDialog">
+        <Dialog title="props.title" fullscreen="true">
+            <div class="o_vd_ce">
+                <div class="o_vd_ce_cols">
+                    <!-- NOI DUNG -->
+                    <section class="o_vd_ce_col">
+                        <header class="o_vd_ce_head">
+                            <span><i class="fa fa-book me-2"/>Nội dung khóa học</span>
+                            <button t-if="props.editable" class="o_vd_ce_add" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm nội dung</button>
+                        </header>
+                        <div class="o_vd_ce_list">
+                            <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                <div class="o_vd_ce_item">
+                                    <div class="o_vd_ce_item_top">
+                                        <input class="o_vd_ce_title" t-model="c.name" t-att-readonly="!props.editable" placeholder="Tiêu đề nội dung"/>
+                                        <button t-if="props.editable" class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
+                                    </div>
+                                    <textarea class="o_vd_ce_body" t-model="c.body" t-att-readonly="!props.editable" placeholder="Nội dung chi tiết..."/>
+                                </div>
+                            </t>
+                            <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung.</div>
+                        </div>
+                    </section>
+                    <!-- CAU HOI THI -->
+                    <section class="o_vd_ce_col">
+                        <header class="o_vd_ce_head">
+                            <span><i class="fa fa-question-circle me-2"/>Câu hỏi thi</span>
+                            <button t-if="props.editable" class="o_vd_ce_add" t-on-click="addQuestion"><i class="fa fa-plus me-1"/>Thêm câu hỏi</button>
+                        </header>
+                        <div class="o_vd_ce_list">
+                            <t t-foreach="state.questions" t-as="q" t-key="q._k">
+                                <div class="o_vd_ce_q">
+                                    <div class="o_vd_ce_item_top">
+                                        <input class="o_vd_ce_title" t-model="q.text" t-att-readonly="!props.editable" placeholder="Nội dung câu hỏi"/>
+                                        <button t-if="props.editable" class="o_vd_ce_del" t-on-click="() => this.delQuestion(q)"><i class="fa fa-trash"/></button>
+                                    </div>
+                                    <t t-foreach="q.answers" t-as="a" t-key="a._k">
+                                        <label class="o_vd_ce_ans">
+                                            <input type="checkbox" t-att-checked="a.is_correct" t-att-disabled="!props.editable" t-on-change="() => this.toggleCorrect(a)"/>
+                                            <input class="o_vd_ce_ans_txt" t-model="a.text" t-att-readonly="!props.editable" placeholder="Đáp án"/>
+                                            <button t-if="props.editable" class="o_vd_ce_del" t-on-click="() => this.delAnswer(q, a)"><i class="fa fa-times"/></button>
+                                        </label>
+                                    </t>
+                                    <button t-if="props.editable" class="o_vd_ce_addans" t-on-click="() => this.addAnswer(q)"><i class="fa fa-plus me-1"/>Thêm đáp án</button>
+                                    <div t-if="props.editable" class="o_vd_ce_hint">Tick ô vuông = đáp án đúng. Cần ít nhất 1 đúng và 1 sai.</div>
+                                </div>
+                            </t>
+                            <div t-if="!state.questions.length" class="o_vd_ce_empty">Chưa có câu hỏi.</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button t-if="props.editable" class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
+                    <t t-esc="state.saving ? 'Đang lưu...' : 'Lưu khóa học'"/>
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+            </t>
+        </Dialog>
+    </t>
+
     <!-- ============ TRACK: 1 hang khoa hoc ============ -->
     <t t-name="vd_elearning.Track">
         <div class="o_vd_track"
