@@ -12,7 +12,7 @@
             <t t-foreach="map.nodes" t-as="node" t-key="node.course.id">
                 <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
                      t-attf-style="left:{{node.x}}px;top:{{node.y}}px"
-                     t-att-draggable="(draggable and zone) ? 'true' : 'false'"
+                     t-att-draggable="(draggable &amp;&amp; zone) ? 'true' : 'false'"
                      t-on-dragstart="(ev) => zone ? this.onDragStart(ev, node.course, zone) : null"
                      t-on-dragend="(ev) => this.onDragEnd(ev)"
                      t-on-dragover="(ev) => zone ? this.onDragOver(ev) : null"
