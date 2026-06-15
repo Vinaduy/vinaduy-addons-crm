@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ HERO cao cap thay cho banner mac dinh ============ -->
+    <template id="vd_courses_home_hero" inherit_id="website_slides.courses_home" name="Vinaduy - Hero khoa hoc">
+        <xpath expr="//section[hasclass('s_banner')]" position="replace">
+            <section class="o_vd_hero" data-snippet="s_banner">
+                <div class="o_vd_hero_glow"/>
+                <div class="container o_vd_hero_inner">
+                    <span class="o_vd_hero_eyebrow">VINADUY ACADEMY</span>
+                    <h1 class="o_vd_hero_title">Nang tam ky nang.<br/>Dan dau su nghiep.</h1>
+                    <p class="o_vd_hero_sub">He thong khoa hoc truc tuyen chuyen sau, lo trinh ro rang, hoc moi luc moi noi. Bat dau hanh trinh cua ban ngay hom nay.</p>
+                    <div class="o_vd_hero_actions">
+                        <a href="/slides/all" class="o_vd_btn_primary"><i class="fa fa-graduation-cap me-2"/>Kham pha khoa hoc</a>
+                        <a href="/slides/all?my=1" class="o_vd_btn_ghost">Khoa hoc cua toi</a>
+                    </div>
+                </div>
+            </section>
+        </xpath>
+    </template>
+
+    <!-- ============ Viet hoa cac tieu de section ============ -->
+    <template id="vd_courses_home_titles" inherit_id="website_slides.courses_home" name="Vinaduy - Tieu de section">
+        <xpath expr="//h5[text()='My courses']" position="replace">
+            <h5 class="m-0">Khoa hoc cua toi</h5>
+        </xpath>
+        <xpath expr="//h5[text()='Most popular courses']" position="replace">
+            <h5 class="m-0">Khoa hoc noi bat</h5>
+        </xpath>
+        <xpath expr="//h5[text()='Newest courses']" position="replace">
+            <h5 class="m-0">Khoa hoc moi nhat</h5>
+        </xpath>
+    </template>
+
+</odoo>
