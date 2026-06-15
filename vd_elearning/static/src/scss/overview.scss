@@ -60,61 +60,59 @@ $vd-line:   #ece7da;
     }
     .o_vd_panel { position: relative; }
 
-    // ---------------- TOOLBAR ----------------
+    // ---------------- TOOLBAR (phang) ----------------
     .o_vd_maptools {
         display: flex; align-items: center; gap: .9rem;
-        padding: .85rem 1.2rem; border-bottom: 1px solid $vd-line;
-        background: linear-gradient(180deg, #fffdf7, #faf8f0);
-        .o_vd_tool_count {
-            font-weight: 800; font-size: .85rem;
-            background: rgba($vd-gold, .18); color: #8a6a12;
-            padding: .3rem .85rem; border-radius: 999px;
-        }
+        padding: .8rem 1.3rem; border-bottom: 1px solid $vd-line;
+        .o_vd_tool_count { font-weight: 800; font-size: .9rem; color: #8a6a12; i { color: $vd-gold-d; } }
         .o_vd_tool_hint { margin-left: auto; color: #a7a395; font-size: .74rem; font-style: italic; }
     }
 
-    // ---------------- BANG (1 bang chua tat ca lo trinh) ----------------
-    .o_vd_board { @include vd-board; padding: .4rem .4rem 1rem; overflow-x: auto; }
+    // ---------------- BANG (phang, khong nen rieng) ----------------
+    .o_vd_board { padding: .2rem .6rem .6rem; overflow-x: auto; }
 
     // ----- 1 DONG = 1 LO TRINH -----
     .o_vd_path_row {
-        display: flex; align-items: flex-start; gap: 1rem;
-        padding: 1.3rem 1rem;
-        border-bottom: 1px dashed rgba($vd-ink, .12);
+        display: flex; align-items: center; gap: .4rem;
+        padding: 1.2rem .4rem;
+        border-bottom: 1px solid #f1eee4;
         &:last-child { border-bottom: 0; }
     }
 
-    // ----- MARKER LO TRINH (to, noi bat hon khoa hoc) -----
+    // ----- MARKER LO TRINH (badge to, khong box nen) -----
     .o_vd_path_marker {
         flex: 0 0 auto;
-        display: flex; align-items: center; gap: .7rem;
-        padding: .55rem .9rem .55rem .55rem;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #fff7e4, #ffedc2);
-        border: 1px solid rgba($vd-gold-d, .6);
-        box-shadow: 0 8px 20px rgba($vd-gold-d, .28);
-        align-self: center;
+        display: flex; align-items: center; gap: .6rem; position: relative;
         .o_vd_path_badge {
-            width: 60px; height: 60px; border-radius: 16px;
+            width: 58px; height: 58px; border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
             background: linear-gradient(150deg, $vd-gold, $vd-gold-d);
-            color: #5b4500; font-size: 1.8rem;
-            box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.6);
+            color: #5b4500; font-size: 1.7rem;
+            box-shadow: 0 8px 18px rgba($vd-gold-d, .4),
+                        inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 6px rgba(255,255,255,.6);
         }
         .o_vd_path_label { display: flex; flex-direction: column; line-height: 1.15; }
-        .o_vd_path_kicker { font-size: .6rem; font-weight: 800; letter-spacing: .18em; color: #b07d12; }
-        .o_vd_path_name { font-size: 1rem; font-weight: 900; color: #4a3500; max-width: 160px; }
+        .o_vd_path_kicker { font-size: .58rem; font-weight: 800; letter-spacing: .18em; color: #b07d12; }
+        .o_vd_path_name { font-size: 1rem; font-weight: 900; color: #4a3500; max-width: 150px; }
         .o_vd_path_sub { font-size: .68rem; font-weight: 700; color: #a08236; }
+        .o_vd_path_edit {
+            border: 0; background: transparent; color: #cbb98e; cursor: pointer;
+            padding: .2rem .3rem; font-size: .82rem; align-self: flex-start;
+            &:hover { color: $vd-gold-d; }
+        }
     }
 
-    // ----- TRACK: khoa hoc chay ngang, nhoi toi da, het cho moi xuong dong -----
+    // ----- TRACK -----
     .o_vd_track {
         flex: 1 1 auto; min-width: 0;
-        display: flex; flex-wrap: wrap; align-items: flex-start;
-        gap: 8px 2px; padding-top: 42px;
+        display: flex; flex-wrap: wrap; align-items: center;
+        gap: 10px 0; padding-top: 30px;
     }
-    .o_vd_track_empty { color: #a7a395; font-size: .8rem; font-style: italic; padding: .5rem; align-self: center; }
-    .o_vd_step { display: inline-flex; align-items: flex-start; }
+    .o_vd_track_empty {
+        color: #b3ae9d; font-size: .8rem; font-style: italic; padding: .6rem 1rem;
+        border: 1px dashed #ddd6c4; border-radius: 10px; align-self: center;
+    }
+    .o_vd_step { display: inline-flex; align-items: center; }
 
     // ----- NODE KHOA HOC -----
     .o_vd_level {
@@ -164,8 +162,12 @@ $vd-line:   #ece7da;
 
     @keyframes vd-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
-    // mui ten dan huong giua cac khoa
-    .o_vd_arrow { color: $vd-gold-d; font-size: .95rem; margin: 14px 1px 0; align-self: flex-start; opacity: .8; }
+    // mui ten dan huong (to, pro)
+    .o_vd_arrow {
+        color: $vd-gold-d; font-size: 1.5rem; font-weight: 900;
+        margin: 0 2px; align-self: center; flex: 0 0 auto;
+    }
+    .o_vd_arrow_lead { font-size: 1.9rem; margin: 0 .5rem 0 .25rem; }
 
     // ----- THE TEN NHAN VIEN (bam theo khoa) -----
     .o_vd_riders {
@@ -267,4 +269,25 @@ $vd-line:   #ece7da;
     }
 
     .o_vd_emp_empty { color: #a7a395; font-size: .85rem; font-style: italic; text-align: center; padding: 1.5rem; grid-column: 1 / -1; }
+}
+
+// ============ POPUP (render ngoai .o_vd_overview nen de o root) ============
+$vd-gold2:   #f5c451;
+$vd-gold2-d: #caa14a;
+$vd-ink2:    #20243a;
+$vd-line2:   #ece7da;
+
+.o_vd_dlg {
+    display: flex; flex-direction: column; padding: .4rem .25rem;
+    .o_vd_dlg_label { font-weight: 700; font-size: .82rem; color: $vd-ink2; margin-bottom: .35rem; }
+    .o_vd_dlg_input {
+        width: 100%; border: 1px solid $vd-line2; border-radius: 10px;
+        padding: .6rem .8rem; font-size: .92rem; color: $vd-ink2; background: #fff;
+        &:focus { outline: none; border-color: $vd-gold2-d; box-shadow: 0 0 0 3px rgba($vd-gold2, .25); }
+    }
+}
+.o_vd_dlg_ok {
+    background: linear-gradient(135deg, $vd-gold2, $vd-gold2-d);
+    color: $vd-ink2; font-weight: 800; border: 0;
+    &:hover { filter: brightness(1.04); color: $vd-ink2; }
 }

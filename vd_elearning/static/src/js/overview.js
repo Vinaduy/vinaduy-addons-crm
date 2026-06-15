@@ -2,7 +2,42 @@
 
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { Dialog } from "@web/core/dialog/dialog";
 import { Component, onWillStart, useState } from "@odoo/owl";
+
+// ---- Popup nhap ten (dung cho them khoa hoc / them - doi ten lo trinh) ----
+export class VdInputDialog extends Component {
+    static template = "vd_elearning.InputDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        title: String,
+        label: String,
+        name: { type: String, optional: true },
+        placeholder: { type: String, optional: true },
+        confirmLabel: { type: String, optional: true },
+        withPath: { type: Boolean, optional: true },
+        paths: { type: Array, optional: true },
+        onConfirm: Function,
+    };
+    setup() {
+        this.state = useState({
+            name: this.props.name || "",
+            pathId:
+                this.props.paths && this.props.paths.length
+                    ? this.props.paths[0].id
+                    : false,
+        });
+    }
+    confirm() {
+        const name = (this.state.name || "").trim();
+        if (!name) {
+            return;
+        }
+        this.props.onConfirm({ name, pathId: parseInt(this.state.pathId, 10) || false });
+        this.props.close();
+    }
+}
 
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
@@ -11,6 +46,7 @@ export class VdElearningOverview extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
+        this.dialog = useService("dialog");
         this.state = useState({
             zones: [],
             report: [],
@@ -36,15 +72,18 @@ export class VdElearningOverview extends Component {
                 id: data.me.id,
                 name: data.me.name,
                 courseId: data.me.course_id,
-                courses: z ? z.courses : [],
+                courses: z ? this._flatCourses(z) : [],
                 locked: true,
             };
         }
         this.state.loading = false;
     }
 
-    // ---------- DUNG NODE THEO DONG (flex-wrap) ----------
-    // employees: danh sach NV co {id, name, course_id} de gan avatar vao node.
+    _flatCourses(zone) {
+        return (zone.paths || []).reduce((acc, p) => acc.concat(p.courses), []);
+    }
+
+    // ---------- node theo dong ----------
     trackNodes(courses, employees) {
         const byCourse = {};
         for (const e of employees || []) {
@@ -86,19 +125,11 @@ export class VdElearningOverview extends Component {
             id: row.id,
             name: row.name,
             courseId: false,
-            courses: z ? z.courses : [],
+            courses: z ? this._flatCourses(z) : [],
             locked: false,
         };
     }
 
-    studentMap() {
-        const s = this.state.selectedEmp;
-        return this.buildMap(s.courses, [
-            { id: s.id, name: s.name, courseId: s.courseId },
-        ]);
-    }
-
-    // ---------- DIEU HUONG ----------
     openCourse(course) {
         this.action.doAction({
             type: "ir.actions.act_window",
@@ -109,40 +140,6 @@ export class VdElearningOverview extends Component {
         });
     }
 
-    newCourse(zoneKey) {
-        const z = this.state.zones.find((zn) => zn.key === zoneKey);
-        const firstPath = z && z.paths && z.paths.length ? z.paths[0].id : false;
-        const ctx = { default_vd_role_zone: zoneKey };
-        if (firstPath) {
-            ctx.default_vd_path_id = firstPath;
-        }
-        this.action.doAction(
-            {
-                type: "ir.actions.act_window",
-                res_model: "slide.channel",
-                views: [[false, "form"]],
-                target: "current",
-                context: ctx,
-            },
-            { onClose: () => this.reload() }
-        );
-    }
-
-    newPath(zoneKey) {
-        this.action.doAction(
-            {
-                type: "ir.actions.act_window",
-                name: "Lộ trình mới",
-                res_model: "vd.learning.path",
-                views: [[false, "form"]],
-                target: "new",
-                context: { default_zone: zoneKey },
-            },
-            { onClose: () => this.reload() }
-        );
-    }
-
-    // dropdown chon nhan vien (toan cuc, theo state.report)
     selectEmpGlobal(ev) {
         const id = parseInt(ev.target.value, 10);
         ev.target.value = "";
@@ -159,10 +156,61 @@ export class VdElearningOverview extends Component {
         this.state.selectedEmp = null;
     }
 
-    // ---------- KEO - THA trong 1 lo trinh (chi admin) ----------
-    onDragStart(ev, course, zoneKey) {
+    // ---------- POPUP ----------
+    openAddCourse(zone) {
+        this.dialog.add(VdInputDialog, {
+            title: "Thêm khóa học",
+            label: "Tên khóa học",
+            placeholder: "VD: A3 - Thi công",
+            confirmLabel: "Tạo khóa học",
+            withPath: true,
+            paths: zone.paths,
+            onConfirm: async ({ name, pathId }) => {
+                await this.orm.create("slide.channel", [
+                    {
+                        name,
+                        channel_type: "training",
+                        vd_role_zone: zone.key,
+                        vd_path_id: pathId,
+                    },
+                ]);
+                await this.reload();
+            },
+        });
+    }
+
+    openAddPath(zoneKey) {
+        this.dialog.add(VdInputDialog, {
+            title: "Thêm lộ trình",
+            label: "Tên lộ trình",
+            placeholder: "VD: Lộ trình nâng cao",
+            confirmLabel: "Tạo lộ trình",
+            onConfirm: async ({ name }) => {
+                await this.orm.create("vd.learning.path", [
+                    { name, zone: zoneKey, sequence: 99 },
+                ]);
+                await this.reload();
+            },
+        });
+    }
+
+    renamePath(path) {
+        this.dialog.add(VdInputDialog, {
+            title: "Đổi tên lộ trình",
+            label: "Tên lộ trình",
+            name: path.name,
+            confirmLabel: "Lưu",
+            onConfirm: async ({ name }) => {
+                await this.orm.write("vd.learning.path", [path.id], { name });
+                await this.reload();
+            },
+        });
+    }
+
+    // ---------- KEO - THA (trong & giua cac lo trinh) ----------
+    onDragStart(ev, course, zoneKey, pathId) {
         if (!this.state.isAdmin) return;
-        this.dragData = { zoneKey, id: course.id };
+        this.dragData = { zoneKey, id: course.id, pathId };
         ev.dataTransfer.effectAllowed = "move";
         ev.currentTarget.classList.add("o_vd_dragging");
     }
@@ -177,20 +225,54 @@ export class VdElearningOverview extends Component {
         ev.dataTransfer.dropEffect = "move";
     }
 
-    async onDrop(ev, targetCourse, list, zoneKey) {
+    async onDrop(ev, targetCourse, zoneKey, pathId) {
         if (!this.state.isAdmin || !this.dragData) return;
         ev.preventDefault();
-        if (this.dragData.zoneKey !== zoneKey) return;
-        const from = list.findIndex((c) => c.id === this.dragData.id);
-        const to = list.findIndex((c) => c.id === targetCourse.id);
+        ev.stopPropagation();
+        const d = this.dragData;
         this.dragData = null;
-        if (from < 0 || to < 0 || from === to) return;
-        const [moved] = list.splice(from, 1);
-        list.splice(to, 0, moved);
+        if (d.zoneKey !== zoneKey || d.id === targetCourse.id) return;
+        await this._applyMove(d, zoneKey, pathId, targetCourse.id);
+    }
+
+    async onTrackDrop(ev, zoneKey, pathId) {
+        if (!this.state.isAdmin || !this.dragData) return;
+        ev.preventDefault();
+        const d = this.dragData;
+        this.dragData = null;
+        if (d.zoneKey !== zoneKey) return;
+        await this._applyMove(d, zoneKey, pathId, null);
+    }
+
+    async _applyMove(d, zoneKey, targetPathId, targetCourseId) {
+        const zone = this.state.zones.find((z) => z.key === zoneKey);
+        if (!zone) return;
+        const srcPath = zone.paths.find((p) => p.id === d.pathId);
+        const tgtPath = zone.paths.find((p) => p.id === targetPathId);
+        if (!srcPath || !tgtPath) return;
+        const from = srcPath.courses.findIndex((c) => c.id === d.id);
+        if (from < 0) return;
+        const [moved] = srcPath.courses.splice(from, 1);
+        let to = tgtPath.courses.length;
+        if (targetCourseId) {
+            const ti = tgtPath.courses.findIndex((c) => c.id === targetCourseId);
+            to = ti < 0 ? tgtPath.courses.length : ti;
+        }
+        tgtPath.courses.splice(to, 0, moved);
+        const crossPath = d.pathId !== targetPathId;
+        if (crossPath) {
+            await this.orm.write("slide.channel", [moved.id], { vd_path_id: targetPathId });
+        }
         await this.orm.call("slide.channel", "vd_save_order", [
             zoneKey,
-            list.map((c) => c.id),
+            tgtPath.courses.map((c) => c.id),
         ]);
+        if (crossPath) {
+            await this.orm.call("slide.channel", "vd_save_order", [
+                zoneKey,
+                srcPath.courses.map((c) => c.id),
+            ]);
+        }
     }
 }
 

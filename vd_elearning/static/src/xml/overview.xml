@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
 
-    <!-- ============ TRACK: 1 hang khoa hoc (flex-wrap) ============ -->
+    <!-- ============ POPUP NHAP TEN ============ -->
+    <t t-name="vd_elearning.InputDialog">
+        <Dialog title="props.title" size="'md'">
+            <div class="o_vd_dlg">
+                <label class="o_vd_dlg_label" t-esc="props.label"/>
+                <input type="text" class="o_vd_dlg_input" t-model="state.name"
+                       t-att-placeholder="props.placeholder || ''" autofocus="autofocus"
+                       t-on-keydown="(ev) => ev.key === 'Enter' ? this.confirm() : null"/>
+                <t t-if="props.withPath">
+                    <label class="o_vd_dlg_label mt-3">Thuộc lộ trình</label>
+                    <select class="o_vd_dlg_input" t-model="state.pathId">
+                        <t t-foreach="props.paths" t-as="p" t-key="p.id">
+                            <option t-att-value="p.id" t-esc="p.name"/>
+                        </t>
+                    </select>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-on-click="confirm"><t t-esc="props.confirmLabel || 'Lưu'"/></button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <!-- ============ TRACK: 1 hang khoa hoc ============ -->
     <t t-name="vd_elearning.Track">
-        <div class="o_vd_track">
+        <div class="o_vd_track"
+             t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
+             t-on-drop="(ev) => dropCtx ? this.onTrackDrop(ev, dropCtx.zoneKey, dropCtx.pathId) : null">
             <t t-foreach="nodes" t-as="node" t-key="node.course.id">
                 <div class="o_vd_step">
                     <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
                          t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
-                         t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey) : null"
+                         t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
                          t-on-dragend="(ev) => this.onDragEnd(ev)"
                          t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
-                         t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.list, dropCtx.zoneKey) : null"
+                         t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
                          t-on-click="() => this.openCourse(node.course)">
                         <div t-if="node.riders.length" class="o_vd_riders">
                             <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
@@ -32,18 +58,19 @@
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
                     </div>
-                    <i t-if="!node_last" class="fa fa-long-arrow-right o_vd_arrow"/>
+                    <i t-if="!node_last" class="fa fa-angle-right o_vd_arrow"/>
                 </div>
             </t>
+            <div t-if="!nodes.length" class="o_vd_track_empty">Kéo khóa học vào đây</div>
         </div>
     </t>
 
-    <!-- ============ PANEL 1 TAB DAO TAO (1 bang, moi lo trinh 1 dong) ============ -->
+    <!-- ============ PANEL 1 TAB DAO TAO ============ -->
     <t t-name="vd_elearning.ZonePanel">
         <div class="o_vd_panel">
             <div class="o_vd_maptools">
                 <span class="o_vd_tool_count"><i class="fa fa-graduation-cap me-1"/><t t-esc="zone.courses.length"/> khóa học</span>
-                <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả khóa học để đổi lộ trình</span>
+                <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả khóa học (đổi thứ tự hoặc sang lộ trình khác)</span>
             </div>
 
             <div class="o_vd_board">
@@ -56,13 +83,15 @@
                                 <span class="o_vd_path_name" t-esc="path.name"/>
                                 <span class="o_vd_path_sub"><t t-esc="path.courses.length"/> khóa học</span>
                             </div>
+                            <button t-if="state.isAdmin" class="o_vd_path_edit" title="Đổi tên lộ trình"
+                                t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
                         </div>
+                        <i t-if="path.courses.length" class="fa fa-angle-right o_vd_arrow o_vd_arrow_lead"/>
                         <t t-call="vd_elearning.Track">
                             <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees)"/>
-                            <t t-set="dropCtx" t-value="state.isAdmin ? {list: path.courses, zoneKey: zone.key} : false"/>
+                            <t t-set="dropCtx" t-value="state.isAdmin ? {zoneKey: zone.key, pathId: path.id} : false"/>
                             <t t-set="draggable" t-value="state.isAdmin"/>
                         </t>
-                        <div t-if="!path.courses.length" class="o_vd_track_empty">Lộ trình chưa có khóa học.</div>
                     </div>
                 </t>
                 <div t-if="!zone.paths.length" class="o_vd_emp_empty">Chưa có lộ trình nào.</div>
@@ -70,10 +99,10 @@
 
             <div t-if="state.isAdmin" class="o_vd_fab">
                 <div class="o_vd_fab_menu">
-                    <button class="o_vd_fab_item" t-on-click="() => this.newCourse(zone.key)">
+                    <button class="o_vd_fab_item" t-on-click="() => this.openAddCourse(zone)">
                         <i class="fa fa-graduation-cap me-2"/>THÊM KHÓA HỌC
                     </button>
-                    <button class="o_vd_fab_item" t-on-click="() => this.newPath(zone.key)">
+                    <button class="o_vd_fab_item" t-on-click="() => this.openAddPath(zone.key)">
                         <i class="fa fa-sitemap me-2"/>THÊM LỘ TRÌNH
                     </button>
                 </div>
@@ -89,7 +118,7 @@
                 <i class="fa fa-spinner fa-spin"/> Đang tải...
             </div>
 
-            <!-- ====== GIAO DIEN NHAN VIEN ====== -->
+            <!-- GIAO DIEN NHAN VIEN -->
             <t t-elif="state.selectedEmp">
                 <div class="o_vd_card">
                     <header class="o_vd_student_head">
@@ -114,14 +143,11 @@
                                 <t t-set="draggable" t-value="false"/>
                             </t>
                         </div>
-                        <div t-if="!state.selectedEmp.courses.length" class="o_vd_emp_empty">
-                            Chưa có khóa học nào trong hành trình.
-                        </div>
                     </div>
                 </div>
             </t>
 
-            <!-- ====== GIAO DIEN ADMIN ====== -->
+            <!-- GIAO DIEN ADMIN -->
             <t t-else="">
                 <nav class="o_vd_tabbar">
                     <button t-attf-class="o_vd_tab {{state.tab == 'sales' ? 'active' : ''}}"
