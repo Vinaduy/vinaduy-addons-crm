@@ -3591,8 +3591,8 @@
         /* 4 super-cột — [KH mới + thẻ Gọi] | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
            User spec 2026-06-15: thẻ KHÁCH MỚI + cảnh báo "chưa gọi" GỘP 1 KHỐI
            (1 cột). 5 super-cột: Gọi | (Khách mới + chưa gọi) | (Thi công + Xử lý)
-           | Cần hỗ trợ | Trạng thái. */
-        grid-template-columns: 1.2fr 2fr 2fr 0.8fr 1.1fr;
+           | Cần hỗ trợ | Trạng thái. Các thẻ metric CO VỪA CHỮ (fit-content). */
+        grid-template-columns: 1.2fr 1.4fr 1.6fr 0.8fr 1.1fr;
         background: transparent;
         align-items: stretch;
         grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
@@ -3608,20 +3608,28 @@
         border-radius: 8px;
         /* KHÔNG overflow:hidden — sẽ cắt popover hover. Cells trong suốt nên góc vẫn gọn. */
     }
-    /* Khung chỉ 2 ô (Thi công gấp | Xử lý vấn đề) sau khi tách Khách mới ra. */
+    /* Khung chỉ 2 ô (Thi công gấp | Xử lý vấn đề) — CO VỪA CHỮ, không kéo dãn. */
     .o_vd_kh_trio_two {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: auto auto;
+        width: fit-content;
+        max-width: 100%;
+        justify-self: center;
     }
     .o_vd_kh_trio_cell {
         background: transparent !important;   /* nền do khung chung lo */
         border: none !important;
         border-radius: 0 !important;
         border-right: 1px solid #d7e0ec !important;
+        padding: 2px 12px;                    /* để chữ không sát mép khi co lại */
         &:last-child { border-right: none !important; }
     }
-    /* 🆕 Thẻ KHÁCH MỚI ĐỘC LẬP — có khung riêng (không còn dùng nền trio chung). */
+    /* 🆕 Thẻ KHÁCH MỚI ĐỘC LẬP — khung riêng, CO VỪA CHỮ (không kéo dãn full cột). */
     .o_vd_kh_metric_newcust_solo {
         height: 100%;
+        width: fit-content;
+        max-width: 100%;
+        justify-self: center;
+        padding: 2px 12px;
         background: #eef3f9;
         border: 1px solid #d7e0ec;
         border-radius: 8px;
