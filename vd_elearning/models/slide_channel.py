@@ -75,6 +75,34 @@ class SlideChannel(models.Model):
                 'published': bool(c.is_published),
             } for c in recs]
 
+        # ----- Bao cao thanh tich tung NV (tab NHAN VIEN) -----
+        role_label = {'collaborator': 'CTV', 'employee': 'Nhân viên',
+                      'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc', 'admin': 'Admin'}
+
+        def report_row(user):
+            zk = ('leader' if user.vd_crm_role == 'team_leader' else 'sales')
+            recs = zone_recs[zk]
+            ids = recs.ids
+            mine = progress.get(user.partner_id.id, {})
+            completed = sum(1 for cid in ids if mine.get(cid) == 'completed')
+            total = len(ids)
+            cur_id = current_course_id(user, recs)
+            cur = recs.filtered(lambda c: c.id == cur_id)[:1]
+            return {
+                'id': user.id, 'name': user.name or '',
+                'team': user.vd_team_label or 'KHAC',
+                'role': role_label.get(user.vd_crm_role, ''),
+                'completed': completed, 'total': total,
+                'percent': round(100.0 * completed / total) if total else 0,
+                'current': cur.name if cur else '',
+                'zone_key': zk,
+            }
+
+        report_users = internal.filtered(
+            lambda u: u.vd_crm_role in ('employee', 'collaborator', 'team_leader')
+        ).sorted(lambda u: (u.vd_team_label or 'zz', u.name or ''))
+        report = [report_row(u) for u in report_users]
+
         # Thong tin user hien tai — NV/CTV/TN dang nhap se vao thang giao dien cua minh.
         u = self.env.user
         role = u.vd_crm_role
@@ -87,6 +115,7 @@ class SlideChannel(models.Model):
         return {
             'is_admin': self._vd_is_admin(),
             'me': me,
+            'report': report,
             'zones': [
                 {'key': 'sales', 'title': 'NHAN VIEN KINH DOANH',
                  'employees': zone_employees(['employee', 'team_leader', 'collaborator'], zone_recs['sales']),

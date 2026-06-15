@@ -16,7 +16,14 @@ export class VdElearningOverview extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.state = useState({ zones: [], isAdmin: false, selectedEmp: null, loading: true });
+        this.state = useState({
+            zones: [],
+            report: [],
+            isAdmin: false,
+            tab: "sales",
+            selectedEmp: null,
+            loading: true,
+        });
         this.dragData = null;
         onWillStart(async () => {
             await this.reload();
@@ -26,6 +33,7 @@ export class VdElearningOverview extends Component {
     async reload() {
         const data = await this.orm.call("slide.channel", "vd_get_overview", []);
         this.state.zones = data.zones;
+        this.state.report = data.report || [];
         this.state.isAdmin = data.is_admin;
         if (!data.is_admin && data.me && data.me.zone_key) {
             const z = data.zones.find((zn) => zn.key === data.me.zone_key);
@@ -82,6 +90,25 @@ export class VdElearningOverview extends Component {
 
     zoneMap(zone) {
         return this.buildMap(zone.courses, zone.employees);
+    }
+
+    setTab(tab) {
+        this.state.tab = tab;
+    }
+
+    get activeZone() {
+        return this.state.zones.find((z) => z.key === this.state.tab);
+    }
+
+    viewEmployee(row) {
+        const z = this.state.zones.find((zn) => zn.key === row.zone_key);
+        this.state.selectedEmp = {
+            id: row.id,
+            name: row.name,
+            courseId: false,
+            courses: z ? z.courses : [],
+            locked: false,
+        };
     }
 
     studentMap() {
