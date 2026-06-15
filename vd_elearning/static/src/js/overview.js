@@ -6,7 +6,7 @@ import { Component, onWillStart, useState } from "@odoo/owl";
 
 // Kich thuoc mot "o" tren ban do game.
 const CELL_W = 230;
-const CELL_H = 168;
+const CELL_H = 205;
 const MAX_COLS = 6;
 
 export class VdElearningOverview extends Component {
@@ -57,6 +57,7 @@ export class VdElearningOverview extends Component {
             const row = Math.floor(i / cols);
             const inRow = i % cols;
             const col = row % 2 === 0 ? inRow : cols - 1 - inRow;
+            const all = byCourse[c.id] || [];
             return {
                 course: c,
                 idx: i,
@@ -64,7 +65,8 @@ export class VdElearningOverview extends Component {
                 kind: i === 0 ? "start" : i === n - 1 ? "boss" : "normal",
                 x: col * CELL_W + CELL_W / 2,
                 y: row * CELL_H + CELL_H / 2,
-                employees: byCourse[c.id] || [],
+                riders: all.slice(0, 3),
+                moreRiders: Math.max(0, all.length - 3),
             };
         });
         const path = nodes

@@ -18,18 +18,26 @@
                      t-on-dragover="(ev) => zone ? this.onDragOver(ev) : null"
                      t-on-drop="(ev) => zone ? this.onDrop(ev, node.course, zone) : null"
                      t-on-click="() => this.openCourse(node.course)">
-                    <!-- avatar nhan vien bam theo cua nay -->
-                    <div t-if="node.employees.length" class="o_vd_riders">
-                        <t t-foreach="node.employees" t-as="rider" t-key="rider.id">
-                            <img class="o_vd_rider"
-                                 t-attf-src="/web/image/res.users/{{rider.id}}/avatar_128"
-                                 t-att-title="rider.name" t-att-alt="rider.name"/>
+                    <!-- the ten nhan vien bam theo cua nay -->
+                    <div t-if="node.riders.length" class="o_vd_riders">
+                        <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
+                        <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
+                            <div class="o_vd_rider_card">
+                                <img class="o_vd_rider_ava"
+                                     t-attf-src="/web/image/res.users/{{rider.id}}/avatar_128" t-att-alt="rider.name"/>
+                                <span class="o_vd_rider_name" t-esc="rider.name"/>
+                            </div>
                         </t>
                     </div>
-                    <div class="o_vd_level_badge">
+                    <!-- la co (cua dau) / cup (cua cuoi) - to, noi bat -->
+                    <i t-if="node.kind == 'boss'" class="fa fa-trophy o_vd_emblem o_vd_emblem_boss"/>
+                    <i t-elif="node.kind == 'start'" class="fa fa-flag o_vd_emblem o_vd_emblem_start"/>
+                    <!-- tile cua ai: logo khoa hoc + so thu tu -->
+                    <div class="o_vd_level_tile">
+                        <img t-if="node.course.has_image" class="o_vd_level_logo"
+                             t-attf-src="/web/image/slide.channel/{{node.course.id}}/image_128"/>
+                        <i t-else="" class="fa fa-graduation-cap o_vd_level_ico"/>
                         <span class="o_vd_level_num" t-esc="node.n"/>
-                        <i t-if="node.kind == 'boss'" class="fa fa-trophy o_vd_level_emblem"/>
-                        <i t-elif="node.kind == 'start'" class="fa fa-flag o_vd_level_emblem"/>
                     </div>
                     <div class="o_vd_level_name" t-esc="node.course.name"/>
                 </div>
