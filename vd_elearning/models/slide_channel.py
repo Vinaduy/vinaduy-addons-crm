@@ -182,7 +182,7 @@ class SlideChannel(models.Model):
                 lambda x: not x.is_category and x.slide_category != 'quiz'
         ).sorted(lambda x: (x.sequence, x.id)):
             contents.append({'id': s.id, 'name': s.name or '',
-                             'body': s.html_content or ''})
+                             'body': s.vd_body or s.html_content or ''})
         questions = []
         quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
         if quiz:
@@ -237,10 +237,10 @@ class SlideChannel(models.Model):
             body = c.get('body') or ''
             if c.get('id'):
                 s = Slide.browse(c['id'])
-                s.write({'name': name, 'html_content': body, 'sequence': seq})
+                s.write({'name': name, 'vd_body': body, 'sequence': seq})
             else:
                 s = Slide.create({'channel_id': ch.id, 'name': name,
-                                  'slide_category': 'article', 'html_content': body,
+                                  'slide_category': 'article', 'vd_body': body,
                                   'sequence': seq, 'is_published': True})
             keep |= s
             seq += 1

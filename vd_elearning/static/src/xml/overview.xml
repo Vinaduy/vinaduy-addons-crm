@@ -89,8 +89,19 @@
                 <button class="o_vd_rt_btn" title="Căn phải" t-on-click="() => this.exec('justifyRight')"><i class="fa fa-align-right"/></button>
                 <span class="o_vd_rt_sep"/>
                 <button class="o_vd_rt_btn" title="Chèn bảng" t-on-click="addTable"><i class="fa fa-table"/></button>
+                <label class="o_vd_rt_btn o_vd_rt_color" title="Chèn hình ảnh"><i class="fa fa-image"/><input type="file" accept="image/*" t-on-change="insertImage"/></label>
+                <button class="o_vd_rt_btn" title="Chèn video (YouTube/Vimeo/MP4)" t-on-click="insertVideo"><i class="fa fa-video-camera"/></button>
                 <button class="o_vd_rt_btn" title="Chèn liên kết" t-on-click="addLink"><i class="fa fa-link"/></button>
                 <button class="o_vd_rt_btn" title="Đường kẻ ngang" t-on-click="() => this.exec('insertHorizontalRule')"><i class="fa fa-minus"/></button>
+                <span class="o_vd_rt_sep"/>
+                <select class="o_vd_rt_sel o_vd_rt_tpl" t-on-change="template" title="Chèn mẫu đẹp">
+                    <option value="">✨ Mẫu đẹp</option>
+                    <option value="banner">Banner tiêu đề</option>
+                    <option value="note">Hộp ghi nhớ (xanh)</option>
+                    <option value="warn">Hộp lưu ý (vàng)</option>
+                    <option value="two">Khối 2 cột</option>
+                    <option value="compare">Bảng so sánh</option>
+                </select>
                 <button class="o_vd_rt_btn" title="Xóa định dạng" t-on-click="() => this.exec('removeFormat')"><i class="fa fa-eraser"/></button>
             </div>
             <div class="o_vd_rt_area" t-ref="editable" contenteditable="true" t-on-input="emit"/>
@@ -99,7 +110,7 @@
 
     <!-- ============ POPUP FULL MAN HINH: KHOA HOC (noi dung + bai thi) ============ -->
     <t t-name="vd_elearning.CourseDialog">
-        <Dialog title="props.title" size="'fs'" fullscreen="true">
+        <Dialog title="props.title" size="'fs'" fullscreen="true" contentClass="'o_vd_fullcontent'">
             <div class="o_vd_ce">
                 <!-- TAB -->
                 <div class="o_vd_ce_tabs">
@@ -127,9 +138,16 @@
                         <t t-else="">
                             <div class="o_vd_ce_list">
                                 <t t-if="props.editable">
-                                    <div class="o_vd_ce_namebar">
-                                        <label class="o_vd_ce_namelbl" for="vd_ce_name">Tên khóa học</label>
-                                        <input id="vd_ce_name" class="o_vd_ce_name" t-model="state.courseName" placeholder="Tên khóa học"/>
+                                    <div class="o_vd_ce_titlebar">
+                                        <t t-if="!state.editingName">
+                                            <h2 class="o_vd_ce_coursetitle" t-esc="state.courseName"/>
+                                            <button class="o_vd_ce_edit" t-on-click="toggleEditName"><i class="fa fa-pencil me-1"/>Sửa tên</button>
+                                        </t>
+                                        <t t-else="">
+                                            <input class="o_vd_ce_titleinput" t-model="state.courseName" placeholder="Tên khóa học" autofocus="autofocus"
+                                                   t-on-keydown="(ev) => ev.key === 'Enter' ? this.toggleEditName() : null"/>
+                                            <button class="o_vd_ce_edit" t-on-click="toggleEditName"><i class="fa fa-check me-1"/>Xong</button>
+                                        </t>
                                     </div>
                                     <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm trang nội dung</button>
                                     <t t-foreach="state.contents" t-as="c" t-key="c._k">

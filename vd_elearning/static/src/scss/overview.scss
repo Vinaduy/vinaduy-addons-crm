@@ -368,25 +368,28 @@ $vd-line2:   #ece7da;
 }
 
 // ============ KHOA HOC (popup full man hinh): noi dung + bai thi ============
-// ep dialog full man hinh that su
-.o_dialog .modal-dialog.modal-fs {
-    width: 100vw; max-width: 100vw; height: 100vh; margin: 0;
-    .modal-content { height: 100vh; border-radius: 0; }
+// ep dialog phu KIN man hinh (ke ca navbar) bang position fixed
+.modal-content.o_vd_fullcontent {
+    position: fixed !important; inset: 0 !important;
+    width: 100vw !important; height: 100dvh !important; max-width: none !important;
+    margin: 0 !important; border: 0 !important; border-radius: 0 !important;
+    display: flex; flex-direction: column;
+    .modal-body { flex: 1 1 auto; overflow: hidden; }
 }
 
 .o_vd_ce {
     display: flex; flex-direction: column; height: 100%; min-height: 72vh;
 
     .o_vd_ce_tabs {
-        display: flex; align-items: center; gap: .4rem;
-        padding: .2rem .2rem .7rem; border-bottom: 2px solid $vd-line2; flex-wrap: wrap;
+        display: flex; align-items: center; gap: .3rem;
+        padding: 0 0 .5rem; border-bottom: 1px solid $vd-line2; flex-wrap: wrap;
     }
     .o_vd_ce_tab {
-        border: 0; background: #f3f1e8; color: #7b7c89; cursor: pointer;
-        font-weight: 800; font-size: .86rem; padding: .55rem 1.2rem; border-radius: 10px;
-        i { color: $vd-gold2-d; }
-        &:hover { background: rgba($vd-gold2, .18); color: $vd-ink2; }
-        &.active { background: linear-gradient(135deg, #2b3350, $vd-ink2); color: #fff; i { color: $vd-gold2; } }
+        border: 0; background: transparent; color: #8b8c98; cursor: pointer;
+        font-weight: 700; font-size: .78rem; padding: .35rem .9rem; border-radius: 8px;
+        i { color: $vd-gold2-d; font-size: .75rem; }
+        &:hover { background: rgba($vd-gold2, .14); color: $vd-ink2; }
+        &.active { background: $vd-ink2; color: #fff; i { color: $vd-gold2; } }
     }
     .o_vd_ce_examflag {
         margin-left: auto; color: #c0392b; font-weight: 800; font-size: .8rem;
@@ -473,6 +476,7 @@ $vd-line2:   #ece7da;
         th, td { border: 1px solid #e6e1d3; padding: .32rem .5rem; text-align: left; vertical-align: top; }
         th { background: #2b3350; color: #fff; font-weight: 700; font-size: .76rem; }
         tr:nth-child(even) td { background: #faf9f3; }
+        img, video, iframe { max-width: 100%; }
     }
     .o_vd_ce_gotoexam {
         display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.4rem 0 .6rem;
@@ -485,13 +489,13 @@ $vd-line2:   #ece7da;
         &:hover { filter: brightness(1.05); transform: translateY(-2px); }
     }
 
-    // ----- thanh ten khoa hoc + tools admin -----
-    .o_vd_ce_namebar { display: flex; align-items: center; gap: .6rem; }
-    .o_vd_ce_namelbl { font-weight: 800; font-size: .8rem; color: #8a6a12; margin: 0; white-space: nowrap; }
-    .o_vd_ce_name {
-        flex: 1 1 auto; border: 1px solid $vd-line2; border-radius: 9px;
-        padding: .5rem .8rem; font-size: .95rem; font-weight: 800; color: $vd-ink2;
-        &:focus { outline: none; border-color: $vd-gold2-d; box-shadow: 0 0 0 3px rgba($vd-gold2, .2); }
+    // ----- tieu de khoa hoc (sua inline) + tools admin -----
+    .o_vd_ce_titlebar { display: flex; align-items: center; gap: .6rem; }
+    .o_vd_ce_coursetitle { margin: 0; font-size: 1.15rem; font-weight: 900; color: $vd-ink2; }
+    .o_vd_ce_titleinput {
+        flex: 1 1 auto; border: 1px solid $vd-gold2-d; border-radius: 9px;
+        padding: .45rem .8rem; font-size: 1.1rem; font-weight: 900; color: $vd-ink2;
+        &:focus { outline: none; box-shadow: 0 0 0 3px rgba($vd-gold2, .25); }
     }
     .o_vd_ce_read_admin { position: relative; padding-top: 2.6rem; }
     .o_vd_ce_read_tools { position: absolute; top: .6rem; right: .7rem; display: flex; gap: .4rem; }
@@ -537,7 +541,7 @@ $vd-line2:   #ece7da;
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #d9d3c4; padding: .4rem .6rem; }
         th { background: #2b3350; color: #fff; }
-        img { max-width: 100%; }
+        img, video, iframe { max-width: 100%; }
     }
 
     // ----- lam bai thi (hoc vien) -----

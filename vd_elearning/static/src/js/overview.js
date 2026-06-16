@@ -47,20 +47,67 @@ export class VdRichEditor extends Component {
         const cols = parseInt(window.prompt("Số cột?", "3"), 10) || 0;
         const rows = parseInt(window.prompt("Số dòng (gồm dòng tiêu đề)?", "3"), 10) || 0;
         if (!cols || !rows) return;
-        let h = '<table style="width:100%;border-collapse:collapse;margin:8px 0;">';
+        let h = '<table style="width:100%;border-collapse:collapse;margin:10px 0;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(32,36,58,.1);">';
         for (let r = 0; r < rows; r++) {
             h += "<tr>";
             for (let c = 0; c < cols; c++) {
                 if (r === 0) {
-                    h += '<th style="border:1px solid #d9d3c4;padding:6px 8px;background:#2b3350;color:#fff;text-align:left;">Tiêu đề</th>';
+                    h += '<th style="border:1px solid #e2dcce;padding:8px 10px;background:linear-gradient(135deg,#2b3350,#3a4063);color:#fff;text-align:left;font-size:13px;">Tiêu đề</th>';
                 } else {
-                    h += '<td style="border:1px solid #d9d3c4;padding:6px 8px;">&#8203;</td>';
+                    h += '<td style="border:1px solid #e6e1d3;padding:7px 10px;' + (r % 2 === 0 ? 'background:#faf9f3;' : '') + '">&#8203;</td>';
                 }
             }
             h += "</tr>";
         }
         h += "</table><p>&#8203;</p>";
         this.exec("insertHTML", h);
+    }
+    insertImage(ev) {
+        const file = ev.target.files[0];
+        ev.target.value = "";
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            this.ref.el.focus();
+            document.execCommand(
+                "insertHTML", false,
+                '<img src="' + reader.result + '" style="max-width:100%;border-radius:10px;margin:8px 0;box-shadow:0 4px 14px rgba(32,36,58,.15);"/><p>&#8203;</p>'
+            );
+            this.emit();
+        };
+        reader.readAsDataURL(file);
+    }
+    insertVideo() {
+        const url = window.prompt("Dán link video (YouTube / Vimeo / MP4):", "");
+        if (!url) return;
+        let html;
+        const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]+)/);
+        const vm = url.match(/vimeo\.com\/(\d+)/);
+        if (yt) {
+            html = '<div style="position:relative;padding-top:56.25%;margin:10px 0;border-radius:10px;overflow:hidden;"><iframe src="https://www.youtube.com/embed/' + yt[1] + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allowfullscreen="allowfullscreen"></iframe></div>';
+        } else if (vm) {
+            html = '<div style="position:relative;padding-top:56.25%;margin:10px 0;border-radius:10px;overflow:hidden;"><iframe src="https://player.vimeo.com/video/' + vm[1] + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allowfullscreen="allowfullscreen"></iframe></div>';
+        } else {
+            html = '<video controls="controls" src="' + url + '" style="max-width:100%;border-radius:10px;margin:8px 0;"></video>';
+        }
+        this.exec("insertHTML", html + "<p>&#8203;</p>");
+    }
+    template(ev) {
+        const v = ev.target.value;
+        ev.target.value = "";
+        const T = {
+            banner:
+                '<div style="background:linear-gradient(135deg,#5b4be6,#7c3aed);color:#fff;padding:18px 22px;border-radius:14px;margin:10px 0;box-shadow:0 8px 22px rgba(91,75,230,.3);"><div style="font-size:12px;letter-spacing:2px;opacity:.85;font-weight:700;">CHƯƠNG</div><div style="font-size:22px;font-weight:900;">Tiêu đề chương lớn</div></div>',
+            note:
+                '<div style="background:#eaf7ef;border-left:5px solid #2e9b54;padding:12px 16px;border-radius:8px;margin:10px 0;"><b>💡 Ghi nhớ:</b> Nhập nội dung quan trọng cần nhấn mạnh ở đây.</div>',
+            warn:
+                '<div style="background:#fdf2e0;border-left:5px solid #caa14a;padding:12px 16px;border-radius:8px;margin:10px 0;"><b>⚠️ Lưu ý:</b> Nhập điều cần cảnh báo ở đây.</div>',
+            two:
+                '<div style="display:flex;gap:14px;margin:10px 0;flex-wrap:wrap;"><div style="flex:1;min-width:200px;background:#f6f5ff;border:1px solid #ddd7f5;border-radius:12px;padding:14px;"><b>Cột trái</b><br/>Nội dung...</div><div style="flex:1;min-width:200px;background:#fff8ee;border:1px solid #f0e3c8;border-radius:12px;padding:14px;"><b>Cột phải</b><br/>Nội dung...</div></div>',
+            compare:
+                '<table style="width:100%;border-collapse:collapse;margin:10px 0;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(32,36,58,.1);"><tr><th style="border:1px solid #e2dcce;padding:8px 10px;background:linear-gradient(135deg,#2b3350,#3a4063);color:#fff;">Tiêu chí</th><th style="border:1px solid #e2dcce;padding:8px 10px;background:linear-gradient(135deg,#2b3350,#3a4063);color:#fff;">Phương án A</th><th style="border:1px solid #e2dcce;padding:8px 10px;background:linear-gradient(135deg,#2b3350,#3a4063);color:#fff;">Phương án B</th></tr><tr><td style="border:1px solid #e6e1d3;padding:7px 10px;"><b>...</b></td><td style="border:1px solid #e6e1d3;padding:7px 10px;background:#faf9f3;">...</td><td style="border:1px solid #e6e1d3;padding:7px 10px;background:#faf9f3;">...</td></tr></table>',
+        };
+        if (T[v]) this.exec("insertHTML", T[v] + "<p>&#8203;</p>");
     }
 }
 
@@ -160,6 +207,7 @@ export class VdCourseDialog extends Component {
         this.state = useState({
             tab: "content",
             courseName: data.name || "",
+            editingName: false,
             editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
             examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
@@ -258,6 +306,9 @@ export class VdCourseDialog extends Component {
             .replace(/>/g, "&gt;")
             .replace(/\n/g, "<br/>");
         return markup(esc);
+    }
+    toggleEditName() {
+        this.state.editingName = !this.state.editingName;
     }
     addContent() {
         const c = { _k: this.key(), id: false, name: "Nội dung mới", body: "" };
