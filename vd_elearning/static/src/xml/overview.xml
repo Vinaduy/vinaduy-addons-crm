@@ -111,6 +111,12 @@
     <!-- ============ POPUP FULL MAN HINH: KHOA HOC (noi dung + bai thi) ============ -->
     <t t-name="vd_elearning.CourseDialog">
         <Dialog title="props.title" size="'fs'" fullscreen="true" contentClass="'o_vd_fullcontent'">
+            <t t-set-slot="header" t-slot-scope="scope">
+                <button class="o_vd_hdr_back" t-on-click="scope.close" title="Đóng"><i class="fa fa-arrow-left"/></button>
+                <span class="o_vd_hdr_pre">Khóa học</span>
+                <input t-if="props.editable" class="o_vd_hdr_name" t-model="state.courseName" placeholder="Tên khóa học"/>
+                <span t-else="" class="o_vd_hdr_name o_vd_hdr_name_ro" t-esc="state.courseName"/>
+            </t>
             <div class="o_vd_ce">
                 <!-- TAB -->
                 <div class="o_vd_ce_tabs">
@@ -138,17 +144,6 @@
                         <t t-else="">
                             <div class="o_vd_ce_list">
                                 <t t-if="props.editable">
-                                    <div class="o_vd_ce_titlebar">
-                                        <t t-if="!state.editingName">
-                                            <h2 class="o_vd_ce_coursetitle" t-esc="state.courseName"/>
-                                            <button class="o_vd_ce_edit" t-on-click="toggleEditName"><i class="fa fa-pencil me-1"/>Sửa tên</button>
-                                        </t>
-                                        <t t-else="">
-                                            <input class="o_vd_ce_titleinput" t-model="state.courseName" placeholder="Tên khóa học" autofocus="autofocus"
-                                                   t-on-keydown="(ev) => ev.key === 'Enter' ? this.toggleEditName() : null"/>
-                                            <button class="o_vd_ce_edit" t-on-click="toggleEditName"><i class="fa fa-check me-1"/>Xong</button>
-                                        </t>
-                                    </div>
                                     <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm trang nội dung</button>
                                     <t t-foreach="state.contents" t-as="c" t-key="c._k">
                                         <article class="o_vd_ce_read o_vd_ce_read_admin">

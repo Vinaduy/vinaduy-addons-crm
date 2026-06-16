@@ -207,7 +207,6 @@ export class VdCourseDialog extends Component {
         this.state = useState({
             tab: "content",
             courseName: data.name || "",
-            editingName: false,
             editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
             examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
@@ -306,9 +305,6 @@ export class VdCourseDialog extends Component {
             .replace(/>/g, "&gt;")
             .replace(/\n/g, "<br/>");
         return markup(esc);
-    }
-    toggleEditName() {
-        this.state.editingName = !this.state.editingName;
     }
     addContent() {
         const c = { _k: this.key(), id: false, name: "Nội dung mới", body: "" };
