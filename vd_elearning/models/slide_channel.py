@@ -20,6 +20,11 @@ class SlideChannel(models.Model):
     vd_path_id = fields.Many2one('vd.learning.path', string='Lộ trình',
                                  index=True, ondelete='set null')
 
+    # Cau hinh bai thi.
+    vd_pass_percent = fields.Integer(string='Ty le dat (%)', default=80)
+    vd_max_attempts = fields.Integer(string='So lan thi lai toi da', default=3,
+                                     help='0 = khong gioi han')
+
     # ------------------------------------------------------------------
     def _vd_is_admin(self):
         return (self.env.user.has_group('base.group_system')
@@ -122,7 +127,8 @@ class SlideChannel(models.Model):
             recs = zone_recs[zk]
             ids = recs.ids
             mine = progress.get(user.partner_id.id, {})
-            completed = sum(1 for cid in ids if mine.get(cid) == 'completed')
+            completed_ids = [cid for cid in ids if mine.get(cid) == 'completed']
+            completed = len(completed_ids)
             total = len(ids)
             cur_id = current_course_id(user, recs)
             cur = recs.filtered(lambda c: c.id == cur_id)[:1]
@@ -134,6 +140,7 @@ class SlideChannel(models.Model):
                 'percent': round(100.0 * completed / total) if total else 0,
                 'current': cur.name if cur else '',
                 'current_id': cur_id,
+                'completed_ids': completed_ids,
                 'zone_key': zk,
             }
 
@@ -148,9 +155,14 @@ class SlideChannel(models.Model):
         role = u.vd_crm_role
         my_zone = ('sales' if role in ('employee', 'collaborator')
                    else 'leader' if role == 'team_leader' else False)
-        me = ({'id': u.id, 'name': u.name or '', 'zone_key': my_zone,
-               'course_id': current_course_id(u, zone_recs[my_zone])}
-              if my_zone else False)
+        if my_zone:
+            my_mine = progress.get(u.partner_id.id, {})
+            me = {'id': u.id, 'name': u.name or '', 'zone_key': my_zone,
+                  'course_id': current_course_id(u, zone_recs[my_zone]),
+                  'completed_ids': [cid for cid in zone_recs[my_zone].ids
+                                    if my_mine.get(cid) == 'completed']}
+        else:
+            me = False
 
         return {
             'is_admin': self._vd_is_admin(),
@@ -194,7 +206,19 @@ class SlideChannel(models.Model):
                                 for a in q.answer_ids.sorted(lambda x: (x.sequence, x.id))],
                 })
         return {'id': ch.id, 'name': ch.name or '', 'is_admin': is_admin,
+                'pass_percent': ch.vd_pass_percent or 80,
+                'max_attempts': ch.vd_max_attempts or 0,
                 'contents': contents, 'questions': questions}
+
+    @api.model
+    def vd_course_config_save(self, channel_id, pass_percent, max_attempts):
+        """Luu cau hinh bai thi. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc cau hinh khoa hoc.')
+        pp = max(0, min(100, int(pass_percent or 0)))
+        ma = max(0, int(max_attempts or 0))
+        self.browse(channel_id).write({'vd_pass_percent': pp, 'vd_max_attempts': ma})
+        return True
 
     @api.model
     def vd_course_grade(self, channel_id, answers_by_q):
@@ -214,8 +238,10 @@ class SlideChannel(models.Model):
             results.append({'qid': q.id, 'correct': ok,
                             'correct_ids': list(correct_ids)})
         total = len(qs)
-        return {'total': total, 'score': correct_count,
-                'percent': round(100.0 * correct_count / total) if total else 0,
+        percent = round(100.0 * correct_count / total) if total else 0
+        pass_percent = ch.vd_pass_percent or 80
+        return {'total': total, 'score': correct_count, 'percent': percent,
+                'pass_percent': pass_percent, 'passed': percent >= pass_percent,
                 'results': results}
 
     @api.model

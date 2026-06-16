@@ -187,10 +187,44 @@ export class VdAssignDialog extends Component {
     }
 }
 
+// ---- Popup nho: cau hinh bai thi (ty le dat, so lan thi lai) ----
+export class VdConfigDialog extends Component {
+    static template = "vd_elearning.ConfigDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        channelId: Number,
+        passPercent: Number,
+        maxAttempts: Number,
+        totalQuestions: Number,
+        onSaved: Function,
+    };
+    setup() {
+        this.orm = useService("orm");
+        this.state = useState({
+            pass: this.props.passPercent,
+            max: this.props.maxAttempts,
+        });
+    }
+    get passCount() {
+        const n = this.props.totalQuestions || 0;
+        return Math.ceil((n * (parseInt(this.state.pass, 10) || 0)) / 100);
+    }
+    async save() {
+        const pass = Math.max(0, Math.min(100, parseInt(this.state.pass, 10) || 0));
+        const max = Math.max(0, parseInt(this.state.max, 10) || 0);
+        await this.orm.call("slide.channel", "vd_course_config_save", [
+            this.props.channelId, pass, max,
+        ]);
+        this.props.onSaved(pass, max);
+        this.props.close();
+    }
+}
+
 // ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
 export class VdCourseDialog extends Component {
     static template = "vd_elearning.CourseDialog";
-    static components = { Dialog, VdRichEditor };
+    static components = { Dialog, VdRichEditor, VdConfigDialog };
     static props = {
         close: Function,
         title: String,
@@ -202,14 +236,18 @@ export class VdCourseDialog extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this._k = 0;
         const data = this.props.data || {};
         this.state = useState({
             tab: "content",
             courseName: data.name || "",
+            passPercent: data.pass_percent || 80,
+            maxAttempts: data.max_attempts || 0,
+            attemptCount: 0,
             editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
-            examResult: null, // {score,total,percent, map:{qid:bool}, correct:{qid:[ids]}}
+            examResult: null, // {score,total,percent,passed, map:{qid:bool}, correct:{qid:[ids]}}
             contents: (data.contents || []).map((c) => ({
                 _k: this.key(), id: c.id, name: c.name, body: c.body,
             })),
@@ -275,12 +313,30 @@ export class VdCourseDialog extends Component {
                 map[r.qid] = r.correct;
                 correct[r.qid] = r.correct_ids;
             }
+            this.state.attemptCount += 1;
             this.state.examResult = {
-                score: res.score, total: res.total, percent: res.percent, map, correct,
+                score: res.score, total: res.total, percent: res.percent,
+                passed: res.passed, passPercent: res.pass_percent, map, correct,
             };
         } finally {
             this.state.saving = false;
         }
+    }
+    get canRetry() {
+        if (this.state.examResult && this.state.examResult.passed) return false;
+        return this.state.maxAttempts === 0 || this.state.attemptCount < this.state.maxAttempts;
+    }
+    openConfig() {
+        this.dialog.add(VdConfigDialog, {
+            channelId: this.props.channelId,
+            passPercent: this.state.passPercent,
+            maxAttempts: this.state.maxAttempts,
+            totalQuestions: this.state.questions.length,
+            onSaved: (pass, max) => {
+                this.state.passPercent = pass;
+                this.state.maxAttempts = max;
+            },
+        });
     }
     reviewContent() {
         this.state.examStarted = false;
@@ -416,6 +472,7 @@ export class VdElearningOverview extends Component {
                 id: data.me.id,
                 name: data.me.name,
                 courseId: data.me.course_id,
+                completedIds: data.me.completed_ids || [],
                 paths: z ? z.paths : [],
                 locked: true,
             };
@@ -425,7 +482,8 @@ export class VdElearningOverview extends Component {
 
     // ---------- node theo dong ----------
     // hideCourseId: khoa khong hien rider (vd. khoa dau "Co ban" o giao dien admin)
-    trackNodes(courses, employees, hideCourseId) {
+    // statusMap: {courseId: 'done'|'current'|'locked'} cho giao dien nhan vien
+    trackNodes(courses, employees, hideCourseId, statusMap) {
         const byCourse = {};
         for (const e of employees || []) {
             const cid = e.courseId !== undefined ? e.courseId : e.course_id;
@@ -441,6 +499,7 @@ export class VdElearningOverview extends Component {
                 kind: i === n - 1 ? "boss" : "normal",
                 riders: all.slice(0, 3),
                 moreRiders: Math.max(0, all.length - 3),
+                status: (statusMap && statusMap[c.id]) || "",
             };
         });
     }
@@ -474,7 +533,15 @@ export class VdElearningOverview extends Component {
         return [{ id: s.id, name: s.name, courseId: s.courseId }];
     }
     studentPathNodes(path) {
-        return this.trackNodes(path.courses, this.studentEmp);
+        const s = this.state.selectedEmp;
+        const done = new Set(s.completedIds || []);
+        const map = {};
+        for (const c of path.courses) {
+            if (done.has(c.id)) map[c.id] = "done";
+            else if (c.id === s.courseId) map[c.id] = "current";
+            else map[c.id] = "locked";
+        }
+        return this.trackNodes(path.courses, this.studentEmp, 0, map);
     }
     get studentCourseCount() {
         return (this.state.selectedEmp.paths || []).reduce(
@@ -496,9 +563,18 @@ export class VdElearningOverview extends Component {
             id: row.id,
             name: row.name,
             courseId: row.current_id || false,
+            completedIds: row.completed_ids || [],
             paths: z ? z.paths : [],
             locked: false,
         };
+    }
+
+    clickNode(node) {
+        // NV: khoa chua den luot (locked) thi khong mo
+        if (node.status === "locked") {
+            return;
+        }
+        this.openCourse(node.course);
     }
 
     async openCourse(course) {
@@ -506,7 +582,9 @@ export class VdElearningOverview extends Component {
         this.dialog.add(VdCourseDialog, {
             title: "Khóa học - " + course.name,
             channelId: course.id,
-            editable: this.state.isAdmin,
+            // CHI admin (o giao dien quan tri) moi duoc sua/thiet ke.
+            // Khi xem theo nhan vien (selectedEmp) thi luon chi-doc.
+            editable: this.state.isAdmin && !this.state.selectedEmp,
             data,
             onSaved: async () => {
                 await this.reload();

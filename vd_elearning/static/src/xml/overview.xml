@@ -108,6 +108,26 @@
         </div>
     </t>
 
+    <!-- ============ POPUP CAU HINH BAI THI ============ -->
+    <t t-name="vd_elearning.ConfigDialog">
+        <Dialog title="'Cấu hình bài thi'" size="'md'">
+            <div class="o_vd_cfg">
+                <label class="o_vd_dlg_label">Tỉ lệ phải đạt để qua bài (%)</label>
+                <div class="o_vd_cfg_row">
+                    <input type="number" min="0" max="100" class="o_vd_dlg_input o_vd_cfg_num" t-model="state.pass"/>
+                    <span class="o_vd_cfg_eq">= <b t-esc="passCount"/> / <t t-esc="props.totalQuestions"/> câu đúng</span>
+                </div>
+                <label class="o_vd_dlg_label mt-3">Số lần cho phép thi lại</label>
+                <input type="number" min="0" class="o_vd_dlg_input" t-model="state.max"/>
+                <div class="o_vd_cfg_hint">Để 0 = không giới hạn số lần thi.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-on-click="save">Lưu cấu hình</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
     <!-- ============ POPUP FULL MAN HINH: KHOA HOC (noi dung + bai thi) ============ -->
     <t t-name="vd_elearning.CourseDialog">
         <Dialog title="props.title" size="'fs'" fullscreen="true" contentClass="'o_vd_fullcontent'">
@@ -125,6 +145,7 @@
                     <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
                         t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
                     <span t-if="!props.editable &amp;&amp; state.examStarted &amp;&amp; !state.examResult" class="o_vd_ce_examflag"><i class="fa fa-lock me-1"/>Đang thi - nội dung đã ẩn</span>
+                    <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>CẤU HÌNH</button>
                 </div>
 
                 <div class="o_vd_ce_body">
@@ -206,12 +227,13 @@
 
                         <!-- HOC VIEN: lam bai thi -->
                         <t t-else="">
-                            <div t-if="state.examResult" t-attf-class="o_vd_ce_score {{state.examResult.percent &gt;= 80 ? 'pass' : 'fail'}}">
+                            <div t-if="state.examResult" t-attf-class="o_vd_ce_score {{state.examResult.passed ? 'pass' : 'fail'}}">
                                 <div class="o_vd_ce_score_big"><t t-esc="state.examResult.score"/>/<t t-esc="state.examResult.total"/></div>
                                 <div class="o_vd_ce_score_sub">
-                                    Đúng <t t-esc="state.examResult.percent"/>%
-                                    <t t-if="state.examResult.percent &gt;= 80"> - Đạt!</t>
-                                    <t t-else=""> - Chưa đạt (cần từ 80%). Xem lại đáp án đúng bên dưới rồi thi lại.</t>
+                                    Đúng <t t-esc="state.examResult.percent"/>% (cần đạt <t t-esc="state.examResult.passPercent"/>%)
+                                    <t t-if="state.examResult.passed"> — ĐẠT!</t>
+                                    <t t-else=""> — CHƯA ĐẠT. Xem lại đáp án đúng bên dưới.</t>
+                                    <span t-if="state.maxAttempts"> · Lần thi <t t-esc="state.attemptCount"/>/<t t-esc="state.maxAttempts"/></span>
                                 </div>
                             </div>
                             <div t-if="!state.examStarted" class="o_vd_ce_empty">Bấm "Vào thi" ở tab Nội dung để bắt đầu.</div>
@@ -255,7 +277,8 @@
                 </t>
                 <!-- HOC VIEN da co ket qua -->
                 <t t-elif="state.examResult">
-                    <button class="btn o_vd_dlg_ok" t-on-click="retryExam"><i class="fa fa-redo me-1"/>Thi lại</button>
+                    <button t-if="!state.examResult.passed &amp;&amp; canRetry" class="btn o_vd_dlg_ok" t-on-click="retryExam"><i class="fa fa-redo me-1"/>Thi lại</button>
+                    <span t-if="!state.examResult.passed &amp;&amp; !canRetry" class="o_vd_ce_norun"><i class="fa fa-ban me-1"/>Đã hết lượt thi lại</span>
                     <button class="btn btn-light" t-on-click="reviewContent"><i class="fa fa-book me-1"/>Xem lại nội dung</button>
                 </t>
                 <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
@@ -270,13 +293,13 @@
              t-on-drop="(ev) => dropCtx ? this.onTrackDrop(ev, dropCtx.zoneKey, dropCtx.pathId) : null">
             <t t-foreach="nodes" t-as="node" t-key="node.course.id">
                 <div class="o_vd_step">
-                    <div t-attf-class="o_vd_level o_vd_level_{{node.kind}}"
+                    <div t-attf-class="o_vd_level o_vd_level_{{node.kind}} {{node.status ? 'o_vd_st_'+node.status : ''}}"
                          t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
                          t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
                          t-on-dragend="(ev) => this.onDragEnd(ev)"
                          t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
                          t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
-                         t-on-click="() => this.openCourse(node.course)">
+                         t-on-click="() => this.clickNode(node)">
                         <div t-if="node.riders.length" class="o_vd_riders">
                             <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
                             <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
@@ -293,6 +316,7 @@
                                  t-attf-src="/web/image/slide.channel/{{node.course.id}}/image_128"/>
                             <i t-else="" class="fa fa-graduation-cap o_vd_level_ico"/>
                             <span class="o_vd_level_num" t-esc="node.n"/>
+                            <i t-if="node.status=='done'" class="fa fa-check o_vd_done_check"/>
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
                     </div>

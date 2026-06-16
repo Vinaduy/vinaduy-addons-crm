@@ -214,6 +214,41 @@ $vd-line:   #ece7da;
 
     @keyframes vd-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
+    // ----- TRANG THAI KHOA HOC (giao dien nhan vien) -----
+    // chua den luot -> xam, khong bam duoc
+    .o_vd_level.o_vd_st_locked {
+        cursor: not-allowed;
+        &:hover { transform: none; }
+        .o_vd_level_tile { background: linear-gradient(150deg, #c7c9d2, #9a9da9); box-shadow: 0 4px 9px rgba($vd-ink,.18), inset 0 -3px 6px rgba(0,0,0,.15); filter: grayscale(.4); }
+        .o_vd_level_ico { color: #eef0f4; }
+        .o_vd_level_num { color: #8a8d99; }
+        .o_vd_level_name { color: #a7a9b4; }
+        .o_vd_riders, .o_vd_emblem { display: none; }
+    }
+    // dang hoc / dang thi -> sang nhap nhay
+    .o_vd_level.o_vd_st_current {
+        .o_vd_level_tile { animation: vd-glow 1.3s ease-in-out infinite; }
+    }
+    // da hoan thanh -> xanh + dau tich
+    .o_vd_level.o_vd_st_done {
+        .o_vd_level_tile {
+            background: linear-gradient(150deg, #41c97a, #2e9b54 75%);
+            box-shadow: 0 6px 13px rgba(#2e9b54,.4), inset 0 -4px 6px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.45);
+        }
+        .o_vd_level_num { color: #1f7d41; }
+    }
+    .o_vd_done_check {
+        position: absolute; top: -7px; right: -7px; z-index: 8;
+        width: 18px; height: 18px; border-radius: 50%;
+        background: #2e9b54; color: #fff; font-size: .62rem;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid #fff; box-shadow: 0 2px 5px rgba($vd-ink,.3);
+    }
+    @keyframes vd-glow {
+        0%,100% { box-shadow: 0 6px 13px rgba($vd-indigo,.35), inset 0 -4px 6px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.4); transform: scale(1); }
+        50% { box-shadow: 0 0 0 5px rgba($vd-gold,.55), 0 8px 20px rgba($vd-indigo,.6), inset 0 -4px 6px rgba(0,0,0,.2); transform: scale(1.06); }
+    }
+
     // mui ten = soi day + dau mui ten (to, pro)
     .o_vd_arrow {
         position: relative; flex: 0 0 auto; align-self: center;
@@ -354,6 +389,16 @@ $vd-line2:   #ece7da;
     &:disabled { opacity: .45; cursor: not-allowed; }
 }
 
+// ----- popup cau hinh bai thi -----
+.o_vd_cfg {
+    display: flex; flex-direction: column; padding: .3rem .25rem;
+    .o_vd_cfg_row { display: flex; align-items: center; gap: .8rem; }
+    .o_vd_cfg_num { max-width: 120px; }
+    .o_vd_cfg_eq { font-weight: 700; color: #2e9b54; font-size: .92rem; b { color: #1f7d41; } }
+    .o_vd_cfg_hint { font-size: .72rem; color: #9a9685; font-style: italic; margin-top: .3rem; }
+    .mt-3 { margin-top: .9rem; }
+}
+
 // ============ DIALOG GAN NHAN VIEN ============
 .o_vd_assign {
     display: flex; flex-direction: column; gap: .6rem; padding: .2rem;
@@ -429,6 +474,13 @@ $vd-line2:   #ece7da;
         margin-left: auto; color: #c0392b; font-weight: 800; font-size: .8rem;
         background: rgba(#c0392b, .1); padding: .35rem .8rem; border-radius: 999px;
     }
+    .o_vd_ce_cfg {
+        margin-left: auto; border: 1px solid $vd-line2; border-radius: 8px; cursor: pointer;
+        background: #fff; color: #5b4be6; font-weight: 800; font-size: .76rem; padding: .35rem .85rem;
+        i { color: #5b4be6; }
+        &:hover { background: #5b4be6; color: #fff; i { color: #fff; } }
+    }
+    .o_vd_ce_norun { color: #c0392b; font-weight: 700; font-size: .85rem; }
 
     .o_vd_ce_body { flex: 1 1 auto; overflow-y: auto; padding-top: .8rem; }
     .o_vd_ce_list { display: flex; flex-direction: column; gap: .7rem; max-width: 980px; margin: 0 auto; }
