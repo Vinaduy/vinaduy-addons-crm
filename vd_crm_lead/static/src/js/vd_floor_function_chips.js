@@ -109,6 +109,7 @@ export class VdFloorFunctionChips extends Component {
         } else {
             await this.saveRecord([tag.id]);
         }
+        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("floor-func save"); } catch (_) {}
         // Auto-save → trigger backend compute vd_intake_complete + auto-lock
         try { await this.props.record.save(); } catch (_) {}
     }
@@ -117,6 +118,7 @@ export class VdFloorFunctionChips extends Component {
         ev.stopPropagation();
         const rec = this.x2manyValue.records.find((r) => r.resId === tag.id);
         if (rec) await this.removeRecord(rec);
+        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("floor-func remove"); } catch (_) {}
         try { await this.props.record.save(); } catch (_) {}
     }
 }

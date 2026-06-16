@@ -488,13 +488,23 @@ function schedule() {
 // auto-save-blur; Tỉnh/Huyện vẫn được lưu khi user bấm CHỐT hoặc blur ô khác.
 function _autoSaveFormSafe() {
     try {
-        // NẾU NV vẫn đang focus 1 ô trong khu nhập (steps panel) → KHOAN save.
-        // Save kéo theo reload form → xoá chữ đang gõ ở ô kế. Chỉ save khi user
-        // đã rời hẳn khu intake. (Fix mất dữ liệu khi nhảy giữa các ô.)
+        // NẾU NV vẫn đang focus 1 ô trong khu nhập (steps panel / overlay
+        // dropdown) → KHOAN save. Save kéo theo reload form → xoá chữ đang gõ ở
+        // ô kế. Chỉ save khi user đã rời hẳn khu intake. (Fix mất dữ liệu.)
         const ae = document.activeElement;
-        if (ae && ae.closest && ae.closest(".o_vd_steps_panel")) {
+        if (ae && ae.closest && ae.closest(
+            ".o_vd_steps_panel, .o_vd_intake_compact, .o-overlay-container, " +
+            ".o_vd_selection_hover_picker, .o-autocomplete"
+        )) {
             return;
         }
+        // Vừa gõ số < 1.5s → khoan (giá trị có thể chưa ổn định).
+        const g = window.__vdIntake;
+        if (g && Date.now() - (g.lastType || 0) < 1500) {
+            return;
+        }
+        // Ép mọi ô số commit giá trị in-flight TRƯỚC khi save → không mất dữ liệu.
+        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("blur autosave"); } catch (_) {}
         // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
         const btn = document.querySelector(
             ".o_form_view.o_form_dirty button.o_form_button_save, " +

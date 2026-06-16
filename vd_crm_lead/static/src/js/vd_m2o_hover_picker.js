@@ -341,6 +341,7 @@ export class VdM2oHoverPicker extends Component {
             }
         }
 
+        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("m2o-picker save"); } catch (_) {}
         // Auto-save form → trigger backend compute vd_intake_complete + auto-lock
         try { await this.props.record.save(); } catch (_) {}
         // Force render để UI bar cập nhật ngay
