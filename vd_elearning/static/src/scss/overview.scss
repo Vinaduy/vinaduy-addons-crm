@@ -483,7 +483,7 @@ $vd-line2:   #ece7da;
     .o_vd_ce_norun { color: #c0392b; font-weight: 700; font-size: .85rem; }
 
     .o_vd_ce_body { flex: 1 1 auto; overflow-y: auto; padding-top: .8rem; }
-    .o_vd_ce_list { display: flex; flex-direction: column; gap: .7rem; max-width: 980px; margin: 0 auto; }
+    .o_vd_ce_list { display: flex; flex-direction: column; gap: .7rem; max-width: 1240px; margin: 0 auto; }
 
     .o_vd_ce_toolbar { display: flex; align-items: center; gap: .5rem; }
     .o_vd_ce_add {
@@ -592,7 +592,10 @@ $vd-line2:   #ece7da;
     }
 
     // ----- TRINH SOAN THAO (WYSIWYG) -----
-    .o_vd_ed { display: flex; flex-direction: column; height: 100%; gap: .6rem; }
+    // Trinh soan giu DUNG do rong voi che do doc (max-width + canh giua) ->
+    // bam Sua khong nhay do rong (user spec 2026-06-18).
+    .o_vd_ed { display: flex; flex-direction: column; height: 100%; gap: .6rem;
+        max-width: 1240px; width: 100%; margin: 0 auto; }
     .o_vd_ed_head { display: flex; align-items: center; gap: .6rem; }
     .o_vd_ed_title {
         flex: 1 1 auto; border: 1px solid $vd-line2; border-radius: 9px;

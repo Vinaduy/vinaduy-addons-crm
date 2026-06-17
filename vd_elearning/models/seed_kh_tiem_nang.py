@@ -14,7 +14,7 @@ dung tự sinh cũ và seed lại bản mới. HTML lưu ở slide.slide.vd_body
 from odoo import api, models
 
 # Bump giá trị này mỗi khi muốn ghi đè lại toàn bộ nội dung tự sinh.
-_KHTN_VERSION = 'v2-co-dau'
+_KHTN_VERSION = 'v3-single'
 _PARAM_KEY = 'vd_elearning.khtn_seed_version'
 
 # ------- Các khung (callout) dùng lại - style inline vì SCSS không phủ -------
@@ -90,15 +90,16 @@ class SlideChannelSeedKHTN(models.Model):
         # Bump version -> xóa nội dung tự sinh cũ rồi seed lại bản mới.
         ch.slide_ids.filtered(lambda s: not s.is_category).unlink()
 
-        seq = 1
-        for title, body in self._vd_khtn_pages():
-            Slide.create({
-                'channel_id': ch.id, 'name': title,
-                'slide_category': 'article',
-                'vd_body': '<div style="%s">%s</div>' % (_WRAP, body),
-                'sequence': seq, 'is_published': True,
-            })
-            seq += 1
+        # Mỗi khóa = 1 nội dung duy nhất (user spec 2026-06-18): gộp 6 phần thành
+        # 1 article, ngăn cách bằng đường kẻ mảnh.
+        sep = '<hr style="border:0;border-top:2px dashed #e2e8f0;margin:28px 0;"/>'
+        merged = sep.join(body for _title, body in self._vd_khtn_pages())
+        Slide.create({
+            'channel_id': ch.id, 'name': 'Nội dung khóa học',
+            'slide_category': 'article',
+            'vd_body': '<div style="%s">%s</div>' % (_WRAP, merged),
+            'sequence': 1, 'is_published': True,
+        })
 
         quiz = Slide.create({
             'channel_id': ch.id, 'name': 'Bài thi - 20 câu',

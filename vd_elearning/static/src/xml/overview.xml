@@ -164,24 +164,24 @@
                         <!-- DANH SACH + XEM TRUOC -->
                         <t t-else="">
                             <div class="o_vd_ce_list">
+                                <!-- Mỗi khóa chỉ 1 nội dung duy nhất (user spec 2026-06-18) -->
                                 <t t-if="props.editable">
-                                    <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addContent"><i class="fa fa-plus me-1"/>Thêm trang nội dung</button>
-                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                    <t t-if="state.contents.length">
                                         <article class="o_vd_ce_read o_vd_ce_read_admin">
                                             <div class="o_vd_ce_read_tools">
-                                                <button class="o_vd_ce_edit" t-on-click="() => this.openEditor(c)"><i class="fa fa-pencil me-1"/>Sửa</button>
-                                                <button class="o_vd_ce_del" t-on-click="() => this.delContent(c)"><i class="fa fa-trash"/></button>
+                                                <button class="o_vd_ce_edit" t-on-click="() => this.openEditor(state.contents[0])"><i class="fa fa-pencil me-1"/>Sửa</button>
                                             </div>
-                                            <h3 t-esc="c.name"/>
-                                            <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
+                                            <div class="o_vd_ce_read_body" t-out="bodyHtml(state.contents[0].body)"/>
                                         </article>
                                     </t>
-                                    <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung. Bấm "Thêm trang nội dung".</div>
+                                    <div t-else="" class="o_vd_ce_empty">
+                                        <p>Khóa học chưa có nội dung.</p>
+                                        <button class="o_vd_ce_add" t-on-click="addContent"><i class="fa fa-pencil me-1"/>Soạn nội dung</button>
+                                    </div>
                                 </t>
                                 <t t-else="">
                                     <t t-foreach="state.contents" t-as="c" t-key="c._k">
                                         <article class="o_vd_ce_read">
-                                            <h3 t-esc="c.name"/>
                                             <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
                                         </article>
                                     </t>

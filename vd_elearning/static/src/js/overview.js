@@ -363,7 +363,12 @@ export class VdCourseDialog extends Component {
         return markup(esc);
     }
     addContent() {
-        const c = { _k: this.key(), id: false, name: "Nội dung mới", body: "" };
+        // Mỗi khóa chỉ 1 nội dung — chỉ tạo khi chưa có (user spec 2026-06-18).
+        if (this.state.contents.length) {
+            this.state.editingContent = this.state.contents[0];
+            return;
+        }
+        const c = { _k: this.key(), id: false, name: "Nội dung khóa học", body: "" };
         this.state.contents.push(c);
         this.state.editingContent = c;
     }
