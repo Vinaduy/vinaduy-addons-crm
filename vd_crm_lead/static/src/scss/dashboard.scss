@@ -9414,3 +9414,165 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_tl_idle { color: #98a2b3; }
 .o_vd_tl_act { text-align: right; }
 .o_vd_tl_view { color: #1d4ed8; font-weight: 600; white-space: nowrap; }
+
+/* ============================================================
+   🎧 GHI ÂM THAM KHẢO — filter to, nhấp nháy như thông báo
+   (dưới card Báo cáo cuộc gọi). Hover → bảng ghi âm >5' của 3 NV.
+   ============================================================ */
+@keyframes vd_refrec_blink {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.55),
+                    0 8px 20px -6px rgba(217, 48, 37, 0.6);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(217, 48, 37, 0),
+                    0 8px 24px -4px rgba(217, 48, 37, 0.85);
+        transform: scale(1.025);
+    }
+}
+@keyframes vd_refrec_bell {
+    0%, 70%, 100% { transform: rotate(0); }
+    75% { transform: rotate(16deg); }
+    80% { transform: rotate(-16deg); }
+    85% { transform: rotate(12deg); }
+    90% { transform: rotate(-12deg); }
+    95% { transform: rotate(6deg); }
+}
+.o_vd_refrec_filter {
+    margin-top: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #f03e3e, #c92a2a 55%, #a51111);
+    border: 2px solid #ffe3e3;
+    animation: vd_refrec_blink 1.3s ease-in-out infinite;
+    user-select: none;
+
+    .o_vd_refrec_ico { font-size: 1.5rem; flex: 0 0 auto; }
+    .o_vd_refrec_txt { font-size: 1.12rem; line-height: 1.1; }
+    .o_vd_refrec_bell {
+        font-size: 1.35rem;
+        flex: 0 0 auto;
+        transform-origin: 50% 0;
+        animation: vd_refrec_bell 1.3s ease-in-out infinite;
+    }
+    &:hover {
+        animation-play-state: paused;
+        filter: brightness(1.05);
+    }
+}
+
+/* Popover 3 bảng ghi âm tham khảo */
+.o_vd_refrec_pop {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    width: 880px;
+    max-width: 880px;
+    max-height: 78vh;
+    background: #fff;
+    border: 2px solid #c92a2a;
+    border-radius: 12px;
+    box-shadow: 0 22px 55px -8px rgba(0,0,0,0.5), 0 6px 16px -2px rgba(0,0,0,0.22);
+    z-index: 10001;
+    overflow: hidden;
+    cursor: default;
+}
+.o_vd_refrec_head {
+    padding: 0.75rem 1rem;
+    font-weight: 900;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #fff;
+    background: linear-gradient(135deg, #f03e3e, #a51111);
+    flex: 0 0 auto;
+}
+.o_vd_refrec_loading {
+    padding: 1.2rem; color: #868e96; font-size: 0.95rem;
+}
+.o_vd_refrec_cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 0.8rem;
+    overflow-y: auto;
+}
+.o_vd_refrec_col {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #f1d4d4;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+.o_vd_refrec_pname {
+    padding: 0.5rem 0.6rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+    background: linear-gradient(135deg, #495057, #212529);
+}
+.o_vd_refrec_pstat {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #495057;
+    background: #fff5f5;
+    border-bottom: 1px solid #ffe3e3;
+    .o_vd_refrec_badge {
+        display: inline-block;
+        min-width: 1.6rem;
+        padding: 0.05rem 0.4rem;
+        margin-right: 0.25rem;
+        text-align: center;
+        font-weight: 900;
+        color: #fff;
+        background: #c92a2a;
+        border-radius: 999px;
+    }
+}
+.o_vd_refrec_empty {
+    padding: 0.9rem 0.6rem; color: #98a2b3; font-size: 0.82rem; text-align: center;
+}
+.o_vd_refrec_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 700;
+        text-align: left;
+        padding: 0.35rem 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+        white-space: nowrap;
+    }
+    tbody td {
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid #f1f3f5;
+        vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+}
+.o_vd_refrec_cust {
+    font-weight: 700; color: #1d2939;
+    max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.o_vd_refrec_date { color: #868e96; white-space: nowrap; }
+.o_vd_refrec_dur {
+    font-weight: 800; color: #9333ea; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.o_vd_refrec_audio { width: 190px; height: 32px; vertical-align: middle; }

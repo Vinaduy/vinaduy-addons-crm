@@ -6436,6 +6436,67 @@ class CrmLead(models.Model):
             }
         return out
 
+    # Tên 3 NV mẫu cho bảng GHI ÂM THAM KHẢO (user spec 2026-06-17). Đặt riêng
+    # để dễ chỉnh; khớp MỀM bằng ilike (tên user có thể có tiền tố phòng ban).
+    _VD_REF_REC_NAMES = ['Hồ A Du', 'Lâm Văn Hậu', 'Lê Xuân Hưng']
+
+    @api.model
+    def vd_reference_recordings(self, min_seconds=300, limit=50):
+        """GHI ÂM THAM KHẢO — file ghi âm trên 5 phút của 3 NV mẫu (Hồ A Du,
+        Lâm Văn Hậu, Lê Xuân Hưng) cho TOÀN công ty tham khảo cách tư vấn.
+
+        Mỗi người 1 bảng: tên KH (KHÔNG kèm số ĐT), ngày gọi, thời lượng,
+        link nghe inline (không cho tải) + thống kê số cuộc gọi trên 5 phút.
+        @api.model + sudo nội bộ → ai trong công ty cũng gọi/xem được.
+        """
+        Users = self.env['res.users'].sudo()
+        Call = self.env['stringee.call'].sudo()
+        min_s = int(min_seconds)
+        people = []
+        for nm in self._VD_REF_REC_NAMES:
+            user = Users.search([('name', 'ilike', nm)], limit=1)
+            if not user:
+                # khớp theo phần tên cuối (vd "Du" / "Hậu" / "Hưng")
+                user = Users.search([('name', 'ilike', nm.split()[-1])], limit=1)
+            if not user:
+                people.append({'name': nm, 'found': False, 'count': 0,
+                               'total_seconds': 0, 'recordings': []})
+                continue
+            rec_domain = [
+                ('user_id', '=', user.id),
+                ('duration', '>=', min_s),
+                ('recording_attachment_id', '!=', False),
+            ]
+            count = Call.search_count(rec_domain)
+            calls = Call.search(rec_domain, order='create_date desc', limit=int(limit))
+            recs = []
+            total_seconds = 0
+            for c in calls:
+                att = c.recording_attachment_id
+                if not att:
+                    continue
+                total_seconds += c.duration or 0
+                local_dt = (fields.Datetime.context_timestamp(c, c.create_date)
+                            if c.create_date else None)
+                lead = c.lead_id
+                cust = ((lead.partner_name or lead.contact_name or lead.name)
+                        if lead else None) or 'Khách hàng'
+                recs.append({
+                    'id': c.id,
+                    'customer': cust,
+                    'date': local_dt.strftime('%d/%m/%Y') if local_dt else '',
+                    'duration': c.duration or 0,
+                    'play_url': '/web/content/%s?download=false' % att.id,
+                })
+            people.append({
+                'name': user.name,
+                'found': True,
+                'count': count,
+                'total_seconds': total_seconds,
+                'recordings': recs,
+            })
+        return {'people': people, 'min_minutes': min_s // 60}
+
     @api.model
     def dashboard_data(self, user_id=None):
         """Single-payload data for the OWL dashboard."""

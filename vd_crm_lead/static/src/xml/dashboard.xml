@@ -95,6 +95,63 @@
                 </t>
             </div>
 
+            <!-- 🎧 GHI ÂM THAM KHẢO (hover filter to nhấp nháy) — 3 bảng, mỗi NV
+                 1 bảng: tên KH (không số), ngày, thời lượng, nghe (không tải). -->
+            <div t-if="state.refRecHover" class="o_vd_refrec_pop"
+                 t-attf-style="{{ refRecPopStyle }}"
+                 t-on-mouseenter="() => this.onRefRecPopEnter()"
+                 t-on-mouseleave="() => this.onRefRecLeave()"
+                 t-on-click.stop="() => {}">
+                <div class="o_vd_refrec_head">
+                    <i class="fa fa-headphones me-1"/> GHI ÂM THAM KHẢO — cuộc gọi trên
+                    <t t-esc="state.refRecHover.min_minutes or 5"/> phút
+                </div>
+                <div t-if="state.refRecHover.loading" class="o_vd_refrec_loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                </div>
+                <div t-else="" class="o_vd_refrec_cols">
+                    <div t-foreach="state.refRecHover.people" t-as="p" t-key="p_index"
+                         class="o_vd_refrec_col">
+                        <div class="o_vd_refrec_pname">
+                            <i class="fa fa-user-circle me-1"/><t t-esc="p.name"/>
+                        </div>
+                        <div class="o_vd_refrec_pstat">
+                            <span class="o_vd_refrec_badge"><t t-esc="p.count or 0"/></span>
+                            cuộc gọi trên <t t-esc="state.refRecHover.min_minutes or 5"/> phút
+                        </div>
+                        <div t-if="!p.found" class="o_vd_refrec_empty">
+                            Chưa tìm thấy nhân viên này.
+                        </div>
+                        <div t-elif="!p.recordings.length" class="o_vd_refrec_empty">
+                            Chưa có ghi âm trên <t t-esc="state.refRecHover.min_minutes or 5"/> phút.
+                        </div>
+                        <table t-else="" class="o_vd_refrec_table">
+                            <thead>
+                                <tr>
+                                    <th>Khách hàng</th>
+                                    <th>Ngày gọi</th>
+                                    <th class="text-end">Thời lượng</th>
+                                    <th>Ghi âm</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="p.recordings" t-as="rec" t-key="rec.id">
+                                    <td class="o_vd_refrec_cust"><t t-esc="rec.customer"/></td>
+                                    <td class="o_vd_refrec_date"><t t-esc="rec.date"/></td>
+                                    <td class="text-end o_vd_refrec_dur"><t t-esc="fmtDur(rec.duration)"/></td>
+                                    <td>
+                                        <audio class="o_vd_refrec_audio" controls="controls"
+                                               controlsList="nodownload noplaybackrate"
+                                               oncontextmenu="return false;"
+                                               preload="none" t-att-src="rec.play_url"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- 📞 BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) — to rộng:
                  báo cáo tổng hợp trên cùng + danh sách KH đã gọi + ghi âm. -->
             <div t-if="state.todayCallsHover" class="o_vd_tc_pop"
@@ -1542,6 +1599,16 @@
                                     <span class="o_vd_cr_value"><t t-esc="state.kpi.calls_month_total or 0"/></span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- 3b. GHI ÂM THAM KHẢO — filter to, nhấp nháy như thông báo.
+                             Hover → bảng ghi âm >5' của 3 NV mẫu (toàn công ty xem). -->
+                        <div class="o_vd_refrec_filter"
+                             t-on-mouseenter="(ev) => this.onRefRecEnter(ev)"
+                             t-on-mouseleave="() => this.onRefRecLeave()">
+                            <i class="fa fa-headphones o_vd_refrec_ico"/>
+                            <span class="o_vd_refrec_txt">GHI ÂM THAM KHẢO</span>
+                            <i class="fa fa-bullhorn o_vd_refrec_bell"/>
                         </div>
 
                         <!-- 4. Cảnh báo: ĐÃ XOÁ theo user spec 2026-05-29

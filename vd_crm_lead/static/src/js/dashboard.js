@@ -51,6 +51,10 @@ export class VdCrmDashboard extends Component {
             // Popover GHI ÂM (hover TÊN NV) — fixed, hiện bên trái; {user_id, name,
             // top, left, loading, recordings} | null.
             recHover: null,
+            // Popover GHI ÂM THAM KHẢO (hover filter to nhấp nháy dưới Báo cáo
+            // cuộc gọi) — bảng ghi âm >5' của 3 NV mẫu; {rect, loading, people,
+            // min_minutes} | null. Toàn công ty đều xem được.
+            refRecHover: null,
             // Bảng CUỘC GỌI HÔM NAY (hover nút "Cuộc gọi") — {user_id, name,
             // cx, cy, loading, summary, customers} | null.
             todayCallsHover: null,
@@ -1898,6 +1902,60 @@ export class VdCrmDashboard extends Component {
             this._recTimer = null;
         }
     }
+
+    // ===== GHI ÂM THAM KHẢO (hover filter to nhấp nháy) — bảng ghi âm >5'
+    // của 3 NV mẫu cho toàn công ty tham khảo. =====
+    async onRefRecEnter(ev) {
+        if (this._refRecTimer) {
+            clearTimeout(this._refRecTimer);
+            this._refRecTimer = null;
+        }
+        // Đã mở rồi → giữ nguyên (tránh nạp lại + nhảy).
+        if (this.state.refRecHover) {
+            return;
+        }
+        this.state.refRecHover = {
+            rect: this._elRect(ev),
+            loading: true,
+            people: [],
+            min_minutes: 5,
+        };
+        try {
+            const data = await this.orm.call("crm.lead", "vd_reference_recordings", []);
+            if (this.state.refRecHover) {
+                this.state.refRecHover.people = (data && data.people) || [];
+                this.state.refRecHover.min_minutes = (data && data.min_minutes) || 5;
+                this.state.refRecHover.loading = false;
+            }
+        } catch (e) {
+            if (this.state.refRecHover) {
+                this.state.refRecHover.loading = false;
+            }
+        }
+    }
+    onRefRecLeave() {
+        if (this._refRecTimer) {
+            clearTimeout(this._refRecTimer);
+        }
+        this._refRecTimer = setTimeout(() => {
+            this.state.refRecHover = null;
+            this._refRecTimer = null;
+        }, 320);
+    }
+    onRefRecPopEnter() {
+        if (this._refRecTimer) {
+            clearTimeout(this._refRecTimer);
+            this._refRecTimer = null;
+        }
+    }
+    get refRecPopStyle() {
+        const h = this.state.refRecHover;
+        if (!h) {
+            return "display:none;";
+        }
+        return this._popAtRect(h.rect, 880);
+    }
+
     get recPopStyle() {
         const h = this.state.recHover;
         if (!h) {
