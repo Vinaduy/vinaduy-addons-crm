@@ -3,7 +3,7 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, onWillStart, onMounted, useRef, useState, markup } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState, markup } from "@odoo/owl";
 
 // ---- Trinh soan thao van ban (WYSIWYG) kieu Word/PowerPoint ----
 export class VdRichEditor extends Component {
@@ -196,6 +196,7 @@ export class VdConfigDialog extends Component {
         channelId: Number,
         passPercent: Number,
         maxAttempts: Number,
+        examMinutes: Number,
         totalQuestions: Number,
         onSaved: Function,
     };
@@ -204,19 +205,26 @@ export class VdConfigDialog extends Component {
         this.state = useState({
             pass: this.props.passPercent,
             max: this.props.maxAttempts,
+            minutes: this.props.examMinutes,
         });
     }
     get passCount() {
         const n = this.props.totalQuestions || 0;
         return Math.ceil((n * (parseInt(this.state.pass, 10) || 0)) / 100);
     }
+    // Thoi gian hieu luc hien thi: 0 = tu dong 1 phut/cau.
+    get effMinutes() {
+        const m = parseInt(this.state.minutes, 10) || 0;
+        return m > 0 ? m : (this.props.totalQuestions || 0);
+    }
     async save() {
         const pass = Math.max(0, Math.min(100, parseInt(this.state.pass, 10) || 0));
         const max = Math.max(0, parseInt(this.state.max, 10) || 0);
+        const minutes = Math.max(0, parseInt(this.state.minutes, 10) || 0);
         await this.orm.call("slide.channel", "vd_course_config_save", [
-            this.props.channelId, pass, max,
+            this.props.channelId, pass, max, minutes,
         ]);
-        this.props.onSaved(pass, max);
+        this.props.onSaved(pass, max, minutes);
         this.props.close();
     }
 }
@@ -242,8 +250,12 @@ export class VdCourseDialog extends Component {
         this.state = useState({
             tab: "content",
             courseName: data.name || "",
+            editingName: false,            // dang sua ten khoa hoc (nut but)
             passPercent: data.pass_percent || 80,
             maxAttempts: data.max_attempts || 0,
+            examMinutesCfg: data.exam_minutes_cfg || 0,  // cau hinh (0 = auto)
+            examMinutes: data.exam_minutes || (data.questions || []).length || 0, // hieu luc
+            secondsLeft: 0,                // bo dem nguoc khi thi
             attemptCount: 0,
             editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
@@ -260,9 +272,55 @@ export class VdCourseDialog extends Component {
             })),
             saving: false,
         });
+        this._examTimer = null;
+        onWillUnmount(() => this._stopTimer());
     }
     key() {
         return "k" + this._k++;
+    }
+
+    // ---- BO DEM THOI GIAN THI ----
+    _stopTimer() {
+        if (this._examTimer) {
+            clearInterval(this._examTimer);
+            this._examTimer = null;
+        }
+    }
+    _startTimer() {
+        this._stopTimer();
+        const total = (this.state.examMinutes || 0) * 60;
+        this.state.secondsLeft = total;
+        if (!total) return;
+        this._examTimer = setInterval(() => {
+            this.state.secondsLeft -= 1;
+            if (this.state.secondsLeft <= 0) {
+                this.state.secondsLeft = 0;
+                this._stopTimer();
+                // Het gio -> tu dong nop bai.
+                this.submitExam(true);
+            }
+        }, 1000);
+    }
+    get timeLeftLabel() {
+        const s = Math.max(0, this.state.secondsLeft || 0);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m}:${r < 10 ? "0" : ""}${r}`;
+    }
+    get timeLow() {
+        return (this.state.secondsLeft || 0) <= 60;
+    }
+    get answeredCount() {
+        return this.state.questions.filter((q) => q.answers.some((a) => a.chosen)).length;
+    }
+    qAnswered(q) {
+        return q.answers.some((a) => a.chosen);
+    }
+    get attemptLabel() {
+        const cur = this.state.attemptCount + 1;
+        return this.state.maxAttempts
+            ? `${cur} / ${this.state.maxAttempts}`
+            : `${cur} / không giới hạn`;
     }
 
     // ---- dieu huong tab ----
@@ -283,22 +341,25 @@ export class VdCourseDialog extends Component {
             for (const a of q.answers) a.chosen = false;
         }
         this.state.tab = "exam";
+        this._startTimer();
     }
     chooseAnswer(q, a) {
         if (this.props.editable || this.state.examResult) return;
         a.chosen = !a.chosen;
     }
-    async submitExam() {
-        if (this.state.saving) return;
+    async submitExam(auto = false) {
+        if (this.state.saving || this.state.examResult) return;
         const unanswered = this.state.questions.filter(
             (q) => !q.answers.some((a) => a.chosen)
         ).length;
-        if (unanswered) {
+        // Het gio (auto=true) thi nop luon du con cau trong; nguoc lai canh bao.
+        if (unanswered && auto !== true) {
             this.notification.add(
                 "Còn " + unanswered + " câu chưa chọn đáp án.", { type: "warning" }
             );
             return;
         }
+        this._stopTimer();
         this.state.saving = true;
         try {
             const payload = {};
@@ -331,12 +392,34 @@ export class VdCourseDialog extends Component {
             channelId: this.props.channelId,
             passPercent: this.state.passPercent,
             maxAttempts: this.state.maxAttempts,
+            examMinutes: this.state.examMinutesCfg,
             totalQuestions: this.state.questions.length,
-            onSaved: (pass, max) => {
+            onSaved: (pass, max, minutes) => {
                 this.state.passPercent = pass;
                 this.state.maxAttempts = max;
+                this.state.examMinutesCfg = minutes;
+                // Hieu luc: 0 -> 1 phut/cau.
+                this.state.examMinutes = minutes > 0 ? minutes : this.state.questions.length;
             },
         });
+    }
+    // ---- Doi ten khoa hoc (nut but tren tieu de) ----
+    async saveName() {
+        const nm = (this.state.courseName || "").trim();
+        if (!nm) {
+            this.notification.add("Tên khóa học không được để trống.", { type: "warning" });
+            return;
+        }
+        try {
+            await this.orm.call("slide.channel", "vd_course_rename", [this.props.channelId, nm]);
+            this.state.courseName = nm;
+            this.state.editingName = false;
+            await this.props.onSaved();
+            this.notification.add("Đã lưu tên khóa học.", { type: "success" });
+        } catch (e) {
+            this.notification.add("Lưu tên thất bại.", { type: "danger" });
+            throw e;
+        }
     }
     reviewContent() {
         this.state.examStarted = false;

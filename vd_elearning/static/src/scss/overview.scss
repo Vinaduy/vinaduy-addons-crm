@@ -454,7 +454,16 @@ $vd-line2:   #ece7da;
     &:hover { background: rgba(255,255,255,.1); }
     &:focus { outline: none; background: rgba(255,255,255,.14); border-bottom-color: rgba(255,255,255,.7); }
 }
-.o_vd_hdr_name_ro { background: transparent; &:hover { background: transparent; } }
+.o_vd_hdr_name_ro { background: transparent; flex: 0 1 auto; &:hover { background: transparent; } }
+// Nut but sua ten khoa hoc tren tieu de
+.o_vd_hdr_namebtn {
+    flex: 0 0 auto; border: 1px solid rgba(255,255,255,.35); cursor: pointer;
+    background: rgba(255,255,255,.12); color: #fff; border-radius: 8px;
+    height: 32px; min-width: 32px; padding: 0 .7rem; font-weight: 800; font-size: .85rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    &:hover { background: rgba(255,255,255,.28); }
+    &.o_vd_hdr_namesave { background: #f1b434; color: #2b2410; border-color: #f1b434; }
+}
 
 .o_vd_ce {
     display: flex; flex-direction: column; height: 100%; min-height: 72vh;
@@ -668,4 +677,55 @@ $vd-line2:   #ece7da;
         .o_vd_ce_score_big { font-size: 2rem; font-weight: 900; }
         .o_vd_ce_score_sub { font-size: .95rem; font-weight: 700; }
     }
+
+    // ===== GIAO DIEN THI CHUYEN NGHIEP (user spec 2026-06-18) =====
+    // --- Man gioi thieu truoc khi vao thi: cac chip thong tin ---
+    .o_vd_exam_intro { max-width: 1240px; margin: 0 auto .4rem; }
+    .o_vd_exam_intro_row {
+        display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+    }
+    .o_vd_exam_chip {
+        background: #f4f1ff; border: 1px solid #ddd7f5; color: #4b3fae;
+        border-radius: 999px; padding: .4rem .9rem; font-weight: 800; font-size: .82rem;
+    }
+
+    // --- Thanh dong ho + luot thi khi DANG THI (sticky tren cung) ---
+    .o_vd_exam_bar {
+        position: sticky; top: 0; z-index: 5;
+        max-width: 1240px; margin: 0 auto .9rem; width: 100%;
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        padding: .7rem 1.2rem; border-radius: 14px; color: #fff;
+        background: linear-gradient(135deg, #2b3350, #3a4063);
+        box-shadow: 0 8px 24px rgba(43,51,80,.35);
+    }
+    .o_vd_exam_timer {
+        display: flex; align-items: center; gap: .55rem;
+        font-weight: 900; font-variant-numeric: tabular-nums;
+        .fa { font-size: 1.3rem; opacity: .9; }
+        .o_vd_exam_clock {
+            font-size: 1.9rem; letter-spacing: 1px; line-height: 1;
+            background: rgba(255,255,255,.14); padding: .15rem .6rem; border-radius: 10px;
+        }
+    }
+    .o_vd_exam_meta { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+    .o_vd_exam_metait { font-size: .9rem; font-weight: 600; opacity: .95; b { font-weight: 900; } }
+    // Sap het gio -> do + nhap nhay hoi hop
+    .o_vd_exam_bar_low {
+        background: linear-gradient(135deg, #d9381e, #a30d0d);
+        box-shadow: 0 8px 26px rgba(193,57,43,.55);
+        animation: vd_exam_pulse 1s ease-in-out infinite;
+        .o_vd_exam_clock { background: rgba(0,0,0,.22); }
+    }
+    @keyframes vd_exam_pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.012); box-shadow: 0 10px 30px rgba(193,57,43,.8); }
+    }
+
+    // --- Danh sach cau hoi khi thi: the cau ro rang, danh dau da lam ---
+    .o_vd_exam_list .o_vd_ce_q_take {
+        border: 1px solid $vd-line2; border-radius: 14px; padding: 1rem 1.1rem;
+        box-shadow: 0 1px 4px rgba(32,36,58,.06); transition: border-color .15s, box-shadow .15s;
+        &.o_vd_q_done { border-color: #2e9b54; box-shadow: 0 0 0 2px rgba(46,155,84,.15); }
+    }
+    .o_vd_exam_list .o_vd_ce_qtext { font-size: 1rem; }
 }

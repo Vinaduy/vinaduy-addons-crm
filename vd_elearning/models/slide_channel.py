@@ -24,6 +24,9 @@ class SlideChannel(models.Model):
     vd_pass_percent = fields.Integer(string='Ty le dat (%)', default=80)
     vd_max_attempts = fields.Integer(string='So lan thi lai toi da', default=3,
                                      help='0 = khong gioi han')
+    # Thoi gian lam bai (phut). 0 = tu dong 1 phut/cau (20 cau = 20 phut).
+    vd_exam_minutes = fields.Integer(string='Thoi gian thi (phut)', default=0,
+                                     help='0 = tu dong 1 phut moi cau')
 
     # ------------------------------------------------------------------
     def _vd_is_admin(self):
@@ -205,20 +208,37 @@ class SlideChannel(models.Model):
                                  'is_correct': a.is_correct if is_admin else False}
                                 for a in q.answer_ids.sorted(lambda x: (x.sequence, x.id))],
                 })
+        # Thoi gian thi hieu luc: cau hinh > 0 thi dung; =0 -> 1 phut/cau.
+        n_q = len(questions)
+        exam_minutes = ch.vd_exam_minutes or n_q or 0
         return {'id': ch.id, 'name': ch.name or '', 'is_admin': is_admin,
                 'pass_percent': ch.vd_pass_percent or 80,
                 'max_attempts': ch.vd_max_attempts or 0,
+                'exam_minutes_cfg': ch.vd_exam_minutes or 0,  # raw (0 = auto)
+                'exam_minutes': exam_minutes,                 # hieu luc cho timer
                 'contents': contents, 'questions': questions}
 
     @api.model
-    def vd_course_config_save(self, channel_id, pass_percent, max_attempts):
-        """Luu cau hinh bai thi. Chi admin."""
+    def vd_course_config_save(self, channel_id, pass_percent, max_attempts, exam_minutes=0):
+        """Luu cau hinh khoa hoc (ty le dat, so lan thi lai, thoi gian thi). Chi admin."""
         if not self._vd_is_admin():
             raise AccessError('Chi admin duoc cau hinh khoa hoc.')
         pp = max(0, min(100, int(pass_percent or 0)))
         ma = max(0, int(max_attempts or 0))
-        self.browse(channel_id).write({'vd_pass_percent': pp, 'vd_max_attempts': ma})
+        em = max(0, int(exam_minutes or 0))
+        self.browse(channel_id).write({
+            'vd_pass_percent': pp, 'vd_max_attempts': ma, 'vd_exam_minutes': em})
         return True
+
+    @api.model
+    def vd_course_rename(self, channel_id, name):
+        """Doi ten khoa hoc nhanh (nut but tren tieu de). Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc doi ten khoa hoc.')
+        nm = (name or '').strip()
+        if nm:
+            self.browse(channel_id).name = nm
+        return nm
 
     @api.model
     def vd_course_grade(self, channel_id, answers_by_q):

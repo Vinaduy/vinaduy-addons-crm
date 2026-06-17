@@ -110,7 +110,7 @@
 
     <!-- ============ POPUP CAU HINH BAI THI ============ -->
     <t t-name="vd_elearning.ConfigDialog">
-        <Dialog title="'Cấu hình bài thi'" size="'md'">
+        <Dialog title="'Cấu hình khóa học'" size="'md'">
             <div class="o_vd_cfg">
                 <label class="o_vd_dlg_label">Tỉ lệ phải đạt để qua bài (%)</label>
                 <div class="o_vd_cfg_row">
@@ -120,6 +120,13 @@
                 <label class="o_vd_dlg_label mt-3">Số lần cho phép thi lại</label>
                 <input type="number" min="0" class="o_vd_dlg_input" t-model="state.max"/>
                 <div class="o_vd_cfg_hint">Để 0 = không giới hạn số lần thi.</div>
+
+                <label class="o_vd_dlg_label mt-3">Thời gian làm bài (phút)</label>
+                <div class="o_vd_cfg_row">
+                    <input type="number" min="0" class="o_vd_dlg_input o_vd_cfg_num" t-model="state.minutes"/>
+                    <span class="o_vd_cfg_eq">= <b t-esc="effMinutes"/> phút cho <t t-esc="props.totalQuestions"/> câu</span>
+                </div>
+                <div class="o_vd_cfg_hint">Để 0 = tự động 1 phút mỗi câu (20 câu = 20 phút).</div>
             </div>
             <t t-set-slot="footer">
                 <button class="btn o_vd_dlg_ok" t-on-click="save">Lưu cấu hình</button>
@@ -134,7 +141,21 @@
             <t t-set-slot="header" t-slot-scope="scope">
                 <button class="o_vd_hdr_back" t-on-click="scope.close" title="Đóng"><i class="fa fa-arrow-left"/></button>
                 <span class="o_vd_hdr_pre">Khóa học</span>
-                <input t-if="props.editable" class="o_vd_hdr_name" t-model="state.courseName" placeholder="Tên khóa học"/>
+                <t t-if="props.editable">
+                    <t t-if="state.editingName">
+                        <input class="o_vd_hdr_name" t-model="state.courseName" placeholder="Tên khóa học"
+                               t-on-keyup="(ev) => ev.key === 'Enter' ? this.saveName() : null"/>
+                        <button class="o_vd_hdr_namebtn o_vd_hdr_namesave" t-on-click="saveName" title="Lưu tên">
+                            <i class="fa fa-check me-1"/>Lưu
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <span class="o_vd_hdr_name o_vd_hdr_name_ro" t-esc="state.courseName"/>
+                        <button class="o_vd_hdr_namebtn" t-on-click="() => this.state.editingName = true" title="Sửa tên khóa học">
+                            <i class="fa fa-pencil"/>
+                        </button>
+                    </t>
+                </t>
                 <span t-else="" class="o_vd_hdr_name o_vd_hdr_name_ro" t-esc="state.courseName"/>
             </t>
             <div class="o_vd_ce">
@@ -186,10 +207,18 @@
                                         </article>
                                     </t>
                                     <div t-if="state.questions.length" class="o_vd_ce_gotoexam">
+                                        <div class="o_vd_exam_intro">
+                                            <div class="o_vd_exam_intro_row">
+                                                <span class="o_vd_exam_chip"><i class="fa fa-list-ol me-1"/><t t-esc="state.questions.length"/> câu hỏi</span>
+                                                <span class="o_vd_exam_chip"><i class="fa fa-clock-o me-1"/><t t-esc="state.examMinutes"/> phút</span>
+                                                <span class="o_vd_exam_chip"><i class="fa fa-trophy me-1"/>Đạt <t t-esc="state.passPercent"/>%</span>
+                                                <span class="o_vd_exam_chip"><i class="fa fa-repeat me-1"/>Lượt thi <t t-esc="attemptLabel"/></span>
+                                            </div>
+                                        </div>
                                         <button class="o_vd_ce_start" t-on-click="startExam">
-                                            <i class="fa fa-graduation-cap me-2"/>Vào thi (<t t-esc="state.questions.length"/> câu) <i class="fa fa-arrow-right ms-2"/>
+                                            <i class="fa fa-graduation-cap me-2"/>VÀO THI NGAY <i class="fa fa-arrow-right ms-2"/>
                                         </button>
-                                        <span class="o_vd_ce_hint">Khi vào thi, toàn bộ nội dung sẽ được ẩn đi.</span>
+                                        <span class="o_vd_ce_hint"><i class="fa fa-exclamation-circle me-1"/>Khi vào thi, đồng hồ bắt đầu chạy và toàn bộ nội dung sẽ bị ẩn. Hết giờ tự động nộp bài.</span>
                                     </div>
                                     <div t-if="!state.contents.length" class="o_vd_ce_empty">Chưa có nội dung.</div>
                                 </t>
@@ -227,19 +256,32 @@
 
                         <!-- HOC VIEN: lam bai thi -->
                         <t t-else="">
+                            <!-- THANH DONG HO + LUOT THI (khi dang thi, chua co ket qua) -->
+                            <div t-if="state.examStarted &amp;&amp; !state.examResult"
+                                 t-attf-class="o_vd_exam_bar {{timeLow ? 'o_vd_exam_bar_low' : ''}}">
+                                <div class="o_vd_exam_timer">
+                                    <i class="fa fa-clock-o"/>
+                                    <span class="o_vd_exam_clock" t-esc="timeLeftLabel"/>
+                                </div>
+                                <div class="o_vd_exam_meta">
+                                    <span class="o_vd_exam_metait"><i class="fa fa-check-square-o me-1"/>Đã làm <b><t t-esc="answeredCount"/>/<t t-esc="state.questions.length"/></b></span>
+                                    <span class="o_vd_exam_metait"><i class="fa fa-repeat me-1"/>Lượt thi <b><t t-esc="attemptLabel"/></b></span>
+                                </div>
+                            </div>
+
                             <div t-if="state.examResult" t-attf-class="o_vd_ce_score {{state.examResult.passed ? 'pass' : 'fail'}}">
                                 <div class="o_vd_ce_score_big"><t t-esc="state.examResult.score"/>/<t t-esc="state.examResult.total"/></div>
                                 <div class="o_vd_ce_score_sub">
                                     Đúng <t t-esc="state.examResult.percent"/>% (cần đạt <t t-esc="state.examResult.passPercent"/>%)
                                     <t t-if="state.examResult.passed"> — ĐẠT!</t>
                                     <t t-else=""> — CHƯA ĐẠT. Xem lại đáp án đúng bên dưới.</t>
-                                    <span t-if="state.maxAttempts"> · Lần thi <t t-esc="state.attemptCount"/>/<t t-esc="state.maxAttempts"/></span>
+                                    <span> · Lần thi <t t-esc="state.attemptCount"/><t t-if="state.maxAttempts">/<t t-esc="state.maxAttempts"/></t></span>
                                 </div>
                             </div>
                             <div t-if="!state.examStarted" class="o_vd_ce_empty">Bấm "Vào thi" ở tab Nội dung để bắt đầu.</div>
-                            <div t-else="" class="o_vd_ce_list">
+                            <div t-else="" class="o_vd_ce_list o_vd_exam_list">
                                 <t t-foreach="state.questions" t-as="q" t-key="q._k">
-                                    <div class="o_vd_ce_q o_vd_ce_q_take">
+                                    <div t-attf-class="o_vd_ce_q o_vd_ce_q_take {{(!state.examResult &amp;&amp; qAnswered(q)) ? 'o_vd_q_done' : ''}}">
                                         <div class="o_vd_ce_qhead">
                                             <span class="o_vd_ce_qnum"><t t-esc="q_index + 1"/></span>
                                             <span class="o_vd_ce_qtext" t-esc="q.text"/>
