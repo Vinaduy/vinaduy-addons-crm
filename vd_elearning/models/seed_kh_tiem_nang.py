@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Seed noi dung + 20 cau hoi thi cho khoa hoc
-"Ky nang nhan dien khach hang tiem nang trong xay nha tron goi".
+"""Seed nội dung + 20 câu hỏi thi cho khóa học
+"Kỹ năng nhận diện khách hàng tiềm năng trong xây nhà trọn gói".
 
-Thiet ke chuyen nghiep: bang so sanh, icon, khung cong thuc, tinh huong,
-loi khuyen, chung minh, va o "AP DUNG NGAY" ep nhan vien thuc hanh.
-Giu DAY DU noi dung goc, chi viet THEM (khong cat bot).
+Thiết kế chuyên nghiệp: bảng so sánh, icon, khung công thức, tình huống,
+lời khuyên, chứng minh, và ô "ÁP DỤNG NGAY" ép nhân viên thực hành.
+Giữ ĐẦY ĐỦ nội dung gốc, chỉ viết THÊM (không cắt bớt).
 
-Idempotent: neu khoa da co noi dung article thi BO QUA (tranh ghi de sua tay
-cua admin + tranh nhan ban khi nang cap lai). HTML luu o slide.slide.vd_body
-(sanitize=False) nen giu nguyen bang/style inline.
+Idempotent theo PHIÊN BẢN: lưu version vào ir.config_parameter. Nếu version
+trùng -> bỏ qua (không ghi đè sửa tay của admin). Khi bump version -> xóa nội
+dung tự sinh cũ và seed lại bản mới. HTML lưu ở slide.slide.vd_body
+(sanitize=False) nên giữ nguyên bảng / style inline.
 """
 from odoo import api, models
 
-# ------- Cac khung (callout) dung lai - style inline vi SCSS khong phu -------
+# Bump giá trị này mỗi khi muốn ghi đè lại toàn bộ nội dung tự sinh.
+_KHTN_VERSION = 'v2-co-dau'
+_PARAM_KEY = 'vd_elearning.khtn_seed_version'
+
+# ------- Các khung (callout) dùng lại - style inline vì SCSS không phủ -------
 _WRAP = (
     'font-size:15px;line-height:1.65;color:#2b2f44;'
     'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -34,7 +39,7 @@ def _formula(inner):
         '<div style="border:2px dashed #b8860b;background:#fff8e1;border-radius:14px;'
         'padding:18px 20px;margin:18px 0;text-align:center;">'
         '<div style="font-weight:900;color:#92600a;font-size:15px;margin-bottom:10px;'
-        'text-transform:uppercase;letter-spacing:.5px;">CONG THUC PHAI THUOC LONG</div>'
+        'text-transform:uppercase;letter-spacing:.5px;">CÔNG THỨC PHẢI THUỘC LÒNG</div>'
         '<div style="font-size:17px;font-weight:800;color:#3a2c05;">%s</div></div>'
     ) % inner
 
@@ -44,25 +49,25 @@ def _apply(inner):
         '<div style="border:2px solid #dc2626;background:#fef2f2;border-radius:12px;'
         'padding:16px 18px;margin:18px 0;">'
         '<div style="font-weight:900;color:#b91c1c;font-size:15px;margin-bottom:8px;">'
-        'BAT BUOC AP DUNG NGAY (cuoc goi tiep theo)</div>'
+        '&#128308; BẮT BUỘC ÁP DỤNG NGAY (cuộc gọi tiếp theo)</div>'
         '<div>%s</div></div>'
     ) % inner
 
 
 def _situation(inner):
-    return _box('#2563eb', '#eff6ff', '&#127916;', 'Tinh huong thuc te', inner)
+    return _box('#2563eb', '#eff6ff', '&#127916;', 'Tình huống thực tế', inner)
 
 
 def _advice(inner):
-    return _box('#16a34a', '#f0fdf4', '&#128161;', 'Loi khuyen', inner)
+    return _box('#16a34a', '#f0fdf4', '&#128161;', 'Lời khuyên', inner)
 
 
 def _proof(inner):
-    return _box('#9333ea', '#faf5ff', '&#9989;', 'Chung minh', inner)
+    return _box('#9333ea', '#faf5ff', '&#9989;', 'Chứng minh', inner)
 
 
 def _mistake(inner):
-    return _box('#ea580c', '#fff7ed', '&#9888;&#65039;', 'Sai lam thuong gap', inner)
+    return _box('#ea580c', '#fff7ed', '&#9888;&#65039;', 'Sai lầm thường gặp', inner)
 
 
 class SlideChannelSeedKHTN(models.Model):
@@ -73,16 +78,20 @@ class SlideChannelSeedKHTN(models.Model):
         ch = self.env.ref('vd_elearning.course_kh_tiem_nang', raise_if_not_found=False)
         if not ch:
             return False
-        # Idempotent: da co bai hoc -> giu nguyen (ton trong sua tay admin).
-        if ch.slide_ids.filtered(lambda s: not s.is_category):
+
+        ICP = self.env['ir.config_parameter'].sudo()
+        if ICP.get_param(_PARAM_KEY) == _KHTN_VERSION:
+            # Đã seed đúng phiên bản này -> giữ nguyên (tôn trọng sửa tay admin).
             return True
 
         Slide = self.env['slide.slide'].sudo()
         Question = self.env['slide.question'].sudo()
 
-        pages = self._vd_khtn_pages()
+        # Bump version -> xóa nội dung tự sinh cũ rồi seed lại bản mới.
+        ch.slide_ids.filtered(lambda s: not s.is_category).unlink()
+
         seq = 1
-        for title, body in pages:
+        for title, body in self._vd_khtn_pages():
             Slide.create({
                 'channel_id': ch.id, 'name': title,
                 'slide_category': 'article',
@@ -92,7 +101,7 @@ class SlideChannelSeedKHTN(models.Model):
             seq += 1
 
         quiz = Slide.create({
-            'channel_id': ch.id, 'name': 'Bai thi - 20 cau',
+            'channel_id': ch.id, 'name': 'Bài thi - 20 câu',
             'slide_category': 'quiz', 'sequence': 999, 'is_published': True,
         })
         qseq = 1
@@ -105,479 +114,480 @@ class SlideChannelSeedKHTN(models.Model):
                 ],
             })
             qseq += 1
+
+        ICP.set_param(_PARAM_KEY, _KHTN_VERSION)
         return True
 
     # ==================================================================
-    #  NOI DUNG BAI HOC
+    #  NỘI DUNG BÀI HỌC
     # ==================================================================
     def _vd_khtn_pages(self):
         h2 = 'font-size:19px;font-weight:900;color:#1e293b;margin:18px 0 8px;'
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
-
-        # Xay tung trang bang ghep chuoi truc tiep (an toan voi ky tu % / &).
         return [
-            ('1. Ban chat & Muc tieu', self._page1(h2, h3, lead)),
-            ('2. Tieu chi 1 - Thoi gian khoi cong', self._page2(h2, h3, lead)),
-            ('3. Tieu chi 2 - Tai chinh + Mau nha + Dat', self._page3(h2, h3, lead)),
-            ('4. 4 cau hoi vang phai hoi', self._page4(h2, h3, lead)),
-            ('5. Phan loai khach A / B / C', self._page5(h2, h3, lead)),
-            ('6. Cach chot & Ket luan', self._page6(h2, h3, lead)),
+            ('1. Bản chất & Mục tiêu', self._page1(h2, h3, lead)),
+            ('2. Tiêu chí 1 - Thời gian khởi công', self._page2(h2, h3, lead)),
+            ('3. Tiêu chí 2 - Tài chính + Mẫu nhà + Đất', self._page3(h2, h3, lead)),
+            ('4. 4 câu hỏi vàng phải hỏi', self._page4(h2, h3, lead)),
+            ('5. Phân loại khách A / B / C', self._page5(h2, h3, lead)),
+            ('6. Cách chốt & Kết luận', self._page6(h2, h3, lead)),
         ]
 
     def _page1(self, h2, h3, lead):
         return (
-            '<p style="' + lead + '">Trong nganh <b>xay nha tron goi</b>, khach co ky '
-            'hop dong hay khong gan nhu chi phu thuoc vao <b>2 yeu to cot loi</b>. Nam '
-            'duoc 2 yeu to nay, ban thoi "doan mo" va biet chinh xac nen dau tu thoi '
-            'gian vao ai.</p>'
+            '<p style="' + lead + '">Trong ngành <b>xây nhà trọn gói</b>, khách có ký '
+            'hợp đồng hay không gần như chỉ phụ thuộc vào <b>2 yếu tố cốt lõi</b>. Nắm '
+            'được 2 yếu tố này, bạn thôi "đoán mò" và biết chính xác nên đầu tư thời '
+            'gian vào ai.</p>'
 
             '<table><thead><tr><th style="width:56px;">#</th>'
-            '<th>2 yeu to cot loi quyet dinh khach co ky hop dong</th></tr></thead><tbody>'
+            '<th>2 yếu tố cốt lõi quyết định khách có ký hợp đồng</th></tr></thead><tbody>'
             '<tr><td style="text-align:center;font-size:20px;">&#127919;</td>'
-            '<td><b>YEU TO 1:</b> Khach co <b>thoi gian khoi cong that</b> hay khong.</td></tr>'
+            '<td><b>YẾU TỐ 1:</b> Khách có <b>thời gian khởi công thật</b> hay không.</td></tr>'
             '<tr><td style="text-align:center;font-size:20px;">&#127919;</td>'
-            '<td><b>YEU TO 2:</b> <b>Tai chinh + Mau nha + Dien tich dat</b> co khop nhau hay khong.</td></tr>'
+            '<td><b>YẾU TỐ 2:</b> <b>Tài chính + Mẫu nhà + Diện tích đất</b> có khớp nhau hay không.</td></tr>'
             '</tbody></table>'
 
-            '<h2 style="' + h2 + '">&#127891; Muc tieu bai hoc</h2>'
-            '<p>Sau khi hoc xong, nhan vien <b>phai</b>:</p>'
+            '<h2 style="' + h2 + '">&#127891; Mục tiêu bài học</h2>'
+            '<p>Sau khi học xong, nhân viên <b>phải</b>:</p>'
             '<ul>'
-            '<li>Biet khach nao thuc su co kha nang <b>ky hop dong</b>.</li>'
-            '<li>Biet khach nao chi dang <b>tham khao</b>.</li>'
-            '<li>Biet phai <b>hoi gi</b> de xac dinh khach.</li>'
-            '<li>Biet phai <b>tu van gi</b> de keo khach ky som.</li>'
-            '<li>Biet cach phat hien khach tiem nang du khach <b>noi rat it</b>.</li>'
+            '<li>Biết khách nào thực sự có khả năng <b>ký hợp đồng</b>.</li>'
+            '<li>Biết khách nào chỉ đang <b>tham khảo</b>.</li>'
+            '<li>Biết phải <b>hỏi gì</b> để xác định khách.</li>'
+            '<li>Biết phải <b>tư vấn gì</b> để kéo khách ký sớm.</li>'
+            '<li>Biết cách phát hiện khách tiềm năng dù khách <b>nói rất ít</b>.</li>'
             '</ul>'
 
-            '<h2 style="' + h2 + '">PHAN 1 &mdash; Ban chat khach hang tiem nang la gi</h2>'
+            '<h2 style="' + h2 + '">PHẦN 1 &mdash; Bản chất khách hàng tiềm năng là gì</h2>'
             + _mistake(
                 '<ul>'
-                '<li>Khach noi nhieu &rArr; tuong tiem nang.</li>'
-                '<li>Khach hoi nhieu &rArr; tuong tiem nang.</li>'
-                '<li>Khach xin nhieu mau &rArr; tuong tiem nang.</li>'
+                '<li>Khách nói nhiều &rArr; tưởng tiềm năng.</li>'
+                '<li>Khách hỏi nhiều &rArr; tưởng tiềm năng.</li>'
+                '<li>Khách xin nhiều mẫu &rArr; tưởng tiềm năng.</li>'
                 '</ul>'
-                '<p style="margin-bottom:0;"><b>Thuc te:</b> khach hang tiem nang '
-                '<u>khong</u> duoc xac dinh bang viec khach noi nhieu hay it.</p>'
+                '<p style="margin-bottom:0;"><b>Thực tế:</b> khách hàng tiềm năng '
+                '<u>không</u> được xác định bằng việc khách nói nhiều hay ít.</p>'
             )
-            + '<p>Khach hang tiem nang duoc xac dinh bang <b>2 tieu chi</b>:</p>'
-            '<table><thead><tr><th style="width:90px;">Tieu chi</th><th>Noi dung</th></tr></thead><tbody>'
-            '<tr><td style="text-align:center;font-weight:800;color:#b91c1c;">SO 1</td>'
-            '<td>Khach co <b>ke hoach khoi cong thuc te</b>.</td></tr>'
-            '<tr><td style="text-align:center;font-weight:800;color:#b91c1c;">SO 2</td>'
-            '<td>Tai chinh cua khach <b>phu hop voi mau nha mong muon</b>.</td></tr>'
+            + '<p>Khách hàng tiềm năng được xác định bằng <b>2 tiêu chí</b>:</p>'
+            '<table><thead><tr><th style="width:90px;">Tiêu chí</th><th>Nội dung</th></tr></thead><tbody>'
+            '<tr><td style="text-align:center;font-weight:800;color:#b91c1c;">SỐ 1</td>'
+            '<td>Khách có <b>kế hoạch khởi công thực tế</b>.</td></tr>'
+            '<tr><td style="text-align:center;font-weight:800;color:#b91c1c;">SỐ 2</td>'
+            '<td>Tài chính của khách <b>phù hợp với mẫu nhà mong muốn</b>.</td></tr>'
             '</tbody></table>'
-            '<p style="text-align:center;font-size:16px;">Co du 2 yeu to &rArr; '
-            '<b style="color:#16a34a;">&#10145; Khach chinh la khach hang tiem nang.</b></p>'
+            '<p style="text-align:center;font-size:16px;">Có đủ 2 yếu tố &rArr; '
+            '<b style="color:#16a34a;">&#10145; Khách chính là khách hàng tiềm năng.</b></p>'
 
             + _apply(
-                '<p>Mo lai 3 khach gan nhat ban dang theo. Voi tung khach tu cham '
-                '"Co / Chua biet" cho 2 cot:</p>'
-                '<ol><li>Khach co <b>thoi gian khoi cong</b> chua?</li>'
-                '<li>Tai chinh co <b>khop mau nha</b> chua?</li></ol>'
-                '<p style="margin-bottom:0;">Khach nao ca 2 cot deu trong &rArr; ban '
-                'dang <b>ton thoi gian nham nguoi</b>, can xac minh lai ngay.</p>'
+                '<p>Mở lại 3 khách gần nhất bạn đang theo. Với từng khách tự chấm '
+                '"Có / Chưa biết" cho 2 cột:</p>'
+                '<ol><li>Khách có <b>thời gian khởi công</b> chưa?</li>'
+                '<li>Tài chính có <b>khớp mẫu nhà</b> chưa?</li></ol>'
+                '<p style="margin-bottom:0;">Khách nào cả 2 cột đều trống &rArr; bạn '
+                'đang <b>tốn thời gian nhầm người</b>, cần xác minh lại ngay.</p>'
             )
         )
 
     def _page2(self, h2, h3, lead):
-        stars = lambda n: ('<span style="color:#f59e0b;font-size:17px;">' + ('&#9733;' * n)
-                           + '</span><span style="color:#d1d5db;font-size:17px;">'
-                           + ('&#9733;' * (5 - n)) + '</span>')
+        def stars(n):
+            return ('<span style="color:#f59e0b;font-size:17px;">' + ('&#9733;' * n)
+                    + '</span><span style="color:#d1d5db;font-size:17px;">'
+                    + ('&#9733;' * (5 - n)) + '</span>')
         return (
-            '<h2 style="' + h2 + '">PHAN 2 &mdash; Tieu chi 1: Thoi gian khoi cong</h2>'
-            '<h3 style="' + h3 + '">Tai sao day la tieu chi quan trong nhat?</h3>'
-            '<p>Boi vi <b>nguoi xay nha that luon co ke hoach</b>. Co the la: thang sau '
-            'xay &middot; sau Tet xay &middot; 2 thang nua xay &middot; doi hoan tat thu '
-            'tuc la xay&hellip; nhung <b>luon co thoi gian du kien</b>.</p>'
-            '<p>Nguoc lai, nguoi <b>chua co nhu cau that</b> thuong noi: "dang xem thoi", '
-            '"chua biet", "tu tu tinh", "de tham khao truoc".</p>'
+            '<h2 style="' + h2 + '">PHẦN 2 &mdash; Tiêu chí 1: Thời gian khởi công</h2>'
+            '<h3 style="' + h3 + '">Tại sao đây là tiêu chí quan trọng nhất?</h3>'
+            '<p>Bởi vì <b>người xây nhà thật luôn có kế hoạch</b>. Có thể là: tháng sau '
+            'xây &middot; sau Tết xây &middot; 2 tháng nữa xây &middot; đợi hoàn tất thủ '
+            'tục là xây&hellip; nhưng <b>luôn có thời gian dự kiến</b>.</p>'
+            '<p>Ngược lại, người <b>chưa có nhu cầu thật</b> thường nói: "đang xem thôi", '
+            '"chưa biết", "từ từ tính", "để tham khảo trước".</p>'
 
             + _proof(
-                '<p style="margin-bottom:0;">Nguoi sap khoi cong da co rang buoc thuc te '
-                '(dat, tien, gia dinh, thoi diem dep) nen <b>ho buoc phai co moc thoi '
-                'gian</b>. Con nguoi chi tham khao thi khong co ap luc nao &rArr; cau tra '
-                'loi luon mo ho. Vi vay, <b>thoi gian la phep thu that-gia chinh xac '
-                'nhat</b>.</p>'
+                '<p style="margin-bottom:0;">Người sắp khởi công đã có ràng buộc thực tế '
+                '(đất, tiền, gia đình, thời điểm đẹp) nên <b>họ buộc phải có mốc thời '
+                'gian</b>. Còn người chỉ tham khảo thì không có áp lực nào &rArr; câu trả '
+                'lời luôn mơ hồ. Vì vậy, <b>thời gian là phép thử thật-giả chính xác '
+                'nhất</b>.</p>'
             )
 
-            + '<h2 style="' + h2 + '">Cach nhan biet qua moc thoi gian</h2>'
-            '<table><thead><tr><th>Nhom khach</th><th>Khach noi the nao</th>'
-            '<th style="width:120px;text-align:center;">Muc do</th><th>Hanh dong</th></tr></thead><tbody>'
-            '<tr><td><b style="color:#16a34a;">Cuc ky tiem nang</b></td>'
-            '<td>"Qua Tet anh xay", "Thang 2 am anh lam mong", "Cuoi nam anh khoi cong", '
-            '"Dat xong roi, gio dang chuan bi".</td>'
+            + '<h2 style="' + h2 + '">Cách nhận biết qua mốc thời gian</h2>'
+            '<table><thead><tr><th>Nhóm khách</th><th>Khách nói thế nào</th>'
+            '<th style="width:120px;text-align:center;">Mức độ</th><th>Hành động</th></tr></thead><tbody>'
+            '<tr><td><b style="color:#16a34a;">Cực kỳ tiềm năng</b></td>'
+            '<td>"Qua Tết anh xây", "Tháng 2 âm anh làm móng", "Cuối năm anh khởi công", '
+            '"Đất xong rồi, giờ đang chuẩn bị".</td>'
             '<td style="text-align:center;">' + stars(5) + '</td>'
-            '<td><b>Phai bam sat.</b></td></tr>'
-            '<tr><td><b style="color:#d97706;">Tiem nang trung binh</b></td>'
-            '<td>"Chac trong nam nay xay", "Dang chuan bi tai chinh", "Dang hoan thien giay to".</td>'
+            '<td><b>Phải bám sát.</b></td></tr>'
+            '<tr><td><b style="color:#d97706;">Tiềm năng trung bình</b></td>'
+            '<td>"Chắc trong năm nay xây", "Đang chuẩn bị tài chính", "Đang hoàn thiện giấy tờ".</td>'
             '<td style="text-align:center;">' + stars(3) + '</td>'
-            '<td>Can theo doi.</td></tr>'
-            '<tr><td><b style="color:#6b7280;">Tham khao</b></td>'
-            '<td>"Chua biet", "Dang tim hieu", "Hoi truoc thoi".</td>'
+            '<td>Cần theo dõi.</td></tr>'
+            '<tr><td><b style="color:#6b7280;">Tham khảo</b></td>'
+            '<td>"Chưa biết", "Đang tìm hiểu", "Hỏi trước thôi".</td>'
             '<td style="text-align:center;">' + stars(1) + '</td>'
-            '<td>Khong danh qua nhieu thoi gian.</td></tr>'
+            '<td>Không dành quá nhiều thời gian.</td></tr>'
             '</tbody></table>'
 
             + _situation(
-                '<p>Khach nhan tin: <i>"Em gui anh vai mau nha 2 tang di."</i></p>'
-                '<p><b>NV yeu</b> gui ngay 10 mau roi&hellip; im. <b>NV gioi</b> gui mau '
-                'kem 1 cau: <i>"Da anh, de em chon mau hop nhat, anh du kien khoang khi '
-                'nao minh khoi cong a?"</i></p>'
-                '<p style="margin-bottom:0;">Chinh cau hoi thoi gian moi <b>loc ra</b> '
-                'khach that.</p>'
+                '<p>Khách nhắn tin: <i>"Em gửi anh vài mẫu nhà 2 tầng đi."</i></p>'
+                '<p><b>NV yếu</b> gửi ngay 10 mẫu rồi&hellip; im. <b>NV giỏi</b> gửi mẫu '
+                'kèm 1 câu: <i>"Dạ anh, để em chọn mẫu hợp nhất, anh dự kiến khoảng khi '
+                'nào mình khởi công ạ?"</i></p>'
+                '<p style="margin-bottom:0;">Chính câu hỏi thời gian mới <b>lọc ra</b> '
+                'khách thật.</p>'
             )
 
             + _advice(
-                '<p style="margin-bottom:0;">Dung voi bao gia khi <b>chua biet moc thoi '
-                'gian</b>. Khong co thoi gian khoi cong &rArr; moi bao gia, moi mau nha '
-                'deu chi de "tham khao", rat de bi so sanh va mat khach.</p>'
+                '<p style="margin-bottom:0;">Đừng vội báo giá khi <b>chưa biết mốc thời '
+                'gian</b>. Không có thời gian khởi công &rArr; mọi báo giá, mọi mẫu nhà '
+                'đều chỉ để "tham khảo", rất dễ bị so sánh và mất khách.</p>'
             )
 
             + _apply(
-                '<p style="margin-bottom:0;">Trong <b>3 cuoc goi tiep theo</b>, bat buoc '
-                'hoi cau: <i>"Anh/chi du kien khoang thoi gian nao se bat dau trien khai '
-                'xay dung a?"</i> &mdash; roi ghi moc thoi gian vao ho so khach. Khong co '
-                'moc &rArr; xep nhom tham khao (1&#9733;).</p>'
+                '<p style="margin-bottom:0;">Trong <b>3 cuộc gọi tiếp theo</b>, bắt buộc '
+                'hỏi câu: <i>"Anh/chị dự kiến khoảng thời gian nào sẽ bắt đầu triển khai '
+                'xây dựng ạ?"</i> &mdash; rồi ghi mốc thời gian vào hồ sơ khách. Không có '
+                'mốc &rArr; xếp nhóm tham khảo (1&#9733;).</p>'
             )
         )
 
     def _page3(self, h2, h3, lead):
         return (
-            '<h2 style="' + h2 + '">PHAN 3 &mdash; Tieu chi 2: Tai chinh + Mau nha + Dien tich dat</h2>'
-            '<p style="' + lead + '">Day la tieu chi <b>quyet dinh khach co ky duoc hay '
-            'khong</b>. Thoi gian cho biet khach "co that", con bo ba Tai chinh - Mau - '
-            'Dat cho biet khach "<b>kha thi</b>".</p>'
+            '<h2 style="' + h2 + '">PHẦN 3 &mdash; Tiêu chí 2: Tài chính + Mẫu nhà + Diện tích đất</h2>'
+            '<p style="' + lead + '">Đây là tiêu chí <b>quyết định khách có ký được hay '
+            'không</b>. Thời gian cho biết khách "có thật", còn bộ ba Tài chính - Mẫu - '
+            'Đất cho biết khách "<b>khả thi</b>".</p>'
 
-            '<h3 style="' + h3 + '">So sanh 2 vi du (cung mieng dat 5x20)</h3>'
-            '<table><thead><tr><th>Yeu to</th>'
-            '<th style="text-align:center;">Vi du 1</th>'
-            '<th style="text-align:center;">Vi du 2</th></tr></thead><tbody>'
-            '<tr><td><b>Dien tich dat</b></td><td style="text-align:center;">5 x 20</td>'
+            '<h3 style="' + h3 + '">So sánh 2 ví dụ (cùng miếng đất 5x20)</h3>'
+            '<table><thead><tr><th>Yếu tố</th>'
+            '<th style="text-align:center;">Ví dụ 1</th>'
+            '<th style="text-align:center;">Ví dụ 2</th></tr></thead><tbody>'
+            '<tr><td><b>Diện tích đất</b></td><td style="text-align:center;">5 x 20</td>'
             '<td style="text-align:center;">5 x 20</td></tr>'
-            '<tr><td><b>Mau nha khach thich</b></td>'
-            '<td style="text-align:center;">2 tang hien dai</td>'
-            '<td style="text-align:center;">Tan co dien 3 tang</td></tr>'
-            '<tr><td><b>Tai chinh</b></td>'
-            '<td style="text-align:center;">1,4 ty</td>'
-            '<td style="text-align:center;">1 ty</td></tr>'
-            '<tr><td><b>Ket luan</b></td>'
-            '<td style="text-align:center;color:#16a34a;font-weight:800;">&#9989; Hop ly &rArr; rat tiem nang</td>'
-            '<td style="text-align:center;color:#dc2626;font-weight:800;">&#10060; Khong kha thi &rArr; chua tiem nang</td></tr>'
+            '<tr><td><b>Mẫu nhà khách thích</b></td>'
+            '<td style="text-align:center;">2 tầng hiện đại</td>'
+            '<td style="text-align:center;">Tân cổ điển 3 tầng</td></tr>'
+            '<tr><td><b>Tài chính</b></td>'
+            '<td style="text-align:center;">1,4 tỷ</td>'
+            '<td style="text-align:center;">1 tỷ</td></tr>'
+            '<tr><td><b>Kết luận</b></td>'
+            '<td style="text-align:center;color:#16a34a;font-weight:800;">&#9989; Hợp lý &rArr; rất tiềm năng</td>'
+            '<td style="text-align:center;color:#dc2626;font-weight:800;">&#10060; Không khả thi &rArr; chưa tiềm năng</td></tr>'
             '</tbody></table>'
 
             + _proof(
-                '<p style="margin-bottom:0;">Cung 1 mieng dat nhung mau nha + tai chinh '
-                'khac nhau cho ra 2 ket qua nguoc nhau. &rArr; Khong phai khach cu co tien '
-                'la ky duoc; <b>tien phai khop voi mau nha va dien tich</b>. Day la ly do '
-                'phai hoi du ca 3 thong tin truoc khi bao gia.</p>'
+                '<p style="margin-bottom:0;">Cùng 1 miếng đất nhưng mẫu nhà + tài chính '
+                'khác nhau cho ra 2 kết quả ngược nhau. &rArr; Không phải khách cứ có tiền '
+                'là ký được; <b>tiền phải khớp với mẫu nhà và diện tích</b>. Đây là lý do '
+                'phải hỏi đủ cả 3 thông tin trước khi báo giá.</p>'
             )
 
             + _formula(
-                'Khach tiem nang = <span style="color:#1d4ed8;">Thoi gian xay ro rang</span> '
-                '&#10133; <span style="color:#16a34a;">Tai chinh phu hop</span> '
-                '&#10133; <span style="color:#9333ea;">Mau nha phu hop</span> '
-                '&#10133; <span style="color:#b45309;">Dien tich dat phu hop</span>'
+                'Khách tiềm năng = <span style="color:#1d4ed8;">Thời gian xây rõ ràng</span> '
+                '&#10133; <span style="color:#16a34a;">Tài chính phù hợp</span> '
+                '&#10133; <span style="color:#9333ea;">Mẫu nhà phù hợp</span> '
+                '&#10133; <span style="color:#b45309;">Diện tích đất phù hợp</span>'
             )
 
             + _situation(
-                '<p>Khach: <i>"Anh co 1 ty, muon xay tan co dien 3 tang tren dat 5x20."</i></p>'
-                '<p><b>NV yeu</b> im lang hoac gat dai roi bao gia &rArr; khach soc gia, bo di.</p>'
-                '<p style="margin-bottom:0;"><b>NV gioi</b> can doi: <i>"Da voi 1 ty tren '
-                'dat 5x20, em goi y phuong an 2 tang hien dai vua dep vua du ngan sach, con '
-                'tan co dien minh tinh khi ngan sach thoai hon a."</i> &mdash; giu khach + '
-                'keo ve vung kha thi.</p>'
+                '<p>Khách: <i>"Anh có 1 tỷ, muốn xây tân cổ điển 3 tầng trên đất 5x20."</i></p>'
+                '<p><b>NV yếu</b> im lặng hoặc gật đại rồi báo giá &rArr; khách sốc giá, bỏ đi.</p>'
+                '<p style="margin-bottom:0;"><b>NV giỏi</b> cân đối: <i>"Dạ với 1 tỷ trên '
+                'đất 5x20, em gợi ý phương án 2 tầng hiện đại vừa đẹp vừa đủ ngân sách, còn '
+                'tân cổ điển mình tính khi ngân sách thoải hơn ạ."</i> &mdash; giữ khách + '
+                'kéo về vùng khả thi.</p>'
             )
 
             + _advice(
-                '<p style="margin-bottom:0;">Khi tai chinh chua khop mau, <b>dung tu choi '
-                'khach</b> &mdash; hay <b>dieu chinh mau/phuong an</b> ve vung kha thi. Day '
-                'chinh la cach bien khach Nhom B thanh khach ky duoc (xem Phan 5).</p>'
+                '<p style="margin-bottom:0;">Khi tài chính chưa khớp mẫu, <b>đừng từ chối '
+                'khách</b> &mdash; hãy <b>điều chỉnh mẫu / phương án</b> về vùng khả thi. Đây '
+                'chính là cách biến khách Nhóm B thành khách ký được (xem Phần 5).</p>'
             )
 
             + _apply(
-                '<p style="margin-bottom:0;">Voi moi khach dang theo, dien du <b>3 o</b>: '
-                'Dien tich dat &mdash; Mau nha mong muon &mdash; Tai chinh du tru. Thieu o '
-                'nao &rArr; hoi bo sung ngay o cuoc goi sau. <b>Khong bao gia khi con o '
-                'trong.</b></p>'
+                '<p style="margin-bottom:0;">Với mỗi khách đang theo, điền đủ <b>3 ô</b>: '
+                'Diện tích đất &mdash; Mẫu nhà mong muốn &mdash; Tài chính dự trù. Thiếu ô '
+                'nào &rArr; hỏi bổ sung ngay ở cuộc gọi sau. <b>Không báo giá khi còn ô '
+                'trống.</b></p>'
             )
         )
 
     def _page4(self, h2, h3, lead):
         rows = [
-            ('1', 'Anh/chi du kien khoang thoi gian nao se bat dau trien khai xay dung?',
-             'Xac dinh <b>thoi gian khoi cong</b>.'),
-            ('2', 'Anh/chi dang du tru khoang bao nhieu kinh phi cho can nha?',
-             'Xac dinh <b>kha nang tai chinh</b>.'),
-            ('3', 'Anh/chi thich mau nha theo phong cach nao?',
-             'Xac dinh <b>nhu cau thuc</b>.'),
-            ('4', 'Dien tich dat hien tai cua minh la bao nhieu met vuong a?',
-             'Kiem tra <b>tinh kha thi</b>.'),
+            ('1', 'Anh/chị dự kiến khoảng thời gian nào sẽ bắt đầu triển khai xây dựng?',
+             'Xác định <b>thời gian khởi công</b>.'),
+            ('2', 'Anh/chị đang dự trù khoảng bao nhiêu kinh phí cho căn nhà?',
+             'Xác định <b>khả năng tài chính</b>.'),
+            ('3', 'Anh/chị thích mẫu nhà theo phong cách nào?',
+             'Xác định <b>nhu cầu thực</b>.'),
+            ('4', 'Diện tích đất hiện tại của mình là bao nhiêu mét vuông ạ?',
+             'Kiểm tra <b>tính khả thi</b>.'),
         ]
         body = (
-            '<h2 style="' + h2 + '">PHAN 4 &mdash; 4 cau hoi vang phai hoi</h2>'
-            '<p style="' + lead + '">Chi can hoi xong <b>4 cau</b> nay la ban du du lieu '
-            'de phan loai khach va biet buoc tiep theo. Hoc thuoc va hoi <b>tu nhien</b> '
-            'trong hoi thoai, khong hoi don dap nhu dieu tra.</p>'
-            '<table><thead><tr><th style="width:48px;">Cau</th><th>Cau hoi vang</th>'
-            '<th style="width:42%;">Muc dich</th></tr></thead><tbody>'
+            '<h2 style="' + h2 + '">PHẦN 4 &mdash; 4 câu hỏi vàng phải hỏi</h2>'
+            '<p style="' + lead + '">Chỉ cần hỏi xong <b>4 câu</b> này là bạn đủ dữ liệu '
+            'để phân loại khách và biết bước tiếp theo. Học thuộc và hỏi <b>tự nhiên</b> '
+            'trong hội thoại, không hỏi dồn dập như điều tra.</p>'
+            '<table><thead><tr><th style="width:48px;">Câu</th><th>Câu hỏi vàng</th>'
+            '<th style="width:42%;">Mục đích</th></tr></thead><tbody>'
         )
         for n, q, m in rows:
             body += ('<tr><td style="text-align:center;font-weight:800;color:#b45309;">'
                      + n + '</td><td><i>"' + q + '"</i></td><td>' + m + '</td></tr>')
         body += '</tbody></table>'
         body += _formula(
-            '4 cau hoi vang = <b>Thoi gian</b> &#8226; <b>Tai chinh</b> &#8226; '
-            '<b>Mau nha</b> &#8226; <b>Dien tich dat</b>'
+            '4 câu hỏi vàng = <b>Thời gian</b> &#8226; <b>Tài chính</b> &#8226; '
+            '<b>Mẫu nhà</b> &#8226; <b>Diện tích đất</b>'
         )
         body += _situation(
-            '<p>Khach kiem loi, chi nhan tin "bao gia di em". Thay vi bao gia ngay, hoi '
-            'gon 1 cau ghep: <i>"Da de bao gia chuan nhat, anh cho em xin dien tich dat va '
-            'du kien khi nao khoi cong a?"</i></p>'
-            '<p style="margin-bottom:0;">2 thong tin nay loc ra ngay khach that hay '
-            'tham khao.</p>'
+            '<p>Khách kiệm lời, chỉ nhắn tin "báo giá đi em". Thay vì báo giá ngay, hỏi '
+            'gọn 1 câu ghép: <i>"Dạ để báo giá chuẩn nhất, anh cho em xin diện tích đất và '
+            'dự kiến khi nào khởi công ạ?"</i></p>'
+            '<p style="margin-bottom:0;">2 thông tin này lọc ra ngay khách thật hay '
+            'tham khảo.</p>'
         )
         body += _advice(
-            '<p style="margin-bottom:0;">Dan 4 cau hoi vang canh man hinh. Sau moi cuoc '
-            'goi, kiem tra da thu duoc <b>du 4 thong tin</b> chua. Thieu cau nao &rArr; lan '
-            'sau hoi tiep cau do.</p>'
+            '<p style="margin-bottom:0;">Dán 4 câu hỏi vàng cạnh màn hình. Sau mỗi cuộc '
+            'gọi, kiểm tra đã thu được <b>đủ 4 thông tin</b> chưa. Thiếu câu nào &rArr; lần '
+            'sau hỏi tiếp câu đó.</p>'
         )
         body += _apply(
-            '<p style="margin-bottom:0;">Tu viet lai <b>4 cau hoi vang theo giong cua ban</b> '
-            '(cho tu nhien) va doc to 3 lan truoc khi goi khach tiep theo. Bat buoc hoi du '
-            '4 cau trong cuoc goi do.</p>'
+            '<p style="margin-bottom:0;">Tự viết lại <b>4 câu hỏi vàng theo giọng của bạn</b> '
+            '(cho tự nhiên) và đọc to 3 lần trước khi gọi khách tiếp theo. Bắt buộc hỏi đủ '
+            '4 câu trong cuộc gọi đó.</p>'
         )
         return body
 
     def _page5(self, h2, h3, lead):
         return (
-            '<h2 style="' + h2 + '">PHAN 5 &mdash; Phan loai khach hang</h2>'
-            '<p style="' + lead + '">Sau khi co 4 thong tin, xep khach vao 1 trong 3 nhom '
-            'de biet <b>muc tieu xu ly</b> ro rang.</p>'
-            '<table><thead><tr><th style="width:120px;">Nhom</th><th>Dac diem</th>'
-            '<th style="width:96px;text-align:center;">Muc do</th><th>Muc tieu xu ly</th></tr></thead><tbody>'
+            '<h2 style="' + h2 + '">PHẦN 5 &mdash; Phân loại khách hàng</h2>'
+            '<p style="' + lead + '">Sau khi có 4 thông tin, xếp khách vào 1 trong 3 nhóm '
+            'để biết <b>mục tiêu xử lý</b> rõ ràng.</p>'
+            '<table><thead><tr><th style="width:120px;">Nhóm</th><th>Đặc điểm</th>'
+            '<th style="width:96px;text-align:center;">Mức độ</th><th>Mục tiêu xử lý</th></tr></thead><tbody>'
 
-            '<tr><td><b style="color:#16a34a;">NHOM A</b><br/>Cuc ky tiem nang</td>'
-            '<td>Co thoi gian khoi cong &middot; Co tai chinh phu hop &middot; Co mau nha phu hop.</td>'
+            '<tr><td><b style="color:#16a34a;">NHÓM A</b><br/>Cực kỳ tiềm năng</td>'
+            '<td>Có thời gian khởi công &middot; Có tài chính phù hợp &middot; Có mẫu nhà phù hợp.</td>'
             '<td style="text-align:center;color:#f59e0b;">&#9733;&#9733;&#9733;&#9733;&#9733;</td>'
-            '<td>&#10145; Keo ve <b>khao sat</b>.<br/>&#10145; <b>Ky giu gia</b>.</td></tr>'
+            '<td>&#10145; Kéo về <b>khảo sát</b>.<br/>&#10145; <b>Ký giữ giá</b>.</td></tr>'
 
-            '<tr><td><b style="color:#d97706;">NHOM B</b><br/>Tiem nang chua chin</td>'
-            '<td>Co thoi gian xay, nhung <b>tai chinh chua du</b> hoac <b>chua chon duoc mau</b>.</td>'
+            '<tr><td><b style="color:#d97706;">NHÓM B</b><br/>Tiềm năng chưa chín</td>'
+            '<td>Có thời gian xây, nhưng <b>tài chính chưa đủ</b> hoặc <b>chưa chọn được mẫu</b>.</td>'
             '<td style="text-align:center;color:#f59e0b;">&#9733;&#9733;&#9733;</td>'
-            '<td>&#10145; Tu van <b>can doi tai chinh</b>.<br/>&#10145; <b>Dieu chinh mau nha</b>.<br/>'
-            '&#10145; Hoan thien phuong an.</td></tr>'
+            '<td>&#10145; Tư vấn <b>cân đối tài chính</b>.<br/>&#10145; <b>Điều chỉnh mẫu nhà</b>.<br/>'
+            '&#10145; Hoàn thiện phương án.</td></tr>'
 
-            '<tr><td><b style="color:#6b7280;">NHOM C</b><br/>Tham khao</td>'
-            '<td>Chua co thoi gian xay &middot; Chua co tai chinh &middot; Chua co nhu cau ro.</td>'
+            '<tr><td><b style="color:#6b7280;">NHÓM C</b><br/>Tham khảo</td>'
+            '<td>Chưa có thời gian xây &middot; Chưa có tài chính &middot; Chưa có nhu cầu rõ.</td>'
             '<td style="text-align:center;color:#f59e0b;">&#9733;</td>'
-            '<td>&#10145; Giu lien he.<br/>&#10145; Cham soc dinh ky.<br/>'
-            '<b style="color:#dc2626;">Khong don ky.</b></td></tr>'
+            '<td>&#10145; Giữ liên hệ.<br/>&#10145; Chăm sóc định kỳ.<br/>'
+            '<b style="color:#dc2626;">Không dồn ký.</b></td></tr>'
             '</tbody></table>'
 
             + _proof(
-                '<p style="margin-bottom:0;">Phan nhom giup ban <b>phan bo thoi gian dung '
-                'cho</b>: don luc vao Nhom A (sap ky), nuoi duong Nhom B (sua phuong an cho '
-                'kha thi), va khong "dot" nang luong vao Nhom C. Dung nhom &rArr; ty le chot '
-                'tang, thoi gian khong bi lang phi.</p>'
+                '<p style="margin-bottom:0;">Phân nhóm giúp bạn <b>phân bổ thời gian đúng '
+                'chỗ</b>: dồn lực vào Nhóm A (sắp ký), nuôi dưỡng Nhóm B (sửa phương án cho '
+                'khả thi), và không "đốt" năng lượng vào Nhóm C. Đúng nhóm &rArr; tỷ lệ chốt '
+                'tăng, thời gian không bị lãng phí.</p>'
             )
 
             + _mistake(
-                '<p style="margin-bottom:0;">Don ky Nhom C (chua co thoi gian, chua co tien) '
-                '&rArr; khach so, mat thien cam, va ban mat thoi gian dang le danh cho Nhom A.</p>'
+                '<p style="margin-bottom:0;">Dồn ký Nhóm C (chưa có thời gian, chưa có tiền) '
+                '&rArr; khách sợ, mất thiện cảm, và bạn mất thời gian đáng lẽ dành cho Nhóm A.</p>'
             )
 
             + _advice(
-                '<p style="margin-bottom:0;">Voi Nhom B, dung bo &mdash; day la "mo vang" '
-                'thuong bi bo qua. Chi can <b>can doi tai chinh / doi mau cho khop</b> la ho '
-                'len Nhom A. Hoc ky cac khoa "Can doi tien", "Chuyen doi mau nha" de xu ly '
-                'Nhom B.</p>'
+                '<p style="margin-bottom:0;">Với Nhóm B, đừng bỏ &mdash; đây là "mỏ vàng" '
+                'thường bị bỏ qua. Chỉ cần <b>cân đối tài chính / đổi mẫu cho khớp</b> là họ '
+                'lên Nhóm A. Học kỹ các khóa "Cân đối tiền", "Chuyển đổi mẫu nhà" để xử lý '
+                'Nhóm B.</p>'
             )
 
             + _apply(
-                '<p style="margin-bottom:0;">Ngay hom nay, gan <b>nhan A / B / C</b> cho tat '
-                'ca khach ban dang theo. Liet ke ro: Nhom A goi lich khao sat truoc; Nhom B '
-                'ghi ro "thieu gi" (tien hay mau) de xu ly.</p>'
+                '<p style="margin-bottom:0;">Ngay hôm nay, gắn <b>nhãn A / B / C</b> cho tất '
+                'cả khách bạn đang theo. Liệt kê rõ: Nhóm A gọi lịch khảo sát trước; Nhóm B '
+                'ghi rõ "thiếu gì" (tiền hay mẫu) để xử lý.</p>'
             )
         )
 
     def _page6(self, h2, h3, lead):
         return (
-            '<h2 style="' + h2 + '">PHAN 6 &mdash; Cach chot khach tiem nang</h2>'
-            '<p style="' + lead + '">Khi khach da co <b>du 3 dieu kien</b> (&#9989; thoi '
-            'gian xay &middot; &#9989; tai chinh phu hop &middot; &#9989; mau nha phu hop) '
-            'thi <b>khong tu van lan man nua</b>. Chuyen ngay sang 3 buoc chot:</p>'
+            '<h2 style="' + h2 + '">PHẦN 6 &mdash; Cách chốt khách tiềm năng</h2>'
+            '<p style="' + lead + '">Khi khách đã có <b>đủ 3 điều kiện</b> (&#9989; thời '
+            'gian xây &middot; &#9989; tài chính phù hợp &middot; &#9989; mẫu nhà phù hợp) '
+            'thì <b>không tư vấn lan man nữa</b>. Chuyển ngay sang 3 bước chốt:</p>'
 
-            '<table><thead><tr><th style="width:140px;">Buoc chot</th><th>Cau noi mau</th></tr></thead><tbody>'
-            '<tr><td><b>&#128205; Khao sat</b></td>'
-            '<td><i>"De phuong an chinh xac nhat, em xin lich khao sat thuc te giup '
-            'anh/chi."</i></td></tr>'
-            '<tr><td><b>&#128176; Giu gia</b></td>'
-            '<td><i>"Hien tai ben em dang ap dung chinh sach giu gia 12 thang, minh chot '
-            'som se chu dong hon rat nhieu khi trien khai."</i></td></tr>'
-            '<tr><td><b>&#128396; Thiet ke som</b></td>'
-            '<td><i>"Nhung khach chuan bi xay sau Tet thuong trien khai thiet ke tu bay gio '
-            'de co thoi gian chinh sua cong nang, tranh sat ngay thi cong phai sua nhieu '
-            'lan."</i></td></tr>'
+            '<table><thead><tr><th style="width:140px;">Bước chốt</th><th>Câu nói mẫu</th></tr></thead><tbody>'
+            '<tr><td><b>&#128205; Khảo sát</b></td>'
+            '<td><i>"Để phương án chính xác nhất, em xin lịch khảo sát thực tế giúp '
+            'anh/chị."</i></td></tr>'
+            '<tr><td><b>&#128176; Giữ giá</b></td>'
+            '<td><i>"Hiện tại bên em đang áp dụng chính sách giữ giá 12 tháng, mình chốt '
+            'sớm sẽ chủ động hơn rất nhiều khi triển khai."</i></td></tr>'
+            '<tr><td><b>&#128396; Thiết kế sớm</b></td>'
+            '<td><i>"Những khách chuẩn bị xây sau Tết thường triển khai thiết kế từ bây giờ '
+            'để có thời gian chỉnh sửa công năng, tránh sát ngày thi công phải sửa nhiều '
+            'lần."</i></td></tr>'
             '</tbody></table>'
 
             + _situation(
-                '<p>Khach Nhom A: "Qua Tet anh xay, anh co 1,4 ty, thich 2 tang hien dai, '
-                'dat 5x20."</p>'
-                '<p style="margin-bottom:0;">&rArr; Du dieu kien. Khong gui them mau de '
-                '"suy nghi" nua. Chot lich khao sat + neu chinh sach giu gia 12 thang + de '
-                'xuat thiet ke som. <b>Cang keo dai cang de mat vao tay doi thu.</b></p>'
+                '<p>Khách Nhóm A: "Qua Tết anh xây, anh có 1,4 tỷ, thích 2 tầng hiện đại, '
+                'đất 5x20."</p>'
+                '<p style="margin-bottom:0;">&rArr; Đủ điều kiện. Không gửi thêm mẫu để '
+                '"suy nghĩ" nữa. Chốt lịch khảo sát + nêu chính sách giữ giá 12 tháng + đề '
+                'xuất thiết kế sớm. <b>Càng kéo dài càng dễ mất vào tay đối thủ.</b></p>'
             )
 
-            + '<h2 style="' + h2 + '">&#127942; Ket luan nhan vien phai nho</h2>'
+            + '<h2 style="' + h2 + '">&#127942; Kết luận nhân viên phải nhớ</h2>'
             + _formula(
-                'Khong phai khach noi nhieu / xin nhieu mau la tiem nang.<br/>'
-                'Khach tiem nang that = <b>(1) Thoi gian khoi cong tuong doi ro</b> '
-                '&#10133; <b>(2) Tai chinh phu hop voi mau nha &amp; dien tich dat</b>.'
+                'Không phải khách nói nhiều / xin nhiều mẫu là tiềm năng.<br/>'
+                'Khách tiềm năng thật = <b>(1) Thời gian khởi công tương đối rõ</b> '
+                '&#10133; <b>(2) Tài chính phù hợp với mẫu nhà &amp; diện tích đất</b>.'
             )
-            + '<p style="text-align:center;font-size:16px;">Co du 2 dieu nay &rArr; '
-            '<b style="color:#16a34a;">Bam sat &#10145; Khao sat &#10145; Giu gia &#10145; '
-            'Ky hop dong.</b></p>'
-            '<p style="text-align:center;color:#475569;">Do moi la khach hang mang lai '
-            '<b>doanh thu</b> cho cong ty.</p>'
+            + '<p style="text-align:center;font-size:16px;">Có đủ 2 điều này &rArr; '
+            '<b style="color:#16a34a;">Bám sát &#10145; Khảo sát &#10145; Giữ giá &#10145; '
+            'Ký hợp đồng.</b></p>'
+            '<p style="text-align:center;color:#475569;">Đó mới là khách hàng mang lại '
+            '<b>doanh thu</b> cho công ty.</p>'
 
             + _apply(
-                '<p>Bang tu cham truoc khi roi moi khach (tra loi Co/Khong):</p>'
+                '<p>Bảng tự chấm trước khi rời mỗi khách (trả lời Có/Không):</p>'
                 '<ol>'
-                '<li>Da biet <b>thoi gian khoi cong</b> chua?</li>'
-                '<li>Da biet <b>tai chinh</b> chua?</li>'
-                '<li>Da biet <b>mau nha + dien tich dat</b> chua?</li>'
-                '<li>Da <b>xep nhom A/B/C</b> chua?</li>'
-                '<li>Neu Nhom A: da <b>chot khao sat / neu giu gia</b> chua?</li>'
+                '<li>Đã biết <b>thời gian khởi công</b> chưa?</li>'
+                '<li>Đã biết <b>tài chính</b> chưa?</li>'
+                '<li>Đã biết <b>mẫu nhà + diện tích đất</b> chưa?</li>'
+                '<li>Đã <b>xếp nhóm A/B/C</b> chưa?</li>'
+                '<li>Nếu Nhóm A: đã <b>chốt khảo sát / nêu giữ giá</b> chưa?</li>'
                 '</ol>'
-                '<p style="margin-bottom:0;">Con o nao "Khong" &rArr; do chinh la viec '
-                'phai lam o cuoc goi tiep theo.</p>'
+                '<p style="margin-bottom:0;">Còn ô nào "Không" &rArr; đó chính là việc '
+                'phải làm ở cuộc gọi tiếp theo.</p>'
             )
         )
 
     # ==================================================================
-    #  20 CAU HOI TRAC NGHIEM (ep nho + van dung). (dap an, dung?)
+    #  20 CÂU HỎI TRẮC NGHIỆM (ép nhớ + vận dụng). (đáp án, đúng?)
     # ==================================================================
     def _vd_khtn_questions(self):
         T, F = True, False
         return [
-            ('Trong xay nha tron goi, khach co ky hop dong hay khong phu thuoc chinh vao may yeu to cot loi?',
-             [('2 yeu to: thoi gian khoi cong va tai chinh-mau-dat khop nhau', T),
-              ('1 yeu to: khach noi nhieu hay it', F),
-              ('3 yeu to: gia, khuyen mai, qua tang', F),
-              ('Khong yeu to nao, hoan toan may rui', F)]),
+            ('Trong xây nhà trọn gói, khách có ký hợp đồng hay không phụ thuộc chính vào mấy yếu tố cốt lõi?',
+             [('2 yếu tố: thời gian khởi công và tài chính-mẫu-đất khớp nhau', T),
+              ('1 yếu tố: khách nói nhiều hay ít', F),
+              ('3 yếu tố: giá, khuyến mãi, quà tặng', F),
+              ('Không yếu tố nào, hoàn toàn may rủi', F)]),
 
-            ('Cach hieu nao SAI ve khach hang tiem nang?',
-             [('Khach noi nhieu / xin nhieu mau nghia la tiem nang', T),
-              ('Khach co ke hoach khoi cong thuc te', F),
-              ('Khach co tai chinh phu hop mau nha', F),
-              ('Khach co thoi gian xay tuong doi ro', F)]),
+            ('Cách hiểu nào SAI về khách hàng tiềm năng?',
+             [('Khách nói nhiều / xin nhiều mẫu nghĩa là tiềm năng', T),
+              ('Khách có kế hoạch khởi công thực tế', F),
+              ('Khách có tài chính phù hợp mẫu nhà', F),
+              ('Khách có thời gian xây tương đối rõ', F)]),
 
-            ('Hai tieu chi xac dinh khach hang tiem nang la gi?',
-             [('Co ke hoach khoi cong thuc te + tai chinh phu hop mau nha', T),
-              ('Noi nhieu + hoi nhieu', F),
-              ('Xin nhieu mau + tra gia gioi', F),
-              ('O gan cong ty + quen biet', F)]),
+            ('Hai tiêu chí xác định khách hàng tiềm năng là gì?',
+             [('Có kế hoạch khởi công thực tế + tài chính phù hợp mẫu nhà', T),
+              ('Nói nhiều + hỏi nhiều', F),
+              ('Xin nhiều mẫu + trả giá giỏi', F),
+              ('Ở gần công ty + quen biết', F)]),
 
-            ('Tieu chi nao duoc coi la QUAN TRONG NHAT de loc khach that - gia?',
-             [('Thoi gian khoi cong', T),
-              ('Khach co thich noi chuyen khong', F),
-              ('Khach hoi gia bao nhieu lan', F),
-              ('So luong mau khach xin', F)]),
+            ('Tiêu chí nào được coi là QUAN TRỌNG NHẤT để lọc khách thật - giả?',
+             [('Thời gian khởi công', T),
+              ('Khách có thích nói chuyện không', F),
+              ('Khách hỏi giá bao nhiêu lần', F),
+              ('Số lượng mẫu khách xin', F)]),
 
-            ('Cau noi nao the hien khach CHUA co nhu cau that?',
-             [('"Dang xem thoi, tu tu tinh, de tham khao truoc"', T),
-              ('"Qua Tet anh xay"', F),
-              ('"Thang 2 am anh lam mong"', F),
-              ('"Dat xong roi, gio dang chuan bi"', F)]),
+            ('Câu nói nào thể hiện khách CHƯA có nhu cầu thật?',
+             [('"Đang xem thôi, từ từ tính, để tham khảo trước"', T),
+              ('"Qua Tết anh xây"', F),
+              ('"Tháng 2 âm anh làm móng"', F),
+              ('"Đất xong rồi, giờ đang chuẩn bị"', F)]),
 
-            ('Khach noi "Qua Tet anh xay / Cuoi nam anh khoi cong / Dat xong roi dang chuan bi" thuoc nhom nao?',
-             [('Khach cuc ky tiem nang (5 sao) - phai bam sat', T),
-              ('Khach tham khao (1 sao) - bo qua', F),
-              ('Khach khong co nhu cau', F),
-              ('Khach chi hoi cho vui', F)]),
+            ('Khách nói "Qua Tết anh xây / Cuối năm anh khởi công / Đất xong rồi đang chuẩn bị" thuộc nhóm nào?',
+             [('Khách cực kỳ tiềm năng (5 sao) - phải bám sát', T),
+              ('Khách tham khảo (1 sao) - bỏ qua', F),
+              ('Khách không có nhu cầu', F),
+              ('Khách chỉ hỏi cho vui', F)]),
 
-            ('Khach noi "Chac trong nam nay xay, dang chuan bi tai chinh, dang hoan thien giay to" thuoc nhom nao?',
-             [('Tiem nang trung binh (3 sao) - can theo doi', T),
-              ('Cuc ky tiem nang (5 sao)', F),
-              ('Tham khao (1 sao)', F),
-              ('Khong tiem nang', F)]),
+            ('Khách nói "Chắc trong năm nay xây, đang chuẩn bị tài chính, đang hoàn thiện giấy tờ" thuộc nhóm nào?',
+             [('Tiềm năng trung bình (3 sao) - cần theo dõi', T),
+              ('Cực kỳ tiềm năng (5 sao)', F),
+              ('Tham khảo (1 sao)', F),
+              ('Không tiềm năng', F)]),
 
-            ('Voi nhom khach tham khao (1 sao: "chua biet, dang tim hieu, hoi truoc thoi"), nhan vien nen?',
-             [('Khong danh qua nhieu thoi gian, giu lien he cham soc dinh ky', T),
-              ('Don het suc ep ky ngay', F),
-              ('Goi lien tuc moi ngay de ep', F),
-              ('Bao gia that thap de ky gap', F)]),
+            ('Với nhóm khách tham khảo (1 sao: "chưa biết, đang tìm hiểu, hỏi trước thôi"), nhân viên nên?',
+             [('Không dành quá nhiều thời gian, giữ liên hệ chăm sóc định kỳ', T),
+              ('Dồn hết sức ép ký ngay', F),
+              ('Gọi liên tục mỗi ngày để ép', F),
+              ('Báo giá thật thấp để ký gấp', F)]),
 
-            ('Dat 5x20, khach thich nha 2 tang hien dai, tai chinh 1,4 ty. Danh gia?',
-             [('Hop ly - day la khach rat tiem nang', T),
-              ('Khong kha thi', F),
-              ('Khong du tien', F),
-              ('Khong xac dinh duoc', F)]),
+            ('Đất 5x20, khách thích nhà 2 tầng hiện đại, tài chính 1,4 tỷ. Đánh giá?',
+             [('Hợp lý - đây là khách rất tiềm năng', T),
+              ('Không khả thi', F),
+              ('Không đủ tiền', F),
+              ('Không xác định được', F)]),
 
-            ('Dat 5x20, khach thich tan co dien 3 tang, tai chinh 1 ty. Danh gia?',
-             [('Khong kha thi - chua phai khach tiem nang', T),
-              ('Hop ly - khach rat tiem nang', F),
-              ('Du tien thoai mai', F),
-              ('Chac chan ky duoc ngay', F)]),
+            ('Đất 5x20, khách thích tân cổ điển 3 tầng, tài chính 1 tỷ. Đánh giá?',
+             [('Không khả thi - chưa phải khách tiềm năng', T),
+              ('Hợp lý - khách rất tiềm năng', F),
+              ('Đủ tiền thoải mái', F),
+              ('Chắc chắn ký được ngay', F)]),
 
-            ('Cong thuc "Khach tiem nang =" gom day du nhung yeu to nao?',
-             [('Thoi gian xay ro rang + Tai chinh phu hop + Mau nha phu hop + Dien tich dat phu hop', T),
-              ('Thoi gian xay + so dien thoai', F),
-              ('Tai chinh + qua tang', F),
-              ('Mau nha dep + gia re', F)]),
+            ('Công thức "Khách tiềm năng =" gồm đầy đủ những yếu tố nào?',
+             [('Thời gian xây rõ ràng + Tài chính phù hợp + Mẫu nhà phù hợp + Diện tích đất phù hợp', T),
+              ('Thời gian xây + số điện thoại', F),
+              ('Tài chính + quà tặng', F),
+              ('Mẫu nhà đẹp + giá rẻ', F)]),
 
-            ('Muc dich cua cau hoi "Anh/chi du kien khoang thoi gian nao se bat dau trien khai xay dung?"',
-             [('Xac dinh thoi gian khoi cong', T),
-              ('Xac dinh tai chinh', F),
-              ('Xac dinh dien tich dat', F),
-              ('Xac dinh phong cach mau nha', F)]),
+            ('Mục đích của câu hỏi "Anh/chị dự kiến khoảng thời gian nào sẽ bắt đầu triển khai xây dựng?"',
+             [('Xác định thời gian khởi công', T),
+              ('Xác định tài chính', F),
+              ('Xác định diện tích đất', F),
+              ('Xác định phong cách mẫu nhà', F)]),
 
-            ('Muc dich cua cau hoi "Anh/chi dang du tru khoang bao nhieu kinh phi cho can nha?"',
-             [('Xac dinh kha nang tai chinh', T),
-              ('Xac dinh thoi gian khoi cong', F),
-              ('Xac dinh dien tich dat', F),
-              ('Xac dinh mau nha', F)]),
+            ('Mục đích của câu hỏi "Anh/chị đang dự trù khoảng bao nhiêu kinh phí cho căn nhà?"',
+             [('Xác định khả năng tài chính', T),
+              ('Xác định thời gian khởi công', F),
+              ('Xác định diện tích đất', F),
+              ('Xác định mẫu nhà', F)]),
 
-            ('Muc dich cua cau hoi "Dien tich dat hien tai cua minh la bao nhieu met vuong?"',
-             [('Kiem tra tinh kha thi (mau + tai chinh co khop dat khong)', T),
-              ('Xac dinh thoi gian khoi cong', F),
-              ('Xac dinh so tang khach muon', F),
-              ('De tinh tien hoa hong', F)]),
+            ('Mục đích của câu hỏi "Diện tích đất hiện tại của mình là bao nhiêu mét vuông?"',
+             [('Kiểm tra tính khả thi (mẫu + tài chính có khớp đất không)', T),
+              ('Xác định thời gian khởi công', F),
+              ('Xác định số tầng khách muốn', F),
+              ('Để tính tiền hoa hồng', F)]),
 
-            ('Khach NHOM A (co thoi gian + tai chinh phu hop + mau phu hop) thi muc tieu xu ly la?',
-             [('Keo ve khao sat va ky giu gia', T),
-              ('Giu lien he, cham soc dinh ky', F),
-              ('Chi gui them mau roi cho', F),
-              ('Khong lam gi, doi khach goi lai', F)]),
+            ('Khách NHÓM A (có thời gian + tài chính phù hợp + mẫu phù hợp) thì mục tiêu xử lý là?',
+             [('Kéo về khảo sát và ký giữ giá', T),
+              ('Giữ liên hệ, chăm sóc định kỳ', F),
+              ('Chỉ gửi thêm mẫu rồi chờ', F),
+              ('Không làm gì, đợi khách gọi lại', F)]),
 
-            ('Khach NHOM B (co thoi gian xay nhung tai chinh chua du hoac chua chon mau) nen xu ly the nao?',
-             [('Tu van can doi tai chinh, dieu chinh mau nha, hoan thien phuong an', T),
-              ('Bo qua vi khong du tien', F),
-              ('Ep ky ngay du chua kha thi', F),
-              ('Bao gia cao hon de lai', F)]),
+            ('Khách NHÓM B (có thời gian xây nhưng tài chính chưa đủ hoặc chưa chọn mẫu) nên xử lý thế nào?',
+             [('Tư vấn cân đối tài chính, điều chỉnh mẫu nhà, hoàn thiện phương án', T),
+              ('Bỏ qua vì không đủ tiền', F),
+              ('Ép ký ngay dù chưa khả thi', F),
+              ('Báo giá cao hơn để lãi', F)]),
 
-            ('Khach NHOM C (chua co thoi gian, chua co tai chinh, chua co nhu cau ro) thi?',
-             [('Giu lien he, cham soc dinh ky, KHONG don ky', T),
-              ('Don ky cang som cang tot', F),
-              ('Goi lich khao sat ngay', F),
-              ('Ky giu gia ngay lap tuc', F)]),
+            ('Khách NHÓM C (chưa có thời gian, chưa có tài chính, chưa có nhu cầu rõ) thì?',
+             [('Giữ liên hệ, chăm sóc định kỳ, KHÔNG dồn ký', T),
+              ('Dồn ký càng sớm càng tốt', F),
+              ('Gọi lịch khảo sát ngay', F),
+              ('Ký giữ giá ngay lập tức', F)]),
 
-            ('Khi khach da du 3 dieu kien (thoi gian, tai chinh, mau nha phu hop), buoc tiep theo dung nhat la?',
-             [('Chuyen sang chot: khao sat - giu gia - thiet ke som', T),
-              ('Tiep tuc tu van lan man them nhieu mau', F),
-              ('Cho khach tu suy nghi vo thoi han', F),
-              ('Gui them bang gia roi im lang', F)]),
+            ('Khi khách đã đủ 3 điều kiện (thời gian, tài chính, mẫu nhà phù hợp), bước tiếp theo đúng nhất là?',
+             [('Chuyển sang chốt: khảo sát - giữ giá - thiết kế sớm', T),
+              ('Tiếp tục tư vấn lan man thêm nhiều mẫu', F),
+              ('Cho khách tự suy nghĩ vô thời hạn', F),
+              ('Gửi thêm bảng giá rồi im lặng', F)]),
 
-            ('Cau noi "Hien tai ben em dang ap dung chinh sach giu gia 12 thang, minh chot som se chu dong hon" thuoc buoc chot nao?',
-             [('Giu gia', T),
-              ('Khao sat', F),
-              ('Thiet ke som', F),
-              ('Bao gia lai', F)]),
+            ('Câu nói "Hiện tại bên em đang áp dụng chính sách giữ giá 12 tháng, mình chốt sớm sẽ chủ động hơn" thuộc bước chốt nào?',
+             [('Giữ giá', T),
+              ('Khảo sát', F),
+              ('Thiết kế sớm', F),
+              ('Báo giá lại', F)]),
 
-            ('Ket luan cot loi nhan vien phai nho la gi?',
-             [('Khach tiem nang that phai co thoi gian khoi cong tuong doi ro VA tai chinh phu hop voi mau nha + dien tich dat', T),
-              ('Khach noi cang nhieu cang tiem nang', F),
-              ('Khach xin cang nhieu mau cang de ky', F),
-              ('Cu bao gia that thap thi khach nao cung ky', F)]),
+            ('Kết luận cốt lõi nhân viên phải nhớ là gì?',
+             [('Khách tiềm năng thật phải có thời gian khởi công tương đối rõ VÀ tài chính phù hợp với mẫu nhà + diện tích đất', T),
+              ('Khách nói càng nhiều càng tiềm năng', F),
+              ('Khách xin càng nhiều mẫu càng dễ ký', F),
+              ('Cứ báo giá thật thấp thì khách nào cũng ký', F)]),
         ]
