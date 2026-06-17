@@ -165,8 +165,14 @@
                         t-on-click="() => this.setTab('content')"><i class="fa fa-book me-2"/>Nội dung</button>
                     <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
                         t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
-                    <span t-if="!props.editable &amp;&amp; state.examStarted &amp;&amp; !state.examResult" class="o_vd_ce_examflag"><i class="fa fa-lock me-1"/>Đang thi - nội dung đã ẩn</span>
                     <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>CẤU HÌNH</button>
+                    <!-- BO DEM GIO + LUOT THI - nen do tuoi, cung dong voi tab Bai thi -->
+                    <div t-if="!props.editable &amp;&amp; state.contentLocked" class="o_vd_exam_timer_bar">
+                        <span class="o_vd_exam_clock"><i class="fa fa-clock-o me-1"/><t t-esc="timeLeftLabel"/></span>
+                        <span class="o_vd_exam_metait"><i class="fa fa-check-square-o me-1"/><t t-esc="answeredCount"/>/<t t-esc="state.questions.length"/></span>
+                        <span class="o_vd_exam_metait"><i class="fa fa-repeat me-1"/>Lượt <t t-esc="attemptLabel"/></span>
+                        <span class="o_vd_exam_lockflag"><i class="fa fa-lock"/></span>
+                    </div>
                 </div>
 
                 <div class="o_vd_ce_body">
@@ -256,17 +262,10 @@
 
                         <!-- HOC VIEN: lam bai thi -->
                         <t t-else="">
-                            <!-- THANH DONG HO + LUOT THI (khi dang thi, chua co ket qua) -->
-                            <div t-if="state.examStarted &amp;&amp; !state.examResult"
-                                 t-attf-class="o_vd_exam_bar {{timeLow ? 'o_vd_exam_bar_low' : ''}}">
-                                <div class="o_vd_exam_timer">
-                                    <i class="fa fa-clock-o"/>
-                                    <span class="o_vd_exam_clock" t-esc="timeLeftLabel"/>
-                                </div>
-                                <div class="o_vd_exam_meta">
-                                    <span class="o_vd_exam_metait"><i class="fa fa-check-square-o me-1"/>Đã làm <b><t t-esc="answeredCount"/>/<t t-esc="state.questions.length"/></b></span>
-                                    <span class="o_vd_exam_metait"><i class="fa fa-repeat me-1"/>Lượt thi <b><t t-esc="attemptLabel"/></b></span>
-                                </div>
+                            <!-- Da nop nhung CHUA het gio: van khoa noi dung, dem tiep -->
+                            <div t-if="state.examResult &amp;&amp; state.contentLocked" class="o_vd_exam_waitlock">
+                                <i class="fa fa-lock me-1"/>Phải hết giờ thi mới được xem lại nội dung khóa học.
+                                Còn <b t-esc="timeLeftLabel"/>.
                             </div>
 
                             <div t-if="state.examResult" t-attf-class="o_vd_ce_score {{state.examResult.passed ? 'pass' : 'fail'}}">
@@ -321,9 +320,10 @@
                 <t t-elif="state.examResult">
                     <button t-if="!state.examResult.passed &amp;&amp; canRetry" class="btn o_vd_dlg_ok" t-on-click="retryExam"><i class="fa fa-redo me-1"/>Thi lại</button>
                     <span t-if="!state.examResult.passed &amp;&amp; !canRetry" class="o_vd_ce_norun"><i class="fa fa-ban me-1"/>Đã hết lượt thi lại</span>
-                    <button class="btn btn-light" t-on-click="reviewContent"><i class="fa fa-book me-1"/>Xem lại nội dung</button>
+                    <button t-if="!state.contentLocked" class="btn btn-light" t-on-click="reviewContent"><i class="fa fa-book me-1"/>Xem lại nội dung</button>
                 </t>
-                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+                <!-- Khi DANG bi khoa (dang thi / chua het gio) thi KHONG cho dong de thoat -->
+                <button t-if="!state.contentLocked" class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
             </t>
         </Dialog>
     </t>

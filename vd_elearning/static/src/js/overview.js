@@ -5,6 +5,44 @@ import { useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
 import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState, markup } from "@odoo/owl";
 
+// ---- Luu/khoi phuc phien thi (localStorage) de tai lai trang van giu nguyen ----
+// Khoa theo channel; bo dem chay theo endsAt (moc thoi gian tuyet doi) nen reload
+// van dem tiep chinh xac. contentLocked = con phien (now < endsAt) va chua dat.
+const VD_EXAM_PREFIX = "vd_exam_";
+function vdExamKey(cid) {
+    return VD_EXAM_PREFIX + cid;
+}
+function vdLoadExam(cid) {
+    try {
+        return JSON.parse(window.localStorage.getItem(vdExamKey(cid)) || "null");
+    } catch (_) {
+        return null;
+    }
+}
+function vdSaveExam(cid, data) {
+    try {
+        window.localStorage.setItem(vdExamKey(cid), JSON.stringify(data));
+    } catch (_) {}
+}
+function vdClearExam(cid) {
+    try {
+        window.localStorage.removeItem(vdExamKey(cid));
+    } catch (_) {}
+}
+// Tim phien thi DANG dien ra (con thoi gian) de tu mo lai khi reload trang.
+function vdFindActiveExam() {
+    try {
+        const now = Date.now();
+        for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (!k || !k.startsWith(VD_EXAM_PREFIX)) continue;
+            const v = JSON.parse(window.localStorage.getItem(k) || "null");
+            if (v && v.endsAt && now < v.endsAt) return v;
+        }
+    } catch (_) {}
+    return null;
+}
+
 // ---- Trinh soan thao van ban (WYSIWYG) kieu Word/PowerPoint ----
 export class VdRichEditor extends Component {
     static template = "vd_elearning.RichEditor";
@@ -256,6 +294,8 @@ export class VdCourseDialog extends Component {
             examMinutesCfg: data.exam_minutes_cfg || 0,  // cau hinh (0 = auto)
             examMinutes: data.exam_minutes || (data.questions || []).length || 0, // hieu luc
             secondsLeft: 0,                // bo dem nguoc khi thi
+            examEndsAt: 0,                 // moc ket thuc (ms) - de reload dem tiep
+            contentLocked: false,          // khoa noi dung tới khi het gio thi
             attemptCount: 0,
             editingContent: null, // content dang soan (full man hinh)
             examStarted: false,
@@ -274,32 +314,82 @@ export class VdCourseDialog extends Component {
         });
         this._examTimer = null;
         onWillUnmount(() => this._stopTimer());
+        // Khoi phuc phien thi dang do (vd. vua reload trang) - hoc vien thi.
+        if (!this.props.editable) {
+            this._restoreExam();
+        }
     }
     key() {
         return "k" + this._k++;
     }
 
-    // ---- BO DEM THOI GIAN THI ----
+    // ---- BO DEM THOI GIAN THI (theo moc ket thuc tuyet doi endsAt) ----
     _stopTimer() {
         if (this._examTimer) {
             clearInterval(this._examTimer);
             this._examTimer = null;
         }
     }
-    _startTimer() {
-        this._stopTimer();
-        const total = (this.state.examMinutes || 0) * 60;
-        this.state.secondsLeft = total;
-        if (!total) return;
-        this._examTimer = setInterval(() => {
-            this.state.secondsLeft -= 1;
-            if (this.state.secondsLeft <= 0) {
-                this.state.secondsLeft = 0;
-                this._stopTimer();
-                // Het gio -> tu dong nop bai.
+    _tick() {
+        const left = Math.max(0, Math.round((this.state.examEndsAt - Date.now()) / 1000));
+        this.state.secondsLeft = left;
+        if (left <= 0) {
+            this._stopTimer();
+            // Het gio: tu dong nop neu chua nop, va MO khoa noi dung.
+            if (!this.state.examResult) {
                 this.submitExam(true);
             }
-        }, 1000);
+            this.state.contentLocked = false;
+            vdClearExam(this.props.channelId);
+        }
+    }
+    _startTimerTo(endsAt) {
+        this._stopTimer();
+        this.state.examEndsAt = endsAt;
+        this._tick();
+        if (this.state.secondsLeft > 0) {
+            this._examTimer = setInterval(() => this._tick(), 500);
+        }
+    }
+    // Luu phien thi vao localStorage (de reload giu nguyen + dem tiep).
+    _persistExam() {
+        const answers = {};
+        for (const q of this.state.questions) {
+            answers[String(q.id)] = q.answers.filter((a) => a.chosen).map((a) => a.id);
+        }
+        vdSaveExam(this.props.channelId, {
+            channelId: this.props.channelId,
+            courseName: this.state.courseName,
+            endsAt: this.state.examEndsAt,
+            attempt: this.state.attemptCount,
+            result: this.state.examResult,
+            answers,
+        });
+    }
+    _restoreExam() {
+        const sess = vdLoadExam(this.props.channelId);
+        if (!sess || !sess.endsAt) return;
+        const now = Date.now();
+        if (now >= sess.endsAt) {
+            // Het gio tu truoc -> bo phien, khong khoa nua.
+            vdClearExam(this.props.channelId);
+            return;
+        }
+        // Con thoi gian -> khoi phuc dung trang thai dang thi.
+        this.state.attemptCount = sess.attempt || 0;
+        this.state.examStarted = true;
+        this.state.contentLocked = true;
+        this.state.tab = "exam";
+        if (sess.answers) {
+            for (const q of this.state.questions) {
+                const chosen = sess.answers[String(q.id)] || [];
+                for (const a of q.answers) a.chosen = chosen.includes(a.id);
+            }
+        }
+        if (sess.result) {
+            this.state.examResult = sess.result;  // da nop nhung chua het gio -> cho
+        }
+        this._startTimerTo(sess.endsAt);
     }
     get timeLeftLabel() {
         const s = Math.max(0, this.state.secondsLeft || 0);
@@ -325,8 +415,8 @@ export class VdCourseDialog extends Component {
 
     // ---- dieu huong tab ----
     get showContentTab() {
-        // hoc vien dang thi (chua nop) -> AN tab noi dung
-        return this.props.editable || !this.state.examStarted || !!this.state.examResult;
+        // Admin luon xem duoc. Hoc vien: KHOA noi dung khi dang thi / chua het gio.
+        return this.props.editable || !this.state.contentLocked;
     }
     setTab(t) {
         if (t === "content" && !this.showContentTab) return;
@@ -341,11 +431,16 @@ export class VdCourseDialog extends Component {
             for (const a of q.answers) a.chosen = false;
         }
         this.state.tab = "exam";
-        this._startTimer();
+        this.state.contentLocked = true;
+        const endsAt = Date.now() + (this.state.examMinutes || 0) * 60 * 1000;
+        this._persistExam();          // luu truoc (co endsAt set trong _startTimerTo)
+        this._startTimerTo(endsAt);
+        this._persistExam();
     }
     chooseAnswer(q, a) {
         if (this.props.editable || this.state.examResult) return;
         a.chosen = !a.chosen;
+        this._persistExam();
     }
     async submitExam(auto = false) {
         if (this.state.saving || this.state.examResult) return;
@@ -379,6 +474,15 @@ export class VdCourseDialog extends Component {
                 score: res.score, total: res.total, percent: res.percent,
                 passed: res.passed, passPercent: res.pass_percent, map, correct,
             };
+            if (res.passed) {
+                // Dat -> mo khoa noi dung ngay, ket thuc phien.
+                this._stopTimer();
+                this.state.contentLocked = false;
+                vdClearExam(this.props.channelId);
+            } else {
+                // Chua dat -> van khoa noi dung, dong ho tiep tuc dem den het gio.
+                this._persistExam();
+            }
         } finally {
             this.state.saving = false;
         }
@@ -422,6 +526,7 @@ export class VdCourseDialog extends Component {
         }
     }
     reviewContent() {
+        if (this.state.contentLocked) return;  // chua het gio -> khong cho xem noi dung
         this.state.examStarted = false;
         this.state.tab = "content";
     }
@@ -546,6 +651,11 @@ export class VdElearningOverview extends Component {
         this.dragData = null;
         onWillStart(async () => {
             await this.reload();
+            // Reload trang giua chung khi DANG THI -> tu mo lai bai thi, dem tiep.
+            const sess = vdFindActiveExam();
+            if (sess && sess.channelId) {
+                this.openCourse({ id: sess.channelId, name: sess.courseName || "" });
+            }
         });
     }
 

@@ -20,13 +20,33 @@ class SlideChannel(models.Model):
     vd_path_id = fields.Many2one('vd.learning.path', string='Lộ trình',
                                  index=True, ondelete='set null')
 
-    # Cau hinh bai thi.
-    vd_pass_percent = fields.Integer(string='Ty le dat (%)', default=80)
+    # Cau hinh bai thi. Mac dinh: dat 100%, thi lai 3 lan (user spec 2026-06-18).
+    vd_pass_percent = fields.Integer(string='Ty le dat (%)', default=100)
     vd_max_attempts = fields.Integer(string='So lan thi lai toi da', default=3,
                                      help='0 = khong gioi han')
     # Thoi gian lam bai (phut). 0 = tu dong 1 phut/cau (20 cau = 20 phut).
     vd_exam_minutes = fields.Integer(string='Thoi gian thi (phut)', default=0,
                                      help='0 = tu dong 1 phut moi cau')
+
+    @api.model
+    def _vd_apply_course_defaults(self):
+        """Ap mac dinh cho TAT CA khoa (moi + dang co): dat 100%, thi lai 3,
+        thoi gian = so cau (1 phut/cau) - dien luon vao vd_exam_minutes de hien
+        ro so phut. Chay 1 lan duy nhat (guard param) -> khong de len cau hinh
+        admin chinh sau nay."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        if ICP.get_param('vd_elearning.course_defaults_v1') == '1':
+            return True
+        for ch in self.sudo().search([]):
+            quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+            n_q = len(quiz.question_ids) if quiz else 0
+            ch.write({
+                'vd_pass_percent': 100,
+                'vd_max_attempts': 3,
+                'vd_exam_minutes': n_q,  # 20 cau -> 20 phut (hien ro), 0 neu chua co cau
+            })
+        ICP.set_param('vd_elearning.course_defaults_v1', '1')
+        return True
 
     # ------------------------------------------------------------------
     def _vd_is_admin(self):

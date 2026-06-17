@@ -689,36 +689,31 @@ $vd-line2:   #ece7da;
         border-radius: 999px; padding: .4rem .9rem; font-weight: 800; font-size: .82rem;
     }
 
-    // --- Thanh dong ho + luot thi khi DANG THI (sticky tren cung) ---
-    .o_vd_exam_bar {
-        position: sticky; top: 0; z-index: 5;
-        max-width: 1240px; margin: 0 auto .9rem; width: 100%;
-        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-        padding: .7rem 1.2rem; border-radius: 14px; color: #fff;
-        background: linear-gradient(135deg, #2b3350, #3a4063);
-        box-shadow: 0 8px 24px rgba(43,51,80,.35);
-    }
-    .o_vd_exam_timer {
-        display: flex; align-items: center; gap: .55rem;
-        font-weight: 900; font-variant-numeric: tabular-nums;
-        .fa { font-size: 1.3rem; opacity: .9; }
+    // --- Bo dem gio + luot thi NAM CUNG DONG voi tab "Bai thi" - nen DO TUOI ---
+    .o_vd_exam_timer_bar {
+        margin-left: auto; display: flex; align-items: center; gap: .7rem;
+        padding: .35rem .8rem; border-radius: 10px; color: #fff;
+        background: #ff1f1f;
+        box-shadow: 0 4px 14px rgba(255,31,31,.45);
+        animation: vd_exam_pulse 1.1s ease-in-out infinite;
+        font-variant-numeric: tabular-nums;
         .o_vd_exam_clock {
-            font-size: 1.9rem; letter-spacing: 1px; line-height: 1;
-            background: rgba(255,255,255,.14); padding: .15rem .6rem; border-radius: 10px;
+            font-size: 1.35rem; font-weight: 900; letter-spacing: .5px;
+            background: rgba(0,0,0,.18); padding: .1rem .55rem; border-radius: 8px;
+            display: inline-flex; align-items: center;
         }
-    }
-    .o_vd_exam_meta { display: flex; gap: 1.2rem; flex-wrap: wrap; }
-    .o_vd_exam_metait { font-size: .9rem; font-weight: 600; opacity: .95; b { font-weight: 900; } }
-    // Sap het gio -> do + nhap nhay hoi hop
-    .o_vd_exam_bar_low {
-        background: linear-gradient(135deg, #d9381e, #a30d0d);
-        box-shadow: 0 8px 26px rgba(193,57,43,.55);
-        animation: vd_exam_pulse 1s ease-in-out infinite;
-        .o_vd_exam_clock { background: rgba(0,0,0,.22); }
+        .o_vd_exam_metait { font-size: .82rem; font-weight: 700; opacity: .97; }
+        .o_vd_exam_lockflag { opacity: .9; }
     }
     @keyframes vd_exam_pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.012); box-shadow: 0 10px 30px rgba(193,57,43,.8); }
+        0%, 100% { box-shadow: 0 4px 14px rgba(255,31,31,.45); }
+        50% { box-shadow: 0 6px 22px rgba(255,31,31,.85); }
+    }
+    // Da nop nhung chua het gio: dai bao cho het gio moi xem noi dung
+    .o_vd_exam_waitlock {
+        max-width: 1240px; margin: 0 auto .8rem; width: 100%;
+        background: #fff4f4; border: 1px solid #ffd0d0; color: #b91c1c;
+        border-radius: 12px; padding: .7rem 1rem; font-weight: 700; font-size: .9rem;
     }
 
     // --- Danh sach cau hoi khi thi: the cau ro rang, danh dau da lam ---
