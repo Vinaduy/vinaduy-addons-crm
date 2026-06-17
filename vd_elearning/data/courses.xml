@@ -84,6 +84,17 @@
             <field name="vd_role_zone">sales</field>
         </record>
 
+        <!-- Khoa hoc KY NANG: nhan dien khach hang tiem nang (noi dung + 20 cau thi
+             do _vd_seed_kh_tiem_nang seed - xem ham o duoi). -->
+        <record id="course_kh_tiem_nang" model="slide.channel">
+            <field name="name">Kỹ năng nhận diện khách hàng tiềm năng</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">5</field>
+            <field name="vd_pass_percent">80</field>
+            <field name="vd_max_attempts">0</field>
+        </record>
+
         <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
         <record id="course_tn1" model="slide.channel">
             <field name="name">TN1 - Quản lý đội nhóm</field>
@@ -102,4 +113,8 @@
         </record>
 
     </data>
+
+    <!-- Seed noi dung + 20 cau hoi thi cho khoa "nhan dien KH tiem nang".
+         Idempotent: bo qua neu khoa da co noi dung (giu nguyen sua tay cua admin). -->
+    <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
 </odoo>
