@@ -55,6 +55,9 @@ export class VdCrmDashboard extends Component {
             // cuộc gọi) — bảng ghi âm >5' của 3 NV mẫu; {rect, loading, people,
             // min_minutes} | null. Toàn công ty đều xem được.
             refRecHover: null,
+            // Cache dữ liệu GHI ÂM THAM KHẢO — nạp SẴN lúc mở dashboard để hover
+            // hiện NGAY, không trễ 1-2s. {people, min_minutes} | null.
+            refRecData: null,
             // Bảng CUỘC GỌI HÔM NAY (hover nút "Cuộc gọi") — {user_id, name,
             // cx, cy, loading, summary, customers} | null.
             todayCallsHover: null,
@@ -217,6 +220,14 @@ export class VdCrmDashboard extends Component {
 
         onWillStart(async () => {
             await this.loadDashboard();
+            // Nạp SẴN ghi âm tham khảo (global, không theo NV) → hover ra NGAY,
+            // không chờ RPC. Chạy nền, không chặn render dashboard.
+            this.orm.call("crm.lead", "vd_reference_recordings", []).then((d) => {
+                this.state.refRecData = {
+                    people: (d && d.people) || [],
+                    min_minutes: (d && d.min_minutes) || 5,
+                };
+            }).catch(() => {});
             if (this.isTeamManager) {
                 // Manager: danh sách toàn NV. Trưởng nhóm: NV cùng nhóm (backend scope).
                 this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
@@ -1914,6 +1925,17 @@ export class VdCrmDashboard extends Component {
         if (this.state.refRecHover) {
             return;
         }
+        // Đã nạp sẵn → hiện NGAY, không loading.
+        if (this.state.refRecData) {
+            this.state.refRecHover = {
+                rect: this._elRect(ev),
+                loading: false,
+                people: this.state.refRecData.people,
+                min_minutes: this.state.refRecData.min_minutes,
+            };
+            return;
+        }
+        // Chưa kịp nạp xong (hover quá sớm) → hiện spinner rồi nạp.
         this.state.refRecHover = {
             rect: this._elRect(ev),
             loading: true,
@@ -1922,9 +1944,13 @@ export class VdCrmDashboard extends Component {
         };
         try {
             const data = await this.orm.call("crm.lead", "vd_reference_recordings", []);
+            this.state.refRecData = {
+                people: (data && data.people) || [],
+                min_minutes: (data && data.min_minutes) || 5,
+            };
             if (this.state.refRecHover) {
-                this.state.refRecHover.people = (data && data.people) || [];
-                this.state.refRecHover.min_minutes = (data && data.min_minutes) || 5;
+                this.state.refRecHover.people = this.state.refRecData.people;
+                this.state.refRecHover.min_minutes = this.state.refRecData.min_minutes;
                 this.state.refRecHover.loading = false;
             }
         } catch (e) {
@@ -1953,7 +1979,7 @@ export class VdCrmDashboard extends Component {
         if (!h) {
             return "display:none;";
         }
-        return this._popAtRect(h.rect, 880);
+        return this._popAtRect(h.rect, 560);
     }
 
     get recPopStyle() {
