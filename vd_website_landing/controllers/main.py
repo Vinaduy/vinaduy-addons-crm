@@ -72,3 +72,35 @@ class VdWebsiteLanding(http.Controller):
             return request.make_json_response(
                 {'ok': False, 'error': 'Lỗi hệ thống, vui lòng gọi hotline.'})
         return request.make_json_response({'ok': True})
+
+    @http.route('/dich-vu-xay-nha/login', type='http', auth='public',
+                methods=['POST'], csrf=False)
+    def landing_login(self, login=None, password=None, **post):
+        """Đăng nhập từ landing. NV -> vào thẳng CRM, admin -> /odoo (toàn quyền)."""
+        login = (login or '').strip()
+        db = request.session.db
+        if not (login and password):
+            return request.make_json_response(
+                {'ok': False, 'error': 'Nhập tên đăng nhập và mật khẩu.'})
+        try:
+            request.session.authenticate(
+                db, {'login': login, 'password': password, 'type': 'password'})
+        except Exception:
+            return request.make_json_response(
+                {'ok': False, 'error': 'Sai tên đăng nhập hoặc mật khẩu.'})
+        uid = request.session.uid
+        if not uid:
+            return request.make_json_response(
+                {'ok': False, 'error': 'Sai tên đăng nhập hoặc mật khẩu.'})
+        env = request.env(user=uid)
+        # Admin (toàn quyền) -> trang chủ Odoo như cũ; còn lại (NV) -> thẳng CRM.
+        if env.user.has_group('base.group_system'):
+            target = '/odoo'
+        else:
+            target = '/odoo/crm'
+            try:
+                act = env.ref('crm.crm_lead_action_pipeline')
+                target = '/odoo/action-%s' % act.id
+            except Exception:
+                pass
+        return request.make_json_response({'ok': True, 'redirect': target})
