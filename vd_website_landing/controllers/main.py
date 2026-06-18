@@ -22,14 +22,23 @@ _HTML_PATH = os.path.join(
 
 class VdWebsiteLanding(http.Controller):
 
-    @http.route('/dich-vu-xay-nha', type='http', auth='public',
-                website=True, sitemap=True, csrf=False)
-    def landing(self, **kw):
+    def _serve_landing(self):
         with open(_HTML_PATH, 'rb') as f:
             html = f.read()
         return request.make_response(html, headers=[
             ('Content-Type', 'text/html; charset=utf-8'),
         ])
+
+    # Trang chủ: ghi đè route '/' của module website để serve landing.
+    @http.route('/', type='http', auth='public', website=True,
+                sitemap=True, csrf=False)
+    def index(self, **kw):
+        return self._serve_landing()
+
+    @http.route('/dich-vu-xay-nha', type='http', auth='public',
+                website=True, sitemap=True, csrf=False)
+    def landing(self, **kw):
+        return self._serve_landing()
 
     @http.route('/dich-vu-xay-nha/lead', type='http', auth='public',
                 methods=['POST'], csrf=False)
