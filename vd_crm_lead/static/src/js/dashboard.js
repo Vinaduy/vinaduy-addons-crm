@@ -239,40 +239,48 @@ export class VdCrmDashboard extends Component {
         });
 
         onWillStart(async () => {
+            // PERF r3 (user spec 2026-06-20): bootstrap NHẸ TRƯỚC → biết role + uid
+            // để GĐ vào THẲNG chế độ cá nhân, KHÔNG load 'all' thừa (~750ms) rồi mới
+            // load 'self'. Quyết định phạm vi xong mới gọi loadDashboard 1 LẦN.
+            try {
+                const sel0 = this.state.selected_user_id;
+                if ((this._dirDefaultPersonal && !sel0) || sel0) {
+                    const b = await this.orm.call("crm.lead", "dashboard_bootstrap", []);
+                    if (b) {
+                        const cur = b.current_user_id || 0;
+                        if (b.is_manager
+                            && ((b.is_director && this._dirDefaultPersonal && !sel0)
+                                || (sel0 && sel0 === cur))) {
+                            this.state.dirTeamMode = true;
+                            this.state.selected_user_id = cur;
+                        }
+                    }
+                }
+            } catch (_e) { /* bootstrap lỗi → loadDashboard mặc định bên dưới */ }
+            this._dirDefaultPersonal = false;
+
             await this.loadDashboard();
-            // Nạp SẴN ghi âm tham khảo (global, không theo NV) → hover ra NGAY,
-            // không chờ RPC. Chạy nền, không chặn render dashboard.
+            // Nạp SẴN ghi âm tham khảo (global) → hover ra NGAY. Chạy nền.
             this.orm.call("crm.lead", "vd_reference_recordings", []).then((d) => {
                 this.state.refRecData = {
                     people: (d && d.people) || [],
                     min_minutes: (d && d.min_minutes) || 5,
                 };
             }).catch(() => {});
-            // GĐ (manager): mặc định mở chế độ CÁ NHÂN khi vào lần đầu chưa chọn NV,
-            // HOẶC khi F5 đúng lúc đang xem chính mình. goPersonal tự load lại
-            // dashboard (của GĐ) + users phòng + analytics team.
-            if (this.state.is_manager) {
-                const sel = this.state.selected_user_id;
-                // Giám đốc: mặc định mở CÁ NHÂN khi vào lần đầu. Admin giữ "Tất cả
-                // NV". Cả hai: nếu F5 đúng lúc xem chính mình thì coi là CÁ NHÂN.
-                if ((this.state.is_director && this._dirDefaultPersonal && !sel)
-                    || (sel && sel === this.state.current_user_id)) {
-                    this._dirDefaultPersonal = false;
-                    await this.goPersonal();
-                    return;
-                }
-            }
             if (this.isTeamManager) {
-                // Manager: NV toàn cty / phòng (tùy dirTeamMode). Trưởng nhóm: NV nhóm.
-                await this._reloadDashUsers();
-                // PERF (user spec 2026-06-20): KHÔNG await analytics — để dashboard
-                // render NGAY (mở module CRM nhanh), bảng insight tự đổ vào sau.
+                // Danh sách NV cho picker (chạy NỀN — không chặn render).
+                this._reloadDashUsers();
+                // PERF: KHÔNG await analytics — dashboard render NGAY, insight đổ sau.
                 if (this.isAdminView && this.state.adminTab === 'overview') {
                     this.loadAnalytics();
-                }
-                // Trưởng nhóm: analytics scope phòng (chạy nền).
-                if (this.state.is_team_leader) {
+                } else if (this.state.is_team_leader) {
+                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng (nền).
                     this.loadAnalytics();
+                }
+                // GĐ: prefetch SẴN bản "toàn bộ NV" ở NỀN (sau 1.2s, khi trang đã
+                // mượt) để hover nút NHÂN VIÊN hiện NGAY, không phải chờ ~8s.
+                if (this.state.is_manager && this.state.dirTeamMode) {
+                    browser.setTimeout(() => this._prefetchAllEmployees(), 1200);
                 }
             }
         });
@@ -543,14 +551,37 @@ export class VdCrmDashboard extends Component {
         this.state.dirTeamMode = true;
         this.state.empExpanded = false;
         this._anaAll = null;
+        this._anaAllPromise = null;
         this.state.selected_user_id = this.state.current_user_id;
         this._persistSelectedNv();
         this.state.nvDetail = null;
         this.state.analytics = null;
         await this.loadDashboard();
-        await this._reloadDashUsers();
+        this._reloadDashUsers();   // nền — không chặn
         // Analytics bó về phòng ban (scope='team') — chạy nền cho nhẹ.
         this.loadAnalytics('team');
+        // Prefetch lại bản "toàn bộ NV" ở nền cho lần hover sau.
+        if (this.state.is_manager) {
+            browser.setTimeout(() => this._prefetchAllEmployees(), 1200);
+        }
+    }
+
+    // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN (1 promise dùng chung cho cả
+    // prefetch lẫn hover) để hover nút NHÂN VIÊN hiện NGAY thay vì chờ ~8s.
+    _prefetchAllEmployees() {
+        if (this._anaAll) return Promise.resolve();
+        if (!this._anaAllPromise) {
+            this._anaAllPromise = this.orm.call("crm.lead", "dashboard_analytics",
+                [this.state.analyticsFrom, this.state.analyticsTo, null])
+                .then((d) => { this._anaAll = d; })
+                .catch(() => { this._anaAllPromise = null; })  // lỗi → cho thử lại
+                .then(() => {
+                    if (this.state.empExpanded && this._anaAll) {
+                        this.state.analytics = this._anaAll;
+                    }
+                });
+        }
+        return this._anaAllPromise;
     }
 
     // ===== GIÃN / THU bảng NV (GĐ) — đổi phạm vi TẠI CHỖ, không rời trang =====
@@ -560,20 +591,17 @@ export class VdCrmDashboard extends Component {
         // Lưu bản phòng-ban hiện tại để thu lại nhanh.
         if (!this._anaDept && this.state.analytics) this._anaDept = this.state.analytics;
         this.state.empExpanded = true;
-        if (!this._anaAll) {
-            this.state.analyticsLoading = true;
-            try {
-                this._anaAll = await this.orm.call("crm.lead", "dashboard_analytics",
-                    [this.state.analyticsFrom, this.state.analyticsTo, null]);
-            } catch (e) {
-                this.state.empExpanded = false;
-                this.state.analyticsLoading = false;
-                return;
-            }
-            this.state.analyticsLoading = false;
+        if (this._anaAll) {
+            // Đã prefetch sẵn → hiện NGAY.
+            this.state.analytics = this._anaAll;
+            return;
         }
-        // Có thể user đã bỏ chuột trong lúc chờ load → chỉ swap nếu vẫn đang giãn.
-        if (this.state.empExpanded) this.state.analytics = this._anaAll;
+        // Chưa có → chờ promise prefetch (dùng chung, không load đôi); bật spinner.
+        this.state.analyticsLoading = true;
+        await this._prefetchAllEmployees();
+        this.state.analyticsLoading = false;
+        if (this.state.empExpanded && this._anaAll) this.state.analytics = this._anaAll;
+        else if (!this._anaAll) this.state.empExpanded = false;  // load lỗi → thu lại
     }
     // Thu: trả bảng về NV phòng GĐ.
     collapseEmployees() {

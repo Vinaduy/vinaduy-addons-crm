@@ -6504,6 +6504,22 @@ class CrmLead(models.Model):
         return {'people': people, 'min_minutes': min_s // 60}
 
     @api.model
+    def dashboard_bootstrap(self):
+        """Payload SIÊU NHẸ (chỉ group-check + uid) gọi TRƯỚC dashboard_data để
+        client biết role và chọn đúng phạm vi ngay từ đầu → KHÔNG load 'all' thừa
+        rồi mới load 'self' (tiết kiệm ~750ms cho Giám đốc). User spec 2026-06-20 r3.
+        """
+        u = self.env.user
+        return {
+            'current_user_id': u.id,
+            'is_manager': self._dashboard_is_manager(),
+            'is_director': bool(
+                u.has_group('vd_crm_lead.vd_crm_group_deputy_director')
+                and not u.has_group('base.group_system')
+                and not u.has_group('vd_crm_lead.vd_crm_group_admin')),
+        }
+
+    @api.model
     def dashboard_data(self, user_id=None, team_scope=False):
         """Single-payload data for the OWL dashboard.
 

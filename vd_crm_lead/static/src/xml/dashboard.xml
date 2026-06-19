@@ -1761,26 +1761,6 @@
                         </div>
                         </div><!-- /.o_vd_topbar_row -->
 
-                        <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-12) — trên cùng:
-                             KH đã kích hoạt "Làm hợp đồng - Hẹn gặp" (vd_planned_sign_date),
-                             dùng chung dữ liệu leadsPlannedSign. -->
-                        <div t-if="leadsPlannedSign.length" class="o_vd_signed_board">
-                            <div class="o_vd_signed_head">
-                                🏆 KHÁCH ĐÃ LÀM HỢP ĐỒNG
-                                <span class="o_vd_signed_count"><t t-esc="leadsPlannedSign.length"/></span>
-                            </div>
-                            <div class="o_vd_signed_pills">
-                                <div t-foreach="leadsPlannedSign" t-as="c" t-key="c.id"
-                                     class="o_vd_signed_pill"
-                                     t-on-click="() => this.openLead(c.id)"
-                                     t-att-title="c.name + (c.planned_sign_countdown ? ' — ' + c.planned_sign_countdown : '')">
-                                    <span class="o_vd_signed_pill_ico">🏆</span>
-                                    <span class="o_vd_signed_pill_name"><t t-esc="c.name"/></span>
-                                    <span t-if="c.planned_sign_countdown" class="o_vd_signed_pill_date"><t t-esc="c.planned_sign_countdown"/></span>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
                              riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong
                              o_vd_boards_col. dual_cols giờ là flex NGANG. -->
@@ -1959,6 +1939,26 @@
                                   t-att-class="state.problemSort === 'problem' ? 'o_vd_pfilter_on' : ''"
                                   t-on-mouseenter="() => this.setProblemSort('problem')"
                                   title="KH đã tạo vấn đề">⚠️ Vấn đề</span>
+                        </div>
+
+                        <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-20 r3): chuyển
+                             xuống NGAY DƯỚI dòng "Lọc nhanh" và TRÊN bảng THI CÔNG GẤP,
+                             liền 1 khối. Áp dụng cho TOÀN BỘ người dùng. -->
+                        <div t-if="leadsPlannedSign.length" class="o_vd_signed_board o_vd_signed_board_inline">
+                            <div class="o_vd_signed_head">
+                                🏆 KHÁCH ĐÃ LÀM HỢP ĐỒNG
+                                <span class="o_vd_signed_count"><t t-esc="leadsPlannedSign.length"/></span>
+                            </div>
+                            <div class="o_vd_signed_pills">
+                                <div t-foreach="leadsPlannedSign" t-as="c" t-key="c.id"
+                                     class="o_vd_signed_pill"
+                                     t-on-click="() => this.openLead(c.id)"
+                                     t-att-title="c.name + (c.planned_sign_countdown ? ' — ' + c.planned_sign_countdown : '')">
+                                    <span class="o_vd_signed_pill_ico">🏆</span>
+                                    <span class="o_vd_signed_pill_name"><t t-esc="c.name"/></span>
+                                    <span t-if="c.planned_sign_countdown" class="o_vd_signed_pill_date"><t t-esc="c.planned_sign_countdown"/></span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- ===== SECTION 1b: THI CÔNG GẤP — KH cần khởi công ≤ 3 tháng / càng sớm.
