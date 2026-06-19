@@ -5921,8 +5921,11 @@ class CrmLead(models.Model):
         return result
 
     @api.model
-    def dashboard_users(self):
+    def dashboard_users(self, team_scope=False):
         """Danh sách NV để manager chọn xem dashboard theo từng NV.
+
+        team_scope=True (Giám đốc ở chế độ "CÁ NHÂN"): bó về NV cùng PHÒNG BAN
+        với người xem (giống trưởng nhóm) thay vì toàn công ty.
 
         Mỗi NV kèm 2 số liệu cho dropdown CHUYỂN KH:
           - new_not_called: KH mới CHƯA gọi cuộc nào (call_count = 0).
@@ -5936,9 +5939,11 @@ class CrmLead(models.Model):
             u = self.env.user
             return [{'id': u.id, 'name': u.name}]
         from collections import defaultdict
+        # Giám đốc chế độ CÁ NHÂN cũng bó về phòng ban mình (như trưởng nhóm).
+        scope_team = is_team_leader or (is_manager and team_scope)
         user_domain = [('share', '=', False), ('active', '=', True)]
-        if is_team_leader:
-            # Trưởng nhóm: chỉ NV TRONG NHÓM (cùng phòng ban).
+        if scope_team:
+            # Trưởng nhóm / Giám đốc-CÁ NHÂN: chỉ NV TRONG NHÓM (cùng phòng ban).
             user_domain.append(('id', 'in', self._dashboard_team_member_ids()))
         users = self.env['res.users'].search(user_domain, order='name')
         Lead = self.env['crm.lead'].sudo()
@@ -5949,8 +5954,9 @@ class CrmLead(models.Model):
             g['user_id'][0]: (g.get('user_id_count') or g.get('__count') or 0)
             for g in groups if g['user_id']
         }
-        # Manager: chỉ NV có lead. Trưởng nhóm: LIỆT KÊ ĐỦ NV trong nhóm (kể cả 0 KH).
-        listing = users if is_team_leader else users.filtered(
+        # Manager: chỉ NV có lead. Trưởng nhóm / GĐ-CÁ NHÂN: LIỆT KÊ ĐỦ NV trong
+        # nhóm (kể cả 0 KH).
+        listing = users if scope_team else users.filtered(
             lambda u: u.id in user_ids_with_lead)
         # Toàn bộ bucket KHÁCH MỚI của mọi NV — 1 query.
         all_new = Lead.search(
@@ -6498,8 +6504,12 @@ class CrmLead(models.Model):
         return {'people': people, 'min_minutes': min_s // 60}
 
     @api.model
-    def dashboard_data(self, user_id=None):
-        """Single-payload data for the OWL dashboard."""
+    def dashboard_data(self, user_id=None, team_scope=False):
+        """Single-payload data for the OWL dashboard.
+
+        team_scope=True (Giám đốc ở chế độ "CÁ NHÂN"): payload is_team_leader=True
+        để client hiện bảng NV phòng mình (kể cả khi GĐ drill vào 1 NV trong phòng).
+        """
         scope_user, scope_label, domain_user, call_user_domain = self._dashboard_resolve_scope(user_id)
         is_manager = self._dashboard_is_manager()
         # Auto-trash KH 4+ ngày không nghe máy — chạy trước khi tính counts
@@ -6731,12 +6741,22 @@ class CrmLead(models.Model):
             'is_manager': is_manager,
             # Trưởng nhóm: mở "giao diện quản lý NHÓM" (chọn/xem NV cùng phòng ban),
             # KHÔNG có quyền toàn công ty / thùng rác công ty (giữ cho Giám đốc+).
-            'is_team_leader': self._dashboard_is_team_leader(),
+            # User spec 2026-06-20: Giám đốc (manager) ở chế độ "CÁ NHÂN"
+            # (team_scope=True) thì cũng hiện bảng NV phòng mình GIỐNG trưởng nhóm —
+            # giữ cả khi GĐ drill vào 1 NV trong phòng (để còn nút "Về dashboard").
+            'is_team_leader': self._dashboard_is_team_leader() or bool(
+                is_manager and team_scope),
             'team_label': self._vd_team_label_for(self.env.user),
             # CHỈ ADMIN được DUYỆT hủy KH (user spec 2026-06-10) — ẩn nút Duyệt
             # khỏi NV (backend action_approve_cancel cũng chặn).
             'is_admin': bool(self.env.user._is_superuser()
                              or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')),
+            # GIÁM ĐỐC (không phải admin): client dùng để mặc định mở chế độ CÁ
+            # NHÂN. Admin giữ mặc định "Tất cả NV" như cũ.
+            'is_director': bool(
+                self.env.user.has_group('vd_crm_lead.vd_crm_group_deputy_director')
+                and not self.env.user.has_group('base.group_system')
+                and not self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')),
             # Quyền chuyển KH hàng loạt (admin + role có can_reassign_lead =
             # người chia số / giám đốc). Client dùng để hiện nút "Chọn KH".
             'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
@@ -8109,9 +8129,12 @@ class CrmLead(models.Model):
     #   5. 💡 Gợi ý hành động (system-suggested)
     # ============================================================
     @api.model
-    def dashboard_analytics(self, date_from=None, date_to=None):
+    def dashboard_analytics(self, date_from=None, date_to=None, scope=None):
         """Insight payload cho admin dashboard — thay charts bằng list/table actionable.
         Chỉ manager được gọi.
+
+        scope='team' (Giám đốc ở chế độ "CÁ NHÂN"): bó về NV cùng PHÒNG BAN với
+        người xem (giống trưởng nhóm) thay vì toàn công ty.
         """
         # Manager (toàn cty) HOẶC trưởng nhóm (scope NV trong nhóm) — trưởng nhóm
         # dùng CHUNG bảng team của admin (user spec 2026-06-14).
@@ -8119,8 +8142,10 @@ class CrmLead(models.Model):
         _is_tl = self._dashboard_is_team_leader()
         if not _is_mgr and not _is_tl:
             raise UserError(_('Chỉ Manager / Admin / Trưởng nhóm được xem analytics dashboard.'))
-        # Trưởng nhóm: chỉ NV cùng phòng ban (gồm chính họ).
-        _tl_member_ids = self._dashboard_team_member_ids() if (_is_tl and not _is_mgr) else None
+        # Trưởng nhóm: chỉ NV cùng phòng ban (gồm chính họ). Giám đốc chế độ CÁ
+        # NHÂN (scope='team') cũng bó về phòng ban mình.
+        _tl_member_ids = self._dashboard_team_member_ids() if (
+            (_is_tl and not _is_mgr) or (_is_mgr and scope == 'team')) else None
 
         from datetime import timedelta as _td
         from collections import defaultdict, Counter

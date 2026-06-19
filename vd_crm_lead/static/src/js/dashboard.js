@@ -70,6 +70,8 @@ export class VdCrmDashboard extends Component {
             newTodayHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
+            // Giám đốc (không phải admin) → mặc định mở chế độ CÁ NHÂN.
+            is_director: false,
             // Trưởng nhóm (không phải manager): xem dashboard của CHÍNH MÌNH +
             // bảng NV dưới quyền (cùng phòng ban) để bấm xem từng người.
             is_team_leader: false,
@@ -105,6 +107,10 @@ export class VdCrmDashboard extends Component {
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
+            // GIÁM ĐỐC: 2 filter to "CÁ NHÂN" / "NHÂN VIÊN" (user spec 2026-06-20).
+            // dirTeamMode=true → đang ở "CÁ NHÂN" (dashboard CỦA GĐ + bảng NV phòng
+            // mình, giống trưởng nhóm). false → "NHÂN VIÊN" (toàn bộ NV = admin view).
+            dirTeamMode: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -176,6 +182,11 @@ export class VdCrmDashboard extends Component {
             }
         } catch (_e) { /* sessionStorage bị chặn → bỏ qua, dùng mặc định */ }
 
+        // GĐ vào dashboard lần đầu mà CHƯA chọn NV nào (selected_user_id=0) →
+        // mặc định mở chế độ "CÁ NHÂN" (dashboard của GĐ + bảng NV phòng mình)
+        // thay vì "Tất cả NV". Quyết định sau loadDashboard (mới biết role).
+        this._dirDefaultPersonal = !this.state.selected_user_id;
+
         // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH
         this._onKeydown = (ev) => {
             if (!this.state.previewLead.open) return;
@@ -198,8 +209,11 @@ export class VdCrmDashboard extends Component {
             window.__vdDashBackHandler = () => this._vdBackToEmployeeList();
             // Predicate THUẦN (không side-effect) cho syncVisibility navbar:
             // còn back được = manager đang xem 1 NV cụ thể.
+            // GĐ ở chính trang CÁ NHÂN (selected === current) thì KHÔNG có gì để
+            // back → loại trừ để navbar không hiện nút thừa.
             window.__vdDashCanBack = () =>
-                !!(this.isTeamManager && this.state.selected_user_id);
+                !!(this.isTeamManager && this.state.selected_user_id
+                   && this.state.selected_user_id !== this.state.current_user_id);
             this._measureNewPills();
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
@@ -232,17 +246,31 @@ export class VdCrmDashboard extends Component {
                     min_minutes: (d && d.min_minutes) || 5,
                 };
             }).catch(() => {});
-            if (this.isTeamManager) {
-                // Manager: danh sách toàn NV. Trưởng nhóm: NV cùng nhóm (backend scope).
-                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
-                // Manager + xem "Tất cả NV" → auto load insights cho tab overview
-                if (this.isAdminView && this.state.adminTab === 'overview') {
-                    await this.loadAnalytics();
+            // GĐ (manager): mặc định mở chế độ CÁ NHÂN khi vào lần đầu chưa chọn NV,
+            // HOẶC khi F5 đúng lúc đang xem chính mình. goPersonal tự load lại
+            // dashboard (của GĐ) + users phòng + analytics team.
+            if (this.state.is_manager) {
+                const sel = this.state.selected_user_id;
+                // Giám đốc: mặc định mở CÁ NHÂN khi vào lần đầu. Admin giữ "Tất cả
+                // NV". Cả hai: nếu F5 đúng lúc xem chính mình thì coi là CÁ NHÂN.
+                if ((this.state.is_director && this._dirDefaultPersonal && !sel)
+                    || (sel && sel === this.state.current_user_id)) {
+                    this._dirDefaultPersonal = false;
+                    await this.goPersonal();
+                    return;
                 }
-                // Trưởng nhóm: tải analytics (scope NV trong nhóm ở backend) để
-                // render CHUNG bảng team của admin (VdKhTeamList) — đồng bộ giao diện.
+            }
+            if (this.isTeamManager) {
+                // Manager: NV toàn cty / phòng (tùy dirTeamMode). Trưởng nhóm: NV nhóm.
+                await this._reloadDashUsers();
+                // PERF (user spec 2026-06-20): KHÔNG await analytics — để dashboard
+                // render NGAY (mở module CRM nhanh), bảng insight tự đổ vào sau.
+                if (this.isAdminView && this.state.adminTab === 'overview') {
+                    this.loadAnalytics();
+                }
+                // Trưởng nhóm: analytics scope phòng (chạy nền).
                 if (this.state.is_team_leader) {
-                    await this.loadAnalytics();
+                    this.loadAnalytics();
                 }
             }
         });
@@ -288,7 +316,9 @@ export class VdCrmDashboard extends Component {
         this.state.newTableExpanded = false;
         // Reset coachmark CHỐT BÁO GIÁ → hiện lại nếu NV này vẫn đang bị khoá.
         this.state.quoteGuideDismissed = false;
-        const args = this.state.selected_user_id ? [this.state.selected_user_id] : [];
+        // arg2 team_scope: GĐ chế độ CÁ NHÂN → backend giữ is_team_leader (bảng NV
+        // phòng mình) kể cả khi drill vào 1 NV trong phòng.
+        const args = [this.state.selected_user_id || 0, !!this.state.dirTeamMode];
         const data = await this.orm.call("crm.lead", "dashboard_data", args);
         Object.assign(this.state, data);
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
@@ -349,8 +379,13 @@ export class VdCrmDashboard extends Component {
         this.state.nvDetail = null;
         await this.loadDashboard();
     }
-    // Quay về dashboard của chính trưởng nhóm.
+    // Quay về dashboard của chính trưởng nhóm / Giám đốc.
     async backToMyDashboard() {
+        // GĐ ở chế độ CÁ NHÂN: "của tôi" = chính GĐ (current_user_id), KHÔNG phải
+        // selected_user_id=0 (vốn là "Tất cả NV" với manager).
+        if (this.state.is_manager && this.state.dirTeamMode) {
+            return this.goPersonal();
+        }
         this.state.selected_user_id = 0;
         this._persistSelectedNv();
         this.state.nvDetail = null;
@@ -372,6 +407,11 @@ export class VdCrmDashboard extends Component {
      */
     _vdBackToEmployeeList() {
         if (this.isTeamManager && this.state.selected_user_id) {
+            // GĐ ở chế độ CÁ NHÂN → về bảng NV phòng mình (self), không phải all.
+            if (this.state.is_manager && this.state.dirTeamMode) {
+                this.goPersonal();
+                return true;
+            }
             this.state.selected_user_id = 0;
             this._persistSelectedNv();
             this.state.nvDetail = null;
@@ -481,6 +521,59 @@ export class VdCrmDashboard extends Component {
         }
         return out;
     }
+
+    // ===== GIÁM ĐỐC: 2 filter to CÁ NHÂN / NHÂN VIÊN (user spec 2026-06-20) =====
+    // Hiện 2 nút khi là manager (Giám đốc / Admin). CÁ NHÂN = dashboard của chính
+    // GĐ + bảng NV phòng mình (như trưởng nhóm). NHÂN VIÊN = toàn bộ NV (admin view).
+    get showDirFilters() { return !!this.state.is_manager; }
+    get dirActivePersonal() {
+        return this.state.dirTeamMode
+            && this.state.selected_user_id === this.state.current_user_id;
+    }
+    // Reload danh sách NV theo scope hiện tại (team_scope khi GĐ ở chế độ CÁ NHÂN).
+    async _reloadDashUsers() {
+        if (!this.isTeamManager) return;
+        const ts = this.state.is_manager && this.state.dirTeamMode;
+        this.state.users = await this.orm.call(
+            "crm.lead", "dashboard_users", [ts]);
+    }
+    // CÁ NHÂN: GĐ xem dashboard của chính mình + bảng NV phòng mình.
+    async goPersonal() {
+        if (this.dirActivePersonal) return;
+        this.state.dirTeamMode = true;
+        this.state.selected_user_id = this.state.current_user_id;
+        this._persistSelectedNv();
+        this.state.nvDetail = null;
+        this.state.analytics = null;
+        await this.loadDashboard();
+        await this._reloadDashUsers();
+        // Analytics bó về phòng ban (scope='team') — chạy nền cho nhẹ.
+        this.loadAnalytics('team');
+    }
+    // NHÂN VIÊN: toàn bộ NV (admin view "Tất cả nhân viên").
+    async goEmployees() {
+        if (this.state.is_manager && !this.state.selected_user_id
+            && !this.state.dirTeamMode) return;
+        this.state.dirTeamMode = false;
+        this.state.selected_user_id = 0;
+        this._persistSelectedNv();
+        this.state.nvDetail = null;
+        this.state.analytics = null;
+        await this.loadDashboard();
+        await this._reloadDashUsers();
+        // Admin view tab overview → load analytics toàn công ty (chạy nền).
+        if (this.isAdminView && this.state.adminTab === 'overview') {
+            this.loadAnalytics();
+        }
+    }
+    // Hover nút NHÂN VIÊN → tự chuyển (có chủ đích, debounce 220ms tránh quệt nhầm).
+    onHoverEmployees() {
+        if (this.state.is_manager && !this.state.dirTeamMode
+            && !this.state.selected_user_id) return;
+        browser.clearTimeout(this._dirHoverTimer);
+        this._dirHoverTimer = browser.setTimeout(() => this.goEmployees(), 220);
+    }
+    onLeaveEmployees() { browser.clearTimeout(this._dirHoverTimer); }
 
     setFocus(focus) {
         if (this.state.focus === focus) return;
@@ -1155,7 +1248,7 @@ export class VdCrmDashboard extends Component {
             await this.loadDashboard();
             // Cập nhật lại số liệu (chưa gọi / tổng mới) trên dropdown NV.
             if (this.state.is_manager) {
-                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
+                await this._reloadDashUsers();
             }
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
@@ -2580,11 +2673,14 @@ export class VdCrmDashboard extends Component {
     // ============================================================
     // 📊 ANALYTICS BI — Date filter + 4 Chart.js charts
     // ============================================================
-    async loadAnalytics() {
+    async loadAnalytics(scope) {
+        // scope='team' (GĐ chế độ CÁ NHÂN) → backend bó về NV phòng mình. Mặc
+        // định lấy theo dirTeamMode để các chỗ gọi cũ tự đúng scope.
+        const sc = scope || (this.state.dirTeamMode ? 'team' : null);
         this.state.analyticsLoading = true;
         try {
             const data = await this.orm.call("crm.lead", "dashboard_analytics", [
-                this.state.analyticsFrom, this.state.analyticsTo,
+                this.state.analyticsFrom, this.state.analyticsTo, sc,
             ]);
             this.state.analytics = data;
         } catch (e) {
