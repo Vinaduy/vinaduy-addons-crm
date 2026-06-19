@@ -161,6 +161,9 @@ export class VdCrmDashboard extends Component {
         });
         // Ref vùng pill KHÁCH MỚI để đếm số dòng (quyết định hiện nút mở rộng).
         this.newPillsRef = useRef("newPillsWrap");
+        // Ref panel bảng NV (GĐ) — để timer thu RE-VERIFY :hover thật, miễn nhiễm
+        // mouseleave nhiễu lúc bảng giãn (user spec r6).
+        this.tlPanelRef = useRef("tlPanel");
         this._searchDebounce = null;
 
         // User spec 2026-05-31: khôi phục NV đang xem sau khi F5 (trước đây luôn
@@ -589,6 +592,7 @@ export class VdCrmDashboard extends Component {
     // Giãn: nạp analytics TOÀN CÔNG TY (lazy + cache) rồi swap vào bảng NV.
     async expandEmployees() {
         if (!this.state.is_manager || this.state.empExpanded) return;
+        console.log("[VD emp] EXPAND → giãn toàn bộ NV (đã preload?", !!this._anaAll, ")");
         // Lưu bản phòng-ban hiện tại để thu lại nhanh.
         if (!this._anaDept && this.state.analytics) this._anaDept = this.state.analytics;
         this.state.empExpanded = true;
@@ -607,6 +611,7 @@ export class VdCrmDashboard extends Component {
     // Thu: trả bảng về NV phòng GĐ.
     collapseEmployees() {
         if (!this.state.empExpanded) return;
+        console.log("[VD emp] COLLAPSE → thu về NV phòng");
         this.state.empExpanded = false;
         // Trả về bản phòng-ban. Nếu vì lý do gì _anaDept trống → nạp lại để bảng
         // KHÔNG biến mất (tránh box rỗng do t-if kh_by_team.length).
@@ -617,13 +622,31 @@ export class VdCrmDashboard extends Component {
         if (this.state.empExpanded) this.collapseEmployees();
         else this.expandEmployees();
     }
-    // ===== GRACE-DELAY collapse: rê chuột TỪ nút XUỐNG danh sách NV (vẫn trong
-    // panel) thì KHÔNG thu; chỉ thu khi rời HẲN panel ≥350ms. Tránh reflow lúc
-    // bảng giãn gây mouseleave nhấp nháy làm bảng "biến mất" (user spec r5). =====
+    // ===== GRACE-DELAY collapse (r6): mouseleave panel → hẹn 350ms; khi timer
+    // chạy, RE-VERIFY bằng :hover THẬT của DOM — nếu chuột VẪN trong panel (vd
+    // rê xuống danh sách NV, mouseleave là nhiễu do reflow) thì KHÔNG thu. Đây
+    // là cách miễn nhiễm với mouseleave nhiễu (không phụ thuộc mouseenter bù). =====
     scheduleCollapse() {
+        if (!this.state.empExpanded) return;
         browser.clearTimeout(this._empCollapseTimer);
-        this._empCollapseTimer = browser.setTimeout(
-            () => this.collapseEmployees(), 350);
+        this._empCollapseTimer = browser.setTimeout(() => {
+            const el = this.tlPanelRef.el;
+            const stillInside = el && el.matches && el.matches(":hover");
+            // Đang mở popover của bảng NV (hover tên NV / tổng KH / cuộc gọi) →
+            // popover render NGOÀI panel (gốc dashboard) nên con trỏ "rời" panel =
+            // mouseleave nhiễu. KHÔNG thu khi còn popover (user đang xem bảng).
+            const popoverOpen = !!(this.state.recHover || this.state.reminderHover
+                || this.state.newTodayHover || this.state.todayCallsHover
+                || this.state.refRecHover);
+            console.log("[VD emp] timer thu — trong panel?", !!stillInside,
+                        "| popover mở?", popoverOpen);
+            if (stillInside) return;            // chuột vẫn trong panel → giữ
+            if (popoverOpen) {                  // đang xem popover → chờ, poll lại
+                this.scheduleCollapse();
+                return;
+            }
+            this.collapseEmployees();
+        }, 350);
     }
     cancelCollapse() {
         browser.clearTimeout(this._empCollapseTimer);

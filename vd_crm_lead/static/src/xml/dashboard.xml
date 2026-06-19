@@ -1644,7 +1644,7 @@
                         <!-- ===== BẢNG TRƯỞNG NHÓM (như cũ: trong main, logo giữ góc trái) =====
                              User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
                              trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
-                        <div t-if="state.is_team_leader" class="o_vd_tl_panel"
+                        <div t-if="state.is_team_leader" class="o_vd_tl_panel" t-ref="tlPanel"
                              t-on-mouseenter="() => this.cancelCollapse()"
                              t-on-mouseleave="() => this.scheduleCollapse()">
                             <!-- GIÁM ĐỐC: nút NHÂN VIÊN to (gấp đôi) TRÊN ĐẦU bảng NV.
