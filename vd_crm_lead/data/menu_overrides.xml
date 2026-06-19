@@ -47,4 +47,10 @@
     <record id="crm_iap_mine.crm_menu_lead_generation" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
+
+    <!-- KHOÁ CHỈ CÒN MODULE CRM (user spec 2026-06-19): restrict các app root khác
+         (Discuss/Calendar/Contacts/Dashboards/Stringee/Website/Employees/Apps) về
+         CHỈ ADMIN. Làm trong migrations/18.0.9.240.0/post-migrate.py (dùng
+         raise_if_not_found=False) thay vì XML — vì calendar/contacts/website/hr/
+         spreadsheet KHÔNG nằm trong depends, ref() trong XML sẽ làm fail load. -->
 </odoo>

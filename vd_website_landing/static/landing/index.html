@@ -66,6 +66,11 @@
 #vd-login-panel button[type=submit]{background:#f75128;color:#fff;border:none;border-radius:8px;padding:12px;font-size:15px;font-weight:700;cursor:pointer}
 #vd-login-panel .vd-lp-err{color:#e11d48;font-size:13px;min-height:16px}
 #vd-login-panel .vd-lp-note{color:#64748b;font-size:12px;margin-top:4px}
+/* Mobile: nút Đăng nhập (top:14px right:0) đè lên menu 3 gạch của LadiPage ở
+   góc trên-phải. Hạ nút xuống giữa cạnh phải (side-tab dọc) để KHÔNG che menu. */
+@media (max-width:767px){
+  #vd-login-tab{top:50%;transform:translateY(-50%);font-size:12px;padding:8px 10px;writing-mode:vertical-rl}
+}
 </style>
 
 <div id="vd-float">

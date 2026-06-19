@@ -122,6 +122,12 @@ class ResUsers(models.Model):
             refs[code] = g
             if g:
                 all_groups |= g
+        # Home action = Dashboard CRM cho mọi vai trò TRỪ Admin → đăng nhập vào
+        # thẳng module CRM (user spec 2026-06-19). Admin giữ home mặc định (toàn
+        # quyền, tự chọn app). Menu các app khác đã bị khoá về admin trong
+        # menu_overrides.xml → NV/TN/GĐ chỉ còn CRM.
+        dash = self.env.ref('vd_crm_lead.action_vd_crm_dashboard',
+                            raise_if_not_found=False)
         for u in self:
             if not u.vd_crm_role:
                 continue
@@ -129,7 +135,10 @@ class ResUsers(models.Model):
             cmds = [(3, g.id) for g in all_groups]  # gỡ cả 5 vai trò trước
             if target:
                 cmds.append((4, target.id))  # gán vai trò mới (tự kéo theo cấp dưới)
-            u.sudo().write({'groups_id': cmds})
+            vals = {'groups_id': cmds}
+            if dash:
+                vals['action_id'] = False if u.vd_crm_role == 'admin' else dash.id
+            u.sudo().write(vals)
 
     @api.model_create_multi
     def create(self, vals_list):
