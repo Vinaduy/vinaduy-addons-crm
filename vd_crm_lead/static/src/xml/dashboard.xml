@@ -4,6 +4,29 @@
     <t t-name="vd_crm_lead.Dashboard">
         <div class="o_vd_crm_dashboard">
 
+            <!-- 🔒 GATE BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn toàn dashboard -->
+            <div t-if="state.must_change_password" class="o_vd_pwd_gate">
+                <div class="o_vd_pwd_box">
+                    <div class="o_vd_pwd_head"><i class="fa fa-lock me-2"/>ĐỔI MẬT KHẨU ĐỊNH KỲ</div>
+                    <p class="o_vd_pwd_sub">Đã đến chu kỳ đổi mật khẩu (1 tháng/lần). Bạn phải
+                        đổi mật khẩu mới để tiếp tục sử dụng hệ thống.</p>
+                    <label class="o_vd_pwd_lbl">Mật khẩu hiện tại</label>
+                    <input type="password" class="o_vd_pwd_inp" t-model="state.pwForm.old"
+                           placeholder="Mật khẩu đang dùng"/>
+                    <label class="o_vd_pwd_lbl">Mật khẩu mới</label>
+                    <input type="password" class="o_vd_pwd_inp" t-model="state.pwForm.new1"
+                           placeholder="Tối thiểu 6 ký tự"/>
+                    <label class="o_vd_pwd_lbl">Nhập lại mật khẩu mới</label>
+                    <input type="password" class="o_vd_pwd_inp" t-model="state.pwForm.new2"
+                           placeholder="Gõ lại mật khẩu mới"
+                           t-on-keyup="(ev) => ev.key === 'Enter' ? this.changeOwnPassword() : null"/>
+                    <button class="o_vd_pwd_btn" t-att-disabled="state.pwSaving"
+                            t-on-click="() => this.changeOwnPassword()">
+                        <t t-esc="state.pwSaving ? 'Đang đổi...' : 'ĐỔI MẬT KHẨU NGAY'"/>
+                    </button>
+                </div>
+            </div>
+
             <!-- 🔔 BẢNG NHẮC NHỞ (fixed, render 1 lần ở gốc → không bị khung nào cắt).
                  Mở khi hover tên NV; tự định vị bằng reminderPopStyle. -->
             <div t-if="state.reminderHover" class="o_vd_kh_reminder_popover o_vd_rem_fixed"

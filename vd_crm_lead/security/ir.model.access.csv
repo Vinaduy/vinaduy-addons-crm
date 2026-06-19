@@ -47,3 +47,5 @@ access_vd_lead_surcharge_preset_user,vd.lead.surcharge.preset read,model_vd_lead
 access_vd_lead_surcharge_preset_admin,vd.lead.surcharge.preset admin,model_vd_lead_surcharge_preset,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_field_option_user,vd.field.option user,model_vd_field_option,base.group_user,1,1,1,0
 access_vd_field_option_admin,vd.field.option admin,model_vd_field_option,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_user_pwd_history_admin,vd.user.password.history admin,model_vd_user_password_history,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_password_view_wizard_admin,vd.password.view.wizard admin,model_vd_password_view_wizard,vd_crm_lead.vd_crm_group_admin,1,1,1,1

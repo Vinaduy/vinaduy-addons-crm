@@ -22,6 +22,21 @@
                         <field name="vd_target_month" string="Chỉ tiêu HĐ/tháng" help=""/>
                     </group>
                 </group>
+                <!-- BẢO MẬT MẬT KHẨU (chỉ admin CRM) -->
+                <group string="Bảo mật mật khẩu" name="vd_pwd_security" col="2"
+                       groups="vd_crm_lead.vd_crm_group_admin">
+                    <group>
+                        <field name="vd_pwd_last_change" string="Đổi gần nhất" readonly="1"/>
+                        <field name="vd_pwd_must_change" string="Đang buộc đổi" readonly="1"/>
+                        <field name="vd_pwd_history_count" string="Số lần đã đổi" readonly="1"/>
+                    </group>
+                    <group>
+                        <button name="action_vd_view_passwords" type="object"
+                                string="Xem mật khẩu / lịch sử" class="btn-primary" icon="fa-key"/>
+                        <button name="action_vd_force_logout" type="object"
+                                string="Ép đăng xuất NV này" class="btn-warning" icon="fa-sign-out"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>

@@ -6777,6 +6777,9 @@ class CrmLead(models.Model):
             'pancake_report': self._vd_distribution_report(pancake=True) if is_manager else {},
             'manual_report': self._vd_distribution_report(pancake=False) if is_manager else {},
             'performance': performance,
+            # BẢO MẬT (user spec 2026-06-18): buộc NV đổi mật khẩu khi hết chu kỳ
+            # 30 ngày — frontend chặn dashboard tới khi đổi xong.
+            'must_change_password': bool(self.env.user.vd_pwd_must_change),
         }
 
     def _dashboard_new_bucket_domain(self, user_domain):

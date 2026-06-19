@@ -46,6 +46,10 @@ export class VdCrmDashboard extends Component {
         // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
+            // BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn dashboard tới khi đổi.
+            must_change_password: false,
+            pwForm: { old: "", new1: "", new2: "" },
+            pwSaving: false,
             // Popover NHẮC NHỞ (hover TỔNG KH) — fixed, ghim sát phải; {nv, top} | null.
             reminderHover: null,
             // Popover GHI ÂM (hover TÊN NV) — fixed, hiện bên trái; {user_id, name,
@@ -242,6 +246,40 @@ export class VdCrmDashboard extends Component {
                 }
             }
         });
+    }
+
+    // ===== BẢO MẬT: NV tự đổi mật khẩu khi bị buộc đổi (gate dashboard) =====
+    async changeOwnPassword() {
+        const f = this.state.pwForm;
+        if (!f.old || !f.new1 || !f.new2) {
+            this.notification.add("Vui lòng nhập đủ 3 ô mật khẩu.", { type: "warning" });
+            return;
+        }
+        if (f.new1 !== f.new2) {
+            this.notification.add("Mật khẩu mới nhập lại không khớp.", { type: "warning" });
+            return;
+        }
+        if (f.new1.length < 6) {
+            this.notification.add("Mật khẩu mới phải từ 6 ký tự.", { type: "warning" });
+            return;
+        }
+        if (this.state.pwSaving) return;
+        this.state.pwSaving = true;
+        try {
+            await this.orm.call("res.users", "vd_change_my_password", [f.old, f.new1]);
+            this.notification.add("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.",
+                { type: "success" });
+            this.state.must_change_password = false;
+            this.state.pwForm = { old: "", new1: "", new2: "" };
+            // Đổi mật khẩu của chính mình -> Odoo vô hiệu phiên cũ; tải lại để
+            // về màn đăng nhập sạch (tránh lỗi 401 lửng lơ).
+            browser.setTimeout(() => browser.location.reload(), 1200);
+        } catch (e) {
+            this.notification.add(
+                "Đổi mật khẩu thất bại — kiểm tra lại mật khẩu cũ.", { type: "danger" });
+        } finally {
+            this.state.pwSaving = false;
+        }
     }
 
     async loadDashboard() {

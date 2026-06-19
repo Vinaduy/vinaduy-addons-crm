@@ -70,6 +70,19 @@
             <field name="user_id" ref="base.user_root"/>
         </record>
 
+        <!-- BẢO MẬT: ép đổi mật khẩu sau 30 ngày (user spec 2026-06-18).
+             Chạy hằng ngày, đánh dấu vd_pwd_must_change cho NV quá hạn. -->
+        <record id="ir_cron_vd_password_expiry" model="ir.cron">
+            <field name="name">VD CRM: Ép đổi mật khẩu chu kỳ 30 ngày</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="state">code</field>
+            <field name="code">model._vd_cron_password_expiry()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="user_id" ref="base.user_root"/>
+        </record>
+
         <!-- Seed cấu hình HẠN XỬ LÝ (admin chỉnh sau qua menu Cài đặt) -->
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_deadline_days', '7')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_extension_days', '7')"/>
@@ -84,5 +97,9 @@
         <!-- Ngày lễ VN 2026 (admin tự cập nhật hằng năm). Bỏ khỏi đếm ngày làm việc. -->
         <function model="ir.config_parameter" name="set_param"
                   eval="('vd_crm_lead.holidays', '2026-01-01,2026-02-15,2026-02-16,2026-02-17,2026-02-18,2026-02-19,2026-02-20,2026-02-21,2026-04-26,2026-04-30,2026-05-01,2026-09-02')"/>
+
+        <!-- BOOTSTRAP 1 LẦN: ép đăng xuất toàn bộ NV + buộc đổi mật khẩu (user spec
+             2026-06-18). Guard bằng param security_bootstrap_v1 nên chỉ chạy 1 lần. -->
+        <function model="res.users" name="_vd_security_bootstrap"/>
     </data>
 </odoo>

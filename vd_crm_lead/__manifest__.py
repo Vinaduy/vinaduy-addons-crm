@@ -39,6 +39,7 @@
         'views/vd_meeting_schedule_wizard_views.xml',
         'views/vd_quote_preview_wizard_views.xml',
         'views/vd_lead_quick_add_wizard_views.xml',
+        'views/vd_password_view_wizard_views.xml',
         'views/vd_role_config_views.xml',
         'views/vd_pancake_page_views.xml',
         'views/res_users_vd_settings_views.xml',

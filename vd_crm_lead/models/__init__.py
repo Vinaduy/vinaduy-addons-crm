@@ -15,6 +15,7 @@ from . import vd_lead_problem
 from . import vd_pancake_page
 from . import vd_fb_inbox
 from . import res_users
+from . import res_users_security
 from . import res_config_settings
 from . import res_country_state
 from . import crm_lead
