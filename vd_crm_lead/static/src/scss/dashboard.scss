@@ -9612,47 +9612,45 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_refrec_audio { width: 220px; min-width: 220px; height: 34px; vertical-align: middle; }
 
 /* ============================================================
-   GIÁM ĐỐC: 2 filter to "CÁ NHÂN" / "NHÂN VIÊN" (user spec 2026-06-20)
-   To, nổi bật, đặt ngay TRƯỚC ô tìm kiếm. NHÂN VIÊN hover tự chuyển.
+   GIÁM ĐỐC: 1 nút "NHÂN VIÊN" TO (gấp đôi) trên đầu bảng NV (user spec 2026-06-20 r2)
+   Hover → giãn bảng (toàn bộ NV). Rời chuột khỏi bảng / bấm lại → thu về phòng GĐ.
    ============================================================ */
-.o_vd_dir_filters {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-    margin-right: 14px;
-    flex: 0 0 auto;
-}
-.o_vd_dir_btn {
+.o_vd_emp_filter {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: 2px solid #c7d2e8;
-    border-radius: 12px;
-    background: #fff;
-    color: #475569;
-    font-weight: 800;
-    font-size: 16px;
-    letter-spacing: .3px;
+    gap: 14px;
+    width: 100%;
+    padding: 20px 32px;                 /* gấp ~2x nút filter thường */
+    margin-bottom: 12px;
+    border: 3px solid #f7a872;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff7f0, #ffede0);
+    color: #ea580c;
+    font-weight: 900;
+    font-size: 30px;                    /* TO gấp đôi */
+    letter-spacing: .5px;
     cursor: pointer;
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+    box-shadow: 0 3px 10px rgba(249,115,22,.18);
     transition: transform .12s ease, box-shadow .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
 }
-.o_vd_dir_btn .o_vd_dir_ico { font-size: 18px; }
-.o_vd_dir_btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(0,0,0,.13); }
-.o_vd_dir_personal.o_active {
-    background: linear-gradient(135deg, #3677cb, #2a5fa6);
-    border-color: #2a5fa6; color: #fff;
-    box-shadow: 0 5px 16px rgba(54,119,203,.4);
+.o_vd_emp_filter .o_vd_emp_filter_ico { font-size: 32px; }
+.o_vd_emp_filter .o_vd_emp_filter_lbl { line-height: 1; }
+.o_vd_emp_filter .o_vd_emp_filter_hint {
+    font-size: 15px; font-weight: 700; color: #b45309; opacity: .85;
 }
-.o_vd_dir_employees.o_active {
+.o_vd_emp_filter:hover { transform: translateY(-1px); box-shadow: 0 7px 20px rgba(249,115,22,.3); }
+.o_vd_emp_filter.o_active {
     background: linear-gradient(135deg, #f97316, #ea580c);
     border-color: #ea580c; color: #fff;
-    box-shadow: 0 5px 16px rgba(249,115,22,.4);
+    box-shadow: 0 7px 22px rgba(249,115,22,.45);
 }
-/* Mobile: thu nhỏ chữ + cho xuống dòng nếu chật */
+.o_vd_emp_filter.o_active .o_vd_emp_filter_hint { color: #fff; opacity: .9; }
+/* Bảng NV khi giãn: bỏ giới hạn chiều cao (nếu có) cho thấy hết NV */
+.o_vd_tl_team_box.o_vd_emp_expanded { max-height: none; }
+/* Mobile: thu nhỏ chữ cho vừa */
 @media (max-width: 767px) {
-    .o_vd_dir_btn { padding: 8px 14px; font-size: 14px; }
-    .o_vd_dir_filters { margin-right: 8px; gap: 6px; }
+    .o_vd_emp_filter { padding: 14px 18px; font-size: 22px; gap: 10px; }
+    .o_vd_emp_filter .o_vd_emp_filter_ico { font-size: 24px; }
+    .o_vd_emp_filter .o_vd_emp_filter_hint { font-size: 12px; display: block; }
 }

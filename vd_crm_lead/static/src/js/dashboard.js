@@ -108,9 +108,11 @@ export class VdCrmDashboard extends Component {
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
             // GIÁM ĐỐC: 2 filter to "CÁ NHÂN" / "NHÂN VIÊN" (user spec 2026-06-20).
-            // dirTeamMode=true → đang ở "CÁ NHÂN" (dashboard CỦA GĐ + bảng NV phòng
-            // mình, giống trưởng nhóm). false → "NHÂN VIÊN" (toàn bộ NV = admin view).
+            // dirTeamMode=true → GĐ xem dashboard CỦA MÌNH + bảng NV phòng mình.
             dirTeamMode: false,
+            // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
+            // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
+            empExpanded: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -522,14 +524,10 @@ export class VdCrmDashboard extends Component {
         return out;
     }
 
-    // ===== GIÁM ĐỐC: 2 filter to CÁ NHÂN / NHÂN VIÊN (user spec 2026-06-20) =====
-    // Hiện 2 nút khi là manager (Giám đốc / Admin). CÁ NHÂN = dashboard của chính
-    // GĐ + bảng NV phòng mình (như trưởng nhóm). NHÂN VIÊN = toàn bộ NV (admin view).
+    // ===== GIÁM ĐỐC: nút NHÂN VIÊN giãn/thu bảng NV (user spec 2026-06-20 r2) =====
+    // Hiện nút khi là manager (Giám đốc / Admin). Mặc định bảng = NV PHÒNG GĐ;
+    // hover nút → giãn ra TOÀN BỘ NV; rời chuột khỏi bảng / bấm lại → thu về phòng.
     get showDirFilters() { return !!this.state.is_manager; }
-    get dirActivePersonal() {
-        return this.state.dirTeamMode
-            && this.state.selected_user_id === this.state.current_user_id;
-    }
     // Reload danh sách NV theo scope hiện tại (team_scope khi GĐ ở chế độ CÁ NHÂN).
     async _reloadDashUsers() {
         if (!this.isTeamManager) return;
@@ -537,10 +535,14 @@ export class VdCrmDashboard extends Component {
         this.state.users = await this.orm.call(
             "crm.lead", "dashboard_users", [ts]);
     }
-    // CÁ NHÂN: GĐ xem dashboard của chính mình + bảng NV phòng mình.
+    // GĐ: dashboard của chính mình + bảng NV phòng mình (mặc định khi vào).
     async goPersonal() {
-        if (this.dirActivePersonal) return;
+        if (this.state.dirTeamMode
+            && this.state.selected_user_id === this.state.current_user_id
+            && !this.state.empExpanded) return;
         this.state.dirTeamMode = true;
+        this.state.empExpanded = false;
+        this._anaAll = null;
         this.state.selected_user_id = this.state.current_user_id;
         this._persistSelectedNv();
         this.state.nvDetail = null;
@@ -550,30 +552,39 @@ export class VdCrmDashboard extends Component {
         // Analytics bó về phòng ban (scope='team') — chạy nền cho nhẹ.
         this.loadAnalytics('team');
     }
-    // NHÂN VIÊN: toàn bộ NV (admin view "Tất cả nhân viên").
-    async goEmployees() {
-        if (this.state.is_manager && !this.state.selected_user_id
-            && !this.state.dirTeamMode) return;
-        this.state.dirTeamMode = false;
-        this.state.selected_user_id = 0;
-        this._persistSelectedNv();
-        this.state.nvDetail = null;
-        this.state.analytics = null;
-        await this.loadDashboard();
-        await this._reloadDashUsers();
-        // Admin view tab overview → load analytics toàn công ty (chạy nền).
-        if (this.isAdminView && this.state.adminTab === 'overview') {
-            this.loadAnalytics();
+
+    // ===== GIÃN / THU bảng NV (GĐ) — đổi phạm vi TẠI CHỖ, không rời trang =====
+    // Giãn: nạp analytics TOÀN CÔNG TY (lazy + cache) rồi swap vào bảng NV.
+    async expandEmployees() {
+        if (!this.state.is_manager || this.state.empExpanded) return;
+        // Lưu bản phòng-ban hiện tại để thu lại nhanh.
+        if (!this._anaDept && this.state.analytics) this._anaDept = this.state.analytics;
+        this.state.empExpanded = true;
+        if (!this._anaAll) {
+            this.state.analyticsLoading = true;
+            try {
+                this._anaAll = await this.orm.call("crm.lead", "dashboard_analytics",
+                    [this.state.analyticsFrom, this.state.analyticsTo, null]);
+            } catch (e) {
+                this.state.empExpanded = false;
+                this.state.analyticsLoading = false;
+                return;
+            }
+            this.state.analyticsLoading = false;
         }
+        // Có thể user đã bỏ chuột trong lúc chờ load → chỉ swap nếu vẫn đang giãn.
+        if (this.state.empExpanded) this.state.analytics = this._anaAll;
     }
-    // Hover nút NHÂN VIÊN → tự chuyển (có chủ đích, debounce 220ms tránh quệt nhầm).
-    onHoverEmployees() {
-        if (this.state.is_manager && !this.state.dirTeamMode
-            && !this.state.selected_user_id) return;
-        browser.clearTimeout(this._dirHoverTimer);
-        this._dirHoverTimer = browser.setTimeout(() => this.goEmployees(), 220);
+    // Thu: trả bảng về NV phòng GĐ.
+    collapseEmployees() {
+        if (!this.state.empExpanded) return;
+        this.state.empExpanded = false;
+        if (this._anaDept) this.state.analytics = this._anaDept;
     }
-    onLeaveEmployees() { browser.clearTimeout(this._dirHoverTimer); }
+    toggleEmployees() {
+        if (this.state.empExpanded) this.collapseEmployees();
+        else this.expandEmployees();
+    }
 
     setFocus(focus) {
         if (this.state.focus === focus) return;
@@ -2683,6 +2694,12 @@ export class VdCrmDashboard extends Component {
                 this.state.analyticsFrom, this.state.analyticsTo, sc,
             ]);
             this.state.analytics = data;
+            // GĐ: bản phòng-ban (scope team) là bản "thu gọn" → cache để nút
+            // NHÂN VIÊN thu nhanh; reset trạng thái giãn khi tải lại.
+            if (sc === 'team') {
+                this._anaDept = data;
+                this.state.empExpanded = false;
+            }
         } catch (e) {
             this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
         }

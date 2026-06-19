@@ -529,8 +529,6 @@
 
                             <!-- ===== Analytics header: 2 chip hover-switch + search + clock ===== -->
                             <div class="o_vd_an_topbar">
-                                <!-- GIÁM ĐỐC: 2 filter to CÁ NHÂN / NHÂN VIÊN -->
-                                <t t-call="vd_crm_lead.VdDirFilters"/>
                                 <!-- Hover-switch giữa bảng NV và bảng KH có vấn đề -->
                                 <div t-if="isCustomerFocus" class="o_vd_dash_subview_chips"
                                      t-att-data-active="state.dashSubView">
@@ -1646,13 +1644,19 @@
                         <!-- ===== BẢNG TRƯỞNG NHÓM (như cũ: trong main, logo giữ góc trái) =====
                              User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
                              trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
-                        <div t-if="state.is_team_leader" class="o_vd_tl_panel">
+                        <div t-if="state.is_team_leader" class="o_vd_tl_panel"
+                             t-on-mouseleave="() => this.collapseEmployees()">
+                            <!-- GIÁM ĐỐC: nút NHÂN VIÊN to (gấp đôi) TRÊN ĐẦU bảng NV.
+                                 Hover → bảng giãn ra hiện TOÀN BỘ NV; rời chuột khỏi
+                                 bảng / bấm lại → thu về NV phòng GĐ (user spec 2026-06-20 r2). -->
+                            <t t-call="vd_crm_lead.VdDirFilters"/>
                             <button t-if="viewingTeamMember" class="o_vd_tl_back"
                                     t-on-click="() => this.backToMyDashboard()">
                                 <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
                             </button>
                             <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
-                                 class="o_vd_analytics o_vd_tl_team_box">
+                                 class="o_vd_analytics o_vd_tl_team_box"
+                                 t-att-class="state.empExpanded ? 'o_vd_emp_expanded' : ''">
                                 <div class="o_vd_kh_box">
                                     <t t-call="vd_crm_lead.VdKhTeamList"/>
                                 </div>
@@ -1677,8 +1681,6 @@
                         <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
                              (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
                         <div class="o_vd_topbar_row">
-                        <!-- GIÁM ĐỐC: 2 filter to CÁ NHÂN / NHÂN VIÊN — phía trước ô tìm kiếm -->
-                        <t t-call="vd_crm_lead.VdDirFilters"/>
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
                         <div class="o_vd_nv_search_wrap" t-if="!isAdminView">
                             <div class="o_vd_nv_search">
@@ -2693,27 +2695,22 @@
          Dùng: t-set pf = state.problem_find.urgent | .xlvd  rồi t-call.
          ============================================================ -->
     <!-- ============================================================
-         GIÁM ĐỐC: 2 filter to "CÁ NHÂN" / "NHÂN VIÊN" (user spec 2026-06-20).
-         CÁ NHÂN = dashboard của GĐ + bảng NV phòng mình (như trưởng nhóm).
-         NHÂN VIÊN (hover) = toàn bộ NV (admin view "Tất cả nhân viên").
+         GIÁM ĐỐC: 1 nút "NHÂN VIÊN" TO (gấp đôi) trên đầu bảng NV (user spec
+         2026-06-20 r2). Hover → giãn bảng hiện TOÀN BỘ NV; rời chuột khỏi bảng /
+         bấm lại → thu về chỉ NV phòng GĐ quản lý.
          ============================================================ -->
     <t t-name="vd_crm_lead.VdDirFilters">
-        <div t-if="showDirFilters" class="o_vd_dir_filters">
-            <button class="o_vd_dir_btn o_vd_dir_personal"
-                    t-att-class="dirActivePersonal ? 'o_active' : ''"
-                    t-on-click="() => this.goPersonal()">
-                <i class="fa fa-user o_vd_dir_ico"/>
-                <span class="o_vd_dir_lbl">CÁ NHÂN</span>
-            </button>
-            <button class="o_vd_dir_btn o_vd_dir_employees"
-                    t-att-class="!dirActivePersonal ? 'o_active' : ''"
-                    t-on-mouseenter="() => this.onHoverEmployees()"
-                    t-on-mouseleave="() => this.onLeaveEmployees()"
-                    t-on-click="() => this.goEmployees()">
-                <i class="fa fa-users o_vd_dir_ico"/>
-                <span class="o_vd_dir_lbl">NHÂN VIÊN</span>
-            </button>
-        </div>
+        <button t-if="showDirFilters" class="o_vd_emp_filter"
+                t-att-class="state.empExpanded ? 'o_active' : ''"
+                t-on-mouseenter="() => this.expandEmployees()"
+                t-on-click="() => this.toggleEmployees()">
+            <i class="fa fa-users o_vd_emp_filter_ico"/>
+            <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
+            <span class="o_vd_emp_filter_hint">
+                <t t-if="state.empExpanded">— Toàn bộ nhân viên (bỏ chuột để thu gọn)</t>
+                <t t-else="">— Di chuột vào để xem toàn bộ</t>
+            </span>
+        </button>
     </t>
 
     <t t-name="vd_crm_lead.ProblemFindBanner">
