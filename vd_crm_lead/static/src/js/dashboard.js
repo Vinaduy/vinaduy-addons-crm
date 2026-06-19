@@ -274,12 +274,15 @@ export class VdCrmDashboard extends Component {
                 if (this.isAdminView && this.state.adminTab === 'overview') {
                     this.loadAnalytics();
                 } else if (this.state.is_team_leader) {
-                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng (nền).
-                    this.loadAnalytics();
+                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng (nền), XONG mới
+                    // prefetch bản "toàn bộ NV" để KHÔNG tranh tài nguyên lúc render
+                    // đầu (user spec r5: load sẵn để hover NHÂN VIÊN hiện NGAY).
+                    this.loadAnalytics().then(() => {
+                        if (this.state.is_manager && this.state.dirTeamMode) {
+                            browser.setTimeout(() => this._prefetchAllEmployees(), 800);
+                        }
+                    });
                 }
-                // KHÔNG prefetch bản "toàn bộ NV" nữa: query đó ~8s, chạy nền sẽ
-                // chiếm worker (server 4 worker, RAM thấp) → làm CHẬM cả trang.
-                // Bản toàn bộ chỉ load khi user thực sự hover nút NHÂN VIÊN.
             }
         });
     }
@@ -556,8 +559,12 @@ export class VdCrmDashboard extends Component {
         this.state.analytics = null;
         await this.loadDashboard();
         this._reloadDashUsers();   // nền — không chặn
-        // Analytics bó về phòng ban (scope='team') — chạy nền cho nhẹ.
-        this.loadAnalytics('team');
+        // Analytics bó về phòng ban (scope='team'); xong thì prefetch bản toàn bộ.
+        this.loadAnalytics('team').then(() => {
+            if (this.state.is_manager && this.state.dirTeamMode) {
+                browser.setTimeout(() => this._prefetchAllEmployees(), 800);
+            }
+        });
     }
 
     // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN (1 promise dùng chung cho cả
@@ -601,11 +608,25 @@ export class VdCrmDashboard extends Component {
     collapseEmployees() {
         if (!this.state.empExpanded) return;
         this.state.empExpanded = false;
+        // Trả về bản phòng-ban. Nếu vì lý do gì _anaDept trống → nạp lại để bảng
+        // KHÔNG biến mất (tránh box rỗng do t-if kh_by_team.length).
         if (this._anaDept) this.state.analytics = this._anaDept;
+        else this.loadAnalytics('team');
     }
     toggleEmployees() {
         if (this.state.empExpanded) this.collapseEmployees();
         else this.expandEmployees();
+    }
+    // ===== GRACE-DELAY collapse: rê chuột TỪ nút XUỐNG danh sách NV (vẫn trong
+    // panel) thì KHÔNG thu; chỉ thu khi rời HẲN panel ≥350ms. Tránh reflow lúc
+    // bảng giãn gây mouseleave nhấp nháy làm bảng "biến mất" (user spec r5). =====
+    scheduleCollapse() {
+        browser.clearTimeout(this._empCollapseTimer);
+        this._empCollapseTimer = browser.setTimeout(
+            () => this.collapseEmployees(), 350);
+    }
+    cancelCollapse() {
+        browser.clearTimeout(this._empCollapseTimer);
     }
 
     setFocus(focus) {

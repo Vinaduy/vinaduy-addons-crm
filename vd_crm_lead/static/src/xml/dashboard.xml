@@ -1645,7 +1645,8 @@
                              User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
                              trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
                         <div t-if="state.is_team_leader" class="o_vd_tl_panel"
-                             t-on-mouseleave="() => this.collapseEmployees()">
+                             t-on-mouseenter="() => this.cancelCollapse()"
+                             t-on-mouseleave="() => this.scheduleCollapse()">
                             <!-- GIÁM ĐỐC: nút NHÂN VIÊN to (gấp đôi) TRÊN ĐẦU bảng NV.
                                  Hover → bảng giãn ra hiện TOÀN BỘ NV; rời chuột khỏi
                                  bảng / bấm lại → thu về NV phòng GĐ (user spec 2026-06-20 r2). -->
