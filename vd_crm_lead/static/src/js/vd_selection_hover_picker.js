@@ -114,19 +114,16 @@ export class VdSelectionHoverPicker extends Component {
     async selectOption(key, ev) {
         if (ev) { try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {} }
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
-        // FLUSH các ô số đang gõ dở vào record TRƯỚC khi update/save — nếu không
-        // record.save() bên dưới sẽ reload form và nuốt mất giá trị in-flight
-        // (bug: chọn Mẫu nhà/Móng làm xoá Diện tích tầng vừa nhập).
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("picker select"); } catch (_) {}
         try {
             await this.props.record.update({ [this.props.name]: key });
         } catch (e) {
             console.error("[vd_shp] update failed:", e);
         }
-        // Auto-save form → trigger backend compute vd_intake_complete + auto-lock.
-        // Flush lần nữa phòng có ô vừa blur-commit ngay trước click.
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("picker save"); } catch (_) {}
-        try { await this.props.record.save(); } catch (_) {}
+        // KHÔNG save ngay (reload làm mất dữ liệu/con trỏ + giật). Lên lịch SAVE
+        // DỒN: chỉ thật lưu khi user nghỉ tay → compute vd_intake_complete + lock.
+        try {
+            if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "shp:" + this.props.name);
+        } catch (_) {}
         try { this.render(true); } catch (_) {}
         this.state.open = false;
     }

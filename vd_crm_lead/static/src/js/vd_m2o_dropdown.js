@@ -286,7 +286,7 @@ export class VdM2oDropdown extends Component {
             }
         }
         this._close();
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("m2o-dropdown save"); } catch (_) {}
+        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("m2o-dropdown save"); } catch (_) {}
         // Auto-save → backend compute vd_intake_complete + auto-lock.
         try { await this.props.record.save(); } catch (_) {}
         try { this.render(true); } catch (_) {}

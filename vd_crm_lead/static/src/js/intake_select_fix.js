@@ -457,12 +457,14 @@ function attachLiveSeparatorAll() {
 }
 
 // ----- Bootstrap (debounced) -----
-let _scheduled = false;
+// TRAILING DEBOUNCE 150ms thay vì requestAnimationFrame: 1 lần form reload đẻ ra
+// HÀNG CHỤC mutation/frame → rAF chạy mỗi frame = giật main-thread (khó click,
+// mất con trỏ, nút chậm). Debounce gộp cả cụm mutation về 1-2 lần chạy → mượt.
+let _schedTimer = null;
 function schedule() {
-    if (_scheduled) return;
-    _scheduled = true;
-    requestAnimationFrame(() => {
-        _scheduled = false;
+    if (_schedTimer) clearTimeout(_schedTimer);
+    _schedTimer = setTimeout(() => {
+        _schedTimer = null;
         patchAllSelects();
         attachMonthPicker();
         fadeZeroDims();
@@ -473,7 +475,7 @@ function schedule() {
         clearZeroDisplays();
         attachAutoSaveBlur();            // blur Float/Char inputs → auto-save form
         syncIntakeLockedClass();         // sync class .vd-intake-locked theo state
-    });
+    }, 150);
 }
 
 // ===== AUTO-SAVE on blur cho Float/Char inputs trong steps panel =====
@@ -486,7 +488,7 @@ function schedule() {
 // → form reload khi giá trị m2o trước đó CHƯA kịp commit → mất giá trị.
 // Bug thực tế: chọn Tỉnh xong chọn Huyện → Tỉnh bị xoá trắng. Loại m2o khỏi
 // auto-save-blur; Tỉnh/Huyện vẫn được lưu khi user bấm CHỐT hoặc blur ô khác.
-function _autoSaveFormSafe() {
+async function _autoSaveFormSafe() {
     try {
         // NẾU NV vẫn đang focus 1 ô trong khu nhập (steps panel / overlay
         // dropdown) → KHOAN save. Save kéo theo reload form → xoá chữ đang gõ ở
@@ -504,7 +506,7 @@ function _autoSaveFormSafe() {
             return;
         }
         // Ép mọi ô số commit giá trị in-flight TRƯỚC khi save → không mất dữ liệu.
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("blur autosave"); } catch (_) {}
+        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("blur autosave"); } catch (_) {}
         // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
         const btn = document.querySelector(
             ".o_form_view.o_form_dirty button.o_form_button_save, " +
@@ -559,12 +561,57 @@ function syncIntakeLockedClass() {
     } catch (e) {}
 }
 
+// ===== Nút +Tầng / +Tum / +Lửng chạy CLIENT-SIDE (không gọi server action) =====
+// Server action type="object" = round-trip + reload toàn form mỗi lần bấm → rất
+// chậm trên server thiếu RAM. Thay bằng record.update tại client: nhẹ, tức thì,
+// và vẫn chạy onchange backend (_onchange_floors_select tự điền diện tích tầng).
+// Nếu không lấy được record → KHÔNG chặn, để server action chạy như cũ (fallback).
+const FLOOR_BTN_NAMES = ["action_add_floor", "action_toggle_tum", "action_toggle_lung"];
+async function _handleFloorBtn(rec, name) {
+    try {
+        if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("floor btn:" + name);
+        if (name === "action_add_floor") {
+            const cur = parseInt(rec.data.vd_intake_floors_count || 1, 10) || 1;
+            if (cur >= 7) return;
+            const next = cur + 1;
+            await rec.update({ vd_intake_floors_count: next, vd_intake_floors_select: String(next) });
+        } else if (name === "action_toggle_tum") {
+            await rec.update({ vd_intake_has_tum: !rec.data.vd_intake_has_tum });
+        } else if (name === "action_toggle_lung") {
+            await rec.update({ vd_intake_has_lung: !rec.data.vd_intake_has_lung });
+        }
+        if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(rec, "floor btn:" + name);
+    } catch (err) {
+        console.warn("[VD floor btn] lỗi, sẽ không chặn lần sau:", err);
+    }
+}
+
 function start() {
     schedule();
     new MutationObserver(schedule).observe(document.body, {
         childList: true,
         subtree: true,
     });
+
+    // Bắt click nút +Tầng/+Tum/+Lửng ở capture phase → chặn server action, chạy
+    // client-side cho nhẹ + nhanh. (Nút Xoá tầng giữ server action vì logic dồn
+    // tầng phức tạp.)
+    document.addEventListener(
+        "click",
+        (e) => {
+            const btn = e.target.closest && e.target.closest("button[name]");
+            if (!btn) return;
+            const name = btn.getAttribute("name");
+            if (!FLOOR_BTN_NAMES.includes(name)) return;
+            if (!btn.closest(".o_vd_steps_panel")) return;
+            const rec = window.__vdGetIntakeRecord && window.__vdGetIntakeRecord();
+            if (!rec) return;   // fallback: để server action chạy
+            e.preventDefault();
+            e.stopPropagation();
+            _handleFloorBtn(rec, name);
+        },
+        true
+    );
     // Update fade state khi user gõ vào dim input
     document.addEventListener(
         "input",

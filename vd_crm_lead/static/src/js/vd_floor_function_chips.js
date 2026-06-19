@@ -109,17 +109,15 @@ export class VdFloorFunctionChips extends Component {
         } else {
             await this.saveRecord([tag.id]);
         }
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("floor-func save"); } catch (_) {}
-        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
-        try { await this.props.record.save(); } catch (_) {}
+        // SAVE DỒN (idle) — không reload từng phát.
+        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "floor-func"); } catch (_) {}
     }
 
     async onRemoveSelected(tag, ev) {
         ev.stopPropagation();
         const rec = this.x2manyValue.records.find((r) => r.resId === tag.id);
         if (rec) await this.removeRecord(rec);
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("floor-func remove"); } catch (_) {}
-        try { await this.props.record.save(); } catch (_) {}
+        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "floor-func rm"); } catch (_) {}
     }
 }
 

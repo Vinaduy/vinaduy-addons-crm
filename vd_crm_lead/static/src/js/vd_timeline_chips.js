@@ -112,10 +112,8 @@ export class VdTimelineChips extends Component {
         }
         const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
         this.props.record.update({ [this.props.name]: ordered.join(SEP) });
-        // Flush ô số đang gõ dở TRƯỚC khi save → reload không nuốt giá trị in-flight.
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("timeline save"); } catch (_) {}
-        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
-        try { this.props.record.save(); } catch (_) {}
+        // SAVE DỒN (idle) — không reload từng phát.
+        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline"); } catch (_) {}
     }
 
     onRemoveSelected(label, ev) {
@@ -124,9 +122,7 @@ export class VdTimelineChips extends Component {
         sel.delete(label);
         const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
         this.props.record.update({ [this.props.name]: ordered.join(SEP) });
-        try { window.__vdFlushIntakeInputs && window.__vdFlushIntakeInputs("timeline remove"); } catch (_) {}
-        // Auto-save → trigger backend compute vd_intake_complete + auto-lock
-        try { this.props.record.save(); } catch (_) {}
+        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline rm"); } catch (_) {}
     }
 }
 

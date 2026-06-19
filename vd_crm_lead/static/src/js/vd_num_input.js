@@ -7,20 +7,22 @@
  *  - Dùng useInputField (hook chuẩn Odoo) cho hiển thị: KHÔNG reset input khi
  *    đang focus/gõ dở.
  *
- *  ===== FIX MẤT DỮ LIỆU (2026-06-16) =====
- *  Bug: gõ số vào ô A, bấm sang ô B (hoặc chọn Mẫu nhà / Móng) → ô A bị xoá.
- *  Nguyên nhân: useInputField CHỈ commit value vào record lúc `change`/blur.
- *  Trong khi đó picker (vd_selection_hover_picker) + autosave gọi
- *  `record.save()` NGAY → form reload từ DB. Nếu giá trị vừa gõ CHƯA kịp commit
- *  (đang "in-flight"), reload đọc lại giá trị CŨ (0) → ô trống = mất dữ liệu.
+ *  ===== FIX MẤT DỮ LIỆU + GIẬT LAG (2026-06-16, vòng 2) =====
+ *  Bệnh gốc: form intake gọi `record.save()` (→ RELOAD toàn form) sau MỖI thao
+ *  tác (chọn picker, gõ số, +Tầng...). Reload liên tục gây:
+ *    1. Mất giá trị đang gõ (reload đọc lại giá trị cũ).
+ *    2. Re-render input → mất con trỏ / khó click vào ô để gõ.
+ *    3. Server bận reload → nút +Tầng/+Tum/Xoá tầng (server action) phản hồi chậm.
+ *  Thêm 1 race: flush (commit giá trị đang gõ) KHÔNG await trước save → save chạy
+ *  trước khi giá trị kịp vào record.
  *
  *  Cách sửa DỨT ĐIỂM:
- *   1. Commit value vào record NGAY khi gõ (debounce 250ms) — không chờ blur.
- *   2. Expose flush ĐỒNG BỘ: window.__vdFlushIntakeInputs() ép mọi ô commit
- *      pending NGAY. Mọi nơi gọi record.save() PHẢI flush trước → không còn
- *      giá trị in-flight nào bị reload nuốt mất.
- *   3. Autosave (record.save) chỉ chạy khi KHÔNG còn focus trong khu intake/
- *      overlay VÀ user đã ngừng gõ ≥ 1.5s (chống reload giữa lúc đang nhập).
+ *   A. DỒN mọi save về 1 hàm `vdScheduleIntakeSave` debounce 900ms, CHỈ thật save
+ *      khi user đã NGHỈ tay (không focus trong khu nhập, không gõ < 1.5s). Chọn
+ *      picker / gõ số chỉ `record.update` (cập nhật in-memory, UI đổi ngay) — KHÔNG
+ *      reload giữa chừng nữa → hết mất dữ liệu, hết mất con trỏ, nút bấm nhẹ hơn.
+ *   B. Flush ĐỒNG BỘ + AWAIT: `window.__vdFlushIntakeInputs()` ép mọi ô số commit
+ *      giá trị đang gõ (đọc thẳng từ DOM) vào record TRƯỚC khi save.
  *
  * Gắn: <field name="..." widget="vd_num_input"/>  — backend KHÔNG đổi.
  */
@@ -43,26 +45,42 @@ window.__vdIntake = window.__vdIntake || { lastType: 0 };
 const _vdLiveInputs = new Set();
 
 /**
- * Ép MỌI ô số intake commit giá trị đang gõ vào record NGAY (đồng bộ).
- * Gọi hàm này TRƯỚC mỗi record.save() để không reload nuốt giá trị in-flight.
+ * Ép MỌI ô số intake commit giá trị đang gõ (đọc thẳng từ DOM) vào record.
+ * AWAIT-able: trả về Promise resolve khi mọi record.update xong → gọi
+ * `await window.__vdFlushIntakeInputs()` TRƯỚC record.save() là chắc chắn không
+ * mất giá trị in-flight.
  */
-export function vdFlushIntakeInputs(reason) {
-    let n = 0;
+export async function vdFlushIntakeInputs(reason) {
+    const proms = [];
     for (const comp of _vdLiveInputs) {
-        try { if (comp._commitNow(true)) n++; } catch (e) { vdlog("flush err", e); }
+        try { const p = comp._commitNow(true); if (p) proms.push(p); } catch (e) { vdlog("flush err", e); }
     }
-    if (n) vdlog("FLUSH", n, "ô (lý do:", reason || "?", ")");
-    return n;
+    if (proms.length) {
+        vdlog("FLUSH", proms.length, "ô (lý do:", reason || "?", ")");
+        try { await Promise.all(proms); } catch (e) { vdlog("flush await err", e); }
+    }
+    return proms.length;
 }
 window.__vdFlushIntakeInputs = vdFlushIntakeInputs;
 
-// Có nên cho autosave (record.save → reload) chạy không?
+// Lấy record intake đang mở (chia sẻ chung) từ bất kỳ ô số nào còn sống.
+// Dùng cho handler client-side của nút +Tầng/+Tum/+Lửng (khỏi gọi server action
+// → khỏi reload → bấm NHẸ và NHANH).
+export function vdGetIntakeRecord() {
+    for (const c of _vdLiveInputs) {
+        if (c && c.props && c.props.record) return c.props.record;
+    }
+    return null;
+}
+window.__vdGetIntakeRecord = vdGetIntakeRecord;
+
+// Có nên cho save (→ reload) chạy bây giờ không?
 //  - Còn focus trong khu nhập / overlay dropdown → KHÔNG (sẽ reload giữa lúc nhập).
 //  - User vừa gõ < 1.5s → KHÔNG (giá trị có thể chưa ổn định).
 export function vdCanAutosaveIntake() {
     const since = Date.now() - (window.__vdIntake.lastType || 0);
     if (since < 1500) {
-        vdlog("autosave HOÃN: vừa gõ", since, "ms trước");
+        vdlog("save HOÃN: vừa gõ", since, "ms trước");
         return false;
     }
     const ae = document.activeElement;
@@ -70,14 +88,35 @@ export function vdCanAutosaveIntake() {
         ".o_vd_steps_panel, .o_vd_intake_compact, .o-overlay-container, " +
         ".o_vd_selection_hover_picker, .o-autocomplete"
     )) {
-        vdlog("autosave HOÃN: focus còn trong khu nhập/overlay");
+        vdlog("save HOÃN: focus còn trong khu nhập/overlay");
         return false;
     }
     return true;
 }
 
-// Debounce CHUNG cho autosave — chỉ thật lưu khi NV đã rời hẳn khu nhập.
-let _vdNumSaveTimer = null;
+// ===== SAVE DỒN: 1 timer chung cho toàn intake (debounce 900ms, idle) =====
+// Mọi nơi muốn lưu form intake → gọi vdScheduleIntakeSave thay vì record.save()
+// trực tiếp. Nhờ vậy chọn/gõ liên tục KHÔNG reload từng phát; chỉ save 1 lần khi
+// user nghỉ tay → UI mượt, không mất con trỏ, không mất dữ liệu.
+let _vdSaveTimer = null;
+export function vdScheduleIntakeSave(record, reason) {
+    if (!record) return;
+    if (_vdSaveTimer) clearTimeout(_vdSaveTimer);
+    _vdSaveTimer = setTimeout(async () => {
+        _vdSaveTimer = null;
+        if (!vdCanAutosaveIntake()) {
+            // Vẫn đang thao tác → khoan. Dữ liệu đã nằm trong record (in-memory),
+            // lần thao tác kế hoặc blur-ra-ngoài sẽ save. Không reload cắt ngang.
+            return;
+        }
+        await vdFlushIntakeInputs("scheduled save:" + (reason || "?"));
+        try {
+            await record.save();
+            vdlog("SAVED (", reason, ")");
+        } catch (e) { vdlog("save err", e); }
+    }, 900);
+}
+window.__vdScheduleIntakeSave = vdScheduleIntakeSave;
 
 export class VdNumInput extends Component {
     static template = "vd_crm_lead.VdNumInput";
@@ -119,19 +158,17 @@ export class VdNumInput extends Component {
         return isNaN(v) ? 0 : v;
     }
 
-    // Commit giá trị đang hiển thị vào record NGAY (nếu khác giá trị hiện tại).
-    // Trả về true nếu có thay đổi đã commit. `sync` chỉ để log rõ nguồn gọi.
+    // Commit giá trị đang hiển thị (DOM) vào record nếu khác giá trị hiện tại.
+    // Trả về Promise (record.update) nếu có thay đổi, ngược lại null.
     _commitNow(sync) {
         const el = this.inputRef.el;
-        if (!el) return false;
+        if (!el) return null;
         if (this._commitTimer) { clearTimeout(this._commitTimer); this._commitTimer = null; }
         const val = this._parse(el.value);
-        const cur = this.props.record.data[this.props.name];
-        const curNum = cur || 0;
-        if (val === curNum) return false;
+        const curNum = this.props.record.data[this.props.name] || 0;
+        if (val === curNum) return null;
         vdlog((sync ? "commit(flush)" : "commit"), this.props.name, ":", curNum, "->", val);
-        this.props.record.update({ [this.props.name]: val }).catch((e) => vdlog("update err", this.props.name, e));
-        return true;
+        return this.props.record.update({ [this.props.name]: val }).catch((e) => vdlog("update err", this.props.name, e));
     }
 
     // Lọc ký tự ngay khi gõ + commit sớm vào record (debounce) → không chờ blur.
@@ -149,34 +186,21 @@ export class VdNumInput extends Component {
         if (ev.target.value !== s) {
             ev.target.value = s;
         }
-        // Đánh dấu "đang gõ" để autosave không reload cắt ngang.
+        // Đánh dấu "đang gõ" để save không reload cắt ngang.
         window.__vdIntake.lastType = Date.now();
-        // Commit sớm vào record (debounce 250ms) — KHÔNG đợi blur. Nhờ vậy nếu
-        // có save()/reload xảy ra, record đã có giá trị mới → không mất.
+        // Commit sớm vào record (debounce 300ms) — KHÔNG đợi blur. Nhờ vậy nếu
+        // có save xảy ra, record đã có giá trị mới → không mất. KHÔNG save ở đây.
         if (this._commitTimer) clearTimeout(this._commitTimer);
         this._commitTimer = setTimeout(() => {
             this._commitTimer = null;
             this._commitNow(false);
-        }, 250);
+        }, 300);
     }
 
-    // useInputField đã commit value vào record lúc change. Ở đây flush chắc chắn
-    // + lên lịch autosave (có guard chống reload giữa lúc nhập).
+    // Blur/Enter: commit chắc chắn + lên lịch SAVE DỒN (idle, guarded).
     onChange() {
         this._commitNow(true);
-        const record = this.props.record;
-        if (_vdNumSaveTimer) {
-            clearTimeout(_vdNumSaveTimer);
-        }
-        _vdNumSaveTimer = setTimeout(() => {
-            _vdNumSaveTimer = null;
-            if (!vdCanAutosaveIntake()) {
-                return;     // vẫn đang nhập / chưa rời khu intake → khoan lưu
-            }
-            vdFlushIntakeInputs("vd_num autosave");
-            vdlog("autosave -> record.save()");
-            record.save().catch((e) => vdlog("save err", e));
-        }, 600);
+        vdScheduleIntakeSave(this.props.record, "vd_num change");
     }
 }
 
