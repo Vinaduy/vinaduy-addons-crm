@@ -277,11 +277,9 @@ export class VdCrmDashboard extends Component {
                     // Trưởng nhóm / GĐ cá nhân: analytics scope phòng (nền).
                     this.loadAnalytics();
                 }
-                // GĐ: prefetch SẴN bản "toàn bộ NV" ở NỀN (sau 1.2s, khi trang đã
-                // mượt) để hover nút NHÂN VIÊN hiện NGAY, không phải chờ ~8s.
-                if (this.state.is_manager && this.state.dirTeamMode) {
-                    browser.setTimeout(() => this._prefetchAllEmployees(), 1200);
-                }
+                // KHÔNG prefetch bản "toàn bộ NV" nữa: query đó ~8s, chạy nền sẽ
+                // chiếm worker (server 4 worker, RAM thấp) → làm CHẬM cả trang.
+                // Bản toàn bộ chỉ load khi user thực sự hover nút NHÂN VIÊN.
             }
         });
     }
@@ -560,10 +558,6 @@ export class VdCrmDashboard extends Component {
         this._reloadDashUsers();   // nền — không chặn
         // Analytics bó về phòng ban (scope='team') — chạy nền cho nhẹ.
         this.loadAnalytics('team');
-        // Prefetch lại bản "toàn bộ NV" ở nền cho lần hover sau.
-        if (this.state.is_manager) {
-            browser.setTimeout(() => this._prefetchAllEmployees(), 1200);
-        }
     }
 
     // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN (1 promise dùng chung cho cả

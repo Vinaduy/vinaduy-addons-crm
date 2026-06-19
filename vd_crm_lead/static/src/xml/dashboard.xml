@@ -2704,10 +2704,11 @@
                 t-att-class="state.empExpanded ? 'o_active' : ''"
                 t-on-mouseenter="() => this.expandEmployees()"
                 t-on-click="() => this.toggleEmployees()">
-            <i class="fa fa-users o_vd_emp_filter_ico"/>
+            <i t-att-class="(state.empExpanded and state.analyticsLoading) ? 'fa fa-spinner fa-spin o_vd_emp_filter_ico' : 'fa fa-users o_vd_emp_filter_ico'"/>
             <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
             <span class="o_vd_emp_filter_hint">
-                <t t-if="state.empExpanded">— Toàn bộ nhân viên (bỏ chuột để thu gọn)</t>
+                <t t-if="state.empExpanded and state.analyticsLoading">— Đang tải toàn bộ nhân viên…</t>
+                <t t-elif="state.empExpanded">— Toàn bộ nhân viên (bỏ chuột để thu gọn)</t>
                 <t t-else="">— Di chuột vào để xem toàn bộ</t>
             </span>
         </button>
