@@ -17,11 +17,6 @@ import { View } from "@web/views/view";
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
 const VD_DASH_NV_KEY = "vd_dash_selected_nv";
-// Chiều cao (px) bảng NV của GĐ — user kéo mép dưới để chỉnh, lưu lại qua F5.
-const VD_DASH_EMP_H_KEY = "vd_dash_emp_box_h";
-const VD_DASH_EMP_H_DEFAULT = 320;   // mặc định ~5-6 dòng NV
-const VD_DASH_EMP_H_MIN = 120;
-const VD_DASH_EMP_H_MAX = 1200;
 
 // Phân biệt "F5 / page reload" vs "click menu Dashboard NV trong SPA".
 // Module-scope flag chỉ reset khi bundle JS chạy lại = full page reload (F5).
@@ -118,17 +113,6 @@ export class VdCrmDashboard extends Component {
             // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
             // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
             empExpanded: false,
-            // Chiều cao viewport bảng NV (px) — kéo mép dưới để chỉnh. Khôi phục
-            // từ localStorage (user spec 2026-06-20 r5: bảng luôn hiện + kéo được).
-            empBoxHeight: (() => {
-                try {
-                    const h = parseInt(browser.localStorage.getItem(VD_DASH_EMP_H_KEY) || "0", 10);
-                    if (h >= VD_DASH_EMP_H_MIN && h <= VD_DASH_EMP_H_MAX) return h;
-                } catch (_e) { /* localStorage bị chặn */ }
-                return VD_DASH_EMP_H_DEFAULT;
-            })(),
-            // Đang kéo mép dưới → khoá auto giãn/thu để kéo mượt.
-            empResizing: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -250,11 +234,6 @@ export class VdCrmDashboard extends Component {
             if (this._callPollInterval) {
                 clearInterval(this._callPollInterval);
                 this._callPollInterval = null;
-            }
-            // Dọn listener kéo mép bảng NV nếu component chết giữa lúc kéo.
-            if (this._empResizeCleanup) {
-                this._empResizeCleanup();
-                this._empResizeCleanup = null;
             }
             // Đảm bảo scroll lock + body class được dọn nếu navigate đi
             document.body.classList.remove('o_vd_preview_active');
@@ -609,50 +588,10 @@ export class VdCrmDashboard extends Component {
         return this._anaAllPromise;
     }
 
-    // ===== KÉO MÉP DƯỚI bảng NV (GĐ) — chỉnh chiều cao viewport, lưu localStorage.
-    // Bảng NV luôn hiện; mép dưới kéo lên/xuống đổi chiều cao, đẩy nội dung dưới
-    // theo (vì box nằm trong luồng tài liệu). Hover vẫn giãn ra TOÀN BỘ NV. =====
-    // Style inline cho box: TRẦN chiều cao = empBoxHeight (không ép height nên ít
-    // NV thì box ôm sát, không thừa khoảng trắng). Vượt trần → cuộn trong box.
-    // Hover (all-NV) box nở dept→trần rồi cuộn → đẩy nội dung dưới xuống; kéo mép
-    // đổi trần → đẩy thêm/bớt. Cùng 1 công thức cho mọi trạng thái → mượt, nhất quán.
-    get empBoxStyle() {
-        return `max-height: ${this.state.empBoxHeight}px; overflow-y: auto;`;
-    }
-    // Bắt đầu kéo mép dưới: khoá auto giãn/thu, theo chuột tới khi nhả.
-    startEmpResize(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.cancelCollapse();
-        this.state.empResizing = true;
-        const startY = ev.clientY;
-        const startH = this.state.empBoxHeight;
-        const onMove = (e) => {
-            let h = startH + (e.clientY - startY);
-            h = Math.max(VD_DASH_EMP_H_MIN, Math.min(VD_DASH_EMP_H_MAX, h));
-            this.state.empBoxHeight = h;
-        };
-        const onUp = () => {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-            this.state.empResizing = false;
-            try {
-                browser.localStorage.setItem(VD_DASH_EMP_H_KEY,
-                    String(this.state.empBoxHeight));
-            } catch (_e) { /* localStorage bị chặn → bỏ qua */ }
-            this._empResizeCleanup = null;
-        };
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
-        // Lưu để onWillUnmount dọn nếu component chết giữa lúc kéo.
-        this._empResizeCleanup = onUp;
-    }
-
     // ===== GIÃN / THU bảng NV (GĐ) — đổi phạm vi TẠI CHỖ, không rời trang =====
     // Giãn: nạp analytics TOÀN CÔNG TY (lazy + cache) rồi swap vào bảng NV.
     async expandEmployees() {
         if (!this.state.is_manager || this.state.empExpanded) return;
-        if (this.state.empResizing) return;   // đang kéo mép → không giãn
         console.log("[VD emp] EXPAND → giãn toàn bộ NV (đã preload?", !!this._anaAll, ")");
         // Lưu bản phòng-ban hiện tại để thu lại nhanh.
         if (!this._anaDept && this.state.analytics) this._anaDept = this.state.analytics;
@@ -688,7 +627,7 @@ export class VdCrmDashboard extends Component {
     // rê xuống danh sách NV, mouseleave là nhiễu do reflow) thì KHÔNG thu. Đây
     // là cách miễn nhiễm với mouseleave nhiễu (không phụ thuộc mouseenter bù). =====
     scheduleCollapse() {
-        if (!this.state.empExpanded || this.state.empResizing) return;
+        if (!this.state.empExpanded) return;
         browser.clearTimeout(this._empCollapseTimer);
         this._empCollapseTimer = browser.setTimeout(() => {
             const el = this.tlPanelRef.el;

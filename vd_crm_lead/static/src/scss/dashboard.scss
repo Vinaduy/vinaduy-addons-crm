@@ -9693,46 +9693,16 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     box-shadow: 0 7px 22px rgba(249,115,22,.45);
 }
 .o_vd_emp_filter.o_active .o_vd_emp_filter_hint { color: #fff; opacity: .9; }
-/* Bảng NV (GĐ) luôn hiện + chiều cao kéo được (user spec 2026-06-20 r5).
-   Chiều cao điều khiển bằng inline style (empBoxStyle). Box là viewport cuộn
-   khi thu; mép dưới có tay kéo. Transition cho mượt khi GIÃN (hover → all-NV). */
-.o_vd_tl_panel .o_vd_tl_team_box.o_vd_analytics {
-    position: relative;
-    transition: height .28s ease, max-height .28s ease, min-height .28s ease;
-    /* chừa chỗ cho tay kéo dính đáy, không che dòng NV cuối */
-    padding-bottom: 14px !important;
-}
-/* Đang KÉO mép → tắt transition cho bám chuột tức thì */
-.o_vd_tl_team_box.o_vd_emp_resizing { transition: none !important; }
-/* Trần chiều cao do inline style (empBoxStyle) điều khiển cho MỌI trạng thái —
-   kể cả khi giãn (all-NV) vẫn cuộn trong box theo chiều cao user đã kéo. */
-/* ===== TAY KÉO mép dưới bảng NV ===== */
-.o_vd_emp_resize_handle {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 14px;
-    margin: 2px -0.7rem -0.6rem;   /* tràn sát mép box (bù padding kh_box) */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: ns-resize;
-    background: linear-gradient(180deg, rgba(249,115,22,0) 0%, rgba(249,115,22,.10) 100%);
-    border-top: 1px solid rgba(249,115,22,.18);
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-    z-index: 3;
-    transition: background .15s ease;
-    &:hover { background: linear-gradient(180deg, rgba(249,115,22,.08) 0%, rgba(249,115,22,.22) 100%); }
-}
-.o_vd_emp_resize_grip {
-    width: 44px; height: 4px; border-radius: 4px;
-    background: #f7a872;
-}
-.o_vd_emp_resize_handle:hover .o_vd_emp_resize_grip { background: #ea580c; }
-.o_vd_emp_resizing .o_vd_emp_resize_handle {
-    background: linear-gradient(180deg, rgba(249,115,22,.12) 0%, rgba(249,115,22,.28) 100%);
+/* Bảng NV khi giãn: bỏ giới hạn chiều cao (nếu có) cho thấy hết NV */
+.o_vd_tl_team_box.o_vd_emp_expanded { max-height: none; }
+/* Nút "XEM TẤT CẢ NHÂN VIÊN" MÉP DƯỚI bảng NV (GĐ) — dùng CHUNG style với bảng
+   KHÁCH MỚI (.o_vd_new_pills_toggle). Full ngang, dính sát đáy bảng, bo góc dưới
+   (user spec 2026-06-20 r6: giống bảng KHÁCH MỚI, bấm để trượt xuống). */
+.o_vd_tl_panel .o_vd_emp_toggle {
+    width: 100%;
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 /* Nút NHÂN VIÊN liền bảng NV: thu nhẹ bo góc dưới cho dính bảng phía dưới */
 .o_vd_emp_filter { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
