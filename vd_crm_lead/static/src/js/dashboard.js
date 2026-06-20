@@ -113,9 +113,11 @@ export class VdCrmDashboard extends Component {
             // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
             // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
             empExpanded: false,
-            // empPinned: GĐ BẤM nút NHÂN VIÊN để GHIM bảng mở (không thu khi rời
-            // chuột); bấm lần nữa bỏ ghim. Hover chỉ giãn tạm khi chưa ghim.
-            empPinned: false,
+            // GĐ: NV TOÀN CÔNG TY (mọi phòng) cho lúc GIÃN — prefetch nền. Lúc THU
+            // bảng vẫn chỉ hiện NV phòng GĐ (analytics.kh_by_team). Tách 2 nguồn để
+            // KHÔNG nháy khi tải trang (user spec 2026-06-20 r11).
+            allTeamGroups: [],
+            allTeamLoading: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -282,8 +284,12 @@ export class VdCrmDashboard extends Component {
                 } else if (this.state.is_team_leader) {
                     // Trưởng nhóm / GĐ cá nhân: AWAIT analytics (scope phòng, nhẹ) để
                     // bảng NV hiện CÙNG LÚC với các bảng khác, không trễ sau (user spec
-                    // 2026-06-20 r9). Bảng NV chỉ hiện NV phòng mình.
+                    // 2026-06-20 r9). Bảng THU chỉ hiện NV phòng mình.
                     await this.loadAnalytics();
+                    // Nền: nạp sẵn NV toàn công ty để hover GIÃN hiện ngay (r11).
+                    if (this.state.is_manager && this.state.dirTeamMode) {
+                        this._prefetchAllEmployees();
+                    }
                 }
             }
         });
@@ -553,23 +559,46 @@ export class VdCrmDashboard extends Component {
             && !this.state.empExpanded) return;
         this.state.dirTeamMode = true;
         this.state.empExpanded = false;
-        this.state.empPinned = false;
         this.state.selected_user_id = this.state.current_user_id;
         this._persistSelectedNv();
         this.state.nvDetail = null;
         this.state.analytics = null;
         await this.loadDashboard();
         this._reloadDashUsers();   // nền — không chặn
-        // Analytics bó về phòng ban (scope='team') → bảng chỉ hiện NV phòng GĐ.
-        this.loadAnalytics('team');
+        // Analytics bó về phòng ban (scope='team') → bảng THU chỉ hiện NV phòng GĐ.
+        await this.loadAnalytics('team');
+        // Nền: nạp sẵn NV toàn công ty để hover GIÃN hiện ngay.
+        if (this.state.is_manager && this.state.dirTeamMode) this._prefetchAllEmployees();
     }
 
-    // Nguồn NV cho bảng team = analytics.kh_by_team (GĐ: scope phòng → CHỈ NV phòng
-    // mình, vd Hà Nội; admin: toàn bộ). Có sẵn ngay từ loadAnalytics → không nháy,
-    // không chờ prefetch (user spec 2026-06-20 r8).
+    // Prefetch NV TOÀN CÔNG TY (scope=null) ở NỀN → state.allTeamGroups, để khi GĐ
+    // hover GIÃN là hiện ngay toàn bộ NV mọi phòng (không chờ). Dedup bằng promise.
+    _prefetchAllEmployees() {
+        if (this.state.allTeamGroups.length || this._anaAllPromise) return this._anaAllPromise;
+        this.state.allTeamLoading = true;
+        this._anaAllPromise = this.orm.call("crm.lead", "dashboard_analytics",
+            [this.state.analyticsFrom, this.state.analyticsTo, null])
+            .then((d) => {
+                if (d && d.kh_by_team) this.state.allTeamGroups = d.kh_by_team;
+            })
+            .catch(() => { this._anaAllPromise = null; })  // lỗi → cho thử lại
+            .then(() => { this.state.allTeamLoading = false; });
+        return this._anaAllPromise;
+    }
+
+    // Nguồn NV cho bảng team:
+    //  - GĐ cá nhân + ĐANG GIÃN (hover) → TOÀN CÔNG TY (allTeamGroups), fallback
+    //    phòng trong lúc tải.
+    //  - còn lại (thu gọn / admin) → analytics.kh_by_team (phòng GĐ / toàn bộ admin).
+    // Lúc THU luôn là phòng → KHÔNG nháy khi tải trang (user spec 2026-06-20 r11).
     get khTeamGroups() {
         const a = this.state.analytics;
-        return (a && a.kh_by_team) || [];
+        const dept = (a && a.kh_by_team) || [];
+        if (this.state.is_manager && this.state.dirTeamMode && this.state.empExpanded
+            && this.state.allTeamGroups.length) {
+            return this.state.allTeamGroups;
+        }
+        return dept;
     }
 
     // ===== GIÃN / THU bảng NV (GĐ) — chỉ đổi CHIỀU CAO (mép dưới trượt), KHÔNG
@@ -582,23 +611,19 @@ export class VdCrmDashboard extends Component {
         if (!this.state.is_manager || this.state.empExpanded) return;
         this.cancelCollapse();
         this.state.empExpanded = true;
+        // Chưa có dữ liệu toàn công ty → nạp ngay (hiện spinner ở hint).
+        if (!this.state.allTeamGroups.length) this._prefetchAllEmployees();
     }
     collapseEmployees() {
-        if (!this.state.empExpanded || this.state.empPinned) return;
+        if (!this.state.empExpanded) return;
         this.state.empExpanded = false;
-    }
-    toggleEmployees() {
-        if (!this.state.is_manager) return;
-        this.cancelCollapse();
-        this.state.empPinned = !this.state.empPinned;
-        this.state.empExpanded = this.state.empPinned;
     }
     // ===== GRACE-DELAY collapse (r6): mouseleave panel → hẹn 350ms; khi timer
     // chạy, RE-VERIFY bằng :hover THẬT của DOM — nếu chuột VẪN trong panel (vd
     // rê xuống danh sách NV, mouseleave là nhiễu do reflow) thì KHÔNG thu. Đây
     // là cách miễn nhiễm với mouseleave nhiễu (không phụ thuộc mouseenter bù). =====
     scheduleCollapse() {
-        if (!this.state.empExpanded || this.state.empPinned) return;
+        if (!this.state.empExpanded) return;
         browser.clearTimeout(this._empCollapseTimer);
         this._empCollapseTimer = browser.setTimeout(() => {
             const el = this.tlPanelRef.el;

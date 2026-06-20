@@ -2724,11 +2724,12 @@
         <button t-if="showDirFilters" class="o_vd_emp_filter"
                 t-att-class="state.empExpanded ? 'o_active' : ''"
                 t-on-mouseenter="() => this.expandEmployees()">
-            <i class="fa fa-users o_vd_emp_filter_ico"/>
+            <i t-att-class="(state.empExpanded and state.allTeamLoading) ? 'fa fa-spinner fa-spin o_vd_emp_filter_ico' : 'fa fa-users o_vd_emp_filter_ico'"/>
             <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
             <span class="o_vd_emp_filter_hint">
-                <t t-if="state.empExpanded">— Nhân viên phòng (rời chuột để thu gọn)</t>
-                <t t-else="">— Di chuột vào để mở rộng bảng</t>
+                <t t-if="state.empExpanded and state.allTeamLoading">— Đang tải toàn bộ nhân viên công ty…</t>
+                <t t-elif="state.empExpanded">— Toàn bộ nhân viên công ty (rời chuột để thu gọn)</t>
+                <t t-else="">— Di chuột vào để xem toàn bộ nhân viên công ty</t>
             </span>
         </button>
     </t>
