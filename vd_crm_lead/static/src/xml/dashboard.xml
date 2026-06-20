@@ -2723,8 +2723,7 @@
     <t t-name="vd_crm_lead.VdDirFilters">
         <button t-if="showDirFilters" class="o_vd_emp_filter"
                 t-att-class="state.empExpanded ? 'o_active' : ''"
-                t-on-mouseenter="() => this.expandEmployees()"
-                t-on-click="() => this.toggleEmployees()">
+                t-on-mouseenter="() => this.expandEmployees()">
             <i class="fa fa-users o_vd_emp_filter_ico"/>
             <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
             <span class="o_vd_emp_filter_hint">
