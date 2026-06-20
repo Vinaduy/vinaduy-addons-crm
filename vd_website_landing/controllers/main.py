@@ -67,7 +67,8 @@ function gtag_report_conversion(url) {{
 }}
 // Tu gan tracking cho moi link tel: (ke ca them so moi sau nay).
 document.addEventListener('DOMContentLoaded', function () {{
-  var links = document.querySelectorAll('a[href^="tel:"]');
+  // Bỏ qua link đã tự khai onclick (vd nut vd-call) de tranh ban 2 lan.
+  var links = document.querySelectorAll('a[href^="tel:"]:not([onclick])');
   for (var i = 0; i < links.length; i++) {{
     (function (a) {{
       a.addEventListener('click', function (e) {{
