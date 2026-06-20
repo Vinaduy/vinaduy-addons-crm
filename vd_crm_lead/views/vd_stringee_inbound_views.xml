@@ -7,12 +7,11 @@
         <field name="model">stringee.call</field>
         <field name="arch" type="xml">
             <list string="Cuộc gọi đến" default_order="start_time desc" create="false"
-                  decoration-danger="answer_time == False" decoration-success="answer_time != False">
+                  decoration-danger="duration == 0" decoration-success="duration &gt; 0">
                 <field name="start_time" string="Lúc gọi đến"/>
                 <field name="caller_number" string="📞 Số khách gọi đến"/>
                 <field name="lead_id" string="Khách hàng (CRM)"/>
                 <field name="user_id" string="NV phụ trách" widget="many2one_avatar_user"/>
-                <field name="answer_time" column_invisible="1"/>
                 <field name="state" string="Trạng thái" widget="badge"
                        decoration-success="state == 'ended'"
                        decoration-danger="state in ('no_answer','busy','declined','cancelled','failed')"/>
@@ -40,9 +39,9 @@
                 <filter name="f_7days" string="7 ngày qua"
                         domain="[('start_time','&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
                 <separator/>
-                <filter name="f_answered" string="✅ Đã nghe máy" domain="[('answer_time','!=',False)]"/>
+                <filter name="f_answered" string="✅ Đã nghe máy (có nói chuyện)" domain="[('duration','&gt;',0)]"/>
                 <filter name="f_missed" string="❌ Nhỡ (không nghe)"
-                        domain="[('answer_time','=',False)]"/>
+                        domain="[('duration','=',0)]"/>
                 <separator/>
                 <filter name="f_has_rec" string="🎵 Có ghi âm" domain="[('recording_attachment_id','!=',False)]"/>
                 <group expand="0" string="Nhóm theo">
