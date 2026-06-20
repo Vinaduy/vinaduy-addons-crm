@@ -376,6 +376,33 @@ class StringeeController(http.Controller):
             'state': rec.state,
         }
 
+    @http.route('/stringee/transfer_targets', type='json', auth='user')
+    def transfer_targets(self):
+        """Danh sách NV có thể CHUYỂN MÁY tới (có stringee_user_id, không phải mình)."""
+        users = request.env['res.users'].sudo().search([
+            ('share', '=', False), ('active', '=', True),
+            ('stringee_user_id', '!=', False),
+            ('id', '!=', request.env.user.id),
+        ], order='name')
+        return [
+            {'id': u.id, 'name': u.name}
+            for u in users if (u.stringee_user_id or '').strip()
+        ]
+
+    @http.route('/stringee/transfer_call', type='json', auth='user')
+    def transfer_call(self, call_id, target_user_id):
+        """Chuyển cuộc gọi đang chạy (call_id) sang NV target_user_id."""
+        if not call_id or not target_user_id:
+            return {'error': 'Thiếu tham số (call_id / target_user_id).'}
+        rec = request.env['stringee.call'].sudo().search(
+            [('name', '=', call_id)], limit=1)
+        if not rec:
+            return {'error': 'Không tìm thấy cuộc gọi %s.' % call_id}
+        try:
+            return rec.action_transfer(target_user_id)
+        except Exception as e:
+            return {'error': str(e)}
+
     @http.route('/stringee/number_health', type='json', auth='user')
     def number_health(self, from_number='', carrier=''):
         """JS hỏi server: số tổng đài này còn GỌI RA được không?

@@ -21,9 +21,23 @@
                     </span>
                 </div>
             </div>
+            <button t-if="answered" type="button" class="o_vd_cp_transfer"
+                    t-on-click="onToggleTransfer" title="Chuyển máy cho NV khác">
+                <i class="fa fa-exchange"/>
+            </button>
             <button type="button" class="o_vd_cp_hang" t-on-click="onHangup" title="Cúp máy">
                 <i class="fa fa-phone"/>
             </button>
+            <!-- Danh sách NV để chuyển máy -->
+            <div t-if="tf.open" class="o_vd_cp_tf_menu">
+                <div class="o_vd_cp_tf_head">📞➡️ Chuyển máy cho:</div>
+                <div t-if="!tf.targets.length" class="o_vd_cp_tf_empty">Không có NV khả dụng…</div>
+                <button t-foreach="tf.targets" t-as="u" t-key="u.id" type="button"
+                        class="o_vd_cp_tf_item" t-att-disabled="tf.busy"
+                        t-on-click="() => this.onTransferTo(u.id, u.name)">
+                    <i class="fa fa-user me-1"/><t t-esc="u.name"/>
+                </button>
+            </div>
         </div>
 
         <!-- OUTCOME: kết quả cuộc gọi -->

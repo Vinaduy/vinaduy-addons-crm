@@ -582,6 +582,61 @@ class StringeeCall(models.Model):
                 return cand
         return Users
 
+    def action_transfer(self, target_user_id):
+        """CHUYỂN MÁY SỐNG sang NV khác (user spec 2026-06-20).
+
+        Gửi SCCO `connect` mới vào cuộc đang chạy qua Stringee putactions →
+        Stringee ngắt leg NV hiện tại, đổ chuông browser NV-B (incomingcall2 →
+        auto-answer). Khách GIỮ NGUYÊN máy, audio 2 chiều chuyển sang NV-B.
+        Ref: https://developer.stringee.com/docs/rest-api-reference/call-rest-api-put-actions-scco
+        """
+        self.ensure_one()
+        target = self.env['res.users'].sudo().browse(int(target_user_id))
+        if not target.exists():
+            raise UserError(_('Không tìm thấy nhân viên cần chuyển.'))
+        sui = (target.stringee_user_id or '').strip()
+        if not sui:
+            raise UserError(_(
+                'NV "%s" chưa cấu hình Stringee (stringee_user_id) → không chuyển máy được.'
+            ) % target.name)
+        if not self.name:
+            raise UserError(_('Cuộc gọi chưa có Call ID — không chuyển được.'))
+        # from = số tổng đài khách đang nối (callee của cuộc gọi đến); to = NV-B
+        hotline = _to_stringee_number(self.callee_number) or _to_stringee_number(self.caller_number)
+        actions = [{
+            'action': 'connect',
+            'from': {'type': 'external', 'number': hotline, 'alias': hotline},
+            'to': {'type': 'internal', 'number': sui, 'alias': sui},
+            'peerToPeerCall': False,
+            'continueOnFail': True,
+            'timeout': 30,
+        }]
+        try:
+            resp = requests.post(
+                f'{_STRINGEE_API}/v1/call2/putactions',
+                headers=self._stringee_headers(),
+                json={'callId': self.name, 'actions': actions},
+                timeout=_TIMEOUT,
+            )
+            data = resp.json() if resp.content else {}
+        except Exception as e:
+            _logger.warning('[Stringee transfer] %s lỗi mạng: %s', self.name, e)
+            raise UserError(_('Lỗi gọi Stringee khi chuyển máy: %s') % e)
+        if str(data.get('r')) != '0':
+            _logger.warning('[Stringee transfer] %s từ chối: %s', self.name, data)
+            raise UserError(_('Stringee từ chối chuyển máy (r=%s): %s') % (
+                data.get('r'), data.get('message') or data))
+        old_user = self.user_id
+        self.write({'user_id': target.id})
+        try:
+            self.message_post(body=_('📞➡️ Chuyển máy: %s → %s') % (
+                old_user.name or '—', target.name))
+        except Exception:
+            pass
+        _logger.info('[Stringee transfer] %s: %s → %s OK', self.name,
+                     old_user.name, target.name)
+        return {'success': True, 'target_name': target.name}
+
     def action_hangup(self):
         """Stop an active call via REST. Idempotent — silent if already ended."""
         self.ensure_one()

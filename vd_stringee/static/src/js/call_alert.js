@@ -29,8 +29,10 @@ export class VdCallAlert extends Component {
 
     setup() {
         this.stringee = useService("stringee");
+        this.notification = useService("notification");
         this.s = useState(this.stringee.state);
         this.ui = useState({ elapsed: 0 });
+        this.tf = useState({ open: false, busy: false, targets: [] });
         onMounted(() => {
             this._tick();
             this._timer = setInterval(() => this._tick(), 500);
@@ -86,6 +88,28 @@ export class VdCallAlert extends Component {
 
     onHangup() {
         try { this.stringee.hangup(); } catch (_e) { /* noop */ }
+    }
+
+    // ----- CHUYỂN MÁY -----
+    async onToggleTransfer() {
+        this.tf.open = !this.tf.open;
+        if (this.tf.open && !this.tf.targets.length) {
+            this.tf.targets = await this.stringee.transferTargets();
+        }
+    }
+    async onTransferTo(userId, userName) {
+        if (this.tf.busy) return;
+        this.tf.busy = true;
+        const res = await this.stringee.transfer(userId);
+        this.tf.busy = false;
+        this.tf.open = false;
+        if (res && res.error) {
+            this.notification.add(res.error, { type: "danger", title: "Chuyển máy thất bại" });
+        } else {
+            this.notification.add(`Đã chuyển máy sang ${userName}.`, {
+                type: "success", title: "Chuyển máy",
+            });
+        }
     }
     onClose() {
         this.stringee.hideCallAlert();

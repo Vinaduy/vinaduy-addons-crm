@@ -903,7 +903,33 @@ export const stringeeService = {
             } catch (_e) { /* noop */ }
         }
 
-        return { state, call, hangup, ensureConnected, showCallAlert, hideCallAlert };
+        // CHUYỂN MÁY (user spec 2026-06-20): lấy callId cuộc đang chạy + gọi
+        // server putactions để nối khách sang NV khác.
+        async function transferTargets() {
+            try {
+                return await rpc("/stringee/transfer_targets", {});
+            } catch (_e) {
+                return [];
+            }
+        }
+        async function transfer(targetUserId) {
+            const c = state.currentCall;
+            const callId = c && (c.callId || c.id || "");
+            if (!callId) {
+                return { error: "Không có cuộc gọi đang chạy để chuyển." };
+            }
+            try {
+                return await rpc("/stringee/transfer_call", {
+                    call_id: callId,
+                    target_user_id: targetUserId,
+                });
+            } catch (e) {
+                return { error: (e && e.message) || "Lỗi chuyển máy." };
+            }
+        }
+
+        return { state, call, hangup, ensureConnected, showCallAlert, hideCallAlert,
+                 transfer, transferTargets };
     },
 };
 
