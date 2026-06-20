@@ -8236,6 +8236,26 @@ class CrmLead(models.Model):
         if _tl_member_ids is not None:
             _sale_dom.append(('id', 'in', _tl_member_ids))
         sales_users = ResUsers.search(_sale_dom)
+
+        # User spec 2026-06-21: GIÁM ĐỐC KIÊM TRƯỞNG PHÒNG vẫn phải hiện 1 dòng
+        # trong bảng phòng ban của họ (vd: Hồ A Du = Giám đốc + Trưởng phòng HN).
+        # Giám đốc (deputy_director) implies group_sale_manager nên bị domain trên
+        # loại ra → thêm lại tường minh (vẫn loại Admin/system). Họ giữ cờ
+        # is_team_leader=True nên lên ĐẦU bảng phòng ban tương ứng (theo vd_team).
+        _dir_g = self.env.ref('vd_crm_lead.vd_crm_group_deputy_director',
+                              raise_if_not_found=False)
+        if _dir_g:
+            _dir_dom = [
+                ('share', '=', False),
+                ('active', '=', True),
+                ('groups_id', 'in', _dir_g.id),
+            ]
+            if _sys_g:
+                _dir_dom.append(('groups_id', 'not in', _sys_g.id))
+            if _tl_member_ids is not None:
+                _dir_dom.append(('id', 'in', _tl_member_ids))
+            sales_users |= ResUsers.search(_dir_dom)
+
         sales_user_ids = sales_users.ids
 
         # User spec 2026-06-14: ĐỒNG BỘ số liệu giữa trưởng nhóm và admin. Mọi tính
