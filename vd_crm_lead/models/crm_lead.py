@@ -6883,6 +6883,30 @@ class CrmLead(models.Model):
             'vd_crm_lead.distribute_block_uncalled', 20) or 20)
 
     @api.model
+    def _vd_today_assigned_count_map(self, user_ids):
+        """Map {user_id: số KH được CHIA HÔM NAY (theo giờ VN, UTC+7)}.
+        Dùng cho CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): cuối ngày mọi NV
+        nhận ~ bằng nhau. Đếm theo create_date (mọi nguồn) để tổng ngày cân bằng."""
+        from collections import defaultdict
+        from datetime import timedelta
+        uids = [int(u) for u in (user_ids or []) if u]
+        if not uids:
+            return {}
+        # VN cố định UTC+7 (không DST). Mốc 00:00 VN hôm nay → quy về UTC.
+        now_vn = fields.Datetime.now() + timedelta(hours=7)
+        start_vn = now_vn.replace(hour=0, minute=0, second=0, microsecond=0)
+        start_utc = start_vn - timedelta(hours=7)
+        leads = self.sudo().search([
+            ('user_id', 'in', uids),
+            ('create_date', '>=', fields.Datetime.to_string(start_utc)),
+        ])
+        cnt = defaultdict(int)
+        for l in leads:
+            if l.user_id:
+                cnt[l.user_id.id] += 1
+        return dict(cnt)
+
+    @api.model
     def _vd_uncalled_new_count_map(self, user_ids):
         """Map {user_id: số KH MỚI CHƯA gọi cuộc nào (call_count=0) trong bucket
         KHÁCH MỚI}. Dùng CHẶN CHIA SỐ (user spec 2026-06-12) — khớp 'new_not_called'

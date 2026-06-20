@@ -479,7 +479,8 @@ class ResUsers(models.Model):
            lead phải xuống tay NV thuần, không phân cho lãnh đạo
         3. Filter: chỉ giữ NV có vd_can_receive_new_leads = True
         4. Nếu source='pancake' → thêm filter vd_can_receive_pancake = True
-        5. Trong số đó, chọn NV có ÍT lead chưa won/lost NHẤT (load-balanced)
+        5. CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): chọn NV được chia ÍT KHÁCH
+           NHẤT HÔM NAY (giờ VN). Hoà → NV tải active ít hơn, rồi id nhỏ hơn.
         6. Trả về user record, hoặc empty nếu KHÔNG có NV nào eligible
 
         :param exclude_user_ids: list user IDs để loại trừ (vd: NV vừa được phân lead trước)
@@ -531,11 +532,15 @@ class ResUsers(models.Model):
                 eligible = with_cap
             else:
                 return min(eligible, key=lambda u: uncalled.get(u.id, 0))
-        # Pick NV có ÍT active leads nhất (load-balanced round-robin)
+        # CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): chọn NV được chia ÍT KHÁCH
+        # NHẤT HÔM NAY → cuối ngày mọi NV nhận ~ bằng nhau. Hoà số hôm nay → ưu
+        # tiên NV tải active ít hơn, rồi id nhỏ hơn (ổn định, không nhảy lung tung).
+        today_map = Lead._vd_today_assigned_count_map(eligible.ids)
+
         def active_load(user):
             return Lead.search_count([
                 ('user_id', '=', user.id),
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
             ])
-        return min(eligible, key=active_load)
+        return min(eligible, key=lambda u: (today_map.get(u.id, 0), active_load(u), u.id))
