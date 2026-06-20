@@ -9470,6 +9470,31 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     90% { transform: rotate(-12deg); }
     95% { transform: rotate(6deg); }
 }
+/* Nút CUỘC GỌI ĐẾN — mở lịch sử khách gọi vào (user spec 2026-06-20) */
+.o_vd_inbound_btn {
+    margin-top: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #1c7ed6, #1864ab 60%, #0b4a86);
+    border: 2px solid #d0ebff;
+    user-select: none;
+    transition: filter 0.12s ease, transform 0.12s ease;
+
+    .o_vd_inbound_ico { font-size: 1.4rem; flex: 0 0 auto; }
+    .o_vd_inbound_txt { font-size: 1.08rem; line-height: 1.1; }
+    .o_vd_inbound_arrow { font-size: 1.05rem; flex: 0 0 auto; opacity: 0.85; }
+    &:hover { filter: brightness(1.07); transform: translateY(-1px); }
+}
+
 .o_vd_refrec_filter {
     margin-top: 0.85rem;
     display: flex;

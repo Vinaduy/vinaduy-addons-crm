@@ -1634,6 +1634,14 @@
                             <i class="fa fa-bullhorn o_vd_refrec_bell"/>
                         </div>
 
+                        <!-- 3c. CUỘC GỌI ĐẾN — mở màn lịch sử khách gọi vào -->
+                        <div class="o_vd_inbound_btn" t-on-click="() => this.openInboundCalls()"
+                             title="Xem lịch sử khách gọi đến tổng đài">
+                            <i class="fa fa-phone o_vd_inbound_ico"/>
+                            <span class="o_vd_inbound_txt">CUỘC GỌI ĐẾN</span>
+                            <i class="fa fa-arrow-right o_vd_inbound_arrow"/>
+                        </div>
+
                         <!-- 4. Cảnh báo: ĐÃ XOÁ theo user spec 2026-05-29
                              (KH quá hạn gọi lại / KH mới chưa gọi không còn hiển thị sidebar) -->
                     </aside>

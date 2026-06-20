@@ -2564,6 +2564,11 @@ export class VdCrmDashboard extends Component {
         this.action.doAction("vd_crm_lead.action_vd_lead_quick_add_wizard");
     }
 
+    // Mở màn "Cuộc gọi đến" (lịch sử khách gọi vào tổng đài).
+    openInboundCalls() {
+        this.action.doAction("vd_crm_lead.action_stringee_inbound");
+    }
+
     // ============ SEARCH KH LIVE (topbar) ============
     onSearchInput(ev) {
         const q = ev.target.value || "";
