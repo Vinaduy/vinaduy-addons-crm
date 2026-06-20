@@ -8894,6 +8894,35 @@ class CrmLead(models.Model):
                 if l.id not in unreachable_ids:
                     newcust_by_user[l.user_id.id].append(l)
 
+        # ===== 🗑️ KH HỦY — CHỜ DUYỆT (user spec 2026-06-21) =====
+        # Mỗi NV thêm 1 "thùng rác" ở bảng trưởng phòng/giám đốc: danh sách KH NV
+        # đề xuất hủy nhưng CHƯA được admin duyệt (stage lost + cancel_state !=
+        # approved). GIỐNG HỆT bảng "KH HỦY" ở màn NV (dashboard_leads_lost) →
+        # dùng chung sub-template bảng ở frontend. active_test=False vì lead lost
+        # bị archive.
+        _cancel_cat_sel = dict(self.env['crm.lead']._fields['vd_cancel_category'].selection)
+        cancel_by_user = defaultdict(list)
+        if sales_user_ids:
+            cancel_leads_all = self.with_context(active_test=False).search([
+                ('user_id', 'in', sales_user_ids),
+                ('stage_is_lost', '=', True),
+                ('vd_cancel_state', '!=', 'approved'),
+            ], order='write_date desc, create_date desc')
+            for l in cancel_leads_all:
+                cancel_by_user[l.user_id.id].append(l)
+
+        def _ld_cancel(l):
+            # Khớp ĐÚNG các trường bảng "KH HỦY" màn NV (o_vd_cancel_table) dùng.
+            return {
+                'id': l.id,
+                'name': l.name or l.partner_name or 'KH',
+                'phone': l.phone or '',
+                'user_name': l.user_id.name or '',
+                'cancel_state': l.vd_cancel_state or '',
+                'cancel_category_label': _cancel_cat_sel.get(l.vd_cancel_category, '') if l.vd_cancel_category else '',
+                'cancel_reason_short': (l.vd_lost_reason or '').strip()[:160],
+            }
+
         def _ld_basic(l):
             return {
                 'lead_id': l.id,
@@ -9124,6 +9153,9 @@ class CrmLead(models.Model):
                 'urgent_leads': [_ld_basic(l) for l in urgent_by_user.get(u.id, [])[:50]],
                 'xlvd_count': len(xlvd_by_user.get(u.id, [])),
                 'xlvd_leads': [_ld_with_problems(l) for l in xlvd_by_user.get(u.id, [])[:50]],
+                # 🗑️ KH hủy chờ duyệt (thùng rác mỗi dòng NV)
+                'cancel_count': len(cancel_by_user.get(u.id, [])),
+                'cancel_leads': [_ld_cancel(l) for l in cancel_by_user.get(u.id, [])[:100]],
                 # 🔒 Trạng thái KHOÁ từng bảng (user spec 2026-06-05) — thẻ overview
                 # khoá theo + admin gỡ ngay. Dùng cờ đã lưu (cron/live set).
                 'lock_new': bool(u.vd_call_lock),

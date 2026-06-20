@@ -2474,64 +2474,9 @@
                                                 </div>
                                             </div>
                                             <div class="o_vd_trash_popover_body o_vd_trash_table_body">
-                                                <div t-if="!leadsLost.length" class="o_vd_trash_popover_empty">
-                                                    ✓ Không có KH nào trong nhóm này
-                                                </div>
-                                                <table t-if="leadsLost.length" class="o_vd_cancel_table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Khách hàng</th>
-                                                            <th>NV phụ trách</th>
-                                                            <th>Chủ đề</th>
-                                                            <th>Tóm tắt</th>
-                                                            <th>Trạng thái</th>
-                                                            <th>Hành động</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr t-foreach="leadsLost" t-as="ld" t-key="ld.id"
-                                                            t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
-                                                            t-on-click.stop="() => this.openLead(ld.id)">
-                                                            <td class="o_vd_cancel_kh">
-                                                                <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
-                                                                <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
-                                                            </td>
-                                                            <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
-                                                            <td class="o_vd_cancel_topic">
-                                                                <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
-                                                                    <t t-esc="ld.cancel_category_label"/>
-                                                                </span>
-                                                                <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
-                                                            </td>
-                                                            <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
-                                                                <t t-if="ld.cancel_reason_short">
-                                                                    <t t-esc="ld.cancel_reason_short"/>
-                                                                </t>
-                                                                <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
-                                                            </td>
-                                                            <td class="o_vd_cancel_status">
-                                                                <!-- Round 7 phase 2.1: NULL state = legacy lead chưa duyệt
-                                                                     → treat same as 'proposed' → admin có thể duyệt. -->
-                                                                <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
-                                                                    ✓ Đã duyệt
-                                                                </span>
-                                                                <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
-                                                                    ⏳ Chờ duyệt
-                                                                </span>
-                                                            </td>
-                                                            <td class="o_vd_cancel_action">
-                                                                <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
-                                                                        class="btn btn-sm o_vd_cancel_approve_btn"
-                                                                        t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
-                                                                        title="Duyệt đề xuất hủy này">
-                                                                    <i class="fa fa-check"/> Duyệt hủy
-                                                                </button>
-                                                                <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
-                                                                <span t-else="" class="o_vd_cancel_action_done">—</span>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                                <!-- DÙNG CHUNG bảng KH hủy với thùng rác dòng NV (trưởng phòng/GĐ) -->
+                                                <t t-set="cancelLeads" t-value="leadsLost"/>
+                                                <t t-call="vd_crm_lead.CancelTable"/>
                                             </div>
                                         </div>
                                     </div>
@@ -2942,6 +2887,69 @@
         </span>
     </t>
 
+    <!-- ===== BẢNG KH HỦY CHỜ DUYỆT — DÙNG CHUNG (user spec 2026-06-21) =====
+         Render giống hệt ở 2 nơi: thùng rác màn NV + thùng rác mỗi dòng NV ở
+         bảng trưởng phòng/giám đốc. Sửa 1 chỗ → cả 2 đồng bộ. Truyền vào biến
+         `cancelLeads` (list lead dict) trước khi t-call. -->
+    <t t-name="vd_crm_lead.CancelTable">
+        <div t-if="!cancelLeads.length" class="o_vd_trash_popover_empty">
+            ✓ Không có KH nào trong nhóm này
+        </div>
+        <table t-if="cancelLeads.length" class="o_vd_cancel_table">
+            <thead>
+                <tr>
+                    <th>Khách hàng</th>
+                    <th>NV phụ trách</th>
+                    <th>Chủ đề</th>
+                    <th>Tóm tắt</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="cancelLeads" t-as="ld" t-key="ld.id"
+                    t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
+                    t-on-click.stop="() => this.openLead(ld.id)">
+                    <td class="o_vd_cancel_kh">
+                        <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
+                        <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
+                    </td>
+                    <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
+                    <td class="o_vd_cancel_topic">
+                        <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
+                            <t t-esc="ld.cancel_category_label"/>
+                        </span>
+                        <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
+                    </td>
+                    <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
+                        <t t-if="ld.cancel_reason_short">
+                            <t t-esc="ld.cancel_reason_short"/>
+                        </t>
+                        <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
+                    </td>
+                    <td class="o_vd_cancel_status">
+                        <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
+                            ✓ Đã duyệt
+                        </span>
+                        <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_pending">
+                            ⏳ Chờ duyệt
+                        </span>
+                    </td>
+                    <td class="o_vd_cancel_action">
+                        <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
+                                class="btn btn-sm o_vd_cancel_approve_btn"
+                                t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
+                                title="Duyệt đề xuất hủy này">
+                            <i class="fa fa-check"/> Duyệt hủy
+                        </button>
+                        <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
+                        <span t-else="" class="o_vd_cancel_action_done">—</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </t>
+
     <t t-name="vd_crm_lead.ProblemRequiredBadge">
         <!-- Round 16: tách 2 thẻ riêng (cùng width fixed):
              A) ⚠️ Tìm vấn đề + Còn N ngày — đỏ NHẠT (không quá chói)
@@ -3287,10 +3295,12 @@
                                                              t-on-mouseleave="() => this.onTodayCallsLeave()"
                                                              t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
                                                             <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                            <span class="o_vd_today_line">
-                                                                <i class="fa fa-phone o_vd_today_ico"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b></span>
+                                                            <span class="o_vd_today_line o_vd_today_line_stack">
+                                                                <span class="o_vd_today_main">
+                                                                    <i class="fa fa-phone o_vd_today_ico"/>
+                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                </span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b> nghe</span>
                                                             </span>
                                                         </div>
                                                         <div class="o_vd_today_btn o_vd_today_btn_month o_vd_cp_half"
@@ -3298,10 +3308,12 @@
                                                              t-on-mouseleave="() => this.onRecLeave()"
                                                              t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
                                                             <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                                            <span class="o_vd_today_line">
-                                                                <i class="fa fa-phone o_vd_today_ico"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b></span>
+                                                            <span class="o_vd_today_line o_vd_today_line_stack">
+                                                                <span class="o_vd_today_main">
+                                                                    <i class="fa fa-phone o_vd_today_ico"/>
+                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                </span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b> nghe</span>
                                                             </span>
                                                         </div>
                                                     </div>
@@ -3471,6 +3483,27 @@
                                                         </div>
                                                     </div>
                                                 </div><!-- /.o_vd_kh_metric_help -->
+
+                                                <!-- 🗑️ THÙNG RÁC — KH hủy CHỜ DUYỆT (user spec 2026-06-21).
+                                                     Đặt cuối, ngay trước thẻ "Không gọi". Hover → bảng KH cần
+                                                     hủy chờ duyệt (DÙNG CHUNG sub-template với màn NV). -->
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_cancel">
+                                                    <div t-att-class="'o_vd_cancel_trash_btn' + ((nv.cancel_count or 0) ? ' o_vd_cancel_trash_has' : '')"
+                                                         t-att-title="'KH hủy chờ duyệt: ' + (nv.cancel_count or 0) + '. Đưa chuột để xem danh sách.'">
+                                                        <i class="fa fa-trash"/>
+                                                        <span t-if="nv.cancel_count" class="o_vd_cancel_trash_count"><t t-esc="nv.cancel_count"/></span>
+                                                    </div>
+                                                    <div class="o_vd_kh_nv_popover">
+                                                        <div class="o_vd_kh_popover_head">
+                                                            🗑️ KH HỦY — CHỜ DUYỆT - <t t-esc="nv.full_name"/>
+                                                            (<t t-esc="nv.cancel_count or 0"/>)
+                                                        </div>
+                                                        <div class="o_vd_kh_popover_body o_vd_trash_table_body">
+                                                            <t t-set="cancelLeads" t-value="nv.cancel_leads or []"/>
+                                                            <t t-call="vd_crm_lead.CancelTable"/>
+                                                        </div>
+                                                    </div>
+                                                </div><!-- /.o_vd_kh_metric_cancel -->
 
                                                 <!-- 📞 TRẠNG THÁI cuộc gọi LIVE (cột riêng) -->
                                                 <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>

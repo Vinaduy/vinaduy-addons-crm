@@ -4223,16 +4223,30 @@
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
 
-        .o_vd_today_num { font-size: 1.18rem; }
-        .o_vd_today_ico { font-size: 0.86rem; }
+        .o_vd_today_num { font-size: 1.4rem; }   /* số là tâm điểm, có dòng riêng */
+        .o_vd_today_ico { font-size: 0.9rem; opacity: 0.65; }
         .o_vd_today_tag { font-size: 0.46rem; i.fa { font-size: 0.46rem; } }
-        .o_vd_today_line { gap: 5px; }
+        /* Số + % XẾP DỌC (2 dòng) thay vì chen ngang 1 hàng — hết rối khi số
+           lên 4 chữ số (1122/1202). Hàng trên: ☎ + số to. Hàng dưới: % nhỏ. */
+        .o_vd_today_line_stack {
+            flex-direction: column;
+            gap: 0;
+            line-height: 1;
+        }
+        .o_vd_today_main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
         .o_vd_today_ok {
             border-left: none;
             padding-left: 0;
-            margin-left: 6px;       /* tách % ra xa số */
-            font-size: 0.74rem;
-            b { font-size: 0.78rem; }
+            margin-left: 0;
+            margin-top: 2px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            opacity: 0.8;
+            b { font-size: 0.66rem; }
         }
         /* nối liền: bỏ viền/bo/đổ bóng riêng từng nửa, thêm vạch ngăn giữa */
         .o_vd_cp_half {
@@ -4453,6 +4467,46 @@
     /* Popover help nằm cột bên phải bảng → dock RIGHT (xổ về trái cell) */
     .o_vd_kh_metric_help .o_vd_kh_nv_popover { right: 0; left: auto; transform: none; }
     .o_vd_kh_help_none { color: #cbd5e1; font-weight: 700; font-size: 0.9rem; }
+
+    /* ===== 🗑️ THÙNG RÁC KH HỦY CHỜ DUYỆT — cột mỗi dòng NV (2026-06-21) =====
+       Icon to hơn icon thường (user "chỉnh to tý"); hover → bảng KH hủy chờ duyệt
+       (dùng CHUNG o_vd_cancel_table với màn NV). Đặt cuối, trước thẻ "Không gọi". */
+    .o_vd_kh_metric_cancel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .o_vd_cancel_trash_btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 1.4rem;          /* to hơn icon cột khác */
+        color: #cbd5e1;             /* xám nhạt khi 0 KH */
+        transition: color .12s ease, transform .12s ease;
+    }
+    .o_vd_cancel_trash_btn.o_vd_cancel_trash_has { color: #e03131; }
+    .o_vd_kh_metric_cancel:hover { background: rgba(224, 49, 49, 0.07); }
+    .o_vd_kh_metric_cancel:hover .o_vd_cancel_trash_btn { transform: scale(1.12); color: #c92a2a; }
+    .o_vd_cancel_trash_count {
+        font-size: 0.74rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #fff;
+        background: #e03131;
+        border-radius: 999px;
+        padding: 2px 6px;
+    }
+    /* Popover dock RIGHT (cột gần cuối hàng) + rộng cho bảng 6 cột */
+    .o_vd_kh_metric_cancel .o_vd_kh_nv_popover {
+        right: 0; left: auto; transform: none;
+        min-width: 760px;
+        max-width: unquote("min(1040px, calc(100vw - 80px))");
+    }
+    .o_vd_kh_metric_cancel .o_vd_kh_popover_head {
+        background: linear-gradient(135deg, #c92a2a 0%, #fa5252 100%);
+    }
+    .o_vd_kh_metric_cancel .o_vd_kh_popover_body { padding: 0; }
     /* Badge SOS trong bảng NV — DÙNG LẠI style o_vd_sos của danh sách KH
        (user spec 2026-05-31 r3: phải giống SOS bên danh sách khách hàng). */
     .o_vd_sos_dash {
@@ -5532,7 +5586,8 @@
     }
 
     /* ===== HOVER POPOVER cho thùng rác (CHƯA GỌI ĐƯỢC + KH HỦY) ===== */
-    .o_vd_trash_box.o_vd_split_trash {
+    .o_vd_trash_box.o_vd_split_trash,
+    .o_vd_kh_metric_cancel {   /* dùng chung style bảng KH hủy (o_vd_cancel_table) */
         position: relative;
         cursor: pointer;
 
