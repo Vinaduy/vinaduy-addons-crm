@@ -248,6 +248,24 @@
                 </t>
             </div>
 
+            <!-- 🗑️ POPOVER KH HỦY CHỜ DUYỆT — render Ở GỐC (fixed), định vị theo mép
+                 thẻ + TỰ LẬT LÊN khi NV ở cuối bảng → KHÔNG bị che. Bảng dùng chung
+                 sub-template CancelTable (có ghi âm + nút Duyệt hủy). -->
+            <div t-if="state.cancelHover" class="o_vd_cancel_pop"
+                 t-attf-style="{{ cancelPopStyle }}"
+                 t-on-mouseenter="() => this.onCancelPopEnter()"
+                 t-on-mouseleave="() => this.onCancelLeave()"
+                 t-on-click.stop="() => {}">
+                <div class="o_vd_cancel_pop_head">
+                    🗑️ KH HỦY — CHỜ DUYỆT - <t t-esc="state.cancelHover.name"/>
+                    (<t t-esc="(state.cancelHover.leads or []).length"/>)
+                </div>
+                <div class="o_vd_cancel_pop_body o_vd_trash_table_body">
+                    <t t-set="cancelLeads" t-value="state.cancelHover.leads or []"/>
+                    <t t-call="vd_crm_lead.CancelTable"/>
+                </div>
+            </div>
+
             <!-- 🆕 POPOVER KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, render 1
                  lần ở gốc để thoát mọi khung cắt; dính MÉP THẺ NV (newTodayPopStyle). -->
             <div t-if="state.newTodayHover" class="o_vd_analytics o_vd_kh_nv_popover o_vd_newtoday_pop"
@@ -2902,6 +2920,7 @@
                     <th>NV phụ trách</th>
                     <th>Chủ đề</th>
                     <th>Tóm tắt</th>
+                    <th>Ghi âm gần nhất</th>
                     <th>Trạng thái</th>
                     <th>Hành động</th>
                 </tr>
@@ -2912,7 +2931,6 @@
                     t-on-click.stop="() => this.openLead(ld.id)">
                     <td class="o_vd_cancel_kh">
                         <div class="o_vd_cancel_name"><t t-esc="ld.name"/></div>
-                        <div class="o_vd_cancel_phone" t-if="ld.phone">📞 <t t-esc="ld.phone"/></div>
                     </td>
                     <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
                     <td class="o_vd_cancel_topic">
@@ -2927,6 +2945,15 @@
                         </t>
                         <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
                     </td>
+                    <td class="o_vd_cancel_rec" t-on-click.stop="() => {}">
+                        <div t-if="ld.rec_url" class="o_vd_cancel_rec_wrap">
+                            <span class="o_vd_cancel_rec_meta" t-att-title="'Ghi âm gần nhất: ' + (ld.rec_time or '')">
+                                <t t-esc="ld.rec_time"/> · <t t-esc="ld.rec_dur"/>s
+                            </span>
+                            <audio class="o_vd_cancel_rec_audio" controls="controls" preload="none" t-att-src="ld.rec_url"/>
+                        </div>
+                        <span t-else="" class="o_vd_cancel_rec_none">— Chưa có ghi âm</span>
+                    </td>
                     <td class="o_vd_cancel_status">
                         <span t-if="ld.cancel_state === 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_done">
                             ✓ Đã duyệt
@@ -2936,13 +2963,13 @@
                         </span>
                     </td>
                     <td class="o_vd_cancel_action">
-                        <button t-if="ld.cancel_state !== 'approved' and state.is_admin"
+                        <button t-if="ld.cancel_state !== 'approved' and (state.is_manager or state.is_team_leader)"
                                 class="btn btn-sm o_vd_cancel_approve_btn"
                                 t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
                                 title="Duyệt đề xuất hủy này">
                             <i class="fa fa-check"/> Duyệt hủy
                         </button>
-                        <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Admin được duyệt hủy">🔒 Chờ Admin</span>
+                        <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Trưởng phòng / Giám đốc / Admin được duyệt hủy">🔒 Chờ duyệt</span>
                         <span t-else="" class="o_vd_cancel_action_done">—</span>
                     </td>
                 </tr>
@@ -3483,21 +3510,12 @@
                                                 <!-- 🗑️ THÙNG RÁC — KH hủy CHỜ DUYỆT (user spec 2026-06-21).
                                                      Đặt cuối, ngay trước thẻ "Không gọi". Hover → bảng KH cần
                                                      hủy chờ duyệt (DÙNG CHUNG sub-template với màn NV). -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_cancel">
+                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_cancel"
+                                                     t-on-mouseenter="(ev) => this.onCancelEnter(ev, nv)"
+                                                     t-on-mouseleave="() => this.onCancelLeave()">
                                                     <div t-att-class="'o_vd_cancel_trash_btn' + ((nv.cancel_count or 0) ? ' o_vd_cancel_trash_has' : '')"
                                                          t-att-title="'KH hủy chờ duyệt: ' + (nv.cancel_count or 0) + '. Đưa chuột để xem danh sách.'">
                                                         <i class="fa fa-trash"/>
-                                                        <span t-if="nv.cancel_count" class="o_vd_cancel_trash_count"><t t-esc="nv.cancel_count"/></span>
-                                                    </div>
-                                                    <div class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🗑️ KH HỦY — CHỜ DUYỆT - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.cancel_count or 0"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body o_vd_trash_table_body">
-                                                            <t t-set="cancelLeads" t-value="nv.cancel_leads or []"/>
-                                                            <t t-call="vd_crm_lead.CancelTable"/>
-                                                        </div>
                                                     </div>
                                                 </div><!-- /.o_vd_kh_metric_cancel -->
 

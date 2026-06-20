@@ -4466,37 +4466,21 @@
         align-items: center;
         justify-content: center;
     }
+    /* Icon thùng rác TO HẾT CỠ trong ô cao 38px (line-height:1 + canh giữa →
+       KHÔNG tăng chiều cao hàng). Bỏ badge số (user spec 2026-06-21). */
     .o_vd_cancel_trash_btn {
-        position: relative;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        font-size: 1.4rem;          /* to hơn icon cột khác */
+        justify-content: center;
+        line-height: 1;
+        font-size: 2rem;            /* ~32px — kịch trần ô 38px */
         color: #cbd5e1;             /* xám nhạt khi 0 KH */
         transition: color .12s ease, transform .12s ease;
+        i.fa { line-height: 1; }
     }
     .o_vd_cancel_trash_btn.o_vd_cancel_trash_has { color: #e03131; }
     .o_vd_kh_metric_cancel:hover { background: rgba(224, 49, 49, 0.07); }
-    .o_vd_kh_metric_cancel:hover .o_vd_cancel_trash_btn { transform: scale(1.12); color: #c92a2a; }
-    .o_vd_cancel_trash_count {
-        font-size: 0.74rem;
-        font-weight: 800;
-        line-height: 1;
-        color: #fff;
-        background: #e03131;
-        border-radius: 999px;
-        padding: 2px 6px;
-    }
-    /* Popover dock RIGHT (cột gần cuối hàng) + rộng cho bảng 6 cột */
-    .o_vd_kh_metric_cancel .o_vd_kh_nv_popover {
-        right: 0; left: auto; transform: none;
-        min-width: 760px;
-        max-width: unquote("min(1040px, calc(100vw - 80px))");
-    }
-    .o_vd_kh_metric_cancel .o_vd_kh_popover_head {
-        background: linear-gradient(135deg, #c92a2a 0%, #fa5252 100%);
-    }
-    .o_vd_kh_metric_cancel .o_vd_kh_popover_body { padding: 0; }
+    .o_vd_kh_metric_cancel:hover .o_vd_cancel_trash_btn { transform: scale(1.14); color: #c92a2a; }
     /* Badge SOS trong bảng NV — DÙNG LẠI style o_vd_sos của danh sách KH
        (user spec 2026-05-31 r3: phải giống SOS bên danh sách khách hàng). */
     .o_vd_sos_dash {
@@ -5577,7 +5561,8 @@
 
     /* ===== HOVER POPOVER cho thùng rác (CHƯA GỌI ĐƯỢC + KH HỦY) ===== */
     .o_vd_trash_box.o_vd_split_trash,
-    .o_vd_kh_metric_cancel {   /* dùng chung style bảng KH hủy (o_vd_cancel_table) */
+    .o_vd_kh_metric_cancel,
+    .o_vd_cancel_pop {   /* dùng chung style bảng KH hủy (o_vd_cancel_table) */
         position: relative;
         cursor: pointer;
 
@@ -9127,6 +9112,40 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     background: linear-gradient(135deg, #1971c2, #1098ad);
     flex: 0 0 auto;
 }
+
+/* 🗑️ Popover KH HỦY CHỜ DUYỆT — render ở GỐC (fixed), _popAtRect tự lật lên khi
+   NV ở cuối bảng → KHÔNG bị che. !important để ghi đè position:relative của
+   selector dùng chung (o_vd_cancel_pop nằm trong list chia sẻ style bảng). */
+.o_vd_cancel_pop {
+    position: fixed !important;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.32);
+    overflow: hidden;
+}
+.o_vd_cancel_pop_head {
+    flex: 0 0 auto;
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #c92a2a 0%, #fa5252 100%);
+}
+.o_vd_cancel_pop_body {
+    flex: 1 1 auto;
+    overflow: auto;          /* nhiều KH → cuộn dọc, popover không tràn màn hình */
+}
+/* Cột GHI ÂM gần nhất trong bảng KH hủy (player gọn, không kéo cao hàng) */
+.o_vd_cancel_rec { min-width: 230px; }
+.o_vd_cancel_rec_wrap { display: flex; align-items: center; gap: 0.45rem; }
+.o_vd_cancel_rec_meta { font-size: 0.7rem; color: #868e96; white-space: nowrap; }
+.o_vd_cancel_rec_audio { height: 30px; max-width: 190px; vertical-align: middle; }
+.o_vd_cancel_rec_none { color: #adb5bd; font-style: italic; font-size: 0.76rem; }
 .o_vd_tc_loading, .o_vd_tc_empty {
     padding: 1.1rem;
     text-align: center;

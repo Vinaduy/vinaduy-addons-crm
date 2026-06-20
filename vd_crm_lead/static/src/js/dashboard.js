@@ -68,6 +68,9 @@ export class VdCrmDashboard extends Component {
             // Popover KHÁCH MỚI HÔM NAY (hover nút "KH mới") — fixed, hiện tại vị
             // trí chuột; {nv, cx, cy} | null.
             newTodayHover: null,
+            // Popover 🗑️ KH HỦY CHỜ DUYỆT (hover thùng rác dòng NV) — render ở gốc
+            // (fixed) để không bị che ở cuối bảng; {user_id, name, leads, rect} | null.
+            cancelHover: null,
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
             // Giám đốc (không phải admin) → mặc định mở chế độ CÁ NHÂN.
@@ -633,7 +636,7 @@ export class VdCrmDashboard extends Component {
             // mouseleave nhiễu. KHÔNG thu khi còn popover (user đang xem bảng).
             const popoverOpen = !!(this.state.recHover || this.state.reminderHover
                 || this.state.newTodayHover || this.state.todayCallsHover
-                || this.state.refRecHover);
+                || this.state.refRecHover || this.state.cancelHover);
             console.log("[VD emp] timer thu — trong panel?", !!stillInside,
                         "| popover mở?", popoverOpen);
             if (stillInside) return;            // chuột vẫn trong panel → giữ
@@ -2071,6 +2074,37 @@ export class VdCrmDashboard extends Component {
         return this._popAtRect(h.rect, 760);
     }
 
+    // ===== 🗑️ THÙNG RÁC KH HỦY CHỜ DUYỆT (hover thùng rác dòng NV) =====
+    // Dữ liệu đã có sẵn trong nv.cancel_leads → không cần RPC. Render ở gốc +
+    // _popAtRect tự lật LÊN khi NV ở cuối bảng → không bị che.
+    onCancelEnter(ev, nv) {
+        if (this._cancelTimer) { clearTimeout(this._cancelTimer); this._cancelTimer = null; }
+        if (this.state.cancelHover && this.state.cancelHover.user_id === nv.user_id) {
+            return;
+        }
+        this.state.cancelHover = {
+            user_id: nv.user_id,
+            name: nv.full_name,
+            leads: nv.cancel_leads || [],
+            rect: this._elRect(ev),
+        };
+    }
+    onCancelLeave() {
+        if (this._cancelTimer) { clearTimeout(this._cancelTimer); }
+        this._cancelTimer = setTimeout(() => {
+            this.state.cancelHover = null;
+            this._cancelTimer = null;
+        }, 320);
+    }
+    onCancelPopEnter() {
+        if (this._cancelTimer) { clearTimeout(this._cancelTimer); this._cancelTimer = null; }
+    }
+    get cancelPopStyle() {
+        const h = this.state.cancelHover;
+        if (!h) return "display:none;";
+        return this._popAtRect(h.rect, 1080);
+    }
+
     // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed dính mép thẻ
     // NV (dữ liệu đã có sẵn trong nv → không cần nạp). =====
     onNewTodayEnter(ev, nv) {
@@ -2231,6 +2265,8 @@ export class VdCrmDashboard extends Component {
         try {
             await this.orm.call("crm.lead", "action_approve_cancel", [[leadId]]);
             this.notification.add("✓ Đã duyệt hủy KH.", { type: "success" });
+            // Đóng popover thùng rác (snapshot cũ) → reload sẽ dựng lại số mới.
+            this.state.cancelHover = null;
             // Refresh full dashboard để reload tất cả buckets (bao gồm leadsLost).
             await this.loadDashboard();
         } catch (e) {

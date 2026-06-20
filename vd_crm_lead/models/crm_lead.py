@@ -1787,15 +1787,18 @@ class CrmLead(models.Model):
         Round 7 phase 2.1: cho phép duyệt CẢ legacy leads (vd_cancel_state=None)
         — KH lost trước Phase 2 vẫn cần audit trail admin duyệt.
 
-        User spec 2026-06-10: CHỈ ADMIN được duyệt hủy (NV chỉ ĐỀ XUẤT)."""
-        is_admin = (
+        User spec 2026-06-21: TRƯỞNG PHÒNG + Giám đốc + Admin được duyệt hủy
+        (NV/CTV chỉ ĐỀ XUẤT). has_group('team_leader') True cho cả 3 vai trò trên
+        (admin implies director implies team_leader). Record rule vẫn giới hạn
+        trưởng phòng chỉ duyệt được KH trong phòng ban mình (write theo rule)."""
+        can_approve = (
             self.env.user._is_superuser()
-            or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin')
+            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
         )
-        if not is_admin:
+        if not can_approve:
             raise UserError(_(
-                'Chỉ ADMIN mới được DUYỆT hủy khách. Nhân viên chỉ được ĐỀ XUẤT '
-                'hủy; Admin xem trong thùng rác rồi duyệt.'
+                'Chỉ Trưởng phòng / Giám đốc / Admin mới được DUYỆT hủy khách. '
+                'Nhân viên chỉ được ĐỀ XUẤT hủy.'
             ))
         for rec in self:
             if rec.vd_cancel_state == 'approved':
@@ -7447,7 +7450,29 @@ class CrmLead(models.Model):
             limit=limit,
             order='write_date desc, create_date desc',
         )
-        return self._dashboard_serialize_leads(leads)
+        data = self._dashboard_serialize_leads(leads)
+        # Gắn GHI ÂM gần nhất cho từng KH (dùng chung bảng KH hủy với màn trưởng
+        # phòng → cột "Ghi âm gần nhất"). 1 query cho tất cả lead.
+        if leads:
+            rec_by_lead = {}
+            _rec_calls = self.env['stringee.call'].sudo().search([
+                ('lead_id', 'in', leads.ids),
+                ('recording_attachment_id', '!=', False),
+            ], order='create_date desc')
+            for c in _rec_calls:
+                lid = c.lead_id.id
+                if lid in rec_by_lead:
+                    continue
+                _ldt = (fields.Datetime.context_timestamp(c, c.create_date)
+                        if c.create_date else None)
+                rec_by_lead[lid] = {
+                    'rec_url': '/web/content/%s?download=false' % c.recording_attachment_id.id,
+                    'rec_time': _ldt.strftime('%d/%m %H:%M') if _ldt else '',
+                    'rec_dur': c.duration or 0,
+                }
+            for d in data:
+                d.update(rec_by_lead.get(d.get('id'), {'rec_url': '', 'rec_time': '', 'rec_dur': 0}))
+        return data
 
     @api.model
     def dashboard_company_trash(self, limit=1000):
@@ -8911,16 +8936,41 @@ class CrmLead(models.Model):
             for l in cancel_leads_all:
                 cancel_by_user[l.user_id.id].append(l)
 
+        # GHI ÂM gần nhất cho từng KH chờ hủy (1 query cho TẤT CẢ lead → map
+        # lead_id -> cuộc gọi mới nhất CÓ ghi âm). Để nghe ngay trong bảng hủy.
+        rec_by_lead = {}
+        _all_cancel_ids = [l.id for ll in cancel_by_user.values() for l in ll]
+        if _all_cancel_ids:
+            _rec_calls = self.env['stringee.call'].sudo().search([
+                ('lead_id', 'in', _all_cancel_ids),
+                ('recording_attachment_id', '!=', False),
+            ], order='create_date desc')
+            for c in _rec_calls:
+                lid = c.lead_id.id
+                if lid in rec_by_lead:
+                    continue  # search desc → cái đầu tiên là mới nhất
+                _ldt = (fields.Datetime.context_timestamp(c, c.create_date)
+                        if c.create_date else None)
+                rec_by_lead[lid] = {
+                    'url': '/web/content/%s?download=false' % c.recording_attachment_id.id,
+                    'time': _ldt.strftime('%d/%m %H:%M') if _ldt else '',
+                    'dur': c.duration or 0,
+                }
+
         def _ld_cancel(l):
             # Khớp ĐÚNG các trường bảng "KH HỦY" màn NV (o_vd_cancel_table) dùng.
+            _rec = rec_by_lead.get(l.id)
             return {
                 'id': l.id,
                 'name': l.name or l.partner_name or 'KH',
-                'phone': l.phone or '',
                 'user_name': l.user_id.name or '',
                 'cancel_state': l.vd_cancel_state or '',
                 'cancel_category_label': _cancel_cat_sel.get(l.vd_cancel_category, '') if l.vd_cancel_category else '',
                 'cancel_reason_short': (l.vd_lost_reason or '').strip()[:160],
+                # 🎙️ Ghi âm gần nhất (nghe ngay trong bảng)
+                'rec_url': _rec['url'] if _rec else '',
+                'rec_time': _rec['time'] if _rec else '',
+                'rec_dur': _rec['dur'] if _rec else 0,
             }
 
         def _ld_basic(l):
