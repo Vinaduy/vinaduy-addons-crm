@@ -6368,6 +6368,9 @@ class CrmLead(models.Model):
         month_until = fields.Datetime.now() + _tdd(days=1)
 
         n = len(eligible)
+        # MỐC ĐỦ KHÁCH/NGÀY (user spec 2026-06-20): mặc định 5 khách FB/TikTok/NV/ngày.
+        daily_target = int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.daily_pancake_target', 5) or 5)
 
         def _build(since, until, eval_even, label):
             leads = self.sudo().search(src_dom + [
@@ -6382,11 +6385,15 @@ class CrmLead(models.Model):
             fair_low = total // n if n else 0
             fair_high = -(-total // n) if n else 0   # ceil
             rows = []
+            under_count = 0
             for u in eligible:
                 c = per.get(u.id, 0)
                 ev = 'few' if c < fair_low else ('many' if c > fair_high else 'ok')
+                under = c < daily_target
+                if under:
+                    under_count += 1
                 rows.append({'name': name_by.get(u.id) or 'NV #%s' % u.id,
-                             'count': c, 'eval': ev})
+                             'count': c, 'eval': ev, 'under_target': under})
             # ÍT số nhất lên đầu
             rows.sort(key=lambda r: (r['count'], r['name']))
             uneven = False
@@ -6394,7 +6401,8 @@ class CrmLead(models.Model):
                 counts = [per.get(u.id, 0) for u in eligible]
                 uneven = (max(counts) - min(counts)) > 1
             return {'total': total, 'nv_count': len(per), 'eligible': n,
-                    'rows': rows, 'uneven': uneven, 'label': label}
+                    'rows': rows, 'uneven': uneven, 'label': label,
+                    'target': daily_target, 'under_count': under_count}
 
         return {
             'today': _build(today_since, today_until, True, today_label),

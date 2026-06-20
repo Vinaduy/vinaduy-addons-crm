@@ -9374,6 +9374,20 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pancake_row_eval { background: #d3f9d8; color: #2b8a3e; }
     .o_vd_pancake_row_cnt { background: #2f9e44; }
 }
+/* CHƯA ĐỦ mốc khách FB/TikTok/ngày — ưu tiên highlight đỏ rõ (user 2026-06-20) */
+.o_vd_pancake_row.o_vd_pk_under {
+    background: #fff0f0;
+    .o_vd_pancake_row_eval { background: #ffc9c9; color: #c92a2a; font-weight: 800; }
+    .o_vd_pancake_row_cnt { background: #e03131; }
+}
+/* Badge "X/Y NV chưa đủ N khách" trên nút PANCAKE */
+.o_vd_pancake_under {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #c92a2a;
+    line-height: 1.15;
+    margin-top: 1px;
+}
 
 /* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) =====
    Gọn: bỏ tiêu đề + tên cột; sát các bảng quanh nó. */

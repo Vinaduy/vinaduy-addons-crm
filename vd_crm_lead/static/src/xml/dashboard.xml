@@ -639,10 +639,12 @@
                                     <t t-set="distRep" t-value="state.pancake_report"/>
                                     <t t-set="distTitle" t-value="'PANCAKE'"/>
                                     <t t-set="distIcon" t-value="'fa-bolt'"/>
+                                    <t t-set="distShowTarget" t-value="true"/>
                                     <t t-call="vd_crm_lead.DistFilter"/>
                                     <t t-set="distRep" t-value="state.manual_report"/>
                                     <t t-set="distTitle" t-value="'CHIA SỐ THỦ CÔNG'"/>
                                     <t t-set="distIcon" t-value="'fa-hand-pointer-o'"/>
+                                    <t t-set="distShowTarget" t-value="false"/>
                                     <t t-call="vd_crm_lead.DistFilter"/>
                                 </div>
                                 <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
@@ -2850,6 +2852,11 @@
             <div class="o_vd_pancake_lbl">
                 <span class="o_vd_pancake_title"><t t-esc="distTitle"/></span>
                 <span t-if="distRep.today.uneven" class="o_vd_pancake_warn">Chia không đều số</span>
+                <span t-if="distShowTarget and distRep.today.under_count"
+                      class="o_vd_pancake_under">
+                    ⚠️ <t t-esc="distRep.today.under_count"/>/<t t-esc="distRep.today.eligible"/> NV
+                    chưa đủ <t t-esc="distRep.today.target"/> khách FB/TikTok hôm nay
+                </span>
             </div>
             <!-- POPOVER hover -->
             <div class="o_vd_pancake_pop">
@@ -2868,10 +2875,11 @@
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval">
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
                             <span class="o_vd_pancake_row_eval">
-                                <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                <t t-if="distShowTarget and r.under_target">CHƯA ĐỦ <t t-esc="distRep.today.target"/></t>
+                                <t t-elif="r.eval === 'few'">QUÁ ÍT</t>
                                 <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
                                 <t t-else="">đủ</t>
                             </span>
