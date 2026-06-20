@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ DANH SÁCH CUỘC GỌI ĐẾN (khách gọi vào) ============ -->
+    <record id="view_stringee_inbound_list" model="ir.ui.view">
+        <field name="name">stringee.call.inbound.list</field>
+        <field name="model">stringee.call</field>
+        <field name="arch" type="xml">
+            <list string="Cuộc gọi đến" default_order="start_time desc" create="false"
+                  decoration-danger="answer_time == False" decoration-success="answer_time != False">
+                <field name="start_time" string="Lúc gọi đến"/>
+                <field name="caller_number" string="📞 Số khách gọi đến"/>
+                <field name="lead_id" string="Khách hàng (CRM)"/>
+                <field name="user_id" string="NV phụ trách" widget="many2one_avatar_user"/>
+                <field name="answer_time" column_invisible="1"/>
+                <field name="state" string="Trạng thái" widget="badge"
+                       decoration-success="state == 'ended'"
+                       decoration-danger="state in ('no_answer','busy','declined','cancelled','failed')"/>
+                <field name="duration" string="Thời lượng (giây)" sum="Tổng giây"/>
+                <field name="recording_attachment_id" string="🎵 Ghi âm"
+                       widget="vd_audio_player" readonly="1"/>
+                <field name="callee_number" string="Tổng đài nhận" optional="hide"/>
+                <field name="hangup_cause" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============ TÌM KIẾM / LỌC ============ -->
+    <record id="view_stringee_inbound_search" model="ir.ui.view">
+        <field name="name">stringee.call.inbound.search</field>
+        <field name="model">stringee.call</field>
+        <field name="arch" type="xml">
+            <search string="Cuộc gọi đến">
+                <field name="caller_number" string="Số khách"/>
+                <field name="user_id" string="NV"/>
+                <field name="lead_id" string="Khách hàng"/>
+                <separator/>
+                <filter name="f_today" string="Hôm nay"
+                        domain="[('start_time','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                <filter name="f_7days" string="7 ngày qua"
+                        domain="[('start_time','&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="f_answered" string="✅ Đã nghe máy" domain="[('answer_time','!=',False)]"/>
+                <filter name="f_missed" string="❌ Nhỡ (không nghe)"
+                        domain="[('answer_time','=',False)]"/>
+                <separator/>
+                <filter name="f_has_rec" string="🎵 Có ghi âm" domain="[('recording_attachment_id','!=',False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_user" string="NV phụ trách" context="{'group_by':'user_id'}"/>
+                    <filter name="g_day" string="Ngày" context="{'group_by':'start_time:day'}"/>
+                    <filter name="g_state" string="Trạng thái" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============ ACTION ============ -->
+    <record id="action_stringee_inbound" model="ir.actions.act_window">
+        <field name="name">Cuộc gọi đến</field>
+        <field name="res_model">stringee.call</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('direction','=','inbound')]</field>
+        <field name="context">{'search_default_f_today': 1}</field>
+        <field name="search_view_id" ref="view_stringee_inbound_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiley_face">Chưa có cuộc gọi đến nào.</p>
+            <p>Đây là nơi xem các cuộc <b>khách hàng gọi vào</b> tổng đài: ai gọi, NV nào nghe,
+               thời lượng, ghi âm. Bỏ lọc "Hôm nay" để xem toàn bộ lịch sử.</p>
+        </field>
+    </record>
+
+    <!-- Ép action mở bằng list view inbound (không dùng list mặc định) -->
+    <record id="action_stringee_inbound_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_stringee_inbound_list"/>
+        <field name="act_window_id" ref="action_stringee_inbound"/>
+    </record>
+
+    <!-- ============ MENU ============ -->
+    <menuitem id="menu_vd_stringee_inbound" name="Cuộc gọi đến"
+              parent="vd_crm_lead.menu_vd_crm_dashboard"
+              action="action_stringee_inbound" sequence="22"/>
+
+</odoo>
