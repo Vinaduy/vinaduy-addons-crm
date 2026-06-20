@@ -1675,9 +1675,17 @@
                             </button>
                             <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
                                  class="o_vd_analytics o_vd_tl_team_box"
-                                 t-att-class="state.empExpanded ? 'o_vd_emp_expanded' : ''">
+                                 t-att-class="(state.empExpanded ? 'o_vd_emp_expanded ' : '') + (state.empResizing ? 'o_vd_emp_resizing' : '')"
+                                 t-att-style="showDirFilters ? empBoxStyle : ''">
                                 <div class="o_vd_kh_box">
                                     <t t-call="vd_crm_lead.VdKhTeamList"/>
+                                </div>
+                                <!-- Mép dưới KÉO ĐƯỢC (GĐ): kéo lên/xuống đổi chiều cao
+                                     bảng NV, đẩy nội dung dưới theo (user spec 2026-06-20 r5). -->
+                                <div t-if="showDirFilters" class="o_vd_emp_resize_handle"
+                                     t-on-mousedown="(ev) => this.startEmpResize(ev)"
+                                     title="Kéo để chỉnh chiều cao bảng nhân viên">
+                                    <span class="o_vd_emp_resize_grip"/>
                                 </div>
                             </div>
                         </div>
@@ -2728,7 +2736,7 @@
             <span class="o_vd_emp_filter_hint">
                 <t t-if="state.empExpanded and state.analyticsLoading">— Đang tải toàn bộ nhân viên…</t>
                 <t t-elif="state.empExpanded">— Toàn bộ nhân viên (bỏ chuột để thu gọn)</t>
-                <t t-else="">— Di chuột vào để xem toàn bộ</t>
+                <t t-else="">— Di chuột vào để xem toàn bộ · kéo mép dưới để chỉnh chiều cao</t>
             </span>
         </button>
     </t>
