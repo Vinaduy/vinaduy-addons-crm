@@ -3590,9 +3590,11 @@
     .o_vd_kh_row_group_kh {
         /* 4 super-cột — [KH mới + thẻ Gọi] | [khung 3 cột] | Cần hỗ trợ | Trạng thái.
            User spec 2026-06-15: Thi công gấp + Xử lý vấn đề TÁCH thành 2 thẻ riêng.
-           6 super-cột: Gọi | (Khách mới + chưa gọi) | Thi công gấp | (Xử lý vấn đề
-           + cần xử lý) | Cần hỗ trợ | Trạng thái. Các thẻ metric CO VỪA CHỮ. */
-        grid-template-columns: 1.2fr 1.4fr 1fr 1.4fr 0.8fr 1.1fr;
+           7 super-cột: Gọi | (Khách mới + chưa gọi) | Thi công gấp | (Xử lý vấn đề
+           + cần xử lý) | Cần hỗ trợ | 🗑 Thùng rác | Trạng thái. Các thẻ CO VỪA CHỮ.
+           User spec 2026-06-21: thêm cột Thùng rác → hàng DÀI ra (không cao thêm).
+           KHÔNG được để bất kỳ thẻ nào rớt dòng → số cột PHẢI khớp số item (7). */
+        grid-template-columns: 1.4fr 1.4fr 1fr 1.4fr 0.7fr 0.5fr 1fr;
         background: transparent;
         align-items: stretch;
         grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
@@ -4223,30 +4225,18 @@
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
 
-        .o_vd_today_num { font-size: 1.4rem; }   /* số là tâm điểm, có dòng riêng */
-        .o_vd_today_ico { font-size: 0.9rem; opacity: 0.65; }
+        /* 1 DÒNG NGANG: ☎ + số + % — KHÔNG xếp dọc (tránh tràn cao 38px → cắt
+           chữ). white-space:nowrap (base) + cột Gọi đã rộng ra → 4 chữ số vẫn gọn. */
+        .o_vd_today_num { font-size: 1.18rem; }
+        .o_vd_today_ico { font-size: 0.86rem; }
         .o_vd_today_tag { font-size: 0.46rem; i.fa { font-size: 0.46rem; } }
-        /* Số + % XẾP DỌC (2 dòng) thay vì chen ngang 1 hàng — hết rối khi số
-           lên 4 chữ số (1122/1202). Hàng trên: ☎ + số to. Hàng dưới: % nhỏ. */
-        .o_vd_today_line_stack {
-            flex-direction: column;
-            gap: 0;
-            line-height: 1;
-        }
-        .o_vd_today_main {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+        .o_vd_today_line { gap: 5px; }
         .o_vd_today_ok {
             border-left: none;
             padding-left: 0;
-            margin-left: 0;
-            margin-top: 2px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            opacity: 0.8;
-            b { font-size: 0.66rem; }
+            margin-left: 6px;       /* tách % ra xa số */
+            font-size: 0.74rem;
+            b { font-size: 0.78rem; }
         }
         /* nối liền: bỏ viền/bo/đổ bóng riêng từng nửa, thêm vạch ngăn giữa */
         .o_vd_cp_half {

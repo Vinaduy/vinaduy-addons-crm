@@ -3295,12 +3295,10 @@
                                                              t-on-mouseleave="() => this.onTodayCallsLeave()"
                                                              t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
                                                             <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                            <span class="o_vd_today_line o_vd_today_line_stack">
-                                                                <span class="o_vd_today_main">
-                                                                    <i class="fa fa-phone o_vd_today_ico"/>
-                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                                </span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b> nghe</span>
+                                                            <span class="o_vd_today_line">
+                                                                <i class="fa fa-phone o_vd_today_ico"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b></span>
                                                             </span>
                                                         </div>
                                                         <div class="o_vd_today_btn o_vd_today_btn_month o_vd_cp_half"
@@ -3308,12 +3306,10 @@
                                                              t-on-mouseleave="() => this.onRecLeave()"
                                                              t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
                                                             <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                                            <span class="o_vd_today_line o_vd_today_line_stack">
-                                                                <span class="o_vd_today_main">
-                                                                    <i class="fa fa-phone o_vd_today_ico"/>
-                                                                    <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                                </span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b> nghe</span>
+                                                            <span class="o_vd_today_line">
+                                                                <i class="fa fa-phone o_vd_today_ico"/>
+                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
+                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b></span>
                                                             </span>
                                                         </div>
                                                     </div>
