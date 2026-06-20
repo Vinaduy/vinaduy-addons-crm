@@ -280,9 +280,10 @@ export class VdCrmDashboard extends Component {
                 if (this.isAdminView && this.state.adminTab === 'overview') {
                     this.loadAnalytics();
                 } else if (this.state.is_team_leader) {
-                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng → bảng NV chỉ
-                    // hiện NV phòng mình, có sẵn ngay (không prefetch toàn công ty).
-                    this.loadAnalytics();
+                    // Trưởng nhóm / GĐ cá nhân: AWAIT analytics (scope phòng, nhẹ) để
+                    // bảng NV hiện CÙNG LÚC với các bảng khác, không trễ sau (user spec
+                    // 2026-06-20 r9). Bảng NV chỉ hiện NV phòng mình.
+                    await this.loadAnalytics();
                 }
             }
         });
@@ -552,6 +553,7 @@ export class VdCrmDashboard extends Component {
             && !this.state.empExpanded) return;
         this.state.dirTeamMode = true;
         this.state.empExpanded = false;
+        this.state.empPinned = false;
         this.state.selected_user_id = this.state.current_user_id;
         this._persistSelectedNv();
         this.state.nvDetail = null;
@@ -2734,11 +2736,9 @@ export class VdCrmDashboard extends Component {
                 this.state.analyticsFrom, this.state.analyticsTo, sc,
             ]);
             this.state.analytics = data;
-            // GĐ: tải lại bảng phòng → reset về trạng thái thu gọn (bỏ ghim).
-            if (sc === 'team') {
-                this.state.empExpanded = false;
-                this.state.empPinned = false;
-            }
+            // KHÔNG reset empExpanded/empPinned ở đây nữa: analytics có thể tải lại
+            // nền và sẽ XOÁ cú bấm NHÂN VIÊN của user (lỗi r9). Việc reset trạng thái
+            // giãn khi đổi chế độ do goPersonal() lo.
         } catch (e) {
             this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
         }
