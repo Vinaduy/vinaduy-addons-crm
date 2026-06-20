@@ -507,6 +507,14 @@
                                 <span class="o_vd_admin_nav_kpi_lbl">Tổng khách hàng công ty</span>
                                 <span class="o_vd_admin_nav_kpi_val"><t t-esc="state.kpi.total or 0"/></span>
                             </div>
+                            <!-- ☎️ CUỘC GỌI ĐẾN — lịch sử khách gọi vào tổng đài -->
+                            <button class="o_vd_inbound_btn o_vd_inbound_btn_admin"
+                                    t-on-click="() => this.openInboundCalls()"
+                                    title="Xem lịch sử khách gọi đến tổng đài">
+                                <i class="fa fa-phone o_vd_inbound_ico"/>
+                                <span class="o_vd_inbound_txt">CUỘC GỌI ĐẾN</span>
+                                <i class="fa fa-arrow-right o_vd_inbound_arrow"/>
+                            </button>
                             <!-- 🗑️ THÙNG RÁC CÔNG TY — chỉ Admin + Giám đốc thấy -->
                             <button t-if="state.can_see_company_trash" class="o_vd_admin_trash_btn"
                                     t-on-click="() => this.openCompanyTrash()"

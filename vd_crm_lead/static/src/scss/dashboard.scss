@@ -9486,6 +9486,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     text-transform: uppercase;
     background: linear-gradient(135deg, #1c7ed6, #1864ab 60%, #0b4a86);
     border: 2px solid #d0ebff;
+    -webkit-user-select: none;
     user-select: none;
     transition: filter 0.12s ease, transform 0.12s ease;
 
@@ -9493,6 +9494,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_inbound_txt { font-size: 1.08rem; line-height: 1.1; }
     .o_vd_inbound_arrow { font-size: 1.05rem; flex: 0 0 auto; opacity: 0.85; }
     &:hover { filter: brightness(1.07); transform: translateY(-1px); }
+}
+/* Biến thể trong sidebar admin (là <button>) — full width, reset mặc định */
+.o_vd_inbound_btn_admin {
+    width: 100%;
+    margin-top: 0.6rem;
+    font-family: inherit;
+    appearance: none;
 }
 
 .o_vd_refrec_filter {
