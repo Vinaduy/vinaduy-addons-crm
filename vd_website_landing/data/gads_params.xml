@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Gia tri khoi tao Google Ads conversion (admin sua lai trong Cai dat).
+         noupdate=1: chi seed luc cai dat lan dau, khong de upgrade.  -->
+    <record id="vd_gads_enabled" model="ir.config_parameter">
+        <field name="key">vd_website_landing.gads_enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="vd_gads_conversion_id" model="ir.config_parameter">
+        <field name="key">vd_website_landing.gads_conversion_id</field>
+        <field name="value">AW-18195877570</field>
+    </record>
+    <record id="vd_gads_call_label" model="ir.config_parameter">
+        <field name="key">vd_website_landing.gads_call_label</field>
+        <field name="value">mH4ICIqqs8IcEMKdvORD</field>
+    </record>
+</odoo>

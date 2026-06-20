@@ -9,8 +9,11 @@ trang được đấu thẳng vào crm.lead (khách để lại Họ tên/Email/
 """,
     'author': 'Vinaduy',
     'category': 'Website',
-    'depends': ['crm', 'website'],
-    'data': [],
+    'depends': ['base_setup', 'crm', 'website'],
+    'data': [
+        'data/gads_params.xml',
+        'views/res_config_settings_views.xml',
+    ],
     'installable': True,
     'application': False,
     'license': 'LGPL-3',

@@ -22,9 +22,76 @@ _HTML_PATH = os.path.join(
 
 class VdWebsiteLanding(http.Controller):
 
+    def _gads_snippet(self):
+        """Sinh đoạn <script> Google Ads để chèn vào <head> của landing.
+
+        Đọc cấu hình admin (ir.config_parameter) -> nếu chưa bật hoặc thiếu ID
+        thì trả về chuỗi rỗng (không chèn gì). Gồm:
+          - Code 1: gtag.js + config
+          - Code 2: hàm gtag_report_conversion (dùng nhãn 'Nhấp để gọi')
+          - Tự gắn onclick cho MỌI link tel: (khỏi sửa tay từng số)
+        """
+        ICP = request.env['ir.config_parameter'].sudo()
+        enabled = ICP.get_param('vd_website_landing.gads_enabled')
+        conv_id = (ICP.get_param(
+            'vd_website_landing.gads_conversion_id') or '').strip()
+        label = (ICP.get_param(
+            'vd_website_landing.gads_call_label') or '').strip()
+        if not enabled or not conv_id:
+            return ''
+        send_to = conv_id
+        if label:
+            send_to = '%s/%s' % (conv_id, label)
+        return """
+<!-- Google tag (gtag.js) - Vinaduy landing -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={conv_id}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+  gtag('config', '{conv_id}');
+</script>
+<!-- Event snippet: Nhap de goi -->
+<script>
+function gtag_report_conversion(url) {{
+  var callback = function () {{
+    if (typeof(url) != 'undefined') {{ window.location = url; }}
+  }};
+  gtag('event', 'conversion', {{
+    'send_to': '{send_to}',
+    'value': 1.0,
+    'currency': 'VND',
+    'event_callback': callback
+  }});
+  return false;
+}}
+// Tu gan tracking cho moi link tel: (ke ca them so moi sau nay).
+document.addEventListener('DOMContentLoaded', function () {{
+  var links = document.querySelectorAll('a[href^="tel:"]');
+  for (var i = 0; i < links.length; i++) {{
+    (function (a) {{
+      a.addEventListener('click', function (e) {{
+        e.preventDefault();
+        return gtag_report_conversion(a.getAttribute('href'));
+      }});
+    }})(links[i]);
+  }}
+}});
+</script>
+""".format(conv_id=conv_id, send_to=send_to)
+
     def _serve_landing(self):
         with open(_HTML_PATH, 'rb') as f:
             html = f.read()
+        snippet = self._gads_snippet()
+        if snippet:
+            # Chèn ngay trước </head> để gtag nằm trong <head> như Google yêu cầu.
+            snippet_b = snippet.encode('utf-8')
+            idx = html.lower().find(b'</head>')
+            if idx != -1:
+                html = html[:idx] + snippet_b + html[idx:]
+            else:
+                html = snippet_b + html
         return request.make_response(html, headers=[
             ('Content-Type', 'text/html; charset=utf-8'),
         ])

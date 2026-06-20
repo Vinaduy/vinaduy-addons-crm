@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_vd_gads" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.vd.gads</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Landing Google Ads" string="Landing Google Ads" name="vd_website_landing">
+                    <block title="Theo doi chuyen doi Google Ads" name="vd_gads_block">
+                        <setting id="vd_gads_enabled_setting"
+                                 string="Bat Google Ads tracking"
+                                 help="Bat/tat chen ma gtag tren trang landing /dich-vu-xay-nha.">
+                            <field name="vd_gads_enabled"/>
+                        </setting>
+                        <setting id="vd_gads_id_setting"
+                                 string="Google Ads Conversion ID"
+                                 help="Dang AW-XXXXXXXXXX, lay trong Code 1 cua Google Ads.">
+                            <field name="vd_gads_conversion_id"
+                                   placeholder="AW-18195877570"/>
+                        </setting>
+                        <setting id="vd_gads_label_setting"
+                                 string="Nhan chuyen doi - Nhap de goi"
+                                 help="Phan sau dau '/' trong send_to cua Code 2.">
+                            <field name="vd_gads_call_label"
+                                   placeholder="mH4ICIqqs8IcEMKdvORD"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
