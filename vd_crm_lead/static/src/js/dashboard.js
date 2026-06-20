@@ -113,6 +113,9 @@ export class VdCrmDashboard extends Component {
             // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
             // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
             empExpanded: false,
+            // empPinned: GĐ BẤM nút NHÂN VIÊN để GHIM bảng mở (không thu khi rời
+            // chuột); bấm lần nữa bỏ ghim. Hover chỉ giãn tạm khi chưa ghim.
+            empPinned: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -568,26 +571,32 @@ export class VdCrmDashboard extends Component {
     }
 
     // ===== GIÃN / THU bảng NV (GĐ) — chỉ đổi CHIỀU CAO (mép dưới trượt), KHÔNG
-    // đổi dữ liệu (bảng đã luôn hiện đủ NV phòng). Hover filter → giãn; rời → thu. =====
+    // đổi dữ liệu (bảng đã luôn hiện đủ NV phòng).
+    //  - HOVER nút NHÂN VIÊN → giãn xem nhanh; rời chuột → thu (nếu chưa ghim).
+    //  - BẤM nút → GHIM mở (luôn xổ hết NV); bấm lần nữa → bỏ ghim + thu.
+    // Tách "ghim" khỏi "giãn do hover" để bấm KHÔNG bị toggle-đóng sau khi hover
+    // đã mở sẵn (lỗi 2026-06-20 r8). =====
     expandEmployees() {
         if (!this.state.is_manager || this.state.empExpanded) return;
         this.cancelCollapse();
         this.state.empExpanded = true;
     }
     collapseEmployees() {
-        if (!this.state.empExpanded) return;
+        if (!this.state.empExpanded || this.state.empPinned) return;
         this.state.empExpanded = false;
     }
     toggleEmployees() {
-        if (this.state.empExpanded) this.collapseEmployees();
-        else this.expandEmployees();
+        if (!this.state.is_manager) return;
+        this.cancelCollapse();
+        this.state.empPinned = !this.state.empPinned;
+        this.state.empExpanded = this.state.empPinned;
     }
     // ===== GRACE-DELAY collapse (r6): mouseleave panel → hẹn 350ms; khi timer
     // chạy, RE-VERIFY bằng :hover THẬT của DOM — nếu chuột VẪN trong panel (vd
     // rê xuống danh sách NV, mouseleave là nhiễu do reflow) thì KHÔNG thu. Đây
     // là cách miễn nhiễm với mouseleave nhiễu (không phụ thuộc mouseenter bù). =====
     scheduleCollapse() {
-        if (!this.state.empExpanded) return;
+        if (!this.state.empExpanded || this.state.empPinned) return;
         browser.clearTimeout(this._empCollapseTimer);
         this._empCollapseTimer = browser.setTimeout(() => {
             const el = this.tlPanelRef.el;
@@ -2725,9 +2734,10 @@ export class VdCrmDashboard extends Component {
                 this.state.analyticsFrom, this.state.analyticsTo, sc,
             ]);
             this.state.analytics = data;
-            // GĐ: tải lại bảng phòng → reset về trạng thái thu gọn.
+            // GĐ: tải lại bảng phòng → reset về trạng thái thu gọn (bỏ ghim).
             if (sc === 'team') {
                 this.state.empExpanded = false;
+                this.state.empPinned = false;
             }
         } catch (e) {
             this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
