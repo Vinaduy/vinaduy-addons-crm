@@ -9693,17 +9693,35 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     box-shadow: 0 7px 22px rgba(249,115,22,.45);
 }
 .o_vd_emp_filter.o_active .o_vd_emp_filter_hint { color: #fff; opacity: .9; }
-/* Bảng NV khi giãn: bỏ giới hạn chiều cao (nếu có) cho thấy hết NV */
-.o_vd_tl_team_box.o_vd_emp_expanded { max-height: none; }
-/* Nút "XEM TẤT CẢ NHÂN VIÊN" MÉP DƯỚI bảng NV (GĐ) — dùng CHUNG style với bảng
-   KHÁCH MỚI (.o_vd_new_pills_toggle). Full ngang, dính sát đáy bảng, bo góc dưới
-   (user spec 2026-06-20 r6: giống bảng KHÁCH MỚI, bấm để trượt xuống). */
-.o_vd_tl_panel .o_vd_emp_toggle {
-    width: 100%;
-    margin-top: 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+/* ===== GĐ: bảng NV LUÔN hiện đủ NV; hover filter → mép dưới TRƯỢT xuống/lên =====
+   (user spec 2026-06-20 r7). Thu gọn = chặn chiều cao (hé vài dòng) + fade gợi ý;
+   giãn = bỏ trần → mép dưới trượt xuống hiện hết NV, đẩy nội dung trang xuống. */
+.o_vd_tl_panel { position: relative; }
+.o_vd_tl_team_box.o_vd_emp_capped {
+    position: relative;
+    max-height: 360px;                 /* thu gọn: hé ~6-7 dòng NV */
+    overflow-x: auto;
+    overflow-y: hidden;
+    transition: max-height .4s cubic-bezier(.22,.61,.36,1);
 }
+.o_vd_tl_team_box.o_vd_emp_capped.o_vd_emp_expanded {
+    max-height: 2400px;                /* giãn: trượt xuống hiện toàn bộ NV */
+    overflow-y: hidden;
+}
+/* Fade mép dưới khi thu gọn → gợi ý "còn nữa, đưa chuột vào để xem". Tắt khi giãn. */
+.o_vd_tl_team_box.o_vd_emp_capped::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 46px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.96) 92%);
+    opacity: 1;
+    transition: opacity .3s ease;
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+}
+.o_vd_tl_team_box.o_vd_emp_capped.o_vd_emp_expanded::after { opacity: 0; }
 /* Nút NHÂN VIÊN liền bảng NV: thu nhẹ bo góc dưới cho dính bảng phía dưới */
 .o_vd_emp_filter { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
 /* GAP that thu: bang NV co class .o_vd_analytics nen dinh padding-top 1rem

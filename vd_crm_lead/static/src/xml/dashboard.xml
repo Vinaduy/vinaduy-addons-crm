@@ -1662,11 +1662,13 @@
                         <!-- ===== BẢNG TRƯỞNG NHÓM (như cũ: trong main, logo giữ góc trái) =====
                              User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
                              trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
-                        <div t-if="state.is_team_leader" class="o_vd_tl_panel" t-ref="tlPanel">
-                            <!-- GIÁM ĐỐC: bảng NV LUÔN HIỆN (NV phòng GĐ). Nút "XEM TẤT
-                                 CẢ NHÂN VIÊN" ở MÉP DƯỚI (giống bảng KHÁCH MỚI) → bấm để
-                                 trượt xuống hiện TOÀN BỘ NV, đẩy nội dung trang xuống;
-                                 bấm "Thu gọn" → về NV phòng (user spec 2026-06-20 r6). -->
+                        <div t-if="state.is_team_leader" class="o_vd_tl_panel" t-ref="tlPanel"
+                             t-on-mouseenter="() => this.cancelCollapse()"
+                             t-on-mouseleave="() => this.scheduleCollapse()">
+                            <!-- GIÁM ĐỐC: bảng NV LUÔN HIỆN ĐỦ TOÀN BỘ NV 1 lần (không nút).
+                                 Mặc định thu gọn (hé vài dòng); ĐƯA CHUỘT vào filter NHÂN
+                                 VIÊN → mép dưới bảng TRƯỢT XUỐNG hiện hết NV (đẩy nội dung
+                                 trang xuống); rời chuột → trượt lên (user spec 2026-06-20 r7). -->
                             <t t-call="vd_crm_lead.VdDirFilters"/>
                             <button t-if="viewingTeamMember" class="o_vd_tl_back"
                                     t-on-click="() => this.backToMyDashboard()">
@@ -1674,32 +1676,11 @@
                             </button>
                             <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
                                  class="o_vd_analytics o_vd_tl_team_box"
-                                 t-att-class="state.empExpanded ? 'o_vd_emp_expanded' : ''">
+                                 t-att-class="(showDirFilters ? 'o_vd_emp_capped ' : '') + (state.empExpanded ? 'o_vd_emp_expanded' : '')">
                                 <div class="o_vd_kh_box">
                                     <t t-call="vd_crm_lead.VdKhTeamList"/>
                                 </div>
                             </div>
-                            <!-- Nút mép dưới (GĐ) — style giống bảng KHÁCH MỚI. -->
-                            <button t-if="showDirFilters"
-                                    t-att-class="'o_vd_new_pills_toggle o_vd_emp_toggle' + (state.empExpanded ? '' : ' o_vd_new_pills_toggle_big')"
-                                    t-on-click="() => this.toggleEmployees()">
-                                <t t-if="state.empExpanded">
-                                    <i class="fa fa-chevron-up me-1"/> Thu gọn — chỉ nhân viên phòng tôi
-                                </t>
-                                <t t-elif="state.analyticsLoading">
-                                    <span class="o_vd_expand_main">
-                                        <i class="fa fa-spinner fa-spin me-2"/> Đang tải toàn bộ nhân viên…
-                                    </span>
-                                </t>
-                                <t t-else="">
-                                    <span class="o_vd_expand_main">
-                                        <i class="fa fa-chevron-down o_vd_expand_chevron"/>
-                                        XEM TẤT CẢ NHÂN VIÊN
-                                        <i class="fa fa-chevron-down o_vd_expand_chevron"/>
-                                    </span>
-                                    <span class="o_vd_expand_sub">Bấm vào đây để xem toàn bộ nhân viên công ty</span>
-                                </t>
-                            </button>
                         </div>
 
                         <!-- Pipeline funnel cards đã được ẨN theo yêu cầu — KH ở stage
@@ -2741,13 +2722,13 @@
     <t t-name="vd_crm_lead.VdDirFilters">
         <button t-if="showDirFilters" class="o_vd_emp_filter"
                 t-att-class="state.empExpanded ? 'o_active' : ''"
+                t-on-mouseenter="() => this.expandEmployees()"
                 t-on-click="() => this.toggleEmployees()">
-            <i t-att-class="(state.empExpanded and state.analyticsLoading) ? 'fa fa-spinner fa-spin o_vd_emp_filter_ico' : 'fa fa-users o_vd_emp_filter_ico'"/>
+            <i class="fa fa-users o_vd_emp_filter_ico"/>
             <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
             <span class="o_vd_emp_filter_hint">
-                <t t-if="state.empExpanded and state.analyticsLoading">— Đang tải toàn bộ nhân viên…</t>
-                <t t-elif="state.empExpanded">— Toàn bộ nhân viên (bấm để thu gọn)</t>
-                <t t-else="">— Nhân viên phòng · bấm nút dưới để xem toàn bộ</t>
+                <t t-if="state.empExpanded">— Toàn bộ nhân viên (rời chuột để thu gọn)</t>
+                <t t-else="">— Di chuột vào để mở rộng bảng</t>
             </span>
         </button>
     </t>
@@ -3234,10 +3215,10 @@
     <!-- ===== BẢNG TEAM (admin = nguồn gốc; trưởng nhóm dùng chung) ===== -->
     <t t-name="vd_crm_lead.VdKhTeamList">
                                 <div class="o_vd_kh_team_list">
-                                    <div t-if="!state.analytics.kh_by_team.length" class="o_vd_kh_empty">
+                                    <div t-if="!khTeamGroups.length" class="o_vd_kh_empty">
                                         ✓ Không có dữ liệu KH trong khoảng lọc
                                     </div>
-                                    <div t-foreach="state.analytics.kh_by_team" t-as="grp" t-key="grp.team"
+                                    <div t-foreach="khTeamGroups" t-as="grp" t-key="grp.team"
                                          class="o_vd_kh_team_group"
                                          t-att-style="`--team-color:${grp.color}`">
                                         <div class="o_vd_kh_team_sidebar">

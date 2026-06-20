@@ -113,6 +113,9 @@ export class VdCrmDashboard extends Component {
             // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
             // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
             empExpanded: false,
+            // GĐ: danh sách NV TOÀN CÔNG TY cho bảng team (prefetch nền) → bảng
+            // luôn hiện đủ NV 1 lần, không cần nút (user spec 2026-06-20 r7).
+            allTeamGroups: [],
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -570,8 +573,9 @@ export class VdCrmDashboard extends Component {
         });
     }
 
-    // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN (1 promise dùng chung cho cả
-    // prefetch lẫn hover) để hover nút NHÂN VIÊN hiện NGAY thay vì chờ ~8s.
+    // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN → đổ vào state.allTeamGroups
+    // để bảng NV (GĐ) LUÔN hiện ĐỦ NV ngay (user spec 2026-06-20 r7), không cần
+    // bấm nút. empExpanded chỉ còn điều khiển CHIỀU CAO (hover → mép dưới trượt).
     _prefetchAllEmployees() {
         if (this._anaAll) return Promise.resolve();
         if (!this._anaAllPromise) {
@@ -580,43 +584,37 @@ export class VdCrmDashboard extends Component {
                 .then((d) => { this._anaAll = d; })
                 .catch(() => { this._anaAllPromise = null; })  // lỗi → cho thử lại
                 .then(() => {
-                    if (this.state.empExpanded && this._anaAll) {
-                        this.state.analytics = this._anaAll;
+                    if (this._anaAll && this._anaAll.kh_by_team) {
+                        this.state.allTeamGroups = this._anaAll.kh_by_team;
                     }
                 });
         }
         return this._anaAllPromise;
     }
 
-    // ===== GIÃN / THU bảng NV (GĐ) — đổi phạm vi TẠI CHỖ, không rời trang =====
-    // Giãn: nạp analytics TOÀN CÔNG TY (lazy + cache) rồi swap vào bảng NV.
-    async expandEmployees() {
-        if (!this.state.is_manager || this.state.empExpanded) return;
-        console.log("[VD emp] EXPAND → giãn toàn bộ NV (đã preload?", !!this._anaAll, ")");
-        // Lưu bản phòng-ban hiện tại để thu lại nhanh.
-        if (!this._anaDept && this.state.analytics) this._anaDept = this.state.analytics;
-        this.state.empExpanded = true;
-        if (this._anaAll) {
-            // Đã prefetch sẵn → hiện NGAY.
-            this.state.analytics = this._anaAll;
-            return;
+    // Nguồn NV cho bảng team: GĐ → TOÀN CÔNG TY (allTeamGroups khi prefetch xong,
+    // tạm fallback dept trong lúc tải); admin/trưởng nhóm → analytics.kh_by_team.
+    get khTeamGroups() {
+        const a = this.state.analytics;
+        // CHỈ panel GĐ cá nhân (dirTeamMode) dùng bản toàn-công-ty đã prefetch;
+        // view admin "Tất cả NV" giữ analytics riêng (đúng bộ lọc ngày của nó).
+        if (this.state.is_manager && this.state.dirTeamMode
+            && this.state.allTeamGroups && this.state.allTeamGroups.length) {
+            return this.state.allTeamGroups;
         }
-        // Chưa có → chờ promise prefetch (dùng chung, không load đôi); bật spinner.
-        this.state.analyticsLoading = true;
-        await this._prefetchAllEmployees();
-        this.state.analyticsLoading = false;
-        if (this.state.empExpanded && this._anaAll) this.state.analytics = this._anaAll;
-        else if (!this._anaAll) this.state.empExpanded = false;  // load lỗi → thu lại
+        return (a && a.kh_by_team) || [];
     }
-    // Thu: trả bảng về NV phòng GĐ.
+
+    // ===== GIÃN / THU bảng NV (GĐ) — chỉ đổi CHIỀU CAO (mép dưới trượt), KHÔNG
+    // đổi dữ liệu (bảng đã luôn hiện đủ NV). Hover filter → giãn; rời → thu. =====
+    expandEmployees() {
+        if (!this.state.is_manager || this.state.empExpanded) return;
+        this.cancelCollapse();
+        this.state.empExpanded = true;
+    }
     collapseEmployees() {
         if (!this.state.empExpanded) return;
-        console.log("[VD emp] COLLAPSE → thu về NV phòng");
         this.state.empExpanded = false;
-        // Trả về bản phòng-ban. Nếu vì lý do gì _anaDept trống → nạp lại để bảng
-        // KHÔNG biến mất (tránh box rỗng do t-if kh_by_team.length).
-        if (this._anaDept) this.state.analytics = this._anaDept;
-        else this.loadAnalytics('team');
     }
     toggleEmployees() {
         if (this.state.empExpanded) this.collapseEmployees();
