@@ -1665,10 +1665,11 @@
                         <div t-if="state.is_team_leader" class="o_vd_tl_panel" t-ref="tlPanel"
                              t-on-mouseenter="() => this.cancelCollapse()"
                              t-on-mouseleave="() => this.scheduleCollapse()">
-                            <!-- GIÁM ĐỐC: bảng NV LUÔN HIỆN ĐỦ TOÀN BỘ NV 1 lần (không nút).
-                                 Mặc định thu gọn (hé vài dòng); ĐƯA CHUỘT vào filter NHÂN
-                                 VIÊN → mép dưới bảng TRƯỢT XUỐNG hiện hết NV (đẩy nội dung
-                                 trang xuống); rời chuột → trượt lên (user spec 2026-06-20 r7). -->
+                            <!-- GIÁM ĐỐC: bảng NV PHÒNG mình (vd Hà Nội) LUÔN HIỆN ĐỦ 1 lần
+                                 (không nút), có sẵn ngay khi tải trang. Mặc định thu gọn (hé
+                                 vài dòng); ĐƯA CHUỘT vào filter NHÂN VIÊN → mép dưới bảng TRƯỢT
+                                 XUỐNG hiện hết NV (đẩy nội dung trang xuống); rời chuột → trượt
+                                 lên (user spec 2026-06-20 r8). -->
                             <t t-call="vd_crm_lead.VdDirFilters"/>
                             <button t-if="viewingTeamMember" class="o_vd_tl_back"
                                     t-on-click="() => this.backToMyDashboard()">
@@ -2727,7 +2728,7 @@
             <i class="fa fa-users o_vd_emp_filter_ico"/>
             <span class="o_vd_emp_filter_lbl">NHÂN VIÊN</span>
             <span class="o_vd_emp_filter_hint">
-                <t t-if="state.empExpanded">— Toàn bộ nhân viên (rời chuột để thu gọn)</t>
+                <t t-if="state.empExpanded">— Nhân viên phòng (rời chuột để thu gọn)</t>
                 <t t-else="">— Di chuột vào để mở rộng bảng</t>
             </span>
         </button>

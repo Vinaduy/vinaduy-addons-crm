@@ -113,9 +113,6 @@ export class VdCrmDashboard extends Component {
             // empExpanded=true → bảng NV đang GIÃN hiện TOÀN BỘ NV (hover nút NHÂN
             // VIÊN); false → thu về NV phòng GĐ quản lý (user spec 2026-06-20 r2).
             empExpanded: false,
-            // GĐ: danh sách NV TOÀN CÔNG TY cho bảng team (prefetch nền) → bảng
-            // luôn hiện đủ NV 1 lần, không cần nút (user spec 2026-06-20 r7).
-            allTeamGroups: [],
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
             adminTab: "overview",
             nvDetail: null,
@@ -280,14 +277,9 @@ export class VdCrmDashboard extends Component {
                 if (this.isAdminView && this.state.adminTab === 'overview') {
                     this.loadAnalytics();
                 } else if (this.state.is_team_leader) {
-                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng (nền), XONG mới
-                    // prefetch bản "toàn bộ NV" để KHÔNG tranh tài nguyên lúc render
-                    // đầu (user spec r5: load sẵn để hover NHÂN VIÊN hiện NGAY).
-                    this.loadAnalytics().then(() => {
-                        if (this.state.is_manager && this.state.dirTeamMode) {
-                            browser.setTimeout(() => this._prefetchAllEmployees(), 800);
-                        }
-                    });
+                    // Trưởng nhóm / GĐ cá nhân: analytics scope phòng → bảng NV chỉ
+                    // hiện NV phòng mình, có sẵn ngay (không prefetch toàn công ty).
+                    this.loadAnalytics();
                 }
             }
         });
@@ -557,56 +549,26 @@ export class VdCrmDashboard extends Component {
             && !this.state.empExpanded) return;
         this.state.dirTeamMode = true;
         this.state.empExpanded = false;
-        this._anaAll = null;
-        this._anaAllPromise = null;
         this.state.selected_user_id = this.state.current_user_id;
         this._persistSelectedNv();
         this.state.nvDetail = null;
         this.state.analytics = null;
         await this.loadDashboard();
         this._reloadDashUsers();   // nền — không chặn
-        // Analytics bó về phòng ban (scope='team'); xong thì prefetch bản toàn bộ.
-        this.loadAnalytics('team').then(() => {
-            if (this.state.is_manager && this.state.dirTeamMode) {
-                browser.setTimeout(() => this._prefetchAllEmployees(), 800);
-            }
-        });
+        // Analytics bó về phòng ban (scope='team') → bảng chỉ hiện NV phòng GĐ.
+        this.loadAnalytics('team');
     }
 
-    // Prefetch SẴN bản analytics "toàn bộ NV" ở NỀN → đổ vào state.allTeamGroups
-    // để bảng NV (GĐ) LUÔN hiện ĐỦ NV ngay (user spec 2026-06-20 r7), không cần
-    // bấm nút. empExpanded chỉ còn điều khiển CHIỀU CAO (hover → mép dưới trượt).
-    _prefetchAllEmployees() {
-        if (this._anaAll) return Promise.resolve();
-        if (!this._anaAllPromise) {
-            this._anaAllPromise = this.orm.call("crm.lead", "dashboard_analytics",
-                [this.state.analyticsFrom, this.state.analyticsTo, null])
-                .then((d) => { this._anaAll = d; })
-                .catch(() => { this._anaAllPromise = null; })  // lỗi → cho thử lại
-                .then(() => {
-                    if (this._anaAll && this._anaAll.kh_by_team) {
-                        this.state.allTeamGroups = this._anaAll.kh_by_team;
-                    }
-                });
-        }
-        return this._anaAllPromise;
-    }
-
-    // Nguồn NV cho bảng team: GĐ → TOÀN CÔNG TY (allTeamGroups khi prefetch xong,
-    // tạm fallback dept trong lúc tải); admin/trưởng nhóm → analytics.kh_by_team.
+    // Nguồn NV cho bảng team = analytics.kh_by_team (GĐ: scope phòng → CHỈ NV phòng
+    // mình, vd Hà Nội; admin: toàn bộ). Có sẵn ngay từ loadAnalytics → không nháy,
+    // không chờ prefetch (user spec 2026-06-20 r8).
     get khTeamGroups() {
         const a = this.state.analytics;
-        // CHỈ panel GĐ cá nhân (dirTeamMode) dùng bản toàn-công-ty đã prefetch;
-        // view admin "Tất cả NV" giữ analytics riêng (đúng bộ lọc ngày của nó).
-        if (this.state.is_manager && this.state.dirTeamMode
-            && this.state.allTeamGroups && this.state.allTeamGroups.length) {
-            return this.state.allTeamGroups;
-        }
         return (a && a.kh_by_team) || [];
     }
 
     // ===== GIÃN / THU bảng NV (GĐ) — chỉ đổi CHIỀU CAO (mép dưới trượt), KHÔNG
-    // đổi dữ liệu (bảng đã luôn hiện đủ NV). Hover filter → giãn; rời → thu. =====
+    // đổi dữ liệu (bảng đã luôn hiện đủ NV phòng). Hover filter → giãn; rời → thu. =====
     expandEmployees() {
         if (!this.state.is_manager || this.state.empExpanded) return;
         this.cancelCollapse();
@@ -2763,10 +2725,8 @@ export class VdCrmDashboard extends Component {
                 this.state.analyticsFrom, this.state.analyticsTo, sc,
             ]);
             this.state.analytics = data;
-            // GĐ: bản phòng-ban (scope team) là bản "thu gọn" → cache để nút
-            // NHÂN VIÊN thu nhanh; reset trạng thái giãn khi tải lại.
+            // GĐ: tải lại bảng phòng → reset về trạng thái thu gọn.
             if (sc === 'team') {
-                this._anaDept = data;
                 this.state.empExpanded = false;
             }
         } catch (e) {
