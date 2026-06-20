@@ -9704,9 +9704,11 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow-y: hidden;
     transition: max-height .4s cubic-bezier(.22,.61,.36,1);
 }
+/* GIÃN: bỏ HẲN trần chiều cao + cho tràn → CHẮC CHẮN hiện toàn bộ NV, miễn nhiễm
+   với mọi rule max-height/min-height khác (dùng !important cho chắc) — r10. */
 .o_vd_tl_team_box.o_vd_emp_capped.o_vd_emp_expanded {
-    max-height: 2400px;                /* giãn: trượt xuống hiện toàn bộ NV */
-    overflow-y: hidden;
+    max-height: 4000px !important;     /* đủ lớn cho mọi số NV; vẫn transition mượt */
+    overflow-y: visible !important;
 }
 /* Fade mép dưới khi thu gọn → gợi ý "còn nữa, đưa chuột vào để xem". Tắt khi giãn. */
 .o_vd_tl_team_box.o_vd_emp_capped::after {
