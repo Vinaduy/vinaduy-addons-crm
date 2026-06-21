@@ -12712,7 +12712,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
 .o_vd_selinline {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 7px;
     width: 100%;
 }
 .o_vd_selinline_chip {
@@ -12720,9 +12720,9 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     background: #fff;
     color: #4b3fb3;
     font-weight: 700;
-    font-size: 13px;
-    line-height: 1.1;
-    padding: 5px 11px;
+    font-size: 17px;          /* panel zoom 0.7 -> ~12px hiệu lực = bằng chip bảng tính nhẩm */
+    line-height: 1.15;
+    padding: 6px 14px;
     border-radius: 999px;
     cursor: pointer;
     transition: all 0.12s ease;
@@ -12738,10 +12738,10 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
    bỏ uppercase/height cưỡng bức để thẻ gọn giống bảng tính nhẩm. */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_selinline_chip,
 .o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_selinline_chip {
-    font-size: 13px !important;
+    font-size: 17px !important;     /* khớp chip bảng tính nhẩm sau zoom 0.7 */
     font-weight: 700 !important;
-    line-height: 1.1 !important;
-    padding: 5px 11px !important;
+    line-height: 1.15 !important;
+    padding: 6px 14px !important;
     height: auto !important;
     min-height: 0 !important;
     text-transform: none !important;
