@@ -872,6 +872,7 @@
                      (chưa khai thác đủ + chưa chốt báo giá). Điền đủ / chốt -> ẩn.
                      ============================================================ -->
                 <div class="o_vd_tncalc_panel"
+                     groups="base.group_system,vd_crm_lead.vd_crm_group_admin"
                      invisible="vd_intake_complete or vd_intake_locked or stage_is_won or stage_is_lost">
                     <field name="vd_intake_region" invisible="1"/>
                     <field name="vd_intake_total_m2" widget="vd_tinhnham_calc" nolabel="1"/>
