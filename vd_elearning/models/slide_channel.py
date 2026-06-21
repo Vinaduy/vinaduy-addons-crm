@@ -280,8 +280,21 @@ class SlideChannel(models.Model):
         total = len(qs)
         percent = round(100.0 * correct_count / total) if total else 0
         pass_percent = ch.vd_pass_percent or 80
+        passed = percent >= pass_percent
+        # Dat -> ghi nhan HOAN THANH cho NV dang nhap (de dashboard dung tien do +
+        # banner lich hoc bat buoc tu tat).
+        if passed:
+            pid = self.env.user.partner_id.id
+            SCP = self.env['slide.channel.partner'].sudo()
+            rec = SCP.search([('channel_id', '=', ch.id),
+                              ('partner_id', '=', pid)], limit=1)
+            if rec:
+                rec.member_status = 'completed'
+            else:
+                SCP.create({'channel_id': ch.id, 'partner_id': pid,
+                            'member_status': 'completed'})
         return {'total': total, 'score': correct_count, 'percent': percent,
-                'pass_percent': pass_percent, 'passed': percent >= pass_percent,
+                'pass_percent': pass_percent, 'passed': passed,
                 'results': results}
 
     @api.model
@@ -406,6 +419,63 @@ class SlideChannel(models.Model):
         return True
 
     @api.model
+    def vd_member_position(self, path_id, user_id):
+        """Vi tri hoc hien tai cua 1 NV trong lo trinh (de preselect popup Vi tri hoc)."""
+        path = self.env['vd.learning.path'].browse(path_id)
+        courses = path.course_ids.sorted(lambda c: (c.vd_seq, c.id))
+        user = self.env['res.users'].browse(user_id)
+        pid = user.partner_id.id
+        SCP = self.env['slide.channel.partner'].sudo()
+        status = {}
+        if courses and pid:
+            for p in SCP.search([('channel_id', 'in', courses.ids),
+                                 ('partner_id', '=', pid)]):
+                status[p.channel_id.id] = p.member_status
+        completed_count = sum(1 for c in courses if status.get(c.id) == 'completed')
+        current_id = False
+        for c in courses:
+            if status.get(c.id) != 'completed':
+                current_id = c.id
+                break
+        return {'total': len(courses), 'completed_count': completed_count,
+                'current_id': current_id}
+
+    @api.model
+    def vd_set_member_position(self, path_id, user_id, current_course_id=False, completed_all=False):
+        """Gan 1 NV (thuong la NV cu) vao vi tri cu the trong lo trinh: chon khoa
+        DANG hoc -> moi khoa TRUOC do = hoan thanh, khoa do + sau = dang hoc. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc gan vi tri hoc.')
+        path = self.env['vd.learning.path'].browse(path_id)
+        courses = path.course_ids.sorted(lambda c: (c.vd_seq, c.id))
+        if not courses:
+            return True
+        roles = self._vd_zone_roles(path.zone)
+        user = self.env['res.users'].browse(user_id)
+        if user.vd_crm_role not in roles:
+            raise AccessError('Nhan vien khong thuoc khu dao tao cua lo trinh nay.')
+        pid = user.partner_id.id
+        course_ids = courses.ids
+        # cut = so khoa duoc tinh la HOAN THANH (cac khoa truoc moc dang hoc).
+        if completed_all:
+            cut = len(course_ids)
+        elif current_course_id and current_course_id in course_ids:
+            cut = course_ids.index(current_course_id)
+        else:
+            cut = 0
+        SCP = self.env['slide.channel.partner'].sudo()
+        for idx, c in enumerate(courses):
+            st = 'completed' if idx < cut else 'joined'
+            rec = SCP.search([('channel_id', '=', c.id),
+                              ('partner_id', '=', pid)], limit=1)
+            if rec:
+                rec.write({'member_status': st})
+            else:
+                SCP.create({'channel_id': c.id, 'partner_id': pid,
+                            'member_status': st})
+        return True
+
+    @api.model
     def vd_save_order(self, zone, ordered_ids):
         """Luu lai thu tu lo trinh sau khi admin keo-tha. Chi admin."""
         if not self._vd_is_admin():
@@ -413,5 +483,17 @@ class SlideChannel(models.Model):
         seq = 10
         for cid in ordered_ids:
             self.browse(cid).write({'vd_seq': seq, 'vd_role_zone': zone})
+            seq += 10
+        return True
+
+    @api.model
+    def vd_save_path_order(self, zone, ordered_path_ids):
+        """Luu thu tu LO TRINH sau khi admin keo-tha (khoa hoc di theo cung). Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc sap xep lo trinh.')
+        Path = self.env['vd.learning.path']
+        seq = 10
+        for pid in ordered_path_ids:
+            Path.browse(pid).write({'sequence': seq, 'zone': zone})
             seq += 10
         return True

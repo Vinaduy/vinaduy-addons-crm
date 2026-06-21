@@ -35,20 +35,140 @@
                 <div class="o_vd_assign_count">Đã chọn <t t-esc="selCount"/>/<t t-esc="props.candidates.length"/> nhân viên</div>
                 <div class="o_vd_assign_list">
                     <t t-foreach="filtered" t-as="c" t-key="c.id">
-                        <label class="o_vd_assign_row">
-                            <input type="checkbox" t-att-checked="state.sel[c.id]" t-on-change="() => this.toggle(c.id)"/>
-                            <img t-attf-src="/web/image/res.users/{{c.id}}/avatar_128" t-att-alt="c.name"/>
-                            <span class="o_vd_assign_main">
-                                <span class="o_vd_assign_name" t-esc="c.name"/>
-                                <span class="o_vd_assign_sub"><span class="o_vd_assign_team" t-esc="c.team"/> · <t t-esc="c.role"/></span>
-                            </span>
-                        </label>
+                        <div class="o_vd_assign_row">
+                            <label class="o_vd_assign_pick">
+                                <input type="checkbox" t-att-checked="state.sel[c.id]" t-on-change="() => this.toggle(c.id)"/>
+                                <img t-attf-src="/web/image/res.users/{{c.id}}/avatar_128" t-att-alt="c.name"/>
+                                <span class="o_vd_assign_main">
+                                    <span class="o_vd_assign_name" t-esc="c.name"/>
+                                    <span class="o_vd_assign_sub"><span class="o_vd_assign_team" t-esc="c.team"/> · <t t-esc="c.role"/></span>
+                                </span>
+                            </label>
+                            <button class="o_vd_assign_pos" t-on-click="() => this.openPosition(c)"
+                                    title="Gán theo khóa học và lộ trình cụ thể (nhân viên cũ học nâng cao)">
+                                <i class="fa fa-graduation-cap me-1"/>Vị trí học
+                            </button>
+                        </div>
                     </t>
                     <div t-if="!filtered.length" class="o_vd_assign_empty">Không tìm thấy nhân viên.</div>
                 </div>
             </div>
             <t t-set-slot="footer">
                 <button class="btn o_vd_dlg_ok" t-on-click="confirm">Lưu gán nhân viên</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <!-- ============ POPUP VI TRI HOC (gan NV cu vao khoa hoc / lo trinh cu the) ============ -->
+    <t t-name="vd_elearning.MemberPositionDialog">
+        <Dialog title="props.title" size="'md'">
+            <div class="o_vd_pos">
+                <div class="o_vd_pos_hint">
+                    <i class="fa fa-info-circle me-1"/>Chọn lộ trình và khóa học nhân viên ĐANG học.
+                    Mọi khóa TRƯỚC đó được tính là đã hoàn thành.
+                </div>
+                <label class="o_vd_dlg_label">Lộ trình</label>
+                <select class="o_vd_dlg_input" t-on-change="onPathChange">
+                    <t t-foreach="props.paths" t-as="p" t-key="p.id">
+                        <option t-att-value="p.id" t-att-selected="p.id === state.pathId" t-esc="p.name"/>
+                    </t>
+                </select>
+                <label class="o_vd_dlg_label mt-3">Nhân viên đang học khóa nào?</label>
+                <div t-if="state.loading" class="o_vd_pos_loading"><i class="fa fa-spinner fa-spin me-1"/>Đang tải...</div>
+                <div t-else="" class="o_vd_pos_list">
+                    <label class="o_vd_pos_opt">
+                        <input type="radio" name="vdpos" t-att-checked="state.choice === 'none'" t-on-change="() => this.setChoice('none')"/>
+                        <span class="o_vd_pos_lbl"><b>Chưa bắt đầu</b> · học từ khóa đầu tiên</span>
+                    </label>
+                    <t t-foreach="curCourses" t-as="co" t-key="co.id">
+                        <label class="o_vd_pos_opt">
+                            <input type="radio" name="vdpos" t-att-checked="state.choice === co.id" t-on-change="() => this.setChoice(co.id)"/>
+                            <span class="o_vd_pos_num" t-esc="co_index + 1"/>
+                            <span class="o_vd_pos_lbl" t-esc="co.name"/>
+                        </label>
+                    </t>
+                    <label class="o_vd_pos_opt o_vd_pos_done">
+                        <input type="radio" name="vdpos" t-att-checked="state.choice === 'all'" t-on-change="() => this.setChoice('all')"/>
+                        <span class="o_vd_pos_lbl"><i class="fa fa-trophy me-1"/><b>Đã hoàn thành toàn bộ lộ trình</b></span>
+                    </label>
+                    <div t-if="!curCourses.length" class="o_vd_pos_empty">Lộ trình này chưa có khóa học nào.</div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
+                    <t t-esc="state.saving ? 'Đang lưu...' : 'Lưu vị trí học'"/>
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <!-- ============ POPUP LEN LICH HOC BAT BUOC ============ -->
+    <t t-name="vd_elearning.ScheduleDialog">
+        <Dialog title="'Lên lịch học bắt buộc'" size="'lg'">
+            <div class="o_vd_sched">
+                <div class="o_vd_sched_course"><i class="fa fa-graduation-cap me-1"/><b t-esc="props.courseName"/></div>
+                <div class="o_vd_sched_hint">
+                    <i class="fa fa-info-circle me-1"/>Nhân viên được chọn sẽ thấy thông báo và đồng hồ đếm ngược
+                    trên màn hình CRM. Đến giờ sẽ hiện nút <b>VÀO HỌC</b> để học thẳng khóa này (không cần vào lộ trình).
+                </div>
+
+                <div t-if="state.loading" class="o_vd_sched_loading"><i class="fa fa-spinner fa-spin me-1"/>Đang tải...</div>
+                <t t-else="">
+                    <div class="o_vd_sched_grid">
+                        <div class="o_vd_sched_col">
+                            <label class="o_vd_dlg_label">Giờ vào học <span class="o_vd_dlg_req">*</span></label>
+                            <input type="datetime-local" class="o_vd_dlg_input" t-model="state.startLocal"/>
+
+                            <label class="o_vd_dlg_label mt-3">Nội dung thông báo</label>
+                            <input type="text" class="o_vd_dlg_input" t-model="state.message"
+                                   placeholder="VD: 14h học khóa Xử lý từ chối, chuẩn bị nhé!"/>
+
+                            <div class="o_vd_sched_two">
+                                <div>
+                                    <label class="o_vd_dlg_label mt-3">Đếm ngược trước (phút)</label>
+                                    <input type="number" min="0" class="o_vd_dlg_input" t-model="state.lead"/>
+                                </div>
+                                <div>
+                                    <label class="o_vd_dlg_label mt-3">Cho vào học trong (phút)</label>
+                                    <input type="number" min="0" class="o_vd_dlg_input" t-model="state.open"/>
+                                    <div class="o_vd_cfg_hint">0 = không giới hạn.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="o_vd_sched_col">
+                            <label class="o_vd_dlg_label">Nhân viên áp dụng <span class="o_vd_dlg_req">*</span>
+                                <span class="o_vd_sched_count">(<t t-esc="selCount"/>/<t t-esc="state.candidates.length"/>)</span>
+                            </label>
+                            <div class="o_vd_sched_picktools">
+                                <input type="text" class="o_vd_assign_search" t-model="state.search" placeholder="Tìm nhân viên..."/>
+                                <button class="o_vd_sched_mini" t-on-click="selectAll">Chọn tất cả</button>
+                                <button class="o_vd_sched_mini" t-on-click="clearAll">Bỏ chọn</button>
+                            </div>
+                            <div class="o_vd_sched_list">
+                                <t t-foreach="filtered" t-as="c" t-key="c.id">
+                                    <label class="o_vd_assign_row o_vd_sched_row">
+                                        <input type="checkbox" t-att-checked="state.sel[c.id]" t-on-change="() => this.toggle(c.id)"/>
+                                        <img t-attf-src="/web/image/res.users/{{c.id}}/avatar_128" t-att-alt="c.name"/>
+                                        <span class="o_vd_assign_main">
+                                            <span class="o_vd_assign_name" t-esc="c.name"/>
+                                            <span class="o_vd_assign_sub"><span class="o_vd_assign_team" t-esc="c.team"/> · <t t-esc="c.role"/></span>
+                                        </span>
+                                    </label>
+                                </t>
+                                <div t-if="!filtered.length" class="o_vd_assign_empty">Không tìm thấy nhân viên.</div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
+                    <t t-esc="state.saving ? 'Đang lưu...' : 'Lưu lịch học'"/>
+                </button>
+                <button t-if="state.id" class="btn btn-outline-danger" t-on-click="disable"><i class="fa fa-bell-slash me-1"/>Tắt lịch</button>
                 <button class="btn btn-secondary" t-on-click="() => this.props.close()">Hủy</button>
             </t>
         </Dialog>
@@ -166,6 +286,7 @@
                     <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
                         t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
                     <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>CẤU HÌNH</button>
+                    <button t-if="props.editable" class="o_vd_ce_cfg o_vd_ce_sched" t-on-click="openSchedule"><i class="fa fa-bullhorn me-1"/>LÊN LỊCH HỌC</button>
                     <!-- BO DEM GIO + LUOT THI - nen do tuoi, cung dong voi tab Bai thi -->
                     <div t-if="!props.editable &amp;&amp; state.contentLocked" class="o_vd_exam_timer_bar">
                         <span class="o_vd_exam_clock"><i class="fa fa-clock-o me-1"/><t t-esc="timeLeftLabel"/></span>
@@ -372,16 +493,16 @@
     <!-- ============ PANEL 1 TAB DAO TAO ============ -->
     <t t-name="vd_elearning.ZonePanel">
         <div class="o_vd_panel">
-            <div class="o_vd_maptools">
-                <span class="o_vd_tool_count"><i class="fa fa-graduation-cap me-1"/><t t-esc="zone.courses.length"/> khóa học</span>
-                <span t-if="state.isAdmin" class="o_vd_tool_hint"><i class="fa fa-arrows me-1"/>Kéo-thả khóa học (đổi thứ tự hoặc sang lộ trình khác)</span>
-            </div>
-
             <div class="o_vd_board">
                 <t t-set="entryId" t-value="zoneEntryId(zone)"/>
                 <t t-foreach="zone.paths" t-as="path" t-key="path.id">
-                    <div class="o_vd_path_row">
-                        <div class="o_vd_path_marker">
+                    <div class="o_vd_path_row"
+                         t-on-dragover="(ev) => state.isAdmin ? this.onPathDragOver(ev) : null"
+                         t-on-drop="(ev) => state.isAdmin ? this.onPathDrop(ev, zone.key, path.id) : null">
+                        <div class="o_vd_path_marker" t-att-class="state.isAdmin ? 'o_vd_path_draggable' : ''"
+                             t-att-draggable="state.isAdmin ? 'true' : 'false'"
+                             t-on-dragstart="(ev) => state.isAdmin ? this.onPathDragStart(ev, zone.key, path.id) : null"
+                             t-on-dragend="(ev) => this.onPathDragEnd(ev)">
                             <div class="o_vd_path_badge"><i class="fa fa-flag-checkered"/></div>
                             <div class="o_vd_path_label">
                                 <span class="o_vd_path_kicker">LỘ TRÌNH</span>
@@ -393,7 +514,7 @@
                                     t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
                                 <div class="o_vd_path_emp">
                                     <button class="o_vd_path_btn" t-att-title="state.isAdmin ? 'Gán nhân viên vào lộ trình' : 'Nhân viên đang học'"
-                                        t-on-click="() => state.isAdmin ? this.openAssign(path) : null"><i class="fa fa-user-plus"/></button>
+                                        t-on-click="() => state.isAdmin ? this.openAssign(path, zone) : null"><i class="fa fa-user-plus"/></button>
                                     <div class="o_vd_learners">
                                         <div class="o_vd_learners_head">NHÂN VIÊN ĐANG HỌC · <t t-esc="path.name"/></div>
                                         <table class="o_vd_learners_tbl">

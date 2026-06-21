@@ -9088,6 +9088,68 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     50%      { box-shadow: 0 6px 22px rgba(224, 49, 49, 0.42); }
 }
 
+/* ===== LỊCH HỌC BẮT BUỘC — banner trên đầu danh sách KH ===== */
+.o_vd_train_banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.6rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    border: 1.5px solid #7c5cff;
+    background: linear-gradient(135deg, #f3efff 0%, #e9e2ff 100%);
+    box-shadow: 0 5px 16px rgba(124, 92, 255, 0.18);
+
+    .o_vd_train_ico {
+        flex: 0 0 40px; width: 40px; height: 40px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(150deg, #8a7bff, #5b4be6);
+        color: #fff; font-size: 1.25rem;
+    }
+    .o_vd_train_text { flex: 1 1 auto; min-width: 0; }
+    .o_vd_train_main {
+        font-size: 0.95rem; font-weight: 900; color: #3b2f8f; letter-spacing: 0.01em;
+    }
+    .o_vd_train_sub {
+        font-size: 0.8rem; font-weight: 600; color: #5a5294; margin-top: 0.1rem; line-height: 1.35;
+    }
+    .o_vd_train_clock {
+        flex: 0 0 auto; font-size: 1.35rem; font-weight: 900; color: #5b4be6;
+        font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+        padding: 0.25rem 0.7rem; border-radius: 10px; background: #fff;
+        box-shadow: inset 0 0 0 2px rgba(124, 92, 255, 0.35);
+    }
+    .o_vd_train_go {
+        flex: 0 0 auto; border: 0; cursor: pointer;
+        font-size: 0.92rem; font-weight: 900; letter-spacing: 0.03em;
+        color: #fff; padding: 0.55rem 1.2rem; border-radius: 11px;
+        background: linear-gradient(135deg, #37b24d 0%, #2b9a3e 100%);
+        box-shadow: 0 4px 12px rgba(43, 154, 62, 0.4);
+        &:hover { filter: brightness(1.06); }
+    }
+}
+/* Đã đến giờ — viền xanh lá, nhấp nháy nhẹ kêu gọi vào học */
+.o_vd_train_banner.o_vd_train_open {
+    border-color: #2b9a3e;
+    background: linear-gradient(135deg, #ebfbee 0%, #d7f5dd 100%);
+    box-shadow: 0 5px 16px rgba(43, 154, 62, 0.22);
+    animation: vd-train-open-pulse 1.6s ease-in-out infinite;
+    .o_vd_train_main { color: #1f7d35; }
+    .o_vd_train_sub { color: #2b6a3a; }
+    .o_vd_train_ico { background: linear-gradient(150deg, #51cf66, #2b9a3e); }
+}
+/* Đang đếm ngược — viền cam cảnh báo sắp tới giờ */
+.o_vd_train_banner.o_vd_train_countdown {
+    border-color: #f08c00;
+    background: linear-gradient(135deg, #fff7e6 0%, #ffeccc 100%);
+    .o_vd_train_main { color: #b5740a; }
+    .o_vd_train_clock { color: #e8590c; box-shadow: inset 0 0 0 2px rgba(232, 89, 12, 0.4); }
+}
+@keyframes vd-train-open-pulse {
+    0%, 100% { box-shadow: 0 5px 16px rgba(43, 154, 62, 0.22); }
+    50%      { box-shadow: 0 5px 22px rgba(43, 154, 62, 0.45); }
+}
+
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
 .o_vd_admin_trash_btn {
     display: flex;

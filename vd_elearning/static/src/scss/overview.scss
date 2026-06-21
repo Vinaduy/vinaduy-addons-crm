@@ -86,6 +86,9 @@ $vd-line:   #ece7da;
         flex: 0 0 214px; width: 214px; position: relative;
         display: flex; align-items: center; gap: .6rem;
         padding: .7rem .75rem;
+        &.o_vd_path_draggable { cursor: grab; }
+        &.o_vd_path_draggable:active { cursor: grabbing; }
+        &.o_vd_path_dragging { opacity: .45; }
         background: linear-gradient(150deg, #fffdf6, #fbf3df);
         border: 1.5px solid rgba($vd-gold-d, .6);
         border-radius: 16px;
@@ -413,14 +416,109 @@ $vd-line2:   #ece7da;
         border: 1px solid $vd-line2; border-radius: 12px; padding: .35rem;
     }
     .o_vd_assign_row {
-        display: flex; align-items: center; gap: .6rem; padding: .4rem .55rem;
-        border-radius: 9px; cursor: pointer; transition: background .12s ease;
+        display: flex; align-items: center; gap: .4rem; padding: .25rem .35rem .25rem .2rem;
+        border-radius: 9px; transition: background .12s ease;
         &:hover { background: rgba($vd-gold2, .12); }
+        .o_vd_assign_pick {
+            flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: .6rem;
+            padding: .35rem; margin: 0; cursor: pointer;
+        }
         input { width: 18px; height: 18px; cursor: pointer; accent-color: $vd-gold2-d; flex: 0 0 18px; }
         img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: 0 0 30px; border: 2px solid rgba($vd-gold2, .55); }
         .o_vd_assign_main { display: flex; flex-direction: column; min-width: 0; }
         .o_vd_assign_name { font-weight: 700; color: $vd-ink2; font-size: .88rem; }
         .o_vd_assign_sub { font-size: .7rem; color: #9a9685; font-weight: 600; }
+        .o_vd_assign_team { color: $vd-indigo; font-weight: 800; }
+        .o_vd_assign_pos {
+            flex: 0 0 auto; border: 1px solid rgba($vd-indigo, .4); background: rgba($vd-indigo, .08);
+            color: $vd-indigo; font-weight: 700; font-size: .72rem; cursor: pointer;
+            padding: .3rem .55rem; border-radius: 8px; white-space: nowrap;
+            &:hover { background: $vd-indigo; color: #fff; }
+        }
+    }
+    .o_vd_assign_empty { color: #a7a395; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }
+}
+
+// ============ DIALOG VI TRI HOC ============
+.o_vd_pos {
+    display: flex; flex-direction: column; padding: .2rem .25rem;
+    .o_vd_dlg_label { font-weight: 700; font-size: .82rem; color: $vd-ink2; margin-bottom: .35rem; }
+    .mt-3 { margin-top: .9rem; }
+    .o_vd_dlg_input {
+        width: 100%; border: 1px solid $vd-line2; border-radius: 10px;
+        padding: .55rem .8rem; font-size: .9rem; color: $vd-ink2; background: #fff;
+        &:focus { outline: none; border-color: $vd-gold2-d; box-shadow: 0 0 0 3px rgba($vd-gold2, .25); }
+    }
+    .o_vd_pos_hint {
+        background: #f6f5ff; border: 1px solid #ddd7f5; border-radius: 10px;
+        padding: .5rem .7rem; font-size: .76rem; color: #4a4470; margin-bottom: .8rem;
+    }
+    .o_vd_pos_loading { color: #9a9685; font-size: .82rem; font-style: italic; padding: .6rem; }
+    .o_vd_pos_list {
+        display: flex; flex-direction: column; gap: .25rem; margin-top: .4rem;
+        max-height: 46vh; overflow-y: auto;
+        border: 1px solid $vd-line2; border-radius: 12px; padding: .4rem;
+    }
+    .o_vd_pos_opt {
+        display: flex; align-items: center; gap: .55rem; padding: .45rem .55rem;
+        border-radius: 9px; cursor: pointer; margin: 0; transition: background .12s ease;
+        &:hover { background: rgba($vd-gold2, .12); }
+        input { width: 17px; height: 17px; cursor: pointer; accent-color: $vd-gold2-d; flex: 0 0 17px; }
+        .o_vd_pos_num {
+            flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(150deg, #8a7bff, $vd-indigo 75%); color: #fff;
+            font-size: .72rem; font-weight: 800;
+        }
+        .o_vd_pos_lbl { font-size: .86rem; color: $vd-ink2; font-weight: 600; }
+    }
+    .o_vd_pos_done { background: rgba(46, 155, 84, .07); }
+    .o_vd_pos_empty { color: #a7a395; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }
+}
+
+// ============ DIALOG LEN LICH HOC BAT BUOC ============
+.o_vd_sched {
+    display: flex; flex-direction: column; padding: .2rem .25rem;
+    .o_vd_dlg_label { font-weight: 700; font-size: .82rem; color: $vd-ink2; margin-bottom: .35rem; display: block; }
+    .o_vd_dlg_req { color: #d23; }
+    .mt-3 { margin-top: .8rem; }
+    .o_vd_dlg_input {
+        width: 100%; border: 1px solid $vd-line2; border-radius: 10px;
+        padding: .5rem .75rem; font-size: .9rem; color: $vd-ink2; background: #fff;
+        &:focus { outline: none; border-color: $vd-gold2-d; box-shadow: 0 0 0 3px rgba($vd-gold2, .25); }
+    }
+    .o_vd_sched_course { font-size: 1rem; color: $vd-indigo; margin-bottom: .4rem; }
+    .o_vd_sched_hint {
+        background: #f6f5ff; border: 1px solid #ddd7f5; border-radius: 10px;
+        padding: .55rem .75rem; font-size: .78rem; color: #4a4470; margin-bottom: .9rem;
+    }
+    .o_vd_sched_loading { color: #9a9685; font-size: .85rem; font-style: italic; padding: .8rem; }
+    .o_vd_sched_grid { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+    .o_vd_sched_col { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; }
+    .o_vd_sched_two { display: flex; gap: .7rem; > div { flex: 1 1 0; } }
+    .o_vd_sched_count { color: #8a6a12; font-weight: 800; font-size: .78rem; }
+    .o_vd_sched_picktools {
+        display: flex; gap: .35rem; align-items: center; margin-bottom: .4rem;
+        .o_vd_assign_search { flex: 1 1 auto; }
+    }
+    .o_vd_sched_mini {
+        flex: 0 0 auto; border: 1px solid $vd-line2; background: #fff; color: $vd-ink2;
+        font-size: .72rem; font-weight: 700; padding: .35rem .5rem; border-radius: 8px; cursor: pointer;
+        &:hover { background: rgba($vd-gold2, .18); border-color: $vd-gold2-d; }
+    }
+    .o_vd_sched_list {
+        max-height: 42vh; overflow-y: auto; display: flex; flex-direction: column; gap: .15rem;
+        border: 1px solid $vd-line2; border-radius: 12px; padding: .35rem;
+    }
+    .o_vd_sched_row {
+        display: flex; align-items: center; gap: .55rem; padding: .35rem .5rem; margin: 0;
+        border-radius: 9px; cursor: pointer; transition: background .12s ease;
+        &:hover { background: rgba($vd-gold2, .12); }
+        input { width: 17px; height: 17px; cursor: pointer; accent-color: $vd-gold2-d; flex: 0 0 17px; }
+        img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: 0 0 28px; border: 2px solid rgba($vd-gold2, .55); }
+        .o_vd_assign_main { display: flex; flex-direction: column; min-width: 0; }
+        .o_vd_assign_name { font-weight: 700; color: $vd-ink2; font-size: .85rem; }
+        .o_vd_assign_sub { font-size: .68rem; color: #9a9685; font-weight: 600; }
         .o_vd_assign_team { color: $vd-indigo; font-weight: 800; }
     }
     .o_vd_assign_empty { color: #a7a395; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }

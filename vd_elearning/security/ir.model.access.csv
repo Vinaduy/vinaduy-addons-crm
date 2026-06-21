@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_vd_learning_path_user,vd.learning.path.user,model_vd_learning_path,base.group_user,1,0,0,0
 access_vd_learning_path_officer,vd.learning.path.officer,model_vd_learning_path,website_slides.group_website_slides_officer,1,1,1,1
+access_vd_training_session_user,vd.training.session.user,model_vd_training_session,base.group_user,1,0,0,0
+access_vd_training_session_officer,vd.training.session.officer,model_vd_training_session,website_slides.group_website_slides_officer,1,1,1,1

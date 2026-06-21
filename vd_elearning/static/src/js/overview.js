@@ -190,14 +190,31 @@ export class VdAssignDialog extends Component {
         close: Function,
         title: String,
         candidates: Array,
+        paths: { type: Array, optional: true },     // tat ca lo trinh cua khu (cho popup vi tri hoc)
+        defaultPathId: { type: Number, optional: true },
         onConfirm: Function,
+        onChanged: { type: Function, optional: true }, // bao cho cha reload sau khi gan vi tri
     };
     setup() {
+        this.dialog = useService("dialog");
         const sel = {};
         for (const c of this.props.candidates) {
             sel[c.id] = !!c.assigned;
         }
         this.state = useState({ search: "", sel });
+    }
+    // Mo popup "Vi tri hoc" cho 1 NV: gan vao khoa hoc / lo trinh cu the.
+    openPosition(c) {
+        this.dialog.add(VdMemberPositionDialog, {
+            title: "Vị trí học - " + c.name,
+            userId: c.id,
+            paths: this.props.paths || [],
+            defaultPathId: this.props.defaultPathId || ((this.props.paths || [])[0] || {}).id || false,
+            onSaved: async () => {
+                this.state.sel[c.id] = true;   // gan vi tri => coi nhu da chon
+                if (this.props.onChanged) await this.props.onChanged();
+            },
+        });
     }
     get filtered() {
         const q = this.state.search.trim().toLowerCase();
@@ -221,6 +238,200 @@ export class VdAssignDialog extends Component {
             .filter((c) => this.state.sel[c.id])
             .map((c) => c.id);
         this.props.onConfirm(ids);
+        this.props.close();
+    }
+}
+
+// ---- Popup "Vi tri hoc": gan 1 NV vao khoa hoc / lo trinh cu the ----
+// Danh cho NV cu da hoc nhieu khoa: chon khoa DANG hoc -> moi khoa truoc = hoan thanh.
+export class VdMemberPositionDialog extends Component {
+    static template = "vd_elearning.MemberPositionDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        title: String,
+        userId: Number,
+        paths: Array,
+        defaultPathId: [Number, Boolean],
+        onSaved: Function,
+    };
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            pathId: this.props.defaultPathId || (this.props.paths[0] || {}).id || false,
+            choice: "none",   // 'none' | 'all' | <courseId>
+            loading: true,
+            saving: false,
+        });
+        onWillStart(async () => {
+            await this._loadPosition();
+        });
+    }
+    get curPath() {
+        return this.props.paths.find((p) => p.id === this.state.pathId) || null;
+    }
+    get curCourses() {
+        return (this.curPath && this.curPath.courses) || [];
+    }
+    setChoice(v) {
+        this.state.choice = v;
+    }
+    async onPathChange(ev) {
+        this.state.pathId = parseInt(ev.target.value, 10) || false;
+        await this._loadPosition();
+    }
+    // Lay vi tri hien tai cua NV trong lo trinh dang chon de preselect.
+    async _loadPosition() {
+        this.state.loading = true;
+        try {
+            const pid = parseInt(this.state.pathId, 10);
+            const res = await this.orm.call("slide.channel", "vd_member_position", [
+                pid, this.props.userId,
+            ]);
+            // res: {current_id, completed_count, total}
+            if (res && res.total && res.completed_count >= res.total) {
+                this.state.choice = "all";
+            } else if (res && res.current_id) {
+                this.state.choice = res.current_id;
+            } else {
+                this.state.choice = "none";
+            }
+        } finally {
+            this.state.loading = false;
+        }
+    }
+    async save() {
+        if (this.state.saving) return;
+        const pid = parseInt(this.state.pathId, 10);
+        if (!pid) {
+            this.notification.add("Chưa chọn lộ trình.", { type: "warning" });
+            return;
+        }
+        let currentId = false, completedAll = false;
+        if (this.state.choice === "all") {
+            completedAll = true;
+        } else if (this.state.choice !== "none") {
+            currentId = parseInt(this.state.choice, 10) || false;
+        }
+        this.state.saving = true;
+        try {
+            await this.orm.call("slide.channel", "vd_set_member_position", [
+                pid, this.props.userId, currentId, completedAll,
+            ]);
+            await this.props.onSaved();
+            this.notification.add("Đã lưu vị trí học.", { type: "success" });
+            this.props.close();
+        } catch (e) {
+            this.state.saving = false;
+            throw e;
+        }
+    }
+}
+
+// ---- Popup LEN LICH HOC BAT BUOC: chon NV + gio vao hoc cho 1 khoa ----
+// NV se thay banner + dem nguoc tren dashboard CRM, den gio bam "VAO HOC".
+export class VdScheduleDialog extends Component {
+    static template = "vd_elearning.ScheduleDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        channelId: Number,
+        courseName: String,
+    };
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            loading: true, saving: false,
+            id: false, message: "", startLocal: "", lead: 15, open: 0,
+            search: "", sel: {}, candidates: [],
+        });
+        onWillStart(async () => {
+            const d = await this.orm.call("vd.training.session", "vd_schedule_load", [
+                this.props.channelId,
+            ]);
+            this.state.candidates = d.candidates || [];
+            this.state.id = d.id || false;
+            this.state.message = d.message || "";
+            this.state.lead = d.lead_minutes == null ? 15 : d.lead_minutes;
+            this.state.open = d.open_minutes || 0;
+            this.state.startLocal = d.start_ts ? this._toLocalInput(d.start_ts) : "";
+            const sel = {};
+            for (const uid of (d.user_ids || [])) sel[uid] = true;
+            this.state.sel = sel;
+            this.state.loading = false;
+        });
+    }
+    // epoch ms -> chuoi cho <input type=datetime-local> (gio dia phuong).
+    _toLocalInput(ms) {
+        const d = new Date(ms);
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+    get filtered() {
+        const q = this.state.search.trim().toLowerCase();
+        if (!q) return this.state.candidates;
+        return this.state.candidates.filter(
+            (c) => (c.name || "").toLowerCase().includes(q) ||
+                   (c.team || "").toLowerCase().includes(q)
+        );
+    }
+    get selCount() {
+        return Object.values(this.state.sel).filter(Boolean).length;
+    }
+    toggle(id) {
+        this.state.sel[id] = !this.state.sel[id];
+    }
+    selectAll() {
+        const sel = {};
+        for (const c of this.state.candidates) sel[c.id] = true;
+        this.state.sel = sel;
+    }
+    clearAll() {
+        this.state.sel = {};
+    }
+    async save() {
+        if (this.state.saving) return;
+        if (!this.state.startLocal) {
+            this.notification.add("Chưa chọn giờ vào học.", { type: "warning" });
+            return;
+        }
+        const ids = this.state.candidates.filter((c) => this.state.sel[c.id]).map((c) => c.id);
+        if (!ids.length) {
+            this.notification.add("Chưa chọn nhân viên áp dụng.", { type: "warning" });
+            return;
+        }
+        const ts = new Date(this.state.startLocal).getTime();
+        this.state.saving = true;
+        try {
+            await this.orm.call("vd.training.session", "vd_schedule_save", [
+                this.props.channelId,
+                {
+                    id: this.state.id,
+                    message: this.state.message,
+                    start_ts: ts,
+                    lead_minutes: parseInt(this.state.lead, 10) || 0,
+                    open_minutes: parseInt(this.state.open, 10) || 0,
+                    user_ids: ids,
+                },
+            ]);
+            this.notification.add("Đã lưu lịch học bắt buộc.", { type: "success" });
+            this.props.close();
+        } catch (e) {
+            this.state.saving = false;
+            throw e;
+        }
+    }
+    async disable() {
+        if (!this.state.id) {
+            this.props.close();
+            return;
+        }
+        await this.orm.call("vd.training.session", "vd_schedule_disable", [
+            this.props.channelId,
+        ]);
+        this.notification.add("Đã tắt lịch học.", { type: "success" });
         this.props.close();
     }
 }
@@ -270,7 +481,7 @@ export class VdConfigDialog extends Component {
 // ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
 export class VdCourseDialog extends Component {
     static template = "vd_elearning.CourseDialog";
-    static components = { Dialog, VdRichEditor, VdConfigDialog };
+    static components = { Dialog, VdRichEditor, VdConfigDialog, VdScheduleDialog };
     static props = {
         close: Function,
         title: String,
@@ -507,6 +718,13 @@ export class VdCourseDialog extends Component {
             },
         });
     }
+    // ---- Len lich hoc bat buoc cho khoa nay (banner + dem nguoc tren dashboard CRM) ----
+    openSchedule() {
+        this.dialog.add(VdScheduleDialog, {
+            channelId: this.props.channelId,
+            courseName: this.state.courseName,
+        });
+    }
     // ---- Doi ten khoa hoc (nut but tren tieu de) ----
     async saveName() {
         const nm = (this.state.courseName || "").trim();
@@ -649,8 +867,18 @@ export class VdElearningOverview extends Component {
             loading: true,
         });
         this.dragData = null;
+        this.pathDragData = null;
         onWillStart(async () => {
             await this.reload();
+            // "VAO HOC" tu dashboard CRM: mo THANG khoa hoc duoc chi dinh (khong qua lo trinh).
+            const params = (this.props.action && this.props.action.params) || {};
+            if (params.vd_open_course_id) {
+                this.openCourse({
+                    id: params.vd_open_course_id,
+                    name: params.vd_open_course_name || "",
+                });
+                return;
+            }
             // Reload trang giua chung khi DANG THI -> tu mo lai bai thi, dem tiep.
             const sess = vdFindActiveExam();
             if (sess && sess.channelId) {
@@ -829,18 +1057,23 @@ export class VdElearningOverview extends Component {
         });
     }
 
-    async openAssign(path) {
+    async openAssign(path, zone) {
         const candidates = await this.orm.call(
             "slide.channel", "vd_path_candidates", [path.id]
         );
         this.dialog.add(VdAssignDialog, {
             title: "Gán nhân viên - " + path.name,
             candidates,
+            paths: (zone && zone.paths) || [path],   // cho popup "Vi tri hoc" chon lo trinh khac
+            defaultPathId: path.id,
             onConfirm: async (userIds) => {
                 await this.orm.call("slide.channel", "vd_set_path_members", [
                     path.id,
                     userIds,
                 ]);
+                await this.reload();
+            },
+            onChanged: async () => {
                 await this.reload();
             },
         });
@@ -940,6 +1173,42 @@ export class VdElearningOverview extends Component {
                 srcPath.courses.map((c) => c.id),
             ]);
         }
+    }
+
+    // ---------- KEO - THA LO TRINH (doi thu tu ca lo trinh, khoa hoc theo cung) ----------
+    onPathDragStart(ev, zoneKey, pathId) {
+        if (!this.state.isAdmin) return;
+        this.pathDragData = { zoneKey, pathId };
+        ev.dataTransfer.effectAllowed = "move";
+        ev.currentTarget.classList.add("o_vd_path_dragging");
+        ev.stopPropagation();
+    }
+    onPathDragEnd(ev) {
+        ev.currentTarget.classList.remove("o_vd_path_dragging");
+    }
+    onPathDragOver(ev) {
+        if (!this.state.isAdmin || !this.pathDragData) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = "move";
+    }
+    async onPathDrop(ev, zoneKey, targetPathId) {
+        if (!this.state.isAdmin || !this.pathDragData) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const d = this.pathDragData;
+        this.pathDragData = null;
+        if (d.zoneKey !== zoneKey || d.pathId === targetPathId) return;
+        const zone = this.state.zones.find((z) => z.key === zoneKey);
+        if (!zone) return;
+        const from = zone.paths.findIndex((p) => p.id === d.pathId);
+        const to = zone.paths.findIndex((p) => p.id === targetPathId);
+        if (from < 0 || to < 0) return;
+        const [moved] = zone.paths.splice(from, 1);
+        zone.paths.splice(to, 0, moved);
+        await this.orm.call("slide.channel", "vd_save_path_order", [
+            zoneKey,
+            zone.paths.map((p) => p.id),
+        ]);
     }
 }
 

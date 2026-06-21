@@ -169,6 +169,11 @@ export class VdCrmDashboard extends Component {
             // newPillsOverflow: đo bằng JS, chỉ hiện nút khi nội dung thực sự tràn.
             newTableExpanded: false,
             newPillsOverflow: false,
+            // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
+            // Mảng session áp dụng cho NV đang nhập (vd.training.session.vd_my_banner).
+            // trainingNow = mốc thời gian hiện tại (ms) cập nhật mỗi giây để đếm ngược.
+            trainingBanner: [],
+            trainingNow: 0,
         });
         // Ref vùng pill KHÁCH MỚI để đếm số dòng (quyết định hiện nút mở rộng).
         this.newPillsRef = useRef("newPillsWrap");
@@ -219,6 +224,17 @@ export class VdCrmDashboard extends Component {
             // tab ẩn (_refreshActiveCalls tự skip nếu document.hidden) → 20+ NV
             // mở tab nền không còn spam request.
             this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 8000);
+            // LỊCH HỌC BẮT BUỘC: nạp banner + ticker đếm ngược 1s. Cứ 60s nạp lại
+            // danh sách (lịch mới / đã hoàn thành rớt ra). Bỏ qua khi tab ẩn.
+            this.state.trainingNow = Date.now();
+            this._loadTrainingBanner();
+            this._trainingTick = setInterval(() => {
+                this.state.trainingNow = Date.now();
+                this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
+                if (this._trainingRefreshN % 60 === 0 && !document.hidden) {
+                    this._loadTrainingBanner();
+                }
+            }, 1000);
             // Nút "Quay lại" trên navbar (vd_back_button.js) sẽ gọi handler này
             // TRƯỚC khi history.back(). Khi manager đang xem 1 NV cụ thể → pop về
             // danh sách NV thay vì rời khỏi dashboard (user spec 2026-05-31 r2).
@@ -245,6 +261,10 @@ export class VdCrmDashboard extends Component {
             if (this._callPollInterval) {
                 clearInterval(this._callPollInterval);
                 this._callPollInterval = null;
+            }
+            if (this._trainingTick) {
+                clearInterval(this._trainingTick);
+                this._trainingTick = null;
             }
             // Đảm bảo scroll lock + body class được dọn nếu navigate đi
             document.body.classList.remove('o_vd_preview_active');
@@ -356,6 +376,48 @@ export class VdCrmDashboard extends Component {
             this.state.selectedStageId = null;
         }
         this.state.loading = false;
+    }
+
+    // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược) =====
+    async _loadTrainingBanner() {
+        try {
+            const list = await this.orm.call("vd.training.session", "vd_my_banner", []);
+            this.state.trainingBanner = list || [];
+        } catch (_e) {
+            // Module eLearning chưa cài / lỗi → không hiện banner, không chặn dashboard.
+            this.state.trainingBanner = [];
+        }
+    }
+    // 'upcoming' (chưa tới giờ đếm ngược) | 'countdown' (còn ≤ lead phút) | 'open' (đã tới giờ)
+    trainingState(s) {
+        const now = this.state.trainingNow || Date.now();
+        const start = s.start_ts || 0;
+        const leadMs = (s.lead_minutes || 15) * 60000;
+        if (now >= start) return "open";
+        if (now >= start - leadMs) return "countdown";
+        return "upcoming";
+    }
+    trainingCountdown(s) {
+        const now = this.state.trainingNow || Date.now();
+        let sec = Math.max(0, Math.round((s.start_ts - now) / 1000));
+        const h = Math.floor(sec / 3600); sec -= h * 3600;
+        const m = Math.floor(sec / 60); const ss = sec - m * 60;
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return h > 0 ? `${h}:${p(m)}:${p(ss)}` : `${m}:${p(ss)}`;
+    }
+    trainingWhen(s) {
+        const d = new Date(s.start_ts);
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
+    }
+    // VÀO HỌC: mở thẳng khóa học được chỉ định (không qua lộ trình / module học online).
+    enterTraining(s) {
+        this.action.doAction({
+            type: "ir.actions.client",
+            tag: "vd_elearning_overview",
+            name: "Vào học",
+            params: { vd_open_course_id: s.course_id, vd_open_course_name: s.course_name },
+        });
     }
 
     async onChangeUser(ev) {

@@ -1839,6 +1839,31 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- ===== LỊCH HỌC BẮT BUỘC: banner + đếm ngược + nút VÀO HỌC ===== -->
+                            <t t-foreach="state.trainingBanner" t-as="ts" t-key="ts.id">
+                                <div t-attf-class="o_vd_train_banner o_vd_train_{{trainingState(ts)}}">
+                                    <div class="o_vd_train_ico"><i class="fa fa-graduation-cap"/></div>
+                                    <div class="o_vd_train_text">
+                                        <div class="o_vd_train_main">
+                                            <t t-if="trainingState(ts) == 'open'">ĐẾN GIỜ HỌC: </t>
+                                            <t t-else="">CHUẨN BỊ HỌC: </t>
+                                            <b t-esc="ts.course_name"/>
+                                        </div>
+                                        <div class="o_vd_train_sub">
+                                            <t t-if="ts.message"><t t-esc="ts.message"/> · </t>
+                                            <t t-if="trainingState(ts) == 'open'">Đã đến giờ học — bấm VÀO HỌC để bắt đầu.</t>
+                                            <t t-else="">Lịch học lúc <b t-esc="trainingWhen(ts)"/>.</t>
+                                        </div>
+                                    </div>
+                                    <div t-if="trainingState(ts) == 'countdown'" class="o_vd_train_clock">
+                                        <i class="fa fa-clock-o me-1"/><t t-esc="trainingCountdown(ts)"/>
+                                    </div>
+                                    <button t-if="trainingState(ts) == 'open'" class="o_vd_train_go"
+                                            t-on-click="() => this.enterTraining(ts)">
+                                        <i class="fa fa-play me-1"/>VÀO HỌC
+                                    </button>
+                                </div>
+                            </t>
                             <!-- ===== BẢNG KHÁCH MỚI — CHIA ĐÔI: trái=Mới, phải=Hủy ===== -->
                             <t t-if="isNewStageSplit">
                                 <div class="o_vd_split_table">
