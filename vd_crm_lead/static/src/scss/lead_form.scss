@@ -12801,3 +12801,20 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
 .o_vd_intake_inline .o_vd_floor_function_grid { gap: 0.18rem !important; }
 .o_vd_intake_inline .o_vd_floor_function_row { margin: 0 !important; }
 .o_vd_intake_inline .o_vd_step_body { row-gap: 0.25rem !important; }
+
+/* ===== GHI CHÚ — chữ hướng dẫn (placeholder) to lên + căn giữa ===== */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row textarea,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row textarea,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row input {
+    font-size: 18px !important;
+    text-align: center !important;
+    line-height: 1.45 !important;
+    padding-top: 10px !important;
+    padding-bottom: 8px !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row textarea::placeholder,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_floor_function_notes_row input::placeholder {
+    font-size: 18px !important;
+    text-align: center !important;
+    color: #9aa0ad !important;
+}

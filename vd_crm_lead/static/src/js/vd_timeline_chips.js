@@ -14,24 +14,27 @@ import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
-const TIMELINE_OPTIONS = [
-    "Chưa xác định",
-    "Càng sớm càng tốt",
-    "Tháng 5/2026",
-    "Tháng 6/2026",
-    "Tháng 7/2026",
-    "Tháng 8/2026",
-    "Tháng 9/2026",
-    "Tháng 10/2026",
-    "Tháng 11/2026",
-    "Tháng 12/2026",
-    "Đầu 2027",
-    "Giữa 2027",
-    "Cuối 2027",
-];
-
 const MAX_PICK = 3;
 const SEP = ",";
+
+// Danh sách thời gian ĐỘNG theo ngày hiện tại (tự cuộn mỗi tháng):
+//  - Ẩn tháng hiện tại + tháng kế (tháng kế = "Càng sớm càng tốt").
+//  - Tháng cụ thể bắt đầu từ hiện tại + 2, kéo dài 12 tháng.
+// VD tháng 6/2026 -> ẩn T1..T7/2026, hiện T8/2026 .. T7/2027.
+function buildTimelineOptions() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1; // 1..12
+    const out = ["Chưa xác định", "Càng sớm càng tốt"];
+    let mm = m + 2;
+    let yy = y;
+    for (let i = 0; i < 12; i++) {
+        while (mm > 12) { mm -= 12; yy += 1; }
+        out.push("Tháng " + mm + "/" + yy);
+        mm += 1;
+    }
+    return out;
+}
 
 export class VdTimelineChips extends Component {
     static template = "vd_crm_lead.VdTimelineChips";
@@ -50,19 +53,21 @@ export class VdTimelineChips extends Component {
     }
 
     get options() {
-        return TIMELINE_OPTIONS;
+        return buildTimelineOptions();
+    }
+
+    selectedArray() {
+        const raw = this.props.record.data[this.props.name] || "";
+        return raw.split(SEP).map((s) => s.trim()).filter((s) => s.length > 0);
     }
 
     get selectedSet() {
-        const raw = this.props.record.data[this.props.name] || "";
-        return new Set(
-            raw.split(SEP).map((s) => s.trim()).filter((s) => s.length > 0)
-        );
+        return new Set(this.selectedArray());
     }
 
     get selectedOrdered() {
-        const sel = this.selectedSet;
-        return TIMELINE_OPTIONS.filter((o) => sel.has(o));
+        // Giữ nguyên thứ tự đã lưu — kể cả nhãn cũ không còn trong danh sách động.
+        return this.selectedArray();
     }
 
     isSelected(label) {
@@ -96,32 +101,32 @@ export class VdTimelineChips extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(() => { this.state.open = false; }, 150);
+        this._closeTimer = setTimeout(async () => {
+            this.state.open = false;
+            try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("timeline"); } catch (_e) {}
+            try { await this.props.record.save(); } catch (_e) {}
+        }, 150);
     }
 
     onChipClick(label, ev) {
         ev.stopPropagation();
-        const sel = this.selectedSet;
-        if (sel.has(label)) {
-            sel.delete(label);
+        let arr = this.selectedArray();
+        if (arr.includes(label)) {
+            arr = arr.filter((x) => x !== label);
         } else {
-            if (sel.size >= MAX_PICK) {
+            if (arr.length >= MAX_PICK) {
                 return;
             }
-            sel.add(label);
+            arr.push(label);
         }
-        const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
-        this.props.record.update({ [this.props.name]: ordered.join(SEP) });
-        // SAVE DỒN (idle) — không reload từng phát.
+        this.props.record.update({ [this.props.name]: arr.join(SEP) });
         try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline"); } catch (_) {}
     }
 
     onRemoveSelected(label, ev) {
         ev.stopPropagation();
-        const sel = this.selectedSet;
-        sel.delete(label);
-        const ordered = TIMELINE_OPTIONS.filter((o) => sel.has(o));
-        this.props.record.update({ [this.props.name]: ordered.join(SEP) });
+        const arr = this.selectedArray().filter((x) => x !== label);
+        this.props.record.update({ [this.props.name]: arr.join(SEP) });
         try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline rm"); } catch (_) {}
     }
 }
