@@ -5906,9 +5906,20 @@
         }
         .o_vd_cancel_table {
             width: 100%;
+            /* table-layout fixed: cột CHIA THEO % bảng → KHÔNG bao giờ tràn ngang
+               (hết thanh cuộn trái/phải). User spec 2026-06-21. */
+            table-layout: fixed;
             border-collapse: collapse;
             font-size: 0.82rem;
             color: #1f2a44;
+
+            /* 6 cột (đã gộp Trạng thái + Hành động) — % cộng = 100, lấp đầy bảng */
+            .o_vd_ct_kh    { width: 15%; }
+            .o_vd_ct_nv    { width: 14%; }
+            .o_vd_ct_topic { width: 12%; }
+            .o_vd_ct_sum   { width: 25%; }
+            .o_vd_ct_rec   { width: 20%; }
+            .o_vd_ct_act   { width: 14%; }
 
             thead tr {
                 background: #fff5f5;
@@ -5944,11 +5955,14 @@
             td {
                 padding: 0.45rem 0.7rem;
                 vertical-align: middle;
-                white-space: nowrap;   /* ÉP mỗi KH gói gọn 1 dòng */
+                white-space: normal;       /* cho xuống dòng để KHÔNG tràn ngang */
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-break: break-word;
             }
             .o_vd_cancel_kh {
-                min-width: 180px;
-                white-space: nowrap;
+                min-width: 0;
+                white-space: normal;
                 /* Tên + SĐT trên CÙNG 1 dòng */
                 .o_vd_cancel_name { font-weight: 700; color: #1f2a44; display: inline; }
                 .o_vd_cancel_phone {
@@ -5959,7 +5973,7 @@
             .o_vd_cancel_nv {
                 color: #495057;
                 font-weight: 600;
-                white-space: nowrap;
+                white-space: normal;
             }
             .o_vd_cancel_topic_pill {
                 display: inline-block;
@@ -9121,6 +9135,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     z-index: 4000;
     display: flex;
     flex-direction: column;
+    max-width: unquote("min(1120px, calc(100vw - 40px))");  /* không vượt màn hình */
     max-height: 80vh;
     background: #fff;
     border: 1px solid #cbd5e1;
@@ -9138,7 +9153,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_cancel_pop_body {
     flex: 1 1 auto;
-    overflow: auto;          /* nhiều KH → cuộn dọc, popover không tràn màn hình */
+    overflow-x: hidden;      /* BỎ thanh cuộn ngang (table-layout fixed lo co cột) */
+    overflow-y: auto;        /* nhiều KH → chỉ cuộn DỌC */
 }
 /* Cột GHI ÂM gần nhất trong bảng KH hủy (player gọn, không kéo cao hàng) */
 .o_vd_cancel_rec { min-width: 230px; }

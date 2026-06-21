@@ -2102,7 +2102,7 @@ export class VdCrmDashboard extends Component {
     get cancelPopStyle() {
         const h = this.state.cancelHover;
         if (!h) return "display:none;";
-        return this._popAtRect(h.rect, 1080);
+        return this._popAtRect(h.rect, 1120);
     }
 
     // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed dính mép thẻ

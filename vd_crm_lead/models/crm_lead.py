@@ -1808,6 +1808,10 @@ class CrmLead(models.Model):
                 'vd_cancel_approved_by_id': self.env.user.id,
                 'vd_cancel_approved_date': fields.Datetime.now(),
                 'active': False,
+                # User spec 2026-06-21: GỠ NV khỏi KH khi duyệt hủy → KH vào thùng
+                # rác công ty KHÔNG còn thuộc NV nào (NV không thấy lại trong mọi
+                # bảng theo user_id; chỉ Admin/Giám đốc xem ở thùng rác công ty).
+                'user_id': False,
             })
             rec.message_post(
                 subtype_xmlid='mail.mt_note',
