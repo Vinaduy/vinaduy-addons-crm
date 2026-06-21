@@ -9210,6 +9210,18 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_ncr_pct_mid { color: #d97706; }
     .o_vd_ncr_pct_hi  { color: #dc2626; }
 }
+/* Trong popover thùng rác: báo cáo span đủ chiều ngang, sát header */
+.o_vd_cancel_pop .o_vd_ncr_table {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
 .o_vd_tc_loading, .o_vd_tc_empty {
     padding: 1.1rem;
     text-align: center;

@@ -2086,6 +2086,7 @@ export class VdCrmDashboard extends Component {
             user_id: nv.user_id,
             name: nv.full_name,
             leads: nv.cancel_leads || [],
+            report: nv.newcancel_report || null,
             rect: this._elRect(ev),
         };
     }

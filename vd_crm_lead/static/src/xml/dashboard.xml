@@ -260,6 +260,31 @@
                     🗑️ KH HỦY — CHỜ DUYỆT - <t t-esc="state.cancelHover.name"/>
                     (<t t-esc="(state.cancelHover.leads or []).length"/>)
                 </div>
+                <!-- 📊 BÁO CÁO KH MỚI vs HỦY của RIÊNG NV này (hôm nay/tuần/tháng) -->
+                <table t-if="state.cancelHover.report" class="o_vd_ncr_table">
+                    <thead>
+                        <tr>
+                            <th class="o_vd_ncr_th_lbl"><i class="fa fa-bar-chart me-1"/>Kỳ</th>
+                            <th>🆕 KH mới tạo</th>
+                            <th>🗑️ KH hủy</th>
+                            <th>% hủy / mới</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="ncr" t-value="state.cancelHover.report"/>
+                        <t t-foreach="[['Hôm nay','today'],['Tuần này','week'],['Tháng này','month']]" t-as="prow" t-key="prow[1]">
+                            <t t-set="r" t-value="ncr[prow[1]] or {}"/>
+                            <tr>
+                                <td class="o_vd_ncr_lbl"><t t-esc="prow[0]"/></td>
+                                <td class="o_vd_ncr_new"><t t-esc="r.created or 0"/></td>
+                                <td class="o_vd_ncr_cancel"><t t-esc="r.cancelled or 0"/></td>
+                                <td t-att-class="'o_vd_ncr_pct ' + ((r.pct or 0) >= 30 ? 'o_vd_ncr_pct_hi' : ((r.pct or 0) >= 15 ? 'o_vd_ncr_pct_mid' : 'o_vd_ncr_pct_ok'))">
+                                    <t t-esc="r.pct or 0"/>%
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
                 <div class="o_vd_cancel_pop_body o_vd_trash_table_body">
                     <t t-set="cancelLeads" t-value="state.cancelHover.leads or []"/>
                     <t t-call="vd_crm_lead.CancelTable"/>
@@ -3246,32 +3271,6 @@
     <!-- ===== BẢNG TEAM (admin = nguồn gốc; trưởng nhóm dùng chung) ===== -->
     <t t-name="vd_crm_lead.VdKhTeamList">
                                 <div class="o_vd_kh_team_list">
-                                    <!-- 📊 BÁO CÁO KH MỚI vs HỦY — hôm nay / tuần này / tháng này -->
-                                    <table t-if="state.analytics and state.analytics.newcancel_report"
-                                           class="o_vd_ncr_table">
-                                        <thead>
-                                            <tr>
-                                                <th class="o_vd_ncr_th_lbl"><i class="fa fa-bar-chart me-1"/>Kỳ</th>
-                                                <th>🆕 KH mới tạo</th>
-                                                <th>🗑️ KH hủy</th>
-                                                <th>% hủy / mới</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <t t-set="ncr" t-value="state.analytics.newcancel_report"/>
-                                            <t t-foreach="[['Hôm nay','today'],['Tuần này','week'],['Tháng này','month']]" t-as="prow" t-key="prow[1]">
-                                                <t t-set="r" t-value="ncr[prow[1]] or {}"/>
-                                                <tr>
-                                                    <td class="o_vd_ncr_lbl"><t t-esc="prow[0]"/></td>
-                                                    <td class="o_vd_ncr_new"><t t-esc="r.created or 0"/></td>
-                                                    <td class="o_vd_ncr_cancel"><t t-esc="r.cancelled or 0"/></td>
-                                                    <td t-att-class="'o_vd_ncr_pct ' + ((r.pct or 0) >= 30 ? 'o_vd_ncr_pct_hi' : ((r.pct or 0) >= 15 ? 'o_vd_ncr_pct_mid' : 'o_vd_ncr_pct_ok'))">
-                                                        <t t-esc="r.pct or 0"/>%
-                                                    </td>
-                                                </tr>
-                                            </t>
-                                        </tbody>
-                                    </table>
                                     <div t-if="!khTeamGroups.length" class="o_vd_kh_empty">
                                         ✓ Không có dữ liệu KH trong khoảng lọc
                                     </div>

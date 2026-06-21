@@ -7961,13 +7961,16 @@ class CrmLead(models.Model):
         })
 
     @api.model
-    def _vd_newcancel_report(self, user_ids):
-        """Báo cáo KHÁCH MỚI vs HỦY theo 3 mốc: hôm nay / tuần này / tháng này.
-        Mỗi mốc: tạo mới bao nhiêu, hủy bao nhiêu, tỷ lệ % hủy. Phạm vi = user_ids
-        (trưởng nhóm: NV phòng mình; admin/GĐ: toàn bộ). Mốc tính theo MÚI GIỜ VN."""
+    def _vd_newcancel_report_by_user(self, user_ids):
+        """Báo cáo KHÁCH MỚI vs HỦY THEO TỪNG NV, 3 mốc: hôm nay / tuần / tháng.
+        Mỗi mốc: tạo mới bao nhiêu, hủy bao nhiêu, % hủy. Mốc tính theo MÚI GIỜ VN.
+        Trả {uid: {today:{created,cancelled,pct}, week:..., month:...}}.
+        Dùng read_group → CHỈ 6 query cho toàn bộ NV (không lặp theo user)."""
+        def _empty():
+            return {k: {'created': 0, 'cancelled': 0, 'pct': 0.0}
+                    for k in ('today', 'week', 'month')}
         if not user_ids:
-            empty = {'created': 0, 'cancelled': 0, 'pct': 0.0}
-            return {'today': dict(empty), 'week': dict(empty), 'month': dict(empty)}
+            return {}
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td2
         tzname = self.env.context.get('tz') or self.env.user.tz or 'Asia/Ho_Chi_Minh'
@@ -7984,22 +7987,29 @@ class CrmLead(models.Model):
             'week': _utc_midnight(today - _td2(days=today.weekday())),
             'month': _utc_midnight(today.replace(day=1)),
         }
-        report = {}
+        result = {uid: _empty() for uid in user_ids}
         for key, start in starts.items():
-            created = self.search_count([
-                ('user_id', 'in', user_ids),
-                ('create_date', '>=', start),
-                ('create_date', '<=', now),
-            ])
-            cancelled = self.with_context(active_test=False).search_count([
-                ('vd_lost_user_id', 'in', user_ids),
-                ('stage_is_lost', '=', True),
-                ('vd_lost_date', '>=', start),
-                ('vd_lost_date', '<=', now),
-            ])
-            pct = round(cancelled * 100.0 / created, 1) if created else 0.0
-            report[key] = {'created': created, 'cancelled': cancelled, 'pct': pct}
-        return report
+            for g in self.read_group(
+                [('user_id', 'in', user_ids),
+                 ('create_date', '>=', start), ('create_date', '<=', now)],
+                ['user_id'], ['user_id'],
+            ):
+                if g.get('user_id'):
+                    result[g['user_id'][0]][key]['created'] = g['user_id_count']
+            for g in self.with_context(active_test=False).read_group(
+                [('vd_lost_user_id', 'in', user_ids),
+                 ('stage_is_lost', '=', True),
+                 ('vd_lost_date', '>=', start), ('vd_lost_date', '<=', now)],
+                ['vd_lost_user_id'], ['vd_lost_user_id'],
+            ):
+                if g.get('vd_lost_user_id'):
+                    result[g['vd_lost_user_id'][0]][key]['cancelled'] = g['vd_lost_user_id_count']
+        for uid in user_ids:
+            for key in starts:
+                c = result[uid][key]['created']
+                x = result[uid][key]['cancelled']
+                result[uid][key]['pct'] = round(x * 100.0 / c, 1) if c else 0.0
+        return result
 
     @api.model
     @api.model
@@ -8978,6 +8988,9 @@ class CrmLead(models.Model):
         # dùng chung sub-template bảng ở frontend. active_test=False vì lead lost
         # bị archive.
         _cancel_cat_sel = dict(self.env['crm.lead']._fields['vd_cancel_category'].selection)
+        # Báo cáo KH mới vs Hủy THEO TỪNG NV (hôm nay/tuần/tháng) — hiện trong
+        # popover thùng rác của từng NV.
+        newcancel_by_user = self._vd_newcancel_report_by_user(sales_user_ids)
         cancel_by_user = defaultdict(list)
         if sales_user_ids:
             cancel_leads_all = self.with_context(active_test=False).search([
@@ -9259,6 +9272,10 @@ class CrmLead(models.Model):
                 # 🗑️ KH hủy chờ duyệt (thùng rác mỗi dòng NV)
                 'cancel_count': len(cancel_by_user.get(u.id, [])),
                 'cancel_leads': [_ld_cancel(l) for l in cancel_by_user.get(u.id, [])[:100]],
+                # 📊 Báo cáo KH mới vs Hủy của RIÊNG NV này (cho popover thùng rác)
+                'newcancel_report': newcancel_by_user.get(u.id) or {
+                    k: {'created': 0, 'cancelled': 0, 'pct': 0.0}
+                    for k in ('today', 'week', 'month')},
                 # 🔒 Trạng thái KHOÁ từng bảng (user spec 2026-06-05) — thẻ overview
                 # khoá theo + admin gỡ ngay. Dùng cờ đã lưu (cron/live set).
                 'lock_new': bool(u.vd_call_lock),
@@ -9312,8 +9329,6 @@ class CrmLead(models.Model):
             'kh_moi_by_team': kh_moi_by_team,
             'kh_van_de_by_team': kh_van_de_by_team,
             'kh_by_team': kh_by_team,
-            # Báo cáo KH mới vs Hủy (hôm nay / tuần / tháng) — bảng trên cùng
-            'newcancel_report': self._vd_newcancel_report(sales_user_ids),
             'urgent': urgent_section,
             'pipeline': pipeline_section,
             'nv_performance': nv_section,
