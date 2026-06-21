@@ -57,6 +57,36 @@ class VdTrainingSession(models.Model):
                  'team': u.vd_team_label or 'KHAC',
                  'role': role_label.get(u.vd_crm_role, '')} for u in us]
 
+    # ----- Lich su hoc cua 1 khoa: ai da thi / chua, diem bao nhieu -----
+    @api.model
+    def _vd_history(self, channel_id, users):
+        """Bang lich su: moi NV ap dung + ket qua thi gan nhat (neu co)."""
+        if not users:
+            return []
+        SCP = self.env['slide.channel.partner'].sudo()
+        recs = {r.partner_id.id: r for r in SCP.search(
+            [('channel_id', '=', channel_id),
+             ('partner_id', 'in', users.partner_id.ids)])}
+        role_label = {'collaborator': 'CTV', 'employee': 'Nhân viên',
+                      'team_leader': 'Trưởng nhóm'}
+        out = []
+        for u in users.sorted(lambda x: (x.vd_team_label or 'zz', x.name or '')):
+            r = recs.get(u.partner_id.id)
+            out.append({
+                'id': u.id,
+                'name': u.name or '',
+                'team': u.vd_team_label or 'KHAC',
+                'role': role_label.get(u.vd_crm_role, ''),
+                'done': bool(r and r.member_status == 'completed'),
+                'passed': bool(r and r.vd_exam_passed),
+                'percent': (r.vd_exam_percent if r else 0) or 0,
+                'attempts': (r.vd_exam_attempts if r else 0) or 0,
+                'done_ts': self._to_ts(r.vd_exam_done_at) if (r and r.vd_exam_done_at) else 0,
+            })
+        # Da xong len truoc, chua xong xuong duoi (de de soat ai chua thi).
+        out.sort(key=lambda h: (0 if h['done'] else 1, h['team'], h['name']))
+        return out
+
     # ----- Doc lich hien tai cua 1 khoa (cho popup cau hinh) -----
     @api.model
     def vd_schedule_load(self, channel_id):
@@ -71,10 +101,12 @@ class VdTrainingSession(models.Model):
                 'lead_minutes': sess.lead_minutes,
                 'open_minutes': sess.open_minutes,
                 'user_ids': sess.user_ids.ids,
+                'history': self._vd_history(channel_id, sess.user_ids),
             })
         else:
             data.update({'id': False, 'message': '', 'start_ts': 0,
-                         'lead_minutes': 15, 'open_minutes': 0, 'user_ids': []})
+                         'lead_minutes': 15, 'open_minutes': 0, 'user_ids': [],
+                         'history': []})
         return data
 
     @api.model

@@ -281,18 +281,25 @@ class SlideChannel(models.Model):
         percent = round(100.0 * correct_count / total) if total else 0
         pass_percent = ch.vd_pass_percent or 80
         passed = percent >= pass_percent
-        # Dat -> ghi nhan HOAN THANH cho NV dang nhap (de dashboard dung tien do +
-        # banner lich hoc bat buoc tu tat).
+        # Ghi nhan ket qua thi cho NV dang nhap moi lan nop (phuc vu bang LICH SU HOC)
+        # + danh dau HOAN THANH khi dat (dashboard dung tien do + banner tu tat).
+        pid = self.env.user.partner_id.id
+        SCP = self.env['slide.channel.partner'].sudo()
+        rec = SCP.search([('channel_id', '=', ch.id),
+                          ('partner_id', '=', pid)], limit=1)
+        vals = {
+            'vd_exam_percent': percent,
+            'vd_exam_passed': passed or (rec.vd_exam_passed if rec else False),
+            'vd_exam_attempts': (rec.vd_exam_attempts if rec else 0) + 1,
+            'vd_exam_done_at': fields.Datetime.now(),
+        }
         if passed:
-            pid = self.env.user.partner_id.id
-            SCP = self.env['slide.channel.partner'].sudo()
-            rec = SCP.search([('channel_id', '=', ch.id),
-                              ('partner_id', '=', pid)], limit=1)
-            if rec:
-                rec.member_status = 'completed'
-            else:
-                SCP.create({'channel_id': ch.id, 'partner_id': pid,
-                            'member_status': 'completed'})
+            vals['member_status'] = 'completed'
+        if rec:
+            rec.write(vals)
+        else:
+            vals.update({'channel_id': ch.id, 'partner_id': pid})
+            SCP.create(vals)
         return {'total': total, 'score': correct_count, 'percent': percent,
                 'pass_percent': pass_percent, 'passed': passed,
                 'results': results}

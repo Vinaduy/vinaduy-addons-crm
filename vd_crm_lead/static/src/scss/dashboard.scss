@@ -9150,6 +9150,52 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     50%      { box-shadow: 0 5px 22px rgba(43, 154, 62, 0.45); }
 }
 
+/* ===== GATE HỌC BẮT BUỘC — phủ kín màn, chỉ để lại thông báo VÀO HỌC ===== */
+.o_vd_train_lock_overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    background: rgba(24, 20, 48, 0.72);
+    backdrop-filter: blur(3px);
+}
+.o_vd_train_lock_card {
+    width: 100%; max-width: 480px;
+    background: #fff; border-radius: 20px; padding: 1.6rem 1.5rem;
+    text-align: center;
+    border: 2px solid #5b4be6;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    animation: vd-train-open-pulse 1.8s ease-in-out infinite;
+
+    .o_vd_train_lock_ico {
+        width: 66px; height: 66px; margin: 0 auto 0.7rem; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(150deg, #8a7bff, #5b4be6);
+        color: #fff; font-size: 2rem;
+        box-shadow: 0 8px 20px rgba(91, 75, 230, 0.4);
+    }
+    .o_vd_train_lock_title {
+        font-size: 1.25rem; font-weight: 900; color: #3b2f8f; letter-spacing: 0.02em;
+    }
+    .o_vd_train_lock_course {
+        margin-top: 0.7rem; font-size: 1.05rem; color: #20243a; font-weight: 700;
+    }
+    .o_vd_train_lock_msg {
+        margin-top: 0.25rem; font-size: 0.88rem; color: #5a5294; font-style: italic;
+    }
+    .o_vd_train_lock_go {
+        margin-top: 0.9rem; border: 0; cursor: pointer; width: 100%;
+        font-size: 1.05rem; font-weight: 900; letter-spacing: 0.04em;
+        color: #fff; padding: 0.8rem 1rem; border-radius: 13px;
+        background: linear-gradient(135deg, #37b24d 0%, #2b9a3e 100%);
+        box-shadow: 0 6px 16px rgba(43, 154, 62, 0.45);
+        &:hover { filter: brightness(1.06); }
+    }
+    .o_vd_train_lock_note {
+        margin-top: 1rem; font-size: 0.8rem; color: #842029; line-height: 1.45;
+        background: #fff0f0; border: 1px solid #ffd0d0; border-radius: 10px; padding: 0.55rem 0.7rem;
+    }
+}
+
 /* 🗑️ Thùng rác công ty — nút trong sidebar trang "Tất cả NV" (admin) */
 .o_vd_admin_trash_btn {
     display: flex;

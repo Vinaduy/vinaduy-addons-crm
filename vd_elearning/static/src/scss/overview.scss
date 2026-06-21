@@ -522,6 +522,30 @@ $vd-line2:   #ece7da;
         .o_vd_assign_team { color: $vd-indigo; font-weight: 800; }
     }
     .o_vd_assign_empty { color: #a7a395; font-size: .82rem; font-style: italic; text-align: center; padding: 1rem; }
+
+    // ----- bang LICH SU HOC -----
+    .o_vd_histwrap { margin-top: 1rem; border-top: 1px dashed $vd-line2; padding-top: .7rem; }
+    .o_vd_hist_head {
+        font-weight: 800; font-size: .82rem; color: #8a6a12; margin-bottom: .45rem;
+        display: flex; align-items: center; gap: .5rem;
+        .o_vd_hist_count { margin-left: auto; font-weight: 700; color: #6b6452; font-size: .76rem; b { color: #1f7d41; } }
+    }
+    .o_vd_hist_tbl {
+        width: 100%; border-collapse: collapse; font-size: .78rem;
+        th { text-align: left; color: #9a9685; font-weight: 700; padding: .35rem .5rem; border-bottom: 1px solid $vd-line2; white-space: nowrap; }
+        td { padding: .38rem .5rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink2; }
+        .o_vd_assign_team { color: $vd-indigo; font-weight: 800; }
+        .o_vd_hist_nv { display: flex; align-items: center; gap: .45rem; font-weight: 700;
+            img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; } }
+        tr.o_vd_hist_pending td { color: #9a9685; }
+    }
+    .o_vd_hist_badge {
+        display: inline-flex; align-items: center; font-size: .7rem; font-weight: 800;
+        padding: .12rem .5rem; border-radius: 999px; white-space: nowrap;
+        &.o_vd_hist_b_done { background: rgba(46, 155, 84, .15); color: #1f7d41; }
+        &.o_vd_hist_b_fail { background: rgba(224, 49, 49, .12); color: #c92a2a; }
+        &.o_vd_hist_b_pending { background: #efece2; color: #8a8472; }
+    }
 }
 
 // ============ KHOA HOC (popup full man hinh): noi dung + bai thi ============

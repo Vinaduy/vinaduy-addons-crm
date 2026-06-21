@@ -27,6 +27,25 @@
                 </div>
             </div>
 
+            <!-- 🎓 GATE HỌC BẮT BUỘC: đến giờ học → khoá toàn bộ trang, chỉ để lại
+                 thông báo VÀO HỌC. Đậu bài thi (đạt điểm) thì banner tự mất → mở khoá. -->
+            <div t-if="trainingLockActive" class="o_vd_train_lock_overlay">
+                <div class="o_vd_train_lock_card">
+                    <div class="o_vd_train_lock_ico"><i class="fa fa-graduation-cap"/></div>
+                    <div class="o_vd_train_lock_title">ĐẾN GIỜ HỌC BẮT BUỘC</div>
+                    <t t-foreach="openTrainingSessions" t-as="ts" t-key="ts.id">
+                        <div class="o_vd_train_lock_course"><i class="fa fa-book me-1"/><b t-esc="ts.course_name"/></div>
+                        <div t-if="ts.message" class="o_vd_train_lock_msg" t-esc="ts.message"/>
+                        <button class="o_vd_train_lock_go" t-on-click="() => this.enterTraining(ts)">
+                            <i class="fa fa-play me-1"/>VÀO HỌC NGAY
+                        </button>
+                    </t>
+                    <div class="o_vd_train_lock_note">
+                        <i class="fa fa-lock me-1"/>Phải <b>hoàn thành bài thi (đạt điểm yêu cầu)</b> mới mở lại được danh sách khách hàng để gọi.
+                    </div>
+                </div>
+            </div>
+
             <!-- 🔔 BẢNG NHẮC NHỞ (fixed, render 1 lần ở gốc → không bị khung nào cắt).
                  Mở khi hover tên NV; tự định vị bằng reminderPopStyle. -->
             <div t-if="state.reminderHover" class="o_vd_kh_reminder_popover o_vd_rem_fixed"
@@ -1841,7 +1860,7 @@
                             </div>
                             <!-- ===== LỊCH HỌC BẮT BUỘC: banner + đếm ngược + nút VÀO HỌC ===== -->
                             <t t-foreach="state.trainingBanner" t-as="ts" t-key="ts.id">
-                                <div t-attf-class="o_vd_train_banner o_vd_train_{{trainingState(ts)}}">
+                                <div t-if="trainingState(ts) != 'open'" t-attf-class="o_vd_train_banner o_vd_train_{{trainingState(ts)}}">
                                     <div class="o_vd_train_ico"><i class="fa fa-graduation-cap"/></div>
                                     <div class="o_vd_train_text">
                                         <div class="o_vd_train_main">

@@ -345,13 +345,14 @@ export class VdScheduleDialog extends Component {
         this.state = useState({
             loading: true, saving: false,
             id: false, message: "", startLocal: "", lead: 15, open: 0,
-            search: "", sel: {}, candidates: [],
+            search: "", sel: {}, candidates: [], history: [],
         });
         onWillStart(async () => {
             const d = await this.orm.call("vd.training.session", "vd_schedule_load", [
                 this.props.channelId,
             ]);
             this.state.candidates = d.candidates || [];
+            this.state.history = d.history || [];
             this.state.id = d.id || false;
             this.state.message = d.message || "";
             this.state.lead = d.lead_minutes == null ? 15 : d.lead_minutes;
@@ -362,6 +363,15 @@ export class VdScheduleDialog extends Component {
             this.state.sel = sel;
             this.state.loading = false;
         });
+    }
+    get doneCount() {
+        return this.state.history.filter((h) => h.done).length;
+    }
+    histWhen(ts) {
+        if (!ts) return "-";
+        const d = new Date(ts);
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
     }
     // epoch ms -> chuoi cho <input type=datetime-local> (gio dia phuong).
     _toLocalInput(ms) {

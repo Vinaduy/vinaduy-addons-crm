@@ -388,6 +388,15 @@ export class VdCrmDashboard extends Component {
             this.state.trainingBanner = [];
         }
     }
+    // Các session ĐÃ ĐẾN GIỜ học (chưa hoàn thành) → dùng để KHOÁ dashboard.
+    get openTrainingSessions() {
+        return (this.state.trainingBanner || []).filter((s) => this.trainingState(s) === "open");
+    }
+    // Đến giờ học bắt buộc → khoá toàn bộ trang, chỉ để lại thông báo VÀO HỌC.
+    // Hoàn thành (đạt) thì vd_my_banner không trả session đó nữa → tự mở khoá.
+    get trainingLockActive() {
+        return this.openTrainingSessions.length > 0;
+    }
     // 'upcoming' (chưa tới giờ đếm ngược) | 'countdown' (còn ≤ lead phút) | 'open' (đã tới giờ)
     trainingState(s) {
         const now = this.state.trainingNow || Date.now();

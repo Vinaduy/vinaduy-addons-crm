@@ -162,6 +162,39 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===== LICH SU HOC: ai da thi / chua, diem ===== -->
+                    <div class="o_vd_histwrap">
+                        <div class="o_vd_hist_head">
+                            <i class="fa fa-history me-1"/>LỊCH SỬ HỌC
+                            <span class="o_vd_hist_count">Đã hoàn thành <b t-esc="doneCount"/>/<t t-esc="state.history.length"/></span>
+                        </div>
+                        <table class="o_vd_hist_tbl">
+                            <thead>
+                                <tr><th>Nhân viên</th><th>Phòng</th><th>Kết quả</th><th>Điểm</th><th>Số lần</th><th>Lần thi gần nhất</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.history" t-as="h" t-key="h.id">
+                                    <tr t-attf-class="{{h.done ? 'o_vd_hist_done' : 'o_vd_hist_pending'}}">
+                                        <td class="o_vd_hist_nv">
+                                            <img t-attf-src="/web/image/res.users/{{h.id}}/avatar_128"/>
+                                            <span t-esc="h.name"/>
+                                        </td>
+                                        <td><span class="o_vd_assign_team" t-esc="h.team"/></td>
+                                        <td>
+                                            <span t-if="h.done" class="o_vd_hist_badge o_vd_hist_b_done"><i class="fa fa-check me-1"/>Đã thi đạt</span>
+                                            <span t-elif="h.attempts" class="o_vd_hist_badge o_vd_hist_b_fail"><i class="fa fa-times me-1"/>Thi chưa đạt</span>
+                                            <span t-else="" class="o_vd_hist_badge o_vd_hist_b_pending"><i class="fa fa-clock-o me-1"/>Chưa thi</span>
+                                        </td>
+                                        <td><t t-if="h.attempts"><b t-esc="h.percent"/>%</t><t t-else="">-</t></td>
+                                        <td t-esc="h.attempts or '-'"/>
+                                        <td t-esc="histWhen(h.done_ts)"/>
+                                    </tr>
+                                </t>
+                                <tr t-if="!state.history.length"><td colspan="6" class="o_vd_assign_empty">Chưa có nhân viên áp dụng.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </t>
             </div>
             <t t-set-slot="footer">
