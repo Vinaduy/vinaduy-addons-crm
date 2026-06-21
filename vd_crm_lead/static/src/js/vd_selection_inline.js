@@ -23,11 +23,19 @@ export class VdSelectionInline extends Component {
     async pick(val) {
         const nv = val === this.value ? false : val;
         await this.props.record.update({ [this.props.name]: nv });
+        // LƯU NGAY (không debounce) để KHÔNG mất dữ liệu khi bấm ra ngoài.
+        // Flush các ô số đang gõ TRƯỚC để reload-sau-save không nuốt số in-flight
+        // (xem memory: intake_save_wipes_inflight_number).
         try {
-            if (window.__vdScheduleIntakeSave) {
-                window.__vdScheduleIntakeSave(this.props.record, "sel-inline:" + this.props.name);
+            if (window.__vdFlushIntakeInputs) {
+                await window.__vdFlushIntakeInputs("sel-inline:" + this.props.name);
             }
         } catch (_e) { /* ignore */ }
+        try {
+            await this.props.record.save();
+        } catch (e) {
+            console.error("[vd_selinline] save failed:", e);
+        }
     }
 }
 
