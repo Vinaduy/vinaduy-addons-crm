@@ -56,10 +56,9 @@ class CrmLead(models.Model):
             ('mai_ton_3m', 'Mái tôn 3 mặt (20%)'),
         ],
         'vd_intake_dimensions': [
-            ('co_so_can_phep', 'CÓ SỔ - Phải làm cấp phép'),
-            ('co_so_khong_phep', 'CÓ SỔ - Không cần cấp phép'),
-            ('khong_so_khong_phep', 'KHÔNG SỔ - Không cần cấp phép'),
-            ('chua_xac_dinh', 'CHƯA XÁC ĐỊNH'),
+            ('co_so_khong_phep', 'CÓ SỔ - Có cấp phép'),
+            ('co_so_can_phep', 'Đang làm sổ đỏ'),
+            ('khong_so_khong_phep', 'Không có sổ đỏ'),
         ],
         'vd_intake_land_type': [
             ('dat_cung', 'ĐẤT CỨNG - Liền thổ'),
@@ -1444,6 +1443,26 @@ class CrmLead(models.Model):
             if self.vd_intake_has_tum and not self.vd_intake_floor_tum_m2:
                 self.vd_intake_floor_tum_m2 = area
 
+    def _vd_auto_foundation(self):
+        """Tự động chọn loại móng (user spec 2026-06-22):
+        - Đất yếu  -> Móng cọc (ưu tiên cao nhất).
+        - >= 2 tầng -> Móng băng.
+        - còn lại (1 tầng, đất cứng) -> Móng đơn.
+        NV vẫn đổi tay được sau đó; chỉ tự set khi số tầng / loại đất thay đổi."""
+        for rec in self:
+            sel = rec.vd_intake_floors_select or ''
+            floors = int(sel) if sel.isdigit() else (rec.vd_intake_floors_count or 1)
+            if rec.vd_intake_land_type == 'dat_yeu':
+                rec.vd_intake_foundation_type = 'coc'
+            elif floors >= 2:
+                rec.vd_intake_foundation_type = 'bang'
+            else:
+                rec.vd_intake_foundation_type = 'don'
+
+    @api.onchange('vd_intake_land_type', 'vd_intake_floors_select')
+    def _onchange_vd_auto_foundation(self):
+        self._vd_auto_foundation()
+
     def action_toggle_tum(self):
         """Toggle tầng tum on/off (chip button). Khi tắt → clear data."""
         self.ensure_one()
@@ -1469,6 +1488,7 @@ class CrmLead(models.Model):
             new_count = self.vd_intake_floors_count + 1
             self.vd_intake_floors_count = new_count
             self.vd_intake_floors_select = str(new_count)
+            self._vd_auto_foundation()   # >=2 tầng -> móng băng (trừ đất yếu -> cọc)
         return True
 
     def action_remove_floor(self):
@@ -1516,6 +1536,7 @@ class CrmLead(models.Model):
         vals['vd_intake_floors_count'] = new_count
         vals['vd_intake_floors_select'] = str(new_count)
         self.write(vals)
+        self._vd_auto_foundation()   # cập nhật móng theo số tầng mới
         return True
 
     def action_toggle_lung(self):

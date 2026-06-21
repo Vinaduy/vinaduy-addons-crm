@@ -97,7 +97,23 @@ export class VdFloorFunctionChips extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(() => { this.state.open = false; }, 150);
+        this._closeTimer = setTimeout(() => {
+            this.state.open = false;
+            // LƯU NGAY khi rời dropdown (đã chọn xong công năng tầng này) -> không
+            // mất dữ liệu khi làm việc với trường khác. Gom nhiều lần chọn vào 1 lần lưu.
+            this._persistNow();
+        }, 150);
+    }
+
+    async _persistNow() {
+        try {
+            if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("floor-func");
+        } catch (_e) { /* ignore */ }
+        try {
+            await this.props.record.save();
+        } catch (e) {
+            try { console.error("[floor-func] save failed:", e); } catch (_) {}
+        }
     }
 
     async onChipClick(tag, ev) {

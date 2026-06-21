@@ -12786,3 +12786,18 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     gap: 0.35rem;
     flex-wrap: wrap;
 }
+
+/* ===== DỒN TRƯỜNG LÊN — giảm chiều cao panel ~20% ===== */
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step {
+    padding-top: 0.16rem !important;
+    padding-bottom: 0.16rem !important;
+}
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    height: 2.7rem !important;
+    min-height: 2.7rem !important;
+    max-height: 2.7rem !important;
+}
+.o_vd_intake_inline .o_vd_floor_function_grid { gap: 0.18rem !important; }
+.o_vd_intake_inline .o_vd_floor_function_row { margin: 0 !important; }
+.o_vd_intake_inline .o_vd_step_body { row-gap: 0.25rem !important; }
