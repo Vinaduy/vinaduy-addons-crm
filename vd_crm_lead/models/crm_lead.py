@@ -7476,6 +7476,11 @@ class CrmLead(models.Model):
                 }
             for d in data:
                 d.update(rec_by_lead.get(d.get('id'), {'rec_url': '', 'rec_time': '', 'rec_dur': 0}))
+        # Bỏ tiền tố "[Chủ đề] • " trong tóm tắt (đã có pill Chủ đề) → gộp 1 cột.
+        import re as _re
+        for d in data:
+            d['cancel_reason_short'] = _re.sub(
+                r'^\[[^\]]*\]\s*[•·]\s*', '', d.get('cancel_reason_short') or '')
         return data
 
     @api.model
@@ -7962,13 +7967,10 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_newcancel_report_by_user(self, user_ids):
-        """Báo cáo KHÁCH MỚI vs HỦY THEO TỪNG NV, 3 mốc: hôm nay / tuần / tháng.
-        Mỗi mốc: tạo mới bao nhiêu, hủy bao nhiêu, % hủy. Mốc tính theo MÚI GIỜ VN.
-        Trả {uid: {today:{created,cancelled,pct}, week:..., month:...}}.
-        Dùng read_group → CHỈ 6 query cho toàn bộ NV (không lặp theo user)."""
-        def _empty():
-            return {k: {'created': 0, 'cancelled': 0, 'pct': 0.0}
-                    for k in ('today', 'week', 'month')}
+        """Báo cáo KHÁCH MỚI vs HỦY THEO TỪNG NV, 6 kỳ: hôm nay, hôm qua, 2 ngày
+        trước, 3 ngày trước, tuần này, tháng này. Mỗi kỳ: tạo mới, hủy, % hủy.
+        Tính theo MÚI GIỜ VN. Trả {uid: [{label,created,cancelled,pct}, ...]}.
+        read_group → 12 query cho TOÀN BỘ NV (không lặp theo user)."""
         if not user_ids:
             return {}
         import pytz
@@ -7982,33 +7984,44 @@ class CrmLead(models.Model):
             local = tz.localize(_dt.combine(d, _time.min))
             return local.astimezone(pytz.utc).replace(tzinfo=None)
 
-        starts = {
-            'today': _utc_midnight(today),
-            'week': _utc_midnight(today - _td2(days=today.weekday())),
-            'month': _utc_midnight(today.replace(day=1)),
-        }
-        result = {uid: _empty() for uid in user_ids}
-        for key, start in starts.items():
+        d0 = _utc_midnight(today)
+        d1 = _utc_midnight(today - _td2(days=1))
+        d2 = _utc_midnight(today - _td2(days=2))
+        d3 = _utc_midnight(today - _td2(days=3))
+        wk = _utc_midnight(today - _td2(days=today.weekday()))
+        mo = _utc_midnight(today.replace(day=1))
+        # (label, start, end) — kỳ NGÀY ĐƠN có end = đầu ngày kế; kỳ tích lũy end=now
+        periods = [
+            ('Hôm nay', d0, now),
+            ('Hôm qua', d1, d0),
+            ((today - _td2(days=2)).strftime('%d/%m'), d2, d1),
+            ((today - _td2(days=3)).strftime('%d/%m'), d3, d2),
+            ('Tuần này', wk, now),
+            ('Tháng này', mo, now),
+        ]
+        # init: mỗi user 1 list rỗng theo thứ tự periods
+        result = {uid: [{'label': p[0], 'created': 0, 'cancelled': 0, 'pct': 0.0}
+                        for p in periods] for uid in user_ids}
+        for idx, (_label, start, end) in enumerate(periods):
             for g in self.read_group(
                 [('user_id', 'in', user_ids),
-                 ('create_date', '>=', start), ('create_date', '<=', now)],
+                 ('create_date', '>=', start), ('create_date', '<', end)],
                 ['user_id'], ['user_id'],
             ):
                 if g.get('user_id'):
-                    result[g['user_id'][0]][key]['created'] = g['user_id_count']
+                    result[g['user_id'][0]][idx]['created'] = g['user_id_count']
             for g in self.with_context(active_test=False).read_group(
                 [('vd_lost_user_id', 'in', user_ids),
                  ('stage_is_lost', '=', True),
-                 ('vd_lost_date', '>=', start), ('vd_lost_date', '<=', now)],
+                 ('vd_lost_date', '>=', start), ('vd_lost_date', '<', end)],
                 ['vd_lost_user_id'], ['vd_lost_user_id'],
             ):
                 if g.get('vd_lost_user_id'):
-                    result[g['vd_lost_user_id'][0]][key]['cancelled'] = g['vd_lost_user_id_count']
+                    result[g['vd_lost_user_id'][0]][idx]['cancelled'] = g['vd_lost_user_id_count']
         for uid in user_ids:
-            for key in starts:
-                c = result[uid][key]['created']
-                x = result[uid][key]['cancelled']
-                result[uid][key]['pct'] = round(x * 100.0 / c, 1) if c else 0.0
+            for cell in result[uid]:
+                c, x = cell['created'], cell['cancelled']
+                cell['pct'] = round(x * 100.0 / c, 1) if c else 0.0
         return result
 
     @api.model
@@ -9025,6 +9038,9 @@ class CrmLead(models.Model):
         def _ld_cancel(l):
             # Khớp ĐÚNG các trường bảng "KH HỦY" màn NV (o_vd_cancel_table) dùng.
             _rec = rec_by_lead.get(l.id)
+            # Bỏ tiền tố "[Chủ đề] • " trong lý do (đã có pill Chủ đề riêng) →
+            # gộp 1 cột, không lặp lại "Nhầm số" 2 lần.
+            _reason = re.sub(r'^\[[^\]]*\]\s*[•·]\s*', '', (l.vd_lost_reason or '').strip())
             return {
                 'id': l.id,
                 'name': l.name or l.partner_name or 'KH',
@@ -9032,7 +9048,7 @@ class CrmLead(models.Model):
                 'user_name': _short_name(l.user_id.name) if l.user_id else '',
                 'cancel_state': l.vd_cancel_state or '',
                 'cancel_category_label': _cancel_cat_sel.get(l.vd_cancel_category, '') if l.vd_cancel_category else '',
-                'cancel_reason_short': (l.vd_lost_reason or '').strip()[:160],
+                'cancel_reason_short': _reason[:160],
                 # 🎙️ Ghi âm gần nhất (nghe ngay trong bảng)
                 'rec_url': _rec['url'] if _rec else '',
                 'rec_time': _rec['time'] if _rec else '',
@@ -9273,9 +9289,7 @@ class CrmLead(models.Model):
                 'cancel_count': len(cancel_by_user.get(u.id, [])),
                 'cancel_leads': [_ld_cancel(l) for l in cancel_by_user.get(u.id, [])[:100]],
                 # 📊 Báo cáo KH mới vs Hủy của RIÊNG NV này (cho popover thùng rác)
-                'newcancel_report': newcancel_by_user.get(u.id) or {
-                    k: {'created': 0, 'cancelled': 0, 'pct': 0.0}
-                    for k in ('today', 'week', 'month')},
+                'newcancel_report': newcancel_by_user.get(u.id) or [],
                 # 🔒 Trạng thái KHOÁ từng bảng (user spec 2026-06-05) — thẻ overview
                 # khoá theo + admin gỡ ngay. Dùng cờ đã lưu (cron/live set).
                 'lock_new': bool(u.vd_call_lock),

@@ -5913,14 +5913,12 @@
             font-size: 0.82rem;
             color: #1f2a44;
 
-            /* 6 cột (đã gộp Trạng thái + Hành động) — % cộng = 100, lấp đầy bảng.
-               NV phụ trách rộng hơn để tên KHÔNG bị cắt/xuống dòng. */
-            .o_vd_ct_kh    { width: 15%; }
-            .o_vd_ct_nv    { width: 17%; }
-            .o_vd_ct_topic { width: 11%; }
-            .o_vd_ct_sum   { width: 21%; }
-            .o_vd_ct_rec   { width: 20%; }
-            .o_vd_ct_act   { width: 16%; }
+            /* 5 cột (đã gộp Chủ đề + Lý do, và Trạng thái + Duyệt) — % = 100. */
+            .o_vd_ct_kh     { width: 16%; }
+            .o_vd_ct_nv     { width: 17%; }
+            .o_vd_ct_reason { width: 31%; }
+            .o_vd_ct_rec    { width: 20%; }
+            .o_vd_ct_act    { width: 16%; }
 
             thead tr {
                 background: #fff5f5;
@@ -5994,6 +5992,11 @@
                 color: #adb5bd;
                 font-style: italic;
                 font-size: 0.78rem;
+            }
+            /* Cột GỘP Chủ đề + Lý do — pill + nội dung trên 1 dòng, cắt "…" */
+            .o_vd_cancel_reason {
+                .o_vd_cancel_topic_pill { margin-right: 0.4rem; }
+                .o_vd_cancel_reason_txt { color: #495057; font-size: 0.78rem; }
             }
             .o_vd_cancel_summary {
                 color: #495057;
@@ -9174,49 +9177,53 @@ body.o_vd_preview_active .o_vd_preview_body_form {
    vùng cuộn của popover nên cuộn lên cùng danh sách (không cố định). */
 .o_vd_ncr_box {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     width: fit-content;
     max-width: calc(100% - 24px);
-    margin: 10px 12px;
-    padding: 7px 12px;
+    margin: 12px;
+    padding: 10px 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 .o_vd_ncr_box_lbl {
-    font-size: 0.74rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
     font-weight: 800;
     color: #334155;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    margin-right: 2px;
+    margin-right: 4px;
 }
 .o_vd_ncr_card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-    padding: 3px 12px;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 16px;
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    min-width: 92px;
+    border-radius: 9px;
+    min-width: 108px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .o_vd_ncr_card_period {
-    font-size: 0.66rem;
-    font-weight: 700;
-    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.2px;
 }
-.o_vd_ncr_card_nums { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+.o_vd_ncr_card_nums { font-size: 1.15rem; font-weight: 800; line-height: 1.15; }
 .o_vd_ncr_card_nums .o_vd_ncr_new { color: #1d4ed8; }
 .o_vd_ncr_card_nums .o_vd_ncr_cancel { color: #c92a2a; }
-.o_vd_ncr_card_nums .o_vd_ncr_sep { color: #cbd5e1; margin: 0 3px; }
-.o_vd_ncr_card_pct { font-size: 0.7rem; font-weight: 900; line-height: 1.1; }
+.o_vd_ncr_card_nums .o_vd_ncr_sep { color: #cbd5e1; margin: 0 4px; }
+.o_vd_ncr_card_pct { font-size: 0.74rem; font-weight: 900; line-height: 1.1; }
 .o_vd_ncr_pct_ok  { color: #16a34a; }
 .o_vd_ncr_pct_mid { color: #d97706; }
 .o_vd_ncr_pct_hi  { color: #dc2626; }

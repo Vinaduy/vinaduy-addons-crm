@@ -263,23 +263,19 @@
                 <div class="o_vd_cancel_pop_body o_vd_trash_table_body">
                     <!-- 📊 BÁO CÁO KH MỚI vs HỦY của RIÊNG NV — gọn, đóng khung,
                          NẰM TRONG vùng cuộn nên cuộn lên cùng danh sách. -->
-                    <div t-if="state.cancelHover.report" class="o_vd_ncr_box">
+                    <div t-if="state.cancelHover.report and state.cancelHover.report.length" class="o_vd_ncr_box">
                         <span class="o_vd_ncr_box_lbl"><i class="fa fa-bar-chart me-1"/>KH mới / hủy</span>
-                        <t t-set="ncr" t-value="state.cancelHover.report"/>
-                        <t t-foreach="[['Hôm nay','today'],['Tuần này','week'],['Tháng này','month']]" t-as="prow" t-key="prow[1]">
-                            <t t-set="r" t-value="ncr[prow[1]] or {}"/>
-                            <div class="o_vd_ncr_card">
-                                <div class="o_vd_ncr_card_period"><t t-esc="prow[0]"/></div>
-                                <div class="o_vd_ncr_card_nums">
-                                    <span class="o_vd_ncr_new"><t t-esc="r.created or 0"/></span>
-                                    <span class="o_vd_ncr_sep">/</span>
-                                    <span class="o_vd_ncr_cancel"><t t-esc="r.cancelled or 0"/></span>
-                                </div>
-                                <div t-att-class="'o_vd_ncr_card_pct ' + ((r.pct or 0) >= 30 ? 'o_vd_ncr_pct_hi' : ((r.pct or 0) >= 15 ? 'o_vd_ncr_pct_mid' : 'o_vd_ncr_pct_ok'))">
-                                    <t t-esc="r.pct or 0"/>% hủy
-                                </div>
+                        <div t-foreach="state.cancelHover.report" t-as="r" t-key="r_index" class="o_vd_ncr_card">
+                            <div class="o_vd_ncr_card_period"><t t-esc="r.label"/></div>
+                            <div class="o_vd_ncr_card_nums">
+                                <span class="o_vd_ncr_new"><t t-esc="r.created or 0"/></span>
+                                <span class="o_vd_ncr_sep">/</span>
+                                <span class="o_vd_ncr_cancel"><t t-esc="r.cancelled or 0"/></span>
                             </div>
-                        </t>
+                            <div t-att-class="'o_vd_ncr_card_pct ' + ((r.pct or 0) >= 30 ? 'o_vd_ncr_pct_hi' : ((r.pct or 0) >= 15 ? 'o_vd_ncr_pct_mid' : 'o_vd_ncr_pct_ok'))">
+                                <t t-esc="r.pct or 0"/>% hủy
+                            </div>
+                        </div>
                     </div>
                     <t t-set="cancelLeads" t-value="state.cancelHover.leads or []"/>
                     <t t-call="vd_crm_lead.CancelTable"/>
@@ -2938,8 +2934,7 @@
                 <tr>
                     <th class="o_vd_ct_kh">Khách hàng</th>
                     <th class="o_vd_ct_nv">NV phụ trách</th>
-                    <th class="o_vd_ct_topic">Chủ đề</th>
-                    <th class="o_vd_ct_sum">Tóm tắt</th>
+                    <th class="o_vd_ct_reason">Chủ đề / Lý do hủy</th>
                     <th class="o_vd_ct_rec">Ghi âm gần nhất</th>
                     <th class="o_vd_ct_act">Trạng thái / Duyệt</th>
                 </tr>
@@ -2954,17 +2949,14 @@
                              title="Bấm để COPY tên khách hàng"><t t-esc="ld.name"/></div>
                     </td>
                     <td class="o_vd_cancel_nv"><t t-esc="ld.user_name or '—'"/></td>
-                    <td class="o_vd_cancel_topic">
-                        <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill">
-                            <t t-esc="ld.cancel_category_label"/>
+                    <td class="o_vd_cancel_reason" t-att-title="ld.cancel_reason_short or ''">
+                        <!-- GỘP Chủ đề + Lý do: pill chủ đề + nội dung (đã bỏ trùng) -->
+                        <span t-if="ld.cancel_category_label" class="o_vd_cancel_topic_pill"><t t-esc="ld.cancel_category_label"/></span>
+                        <span t-else="" class="o_vd_cancel_topic_legacy">legacy</span>
+                        <span class="o_vd_cancel_reason_txt">
+                            <t t-if="ld.cancel_reason_short"><t t-esc="ld.cancel_reason_short"/></t>
+                            <t t-else=""><i class="text-muted">(không ghi chú)</i></t>
                         </span>
-                        <span t-else="" class="o_vd_cancel_topic_legacy">— (legacy)</span>
-                    </td>
-                    <td class="o_vd_cancel_summary" t-att-title="ld.cancel_reason_short or ''">
-                        <t t-if="ld.cancel_reason_short">
-                            <t t-esc="ld.cancel_reason_short"/>
-                        </t>
-                        <t t-else=""><i class="text-muted">(không có ghi chú)</i></t>
                     </td>
                     <td class="o_vd_cancel_rec" t-on-click.stop="() => {}">
                         <div t-if="ld.rec_url" class="o_vd_cancel_rec_wrap">
