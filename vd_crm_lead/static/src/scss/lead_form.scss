@@ -12679,6 +12679,12 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     background: linear-gradient(180deg, #faf8ff 0%, #f1ecff 100%) !important;
     box-shadow: 0 6px 18px rgba(91, 75, 230, 0.14) !important;
 }
+/* LỚP NGOÀI làm chữ bé: panel intake bị zoom 0.7 (responsive_overrides) còn bảng
+   tính nhẩm KHÔNG zoom -> chữ bên trái nhỏ hơn. Nâng zoom lên cho chữ to gần bằng
+   bảng tính nhẩm. (2 class > 1 class của rule cũ nên thắng.) */
+.o_vd_intake_popup_panel.o_vd_intake_inline {
+    zoom: 0.85 !important;
+}
 /* Header tím gradient */
 .o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
 .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
