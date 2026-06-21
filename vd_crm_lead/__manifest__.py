@@ -78,6 +78,7 @@
             'vd_crm_lead/static/src/js/call_history_hover.js',
             'vd_crm_lead/static/src/js/vd_tinhnham_calc.js',
             'vd_crm_lead/static/src/js/vd_selection_inline.js',
+            'vd_crm_lead/static/src/js/intake_safety_save.js',
             'vd_crm_lead/static/src/js/quick_add_tsv_paste.js',
             'vd_crm_lead/static/src/js/vd_copy_user_down.js',
             'vd_crm_lead/static/src/js/quick_add_hover_open.js',
