@@ -95,6 +95,17 @@
             <field name="vd_max_attempts">3</field>
         </record>
 
+        <!-- Khoa hoc: Xu ly khach CHUA hop tuoi xay nha (muon tuoi). Noi dung +
+             20 cau thi do _vd_seed_khong_tuoi seed. -->
+        <record id="course_khong_tuoi" model="slide.channel">
+            <field name="name">Xử lý khách chưa hợp tuổi xây nhà (mượn tuổi)</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">6</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
         <record id="course_tn1" model="slide.channel">
             <field name="name">TN1 - Quản lý đội nhóm</field>
@@ -117,6 +128,7 @@
     <!-- Seed noi dung + 20 cau hoi thi cho khoa "nhan dien KH tiem nang".
          Idempotent: bo qua neu khoa da co noi dung (giu nguyen sua tay cua admin). -->
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
+    <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
 
     <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
