@@ -9170,58 +9170,56 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_cancel_name { cursor: pointer; }
 .o_vd_cancel_name:hover { text-decoration: underline; color: #c92a2a; }
 
-/* 📊 BẢNG BÁO CÁO KH MỚI vs HỦY (trên cùng panel trưởng phòng / giám đốc) */
-.o_vd_ncr_table {
-    width: 100%;
-    max-width: 720px;
-    border-collapse: collapse;
-    margin: 0 0 0.7rem 0;
-    background: #fff;
-    border: 1px solid #e9ecef;
+/* 📊 BÁO CÁO KH MỚI vs HỦY — GỌN, đóng khung, 3 thẻ kỳ cạnh nhau. Nằm trong
+   vùng cuộn của popover nên cuộn lên cùng danh sách (không cố định). */
+.o_vd_ncr_box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 10px 12px;
+    padding: 7px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
-    overflow: hidden;
-    font-size: 0.85rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-
-    thead tr { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
-    th {
-        padding: 0.4rem 0.85rem;
-        text-align: center;
-        color: #fff;
-        font-size: 0.73rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-    }
-    th.o_vd_ncr_th_lbl { text-align: left; }
-    td {
-        padding: 0.42rem 0.85rem;
-        text-align: center;
-        border-top: 1px solid #f1f3f5;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-    .o_vd_ncr_lbl    { text-align: left; font-weight: 800; color: #334155; }
-    .o_vd_ncr_new    { color: #1d4ed8; font-size: 0.95rem; }
-    .o_vd_ncr_cancel { color: #c92a2a; font-size: 0.95rem; }
-    .o_vd_ncr_pct    { font-weight: 900; }
-    .o_vd_ncr_pct_ok  { color: #16a34a; }
-    .o_vd_ncr_pct_mid { color: #d97706; }
-    .o_vd_ncr_pct_hi  { color: #dc2626; }
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
-/* Trong popover thùng rác: báo cáo span đủ chiều ngang, sát header */
-.o_vd_cancel_pop .o_vd_ncr_table {
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    border-left: 0;
-    border-right: 0;
-    border-top: 0;
-    border-radius: 0;
-    box-shadow: none;
+.o_vd_ncr_box_lbl {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 2px;
 }
+.o_vd_ncr_card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 3px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-width: 92px;
+}
+.o_vd_ncr_card_period {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+.o_vd_ncr_card_nums { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+.o_vd_ncr_card_nums .o_vd_ncr_new { color: #1d4ed8; }
+.o_vd_ncr_card_nums .o_vd_ncr_cancel { color: #c92a2a; }
+.o_vd_ncr_card_nums .o_vd_ncr_sep { color: #cbd5e1; margin: 0 3px; }
+.o_vd_ncr_card_pct { font-size: 0.7rem; font-weight: 900; line-height: 1.1; }
+.o_vd_ncr_pct_ok  { color: #16a34a; }
+.o_vd_ncr_pct_mid { color: #d97706; }
+.o_vd_ncr_pct_hi  { color: #dc2626; }
 .o_vd_tc_loading, .o_vd_tc_empty {
     padding: 1.1rem;
     text-align: center;
