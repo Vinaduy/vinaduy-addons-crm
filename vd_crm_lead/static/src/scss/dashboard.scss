@@ -5913,13 +5913,14 @@
             font-size: 0.82rem;
             color: #1f2a44;
 
-            /* 6 cột (đã gộp Trạng thái + Hành động) — % cộng = 100, lấp đầy bảng */
+            /* 6 cột (đã gộp Trạng thái + Hành động) — % cộng = 100, lấp đầy bảng.
+               NV phụ trách rộng hơn để tên KHÔNG bị cắt/xuống dòng. */
             .o_vd_ct_kh    { width: 15%; }
-            .o_vd_ct_nv    { width: 14%; }
-            .o_vd_ct_topic { width: 12%; }
-            .o_vd_ct_sum   { width: 25%; }
+            .o_vd_ct_nv    { width: 17%; }
+            .o_vd_ct_topic { width: 11%; }
+            .o_vd_ct_sum   { width: 21%; }
             .o_vd_ct_rec   { width: 20%; }
-            .o_vd_ct_act   { width: 14%; }
+            .o_vd_ct_act   { width: 16%; }
 
             thead tr {
                 background: #fff5f5;
@@ -9138,7 +9139,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     z-index: 4000;
     display: flex;
     flex-direction: column;
-    max-width: unquote("min(1120px, calc(100vw - 40px))");  /* không vượt màn hình */
+    max-width: unquote("min(1280px, calc(100vw - 40px))");  /* không vượt màn hình */
     max-height: 80vh;
     background: #fff;
     border: 1px solid #cbd5e1;
@@ -9165,6 +9166,50 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_cancel_rec_meta { font-size: 0.7rem; color: #868e96; white-space: nowrap; }
 .o_vd_cancel_rec_audio { height: 30px; max-width: 190px; vertical-align: middle; }
 .o_vd_cancel_rec_none { color: #adb5bd; font-style: italic; font-size: 0.76rem; }
+/* Tên KH trong bảng hủy — bấm để COPY */
+.o_vd_cancel_name { cursor: pointer; }
+.o_vd_cancel_name:hover { text-decoration: underline; color: #c92a2a; }
+
+/* 📊 BẢNG BÁO CÁO KH MỚI vs HỦY (trên cùng panel trưởng phòng / giám đốc) */
+.o_vd_ncr_table {
+    width: 100%;
+    max-width: 720px;
+    border-collapse: collapse;
+    margin: 0 0 0.7rem 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+
+    thead tr { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+    th {
+        padding: 0.4rem 0.85rem;
+        text-align: center;
+        color: #fff;
+        font-size: 0.73rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    th.o_vd_ncr_th_lbl { text-align: left; }
+    td {
+        padding: 0.42rem 0.85rem;
+        text-align: center;
+        border-top: 1px solid #f1f3f5;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .o_vd_ncr_lbl    { text-align: left; font-weight: 800; color: #334155; }
+    .o_vd_ncr_new    { color: #1d4ed8; font-size: 0.95rem; }
+    .o_vd_ncr_cancel { color: #c92a2a; font-size: 0.95rem; }
+    .o_vd_ncr_pct    { font-weight: 900; }
+    .o_vd_ncr_pct_ok  { color: #16a34a; }
+    .o_vd_ncr_pct_mid { color: #d97706; }
+    .o_vd_ncr_pct_hi  { color: #dc2626; }
+}
 .o_vd_tc_loading, .o_vd_tc_empty {
     padding: 1.1rem;
     text-align: center;

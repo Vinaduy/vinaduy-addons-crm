@@ -7961,6 +7961,47 @@ class CrmLead(models.Model):
         })
 
     @api.model
+    def _vd_newcancel_report(self, user_ids):
+        """Báo cáo KHÁCH MỚI vs HỦY theo 3 mốc: hôm nay / tuần này / tháng này.
+        Mỗi mốc: tạo mới bao nhiêu, hủy bao nhiêu, tỷ lệ % hủy. Phạm vi = user_ids
+        (trưởng nhóm: NV phòng mình; admin/GĐ: toàn bộ). Mốc tính theo MÚI GIỜ VN."""
+        if not user_ids:
+            empty = {'created': 0, 'cancelled': 0, 'pct': 0.0}
+            return {'today': dict(empty), 'week': dict(empty), 'month': dict(empty)}
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _td2
+        tzname = self.env.context.get('tz') or self.env.user.tz or 'Asia/Ho_Chi_Minh'
+        tz = pytz.timezone(tzname)
+        today = fields.Date.context_today(self)
+        now = fields.Datetime.now()
+
+        def _utc_midnight(d):
+            local = tz.localize(_dt.combine(d, _time.min))
+            return local.astimezone(pytz.utc).replace(tzinfo=None)
+
+        starts = {
+            'today': _utc_midnight(today),
+            'week': _utc_midnight(today - _td2(days=today.weekday())),
+            'month': _utc_midnight(today.replace(day=1)),
+        }
+        report = {}
+        for key, start in starts.items():
+            created = self.search_count([
+                ('user_id', 'in', user_ids),
+                ('create_date', '>=', start),
+                ('create_date', '<=', now),
+            ])
+            cancelled = self.with_context(active_test=False).search_count([
+                ('vd_lost_user_id', 'in', user_ids),
+                ('stage_is_lost', '=', True),
+                ('vd_lost_date', '>=', start),
+                ('vd_lost_date', '<=', now),
+            ])
+            pct = round(cancelled * 100.0 / created, 1) if created else 0.0
+            report[key] = {'created': created, 'cancelled': cancelled, 'pct': pct}
+        return report
+
+    @api.model
     @api.model
     def _vd_dead_caller_numbers(self):
         """Set số tổng đài đang CHẾT (vd.stringee.hotline.vd_health='dead', không
@@ -9271,6 +9312,8 @@ class CrmLead(models.Model):
             'kh_moi_by_team': kh_moi_by_team,
             'kh_van_de_by_team': kh_van_de_by_team,
             'kh_by_team': kh_by_team,
+            # Báo cáo KH mới vs Hủy (hôm nay / tuần / tháng) — bảng trên cùng
+            'newcancel_report': self._vd_newcancel_report(sales_user_ids),
             'urgent': urgent_section,
             'pipeline': pipeline_section,
             'nv_performance': nv_section,

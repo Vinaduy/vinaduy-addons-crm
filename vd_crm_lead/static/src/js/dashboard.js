@@ -2102,7 +2102,7 @@ export class VdCrmDashboard extends Component {
     get cancelPopStyle() {
         const h = this.state.cancelHover;
         if (!h) return "display:none;";
-        return this._popAtRect(h.rect, 1120);
+        return this._popAtRect(h.rect, 1280);
     }
 
     // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed dính mép thẻ
@@ -2265,15 +2265,35 @@ export class VdCrmDashboard extends Component {
         try {
             await this.orm.call("crm.lead", "action_approve_cancel", [[leadId]]);
             this.notification.add("✓ Đã duyệt hủy KH.", { type: "success" });
-            // Đóng popover thùng rác (snapshot cũ) → reload sẽ dựng lại số mới.
-            this.state.cancelHover = null;
-            // Refresh full dashboard để reload tất cả buckets (bao gồm leadsLost).
-            await this.loadDashboard();
+            // User spec 2026-06-21: KHÔNG reload trang. Đổi TẠI CHỖ button -> chip
+            // "✓ Đã duyệt" (cancel_state='approved'). KH chỉ biến mất (vào thùng
+            // rác công ty) khi user F5/tải lại trang.
+            this._markCancelApproved(leadId);
         } catch (e) {
             console.error("[dashboard] approveCancel failed:", e);
             this.notification.add("Không duyệt được. " + (e.message || ""), {
                 type: "danger",
             });
+        }
+    }
+
+    /**
+     * Đánh dấu 1 KH đã duyệt hủy TẠI CHỖ (không reload) ở mọi nơi đang giữ ref:
+     * popover thùng rác (cancelHover), bảng KH hủy màn NV (leadsLostAll), và
+     * nv.cancel_leads trong bảng analytics → button đổi sang chip "✓ Đã duyệt".
+     */
+    _markCancelApproved(leadId) {
+        const mark = (arr) => {
+            if (!arr) return;
+            for (const l of arr) {
+                if (l && l.id === leadId) l.cancel_state = "approved";
+            }
+        };
+        if (this.state.cancelHover) mark(this.state.cancelHover.leads);
+        mark(this.state.leadsLostAll);
+        const groups = (this.state.analytics && this.state.analytics.kh_by_team) || [];
+        for (const g of groups) {
+            for (const nv of (g.nvs || [])) mark(nv.cancel_leads);
         }
     }
 
