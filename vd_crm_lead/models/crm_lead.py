@@ -18,6 +18,10 @@ from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 
+# NV tồn >= ngưỡng này KH "chờ duyệt hủy" → phần mềm CHẶN không cho hủy thêm,
+# ép trưởng phòng duyệt/từ chối bớt xuống DƯỚI ngưỡng (user spec 2026-06-21).
+_VD_PENDING_CANCEL_BLOCK = 20
+
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
@@ -4352,9 +4356,69 @@ class CrmLead(models.Model):
         return True
 
     # ============ PHASE A — WORKFLOW BUTTONS ============
+    @api.model
+    def _vd_pending_cancel_count(self, user_id):
+        """Số KH NV đang ĐỀ XUẤT HỦY mà CHƯA được duyệt (chờ duyệt) — khớp số
+        hiện ở thùng rác của NV đó."""
+        if not user_id:
+            return 0
+        return self.with_context(active_test=False).search_count([
+            ('user_id', '=', user_id),
+            ('stage_is_lost', '=', True),
+            ('vd_cancel_state', '!=', 'approved'),
+        ])
+
+    def _vd_check_cancel_block(self):
+        """Chặn NV hủy thêm khi đã tồn >= ngưỡng KH chờ duyệt hủy. Người DUYỆT
+        được (trưởng phòng/GĐ/admin) KHÔNG bị chặn (họ tự xử lý được)."""
+        user = self.env.user
+        if (user._is_superuser()
+                or user.has_group('vd_crm_lead.vd_crm_group_team_leader')):
+            return
+        pending = self.env['crm.lead']._vd_pending_cancel_count(user.id)
+        if pending >= _VD_PENDING_CANCEL_BLOCK:
+            raise UserError(_(
+                '🚫 TẠM KHÓA HỦY KHÁCH\n\n'
+                'Bạn đang tồn %d khách CHỜ DUYỆT HỦY (từ %d trở lên là bị khóa).\n'
+                'Phần mềm tạm khóa để tránh hủy dồn quá nhiều chưa xử lý.\n\n'
+                '➡ Nhờ TRƯỞNG PHÒNG vào duyệt hoặc từ chối bớt, đưa số khách '
+                'chờ duyệt xuống DƯỚI %d, rồi bạn mới hủy tiếp được.'
+            ) % (pending, _VD_PENDING_CANCEL_BLOCK, _VD_PENDING_CANCEL_BLOCK))
+
+    def action_reject_cancel(self):
+        """TỪ CHỐI đề xuất hủy → trả KH về 'Khách mới' cho NV chăm tiếp (KHÔNG
+        archive, GIỮ NV phụ trách). Trưởng phòng/Giám đốc/Admin được làm."""
+        can = (self.env.user._is_superuser()
+               or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'))
+        if not can:
+            raise UserError(_(
+                'Chỉ Trưởng phòng / Giám đốc / Admin được TỪ CHỐI hủy.'))
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False) \
+            or self.env['crm.stage'].search([('code', '=', 'new')], limit=1)
+        for rec in self:
+            if rec.vd_cancel_state == 'approved':
+                continue  # đã duyệt rồi → không từ chối nữa
+            rec.with_context(mail_notrack=True, tracking_disable=True,
+                             vd_skip_intake_lock=True).write({
+                'active': True,
+                'stage_id': new_stage.id if new_stage else rec.stage_id.id,
+                'vd_cancel_state': False,
+                'vd_cancel_category': False,
+                'vd_lost_reason': False,
+                'vd_lost_date': False,
+                'vd_lost_is_auto': False,
+            })
+            rec.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('↩️ <b>Từ chối hủy</b> bởi %s — KH trả về <b>Khách mới</b> '
+                       'để NV chăm tiếp.') % self.env.user.name,
+            )
+        return True
+
     def action_mark_no_demand(self):
         """KH KHÔNG có nhu cầu → mở wizard nhập lý do → set stage = lost."""
         self.ensure_one()
+        self._vd_check_cancel_block()
         return {
             'type': 'ir.actions.act_window',
             'name': _('Khách hàng không có nhu cầu'),

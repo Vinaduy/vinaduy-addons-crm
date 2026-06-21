@@ -2275,7 +2275,7 @@ export class VdCrmDashboard extends Component {
             // User spec 2026-06-21: KHÔNG reload trang. Đổi TẠI CHỖ button -> chip
             // "✓ Đã duyệt" (cancel_state='approved'). KH chỉ biến mất (vào thùng
             // rác công ty) khi user F5/tải lại trang.
-            this._markCancelApproved(leadId);
+            this._markCancelState(leadId, "approved");
         } catch (e) {
             console.error("[dashboard] approveCancel failed:", e);
             this.notification.add("Không duyệt được. " + (e.message || ""), {
@@ -2285,15 +2285,31 @@ export class VdCrmDashboard extends Component {
     }
 
     /**
+     * TỪ CHỐI hủy 1 KH → trả về pipeline. KHÔNG reload: đổi tại chỗ sang chip
+     * "↩ Đã trả về". KH biến mất khỏi danh sách khi F5.
+     */
+    async rejectCancel(ev, leadId) {
+        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
+        try {
+            await this.orm.call("crm.lead", "action_reject_cancel", [[leadId]]);
+            this.notification.add("↩️ Đã từ chối hủy — KH trả về Khách mới.", { type: "success" });
+            this._markCancelState(leadId, "rejected");
+        } catch (e) {
+            console.error("[dashboard] rejectCancel failed:", e);
+            this.notification.add("Không từ chối được. " + (e.message || ""), { type: "danger" });
+        }
+    }
+
+    /**
      * Đánh dấu 1 KH đã duyệt hủy TẠI CHỖ (không reload) ở mọi nơi đang giữ ref:
      * popover thùng rác (cancelHover), bảng KH hủy màn NV (leadsLostAll), và
      * nv.cancel_leads trong bảng analytics → button đổi sang chip "✓ Đã duyệt".
      */
-    _markCancelApproved(leadId) {
+    _markCancelState(leadId, newState) {
         const mark = (arr) => {
             if (!arr) return;
             for (const l of arr) {
-                if (l && l.id === leadId) l.cancel_state = "approved";
+                if (l && l.id === leadId) l.cancel_state = newState;
             }
         };
         if (this.state.cancelHover) mark(this.state.cancelHover.leads);

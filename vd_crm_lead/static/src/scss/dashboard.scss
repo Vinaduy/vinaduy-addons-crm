@@ -5913,12 +5913,13 @@
             font-size: 0.82rem;
             color: #1f2a44;
 
-            /* 5 cột (đã gộp Chủ đề + Lý do, và Trạng thái + Duyệt) — % = 100. */
-            .o_vd_ct_kh     { width: 16%; }
-            .o_vd_ct_nv     { width: 17%; }
-            .o_vd_ct_reason { width: 31%; }
+            /* 5 cột (đã gộp Chủ đề + Lý do, và Trạng thái + Duyệt) — % = 100.
+               Cột cuối rộng hơn để chứa 2 nút Duyệt | Từ chối. */
+            .o_vd_ct_kh     { width: 15%; }
+            .o_vd_ct_nv     { width: 16%; }
+            .o_vd_ct_reason { width: 28%; }
             .o_vd_ct_rec    { width: 20%; }
-            .o_vd_ct_act    { width: 16%; }
+            .o_vd_ct_act    { width: 21%; }
 
             thead tr {
                 background: #fff5f5;
@@ -6052,6 +6053,41 @@
                     background: linear-gradient(135deg, #37b24d 0%, #51cf66 100%);
                 }
                 &:active { transform: translateY(0); }
+            }
+            /* 2 nút Duyệt | Từ chối SÁT NHAU (user spec 2026-06-21) */
+            .o_vd_cancel_btns {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                flex-wrap: nowrap;
+            }
+            .o_vd_cancel_btns .o_vd_cancel_approve_btn,
+            .o_vd_cancel_reject_btn {
+                padding: 0.32rem 0.6rem;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 0.74rem;
+                white-space: nowrap;
+                border: none;
+                cursor: pointer;
+                transition: all 0.12s;
+                i.fa { margin-right: 0.18rem; }
+                &:hover { transform: translateY(-1px); }
+                &:active { transform: translateY(0); }
+            }
+            .o_vd_cancel_reject_btn {
+                background: linear-gradient(135deg, #e8590c 0%, #fa5252 100%);
+                color: #fff;
+                box-shadow: 0 2px 4px rgba(224, 49, 49, 0.25);
+                &:hover {
+                    box-shadow: 0 4px 8px rgba(224, 49, 49, 0.4);
+                    background: linear-gradient(135deg, #fa5252 0%, #ff6b6b 100%);
+                }
+            }
+            .o_vd_cancel_chip_reject {
+                background: #e7f5ff;
+                color: #1971c2;
+                border: 1px solid #a5d8ff;
             }
             .o_vd_cancel_action_done {
                 color: #adb5bd;

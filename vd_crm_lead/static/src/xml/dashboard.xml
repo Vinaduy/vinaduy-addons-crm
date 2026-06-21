@@ -2983,16 +2983,31 @@
                         <span t-else="" class="o_vd_cancel_rec_none">— Chưa có ghi âm</span>
                     </td>
                     <td class="o_vd_cancel_act2">
-                        <!-- GỘP Trạng thái + Hành động: chờ duyệt → nút Duyệt (nếu có
-                             quyền) hoặc chip khoá; đã duyệt → chip xanh. -->
-                        <button t-if="ld.cancel_state !== 'approved' and (state.is_manager or state.is_team_leader)"
-                                class="btn btn-sm o_vd_cancel_approve_btn"
-                                t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
-                                title="Duyệt đề xuất hủy này">
-                            <i class="fa fa-check"/> Duyệt hủy
-                        </button>
-                        <span t-elif="ld.cancel_state !== 'approved'" class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Trưởng phòng / Giám đốc / Admin được duyệt hủy">⏳ Chờ duyệt</span>
-                        <span t-else="" class="o_vd_cancel_chip o_vd_cancel_chip_done">✓ Đã duyệt</span>
+                        <!-- GỘP Trạng thái + Hành động. Chờ duyệt + có quyền → 2 nút
+                             Duyệt | Từ chối SÁT NHAU; đã duyệt/đã trả về → chip. -->
+                        <t t-if="ld.cancel_state === 'approved'">
+                            <span class="o_vd_cancel_chip o_vd_cancel_chip_done">✓ Đã duyệt</span>
+                        </t>
+                        <t t-elif="ld.cancel_state === 'rejected'">
+                            <span class="o_vd_cancel_chip o_vd_cancel_chip_reject">↩ Đã trả về</span>
+                        </t>
+                        <t t-elif="state.is_manager or state.is_team_leader">
+                            <div class="o_vd_cancel_btns">
+                                <button class="btn btn-sm o_vd_cancel_approve_btn"
+                                        t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
+                                        title="Duyệt đề xuất hủy này">
+                                    <i class="fa fa-check"/> Duyệt
+                                </button>
+                                <button class="btn btn-sm o_vd_cancel_reject_btn"
+                                        t-on-click.stop.prevent="(ev) => this.rejectCancel(ev, ld.id)"
+                                        title="Từ chối hủy — trả KH về Khách mới cho NV chăm tiếp">
+                                    <i class="fa fa-times"/> Từ chối
+                                </button>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="o_vd_cancel_chip o_vd_cancel_chip_pending" title="Chỉ Trưởng phòng / Giám đốc / Admin được duyệt/từ chối hủy">⏳ Chờ duyệt</span>
+                        </t>
                     </td>
                 </tr>
             </tbody>

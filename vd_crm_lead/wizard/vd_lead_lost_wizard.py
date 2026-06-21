@@ -169,6 +169,9 @@ class VdLeadLostWizard(models.TransientModel):
     def action_confirm_lost(self):
         """Set stage lead = lost + lưu lý do gộp."""
         self.ensure_one()
+        # Chặn nếu NV đã tồn >= ngưỡng KH chờ duyệt hủy (an toàn 2 lớp — đã chặn
+        # ở nút mở wizard, chặn lại đây phòng trường hợp mở sẵn từ trước).
+        self.lead_id._vd_check_cancel_block()
         self._validate()
 
         lost_stage = self.env.ref('vd_crm_lead.stage_lost', raise_if_not_found=False)
