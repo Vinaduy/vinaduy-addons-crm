@@ -2508,6 +2508,21 @@
                                                 </div>
                                             </div>
                                             <div class="o_vd_trash_popover_body o_vd_trash_table_body">
+                                                <!-- 📊 ĐỒNG BỘ bảng thống kê KH mới/hủy (6 kỳ) như popover trưởng phòng -->
+                                                <div t-if="state.cancelReport and state.cancelReport.length" class="o_vd_ncr_box">
+                                                    <span class="o_vd_ncr_box_lbl"><i class="fa fa-bar-chart me-1"/>KH mới / hủy</span>
+                                                    <div t-foreach="state.cancelReport" t-as="r" t-key="r_index" class="o_vd_ncr_card">
+                                                        <div class="o_vd_ncr_card_period"><t t-esc="r.label"/></div>
+                                                        <div class="o_vd_ncr_card_nums">
+                                                            <span class="o_vd_ncr_new"><t t-esc="r.created or 0"/></span>
+                                                            <span class="o_vd_ncr_sep">/</span>
+                                                            <span class="o_vd_ncr_cancel"><t t-esc="r.cancelled or 0"/></span>
+                                                        </div>
+                                                        <div t-att-class="'o_vd_ncr_card_pct ' + ((r.pct or 0) >= 30 ? 'o_vd_ncr_pct_hi' : ((r.pct or 0) >= 15 ? 'o_vd_ncr_pct_mid' : 'o_vd_ncr_pct_ok'))">
+                                                            <t t-esc="r.pct or 0"/>% hủy
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 <!-- DÙNG CHUNG bảng KH hủy với thùng rác dòng NV (trưởng phòng/GĐ) -->
                                                 <t t-set="cancelLeads" t-value="leadsLost"/>
                                                 <t t-call="vd_crm_lead.CancelTable"/>

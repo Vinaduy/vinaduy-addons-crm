@@ -7484,6 +7484,39 @@ class CrmLead(models.Model):
         return data
 
     @api.model
+    def dashboard_cancel_report(self, user_id=None):
+        """Báo cáo KH mới vs Hủy cho PHẠM VI hiện tại (NV: chính mình; trưởng nhóm:
+        phòng mình; manager: NV được chọn / toàn bộ). Trả LIST 6 kỳ — DÙNG CHUNG
+        bảng thống kê với popover thùng rác màn trưởng phòng (đồng bộ)."""
+        scope_user, _label, _du, _cu = self._dashboard_resolve_scope(user_id)
+        if scope_user:
+            uids = scope_user.ids
+        elif self._dashboard_is_team_leader():
+            uids = self._dashboard_team_member_ids()
+        else:
+            sg = self.env.ref('sales_team.group_sale_salesman', raise_if_not_found=False)
+            uids = self.env['res.users'].search([
+                ('share', '=', False), ('active', '=', True),
+            ] + ([('groups_id', 'in', sg.id)] if sg else [])).ids
+        if not uids:
+            return []
+        by_user = self._vd_newcancel_report_by_user(uids)
+        agg = None
+        for uid in uids:
+            for i, r in enumerate(by_user.get(uid) or []):
+                if agg is None or i >= len(agg):
+                    if agg is None:
+                        agg = []
+                    agg.append({'label': r['label'], 'created': 0, 'cancelled': 0, 'pct': 0.0})
+                agg[i]['created'] += r['created']
+                agg[i]['cancelled'] += r['cancelled']
+        if not agg:
+            return []
+        for p in agg:
+            p['pct'] = round(p['cancelled'] * 100.0 / p['created'], 1) if p['created'] else 0.0
+        return agg
+
+    @api.model
     def dashboard_company_trash(self, limit=1000):
         """Thùng rác CÔNG TY — KH đã được admin DUYỆT hủy (vd_cancel_state=
         'approved') của MỌI NV. CHỈ Admin + Giám đốc xem.

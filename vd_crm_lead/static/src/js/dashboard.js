@@ -97,6 +97,9 @@ export class VdCrmDashboard extends Component {
             problemSort: null,
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
+            // Báo cáo KH mới vs Hủy (6 kỳ) cho popover thùng rác màn NV — đồng bộ
+            // với bảng thống kê ở popover trưởng phòng.
+            cancelReport: [],
             // KH "tham khảo": đã liên lạc được (answered ≥ 1) nhưng chưa báo giá
             leadsReferenceAll: [],
             // KH chưa gọi được (call_count=0, active) — render nửa phải bảng KHÁCH MỚI
@@ -747,7 +750,7 @@ export class VdCrmDashboard extends Component {
             // Khi vào stage "Khách mới" → render thêm các bảng THI CÔNG GẤP /
             // XỬ LÝ VẤN ĐỀ / tham khảo / mất tích... → gộp tất cả query 1 lần.
             const [
-                leads, withProblems, urgent, lost, notCalled, reference, quotedLost, plannedSign,
+                leads, withProblems, urgent, lost, notCalled, reference, quotedLost, plannedSign, cancelReport,
             ] = await Promise.all([
                 call("dashboard_leads", args),
                 call("dashboard_leads_with_problems", probArgs),
@@ -757,11 +760,13 @@ export class VdCrmDashboard extends Component {
                 call("dashboard_leads_reference", probArgs),
                 call("dashboard_leads_quoted_lost", probArgs),
                 call("dashboard_leads_planned_sign", probArgs),
+                call("dashboard_cancel_report", probArgs),
             ]);
             this.state.leads = leads;
             this.state.leadsWithProblemsAll = this._markupBreakdown(withProblems);
             this.state.leadsUrgentConstructionAll = this._markupBreakdown(urgent);
             this.state.leadsLostAll = lost;
+            this.state.cancelReport = Array.isArray(cancelReport) ? cancelReport : [];
             this.state.leadsNotCalledAll = notCalled;
             this.state.leadsReferenceAll = reference;
             this.state.leadsQuotedLostAll = quotedLost;
@@ -775,6 +780,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsReferenceAll = [];
             this.state.leadsQuotedLostAll = [];
             this.state.leadsPlannedSignAll = [];
+            this.state.cancelReport = [];
         }
         this.state.leadsLoading = false;
     }
