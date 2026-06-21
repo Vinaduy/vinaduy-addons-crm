@@ -7919,15 +7919,22 @@ class CrmLead(models.Model):
 
     @api.model
     def _vd_auto_trash_no_answer_leads(self, domain_user):
-        """Auto-HỦY KH stage 'new' bị THUÊ BAO / SAI SỐ (state 'failed') trên ≥3
+        """Auto-HỦY KH stage 'new' bị THUÊ BAO / SAI SỐ (state 'failed') trên ≥4
         NGÀY khác nhau mà CHƯA TỪNG đổ chuông (số hỏng/sai) → chuyển stage 'lost'
-        (user spec 2026-06-13). KH ĐỔ CHUÔNG nhưng không nghe (số ĐÚNG) KHÔNG bị
-        huỷ — thuộc 'CHƯA GỌI ĐƯỢC' để gọi lại / chuyển kênh."""
+        (user spec 2026-06-21).
+
+        ĐIỀU KIỆN DUY NHẤT cho tự động hủy (mọi case khác NV phải tự bấm xác nhận):
+        - answered == 0          : KH chưa từng bắt máy
+        - reached_no_answer == 0 : KH CHƯA TỪNG ĐỔ CHUÔNG (no_answer/busy/declined).
+                                   → có chuông dù chỉ 1 lần = số ĐÚNG, KHÔNG auto-hủy.
+        - distinct_days_subscriber >= 4 : toàn thuê bao/sai số trên ≥4 ngày khác nhau.
+        KH đổ chuông không nghe = thuộc 'CHƯA GỌI ĐƯỢC' (NV gọi lại / Zalo), KHÔNG
+        bao giờ tự vào thùng rác."""
         candidates = self.search(
             domain_user + [
                 ('stage_id.code', '=', 'new'),
                 ('active', '=', True),
-                ('call_count', '>=', 3),
+                ('call_count', '>=', 4),
             ],
         )
         if not candidates:
@@ -7937,14 +7944,14 @@ class CrmLead(models.Model):
             lid for lid, s in stats.items()
             if s.get('answered', 0) == 0
             and s.get('reached_no_answer', 0) == 0      # chưa từng đổ chuông
-            and s.get('distinct_days_subscriber', 0) >= 3   # thuê bao ≥3 ngày
+            and s.get('distinct_days_subscriber', 0) >= 4   # thuê bao ≥4 ngày
         ]
         if not to_archive_ids:
             return
         lost_stage = self.env['crm.stage'].search([('is_lost', '=', True)], limit=1)
         if not lost_stage:
             return
-        reason = 'Tự động: thuê bao/sai số 3+ ngày khác nhau (số hỏng)'
+        reason = 'Tự động: thuê bao/sai số 4+ ngày khác nhau (số hỏng, chưa từng đổ chuông)'
         self.browse(to_archive_ids).with_context(mail_notrack=True).write({
             'stage_id': lost_stage.id,
             'vd_lost_reason': reason,
@@ -8967,7 +8974,8 @@ class CrmLead(models.Model):
             return {
                 'id': l.id,
                 'name': l.name or l.partner_name or 'KH',
-                'user_name': l.user_id.name or '',
+                # Bỏ tiền tố phòng ("HCM2 - ") cho gọn, KHÔNG bị cắt/xuống dòng.
+                'user_name': _short_name(l.user_id.name) if l.user_id else '',
                 'cancel_state': l.vd_cancel_state or '',
                 'cancel_category_label': _cancel_cat_sel.get(l.vd_cancel_category, '') if l.vd_cancel_category else '',
                 'cancel_reason_short': (l.vd_lost_reason or '').strip()[:160],

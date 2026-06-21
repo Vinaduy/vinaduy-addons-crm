@@ -5955,14 +5955,15 @@
             td {
                 padding: 0.45rem 0.7rem;
                 vertical-align: middle;
-                white-space: normal;       /* cho xuống dòng để KHÔNG tràn ngang */
+                /* KHÔNG xuống dòng: table-layout fixed + nowrap + ellipsis →
+                   chữ dài cắt "…" trên 1 dòng, không wrap, không tràn ngang. */
+                white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                word-break: break-word;
             }
             .o_vd_cancel_kh {
                 min-width: 0;
-                white-space: normal;
+                white-space: nowrap;
                 /* Tên + SĐT trên CÙNG 1 dòng */
                 .o_vd_cancel_name { font-weight: 700; color: #1f2a44; display: inline; }
                 .o_vd_cancel_phone {
@@ -5973,7 +5974,9 @@
             .o_vd_cancel_nv {
                 color: #495057;
                 font-weight: 600;
-                white-space: normal;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .o_vd_cancel_topic_pill {
                 display: inline-block;
