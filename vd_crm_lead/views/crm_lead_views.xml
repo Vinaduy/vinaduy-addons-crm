@@ -352,21 +352,15 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 5: LOẠI ĐẤT + MÓNG (cùng 1 dòng — per user 2026-05-26) ===== -->
+                            <!-- ===== STEP 5: LOẠI ĐẤT (Móng đã tách xuống Step 6) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">5</span>
-                                    <span class="o_vd_step_text">Loại đất / Móng</span>
+                                    <span class="o_vd_step_text">Loại đất</span>
                                 </div>
-                                <div class="o_vd_step_body o_vd_step_body_2col">
-                                    <div class="o_vd_step_field o_vd_step_field_nolbl">
-                                        <field name="vd_intake_land_type" nolabel="1"
-                                               widget="vd_selection_inline"/>
-                                    </div>
-                                    <div class="o_vd_step_field o_vd_step_field_nolbl">
-                                        <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_inline"/>
-                                    </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_land_type" nolabel="1"
+                                           widget="vd_selection_inline"/>
                                 </div>
                             </div>
 
@@ -374,7 +368,7 @@
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">6</span>
-                                    <span class="o_vd_step_text">Số tầng</span>
+                                    <span class="o_vd_step_text">Số tầng / Móng</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_floors_oneline">
                                     <field name="vd_intake_floors_count" invisible="1"/>
@@ -402,51 +396,12 @@
                                              dùng X trên từng row công năng thay thế. -->
                                     </span>
 
-                                    <!-- Inputs per-floor: hiện theo floors_count -->
-                                    <!-- Tầng 1 ALWAYS visible (default tầng đầu, không cần bấm + Tầng) -->
-                                    <span class="o_vd_floor_pair">
-                                        <span class="o_vd_dim_lbl">Tầng 1</span>
-                                        <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 2">
-                                        <span class="o_vd_dim_lbl">Tầng 2</span>
-                                        <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 3">
-                                        <span class="o_vd_dim_lbl">Tầng 3</span>
-                                        <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 4">
-                                        <span class="o_vd_dim_lbl">Tầng 4</span>
-                                        <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 5">
-                                        <span class="o_vd_dim_lbl">Tầng 5</span>
-                                        <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 6">
-                                        <span class="o_vd_dim_lbl">Tầng 6</span>
-                                        <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="vd_intake_floors_count &lt; 7">
-                                        <span class="o_vd_dim_lbl">Tầng 7</span>
-                                        <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-
-                                    <!-- Tum input (button đã ở group trên) -->
-                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_tum">
-                                        <span class="o_vd_dim_lbl">Tum</span>
-                                        <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-
-                                    <!-- Lửng + Thông tầng inputs (button đã ở group trên) -->
-                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
-                                        <span class="o_vd_dim_lbl">Lửng</span>
-                                        <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
-                                    </span>
-                                    <span class="o_vd_floor_pair" invisible="not vd_intake_has_lung">
-                                        <span class="o_vd_dim_lbl">Thông tầng</span>
-                                        <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim" placeholder="m²" widget="vd_num_input"/>
+                                    <!-- MÓNG — thế vào đúng vị trí các ô diện tích cũ (đã chuyển sang
+                                         hàng Công năng). Loại đất ở Step 5. -->
+                                    <span class="o_vd_floor_pair o_vd_floor_mong_pair">
+                                        <span class="o_vd_dim_lbl">Móng</span>
+                                        <field name="vd_intake_foundation_type" nolabel="1"
+                                               widget="vd_selection_inline"/>
                                     </span>
 
                                     <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->
@@ -470,6 +425,7 @@
                                         <!-- T1 ALWAYS visible — KHÔNG có nút X (không xoá được T1) -->
                                         <div class="o_vd_floor_function_row">
                                             <span class="o_vd_floor_function_tag">T1</span>
+                                            <field name="vd_intake_floor_1_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_1_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -478,6 +434,9 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="not vd_intake_has_lung">
                                             <span class="o_vd_floor_function_tag o_vd_tag_lung">Lửng</span>
+                                            <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
+                                            <span class="o_vd_func_area_lbl">TT</span>
+                                            <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_lung_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -490,6 +449,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select not in ['2', '3', '4', '5', '6', '7']">
                                             <span class="o_vd_floor_function_tag">T2</span>
+                                            <field name="vd_intake_floor_2_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_2_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -503,6 +463,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select not in ['3', '4', '5', '6', '7']">
                                             <span class="o_vd_floor_function_tag">T3</span>
+                                            <field name="vd_intake_floor_3_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_3_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -516,6 +477,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select not in ['4', '5', '6', '7']">
                                             <span class="o_vd_floor_function_tag">T4</span>
+                                            <field name="vd_intake_floor_4_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_4_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -529,6 +491,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select not in ['5', '6', '7']">
                                             <span class="o_vd_floor_function_tag">T5</span>
+                                            <field name="vd_intake_floor_5_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_5_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -542,6 +505,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select not in ['6', '7']">
                                             <span class="o_vd_floor_function_tag">T6</span>
+                                            <field name="vd_intake_floor_6_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_6_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -555,6 +519,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="vd_intake_floors_select != '7'">
                                             <span class="o_vd_floor_function_tag">T7</span>
+                                            <field name="vd_intake_floor_7_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_7_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -568,6 +533,7 @@
                                         <div class="o_vd_floor_function_row"
                                              invisible="not vd_intake_has_tum">
                                             <span class="o_vd_floor_function_tag o_vd_tag_tum">Tum</span>
+                                            <field name="vd_intake_floor_tum_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_tum_function_ids"
                                                    widget="vd_floor_function_chips"
                                                    nolabel="1"/>
@@ -625,7 +591,8 @@
                                          Pick range → onchange set budget_amount để compare. -->
                                     <div class="o_vd_budget_row o_vd_budget_manual">
                                         <field name="vd_intake_budget_range" nolabel="1"
-                                               widget="vd_selection_inline"/>
+                                               widget="vd_selection_hover_picker"
+                                               placeholder="Chọn tầm tài chính KH..."/>
                                     </div>
                                     <!-- Phần mềm tính SAU (readonly hiển thị) -->
                                     <div class="o_vd_budget_row o_vd_budget_auto">

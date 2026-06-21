@@ -12758,3 +12758,31 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     pointer-events: none;
     opacity: 0.7;
 }
+
+/* ===== Ô DIỆN TÍCH đưa vào đầu hàng CÔNG NĂNG (tầng/tum/lửng) ===== */
+.o_vd_intake_inline .o_vd_floor_function_row .o_vd_func_area {
+    flex: 0 0 auto !important;
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
+    margin: 0 4px 0 0 !important;
+}
+.o_vd_intake_inline .o_vd_floor_function_row .o_vd_func_area input {
+    width: 100% !important;
+    text-align: center !important;
+}
+.o_vd_intake_inline .o_vd_func_area_lbl {
+    flex: 0 0 auto;
+    font-weight: 800;
+    font-size: 13px;
+    color: #8a6a12;
+    align-self: center;
+    margin: 0 2px;
+}
+/* MÓNG thế chỗ ô diện tích trong Step 6 — cho chip wrap gọn cạnh nút +Tầng */
+.o_vd_intake_inline .o_vd_floor_mong_pair {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
