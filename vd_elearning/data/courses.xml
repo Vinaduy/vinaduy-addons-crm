@@ -141,6 +141,7 @@
     <function model="slide.channel" name="_vd_seed_mau_nha"/>
     <function model="slide.channel" name="_vd_seed_mong"/>
     <function model="slide.channel" name="_vd_seed_vat_tu"/>
+    <function model="slide.channel" name="_vd_seed_vat_tu_ngoai"/>
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
 
