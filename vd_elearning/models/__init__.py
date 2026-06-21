@@ -8,3 +8,4 @@ from . import seed_khong_tuoi
 from . import seed_hoi_nhap
 from . import seed_mau_nha
 from . import seed_mong
+from . import seed_vat_tu
