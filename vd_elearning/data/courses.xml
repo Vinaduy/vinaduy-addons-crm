@@ -138,6 +138,7 @@
     <!-- Seed noi dung + 20 cau hoi thi cho khoa "nhan dien KH tiem nang".
          Idempotent: bo qua neu khoa da co noi dung (giu nguyen sua tay cua admin). -->
     <function model="slide.channel" name="_vd_seed_hoi_nhap"/>
+    <function model="slide.channel" name="_vd_seed_mau_nha"/>
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
 
