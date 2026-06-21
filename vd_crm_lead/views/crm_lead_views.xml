@@ -598,8 +598,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
-                                           widget="vd_selection_hover_picker"
-                                           placeholder="Có / Không có chỗ để đất đào móng?"/>
+                                           widget="vd_selection_inline"/>
                                 </div>
                             </div>
 
@@ -611,8 +610,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_car_access_select" nolabel="1"
-                                           widget="vd_selection_hover_picker"
-                                           placeholder="Ô tô vào tận cửa được không?"/>
+                                           widget="vd_selection_inline"/>
                                 </div>
                             </div>
 
@@ -627,8 +625,7 @@
                                          Pick range → onchange set budget_amount để compare. -->
                                     <div class="o_vd_budget_row o_vd_budget_manual">
                                         <field name="vd_intake_budget_range" nolabel="1"
-                                               widget="vd_selection_hover_picker"
-                                               placeholder="Chọn tầm tài chính KH..."/>
+                                               widget="vd_selection_inline"/>
                                     </div>
                                     <!-- Phần mềm tính SAU (readonly hiển thị) -->
                                     <div class="o_vd_budget_row o_vd_budget_auto">
@@ -675,8 +672,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
-                                           widget="vd_selection_hover_picker"
-                                           placeholder="Đã có sổ đỏ và giấy phép xây dựng chưa ạ?"/>
+                                           widget="vd_selection_inline"/>
                                 </div>
                             </div>
 
