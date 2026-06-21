@@ -3,6 +3,16 @@
     <data noupdate="1">
 
         <!-- ============ KHU NHAN VIEN KINH DOANH ============ -->
+        <!-- Khoa HOI NHAP (dau lo trinh): noi dung + 20 cau thi do _vd_seed_hoi_nhap. -->
+        <record id="course_hoi_nhap" model="slide.channel">
+            <field name="name">Vinaduy và Hội nhập</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">1</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <record id="course_a1" model="slide.channel">
             <field name="name">A1 - Mẫu Nhà</field>
             <field name="channel_type">training</field>
@@ -127,6 +137,7 @@
 
     <!-- Seed noi dung + 20 cau hoi thi cho khoa "nhan dien KH tiem nang".
          Idempotent: bo qua neu khoa da co noi dung (giu nguyen sua tay cua admin). -->
+    <function model="slide.channel" name="_vd_seed_hoi_nhap"/>
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
 
