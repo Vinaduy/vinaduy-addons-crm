@@ -348,8 +348,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_house_type" nolabel="1"
-                                           widget="vd_selection_hover_picker"
-                                           placeholder="Mái bằng / Mái Thái / Mái Nhật...?"/>
+                                           widget="vd_selection_inline"/>
                                 </div>
                             </div>
 
@@ -362,13 +361,11 @@
                                 <div class="o_vd_step_body o_vd_step_body_2col">
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_land_type" nolabel="1"
-                                               widget="vd_selection_hover_picker"
-                                               placeholder="ĐẤT CỨNG / ĐẤT YẾU?"/>
+                                               widget="vd_selection_inline"/>
                                     </div>
                                     <div class="o_vd_step_field o_vd_step_field_nolbl">
                                         <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_hover_picker"
-                                               placeholder="Móng đơn / Móng băng / Móng cọc...?"/>
+                                               widget="vd_selection_inline"/>
                                     </div>
                                 </div>
                             </div>

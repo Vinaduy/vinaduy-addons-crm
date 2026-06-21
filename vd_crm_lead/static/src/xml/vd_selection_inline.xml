@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="vd_crm_lead.VdSelectionInline">
+        <div class="o_vd_selinline">
+            <t t-foreach="options" t-as="o" t-key="o[0]">
+                <button type="button"
+                        t-attf-class="o_vd_selinline_chip {{value === o[0] ? 'active' : ''}}"
+                        t-on-click.prevent.stop="() => this.pick(o[0])">
+                    <t t-esc="o[1]"/>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

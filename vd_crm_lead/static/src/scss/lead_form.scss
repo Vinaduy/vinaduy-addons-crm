@@ -12667,3 +12667,75 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     font-style: italic;
     text-align: center;
 }
+
+/* ============================================================================
+   🎨 ĐỒNG BỘ GAM MÀU: panel THÔNG TIN TƯ VẤN (.o_vd_steps_panel) khoác theo
+   BẢNG BÁO GIÁ TÍNH NHẨM — tông TÍM (#5b4be6 / #7c5cff), nền tím nhạt.
+   Đặt CUỐI file để thắng cascade. Chỉ áp panel steps (KHÔNG đụng quote_panel).
+   ============================================================================ */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel,
+.o_vd_intake_inline .o_vd_steps_panel {
+    border: 2px solid #c7b8ff !important;
+    background: linear-gradient(180deg, #faf8ff 0%, #f1ecff 100%) !important;
+    box-shadow: 0 6px 18px rgba(91, 75, 230, 0.14) !important;
+}
+/* Header tím gradient */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel > .o_vd_hero_head,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_hero_head {
+    background: linear-gradient(135deg, #7c5cff 0%, #5b4be6 100%) !important;
+}
+/* Ô số bước (1..11) → tím */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step_num {
+    background: linear-gradient(150deg, #7c5cff, #5b4be6 75%) !important;
+    box-shadow: 0 2px 5px rgba(91, 75, 230, 0.35) !important;
+}
+/* Nhãn bước + nhãn field → tím đậm */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step_text,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step_field > label,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_area_lbl {
+    color: #4b3fb3 !important;
+    font-weight: 700 !important;
+}
+/* Input focus → viền tím */
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_steps_panel input:focus,
+.o_vd_intake_inline .o_vd_steps_panel input:focus,
+.o_vd_intake_inline .o_vd_steps_panel textarea:focus,
+.o_vd_intake_inline .o_vd_steps_panel select:focus {
+    border-color: #7c5cff !important;
+    box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2) !important;
+}
+
+/* ===== CHIP INLINE (Mẫu nhà, Loại đất, Móng) — giống chip bảng tính nhẩm ===== */
+.o_vd_selinline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+}
+.o_vd_selinline_chip {
+    border: 1px solid #d3c9f5;
+    background: #fff;
+    color: #4b3fb3;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.1;
+    padding: 5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+.o_vd_selinline_chip:hover { border-color: #7c5cff; }
+.o_vd_selinline_chip.active {
+    background: linear-gradient(135deg, #7c5cff, #5b4be6);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(91, 75, 230, 0.4);
+}
+/* Khoá thông tin → chip mờ, không bấm (đồng bộ trạng thái locked) */
+.o_vd_steps_panel.vd-intake-locked .o_vd_selinline_chip {
+    pointer-events: none;
+    opacity: 0.7;
+}
