@@ -247,6 +247,19 @@ export class VdCrmDashboard extends Component {
                 !!(this.isTeamManager && this.state.selected_user_id
                    && this.state.selected_user_id !== this.state.current_user_id);
             this._measureNewPills();
+            // FIX (user 2026-06-21): popover "CUỘC GỌI THÁNG NÀY" (recHover) bị kẹt khi
+            // BẤM mở 1 khách (preview phủ lên -> mouseleave trên tag KHÔNG kích hoạt).
+            // Đóng NGAY khi pointerdown ra ngoài popover; cũng đóng khi cuộn / ẩn tab.
+            this._onDocPointerDown = (ev) => {
+                if (!this.state.recHover) return;
+                const t = ev.target;
+                if (t && t.closest && t.closest('.o_vd_rec_pop')) return; // bấm trong popover -> giữ
+                this._closeRecNow();
+            };
+            this._onDocScrollClose = () => { if (this.state.recHover) this._closeRecNow(); };
+            window.addEventListener('pointerdown', this._onDocPointerDown, true);
+            window.addEventListener('scroll', this._onDocScrollClose, true);
+            document.addEventListener('visibilitychange', this._onDocScrollClose);
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
         onPatched(() => this._measureNewPills());
@@ -265,6 +278,15 @@ export class VdCrmDashboard extends Component {
             if (this._trainingTick) {
                 clearInterval(this._trainingTick);
                 this._trainingTick = null;
+            }
+            if (this._onDocPointerDown) {
+                window.removeEventListener('pointerdown', this._onDocPointerDown, true);
+                this._onDocPointerDown = null;
+            }
+            if (this._onDocScrollClose) {
+                window.removeEventListener('scroll', this._onDocScrollClose, true);
+                document.removeEventListener('visibilitychange', this._onDocScrollClose);
+                this._onDocScrollClose = null;
             }
             // Đảm bảo scroll lock + body class được dọn nếu navigate đi
             document.body.classList.remove('o_vd_preview_active');
@@ -357,6 +379,7 @@ export class VdCrmDashboard extends Component {
 
     async loadDashboard() {
         this.state.loading = true;
+        this.state.recHover = null;   // đóng popover ghi âm khi đổi NV / load lại
         // Mỗi lần tải (đổi NV) → bảng KHÁCH MỚI về dạng thu gọn mặc định.
         this.state.newTableExpanded = false;
         // Reset coachmark CHỐT BÁO GIÁ → hiện lại nếu NV này vẫn đang bị khoá.
@@ -2037,6 +2060,14 @@ export class VdCrmDashboard extends Component {
             this.state.recHover = null;
             this._recTimer = null;
         }, 320);
+    }
+    // Đóng NGAY popover ghi âm (bấm ra ngoài / mở khách / cuộn).
+    _closeRecNow() {
+        if (this._recTimer) {
+            clearTimeout(this._recTimer);
+            this._recTimer = null;
+        }
+        this.state.recHover = null;
     }
 
     // Dashboard có zoom:0.7. Popup position:fixed NẰM TRONG vùng zoom nên toạ

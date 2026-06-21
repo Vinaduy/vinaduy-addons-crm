@@ -908,6 +908,16 @@
                 <div class="o_vd_layout_right">
 
                 <!-- ============================================================
+                     🧮 BẢNG BÁO GIÁ TÍNH NHẨM — chỉ hiện khi khách CÒN MỚI
+                     (chưa khai thác đủ + chưa chốt báo giá). Điền đủ / chốt -> ẩn.
+                     ============================================================ -->
+                <div class="o_vd_tncalc_panel"
+                     invisible="vd_intake_complete or vd_intake_locked or stage_is_won or stage_is_lost">
+                    <field name="vd_intake_region" invisible="1"/>
+                    <field name="vd_intake_total_m2" widget="vd_tinhnham_calc" nolabel="1"/>
+                </div>
+
+                <!-- ============================================================
                      🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate
                      ============================================================ -->
                 <div class="o_vd_negotiate_panel" invisible="stage_code not in ['quote', 'negotiate', 'won']">

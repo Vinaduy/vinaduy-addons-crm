@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_vd_tinhnham_tree" model="ir.ui.view">
+        <field name="name">vd.tinhnham.region.tree</field>
+        <field name="model">vd.tinhnham.region</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="region"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vd_tinhnham_form" model="ir.ui.view">
+        <field name="name">vd.tinhnham.region.form</field>
+        <field name="model">vd.tinhnham.region</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="region"/>
+                        <field name="sequence"/>
+                    </group>
+                    <separator string="Hệ số (Tổng tiền = Hệ số × Diện tích sàn tầng 1 × Đơn giá/m²)"/>
+                    <group>
+                        <group string="Móng cốc (đơn)">
+                            <field name="hs_don_mb1"/>
+                            <field name="hs_don_mb2"/>
+                            <field name="hs_don_mn1"/>
+                            <field name="hs_don_mn2"/>
+                            <field name="hs_don_mt1"/>
+                        </group>
+                        <group string="Móng băng">
+                            <field name="hs_bang_mb1"/>
+                            <field name="hs_bang_mb2"/>
+                            <field name="hs_bang_mn1"/>
+                            <field name="hs_bang_mn2"/>
+                            <field name="hs_bang_mt1"/>
+                        </group>
+                        <group string="Móng cọc">
+                            <field name="hs_coc_mb1"/>
+                            <field name="hs_coc_mb2"/>
+                            <field name="hs_coc_mn1"/>
+                            <field name="hs_coc_mn2"/>
+                            <field name="hs_coc_mt1"/>
+                        </group>
+                    </group>
+                    <separator string="Lưu ý / phát sinh (triệu đồng - không có trong hợp đồng)"/>
+                    <group>
+                        <group>
+                            <field name="note_small_pct"/>
+                            <label for="lung_min" string="Gác lửng bớt (triệu)"/>
+                            <div class="o_row">
+                                <field name="lung_min" nolabel="1"/> - <field name="lung_max" nolabel="1"/>
+                            </div>
+                            <label for="tum_min" string="Tum phát sinh (triệu)"/>
+                            <div class="o_row">
+                                <field name="tum_min" nolabel="1"/> - <field name="tum_max" nolabel="1"/>
+                            </div>
+                        </group>
+                        <group>
+                            <label for="epcoc_min" string="Ép cọc (triệu)"/>
+                            <div class="o_row">
+                                <field name="epcoc_min" nolabel="1"/> - <field name="epcoc_max" nolabel="1"/>
+                            </div>
+                            <label for="noithat_min" string="Nội thất (triệu)"/>
+                            <div class="o_row">
+                                <field name="noithat_min" nolabel="1"/> - <field name="noithat_max" nolabel="1"/>
+                            </div>
+                            <label for="capphep_min" string="Cấp phép (triệu)"/>
+                            <div class="o_row">
+                                <field name="capphep_min" nolabel="1"/> - <field name="capphep_max" nolabel="1"/>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_tinhnham" model="ir.actions.act_window">
+        <field name="name">Hệ số tính nhẩm báo giá</field>
+        <field name="res_model">vd.tinhnham.region</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_vd_tinhnham"
+              name="Hệ số tính nhẩm"
+              parent="crm.crm_menu_config"
+              action="action_vd_tinhnham"
+              sequence="25"/>
+
+</odoo>
