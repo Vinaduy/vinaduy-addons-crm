@@ -53,6 +53,15 @@ class SlideChannel(models.Model):
         return (self.env.user.has_group('base.group_system')
                 or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin'))
 
+    @staticmethod
+    def _vd_course_has_content(c):
+        """Khoa co NOI DUNG (slide article) HOAC BAI THI (quiz co cau hoi) chua."""
+        slides = c.slide_ids.filtered(lambda s: not s.is_category)
+        if slides.filtered(lambda s: s.slide_category != 'quiz'):
+            return True
+        quiz = slides.filtered(lambda s: s.slide_category == 'quiz')[:1]
+        return bool(quiz and quiz.question_ids)
+
     @api.model
     def _vd_assign_default_paths(self):
         """Gan khoa hoc chua co lo trinh vao 'Lo trinh co ban' cua zone (idempotent)."""
@@ -129,6 +138,8 @@ class SlideChannel(models.Model):
                 'total_slides': c.total_slides,
                 'has_image': bool(c.image_512),
                 'published': bool(c.is_published),
+                # Co noi dung HOAC bai thi -> icon tim; rong -> icon xam + xoa duoc.
+                'has_content': self._vd_course_has_content(c),
             } for c in recs]
 
         PathModel = self.env['vd.learning.path']
@@ -491,6 +502,20 @@ class SlideChannel(models.Model):
         for cid in ordered_ids:
             self.browse(cid).write({'vd_seq': seq, 'vd_role_zone': zone})
             seq += 10
+        return True
+
+    @api.model
+    def vd_course_delete(self, channel_id):
+        """Xoa khoa hoc - CHI khi khoa chua co noi dung va chua co bai thi. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc xoa khoa hoc.')
+        ch = self.browse(channel_id)
+        if not ch.exists():
+            return True
+        if self._vd_course_has_content(ch):
+            raise ValidationError(
+                'Chi xoa duoc khoa hoc CHUA co noi dung va CHUA co bai thi.')
+        ch.unlink()
         return True
 
     @api.model

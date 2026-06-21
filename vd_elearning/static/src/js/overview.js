@@ -1067,6 +1067,16 @@ export class VdElearningOverview extends Component {
         });
     }
 
+    // Xoa khoa hoc RONG (chua co noi dung + chua co bai thi). Chi admin.
+    async deleteCourse(course) {
+        if (!this.state.isAdmin || course.has_content) return;
+        if (!window.confirm('Xóa khóa học "' + (course.name || '') + '"?\nChỉ xóa được khóa chưa có nội dung và chưa có bài thi.')) {
+            return;
+        }
+        await this.orm.call("slide.channel", "vd_course_delete", [course.id]);
+        await this.reload();
+    }
+
     async openAssign(path, zone) {
         const candidates = await this.orm.call(
             "slide.channel", "vd_path_candidates", [path.id]
