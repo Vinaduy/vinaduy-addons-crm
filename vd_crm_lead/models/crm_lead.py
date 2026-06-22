@@ -188,37 +188,7 @@ class CrmLead(models.Model):
         if not self.vd_duplicate_lead_ids:
             raise UserError(_('Không có lead nào trùng SĐT.'))
 
-        dupes = self.vd_duplicate_lead_ids
-        merged_names = []
-        for dup in dupes:
-            # Move call records sang keeper
-            if dup.call_ids:
-                dup.call_ids.write({'lead_id': self.id})
-            # Copy chatter notes (last 5 messages)
-            notes = dup.message_ids.filtered(
-                lambda m: m.message_type in ('comment', 'notification') and m.body
-            )[:5]
-            if notes:
-                summary = '<br/>'.join(
-                    f'<i>[{m.create_date.strftime("%d/%m/%Y")}]</i> {m.body}'
-                    for m in notes
-                )
-                self.message_post(
-                    subtype_xmlid='mail.mt_note',
-                    body=_(
-                        '🔀 <b>Gộp từ lead "%s"</b> (ID %d):<br/>%s'
-                    ) % (dup.name or 'KH', dup.id, summary),
-                )
-            merged_names.append(f'#{dup.id} "{dup.name or "KH"}"')
-            # Archive lead duplicate
-            dup.with_context(skip_lost_archive=True).write({'active': False})
-
-        self.message_post(
-            subtype_xmlid='mail.mt_note',
-            body=_('✅ Đã gộp %d lead trùng SĐT vào lead này: %s') % (
-                len(dupes), ', '.join(merged_names),
-            ),
-        )
+        self._vd_absorb_dupes(self.vd_duplicate_lead_ids)
         # Reload form
         return {
             'type': 'ir.actions.act_window',
@@ -228,6 +198,73 @@ class CrmLead(models.Model):
             'views': [(False, 'form')],
             'target': 'current',
         }
+
+    def _vd_absorb_dupes(self, dupes):
+        """Gộp các lead `dupes` vào KEEPER (self): dồn lịch sử cuộc gọi + ghi chú,
+        rồi archive dupes. Dùng chung cho nút gộp tay + cron tự động."""
+        self.ensure_one()
+        dupes = dupes.filtered(lambda d: d.id != self.id and d.active)
+        if not dupes:
+            return False
+        merged_names = []
+        for dup in dupes:
+            if dup.call_ids:
+                dup.call_ids.write({'lead_id': self.id})
+            notes = dup.message_ids.filtered(
+                lambda m: m.message_type in ('comment', 'notification') and m.body
+            )[:5]
+            owner_old = dup.user_id.name or '(chưa gán)'
+            if notes:
+                summary = '<br/>'.join(
+                    f'<i>[{m.create_date.strftime("%d/%m/%Y")}]</i> {m.body}'
+                    for m in notes
+                )
+            else:
+                summary = '<i>(không có ghi chú)</i>'
+            self.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('🔀 <b>Gộp từ lead "%s"</b> (ID %d, NV cũ: %s):<br/>%s')
+                % (dup.name or 'KH', dup.id, owner_old, summary),
+            )
+            merged_names.append(f'#{dup.id} "{dup.name or "KH"}"')
+            dup.with_context(skip_lost_archive=True).write({'active': False})
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_('✅ Đã gộp %d lead trùng SĐT vào lead này (NV quản lý: %s): %s')
+            % (len(dupes), self.user_id.name or '(chưa gán)', ', '.join(merged_names)),
+        )
+        return True
+
+    @api.model
+    def _vd_cron_merge_dup_phones(self):
+        """CRON: tự động gộp các lead TRÙNG SĐT (active, chưa won/lost) -> 1 KH 1 NV.
+        Keeper = lead có NHIỀU cuộc gọi nhất (NV thực sự đang chăm); hoà thì lấy
+        lead tạo SỚM NHẤT (first-touch). Các lead còn lại dồn cuộc gọi vào keeper
+        rồi archive. An toàn: chạy sau khi cuộc gọi đã link xong."""
+        leads = self.sudo().search([
+            ('active', '=', True),
+            ('stage_is_won', '=', False),
+            ('stage_is_lost', '=', False),
+            '|', ('phone', '!=', False), ('mobile', '!=', False),
+        ])
+        groups = {}
+        for l in leads:
+            for ph in self._vd_normalize_phones_set(l.phone, l.mobile):
+                groups.setdefault(ph, self.browse())
+                groups[ph] |= l
+        merged_total = 0
+        for ph, grp in groups.items():
+            grp = grp.filtered(lambda x: x.active)
+            if len(grp) < 2:
+                continue
+            keeper = grp.sorted(
+                key=lambda c: (len(c.call_ids),
+                               -(c.create_date.timestamp() if c.create_date else 0)),
+                reverse=True,
+            )[0]
+            keeper._vd_absorb_dupes(grp - keeper)
+            merged_total += len(grp) - 1
+        return merged_total
 
     def action_vd_view_duplicates(self):
         """Mở list view các lead trùng SĐT để xem chi tiết trước khi gộp."""
@@ -255,6 +292,10 @@ class CrmLead(models.Model):
              'không bao giờ chạy vì _origin.id luôn truthy sau create).',
     )
     call_ids = fields.One2many('stringee.call', 'lead_id', string='Lịch sử gọi')
+
+    # Track đổi NV quản lý KH (user spec 2026-06-22): mỗi lần đổi user_id ghi vào
+    # chatter (mail.tracking.value) -> render bảng "Lịch sử chuyển NV" ở panel cuộc gọi.
+    user_id = fields.Many2one('res.users', tracking=True)
 
     @api.depends('call_ids')
     def _compute_call_count(self):
@@ -836,10 +877,12 @@ class CrmLead(models.Model):
                 )
             else:
                 rec_html = '<span style="color:#adb5bd;">—</span>'
+            caller_nv = (c.user_id.name or '—') if c.user_id else '—'
             rows.append(
                 f'<tr><td>{when}</td>'
                 f'<td>{c.caller_number or "—"}</td>'
                 f'<td>{c.callee_number or "—"}</td>'
+                f'<td style="white-space:nowrap;font-weight:600;">{caller_nv}</td>'
                 f'<td style="text-align:right;white-space:nowrap;">{dur_s}</td>'
                 f'<td><span style="background:{bg};color:{fg};border-radius:6px;'
                 f'padding:1px 7px;font-weight:700;white-space:nowrap;">{st}</span></td>'
@@ -852,6 +895,7 @@ class CrmLead(models.Model):
         self.ensure_one()
         head = (
             '<tr><th>Thời điểm</th><th>Từ số</th><th>Đến số</th>'
+            '<th>Người gọi</th>'
             '<th style="text-align:right;">Thời lượng</th><th>Trạng thái</th>'
             '<th>Ghi âm</th></tr>'
         )
@@ -859,7 +903,7 @@ class CrmLead(models.Model):
             body = self._vd_render_call_rows(calls)
         else:
             body = (
-                '<tr><td colspan="6" style="text-align:center;color:#adb5bd;'
+                '<tr><td colspan="7" style="text-align:center;color:#adb5bd;'
                 'padding:14px;font-style:italic;">Chưa có cuộc gọi</td></tr>'
             )
         return (
@@ -872,10 +916,47 @@ class CrmLead(models.Model):
             f'<tbody>{body}</tbody></table></div>'
         )
 
+    def _vd_render_owner_log(self):
+        """Bảng LỊCH SỬ CHUYỂN NV QUẢN LÝ — đọc từ mail.tracking.value (field user_id)."""
+        self.ensure_one()
+        entries = []
+        msgs = self.message_ids.sorted(
+            key=lambda x: x.date or fields.Datetime.now(), reverse=True)
+        for m in msgs:
+            for tv in m.tracking_value_ids:
+                fname = tv.field_id.name if tv.field_id else ''
+                if fname != 'user_id':
+                    continue
+                when = (fields.Datetime.context_timestamp(self, m.date).strftime('%d/%m/%Y %H:%M')
+                        if m.date else '—')
+                old = tv.old_value_char or '— (chưa gán)'
+                new = tv.new_value_char or '— (bỏ gán)'
+                by = (m.author_id.name if m.author_id else '') or 'Hệ thống'
+                entries.append((when, old, new, by))
+        head = ('<tr><th>Thời điểm</th><th>NV cũ</th><th>NV mới</th>'
+                '<th>Người chuyển</th></tr>')
+        if entries:
+            body = ''.join(
+                f'<tr><td>{w}</td><td>{o}</td>'
+                f'<td style="font-weight:700;color:#0b7a3b;">{n}</td><td>{b}</td></tr>'
+                for (w, o, n, b) in entries
+            )
+        else:
+            body = ('<tr><td colspan="4" style="text-align:center;color:#adb5bd;'
+                    'padding:14px;font-style:italic;">Chưa có lịch sử chuyển nhân viên</td></tr>')
+        return (
+            '<div class="o_vd_chs_block">'
+            '<div class="o_vd_chs_head" style="border-left:4px solid #7048e8;">'
+            '<span class="o_vd_chs_title">🔄 Lịch sử chuyển NV quản lý</span>'
+            f'<span class="o_vd_chs_count">{len(entries)}</span></div>'
+            f'<table class="o_vd_chs_table"><thead>{head}</thead>'
+            f'<tbody>{body}</tbody></table></div>'
+        )
+
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration', 'call_ids.start_time',
-                 'call_ids.caller_number', 'call_ids.callee_number',
+                 'call_ids.caller_number', 'call_ids.callee_number', 'call_ids.user_id',
                  'call_ids.recording_url', 'call_ids.recording_attachment_id',
-                 'vd_quote_created_date')
+                 'vd_quote_created_date', 'message_ids')
     def _compute_call_history_split(self):
         for rec in self:
             all_calls = rec.call_ids.sorted(
@@ -898,8 +979,9 @@ class CrmLead(models.Model):
                 '📞 Sau báo giá', sub_after, after, '#e8590c')
             tbl_before = rec._vd_render_call_table(
                 '☎️ Trước báo giá', sub_before, before, '#1971c2')
+            owner_log = rec._vd_render_owner_log()
             rec.vd_call_history_split = (
-                f'<div class="o_vd_chs_wrap">{tbl_after}{tbl_before}</div>'
+                f'<div class="o_vd_chs_wrap">{tbl_after}{tbl_before}{owner_log}</div>'
             )
 
     # Live call indicator — computed (not stored), used by form to toggle
