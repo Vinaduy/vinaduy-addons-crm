@@ -5,6 +5,7 @@ from . import slide_channel
 from . import slide_channel_partner
 from . import seed_kh_tiem_nang
 from . import seed_khong_tuoi
+from . import seed_30s_dau
 from . import seed_hoi_nhap
 from . import seed_mau_nha
 from . import seed_mong

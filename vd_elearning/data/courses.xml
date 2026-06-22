@@ -108,6 +108,17 @@
             <field name="vd_max_attempts">3</field>
         </record>
 
+        <!-- Khoa KY NANG SALE: chuan hoa 30 giay dau khi goi dien. Noi dung +
+             20 cau thi do _vd_seed_30s_dau seed. -->
+        <record id="course_30s_dau" model="slide.channel">
+            <field name="name">Chuẩn hóa 30 giây đầu khi gọi điện</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">7</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
         <record id="course_tn1" model="slide.channel">
             <field name="name">TN1 - Quản lý đội nhóm</field>
@@ -137,6 +148,7 @@
     <function model="slide.channel" name="_vd_seed_bang_gia"/>
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
+    <function model="slide.channel" name="_vd_seed_30s_dau"/>
 
     <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
