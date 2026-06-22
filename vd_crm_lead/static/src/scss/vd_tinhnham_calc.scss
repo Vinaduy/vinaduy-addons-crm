@@ -1,4 +1,4 @@
-// ===== BẢNG BÁO GIÁ (form khách, khu Vấn đề) =====
+// ===== BẢNG BÁO GIÁ XÂY DỰNG (form khách, khu Vấn đề) =====
 .o_vd_tncalc {
     border: 1.5px solid #c7b8ff;
     border-radius: 14px;
@@ -25,12 +25,11 @@
             color: #8a82c0;
         }
     }
-    .o_vd_tncalc_loading { color: #8a82c0; font-style: italic; padding: 8px; }
 
     .o_vd_tncalc_tabs {
         display: flex;
         gap: 6px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
     .o_vd_tncalc_tab {
         flex: 1;
@@ -40,7 +39,7 @@
         font-weight: 800;
         font-size: 13px;
         letter-spacing: 0.04em;
-        padding: 7px 0;
+        padding: 8px 0;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.12s ease;
@@ -53,6 +52,18 @@
         }
     }
 
+    // Tiêu đề section (MÓNG / SÀN / MÁI / PHÁT SINH)
+    .o_vd_tncalc_sec {
+        font-weight: 900;
+        font-size: 12.5px;
+        letter-spacing: 0.04em;
+        color: #fff;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        padding: 5px 10px;
+        border-radius: 8px;
+        margin: 12px 0 6px;
+    }
+
     .o_vd_tncalc_tablewrap { overflow-x: auto; }
     .o_vd_tncalc_table {
         width: 100%;
@@ -63,39 +74,53 @@
         box-shadow: 0 1px 4px rgba(91, 75, 230, 0.08);
         font-size: 12px;
 
+        &.o_vd_tncalc_mt { margin-top: 6px; }
+
         th, td {
             border: 1px solid #e6ddff;
-            padding: 6px 8px;
+            padding: 6px 9px;
             text-align: center;
-            white-space: nowrap;
+            vertical-align: middle;
         }
         thead th {
-            background: linear-gradient(135deg, #7c5cff, #5b4be6);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: #fff;
             font-weight: 800;
             font-size: 11.5px;
-            &:first-child { text-align: left; }
+            white-space: nowrap;
         }
         tbody td {
-            font-weight: 700;
+            font-weight: 600;
             color: #2b2f44;
+            &.o_vd_tncalc_left { text-align: left; }
         }
         .o_vd_tncalc_rh {
             text-align: left;
             font-weight: 800;
             color: #4b3fb3;
             background: #f6f2ff;
+            white-space: nowrap;
         }
-        tbody tr:hover td { background: #f1ecff; }
-        tbody tr:hover .o_vd_tncalc_rh { background: #e9e0ff; }
+        tbody tr:hover td { background: #f8f6ff; }
+        tbody tr:hover .o_vd_tncalc_rh { background: #ece5ff; }
     }
 
-    .o_vd_tncalc_notes {
-        margin-top: 9px;
+    .o_vd_tncalc_ly {
+        margin-top: 5px;
         font-size: 11.5px;
+        font-style: italic;
+        color: #b5740a;
+        b { font-style: normal; }
+    }
+
+    .o_vd_tncalc_note {
+        margin-top: 12px;
+        font-size: 11.5px;
+        line-height: 1.5;
         color: #7a7c8a;
-        .o_vd_tncalc_notes_h { font-weight: 800; color: #b5740a; margin-bottom: 3px; }
-        ul { margin: 0; padding-left: 18px; }
-        li { line-height: 1.5; }
+        background: #fff;
+        border: 1px dashed #d8cffb;
+        border-radius: 8px;
+        padding: 7px 10px;
     }
 }
