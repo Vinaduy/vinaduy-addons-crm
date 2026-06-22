@@ -7410,7 +7410,11 @@ class CrmLead(models.Model):
         else:
             cand = Lead.search(domain_user, limit=400, order='write_date desc')
 
-        matches = []
+        # GỘP TRÙNG SĐT (user spec 2026-06-22): 1 số KH = 1 dòng. Gom theo số nội
+        # địa; mỗi nhóm chỉ hiện 1 lead ƯU TIÊN (active/đang xử lý > mới nhất). Lead
+        # không có số (search theo tên) giữ riêng từng dòng.
+        groups = {}      # key -> list[lead] (theo thứ tự write_date desc của cand)
+        order = []       # giữ thứ tự xuất hiện của key
         for l in cand:
             hit = False
             if is_phone_q and (q_nat in _nat(l.phone) or q_nat in _nat(l.mobile)):
@@ -7419,13 +7423,28 @@ class CrmLead(models.Model):
                 hit = True
             if not hit:
                 continue
-            # Trạng thái hiển thị
+            key = _nat(l.phone) or _nat(l.mobile) or ('id%d' % l.id)
+            if key not in groups:
+                groups[key] = []
+                order.append(key)
+            groups[key].append(l)
+
+        matches = []
+        for key in order:
+            leads = groups[key]
+            # Ưu tiên lead ĐANG xử lý (active + chưa vào thùng rác); không có thì
+            # lấy lead mới nhất (đầu list vì cand sort write_date desc).
+            live = [x for x in leads if x.active and x.vd_cancel_state != 'approved']
+            l = live[0] if live else leads[0]
+            archived_others = len(leads) - 1
             if l.vd_cancel_state == 'approved':
                 state_label = '🗑️ Thùng rác công ty'
             elif not l.active:
                 state_label = '🗄️ Lưu trữ'
             else:
                 state_label = l.stage_id.name or ''
+            if archived_others > 0:
+                state_label = '%s · +%d bản trùng đã gộp' % (state_label, archived_others)
             matches.append({
                 'id': l.id,
                 'name': l.partner_name or l.name or '(không tên)',
