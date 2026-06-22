@@ -339,6 +339,11 @@ export class VdCrmDashboard extends Component {
                         this._prefetchAllEmployees();
                     }
                 }
+            } else {
+                // NV thường: nạp analytics CHÍNH MÌNH (backend tự bó 1 dòng) để hiện
+                // THANH TỔNG QUAN cá nhân trên cùng — DÙNG CHUNG template VdKhTeamList
+                // với bảng danh sách NV (sửa 1 chỗ tự đồng bộ). Chạy nền.
+                this.loadAnalytics();
             }
         });
     }
@@ -691,6 +696,18 @@ export class VdCrmDashboard extends Component {
     //    phòng trong lúc tải.
     //  - còn lại (thu gọn / admin) → analytics.kh_by_team (phòng GĐ / toàn bộ admin).
     // Lúc THU luôn là phòng → KHÔNG nháy khi tải trang (user spec 2026-06-20 r11).
+    // Thanh tổng quan cá nhân (trên cùng trang NV) = ĐÚNG 1 dòng của user đang
+    // xem (NV đăng nhập, hoặc NV được quản lý chọn) — lọc từ khTeamGroups để DÙNG
+    // CHUNG template VdKhTeamList (tự đồng bộ khi sửa giao diện danh sách NV).
+    get selfTeamGroups() {
+        const uid = this.state.selected_user_id || this.state.current_user_id;
+        for (const grp of (this.khTeamGroups || [])) {
+            const nv = (grp.nvs || []).find((n) => n.user_id === uid);
+            if (nv) return [{ ...grp, nvs: [nv] }];
+        }
+        return [];
+    }
+
     get khTeamGroups() {
         const a = this.state.analytics;
         const dept = (a && a.kh_by_team) || [];
@@ -2992,7 +3009,10 @@ export class VdCrmDashboard extends Component {
             // nền và sẽ XOÁ cú bấm NHÂN VIÊN của user (lỗi r9). Việc reset trạng thái
             // giãn khi đổi chế độ do goPersonal() lo.
         } catch (e) {
-            this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
+            // NV thường (self-only) lỗi thì im lặng — chỉ báo cho quản lý.
+            if (this.isTeamManager) {
+                this.notification.add(e.message || "Lỗi tải insights", { type: "danger" });
+            }
         }
         this.state.analyticsLoading = false;
     }

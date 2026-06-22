@@ -1761,6 +1761,16 @@
                             </div>
                         </div>
 
+                        <!-- THANH TỔNG QUAN CÁ NHÂN (user spec 2026-06-22): đúng 1 dòng
+                             của NV này, DÙNG CHUNG template VdKhTeamList với bảng danh
+                             sách NV của quản lý → sửa giao diện 1 chỗ là tự đồng bộ.
+                             Chỉ hiện cho NV thường (TN/GĐ đã có bảng phòng ở trên). -->
+                        <div t-if="!isAdminView and !state.is_team_leader and selfTeamGroups.length"
+                             class="o_vd_kh_box o_vd_kh_selfbar">
+                            <t t-set="rows" t-value="selfTeamGroups"/>
+                            <t t-call="vd_crm_lead.VdKhTeamList"/>
+                        </div>
+
                         <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
                              (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
                         <div class="o_vd_topbar_row">
@@ -3340,11 +3350,14 @@
 
     <!-- ===== BẢNG TEAM (admin = nguồn gốc; trưởng nhóm dùng chung) ===== -->
     <t t-name="vd_crm_lead.VdKhTeamList">
+                                <!-- rows: cho phép caller truyền danh sách team riêng (thanh
+                                     tổng quan cá nhân truyền selfTeamGroups); mặc định = khTeamGroups. -->
+                                <t t-set="rows" t-value="rows or khTeamGroups"/>
                                 <div class="o_vd_kh_team_list">
-                                    <div t-if="!khTeamGroups.length" class="o_vd_kh_empty">
+                                    <div t-if="!rows.length" class="o_vd_kh_empty">
                                         ✓ Không có dữ liệu KH trong khoảng lọc
                                     </div>
-                                    <div t-foreach="khTeamGroups" t-as="grp" t-key="grp.team"
+                                    <div t-foreach="rows" t-as="grp" t-key="grp.team"
                                          class="o_vd_kh_team_group"
                                          t-att-style="`--team-color:${grp.color}`">
                                         <div class="o_vd_kh_team_sidebar">

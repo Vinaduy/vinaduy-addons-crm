@@ -8472,6 +8472,9 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:disabled { color: #c0c8d2; cursor: default; }
 }
 .o_vd_rec_pg_lbl { font-size: 0.8rem; font-weight: 700; color: #475569; }
+
+/* THANH TỔNG QUAN CÁ NHÂN (trên cùng trang NV) — dùng chung template danh sách NV */
+.o_vd_kh_selfbar { margin: 0 0 0.6rem; }
 .o_vd_kh_rem_head {
     display: flex;
     align-items: center;

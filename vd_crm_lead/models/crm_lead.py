@@ -8525,8 +8525,9 @@ class CrmLead(models.Model):
         # dùng CHUNG bảng team của admin (user spec 2026-06-14).
         _is_mgr = self._dashboard_is_manager()
         _is_tl = self._dashboard_is_team_leader()
-        if not _is_mgr and not _is_tl:
-            raise UserError(_('Chỉ Manager / Admin / Trưởng nhóm được xem analytics dashboard.'))
+        # NV thường: KHÔNG raise nữa — cho xem CHÍNH MÌNH (1 dòng) để trang cá nhân
+        # hiện thanh tổng quan DÙNG CHUNG template với bảng danh sách NV (tự đồng bộ).
+        _self_only = not _is_mgr and not _is_tl
         # Trưởng nhóm: chỉ NV cùng phòng ban (gồm chính họ). Giám đốc chế độ CÁ
         # NHÂN (scope='team') cũng bó về phòng ban mình.
         _tl_member_ids = self._dashboard_team_member_ids() if (
@@ -8572,7 +8573,8 @@ class CrmLead(models.Model):
             _sale_dom.append(('groups_id', 'not in', _sys_g.id))
         if _tl_member_ids is not None:
             _sale_dom.append(('id', 'in', _tl_member_ids))
-        sales_users = ResUsers.search(_sale_dom)
+        # NV thường: bó về CHÍNH MÌNH (1 dòng cho thanh tổng quan cá nhân).
+        sales_users = self.env.user if _self_only else ResUsers.search(_sale_dom)
 
         # User spec 2026-06-21: GIÁM ĐỐC KIÊM TRƯỞNG PHÒNG vẫn phải hiện 1 dòng
         # trong bảng phòng ban của họ (vd: Hồ A Du = Giám đốc + Trưởng phòng HN).
@@ -8581,7 +8583,7 @@ class CrmLead(models.Model):
         # is_team_leader=True nên lên ĐẦU bảng phòng ban tương ứng (theo vd_team).
         _dir_g = self.env.ref('vd_crm_lead.vd_crm_group_deputy_director',
                               raise_if_not_found=False)
-        if _dir_g:
+        if _dir_g and not _self_only:
             _dir_dom = [
                 ('share', '=', False),
                 ('active', '=', True),
