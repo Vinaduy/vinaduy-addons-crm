@@ -18,7 +18,7 @@ from .seed_kh_tiem_nang import (
 )
 from .seed_khong_tuoi import _chot
 
-_S30_VERSION = 'v1'
+_S30_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.s30_dau_seed_version'
 
 
