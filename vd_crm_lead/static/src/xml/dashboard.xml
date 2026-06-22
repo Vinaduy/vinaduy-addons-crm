@@ -126,7 +126,9 @@
                     </div>
                     <div t-else="" class="o_vd_rec_list">
                         <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_row">
-                            <span class="o_vd_rec_name" t-att-title="rec.lead_name" t-esc="rec.lead_name"/>
+                            <span t-attf-class="o_vd_rec_name {{rec.lead_id ? 'o_vd_rec_name_link' : ''}}"
+                                  t-att-title="rec.lead_id ? 'Bấm để mở khách: ' + rec.lead_name : rec.lead_name"
+                                  t-on-click="() => this.openRecLead(rec.lead_id)" t-esc="rec.lead_name"/>
                             <span t-attf-class="o_vd_rec_badge o_vd_rb_{{rec.status_cls}}" t-esc="rec.status"/>
                             <span class="o_vd_rec_when"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
                             <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
@@ -3358,12 +3360,10 @@
                                                     <div t-att-class="'o_vd_kh_col_name o_vd_kh_col_name_link' + (canDrillNv ? '' : ' o_vd_kh_name_noclick') + (nv.is_team_leader ? ' o_vd_kh_col_name_leader' : '')"
                                                          t-att-title="nv.full_name + (nv.is_team_leader ? ' — TRƯỞNG NHÓM' : '') + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + (canDrillNv ? ' — Click để xem dashboard' : '')"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                        <!-- User spec 2026-06-12: TRẢ LẠI hover ghi âm >3 phút ở
-                                                             TÊN NV (vẫn giữ ở thẻ "Tháng này"). -->
+                                                        <!-- User spec 2026-06-22: BỎ hover ghi âm ở TÊN NV (trùng với
+                                                             thẻ "Tháng này"). Chỉ còn click vào tên = mở dashboard NV. -->
                                                         <span class="o_vd_kh_nv_avatar"><i t-att-class="nv.is_team_leader ? 'fa fa-shield' : 'fa fa-user-circle'"/></span>
-                                                        <span class="o_vd_kh_nv_link_name"
-                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                              t-on-mouseleave="() => this.onRecLeave()">
+                                                        <span class="o_vd_kh_nv_link_name">
                                                             <t t-esc="nv.name"/>
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->

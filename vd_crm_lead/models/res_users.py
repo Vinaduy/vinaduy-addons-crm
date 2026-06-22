@@ -298,6 +298,7 @@ class ResUsers(models.Model):
                 lead_name = c.callee_number or c.caller_number or '—'
             res.append({
                 'id': c.id,
+                'lead_id': lead.id if lead else False,
                 'lead_name': lead_name,
                 'status': st['label'],
                 'status_cls': st['cls'],

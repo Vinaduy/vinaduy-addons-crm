@@ -2617,6 +2617,19 @@ export class VdCrmDashboard extends Component {
         });
     }
 
+    // Bấm 1 khách trong bảng ghi âm (hover THÁNG NÀY) → mở thẳng form khách đó.
+    openRecLead(leadId) {
+        if (!leadId) return;
+        this._closeRecNow();
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'crm.lead',
+            res_id: leadId,
+            views: [[false, 'form']],
+            target: 'current',
+        });
+    }
+
     onPreviewBackdropClick(ev) {
         if (ev.target.classList.contains('o_vd_preview_backdrop')) {
             this.closePreview();

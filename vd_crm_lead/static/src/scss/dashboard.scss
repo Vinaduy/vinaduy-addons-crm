@@ -8413,6 +8413,11 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.o_vd_rec_name_link {
+    cursor: pointer;
+    color: #1971c2;
+    &:hover { text-decoration: underline; color: #0b4f8a; }
+}
 .o_vd_rec_badge {
     flex: 0 0 auto;
     font-size: 0.68rem;
@@ -8435,7 +8440,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
-.o_vd_rec_audio { flex: 0 0 200px; width: 200px; height: 30px; }
+.o_vd_rec_audio { flex: 0 0 300px; width: 300px; height: 30px; }
 .o_vd_rec_dl {
     flex: 0 0 auto;
     color: #1971c2;
