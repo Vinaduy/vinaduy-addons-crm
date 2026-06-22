@@ -67,9 +67,7 @@ const MAI = [
     { name: "Thông tầng", val: "DT × 40% × Đơn giá" },
     { name: "Mái trang trí", val: "DT × 40% → 60% × Đơn giá" },
     { name: "Mái trang trí đổ trần", val: "DT × 100% × Đơn giá" },
-    { name: "Mái tôn 1 mặt", val: "DT × 13% × Đơn giá" },
-    { name: "Mái tôn 2 mặt", val: "DT × 16% × Đơn giá" },
-    { name: "Mái tôn 3 mặt", val: "DT × 20% × Đơn giá" },
+    { name: "Mái tôn", val: "1 mặt: DT × 13%   ·   2 mặt: DT × 16%   ·   3 mặt: DT × 20%" },
 ];
 
 export class VdTinhnhamCalc extends Component {
