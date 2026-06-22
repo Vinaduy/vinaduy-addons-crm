@@ -8473,8 +8473,19 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_rec_pg_lbl { font-size: 0.8rem; font-weight: 700; color: #475569; }
 
-/* THANH TỔNG QUAN CÁ NHÂN (trên cùng trang NV) — dùng chung template danh sách NV */
-.o_vd_kh_selfbar { margin: 0 0 0.6rem; }
+/* THANH TỔNG QUAN CÁ NHÂN (trên cùng trang NV) — DÙNG CHUNG template + style
+   .o_vd_analytics với bảng danh sách NV, nhưng BỎ min-height trang-đầy (100%/420px)
+   để thanh chỉ cao bằng 1 dòng (không thì thành khối trống cả màn hình). */
+.o_vd_analytics.o_vd_kh_selfbar {
+    min-height: 0 !important;
+    padding: 0 0 0.6rem !important;
+    margin: 0 0 0.6rem;
+    width: 100%;
+}
+.o_vd_kh_selfbar .o_vd_kh_box {
+    min-height: 0 !important;
+    padding: 0.55rem 0.7rem !important;
+}
 .o_vd_kh_rem_head {
     display: flex;
     align-items: center;
