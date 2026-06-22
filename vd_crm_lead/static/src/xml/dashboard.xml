@@ -1766,9 +1766,11 @@
                              sách NV của quản lý → sửa giao diện 1 chỗ là tự đồng bộ.
                              Chỉ hiện cho NV thường (TN/GĐ đã có bảng phòng ở trên). -->
                         <div t-if="!isAdminView and !state.is_team_leader and selfTeamGroups.length"
-                             class="o_vd_kh_box o_vd_kh_selfbar">
-                            <t t-set="rows" t-value="selfTeamGroups"/>
-                            <t t-call="vd_crm_lead.VdKhTeamList"/>
+                             class="o_vd_analytics o_vd_kh_selfbar">
+                            <div class="o_vd_kh_box">
+                                <t t-set="rows" t-value="selfTeamGroups"/>
+                                <t t-call="vd_crm_lead.VdKhTeamList"/>
+                            </div>
                         </div>
 
                         <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
