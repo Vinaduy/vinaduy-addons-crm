@@ -23,18 +23,8 @@
             <field name="channel_type">training</field>
             <field name="vd_role_zone">sales</field>
         </record>
-        <record id="course_mau_nha_mong_coc" model="slide.channel">
-            <field name="name">Mẫu nhà - Loại móng - Loại cọc</field>
-            <field name="channel_type">training</field>
-            <field name="vd_role_zone">sales</field>
-        </record>
         <record id="course_mong_nang_cao" model="slide.channel">
             <field name="name">Móng nâng cao</field>
-            <field name="channel_type">training</field>
-            <field name="vd_role_zone">sales</field>
-        </record>
-        <record id="course_b2" model="slide.channel">
-            <field name="name">B2 - Vật tư hoàn thiện</field>
             <field name="channel_type">training</field>
             <field name="vd_role_zone">sales</field>
         </record>
@@ -49,12 +39,7 @@
             <field name="vd_role_zone">sales</field>
         </record>
         <record id="course_c1" model="slide.channel">
-            <field name="name">C1 - Đơn giá</field>
-            <field name="channel_type">training</field>
-            <field name="vd_role_zone">sales</field>
-        </record>
-        <record id="course_c2" model="slide.channel">
-            <field name="name">C2 - Tính nhẩm</field>
+            <field name="name">Bảng giá</field>
             <field name="channel_type">training</field>
             <field name="vd_role_zone">sales</field>
         </record>
@@ -142,6 +127,7 @@
     <function model="slide.channel" name="_vd_seed_mong"/>
     <function model="slide.channel" name="_vd_seed_vat_tu"/>
     <function model="slide.channel" name="_vd_seed_vat_tu_ngoai"/>
+    <function model="slide.channel" name="_vd_seed_bang_gia"/>
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
 

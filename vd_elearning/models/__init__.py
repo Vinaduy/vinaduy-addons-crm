@@ -10,3 +10,4 @@ from . import seed_mau_nha
 from . import seed_mong
 from . import seed_vat_tu
 from . import seed_vat_tu_ngoai
+from . import seed_bang_gia

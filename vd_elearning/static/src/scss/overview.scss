@@ -83,7 +83,7 @@ $vd-line:   #ece7da;
 
     // ----- MARKER LO TRINH (khoi chu co VIEN TRONG, icon + chu sap xep gon) -----
     .o_vd_path_marker {
-        flex: 0 0 168px; width: 168px; position: relative;
+        flex: 0 0 200px; width: 200px; position: relative;
         display: flex; align-items: center; gap: .5rem;
         padding: .45rem .55rem;
         &.o_vd_path_draggable { cursor: grab; }
@@ -112,7 +112,7 @@ $vd-line:   #ece7da;
             background: linear-gradient(135deg, $vd-gold-d, #a87f12);
             padding: .04rem .35rem; border-radius: 999px; margin-bottom: .12rem;
         }
-        .o_vd_path_name { font-size: .76rem; font-weight: 900; color: #3f2d00; white-space: nowrap; }
+        .o_vd_path_name { font-size: .76rem; font-weight: 900; color: #3f2d00; white-space: normal; overflow-wrap: break-word; word-break: break-word; }
         .o_vd_path_sub { font-size: .58rem; font-weight: 700; color: #a08236; margin-top: .08rem; }
 
         .o_vd_path_tools { position: absolute; top: .35rem; right: .4rem; display: flex; gap: .2rem; opacity: .55; transition: opacity .15s ease; }
