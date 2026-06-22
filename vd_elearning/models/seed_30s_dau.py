@@ -18,7 +18,7 @@ from .seed_kh_tiem_nang import (
 )
 from .seed_khong_tuoi import _chot
 
-_S30_VERSION = 'v2'
+_S30_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.s30_dau_seed_version'
 
 
@@ -75,15 +75,15 @@ class SlideChannelSeed30sDau(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Vì sao 30 giây đầu quyết định', self._p1(h2, h3, lead)),
-            ('2. Giới thiệu đúng nguồn khách', self._p2(h2, h3, lead)),
-            ('3. Giọng nói: to, rõ, có lực', self._p3(h2, h3, lead)),
-            ('4. 3 câu đầu phải liền mạch', self._p4(h2, h3, lead)),
-            ('5. Tư vấn chứ không tra khảo', self._p5(h2, h3, lead)),
-            ('6. Kịch bản chuẩn - Xử lý - Chấm điểm', self._p6(h2, h3, lead)),
+            ('1. Vì sao 30 giây đầu quyết định', self._s30_p1(h2, h3, lead)),
+            ('2. Giới thiệu đúng nguồn khách', self._s30_p2(h2, h3, lead)),
+            ('3. Giọng nói: to, rõ, có lực', self._s30_p3(h2, h3, lead)),
+            ('4. 3 câu đầu phải liền mạch', self._s30_p4(h2, h3, lead)),
+            ('5. Tư vấn chứ không tra khảo', self._s30_p5(h2, h3, lead)),
+            ('6. Kịch bản chuẩn - Xử lý - Chấm điểm', self._s30_p6(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _s30_p1(self, h2, h3, lead):
         return (
             '<p style="' + lead + '">Trong tư vấn <b>xây nhà trọn gói</b>, <b>30 giây '
             'đầu tiên</b> quyết định khách có tiếp tục nghe hay cúp máy. Một nhân viên '
@@ -137,7 +137,7 @@ class SlideChannelSeed30sDau(models.Model):
             )
         )
 
-    def _p2(self, h2, h3, lead):
+    def _s30_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">LỖI 1 &mdash; Không phân biệt nguồn khách khi giới thiệu</h2>'
             '<p style="' + lead + '">Khách từ kênh khác nhau <b>nhớ thương hiệu khác nhau</b>. '
@@ -191,7 +191,7 @@ class SlideChannelSeed30sDau(models.Model):
             )
         )
 
-    def _p3(self, h2, h3, lead):
+    def _s30_p3(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">LỖI 2 &amp; LỖI 5 &mdash; Câu đầu nhỏ, yếu, thiếu bản lĩnh</h2>'
             '<p style="' + lead + '">Nhiều nhân viên vừa nghe máy đã nói rất nhỏ: '
@@ -238,7 +238,7 @@ class SlideChannelSeed30sDau(models.Model):
             )
         )
 
-    def _p4(self, h2, h3, lead):
+    def _s30_p4(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">LỖI 3 &mdash; 3 câu đầu rời rạc, đứt quãng, có khoảng trống</h2>'
             '<p style="' + lead + '">Cách nói đứt mạch khiến khách <b>phải chờ</b> khi chưa '
@@ -288,7 +288,7 @@ class SlideChannelSeed30sDau(models.Model):
             )
         )
 
-    def _p5(self, h2, h3, lead):
+    def _s30_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">LỖI NGHIÊM TRỌNG NHẤT &mdash; Gọi như đi lấy thông tin, không tạo kết nối</h2>'
             '<p style="' + lead + '">Nhiều nhân viên gọi điện như đang <b>hỏi cung</b>: '
@@ -351,7 +351,7 @@ class SlideChannelSeed30sDau(models.Model):
             )
         )
 
-    def _p6(self, h2, h3, lead):
+    def _s30_p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">KỊCH BẢN CHUẨN 30 GIÂY ĐẦU (thuộc lòng)</h2>'
 
