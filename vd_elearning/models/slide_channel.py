@@ -84,9 +84,11 @@ class SlideChannel(models.Model):
         internal = Users.search([('share', '=', False), ('active', '=', True)])
 
         # Map khoa hoc theo zone (theo thu tu lo trinh).
+        # sudo: app tu kiem soat quyen theo vai tro/lo trinh, KHONG dung record rule
+        # cua website_slides (membership) -> tranh an khoa NV chua la member.
         zone_recs = {
-            'sales': self.search([('vd_role_zone', '=', 'sales')], order='vd_seq, id'),
-            'leader': self.search([('vd_role_zone', '=', 'leader')], order='vd_seq, id'),
+            'sales': self.sudo().search([('vd_role_zone', '=', 'sales')], order='vd_seq, id'),
+            'leader': self.sudo().search([('vd_role_zone', '=', 'leader')], order='vd_seq, id'),
         }
 
         # ----- Tien do hoc cua tung NV de gan avatar vao dung "cua ai" -----
@@ -142,7 +144,7 @@ class SlideChannel(models.Model):
                 'has_content': self._vd_course_has_content(c),
             } for c in recs]
 
-        PathModel = self.env['vd.learning.path']
+        PathModel = self.env['vd.learning.path'].sudo()
 
         def zone_paths(zk):
             paths = PathModel.search([('zone', '=', zk)], order='sequence, id')
@@ -221,7 +223,8 @@ class SlideChannel(models.Model):
     def vd_course_load(self, channel_id):
         """Du lieu cho popup khoa hoc: noi dung (slide article) + cau hoi thi (quiz).
         Hoc vien KHONG nhan duoc co is_correct (tranh lo dap an)."""
-        ch = self.browse(channel_id)
+        # sudo: app kiem soat quyen rieng -> NV chua la member van load duoc khoa.
+        ch = self.sudo().browse(channel_id)
         is_admin = self._vd_is_admin()
         contents = []
         for s in ch.slide_ids.filtered(
@@ -275,7 +278,7 @@ class SlideChannel(models.Model):
     def vd_course_grade(self, channel_id, answers_by_q):
         """Cham diem bai thi tren SERVER. answers_by_q = {qid(str): [answer_id,...]}.
         Cau dung khi tap dap an chon == tap dap an dung. Tra ve diem + dap an dung de xem lai."""
-        ch = self.browse(channel_id)
+        ch = self.sudo().browse(channel_id)
         quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
         qs = quiz.question_ids.sorted(lambda x: (x.sequence, x.id)) if quiz else self.env['slide.question']
         results = []
