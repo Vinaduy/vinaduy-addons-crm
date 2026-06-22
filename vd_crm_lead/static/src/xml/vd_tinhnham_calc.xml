@@ -4,8 +4,8 @@
     <t t-name="vd_crm_lead.VdTinhnhamCalc">
         <div class="o_vd_tncalc">
             <div class="o_vd_tncalc_head">
-                <i class="fa fa-table me-1"/>BẢNG BÁO GIÁ XÂY DỰNG
-                <span class="o_vd_tncalc_hint">Đưa chuột vào miền để xem bảng báo giá</span>
+                <i class="fa fa-table me-1"/>ĐƠN GIÁ XÂY DỰNG
+                <span class="o_vd_tncalc_hint">Đưa chuột vào miền để xem bảng</span>
             </div>
 
             <div class="o_vd_tncalc_tabs">
@@ -16,83 +16,61 @@
                 </t>
             </div>
 
-            <!-- ===== MÓNG ===== -->
-            <div class="o_vd_tncalc_sec">MÓNG</div>
             <table class="o_vd_tncalc_table">
-                <thead>
-                    <tr>
-                        <th>Loại móng</th>
-                        <th>Trên 70m²</th>
-                        <th>Dưới 70m²</th>
-                    </tr>
-                </thead>
+                <colgroup>
+                    <col class="o_vd_col_lbl"/>
+                    <col/><col/><col/><col/><col/>
+                </colgroup>
                 <tbody>
+                    <!-- ===== MÓNG ===== -->
+                    <tr class="o_vd_sec">
+                        <td class="o_vd_sec_lbl">MÓNG</td>
+                        <td colspan="3">TRÊN 70m²</td>
+                        <td colspan="2">DƯỚI 70m²</td>
+                    </tr>
                     <t t-foreach="mong.rows" t-as="m" t-key="m.name">
                         <tr>
-                            <td class="o_vd_tncalc_rh"><t t-esc="m.name"/></td>
-                            <td><t t-esc="m.over"/></td>
-                            <td><t t-esc="m.under"/></td>
+                            <td class="o_vd_rh"><t t-esc="m.name"/></td>
+                            <td colspan="3"><t t-esc="m.over"/></td>
+                            <td colspan="2"><t t-esc="m.under"/></td>
                         </tr>
                     </t>
-                </tbody>
-            </table>
-            <div class="o_vd_tncalc_ly"><b>Lưu ý:</b> <t t-esc="MONG_LUU_Y"/></div>
 
-            <!-- ===== SÀN ===== -->
-            <div class="o_vd_tncalc_sec">SÀN - ĐƠN GIÁ XÂY THÔ (đ/m²)</div>
-            <div class="o_vd_tncalc_tablewrap">
-                <table class="o_vd_tncalc_table">
-                    <thead>
+                    <!-- ===== SÀN ===== -->
+                    <tr class="o_vd_sec">
+                        <td class="o_vd_sec_lbl">SÀN (đ/m²)</td>
+                        <t t-foreach="SAN_COLS" t-as="c" t-key="c"><td><t t-esc="c"/></td></t>
+                    </tr>
+                    <t t-foreach="SAN_ROWS" t-as="s" t-key="s.name">
                         <tr>
-                            <th>Diện tích sàn</th>
-                            <t t-foreach="SAN_COLS" t-as="c" t-key="c"><th><t t-esc="c"/></th></t>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="SAN_ROWS" t-as="s" t-key="s.name">
-                            <tr>
-                                <td class="o_vd_tncalc_rh"><t t-esc="s.name"/></td>
-                                <t t-foreach="s.vals" t-as="v" t-key="v_index"><td><t t-esc="v"/></td></t>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </div>
-            <table class="o_vd_tncalc_table o_vd_tncalc_mt">
-                <thead>
-                    <tr><th colspan="2">Xây thô trọn gói</th></tr>
-                </thead>
-                <tbody>
-                    <t t-foreach="SAN_THO" t-as="t" t-key="t.name">
-                        <tr>
-                            <td class="o_vd_tncalc_rh"><t t-esc="t.name"/></td>
-                            <td><t t-esc="t.val"/></td>
+                            <td class="o_vd_rh"><t t-esc="s.name"/></td>
+                            <t t-foreach="s.vals" t-as="v" t-key="v_index"><td><t t-esc="v"/></td></t>
                         </tr>
                     </t>
-                </tbody>
-            </table>
+                    <tr>
+                        <td class="o_vd_rh">Xây thô trọn gói</td>
+                        <td colspan="3"><t t-esc="SAN_THO.over"/></td>
+                        <td colspan="2"><t t-esc="SAN_THO.under"/></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="o_vd_ly"><b>Lưu ý:</b> <t t-esc="MONG_LUU_Y"/></td>
+                    </tr>
 
-            <!-- ===== MÁI ===== -->
-            <div class="o_vd_tncalc_sec">MÁI</div>
-            <table class="o_vd_tncalc_table">
-                <tbody>
+                    <!-- ===== MÁI ===== -->
+                    <tr class="o_vd_sec">
+                        <td class="o_vd_sec_lbl">MÁI</td>
+                        <td colspan="5">Công thức tính (DT = diện tích sàn)</td>
+                    </tr>
                     <t t-foreach="MAI" t-as="m" t-key="m.name">
                         <tr>
-                            <td class="o_vd_tncalc_rh"><t t-esc="m.name"/></td>
-                            <td class="o_vd_tncalc_left"><t t-esc="m.val"/></td>
-                        </tr>
-                    </t>
-                </tbody>
-            </table>
-
-            <!-- ===== PHÁT SINH ===== -->
-            <div class="o_vd_tncalc_sec">BẢNG GIÁ PHÁT SINH (nhà 100m²)</div>
-            <table class="o_vd_tncalc_table">
-                <tbody>
-                    <t t-foreach="PHAT_SINH" t-as="p" t-key="p.name">
-                        <tr>
-                            <td class="o_vd_tncalc_rh o_vd_tncalc_left"><t t-esc="p.name"/></td>
-                            <td><t t-esc="p.val"/></td>
+                            <td class="o_vd_rh"><t t-esc="m.name"/></td>
+                            <t t-if="m.val">
+                                <td colspan="5" class="o_vd_left"><t t-esc="m.val"/></td>
+                            </t>
+                            <t t-else="">
+                                <td colspan="3" class="o_vd_left"><t t-esc="m.left"/></td>
+                                <td colspan="2" class="o_vd_left"><t t-esc="m.right"/></td>
+                            </t>
                         </tr>
                     </t>
                 </tbody>
