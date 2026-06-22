@@ -267,27 +267,40 @@ class ResUsers(models.Model):
         return level
 
     @api.model
-    def vd_recent_recordings(self, user_id, limit=20, min_seconds=180):
-        """Hover thẻ "Cuộc gọi tháng này" → trả 2 phần (user spec 2026-06-05):
+    def vd_recent_recordings(self, user_id, limit=100, min_seconds=180, offset=0):
+        """Hover thẻ "Cuộc gọi tháng này" → trả (user spec 2026-06-22):
           - stats: thống kê cuộc gọi THÁNG (tổng, % nghe máy, % >3', % >5').
-          - recordings: 20 ghi âm gần nhất >= 3 phút (nghe/tải ngay).
+          - recordings: ghi âm >= 3 phút (mỗi trang 100), kèm TÊN KH + TRẠNG THÁI.
+          - total / page_size / offset: phục vụ phân trang (>100 thì trang 2,3...).
         """
         Call = self.env['stringee.call'].sudo()
         uid = int(user_id)
-        calls = Call.search([
+        rec_dom = [
             ('user_id', '=', uid),
             ('duration', '>=', int(min_seconds)),
             ('recording_attachment_id', '!=', False),
-        ], order='create_date desc', limit=int(limit))
+        ]
+        total_rec = Call.search_count(rec_dom)
+        calls = Call.search(rec_dom, order='create_date desc',
+                            limit=int(limit), offset=int(offset))
         res = []
         for c in calls:
             att = c.recording_attachment_id
             if not att:
                 continue
             local_dt = fields.Datetime.context_timestamp(c, c.create_date) if c.create_date else None
+            lead = c.lead_id
+            if lead:
+                st = lead._vd_status_label_short()
+                lead_name = lead.partner_name or lead.name or (c.callee_number or '—')
+            else:
+                st = {'label': '—', 'cls': 'none'}
+                lead_name = c.callee_number or c.caller_number or '—'
             res.append({
                 'id': c.id,
-                'callee': c.callee_number or c.caller_number or '',
+                'lead_name': lead_name,
+                'status': st['label'],
+                'status_cls': st['cls'],
                 'duration': c.duration or 0,
                 'date': local_dt.strftime('%d/%m %H:%M') if local_dt else '',
                 'play_url': '/web/content/%s?download=false' % att.id,
@@ -316,7 +329,8 @@ class ResUsers(models.Model):
             'over3': over3, 'over3_pct': _pct(over3),
             'over5': over5, 'over5_pct': _pct(over5),
         }
-        return {'stats': stats, 'recordings': res}
+        return {'stats': stats, 'recordings': res, 'total': total_rec,
+                'page_size': int(limit), 'offset': int(offset)}
 
     # ===== TOGGLE NHẬN KH TỪ PANCAKE =====
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.

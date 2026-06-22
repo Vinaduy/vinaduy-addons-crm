@@ -116,23 +116,30 @@
                             <span class="o_vd_rec_stat_lbl">&gt; 5 phút (<t t-esc="rs.over5 or 0"/>)</span>
                         </div>
                     </div>
-                    <!-- BẢNG 2: 20 ghi âm > 3 phút -->
+                    <!-- BẢNG 2: ghi âm > 3 phút — mỗi dòng 1 file (tên KH + trạng thái) -->
                     <div class="o_vd_rec_sub_head">
-                        <i class="fa fa-headphones me-1"/>20 ghi âm gần nhất &gt; 3 phút
+                        <i class="fa fa-headphones me-1"/>Ghi âm &gt; 3 phút
+                        <span class="o_vd_rec_sub_count">(<t t-esc="state.recHover.total or 0"/> file)</span>
                     </div>
                     <div t-if="!state.recHover.recordings.length" class="o_vd_rec_empty">
                         Chưa có ghi âm nào trên 3 phút.
                     </div>
                     <div t-else="" class="o_vd_rec_list">
-                        <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_item">
-                            <div class="o_vd_rec_meta">
-                                <span class="o_vd_rec_callee"><t t-esc="rec.callee"/></span>
-                                <span class="o_vd_rec_dim"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
-                                <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
-                                   title="Tải file ghi âm"><i class="fa fa-download"/></a>
-                            </div>
+                        <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_row">
+                            <span class="o_vd_rec_name" t-att-title="rec.lead_name" t-esc="rec.lead_name"/>
+                            <span t-attf-class="o_vd_rec_badge o_vd_rb_{{rec.status_cls}}" t-esc="rec.status"/>
+                            <span class="o_vd_rec_when"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
                             <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
+                            <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
+                               title="Tải file ghi âm"><i class="fa fa-download"/></a>
                         </div>
+                    </div>
+                    <div t-if="recTotalPages > 1" class="o_vd_rec_pager">
+                        <button class="o_vd_rec_pg_btn" t-att-disabled="state.recHover.page &lt;= 1"
+                                t-on-click="() => this.goRecPage(state.recHover.page - 1)">‹ Trước</button>
+                        <span class="o_vd_rec_pg_lbl">Trang <t t-esc="state.recHover.page"/>/<t t-esc="recTotalPages"/></span>
+                        <button class="o_vd_rec_pg_btn" t-att-disabled="state.recHover.page &gt;= recTotalPages"
+                                t-on-click="() => this.goRecPage(state.recHover.page + 1)">Sau ›</button>
                     </div>
                 </t>
             </div>

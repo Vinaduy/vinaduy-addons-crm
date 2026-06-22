@@ -2038,12 +2038,17 @@ export class VdCrmDashboard extends Component {
             loading: true,
             recordings: [],
             stats: {},
+            page: 1,
+            total: 0,
+            pageSize: 100,
         };
         try {
             const data = await this.orm.call("res.users", "vd_recent_recordings", [nv.user_id]);
             if (this.state.recHover && this.state.recHover.user_id === nv.user_id) {
                 this.state.recHover.recordings = (data && data.recordings) || [];
                 this.state.recHover.stats = (data && data.stats) || {};
+                this.state.recHover.total = (data && data.total) || 0;
+                this.state.recHover.pageSize = (data && data.page_size) || 100;
                 this.state.recHover.loading = false;
             }
         } catch (e) {
@@ -2051,6 +2056,34 @@ export class VdCrmDashboard extends Component {
                 this.state.recHover.loading = false;
             }
         }
+    }
+    // Phân trang ghi âm (mỗi trang 100). Giữ popover mở khi đổi trang.
+    async goRecPage(page) {
+        const h = this.state.recHover;
+        if (!h || h.loading) return;
+        const totalPages = Math.max(1, Math.ceil((h.total || 0) / (h.pageSize || 100)));
+        if (page < 1 || page > totalPages || page === h.page) return;
+        h.loading = true;
+        const uid = h.user_id;
+        try {
+            const data = await this.orm.call("res.users", "vd_recent_recordings",
+                [uid, h.pageSize || 100, 180, (page - 1) * (h.pageSize || 100)]);
+            if (this.state.recHover && this.state.recHover.user_id === uid) {
+                this.state.recHover.recordings = (data && data.recordings) || [];
+                this.state.recHover.total = (data && data.total) || 0;
+                this.state.recHover.page = page;
+                this.state.recHover.loading = false;
+            }
+        } catch (e) {
+            if (this.state.recHover && this.state.recHover.user_id === uid) {
+                this.state.recHover.loading = false;
+            }
+        }
+    }
+    get recTotalPages() {
+        const h = this.state.recHover;
+        if (!h) return 1;
+        return Math.max(1, Math.ceil((h.total || 0) / (h.pageSize || 100)));
     }
     onRecLeave() {
         if (this._recTimer) {
@@ -2334,7 +2367,7 @@ export class VdCrmDashboard extends Component {
         if (!h) {
             return "display:none;";
         }
-        return this._popAtRect(h.rect, 440);
+        return this._popAtRect(h.rect, 720);
     }
     fmtDur(sec) {
         const s = Math.max(0, parseInt(sec || 0, 10));

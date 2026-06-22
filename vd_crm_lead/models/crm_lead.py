@@ -6315,6 +6315,24 @@ class CrmLead(models.Model):
             and not (p.tag_id and p.tag_id.id == urgent_tag_id)
         ))
 
+    def _vd_status_label_short(self):
+        """Nhãn trạng thái KH ngắn cho bảng ghi âm (hover tên NV):
+        Huỷ / Thi công gấp / Xử lý vấn đề / Đang tham khảo / Khách mới."""
+        self.ensure_one()
+        if self.vd_cancel_state == 'approved' or not self.active or self.stage_is_lost:
+            return {'label': 'Huỷ', 'cls': 'huy'}
+        urgent_tag_id = self._vd_urgent_tag_id()
+        has_urgent = bool(self.vd_lead_problem_ids.filtered(
+            lambda p: p.status in ('open', 'in_progress')
+            and p.tag_id and p.tag_id.id == urgent_tag_id))
+        if has_urgent:
+            return {'label': 'Thi công gấp', 'cls': 'urgent'}
+        if self._vd_lead_has_real_problem(urgent_tag_id):
+            return {'label': 'Xử lý vấn đề', 'cls': 'xlvd'}
+        if self.stage_code in ('quote', 'negotiate', 'won'):
+            return {'label': 'Đang tham khảo', 'cls': 'ref'}
+        return {'label': 'Khách mới', 'cls': 'new'}
+
     @api.model
     def _vd_problem_find_stats(self, domain_user):
         """Đếm % KH 'chưa có vấn đề' RIÊNG cho từng bảng THI CÔNG GẤP + XỬ LÝ
