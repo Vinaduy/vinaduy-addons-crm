@@ -52,6 +52,29 @@ export class VdUserBoard extends Component {
     get workingList() { return this._filter(this.state.working); }
     get offList() { return this._filter(this.state.off); }
 
+    // Gom theo PHÒNG BAN thành các cột; trưởng nhóm/lãnh đạo đứng đầu mỗi cột.
+    _groupByTeam(list) {
+        const ORDER = ["HCM1", "HCM2", "HCM3", "HN", "QN", "CTV", "VINADUY", "KHÁC"];
+        const map = {};
+        for (const c of list) {
+            const t = c.team || "KHÁC";
+            (map[t] = map[t] || []).push(c);
+        }
+        const teams = Object.keys(map).sort((a, b) => {
+            const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || (a < b ? -1 : 1);
+        });
+        return teams.map((t) => {
+            const cards = map[t].slice().sort((a, b) => {
+                if (a.is_leader !== b.is_leader) return a.is_leader ? -1 : 1;
+                return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+            });
+            return { team: t, color: (cards[0] && cards[0].team_color) || "#868e96", cards };
+        });
+    }
+    get workingGroups() { return this._groupByTeam(this.workingList); }
+    get offGroups() { return this._groupByTeam(this.offList); }
+
     _sortCards(arr) {
         arr.sort((a, b) => {
             const ka = (a.team + a.name).toLowerCase();

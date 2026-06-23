@@ -28,10 +28,18 @@
                         <span class="o_vd_ub_cnt"><t t-esc="workingList.length"/></span>
                     </div>
                     <div class="o_vd_ub_cards">
-                        <t t-foreach="workingList" t-as="c" t-key="c.id">
-                            <t t-call="vd_crm_lead.VdUserCard"/>
+                        <t t-foreach="workingGroups" t-as="g" t-key="g.team">
+                            <div class="o_vd_ub_teamcol" t-att-style="`--team-color:${g.color}`">
+                                <div class="o_vd_ub_teamhd">
+                                    <span class="o_vd_ub_teamname"><t t-esc="g.team"/></span>
+                                    <span class="o_vd_ub_teamcnt"><t t-esc="g.cards.length"/></span>
+                                </div>
+                                <t t-foreach="g.cards" t-as="c" t-key="c.id">
+                                    <t t-call="vd_crm_lead.VdUserCard"/>
+                                </t>
+                            </div>
                         </t>
-                        <div t-if="!workingList.length" class="o_vd_ub_empty">— Kéo nhân viên vào đây —</div>
+                        <div t-if="!workingGroups.length" class="o_vd_ub_empty">— Kéo nhân viên vào đây —</div>
                     </div>
                 </div>
 
@@ -45,10 +53,18 @@
                         <span class="o_vd_ub_cnt"><t t-esc="offList.length"/></span>
                     </div>
                     <div class="o_vd_ub_cards">
-                        <t t-foreach="offList" t-as="c" t-key="c.id">
-                            <t t-call="vd_crm_lead.VdUserCard"/>
+                        <t t-foreach="offGroups" t-as="g" t-key="g.team">
+                            <div class="o_vd_ub_teamcol" t-att-style="`--team-color:${g.color}`">
+                                <div class="o_vd_ub_teamhd">
+                                    <span class="o_vd_ub_teamname"><t t-esc="g.team"/></span>
+                                    <span class="o_vd_ub_teamcnt"><t t-esc="g.cards.length"/></span>
+                                </div>
+                                <t t-foreach="g.cards" t-as="c" t-key="c.id">
+                                    <t t-call="vd_crm_lead.VdUserCard"/>
+                                </t>
+                            </div>
                         </t>
-                        <div t-if="!offList.length" class="o_vd_ub_empty">— Trống —</div>
+                        <div t-if="!offGroups.length" class="o_vd_ub_empty">— Trống —</div>
                     </div>
                 </div>
             </div>
