@@ -920,7 +920,9 @@ class CrmLead(models.Model):
         """Bảng LỊCH SỬ CHUYỂN NV QUẢN LÝ — đọc từ mail.tracking.value (field user_id)."""
         self.ensure_one()
         entries = []
-        msgs = self.message_ids.sorted(
+        # sudo: field mail.message.tracking_value_ids chi cho nhom Admin/Settings
+        # -> NV thuong doc se bi Access Error. Doc qua sudo (chi de render bang lich su).
+        msgs = self.sudo().message_ids.sorted(
             key=lambda x: x.date or fields.Datetime.now(), reverse=True)
         for m in msgs:
             for tv in m.tracking_value_ids:
