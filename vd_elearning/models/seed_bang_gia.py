@@ -21,7 +21,7 @@ from odoo import api, models
 from .seed_kh_tiem_nang import (_WRAP, _box, _formula, _apply, _situation,
                                 _advice, _proof, _mistake)
 
-_BG_VERSION = 'v4'
+_BG_VERSION = 'v5'
 _PARAM_KEY = 'vd_elearning.banggia_seed_version'
 
 
@@ -102,6 +102,7 @@ class SlideChannelSeedBangGia(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
+            ('0. Bang don gia goc', self._bg_p0(h2, h3, lead)),
             ('1. Cong thuc than thanh', self._bg_p1(h2, h3, lead)),
             ('2. Don gia theo m2', self._bg_p2(h2, h3, lead)),
             ('3. He so tinh nham (Mien Bac)', self._bg_p3(h2, h3, lead)),
@@ -111,6 +112,114 @@ class SlideChannelSeedBangGia(models.Model):
             ('7. Vi du tinh mau', self._bg_p7(h2, h3, lead)),
             ('8. Ket luan', self._bg_p8(h2, h3, lead)),
         ]
+
+    def _bg_p0(self, h2, h3, lead):
+        """BANG DON GIA (tu file Don gia.pdf) dat LEN TREN CUNG: 3 mien xep doc +
+        san + mai + phat sinh. Khong dung tab de LUON hien day du."""
+        def mong_tbl(title, color, rows, note):
+            r = ''
+            for nm, a, b in rows:
+                r += ('<tr><td><b>' + nm + '</b></td>'
+                      '<td style="text-align:center;">DT &times; ' + a + ' &times; Đơn giá</td>'
+                      '<td style="text-align:center;">DT &times; ' + b + ' &times; Đơn giá</td></tr>')
+            return (
+                '<div style="background:' + color + ';color:#fff;font-weight:900;font-size:17px;'
+                'padding:10px 16px;border-radius:12px 12px 0 0;margin-top:18px;letter-spacing:.5px;">'
+                + title + '</div>'
+                '<table style="margin-top:0;"><thead><tr><th style="width:34%;">MÓNG</th>'
+                '<th style="text-align:center;">TRÊN 70 m&sup2;</th>'
+                '<th style="text-align:center;">DƯỚI 70 m&sup2;</th></tr></thead><tbody>'
+                + r + '</tbody></table>'
+                '<p style="font-size:13px;color:#b91c1c;margin:4px 0 0;">&#128205; ' + note + '</p>'
+            )
+        return (
+            '<div style="position:relative;overflow:hidden;'
+            'background:linear-gradient(135deg,#f5523c,#e8401f);color:#fff;'
+            'padding:28px 24px;border-radius:18px;margin:4px 0 20px;text-align:center;'
+            'box-shadow:0 12px 30px rgba(232,64,31,.34);">'
+            '<div style="font-size:14px;letter-spacing:3px;font-weight:800;opacity:.9;">VINADUY</div>'
+            '<div style="font-size:38px;font-weight:900;line-height:1.1;text-shadow:0 2px 6px rgba(0,0,0,.2);">'
+            'BẢNG ĐƠN GIÁ XÂY DỰNG</div>'
+            '<div style="font-size:15px;opacity:.95;margin-top:8px;">Tra cứu nhanh đơn giá '
+            '3 miền - Móng, Sàn, Mái và các khoản phát sinh</div></div>'
+
+            '<p style="' + lead + '">Đây là <b>bảng đơn giá gốc</b> của công ty. Mọi báo giá đều '
+            'dựa trên bảng này. Phần <b>SÀN</b> và <b>MÁI</b> giống nhau ở cả 3 miền &mdash; chỉ '
+            'phần <b>MÓNG</b> khác nhau (Nam &gt; Trung &gt; Bắc).</p>'
+
+            '<h2 style="' + h2 + '">&#128207; 1) MÓNG &mdash; theo từng miền</h2>'
+
+            + mong_tbl('ĐƠN GIÁ MIỀN BẮC', '#1d4ed8', [
+                ('Móng đơn', '30%', '35%'),
+                ('Móng băng', '40%', '45%'),
+                ('Móng cọc', '40%', '45%'),
+            ], 'Toàn tỉnh: Lai Châu, Sơn La, Điện Biên, Cao Bằng, Bắc Kạn tăng 300k/m&sup2;. '
+               'Các huyện của tỉnh Hà Giang, Lạng Sơn tăng 300k.')
+
+            + mong_tbl('ĐƠN GIÁ MIỀN TRUNG', '#b45309', [
+                ('Móng đơn', '35%', '40%'),
+                ('Móng băng', '45%', '50%'),
+                ('Móng cọc', '45%', '50%'),
+            ], 'Diện tích sàn tầng 1 tính theo diện tích mái đua tầng 1 gồm cả bậc tam cấp. '
+               'Nhà tân cổ điển nhẹ tăng 400k, tân cổ điển nặng tăng 800k (gửi cấp trên duyệt).')
+
+            + mong_tbl('ĐƠN GIÁ MIỀN NAM', '#15803d', [
+                ('Móng cốc', '40%', '45%'),
+                ('Móng băng', '50%', '55%'),
+                ('Móng cọc', '50%', '55%'),
+            ], 'Diện tích sàn tầng 1 tính theo diện tích mái đua tầng 1 gồm cả bậc tam cấp. '
+               'Nhà tân cổ điển nhẹ tăng 400k, tân cổ điển nặng tăng 800k (gửi cấp trên duyệt).')
+
+            + _box('#dc2626', '#fef2f2', '&#9888;&#65039;', 'Lưu ý hệ số móng',
+                   '<p style="margin:0;">Hệ số <b>móng cốc cộng thêm 10%</b>; '
+                   '<b>móng băng, móng cọc cộng thêm 15%</b>.</p>')
+
+            + '<h2 style="' + h2 + '">&#127970; 2) SÀN (đơn giá xây thô đ/m&sup2;) &mdash; chung 3 miền</h2>'
+            '<table><thead><tr><th>SÀN (diện tích)</th>'
+            '<th style="text-align:center;">75 m&sup2;</th>'
+            '<th style="text-align:center;">65-75 m&sup2;</th>'
+            '<th style="text-align:center;">50-65 m&sup2;</th>'
+            '<th style="text-align:center;">40-50 m&sup2;</th>'
+            '<th style="text-align:center;">Dưới 40 m&sup2;</th></tr></thead><tbody>'
+            '<tr><td><b>Ô tô VÀO được</b></td>'
+            '<td style="text-align:center;">6.400.000đ</td><td style="text-align:center;">6.600.000đ</td>'
+            '<td style="text-align:center;">6.800.000đ</td><td style="text-align:center;">7.000.000đ</td>'
+            '<td style="text-align:center;">7.500.000đ</td></tr>'
+            '<tr><td><b>Ô tô KHÔNG vào</b></td>'
+            '<td style="text-align:center;">6.700.000đ</td><td style="text-align:center;">6.900.000đ</td>'
+            '<td style="text-align:center;">7.000.000đ</td><td style="text-align:center;">7.500.000đ</td>'
+            '<td style="text-align:center;">8.000.000đ</td></tr>'
+            '<tr><td><b>Xây thô trọn gói</b></td>'
+            '<td style="text-align:center;" colspan="2">5.000.000đ (&ge;70m&sup2;)</td>'
+            '<td style="text-align:center;" colspan="3">5.200.000đ (&lt;70m&sup2;)</td></tr>'
+            '</tbody></table>'
+
+            + '<h2 style="' + h2 + '">&#127968; 3) MÁI &mdash; chung 3 miền (DT = diện tích sàn)</h2>'
+            '<table><thead><tr><th style="width:40%;">Loại mái</th><th>Công thức</th></tr></thead><tbody>'
+            '<tr><td><b>Mái bằng</b></td><td>DT &times; 20% &times; Đơn giá</td></tr>'
+            '<tr><td><b>Mái Nhật</b></td><td>Không đổ trần: 42% &middot; <b>Có đổ trần: 48%</b></td></tr>'
+            '<tr><td><b>Mái Thái</b></td><td>Không đổ trần: 45% &middot; <b>Có đổ trần: 55%</b></td></tr>'
+            '<tr><td><b>Thông tầng</b></td><td>DT &times; 40% &times; Đơn giá</td></tr>'
+            '<tr><td><b>Mái trang trí</b></td><td>40% &rarr; 60% &middot; <b>Đổ trần: 100%</b></td></tr>'
+            '<tr><td><b>Mái tôn</b></td><td>1 mặt: 13% &middot; 2 mặt: 16% &middot; 3 mặt: 20%</td></tr>'
+            '</tbody></table>'
+
+            + '<h2 style="' + h2 + '">&#10071; 4) BẢNG GIÁ PHÁT SINH (nhà 100 m&sup2;)</h2>'
+            '<table><thead><tr><th style="width:60%;">Loại phát sinh</th><th style="text-align:center;">Phát sinh</th></tr></thead><tbody>'
+            '<tr><td>Đường lớn - có chỗ tập kết</td><td style="text-align:center;"><b>0 đ/m&sup2;</b></td></tr>'
+            '<tr><td>Đường lớn - không chỗ tập kết</td><td style="text-align:center;">200.000 đ/m&sup2;</td></tr>'
+            '<tr><td>Ngõ nhỏ - có chỗ tập kết</td><td style="text-align:center;">250.000 đ/m&sup2;</td></tr>'
+            '<tr><td>Ngõ nhỏ - không chỗ tập kết</td><td style="text-align:center;">350.000 đ/m&sup2;</td></tr>'
+            '<tr><td>Có chỗ để đất</td><td style="text-align:center;"><b>0 đ/m&sup2;</b></td></tr>'
+            '<tr><td>Không có chỗ để đất + đổ thải + mua đất</td><td style="text-align:center;">300.000 đ/m&sup2;</td></tr>'
+            '<tr><td>Đất yếu - đào sâu - gia cố</td><td style="text-align:center;">250.000 đ/m&sup2;</td></tr>'
+            '</tbody></table>'
+
+            + _core(
+                'Đây là <b>bảng giá gốc</b>. Các phần dưới sẽ dạy bạn cách <b>tính nhẩm nhanh</b> '
+                'từ bảng giá này ngay trong cuộc gọi.'
+            )
+        )
 
     def _bg_p1(self, h2, h3, lead):
         return (
