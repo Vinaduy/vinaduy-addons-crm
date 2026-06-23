@@ -10008,22 +10008,50 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 /* ===== KHÓA HỌC: nút HỌC CÙNG VINADUY + báo cáo tổng/đã/chưa học
    (user spec 2026-06-24, thay nút CUỘC GỌI ĐẾN) ===== */
 .o_vd_learn_box { margin-top: 0.6rem; }
+
+/* Hiệu ứng nhẹ để thu hút bấm vào học: viền sáng nhịp nhàng + ánh sáng quét. */
+@keyframes vdLearnPulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(12, 166, 120, 0.30), 0 0 0 0 rgba(32, 201, 151, 0.45); }
+    50%      { box-shadow: 0 9px 24px rgba(12, 166, 120, 0.40), 0 0 0 7px rgba(32, 201, 151, 0); }
+}
+@keyframes vdLearnShine {
+    0%        { transform: translateX(-130%) skewX(-18deg); }
+    55%, 100% { transform: translateX(320%) skewX(-18deg); }
+}
 .o_vd_learn_btn {
+    position: relative; overflow: hidden;
     width: 100%;
     display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-    padding: 0.85rem 1rem;
+    padding: 0.95rem 1rem;
     border-radius: 14px 14px 0 0;
     cursor: pointer; color: #fff; font-weight: 900;
-    letter-spacing: 0.5px; text-transform: uppercase;
-    background: linear-gradient(135deg, #20c997, #0ca678 55%, #099268);
+    letter-spacing: 0.6px; text-transform: uppercase;
+    background: linear-gradient(135deg, #2bd4a4 0%, #0ca678 55%, #0b8a64 100%);
     border: 2px solid #c3fae8; border-bottom: none;
     font-family: inherit; appearance: none;
     -webkit-user-select: none; user-select: none;
-    transition: filter 0.12s ease, transform 0.12s ease;
-    .o_vd_learn_ico { font-size: 1.4rem; flex: 0 0 auto; }
-    .o_vd_learn_txt { font-size: 1.05rem; line-height: 1.1; }
-    .o_vd_learn_arrow { font-size: 1rem; flex: 0 0 auto; opacity: 0.85; }
-    &:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+    animation: vdLearnPulse 2.6s ease-in-out infinite;
+    /* dải sáng quét ngang */
+    &::before {
+        content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 42%;
+        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+        animation: vdLearnShine 3.6s ease-in-out infinite;
+        pointer-events: none; z-index: 0;
+    }
+    .o_vd_learn_ico { font-size: 1.45rem; flex: 0 0 auto; position: relative; z-index: 1;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18)); }
+    .o_vd_learn_txt { font-size: 1.08rem; line-height: 1.1; position: relative; z-index: 1; }
+    .o_vd_learn_arrow { font-size: 1rem; flex: 0 0 auto; opacity: 0.9; position: relative; z-index: 1;
+        transition: transform 0.18s ease; }
+    &:hover {
+        filter: brightness(1.06);
+        transform: translateY(-2px);
+        box-shadow: 0 13px 28px rgba(12, 166, 120, 0.42);
+        animation-play-state: paused;
+        .o_vd_learn_arrow { transform: translateX(5px); }
+    }
+    &:active { transform: translateY(0); }
 }
 .o_vd_learn_report {
     display: flex;

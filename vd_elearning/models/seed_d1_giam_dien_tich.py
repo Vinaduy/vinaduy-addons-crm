@@ -20,8 +20,42 @@ from .seed_kh_tiem_nang import (
 )
 from .seed_khong_tuoi import _chot
 
-_D1G_VERSION = 'v1'
+_D1G_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.d1_giam_dien_tich_seed_version'
+_IMG = '/vd_elearning/static/src/img/giamdientich/'
+
+
+def _fig(name, cap='', h=380):
+    """Ảnh minh họa LỚN trong gallery (contain - không cắt mất khoanh đỏ)."""
+    c = ''
+    if cap:
+        c = ('<figcaption style="font-size:13.5px;color:#475569;text-align:center;'
+             'margin-top:8px;font-weight:700;">%s</figcaption>') % cap
+    return (
+        '<figure style="margin:0;flex:1 1 400px;min-width:300px;max-width:640px;">'
+        '<img src="%s%s" style="width:100%%;height:%dpx;object-fit:contain;'
+        'background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:8px;'
+        'box-shadow:0 8px 24px rgba(32,36,58,.18);"/>%s</figure>'
+    ) % (_IMG, name, h, c)
+
+
+def _figwide(name, cap='', h=440):
+    """Ảnh LỚN tràn ngang (mặt bằng) - để nhìn rõ toàn bộ."""
+    c = ''
+    if cap:
+        c = ('<figcaption style="font-size:14px;color:#475569;text-align:center;'
+             'margin-top:10px;font-weight:700;">%s</figcaption>') % cap
+    return (
+        '<figure style="margin:18px 0;">'
+        '<img src="%s%s" style="width:100%%;max-height:%dpx;object-fit:contain;'
+        'background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:10px;'
+        'box-shadow:0 8px 24px rgba(32,36,58,.18);"/>%s</figure>'
+    ) % (_IMG, name, h, c)
+
+
+def _gallery(*figs):
+    return ('<div style="display:flex;flex-wrap:wrap;gap:16px;margin:18px 0;'
+            'justify-content:center;">%s</div>') % ''.join(figs)
 
 
 def _hero(title_small, title_big, sub):
@@ -165,6 +199,11 @@ class SlideChannelSeedD1GiamDienTich(models.Model):
             '<tr><td>Tạo không gian thoáng, đẹp, sang</td><td>Mỗi mét sàn bớt đi = bớt tiền trực tiếp</td></tr>'
             '</tbody></table>'
 
+            + _figwide('cach1_matbang.png',
+                       'KHOANH ĐỎ = diện tích NHÀ (P.Khách, Bếp+Ăn, P.Ngủ, Sảnh) cần thu gọn '
+                       'để giảm chi phí. Phần VÀNG bên trái (Sân trước, Vườn) và Sân sau là '
+                       'phần SÂN &mdash; rẻ hơn nhiều, nên tăng phần này.')
+
             + _proof(
                 '<p style="margin-bottom:0;">Một mét vuông <b>sàn nhà</b> phải gánh đủ: '
                 'móng, cột, dầm, sàn, tường, mái, điện nước, hoàn thiện&hellip; nên rất '
@@ -194,7 +233,13 @@ class SlideChannelSeedD1GiamDienTich(models.Model):
             'cầu thang, làm phòng thờ/giặt phơi/kho). Tum cũng <b>tính tiền như một phần '
             'sàn</b> &mdash; nên thu nhỏ hoặc bỏ Tum sẽ giảm chi phí ngay.</p>'
 
-            '<table><thead><tr><th>Phương án</th><th>Cách làm</th><th>Tác dụng</th></tr></thead><tbody>'
+            + _gallery(
+                _fig('cach2_tum1.png', 'Phần Tum (khoanh đỏ) trên tầng mái cùng &mdash; '
+                     'thu nhỏ hoặc bỏ để giảm diện tích.'),
+                _fig('cach2_tum2.png', 'Tum chiếm thêm một phần sàn &mdash; bỏ Tum giúp '
+                     'giảm chi phí mạnh nhất.'))
+
+            + '<table><thead><tr><th>Phương án</th><th>Cách làm</th><th>Tác dụng</th></tr></thead><tbody>'
             '<tr><td><b style="color:#b45309;">THU NHỎ TUM</b></td>'
             '<td>Từ <b>25m&sup2; xuống còn 15m&sup2;</b> hoặc <b>10m&sup2;</b></td>'
             '<td>Giảm 10&ndash;15m&sup2; sàn Tum &rArr; giảm chi phí mà vẫn còn Tum dùng.</td></tr>'
@@ -232,6 +277,11 @@ class SlideChannelSeedD1GiamDienTich(models.Model):
             'phần phía sau</b> (thường ở tầng trên cùng) để làm <b>sân phơi</b>. Phần này '
             'không tính tiền nặng như sàn xây kín &rArr; vừa giảm chi phí, vừa có chỗ '
             'phơi đồ thực dụng cho gia đình.</p>'
+
+            + _figwide('cach3_sanphoi.png',
+                       'Phần KHOANH ĐỎ phía sau tầng trên được cắt làm SÂN PHƠI (chỉ cần '
+                       'nền và lan can) &mdash; rẻ hơn sàn xây kín, lại có chỗ giặt phơi.',
+                       h=400)
 
             + _proof(
                 '<p style="margin-bottom:0;">Sân phơi chỉ cần <b>nền và lan can</b>, không '

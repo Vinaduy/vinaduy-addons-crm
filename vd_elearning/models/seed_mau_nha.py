@@ -12,7 +12,7 @@ from odoo import api, models
 
 from .seed_kh_tiem_nang import _WRAP, _box, _advice, _proof, _mistake
 
-_MN_VERSION = 'v1'
+_MN_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.maunha_seed_version'
 _IMG = '/vd_elearning/static/src/img/maunha/'
 
@@ -37,9 +37,9 @@ def _fig(name, cap=''):
         c = ('<figcaption style="font-size:12.5px;color:#64748b;text-align:center;'
              'margin-top:5px;font-weight:600;">%s</figcaption>') % cap
     return (
-        '<figure style="margin:0;flex:1 1 230px;min-width:190px;max-width:330px;">'
-        '<img src="%s%s" style="width:100%%;height:190px;object-fit:cover;border-radius:12px;'
-        'box-shadow:0 4px 14px rgba(32,36,58,.18);"/>%s</figure>'
+        '<figure style="margin:0;flex:1 1 360px;min-width:300px;max-width:560px;">'
+        '<img src="%s%s" style="width:100%%;height:300px;object-fit:cover;border-radius:14px;'
+        'box-shadow:0 6px 20px rgba(32,36,58,.20);"/>%s</figure>'
     ) % (_IMG, name, c)
 
 
