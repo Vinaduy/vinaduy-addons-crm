@@ -228,6 +228,7 @@ export class VdCrmDashboard extends Component {
             // danh sách (lịch mới / đã hoàn thành rớt ra). Bỏ qua khi tab ẩn.
             this.state.trainingNow = Date.now();
             this._loadTrainingBanner();
+            this._loadCourseStats();
             this._trainingTick = setInterval(() => {
                 this.state.trainingNow = Date.now();
                 this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
@@ -464,6 +465,24 @@ export class VdCrmDashboard extends Component {
         const p = (n) => (n < 10 ? "0" : "") + n;
         return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
     }
+    // HỌC CÙNG VINADUY: mở trang khóa học (lộ trình học online của NV).
+    openElearning() {
+        this.action.doAction({
+            type: "ir.actions.client",
+            tag: "vd_elearning_overview",
+            name: "Học cùng VINADUY",
+        });
+    }
+    // Báo cáo khóa học: tổng / đã học / chưa học (an toàn nếu eLearning chưa cài).
+    async _loadCourseStats() {
+        try {
+            const s = await this.orm.call("crm.lead", "vd_my_course_stats", []);
+            this.state.courseStats = s || null;
+        } catch (_e) {
+            this.state.courseStats = null;
+        }
+    }
+
     // VÀO HỌC: mở thẳng khóa học được chỉ định (không qua lộ trình / module học online).
     enterTraining(s) {
         this.action.doAction({

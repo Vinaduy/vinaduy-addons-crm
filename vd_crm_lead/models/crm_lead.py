@@ -6672,6 +6672,37 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def vd_my_course_stats(self):
+        """Báo cáo khóa học của NV ĐANG đăng nhập: tổng / đã học / chưa học.
+        Dùng cho nút HỌC CÙNG VINADUY trên dashboard. An toàn nếu module
+        vd_elearning chưa cài (trả về 0, không vỡ dashboard)."""
+        try:
+            Channel = self.env['slide.channel'].sudo()
+            user = self.env.user
+            # Khu khóa học theo vai trò: trưởng nhóm/lãnh đạo học khu 'leader'.
+            zone = 'leader' if user.has_group(
+                'vd_crm_lead.vd_crm_group_team_leader') else 'sales'
+            courses = Channel.search([('vd_role_zone', '=', zone)])
+            courses = courses.filtered(lambda c: Channel._vd_course_has_content(c))
+            cids = set(courses.ids)
+            total = len(cids)
+            done = set()
+            ER = self.env['vd.exam.result'].sudo()
+            for r in ER.search([('user_id', '=', user.id),
+                                ('channel_id', 'in', list(cids)),
+                                ('passed', '=', True)]):
+                done.add(r.channel_id.id)
+            SCP = self.env['slide.channel.partner'].sudo()
+            for p in SCP.search([('partner_id', '=', user.partner_id.id),
+                                 ('channel_id', 'in', list(cids)),
+                                 ('member_status', '=', 'completed')]):
+                done.add(p.channel_id.id)
+            d = len(done & cids)
+            return {'total': total, 'done': d, 'todo': max(0, total - d)}
+        except Exception:
+            return {'total': 0, 'done': 0, 'todo': 0}
+
+    @api.model
     def _vd_call_report(self, user_ids, today=None):
         """NGUỒN DUY NHẤT cho báo cáo cuộc gọi HÔM NAY + THÁNG NÀY của từng NV.
 

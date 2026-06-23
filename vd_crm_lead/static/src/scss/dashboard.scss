@@ -10005,6 +10005,53 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     appearance: none;
 }
 
+/* ===== KHÓA HỌC: nút HỌC CÙNG VINADUY + báo cáo tổng/đã/chưa học
+   (user spec 2026-06-24, thay nút CUỘC GỌI ĐẾN) ===== */
+.o_vd_learn_box { margin-top: 0.6rem; }
+.o_vd_learn_btn {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px 14px 0 0;
+    cursor: pointer; color: #fff; font-weight: 900;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    background: linear-gradient(135deg, #20c997, #0ca678 55%, #099268);
+    border: 2px solid #c3fae8; border-bottom: none;
+    font-family: inherit; appearance: none;
+    -webkit-user-select: none; user-select: none;
+    transition: filter 0.12s ease, transform 0.12s ease;
+    .o_vd_learn_ico { font-size: 1.4rem; flex: 0 0 auto; }
+    .o_vd_learn_txt { font-size: 1.05rem; line-height: 1.1; }
+    .o_vd_learn_arrow { font-size: 1rem; flex: 0 0 auto; opacity: 0.85; }
+    &:hover { filter: brightness(1.07); transform: translateY(-1px); }
+}
+.o_vd_learn_report {
+    display: flex;
+    background: #fff;
+    border: 2px solid #c3fae8; border-top: none;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+}
+.o_vd_learn_stat {
+    flex: 1 1 0; text-align: center; padding: 0.5rem 0.3rem;
+    display: flex; flex-direction: column; gap: 0.1rem;
+    & + & { border-left: 1px solid #f1f3f5; }
+    .o_vd_learn_num { font-size: 1.4rem; font-weight: 900; line-height: 1; }
+    .o_vd_learn_lbl { font-size: 0.68rem; font-weight: 700; color: #868e96; text-transform: uppercase; }
+}
+.o_vd_learn_total .o_vd_learn_num { color: #1971c2; }
+.o_vd_learn_done  .o_vd_learn_num { color: #2f9e44; }
+.o_vd_learn_todo  .o_vd_learn_num { color: #e8590c; }
+.o_vd_learn_bar {
+    height: 0.5rem; background: #e9ecef;
+    border-radius: 999px; overflow: hidden; margin-top: 0.4rem;
+}
+.o_vd_learn_bar_fill {
+    height: 100%;
+    background: linear-gradient(90deg, #40c057, #2f9e44);
+    border-radius: 999px; transition: width 0.4s ease;
+}
+
 .o_vd_refrec_filter {
     margin-top: 0.85rem;
     display: flex;

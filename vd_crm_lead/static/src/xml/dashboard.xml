@@ -1706,12 +1706,33 @@
                             <i class="fa fa-bullhorn o_vd_refrec_bell"/>
                         </div>
 
-                        <!-- 3c. CUỘC GỌI ĐẾN — mở màn lịch sử khách gọi vào -->
-                        <div class="o_vd_inbound_btn" t-on-click="() => this.openInboundCalls()"
-                             title="Xem lịch sử khách gọi đến tổng đài">
-                            <i class="fa fa-phone o_vd_inbound_ico"/>
-                            <span class="o_vd_inbound_txt">CUỘC GỌI ĐẾN</span>
-                            <i class="fa fa-arrow-right o_vd_inbound_arrow"/>
+                        <!-- 3c. KHÓA HỌC — nút HỌC CÙNG VINADUY + báo cáo tổng/đã/chưa học
+                             (user spec 2026-06-24: thay nút CUỘC GỌI ĐẾN). -->
+                        <div class="o_vd_learn_box">
+                            <button class="o_vd_learn_btn" t-on-click="() => this.openElearning()"
+                                    title="Mở trang khóa học của VINADUY">
+                                <i class="fa fa-graduation-cap o_vd_learn_ico"/>
+                                <span class="o_vd_learn_txt">HỌC CÙNG VINADUY</span>
+                                <i class="fa fa-arrow-right o_vd_learn_arrow"/>
+                            </button>
+                            <div class="o_vd_learn_report" t-if="state.courseStats">
+                                <div class="o_vd_learn_stat o_vd_learn_total">
+                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.total"/></span>
+                                    <span class="o_vd_learn_lbl">Tổng khóa</span>
+                                </div>
+                                <div class="o_vd_learn_stat o_vd_learn_done">
+                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.done"/></span>
+                                    <span class="o_vd_learn_lbl">Đã học</span>
+                                </div>
+                                <div class="o_vd_learn_stat o_vd_learn_todo">
+                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.todo"/></span>
+                                    <span class="o_vd_learn_lbl">Chưa học</span>
+                                </div>
+                            </div>
+                            <div class="o_vd_learn_bar" t-if="state.courseStats and state.courseStats.total">
+                                <div class="o_vd_learn_bar_fill"
+                                     t-att-style="`width:${Math.round(state.courseStats.done * 100 / state.courseStats.total)}%`"/>
+                            </div>
                         </div>
 
                         <!-- 4. Cảnh báo: ĐÃ XOÁ theo user spec 2026-05-29
