@@ -1960,6 +1960,47 @@
                                             </button>
                                         </div>
                                         <div class="o_vd_filter_table_right">
+                                            <!-- ☎️ KHÁCH GỌI ĐẾN HÔM NAY (user spec 2026-06-24):
+                                                 1 dòng trên cùng — nghe máy (xanh) + gọi nhỡ (đỏ).
+                                                 Quá 2 dòng → "xem thêm" hover ra bảng đầy đủ. -->
+                                            <div t-if="state.inbound_today and state.inbound_today.length"
+                                                 class="o_vd_inbound_sec">
+                                                <div class="o_vd_inbound_sec_head">
+                                                    <i class="fa fa-phone"/> KHÁCH GỌI ĐẾN HÔM NAY
+                                                    <span class="o_vd_inbound_sec_cnt"><t t-esc="state.inbound_today.length"/></span>
+                                                </div>
+                                                <div class="o_vd_inbound_row">
+                                                    <t t-foreach="state.inbound_today" t-as="ic" t-key="ic_index">
+                                                        <span t-if="ic_index &lt; 8"
+                                                              t-att-class="'o_vd_inbound_chip ' + (ic.answered ? 'o_vd_ic_ans' : 'o_vd_ic_miss')"
+                                                              t-on-click="() => ic.lead_id &amp;&amp; this.openLead(ic.lead_id)"
+                                                              t-att-title="(ic.answered ? 'Đã nghe máy' : 'Gọi nhỡ') + ' — ' + (ic.phone || '')">
+                                                            <i t-att-class="'fa ' + (ic.answered ? 'fa-phone' : 'fa-phone-square')"/>
+                                                            <span class="o_vd_ic_name"><t t-esc="ic.name"/></span>
+                                                        </span>
+                                                    </t>
+                                                    <!-- XEM THÊM khi quá 2 dòng (hover ra bảng đầy đủ) -->
+                                                    <div t-if="state.inbound_today.length > 8" class="o_vd_inbound_more">
+                                                        <span class="o_vd_inbound_more_btn">
+                                                            <i class="fa fa-angle-double-right"/> xem thêm (<t t-esc="state.inbound_today.length"/>)
+                                                        </span>
+                                                        <div class="o_vd_inbound_pop">
+                                                            <div class="o_vd_inbound_pop_head">📞 Khách gọi đến hôm nay — <t t-esc="state.inbound_today.length"/> KH</div>
+                                                            <div class="o_vd_inbound_pop_rows">
+                                                                <t t-foreach="state.inbound_today" t-as="ic2" t-key="ic2_index">
+                                                                    <div t-att-class="'o_vd_inbound_prow ' + (ic2.answered ? 'o_vd_ic_ans' : 'o_vd_ic_miss')"
+                                                                         t-on-click="() => ic2.lead_id &amp;&amp; this.openLead(ic2.lead_id)">
+                                                                        <i t-att-class="'fa ' + (ic2.answered ? 'fa-phone' : 'fa-phone-square')"/>
+                                                                        <span class="o_vd_ic_pname"><t t-esc="ic2.name"/></span>
+                                                                        <span class="o_vd_ic_pphone"><t t-esc="ic2.phone"/></span>
+                                                                        <span class="o_vd_ic_pstatus"><t t-esc="ic2.answered ? 'Nghe máy' : 'Gọi nhỡ'"/></span>
+                                                                    </div>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <!-- CALL-WATCH (user 2026-06-05): GIỮ bảng thông báo VÀNG,
                                                  bên trong KHÔNG đổ danh sách dài — chỉ 1 BUTTON
                                                  "N KHÁCH CHƯA GỌI" + popover hover (bỏ SĐT). Khoá -> đỏ. -->

@@ -10052,6 +10052,78 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-radius: 999px; transition: width 0.4s ease;
 }
 
+/* ===== KHÁCH GỌI ĐẾN HÔM NAY — dòng trên cùng bảng KHÁCH MỚI
+   (user spec 2026-06-24): nghe máy = xanh, gọi nhỡ = đỏ; >2 dòng -> xem thêm ===== */
+.o_vd_inbound_sec {
+    margin: 0 0 0.55rem; padding: 0.4rem 0.55rem 0.5rem;
+    background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px;
+}
+.o_vd_inbound_sec_head {
+    font-size: 0.74rem; font-weight: 800; color: #495057; text-transform: uppercase;
+    letter-spacing: 0.3px; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;
+    > i { color: #1971c2; }
+    .o_vd_inbound_sec_cnt { background: #1971c2; color: #fff; border-radius: 999px;
+        padding: 0 0.42rem; font-size: 0.66rem; }
+}
+.o_vd_inbound_row { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.o_vd_inbound_chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.18rem 0.55rem; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    border: 1px solid transparent; max-width: 12rem;
+    transition: transform .1s ease, filter .1s ease;
+    i { font-size: 0.7rem; }
+    .o_vd_ic_name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    &:hover { filter: brightness(0.97); transform: translateY(-1px); }
+}
+.o_vd_inbound_chip.o_vd_ic_ans {
+    background: #d3f9d8; color: #2b8a3e; border-color: #b2f2bb;
+    i { color: #2f9e44; }
+}
+.o_vd_inbound_chip.o_vd_ic_miss {
+    background: #ffe3e3; color: #c92a2a; border-color: #ffc9c9;
+    i { color: #e03131; }
+}
+/* XEM THÊM + popover hover */
+.o_vd_inbound_more { position: relative; }
+.o_vd_inbound_more_btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.18rem 0.55rem; border-radius: 999px; cursor: pointer;
+    font-size: 0.74rem; font-weight: 800; color: #1864ab;
+    background: #e7f5ff; border: 1px dashed #74c0fc;
+    &:hover { background: #d0ebff; }
+}
+.o_vd_inbound_pop {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 90;
+    width: 340px; max-height: 60vh; overflow-y: auto;
+    background: #fff; border: 1px solid #dee2e6; border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
+    opacity: 0; visibility: hidden; transform: translateY(-4px);
+    transition: opacity .14s ease, transform .14s ease;
+    &::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; }
+}
+.o_vd_inbound_more:hover .o_vd_inbound_pop { opacity: 1; visibility: visible; transform: translateY(0); }
+.o_vd_inbound_pop_head {
+    padding: 0.55rem 0.75rem; font-weight: 800; font-size: 0.85rem; color: #fff;
+    background: linear-gradient(135deg, #1971c2, #1864ab); border-radius: 12px 12px 0 0;
+    position: sticky; top: 0;
+}
+.o_vd_inbound_pop_rows { padding: 0.4rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.o_vd_inbound_prow {
+    display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
+    padding: 0.3rem 0.45rem; border-radius: 8px; font-size: 0.8rem;
+    .o_vd_ic_pname { font-weight: 700; flex: 1 1 auto; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_vd_ic_pphone { color: #868e96; font-size: 0.74rem; flex: 0 0 auto; }
+    .o_vd_ic_pstatus { flex: 0 0 auto; font-size: 0.64rem; font-weight: 800;
+        padding: 0.05rem 0.42rem; border-radius: 999px; }
+    &.o_vd_ic_ans { background: #ebfbee; i { color: #2f9e44; }
+        .o_vd_ic_pstatus { background: #d3f9d8; color: #2b8a3e; } }
+    &.o_vd_ic_miss { background: #fff5f5; i { color: #e03131; }
+        .o_vd_ic_pstatus { background: #ffe3e3; color: #c92a2a; } }
+    &:hover { filter: brightness(0.96); }
+}
+
 .o_vd_refrec_filter {
     margin-top: 0.85rem;
     display: flex;

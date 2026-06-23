@@ -6671,6 +6671,43 @@ class CrmLead(models.Model):
             'manual_report': self._vd_distribution_report(pancake=False),
         }
 
+    def _vd_inbound_today_chips(self, call_today_domain):
+        """KHÁCH GỌI ĐẾN HÔM NAY của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
+        answered=True nếu có cuộc nghe máy (answer_time); ngược lại = gọi nhỡ (đỏ).
+        call_today_domain đã scope theo NV + create_date hôm nay."""
+        import re as _re
+        try:
+            Call = self.env['stringee.call'].sudo()
+            calls = Call.search(
+                call_today_domain + [('direction', '=', 'inbound')],
+                order='create_date desc')
+        except Exception:
+            return []
+        by_phone = {}
+        for c in calls:
+            phone = (c.caller_number or (c.lead_id.phone if c.lead_id else '') or '').strip()
+            digits = _re.sub(r'\D', '', phone)
+            key = digits[-9:] if len(digits) >= 9 else (digits or 'id%s' % c.id)
+            answered = bool(c.answer_time) or c.state == 'answered'
+            rec = by_phone.get(key)
+            if rec:
+                if answered:
+                    rec['answered'] = True
+                continue
+            nm = ''
+            if c.lead_id:
+                nm = c.lead_id.partner_name or c.lead_id.name or ''
+            by_phone[key] = {
+                'name': nm or ('KH ' + phone if phone else 'Khách lạ'),
+                'phone': phone,
+                'lead_id': c.lead_id.id if c.lead_id else False,
+                'answered': answered,
+            }
+        chips = list(by_phone.values())
+        # Gọi nhỡ (đỏ) LÊN ĐẦU để NV ưu tiên gọi lại; trong nhóm thì theo tên.
+        chips.sort(key=lambda r: (r['answered'], (r['name'] or '').lower()))
+        return chips
+
     @api.model
     def vd_my_course_stats(self):
         """Báo cáo khóa học của NV ĐANG đăng nhập: tổng / đã học / chưa học.
@@ -7056,6 +7093,9 @@ class CrmLead(models.Model):
                 'is_all': scope_user is None,
             },
             'is_manager': is_manager,
+            # Dòng KHÁCH GỌI ĐẾN HÔM NAY (user spec 2026-06-24): gọi đến nghe máy +
+            # gọi nhỡ của NV đang xem, hiện trên cùng bảng KHÁCH MỚI.
+            'inbound_today': self._vd_inbound_today_chips(call_today_domain),
             # Trưởng nhóm: mở "giao diện quản lý NHÓM" (chọn/xem NV cùng phòng ban),
             # KHÔNG có quyền toàn công ty / thùng rác công ty (giữ cho Giám đốc+).
             # User spec 2026-06-20: Giám đốc (manager) ở chế độ "CÁ NHÂN"
