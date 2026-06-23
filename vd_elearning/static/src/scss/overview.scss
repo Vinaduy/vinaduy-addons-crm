@@ -136,25 +136,46 @@ $vd-line:   #ece7da;
         }
     }
 
-    // popover NV dang hoc
-    .o_vd_path_emp { position: relative; }
+    // popover THEO DOI lo trinh — hover vao marker lo trinh la hien bang day du
     .o_vd_learners {
-        position: absolute; top: calc(100% + 8px); left: -10px; z-index: 30;
-        width: 360px; max-width: 70vw;
+        position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+        width: 460px; max-width: 78vw;
         background: #fff; border: 1px solid $vd-line; border-radius: 12px;
         box-shadow: 0 16px 40px rgba($vd-ink, .22);
         padding: .7rem; opacity: 0; transform: translateY(-6px); pointer-events: none;
         transition: all .16s ease;
     }
-    .o_vd_path_emp:hover .o_vd_learners { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .o_vd_learners_head { font-weight: 800; font-size: .72rem; letter-spacing: .04em; color: #8a6a12; margin-bottom: .5rem; }
+    .o_vd_path_marker:hover .o_vd_learners { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .o_vd_learners_head { font-weight: 800; font-size: .72rem; letter-spacing: .04em; color: #8a6a12; margin-bottom: .45rem; }
+    .o_vd_track_stats {
+        display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .5rem;
+        .o_vd_stat {
+            font-size: .66rem; font-weight: 700; color: #5b5647;
+            padding: .14rem .45rem; border-radius: 999px; background: #f4f1e8;
+            b { margin-left: .2rem; font-weight: 900; }
+        }
+        .o_vd_stat_done { background: #e6f6ec; color: #1b7a3d; }
+        .o_vd_stat_learn { background: #e7f0fe; color: #1d54b5; }
+        .o_vd_stat_todo { background: #fdecec; color: #b5341d; }
+        .o_vd_stat_all { background: #efe8d4; color: #7a5a10; }
+    }
+    .o_vd_track_scroll { max-height: 320px; overflow-y: auto; }
     .o_vd_learners_tbl {
         width: 100%; border-collapse: collapse; font-size: .74rem;
-        th { text-align: left; color: #9a9685; font-weight: 700; padding: .3rem .4rem; border-bottom: 1px solid $vd-line; }
-        td { padding: .35rem .4rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink; }
+        th { position: sticky; top: 0; background: #fff; text-align: left; color: #9a9685;
+            font-weight: 700; padding: .3rem .4rem; border-bottom: 1px solid $vd-line; }
+        td { padding: .32rem .4rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink; }
         .o_vd_lr_nv { display: flex; align-items: center; gap: .4rem; font-weight: 700;
             img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; } }
+        .o_vd_lr_prog { font-weight: 800; color: #6b6552; white-space: nowrap; }
     }
+    .o_vd_badge {
+        display: inline-block; font-size: .64rem; font-weight: 800;
+        padding: .1rem .42rem; border-radius: 999px; white-space: nowrap;
+    }
+    .o_vd_badge_done { background: #1b7a3d; color: #fff; }
+    .o_vd_badge_learn { background: #e7f0fe; color: #1d54b5; }
+    .o_vd_badge_todo { background: #f1ede2; color: #9a7a2a; }
     .o_vd_learners_empty { color: #a7a395; font-size: .76rem; font-style: italic; padding: .4rem; }
 
     // ----- TRACK -----

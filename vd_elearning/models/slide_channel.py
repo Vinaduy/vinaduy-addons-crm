@@ -100,6 +100,26 @@ class SlideChannel(models.Model):
                                  ('channel_id', 'in', all_chan_ids)]):
                 progress.setdefault(p.partner_id.id, {})[p.channel_id.id] = p.member_status
 
+        # ----- Tap khoa DA DAT (passed) BEN VUNG theo NV: vd.exam.result -----
+        # Dung cho bang THEO DOI lo trinh (ai hoan thanh / dang hoc / chua hoc).
+        # Ben vung: khong mat khi gan lai lo trinh hay xoa membership. Fallback
+        # them membership 'completed' cho NV cu chua co ban ghi exam.result.
+        passed_by_uid = {}  # user_id -> set(channel_id da dat)
+        if all_chan_ids and internal:
+            ER = self.env['vd.exam.result'].sudo()
+            for r in ER.search([('user_id', 'in', internal.ids),
+                                ('channel_id', 'in', all_chan_ids),
+                                ('passed', '=', True)]):
+                passed_by_uid.setdefault(r.user_id.id, set()).add(r.channel_id.id)
+            pid2uid = {u.partner_id.id: u.id for u in internal}
+            for pid, chans in progress.items():
+                uid = pid2uid.get(pid)
+                if not uid:
+                    continue
+                for cid, st in chans.items():
+                    if st == 'completed':
+                        passed_by_uid.setdefault(uid, set()).add(cid)
+
         # NV duoc coi la "da gan" khi co membership o it nhat 1 khoa trong khu.
         sales_ids = set(zone_recs['sales'].ids)
         leader_ids = set(zone_recs['leader'].ids)
@@ -149,12 +169,50 @@ class SlideChannel(models.Model):
 
         PathModel = self.env['vd.learning.path'].sudo()
 
+        track_role_label = {'collaborator': 'CTV', 'employee': 'NV',
+                            'team_leader': 'TN', 'director': 'GĐ', 'admin': 'Admin'}
+
+        def path_tracking(path, zk):
+            """TAT CA nhan vien hien tai cua khu: ai HOAN THANH / DANG HOC / CHUA HOC
+            lo trinh nay. 'Da dat' = passed_by_uid (ben vung)."""
+            courses = path.course_ids.sorted(lambda c: (c.vd_seq, c.id))
+            cids = courses.ids
+            total = len(cids)
+            roles = self._vd_zone_roles(zk)
+            us = internal.filtered(lambda u: u.vd_crm_role in roles)
+            rows = []
+            n_done = n_learn = n_todo = 0
+            for u in us:
+                mine = passed_by_uid.get(u.id, set())
+                c = sum(1 for cid in cids if cid in mine)
+                if total and c >= total:
+                    status, cur = 'done', ''
+                    n_done += 1
+                elif c > 0:
+                    status = 'learning'
+                    cur = next((co.name for co in courses if co.id not in mine), '')
+                    n_learn += 1
+                else:
+                    status, cur = 'todo', (courses[0].name if courses else '')
+                    n_todo += 1
+                rows.append({'id': u.id, 'name': u.name or '',
+                             'team': u.vd_team_label or 'KHAC',
+                             'role': track_role_label.get(u.vd_crm_role, ''),
+                             'status': status, 'done': c, 'total': total,
+                             'current': cur})
+            order = {'learning': 0, 'todo': 1, 'done': 2}
+            rows.sort(key=lambda r: (order.get(r['status'], 9),
+                                     r['team'], r['name']))
+            return {'rows': rows, 'total_courses': total, 'n_total': len(rows),
+                    'n_done': n_done, 'n_learning': n_learn, 'n_todo': n_todo}
+
         def zone_paths(zk):
             paths = PathModel.search([('zone', '=', zk)], order='sequence, id')
             return [{
                 'id': p.id,
                 'name': p.name or '',
                 'courses': course_list(p.course_ids.sorted(lambda c: (c.vd_seq, c.id))),
+                'tracking': path_tracking(p, zk),
             } for p in paths]
 
         # ----- Bao cao thanh tich tung NV (tab NHAN VIEN) -----

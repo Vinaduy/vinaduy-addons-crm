@@ -940,23 +940,6 @@ export class VdElearningOverview extends Component {
         });
     }
 
-    // NV dang hoc trong 1 lo trinh (theo khoa hien tai cua ho)
-    pathLearners(path, zone) {
-        const ids = new Set(path.courses.map((c) => c.id));
-        return (zone.employees || [])
-            .filter((e) => ids.has(e.course_id))
-            .map((e) => {
-                const cur = path.courses.find((c) => c.id === e.course_id);
-                return {
-                    id: e.id,
-                    name: e.name,
-                    current: cur ? cur.name : "",
-                    start: e.start || "-",
-                    end: e.end || "-",
-                };
-            });
-    }
-
     // khoa dau cua lo trinh dau (entry) — an rider tren day o giao dien admin
     zoneEntryId(zone) {
         const p0 = (zone.paths || [])[0];

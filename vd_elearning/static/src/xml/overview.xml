@@ -548,36 +548,47 @@
                             <div class="o_vd_path_tools">
                                 <button t-if="state.isAdmin" class="o_vd_path_btn" title="Đổi tên lộ trình"
                                     t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
-                                <div class="o_vd_path_emp">
-                                    <button class="o_vd_path_btn" t-att-title="state.isAdmin ? 'Gán nhân viên vào lộ trình' : 'Nhân viên đang học'"
-                                        t-on-click="() => state.isAdmin ? this.openAssign(path, zone) : null"><i class="fa fa-user-plus"/></button>
-                                    <div class="o_vd_learners">
-                                        <div class="o_vd_learners_head">NHÂN VIÊN ĐANG HỌC · <t t-esc="path.name"/></div>
-                                        <table class="o_vd_learners_tbl">
-                                            <thead><tr><th>Nhân viên</th><th>Đang học</th><th>Bắt đầu</th><th>Kết thúc</th></tr></thead>
-                                            <tbody>
-                                                <t t-foreach="pathLearners(path, zone)" t-as="lr" t-key="lr.id">
-                                                    <tr>
-                                                        <td class="o_vd_lr_nv">
-                                                            <img t-attf-src="/web/image/res.users/{{lr.id}}/avatar_128"/>
-                                                            <span t-esc="lr.name"/>
-                                                        </td>
-                                                        <td t-esc="lr.current"/>
-                                                        <td t-esc="lr.start"/>
-                                                        <td t-esc="lr.end"/>
-                                                    </tr>
-                                                </t>
-                                            </tbody>
-                                        </table>
-                                        <div t-if="!pathLearners(path, zone).length" class="o_vd_learners_empty">Chưa có nhân viên đang học.</div>
-                                    </div>
+                                <button t-if="state.isAdmin" class="o_vd_path_btn" title="Gán nhân viên vào lộ trình"
+                                    t-on-click="() => this.openAssign(path, zone)"><i class="fa fa-user-plus"/></button>
+                            </div>
+                            <!-- THEO DOI LO TRINH: hover marker -> bang day du NV hoan thanh/dang hoc/chua -->
+                            <div class="o_vd_learners">
+                                <div class="o_vd_learners_head">THEO DÕI LỘ TRÌNH · <t t-esc="path.name"/></div>
+                                <div class="o_vd_track_stats">
+                                    <span class="o_vd_stat o_vd_stat_done">Hoàn thành <b t-esc="path.tracking.n_done"/></span>
+                                    <span class="o_vd_stat o_vd_stat_learn">Đang học <b t-esc="path.tracking.n_learning"/></span>
+                                    <span class="o_vd_stat o_vd_stat_todo">Chưa học <b t-esc="path.tracking.n_todo"/></span>
+                                    <span class="o_vd_stat o_vd_stat_all">Tổng <b t-esc="path.tracking.n_total"/></span>
+                                </div>
+                                <div class="o_vd_track_scroll">
+                                    <table class="o_vd_learners_tbl">
+                                        <thead><tr><th>Nhân viên</th><th>Phòng</th><th>Trạng thái</th><th>Tiến độ</th></tr></thead>
+                                        <tbody>
+                                            <t t-foreach="path.tracking.rows" t-as="lr" t-key="lr.id">
+                                                <tr>
+                                                    <td class="o_vd_lr_nv">
+                                                        <img t-attf-src="/web/image/res.users/{{lr.id}}/avatar_128"/>
+                                                        <span t-esc="lr.name"/>
+                                                    </td>
+                                                    <td t-esc="lr.team"/>
+                                                    <td>
+                                                        <span t-if="lr.status=='done'" class="o_vd_badge o_vd_badge_done">Hoàn thành</span>
+                                                        <span t-elif="lr.status=='learning'" class="o_vd_badge o_vd_badge_learn">Đang: <t t-esc="lr.current"/></span>
+                                                        <span t-else="" class="o_vd_badge o_vd_badge_todo">Chưa học</span>
+                                                    </td>
+                                                    <td class="o_vd_lr_prog"><t t-esc="lr.done"/>/<t t-esc="lr.total"/></td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                    <div t-if="!path.tracking.rows.length" class="o_vd_learners_empty">Chưa có nhân viên nào trong khu đào tạo này.</div>
                                 </div>
                             </div>
                             <div t-if="!path_last" class="o_vd_path_link"/>
                         </div>
                         <div t-if="path.courses.length" class="o_vd_arrow o_vd_arrow_lead"/>
                         <t t-call="vd_elearning.Track">
-                            <t t-set="nodes" t-value="trackNodes(path.courses, zone.employees, entryId)"/>
+                            <t t-set="nodes" t-value="trackNodes(path.courses, [], entryId)"/>
                             <t t-set="dropCtx" t-value="state.isAdmin ? {zoneKey: zone.key, pathId: path.id} : false"/>
                             <t t-set="draggable" t-value="state.isAdmin"/>
                         </t>
