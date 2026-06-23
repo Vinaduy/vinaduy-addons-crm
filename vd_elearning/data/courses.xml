@@ -43,13 +43,8 @@
             <field name="channel_type">training</field>
             <field name="vd_role_zone">sales</field>
         </record>
-        <!-- course_c2: admin da doi muc dich thanh khoa khac (vd "Linh vuc hoat dong").
-             Giu record de KHONG bi orphan-remove; noupdate=1 nen khong de ten len ten admin dat. -->
-        <record id="course_c2" model="slide.channel">
-            <field name="name">C2 - Tính nhẩm</field>
-            <field name="channel_type">training</field>
-            <field name="vd_role_zone">sales</field>
-        </record>
+        <!-- course_c2 ("C2 - Tinh nham") da go han: noi dung tinh nham gop vao
+             course_c1 ("Bang gia"). Khong giu <record> nua de -u KHONG tai tao lai. -->
         <record id="course_d" model="slide.channel">
             <field name="name">D - Cân Đối Tiền</field>
             <field name="channel_type">training</field>

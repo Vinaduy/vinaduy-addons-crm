@@ -112,13 +112,16 @@ class SlideChannel(models.Model):
             return any(cid in ids for cid in mine)
 
         def current_course_id(user, recs):
-            """Khoa hoc NV dang dung ('cua ai' hien tai)."""
+            """Khoa hoc NV dang dung ('cua ai' hien tai).
+            CHI xet cac khoa NV THUC SU duoc gan (co membership) - tranh "do" NV
+            sang khoa o lo trinh khac (vd. da go gan nhung van hien) chi vi khoa do
+            dung sau trong thu tu chung va NV chua hoan thanh no."""
             if not recs:
                 return False
-            ids = recs.ids
             mine = progress.get(user.partner_id.id, {})
-            if not mine:
-                return ids[0]                       # chua hoc gi -> dung o cua dau
+            ids = [cid for cid in recs.ids if cid in mine]
+            if not ids:
+                return False                         # khong con gan khoa nao -> khong hien
             for cid in ids:                          # cua dang hoc dang do
                 if mine.get(cid) in ('joined', 'ongoing'):
                     return cid

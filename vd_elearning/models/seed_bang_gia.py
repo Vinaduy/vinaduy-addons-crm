@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Seed noi dung + bai thi cho khoa "Bang gia" (course_c1).
+"""Seed noi dung + bai thi cho khoa "Don gia xay dung" (course_c1).
 
 Gop 2 tai lieu cong ty: "Don gia.pdf" (bang gia chi tiet 3 mien) + "Tinh nham.pptx"
 (he so tinh nham nhanh). Muc tieu: NV moi NHO duoc bang gia va TINH NHAM ra tong
-chi phi ngay trong cuoc goi. Co nhieu MEO NHO de hoc nhanh.
+chi phi ngay trong cuoc goi. Co GIAI THICH VI SAO (tai sao tinh nham nhu vay, tai
+sao bang gia nhu vay) + RAT NHIEU vi du de hieu.
 
 Bai thi: 20 cau trac nghiem (ly thuyet bang gia) + 10 cau TINH TIEN (cho thong so
 -> NV bam may tinh ra tong tien -> chon dap an so tien dung -> tu cham).
@@ -15,13 +16,18 @@ from odoo import api, models
 from .seed_kh_tiem_nang import (_WRAP, _box, _formula, _apply, _situation,
                                 _advice, _proof, _mistake)
 
-_BG_VERSION = 'v1'
+_BG_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.banggia_seed_version'
 
 
 def _tip(inner):
     """Khung MEO NHO (mau tim) - giup hoc thuoc nhanh."""
     return _box('#7c3aed', '#f5f3ff', '&#129504;', 'Mẹo nhớ nhanh', inner)
+
+
+def _why(inner):
+    """Khung VI SAO (mau xanh duong dam) - giai thich ly do dang sau con so."""
+    return _box('#0369a1', '#e0f2fe', '&#10067;', 'Vì sao lại như vậy?', inner)
 
 
 def _core(inner):
@@ -48,7 +54,7 @@ class SlideChannelSeedBangGia(models.Model):
             return True
 
         # Khoa nay nang ve TINH TOAN: dat 80%, thi lai khong gioi han, 45 phut.
-        ch.write({'name': 'Bảng giá', 'vd_pass_percent': 80,
+        ch.write({'name': 'Đơn giá xây dựng', 'vd_pass_percent': 80,
                   'vd_max_attempts': 0, 'vd_exam_minutes': 45})
 
         Slide = self.env['slide.slide'].sudo()
@@ -95,9 +101,10 @@ class SlideChannelSeedBangGia(models.Model):
             ('2. Don gia theo m2', self._p2(h2, h3, lead)),
             ('3. He so tinh nham 3 mien', self._p3(h2, h3, lead)),
             ('4. Bang gia chi tiet', self._p4(h2, h3, lead)),
-            ('5. Phat sinh', self._p5(h2, h3, lead)),
-            ('6. Vi du tinh mau', self._p6(h2, h3, lead)),
-            ('7. Ket luan', self._p7(h2, h3, lead)),
+            ('5. Cach tinh dien tich', self._p5(h2, h3, lead)),
+            ('6. Phat sinh', self._p6(h2, h3, lead)),
+            ('7. Vi du tinh mau', self._p7(h2, h3, lead)),
+            ('8. Ket luan', self._p8(h2, h3, lead)),
         ]
 
     def _p1(self, h2, h3, lead):
@@ -109,7 +116,8 @@ class SlideChannelSeedBangGia(models.Model):
             '<div style="font-size:25px;font-weight:900;margin-top:4px;">BẢNG GIÁ &amp; TÍNH NHẨM</div>'
             '<div style="font-size:15px;opacity:.95;margin-top:8px;">Học xong khóa này, bạn '
             '<b>tính nhẩm ra tổng tiền xây nhà NGAY trong cuộc gọi</b> &mdash; không cần mở file, '
-            'không cần chờ báo giá.</div></div>'
+            'không cần chờ báo giá. Quan trọng hơn: bạn <b>HIỂU vì sao</b> ra con số đó để giải '
+            'thích cho khách thật tự tin.</div></div>'
 
             '<h2 style="' + h2 + '">&#128176; CHỈ CÓ 1 CÔNG THỨC PHẢI THUỘC</h2>'
             '<p style="' + lead + '">Mọi cách tính nhẩm của VINADUY đều quy về <b>một công thức '
@@ -129,20 +137,40 @@ class SlideChannelSeedBangGia(models.Model):
                 '<li><b>Đơn giá</b>: tra bảng theo <b>diện tích</b> + <b>ô tô vào được hay không</b>.</li>'
                 '</ul>'
             )
+
+            + '<h2 style="' + h2 + '">&#129518; VÌ SAO CHỈ CẦN 1 CON SỐ "HỆ SỐ"?</h2>'
+            '<p style="' + lead + '">Một ngôi nhà gồm 3 phần chi phí chính: <b>móng</b>, '
+            '<b>các sàn (thân nhà)</b> và <b>mái</b>. Bảng chi tiết tính riêng từng phần rồi cộng '
+            'lại. "Hệ số tính nhẩm" chỉ là <b>tổng 3 phần đó gộp sẵn</b> thành 1 số, để bạn không '
+            'phải cộng lại khi đang gọi.</p>'
+
+            + _why(
+                '<p style="margin:0 0 6px;">Hệ số được dựng từ 3 mảnh, mỗi mảnh là <b>% của đơn giá</b>:</p>'
+                '<ul style="margin:0;">'
+                '<li><b>Mỗi tầng sàn &asymp; 1,0</b> (tức 100% đơn giá cho mỗi sàn). '
+                'Vì thế <b>PHẦN NGUYÊN của hệ số = số tầng</b>: nhà 1 tầng bắt đầu bằng <b>1.xx</b>, '
+                'nhà 2 tầng <b>2.xx</b>, cứ thêm 1 tầng thì hệ số <b>+1,0</b>.</li>'
+                '<li><b>Móng + Mái</b> nằm ở <b>PHẦN LẺ</b> (.xx). Móng to (cọc, băng) và mái dốc '
+                '(Nhật, Thái, đổ trần) thì phần lẻ lớn; móng đơn + mái bằng thì phần lẻ nhỏ.</li>'
+                '</ul>'
+                '<p style="margin:8px 0 0;">Ví dụ đọc ngược con số <b>2.50</b> (Bắc, móng băng, 2 tầng '
+                'mái bằng): số <b>2</b> = 2 tầng sàn; phần lẻ <b>.50</b> = móng băng + mái bằng cộng lại. '
+                'Hiểu vậy là bạn nhìn con số biết ngay nhà mấy tầng, móng - mái loại gì.</p>'
+            )
             + _core(
                 'TỔNG = <b>HỆ SỐ &times; DIỆN TÍCH &times; ĐƠN GIÁ</b>. '
-                'Ba bước: tra Hệ số &rarr; lấy Diện tích sàn tầng 1 &rarr; tra Đơn giá.'
+                'Hệ số = Móng + (số tầng &times; 1,0) + Mái &mdash; công ty đã gộp sẵn vào bảng.'
             )
         )
 
     def _p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127970; ĐƠN GIÁ XÂY THÔ THEO m&sup2; (đ/m&sup2;)</h2>'
-            '<p style="' + lead + '">Đơn giá <b>không cố định</b> &mdash; nhà càng nhỏ thì giá '
-            'mỗi m&sup2; càng cao (vì chi phí cố định chia trên ít diện tích). Nhà <b>ô tô không '
-            'vào được</b> thì cao hơn (vận chuyển vật tư khó).</p>'
+            '<p style="' + lead + '">Đây là phần <b>ĐƠN GIÁ</b> trong công thức. Bảng này '
+            '<b>giống nhau ở cả 3 miền</b> &mdash; chỉ phụ thuộc <b>diện tích sàn</b> và '
+            '<b>ô tô có vào được hay không</b>.</p>'
 
-            '<table><thead><tr><th style="width:38%;">Diện tích sàn</th>'
+            '<table><thead><tr><th style="width:34%;">Diện tích sàn</th>'
             '<th style="text-align:center;">Ô tô VÀO được</th>'
             '<th style="text-align:center;">Ô tô KHÔNG vào</th></tr></thead><tbody>'
             '<tr><td><b>&ge; 75 m&sup2;</b></td><td style="text-align:center;">6.400.000</td><td style="text-align:center;">6.700.000</td></tr>'
@@ -151,7 +179,20 @@ class SlideChannelSeedBangGia(models.Model):
             '<tr><td><b>40 - 50 m&sup2;</b></td><td style="text-align:center;">7.000.000</td><td style="text-align:center;">7.500.000</td></tr>'
             '<tr><td><b>&lt; 40 m&sup2;</b></td><td style="text-align:center;">7.500.000</td><td style="text-align:center;">8.000.000</td></tr>'
             '</tbody></table>'
+            '<p style="font-size:13px;color:#64748b;margin:4px 0 0;">Xây thô trọn gói: '
+            '<b>5.000.000</b> đ/m&sup2; (nhà &ge;70m&sup2;) / <b>5.200.000</b> đ/m&sup2; (nhà &lt;70m&sup2;).</p>'
 
+            + _why(
+                '<ul style="margin:0;">'
+                '<li><b>Nhà càng nhỏ, giá mỗi m&sup2; càng cao.</b> Chi phí cố định (huy động máy '
+                'móc, đội thợ, lán trại, vận chuyển ban đầu) gần như <b>không đổi</b> dù nhà to hay '
+                'nhỏ. Nhà to chia chi phí đó trên nhiều m&sup2; &rarr; rẻ/m&sup2;; nhà nhỏ gánh trên '
+                'ít m&sup2; &rarr; đắt/m&sup2;.</li>'
+                '<li><b>Ô tô không vào được thì đắt hơn (~+300k/m&sup2;).</b> Vật tư (cát, đá, gạch, '
+                'xi măng, thép) phải <b>trung chuyển thủ công</b> bằng xe nhỏ hoặc gánh bộ vào ngõ '
+                '&rarr; tốn thêm công và thời gian.</li>'
+                '</ul>'
+            )
             + _tip(
                 '<p style="margin:0;">Mốc gốc cần thuộc: nhà to (&ge;75m&sup2;), ô tô vào được = '
                 '<b>6,4 triệu/m&sup2;</b>. Từ đó:</p>'
@@ -162,7 +203,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
             + _core(
                 'Gốc <b>6,4 triệu/m&sup2;</b> (nhà &ge;75m&sup2;, ô tô vào). '
-                'Nhỏ hơn = đắt hơn; ô tô không vào = đắt hơn.'
+                'Nhỏ hơn = đắt hơn; ô tô không vào = đắt hơn ~300k.'
             )
         )
 
@@ -185,8 +226,9 @@ class SlideChannelSeedBangGia(models.Model):
             )
         return (
             '<h2 style="' + h2 + '">&#128207; BẢNG HỆ SỐ TÍNH NHẨM (3 MIỀN)</h2>'
-            '<p style="' + lead + '">Hệ số đã <b>gộp sẵn móng + sàn các tầng + mái</b> vào 1 con số. '
-            'Chỉ cần nhân với diện tích và đơn giá là ra tổng tiền.</p>'
+            '<p style="' + lead + '">Đây là phần <b>HỆ SỐ</b> trong công thức &mdash; tra theo '
+            '<b>Miền &rarr; Loại móng &rarr; Số tầng &amp; kiểu mái</b>. Hệ số đã '
+            '<b>gộp sẵn móng + sàn các tầng + mái</b> vào 1 con số.</p>'
 
             + tbl('MIỀN BẮC', [
                 ('Móng cốc', ['1.40', '2.40', '1.68', '2.68', '1.31']),
@@ -204,41 +246,75 @@ class SlideChannelSeedBangGia(models.Model):
                 ('Móng cọc', ['1.60', '2.60', '1.88', '2.88', '1.93']),
             ])
 
+            + _why(
+                '<ul style="margin:0;">'
+                '<li><b>Vì sao phần nguyên = số tầng?</b> Mỗi tầng sàn tốn ~100% đơn giá &rarr; '
+                'mỗi tầng cộng +1,0. Nhìn cột "1T" toàn 1.xx, cột "2T" toàn 2.xx, hơn kém nhau '
+                'đúng 1,0.</li>'
+                '<li><b>Vì sao phần lẻ khác nhau?</b> Phần lẻ = móng + mái. Móng cọc/băng nhiều bê '
+                'tông &amp; thép hơn móng đơn; mái Nhật/Thái/đổ trần nhiều vật tư hơn mái bằng &rarr; '
+                'phần lẻ lớn hơn.</li>'
+                '<li><b>Vì sao Nam &gt; Trung &gt; Bắc?</b> Giá nhân công, vật tư và vận chuyển tăng '
+                'dần khi vào Nam. Cùng một ngôi nhà, hệ số miền Nam nhỉnh hơn miền Bắc một chút.</li>'
+                '</ul>'
+            )
             + _tip(
                 '<ul style="margin:0;">'
                 '<li><b>Phần nguyên = số tầng.</b> Nhà 1 tầng hệ số <b>1.xx</b>, nhà 2 tầng <b>2.xx</b>. '
-                'Cứ thêm 1 tầng thì hệ số <b>+1.0</b>.</li>'
+                'Cứ thêm 1 tầng thì hệ số <b>+1,0</b>.</li>'
                 '<li><b>Phần lẻ = móng + mái.</b> Mái bằng phần lẻ nhỏ (~.40-.60), mái Nhật/Thái lớn hơn.</li>'
-                '<li><b>Đắt dần theo miền: NAM &gt; TRUNG &gt; BẮC.</b> '
-                'Cùng điều kiện, vào Nam cộng thêm một chút so với Bắc.</li>'
+                '<li><b>Đắt dần theo miền: NAM &gt; TRUNG &gt; BẮC.</b></li>'
                 '</ul>'
             )
             + _mistake(
-                '<p style="margin:0;"><b>Diện tích &lt; 70 m&sup2;</b> thì <b>cộng thêm ~5%</b> vào hệ số '
-                '(nhà nhỏ chi phí cao hơn). Đừng quên khi khách xây nhà nhỏ.</p>'
+                '<p style="margin:0;"><b>Diện tích &lt; 70 m&sup2;</b> thì <b>cộng thêm ~0,05</b> vào hệ số '
+                '(vì móng nhà nhỏ cộng thêm 5%). VD móng cốc Bắc 2T mái bằng 2.40 &rarr; nhà &lt;70m&sup2; '
+                'lấy <b>2.45</b>. Đừng quên khi khách xây nhà nhỏ.</p>'
             )
             + _core(
                 'Phần nguyên = <b>số tầng</b>; phần lẻ = <b>móng + mái</b>. '
-                'Đắt dần: <b>Nam &gt; Trung &gt; Bắc</b>. Nhà &lt;70m&sup2; cộng ~5% hệ số.'
+                'Đắt dần: <b>Nam &gt; Trung &gt; Bắc</b>. Nhà &lt;70m&sup2; cộng ~0,05 hệ số.'
             )
         )
 
     def _p4(self, h2, h3, lead):
+        def mong_tbl(title, rows):
+            r = ''
+            for nm, a, b in rows:
+                r += ('<tr><td><b>%s</b></td>'
+                      '<td style="text-align:center;">%s</td>'
+                      '<td style="text-align:center;">%s</td></tr>' % (nm, a, b))
+            return (
+                '<h3 style="' + h3 + '">' + title + '</h3>'
+                '<table><thead><tr><th style="width:34%;">Loại móng</th>'
+                '<th style="text-align:center;">Trên 70 m&sup2;</th>'
+                '<th style="text-align:center;">Dưới 70 m&sup2;</th>'
+                '</tr></thead><tbody>' + r + '</tbody></table>'
+            )
         return (
             '<h2 style="' + h2 + '">&#128221; BẢNG GIÁ CHI TIẾT (cách bóc tách)</h2>'
             '<p style="' + lead + '">Khi cần giải thích cho khách <b>vì sao ra con số đó</b>, dùng '
-            'bảng % chi tiết: mỗi hạng mục = <b>Diện tích &times; % &times; Đơn giá</b>, rồi cộng lại.</p>'
+            'bảng % chi tiết: mỗi hạng mục = <b>Diện tích &times; % &times; Đơn giá</b>, rồi cộng lại. '
+            'Đây chính là "bản gốc" mà hệ số tính nhẩm được rút ra.</p>'
 
-            '<h3 style="' + h3 + '">PHẦN MÓNG (% theo diện tích)</h3>'
-            '<table><thead><tr><th>Loại móng</th>'
-            '<th style="text-align:center;">Bắc</th><th style="text-align:center;">Trung</th>'
-            '<th style="text-align:center;">Nam</th></tr></thead><tbody>'
-            '<tr><td><b>Móng đơn / cốc</b></td><td style="text-align:center;">30%</td><td style="text-align:center;">35%</td><td style="text-align:center;">40%</td></tr>'
-            '<tr><td><b>Móng băng</b></td><td style="text-align:center;">40%</td><td style="text-align:center;">45%</td><td style="text-align:center;">50%</td></tr>'
-            '<tr><td><b>Móng cọc</b></td><td style="text-align:center;">40%</td><td style="text-align:center;">45%</td><td style="text-align:center;">50%</td></tr>'
-            '</tbody></table>'
-            '<p style="font-size:13px;color:#64748b;margin:4px 0 0;">(Nhà &lt; 70m&sup2; thì mỗi loại móng '
-            'cộng thêm 5%.)</p>'
+            '<h3 style="' + h3 + '">PHẦN MÓNG (% theo diện tích sàn)</h3>'
+            + mong_tbl('Miền Bắc', [
+                ('Móng đơn / cốc', '30%', '35%'),
+                ('Móng băng', '40%', '45%'),
+                ('Móng cọc', '40%', '45%'),
+            ])
+            + mong_tbl('Miền Trung', [
+                ('Móng đơn / cốc', '35%', '40%'),
+                ('Móng băng', '45%', '50%'),
+                ('Móng cọc', '45%', '50%'),
+            ])
+            + mong_tbl('Miền Nam', [
+                ('Móng đơn / cốc', '40%', '45%'),
+                ('Móng băng', '50%', '55%'),
+                ('Móng cọc', '50%', '55%'),
+            ])
+            + '<p style="font-size:13px;color:#64748b;margin:4px 0 0;">Cột "Dưới 70m&sup2;" đã '
+            'cộng sẵn +5% so với "Trên 70m&sup2;" (nhà nhỏ móng tốn hơn).</p>'
 
             '<h3 style="' + h3 + '">PHẦN MÁI (% theo diện tích)</h3>'
             '<table><thead><tr><th style="width:42%;">Loại mái</th><th>Hệ số % &times; Đơn giá</th></tr></thead><tbody>'
@@ -246,22 +322,66 @@ class SlideChannelSeedBangGia(models.Model):
             '<tr><td><b>Mái Nhật</b></td><td>Không đổ trần 42% &middot; <b>Có đổ trần 48%</b></td></tr>'
             '<tr><td><b>Mái Thái</b></td><td>Không đổ trần 45% &middot; <b>Có đổ trần 55%</b></td></tr>'
             '<tr><td><b>Thông tầng</b></td><td>40%</td></tr>'
-            '<tr><td><b>Mái trang trí</b></td><td>40% &rarr; 60% (đổ trần: 100%)</td></tr>'
+            '<tr><td><b>Mái trang trí</b></td><td>40% &rarr; 60% &middot; <b>Đổ trần 100%</b></td></tr>'
             '<tr><td><b>Mái tôn</b></td><td>1 mặt 13% &middot; 2 mặt 16% &middot; 3 mặt 20%</td></tr>'
             '</tbody></table>'
 
+            + _why(
+                '<ul style="margin:0;">'
+                '<li><b>Vì sao có đổ trần đắt hơn?</b> "Đổ trần" là đổ thêm 1 lớp sàn bê tông dưới '
+                'mái &rarr; thêm thép, bê tông, cốp pha &rarr; % cao hơn (Nhật 42% &rarr; 48%, '
+                'Thái 45% &rarr; 55%).</li>'
+                '<li><b>Vì sao mái Thái &gt; mái Nhật?</b> Mái Thái dốc hơn, nhiều diện tích lợp và '
+                'kết cấu đỡ mái hơn.</li>'
+                '<li><b>Vì sao móng cọc/băng &gt; móng đơn?</b> Phải khoan/ép cọc hoặc đổ dầm băng '
+                'liên tục &rarr; nhiều vật tư và công hơn móng đơn từng điểm.</li>'
+                '</ul>'
+            )
             + _tip(
-                '<p style="margin:0;">Nhớ theo cặp số: <b>móng cốc +10%, móng băng/cọc +15%</b> '
-                '(so với phần thân). Mái: <b>Bằng 20 &mdash; Nhật 42/48 &mdash; Thái 45/55 &mdash; '
-                'Tôn 13/16/20</b>. Mái Thái luôn đắt hơn mái Nhật.</p>'
+                '<p style="margin:0;">Mái: <b>Bằng 20 &mdash; Nhật 42/48 &mdash; Thái 45/55 &mdash; '
+                'Tôn 13/16/20</b>. Mái Thái luôn đắt hơn mái Nhật; có đổ trần luôn đắt hơn không đổ trần.</p>'
             )
             + _proof(
                 '<p style="margin:0;">Bảng tính nhẩm (phần 3) và bảng chi tiết (phần 4) cho ra <b>kết quả '
                 'gần như nhau</b>. Tính nhẩm để báo nhanh; bảng chi tiết để bóc tách khi khách hỏi sâu.</p>'
             )
+            + _mistake(
+                '<p style="margin:0;">Nhà <b>tân cổ điển</b> cộng thêm: nhẹ <b>+400k/m&sup2;</b>, '
+                'nặng <b>+800k/m&sup2;</b> &mdash; phải <b>gửi cấp trên duyệt</b> trước khi báo. '
+                'Một số tỉnh miền núi (Lai Châu, Sơn La, Điện Biên, Cao Bằng, Bắc Kạn; các huyện '
+                'Hà Giang, Lạng Sơn) <b>+300k/m&sup2;</b>.</p>'
+            )
         )
 
     def _p5(self, h2, h3, lead):
+        return (
+            '<h2 style="' + h2 + '">&#128208; CÁCH TÍNH DIỆN TÍCH (rất hay sai)</h2>'
+            '<p style="' + lead + '">Công thức dùng <b>diện tích sàn tầng 1</b>. Tính sai diện tích '
+            'là sai cả tổng tiền, nên phải nắm chắc 3 phần: móng - sàn - mái.</p>'
+
+            '<table><thead><tr><th style="width:28%;">Hạng mục</th><th>Cách tính</th></tr></thead><tbody>'
+            '<tr><td><b>Diện tích MÓNG</b></td><td>Bằng <b>diện tích sàn tầng 1</b>.</td></tr>'
+            '<tr><td><b>Diện tích SÀN tầng 1</b></td><td>Phải tính <b>cả bậc tam cấp</b> (bậc thềm trước nhà).</td></tr>'
+            '<tr><td><b>Diện tích SÀN tầng trên</b></td><td>Tính cả phần <b>ban công đua ra</b> so với sàn tầng dưới.</td></tr>'
+            '<tr><td><b>Mái BẰNG</b></td><td>Nếu <b>có tum</b> thì tính theo <b>diện tích móng</b>.</td></tr>'
+            '<tr><td><b>Mái NGÓI</b> (Nhật/Thái)</td><td>Tính theo <b>diện tích sàn dưới</b> '
+            '(hệ số đã bao gồm phần đua ra của mái).</td></tr>'
+            '</tbody></table>'
+
+            + _why(
+                '<p style="margin:0;">Lấy <b>sàn tầng 1</b> làm gốc vì móng đỡ đúng mặt bằng tầng 1, '
+                'và các tầng trên thường lặp lại mặt bằng đó &rarr; chỉ cần 1 con số diện tích là '
+                'tính được cả nhà (số tầng đã nằm trong hệ số). Ban công và bậc tam cấp vẫn tốn vật '
+                'tư nên phải cộng vào.</p>'
+            )
+            + _apply(
+                '<p style="margin:0;">Khi hỏi khách diện tích, hỏi rõ: <i>"Mặt bằng tầng 1 nhà mình '
+                'dài rộng bao nhiêu mét ạ?"</i> rồi nhân dài &times; rộng. Đừng quên cộng bậc tam cấp '
+                'và ban công các tầng trên khi chốt số.</p>'
+            )
+        )
+
+    def _p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#10071; CÁC KHOẢN PHÁT SINH (phải nói rõ với khách)</h2>'
             '<p style="' + lead + '">Nhiều khoản <b>KHÔNG nằm trong hợp đồng xây thô</b>. Báo trước '
@@ -281,10 +401,16 @@ class SlideChannelSeedBangGia(models.Model):
             '<tr><td>Đường lớn - không chỗ tập kết</td><td>200.000 đ/m&sup2;</td></tr>'
             '<tr><td>Ngõ nhỏ - có chỗ tập kết</td><td>250.000 đ/m&sup2;</td></tr>'
             '<tr><td>Ngõ nhỏ - không chỗ tập kết</td><td>350.000 đ/m&sup2;</td></tr>'
+            '<tr><td>Có chỗ để đất</td><td><b>0 đ/m&sup2;</b></td></tr>'
             '<tr><td>Không có chỗ để đất + đổ thải + mua đất</td><td>300.000 đ/m&sup2;</td></tr>'
             '<tr><td>Đất yếu - đào sâu - gia cố</td><td>250.000 đ/m&sup2;</td></tr>'
             '</tbody></table>'
 
+            + _why(
+                '<p style="margin:0;">Phát sinh đều xoay quanh <b>vận chuyển vật tư</b> và <b>xử lý '
+                'đất/thải</b>: ngõ nhỏ, không chỗ tập kết, đất yếu... đều khiến đội thi công tốn thêm '
+                'công và máy. Đó là lý do tính theo <b>đ/m&sup2;</b> chứ không phải một con số cố định.</p>'
+            )
             + _tip(
                 '<p style="margin:0;">Nhớ nhóm "ngoài hợp đồng" bằng câu: '
                 '<b style="color:#7c3aed;">"Cọc - Nội - Phép"</b> (Ép <b>Cọc</b> 70-150, '
@@ -298,7 +424,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p6(self, h2, h3, lead):
+    def _p7(self, h2, h3, lead):
         def vd(title, scen, steps, total):
             return (
                 '<div style="border:1.5px solid #c7d2fe;background:#eef2ff;border-radius:12px;'
@@ -310,31 +436,75 @@ class SlideChannelSeedBangGia(models.Model):
                 '&rarr; TỔNG &asymp; ' + total + '</div></div>'
             )
         return (
-            '<h2 style="' + h2 + '">&#129518; VÍ DỤ TÍNH MẪU (làm theo từng bước)</h2>'
+            '<h2 style="' + h2 + '">&#129518; RẤT NHIỀU VÍ DỤ TÍNH MẪU (làm theo từng bước)</h2>'
+            '<p style="' + lead + '">Cứ làm đúng 3 bước: <b>(1) tra Hệ số &rarr; (2) lấy Diện tích '
+            'sàn tầng 1 &rarr; (3) tra Đơn giá</b>, rồi nhân 3 số lại.</p>'
 
-            + vd('Ví dụ 1 &mdash; Nhà phố Miền Bắc',
-                 'Miền Bắc, nhà 2 tầng mái bằng, móng băng, diện tích sàn tầng 1 = 80m&sup2;, ô tô vào được.',
+            + vd('Ví dụ 1 &mdash; Nhà 1 tầng đơn giản, Miền Bắc',
+                 'Miền Bắc, nhà 1 tầng mái bằng, móng cốc, sàn tầng 1 = 100m&sup2;, ô tô vào được.',
+                 '<ul style="margin:0;">'
+                 '<li>Hệ số (Bắc, móng cốc, 1T mái bằng) = <b>1.40</b></li>'
+                 '<li>100 m&sup2; (&ge;75, ô tô vào) &rarr; đơn giá = <b>6.400.000</b></li>'
+                 '<li>1.40 &times; 100 &times; 6.400.000</li></ul>',
+                 '896.000.000 đ')
+
+            + vd('Ví dụ 2 &mdash; Nhà phố 2 tầng, Miền Bắc',
+                 'Miền Bắc, nhà 2 tầng mái bằng, móng băng, sàn tầng 1 = 80m&sup2;, ô tô vào được.',
                  '<ul style="margin:0;">'
                  '<li>Hệ số (Bắc, móng băng, 2T mái bằng) = <b>2.50</b></li>'
-                 '<li>Diện tích = <b>80 m&sup2;</b> (&ge;75 &rarr; đơn giá ô tô vào = <b>6.400.000</b>)</li>'
+                 '<li>80 m&sup2; (&ge;75, ô tô vào) &rarr; đơn giá = <b>6.400.000</b></li>'
                  '<li>2.50 &times; 80 &times; 6.400.000</li></ul>',
                  '1.280.000.000 đ')
 
-            + vd('Ví dụ 2 &mdash; Nhà vườn Miền Nam',
+            + vd('Ví dụ 3 &mdash; Nhà vườn 2 tầng mái Nhật, Miền Nam',
                  'Miền Nam, nhà 2 tầng mái Nhật đổ trần, móng cọc, sàn tầng 1 = 100m&sup2;, ô tô vào được.',
                  '<ul style="margin:0;">'
                  '<li>Hệ số (Nam, móng cọc, 2T mái Nhật) = <b>2.88</b></li>'
-                 '<li>Diện tích = <b>100 m&sup2;</b> &rarr; đơn giá = <b>6.400.000</b></li>'
+                 '<li>100 m&sup2; &rarr; đơn giá = <b>6.400.000</b></li>'
                  '<li>2.88 &times; 100 &times; 6.400.000</li></ul>',
                  '1.843.200.000 đ')
 
-            + vd('Ví dụ 3 &mdash; Nhà nhỏ, ô tô không vào',
+            + vd('Ví dụ 4 &mdash; Nhà to nhưng ô tô KHÔNG vào, Miền Bắc',
                  'Miền Bắc, nhà 2 tầng mái Nhật đổ trần, móng cốc, sàn tầng 1 = 90m&sup2;, ô tô KHÔNG vào được.',
                  '<ul style="margin:0;">'
                  '<li>Hệ số (Bắc, móng cốc, 2T mái Nhật) = <b>2.68</b></li>'
                  '<li>90 m&sup2; (&ge;75) nhưng ô tô không vào &rarr; đơn giá = <b>6.700.000</b></li>'
                  '<li>2.68 &times; 90 &times; 6.700.000</li></ul>',
                  '1.616.040.000 đ')
+
+            + vd('Ví dụ 5 &mdash; Nhà 1 tầng mái Thái, Miền Trung',
+                 'Miền Trung, nhà 1 tầng mái Thái đổ trần, móng cốc, sàn tầng 1 = 120m&sup2;, ô tô vào được.',
+                 '<ul style="margin:0;">'
+                 '<li>Hệ số (Trung, móng cốc, 1T mái Thái) = <b>1.78</b></li>'
+                 '<li>120 m&sup2; &rarr; đơn giá = <b>6.400.000</b></li>'
+                 '<li>1.78 &times; 120 &times; 6.400.000</li></ul>',
+                 '1.367.040.000 đ')
+
+            + vd('Ví dụ 6 &mdash; Nhà NHỎ dưới 70m&sup2; (nhớ +0,05 hệ số)',
+                 'Miền Nam, nhà 1 tầng mái bằng, móng băng, sàn tầng 1 = 60m&sup2;, ô tô vào được.',
+                 '<ul style="margin:0;">'
+                 '<li>Hệ số gốc (Nam, móng băng, 1T mái bằng) = 1.60; nhà &lt;70m&sup2; &rarr; '
+                 '<b>1.60 + 0.05 = 1.65</b></li>'
+                 '<li>60 m&sup2; (khoảng 50-65, ô tô vào) &rarr; đơn giá = <b>6.800.000</b></li>'
+                 '<li>1.65 &times; 60 &times; 6.800.000</li></ul>',
+                 '673.200.000 đ')
+
+            + vd('Ví dụ 7 &mdash; Nhà 2 tầng to, Miền Trung',
+                 'Miền Trung, nhà 2 tầng mái bằng, móng cọc, sàn tầng 1 = 150m&sup2;, ô tô vào được.',
+                 '<ul style="margin:0;">'
+                 '<li>Hệ số (Trung, móng cọc, 2T mái bằng) = <b>2.55</b></li>'
+                 '<li>150 m&sup2; &rarr; đơn giá = <b>6.400.000</b></li>'
+                 '<li>2.55 &times; 150 &times; 6.400.000</li></ul>',
+                 '2.448.000.000 đ')
+
+            + vd('Ví dụ 8 &mdash; Có thêm phát sinh ngõ nhỏ',
+                 'Miền Bắc, nhà 2 tầng mái bằng, móng băng, sàn tầng 1 = 80m&sup2;, ô tô vào được, '
+                 'nhưng NGÕ NHỎ - không chỗ tập kết (350.000 đ/m&sup2;).',
+                 '<ul style="margin:0;">'
+                 '<li>Xây thô: 2.50 &times; 80 &times; 6.400.000 = <b>1.280.000.000</b></li>'
+                 '<li>Phát sinh ngõ nhỏ: 80 &times; 350.000 = <b>28.000.000</b></li>'
+                 '<li>Cộng lại: 1.280.000.000 + 28.000.000</li></ul>',
+                 '1.308.000.000 đ')
 
             + _advice(
                 '<p style="margin:0;">Khi gọi, vừa nói chuyện vừa bấm máy tính: <b>Hệ số &times; Diện tích</b> '
@@ -343,13 +513,15 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p7(self, h2, h3, lead):
+    def _p8(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127942; KẾT LUẬN PHẢI NHỚ</h2>'
             '<table><thead><tr><th style="width:34%;">Cần nhớ</th><th>Nội dung</th></tr></thead><tbody>'
             '<tr><td><b>Công thức</b></td><td><b>Hệ số &times; Diện tích &times; Đơn giá</b> (Hệ - Diện - Giá)</td></tr>'
+            '<tr><td><b>Hệ số được dựng từ</b></td><td>Móng + (số tầng &times; 1,0) + Mái &mdash; gộp sẵn trong bảng</td></tr>'
             '<tr><td><b>Đơn giá gốc</b></td><td><b>6,4 triệu/m&sup2;</b> (nhà &ge;75m&sup2;, ô tô vào); nhỏ hơn / ô tô không vào thì đắt hơn</td></tr>'
-            '<tr><td><b>Hệ số</b></td><td>Phần nguyên = số tầng; Nam &gt; Trung &gt; Bắc; nhà &lt;70m&sup2; +5%</td></tr>'
+            '<tr><td><b>Hệ số</b></td><td>Phần nguyên = số tầng; Nam &gt; Trung &gt; Bắc; nhà &lt;70m&sup2; +0,05</td></tr>'
+            '<tr><td><b>Diện tích</b></td><td>Lấy sàn tầng 1; cộng cả bậc tam cấp + ban công đua ra</td></tr>'
             '<tr><td><b>Ngoài hợp đồng</b></td><td>Cọc (70-150) &middot; Nội thất (200-400) &middot; Cấp phép (10-20); Tum +120-150; Lửng bớt 30-50</td></tr>'
             '</tbody></table>'
 
@@ -361,10 +533,12 @@ class SlideChannelSeedBangGia(models.Model):
             + '<h2 style="' + h2 + '">&#128221; Tự kiểm tra trước khi thi</h2>'
             '<ol>'
             '<li>Đọc lại công thức 3 chữ. (Hệ - Diện - Giá)</li>'
+            '<li>Hệ số được dựng từ những phần nào? (Móng + số tầng + Mái)</li>'
             '<li>Đơn giá nhà &ge;75m&sup2; ô tô vào là bao nhiêu? (6,4 triệu)</li>'
             '<li>Ô tô không vào thì cộng thêm bao nhiêu? (~300k)</li>'
             '<li>Nhà 2 tầng hệ số bắt đầu bằng số mấy? (2.xx)</li>'
             '<li>Miền nào đắt nhất? (Miền Nam)</li>'
+            '<li>Nhà &lt;70m&sup2; thì hệ số xử lý sao? (+0,05)</li>'
             '<li>3 khoản ngoài hợp đồng? (Cọc - Nội - Phép)</li>'
             '</ol>'
 
@@ -394,15 +568,33 @@ class SlideChannelSeedBangGia(models.Model):
               ('Tổng diện tích tất cả các tầng cộng lại', F),
               ('Diện tích mái', F)]),
 
+            ('Hệ số tính nhẩm được gộp từ những phần chi phí nào?',
+             [('Móng + các sàn (mỗi tầng ~1,0) + Mái', T),
+              ('Chỉ phần móng', F),
+              ('Số phòng ngủ + số tầng', F),
+              ('Tiền nhân công một ngày', F)]),
+
+            ('Vì sao PHẦN NGUYÊN của hệ số bằng số tầng?',
+             [('Vì mỗi tầng sàn tốn khoảng 100% đơn giá nên cộng +1,0 mỗi tầng', T),
+              ('Vì quy định nhà nước', F),
+              ('Vì số tầng bằng số phòng', F),
+              ('Đó chỉ là con số ngẫu nhiên', F)]),
+
             ('Đơn giá xây thô cho nhà ≥ 75m² và ô tô VÀO được là bao nhiêu?',
              [('6.400.000 đ/m²', T),
               ('5.000.000 đ/m²', F),
               ('7.500.000 đ/m²', F),
               ('8.000.000 đ/m²', F)]),
 
-            ('Nhà ô tô KHÔNG vào được thì đơn giá thế nào so với ô tô vào được?',
-             [('Cao hơn (vận chuyển vật tư khó)', T),
-              ('Thấp hơn', F),
+            ('Vì sao nhà càng nhỏ thì đơn giá mỗi m² càng cao?',
+             [('Vì chi phí cố định chia trên ít m² nên đắt hơn mỗi m²', T),
+              ('Vì nhà nhỏ dùng vật tư đắt tiền hơn', F),
+              ('Vì nhà nhỏ xây lâu hơn nhà to', F),
+              ('Không có lý do, do may rủi', F)]),
+
+            ('Nhà ô tô KHÔNG vào được thì đơn giá thế nào và vì sao?',
+             [('Cao hơn ~300k/m² vì phải trung chuyển vật tư thủ công', T),
+              ('Thấp hơn vì đỡ tốn xăng', F),
               ('Bằng nhau', F),
               ('Được miễn phí vận chuyển', F)]),
 
@@ -412,21 +604,9 @@ class SlideChannelSeedBangGia(models.Model):
               ('5.200.000 đ/m²', F),
               ('7.000.000 đ/m²', F)]),
 
-            ('Quy luật đơn giá theo diện tích là gì?',
-             [('Nhà càng nhỏ thì giá mỗi m² càng cao', T),
-              ('Nhà càng nhỏ thì giá mỗi m² càng rẻ', F),
-              ('Diện tích không ảnh hưởng đơn giá', F),
-              ('Chỉ nhà trên 100m² mới có giá', F)]),
-
-            ('Trong bảng hệ số tính nhẩm, phần NGUYÊN của hệ số thể hiện điều gì?',
-             [('Số tầng của nhà (1T → 1.xx, 2T → 2.xx)', T),
-              ('Số phòng ngủ', F),
-              ('Số mặt tiền', F),
-              ('Tuổi của gia chủ', F)]),
-
             ('Mỗi khi tăng thêm 1 tầng thì hệ số tính nhẩm thay đổi thế nào?',
-             [('Cộng thêm khoảng 1.0', T),
-              ('Cộng thêm 0.1', F),
+             [('Cộng thêm khoảng 1,0', T),
+              ('Cộng thêm 0,1', F),
               ('Giảm đi một nửa', F),
               ('Không đổi', F)]),
 
@@ -437,22 +617,28 @@ class SlideChannelSeedBangGia(models.Model):
               ('Ba miền giá bằng nhau', F)]),
 
             ('Nhà có diện tích sàn < 70m² thì hệ số tính nhẩm xử lý thế nào?',
-             [('Cộng thêm khoảng 5% vào hệ số', T),
-              ('Giảm đi 5%', F),
+             [('Cộng thêm khoảng 0,05 vào hệ số (móng nhà nhỏ +5%)', T),
+              ('Giảm đi 0,05', F),
               ('Giữ nguyên', F),
               ('Nhân đôi hệ số', F)]),
 
-            ('Theo bảng giá chi tiết, móng ĐƠN (cốc) Miền Bắc tính bao nhiêu %?',
+            ('Theo bảng giá chi tiết, móng ĐƠN (cốc) Miền Bắc (trên 70m²) tính bao nhiêu %?',
              [('30% × Đơn giá', T),
               ('50% × Đơn giá', F),
               ('20% × Đơn giá', F),
               ('100% × Đơn giá', F)]),
 
-            ('Mái BẰNG tính theo hệ số % nào?',
-             [('20% × Đơn giá', T),
-              ('55% × Đơn giá', F),
-              ('100% × Đơn giá', F),
-              ('13% × Đơn giá', F)]),
+            ('Móng băng Miền Nam (trên 70m²) tính bao nhiêu %?',
+             [('50% × Đơn giá', T),
+              ('30% × Đơn giá', F),
+              ('20% × Đơn giá', F),
+              ('100% × Đơn giá', F)]),
+
+            ('Vì sao mái "có đổ trần" đắt hơn "không đổ trần"?',
+             [('Vì đổ thêm 1 lớp sàn bê tông nên tốn thép, bê tông, cốp pha', T),
+              ('Vì đổ trần dùng ngói đắt hơn', F),
+              ('Vì phải thuê thợ giỏi hơn', F),
+              ('Thực ra không đắt hơn', F)]),
 
             ('Mái NHẬT có đổ trần tính bao nhiêu %?',
              [('48% × Đơn giá', T),
@@ -472,29 +658,17 @@ class SlideChannelSeedBangGia(models.Model):
               ('10% / 20% / 30%', F),
               ('42% / 48% / 55%', F)]),
 
-            ('Nhà có TUM thì phát sinh khoảng bao nhiêu?',
-             [('120 - 150 triệu', T),
-              ('10 - 20 triệu', F),
-              ('500 - 700 triệu', F),
-              ('Không phát sinh gì', F)]),
+            ('Diện tích sàn tầng 1 phải tính thêm phần nào?',
+             [('Cả bậc tam cấp (và ban công đua ra ở tầng trên)', T),
+              ('Chỉ tính trong 4 bức tường', F),
+              ('Trừ đi phần cầu thang', F),
+              ('Cộng cả sân vườn', F)]),
 
             ('Chi phí ÉP CỌC khoảng bao nhiêu và có nằm trong hợp đồng không?',
              [('70 - 150 triệu, KHÔNG nằm trong hợp đồng', T),
               ('10 - 20 triệu, có trong hợp đồng', F),
               ('Miễn phí', F),
               ('500 triệu, có trong hợp đồng', F)]),
-
-            ('Chi phí CẤP PHÉP xây dựng khoảng bao nhiêu?',
-             [('10 - 20 triệu (ngoài hợp đồng)', T),
-              ('100 - 200 triệu', F),
-              ('1 - 2 triệu', F),
-              ('Không mất phí', F)]),
-
-            ('Nhà có GÁC LỬNG thì tính nhẩm điều chỉnh thế nào?',
-             [('Bớt được khoảng 30 - 50 triệu', T),
-              ('Cộng thêm 120 - 150 triệu', F),
-              ('Cộng thêm 300 triệu', F),
-              ('Không thay đổi', F)]),
 
             ('Phát sinh mặt bằng "Ngõ nhỏ - không chỗ tập kết" (nhà 100m²) là bao nhiêu?',
              [('350.000 đ/m²', T),
