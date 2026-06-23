@@ -488,10 +488,47 @@ export class VdConfigDialog extends Component {
     }
 }
 
+// ---- GIAY CHUNG NHAN hoan thanh khoa hoc (phao hoa + diem + ten khoa) ----
+export class VdCertificateDialog extends Component {
+    static template = "vd_elearning.CertificateDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        empName: String,
+        roleLabel: String,
+        companyName: String,
+        courseName: String,
+        percent: Number,
+        dateStr: { type: String, optional: true },
+    };
+    setup() {
+        const colors = ["#ff5252", "#ffb300", "#42a5f5", "#66bb6a", "#ab47bc",
+                        "#ff7043", "#26c6da", "#ec407a"];
+        // Pháo hoa/confetti: sinh sẵn vị trí + màu + thời gian ngẫu nhiên.
+        this.pieces = Array.from({ length: 80 }, (_, i) => ({
+            left: Math.round(Math.random() * 100),
+            delay: (Math.random() * 1.5).toFixed(2),
+            dur: (2.4 + Math.random() * 2).toFixed(2),
+            color: colors[i % colors.length],
+            rot: Math.round(Math.random() * 360),
+            size: 6 + Math.round(Math.random() * 9),
+            round: i % 3 === 0,
+        }));
+        const d = new Date();
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        this.dateStr = this.props.dateStr ||
+            `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+    download() {
+        // In/lưu PDF: CSS @media print chỉ hiện phần giấy chứng nhận.
+        window.print();
+    }
+}
+
 // ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
 export class VdCourseDialog extends Component {
     static template = "vd_elearning.CourseDialog";
-    static components = { Dialog, VdRichEditor, VdConfigDialog, VdScheduleDialog };
+    static components = { Dialog, VdRichEditor, VdConfigDialog, VdScheduleDialog, VdCertificateDialog };
     static props = {
         close: Function,
         title: String,
@@ -700,6 +737,15 @@ export class VdCourseDialog extends Component {
                 this._stopTimer();
                 this.state.contentLocked = false;
                 vdClearExam(this.props.channelId);
+                // GIAY CHUNG NHAN: hien ngay khi DAT (phao hoa + diem + ten khoa).
+                const cert = res.cert || {};
+                this.dialog.add(VdCertificateDialog, {
+                    empName: cert.emp_name || "",
+                    roleLabel: cert.role_label || "NHÂN VIÊN KINH DOANH",
+                    companyName: cert.company_name || "CÔNG TY CỔ PHẦN VINADUY",
+                    courseName: cert.course_name || this.props.title || "",
+                    percent: res.percent,
+                });
             } else {
                 // Chua dat -> van khoa noi dung, dong ho tiep tuc dem den het gio.
                 this._persistExam();
@@ -875,6 +921,7 @@ export class VdElearningOverview extends Component {
             tab: "sales",
             selectedEmp: null,
             loading: true,
+            myCerts: null,   // {emp_name, role_label, company_name, items:[...]}
         });
         this.dragData = null;
         this.pathDragData = null;
@@ -912,8 +959,27 @@ export class VdElearningOverview extends Component {
                 paths: z ? z.paths : [],
                 locked: true,
             };
+            // Giấy chứng nhận đã đạt của NV (lưu bền vững) — cho mục "của tôi".
+            try {
+                this.state.myCerts = await this.orm.call(
+                    "slide.channel", "vd_my_certificates", []);
+            } catch (e) {
+                this.state.myCerts = null;
+            }
         }
         this.state.loading = false;
+    }
+
+    // Xem lại 1 giấy chứng nhận đã đạt (mục "Giấy chứng nhận của tôi").
+    viewCertificate(item) {
+        const c = this.state.myCerts || {};
+        this.dialog.add(VdCertificateDialog, {
+            empName: c.emp_name || (this.state.selectedEmp && this.state.selectedEmp.name) || "",
+            roleLabel: c.role_label || "NHÂN VIÊN KINH DOANH",
+            companyName: c.company_name || "CÔNG TY CỔ PHẦN VINADUY",
+            courseName: item.course_name || "",
+            percent: item.percent || 0,
+        });
     }
 
     // ---------- node theo dong ----------

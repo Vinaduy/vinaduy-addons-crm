@@ -394,7 +394,9 @@ class SlideChannel(models.Model):
             self._vd_progress_user_paths(self.env.user)
         return {'total': total, 'score': correct_count, 'percent': percent,
                 'pass_percent': pass_percent, 'passed': passed,
-                'results': results}
+                'results': results,
+                # Dữ liệu giấy chứng nhận (hiện khi ĐẠT) — user spec 2026-06-24.
+                'cert': self._vd_cert_payload(self.env.user, ch, percent)}
 
     @api.model
     def vd_course_save(self, channel_id, name, contents, questions):
@@ -584,6 +586,51 @@ class SlideChannel(models.Model):
         return ('leader'
                 if user.has_group('vd_crm_lead.vd_crm_group_team_leader')
                 else 'sales')
+
+    # ===== GIẤY CHỨNG NHẬN (user spec 2026-06-24) =====
+    _VD_CERT_ROLE = {
+        'collaborator': 'CỘNG TÁC VIÊN KINH DOANH',
+        'employee': 'NHÂN VIÊN KINH DOANH',
+        'team_leader': 'TRƯỞNG NHÓM KINH DOANH',
+        'director': 'BAN GIÁM ĐỐC',
+        'admin': 'QUẢN TRỊ VIÊN',
+    }
+
+    def _vd_cert_payload(self, user, channel=None, percent=None):
+        """Thông tin để vẽ giấy chứng nhận: tên NV (bỏ tiền tố team), vai trò,
+        công ty, tên khoá, điểm."""
+        import re as _re
+        full = user.name or ''
+        m = _re.match(r'^\s*[A-Za-zÀ-ỹ0-9]+\s*-\s*(.+)$', full)
+        emp = (m.group(1) if m else full).strip()
+        return {
+            'emp_name': emp or full,
+            'role_label': self._VD_CERT_ROLE.get(user.vd_crm_role, 'NHÂN VIÊN KINH DOANH'),
+            'company_name': 'CÔNG TY CỔ PHẦN VINADUY',
+            'course_name': (channel.name if channel else '') or '',
+            'percent': int(percent) if percent is not None else 0,
+        }
+
+    @api.model
+    def vd_my_certificates(self):
+        """Danh sách giấy chứng nhận ĐÃ ĐẠT của NV đang đăng nhập (lưu bền vững ở
+        vd.exam.result.passed) + thông tin NV để vẽ lại chứng nhận."""
+        user = self.env.user
+        ER = self.env['vd.exam.result'].sudo()
+        recs = ER.search([('user_id', '=', user.id), ('passed', '=', True)])
+        base = self._vd_cert_payload(user)
+        items = []
+        for r in recs:
+            items.append({
+                'channel_id': r.channel_id.id if r.channel_id else False,
+                'course_name': (r.channel_id.name if r.channel_id
+                                else r.course_name) or '(khóa đã xóa)',
+                'percent': r.best_percent or r.percent or 0,
+                'date_ts': ER._to_ts(r.last_done_at),
+            })
+        items.sort(key=lambda i: -i['date_ts'])
+        base['items'] = items
+        return base
 
     def _vd_heal_path_membership(self, user):
         """NV da la member cua 1 lo trinh -> DAM BAO co membership o MOI khoa cua

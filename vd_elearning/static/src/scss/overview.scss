@@ -913,3 +913,114 @@ $vd-line2:   #ece7da;
     }
     .o_vd_exam_list .o_vd_ce_qtext { font-size: 1rem; }
 }
+
+/* ============================================================
+   GIẤY CHỨNG NHẬN hoàn thành khóa học + pháo hoa (user spec 2026-06-24)
+   ============================================================ */
+.o_vd_cert_wrap { position: relative; padding: 6px 2px 2px; overflow: hidden; }
+
+/* ---- Pháo hoa / confetti ---- */
+.o_vd_confetti {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5;
+}
+.o_vd_cft {
+    position: absolute; top: -24px; display: block;
+    border-radius: 2px; opacity: 0;
+    animation-name: vd-cft-fall; animation-timing-function: ease-in;
+    animation-iteration-count: 1; animation-fill-mode: forwards;
+}
+.o_vd_cft.o_vd_cft_round { border-radius: 50%; }
+@keyframes vd-cft-fall {
+    0%   { transform: translateY(-24px) rotate(0deg); opacity: 1; }
+    85%  { opacity: 1; }
+    100% { transform: translateY(460px) rotate(var(--rot, 360deg)); opacity: 0; }
+}
+
+/* ---- Khung giấy chứng nhận ---- */
+.o_vd_cert {
+    position: relative; z-index: 2;
+    max-width: 640px; margin: 0 auto;
+    background: #fff;
+    border: 10px solid #1d3a8a;
+    border-radius: 6px;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, .28);
+    padding: 10px;
+}
+.o_vd_cert_inner {
+    border: 2px dashed #c9ad6a;
+    border-radius: 4px;
+    padding: 22px 26px 26px;
+    text-align: center;
+    position: relative;
+}
+.o_vd_cert_corner {
+    position: absolute; color: #9aa3b2; font-size: 16px; line-height: 1;
+    &.o_vd_cc_tl { top: 8px; left: 10px; }
+    &.o_vd_cc_tr { top: 8px; right: 10px; }
+    &.o_vd_cc_bl { bottom: 8px; left: 10px; }
+    &.o_vd_cc_br { bottom: 8px; right: 10px; }
+}
+.o_vd_cert_logo {
+    font-size: 1.9rem; font-weight: 900; letter-spacing: 1px;
+    color: #c0392b; font-family: Arial, sans-serif;
+    text-shadow: 0 1px 0 #f1c40f;
+}
+.o_vd_cert_company { font-size: .72rem; color: #6b7280; letter-spacing: .5px; margin-bottom: 8px; }
+.o_vd_cert_title {
+    font-size: 2.1rem; font-weight: 900; color: #1d3a8a; letter-spacing: 3px;
+    margin-top: 4px;
+}
+.o_vd_cert_sub {
+    font-size: 1rem; font-weight: 800; color: #c0392b; letter-spacing: 2px;
+    margin: 2px 0 6px;
+}
+.o_vd_cert_course {
+    display: inline-block; margin: 4px auto 2px; padding: 3px 14px;
+    font-size: 1.02rem; font-weight: 800; color: #16407a;
+    background: #eef3fb; border-radius: 999px;
+}
+.o_vd_cert_name {
+    font-family: 'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', cursive;
+    font-size: 2.8rem; color: #7a1f2b; line-height: 1.1; margin: 10px 0 2px;
+}
+.o_vd_cert_role { font-size: 1rem; font-weight: 700; color: #2f5fae; letter-spacing: 2px; }
+.o_vd_cert_score {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 14px; padding: 5px 16px; border-radius: 999px;
+    background: linear-gradient(135deg, #fff3bf, #ffe066);
+    border: 1px solid #f1c40f;
+    .o_vd_cert_medal { font-size: 1.3rem; }
+    .o_vd_cert_scoretxt { font-weight: 800; color: #8a5a00; letter-spacing: 1px;
+        b { color: #c0392b; font-size: 1.2rem; } }
+}
+.o_vd_cert_date { margin-top: 12px; font-size: .82rem; color: #6b7280; font-style: italic; }
+
+/* ---- Danh sách giấy chứng nhận của tôi ---- */
+.o_vd_certbox { }
+.o_vd_certlist { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.o_vd_certcard {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1 1 260px; max-width: 360px;
+    padding: 8px 12px; cursor: pointer;
+    background: linear-gradient(135deg, #fffdf5, #fff7e0);
+    border: 1px solid #ffe08a; border-left: 4px solid #f1c40f;
+    border-radius: 10px; transition: transform .1s ease, box-shadow .1s ease;
+    &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(241, 196, 15, .3); }
+    .o_vd_certcard_ico { font-size: 1.5rem; color: #f1a000; flex: 0 0 auto; }
+    .o_vd_certcard_body { flex: 1 1 auto; min-width: 0; }
+    .o_vd_certcard_name { font-weight: 800; color: #1f2a44; font-size: .9rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_vd_certcard_meta { font-size: .76rem; color: #8a5a00; b { color: #c0392b; } }
+    .o_vd_certcard_view { flex: 0 0 auto; font-size: .8rem; font-weight: 700; color: #1971c2; }
+}
+
+/* ---- In / lưu PDF: chỉ hiện giấy chứng nhận ---- */
+@media print {
+    body * { visibility: hidden !important; }
+    .o_vd_cert_print, .o_vd_cert_print * { visibility: visible !important; }
+    .o_vd_cert_print {
+        position: fixed !important; left: 0; top: 0; width: 100% !important;
+        max-width: none !important; box-shadow: none !important;
+    }
+    .o_vd_confetti { display: none !important; }
+}

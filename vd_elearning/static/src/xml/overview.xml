@@ -26,6 +26,46 @@
         </Dialog>
     </t>
 
+    <!-- ============ GIAY CHUNG NHAN (phao hoa) ============ -->
+    <t t-name="vd_elearning.CertificateDialog">
+        <Dialog title="'🎉 Chúc mừng hoàn thành khóa học!'" size="'lg'" contentClass="'o_vd_cert_dlg'">
+            <div class="o_vd_cert_wrap">
+                <!-- Pháo hoa / confetti -->
+                <div class="o_vd_confetti">
+                    <t t-foreach="pieces" t-as="p" t-key="p_index">
+                        <span t-att-class="'o_vd_cft' + (p.round ? ' o_vd_cft_round' : '')"
+                              t-attf-style="left:{{p.left}}%;background:{{p.color}};width:{{p.size}}px;height:{{p.size}}px;animation-delay:{{p.delay}}s;animation-duration:{{p.dur}}s;--rot:{{p.rot}}deg;"/>
+                    </t>
+                </div>
+                <!-- GIẤY CHỨNG NHẬN -->
+                <div class="o_vd_cert o_vd_cert_print">
+                    <div class="o_vd_cert_inner">
+                        <span class="o_vd_cert_corner o_vd_cc_tl">★</span>
+                        <span class="o_vd_cert_corner o_vd_cc_tr">★</span>
+                        <span class="o_vd_cert_corner o_vd_cc_bl">★</span>
+                        <span class="o_vd_cert_corner o_vd_cc_br">★</span>
+                        <div class="o_vd_cert_logo">VINADUY</div>
+                        <div class="o_vd_cert_company"><t t-esc="props.companyName"/></div>
+                        <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
+                        <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
+                        <div t-if="props.courseName" class="o_vd_cert_course"><t t-esc="props.courseName"/></div>
+                        <div class="o_vd_cert_name"><t t-esc="props.empName"/></div>
+                        <div class="o_vd_cert_role"><t t-esc="props.roleLabel"/></div>
+                        <div class="o_vd_cert_score">
+                            <span class="o_vd_cert_medal">🏅</span>
+                            <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="props.percent"/></b> ĐIỂM</span>
+                        </div>
+                        <div class="o_vd_cert_date">Ngày <t t-esc="dateStr"/></div>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn o_vd_dlg_ok" t-on-click="download"><i class="fa fa-download me-1"/>Tải chứng nhận</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+            </t>
+        </Dialog>
+    </t>
+
     <!-- ============ POPUP GAN NHAN VIEN ============ -->
     <t t-name="vd_elearning.AssignDialog">
         <Dialog title="props.title" size="'md'">
@@ -656,6 +696,27 @@
                             </div>
                         </t>
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
+                    </div>
+
+                    <!-- GIAY CHUNG NHAN da dat (luu trong tai khoan NV) - chi xem cua minh -->
+                    <div t-if="state.selectedEmp.locked &amp;&amp; state.myCerts &amp;&amp; state.myCerts.items &amp;&amp; state.myCerts.items.length"
+                         class="o_vd_certbox" style="margin-top:18px;">
+                        <div class="o_vd_hist_head">
+                            <i class="fa fa-certificate me-1"/>GIẤY CHỨNG NHẬN CỦA TÔI
+                            <span class="o_vd_hist_count"><b t-esc="state.myCerts.items.length"/> chứng nhận</span>
+                        </div>
+                        <div class="o_vd_certlist">
+                            <t t-foreach="state.myCerts.items" t-as="ct" t-key="ct.channel_id || ct_index">
+                                <div class="o_vd_certcard" t-on-click="() => this.viewCertificate(ct)">
+                                    <div class="o_vd_certcard_ico"><i class="fa fa-certificate"/></div>
+                                    <div class="o_vd_certcard_body">
+                                        <div class="o_vd_certcard_name"><t t-esc="ct.course_name"/></div>
+                                        <div class="o_vd_certcard_meta">Đạt <b><t t-esc="ct.percent"/></b> điểm</div>
+                                    </div>
+                                    <div class="o_vd_certcard_view"><i class="fa fa-eye me-1"/>Xem</div>
+                                </div>
+                            </t>
+                        </div>
                     </div>
 
                     <!-- LICH SU THI cua NV (ben vung - khong mat khi gan lai lo trinh) -->
