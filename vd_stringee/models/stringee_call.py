@@ -277,14 +277,20 @@ class StringeeCall(models.Model):
         }
 
     @api.model
-    def _vd_numbers_stats(self, numbers, alive_days=30):
+    def _vd_numbers_stats(self, numbers, alive_days=30, dead_days=4, dead_min=3):
         """Thống kê theo LÔ số tổng đài (cho bảng kho số). Trả dict:
             number -> {total, reached, reached_recent, secs, first, last,
                        active_days, per_day, health}
         - reached/reached_recent đếm cuộc ĐỔ CHUÔNG/NGHE MÁY thật (raw_events
           ringing/answered hoặc answer_time) — KHÔNG dùng duration (hay = 0).
-        - health: 'alive' (đổ chuông trong `alive_days` ngày) / 'dead' (đã gọi
-          nhưng gần đây không đổ chuông) / 'unused' (chưa gọi cuộc nào).
+        - health:
+            'dead'   = trong `dead_days` ngày gần đây gọi >= `dead_min` cuộc mà
+                       0 cuộc đổ chuông (nhà mạng chặn số) — bắt số MỚI chết kể cả
+                       khi nó còn đổ chuông trong 30 ngày (fix 2026-06-23: trước
+                       đây cửa sổ 30 ngày quá rộng -> số chết 16/06 vẫn 'alive').
+            'alive'  = có đổ chuông gần đây HOẶC từng đổ chuông và gần đây ít dùng
+                       (tránh false-dead làm tự gỡ số tốt đang nhàn).
+            'unused' = chưa gọi cuộc nào.
         """
         out = {}
         nums = [n for n in (numbers or []) if n]
@@ -304,26 +310,36 @@ class StringeeCall(models.Model):
             "  count(*) FILTER (WHERE " + reached + ") AS reached, "
             "  count(*) FILTER (WHERE " + reached + " AND create_date > "
             "      (now() at time zone 'utc') - (%s || ' days')::interval) AS reached_recent, "
+            "  count(*) FILTER (WHERE create_date > "
+            "      (now() at time zone 'utc') - (%s || ' days')::interval) AS recent_total, "
+            "  count(*) FILTER (WHERE " + reached + " AND create_date > "
+            "      (now() at time zone 'utc') - (%s || ' days')::interval) AS recent_reached, "
             "  COALESCE(sum(duration),0) AS secs, "
             "  min(create_date) AS first_at, max(create_date) AS last_at "
             "FROM stringee_call "
             "WHERE direction='outbound' AND caller_number IN %s "
             "GROUP BY caller_number",
-            [str(alive_days), tuple(nums)],
+            [str(alive_days), str(dead_days), str(dead_days), tuple(nums)],
         )
         rows = cr.fetchall()
         for row in rows:
-            number, total, rch, rch_recent, secs, first_at, last_at = row
+            (number, total, rch, rch_recent, recent_total, recent_reached,
+             secs, first_at, last_at) = row
             first_d = first_at.date() if first_at else None
             last_d = last_at.date() if last_at else None
             active_days = ((today - first_d).days + 1) if first_d else 0
             per_day = round(total / active_days, 1) if active_days else 0
             if total == 0:
                 health = 'unused'
+            elif recent_total >= dead_min and recent_reached == 0:
+                # Gần đây gọi nhiều mà 0 đổ chuông -> nhà mạng chặn số (kể cả khi
+                # 30 ngày trước còn đổ chuông).
+                health = 'dead'
             elif rch_recent > 0:
                 health = 'alive'
             elif rch > 0:
-                health = 'dead'   # từng đổ chuông nhưng gần đây tịt
+                # Từng đổ chuông, gần đây ít dùng -> GIỮ alive (tránh tự gỡ số tốt).
+                health = 'alive'
             else:
                 health = 'dead'   # gọi nhiều nhưng chưa cuộc nào đổ chuông
             out[number] = {
