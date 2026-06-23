@@ -44,4 +44,11 @@
     <!-- User spec 2026-06-13: list + action tùy biến "Cài đặt thông tin NV" đã
          BỎ — menu Cấu hình → Cài đặt người dùng giờ trỏ thẳng base.action_res_users
          (màn Người dùng chuẩn) để chỉ còn 1 thiết kế. Chỉ giữ form inherit ở trên. -->
+
+    <!-- User spec 2026-06-24: BẢNG QUẢN LÝ NHÂN VIÊN — 2 cột kéo thả (client action
+         OWL, KHÔNG dùng list/form mẫu). Menu Cài đặt người dùng trỏ vào đây. -->
+    <record id="action_vd_user_board" model="ir.actions.client">
+        <field name="name">Quản lý nhân viên</field>
+        <field name="tag">vd_user_board</field>
+    </record>
 </odoo>

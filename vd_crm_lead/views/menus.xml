@@ -26,14 +26,13 @@
          Template hoặc tạo nhanh từ Many2one dropdown khi thêm template. -->
 
     <!-- ⚙️ Cấu hình → Cài đặt người dùng.
-         User spec 2026-06-13: dùng THẲNG màn Người dùng chuẩn (Cài đặt → Người
-         dùng) thay vì action tùy biến riêng → chỉ còn 1 thiết kế để bảo trì.
-         Các trường CRM (ngày bắt đầu/năng lực/chỉ tiêu) vẫn hiện qua form inherit
-         view_users_form_vd_crm. -->
+         User spec 2026-06-24: trỏ vào BẢNG QUẢN LÝ NHÂN VIÊN (client action OWL,
+         2 cột kéo thả) thay màn list chuẩn. Vẫn mở được form NV (nhấp đúp thẻ) và
+         màn chuẩn Odoo (nút "Bảng chuẩn") để sửa quyền/mật khẩu. -->
     <menuitem id="menu_vd_users_settings"
               name="Cài đặt người dùng"
               parent="crm.crm_menu_config"
-              action="base.action_res_users"
+              action="action_vd_user_board"
               sequence="60"
               groups="sales_team.group_sale_manager"/>
 

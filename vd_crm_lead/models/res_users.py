@@ -567,6 +567,87 @@ class ResUsers(models.Model):
             ])
         return min(eligible, key=lambda u: (today_map.get(u.id, 0), active_load(u), u.id))
 
+    # ============================================================
+    # BẢNG QUẢN LÝ NHÂN VIÊN — 2 cột kéo thả (đang hoạt động / nghỉ-tạm dừng)
+    # ============================================================
+    _VD_TEAM_COLOR = {
+        'HCM1': '#228be6', 'HCM2': '#15aabf', 'HCM3': '#0ca678',
+        'HN': '#fa5252', 'QN': '#f59f00', 'CTV': '#12b886',
+        'VINADUY': '#7048e8', 'KHÁC': '#868e96',
+    }
+    _VD_ROLE_LABEL = {
+        'admin': 'Admin', 'director': 'Phó GĐ', 'team_leader': 'Trưởng nhóm',
+        'employee': 'Nhân viên', 'collaborator': 'CTV',
+    }
+
+    def _vd_board_card(self):
+        """Dict 1 thẻ NV cho bảng quản lý."""
+        self.ensure_one()
+        import re as _re
+        full = self.name or self.login or ''
+        # Bỏ tiền tố team "HCM2 - " để lấy tên thuần.
+        m = _re.match(r'^\s*[A-Za-zÀ-ỹ0-9]+\s*-\s*(.+)$', full)
+        pure = (m.group(1) if m else full).strip()
+        # Mã icon = chữ cái đầu của 2-3 từ cuối (vd "Mai Thị Thao" → "MTT").
+        words = [w for w in _re.split(r'\s+', pure) if w]
+        code = ''.join(w[0] for w in words[-3:]).upper() if words else (self.login or '?')[:3].upper()
+        team = self.vd_team_label or 'KHÁC'
+        role = self.vd_crm_role or 'employee'
+        return {
+            'id': self.id,
+            'name': pure or full,
+            'code': code or '?',
+            'team': team,
+            'team_color': self._VD_TEAM_COLOR.get(team, '#868e96'),
+            'role': role,
+            'role_label': self._VD_ROLE_LABEL.get(role, 'Nhân viên'),
+            'is_leader': role in ('team_leader', 'director'),
+            'login': self.login or '',
+            'active': bool(self.active),
+        }
+
+    @api.model
+    def vd_user_board_data(self):
+        """Dữ liệu 2 bảng: NV đang hoạt động vs nghỉ việc/tạm dừng (archived).
+        Chỉ NV nội bộ (share=False). Sắp theo team rồi tên."""
+        users = self.sudo().with_context(active_test=False).search([
+            ('share', '=', False),
+        ])
+        working, off = [], []
+        for u in users:
+            (working if u.active else off).append(u._vd_board_card())
+        keyf = lambda c: (c['team'], c['name'].lower())
+        return {
+            'working': sorted(working, key=keyf),
+            'off': sorted(off, key=keyf),
+        }
+
+    @api.model
+    def vd_set_user_active(self, user_id, working):
+        """Kéo thẻ giữa 2 bảng → archive/unarchive NV. Chỉ admin/quản lý.
+        KHÔNG cho tự archive chính mình hoặc tài khoản admin gốc."""
+        caller = self.env.user
+        allowed = (
+            caller._is_admin()
+            or caller.has_group('sales_team.group_sale_manager')
+            or caller.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not allowed:
+            from odoo.exceptions import AccessError
+            raise AccessError('Chỉ admin / quản lý mới được đổi trạng thái nhân viên.')
+        target = self.sudo().with_context(active_test=False).browse(int(user_id))
+        if not target.exists():
+            return False
+        want = bool(working)
+        if not want:
+            # Chặn archive admin gốc + chính mình → tránh tự khoá.
+            from odoo import SUPERUSER_ID
+            if target.id in (SUPERUSER_ID, caller.id):
+                from odoo.exceptions import UserError
+                raise UserError('Không thể tạm dừng tài khoản admin gốc hoặc chính bạn.')
+        target.write({'active': want})
+        return want
+
     @api.model
     def vd_toggle_pancake_receive(self, user_id):
         """BẬT/TẮT nhận KH Pancake cho 1 NV (gọi từ nút trên báo cáo chia số).

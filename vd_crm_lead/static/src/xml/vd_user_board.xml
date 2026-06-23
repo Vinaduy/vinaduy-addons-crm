@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdUserBoard">
+        <div class="o_vd_userboard">
+            <div class="o_vd_ub_head">
+                <h2 class="o_vd_ub_title">👥 Quản lý nhân viên</h2>
+                <input type="text" class="o_vd_ub_search"
+                       placeholder="🔍 Tìm tên / mã / phòng ban..."
+                       t-att-value="state.search"
+                       t-on-input="ev => state.search = ev.target.value"/>
+                <button class="o_vd_ub_btn o_vd_ub_btn_add" t-on-click="() => this.openNew()">+ Thêm NV</button>
+                <button class="o_vd_ub_btn" t-on-click="() => this.load()" title="Tải lại">↻</button>
+                <button class="o_vd_ub_btn o_vd_ub_btn_std" t-on-click="() => this.openStandard()"
+                        title="Mở màn Người dùng chuẩn của Odoo">Bảng chuẩn</button>
+            </div>
+
+            <div t-if="state.loading" class="o_vd_ub_loading">Đang tải danh sách nhân viên...</div>
+
+            <div t-else="" class="o_vd_ub_cols">
+                <!-- ============ BẢNG 1: ĐANG HOẠT ĐỘNG ============ -->
+                <div t-att-class="'o_vd_ub_col o_vd_ub_col_on' + (state.overCol === 'working' ? ' o_vd_ub_over' : '')"
+                     t-on-dragover="ev => this.onDragOver(ev, 'working')"
+                     t-on-dragleave="() => this.onDragLeave('working')"
+                     t-on-drop="ev => this.onDrop(ev, 'working')">
+                    <div class="o_vd_ub_colhead o_vd_ub_colhead_on">
+                        <span class="o_vd_ub_dot"/> ĐANG HOẠT ĐỘNG
+                        <span class="o_vd_ub_cnt"><t t-esc="workingList.length"/></span>
+                    </div>
+                    <div class="o_vd_ub_cards">
+                        <t t-foreach="workingList" t-as="c" t-key="c.id">
+                            <t t-call="vd_crm_lead.VdUserCard"/>
+                        </t>
+                        <div t-if="!workingList.length" class="o_vd_ub_empty">— Kéo nhân viên vào đây —</div>
+                    </div>
+                </div>
+
+                <!-- ============ BẢNG 2: NGHỈ VIỆC / TẠM DỪNG ============ -->
+                <div t-att-class="'o_vd_ub_col o_vd_ub_col_off' + (state.overCol === 'off' ? ' o_vd_ub_over' : '')"
+                     t-on-dragover="ev => this.onDragOver(ev, 'off')"
+                     t-on-dragleave="() => this.onDragLeave('off')"
+                     t-on-drop="ev => this.onDrop(ev, 'off')">
+                    <div class="o_vd_ub_colhead o_vd_ub_colhead_off">
+                        <span class="o_vd_ub_dot"/> NGHỈ VIỆC / TẠM DỪNG
+                        <span class="o_vd_ub_cnt"><t t-esc="offList.length"/></span>
+                    </div>
+                    <div class="o_vd_ub_cards">
+                        <t t-foreach="offList" t-as="c" t-key="c.id">
+                            <t t-call="vd_crm_lead.VdUserCard"/>
+                        </t>
+                        <div t-if="!offList.length" class="o_vd_ub_empty">— Trống —</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="o_vd_ub_hint">💡 Kéo thả thẻ giữa 2 bảng để bật/tạm dừng. Nhấp đúp để mở chi tiết NV.</div>
+        </div>
+    </t>
+
+    <!-- THẺ NHÂN VIÊN gọn: mã icon + tên + phòng ban + vai trò -->
+    <t t-name="vd_crm_lead.VdUserCard">
+        <div t-att-class="'o_vd_ub_card' + (c.is_leader ? ' o_vd_ub_leader' : '') + (c.active ? '' : ' o_vd_ub_card_off')"
+             t-att-style="`--team-color:${c.team_color}`"
+             draggable="true"
+             t-on-dragstart="ev => this.onDragStart(ev, c, c.active ? 'working' : 'off')"
+             t-on-dblclick="() => this.openUser(c)"
+             t-att-title="c.login + ' — nhấp đúp để mở'">
+            <div class="o_vd_ub_code"><t t-esc="c.code"/></div>
+            <div class="o_vd_ub_info">
+                <div class="o_vd_ub_name"><t t-esc="c.name"/></div>
+                <div class="o_vd_ub_meta">
+                    <span class="o_vd_ub_team"><t t-esc="c.team"/></span>
+                    <span class="o_vd_ub_role"><t t-esc="c.role_label"/></span>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -6635,10 +6635,33 @@ class CrmLead(models.Model):
                     fields.Datetime.to_string(until))
             return block
 
-        return {
+        result = {
             'today': _build(today_since, today_until, True, today_label),
             'month': _build(month_since, month_until, False, 'Tháng này'),
         }
+        # TỶ LỆ XIN SỐ 7 NGÀY GẦN NHẤT (chỉ kênh Pancake) — ô trên cùng báo cáo.
+        if pancake:
+            wd = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']  # weekday() 0..6
+            rate7 = []
+            for i in range(6, -1, -1):           # 6 ngày trước → hôm nay
+                d = now_vn.date() - _tdd(days=i)
+                since = _utc(d, _time(0, 0))
+                until = _utc(d + _tdd(days=1), _time(0, 0))
+                blk = Conv._vd_rate_block(
+                    fields.Datetime.to_string(since),
+                    fields.Datetime.to_string(until))
+                rate7.append({
+                    'label': wd[d.weekday()],
+                    'day': '%d/%d' % (d.day, d.month),
+                    'is_today': (i == 0),
+                    'pct': blk['all']['pct'],
+                    'with_phone': blk['all']['with_phone'],
+                    'total': blk['all']['total'],
+                    'tiktok': blk['tiktok'],
+                    'facebook': blk['facebook'],
+                })
+            result['rate7'] = rate7
+        return result
 
     @api.model
     def vd_pancake_dist_reports(self):

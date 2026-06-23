@@ -2922,21 +2922,40 @@
             <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
 
-                <!-- TỶ LỆ XIN SỐ (chỉ kênh Pancake) -->
+                <!-- ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + 7 NGÀY GẦN NHẤT ===== -->
                 <div t-if="distShowTarget and distRep.today.rate" class="o_vd_pk_rate">
-                    <div class="o_vd_pk_rate_main">
-                        🎯 Tỷ lệ xin số <t t-esc="distRep.today.label"/>:
-                        <b><t t-esc="distRep.today.rate.all.pct"/>%</b>
-                        <span class="o_vd_pk_rate_sub">
-                            (<t t-esc="distRep.today.rate.all.with_phone"/> cho số /
-                            <t t-esc="distRep.today.rate.all.total"/> khách nhắn)
-                        </span>
+                    <div class="o_vd_pk_rate_head">🎯 TỶ LỆ XIN ĐƯỢC SỐ</div>
+                    <div class="o_vd_pk_rate_today">
+                        <div class="o_vd_pk_rate_big"><t t-esc="distRep.today.rate.all.pct"/>%</div>
+                        <div class="o_vd_pk_rate_today_lbl">
+                            <div><b><t t-esc="distRep.today.label"/></b></div>
+                            <div class="o_vd_pk_rate_sub">
+                                <t t-esc="distRep.today.rate.all.with_phone"/> cho số /
+                                <t t-esc="distRep.today.rate.all.total"/> khách nhắn
+                            </div>
+                        </div>
+                        <div class="o_vd_pk_rate_chips">
+                            <span class="o_vd_pk_chip o_vd_pk_tt">🎵 TikTok <b><t t-esc="distRep.today.rate.tiktok.pct"/>%</b>
+                                (<t t-esc="distRep.today.rate.tiktok.with_phone"/>/<t t-esc="distRep.today.rate.tiktok.total"/>)</span>
+                            <span class="o_vd_pk_chip o_vd_pk_fb">📘 Facebook <b><t t-esc="distRep.today.rate.facebook.pct"/>%</b>
+                                (<t t-esc="distRep.today.rate.facebook.with_phone"/>/<t t-esc="distRep.today.rate.facebook.total"/>)</span>
+                        </div>
                     </div>
-                    <div class="o_vd_pk_rate_split">
-                        <span class="o_vd_pk_chip o_vd_pk_tt">🎵 TikTok <b><t t-esc="distRep.today.rate.tiktok.pct"/>%</b>
-                            <t t-esc="distRep.today.rate.tiktok.with_phone"/>/<t t-esc="distRep.today.rate.tiktok.total"/></span>
-                        <span class="o_vd_pk_chip o_vd_pk_fb">📘 Facebook <b><t t-esc="distRep.today.rate.facebook.pct"/>%</b>
-                            <t t-esc="distRep.today.rate.facebook.with_phone"/>/<t t-esc="distRep.today.rate.facebook.total"/></span>
+                    <!-- Biểu đồ cột 7 ngày gần nhất -->
+                    <div t-if="distRep.rate7" class="o_vd_pk_trend">
+                        <div class="o_vd_pk_trend_title">7 ngày gần nhất</div>
+                        <div class="o_vd_pk_trend_bars">
+                            <div t-foreach="distRep.rate7" t-as="d" t-key="d_index"
+                                 t-att-class="'o_vd_pk_barcol' + (d.is_today ? ' o_vd_pk_bartoday' : '')"
+                                 t-att-title="d.day + ': ' + d.pct + '% (' + d.with_phone + '/' + d.total + ')'">
+                                <div class="o_vd_pk_barpct"><t t-esc="d.pct"/>%</div>
+                                <div class="o_vd_pk_barwrap">
+                                    <div class="o_vd_pk_bar" t-att-style="`height:${d.total ? Math.max(d.pct, 4) : 0}%`"/>
+                                </div>
+                                <div class="o_vd_pk_barlbl"><t t-esc="d.label"/></div>
+                                <div class="o_vd_pk_barday"><t t-esc="d.day"/></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

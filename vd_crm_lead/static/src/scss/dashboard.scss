@@ -9701,8 +9701,19 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         top: -8px; left: 0; right: 0; height: 8px;
     }
 }
-/* KÊNH PANCAKE: popover rộng để chứa cột TikTok / FB / Tổng + nút bật-tắt */
-.o_vd_pancake_pop_wide { width: 540px; max-width: 92vw; }
+/* KÊNH PANCAKE: popover rộng (+30%) để chứa cột TikTok/FB/Tổng + nút bật-tắt
+   + ô tỷ lệ xin số 7 ngày. Chữ to hơn cho dễ đọc. */
+.o_vd_pancake_pop_wide {
+    width: 700px; max-width: 96vw;
+    .o_vd_pancake_pop_head { font-size: 1.02rem; padding: 0.7rem 0.95rem; }
+    .o_vd_pancake_sec_head { font-size: 0.95rem; }
+    .o_vd_pancake_row { font-size: 0.92rem; padding: 0.35rem 0.6rem; }
+    .o_vd_pancake_row_eval { font-size: 0.7rem; }
+    .o_vd_pancake_row_cnt { font-size: 0.92rem; min-width: 1.9rem; }
+    .o_vd_pk_col { flex: 0 0 2.6rem; font-size: 0.95rem; }
+    .o_vd_pk_col_tot { flex: 0 0 2.4rem; }
+    .o_vd_pk_colhead { font-size: 0.72rem; }
+}
 .o_vd_pancake_filter:hover .o_vd_pancake_pop {
     opacity: 1; visibility: visible; transform: translateY(0);
 }
@@ -9764,24 +9775,61 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     margin-top: 1px;
 }
 
-/* ===== TỶ LỆ XIN SỐ (kênh Pancake) ===== */
+/* ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + biểu đồ 7 ngày (kênh Pancake) ===== */
 .o_vd_pk_rate {
-    margin: 0.5rem 0.7rem 0;
-    padding: 0.55rem 0.7rem;
-    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
-    border: 1px solid #ffe066;
-    border-radius: 10px;
+    margin: 0.6rem 0.7rem 0.2rem;
+    padding: 0.7rem 0.8rem;
+    background: linear-gradient(135deg, #fff9db 0%, #ffec99 100%);
+    border: 2px solid #ffd43b;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(250, 176, 5, 0.18);
 }
-.o_vd_pk_rate_main { font-size: 0.86rem; font-weight: 700; color: #1f2a44;
-    b { color: #e8590c; font-size: 1.05rem; } }
-.o_vd_pk_rate_sub { font-size: 0.74rem; font-weight: 600; color: #868e96; }
-.o_vd_pk_rate_split { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
+.o_vd_pk_rate_head {
+    font-size: 0.92rem; font-weight: 900; color: #b35309; letter-spacing: 0.4px;
+    margin-bottom: 0.5rem;
+}
+.o_vd_pk_rate_today { display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+.o_vd_pk_rate_big {
+    font-size: 2.6rem; font-weight: 900; line-height: 1; color: #e8590c;
+    text-shadow: 0 1px 0 #fff;
+}
+.o_vd_pk_rate_today_lbl { font-size: 0.9rem; color: #1f2a44; b { font-size: 1rem; } }
+.o_vd_pk_rate_sub { font-size: 0.82rem; font-weight: 600; color: #846a1f; }
+.o_vd_pk_rate_chips { display: flex; flex-direction: column; gap: 0.3rem; margin-left: auto; }
 .o_vd_pk_chip {
-    font-size: 0.74rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
+    font-size: 0.82rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;
+    white-space: nowrap;
     b { margin: 0 0.15rem; }
 }
 .o_vd_pk_chip.o_vd_pk_tt { background: #f3f0ff; color: #6741d9; border: 1px solid #d0bfff; }
 .o_vd_pk_chip.o_vd_pk_fb { background: #e7f5ff; color: #1971c2; border: 1px solid #a5d8ff; }
+
+/* Biểu đồ cột 7 ngày */
+.o_vd_pk_trend { margin-top: 0.7rem; border-top: 1px dashed #ffd43b; padding-top: 0.5rem; }
+.o_vd_pk_trend_title { font-size: 0.78rem; font-weight: 800; color: #b35309; margin-bottom: 0.35rem; }
+.o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.45rem; height: 7.5rem; }
+.o_vd_pk_barcol {
+    flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
+    height: 100%; justify-content: flex-end; cursor: default;
+}
+.o_vd_pk_barpct { font-size: 0.72rem; font-weight: 800; color: #495057; margin-bottom: 2px; }
+.o_vd_pk_barwrap {
+    width: 100%; max-width: 2rem; flex: 1 1 auto; display: flex; align-items: flex-end;
+    background: rgba(255, 255, 255, 0.55); border-radius: 6px 6px 0 0; overflow: hidden;
+}
+.o_vd_pk_bar {
+    width: 100%; min-height: 2px;
+    background: linear-gradient(180deg, #ffa94d, #f76707);
+    border-radius: 6px 6px 0 0; transition: height 0.3s ease;
+}
+.o_vd_pk_barlbl { font-size: 0.72rem; font-weight: 700; color: #495057; margin-top: 3px; }
+.o_vd_pk_barday { font-size: 0.62rem; color: #adb5bd; }
+.o_vd_pk_barcol.o_vd_pk_bartoday {
+    .o_vd_pk_barpct { color: #e8590c; }
+    .o_vd_pk_bar { background: linear-gradient(180deg, #ff922b, #e8590c); }
+    .o_vd_pk_barlbl { color: #e8590c; font-weight: 900; }
+    .o_vd_pk_barwrap { box-shadow: 0 0 0 2px #ffd43b inset; }
+}
 
 /* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
 .o_vd_pk_colhead {
