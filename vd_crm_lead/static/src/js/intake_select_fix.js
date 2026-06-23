@@ -580,7 +580,11 @@ async function _handleFloorBtn(rec, name) {
         } else if (name === "action_toggle_lung") {
             await rec.update({ vd_intake_has_lung: !rec.data.vd_intake_has_lung });
         }
-        if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(rec, "floor btn:" + name);
+        // LƯU NGAY (flush đã chạy ở trên) — dòng tầng/tum/lửng vừa thêm phải bền
+        // ngay, KHÔNG để mất khi user chuyển sang thao tác khác. Trước đây dùng
+        // scheduleSave (hoãn 900ms + guard) nên thường bị bỏ qua → thay đổi chỉ
+        // nằm in-memory, gặp reload là mất dòng vừa thêm.
+        try { await rec.save(); } catch (e) { console.warn("[VD floor btn] save lỗi:", e); }
     } catch (err) {
         console.warn("[VD floor btn] lỗi, sẽ không chặn lần sau:", err);
     }

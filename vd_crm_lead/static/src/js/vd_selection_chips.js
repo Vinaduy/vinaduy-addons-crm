@@ -78,7 +78,11 @@ export class VdSelectionChips extends Component {
         // Click vào chip đang chọn → bỏ chọn (clear). Click khác → set value mới.
         const newVal = (value === this.currentValue) ? false : value;
         await this.props.record.update({ [this.props.name]: newVal });
-        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "sel-chip:" + this.props.name); } catch (_) {}
+        // Flush ô số đang gõ rồi lưu NGAY (tránh mất dữ liệu in-flight khi đổi chip).
+        try {
+            if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("sel-chip:" + this.props.name);
+            await this.props.record.save();
+        } catch (_) {}
         this.state.open = false;
     }
 

@@ -12141,6 +12141,16 @@ div.o_vd_layout_grid div.o_vd_intake_inline .o_vd_area_dim input.o_vd_num_input,
     line-height: 1.2 !important;
     text-align: center !important;
 }
+/* ÉP ô Ngang/Dài (Diện tích nhà + đất) BẰNG ĐÚNG cỡ chữ ô m² từng tầng (30px/700)
+   — fix user 2026-06-23: trước đây ô diện tích nhà hiển thị cỡ chữ lệch ô m² tầng.
+   Specificity cao + đặt sau để thắng mọi rule 24px ở trên. */
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area_dim input.o_vd_num_input,
+.o_vd_layout_grid .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_dim input.o_vd_num_input {
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+}
 /* Tổng diện tích sàn — pill xanh ngắn 'TỔNG: 60 M²' */
 .o_vd_intake_inline .o_vd_floors_total_inline {
     display: inline-flex !important;

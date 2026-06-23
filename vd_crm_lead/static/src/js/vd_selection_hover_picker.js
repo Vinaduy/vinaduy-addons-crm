@@ -119,11 +119,13 @@ export class VdSelectionHoverPicker extends Component {
         } catch (e) {
             console.error("[vd_shp] update failed:", e);
         }
-        // KHÔNG save ngay (reload làm mất dữ liệu/con trỏ + giật). Lên lịch SAVE
-        // DỒN: chỉ thật lưu khi user nghỉ tay → compute vd_intake_complete + lock.
+        // FLUSH ô số đang gõ (Ngang/Dài, m² tầng) RỒI LƯU NGAY — giống pattern an
+        // toàn của vd_selection_inline / m2o picker. Trước đây chỉ scheduleSave (hoãn,
+        // không flush) nên số vừa gõ ở ô khác bị mất khi chọn picker này.
         try {
-            if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "shp:" + this.props.name);
-        } catch (_) {}
+            if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("shp:" + this.props.name);
+            await this.props.record.save();
+        } catch (e) { console.error("[vd_shp] save failed:", e); }
         try { this.render(true); } catch (_) {}
         this.state.open = false;
     }
