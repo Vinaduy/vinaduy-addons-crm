@@ -21,7 +21,7 @@ from odoo import api, models
 from .seed_kh_tiem_nang import (_WRAP, _box, _formula, _apply, _situation,
                                 _advice, _proof, _mistake)
 
-_BG_VERSION = 'v3'
+_BG_VERSION = 'v4'
 _PARAM_KEY = 'vd_elearning.banggia_seed_version'
 
 
@@ -102,17 +102,17 @@ class SlideChannelSeedBangGia(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Cong thuc than thanh', self._p1(h2, h3, lead)),
-            ('2. Don gia theo m2', self._p2(h2, h3, lead)),
-            ('3. He so tinh nham (Mien Bac)', self._p3(h2, h3, lead)),
-            ('4. Bang bao gia 3 mien', self._p4(h2, h3, lead)),
-            ('5. Cach tinh dien tich', self._p5(h2, h3, lead)),
-            ('6. Phat sinh', self._p6(h2, h3, lead)),
-            ('7. Vi du tinh mau', self._p7(h2, h3, lead)),
-            ('8. Ket luan', self._p8(h2, h3, lead)),
+            ('1. Cong thuc than thanh', self._bg_p1(h2, h3, lead)),
+            ('2. Don gia theo m2', self._bg_p2(h2, h3, lead)),
+            ('3. He so tinh nham (Mien Bac)', self._bg_p3(h2, h3, lead)),
+            ('4. Bang bao gia 3 mien', self._bg_p4(h2, h3, lead)),
+            ('5. Cach tinh dien tich', self._bg_p5(h2, h3, lead)),
+            ('6. Phat sinh', self._bg_p6(h2, h3, lead)),
+            ('7. Vi du tinh mau', self._bg_p7(h2, h3, lead)),
+            ('8. Ket luan', self._bg_p8(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _bg_p1(self, h2, h3, lead):
         return (
             '<div style="background:linear-gradient(135deg,#b91c1c,#ea580c);color:#fff;'
             'padding:22px 24px;border-radius:16px;margin:4px 0 18px;">'
@@ -170,7 +170,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p2(self, h2, h3, lead):
+    def _bg_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127970; ĐƠN GIÁ XÂY THÔ THEO m&sup2; (đ/m&sup2;)</h2>'
             '<p style="' + lead + '">Đây là phần <b>ĐƠN GIÁ</b> trong công thức. Bảng này '
@@ -205,7 +205,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p3(self, h2, h3, lead):
+    def _bg_p3(self, h2, h3, lead):
         def tbl(title, rows):
             r = ''
             for nm, vals in rows:
@@ -261,7 +261,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p4(self, h2, h3, lead):
+    def _bg_p4(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#128221; BẢNG BÁO GIÁ CHI TIẾT (3 MIỀN)</h2>'
             '<p style="' + lead + '">Bấm chọn miền để xem bảng % chi tiết. Mỗi hạng mục = '
@@ -367,7 +367,7 @@ class SlideChannelSeedBangGia(models.Model):
             + '</div>'
         )
 
-    def _p5(self, h2, h3, lead):
+    def _bg_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#128208; DIỆN TÍCH NHÂN VỚI TỪNG HỆ SỐ (rất hay sai)</h2>'
             '<p style="' + lead + '">Khi tính nhẩm gộp, ta dùng chung <b>diện tích sàn tầng 1</b> cho '
@@ -407,7 +407,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p6(self, h2, h3, lead):
+    def _bg_p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#10071; CÁC KHOẢN PHÁT SINH (phải nói rõ với khách)</h2>'
             '<p style="' + lead + '">Nhiều khoản <b>KHÔNG nằm trong hợp đồng xây thô</b>. Báo trước '
@@ -445,7 +445,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p7(self, h2, h3, lead):
+    def _bg_p7(self, h2, h3, lead):
         def vd(title, scen, steps, total):
             return (
                 '<div style="border:1.5px solid #c7d2fe;background:#eef2ff;border-radius:12px;'
@@ -533,7 +533,7 @@ class SlideChannelSeedBangGia(models.Model):
             )
         )
 
-    def _p8(self, h2, h3, lead):
+    def _bg_p8(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127942; KẾT LUẬN PHẢI NHỚ</h2>'
             '<table><thead><tr><th style="width:34%;">Cần nhớ</th><th>Nội dung</th></tr></thead><tbody>'

@@ -13,7 +13,7 @@ from odoo import api, models
 
 from .seed_kh_tiem_nang import _WRAP, _box, _advice, _proof, _mistake
 
-_MO_VERSION = 'v2'
+_MO_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.mong_seed_version'
 _IMG = '/vd_elearning/static/src/img/mong/'
 
@@ -102,17 +102,17 @@ class SlideChannelSeedMong(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Mong la gi', self._p1(h2, h3, lead)),
-            ('2. Dat thi cong', self._p2(h2, h3, lead)),
-            ('3. Mong don', self._p3(h2, h3, lead)),
-            ('4. Mong bang', self._p4(h2, h3, lead)),
-            ('5. Mong coc', self._p5(h2, h3, lead)),
-            ('6. So sanh 3 loai mong', self._p6(h2, h3, lead)),
-            ('7. Coc be tong + ep coc', self._p7(h2, h3, lead)),
-            ('8. Coc it dung - Ket luan', self._p8(h2, h3, lead)),
+            ('1. Mong la gi', self._mo_p1(h2, h3, lead)),
+            ('2. Dat thi cong', self._mo_p2(h2, h3, lead)),
+            ('3. Mong don', self._mo_p3(h2, h3, lead)),
+            ('4. Mong bang', self._mo_p4(h2, h3, lead)),
+            ('5. Mong coc', self._mo_p5(h2, h3, lead)),
+            ('6. So sanh 3 loai mong', self._mo_p6(h2, h3, lead)),
+            ('7. Coc be tong + ep coc', self._mo_p7(h2, h3, lead)),
+            ('8. Coc it dung - Ket luan', self._mo_p8(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _mo_p1(self, h2, h3, lead):
         return (
             '<div style="background:linear-gradient(135deg,#1e3a8a,#3730a3);color:#fff;'
             'padding:22px 24px;border-radius:16px;margin:4px 0 18px;">'
@@ -145,7 +145,7 @@ class SlideChannelSeedMong(models.Model):
             + _core('Móng = phần dưới cùng đỡ cả ngôi nhà. <b>Đất nào &rarr; móng đó &rarr; chi phí đó.</b>')
         )
 
-    def _p2(self, h2, h3, lead):
+    def _mo_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">PHẦN 1 &mdash; ĐẤT THI CÔNG</h2>'
             '<p style="' + lead + '">Trước khi chọn móng phải biết đất của khách là loại nào. '
@@ -168,7 +168,7 @@ class SlideChannelSeedMong(models.Model):
             + _core('Đất <b>liền thổ</b> (cứng) &rarr; móng đơn/băng. Đất <b>yếu</b> (ao hồ, san lấp) &rarr; <b>phải dùng móng cọc</b>.')
         )
 
-    def _p3(self, h2, h3, lead):
+    def _mo_p3(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MÓNG 1 &mdash; MÓNG ĐƠN (Móng cốc)</h2>'
             + _gallery(_fig('image30.jpg'), _fig('image25.jpg'), _fig('image26.jpg'), _fig('image15.jpg'))
@@ -186,7 +186,7 @@ class SlideChannelSeedMong(models.Model):
             + _core('Móng đơn = <b>3 bộ phận</b> &middot; đế <b>tách rời</b> &middot; đất cứng &middot; <b>rẻ nhất</b> &middot; nhà 1 tầng.')
         )
 
-    def _p4(self, h2, h3, lead):
+    def _mo_p4(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MÓNG 2 &mdash; MÓNG BĂNG</h2>'
             + _gallery(_fig('image20.jpg'), _fig('image17.jpg'), _fig('image18.jpg'), _fig('image23.jpg'))
@@ -208,7 +208,7 @@ class SlideChannelSeedMong(models.Model):
             + _core('Móng băng = <b>2 bộ phận</b> &middot; đế <b>chạy dài liền mạch</b> &middot; đất cứng &middot; <b>trung bình</b> &middot; nhà 2-3 tầng.')
         )
 
-    def _p5(self, h2, h3, lead):
+    def _mo_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MÓNG 3 &mdash; MÓNG CỌC</h2>'
             + _gallery(_fig('image27.jpg'), _fig('image29.jpg'), _fig('image28.png'))
@@ -227,7 +227,7 @@ class SlideChannelSeedMong(models.Model):
             + _core('Móng cọc = dùng cho <b>đất yếu</b> &middot; có <b>cọc bê tông</b> ép xuống + đài móng + dầm &middot; <b>đắt hơn</b> (tiền cọc) &middot; nhà 2-5 tầng.')
         )
 
-    def _p6(self, h2, h3, lead):
+    def _mo_p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">SO SÁNH NHANH 3 LOẠI MÓNG</h2>'
             '<table><thead><tr><th>Tiêu chí</th>'
@@ -262,7 +262,7 @@ class SlideChannelSeedMong(models.Model):
             )
         )
 
-    def _p7(self, h2, h3, lead):
+    def _mo_p7(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">ÉP CỌC BÊ TÔNG ĐÚC SẴN</h2>'
             + _gallery(_fig('image33.jpg'), _fig('image36.jpg'))
@@ -304,7 +304,7 @@ class SlideChannelSeedMong(models.Model):
             )
         )
 
-    def _p8(self, h2, h3, lead):
+    def _mo_p8(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">LOẠI CỌC ÍT SỬ DỤNG (tham khảo)</h2>'
             + _gallery(_fig('image42.jpg'), _fig('image37.jpg'), _fig('image40.jpg'), _fig('image44.jpg'))

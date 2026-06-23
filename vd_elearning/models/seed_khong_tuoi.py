@@ -17,7 +17,7 @@ from .seed_kh_tiem_nang import (
     _WRAP, _box, _formula, _apply, _situation, _advice, _proof, _mistake,
 )
 
-_KDT_VERSION = 'v1'
+_KDT_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.khong_tuoi_seed_version'
 
 
@@ -86,14 +86,14 @@ class SlideChannelSeedKhongTuoi(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Bản chất mượn tuổi', self._p1(h2, h3, lead)),
-            ('2. Quy trình mượn tuổi', self._p2(h2, h3, lead)),
-            ('3. Tuổi thuận lễ + cách trả lời', self._p3(h2, h3, lead)),
-            ('4. 5 hướng tư vấn & chốt', self._p4(h2, h3, lead)),
-            ('5. Kết luận & câu chốt', self._p5(h2, h3, lead)),
+            ('1. Bản chất mượn tuổi', self._kt_p1(h2, h3, lead)),
+            ('2. Quy trình mượn tuổi', self._kt_p2(h2, h3, lead)),
+            ('3. Tuổi thuận lễ + cách trả lời', self._kt_p3(h2, h3, lead)),
+            ('4. 5 hướng tư vấn & chốt', self._kt_p4(h2, h3, lead)),
+            ('5. Kết luận & câu chốt', self._kt_p5(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _kt_p1(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127891; Mục tiêu khóa học</h2>'
             '<p style="' + lead + '">Khách viện cớ <b>"không hợp tuổi"</b> để hoãn xây là '
@@ -142,7 +142,7 @@ class SlideChannelSeedKhongTuoi(models.Model):
             )
         )
 
-    def _p2(self, h2, h3, lead):
+    def _kt_p2(self, h2, h3, lead):
         rows = [
             ('1', 'Chọn người phù hợp', 'Tuổi đẹp trong năm, ưu tiên nam trong nhà; không có thì mượn người thân khác.'),
             ('2', 'Hỏi mượn tuổi', '"Bố/anh cho con mượn tuổi làm lễ động thổ, chỉ là nghi thức phong thủy, không liên quan giấy tờ." &mdash; thường đồng ý ngay.'),
@@ -172,7 +172,7 @@ class SlideChannelSeedKhongTuoi(models.Model):
         )
         return body
 
-    def _p3(self, h2, h3, lead):
+    def _kt_p3(self, h2, h3, lead):
         body = (
             '<h2 style="' + h2 + '">PHẦN 3 &mdash; Tuổi thuận lễ &amp; cách trả lời</h2>'
             '<p style="' + lead + '">Nhân viên <b>chỉ cần nhớ 5 tuổi mỗi năm</b> &mdash; '
@@ -212,7 +212,7 @@ class SlideChannelSeedKhongTuoi(models.Model):
         )
         return body
 
-    def _p4(self, h2, h3, lead):
+    def _kt_p4(self, h2, h3, lead):
         body = (
             '<h2 style="' + h2 + '">PHẦN 4 &mdash; 5 hướng tư vấn &amp; chốt</h2>'
             '<p style="' + lead + '">Tùy kiểu khách, chọn 1 trong 5 hướng. Mỗi hướng có '
@@ -262,7 +262,7 @@ class SlideChannelSeedKhongTuoi(models.Model):
         )
         return body
 
-    def _p5(self, h2, h3, lead):
+    def _kt_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">PHẦN 5 &mdash; Kết luận &amp; bộ câu chốt</h2>'
             + _formula(

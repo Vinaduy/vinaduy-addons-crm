@@ -12,7 +12,7 @@ from odoo import api, models
 
 from .seed_kh_tiem_nang import _WRAP, _box, _advice, _proof, _mistake
 
-_MN_VERSION = 'v2'
+_MN_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.maunha_seed_version'
 _IMG = '/vd_elearning/static/src/img/maunha/'
 
@@ -102,17 +102,17 @@ class SlideChannelSeedMauNha(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Mau nha la gi', self._p1(h2, h3, lead)),
-            ('2. Nha vuong hien dai', self._p2(h2, h3, lead)),
-            ('3. Nha mai Nhat', self._p3(h2, h3, lead)),
-            ('4. Nha mai Thai', self._p4(h2, h3, lead)),
-            ('5. So sanh mai Nhat - mai Thai', self._p5(h2, h3, lead)),
-            ('6. Cac mau nha khac', self._p6(h2, h3, lead)),
-            ('7. Tum - San thuong - Tang lung - Thong tang', self._p7(h2, h3, lead)),
-            ('8. Ket luan - Nhan biet nhanh', self._p8(h2, h3, lead)),
+            ('1. Mau nha la gi', self._mn_p1(h2, h3, lead)),
+            ('2. Nha vuong hien dai', self._mn_p2(h2, h3, lead)),
+            ('3. Nha mai Nhat', self._mn_p3(h2, h3, lead)),
+            ('4. Nha mai Thai', self._mn_p4(h2, h3, lead)),
+            ('5. So sanh mai Nhat - mai Thai', self._mn_p5(h2, h3, lead)),
+            ('6. Cac mau nha khac', self._mn_p6(h2, h3, lead)),
+            ('7. Tum - San thuong - Tang lung - Thong tang', self._mn_p7(h2, h3, lead)),
+            ('8. Ket luan - Nhan biet nhanh', self._mn_p8(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _mn_p1(self, h2, h3, lead):
         return (
             '<div style="background:linear-gradient(135deg,#1e3a8a,#3730a3);color:#fff;'
             'padding:22px 24px;border-radius:16px;margin:4px 0 18px;">'
@@ -152,7 +152,7 @@ class SlideChannelSeedMauNha(models.Model):
             )
         )
 
-    def _p2(self, h2, h3, lead):
+    def _mn_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MẪU 1 &mdash; NHÀ VUÔNG HIỆN ĐẠI</h2>'
             '<p style="' + lead + '">Là kiểu nhà <b>hình khối vuông vức</b>, <b>mái bằng '
@@ -172,7 +172,7 @@ class SlideChannelSeedMauNha(models.Model):
             )
         )
 
-    def _p3(self, h2, h3, lead):
+    def _mn_p3(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MẪU 2 &mdash; NHÀ MÁI NHẬT</h2>'
             '<p style="' + lead + '">Là kiểu nhà có <b>mái ngói</b> theo phong cách Nhật: '
@@ -193,7 +193,7 @@ class SlideChannelSeedMauNha(models.Model):
             + _core('Mái Nhật = <b>mái lùn thấp &middot; không có góc chữ A &middot; khoe ngói &middot; hợp đất rộng / nhà vườn</b>.')
         )
 
-    def _p4(self, h2, h3, lead):
+    def _mn_p4(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MẪU 3 &mdash; NHÀ MÁI THÁI</h2>'
             '<p style="' + lead + '">Là kiểu nhà mái ngói phong cách Thái: <b>hệ mái cao</b>, '
@@ -208,7 +208,7 @@ class SlideChannelSeedMauNha(models.Model):
             + _core('Mái Thái = <b>mái cao &middot; CÓ góc chữ A &middot; đứng trước không thấy ngói &middot; ĐẮT HƠN mái Nhật</b>.')
         )
 
-    def _p5(self, h2, h3, lead):
+    def _mn_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">SO SÁNH NHANH: MÁI NHẬT vs MÁI THÁI</h2>'
             '<p style="' + lead + '">Hai mẫu này hay bị nhầm. Đây là bảng phân biệt bạn '
@@ -239,7 +239,7 @@ class SlideChannelSeedMauNha(models.Model):
             + _core('Khác nhau cốt lõi: <b>góc chữ A</b> (Thái CÓ, Nhật KHÔNG) và <b>chi phí</b> (Thái đắt hơn).')
         )
 
-    def _p6(self, h2, h3, lead):
+    def _mn_p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">MẪU NHÀ KHÁC (tham khảo &mdash; cao cấp)</h2>'
             '<p style="' + lead + '">Ngoài 3 mẫu chủ đạo, còn vài mẫu <b>cao cấp, đặc thù</b>, '
@@ -262,7 +262,7 @@ class SlideChannelSeedMauNha(models.Model):
             )
         )
 
-    def _p7(self, h2, h3, lead):
+    def _mn_p7(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">CÁC HẠNG MỤC ĐẶC BIỆT</h2>'
             '<p style="' + lead + '">Đây là các phần khách hay hỏi thêm khi xây nhà. Hiểu để '
@@ -296,7 +296,7 @@ class SlideChannelSeedMauNha(models.Model):
             )
         )
 
-    def _p8(self, h2, h3, lead):
+    def _mn_p8(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127942; KẾT LUẬN &mdash; NHẬN BIẾT NHANH</h2>'
             '<table><thead><tr><th>Mẫu nhà</th><th>Mái</th><th>Hợp với</th>'

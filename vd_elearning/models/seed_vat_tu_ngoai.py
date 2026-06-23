@@ -13,7 +13,7 @@ from odoo import api, models
 
 from .seed_kh_tiem_nang import _WRAP, _box, _advice, _proof, _mistake
 
-_VTN_VERSION = 'v2'
+_VTN_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.vattu_ngoai_seed_version'
 _IMG = '/vd_elearning/static/src/img/vattu_ngoai/'
 
@@ -102,15 +102,15 @@ class SlideChannelSeedVatTuNgoai(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Vat tu ngoai HD la gi', self._p1(h2, h3, lead)),
-            ('2. Coc be tong - Thang may', self._p2(h2, h3, lead)),
-            ('3. Noi that - Ban bep chau rua', self._p3(h2, h3, lead)),
-            ('4. Den suoi NLMT - Tuong rao san cong', self._p4(h2, h3, lead)),
-            ('5. Gieng khoan be ngam - Chong set', self._p5(h2, h3, lead)),
-            ('6. Ket luan', self._p6(h2, h3, lead)),
+            ('1. Vat tu ngoai HD la gi', self._vtn_p1(h2, h3, lead)),
+            ('2. Coc be tong - Thang may', self._vtn_p2(h2, h3, lead)),
+            ('3. Noi that - Ban bep chau rua', self._vtn_p3(h2, h3, lead)),
+            ('4. Den suoi NLMT - Tuong rao san cong', self._vtn_p4(h2, h3, lead)),
+            ('5. Gieng khoan be ngam - Chong set', self._vtn_p5(h2, h3, lead)),
+            ('6. Ket luan', self._vtn_p6(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _vtn_p1(self, h2, h3, lead):
         return (
             '<div style="background:linear-gradient(135deg,#7c2d12,#b45309);color:#fff;'
             'padding:22px 24px;border-radius:16px;margin:4px 0 18px;">'
@@ -144,7 +144,7 @@ class SlideChannelSeedVatTuNgoai(models.Model):
             + _core('Khóa này = danh sách những thứ <b>KHÔNG có sẵn</b> trong giá trọn gói. Thuộc để <b>báo khách trước</b>, tránh tranh chấp.')
         )
 
-    def _p2(self, h2, h3, lead):
+    def _vtn_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">1) CỌC BÊ TÔNG và THANG MÁY</h2>'
             + _gallery(_fig('image11.jpg', 'Cọc bê tông'), _fig('image27.jpg', 'Thang máy'))
@@ -167,7 +167,7 @@ class SlideChannelSeedVatTuNgoai(models.Model):
             + _core('Cọc bê tông: <b>tính theo thực tế khi ép</b>. Thang máy: <b>không gồm trong giá</b>, Vinaduy chỉ hỗ trợ <b>hố thang</b>.')
         )
 
-    def _p3(self, h2, h3, lead):
+    def _vtn_p3(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">2) NỘI THẤT và BÀN BẾP, CHẬU RỬA</h2>'
             + _gallery(_fig('image21.jpg', 'Nội thất'), _fig('image30.png'), _fig('image32.jpg', 'Bàn bếp - Chậu rửa'))
@@ -187,7 +187,7 @@ class SlideChannelSeedVatTuNgoai(models.Model):
             + _core('Nội thất + bàn bếp/chậu rửa: <b>ngoài giá trọn gói</b>. Vinaduy làm nội thất theo <b>hợp đồng riêng</b>.')
         )
 
-    def _p4(self, h2, h3, lead):
+    def _vtn_p4(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">3) ĐÈN SƯỞI, NĂNG LƯỢNG MẶT TRỜI và 4) TƯỜNG RÀO, SÂN CỔNG</h2>'
             + _gallery(_fig('image31.png', 'Năng lượng mặt trời'), _fig('image33.jpg', 'Đèn sưởi'),
@@ -209,7 +209,7 @@ class SlideChannelSeedVatTuNgoai(models.Model):
             + _core('NLMT: chưa tính (đã có bình nóng lạnh), pin NLMT <b>không nhận</b>. Tường rào/sân cổng: <b>có làm, báo giá riêng</b> sau ~60% nhà.')
         )
 
-    def _p5(self, h2, h3, lead):
+    def _vtn_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">5) GIẾNG KHOAN, BỂ NƯỚC NGẦM và HỆ THỐNG CHỐNG SÉT</h2>'
             + _gallery(_fig('image29.jpg', 'Giếng khoan - Bể ngầm'), _fig('image28.jpg'),
@@ -230,7 +230,7 @@ class SlideChannelSeedVatTuNgoai(models.Model):
             + _core('Giếng khoan: <b>không làm</b> (giới thiệu). Bể ngầm: <b>có làm</b>, báo giá theo thể tích. Chống sét: <b>không nhận</b> (giới thiệu).')
         )
 
-    def _p6(self, h2, h3, lead):
+    def _vtn_p6(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127942; KẾT LUẬN &mdash; PHÂN LOẠI CÁCH XỬ LÝ</h2>'
             '<table><thead><tr><th style="width:42%;">Cách Vinaduy xử lý</th><th>Gồm hạng mục</th></tr></thead><tbody>'

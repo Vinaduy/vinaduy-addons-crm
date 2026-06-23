@@ -15,7 +15,7 @@ from odoo import api, models
 
 from .seed_kh_tiem_nang import _WRAP, _box, _advice, _proof, _mistake
 
-_VT_VERSION = 'v2'
+_VT_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.vattu_seed_version'
 _IMG = '/vd_elearning/static/src/img/vattu/'
 
@@ -104,13 +104,13 @@ class SlideChannelSeedVatTu(models.Model):
         h3 = 'font-size:16px;font-weight:800;color:#3730a3;margin:14px 0 6px;'
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;'
         return [
-            ('1. Vat tu la gi', self._p1(h2, h3, lead)),
-            ('2. Vat tu tho (trong HD)', self._p2(h2, h3, lead)),
-            ('3. Vat tu hoan thien (trong HD)', self._p3(h2, h3, lead)),
-            ('4. Ket luan - meo nho', self._p5(h2, h3, lead)),
+            ('1. Vat tu la gi', self._vt_p1(h2, h3, lead)),
+            ('2. Vat tu tho (trong HD)', self._vt_p2(h2, h3, lead)),
+            ('3. Vat tu hoan thien (trong HD)', self._vt_p3(h2, h3, lead)),
+            ('4. Ket luan - meo nho', self._vt_p5(h2, h3, lead)),
         ]
 
-    def _p1(self, h2, h3, lead):
+    def _vt_p1(self, h2, h3, lead):
         return (
             '<div style="background:linear-gradient(135deg,#1e3a8a,#3730a3);color:#fff;'
             'padding:22px 24px;border-radius:16px;margin:4px 0 18px;">'
@@ -144,7 +144,7 @@ class SlideChannelSeedVatTu(models.Model):
             + _core('Vật tư = vật liệu xây nhà. Khóa này tập trung <b>vật tư TRONG hợp đồng</b>: nhớ <b>tên</b> + <b>thương hiệu theo vùng Bắc/Nam</b>.')
         )
 
-    def _p2(self, h2, h3, lead):
+    def _vt_p2(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">PHẦN A &mdash; VẬT TƯ THÔ (nằm trong hợp đồng)</h2>'
             '<p style="' + lead + '">Vật tư thô là phần "xương sống" của nhà. Thương hiệu '
@@ -191,7 +191,7 @@ class SlideChannelSeedVatTu(models.Model):
             )
         )
 
-    def _p3(self, h2, h3, lead):
+    def _vt_p3(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">PHẦN B &mdash; VẬT TƯ HOÀN THIỆN (nằm trong hợp đồng)</h2>'
             '<p style="' + lead + '">Là phần làm cho nhà "đẹp và dùng được": cửa, sơn, gạch '
@@ -239,7 +239,7 @@ class SlideChannelSeedVatTu(models.Model):
             )
         )
 
-    def _p5(self, h2, h3, lead):
+    def _vt_p5(self, h2, h3, lead):
         return (
             '<h2 style="' + h2 + '">&#127942; KẾT LUẬN &mdash; MẸO NHỚ</h2>'
             + _advice(
