@@ -40,6 +40,8 @@
                 <field name="stage_code" invisible="1"/>
                 <field name="stage_is_won" invisible="1"/>
                 <field name="stage_is_lost" invisible="1"/>
+                <!-- Nút nổi THƯ VIỆN câu hỏi khó (ẩn khi chốt báo giá) - user spec 2026-06-24 -->
+                <field name="stage_is_won" widget="vd_hard_lib_btn" nolabel="1"/>
                 <field name="vd_active_call_state" invisible="1"/>
                 <field name="vd_active_call_answer_time" invisible="1"/>
                 <field name="company_currency" invisible="1"/>

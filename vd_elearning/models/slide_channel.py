@@ -732,9 +732,14 @@ class SlideChannel(models.Model):
             seq += 10
         return True
 
+    _VD_DELETED_KEY = 'vd_elearning.deleted_courses'
+
     @api.model
     def vd_course_delete(self, channel_id):
-        """Xoa khoa hoc - CHI khi khoa chua co noi dung va chua co bai thi. Chi admin."""
+        """Xoa khoa hoc VINH VIEN khoi SQL - CHI khi khoa chua co noi dung + chua
+        co bai thi. Chi admin. Neu khoa do seed tu courses.xml (co xmlid) -> ghi
+        xmlid vao blocklist + _vd_purge_deleted_courses (chay cuoi courses.xml) se
+        xoa lai sau moi -u -> KHONG bi tai tao (user spec 2026-06-24)."""
         if not self._vd_is_admin():
             raise AccessError('Chi admin duoc xoa khoa hoc.')
         ch = self.browse(channel_id)
@@ -743,7 +748,37 @@ class SlideChannel(models.Model):
         if self._vd_course_has_content(ch):
             raise ValidationError(
                 'Chi xoa duoc khoa hoc CHUA co noi dung va CHUA co bai thi.')
+        IMD = self.env['ir.model.data'].sudo()
+        imd = IMD.search([('model', '=', 'slide.channel'),
+                          ('res_id', '=', ch.id)], limit=1)
+        if imd:
+            ICP = self.env['ir.config_parameter'].sudo()
+            blocked = set(filter(None, (ICP.get_param(self._VD_DELETED_KEY) or '').split(',')))
+            blocked.add('%s.%s' % (imd.module, imd.name))
+            ICP.set_param(self._VD_DELETED_KEY, ','.join(sorted(blocked)))
+            imd.unlink()
         ch.unlink()
+        return True
+
+    @api.model
+    def _vd_purge_deleted_courses(self):
+        """Chay cuoi courses.xml moi lan -u: xoa lai cac khoa admin DA xoa (du
+        courses.xml vua tai tao). Giu xoa VINH VIEN qua cac lan deploy."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        blocked = [x for x in (ICP.get_param(self._VD_DELETED_KEY) or '').split(',') if x]
+        IMD = self.env['ir.model.data'].sudo()
+        for xmlid in blocked:
+            rec = self.env.ref(xmlid, raise_if_not_found=False)
+            if not rec:
+                continue
+            imd = IMD.search([('model', '=', 'slide.channel'),
+                              ('res_id', '=', rec.id)], limit=1)
+            try:
+                rec.sudo().unlink()
+                if imd:
+                    imd.unlink()
+            except Exception:
+                continue
         return True
 
     @api.model

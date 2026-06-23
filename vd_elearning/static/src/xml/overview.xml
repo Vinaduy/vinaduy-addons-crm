@@ -558,6 +558,29 @@
                             <i t-if="node.status=='done'" class="fa fa-check o_vd_done_check"/>
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
+
+                        <!-- POPUP GIAY CHUNG NHAN khi hover (khoa da dat 100d cua chinh minh) -->
+                        <t t-set="cert" t-value="this.certForCourse(node.course.id)"/>
+                        <div t-if="cert" class="o_vd_cert_hover">
+                            <div class="o_vd_cert o_vd_cert_mini">
+                                <div class="o_vd_cert_inner">
+                                    <div class="o_vd_cert_logo">VINADUY</div>
+                                    <div class="o_vd_cert_company"><t t-esc="state.myCerts.company_name"/></div>
+                                    <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
+                                    <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
+                                    <div class="o_vd_cert_course"><t t-esc="node.course.name"/></div>
+                                    <div class="o_vd_cert_name"><t t-esc="state.myCerts.emp_name"/></div>
+                                    <div class="o_vd_cert_role"><t t-esc="state.myCerts.role_label"/></div>
+                                    <div class="o_vd_cert_score">
+                                        <span class="o_vd_cert_medal">🏅</span>
+                                        <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="cert.percent"/></b> ĐIỂM</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="o_vd_cert_dlbtn" t-on-click.stop="() => this.downloadCert(node.course)">
+                                <i class="fa fa-image me-1"/>Tải ảnh chứng nhận
+                            </button>
+                        </div>
                     </div>
                     <div t-if="!node_last" class="o_vd_arrow"/>
                 </div>
@@ -704,27 +727,6 @@
                             </div>
                         </t>
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
-                    </div>
-
-                    <!-- GIAY CHUNG NHAN da dat (luu trong tai khoan NV) - chi xem cua minh -->
-                    <div t-if="state.selectedEmp.locked &amp;&amp; state.myCerts &amp;&amp; state.myCerts.items &amp;&amp; state.myCerts.items.length"
-                         class="o_vd_certbox" style="margin-top:18px;">
-                        <div class="o_vd_hist_head">
-                            <i class="fa fa-certificate me-1"/>GIẤY CHỨNG NHẬN CỦA TÔI
-                            <span class="o_vd_hist_count"><b t-esc="state.myCerts.items.length"/> chứng nhận</span>
-                        </div>
-                        <div class="o_vd_certlist">
-                            <t t-foreach="state.myCerts.items" t-as="ct" t-key="ct.channel_id || ct_index">
-                                <div class="o_vd_certcard" t-on-click="() => this.viewCertificate(ct)">
-                                    <div class="o_vd_certcard_ico"><i class="fa fa-certificate"/></div>
-                                    <div class="o_vd_certcard_body">
-                                        <div class="o_vd_certcard_name"><t t-esc="ct.course_name"/></div>
-                                        <div class="o_vd_certcard_meta">Đạt <b><t t-esc="ct.percent"/></b> điểm</div>
-                                    </div>
-                                    <div class="o_vd_certcard_view"><i class="fa fa-eye me-1"/>Xem</div>
-                                </div>
-                            </t>
-                        </div>
                     </div>
 
                     <!-- LICH SU THI cua NV (ben vung - khong mat khi gan lai lo trinh) -->

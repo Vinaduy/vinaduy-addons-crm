@@ -1035,7 +1035,8 @@ $vd-line2:   #ece7da;
     50%      { box-shadow: 0 12px 30px rgba(232, 64, 31, 0.5), 0 0 0 13px rgba(232, 64, 31, 0); }
 }
 .o_vd_lib_filter {
-    position: fixed; right: 22px; bottom: 26px; z-index: 1045;
+    /* Giua-phai man hinh (user spec 2026-06-24): tranh che nut goi dien o goc duoi. */
+    position: fixed; right: 22px; top: calc(50% - 28px); bottom: auto; z-index: 1045;
     display: flex; align-items: center; height: 56px; padding: 0;
     border: 2px solid #ffd9cf; border-radius: 999px;
     background: linear-gradient(135deg, #f5523c, #e8401f);
@@ -1180,3 +1181,47 @@ $vd-line2:   #ece7da;
     > i { color: #cbd5e1; }
 }
 .o_vd_hq_empty { padding: 36px; text-align: center; color: #94a3b8; font-size: 0.95rem; }
+
+/* ============================================================
+   POPUP GIAY CHUNG NHAN khi hover node khoa hoc (user spec 2026-06-24)
+   ============================================================ */
+.o_vd_cert_hover {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    z-index: 60;
+    width: 320px;
+    transform: translateX(-50%) translateY(6px);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .15s ease, transform .15s ease;
+    /* cau noi che khoang ho de di chuot xuong popup khong mat hover */
+    &::after { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 16px; }
+}
+.o_vd_level:hover .o_vd_cert_hover {
+    opacity: 1; visibility: visible; pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+/* Giay chung nhan thu nho trong popup */
+.o_vd_cert_mini {
+    border-width: 6px; padding: 6px; max-width: none; margin: 0;
+    .o_vd_cert_inner { padding: 12px 14px; }
+    .o_vd_cert_corner { display: none; }
+    .o_vd_cert_logo { font-size: 1.1rem; text-shadow: none; }
+    .o_vd_cert_company { font-size: .56rem; margin-bottom: 4px; }
+    .o_vd_cert_title { font-size: 1.15rem; letter-spacing: 1.5px; }
+    .o_vd_cert_sub { font-size: .66rem; letter-spacing: 1px; margin: 1px 0 3px; }
+    .o_vd_cert_course { font-size: .72rem; padding: 2px 10px; margin: 2px auto; }
+    .o_vd_cert_name { font-size: 1.5rem; margin: 5px 0 1px; }
+    .o_vd_cert_role { font-size: .66rem; letter-spacing: 1px; }
+    .o_vd_cert_score { margin-top: 7px; padding: 3px 12px;
+        .o_vd_cert_medal { font-size: .9rem; }
+        .o_vd_cert_scoretxt { font-size: .72rem; b { font-size: .85rem; } } }
+}
+.o_vd_cert_dlbtn {
+    display: block; width: 100%; margin-top: 8px;
+    padding: 7px 10px; border: none; border-radius: 8px; cursor: pointer;
+    font-weight: 800; font-size: .82rem; color: #fff;
+    background: linear-gradient(135deg, #20c997, #0ca678);
+    box-shadow: 0 4px 12px rgba(12, 166, 120, .3);
+    &:hover { filter: brightness(1.06); }
+}

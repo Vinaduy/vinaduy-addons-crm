@@ -43,6 +43,75 @@ function vdFindActiveExam() {
     return null;
 }
 
+// ---- Ve GIAY CHUNG NHAN ra canvas + tai ve file PNG (user spec 2026-06-24) ----
+function _vdRoundRect(x, rx, ry, w, h, r) {
+    if (x.roundRect) { x.beginPath(); x.roundRect(rx, ry, w, h, r); return; }
+    x.beginPath();
+    x.moveTo(rx + r, ry);
+    x.arcTo(rx + w, ry, rx + w, ry + h, r);
+    x.arcTo(rx + w, ry + h, rx, ry + h, r);
+    x.arcTo(rx, ry + h, rx, ry, r);
+    x.arcTo(rx, ry, rx + w, ry, r);
+    x.closePath();
+}
+function vdDownloadCertImage(data) {
+    const W = 1000, H = 680, cx = W / 2;
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const x = cv.getContext("2d");
+    // Nen + vien navy + khung vien dut vang
+    x.fillStyle = "#1d3a8a"; x.fillRect(0, 0, W, H);
+    x.fillStyle = "#ffffff"; x.fillRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = "#c9ad6a"; x.lineWidth = 2; x.setLineDash([9, 6]);
+    x.strokeRect(36, 36, W - 72, H - 72); x.setLineDash([]);
+    // Sao 4 goc
+    x.fillStyle = "#9aa3b2"; x.font = "20px Arial"; x.textAlign = "center";
+    x.fillText("★", 60, 64); x.fillText("★", W - 60, 64);
+    x.fillText("★", 60, H - 50); x.fillText("★", W - 60, H - 50);
+    // Logo + cong ty
+    x.fillStyle = "#c0392b"; x.font = "900 46px Arial";
+    x.fillText("VINADUY", cx, 116);
+    x.fillStyle = "#6b7280"; x.font = "600 16px Arial";
+    x.fillText(data.companyName || "", cx, 144);
+    // Tieu de
+    x.fillStyle = "#1d3a8a"; x.font = "900 52px Arial";
+    x.fillText("GIẤY CHỨNG NHẬN", cx, 214);
+    x.fillStyle = "#c0392b"; x.font = "800 24px Arial";
+    x.fillText("HOÀN THÀNH KHÓA HỌC", cx, 252);
+    // Ten khoa
+    if (data.courseName) {
+        x.fillStyle = "#16407a"; x.font = "800 24px Arial";
+        x.fillText(data.courseName, cx, 300);
+    }
+    // Ten NV (chu ky)
+    x.fillStyle = "#7a1f2b";
+    x.font = "italic 62px 'Brush Script MT','Segoe Script','Lucida Handwriting',cursive";
+    x.fillText(data.empName || "", cx, 392);
+    // Vai tro
+    x.fillStyle = "#2f5fae"; x.font = "700 22px Arial";
+    x.fillText((data.roleLabel || "").toUpperCase(), cx, 432);
+    // Huy hieu diem (vien tron vang)
+    const sw = 280, sh = 48, sx = cx - sw / 2, sy = 470;
+    x.fillStyle = "#ffe066"; _vdRoundRect(x, sx, sy, sw, sh, 24); x.fill();
+    x.strokeStyle = "#f1c40f"; x.lineWidth = 2; _vdRoundRect(x, sx, sy, sw, sh, 24); x.stroke();
+    x.fillStyle = "#8a5a00"; x.font = "800 25px Arial";
+    x.fillText("ĐẠT " + (data.percent || 0) + " ĐIỂM", cx, sy + 33);
+    // Ngay
+    x.fillStyle = "#6b7280"; x.font = "italic 18px Arial";
+    x.fillText("Ngày " + (data.dateStr || ""), cx, 560);
+
+    const safe = (s) => (s || "").replace(/[\\/:*?"<>|\s]+/g, "_");
+    cv.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ChungNhan_" + safe(data.empName) + "_" + safe(data.courseName) + ".png";
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+    }, "image/png");
+}
+
 // ---- Trinh soan thao van ban (WYSIWYG) kieu Word/PowerPoint ----
 export class VdRichEditor extends Component {
     static template = "vd_elearning.RichEditor";
@@ -520,8 +589,15 @@ export class VdCertificateDialog extends Component {
             `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
     }
     download() {
-        // In/lưu PDF: CSS @media print chỉ hiện phần giấy chứng nhận.
-        window.print();
+        // Tải giấy chứng nhận về dưới dạng FILE ẢNH (PNG).
+        vdDownloadCertImage({
+            empName: this.props.empName,
+            roleLabel: this.props.roleLabel,
+            companyName: this.props.companyName,
+            courseName: this.props.courseName,
+            percent: this.props.percent,
+            dateStr: this.dateStr,
+        });
     }
 }
 
@@ -1047,15 +1123,31 @@ export class VdElearningOverview extends Component {
         this.state.loading = false;
     }
 
-    // Xem lại 1 giấy chứng nhận đã đạt (mục "Giấy chứng nhận của tôi").
-    viewCertificate(item) {
+    // Giấy chứng nhận của khóa (CHỈ giao diện của chính mình + đã đạt). Dùng cho
+    // popup hover trên node khóa học (user spec 2026-06-24).
+    certForCourse(courseId) {
+        const e = this.state.selectedEmp;
+        if (!e || !e.locked) return null;          // chỉ xem của mình
+        const c = this.state.myCerts;
+        if (!c || !c.items) return null;
+        return c.items.find((it) => it.channel_id === courseId) || null;
+    }
+    _certDate() {
+        const d = new Date();
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+    // Tải giấy chứng nhận của 1 khóa về dưới dạng ảnh PNG.
+    downloadCert(course) {
         const c = this.state.myCerts || {};
-        this.dialog.add(VdCertificateDialog, {
+        const item = this.certForCourse(course.id);
+        vdDownloadCertImage({
             empName: c.emp_name || (this.state.selectedEmp && this.state.selectedEmp.name) || "",
             roleLabel: c.role_label || "NHÂN VIÊN KINH DOANH",
             companyName: c.company_name || "CÔNG TY CỔ PHẦN VINADUY",
-            courseName: item.course_name || "",
-            percent: item.percent || 0,
+            courseName: course.name || "",
+            percent: (item && item.percent) || 100,
+            dateStr: this._certDate(),
         });
     }
 
@@ -1384,3 +1476,7 @@ export class VdElearningOverview extends Component {
 }
 
 registry.category("actions").add("vd_elearning_overview", VdElearningOverview);
+
+// Cho module khac (vd_crm_lead - form khach hang) mo THU VIEN cau hoi kho ma
+// KHONG can phu thuoc cung vd_elearning: lay component qua registry chung.
+registry.category("vd_dialogs").add("hard_library", VdHardLibraryDialog);

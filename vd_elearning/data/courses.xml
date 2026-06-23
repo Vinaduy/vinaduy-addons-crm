@@ -151,4 +151,7 @@
 
     <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
+
+    <!-- Xoa lai cac khoa admin DA xoa vinh vien (du record o tren vua tai tao). -->
+    <function model="slide.channel" name="_vd_purge_deleted_courses"/>
 </odoo>

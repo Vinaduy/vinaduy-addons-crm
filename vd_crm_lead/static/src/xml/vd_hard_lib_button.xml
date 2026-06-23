@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Nút nổi THƯ VIỆN câu hỏi khó trên form khách hàng (ẩn khi chốt báo giá).
+         Dùng lại class o_vd_lib_filter (style + vị trí giữa-phải) của vd_elearning. -->
+    <t t-name="vd_crm_lead.HardLibButton">
+        <button t-if="!hidden" class="o_vd_lib_filter o_vd_lib_filter_lead"
+                t-on-click="open" title="THƯ VIỆN - Câu hỏi khó">
+            <span class="o_vd_lib_ico"><i class="fa fa-life-ring"/></span>
+            <span class="o_vd_lib_txt">THƯ VIỆN - Câu hỏi khó</span>
+        </button>
+    </t>
+
+</templates>
