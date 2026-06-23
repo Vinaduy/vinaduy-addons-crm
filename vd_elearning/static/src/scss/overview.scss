@@ -739,6 +739,28 @@ $vd-line2:   #ece7da;
         th { background: #2b3350; color: #fff; font-weight: 700; font-size: .76rem; }
         tr:nth-child(even) td { background: #faf9f3; }
         img, video, iframe { max-width: 100%; }
+
+        // ----- BANG BAO GIA 3 mien: tab Bac/Trung/Nam (CSS radio, khong JS) -----
+        .vd_pt {
+            .vd_pt_radio { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+            .vd_pt_bar { display: flex; gap: .4rem; margin: .6rem 0; }
+            .vd_pt_tab {
+                flex: 1; text-align: center; padding: .55rem .4rem; border-radius: 10px;
+                background: #eef0fb; color: #3730a3; font-weight: 800; cursor: pointer;
+                border: 2px solid transparent; font-size: .84rem; user-select: none;
+                transition: all .12s ease;
+            }
+            .vd_pt_panel { display: none; }
+        }
+        #vd_pt_bac:checked   ~ .vd_pt_bar [for="vd_pt_bac"],
+        #vd_pt_trung:checked ~ .vd_pt_bar [for="vd_pt_trung"],
+        #vd_pt_nam:checked   ~ .vd_pt_bar [for="vd_pt_nam"] {
+            background: linear-gradient(135deg, #6d5efc, #8b5cf6); color: #fff;
+            box-shadow: 0 4px 12px rgba(109,94,252,.35);
+        }
+        #vd_pt_bac:checked   ~ .vd_pt_bac,
+        #vd_pt_trung:checked ~ .vd_pt_trung,
+        #vd_pt_nam:checked   ~ .vd_pt_nam { display: block; }
     }
     .o_vd_ce_gotoexam {
         display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.4rem 0 .6rem;
