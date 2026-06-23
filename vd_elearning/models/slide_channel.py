@@ -314,6 +314,9 @@ class SlideChannel(models.Model):
         else:
             vals.update({'channel_id': ch.id, 'partner_id': pid})
             SCP.create(vals)
+        # Lich su BEN VUNG theo NHAN VIEN (khong mat khi gan lai lo trinh / xoa khoa).
+        self.env['vd.exam.result'].sudo().vd_record_attempt(
+            self.env.user, ch, percent, passed)
         return {'total': total, 'score': correct_count, 'percent': percent,
                 'pass_percent': pass_percent, 'passed': passed,
                 'results': results}

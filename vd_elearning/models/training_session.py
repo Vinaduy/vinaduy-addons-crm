@@ -60,28 +60,28 @@ class VdTrainingSession(models.Model):
     # ----- Lich su hoc cua 1 khoa: ai da thi / chua, diem bao nhieu -----
     @api.model
     def _vd_history(self, channel_id, users):
-        """Bang lich su: moi NV ap dung + ket qua thi gan nhat (neu co)."""
+        """Bang lich su: moi NV ap dung + ket qua thi gan nhat (neu co).
+        Doc tu vd.exam.result (ben vung theo NV) -> gan lai lo trinh khong mat."""
         if not users:
             return []
-        SCP = self.env['slide.channel.partner'].sudo()
-        recs = {r.partner_id.id: r for r in SCP.search(
-            [('channel_id', '=', channel_id),
-             ('partner_id', 'in', users.partner_id.ids)])}
+        ER = self.env['vd.exam.result'].sudo()
+        recs = {r.user_id.id: r for r in ER.search(
+            [('channel_id', '=', channel_id), ('user_id', 'in', users.ids)])}
         role_label = {'collaborator': 'CTV', 'employee': 'Nhân viên',
                       'team_leader': 'Trưởng nhóm'}
         out = []
         for u in users.sorted(lambda x: (x.vd_team_label or 'zz', x.name or '')):
-            r = recs.get(u.partner_id.id)
+            r = recs.get(u.id)
             out.append({
                 'id': u.id,
                 'name': u.name or '',
                 'team': u.vd_team_label or 'KHAC',
                 'role': role_label.get(u.vd_crm_role, ''),
-                'done': bool(r and r.member_status == 'completed'),
-                'passed': bool(r and r.vd_exam_passed),
-                'percent': (r.vd_exam_percent if r else 0) or 0,
-                'attempts': (r.vd_exam_attempts if r else 0) or 0,
-                'done_ts': self._to_ts(r.vd_exam_done_at) if (r and r.vd_exam_done_at) else 0,
+                'done': bool(r and r.passed),
+                'passed': bool(r and r.passed),
+                'percent': (r.percent if r else 0) or 0,
+                'attempts': (r.attempts if r else 0) or 0,
+                'done_ts': self._to_ts(r.last_done_at) if (r and r.last_done_at) else 0,
             })
         # Da xong len truoc, chua xong xuong duoi (de de soat ai chua thi).
         out.sort(key=lambda h: (0 if h['done'] else 1, h['team'], h['name']))

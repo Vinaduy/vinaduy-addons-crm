@@ -646,6 +646,39 @@
                         </t>
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
                     </div>
+
+                    <!-- LICH SU THI cua NV (ben vung - khong mat khi gan lai lo trinh) -->
+                    <div class="o_vd_hist_box" style="margin-top:18px;">
+                        <div class="o_vd_hist_head">
+                            <i class="fa fa-history me-1"/>LỊCH SỬ THI
+                            <span class="o_vd_hist_count">
+                                <b t-esc="(state.selectedEmp.examHistory || []).length"/> khóa đã thi
+                            </span>
+                        </div>
+                        <table class="o_vd_hist_tbl">
+                            <thead>
+                                <tr><th>Khóa học</th><th>Kết quả</th><th>Điểm</th><th>Cao nhất</th><th>Số lần</th><th>Lần thi gần nhất</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.selectedEmp.examHistory || []" t-as="ex" t-key="ex.channel_id || ex_index">
+                                    <tr t-attf-class="{{ex.passed ? 'o_vd_hist_done' : 'o_vd_hist_pending'}}">
+                                        <td><b t-esc="ex.course_name"/></td>
+                                        <td>
+                                            <span t-if="ex.passed" class="o_vd_hist_badge o_vd_hist_b_done"><i class="fa fa-check me-1"/>Đã thi đạt</span>
+                                            <span t-else="" class="o_vd_hist_badge o_vd_hist_b_fail"><i class="fa fa-times me-1"/>Thi chưa đạt</span>
+                                        </td>
+                                        <td><b t-esc="ex.percent"/>%</td>
+                                        <td t-esc="ex.best_percent + '%'"/>
+                                        <td t-esc="ex.attempts"/>
+                                        <td t-esc="examWhen(ex.done_ts)"/>
+                                    </tr>
+                                </t>
+                                <tr t-if="!(state.selectedEmp.examHistory || []).length">
+                                    <td colspan="6" class="o_vd_assign_empty">Nhân viên chưa thi khóa nào.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </t>
 

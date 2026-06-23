@@ -1,4 +1,5 @@
 from . import learning_path
+from . import vd_exam_result
 from . import training_session
 from . import slide_slide
 from . import slide_channel

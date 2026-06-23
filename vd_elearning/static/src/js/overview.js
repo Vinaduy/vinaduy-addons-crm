@@ -993,7 +993,7 @@ export class VdElearningOverview extends Component {
         return this.state.zones.find((z) => z.key === this.state.tab);
     }
 
-    viewEmployee(row) {
+    async viewEmployee(row) {
         const z = this.state.zones.find((zn) => zn.key === row.zone_key);
         this.state.selectedEmp = {
             id: row.id,
@@ -1002,7 +1002,27 @@ export class VdElearningOverview extends Component {
             completedIds: row.completed_ids || [],
             paths: z ? z.paths : [],
             locked: false,
+            examHistory: [],
         };
+        // Lich su thi BEN VUNG cua NV (doc tu vd.exam.result).
+        try {
+            const hist = await this.orm.call(
+                "vd.exam.result", "vd_user_history", [row.id]
+            );
+            if (this.state.selectedEmp && this.state.selectedEmp.id === row.id) {
+                this.state.selectedEmp.examHistory = hist || [];
+            }
+        } catch (e) {
+            // Khong chan giao dien neu loi doc lich su.
+        }
+    }
+
+    // epoch ms -> "HH:MM DD/MM" (gio dia phuong) cho bang lich su thi NV.
+    examWhen(ts) {
+        if (!ts) return "-";
+        const d = new Date(ts);
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
     }
 
     clickNode(node) {
