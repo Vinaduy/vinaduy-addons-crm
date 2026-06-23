@@ -66,6 +66,38 @@
         </Dialog>
     </t>
 
+    <!-- ============ POPOVER GIAY CHUNG NHAN khi HOVER node khoa hoc (cert + phao hoa) ============ -->
+    <t t-name="vd_elearning.CertPopover">
+        <div class="o_vd_certpop"
+             t-on-mouseenter="() => props.onEnter()"
+             t-on-mouseleave="() => props.onLeave()">
+            <div class="o_vd_confetti">
+                <t t-foreach="pieces" t-as="p" t-key="p_index">
+                    <span t-att-class="'o_vd_cft' + (p.round ? ' o_vd_cft_round' : '')"
+                          t-attf-style="left:{{p.left}}%;background:{{p.color}};width:{{p.size}}px;height:{{p.size}}px;animation-delay:{{p.delay}}s;animation-duration:{{p.dur}}s;--rot:{{p.rot}}deg;"/>
+                </t>
+            </div>
+            <div class="o_vd_cert o_vd_cert_mini">
+                <div class="o_vd_cert_inner">
+                    <div class="o_vd_cert_logo">VINADUY</div>
+                    <div class="o_vd_cert_company"><t t-esc="props.companyName"/></div>
+                    <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
+                    <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
+                    <div class="o_vd_cert_course"><t t-esc="props.courseName"/></div>
+                    <div class="o_vd_cert_name"><t t-esc="props.empName"/></div>
+                    <div class="o_vd_cert_role"><t t-esc="props.roleLabel"/></div>
+                    <div class="o_vd_cert_score">
+                        <span class="o_vd_cert_medal">🏅</span>
+                        <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="props.percent"/></b> ĐIỂM</span>
+                    </div>
+                </div>
+            </div>
+            <button class="o_vd_cert_dlbtn" t-on-click="() => props.onDownload()">
+                <i class="fa fa-image me-1"/>Tải ảnh chứng nhận
+            </button>
+        </div>
+    </t>
+
     <!-- ============ POPUP GAN NHAN VIEN ============ -->
     <t t-name="vd_elearning.AssignDialog">
         <Dialog title="props.title" size="'md'">
@@ -535,6 +567,8 @@
                          t-on-dragend="(ev) => this.onDragEnd(ev)"
                          t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
                          t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
+                         t-on-mouseenter="(ev) => this.onCertEnter(ev, node.course)"
+                         t-on-mouseleave="() => this.onCertLeave()"
                          t-on-click="() => this.clickNode(node)">
                         <button t-if="draggable &amp;&amp; !node.course.has_content" class="o_vd_node_del"
                                 title="Xóa khóa học rỗng"
@@ -558,29 +592,6 @@
                             <i t-if="node.status=='done'" class="fa fa-check o_vd_done_check"/>
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
-
-                        <!-- POPUP GIAY CHUNG NHAN khi hover (khoa da dat 100d cua chinh minh) -->
-                        <t t-set="cert" t-value="this.certForCourse(node.course.id)"/>
-                        <div t-if="cert" class="o_vd_cert_hover">
-                            <div class="o_vd_cert o_vd_cert_mini">
-                                <div class="o_vd_cert_inner">
-                                    <div class="o_vd_cert_logo">VINADUY</div>
-                                    <div class="o_vd_cert_company"><t t-esc="state.myCerts.company_name"/></div>
-                                    <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
-                                    <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
-                                    <div class="o_vd_cert_course"><t t-esc="node.course.name"/></div>
-                                    <div class="o_vd_cert_name"><t t-esc="state.myCerts.emp_name"/></div>
-                                    <div class="o_vd_cert_role"><t t-esc="state.myCerts.role_label"/></div>
-                                    <div class="o_vd_cert_score">
-                                        <span class="o_vd_cert_medal">🏅</span>
-                                        <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="cert.percent"/></b> ĐIỂM</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="o_vd_cert_dlbtn" t-on-click.stop="() => this.downloadCert(node.course)">
-                                <i class="fa fa-image me-1"/>Tải ảnh chứng nhận
-                            </button>
-                        </div>
                     </div>
                     <div t-if="!node_last" class="o_vd_arrow"/>
                 </div>

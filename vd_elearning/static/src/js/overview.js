@@ -2,6 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { usePopover } from "@web/core/popover/popover_hook";
 import { Dialog } from "@web/core/dialog/dialog";
 import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState, markup } from "@odoo/owl";
 
@@ -601,6 +602,30 @@ export class VdCertificateDialog extends Component {
     }
 }
 
+// ---- POPOVER giay chung nhan (hien khi HOVER node khoa hoc) — cert + phao hoa ----
+export class VdCertPopover extends Component {
+    static template = "vd_elearning.CertPopover";
+    static props = {
+        close: { type: Function, optional: true },
+        empName: String, roleLabel: String, companyName: String,
+        courseName: String, percent: [Number, String],
+        onEnter: Function, onLeave: Function, onDownload: Function,
+    };
+    setup() {
+        const colors = ["#ff5252", "#ffb300", "#42a5f5", "#66bb6a", "#ab47bc",
+                        "#ff7043", "#26c6da", "#ec407a"];
+        this.pieces = Array.from({ length: 60 }, (_, i) => ({
+            left: Math.round(Math.random() * 100),
+            delay: (Math.random() * 1.3).toFixed(2),
+            dur: (2.2 + Math.random() * 1.8).toFixed(2),
+            color: colors[i % colors.length],
+            rot: Math.round(Math.random() * 360),
+            size: 5 + Math.round(Math.random() * 7),
+            round: i % 3 === 0,
+        }));
+    }
+}
+
 // ---- Popup full man hinh: soan noi dung + cau hoi thi cua khoa hoc ----
 export class VdCourseDialog extends Component {
     static template = "vd_elearning.CourseDialog";
@@ -1067,6 +1092,11 @@ export class VdElearningOverview extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.dialog = useService("dialog");
+        // Popover giấy chứng nhận khi hover node khóa (thoát khỏi vùng bị cắt).
+        this.certPop = usePopover(VdCertPopover, {
+            position: "top", popoverClass: "o_vd_certpop_wrap",
+        });
+        this._certPopTimer = null;
         this.state = useState({
             zones: [],
             report: [],
@@ -1149,6 +1179,32 @@ export class VdElearningOverview extends Component {
             percent: (item && item.percent) || 100,
             dateStr: this._certDate(),
         });
+    }
+    // Hover vào node khóa ĐÃ ĐẠT -> hiện popover giấy chứng nhận + pháo hoa.
+    onCertEnter(ev, course) {
+        const item = this.certForCourse(course.id);
+        if (!item) return;
+        clearTimeout(this._certPopTimer);
+        const c = this.state.myCerts || {};
+        this.certPop.open(ev.currentTarget, {
+            empName: c.emp_name || (this.state.selectedEmp && this.state.selectedEmp.name) || "",
+            roleLabel: c.role_label || "NHÂN VIÊN KINH DOANH",
+            companyName: c.company_name || "CÔNG TY CỔ PHẦN VINADUY",
+            courseName: course.name || "",
+            percent: (item && item.percent) || 100,
+            onEnter: () => clearTimeout(this._certPopTimer),
+            onLeave: () => this._scheduleCertClose(),
+            onDownload: () => this.downloadCert(course),
+        });
+    }
+    onCertLeave() {
+        this._scheduleCertClose();
+    }
+    _scheduleCertClose() {
+        clearTimeout(this._certPopTimer);
+        this._certPopTimer = setTimeout(() => {
+            try { this.certPop.close(); } catch (_e) { /* noop */ }
+        }, 220);
     }
 
     // ---------- node theo dong ----------

@@ -6671,16 +6671,18 @@ class CrmLead(models.Model):
             'manual_report': self._vd_distribution_report(pancake=False),
         }
 
-    def _vd_inbound_today_chips(self, call_today_domain):
-        """KHÁCH GỌI ĐẾN HÔM NAY của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
-        answered=True nếu có cuộc nghe máy (answer_time); ngược lại = gọi nhỡ (đỏ).
-        call_today_domain đã scope theo NV + create_date hôm nay."""
+    def _vd_inbound_today_chips(self, call_user_domain, limit=400):
+        """KHÁCH GỌI ĐẾN của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
+        Hiện TẤT CẢ cuộc gọi đến (kể cả quá khứ, user spec 2026-06-24), KHÔNG chỉ
+        hôm nay → gọi nhỡ cũ vẫn nhắc gọi lại. answered=True nếu từng nghe máy
+        (answer_time / state='answered'); ngược lại = gọi nhỡ (đỏ).
+        call_user_domain đã scope theo NV (KHÔNG kèm điều kiện ngày)."""
         import re as _re
         try:
             Call = self.env['stringee.call'].sudo()
             calls = Call.search(
-                call_today_domain + [('direction', '=', 'inbound')],
-                order='create_date desc')
+                call_user_domain + [('direction', '=', 'inbound')],
+                order='create_date desc', limit=limit)
         except Exception:
             return []
         by_phone = {}
@@ -6689,10 +6691,12 @@ class CrmLead(models.Model):
             digits = _re.sub(r'\D', '', phone)
             key = digits[-9:] if len(digits) >= 9 else (digits or 'id%s' % c.id)
             answered = bool(c.answer_time) or c.state == 'answered'
+            ts = c.create_date and c.create_date.timestamp() or 0
             rec = by_phone.get(key)
             if rec:
                 if answered:
                     rec['answered'] = True
+                rec['ts'] = max(rec['ts'], ts)
                 continue
             nm = ''
             if c.lead_id:
@@ -6702,10 +6706,13 @@ class CrmLead(models.Model):
                 'phone': phone,
                 'lead_id': c.lead_id.id if c.lead_id else False,
                 'answered': answered,
+                'ts': ts,
             }
         chips = list(by_phone.values())
-        # Gọi nhỡ (đỏ) LÊN ĐẦU để NV ưu tiên gọi lại; trong nhóm thì theo tên.
-        chips.sort(key=lambda r: (r['answered'], (r['name'] or '').lower()))
+        # Gọi nhỡ (đỏ) LÊN ĐẦU để NV ưu tiên gọi lại; trong nhóm thì gần đây trước.
+        chips.sort(key=lambda r: (r['answered'], -r['ts']))
+        for r in chips:
+            r.pop('ts', None)
         return chips
 
     @api.model
@@ -7095,7 +7102,7 @@ class CrmLead(models.Model):
             'is_manager': is_manager,
             # Dòng KHÁCH GỌI ĐẾN HÔM NAY (user spec 2026-06-24): gọi đến nghe máy +
             # gọi nhỡ của NV đang xem, hiện trên cùng bảng KHÁCH MỚI.
-            'inbound_today': self._vd_inbound_today_chips(call_today_domain),
+            'inbound_today': self._vd_inbound_today_chips(call_user_domain),
             # Trưởng nhóm: mở "giao diện quản lý NHÓM" (chọn/xem NV cùng phòng ban),
             # KHÔNG có quyền toàn công ty / thùng rác công ty (giữ cho Giám đốc+).
             # User spec 2026-06-20: Giám đốc (manager) ở chế độ "CÁ NHÂN"

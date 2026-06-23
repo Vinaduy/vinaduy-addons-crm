@@ -1966,7 +1966,7 @@
                                             <div t-if="state.inbound_today and state.inbound_today.length"
                                                  class="o_vd_inbound_sec">
                                                 <div class="o_vd_inbound_sec_head">
-                                                    <i class="fa fa-phone"/> KHÁCH GỌI ĐẾN HÔM NAY
+                                                    <i class="fa fa-phone"/> KHÁCH GỌI ĐẾN / GỌI NHỠ
                                                     <span class="o_vd_inbound_sec_cnt"><t t-esc="state.inbound_today.length"/></span>
                                                 </div>
                                                 <div class="o_vd_inbound_row">

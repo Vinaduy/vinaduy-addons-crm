@@ -1225,3 +1225,20 @@ $vd-line2:   #ece7da;
     box-shadow: 0 4px 12px rgba(12, 166, 120, .3);
     &:hover { filter: brightness(1.06); }
 }
+
+/* ===== POPOVER giay chung nhan khi HOVER node khoa (cert + phao hoa) ===== */
+.o_vd_certpop_wrap {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, .32) !important;
+    border-radius: 14px;
+    max-width: none !important;
+    /* bo mui ten popover mac dinh cho gon */
+    .popover-arrow, .o-popover--arrow { display: none !important; }
+}
+.o_vd_certpop {
+    position: relative; overflow: hidden;
+    width: 330px; padding: 10px;
+    background: #fff; border-radius: 14px;
+}
