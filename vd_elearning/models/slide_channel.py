@@ -91,6 +91,15 @@ class SlideChannel(models.Model):
             'leader': self.sudo().search([('vd_role_zone', '=', 'leader')], order='vd_seq, id'),
         }
 
+        # TU DONG CHAY LO TRINH cho NV DANG XEM (user spec 2026-06-24): mo khoa moi
+        # chen vao lo trinh da gan + mo lo trinh ke tiep neu da hoan thanh — TRUOC
+        # khi dung `progress` de me/report phan anh ngay membership moi.
+        cur = self.env.user
+        if cur and not cur.share and cur.vd_crm_role in (
+                'employee', 'collaborator', 'team_leader'):
+            self._vd_heal_path_membership(cur)
+            self._vd_progress_user_paths(cur)
+
         # ----- Tien do hoc cua tung NV de gan avatar vao dung "cua ai" -----
         SCP = self.env['slide.channel.partner'].sudo()
         all_chan_ids = (zone_recs['sales'] | zone_recs['leader']).ids
@@ -378,6 +387,11 @@ class SlideChannel(models.Model):
         # Lich su BEN VUNG theo NHAN VIEN (khong mat khi gan lai lo trinh / xoa khoa).
         self.env['vd.exam.result'].sudo().vd_record_attempt(
             self.env.user, ch, percent, passed)
+        # TU DONG CHAY LO TRINH: dat -> mo khoa moi chen + mo lo trinh ke tiep neu
+        # da hoan thanh het lo trinh hien tai (user spec 2026-06-24).
+        if passed:
+            self._vd_heal_path_membership(self.env.user)
+            self._vd_progress_user_paths(self.env.user)
         return {'total': total, 'score': correct_count, 'percent': percent,
                 'pass_percent': pass_percent, 'passed': passed,
                 'results': results}
@@ -559,6 +573,106 @@ class SlideChannel(models.Model):
                 SCP.create({'channel_id': c.id, 'partner_id': pid,
                             'member_status': st})
         return True
+
+    # ==================================================================
+    #  TU DONG CHAY LO TRINH (user spec 2026-06-24)
+    #  - Admin chi gan NV o LO TRINH DAU. NV hoc tuan tu trai->phai,
+    #    tren->duoi; hoan thanh het 1 lo trinh -> TU MO lo trinh ke tiep.
+    #  - Khoa MOI chen vao lo trinh da gan -> NV van co membership (bam hoc duoc).
+    # ==================================================================
+    def _vd_user_zone(self, user):
+        return ('leader'
+                if user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+                else 'sales')
+
+    def _vd_heal_path_membership(self, user):
+        """NV da la member cua 1 lo trinh -> DAM BAO co membership o MOI khoa cua
+        lo trinh do (ke ca khoa moi chen vao sau khi gan). Giu nguyen completed.
+        => khoa moi chen truoc/giua cac khoa da hoc van BAM HOC DUOC (co membership).
+        Idempotent, sudo, nuot loi."""
+        try:
+            if not user or user.share:
+                return
+            Path = self.env['vd.learning.path'].sudo()
+            paths = Path.search([('zone', '=', self._vd_user_zone(user))])
+            SCP = self.env['slide.channel.partner'].sudo()
+            pid = user.partner_id.id
+            for p in paths:
+                cids = p.course_ids.ids
+                if not cids:
+                    continue
+                members = SCP.search([('partner_id', '=', pid),
+                                      ('channel_id', 'in', cids)])
+                if not members:
+                    continue  # KHONG phai member lo trinh nay -> de nguyen (khoa)
+                have = set(members.mapped('channel_id').ids)
+                for c in p.course_ids:
+                    if c.id not in have:
+                        SCP.create({'channel_id': c.id, 'partner_id': pid,
+                                    'member_status': 'joined'})
+        except Exception:
+            pass
+
+    def _vd_progress_user_paths(self, user):
+        """NV hoan thanh HET 1 lo trinh (moi khoa CO BAI THI deu da DAT) -> TU GAN
+        (membership 'joined') toan bo khoa cua lo trinh KE TIEP cung khu. Cascade
+        trong 1 lan goi. Idempotent, sudo, nuot loi."""
+        try:
+            if not user or user.share:
+                return
+            Path = self.env['vd.learning.path'].sudo()
+            paths = Path.search([('zone', '=', self._vd_user_zone(user))],
+                                order='sequence, id')
+            if len(paths) < 2:
+                return
+            SCP = self.env['slide.channel.partner'].sudo()
+            ER = self.env['vd.exam.result'].sudo()
+            pid = user.partner_id.id
+            all_ids = []
+            for p in paths:
+                all_ids += p.course_ids.ids
+            if not all_ids:
+                return
+            status = {}
+            for m in SCP.search([('partner_id', '=', pid),
+                                 ('channel_id', 'in', all_ids)]):
+                status[m.channel_id.id] = m.member_status
+            passed = set(ER.search([
+                ('user_id', '=', user.id), ('channel_id', 'in', all_ids),
+                ('passed', '=', True)]).mapped('channel_id').ids)
+
+            def done(c):
+                return status.get(c.id) == 'completed' or c.id in passed
+
+            def has_quiz(c):
+                quiz = c.slide_ids.filtered(
+                    lambda s: s.slide_category == 'quiz')[:1]
+                return bool(quiz and quiz.question_ids)
+
+            def is_member(p):
+                return any(c.id in status for c in p.course_ids)
+
+            def path_complete(p):
+                # Co it nhat 1 khoa co noi dung + moi khoa CO BAI THI deu da DAT.
+                if not any(self._vd_course_has_content(c) for c in p.course_ids):
+                    return False
+                for c in p.course_ids:
+                    if has_quiz(c) and not done(c):
+                        return False
+                return True
+
+            for i, p in enumerate(paths):
+                if i + 1 >= len(paths):
+                    break
+                if is_member(p) and path_complete(p):
+                    nxt = paths[i + 1]
+                    for c in nxt.course_ids:
+                        if c.id not in status:
+                            SCP.create({'channel_id': c.id, 'partner_id': pid,
+                                        'member_status': 'joined'})
+                            status[c.id] = 'joined'
+        except Exception:
+            pass
 
     @api.model
     def vd_save_order(self, zone, ordered_ids):
