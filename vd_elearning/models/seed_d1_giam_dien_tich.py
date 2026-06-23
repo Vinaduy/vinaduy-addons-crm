@@ -27,7 +27,7 @@ _PARAM_KEY = 'vd_elearning.d1_giam_dien_tich_seed_version'
 def _hero(title_small, title_big, sub):
     """Tiêu đề lớn - ấn tượng (đỏ cam thương hiệu) ở đầu khóa học."""
     return (
-        '<div style="background:linear-gradient(135deg,#f5523c 0%,#e8401f 100%);'
+        '<div style="background:linear-gradient(135deg,#f5523c 0%%,#e8401f 100%%);'
         'border-radius:18px;padding:30px 26px;margin:4px 0 26px;text-align:center;'
         'box-shadow:0 10px 26px rgba(232,64,31,.30);">'
         '<div style="color:#ffe6df;font-size:15px;font-weight:800;letter-spacing:3px;'
