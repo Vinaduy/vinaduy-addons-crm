@@ -144,6 +144,7 @@
     <function model="slide.channel" name="_vd_seed_kh_tiem_nang"/>
     <function model="slide.channel" name="_vd_seed_khong_tuoi"/>
     <function model="slide.channel" name="_vd_seed_30s_dau"/>
+    <function model="slide.channel" name="_vd_seed_d1_giam_dien_tich"/>
 
     <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
