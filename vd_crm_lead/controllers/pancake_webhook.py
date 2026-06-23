@@ -148,6 +148,19 @@ class PancakeWebhookController(http.Controller):
             ('vd_pancake_page_id', '=', page.id),
             ('vd_pancake_conversation_id', '=', conv_id),
         ], limit=1)
+
+        # >>> LƯU HỘI THOẠI (kể cả CHƯA có SĐT) để đo TỶ LỆ XIN SỐ <<<
+        # Gọi cho MỌI tin nhắn khách (đã loại tin do page gửi ở SKIP 1). Idempotent
+        # theo (page, conv_id). Lỗi nuốt im để không làm hỏng webhook tạo lead.
+        try:
+            request.env['vd.pancake.conversation'].sudo()._vd_touch(
+                page, conv_id, customer_id=customer_id,
+                customer_name=customer_name, phone=phone or None,
+                lead=existing or None)
+        except Exception:
+            _logger.exception('Pancake webhook %s: lưu hội thoại lỗi (conv %s)',
+                              page.name, conv_id)
+
         if existing:
             # Append message vào chatter để admin nhìn được lịch sử
             self._post_pancake_message(existing, customer_name or 'KH', message_text)
@@ -196,6 +209,12 @@ class PancakeWebhookController(http.Controller):
                             page.name)
 
         lead = Lead.create(lead_vals)
+        # Gắn lead vào hội thoại đã lưu để tính tỷ lệ xin số (đã có SĐT).
+        try:
+            request.env['vd.pancake.conversation'].sudo()._vd_touch(
+                page, conv_id, phone=phone or None, lead=lead)
+        except Exception:
+            pass
         _logger.info('Pancake webhook %s: tạo lead %s assignee=%s',
                      page.name, lead.id, assignee.name if assignee else 'NONE')
 

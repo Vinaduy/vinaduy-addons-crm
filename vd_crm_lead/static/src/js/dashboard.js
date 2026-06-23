@@ -406,6 +406,23 @@ export class VdCrmDashboard extends Component {
         this.state.loading = false;
     }
 
+    // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====
+    async onTogglePancakeNV(uid) {
+        if (!uid || this._pkToggling) return;
+        this._pkToggling = true;
+        try {
+            await this.orm.call("res.users", "vd_toggle_pancake_receive", [uid]);
+            // Tải lại 2 báo cáo để cập nhật ngay trạng thái bật/tắt + cân bằng.
+            const rep = await this.orm.call("crm.lead", "vd_pancake_dist_reports", []);
+            Object.assign(this.state, rep);
+        } catch (e) {
+            // Không có quyền / lỗi → bỏ qua, không phá dashboard.
+            console.warn("Toggle Pancake NV lỗi:", e);
+        } finally {
+            this._pkToggling = false;
+        }
+    }
+
     // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược) =====
     async _loadTrainingBanner() {
         try {

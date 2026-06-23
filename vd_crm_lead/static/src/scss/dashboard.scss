@@ -9682,7 +9682,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     left: 0;
     z-index: 80;
     width: 360px;
-    max-height: 70vh;
+    max-height: 78vh;
     overflow-y: auto;
     background: #fff;
     border: 1px solid #dee2e6;
@@ -9693,7 +9693,16 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     transform: translateY(-4px);
     transition: opacity 0.14s ease, transform 0.14s ease;
     cursor: default;
+    /* Cầu nối trong suốt che khoảng hở 6px → di chuột XUỐNG popover không mất
+       hover (popover là con của filter nên :hover giữ nguyên khi ở trong cầu). */
+    &::before {
+        content: '';
+        position: absolute;
+        top: -8px; left: 0; right: 0; height: 8px;
+    }
 }
+/* KÊNH PANCAKE: popover rộng để chứa cột TikTok / FB / Tổng + nút bật-tắt */
+.o_vd_pancake_pop_wide { width: 540px; max-width: 92vw; }
 .o_vd_pancake_filter:hover .o_vd_pancake_pop {
     opacity: 1; visibility: visible; transform: translateY(0);
 }
@@ -9753,6 +9762,71 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     color: #c92a2a;
     line-height: 1.15;
     margin-top: 1px;
+}
+
+/* ===== TỶ LỆ XIN SỐ (kênh Pancake) ===== */
+.o_vd_pk_rate {
+    margin: 0.5rem 0.7rem 0;
+    padding: 0.55rem 0.7rem;
+    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+    border: 1px solid #ffe066;
+    border-radius: 10px;
+}
+.o_vd_pk_rate_main { font-size: 0.86rem; font-weight: 700; color: #1f2a44;
+    b { color: #e8590c; font-size: 1.05rem; } }
+.o_vd_pk_rate_sub { font-size: 0.74rem; font-weight: 600; color: #868e96; }
+.o_vd_pk_rate_split { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
+.o_vd_pk_chip {
+    font-size: 0.74rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
+    b { margin: 0 0.15rem; }
+}
+.o_vd_pk_chip.o_vd_pk_tt { background: #f3f0ff; color: #6741d9; border: 1px solid #d0bfff; }
+.o_vd_pk_chip.o_vd_pk_fb { background: #e7f5ff; color: #1971c2; border: 1px solid #a5d8ff; }
+
+/* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
+.o_vd_pk_colhead {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.15rem 0.5rem 0.3rem;
+    font-size: 0.66rem; font-weight: 800; color: #868e96; text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.o_vd_pk_col {
+    flex: 0 0 2.2rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
+}
+.o_vd_pk_col_tt { color: #6741d9; }
+.o_vd_pk_col_fb { color: #1971c2; }
+.o_vd_pk_col_tot { flex: 0 0 2rem; }
+.o_vd_pk_col_sw { flex: 0 0 2.6rem; text-align: center; }
+
+/* ===== NÚT BẬT/TẮT nhận số (switch đẹp) ===== */
+.o_vd_pk_toggle {
+    flex: 0 0 auto;
+    position: relative;
+    width: 2.4rem; height: 1.25rem;
+    border: none; border-radius: 999px; padding: 0; cursor: pointer;
+    background: #ced4da;
+    transition: background 0.2s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
+    .o_vd_pk_knob {
+        position: absolute; top: 2px; left: 2px;
+        width: 1.0rem; height: 1.0rem; border-radius: 50%;
+        background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease;
+    }
+    &.o_on {
+        background: linear-gradient(135deg, #40c057, #2f9e44);
+        .o_vd_pk_knob { transform: translateX(1.15rem); }
+    }
+    &.o_off { background: #e03131; .o_vd_pk_knob { transform: translateX(0); } }
+    &:hover { filter: brightness(1.05); }
+}
+
+/* NV đang TẮT nhận số → xám mờ, gạch nhẹ để phân biệt */
+.o_vd_pancake_row.o_vd_pk_off {
+    opacity: 0.55;
+    background: #f1f3f5 !important;
+    .o_vd_pancake_row_nv { color: #868e96; text-decoration: line-through; }
+    .o_vd_pancake_row_cnt { background: #adb5bd !important; }
 }
 
 /* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) =====

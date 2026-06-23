@@ -6531,18 +6531,30 @@ class CrmLead(models.Model):
         mgr_gid = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
 
         def _is_real_nv(u):
+            # NV THẬT = không phải admin/quản lý/trưởng nhóm. KHÔNG lọc theo cờ
+            # vd_can_receive_pancake ở đây nữa (user spec 2026-06-23): NV bị TẮT
+            # vẫn phải HIỆN trong báo cáo (xám + nút BẬT lại), chỉ là không nhận số.
             if u._is_admin() or u.has_group('base.group_system'):
                 return False
             if mgr_gid and u.has_group('sales_team.group_sale_manager'):
                 return False
             if leader_gid and u.has_group('vd_crm_lead.vd_crm_group_team_leader'):
                 return False
-            return bool(u.vd_can_receive_pancake)
+            return True
 
-        eligible = sales.filtered(_is_real_nv)
+        # TẤT CẢ NV thật (kể cả đang TẮT nhận) → hiển thị + có nút bật/tắt.
+        all_nv = sales.filtered(_is_real_nv)
+        # NV đang BẬT nhận = "đang trong vòng chia" → dùng để tính cân bằng/eligible.
+        eligible = all_nv.filtered('vd_can_receive_pancake')
+        can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in all_nv}
         name_by = {u.id: (u.name or '') for u in sales}
         src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
             else [('vd_pancake_page_id', '=', False)]
+        # Map page_id -> platform để tách cột TikTok / Facebook (user spec 2026-06-23).
+        plat_by_page = {}
+        if pancake:
+            for pg in self.env['vd.pancake.page'].sudo().search([]):
+                plat_by_page[pg.id] = pg.platform or 'other'
 
         # ===== Mốc 15h chỉ để HIỆN cảnh báo; ĐẾM cả ngày 0h→24h (user 2026-06-05).
         # now>=15h -> lô HÔM NAY; trước 15h -> đang xem lô HÔM QUA (tới 15h thì reset).
@@ -6566,41 +6578,74 @@ class CrmLead(models.Model):
         daily_target = int(self.env['ir.config_parameter'].sudo().get_param(
             'vd_crm_lead.daily_pancake_target', 5) or 5)
 
+        Conv = self.env['vd.pancake.conversation'].sudo()
+
         def _build(since, until, eval_even, label):
             leads = self.sudo().search(src_dom + [
                 ('create_date', '>=', since),
                 ('create_date', '<', until),
                 ('user_id', '!=', False),
             ])
-            per = {}
+            per = {}        # tổng theo NV
+            per_tt = {}     # TikTok theo NV
+            per_fb = {}     # Facebook theo NV
             for l in leads:
-                per[l.user_id.id] = per.get(l.user_id.id, 0) + 1
+                uid = l.user_id.id
+                per[uid] = per.get(uid, 0) + 1
+                plat = plat_by_page.get(l.vd_pancake_page_id.id) if l.vd_pancake_page_id else None
+                if plat == 'tiktok':
+                    per_tt[uid] = per_tt.get(uid, 0) + 1
+                elif plat == 'facebook':
+                    per_fb[uid] = per_fb.get(uid, 0) + 1
             total = sum(per.values())
+            # Cân bằng chỉ tính trên NV ĐANG BẬT nhận (eligible) — NV tắt cố ý = 0.
             fair_low = total // n if n else 0
             fair_high = -(-total // n) if n else 0   # ceil
             rows = []
             under_count = 0
-            for u in eligible:
+            for u in all_nv:
                 c = per.get(u.id, 0)
+                # Kênh THỦ CÔNG không phụ thuộc cờ Pancake → coi như luôn "bật".
+                on = can_recv.get(u.id, True) if pancake else True
                 ev = 'few' if c < fair_low else ('many' if c > fair_high else 'ok')
-                under = c < daily_target
+                # NV đang TẮT → không tính "chưa đủ" (cố ý không nhận).
+                under = on and (c < daily_target)
                 if under:
                     under_count += 1
-                rows.append({'name': name_by.get(u.id) or 'NV #%s' % u.id,
-                             'count': c, 'eval': ev, 'under_target': under})
-            # ÍT số nhất lên đầu
-            rows.sort(key=lambda r: (r['count'], r['name']))
+                rows.append({'uid': u.id,
+                             'name': name_by.get(u.id) or 'NV #%s' % u.id,
+                             'count': c,
+                             'tiktok': per_tt.get(u.id, 0),
+                             'facebook': per_fb.get(u.id, 0),
+                             'eval': ev, 'under_target': under,
+                             'can_receive': on})
+            # NV TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.
+            rows.sort(key=lambda r: (not r['can_receive'], r['count'], r['name']))
             uneven = False
             if eval_even and total > 0 and n:
                 counts = [per.get(u.id, 0) for u in eligible]
                 uneven = (max(counts) - min(counts)) > 1
-            return {'total': total, 'nv_count': len(per), 'eligible': n,
-                    'rows': rows, 'uneven': uneven, 'label': label,
-                    'target': daily_target, 'under_count': under_count}
+            block = {'total': total, 'nv_count': len(per), 'eligible': n,
+                     'rows': rows, 'uneven': uneven, 'label': label,
+                     'target': daily_target, 'under_count': under_count}
+            # TỶ LỆ XIN SỐ (chỉ kênh Pancake): hội thoại có SĐT / tổng hội thoại.
+            if pancake:
+                block['rate'] = Conv._vd_rate_block(
+                    fields.Datetime.to_string(since),
+                    fields.Datetime.to_string(until))
+            return block
 
         return {
             'today': _build(today_since, today_until, True, today_label),
             'month': _build(month_since, month_until, False, 'Tháng này'),
+        }
+
+    @api.model
+    def vd_pancake_dist_reports(self):
+        """Wrapper PUBLIC cho JS: trả lại 2 báo cáo chia số sau khi bật/tắt NV."""
+        return {
+            'pancake_report': self._vd_distribution_report(pancake=True),
+            'manual_report': self._vd_distribution_report(pancake=False),
         }
 
     @api.model
@@ -7085,10 +7130,13 @@ class CrmLead(models.Model):
             'vd_crm_lead.distribute_block_uncalled', 20) or 20)
 
     @api.model
-    def _vd_today_assigned_count_map(self, user_ids):
+    def _vd_today_assigned_count_map(self, user_ids, pancake_only=False):
         """Map {user_id: số KH được CHIA HÔM NAY (theo giờ VN, UTC+7)}.
         Dùng cho CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): cuối ngày mọi NV
-        nhận ~ bằng nhau. Đếm theo create_date (mọi nguồn) để tổng ngày cân bằng."""
+        nhận ~ bằng nhau. Đếm theo create_date (mọi nguồn) để tổng ngày cân bằng.
+
+        pancake_only=True (user spec 2026-06-23): CHỈ đếm KH đến từ Pancake
+        (vd_pancake_page_id != False) → chia đều RIÊNG kênh TikTok/Facebook."""
         from collections import defaultdict
         from datetime import timedelta
         uids = [int(u) for u in (user_ids or []) if u]
@@ -7098,10 +7146,13 @@ class CrmLead(models.Model):
         now_vn = fields.Datetime.now() + timedelta(hours=7)
         start_vn = now_vn.replace(hour=0, minute=0, second=0, microsecond=0)
         start_utc = start_vn - timedelta(hours=7)
-        leads = self.sudo().search([
+        domain = [
             ('user_id', 'in', uids),
             ('create_date', '>=', fields.Datetime.to_string(start_utc)),
-        ])
+        ]
+        if pancake_only:
+            domain.append(('vd_pancake_page_id', '!=', False))
+        leads = self.sudo().search(domain)
         cnt = defaultdict(int)
         for l in leads:
             if l.user_id:

@@ -2918,52 +2918,104 @@
                     chưa đủ <t t-esc="distRep.today.target"/> khách FB/TikTok hôm nay
                 </span>
             </div>
-            <!-- POPOVER hover -->
-            <div class="o_vd_pancake_pop">
+            <!-- POPOVER hover (rộng + có cột TikTok/FB + nút bật/tắt + tỷ lệ xin số) -->
+            <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
+
+                <!-- TỶ LỆ XIN SỐ (chỉ kênh Pancake) -->
+                <div t-if="distShowTarget and distRep.today.rate" class="o_vd_pk_rate">
+                    <div class="o_vd_pk_rate_main">
+                        🎯 Tỷ lệ xin số <t t-esc="distRep.today.label"/>:
+                        <b><t t-esc="distRep.today.rate.all.pct"/>%</b>
+                        <span class="o_vd_pk_rate_sub">
+                            (<t t-esc="distRep.today.rate.all.with_phone"/> cho số /
+                            <t t-esc="distRep.today.rate.all.total"/> khách nhắn)
+                        </span>
+                    </div>
+                    <div class="o_vd_pk_rate_split">
+                        <span class="o_vd_pk_chip o_vd_pk_tt">🎵 TikTok <b><t t-esc="distRep.today.rate.tiktok.pct"/>%</b>
+                            <t t-esc="distRep.today.rate.tiktok.with_phone"/>/<t t-esc="distRep.today.rate.tiktok.total"/></span>
+                        <span class="o_vd_pk_chip o_vd_pk_fb">📘 Facebook <b><t t-esc="distRep.today.rate.facebook.pct"/>%</b>
+                            <t t-esc="distRep.today.rate.facebook.with_phone"/>/<t t-esc="distRep.today.rate.facebook.total"/></span>
+                    </div>
+                </div>
+
                 <div class="o_vd_pancake_sec">
                     <div class="o_vd_pancake_sec_head">
                         📅 <t t-esc="distRep.today.label"/> (cả ngày) —
                         <b><t t-esc="distRep.today.total"/></b> số,
-                        chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV
+                        chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV đang nhận
                     </div>
                     <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
-                        ⚠️ Chia KHÔNG đều — cần chia đều cho toàn bộ NV (dư chia tiếp).
+                        ⚠️ Chia KHÔNG đều — kiểm tra NV nào đang TẮT nhận số bên dưới.
+                    </div>
+                    <!-- Tiêu đề cột (chỉ kênh Pancake có tách TikTok/FB) -->
+                    <div t-if="distShowTarget and distRep.today.rows.length" class="o_vd_pk_colhead">
+                        <span class="o_vd_pancake_row_nv">Nhân viên</span>
+                        <span class="o_vd_pk_col">🎵 TT</span>
+                        <span class="o_vd_pk_col">📘 FB</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng</span>
+                        <span class="o_vd_pk_col_sw">Nhận</span>
                     </div>
                     <div t-if="!distRep.today.rows.length" class="o_vd_pancake_empty">
                         Chưa có số trong khung giờ này.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '')">
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '') + (r.can_receive ? '' : ' o_vd_pk_off')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
-                            <span class="o_vd_pancake_row_eval">
-                                <t t-if="distShowTarget and r.under_target">CHƯA ĐỦ <t t-esc="distRep.today.target"/></t>
-                                <t t-elif="r.eval === 'few'">QUÁ ÍT</t>
-                                <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
-                                <t t-else="">đủ</t>
-                            </span>
-                            <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            <!-- KÊNH PANCAKE: cột TikTok / FB / Tổng + nút bật-tắt -->
+                            <t t-if="distShowTarget">
+                                <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                                <button class="o_vd_pk_toggle"
+                                        t-att-class="r.can_receive ? 'o_on' : 'o_off'"
+                                        t-on-click="() => this.onTogglePancakeNV(r.uid)"
+                                        t-att-title="r.can_receive ? 'Đang nhận số Pancake — bấm để TẮT' : 'Đã TẮT — bấm để BẬT nhận lại'">
+                                    <span class="o_vd_pk_knob"/>
+                                </button>
+                            </t>
+                            <!-- KÊNH THỦ CÔNG: giữ nguyên kiểu cũ -->
+                            <t t-else="">
+                                <span class="o_vd_pancake_row_eval">
+                                    <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                    <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
+                                    <t t-else="">đủ</t>
+                                </span>
+                                <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            </t>
                         </div>
                     </div>
                 </div>
                 <div class="o_vd_pancake_sec">
                     <div class="o_vd_pancake_sec_head">
                         🗓️ Tháng này — <b><t t-esc="distRep.month.total"/></b> số
+                        <span t-if="distShowTarget and distRep.month.rate" class="o_vd_pk_rate_sub">
+                            · tỷ lệ xin số <b><t t-esc="distRep.month.rate.all.pct"/>%</b>
+                            (<t t-esc="distRep.month.rate.all.with_phone"/>/<t t-esc="distRep.month.rate.all.total"/>)
+                        </span>
                     </div>
                     <div t-if="!distRep.month.rows.length" class="o_vd_pancake_empty">
                         Tháng này chưa có số.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval">
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
-                            <span class="o_vd_pancake_row_eval">
-                                <t t-if="r.eval === 'few'">QUÁ ÍT</t>
-                                <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
-                                <t t-else="">đủ</t>
-                            </span>
-                            <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            <t t-if="distShowTarget">
+                                <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            </t>
+                            <t t-else="">
+                                <span class="o_vd_pancake_row_eval">
+                                    <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                    <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
+                                    <t t-else="">đủ</t>
+                                </span>
+                                <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            </t>
                         </div>
                     </div>
                 </div>

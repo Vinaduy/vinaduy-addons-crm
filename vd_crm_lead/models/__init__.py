@@ -14,6 +14,7 @@ from . import vd_field_option
 from . import vd_nego_problem
 from . import vd_lead_problem
 from . import vd_pancake_page
+from . import vd_pancake_conversation
 from . import vd_fb_inbox
 from . import res_users
 from . import res_users_security

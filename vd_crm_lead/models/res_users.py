@@ -527,30 +527,37 @@ class ResUsers(models.Model):
             )
             if team_members:
                 candidates = team_members
-        # Lọc NV còn được nhận lead (overdue <= threshold)
-        eligible = candidates.filtered('vd_can_receive_new_leads')
-        # Lọc thêm theo kênh Pancake nếu source='pancake'
-        if source == 'pancake':
-            eligible = eligible.filtered('vd_can_receive_pancake')
-        if not eligible:
-            return self.env['res.users']  # empty
         Lead = self.env['crm.lead'].sudo()
-        # CHẶN CHIA SỐ (user spec 2026-06-12): loại NV đang tồn >= ngưỡng KH mới
-        # CHƯA gọi. Nếu TẤT CẢ đều đầy → fallback chọn NV ÍT tồn nhất (Pancake /
-        # auto KHÔNG được rớt lead).
-        threshold = Lead._vd_distribute_block_threshold()
-        if threshold > 0:
-            uncalled = Lead._vd_uncalled_new_count_map(eligible.ids)
-            with_cap = eligible.filtered(
-                lambda u: uncalled.get(u.id, 0) < threshold)
-            if with_cap:
-                eligible = with_cap
-            else:
-                return min(eligible, key=lambda u: uncalled.get(u.id, 0))
-        # CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): chọn NV được chia ÍT KHÁCH
-        # NHẤT HÔM NAY → cuối ngày mọi NV nhận ~ bằng nhau. Hoà số hôm nay → ưu
-        # tiên NV tải active ít hơn, rồi id nhỏ hơn (ổn định, không nhảy lung tung).
-        today_map = Lead._vd_today_assigned_count_map(eligible.ids)
+        if source == 'pancake':
+            # CHIA ĐỀU TUYỆT ĐỐI cho KH TikTok/Facebook (user spec 2026-06-23):
+            # kênh Pancake CHỈ phụ thuộc nút BẬT/TẮT thủ công vd_can_receive_pancake
+            # (admin tự tắt NV quá tải/nghỉ ngay trong báo cáo chia số). KHÔNG áp
+            # cổng quá hạn / chặn tồn → để MỌI NV đang BẬT đều nhận đều như nhau.
+            eligible = candidates.filtered('vd_can_receive_pancake')
+            if not eligible:
+                return self.env['res.users']  # empty
+            # Cân bằng theo SỐ KH PANCAKE đã chia HÔM NAY (giờ VN) → cuối ngày mọi
+            # NV bật nhận ~ bằng nhau. Hoà → tải active ít hơn, rồi id nhỏ hơn.
+            today_map = Lead._vd_today_assigned_count_map(eligible.ids, pancake_only=True)
+        else:
+            # Kênh KHÁC (nhập tay / auto nội bộ): giữ cổng quá hạn + chặn tồn.
+            eligible = candidates.filtered('vd_can_receive_new_leads')
+            if not eligible:
+                return self.env['res.users']  # empty
+            # CHẶN CHIA SỐ (user spec 2026-06-12): loại NV đang tồn >= ngưỡng KH
+            # mới CHƯA gọi. Nếu TẤT CẢ đều đầy → fallback chọn NV ÍT tồn nhất
+            # (auto KHÔNG được rớt lead).
+            threshold = Lead._vd_distribute_block_threshold()
+            if threshold > 0:
+                uncalled = Lead._vd_uncalled_new_count_map(eligible.ids)
+                with_cap = eligible.filtered(
+                    lambda u: uncalled.get(u.id, 0) < threshold)
+                if with_cap:
+                    eligible = with_cap
+                else:
+                    return min(eligible, key=lambda u: uncalled.get(u.id, 0))
+            # CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): NV ít số nhất hôm nay.
+            today_map = Lead._vd_today_assigned_count_map(eligible.ids)
 
         def active_load(user):
             return Lead.search_count([
@@ -559,3 +566,23 @@ class ResUsers(models.Model):
                 ('stage_is_lost', '=', False),
             ])
         return min(eligible, key=lambda u: (today_map.get(u.id, 0), active_load(u), u.id))
+
+    @api.model
+    def vd_toggle_pancake_receive(self, user_id):
+        """BẬT/TẮT nhận KH Pancake cho 1 NV (gọi từ nút trên báo cáo chia số).
+        Chỉ admin / quản lý CRM được phép. Trả về trạng thái mới (bool)."""
+        caller = self.env.user
+        allowed = (
+            caller._is_admin()
+            or caller.has_group('sales_team.group_sale_manager')
+            or caller.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not allowed:
+            from odoo.exceptions import AccessError
+            raise AccessError('Chỉ admin / quản lý mới được bật/tắt nhận số Pancake.')
+        target = self.sudo().browse(int(user_id))
+        if not target.exists():
+            return False
+        new_val = not bool(target.vd_can_receive_pancake)
+        target.write({'vd_can_receive_pancake': new_val})
+        return new_val
