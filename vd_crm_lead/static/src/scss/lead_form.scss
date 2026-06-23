@@ -10496,12 +10496,16 @@ $vd-panel-head-radius: 10px;
     width: 100%;
 }
 .o_vd_intake_inline .o_vd_floor_function_row .o_vd_floor_function_tag {
-    flex: 0 0 auto !important;
+    /* Width CỐ ĐỊNH cho mọi tag (T1..T7 / Lửng / Tum) để ô m² thẳng cột từ trên
+       xuống (fix user 2026-06-23). 54px đủ chứa chữ 'Lửng'. */
+    flex: 0 0 54px !important;
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    padding: 0.2rem 0.5rem;
+    padding: 0.2rem 0.35rem;
     background: var(--vd-navy);
     color: #fff;
     border-radius: 999px;

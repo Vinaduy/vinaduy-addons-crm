@@ -435,7 +435,7 @@
                                              invisible="not vd_intake_has_lung">
                                             <span class="o_vd_floor_function_tag o_vd_tag_lung">Lửng</span>
                                             <field name="vd_intake_floor_lung_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
-                                            <span class="o_vd_func_area_lbl">TT</span>
+                                            <span class="o_vd_func_area_lbl">Thông tầng</span>
                                             <field name="vd_intake_floor_thongtang_m2" nolabel="1" class="o_vd_area_dim o_vd_func_area" placeholder="m²" widget="vd_num_input"/>
                                             <field name="vd_intake_floor_lung_function_ids"
                                                    widget="vd_floor_function_chips"

@@ -561,34 +561,13 @@ function syncIntakeLockedClass() {
     } catch (e) {}
 }
 
-// ===== Nút +Tầng / +Tum / +Lửng chạy CLIENT-SIDE (không gọi server action) =====
-// Server action type="object" = round-trip + reload toàn form mỗi lần bấm → rất
-// chậm trên server thiếu RAM. Thay bằng record.update tại client: nhẹ, tức thì,
-// và vẫn chạy onchange backend (_onchange_floors_select tự điền diện tích tầng).
-// Nếu không lấy được record → KHÔNG chặn, để server action chạy như cũ (fallback).
-const FLOOR_BTN_NAMES = ["action_add_floor", "action_toggle_tum", "action_toggle_lung"];
-async function _handleFloorBtn(rec, name) {
-    try {
-        if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("floor btn:" + name);
-        if (name === "action_add_floor") {
-            const cur = parseInt(rec.data.vd_intake_floors_count || 1, 10) || 1;
-            if (cur >= 7) return;
-            const next = cur + 1;
-            await rec.update({ vd_intake_floors_count: next, vd_intake_floors_select: String(next) });
-        } else if (name === "action_toggle_tum") {
-            await rec.update({ vd_intake_has_tum: !rec.data.vd_intake_has_tum });
-        } else if (name === "action_toggle_lung") {
-            await rec.update({ vd_intake_has_lung: !rec.data.vd_intake_has_lung });
-        }
-        // LƯU NGAY (flush đã chạy ở trên) — dòng tầng/tum/lửng vừa thêm phải bền
-        // ngay, KHÔNG để mất khi user chuyển sang thao tác khác. Trước đây dùng
-        // scheduleSave (hoãn 900ms + guard) nên thường bị bỏ qua → thay đổi chỉ
-        // nằm in-memory, gặp reload là mất dòng vừa thêm.
-        try { await rec.save(); } catch (e) { console.warn("[VD floor btn] save lỗi:", e); }
-    } catch (err) {
-        console.warn("[VD floor btn] lỗi, sẽ không chặn lần sau:", err);
-    }
-}
+// ===== Nút +Tầng / +Tum / +Lửng: dùng SERVER ACTION (type="object") =====
+// 2026-06-23: bỏ intercept client-side. Lý do: client tự record.update + save
+// chạy ĐUA với save của widget Công năng / ô m² → reload nuốt dòng tầng/tum vừa
+// thêm (mất dữ liệu). Server action ATOMIC: Odoo lưu cả form (commit mọi thứ in
+// -flight) → chạy method (action_add_floor/toggle_tum/toggle_lung) → reload 1
+// lần. Không đua, không mất; nút bị disable trong lúc xử lý nên hết double-click
+// (toggle Tum/Lửng bật-tắt) và hết "bấm khó".
 
 function start() {
     schedule();
@@ -597,25 +576,8 @@ function start() {
         subtree: true,
     });
 
-    // Bắt click nút +Tầng/+Tum/+Lửng ở capture phase → chặn server action, chạy
-    // client-side cho nhẹ + nhanh. (Nút Xoá tầng giữ server action vì logic dồn
-    // tầng phức tạp.)
-    document.addEventListener(
-        "click",
-        (e) => {
-            const btn = e.target.closest && e.target.closest("button[name]");
-            if (!btn) return;
-            const name = btn.getAttribute("name");
-            if (!FLOOR_BTN_NAMES.includes(name)) return;
-            if (!btn.closest(".o_vd_steps_panel")) return;
-            const rec = window.__vdGetIntakeRecord && window.__vdGetIntakeRecord();
-            if (!rec) return;   // fallback: để server action chạy
-            e.preventDefault();
-            e.stopPropagation();
-            _handleFloorBtn(rec, name);
-        },
-        true
-    );
+    // (Nút +Tầng/+Tum/+Lửng nay chạy server action atomic — không intercept nữa.)
+
     // Update fade state khi user gõ vào dim input
     document.addEventListener(
         "input",
