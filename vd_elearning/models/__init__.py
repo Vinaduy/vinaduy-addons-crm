@@ -15,3 +15,4 @@ from . import seed_vat_tu
 from . import seed_vat_tu_ngoai
 from . import seed_bang_gia
 from . import seed_d1_giam_dien_tich
+from . import seed_d2_chuyen_doi_mau_nha

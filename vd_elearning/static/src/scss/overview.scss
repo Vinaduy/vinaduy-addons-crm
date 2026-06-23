@@ -1035,10 +1035,11 @@ $vd-line2:   #ece7da;
     50%      { box-shadow: 0 12px 30px rgba(232, 64, 31, 0.5), 0 0 0 13px rgba(232, 64, 31, 0); }
 }
 .o_vd_lib_filter {
-    /* Giua-phai man hinh (user spec 2026-06-24): tranh che nut goi dien o goc duoi. */
-    position: fixed; right: 22px; top: calc(50% - 28px); bottom: auto; z-index: 1045;
+    /* Sat mep phai + cao hon giua mot chut (user spec 2026-06-24). */
+    position: fixed; right: 0; top: 34%; bottom: auto; z-index: 1045;
     display: flex; align-items: center; height: 56px; padding: 0;
-    border: 2px solid #ffd9cf; border-radius: 999px;
+    border: 2px solid #ffd9cf; border-right: none;
+    border-radius: 999px 0 0 999px;
     background: linear-gradient(135deg, #f5523c, #e8401f);
     color: #fff; cursor: pointer; overflow: hidden;
     max-width: 60px;

@@ -336,13 +336,36 @@ class SlideChannel(models.Model):
 
     @api.model
     def vd_course_rename(self, channel_id, name):
-        """Doi ten khoa hoc nhanh (nut but tren tieu de). Chi admin."""
+        """Doi ten khoa hoc nhanh (nut but tren tieu de). Chi admin.
+        `name` la field DICH (en_US/vi_VN...) -> phai ghi cho MOI ngon ngu, neu khong
+        NV xem vi_VN se van thay ten cu (da dinh bug 2026-06-24)."""
         if not self._vd_is_admin():
             raise AccessError('Chi admin duoc doi ten khoa hoc.')
         nm = (name or '').strip()
         if nm:
-            self.browse(channel_id).name = nm
+            ch = self.browse(channel_id)
+            for code, _label in self.env['res.lang'].get_installed():
+                ch.with_context(lang=code).name = nm
         return nm
+
+    @api.model
+    def _vd_heal_course_name_langs(self):
+        """Dong bo ten khoa hoc cho MOI ngon ngu: lay ten o en_US (ten MOI admin da
+        doi) ap cho cac ngon ngu khac (vi_VN...) -> NV khong con thay ten cu.
+        Chay 1 lan (guard bang ir.config_parameter)."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        if ICP.get_param('vd_elearning.course_name_lang_healed') == '1':
+            return True
+        langs = [c for c, _l in self.env['res.lang'].get_installed()]
+        for ch in self.sudo().search([('channel_type', '=', 'training')]):
+            base = ch.with_context(lang='en_US').name or ch.name
+            if not base:
+                continue
+            for code in langs:
+                if ch.with_context(lang=code).name != base:
+                    ch.with_context(lang=code).name = base
+        ICP.set_param('vd_elearning.course_name_lang_healed', '1')
+        return True
 
     @api.model
     def vd_course_grade(self, channel_id, answers_by_q):
