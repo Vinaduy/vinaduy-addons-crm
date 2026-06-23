@@ -906,6 +906,83 @@ export class VdCourseDialog extends Component {
     }
 }
 
+// ---- THƯ VIỆN - Câu hỏi khó: kho câu hỏi + 3 kịch bản trả lời cho sale ----
+export class VdHardLibraryDialog extends Component {
+    static template = "vd_elearning.HardLibraryDialog";
+    static components = { Dialog };
+    static props = { close: Function };
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            loading: true,
+            items: [],
+            topics: [],
+            difficulties: [],
+            situations: [],
+            search: "",
+            topic: "",        // '' = tất cả chủ đề
+            difficulty: "",
+            situation: "",
+            openId: null,     // câu đang mở rộng xem 3 câu trả lời
+        });
+        onWillStart(async () => {
+            const d = await this.orm.call("vd.hard.question", "vd_library_load", []);
+            this.state.items = d.items || [];
+            this.state.topics = d.topics || [];
+            this.state.difficulties = d.difficulties || [];
+            this.state.situations = d.situations || [];
+            this.state.loading = false;
+        });
+    }
+    get filtered() {
+        const q = this.state.search.trim().toLowerCase();
+        return this.state.items.filter((it) => {
+            if (this.state.topic && it.topic !== this.state.topic) return false;
+            if (this.state.difficulty && it.difficulty !== this.state.difficulty) return false;
+            if (this.state.situation && it.situation !== this.state.situation) return false;
+            if (!q) return true;
+            const hay = (
+                it.question + " " + it.keywords + " " + it.intent + " " +
+                it.a1 + " " + it.a2 + " " + it.a3
+            ).toLowerCase();
+            return hay.includes(q);
+        });
+    }
+    topicCount(key) {
+        return this.state.items.filter((it) => it.topic === key).length;
+    }
+    setTopic(k) {
+        this.state.topic = this.state.topic === k ? "" : k;
+    }
+    setDiff(k) {
+        this.state.difficulty = this.state.difficulty === k ? "" : k;
+    }
+    setSit(k) {
+        this.state.situation = this.state.situation === k ? "" : k;
+    }
+    toggleOpen(id) {
+        this.state.openId = this.state.openId === id ? null : id;
+    }
+    clearFilters() {
+        this.state.search = "";
+        this.state.topic = "";
+        this.state.difficulty = "";
+        this.state.situation = "";
+    }
+    diffClass(d) {
+        return "o_vd_hq_d_" + (d || "trungbinh");
+    }
+    async copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text || "");
+            this.notification.add("Đã sao chép câu trả lời.", { type: "success" });
+        } catch (_) {
+            this.notification.add("Không sao chép được (trình duyệt chặn).", { type: "warning" });
+        }
+    }
+}
+
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -1111,6 +1188,11 @@ export class VdElearningOverview extends Component {
 
     backToAdmin() {
         this.state.selectedEmp = null;
+    }
+
+    // THƯ VIỆN - Câu hỏi khó: mở kho câu hỏi + kịch bản trả lời (cạnh khóa học).
+    openHardLibrary() {
+        this.dialog.add(VdHardLibraryDialog, {});
     }
 
     // ---------- POPUP ----------

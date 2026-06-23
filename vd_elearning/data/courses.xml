@@ -146,6 +146,9 @@
     <function model="slide.channel" name="_vd_seed_30s_dau"/>
     <function model="slide.channel" name="_vd_seed_d1_giam_dien_tich"/>
 
+    <!-- THƯ VIỆN - Câu hỏi khó: seed kho cau hoi + kich ban tra loi sale. -->
+    <function model="vd.hard.question" name="_vd_seed_hard_questions"/>
+
     <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
 </odoo>

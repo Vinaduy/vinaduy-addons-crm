@@ -5,3 +5,5 @@ access_vd_training_session_user,vd.training.session.user,model_vd_training_sessi
 access_vd_training_session_officer,vd.training.session.officer,model_vd_training_session,website_slides.group_website_slides_officer,1,1,1,1
 access_vd_exam_result_user,vd.exam.result.user,model_vd_exam_result,base.group_user,1,0,0,0
 access_vd_exam_result_officer,vd.exam.result.officer,model_vd_exam_result,website_slides.group_website_slides_officer,1,1,1,1
+access_vd_hard_question_user,vd.hard.question.user,model_vd_hard_question,base.group_user,1,0,0,0
+access_vd_hard_question_officer,vd.hard.question.officer,model_vd_hard_question,website_slides.group_website_slides_officer,1,1,1,1

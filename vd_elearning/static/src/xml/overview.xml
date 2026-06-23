@@ -654,6 +654,14 @@
     <!-- ============ TRANG TONG QUAN ============ -->
     <t t-name="vd_elearning.Overview">
         <div class="o_vd_overview">
+            <!-- THƯ VIỆN - Câu hỏi khó: filter nổi cạnh khóa học. Hover -> bung tên. -->
+            <button t-if="!state.loading" class="o_vd_lib_filter"
+                    t-on-click="openHardLibrary"
+                    title="THƯ VIỆN - Câu hỏi khó">
+                <span class="o_vd_lib_ico"><i class="fa fa-life-ring"/></span>
+                <span class="o_vd_lib_txt">THƯ VIỆN - Câu hỏi khó</span>
+            </button>
+
             <div t-if="state.loading" class="o_vd_loading">
                 <i class="fa fa-spinner fa-spin"/> Đang tải...
             </div>
@@ -815,6 +823,133 @@
                 </div>
             </t>
         </div>
+    </t>
+
+    <!-- ============ THƯ VIỆN - CÂU HỎI KHÓ ============ -->
+    <t t-name="vd_elearning.HardLibraryDialog">
+        <Dialog title="'THƯ VIỆN - Câu hỏi khó'" size="'xl'" contentClass="'o_vd_hq_dialog'">
+            <div class="o_vd_hq">
+                <div t-if="state.loading" class="o_vd_hq_loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải thư viện...
+                </div>
+                <t t-else="">
+                    <!-- Thanh tìm kiếm + lọc -->
+                    <div class="o_vd_hq_toolbar">
+                        <div class="o_vd_hq_searchbox">
+                            <i class="fa fa-search"/>
+                            <input type="text" placeholder="Tìm theo từ khóa: móng cọc, thấm, đặt cọc, bảo hành, phát sinh..."
+                                   t-model="state.search"/>
+                            <i t-if="state.search" class="fa fa-times o_vd_hq_clearsearch"
+                               t-on-click="() => state.search = ''"/>
+                        </div>
+                        <button class="o_vd_hq_reset" t-on-click="clearFilters">
+                            <i class="fa fa-rotate-left me-1"/>Bỏ lọc
+                        </button>
+                    </div>
+
+                    <!-- Chip CHỦ ĐỀ -->
+                    <div class="o_vd_hq_chips">
+                        <span class="o_vd_hq_chips_lbl">Chủ đề:</span>
+                        <button t-attf-class="o_vd_hq_chip {{!state.topic ? 'active' : ''}}"
+                                t-on-click="() => this.setTopic('')">Tất cả</button>
+                        <t t-foreach="state.topics" t-as="tp" t-key="tp.key">
+                            <button t-attf-class="o_vd_hq_chip {{state.topic === tp.key ? 'active' : ''}}"
+                                    t-on-click="() => this.setTopic(tp.key)">
+                                <t t-esc="tp.label"/>
+                                <span class="o_vd_hq_chip_n"><t t-esc="topicCount(tp.key)"/></span>
+                            </button>
+                        </t>
+                    </div>
+
+                    <!-- Chip MỨC ĐỘ + TÌNH HUỐNG -->
+                    <div class="o_vd_hq_chips">
+                        <span class="o_vd_hq_chips_lbl">Mức độ:</span>
+                        <t t-foreach="state.difficulties" t-as="df" t-key="df.key">
+                            <button t-attf-class="o_vd_hq_chip o_vd_hq_chip_sm {{state.difficulty === df.key ? 'active' : ''}}"
+                                    t-on-click="() => this.setDiff(df.key)">
+                                <t t-esc="df.label"/>
+                            </button>
+                        </t>
+                        <span class="o_vd_hq_chips_lbl" style="margin-left:10px;">Tình huống:</span>
+                        <t t-foreach="state.situations" t-as="si" t-key="si.key">
+                            <button t-attf-class="o_vd_hq_chip o_vd_hq_chip_sm {{state.situation === si.key ? 'active' : ''}}"
+                                    t-on-click="() => this.setSit(si.key)">
+                                <t t-esc="si.label"/>
+                            </button>
+                        </t>
+                    </div>
+
+                    <div class="o_vd_hq_count">
+                        Có <b t-esc="filtered.length"/> câu hỏi phù hợp
+                    </div>
+
+                    <!-- Danh sách câu hỏi -->
+                    <div class="o_vd_hq_list">
+                        <t t-foreach="filtered" t-as="it" t-key="it.id">
+                            <div t-attf-class="o_vd_hq_item {{state.openId === it.id ? 'open' : ''}}">
+                                <div class="o_vd_hq_qrow" t-on-click="() => this.toggleOpen(it.id)">
+                                    <i t-attf-class="fa {{state.openId === it.id ? 'fa-chevron-down' : 'fa-chevron-right'}} o_vd_hq_caret"/>
+                                    <div class="o_vd_hq_qmain">
+                                        <div class="o_vd_hq_q"><t t-esc="it.question"/></div>
+                                        <div class="o_vd_hq_badges">
+                                            <span t-attf-class="o_vd_hq_badge o_vd_hq_t_{{it.topic}}"><t t-esc="it.topic_label"/></span>
+                                            <span t-attf-class="o_vd_hq_badge {{diffClass(it.difficulty)}}"><t t-esc="it.difficulty_label"/></span>
+                                            <span t-if="it.situation_label" class="o_vd_hq_badge o_vd_hq_sit">
+                                                <i class="fa fa-user me-1"/><t t-esc="it.situation_label"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div t-if="state.openId === it.id" class="o_vd_hq_detail">
+                                    <div t-if="it.intent" class="o_vd_hq_intent">
+                                        <i class="fa fa-bullseye me-1"/><b>Mục đích thật sự của khách:</b>
+                                        <t t-esc="it.intent"/>
+                                    </div>
+
+                                    <div class="o_vd_hq_ans o_vd_hq_a1">
+                                        <div class="o_vd_hq_ans_head">
+                                            <span><span class="o_vd_hq_ans_no">1</span>Trả lời nhanh (gọi điện)</span>
+                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a1)">
+                                                <i class="fa fa-copy me-1"/>Sao chép
+                                            </button>
+                                        </div>
+                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a1"/></div>
+                                    </div>
+
+                                    <div class="o_vd_hq_ans o_vd_hq_a2">
+                                        <div class="o_vd_hq_ans_head">
+                                            <span><span class="o_vd_hq_ans_no">2</span>Giải thích sâu (Zalo / trực tiếp)</span>
+                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a2)">
+                                                <i class="fa fa-copy me-1"/>Sao chép
+                                            </button>
+                                        </div>
+                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a2"/></div>
+                                    </div>
+
+                                    <div class="o_vd_hq_ans o_vd_hq_a3">
+                                        <div class="o_vd_hq_ans_head">
+                                            <span><span class="o_vd_hq_ans_no">3</span>Dẫn dắt chốt niềm tin</span>
+                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a3)">
+                                                <i class="fa fa-copy me-1"/>Sao chép
+                                            </button>
+                                        </div>
+                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a3"/></div>
+                                    </div>
+
+                                    <div t-if="it.keywords" class="o_vd_hq_kw">
+                                        <i class="fa fa-tags me-1"/><t t-esc="it.keywords"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                        <div t-if="!filtered.length" class="o_vd_hq_empty">
+                            <i class="fa fa-search me-1"/>Không tìm thấy câu hỏi nào khớp bộ lọc.
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </Dialog>
     </t>
 
 </templates>
