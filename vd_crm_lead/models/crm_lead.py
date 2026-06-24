@@ -6599,6 +6599,12 @@ class CrmLead(models.Model):
                 elif plat == 'facebook':
                     per_fb[uid] = per_fb.get(uid, 0) + 1
             total = sum(per.values())
+            # TỔNG lead TẠO trong khoảng (kể cả đã GỘP trùng SĐT / chưa gán NV) —
+            # để giải thích vì sao "số" (lead active còn lại) ÍT hơn "lượt cho số"
+            # ở ô tỷ lệ phía trên: chênh lệch = SĐT trùng đã gộp + lead chưa gán.
+            created_all = self.sudo().with_context(active_test=False).search_count(
+                src_dom + [('create_date', '>=', since), ('create_date', '<', until)])
+            merged = max(0, created_all - total)
             # Cân bằng chỉ tính trên NV ĐANG BẬT nhận (eligible) — NV tắt cố ý = 0.
             fair_low = total // n if n else 0
             fair_high = -(-total // n) if n else 0   # ceil
@@ -6627,6 +6633,7 @@ class CrmLead(models.Model):
                 counts = [per.get(u.id, 0) for u in eligible]
                 uneven = (max(counts) - min(counts)) > 1
             block = {'total': total, 'nv_count': len(per), 'eligible': n,
+                     'created_all': created_all, 'merged': merged,
                      'rows': rows, 'uneven': uneven, 'label': label,
                      'target': daily_target, 'under_count': under_count}
             # TỶ LỆ XIN SỐ (chỉ kênh Pancake): hội thoại có SĐT / tổng hội thoại.

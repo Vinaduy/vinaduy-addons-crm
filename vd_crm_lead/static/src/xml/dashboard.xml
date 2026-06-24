@@ -3025,7 +3025,13 @@
                     <div class="o_vd_pancake_sec_head">
                         📅 <t t-esc="distRep.today.label"/> (cả ngày) —
                         <b><t t-esc="distRep.today.total"/></b> số,
-                        chia cho <t t-esc="distRep.today.nv_count"/>/<t t-esc="distRep.today.eligible"/> NV đang nhận
+                        chia cho <b><t t-esc="distRep.today.nv_count"/></b> NV
+                        (<t t-esc="distRep.today.eligible"/> đang bật nhận)
+                        <div t-if="distRep.today.merged" class="o_vd_pk_rate_sub">
+                            ↳ có <b><t t-esc="distRep.today.created_all"/></b> SĐT về,
+                            đã gộp/loại <b><t t-esc="distRep.today.merged"/></b> SĐT trùng hoặc chưa gán
+                            → còn <b><t t-esc="distRep.today.total"/></b> số chia về NV.
+                        </div>
                     </div>
                     <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
                         ⚠️ Chia KHÔNG đều — kiểm tra NV nào đang TẮT nhận số bên dưới.
@@ -3074,7 +3080,12 @@
                     <div class="o_vd_pancake_sec_head">
                         📅 <t t-esc="distRep.yesterday.label"/> (cả ngày) —
                         <b><t t-esc="distRep.yesterday.total"/></b> số,
-                        chia cho <t t-esc="distRep.yesterday.nv_count"/>/<t t-esc="distRep.yesterday.eligible"/> NV
+                        chia cho <b><t t-esc="distRep.yesterday.nv_count"/></b> NV
+                        (<t t-esc="distRep.yesterday.eligible"/> đang bật nhận)
+                        <div t-if="distRep.yesterday.merged" class="o_vd_pk_rate_sub">
+                            ↳ có <b><t t-esc="distRep.yesterday.created_all"/></b> SĐT về,
+                            đã gộp/loại <b><t t-esc="distRep.yesterday.merged"/></b> SĐT trùng hoặc chưa gán.
+                        </div>
                     </div>
                     <div t-if="distShowTarget and distRep.yesterday.rows.length" class="o_vd_pk_colhead">
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
