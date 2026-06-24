@@ -1073,6 +1073,12 @@ $vd-line2:   #ece7da;
 }
 
 .o_vd_hq_dialog .modal-body { padding: 0; }
+/* Header "THƯ VIỆN - Câu hỏi khó" thu nhỏ ~30% (user spec 2026-06-24) */
+.o_vd_hq_dialog .modal-header {
+    padding: 0.5rem 1rem;
+    .modal-title { font-size: 0.95rem; line-height: 1.2; }
+    .btn-close { transform: scale(0.8); }
+}
 .o_vd_hq {
     display: flex; flex-direction: column; max-height: 78vh;
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -1081,7 +1087,7 @@ $vd-line2:   #ece7da;
 
 .o_vd_hq_toolbar {
     display: flex; gap: 10px; align-items: center;
-    padding: 14px 18px 8px;
+    padding: 8px 18px 6px;
 }
 .o_vd_hq_searchbox {
     flex: 1 1 auto; display: flex; align-items: center; gap: 8px;
@@ -1131,6 +1137,9 @@ $vd-line2:   #ece7da;
     &:hover .o_vd_hq_q { color: #e8401f; }
 }
 .o_vd_hq_qmain { flex: 1 1 auto; min-width: 0; }
+/* Chủ đề (badge) nằm CÙNG DÒNG với câu hỏi (user spec 2026-06-24) */
+.o_vd_hq_qline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.o_vd_hq_qline .o_vd_hq_badge { flex: 0 0 auto; align-self: center; }
 .o_vd_hq_q { font-size: 1rem; font-weight: 800; color: #1e293b; line-height: 1.4; }
 .o_vd_hq_badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .o_vd_hq_badge {

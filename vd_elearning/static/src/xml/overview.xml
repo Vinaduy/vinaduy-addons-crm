@@ -881,24 +881,6 @@
                         </t>
                     </div>
 
-                    <!-- Chip MỨC ĐỘ + TÌNH HUỐNG -->
-                    <div class="o_vd_hq_chips">
-                        <span class="o_vd_hq_chips_lbl">Mức độ:</span>
-                        <t t-foreach="state.difficulties" t-as="df" t-key="df.key">
-                            <button t-attf-class="o_vd_hq_chip o_vd_hq_chip_sm {{state.difficulty === df.key ? 'active' : ''}}"
-                                    t-on-click="() => this.setDiff(df.key)">
-                                <t t-esc="df.label"/>
-                            </button>
-                        </t>
-                        <span class="o_vd_hq_chips_lbl" style="margin-left:10px;">Tình huống:</span>
-                        <t t-foreach="state.situations" t-as="si" t-key="si.key">
-                            <button t-attf-class="o_vd_hq_chip o_vd_hq_chip_sm {{state.situation === si.key ? 'active' : ''}}"
-                                    t-on-click="() => this.setSit(si.key)">
-                                <t t-esc="si.label"/>
-                            </button>
-                        </t>
-                    </div>
-
                     <div class="o_vd_hq_count">
                         Có <b t-esc="filtered.length"/> câu hỏi phù hợp
                     </div>
@@ -910,13 +892,9 @@
                                 <div class="o_vd_hq_qrow" t-on-click="() => this.toggleOpen(it.id)">
                                     <i t-attf-class="fa {{state.openId === it.id ? 'fa-chevron-down' : 'fa-chevron-right'}} o_vd_hq_caret"/>
                                     <div class="o_vd_hq_qmain">
-                                        <div class="o_vd_hq_q"><t t-esc="it.question"/></div>
-                                        <div class="o_vd_hq_badges">
+                                        <div class="o_vd_hq_qline">
                                             <span t-attf-class="o_vd_hq_badge o_vd_hq_t_{{it.topic}}"><t t-esc="it.topic_label"/></span>
-                                            <span t-attf-class="o_vd_hq_badge {{diffClass(it.difficulty)}}"><t t-esc="it.difficulty_label"/></span>
-                                            <span t-if="it.situation_label" class="o_vd_hq_badge o_vd_hq_sit">
-                                                <i class="fa fa-user me-1"/><t t-esc="it.situation_label"/>
-                                            </span>
+                                            <span class="o_vd_hq_q"><t t-esc="it.question"/></span>
                                         </div>
                                     </div>
                                 </div>
