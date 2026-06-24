@@ -11,7 +11,7 @@
             <div class="o_vd_tncalc_drop">
             <div class="o_vd_tncalc_box">
             <div class="o_vd_tncalc_tabs">
-                <t t-foreach="REGIONS" t-as="r" t-key="r.key">
+                <t t-foreach="regions" t-as="r" t-key="r.key">
                     <button t-attf-class="o_vd_tncalc_tab {{state.region === r.key ? 'active' : ''}}"
                             t-on-mouseenter="() => this.setRegion(r.key)"
                             t-on-click="() => this.setRegion(r.key)">MIỀN <t t-esc="r.label"/></button>
@@ -41,9 +41,9 @@
                     <!-- ===== SÀN ===== -->
                     <tr class="o_vd_sec">
                         <td class="o_vd_sec_lbl">SÀN (đ/m²)</td>
-                        <t t-foreach="SAN_COLS" t-as="c" t-key="c"><td><t t-esc="c"/></td></t>
+                        <t t-foreach="sanCols" t-as="c" t-key="c"><td><t t-esc="c"/></td></t>
                     </tr>
-                    <t t-foreach="SAN_ROWS" t-as="s" t-key="s.name">
+                    <t t-foreach="sanRows" t-as="s" t-key="s.name">
                         <tr>
                             <td class="o_vd_rh"><t t-esc="s.name"/></td>
                             <t t-foreach="s.vals" t-as="v" t-key="v_index"><td><t t-esc="v"/></td></t>
@@ -51,11 +51,11 @@
                     </t>
                     <tr>
                         <td class="o_vd_rh">Xây thô trọn gói</td>
-                        <td colspan="3"><t t-esc="SAN_THO.over"/></td>
-                        <td colspan="2"><t t-esc="SAN_THO.under"/></td>
+                        <td colspan="3"><t t-esc="sanTho.over"/></td>
+                        <td colspan="2"><t t-esc="sanTho.under"/></td>
                     </tr>
                     <tr>
-                        <td colspan="6" class="o_vd_ly"><b>Lưu ý:</b> <t t-esc="MONG_LUU_Y"/></td>
+                        <td colspan="6" class="o_vd_ly"><b>Lưu ý:</b> <t t-esc="luuY"/></td>
                     </tr>
 
                     <!-- ===== MÁI ===== -->
@@ -63,7 +63,7 @@
                         <td class="o_vd_sec_lbl">MÁI</td>
                         <td colspan="5">Công thức tính (DT = diện tích sàn)</td>
                     </tr>
-                    <t t-foreach="MAI" t-as="m" t-key="m.name">
+                    <t t-foreach="mai" t-as="m" t-key="m.name">
                         <tr>
                             <td class="o_vd_rh"><t t-esc="m.name"/></td>
                             <t t-if="m.val">

@@ -21,7 +21,7 @@ from odoo import api, models
 from .seed_kh_tiem_nang import (_WRAP, _box, _formula, _apply, _situation,
                                 _advice, _proof, _mistake)
 
-_BG_VERSION = 'v5'
+_BG_VERSION = 'v7'
 _PARAM_KEY = 'vd_elearning.banggia_seed_version'
 
 
@@ -94,6 +94,27 @@ class SlideChannelSeedBangGia(models.Model):
         ICP.set_param(_PARAM_KEY, _BG_VERSION)
         return True
 
+    @api.model
+    def _vd_reseed_bang_gia_safe(self):
+        """Dung lai NOI DUNG bai hoc (article) cho khoa Bang gia tu du lieu hien
+        tai cua vd.pricing.region. Goi khi admin doi cau hinh don gia -> bang gia
+        trong khoa hoc dong bo NGAY. KHONG dong ten khoa / KHONG dung bai thi."""
+        try:
+            ch = self.env.ref('vd_elearning.course_c1', raise_if_not_found=False)
+            if not ch:
+                return False
+            art = ch.slide_ids.filtered(
+                lambda s: not s.is_category and s.slide_category == 'article')[:1]
+            if not art:
+                return False
+            sep = '<hr style="border:0;border-top:2px dashed #e2e8f0;margin:28px 0;"/>'
+            merged = sep.join(body for _t, body in self._vd_bg_pages())
+            art.sudo().vd_body = '<div style="%s">%s</div>' % (_WRAP, merged)
+        except Exception:
+            # Khong lam hong viec luu cau hinh don gia neu reseed loi.
+            pass
+        return True
+
     # ==================================================================
     #  NOI DUNG
     # ==================================================================
@@ -114,24 +135,8 @@ class SlideChannelSeedBangGia(models.Model):
         ]
 
     def _bg_p0(self, h2, h3, lead):
-        """BANG DON GIA (tu file Don gia.pdf) dat LEN TREN CUNG: 3 mien xep doc +
-        san + mai + phat sinh. Khong dung tab de LUON hien day du."""
-        def mong_tbl(title, color, rows, note):
-            r = ''
-            for nm, a, b in rows:
-                r += ('<tr><td><b>' + nm + '</b></td>'
-                      '<td style="text-align:center;">DT &times; ' + a + ' &times; Đơn giá</td>'
-                      '<td style="text-align:center;">DT &times; ' + b + ' &times; Đơn giá</td></tr>')
-            return (
-                '<div style="background:' + color + ';color:#fff;font-weight:900;font-size:17px;'
-                'padding:10px 16px;border-radius:12px 12px 0 0;margin-top:18px;letter-spacing:.5px;">'
-                + title + '</div>'
-                '<table style="margin-top:0;"><thead><tr><th style="width:34%;">MÓNG</th>'
-                '<th style="text-align:center;">TRÊN 70 m&sup2;</th>'
-                '<th style="text-align:center;">DƯỚI 70 m&sup2;</th></tr></thead><tbody>'
-                + r + '</tbody></table>'
-                '<p style="font-size:13px;color:#b91c1c;margin:4px 0 0;">&#128205; ' + note + '</p>'
-            )
+        """BANG DON GIA GOC dat LEN TREN CUNG. Bang Mong/San/Mai LAY TU
+        vd.pricing.region (dong bo voi cau hinh don gia ben form khach)."""
         return (
             '<div style="position:relative;overflow:hidden;'
             'background:linear-gradient(135deg,#f5523c,#e8401f);color:#fff;'
@@ -140,71 +145,18 @@ class SlideChannelSeedBangGia(models.Model):
             '<div style="font-size:14px;letter-spacing:3px;font-weight:800;opacity:.9;">VINADUY</div>'
             '<div style="font-size:38px;font-weight:900;line-height:1.1;text-shadow:0 2px 6px rgba(0,0,0,.2);">'
             'BẢNG ĐƠN GIÁ XÂY DỰNG</div>'
-            '<div style="font-size:15px;opacity:.95;margin-top:8px;">Tra cứu nhanh đơn giá '
-            '3 miền - Móng, Sàn, Mái và các khoản phát sinh</div></div>'
+            '<div style="font-size:15px;opacity:.95;margin-top:8px;">Bảng giá gốc 3 miền - '
+            'Móng, Sàn, Mái và các khoản phát sinh</div></div>'
 
-            '<p style="' + lead + '">Đây là <b>bảng đơn giá gốc</b> của công ty. Mọi báo giá đều '
-            'dựa trên bảng này. Phần <b>SÀN</b> và <b>MÁI</b> giống nhau ở cả 3 miền &mdash; chỉ '
-            'phần <b>MÓNG</b> khác nhau (Nam &gt; Trung &gt; Bắc).</p>'
+            '<p style="' + lead + '">Đây là <b>bảng đơn giá gốc</b> của công ty &mdash; '
+            '<b>đồng bộ với bảng báo giá bên hồ sơ khách hàng</b> (khi cấu hình đơn giá thay đổi, '
+            'cả hai nơi tự cập nhật theo). Phần <b>SÀN</b> và <b>MÁI</b> giống nhau ở cả 3 miền; '
+            'chỉ phần <b>MÓNG</b> khác nhau (Nam &gt; Trung &gt; Bắc). Bấm/di chuột vào tên miền '
+            'để xem bảng từng miền.</p>'
 
-            '<h2 style="' + h2 + '">&#128207; 1) MÓNG &mdash; theo từng miền</h2>'
+            + self._vd_price_tabs()
 
-            + mong_tbl('ĐƠN GIÁ MIỀN BẮC', '#1d4ed8', [
-                ('Móng đơn', '30%', '35%'),
-                ('Móng băng', '40%', '45%'),
-                ('Móng cọc', '40%', '45%'),
-            ], 'Toàn tỉnh: Lai Châu, Sơn La, Điện Biên, Cao Bằng, Bắc Kạn tăng 300k/m&sup2;. '
-               'Các huyện của tỉnh Hà Giang, Lạng Sơn tăng 300k.')
-
-            + mong_tbl('ĐƠN GIÁ MIỀN TRUNG', '#b45309', [
-                ('Móng đơn', '35%', '40%'),
-                ('Móng băng', '45%', '50%'),
-                ('Móng cọc', '45%', '50%'),
-            ], 'Diện tích sàn tầng 1 tính theo diện tích mái đua tầng 1 gồm cả bậc tam cấp. '
-               'Nhà tân cổ điển nhẹ tăng 400k, tân cổ điển nặng tăng 800k (gửi cấp trên duyệt).')
-
-            + mong_tbl('ĐƠN GIÁ MIỀN NAM', '#15803d', [
-                ('Móng cốc', '40%', '45%'),
-                ('Móng băng', '50%', '55%'),
-                ('Móng cọc', '50%', '55%'),
-            ], 'Diện tích sàn tầng 1 tính theo diện tích mái đua tầng 1 gồm cả bậc tam cấp. '
-               'Nhà tân cổ điển nhẹ tăng 400k, tân cổ điển nặng tăng 800k (gửi cấp trên duyệt).')
-
-            + _box('#dc2626', '#fef2f2', '&#9888;&#65039;', 'Lưu ý hệ số móng',
-                   '<p style="margin:0;">Hệ số <b>móng cốc cộng thêm 10%</b>; '
-                   '<b>móng băng, móng cọc cộng thêm 15%</b>.</p>')
-
-            + '<h2 style="' + h2 + '">&#127970; 2) SÀN (đơn giá xây thô đ/m&sup2;) &mdash; chung 3 miền</h2>'
-            '<table><thead><tr><th>SÀN (diện tích)</th>'
-            '<th style="text-align:center;">75 m&sup2;</th>'
-            '<th style="text-align:center;">65-75 m&sup2;</th>'
-            '<th style="text-align:center;">50-65 m&sup2;</th>'
-            '<th style="text-align:center;">40-50 m&sup2;</th>'
-            '<th style="text-align:center;">Dưới 40 m&sup2;</th></tr></thead><tbody>'
-            '<tr><td><b>Ô tô VÀO được</b></td>'
-            '<td style="text-align:center;">6.400.000đ</td><td style="text-align:center;">6.600.000đ</td>'
-            '<td style="text-align:center;">6.800.000đ</td><td style="text-align:center;">7.000.000đ</td>'
-            '<td style="text-align:center;">7.500.000đ</td></tr>'
-            '<tr><td><b>Ô tô KHÔNG vào</b></td>'
-            '<td style="text-align:center;">6.700.000đ</td><td style="text-align:center;">6.900.000đ</td>'
-            '<td style="text-align:center;">7.000.000đ</td><td style="text-align:center;">7.500.000đ</td>'
-            '<td style="text-align:center;">8.000.000đ</td></tr>'
-            '<tr><td><b>Xây thô trọn gói</b></td>'
-            '<td style="text-align:center;" colspan="2">5.000.000đ (&ge;70m&sup2;)</td>'
-            '<td style="text-align:center;" colspan="3">5.200.000đ (&lt;70m&sup2;)</td></tr>'
-            '</tbody></table>'
-
-            + '<h2 style="' + h2 + '">&#127968; 3) MÁI &mdash; chung 3 miền (DT = diện tích sàn)</h2>'
-            '<table><thead><tr><th style="width:40%;">Loại mái</th><th>Công thức</th></tr></thead><tbody>'
-            '<tr><td><b>Mái bằng</b></td><td>DT &times; 20% &times; Đơn giá</td></tr>'
-            '<tr><td><b>Mái Nhật</b></td><td>Không đổ trần: 42% &middot; <b>Có đổ trần: 48%</b></td></tr>'
-            '<tr><td><b>Mái Thái</b></td><td>Không đổ trần: 45% &middot; <b>Có đổ trần: 55%</b></td></tr>'
-            '<tr><td><b>Thông tầng</b></td><td>DT &times; 40% &times; Đơn giá</td></tr>'
-            '<tr><td><b>Mái trang trí</b></td><td>40% &rarr; 60% &middot; <b>Đổ trần: 100%</b></td></tr>'
-            '<tr><td><b>Mái tôn</b></td><td>1 mặt: 13% &middot; 2 mặt: 16% &middot; 3 mặt: 20%</td></tr>'
-            '</tbody></table>'
-
-            + '<h2 style="' + h2 + '">&#10071; 4) BẢNG GIÁ PHÁT SINH (nhà 100 m&sup2;)</h2>'
+            + '<h2 style="' + h2 + '">&#10071; BẢNG GIÁ PHÁT SINH (nhà 100 m&sup2;)</h2>'
             '<table><thead><tr><th style="width:60%;">Loại phát sinh</th><th style="text-align:center;">Phát sinh</th></tr></thead><tbody>'
             '<tr><td>Đường lớn - có chỗ tập kết</td><td style="text-align:center;"><b>0 đ/m&sup2;</b></td></tr>'
             '<tr><td>Đường lớn - không chỗ tập kết</td><td style="text-align:center;">200.000 đ/m&sup2;</td></tr>'
@@ -216,8 +168,8 @@ class SlideChannelSeedBangGia(models.Model):
             '</tbody></table>'
 
             + _core(
-                'Đây là <b>bảng giá gốc</b>. Các phần dưới sẽ dạy bạn cách <b>tính nhẩm nhanh</b> '
-                'từ bảng giá này ngay trong cuộc gọi.'
+                'Đây là <b>bảng giá gốc</b> (đồng bộ với hồ sơ khách). Các phần dưới sẽ dạy bạn '
+                'cách <b>tính nhẩm nhanh</b> từ bảng giá này ngay trong cuộc gọi.'
             )
         )
 
@@ -396,85 +348,76 @@ class SlideChannelSeedBangGia(models.Model):
         )
 
     def _vd_price_tabs(self):
-        """Bang bao gia 3 mien voi 3 tab Bac/Trung/Nam (CSS radio, khong can JS).
-        SAN va MAI giong nhau; chi MONG khac %."""
-        mong = {
-            'bac': [('Móng đơn', '30%', '35%'), ('Móng băng', '40%', '45%'),
-                    ('Móng cọc', '40%', '45%')],
-            'trung': [('Móng đơn', '35%', '40%'), ('Móng băng', '45%', '50%'),
-                      ('Móng cọc', '45%', '50%')],
-            'nam': [('Móng đơn (cốc)', '40%', '45%'), ('Móng băng', '50%', '55%'),
-                    ('Móng cọc', '50%', '55%')],
-        }
-        notes = {
-            'bac': 'Toàn tỉnh: Lai Châu, Sơn La, Điện Biên, Cao Bằng, Bắc Kạn tăng '
-                   '300k/m&sup2;. Các huyện của tỉnh Hà Giang, Lạng Sơn tăng 300k.',
-            'trung': 'Nhà tân cổ điển nhẹ tăng 400k/m&sup2;, tân cổ điển nặng tăng '
-                     '800k/m&sup2; (gửi cấp trên duyệt).',
-            'nam': 'Nhà tân cổ điển nhẹ tăng 400k/m&sup2;, tân cổ điển nặng tăng '
-                   '800k/m&sup2; (gửi cấp trên duyệt).',
-        }
+        """Bang bao gia 3 mien (CSS radio tab, khong JS). Du lieu LAY TU
+        vd.pricing.region -> dong bo voi cau hinh don gia o form khach."""
+        data = self.env['vd.pricing.region'].sudo().vd_get_price_table()
+        regions = data.get('regions') or []
+        if not regions:
+            return ''
 
         def san_mai():
+            cols = ''.join('<th style="text-align:center;">' + c + '</th>'
+                           for c in data['san_cols'])
+            srows = ''
+            for s in data['san_rows']:
+                srows += ('<tr><td><b>' + s['name'] + '</b></td>'
+                          + ''.join('<td style="text-align:center;">' + v + '</td>'
+                                    for v in s['vals']) + '</tr>')
+            mai = ''
+            for m in data['mai']:
+                if m.get('val'):
+                    mai += '<tr><td><b>' + m['name'] + '</b></td><td>' + m['val'] + '</td></tr>'
+                else:
+                    mai += ('<tr><td><b>' + m['name'] + '</b></td><td>'
+                            + m.get('left', '') + ' &middot; <b>' + m.get('right', '')
+                            + '</b></td></tr>')
             return (
                 '<div style="font-weight:900;color:#b45309;margin:10px 0 4px;">SÀN (đ/m&sup2;)</div>'
-                '<table><thead><tr><th>Diện tích sàn</th>'
-                '<th style="text-align:center;">Ô tô vào</th>'
-                '<th style="text-align:center;">Ô tô không vào</th></tr></thead><tbody>'
-                '<tr><td><b>&ge; 75 m&sup2;</b></td><td style="text-align:center;">6.400.000</td><td style="text-align:center;">6.700.000</td></tr>'
-                '<tr><td><b>65 - 75 m&sup2;</b></td><td style="text-align:center;">6.600.000</td><td style="text-align:center;">6.900.000</td></tr>'
-                '<tr><td><b>50 - 65 m&sup2;</b></td><td style="text-align:center;">6.800.000</td><td style="text-align:center;">7.000.000</td></tr>'
-                '<tr><td><b>40 - 50 m&sup2;</b></td><td style="text-align:center;">7.000.000</td><td style="text-align:center;">7.500.000</td></tr>'
-                '<tr><td><b>&lt; 40 m&sup2;</b></td><td style="text-align:center;">7.500.000</td><td style="text-align:center;">8.000.000</td></tr>'
-                '<tr><td><b>Xây thô trọn gói</b></td><td style="text-align:center;">5.000.000 (&ge;70m&sup2;)</td><td style="text-align:center;">5.200.000 (&lt;70m&sup2;)</td></tr>'
+                '<table><thead><tr><th>Diện tích sàn</th>' + cols + '</tr></thead><tbody>'
+                + srows
+                + '<tr><td><b>Xây thô trọn gói</b></td>'
+                '<td colspan="3" style="text-align:center;">' + data['san_tho']['over'] + '</td>'
+                '<td colspan="2" style="text-align:center;">' + data['san_tho']['under'] + '</td></tr>'
                 '</tbody></table>'
-
+                '<p style="font-size:13px;color:#64748b;margin:4px 0 8px;"><b>Lưu ý:</b> '
+                + data['luu_y'] + '</p>'
                 '<div style="font-weight:900;color:#b45309;margin:12px 0 4px;">MÁI (DT = diện tích sàn)</div>'
                 '<table><thead><tr><th style="width:40%;">Loại mái</th><th>Công thức tính</th></tr></thead><tbody>'
-                '<tr><td><b>Mái bằng</b></td><td>DT &times; 20% &times; Đơn giá</td></tr>'
-                '<tr><td><b>Mái Nhật</b></td><td>Không đổ trần 42% &middot; <b>Có đổ trần 48%</b></td></tr>'
-                '<tr><td><b>Mái Thái</b></td><td>Không đổ trần 45% &middot; <b>Có đổ trần 55%</b></td></tr>'
-                '<tr><td><b>Thông tầng</b></td><td>DT &times; 40% &times; Đơn giá</td></tr>'
-                '<tr><td><b>Mái trang trí</b></td><td>40% &rarr; 60% &middot; <b>Đổ trần 100%</b></td></tr>'
-                '<tr><td><b>Mái tôn</b></td><td>1 mặt 13% &middot; 2 mặt 16% &middot; 3 mặt 20%</td></tr>'
-                '</tbody></table>'
+                + mai + '</tbody></table>'
             )
 
-        def panel(key):
+        def panel(region):
             rows = ''
-            for nm, a, b in mong[key]:
-                rows += ('<tr><td><b>' + nm + '</b></td>'
-                         '<td style="text-align:center;">DT &times; ' + a + ' &times; Đơn giá</td>'
-                         '<td style="text-align:center;">DT &times; ' + b + ' &times; Đơn giá</td></tr>')
+            for m in region['rows']:
+                rows += ('<tr><td><b>' + m['name'] + '</b></td>'
+                         '<td style="text-align:center;">' + m['over'] + '</td>'
+                         '<td style="text-align:center;">' + m['under'] + '</td></tr>')
             return (
-                '<div class="vd_pt_panel vd_pt_' + key + '">'
+                '<div class="vd_pt_panel vd_pt_' + region['key'] + '">'
                 '<div style="font-weight:900;color:#b45309;margin:10px 0 4px;">MÓNG</div>'
                 '<table><thead><tr><th style="width:34%;">Loại móng</th>'
                 '<th style="text-align:center;">Trên 70 m&sup2;</th>'
                 '<th style="text-align:center;">Dưới 70 m&sup2;</th></tr></thead><tbody>'
                 + rows + '</tbody></table>'
-                '<p style="font-size:12.5px;color:#64748b;margin:4px 0 0;">Lưu ý: nhà dưới 70m&sup2; '
-                'phần móng đã +5% (cột phải).</p>'
                 + san_mai()
                 + '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;'
                 'padding:8px 12px;margin:10px 0 0;font-size:13px;color:#b91c1c;">'
-                '&#128205; ' + notes[key] + '</div>'
+                '&#128205; ' + region.get('note', '') + '</div>'
                 '</div>'
             )
 
-        return (
-            '<div class="vd_pt">'
-            '<input class="vd_pt_radio" type="radio" name="vd_pt_region" id="vd_pt_bac" checked="checked"/>'
-            '<input class="vd_pt_radio" type="radio" name="vd_pt_region" id="vd_pt_trung"/>'
-            '<input class="vd_pt_radio" type="radio" name="vd_pt_region" id="vd_pt_nam"/>'
-            '<div class="vd_pt_bar">'
-            '<label class="vd_pt_tab" for="vd_pt_bac">MIỀN BẮC</label>'
-            '<label class="vd_pt_tab" for="vd_pt_trung">MIỀN TRUNG</label>'
-            '<label class="vd_pt_tab" for="vd_pt_nam">MIỀN NAM</label>'
-            '</div>'
-            + panel('bac') + panel('trung') + panel('nam')
-            + '</div>'
-        )
+        radios = ''
+        bar = ''
+        panels = ''
+        for i, r in enumerate(regions):
+            chk = ' checked="checked"' if i == 0 else ''
+            radios += ('<input class="vd_pt_radio" type="radio" name="vd_pt_region" '
+                       'id="vd_pt_' + r['key'] + '"' + chk + '/>')
+            bar += ('<label class="vd_pt_tab" for="vd_pt_' + r['key'] + '">MIỀN '
+                    + r['label'] + '</label>')
+            panels += panel(r)
+        return ('<div class="vd_pt">' + radios + '<div class="vd_pt_bar">' + bar
+                + '</div>' + panels + '</div>')
 
     def _bg_p5(self, h2, h3, lead):
         return (

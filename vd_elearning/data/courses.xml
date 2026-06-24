@@ -146,6 +146,7 @@
     <function model="slide.channel" name="_vd_seed_30s_dau"/>
     <function model="slide.channel" name="_vd_seed_d1_giam_dien_tich"/>
     <function model="slide.channel" name="_vd_seed_d2_chuyen_doi"/>
+    <function model="slide.channel" name="_vd_seed_d3_chuyen_doi_mong"/>
 
     <!-- Dong bo ten khoa hoc cho MOI ngon ngu (NV xem vi_VN khong con thay ten cu). -->
     <function model="slide.channel" name="_vd_heal_course_name_langs"/>
