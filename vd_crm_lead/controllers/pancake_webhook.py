@@ -143,7 +143,12 @@ class PancakeWebhookController(http.Controller):
                          'gửi, skip', page.name, sender_id, customer_id)
             return
 
-        # Phone: prefer phone_info từ Pancake (đã parse) — fallback grep message text
+        # Phone: CHỈ lấy số do Pancake parse trong phone_info (tức KHÁCH thật để lại
+        # SĐT trong tin của họ). KHÔNG grep số từ nội dung tin nhắn nữa: trước đây
+        # `_VN_PHONE_RE.search(message_text)` "lấy bừa" — vớ cả số trong auto-reply
+        # của page (vd 0768359062) rồi gán cho hàng chục khách KHÔNG hề cho số.
+        # Nguồn chuẩn "khách nào đã cho số" = hồ sơ khách Pancake/Botcake
+        # (page_customers API) — cron đồng bộ _fetch_customer_phone soát lại sau.
         phone = ''
         phone_info = msg.get('phone_info') or []
         if phone_info and isinstance(phone_info, list):
@@ -152,10 +157,6 @@ class PancakeWebhookController(http.Controller):
                 phone = first.get('phone') or first.get('number') or ''
             elif isinstance(first, str):
                 phone = first
-        if not phone and message_text:
-            m = _VN_PHONE_RE.search(message_text)
-            if m:
-                phone = m.group(0)
 
         Lead = request.env['crm.lead'].sudo()
 

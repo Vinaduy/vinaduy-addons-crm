@@ -286,20 +286,29 @@ class VdPancakePage(models.Model):
         customer_id = from_info.get('id') or from_info.get('page_customer_id') or ''
         customer_name = (from_info.get('name') or '').strip()
 
-        # Skip nếu sender là chính page
-        if customer_id and str(customer_id) == str(self.page_id):
+        # Skip nếu sender là chính page (mọi page_id, không chỉ page hiện tại)
+        all_page_ids = set(
+            self.env['vd.pancake.page'].sudo().search([]).mapped('page_id'))
+        all_page_ids.discard('')
+        all_page_ids.discard(False)
+        if customer_id and str(customer_id) in all_page_ids:
             return 'no_phone'
         if customer_name and customer_name.lower() == (self.name or '').lower():
             return 'no_phone'
+        # Dedup theo KHÁCH (giống webhook): 1 customer_id = 1 lead, tránh nổ lead
+        # khi Pancake đẻ conversation_id mới mỗi tin của cùng 1 khách.
+        if customer_id:
+            cust_existing = Lead.search([
+                ('vd_pancake_page_id', '=', self.id),
+                ('vd_pancake_customer_id', '=', str(customer_id)),
+            ], limit=1)
+            if cust_existing:
+                return 'existing'
 
-        # Lấy SĐT: ưu tiên customer endpoint, fallback grep snippet
+        # Lấy SĐT từ HỒ SƠ KHÁCH Pancake/Botcake (page_customers API) — nguồn CHUẨN
+        # "khách nào đã cho số". KHÔNG grep snippet nữa (tránh vớ số trong
+        # auto-reply page gán bừa cho khách không cho số).
         phone = self._fetch_customer_phone(customer_id) if customer_id else ''
-        if not phone:
-            snippet = conv.get('snippet') or ''
-            m = _VN_PHONE_RE.search(snippet)
-            if m:
-                phone = m.group(0)
-
         if not phone:
             return 'no_phone'
 
@@ -326,7 +335,15 @@ class VdPancakePage(models.Model):
             vals['user_id'] = assignee.id
             if self.team_id:
                 vals['team_id'] = self.team_id.id
-        Lead.create(vals)
+        new_lead = Lead.create(vals)
+        # Cập nhật hội thoại với SĐT CHUẨN từ hồ sơ khách → ô tỷ lệ xin số khớp
+        # đúng danh sách khách có số trên Botcake.
+        try:
+            self.env['vd.pancake.conversation'].sudo()._vd_touch(
+                self, conv_id, customer_id=str(customer_id),
+                customer_name=customer_name, phone=phone, lead=new_lead)
+        except Exception:
+            pass
         return 'created'
 
     def _fetch_customer_phone(self, customer_id):
