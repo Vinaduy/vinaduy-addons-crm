@@ -783,10 +783,23 @@ export class VdCourseDialog extends Component {
     }
 
     // ---- HOC VIEN: lam bai thi ----
+    // Fisher-Yates: tra ve mang MOI da xao tron (khong sua mang goc).
+    _shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
     startExam() {
         this.state.examStarted = true;
         this.state.examResult = null;
         for (const q of this.state.questions) {
+            // DAO VI TRI DAP AN moi lan vao thi: moi lan thi lai + moi NV khac
+            // nhau. Cham diem theo answer_id (vd_course_grade) nen doi thu tu
+            // hien thi KHONG anh huong ket qua.
+            q.answers = this._shuffle(q.answers);
             for (const a of q.answers) a.chosen = false;
         }
         this.state.tab = "exam";
