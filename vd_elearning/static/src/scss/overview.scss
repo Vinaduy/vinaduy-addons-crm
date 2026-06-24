@@ -330,6 +330,14 @@ $vd-line:   #ece7da;
         font-size: .58rem; font-weight: 800; padding: .08rem .45rem; border-radius: 999px;
         box-shadow: 0 3px 6px rgba($vd-ink,.2);
     }
+    // Admin keo-tha avatar NV vao khoa chua hoan thanh
+    .o_vd_rider_grab { cursor: grab; &:active { cursor: grabbing; } }
+    // Trong khi keo: highlight khoa hop le, lam mo khoa da hoan thanh (cam tha)
+    .o_vd_level.o_vd_drop_ok {
+        outline: 2px dashed $vd-gold; outline-offset: 4px; border-radius: 14px;
+        box-shadow: 0 0 0 5px rgba($vd-gold,.16); transition: box-shadow .12s ease;
+    }
+    .o_vd_level.o_vd_drop_no { opacity: .42; }
 
     // ---------------- FAB + ----------------
     .o_vd_fab {

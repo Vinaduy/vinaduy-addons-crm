@@ -151,8 +151,11 @@ class SlideChannel(models.Model):
             ids = [cid for cid in recs.ids if cid in mine]
             if not ids:
                 return False                         # khong con gan khoa nao -> khong hien
-            for cid in ids:                          # cua dang hoc dang do
-                if mine.get(cid) in ('joined', 'ongoing'):
+            for cid in ids:                          # admin KEO-THA dat 'ongoing' -> uu tien
+                if mine.get(cid) == 'ongoing':
+                    return cid
+            for cid in ids:                          # cua dang hoc dang do (joined)
+                if mine.get(cid) == 'joined':
                     return cid
             for cid in ids:                          # cua tiep theo chua hoan thanh
                 if mine.get(cid) != 'completed':
@@ -598,6 +601,54 @@ class SlideChannel(models.Model):
                 SCP.create({'channel_id': c.id, 'partner_id': pid,
                             'member_status': st})
         return True
+
+    @api.model
+    def vd_assign_course_to_user(self, user_id, channel_id):
+        """KEO-THA (user spec 2026-06-24): admin keo avatar NV THA len 1 khoa CU THE
+        ma NV CHUA hoan thanh -> dua NV vao DUNG khoa do.
+
+        Khac vd_set_member_position: KHONG danh dau cac khoa truoc = hoan thanh,
+        KHONG reset tick xanh khoa khac. Chi mo (membership) khoa muc tieu va dat
+        'ongoing' de no thanh khoa DANG HOC hien tai (rider nhay ve dung X). Giu
+        nguyen moi diem thi/hoan thanh da co. Idempotent. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc gan khoa hoc cho nhan vien.')
+        course = self.browse(channel_id)
+        if not course.exists():
+            raise ValidationError('Khoa hoc khong ton tai.')
+        user = self.env['res.users'].browse(user_id)
+        if not user.exists() or user.share:
+            raise ValidationError('Nhan vien khong hop le.')
+        pid = user.partner_id.id
+        SCP = self.env['slide.channel.partner'].sudo()
+        ER = self.env['vd.exam.result'].sudo()
+        # KHONG cho tha len khoa NV da thi DAT / da hoan thanh (dung yeu cau).
+        passed = ER.search([('user_id', '=', user_id),
+                            ('channel_id', '=', channel_id),
+                            ('passed', '=', True)], limit=1)
+        cur = SCP.search([('channel_id', '=', channel_id),
+                          ('partner_id', '=', pid)], limit=1)
+        if passed or (cur and cur.member_status == 'completed'):
+            raise ValidationError('Nhan vien da hoan thanh khoa nay roi.')
+        path = course.vd_path_id
+        # 1) Dam bao CHI 1 khoa 'ongoing': ha cac khoa 'ongoing' khac cung lo trinh
+        #    ve 'joined' (KHONG dung 'completed' -> khong pha tick xanh).
+        if path:
+            sib = SCP.search([('channel_id', 'in', path.course_ids.ids),
+                              ('partner_id', '=', pid),
+                              ('member_status', '=', 'ongoing'),
+                              ('channel_id', '!=', channel_id)])
+            if sib:
+                sib.write({'member_status': 'joined'})
+        # 2) Mo / dat khoa muc tieu = 'ongoing' (khoa DANG HOC hien tai).
+        if cur:
+            cur.write({'member_status': 'ongoing'})
+        else:
+            SCP.create({'channel_id': channel_id, 'partner_id': pid,
+                        'member_status': 'ongoing'})
+        # 3) Khoa con lai cua lo trinh van co membership (NV bam hoc duoc).
+        self._vd_heal_path_membership(user)
+        return {'ok': True, 'current_id': channel_id}
 
     # ==================================================================
     #  TU DONG CHAY LO TRINH (user spec 2026-06-24)

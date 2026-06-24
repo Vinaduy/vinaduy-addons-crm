@@ -1105,6 +1105,7 @@ export class VdElearningOverview extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.dialog = useService("dialog");
+        this.notification = useService("notification");
         // Popover giấy chứng nhận khi hover node khóa (thoát khỏi vùng bị cắt).
         this.certPop = usePopover(VdCertPopover, {
             position: "top", popoverClass: "o_vd_certpop_wrap",
@@ -1118,9 +1119,11 @@ export class VdElearningOverview extends Component {
             selectedEmp: null,
             loading: true,
             myCerts: null,   // {emp_name, role_label, company_name, items:[...]}
+            riderDragging: false,  // admin keo avatar NV de gan vao khoa chua hoan thanh
         });
         this.dragData = null;
         this.pathDragData = null;
+        this.riderDragData = null;
         onWillStart(async () => {
             await this.reload();
             // "VAO HOC" tu dashboard CRM: mo THANG khoa hoc duoc chi dinh (khong qua lo trinh).
@@ -1504,6 +1507,59 @@ export class VdElearningOverview extends Component {
                 zoneKey,
                 srcPath.courses.map((c) => c.id),
             ]);
+        }
+    }
+
+    // ---------- KEO - THA NV VAO KHOA (admin: dua NV vao khoa chua hoan thanh) ----------
+    // Chi o man "Hanh trinh chinh phuc cua [NV]" (selectedEmp) + la admin.
+    _isDone(courseId) {
+        const e = this.state.selectedEmp;
+        return !!(e && (e.completedIds || []).includes(courseId));
+    }
+    onRiderDragStart(ev, rider) {
+        if (!this.state.isAdmin || !this.state.selectedEmp) return;
+        this.riderDragData = { id: rider.id, name: rider.name };
+        this.state.riderDragging = true;
+        ev.dataTransfer.effectAllowed = "move";
+        try { ev.dataTransfer.setData("text/plain", "rider:" + rider.id); } catch (_e) { /* noop */ }
+        ev.stopPropagation();
+    }
+    onRiderDragEnd() {
+        this.state.riderDragging = false;
+        this.riderDragData = null;
+    }
+    onRiderDragOver(ev, node) {
+        if (!this.state.isAdmin || !this.riderDragData) return;
+        if (this._isDone(node.course.id)) return;   // khoa da hoan thanh -> khong cho tha
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = "move";
+    }
+    async onRiderDrop(ev, course) {
+        if (!this.state.isAdmin || !this.state.selectedEmp || !this.riderDragData) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const emp = this.riderDragData;
+        this.riderDragData = null;
+        this.state.riderDragging = false;
+        if (this._isDone(course.id)) {
+            this.notification.add(
+                `${emp.name} đã hoàn thành khóa "${course.name}" rồi.`,
+                { type: "warning" });
+            return;
+        }
+        try {
+            await this.orm.call("slide.channel", "vd_assign_course_to_user",
+                [emp.id, course.id]);
+            this.notification.add(
+                `Đã đưa ${emp.name} vào khóa "${course.name}".`,
+                { type: "success" });
+            await this.reload();
+            // reload (cho admin) khong tu giu selectedEmp -> mo lai hanh trinh NV.
+            const row = this.state.report.find((r) => r.id === emp.id);
+            if (row) { await this.viewEmployee(row); }
+        } catch (e) {
+            this.notification.add("Không gán được khóa cho nhân viên.",
+                { type: "danger" });
         }
     }
 

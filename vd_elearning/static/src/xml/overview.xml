@@ -561,12 +561,12 @@
              t-on-drop="(ev) => dropCtx ? this.onTrackDrop(ev, dropCtx.zoneKey, dropCtx.pathId) : null">
             <t t-foreach="nodes" t-as="node" t-key="node.course.id">
                 <div class="o_vd_step">
-                    <div t-attf-class="o_vd_level o_vd_level_{{node.kind}} {{node.status ? 'o_vd_st_'+node.status : ''}} {{node.course.has_content ? '' : 'o_vd_level_empty'}}"
+                    <div t-attf-class="o_vd_level o_vd_level_{{node.kind}} {{node.status ? 'o_vd_st_'+node.status : ''}} {{node.course.has_content ? '' : 'o_vd_level_empty'}} {{(riderAssign &amp;&amp; state.riderDragging) ? (node.status=='done' ? 'o_vd_drop_no' : 'o_vd_drop_ok') : ''}}"
                          t-att-draggable="(draggable &amp;&amp; dropCtx) ? 'true' : 'false'"
                          t-on-dragstart="(ev) => dropCtx ? this.onDragStart(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
                          t-on-dragend="(ev) => this.onDragEnd(ev)"
-                         t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : null"
-                         t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : null"
+                         t-on-dragover="(ev) => dropCtx ? this.onDragOver(ev) : (riderAssign ? this.onRiderDragOver(ev, node) : null)"
+                         t-on-drop="(ev) => dropCtx ? this.onDrop(ev, node.course, dropCtx.zoneKey, dropCtx.pathId) : (riderAssign ? this.onRiderDrop(ev, node.course) : null)"
                          t-on-mouseenter="(ev) => this.onCertEnter(ev, node.course)"
                          t-on-mouseleave="() => this.onCertLeave()"
                          t-on-click="() => this.clickNode(node)">
@@ -576,7 +576,11 @@
                         <div t-if="node.riders.length" class="o_vd_riders">
                             <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
                             <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
-                                <div class="o_vd_rider_card">
+                                <div t-attf-class="o_vd_rider_card {{riderAssign ? 'o_vd_rider_grab' : ''}}"
+                                     t-att-draggable="riderAssign ? 'true' : 'false'"
+                                     t-att-title="riderAssign ? 'Kéo thả vào khóa NV chưa hoàn thành để gán' : ''"
+                                     t-on-dragstart="(ev) => riderAssign ? this.onRiderDragStart(ev, rider) : null"
+                                     t-on-dragend="() => riderAssign ? this.onRiderDragEnd() : null">
                                     <img class="o_vd_rider_ava"
                                          t-attf-src="/web/image/res.users/{{rider.id}}/avatar_128" t-att-alt="rider.name"/>
                                     <span class="o_vd_rider_name" t-esc="rider.name"/>
@@ -665,6 +669,7 @@
                             <t t-set="nodes" t-value="trackNodes(path.courses, [], entryId)"/>
                             <t t-set="dropCtx" t-value="state.isAdmin ? {zoneKey: zone.key, pathId: path.id} : false"/>
                             <t t-set="draggable" t-value="state.isAdmin"/>
+                            <t t-set="riderAssign" t-value="false"/>
                         </t>
                     </div>
                 </t>
@@ -734,6 +739,8 @@
                                     <t t-set="nodes" t-value="studentPathNodes(path)"/>
                                     <t t-set="dropCtx" t-value="false"/>
                                     <t t-set="draggable" t-value="false"/>
+                                    <!-- Admin: keo avatar NV tha vao khoa chua hoan thanh de gan -->
+                                    <t t-set="riderAssign" t-value="state.isAdmin"/>
                                 </t>
                             </div>
                         </t>
