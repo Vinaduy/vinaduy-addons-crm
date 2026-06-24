@@ -900,43 +900,73 @@
                                 </div>
 
                                 <div t-if="state.openId === it.id" class="o_vd_hq_detail">
-                                    <div t-if="it.intent" class="o_vd_hq_intent">
-                                        <i class="fa fa-bullseye me-1"/><b>Mục đích thật sự của khách:</b>
-                                        <t t-esc="it.intent"/>
-                                    </div>
-
-                                    <div class="o_vd_hq_ans o_vd_hq_a1">
-                                        <div class="o_vd_hq_ans_head">
-                                            <span><span class="o_vd_hq_ans_no">1</span>Trả lời nhanh (gọi điện)</span>
-                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a1)">
-                                                <i class="fa fa-copy me-1"/>Sao chép
+                                    <!-- ===== CHẾ ĐỘ XEM ===== -->
+                                    <t t-if="state.editId !== it.id">
+                                        <div t-if="state.isAdmin" class="o_vd_hq_editbar">
+                                            <button class="o_vd_hq_editbtn" t-on-click="() => this.startEdit(it)">
+                                                <i class="fa fa-pencil me-1"/>Sửa câu hỏi và câu trả lời
                                             </button>
                                         </div>
-                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a1"/></div>
-                                    </div>
-
-                                    <div class="o_vd_hq_ans o_vd_hq_a2">
-                                        <div class="o_vd_hq_ans_head">
-                                            <span><span class="o_vd_hq_ans_no">2</span>Giải thích sâu (Zalo / trực tiếp)</span>
-                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a2)">
-                                                <i class="fa fa-copy me-1"/>Sao chép
-                                            </button>
+                                        <div t-if="it.intent" class="o_vd_hq_intent">
+                                            <i class="fa fa-bullseye me-1"/><b>Mục đích thật sự của khách:</b>
+                                            <t t-esc="it.intent"/>
                                         </div>
-                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a2"/></div>
-                                    </div>
 
-                                    <div class="o_vd_hq_ans o_vd_hq_a3">
-                                        <div class="o_vd_hq_ans_head">
-                                            <span><span class="o_vd_hq_ans_no">3</span>Dẫn dắt chốt niềm tin</span>
-                                            <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a3)">
-                                                <i class="fa fa-copy me-1"/>Sao chép
-                                            </button>
+                                        <div class="o_vd_hq_ans o_vd_hq_a1">
+                                            <div class="o_vd_hq_ans_head">
+                                                <span><span class="o_vd_hq_ans_no">1</span>Trả lời nhanh (gọi điện)</span>
+                                                <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a1)">
+                                                    <i class="fa fa-copy me-1"/>Sao chép
+                                                </button>
+                                            </div>
+                                            <div class="o_vd_hq_ans_txt"><t t-esc="it.a1"/></div>
                                         </div>
-                                        <div class="o_vd_hq_ans_txt"><t t-esc="it.a3"/></div>
-                                    </div>
 
-                                    <div t-if="it.keywords" class="o_vd_hq_kw">
-                                        <i class="fa fa-tags me-1"/><t t-esc="it.keywords"/>
+                                        <div class="o_vd_hq_ans o_vd_hq_a2">
+                                            <div class="o_vd_hq_ans_head">
+                                                <span><span class="o_vd_hq_ans_no">2</span>Giải thích sâu (Zalo / trực tiếp)</span>
+                                                <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a2)">
+                                                    <i class="fa fa-copy me-1"/>Sao chép
+                                                </button>
+                                            </div>
+                                            <div class="o_vd_hq_ans_txt"><t t-esc="it.a2"/></div>
+                                        </div>
+
+                                        <div class="o_vd_hq_ans o_vd_hq_a3">
+                                            <div class="o_vd_hq_ans_head">
+                                                <span><span class="o_vd_hq_ans_no">3</span>Dẫn dắt chốt niềm tin</span>
+                                                <button class="o_vd_hq_copy" t-on-click="() => this.copyText(it.a3)">
+                                                    <i class="fa fa-copy me-1"/>Sao chép
+                                                </button>
+                                            </div>
+                                            <div class="o_vd_hq_ans_txt"><t t-esc="it.a3"/></div>
+                                        </div>
+
+                                        <div t-if="it.keywords" class="o_vd_hq_kw">
+                                            <i class="fa fa-tags me-1"/><t t-esc="it.keywords"/>
+                                        </div>
+                                    </t>
+
+                                    <!-- ===== CHẾ ĐỘ SỬA (admin) ===== -->
+                                    <div t-else="" class="o_vd_hq_editform">
+                                        <div class="o_vd_hq_efield">Câu hỏi của khách</div>
+                                        <input class="o_vd_hq_einput" type="text" t-model="state.editForm.question"/>
+                                        <div class="o_vd_hq_efield">Mục đích thật sự của khách</div>
+                                        <textarea class="o_vd_hq_etext" rows="2" t-model="state.editForm.intent"/>
+                                        <div class="o_vd_hq_efield">1. Trả lời nhanh (gọi điện)</div>
+                                        <textarea class="o_vd_hq_etext" rows="3" t-model="state.editForm.a1"/>
+                                        <div class="o_vd_hq_efield">2. Giải thích sâu (Zalo / trực tiếp)</div>
+                                        <textarea class="o_vd_hq_etext" rows="3" t-model="state.editForm.a2"/>
+                                        <div class="o_vd_hq_efield">3. Dẫn dắt chốt niềm tin</div>
+                                        <textarea class="o_vd_hq_etext" rows="3" t-model="state.editForm.a3"/>
+                                        <div class="o_vd_hq_efield">Từ khóa tìm kiếm</div>
+                                        <input class="o_vd_hq_einput" type="text" t-model="state.editForm.keywords"/>
+                                        <div class="o_vd_hq_eactions">
+                                            <button class="o_vd_hq_esave" t-on-click="saveEdit">
+                                                <i class="fa fa-check me-1"/>Lưu
+                                            </button>
+                                            <button class="o_vd_hq_ecancel" t-on-click="cancelEdit">Hủy</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

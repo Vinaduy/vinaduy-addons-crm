@@ -1080,7 +1080,10 @@ $vd-line2:   #ece7da;
     .btn-close { transform: scale(0.8); }
 }
 .o_vd_hq {
-    display: flex; flex-direction: column; max-height: 78vh;
+    /* CHIỀU CAO CỐ ĐỊNH — không co theo số câu hỏi (user spec 2026-06-24).
+       Danh sách o_vd_hq_list tự cuộn bên trong, popup giữ nguyên kích thước
+       dù chọn chủ đề có ít câu. */
+    display: flex; flex-direction: column; height: 78vh;
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 .o_vd_hq_loading { padding: 40px; text-align: center; color: #64748b; font-size: 1.05rem; }
@@ -1199,6 +1202,37 @@ $vd-line2:   #ece7da;
     > i { color: #cbd5e1; }
 }
 .o_vd_hq_empty { padding: 36px; text-align: center; color: #94a3b8; font-size: 0.95rem; }
+
+/* ----- ADMIN: nút Sửa + form sửa câu hỏi/câu trả lời ----- */
+.o_vd_hq_editbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.o_vd_hq_editbtn {
+    border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca;
+    border-radius: 9px; padding: 5px 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    &:hover { background: #e0e7ff; border-color: #a5b4fc; }
+}
+.o_vd_hq_editform { display: flex; flex-direction: column; gap: 4px; }
+.o_vd_hq_efield {
+    font-size: 0.76rem; font-weight: 800; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.3px; margin-top: 8px;
+}
+.o_vd_hq_einput, .o_vd_hq_etext {
+    width: 100%; border: 1px solid #cbd5e1; border-radius: 9px;
+    padding: 8px 11px; font-size: 0.92rem; color: #1e293b; background: #fff;
+    outline: none; font-family: inherit;
+    &:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+}
+.o_vd_hq_etext { resize: vertical; line-height: 1.55; }
+.o_vd_hq_eactions { display: flex; gap: 8px; margin-top: 12px; }
+.o_vd_hq_esave {
+    border: 0; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    border-radius: 9px; padding: 8px 18px; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+    &:hover { filter: brightness(1.05); }
+}
+.o_vd_hq_ecancel {
+    border: 1px solid #e2e8f0; background: #fff; color: #64748b;
+    border-radius: 9px; padding: 8px 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    &:hover { background: #f8fafc; color: #ef4444; border-color: #fecaca; }
+}
 
 /* ============================================================
    POPUP GIAY CHUNG NHAN khi hover node khoa hoc (user spec 2026-06-24)

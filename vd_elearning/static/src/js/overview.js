@@ -1030,6 +1030,7 @@ export class VdHardLibraryDialog extends Component {
         this.notification = useService("notification");
         this.state = useState({
             loading: true,
+            isAdmin: false,   // admin được SỬA câu hỏi + câu trả lời
             items: [],
             topics: [],
             difficulties: [],
@@ -1039,9 +1040,12 @@ export class VdHardLibraryDialog extends Component {
             difficulty: "",
             situation: "",
             openId: null,     // câu đang mở rộng xem 3 câu trả lời
+            editId: null,     // câu đang SỬA (admin)
+            editForm: {},     // bản nháp khi sửa
         });
         onWillStart(async () => {
             const d = await this.orm.call("vd.hard.question", "vd_library_load", []);
+            this.state.isAdmin = !!d.is_admin;
             this.state.items = d.items || [];
             this.state.topics = d.topics || [];
             this.state.difficulties = d.difficulties || [];
@@ -1086,6 +1090,44 @@ export class VdHardLibraryDialog extends Component {
     }
     diffClass(d) {
         return "o_vd_hq_d_" + (d || "trungbinh");
+    }
+    // ----- ADMIN: SỬA câu hỏi + 3 câu trả lời -----
+    startEdit(it) {
+        if (!this.state.isAdmin) return;
+        this.state.openId = it.id;
+        this.state.editId = it.id;
+        this.state.editForm = {
+            question: it.question || "",
+            intent: it.intent || "",
+            a1: it.a1 || "",
+            a2: it.a2 || "",
+            a3: it.a3 || "",
+            keywords: it.keywords || "",
+        };
+    }
+    cancelEdit() {
+        this.state.editId = null;
+        this.state.editForm = {};
+    }
+    async saveEdit() {
+        const id = this.state.editId;
+        if (!id) return;
+        const f = this.state.editForm;
+        if (!(f.question || "").trim()) {
+            this.notification.add("Câu hỏi không được để trống.", { type: "warning" });
+            return;
+        }
+        try {
+            const updated = await this.orm.call(
+                "vd.hard.question", "vd_save_question", [id, { ...f }]);
+            const i = this.state.items.findIndex((x) => x.id === id);
+            if (i >= 0) { this.state.items[i] = updated; }
+            this.state.editId = null;
+            this.state.editForm = {};
+            this.notification.add("Đã lưu câu hỏi.", { type: "success" });
+        } catch (e) {
+            this.notification.add("Không lưu được câu hỏi.", { type: "danger" });
+        }
     }
     async copyText(text) {
         try {

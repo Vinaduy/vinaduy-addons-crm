@@ -9,6 +9,7 @@ lọc theo chủ đề - mức độ - tình huống khách. Hiển thị qua n�
 Seed idempotent theo PHIÊN BẢN (ir.config_parameter). Bump version -> seed lại.
 """
 from odoo import api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 _HQ_VERSION = 'v1'
 _PARAM_KEY = 'vd_elearning.hard_question_seed_version'
@@ -62,30 +63,65 @@ class VdHardQuestion(models.Model):
     keywords = fields.Char(string='Từ khóa tìm kiếm')
     state = fields.Selection(STATES, string='Trạng thái', default='applying')
 
+    def _vd_is_admin(self):
+        return (self.env.user.has_group('base.group_system')
+                or self.env.user.has_group('vd_crm_lead.vd_crm_group_admin'))
+
+    def _vd_question_payload(self, r):
+        """1 câu hỏi -> dict cho Dialog (dùng chung load + save)."""
+        return {
+            'id': r.id,
+            'topic': r.topic,
+            'topic_label': dict(TOPICS).get(r.topic, ''),
+            'question': r.question or '',
+            'difficulty': r.difficulty or '',
+            'difficulty_label': dict(DIFFS).get(r.difficulty, ''),
+            'situation': r.situation or '',
+            'situation_label': dict(SITUATIONS).get(r.situation, ''),
+            'intent': r.customer_intent or '',
+            'a1': r.answer1 or '',
+            'a2': r.answer2 or '',
+            'a3': r.answer3 or '',
+            'keywords': r.keywords or '',
+        }
+
     @api.model
     def vd_library_load(self):
         """Trả dữ liệu cho Dialog THƯ VIỆN (chỉ câu đang áp dụng / đã duyệt)."""
         recs = self.sudo().search([('state', 'in', ('approved', 'applying'))])
         return {
+            'is_admin': self._vd_is_admin(),
             'topics': [{'key': k, 'label': v} for k, v in TOPICS],
             'difficulties': [{'key': k, 'label': v} for k, v in DIFFS],
             'situations': [{'key': k, 'label': v} for k, v in SITUATIONS],
-            'items': [{
-                'id': r.id,
-                'topic': r.topic,
-                'topic_label': dict(TOPICS).get(r.topic, ''),
-                'question': r.question or '',
-                'difficulty': r.difficulty or '',
-                'difficulty_label': dict(DIFFS).get(r.difficulty, ''),
-                'situation': r.situation or '',
-                'situation_label': dict(SITUATIONS).get(r.situation, ''),
-                'intent': r.customer_intent or '',
-                'a1': r.answer1 or '',
-                'a2': r.answer2 or '',
-                'a3': r.answer3 or '',
-                'keywords': r.keywords or '',
-            } for r in recs],
+            'items': [self._vd_question_payload(r) for r in recs],
         }
+
+    @api.model
+    def vd_save_question(self, qid, vals):
+        """Admin sửa NỘI DUNG 1 câu hỏi + 3 câu trả lời. Trả lại payload đã cập nhật
+        để Dialog thay tại chỗ (không cần load lại toàn bộ). Chỉ admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chỉ admin được sửa câu hỏi.')
+        rec = self.sudo().browse(int(qid))
+        if not rec.exists():
+            raise ValidationError('Câu hỏi không tồn tại.')
+        vals = vals or {}
+        field_map = {
+            'question': 'question',
+            'intent': 'customer_intent',
+            'a1': 'answer1',
+            'a2': 'answer2',
+            'a3': 'answer3',
+            'keywords': 'keywords',
+        }
+        write_vals = {fld: (vals[key] or '')
+                      for key, fld in field_map.items() if key in vals}
+        if 'question' in write_vals and not write_vals['question'].strip():
+            raise ValidationError('Câu hỏi không được để trống.')
+        if write_vals:
+            rec.write(write_vals)
+        return self._vd_question_payload(rec)
 
     @api.model
     def _vd_seed_hard_questions(self):
