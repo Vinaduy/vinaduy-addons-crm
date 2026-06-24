@@ -17,3 +17,4 @@ from . import seed_bang_gia
 from . import seed_d1_giam_dien_tich
 from . import seed_d2_chuyen_doi_mau_nha
 from . import seed_d3_chuyen_doi_mong
+from . import seed_d4_giam_vat_tu
