@@ -6892,21 +6892,43 @@ class CrmLead(models.Model):
         Call = self.env['stringee.call'].sudo()
         ANSWERED = ['|', ('answer_time', '!=', False),
                     ('raw_events', 'ilike', 'answered')]
-        out = {}
-        for uid in user_ids:
-            base_today = [
-                ('user_id', '=', uid), ('lead_id', '!=', False),
-                ('create_date', '>=', today_start), ('create_date', '<', today_end),
-            ]
-            base_month = [
-                ('user_id', '=', uid), ('lead_id', '!=', False),
-                ('create_date', '>=', month_start), ('create_date', '<', today_end),
-            ]
+        uids = list(user_ids)
+        out = {uid: {'calls_today_total': 0, 'calls_today_success': 0,
+                     'calls_month_total': 0, 'calls_month_success': 0} for uid in uids}
+        if not uids:
+            return out
+        # PERF 2026-06-24: trước đây vòng `for uid` chạy 4 search_count/NV. Hai trong
+        # số đó chứa `raw_events ILIKE '%answered%'` — ILIKE leading-wildcard vô hiệu
+        # index nên MỖI lần là 1 SEQ-SCAN gần như cả bảng stringee_call. Với ~16 NV
+        # = 32 lần quét bảng (~10s, thủ phạm chính làm dashboard_analytics 12s).
+        # Gom thành 4 read_group (group theo user_id) → ILIKE chỉ quét 1 lần/loại.
+        def _by_user(_dom):
+            _r = {}
+            for _g in Call.read_group(
+                    _dom + [('user_id', 'in', uids)], ['user_id'], ['user_id']):
+                _u = _g.get('user_id')
+                if _u:
+                    _r[_u[0]] = _g.get('user_id_count', 0)
+            return _r
+
+        base_today = [
+            ('lead_id', '!=', False),
+            ('create_date', '>=', today_start), ('create_date', '<', today_end),
+        ]
+        base_month = [
+            ('lead_id', '!=', False),
+            ('create_date', '>=', month_start), ('create_date', '<', today_end),
+        ]
+        _tt = _by_user(base_today)
+        _ts = _by_user(base_today + ANSWERED)
+        _mt = _by_user(base_month)
+        _ms = _by_user(base_month + ANSWERED)
+        for uid in uids:
             out[uid] = {
-                'calls_today_total': Call.search_count(base_today),
-                'calls_today_success': Call.search_count(base_today + ANSWERED),
-                'calls_month_total': Call.search_count(base_month),
-                'calls_month_success': Call.search_count(base_month + ANSWERED),
+                'calls_today_total': _tt.get(uid, 0),
+                'calls_today_success': _ts.get(uid, 0),
+                'calls_month_total': _mt.get(uid, 0),
+                'calls_month_success': _ms.get(uid, 0),
             }
         return out
 
