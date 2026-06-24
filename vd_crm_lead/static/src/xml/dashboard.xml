@@ -482,6 +482,87 @@
                 </div>
             </div>
 
+            <!-- ===== Panel SĐT BỊ LOẠI khỏi chia số (kiểm tra logic gộp) ===== -->
+            <div t-if="state.pkExcluded &amp;&amp; state.pkExcluded.open" class="o_vd_trashpop_overlay"
+                 t-on-click="() => this.closePancakeExcluded()">
+                <div class="o_vd_trashpop o_vd_pk_excl_pop" t-on-click.stop="() => {}">
+                    <div class="o_vd_trashpop_head">
+                        <span><i class="fa fa-search me-2"/>SĐT bị loại khỏi chia số —
+                            <t t-esc="state.pkExcluded.scope === 'yesterday' ? 'Hôm qua' : 'Hôm nay'"/>
+                            <span t-if="state.pkExcluded.summary.total" class="o_vd_trashpop_cnt">
+                                (<t t-esc="state.pkExcluded.summary.total"/>)
+                            </span>
+                        </span>
+                        <button type="button" class="o_vd_trashpop_close"
+                                t-on-click="() => this.closePancakeExcluded()">×</button>
+                    </div>
+                    <div class="o_vd_trashpop_body">
+                        <div t-if="state.pkExcluded.loading" class="o_vd_trashpop_loading">
+                            <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                        </div>
+                        <div t-elif="!state.pkExcluded.items.length" class="o_vd_trashpop_empty">
+                            Không có SĐT nào bị loại trong khung này.
+                        </div>
+                        <t t-else="">
+                            <!-- Tổng hợp theo lý do -->
+                            <div class="o_vd_pk_excl_sum">
+                                <span t-if="state.pkExcluded.summary.merged" class="o_vd_pk_excl_tag o_merged">
+                                    Trùng SĐT (đã gộp): <b><t t-esc="state.pkExcluded.summary.merged"/></b>
+                                </span>
+                                <span t-if="state.pkExcluded.summary.unassigned" class="o_vd_pk_excl_tag o_unassigned">
+                                    Chưa gán NV: <b><t t-esc="state.pkExcluded.summary.unassigned"/></b>
+                                </span>
+                                <span t-if="state.pkExcluded.summary.lost" class="o_vd_pk_excl_tag o_lost">
+                                    Đã loại/hủy: <b><t t-esc="state.pkExcluded.summary.lost"/></b>
+                                </span>
+                                <span t-if="state.pkExcluded.summary.won" class="o_vd_pk_excl_tag o_won">
+                                    Đã chốt: <b><t t-esc="state.pkExcluded.summary.won"/></b>
+                                </span>
+                                <span t-if="state.pkExcluded.summary.archived" class="o_vd_pk_excl_tag o_archived">
+                                    Đã ẩn (khác): <b><t t-esc="state.pkExcluded.summary.archived"/></b>
+                                </span>
+                            </div>
+                            <table class="o_vd_trashpop_tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Khách hàng</th>
+                                        <th>SĐT</th>
+                                        <th>Kênh</th>
+                                        <th>Lý do loại</th>
+                                        <th>Gộp vào KH (NV giữ)</th>
+                                        <th>Tạo lúc</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.pkExcluded.items" t-as="it" t-key="it.id">
+                                        <td>
+                                            <div class="o_vd_trashpop_name"
+                                                 t-on-click="() => this.openLead(it.id)"><t t-esc="it.name"/></div>
+                                        </td>
+                                        <td><t t-esc="it.phone or '—'"/></td>
+                                        <td><t t-esc="it.platform"/></td>
+                                        <td>
+                                            <span t-att-class="'o_vd_pk_excl_tag o_' + it.reason">
+                                                <t t-esc="it.reason_label"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <t t-if="it.keeper_id">
+                                                <span class="o_vd_trashpop_name"
+                                                      t-on-click="() => this.openLead(it.keeper_id)"><t t-esc="it.keeper_name"/></span>
+                                                <span t-if="it.keeper_user" class="text-muted"> — <t t-esc="it.keeper_user"/></span>
+                                            </t>
+                                            <span t-else="" class="text-muted">—</span>
+                                        </td>
+                                        <td><t t-esc="it.created"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
             <div t-if="state.loading" class="o_vd_dash_loader">
                 <i class="fa fa-spinner fa-spin fa-2x"/>
                 <div class="mt-2">Đang tải dashboard...</div>
@@ -3031,6 +3112,10 @@
                             ↳ có <b><t t-esc="distRep.today.created_all"/></b> SĐT về,
                             đã gộp/loại <b><t t-esc="distRep.today.merged"/></b> SĐT trùng hoặc chưa gán
                             → còn <b><t t-esc="distRep.today.total"/></b> số chia về NV.
+                            <button type="button" class="o_vd_pk_excl_btn"
+                                    t-on-click="() => this.openPancakeExcluded('today')">
+                                🔎 Xem danh sách
+                            </button>
                         </div>
                     </div>
                     <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
@@ -3085,6 +3170,10 @@
                         <div t-if="distRep.yesterday.merged" class="o_vd_pk_rate_sub">
                             ↳ có <b><t t-esc="distRep.yesterday.created_all"/></b> SĐT về,
                             đã gộp/loại <b><t t-esc="distRep.yesterday.merged"/></b> SĐT trùng hoặc chưa gán.
+                            <button type="button" class="o_vd_pk_excl_btn"
+                                    t-on-click="() => this.openPancakeExcluded('yesterday')">
+                                🔎 Xem danh sách
+                            </button>
                         </div>
                     </div>
                     <div t-if="distShowTarget and distRep.yesterday.rows.length" class="o_vd_pk_colhead">

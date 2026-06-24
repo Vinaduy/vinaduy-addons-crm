@@ -148,6 +148,19 @@ class PancakeWebhookController(http.Controller):
             ('vd_pancake_page_id', '=', page.id),
             ('vd_pancake_conversation_id', '=', conv_id),
         ], limit=1)
+        # >>> DEDUP THEO KHÁCH (page_customer_id) <<<
+        # Pancake/TikTok sinh conversation_id MỚI cho gần như mỗi tin của CÙNG 1
+        # khách → nếu chỉ chống trùng theo conversation_id thì 1 khách nhắn 16 lần
+        # đẻ 16 lead (sau đó cron mới gộp + NV phải hủy tay). Gom ngay tại nguồn:
+        # nếu page này đã có lead ACTIVE của đúng customer_id đó → ghi tin vào lead
+        # cũ, KHÔNG tạo mới. Chỉ match lead ACTIVE → khách bị "Khách huỷ"/archive
+        # rồi quay lại nhắn vẫn tạo lead mới (đúng nghiệp vụ). Inbound/quick-add
+        # KHÔNG có customer_id Pancake nên không bị ảnh hưởng.
+        if not existing and customer_id:
+            existing = Lead.search([
+                ('vd_pancake_page_id', '=', page.id),
+                ('vd_pancake_customer_id', '=', customer_id),
+            ], order='create_date desc', limit=1)
 
         # >>> LƯU HỘI THOẠI (kể cả CHƯA có SĐT) để đo TỶ LỆ XIN SỐ <<<
         # Gọi cho MỌI tin nhắn khách (đã loại tin do page gửi ở SKIP 1). Idempotent

@@ -93,18 +93,36 @@ class VdPancakeConversation(models.Model):
     @api.model
     def _vd_rate_block(self, since, until):
         """Tỷ lệ xin số trong khoảng [since, until) theo first_message_at.
-        Trả {all, tiktok, facebook} với mỗi mục = {total, with_phone, pct}."""
-        base = [('first_message_at', '>=', since), ('first_message_at', '<', until)]
 
-        def _one(extra):
-            dom = base + extra
-            total = self.sudo().search_count(dom)
-            withp = self.sudo().search_count(dom + [('has_phone', '=', True)])
+        ĐẾM THEO KHÁCH THẬT (customer_id), KHÔNG theo hội thoại: Pancake/TikTok
+        sinh conversation_id MỚI cho gần như mỗi tin của cùng 1 khách → đếm theo
+        hội thoại bị phồng gấp nhiều lần (1 khách spam = hàng chục "hội thoại").
+        Key khách = customer_id nếu có, fallback conversation_id (FB/legacy thiếu
+        customer_id). Trả {all, tiktok, facebook}, mỗi mục = {total, with_phone, pct}.
+
+        Raw SQL: KHÔNG xen ORM giữa execute và fetchone (tránh đè con trỏ)."""
+        def _count(platform):
+            where = "first_message_at >= %s AND first_message_at < %s"
+            params = [since, until]
+            if platform:
+                where += " AND platform = %s"
+                params.append(platform)
+            self.env.cr.execute(
+                "SELECT "
+                "  count(DISTINCT coalesce(nullif(customer_id, ''), conversation_id)) AS total, "
+                "  count(DISTINCT coalesce(nullif(customer_id, ''), conversation_id)) "
+                "    FILTER (WHERE has_phone) AS withp "
+                "FROM vd_pancake_conversation WHERE " + where,
+                params,
+            )
+            row = self.env.cr.fetchone()
+            total = (row[0] or 0) if row else 0
+            withp = (row[1] or 0) if row else 0
             pct = int(round(withp * 100.0 / total)) if total else 0
             return {'total': total, 'with_phone': withp, 'pct': pct}
 
         return {
-            'all': _one([]),
-            'tiktok': _one([('platform', '=', 'tiktok')]),
-            'facebook': _one([('platform', '=', 'facebook')]),
+            'all': _count(None),
+            'tiktok': _count('tiktok'),
+            'facebook': _count('facebook'),
         }

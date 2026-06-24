@@ -6680,6 +6680,120 @@ class CrmLead(models.Model):
             'manual_report': self._vd_distribution_report(pancake=False),
         }
 
+    @api.model
+    def vd_pancake_excluded_list(self, scope='today'):
+        """DANH SÁCH SĐT đã BỊ LOẠI khỏi "số chia về NV" (user spec 2026-06-24).
+
+        Báo cáo chia số hiện "đã gộp/loại N SĐT trùng hoặc chưa gán". N =
+        created_all - total = (mọi lead Pancake tạo trong ngày, KỂ CẢ archived/
+        chưa gán) - (lead active CÓ NV). Hàm này LIỆT KÊ chính xác từng lead bị
+        loại + LÝ DO, để GĐ kiểm tra logic gộp có đúng không.
+
+        scope: 'today' | 'yesterday'. Trả {items, summary}:
+          - items: [{id, name, phone, platform, user_name, reason, reason_label,
+                     keeper_id, keeper_name, keeper_user, created}]
+          - summary: {merged, unassigned, lost, won, archived, total}
+        reason ∈ merged(trùng SĐT, đã gộp vào keeper) / unassigned(chưa gán NV) /
+                 lost(đã loại/hủy) / won(đã chốt) / archived(ẩn - khác).
+        """
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _tdd
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        base_d = now_vn.date() - (_tdd(days=1) if scope == 'yesterday' else _tdd())
+
+        def _utc(d, t):
+            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
+
+        since = _utc(base_d, _time(0, 0))
+        until = _utc(base_d + _tdd(days=1), _time(0, 0))
+
+        src_dom = [('vd_pancake_page_id', '!=', False),
+                   ('create_date', '>=', since), ('create_date', '<', until)]
+        # MỌI lead Pancake trong ngày (kể cả archived) — sắp xếp tạo trước lên đầu.
+        all_leads = self.sudo().with_context(active_test=False).search(
+            src_dom, order='create_date')
+        # Bị LOẠI = KHÔNG (active VÀ có NV). Đây chính là phần created_all - total.
+        excluded = all_leads.filtered(
+            lambda l: not (l.active and l.user_id))
+        if not excluded:
+            return {'items': [], 'summary': {
+                'merged': 0, 'unassigned': 0, 'lost': 0, 'won': 0,
+                'archived': 0, 'total': 0}}
+
+        plat_by_page = {}
+        for pg in self.env['vd.pancake.page'].sudo().search([]):
+            plat_by_page[pg.id] = pg.platform or 'other'
+
+        # Bản đồ SĐT -> lead KEEPER (active) để phát hiện "đã gộp trùng". Quét lead
+        # active 120 ngày gần đây (keeper thường là first-touch còn sống gần đó).
+        keeper_since = since - _tdd(days=120)
+        recent_active = self.sudo().search([
+            ('active', '=', True),
+            ('create_date', '>=', keeper_since),
+            '|', ('phone', '!=', False), ('mobile', '!=', False),
+        ], order='create_date')
+        keeper_map = {}
+        for l in recent_active:
+            for ph in self._vd_normalize_phones_set(l.phone, l.mobile):
+                keeper_map.setdefault(ph, l)
+
+        plat_label = {'tiktok': 'TikTok', 'facebook': 'Facebook'}
+        reason_label = {
+            'merged': 'Trùng SĐT (đã gộp)',
+            'unassigned': 'Chưa gán NV',
+            'lost': 'Đã loại / hủy',
+            'won': 'Đã chốt',
+            'archived': 'Đã ẩn (khác)',
+        }
+        items = []
+        summary = {'merged': 0, 'unassigned': 0, 'lost': 0, 'won': 0,
+                   'archived': 0, 'total': 0}
+        for l in excluded:
+            keeper = self.browse()
+            if not l.active:
+                # Tìm keeper: lead active khác trùng SĐT (đã gộp lead này vào).
+                for ph in self._vd_normalize_phones_set(l.phone, l.mobile):
+                    cand = keeper_map.get(ph)
+                    if cand and cand.id != l.id:
+                        keeper = cand
+                        break
+                if keeper:
+                    reason = 'merged'
+                elif l.stage_is_lost:
+                    reason = 'lost'
+                elif l.stage_is_won:
+                    reason = 'won'
+                else:
+                    reason = 'archived'
+            else:
+                # Còn active nhưng chưa có NV.
+                reason = 'unassigned'
+            summary[reason] += 1
+            summary['total'] += 1
+            plat = plat_by_page.get(
+                l.vd_pancake_page_id.id) if l.vd_pancake_page_id else None
+            items.append({
+                'id': l.id,
+                'name': l.partner_name or l.name or 'KH',
+                'phone': l.phone or l.mobile or '',
+                'platform': plat_label.get(plat, '—'),
+                'user_name': l.user_id.name or '(chưa gán)',
+                'reason': reason,
+                'reason_label': reason_label[reason],
+                'keeper_id': keeper.id if keeper else False,
+                'keeper_name': (keeper.partner_name or keeper.name or 'KH')
+                if keeper else '',
+                'keeper_user': keeper.user_id.name if keeper else '',
+                'created': fields.Datetime.context_timestamp(
+                    self, l.create_date).strftime('%d/%m %H:%M')
+                if l.create_date else '',
+            })
+        # Xếp theo lý do (trùng trước) rồi giờ tạo.
+        order = {'merged': 0, 'unassigned': 1, 'lost': 2, 'won': 3, 'archived': 4}
+        items.sort(key=lambda r: (order.get(r['reason'], 9), r['created']))
+        return {'items': items, 'summary': summary}
+
     def _vd_inbound_today_chips(self, call_user_domain, limit=400):
         """KHÁCH GỌI ĐẾN của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
         Hiện TẤT CẢ cuộc gọi đến (kể cả quá khứ, user spec 2026-06-24), KHÔNG chỉ

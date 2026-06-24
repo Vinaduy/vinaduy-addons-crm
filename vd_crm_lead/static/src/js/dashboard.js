@@ -46,6 +46,9 @@ export class VdCrmDashboard extends Component {
         // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
+            // Panel DANH SÁCH SĐT BỊ LOẠI khỏi chia số (mở từ dòng "đã gộp/loại").
+            // {open, scope, loading, items, summary} | null.
+            pkExcluded: null,
             // BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn dashboard tới khi đổi.
             must_change_password: false,
             pwForm: { old: "", new1: "", new2: "" },
@@ -422,6 +425,31 @@ export class VdCrmDashboard extends Component {
         } finally {
             this._pkToggling = false;
         }
+    }
+
+    // ===== DANH SÁCH SĐT BỊ LOẠI khỏi chia số (kiểm tra logic gộp) =====
+    async openPancakeExcluded(scope) {
+        this.state.pkExcluded = {
+            open: true, scope, loading: true, items: [], summary: {},
+        };
+        try {
+            const data = await this.orm.call(
+                "crm.lead", "vd_pancake_excluded_list", [scope]);
+            this.state.pkExcluded = {
+                open: true, scope,
+                loading: false,
+                items: (data && data.items) || [],
+                summary: (data && data.summary) || {},
+            };
+        } catch (e) {
+            console.warn("Tải danh sách SĐT loại lỗi:", e);
+            this.state.pkExcluded = {
+                open: true, scope, loading: false, items: [], summary: {},
+            };
+        }
+    }
+    closePancakeExcluded() {
+        this.state.pkExcluded = null;
     }
 
     // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược) =====
