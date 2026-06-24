@@ -102,7 +102,12 @@ class VdPancakeConversation(models.Model):
 
         Raw SQL: KHÔNG xen ORM giữa execute và fetchone (tránh đè con trỏ)."""
         def _count(platform):
-            where = "first_message_at >= %s AND first_message_at < %s"
+            # LOẠI thùng rác "page tự gửi": hội thoại có customer_id = page_id của
+            # bất kỳ page nào (tin auto-reply page lọt vào, nuốt SĐT gán bừa).
+            where = ("first_message_at >= %s AND first_message_at < %s "
+                     "AND coalesce(nullif(customer_id, ''), '') NOT IN "
+                     "(SELECT page_id FROM vd_pancake_page "
+                     " WHERE page_id IS NOT NULL AND page_id <> '')")
             params = [since, until]
             if platform:
                 where += " AND platform = %s"

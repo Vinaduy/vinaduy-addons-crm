@@ -126,6 +126,22 @@ class PancakeWebhookController(http.Controller):
             _logger.info('Pancake webhook %s: sender_name = page_id (%s), skip',
                          page.name, customer_name)
             return
+        # === SKIP 1c: tin do CHÍNH PAGE gửi nhưng tới webhook của PAGE KHÁC ===
+        # Pancake có thể dội event của page A vào endpoint page B (cùng tài khoản).
+        # Khi đó sender/customer_id = page_id của page A → KHÔNG match page.page_id
+        # hiện tại nên SKIP 1 ở trên KHÔNG bắt được → tin do page gửi (auto-reply)
+        # bị ghi thành "khách" rác (vd FB page_id 1712562185677980 lọt vào webhook
+        # TikTok: 484 tin, nuốt luôn SĐT trong auto-reply gán bừa cho hàng chục KH).
+        # Chặn: bỏ qua nếu sender/customer_id trùng page_id của BẤT KỲ page nào.
+        all_page_ids = set(
+            request.env['vd.pancake.page'].sudo().search([]).mapped('page_id'))
+        all_page_ids.discard('')
+        all_page_ids.discard(False)
+        if (sender_id and sender_id in all_page_ids) \
+                or (customer_id and str(customer_id) in all_page_ids):
+            _logger.info('Pancake webhook %s: sender là PAGE (id=%s/%s) — tin page '
+                         'gửi, skip', page.name, sender_id, customer_id)
+            return
 
         # Phone: prefer phone_info từ Pancake (đã parse) — fallback grep message text
         phone = ''
