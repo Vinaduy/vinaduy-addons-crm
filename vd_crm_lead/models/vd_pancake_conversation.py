@@ -92,34 +92,39 @@ class VdPancakeConversation(models.Model):
 
     @api.model
     def _vd_rate_block(self, since, until):
-        """Tỷ lệ xin số trong khoảng [since, until) theo first_message_at.
+        """Tỷ lệ xin số = KHÁCH MỚI có để SĐT / KHÁCH MỚI nhắn, trong [since, until).
 
-        ĐẾM THEO KHÁCH THẬT (customer_id), KHÔNG theo hội thoại: Pancake/TikTok
-        sinh conversation_id MỚI cho gần như mỗi tin của cùng 1 khách → đếm theo
-        hội thoại bị phồng gấp nhiều lần (1 khách spam = hàng chục "hội thoại").
-        Key khách = customer_id nếu có, fallback conversation_id (FB/legacy thiếu
-        customer_id). Trả {all, tiktok, facebook}, mỗi mục = {total, with_phone, pct}.
+        KHÁCH MỚI = customer_id có tin ĐẦU TIÊN (min first_message_at trên MỌI hội
+        thoại của khách đó) rơi vào khoảng — tức lần đầu nhắn hôm nay. KHÔNG tính
+        khách CŨ quay lại nhắn: Pancake/TikTok đẻ conversation_id mới mỗi tin nên
+        khách cũ vẫn sinh hội thoại mới hôm nay; nếu đếm theo hội thoại có
+        first_message_at hôm nay thì khách cũ bị tính nhầm thành khách mới.
 
-        Raw SQL: KHÔNG xen ORM giữa execute và fetchone (tránh đè con trỏ)."""
+        Loại thùng rác page (customer_id = page_id). Fallback conversation_id khi
+        thiếu customer_id (FB/legacy). Trả {all, tiktok, facebook}, mỗi mục
+        {total, with_phone, pct}. Raw SQL, KHÔNG xen ORM giữa execute và fetch."""
         def _count(platform):
-            # LOẠI thùng rác "page tự gửi": hội thoại có customer_id = page_id của
-            # bất kỳ page nào (tin auto-reply page lọt vào, nuốt SĐT gán bừa).
-            where = ("first_message_at >= %s AND first_message_at < %s "
-                     "AND coalesce(nullif(customer_id, ''), '') NOT IN "
-                     "(SELECT page_id FROM vd_pancake_page "
-                     " WHERE page_id IS NOT NULL AND page_id <> '')")
-            params = [since, until]
-            if platform:
-                where += " AND platform = %s"
-                params.append(platform)
-            self.env.cr.execute(
-                "SELECT "
-                "  count(DISTINCT coalesce(nullif(customer_id, ''), conversation_id)) AS total, "
-                "  count(DISTINCT coalesce(nullif(customer_id, ''), conversation_id)) "
-                "    FILTER (WHERE has_phone) AS withp "
-                "FROM vd_pancake_conversation WHERE " + where,
-                params,
+            # Gom theo KHÁCH (customer_id|conversation_id), lấy tin đầu tiên + cờ
+            # has_phone + platform của khách; chỉ giữ khách có tin đầu trong khoảng.
+            sql = (
+                "SELECT count(*) AS total, count(*) FILTER (WHERE hp) AS withp "
+                "FROM ("
+                "  SELECT coalesce(nullif(customer_id, ''), conversation_id) AS ckey, "
+                "         min(first_message_at) AS first_ever, "
+                "         bool_or(has_phone) AS hp, max(platform) AS plat "
+                "  FROM vd_pancake_conversation "
+                "  WHERE first_message_at < %s "
+                "    AND coalesce(nullif(customer_id, ''), '') NOT IN "
+                "        (SELECT page_id FROM vd_pancake_page "
+                "         WHERE page_id IS NOT NULL AND page_id <> '') "
+                "  GROUP BY coalesce(nullif(customer_id, ''), conversation_id) "
+                ") t WHERE first_ever >= %s AND first_ever < %s"
             )
+            params = [until, since, until]
+            if platform:
+                sql += " AND plat = %s"
+                params.append(platform)
+            self.env.cr.execute(sql, params)
             row = self.env.cr.fetchone()
             total = (row[0] or 0) if row else 0
             withp = (row[1] or 0) if row else 0
