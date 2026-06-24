@@ -7172,22 +7172,35 @@ class CrmLead(models.Model):
                 ('active', '=', True),
                 ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
             ])
+            # PERF 2026-06-24: gom 3 search_count/NV thành 3 read_group (1 query mỗi
+            # cái cho TẤT CẢ NV) thay vì 3×N query lẻ → leaderboard nhanh hơn nhiều.
+            _lb_ids = sales_users.ids
+
+            def _lb_count(_dom):
+                _r = {}
+                for _g in self.read_group(
+                        _dom + [('user_id', 'in', _lb_ids)], ['user_id'], ['user_id']):
+                    _u = _g.get('user_id')
+                    if _u:
+                        _r[_u[0]] = _g.get('user_id_count', 0)
+                return _r
+
+            _lb_month = _lb_count([
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', month_start),
+            ])
+            _lb_year = _lb_count([
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', year_start),
+            ])
+            _lb_active = _lb_count([
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+            ])
             for u in sales_users:
-                u_month_count = self.search_count([
-                    ('user_id', '=', u.id),
-                    ('vd_contract_signed', '=', True),
-                    ('vd_contract_sign_date', '>=', month_start),
-                ])
-                u_year_count = self.search_count([
-                    ('user_id', '=', u.id),
-                    ('vd_contract_signed', '=', True),
-                    ('vd_contract_sign_date', '>=', year_start),
-                ])
-                u_active_count = self.search_count([
-                    ('user_id', '=', u.id),
-                    ('stage_is_won', '=', False),
-                    ('stage_is_lost', '=', False),
-                ])
+                u_month_count = _lb_month.get(u.id, 0)
+                u_year_count = _lb_year.get(u.id, 0)
+                u_active_count = _lb_active.get(u.id, 0)
                 bonus = ResUsers._vd_calc_nv_bonus(u_month_count)
                 leaderboard.append({
                     'user_id': u.id,
@@ -9172,33 +9185,46 @@ class CrmLead(models.Model):
         # Cho mỗi NV active: tính contracts, leads, calls, answered, conversion
         nv_perf_rows = []
         Call = self.env['stringee.call']
+        # PERF 2026-06-24: trước đây mỗi NV chạy 5 search_count → 5×N query lẻ
+        # (quét 2548 KH × ~14 NV mỗi lần mở dashboard = nguồn chậm chính). Gom thành
+        # 5 read_group (1 query/metric cho TẤT CẢ NV) → giảm còn ~5 query tổng.
+        def _perf_count(_model, _dom):
+            _r = {}
+            for _g in _model.read_group(
+                    _dom + [('user_id', 'in', sales_user_ids)], ['user_id'], ['user_id']):
+                _u = _g.get('user_id')
+                if _u:
+                    _r[_u[0]] = _g.get('user_id_count', 0)
+            return _r
+
+        _leads_by = _perf_count(self, [
+            ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+        ])
+        _closed_by = _perf_count(self, [
+            ('vd_contract_signed', '=', True),
+            ('vd_contract_sign_date', '>=', d_from),
+            ('vd_contract_sign_date', '<', d_to + _td(days=1)),
+        ])
+        _active_by = _perf_count(self, [
+            ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+        ])
+        _calls_by = _perf_count(Call, [
+            ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+        ])
+        _answered_by = _perf_count(Call, [
+            ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
+            ('state', 'in', ['answered', 'ended']),
+            ('duration', '>', 0),
+        ])
         for u in sales_users:
             uid = u.id
-            u_leads_total = self.search_count([
-                ('user_id', '=', uid), ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
-            ])
+            u_leads_total = _leads_by.get(uid, 0)
             if u_leads_total == 0:
                 continue
-            u_closed = self.search_count([
-                ('user_id', '=', uid),
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', d_from),
-                ('vd_contract_sign_date', '<', d_to + _td(days=1)),
-            ])
-            u_active = self.search_count([
-                ('user_id', '=', uid),
-                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
-            ])
-            u_calls = Call.search_count([
-                ('user_id', '=', uid),
-                ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
-            ])
-            u_answered = Call.search_count([
-                ('user_id', '=', uid),
-                ('create_date', '>=', dt_from), ('create_date', '<', dt_to),
-                ('state', 'in', ['answered', 'ended']),
-                ('duration', '>', 0),
-            ])
+            u_closed = _closed_by.get(uid, 0)
+            u_active = _active_by.get(uid, 0)
+            u_calls = _calls_by.get(uid, 0)
+            u_answered = _answered_by.get(uid, 0)
             conv_pct = round((u_closed / u_leads_total * 100), 1) if u_leads_total else 0
             answer_pct = round((u_answered / u_calls * 100), 1) if u_calls else 0
             nv_perf_rows.append({
