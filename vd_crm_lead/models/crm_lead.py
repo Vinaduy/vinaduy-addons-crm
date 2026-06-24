@@ -6556,20 +6556,21 @@ class CrmLead(models.Model):
             for pg in self.env['vd.pancake.page'].sudo().search([]):
                 plat_by_page[pg.id] = pg.platform or 'other'
 
-        # ===== Mốc 15h chỉ để HIỆN cảnh báo; ĐẾM cả ngày 0h→24h (user 2026-06-05).
-        # now>=15h -> lô HÔM NAY; trước 15h -> đang xem lô HÔM QUA (tới 15h thì reset).
+        # HIỂN THỊ tách bạch HÔM NAY và HÔM QUA (cả ngày 0h→24h theo giờ VN) để
+        # GĐ/TP xem được NGAY hôm nay có bao nhiêu số + chia cho ai, không phải
+        # chờ tới mốc 15h mới thấy (user spec 2026-06-24). Đếm theo create_date.
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
         now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
-        if now_vn.hour >= 15:
-            batch_day, today_label = now_vn.date(), 'Hôm nay'
-        else:
-            batch_day, today_label = now_vn.date() - _tdd(days=1), 'Hôm qua'
+        today_d = now_vn.date()
+        yest_d = today_d - _tdd(days=1)
 
         def _utc(d, t):
             return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
 
-        today_since = _utc(batch_day, _time(0, 0))                  # 0h cả ngày
-        today_until = _utc(batch_day + _tdd(days=1), _time(0, 0))   # 24h = 0h hôm sau
+        today_since = _utc(today_d, _time(0, 0))                    # 0h hôm nay
+        today_until = _utc(today_d + _tdd(days=1), _time(0, 0))     # 24h hôm nay
+        yest_since = _utc(yest_d, _time(0, 0))                      # 0h hôm qua
+        yest_until = today_since                                    # = 0h hôm nay
         month_since = _utc(now_vn.date().replace(day=1), _time(0, 0))
         month_until = fields.Datetime.now() + _tdd(days=1)
 
@@ -6636,7 +6637,8 @@ class CrmLead(models.Model):
             return block
 
         result = {
-            'today': _build(today_since, today_until, True, today_label),
+            'today': _build(today_since, today_until, True, 'Hôm nay'),
+            'yesterday': _build(yest_since, yest_until, True, 'Hôm qua'),
             'month': _build(month_since, month_until, False, 'Tháng này'),
         }
         # TỶ LỆ XIN SỐ 7 NGÀY GẦN NHẤT (chỉ kênh Pancake) — ô trên cùng báo cáo.

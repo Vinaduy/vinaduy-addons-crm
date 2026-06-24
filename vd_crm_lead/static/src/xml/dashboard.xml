@@ -3069,6 +3069,42 @@
                         </div>
                     </div>
                 </div>
+                <!-- ===== SECTION HÔM QUA (chỉ đọc - lịch sử) ===== -->
+                <div t-if="distRep.yesterday" class="o_vd_pancake_sec">
+                    <div class="o_vd_pancake_sec_head">
+                        📅 <t t-esc="distRep.yesterday.label"/> (cả ngày) —
+                        <b><t t-esc="distRep.yesterday.total"/></b> số,
+                        chia cho <t t-esc="distRep.yesterday.nv_count"/>/<t t-esc="distRep.yesterday.eligible"/> NV
+                    </div>
+                    <div t-if="distShowTarget and distRep.yesterday.rows.length" class="o_vd_pk_colhead">
+                        <span class="o_vd_pancake_row_nv">Nhân viên</span>
+                        <span class="o_vd_pk_col">🎵 TT</span>
+                        <span class="o_vd_pk_col">📘 FB</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng</span>
+                    </div>
+                    <div t-if="!distRep.yesterday.total" class="o_vd_pancake_empty">
+                        Hôm qua chưa có số.
+                    </div>
+                    <div t-else="" class="o_vd_pancake_rows">
+                        <div t-foreach="distRep.yesterday.rows" t-as="r" t-key="r_index"
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off')">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                            <t t-if="distShowTarget">
+                                <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            </t>
+                            <t t-else="">
+                                <span class="o_vd_pancake_row_eval">
+                                    <t t-if="r.eval === 'few'">QUÁ ÍT</t>
+                                    <t t-elif="r.eval === 'many'">QUÁ NHIỀU</t>
+                                    <t t-else="">đủ</t>
+                                </span>
+                                <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
+                            </t>
+                        </div>
+                    </div>
+                </div>
                 <div class="o_vd_pancake_sec">
                     <div class="o_vd_pancake_sec_head">
                         🗓️ Tháng này — <b><t t-esc="distRep.month.total"/></b> số
