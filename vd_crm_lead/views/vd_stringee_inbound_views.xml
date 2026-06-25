@@ -7,7 +7,9 @@
         <field name="model">stringee.call</field>
         <field name="arch" type="xml">
             <list string="Cuộc gọi đến" default_order="start_time desc" create="false"
-                  decoration-danger="duration == 0" decoration-success="duration &gt; 0">
+                  decoration-muted="vd_handled"
+                  decoration-danger="duration == 0 and not vd_handled"
+                  decoration-success="duration &gt; 0 and not vd_handled">
                 <field name="start_time" string="Lúc gọi đến"/>
                 <field name="caller_number" string="📞 Số khách gọi đến"/>
                 <field name="lead_id" string="Khách hàng (CRM)"/>
@@ -18,6 +20,9 @@
                 <field name="duration" string="Thời lượng (giây)" sum="Tổng giây"/>
                 <field name="recording_attachment_id" string="🎵 Ghi âm"
                        widget="vd_audio_player" readonly="1"/>
+                <field name="vd_handled" string="✓ Đã xử lý" widget="boolean_toggle"/>
+                <field name="vd_handled_uid" string="Người xử lý" optional="show"/>
+                <field name="vd_handled_at" string="Lúc xử lý" optional="hide"/>
                 <field name="callee_number" string="Tổng đài nhận" optional="hide"/>
                 <field name="hangup_cause" optional="hide"/>
             </list>
@@ -42,6 +47,11 @@
                 <filter name="f_answered" string="✅ Đã nghe máy (có nói chuyện)" domain="[('duration','&gt;',0)]"/>
                 <filter name="f_missed" string="❌ Nhỡ (không nghe)"
                         domain="[('duration','=',0)]"/>
+                <filter name="f_missed_pending" string="🔴 Nhỡ CHƯA xử lý"
+                        domain="[('duration','=',0),('vd_handled','=',False)]"/>
+                <separator/>
+                <filter name="f_pending" string="Chưa xử lý" domain="[('vd_handled','=',False)]"/>
+                <filter name="f_handled" string="✓ Đã xử lý" domain="[('vd_handled','=',True)]"/>
                 <separator/>
                 <filter name="f_has_rec" string="🎵 Có ghi âm" domain="[('recording_attachment_id','!=',False)]"/>
                 <group expand="0" string="Nhóm theo">
@@ -59,7 +69,7 @@
         <field name="res_model">stringee.call</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('direction','=','inbound')]</field>
-        <field name="context">{'search_default_f_today': 1}</field>
+        <field name="context">{'search_default_f_today': 1, 'search_default_f_pending': 1}</field>
         <field name="search_view_id" ref="view_stringee_inbound_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiley_face">Chưa có cuộc gọi đến nào.</p>

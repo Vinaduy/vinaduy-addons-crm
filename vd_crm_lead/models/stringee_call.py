@@ -16,6 +16,23 @@ class StringeeCall(models.Model):
     lead_stage_name = fields.Char(related='lead_id.stage_id.name', string='Stage KH')
     lead_probability = fields.Float(related='lead_id.probability', string='Tỉ lệ chốt')
 
+    # Cuộc gọi ĐẾN đã được XỬ LÝ (gọi lại / đã chăm) — user spec 2026-06-25.
+    # Khi True, ẩn khỏi danh sách "cần xử lý hôm nay" của màn Cuộc gọi đến.
+    vd_handled = fields.Boolean(string='Đã xử lý', default=False, index=True, copy=False)
+    vd_handled_uid = fields.Many2one('res.users', string='Người xử lý', copy=False)
+    vd_handled_at = fields.Datetime(string='Lúc xử lý', copy=False)
+
+    def write(self, vals):
+        # Tự đóng dấu người/lúc XỬ LÝ khi bật/tắt cờ vd_handled (nút bật-tắt trên list).
+        if 'vd_handled' in vals and 'vd_handled_uid' not in vals:
+            if vals['vd_handled']:
+                vals['vd_handled_uid'] = self.env.user.id
+                vals['vd_handled_at'] = fields.Datetime.now()
+            else:
+                vals['vd_handled_uid'] = False
+                vals['vd_handled_at'] = False
+        return super().write(vals)
+
     # ================= Tra số / định tuyến cuộc gọi đến =================
 
     @api.model
