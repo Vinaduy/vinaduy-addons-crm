@@ -616,7 +616,8 @@ class CrmLead(models.Model):
         """Số KH mà NV (user) đã KẾT BẠN Zalo (vd_zalo_day1_date) trong HÔM NAY."""
         user = user or self.user_id or self.env.user
         today = fields.Date.context_today(self)
-        start = fields.Datetime.to_datetime(today)
+        # FIX 2026-06-25: quy mốc 0h NGÀY VN về UTC (vd_zalo_day1_date lưu UTC).
+        start = fields.Datetime.to_datetime(today) - timedelta(hours=7)
         return self.env['crm.lead'].sudo().search_count([
             ('user_id', '=', user.id),
             ('vd_zalo_day1_date', '>=', start),
@@ -6886,9 +6887,10 @@ class CrmLead(models.Model):
                     calls_month_total, calls_month_success}}.
         """
         today = today or fields.Date.context_today(self)
-        today_start = fields.Datetime.to_datetime(today)
+        # FIX 2026-06-25: create_date lưu UTC → quy mốc 0h NGÀY VN (UTC+7) về UTC.
+        today_start = fields.Datetime.to_datetime(today) - timedelta(hours=7)
         today_end = today_start + timedelta(days=1)
-        month_start = fields.Datetime.to_datetime(today.replace(day=1))
+        month_start = fields.Datetime.to_datetime(today.replace(day=1)) - timedelta(hours=7)
         Call = self.env['stringee.call'].sudo()
         ANSWERED = ['|', ('answer_time', '!=', False),
                     ('raw_events', 'ilike', 'answered')]
@@ -7044,9 +7046,12 @@ class CrmLead(models.Model):
             })
 
         today = fields.Date.context_today(self)
-        today_start = fields.Datetime.to_datetime(today)
-        today_end = today_start + timedelta(days=1)
         now = fields.Datetime.now()
+        # FIX 2026-06-25: create_date/callback_date lưu UTC → mốc 0h NGÀY VN (UTC+7)
+        # phải quy về UTC, nếu không cửa sổ "hôm nay" lệch 7h → đếm SAI.
+        _now_vn = now + timedelta(hours=7)
+        today_start = _now_vn.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=7)
+        today_end = today_start + timedelta(days=1)
         stale_threshold = now - timedelta(days=14)
         active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
@@ -8132,7 +8137,8 @@ class CrmLead(models.Model):
         if not self._dashboard_is_manager() and uid != self.env.user.id:
             return {'summary': {}, 'customers': []}
         today = fields.Date.context_today(self)
-        today_start = fields.Datetime.to_datetime(today)
+        # FIX 2026-06-25: quy mốc 0h NGÀY VN (UTC+7) về UTC (create_date lưu UTC).
+        today_start = fields.Datetime.to_datetime(today) - timedelta(hours=7)
         today_end = today_start + timedelta(days=1)
         Call = self.env['stringee.call'].sudo()
         calls = Call.search([
@@ -9733,7 +9739,10 @@ class CrmLead(models.Model):
 
             # KH MỚI HÔM NAY (user spec 2026-06-05): KH được TẠO MỚI hôm nay của
             # NV — KHÔNG phụ thuộc stage hiện tại hay khoảng lọc ngày dashboard.
-            today_start = fields.Datetime.to_datetime(today)
+            # FIX 2026-06-25: create_date lưu UTC → phải quy mốc 0h NGÀY VN (UTC+7)
+            # về UTC, nếu không cửa sổ lệch 7h khiến đếm SAI (KH nửa đêm–7h sai ngày).
+            _now_vn = now + _td(hours=7)
+            today_start = _now_vn.replace(hour=0, minute=0, second=0, microsecond=0) - _td(hours=7)
             today_end = today_start + _td(days=1)
             new_today_qs = self.search([
                 ('user_id', '=', u.id),
