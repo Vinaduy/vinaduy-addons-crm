@@ -5402,6 +5402,18 @@ div.o_vd_layout_right {
     }
     &:active { transform: scale(0.95); }
 }
+/* Nút "↓N" — gán NV cho đúng N khách (dòng này + N-1 dưới). user 2026-06-25 */
+.o_vd_copydown_btn.o_vd_copydown_n {
+    width: auto;
+    min-width: 30px;
+    padding: 0 7px;
+    border-radius: 13px;
+    margin-right: 4px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #51cf66 0%, #2b8a3e 100%);
+    box-shadow: 0 2px 5px -1px rgba(43, 138, 62, 0.45);
+}
 /* Nút "Không tìm thấy Zalo" (user spec 2026-06-10) — xám, phụ, dưới nút nhắn */
 .o_vd_znotfound_btn {
     width: 100%;

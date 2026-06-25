@@ -2,6 +2,12 @@
 <templates xml:space="preserve">
     <t t-name="vd_crm_lead.CopyDown">
         <button t-if="hasValue" type="button"
+                class="o_vd_copydown_btn o_vd_copydown_n"
+                t-on-click="onCopyDownN"
+                t-att-title="'Gán NV này cho ' + batchN + ' khách (dòng này + ' + (batchN - 1) + ' dưới)'">
+            ↓<t t-esc="batchN"/>
+        </button>
+        <button t-if="hasValue" type="button"
                 class="o_vd_copydown_btn"
                 t-on-click="onCopyDown"
                 title="Sao chép giá trị này xuống TẤT CẢ khách bên dưới">
