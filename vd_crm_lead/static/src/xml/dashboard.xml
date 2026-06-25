@@ -3060,10 +3060,25 @@
                     ⚠️ <t t-esc="distRep.today.under_count"/>/<t t-esc="distRep.today.eligible"/> NV
                     chưa đủ <t t-esc="distRep.today.target"/> khách FB/TikTok hôm nay
                 </span>
+                <span t-if="distShowTarget and distRep.alert and distRep.alert.stopped"
+                      class="o_vd_pancake_stopchip">⛔ DỪNG CHIA SỐ PANCAKE</span>
             </div>
             <!-- POPOVER hover (rộng + có cột TikTok/FB + nút bật/tắt + tỷ lệ xin số) -->
             <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
+
+                <!-- ⛔ BANNER DỪNG CHIA SỐ PANCAKE: webhook còn nhận hội thoại nhưng
+                     lâu rồi không bắt được số nào → pipeline xin số hỏng. -->
+                <div t-if="distShowTarget and distRep.alert and distRep.alert.stopped"
+                     class="o_vd_pk_stopped">
+                    <div class="o_vd_pk_stopped_ttl">⛔ DỪNG CHIA SỐ PANCAKE</div>
+                    <div class="o_vd_pk_stopped_sub">
+                        Đã <b><t t-esc="distRep.alert.hours"/> giờ</b> không nhận được số nào
+                        dù vẫn có <b><t t-esc="distRep.alert.convs_24h"/></b> hội thoại về trong 24h.
+                        Lần cuối có số: <b><t t-esc="distRep.alert.last_phone"/></b>.
+                        → Kiểm tra Pancake (cấu hình tự lấy SĐT / webhook gửi phone_info).
+                    </div>
+                </div>
 
                 <!-- ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + 7 NGÀY GẦN NHẤT ===== -->
                 <div t-if="distShowTarget and distRep.today.rate" class="o_vd_pk_rate">

@@ -9774,6 +9774,23 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     line-height: 1.15;
     margin-top: 1px;
 }
+/* ⛔ DỪNG CHIA SỐ PANCAKE — chip trên nhãn (thấy ngay không cần hover) */
+@keyframes vdStopBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+.o_vd_pancake_stopchip {
+    display: inline-block; margin-top: 2px;
+    background: #c92a2a; color: #fff;
+    font-size: 0.7rem; font-weight: 900; letter-spacing: 0.2px;
+    padding: 1px 7px; border-radius: 6px; white-space: nowrap;
+    animation: vdStopBlink 1.3s ease-in-out infinite;
+}
+/* ⛔ Banner trong popover báo cáo chia số */
+.o_vd_pk_stopped {
+    margin: 0.55rem 0.7rem 0.2rem; padding: 0.6rem 0.75rem;
+    background: #fff1f0; border: 1.5px solid #ffa39e; border-left: 5px solid #c92a2a;
+    border-radius: 9px;
+    .o_vd_pk_stopped_ttl { font-size: 0.95rem; font-weight: 900; color: #c92a2a; letter-spacing: 0.3px; }
+    .o_vd_pk_stopped_sub { font-size: 0.78rem; color: #7a1f1f; line-height: 1.45; margin-top: 3px; }
+}
 
 /* ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + biểu đồ 7 ngày (kênh Pancake) ===== */
 .o_vd_pk_rate {

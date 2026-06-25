@@ -6509,6 +6509,41 @@ class CrmLead(models.Model):
         return True
 
     @api.model
+    def _vd_pancake_sync_alert(self):
+        """⛔ CẢNH BÁO DỪNG CHIA SỐ PANCAKE (user spec 2026-06-25).
+
+        Phát hiện khi pipeline 'xin số' Pancake hỏng: hội thoại VẪN về (webhook
+        sống) nhưng LÂU rồi KHÔNG bắt được SĐT nào (Pancake ngừng gửi phone_info
+        / đổi cấu hình / token). Dựa trên HÀNH VI thực tế nên bắt đúng mọi nguyên
+        nhân. Trả {stopped, hours, convs_24h, last_phone, threshold}."""
+        from datetime import timedelta as _td2
+        import pytz as _pytz
+        Conv = self.env['vd.pancake.conversation'].sudo()
+        now = fields.Datetime.now()
+        # Lần cuối bắt được SỐ: hội thoại có SĐT HOẶC lead Pancake mới nhất.
+        last_conv = Conv.search([('has_phone', '=', True)],
+                                order='create_date desc', limit=1)
+        last_lead = self.sudo().search([('vd_pancake_page_id', '!=', False)],
+                                       order='create_date desc', limit=1)
+        cands = []
+        if last_conv and last_conv.create_date:
+            cands.append(last_conv.create_date)
+        if last_lead and last_lead.create_date:
+            cands.append(last_lead.create_date)
+        last_dt = max(cands) if cands else False
+        # Hội thoại 24h gần đây — chứng minh webhook VẪN sống (loại trừ "im ắng").
+        convs_24h = Conv.search_count([('create_date', '>=', now - _td2(hours=24))])
+        hours = int((now - last_dt).total_seconds() // 3600) if last_dt else 9999
+        threshold = int(self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.pancake_stop_alert_hours', 10) or 10)
+        stopped = bool(convs_24h > 0 and hours >= threshold)
+        last_str = ''
+        if last_dt:
+            vn = _pytz.timezone('Asia/Ho_Chi_Minh')
+            last_str = _pytz.utc.localize(last_dt).astimezone(vn).strftime('%H:%M %d/%m')
+        return {'stopped': stopped, 'hours': hours, 'convs_24h': convs_24h,
+                'last_phone': last_str, 'threshold': threshold}
+
     def _vd_distribution_report(self, pancake=True):
         """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH Pancake tự
         động; False → KH nhập TAY.
@@ -6649,6 +6684,9 @@ class CrmLead(models.Model):
             'yesterday': _build(yest_since, yest_until, True, 'Hôm qua'),
             'month': _build(month_since, month_until, False, 'Tháng này'),
         }
+        # ⛔ CẢNH BÁO DỪNG CHIA SỐ PANCAKE (chỉ kênh Pancake).
+        if pancake:
+            result['alert'] = self._vd_pancake_sync_alert()
         # TỶ LỆ XIN SỐ 7 NGÀY GẦN NHẤT (chỉ kênh Pancake) — ô trên cùng báo cáo.
         if pancake:
             wd = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']  # weekday() 0..6
