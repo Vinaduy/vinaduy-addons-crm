@@ -6710,6 +6710,45 @@ class CrmLead(models.Model):
                     'facebook': blk['facebook'],
                 })
             result['rate7'] = rate7
+
+            # TỶ LỆ XIN SỐ THEO TUẦN (8 tuần) + THEO THÁNG (6 tháng) — user 2026-06-26.
+            def _blk(d_since, d_until):
+                return Conv._vd_rate_block(
+                    fields.Datetime.to_string(_utc(d_since, _time(0, 0))),
+                    fields.Datetime.to_string(_utc(d_until, _time(0, 0))))
+            rate_weeks = []
+            monday = now_vn.date() - _tdd(days=now_vn.weekday())  # T2 tuần này
+            for i in range(7, -1, -1):
+                ws = monday - _tdd(weeks=i)
+                we = ws + _tdd(days=7)
+                last = we - _tdd(days=1)
+                blk = _blk(ws, we)
+                rate_weeks.append({
+                    'label': '%d/%d' % (ws.day, ws.month),
+                    'day': '%d/%d–%d/%d' % (ws.day, ws.month, last.day, last.month),
+                    'is_today': (i == 0),
+                    'pct': blk['all']['pct'], 'with_phone': blk['all']['with_phone'],
+                    'total': blk['all']['total'],
+                    'tiktok': blk['tiktok'], 'facebook': blk['facebook'],
+                })
+            result['rate_weeks'] = rate_weeks
+            rate_months = []
+            ym = now_vn.year * 12 + (now_vn.month - 1)
+            for i in range(5, -1, -1):
+                v = ym - i
+                yy, mm = v // 12, (v % 12) + 1
+                v2 = v + 1
+                yy2, mm2 = v2 // 12, (v2 % 12) + 1
+                blk = _blk(_dt(yy, mm, 1).date(), _dt(yy2, mm2, 1).date())
+                rate_months.append({
+                    'label': 'T%d' % mm,
+                    'day': 'T%d/%d' % (mm, yy),
+                    'is_today': (i == 0),
+                    'pct': blk['all']['pct'], 'with_phone': blk['all']['with_phone'],
+                    'total': blk['all']['total'],
+                    'tiktok': blk['tiktok'], 'facebook': blk['facebook'],
+                })
+            result['rate_months'] = rate_months
         return result
 
     @api.model

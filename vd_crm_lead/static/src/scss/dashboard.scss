@@ -9844,7 +9844,15 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 
 /* Biểu đồ cột 7 ngày */
 .o_vd_pk_trend { margin-top: 0.7rem; border-top: 1px dashed #ffd43b; padding-top: 0.5rem; }
-.o_vd_pk_trend_title { font-size: 0.78rem; font-weight: 800; color: #b35309; margin-bottom: 0.35rem; }
+.o_vd_pk_trend_title { font-size: 0.78rem; font-weight: 800; color: #b35309; margin-bottom: 0.35rem;
+    display: flex; align-items: center; gap: 0.4rem; justify-content: space-between; }
+.o_vd_pk_trend_tabs { display: inline-flex; gap: 3px; }
+.o_vd_pk_trend_tab {
+    border: 1px solid #f0b27a; background: #fff; color: #b35309;
+    border-radius: 6px; padding: 1px 7px; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+    &:hover { background: #fff3e0; }
+    &.o_active { background: #e8590c; color: #fff; border-color: #e8590c; }
+}
 .o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.45rem; height: 7.5rem; }
 .o_vd_pk_barcol {
     flex: 1 1 0; display: flex; flex-direction: column; align-items: center;

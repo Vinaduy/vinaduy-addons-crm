@@ -172,6 +172,8 @@ export class VdCrmDashboard extends Component {
             // newPillsOverflow: đo bằng JS, chỉ hiện nút khi nội dung thực sự tràn.
             newTableExpanded: false,
             newPillsOverflow: false,
+            // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
+            pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
             // Mảng session áp dụng cho NV đang nhập (vd.training.session.vd_my_banner).
             // trainingNow = mốc thời gian hiện tại (ms) cập nhật mỗi giây để đếm ngược.
@@ -428,6 +430,17 @@ export class VdCrmDashboard extends Component {
     }
 
     // ===== DANH SÁCH SĐT BỊ LOẠI khỏi chia số (kiểm tra logic gộp) =====
+    setPancakeTrend(period) {
+        this.state.pancakeTrendPeriod = period;
+    }
+    // Trả mảng dữ liệu biểu đồ tỷ lệ theo kỳ đang chọn (day/week/month).
+    pancakeTrendData(rep) {
+        const p = this.state.pancakeTrendPeriod;
+        if (p === "week") return (rep && rep.rate_weeks) || [];
+        if (p === "month") return (rep && rep.rate_months) || [];
+        return (rep && rep.rate7) || [];
+    }
+
     async openPancakeExcluded(scope) {
         this.state.pkExcluded = {
             open: true, scope, loading: true, items: [], summary: {},

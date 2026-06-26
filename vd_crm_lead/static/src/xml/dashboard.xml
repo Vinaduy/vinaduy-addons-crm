@@ -3099,11 +3099,24 @@
                                 (<t t-esc="distRep.today.rate.facebook.with_phone"/>/<t t-esc="distRep.today.rate.facebook.total"/>)</span>
                         </div>
                     </div>
-                    <!-- Biểu đồ cột 7 ngày gần nhất -->
+                    <!-- Biểu đồ cột — Ngày / Tuần / Tháng (user 2026-06-26) -->
                     <div t-if="distRep.rate7" class="o_vd_pk_trend">
-                        <div class="o_vd_pk_trend_title">7 ngày gần nhất</div>
+                        <div class="o_vd_pk_trend_title">
+                            <span>Tỷ lệ xin số —</span>
+                            <span class="o_vd_pk_trend_tabs">
+                                <button type="button"
+                                        t-att-class="'o_vd_pk_trend_tab' + (state.pancakeTrendPeriod === 'day' ? ' o_active' : '')"
+                                        t-on-click.stop="() => this.setPancakeTrend('day')">Ngày</button>
+                                <button type="button"
+                                        t-att-class="'o_vd_pk_trend_tab' + (state.pancakeTrendPeriod === 'week' ? ' o_active' : '')"
+                                        t-on-click.stop="() => this.setPancakeTrend('week')">Tuần</button>
+                                <button type="button"
+                                        t-att-class="'o_vd_pk_trend_tab' + (state.pancakeTrendPeriod === 'month' ? ' o_active' : '')"
+                                        t-on-click.stop="() => this.setPancakeTrend('month')">Tháng</button>
+                            </span>
+                        </div>
                         <div class="o_vd_pk_trend_bars">
-                            <div t-foreach="distRep.rate7" t-as="d" t-key="d_index"
+                            <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
                                  t-att-class="'o_vd_pk_barcol' + (d.is_today ? ' o_vd_pk_bartoday' : '')"
                                  t-att-title="d.day + ': ' + d.pct + '% (' + d.with_phone + '/' + d.total + ')'">
                                 <div class="o_vd_pk_barpct"><t t-esc="d.pct"/>%</div>
