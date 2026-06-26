@@ -57,6 +57,7 @@ class CrmLead(models.Model):
         ],
         'vd_intake_dimensions': [
             ('co_so_khong_phep', 'CÓ SỔ - Có cấp phép'),
+            ('co_so_chua_phep', 'CÓ SỔ - chưa cấp phép'),
             ('co_so_can_phep', 'Đang làm sổ đỏ'),
             ('khong_so_khong_phep', 'Không có sổ đỏ'),
         ],
@@ -1374,21 +1375,21 @@ class CrmLead(models.Model):
 
     # Diện tích từng tầng — Integer (m² số nguyên). Float + digits(10,1) trước đây
     # render '0,0' (locale VN dấu phẩy) + parse lỗi khi gõ → giá trị bị 'tự xoá'.
-    vd_intake_floor_1_m2 = fields.Integer(string='Tầng 1 (m²)', tracking=True)
-    vd_intake_floor_2_m2 = fields.Integer(string='Tầng 2 (m²)', tracking=True)
-    vd_intake_floor_3_m2 = fields.Integer(string='Tầng 3 (m²)', tracking=True)
-    vd_intake_floor_4_m2 = fields.Integer(string='Tầng 4 (m²)', tracking=True)
-    vd_intake_floor_5_m2 = fields.Integer(string='Tầng 5 (m²)', tracking=True)
-    vd_intake_floor_6_m2 = fields.Integer(string='Tầng 6 (m²)', tracking=True)
-    vd_intake_floor_7_m2 = fields.Integer(string='Tầng 7 (m²)', tracking=True)
-    vd_intake_floor_tum_m2 = fields.Integer(string='Tum (m²)', tracking=True)
+    vd_intake_floor_1_m2 = fields.Float(digits=(10, 1), string='Tầng 1 (m²)', tracking=True)
+    vd_intake_floor_2_m2 = fields.Float(digits=(10, 1), string='Tầng 2 (m²)', tracking=True)
+    vd_intake_floor_3_m2 = fields.Float(digits=(10, 1), string='Tầng 3 (m²)', tracking=True)
+    vd_intake_floor_4_m2 = fields.Float(digits=(10, 1), string='Tầng 4 (m²)', tracking=True)
+    vd_intake_floor_5_m2 = fields.Float(digits=(10, 1), string='Tầng 5 (m²)', tracking=True)
+    vd_intake_floor_6_m2 = fields.Float(digits=(10, 1), string='Tầng 6 (m²)', tracking=True)
+    vd_intake_floor_7_m2 = fields.Float(digits=(10, 1), string='Tầng 7 (m²)', tracking=True)
+    vd_intake_floor_tum_m2 = fields.Float(digits=(10, 1), string='Tum (m²)', tracking=True)
     # ===== Lửng (mezzanine) — NV bấm '+ Lửng' để mở 2 ô: Lửng + Thông tầng =====
     vd_intake_has_lung = fields.Boolean(string='Có Lửng', default=False, tracking=True)
-    vd_intake_floor_lung_m2 = fields.Integer(string='Lửng (m²)', tracking=True)
+    vd_intake_floor_lung_m2 = fields.Float(digits=(10, 1), string='Lửng (m²)', tracking=True)
     # Thông tầng — TỰ TÍNH = DT sàn Tầng 1 − DT Lửng (user spec 2026-06-05),
     # nhưng NV SỬA lại được (compute store readonly=False). Reset 0 khi tắt Lửng.
-    vd_intake_floor_thongtang_m2 = fields.Integer(
-        string='Thông tầng (m²)', tracking=True,
+    vd_intake_floor_thongtang_m2 = fields.Float(
+        digits=(10, 1), string='Thông tầng (m²)', tracking=True,
         compute='_compute_intake_thongtang_m2', store=True, readonly=False,
         help='Mặc định = DT sàn Tầng 1 − DT Lửng. NV có thể sửa lại.',
     )
@@ -1635,8 +1636,8 @@ class CrmLead(models.Model):
         return True
 
     # ===== Tổng diện tích các tầng (sum per-floor inputs) =====
-    vd_intake_total_m2 = fields.Integer(
-        string='Diện tích nhà',
+    vd_intake_total_m2 = fields.Float(
+        digits=(10, 1), string='Diện tích nhà',
         compute='_compute_total_m2', store=True, readonly=False,
         help='Auto = sum diện tích các tầng. NV có thể gõ tay để override.',
     )
@@ -7860,7 +7861,7 @@ class CrmLead(models.Model):
                 state_label = '%s · +%d bản trùng đã gộp' % (state_label, archived_others)
             matches.append({
                 'id': l.id,
-                'name': l.partner_name or l.name or '(không tên)',
+                'name': l.name or l.partner_name or '(không tên)',
                 'phone': l.phone or l.mobile or '',
                 'stage_name': l.stage_id.name or '',
                 'state_label': state_label,
