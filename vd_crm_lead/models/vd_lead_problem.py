@@ -545,23 +545,23 @@ class VdLeadProblem(models.Model):
         related='lead_id.vd_intake_province_id', readonly=False, string='Tỉnh/Thành',
     )
     i_region = fields.Char(related='lead_id.vd_intake_region', readonly=True, string='Vùng giá')
-    i_floor_1_m2 = fields.Integer(related='lead_id.vd_intake_floor_1_m2', readonly=False, string='Tầng 1 (m²)')
-    i_floor_2_m2 = fields.Integer(related='lead_id.vd_intake_floor_2_m2', readonly=False, string='Tầng 2 (m²)')
-    i_floor_3_m2 = fields.Integer(related='lead_id.vd_intake_floor_3_m2', readonly=False, string='Tầng 3 (m²)')
-    i_floor_4_m2 = fields.Integer(related='lead_id.vd_intake_floor_4_m2', readonly=False, string='Tầng 4 (m²)')
-    i_floor_5_m2 = fields.Integer(related='lead_id.vd_intake_floor_5_m2', readonly=False, string='Tầng 5 (m²)')
-    i_floor_6_m2 = fields.Integer(related='lead_id.vd_intake_floor_6_m2', readonly=False, string='Tầng 6 (m²)')
-    i_floor_7_m2 = fields.Integer(related='lead_id.vd_intake_floor_7_m2', readonly=False, string='Tầng 7 (m²)')
-    i_floor_tum_m2 = fields.Integer(related='lead_id.vd_intake_floor_tum_m2', readonly=False, string='Tum (m²)')
-    i_floor_lung_m2 = fields.Integer(related='lead_id.vd_intake_floor_lung_m2', readonly=False, string='Lửng (m²)')
-    i_floor_thongtang_m2 = fields.Integer(related='lead_id.vd_intake_floor_thongtang_m2', readonly=False, string='Thông tầng (m²)')
+    i_floor_1_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_1_m2', readonly=False, string='Tầng 1 (m²)')
+    i_floor_2_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_2_m2', readonly=False, string='Tầng 2 (m²)')
+    i_floor_3_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_3_m2', readonly=False, string='Tầng 3 (m²)')
+    i_floor_4_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_4_m2', readonly=False, string='Tầng 4 (m²)')
+    i_floor_5_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_5_m2', readonly=False, string='Tầng 5 (m²)')
+    i_floor_6_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_6_m2', readonly=False, string='Tầng 6 (m²)')
+    i_floor_7_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_7_m2', readonly=False, string='Tầng 7 (m²)')
+    i_floor_tum_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_tum_m2', readonly=False, string='Tum (m²)')
+    i_floor_lung_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_lung_m2', readonly=False, string='Lửng (m²)')
+    i_floor_thongtang_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_floor_thongtang_m2', readonly=False, string='Thông tầng (m²)')
     i_has_tum = fields.Boolean(related='lead_id.vd_intake_has_tum', readonly=False, string='Có Tum')
     i_has_lung = fields.Boolean(related='lead_id.vd_intake_has_lung', readonly=False, string='Có Lửng')
     i_floors_select = fields.Selection(
         related='lead_id.vd_intake_floors_select', readonly=False, string='Số tầng',
     )
     # Mirror read-only: tổng diện tích sàn + estimate hiện tại để NV thấy ngay
-    i_total_m2 = fields.Integer(related='lead_id.vd_intake_total_m2', readonly=True, string='Tổng diện tích sàn')
+    i_total_m2 = fields.Float(digits=(10, 1), related='lead_id.vd_intake_total_m2', readonly=True, string='Tổng diện tích sàn')
     # vd_intake_estimate là Float (không phải Monetary) → related cùng type
     i_estimate = fields.Float(related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính')
 
