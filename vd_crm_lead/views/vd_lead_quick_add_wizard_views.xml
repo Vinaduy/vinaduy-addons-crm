@@ -15,6 +15,7 @@
                     <list editable="bottom" string="Danh sách KH cần thêm"
                           decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
+                        <field name="vd_selected" widget="boolean_toggle" string="☑ Chọn"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
@@ -75,6 +76,20 @@
                         <field name="extra_10" optional="hide"/>
                     </list>
                 </field>
+
+                <!-- ===== GÁN NV HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
+                <div class="o_vd_distribute_bar"
+                     groups="vd_crm_lead.vd_crm_group_team_leader">
+                    <span class="o_vd_distribute_lbl">☑ Gán cho khách đã chọn:</span>
+                    <field name="vd_bulk_user_id" nolabel="1"
+                           options="{'no_create': True, 'no_open': True}"
+                           placeholder="Chọn nhân viên..."
+                           class="o_vd_distribute_group"/>
+                    <button name="action_assign_selected" type="object"
+                            string="Gán NV cho khách đã tích"
+                            class="btn-primary"
+                            invisible="not vd_bulk_user_id"/>
+                </div>
 
                 <!-- ===== BỘ CHỌN CÁCH CHIA — leader, hiện sau khi bấm CHỌN NHÂN VIÊN ===== -->
                 <div groups="vd_crm_lead.vd_crm_group_team_leader"

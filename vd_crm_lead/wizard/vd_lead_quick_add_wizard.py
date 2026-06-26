@@ -82,6 +82,31 @@ class VdLeadQuickAddWizard(models.TransientModel):
             else:
                 w.can_chia_so = True
 
+    # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
+    vd_bulk_user_id = fields.Many2one(
+        'res.users', string='Gán NV cho khách đã chọn',
+        domain="[('share', '=', False)]",
+    )
+
+    def action_assign_selected(self):
+        """Gán NV (vd_bulk_user_id) cho TẤT CẢ khách đã tích chọn (vd_selected)."""
+        self.ensure_one()
+        if not self.vd_bulk_user_id:
+            raise UserError(_('Hãy chọn nhân viên ở ô "Gán NV cho khách đã chọn" trước.'))
+        sel = self.line_ids.filtered(lambda l: l.vd_selected and l.name and l.phone)
+        if not sel:
+            raise UserError(_('Chưa tích chọn khách nào (cột "Chọn").'))
+        sel.write({'user_id': self.vd_bulk_user_id.id, 'vd_selected': False})
+        self.vd_bulk_user_id = False
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': dict(self.env.context, dialog_size='fullscreen'),
+        }
+
     distribute_mode = fields.Selection(
         [
             ('even_all', '⚖️ Chia đều cho TẤT CẢ nhân viên'),
@@ -537,6 +562,8 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         'vd.lead.quick.add.wizard', required=True, ondelete='cascade',
     )
     sequence = fields.Integer(string='STT', default=10)
+    # Tích chọn nhiều khách để gán NV hàng loạt (user spec 2026-06-26).
+    vd_selected = fields.Boolean(string='Chọn', default=False)
     name = fields.Char(string='Tên KH', required=False)
     phone = fields.Char(string='SĐT', required=False)
 
