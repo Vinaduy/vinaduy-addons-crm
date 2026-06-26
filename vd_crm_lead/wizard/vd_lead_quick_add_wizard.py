@@ -99,6 +99,52 @@ class VdLeadQuickAddWizard(models.TransientModel):
             'context': dict(self.env.context, dialog_size='fullscreen'),
         }
 
+    def action_export_excel(self):
+        """Xuất danh sách khách đang nhập ra file Excel (.xlsx)."""
+        self.ensure_one()
+        import io
+        import base64
+        try:
+            import xlsxwriter
+        except ImportError:
+            from odoo.tools.misc import xlsxwriter
+        lines = self.line_ids.filtered(lambda l: l.name or l.phone)
+        if not lines:
+            raise UserError(_('Chưa có khách nào (Tên/SĐT) để xuất.'))
+        src_map = dict(SOURCE_SELECTION)
+        buf = io.BytesIO()
+        wb = xlsxwriter.Workbook(buf, {'in_memory': True})
+        ws = wb.add_worksheet('Khách hàng')
+        hf = wb.add_format({'bold': True, 'bg_color': '#D9E1F2', 'border': 1, 'align': 'center'})
+        cf = wb.add_format({'border': 1})
+        headers = ['STT', 'Tên KH', 'SĐT', 'Nguồn', 'NV phụ trách',
+                   'DT đất (m²)', 'Số tầng', 'Ngày']
+        widths = [5, 24, 14, 14, 24, 12, 9, 14]
+        for c, h in enumerate(headers):
+            ws.write(0, c, h, hf)
+            ws.set_column(c, c, widths[c])
+        for i, l in enumerate(lines, start=1):
+            ws.write(i, 0, i, cf)
+            ws.write(i, 1, l.name or '', cf)
+            ws.write(i, 2, l.phone or '', cf)
+            ws.write(i, 3, src_map.get(l.source, l.source or ''), cf)
+            ws.write(i, 4, l.user_id.name or '', cf)
+            ws.write(i, 5, l.i_area_m2 or 0, cf)
+            ws.write(i, 6, l.i_floors_select or '', cf)
+            ws.write(i, 7, str(l.date or ''), cf)
+        wb.close()
+        att = self.env['ir.attachment'].create({
+            'name': 'khach_hang_them_moi.xlsx',
+            'type': 'binary',
+            'raw': buf.getvalue(),
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s?download=true' % att.id,
+            'target': 'self',
+        }
+
     def action_select_all(self):
         """Tích / BỎ tích TẤT CẢ khách (toggle)."""
         self.ensure_one()

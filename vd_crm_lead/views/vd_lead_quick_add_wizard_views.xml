@@ -15,7 +15,7 @@
                     <list editable="bottom" string="Danh sách KH cần thêm"
                           decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
-                        <field name="vd_selected" widget="boolean_toggle" string="☑ Chọn"/>
+                        <field name="vd_selected" widget="boolean" string="☑ Chọn"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
@@ -79,6 +79,8 @@
 
                 <!-- ===== THAO TÁC HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
                 <div class="o_vd_distribute_bar">
+                    <button name="action_export_excel" type="object"
+                            string="📥 Xuất Excel" class="btn-secondary"/>
                     <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
                     <button name="action_select_all" type="object"
                             string="Chọn / bỏ TẤT CẢ" class="btn-secondary"/>
