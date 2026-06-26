@@ -88,6 +88,34 @@ class VdLeadQuickAddWizard(models.TransientModel):
         domain="[('share', '=', False)]",
     )
 
+    def _vd_reopen(self):
+        """Mở lại wizard (giữ trạng thái) sau thao tác hàng loạt."""
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': dict(self.env.context, dialog_size='fullscreen'),
+        }
+
+    def action_select_all(self):
+        """Tích / BỎ tích TẤT CẢ khách (toggle)."""
+        self.ensure_one()
+        rows = self.line_ids.filtered(lambda l: l.name or l.phone)
+        all_sel = bool(rows) and all(l.vd_selected for l in rows)
+        rows.write({'vd_selected': not all_sel})
+        return self._vd_reopen()
+
+    def action_delete_selected(self):
+        """XOÁ HÀNG LOẠT các khách đã tích chọn khỏi danh sách."""
+        self.ensure_one()
+        sel = self.line_ids.filtered('vd_selected')
+        if not sel:
+            raise UserError(_('Chưa tích chọn khách nào để xoá (cột ☑).'))
+        sel.unlink()
+        return self._vd_reopen()
+
     def action_assign_selected(self):
         """Gán NV (vd_bulk_user_id) cho TẤT CẢ khách đã tích chọn (vd_selected)."""
         self.ensure_one()
@@ -98,14 +126,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
             raise UserError(_('Chưa tích chọn khách nào (cột "Chọn").'))
         sel.write({'user_id': self.vd_bulk_user_id.id, 'vd_selected': False})
         self.vd_bulk_user_id = False
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': dict(self.env.context, dialog_size='fullscreen'),
-        }
+        return self._vd_reopen()
 
     distribute_mode = fields.Selection(
         [

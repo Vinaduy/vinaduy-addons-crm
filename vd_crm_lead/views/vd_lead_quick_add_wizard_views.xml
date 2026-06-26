@@ -77,17 +77,25 @@
                     </list>
                 </field>
 
-                <!-- ===== GÁN NV HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
-                <div class="o_vd_distribute_bar"
-                     groups="vd_crm_lead.vd_crm_group_team_leader">
-                    <span class="o_vd_distribute_lbl">☑ Gán cho khách đã chọn:</span>
+                <!-- ===== THAO TÁC HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
+                <div class="o_vd_distribute_bar">
+                    <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
+                    <button name="action_select_all" type="object"
+                            string="Chọn / bỏ TẤT CẢ" class="btn-secondary"/>
+                    <button name="action_delete_selected" type="object"
+                            string="🗑 Xoá khách đã chọn" class="btn-danger"
+                            confirm="Xoá các khách đã tích chọn khỏi danh sách? (chưa lưu vào hệ thống nên xoá an toàn)"/>
+                    <span class="o_vd_distribute_lbl"
+                          groups="vd_crm_lead.vd_crm_group_team_leader">·  Gán NV:</span>
                     <field name="vd_bulk_user_id" nolabel="1"
+                           groups="vd_crm_lead.vd_crm_group_team_leader"
                            options="{'no_create': True, 'no_open': True}"
                            placeholder="Chọn nhân viên..."
                            class="o_vd_distribute_group"/>
                     <button name="action_assign_selected" type="object"
                             string="Gán NV cho khách đã tích"
                             class="btn-primary"
+                            groups="vd_crm_lead.vd_crm_group_team_leader"
                             invisible="not vd_bulk_user_id"/>
                 </div>
 
