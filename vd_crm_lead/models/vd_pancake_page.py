@@ -438,13 +438,24 @@ class VdPancakePage(models.Model):
             if len(last9) < 9:
                 skipped_no_phone += 1
                 continue
-            if Lead.search(['|', ('phone', 'like', last9), ('mobile', 'like', last9)], limit=1):
+            name = (c.get('full_name') or phone).strip()
+            psid = str(c.get('psid') or c.get('id') or '')
+            existing = Lead.search(
+                ['|', ('phone', 'like', last9), ('mobile', 'like', last9)], limit=1)
+            if existing:
                 skipped_existing += 1
+                # Vẫn ghi hội thoại has_phone (idempotent) để THỐNG KÊ khớp.
+                try:
+                    self.env['vd.pancake.conversation']._vd_touch(
+                        self, conv_id='botcake_%s' % psid,
+                        customer_id=str(c.get('id') or ''),
+                        customer_name=name, phone=phone, lead=existing)
+                except Exception:
+                    pass
                 continue
             assignee = ResUsers._vd_pick_next_assignee(
                 source='pancake',
                 preferred_team_id=self.team_id.id if self.team_id else None)
-            name = (c.get('full_name') or phone).strip()
             vals = {
                 'name': '%s %s' % (self.name_prefix, name),
                 'partner_name': name if name != phone else '',
@@ -458,8 +469,17 @@ class VdPancakePage(models.Model):
                 vals['user_id'] = assignee.id
                 if self.team_id:
                     vals['team_id'] = self.team_id.id
-            Lead.create(vals)
+            lead = Lead.create(vals)
             created += 1
+            # Ghi hội thoại has_phone=True → THỐNG KÊ "tỷ lệ xin số" + "X cho số"
+            # khớp với số lead Botcake (form luôn có SĐT). user spec 2026-06-26.
+            try:
+                self.env['vd.pancake.conversation']._vd_touch(
+                    self, conv_id='botcake_%s' % (c.get('psid') or c.get('id') or ''),
+                    customer_id=str(c.get('id') or ''),
+                    customer_name=name, phone=phone, lead=lead)
+            except Exception:
+                pass
         self.last_event_at = fields.Datetime.now()
         msg = _('Botcake "%s": tạo %s, bỏ %s (không SĐT), %s (đã có)') % (
             self.name, created, skipped_no_phone, skipped_existing)
