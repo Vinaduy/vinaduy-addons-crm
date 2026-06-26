@@ -26,9 +26,14 @@
         <field name="arch" type="xml">
             <form string="Pancake Page">
                 <header>
+                    <button name="action_sync_botcake_customers" type="object"
+                            string="📥 Đồng bộ khách Botcake (có SĐT)"
+                            class="btn-primary"
+                            invisible="not vd_botcake_token"
+                            help="Kéo kho khách (có SĐT) từ Botcake về CRM. Chạy tự động mỗi 10 phút; nút này để kéo ngay."/>
                     <button name="action_sync_from_pancake" type="object"
                             string="🔄 Đồng bộ KH từ Pancake (7 ngày)"
-                            class="btn-primary"
+                            class="btn-secondary"
                             help="Kéo conversations 7 ngày gần nhất từ Pancake REST API → tạo crm.lead cho KH có SĐT. Dùng khi webhook fail hoặc khôi phục data."/>
                     <button name="action_rotate_secret" type="object"
                             string="🔄 Sinh lại Webhook Secret"
@@ -60,6 +65,10 @@
                                    password="True"
                                    placeholder="EAAxx..."
                                    help="Lấy ở Pancake → Settings → Tools → Page Access Token"/>
+                            <field name="vd_botcake_token"
+                                   password="True"
+                                   placeholder="eyJhbGci... (Public API key)"
+                                   help="Botcake → Tích hợp → API → Public API key. Dùng để kéo khách + SĐT từ kho Customer."/>
                             <field name="team_id" options="{'no_create': True}"/>
                         </group>
                         <group string="⚙️ Trạng thái">

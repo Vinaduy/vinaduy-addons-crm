@@ -23,6 +23,9 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 _PANCAKE_API_BASE = 'https://pages.fm/api/public_api/v1'
+# Botcake (chatbot) public API — auth qua HEADER 'access-token'. Kho khách
+# (customer) ở đây chứa SĐT khách để lại form/chat (user xác nhận 2026-06-26).
+_BOTCAKE_API_BASE = 'https://botcake.io/api/public_api/v1'
 _VN_PHONE_RE = re.compile(r'(?:\+84|0)\d{9,10}')
 
 
@@ -95,6 +98,11 @@ class VdPancakePage(models.Model):
     page_access_token = fields.Char(
         string='Page Access Token',
         help='Token Pancake cấp cho page (dùng để gọi API REST nếu cần).',
+    )
+    vd_botcake_token = fields.Char(
+        string='Botcake API Key',
+        help='Public API key trong Botcake (Tích hợp → API). Dùng để KÉO khách + '
+             'SĐT từ kho Customer của Botcake về CRM (form quảng cáo / chat).',
     )
     webhook_secret = fields.Char(
         string='Webhook secret',
@@ -367,3 +375,108 @@ class VdPancakePage(models.Model):
                 return first
         # Một số response để phone ở field 'phone'
         return cust.get('phone') or ''
+
+    # ============================================================
+    # BOTCAKE — kéo kho KHÁCH (customer) có SĐT về CRM
+    # API: GET botcake.io/api/public_api/v1/pages/<page_id>/customer
+    #      header 'access-token: <Botcake API Key>'
+    #      mỗi customer: {full_name, id, psid, phone_number: [...]}
+    # ============================================================
+    def _botcake_fetch_customers(self, since_days=7):
+        """Kéo TẤT CẢ khách N ngày gần đây từ Botcake. Dedup theo psid/id.
+        Dừng khi trang rỗng HOẶC không còn khách mới (API có thể lặp trang)."""
+        self.ensure_one()
+        tok = (self.vd_botcake_token or '').strip()
+        if not tok:
+            return []
+        since = (datetime.utcnow() - timedelta(days=since_days)).strftime('%Y-%m-%d')
+        until = (datetime.utcnow() + timedelta(days=1)).strftime('%Y-%m-%d')
+        url = '%s/pages/%s/customer' % (_BOTCAKE_API_BASE, self.page_id)
+        seen = {}
+        for pn in range(1, 200):
+            try:
+                resp = requests.get(
+                    url, headers={'access-token': tok},
+                    params={'since': since, 'until': until, 'page_number': pn},
+                    timeout=30)
+                data = resp.json()
+            except Exception as e:
+                _logger.warning('Botcake fetch %s trang %s lỗi: %s', self.name, pn, e)
+                break
+            rows = data if isinstance(data, list) else (
+                data.get('data') or data.get('customers') or [])
+            if not rows:
+                break
+            new_in_page = 0
+            for c in rows:
+                key = str(c.get('psid') or c.get('id') or '')
+                if key and key not in seen:
+                    seen[key] = c
+                    new_in_page += 1
+            if new_in_page == 0:
+                break  # trang lặp lại → đã hết
+        return list(seen.values())
+
+    def action_sync_botcake_customers(self, since_days=7):
+        """Kéo khách có SĐT từ Botcake → tạo crm.lead (chia NV round-robin).
+        Dedup SĐT theo 9 số cuối với lead đã có."""
+        self.ensure_one()
+        if not self.vd_botcake_token:
+            raise UserError(_('Page "%s" chưa có Botcake API Key.') % self.name)
+        Lead = self.env['crm.lead'].sudo()
+        ResUsers = self.env['res.users'].sudo()
+        created = skipped_no_phone = skipped_existing = 0
+        for c in self._botcake_fetch_customers(since_days):
+            phones = c.get('phone_number') or c.get('phone_numbers') or []
+            if isinstance(phones, str):
+                phones = [phones]
+            phone = next((str(p).strip() for p in phones if p and str(p).strip()), '')
+            if not phone:
+                skipped_no_phone += 1
+                continue
+            last9 = re.sub(r'\D', '', phone)[-9:]
+            if len(last9) < 9:
+                skipped_no_phone += 1
+                continue
+            if Lead.search(['|', ('phone', 'like', last9), ('mobile', 'like', last9)], limit=1):
+                skipped_existing += 1
+                continue
+            assignee = ResUsers._vd_pick_next_assignee(
+                source='pancake',
+                preferred_team_id=self.team_id.id if self.team_id else None)
+            name = (c.get('full_name') or phone).strip()
+            vals = {
+                'name': '%s %s' % (self.name_prefix, name),
+                'partner_name': name if name != phone else '',
+                'phone': phone,
+                'type': 'lead',
+                'vd_pancake_page_id': self.id,
+                'vd_pancake_customer_id': str(c.get('id') or ''),
+                'description': '📨 Botcake customer sync (psid=%s)' % (c.get('psid') or ''),
+            }
+            if assignee:
+                vals['user_id'] = assignee.id
+                if self.team_id:
+                    vals['team_id'] = self.team_id.id
+            Lead.create(vals)
+            created += 1
+        self.last_event_at = fields.Datetime.now()
+        msg = _('Botcake "%s": tạo %s, bỏ %s (không SĐT), %s (đã có)') % (
+            self.name, created, skipped_no_phone, skipped_existing)
+        _logger.info(msg)
+        return {
+            'type': 'ir.actions.client', 'tag': 'display_notification',
+            'params': {'title': _('Đồng bộ Botcake xong'), 'message': msg,
+                       'type': 'success', 'sticky': False},
+        }
+
+    @api.model
+    def _cron_sync_botcake(self, since_days=2):
+        """CRON: kéo khách mới có SĐT từ Botcake cho mọi page đã cấu hình token."""
+        pages = self.search([('active', '=', True), ('vd_botcake_token', '!=', False)])
+        for p in pages:
+            try:
+                p.action_sync_botcake_customers(since_days=since_days)
+            except Exception:
+                _logger.exception('Cron Botcake sync lỗi page %s', p.name)
+        return True
