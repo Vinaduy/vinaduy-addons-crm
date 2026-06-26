@@ -3487,23 +3487,24 @@ class CrmLead(models.Model):
     def _vd_get_found_roof_areas(self):
         """Trả về (found_area, roof_area) cho công thức báo giá:
         - Móng: diện tích Tầng 1 (sàn dưới cùng đỡ móng)
-        - Mái : diện tích tầng trên cùng (Tum nếu có, không thì tầng N cao nhất
-                có diện tích > 0)
+        - Mái : diện tích sàn TẦNG LỚN NHẤT (max các tầng đã nhập) — user spec
+                2026-06-26 (trước đây lấy tầng trên cùng).
         Fallback nếu chưa nhập per-floor: dùng total_m2 / floors (bình quân)."""
         self.ensure_one()
         floor_1 = self.vd_intake_floor_1_m2 or 0.0
 
-        # Top floor — ưu tiên Tum, không thì floor cao nhất có area > 0
-        top = 0.0
-        if self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
-            top = self.vd_intake_floor_tum_m2
-        else:
-            n_select = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
-            for i in range(n_select, 0, -1):
-                fa = self['vd_intake_floor_%s_m2' % i] or 0.0
-                if fa > 0:
-                    top = fa
-                    break
+        # MÁI = diện tích sàn TẦNG LỚN NHẤT: lấy MAX trong tất cả các tầng đã nhập
+        # (f1..f7 + Tum + Lửng), thay vì diện tích tầng trên cùng như trước.
+        areas = []
+        for i in range(1, 8):
+            fa = self['vd_intake_floor_%s_m2' % i] or 0.0
+            if fa > 0:
+                areas.append(fa)
+        if self.vd_intake_floor_tum_m2:
+            areas.append(self.vd_intake_floor_tum_m2)
+        if self.vd_intake_floor_lung_m2:
+            areas.append(self.vd_intake_floor_lung_m2)
+        top = max(areas) if areas else 0.0
 
         # Fallback bình quân nếu user chưa nhập per-floor
         total = self.vd_intake_total_m2 or 0.0

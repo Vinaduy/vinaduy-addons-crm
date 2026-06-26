@@ -17,14 +17,20 @@
              - Tum  : 1 Thờ, 1 Ngủ
              ============================================================ -->
 
-        <!-- ===== Khách + Bếp gộp (chỉ T1) ===== -->
+        <!-- ===== Khách + Bếp: TÁCH RIÊNG (user spec 2026-06-26), có cả T1 + T2 ===== -->
+        <!-- Tag gộp cũ: ẩn khỏi picker (fit_floors=none) nhưng GIỮ record cho báo giá cũ. -->
         <record id="tag_1_khach_1_bep" model="vd.floor.function.tag">
             <field name="name">🛋️🍳 1 Khách 1 Bếp</field>
             <field name="sequence">10</field>
             <field name="color">4</field>
-            <field name="fit_floors">f1</field>
+            <field name="fit_floors">none</field>
         </record>
-        <!-- DELETE 2 tag tách rời cũ — đã gộp thành 1 -->
+        <record id="tag_1_bep" model="vd.floor.function.tag">
+            <field name="name">🍳 1 Bếp</field>
+            <field name="sequence">11</field>
+            <field name="color">4</field>
+            <field name="fit_floors">f1,f2,lung</field>
+        </record>
 
         <!-- ===== Ngủ (count) ===== -->
         <record id="tag_1_ngu" model="vd.floor.function.tag">
@@ -86,12 +92,12 @@
             <field name="fit_floors">f1,f2,f3,f4,f5,f6,f7,tum,lung</field>
         </record>
 
-        <!-- ===== Khách (1 Khách) — Lửng only (T1 dùng "1 Khách 1 Bếp") ===== -->
+        <!-- ===== Khách (1 Khách) — T1, T2, Lửng (tách riêng khỏi Bếp 2026-06-26) ===== -->
         <record id="tag_1_khach" model="vd.floor.function.tag">
             <field name="name">🛋️ 1 Khách</field>
             <field name="sequence">41</field>
             <field name="color">4</field>
-            <field name="fit_floors">lung</field>
+            <field name="fit_floors">f1,f2,lung</field>
         </record>
 
         <!-- ===== Đặc thù T1 ===== -->
