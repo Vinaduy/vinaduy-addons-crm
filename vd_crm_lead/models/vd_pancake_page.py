@@ -448,7 +448,7 @@ class VdPancakePage(models.Model):
                 try:
                     self.env['vd.pancake.conversation']._vd_touch(
                         self, conv_id='botcake_%s' % psid,
-                        customer_id=str(c.get('id') or ''),
+                        customer_id=str(c.get('psid') or c.get('id') or ''),
                         customer_name=name, phone=phone, lead=existing)
                 except Exception:
                     pass
@@ -476,7 +476,7 @@ class VdPancakePage(models.Model):
             try:
                 self.env['vd.pancake.conversation']._vd_touch(
                     self, conv_id='botcake_%s' % (c.get('psid') or c.get('id') or ''),
-                    customer_id=str(c.get('id') or ''),
+                    customer_id=str(c.get('psid') or c.get('id') or ''),
                     customer_name=name, phone=phone, lead=lead)
             except Exception:
                 pass

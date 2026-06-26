@@ -104,7 +104,9 @@ class PancakeWebhookController(http.Controller):
 
         from_info = msg.get('from') or conv.get('from') or {}
         sender_id = str(from_info.get('id') or '')
-        customer_id = from_info.get('page_customer_id') or from_info.get('id') or ''
+        # customer_id = PSID (sender id) để THỐNG KÊ dedup nhất quán với import +
+        # Botcake (tránh đếm trùng 1 khách nhiều lần). user spec 2026-06-26.
+        customer_id = sender_id or (from_info.get('page_customer_id') or '')
         customer_name = (from_info.get('name') or '').strip()
         message_text = msg.get('message') or msg.get('original_message') or conv.get('snippet') or ''
 
