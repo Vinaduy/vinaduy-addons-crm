@@ -9710,9 +9710,9 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pancake_row { font-size: 0.92rem; padding: 0.35rem 0.6rem; }
     .o_vd_pancake_row_eval { font-size: 0.7rem; }
     .o_vd_pancake_row_cnt { font-size: 0.92rem; min-width: 1.9rem; }
-    .o_vd_pk_col { flex: 0 0 2.6rem; font-size: 0.95rem; }
-    .o_vd_pk_col_tot { flex: 0 0 2.4rem; }
-    .o_vd_pk_colhead { font-size: 0.72rem; }
+    .o_vd_pk_col { flex: 0 0 5rem; font-size: 0.95rem; }
+    .o_vd_pk_col_tot { flex: 0 0 4.2rem; }
+    .o_vd_pk_colhead { font-size: 0.72rem; white-space: nowrap; letter-spacing: 0; }
 }
 .o_vd_pancake_filter:hover .o_vd_pancake_pop {
     opacity: 1; visibility: visible; transform: translateY(0);
@@ -9882,14 +9882,14 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     display: flex; align-items: center; gap: 0.4rem;
     padding: 0.15rem 0.5rem 0.3rem;
     font-size: 0.66rem; font-weight: 800; color: #868e96; text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.3px; white-space: nowrap;
 }
 .o_vd_pk_col {
-    flex: 0 0 2.2rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
+    flex: 0 0 5rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
 }
 .o_vd_pk_col_tt { color: #6741d9; }
 .o_vd_pk_col_fb { color: #1971c2; }
-.o_vd_pk_col_tot { flex: 0 0 2rem; }
+.o_vd_pk_col_tot { flex: 0 0 4.2rem; color: #1f2a44; }
 .o_vd_pk_col_sw { flex: 0 0 2.6rem; text-align: center; }
 
 /* ===== NÚT BẬT/TẮT nhận số (switch đẹp) ===== */

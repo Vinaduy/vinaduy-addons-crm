@@ -3152,10 +3152,10 @@
                     <!-- Tiêu đề cột (chỉ kênh Pancake có tách TikTok/FB) -->
                     <div t-if="distShowTarget and distRep.today.rows.length" class="o_vd_pk_colhead">
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
-                        <span class="o_vd_pk_col">🎵 TT</span>
-                        <span class="o_vd_pk_col">📘 FB</span>
-                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng</span>
-                        <span class="o_vd_pk_col_sw">Nhận</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_fb">📘 Facebook</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng số</span>
+                        <span class="o_vd_pk_col_sw">Bật nhận</span>
                     </div>
                     <div t-if="!distRep.today.rows.length" class="o_vd_pancake_empty">
                         Chưa có số trong khung giờ này.
@@ -3206,9 +3206,9 @@
                     </div>
                     <div t-if="distShowTarget and distRep.yesterday.rows.length" class="o_vd_pk_colhead">
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
-                        <span class="o_vd_pk_col">🎵 TT</span>
-                        <span class="o_vd_pk_col">📘 FB</span>
-                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_fb">📘 Facebook</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng số</span>
                     </div>
                     <div t-if="!distRep.yesterday.total" class="o_vd_pancake_empty">
                         Hôm qua chưa có số.
