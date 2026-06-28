@@ -9853,14 +9853,14 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #fff3e0; }
     &.o_active { background: #e8590c; color: #fff; border-color: #e8590c; }
 }
-.o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.45rem; height: 7.5rem; }
+.o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.55rem; height: 12rem; }
 .o_vd_pk_barcol {
     flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
     height: 100%; justify-content: flex-end; cursor: default;
 }
-.o_vd_pk_barpct { font-size: 0.72rem; font-weight: 800; color: #495057; margin-bottom: 2px; }
+.o_vd_pk_barpct { font-size: 0.92rem; font-weight: 800; color: #b35309; margin-bottom: 2px; }
 .o_vd_pk_barwrap {
-    width: 100%; max-width: 2rem; flex: 1 1 auto; display: flex; align-items: flex-end;
+    width: 100%; max-width: 2.8rem; flex: 1 1 auto; display: flex; align-items: flex-end;
     background: rgba(255, 255, 255, 0.55); border-radius: 6px 6px 0 0; overflow: hidden;
 }
 .o_vd_pk_bar {
@@ -9868,8 +9868,15 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     background: linear-gradient(180deg, #ffa94d, #f76707);
     border-radius: 6px 6px 0 0; transition: height 0.3s ease;
 }
-.o_vd_pk_barlbl { font-size: 0.72rem; font-weight: 700; color: #495057; margin-top: 3px; }
-.o_vd_pk_barday { font-size: 0.62rem; color: #adb5bd; }
+/* Dòng số liệu dưới mỗi cột: số điện thoại xin được + số khách nhắn */
+.o_vd_pk_barstat {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    margin-top: 4px; line-height: 1.15;
+    .o_vd_pk_stat_ph { font-size: 0.74rem; font-weight: 800; color: #2b8a3e; white-space: nowrap; }
+    .o_vd_pk_stat_msg { font-size: 0.7rem; font-weight: 700; color: #1971c2; white-space: nowrap; }
+}
+.o_vd_pk_barlbl { font-size: 0.78rem; font-weight: 700; color: #495057; margin-top: 3px; }
+.o_vd_pk_barday { font-size: 0.66rem; color: #adb5bd; }
 .o_vd_pk_barcol.o_vd_pk_bartoday {
     .o_vd_pk_barpct { color: #e8590c; }
     .o_vd_pk_bar { background: linear-gradient(180deg, #ff922b, #e8590c); }

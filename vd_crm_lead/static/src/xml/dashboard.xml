@@ -3123,6 +3123,10 @@
                                 <div class="o_vd_pk_barwrap">
                                     <div class="o_vd_pk_bar" t-att-style="`height:${d.total ? Math.max(d.pct, 4) : 0}%`"/>
                                 </div>
+                                <div class="o_vd_pk_barstat">
+                                    <span class="o_vd_pk_stat_ph" title="Số điện thoại xin được">📞 <t t-esc="d.with_phone"/></span>
+                                    <span class="o_vd_pk_stat_msg" title="Số khách nhắn">💬 <t t-esc="d.total"/></span>
+                                </div>
                                 <div class="o_vd_pk_barlbl"><t t-esc="d.label"/></div>
                                 <div class="o_vd_pk_barday"><t t-esc="d.day"/></div>
                             </div>
