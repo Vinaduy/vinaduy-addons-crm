@@ -9894,8 +9894,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pk_colhead {
     display: flex; align-items: center; gap: 0.4rem;
     padding: 0.15rem 0.5rem 0.3rem;
-    font-size: 0.66rem; font-weight: 800; color: #868e96;
+    font-size: 0.68rem; font-weight: 800; color: #868e96;
     letter-spacing: 0; white-space: nowrap;
+    border-bottom: 1px solid #ffe3a3; margin-bottom: 0.2rem;
+    /* "Nhân viên" PHẢI giãn như trong dòng dữ liệu để 3 cột số nằm ĐÚNG trên
+       các con số bên dưới (trước đây không giãn -> tiêu đề dồn về trái). */
+    .o_vd_pancake_row_nv { flex: 1 1 auto; min-width: 0; font-weight: 800; }
 }
 .o_vd_pk_col {
     flex: 0 0 5rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
