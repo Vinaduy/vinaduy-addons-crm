@@ -107,57 +107,54 @@ class VdPancakeConversation(models.Model):
         ĐỔI (2026-06-29 lần 2 - user spec): "xin được số" = số SĐT ĐẨY LÊN CRM
         trong khoảng = lead Pancake tạo trong khoảng (GỒM cả khách mới VÀ khách cũ
         nhắn lại nếu lấy được số). KHÔNG đếm theo cờ has_phone của hội thoại nữa.
-        -> "xin được" khớp đúng "số chia về NV" và Pancake "SĐT mới".
 
-        Loại thùng rác page (customer_id = page_id). Trả {all, tiktok, facebook},
-        mỗi mục {total, with_phone, pct}. CHẠY SQL khách XONG (fetch hết) rồi mới
-        gọi ORM đếm lead — KHÔNG xen ORM giữa execute và fetch."""
+        ĐỔI (2026-06-30 - user spec "Hướng A" + sửa đếm sai):
+        - khách nhắn = KHÁCH MỚI (tin ĐẦU TIÊN min(first_message_at) rơi vào khoảng)
+          -> KHÔNG tính khách cũ nhắn lại.
+        - CHỈ đếm khách có customer_id THẬT (bỏ fallback conversation_id) — vì khi
+          thiếu customer_id, mỗi tin đẻ 1 conversation_id -> nổ số rác (vd 26/6 lên
+          tới 29.253 "khách" ảo).
+        - Tách TikTok/Facebook theo TIỀN TỐ customer_id ('ttm_' = TikTok). Webhook
+          đang lưu nhầm khách TikTok vào page Facebook (page_id=2) nên KHÔNG dựa
+          vào page/platform được nữa, phải nhận diện qua customer_id.
+
+        Trả {all, tiktok, facebook}, mỗi mục {total, with_phone, pct}. CHẠY SQL
+        khách XONG (fetch hết) rồi mới gọi ORM đếm lead — KHÔNG xen giữa execute/fetch."""
         Lead = self.env['crm.lead'].sudo()
-        # page_id -> platform để tách cột TikTok / Facebook ở phần "xin được".
-        plat_pages = {'tiktok': [], 'facebook': []}
-        for pg in self.env['vd.pancake.page'].sudo().search([]):
-            if pg.platform in plat_pages:
-                plat_pages[pg.platform].append(pg.id)
+        # --- KHÁCH MỚI nhắn trong khoảng, tách platform qua tiền tố customer_id ---
+        self.env.cr.execute(
+            "SELECT plat, count(*) FROM ("
+            "  SELECT customer_id, min(first_message_at) AS fe, "
+            "    CASE WHEN customer_id LIKE 'ttm\\_%%' THEN 'tiktok' "
+            "         ELSE 'facebook' END AS plat "
+            "  FROM vd_pancake_conversation "
+            "  WHERE customer_id IS NOT NULL AND customer_id <> '' "
+            "    AND customer_id NOT IN "
+            "        (SELECT page_id FROM vd_pancake_page "
+            "         WHERE page_id IS NOT NULL AND page_id <> '') "
+            "  GROUP BY customer_id "
+            ") t WHERE fe >= %s AND fe < %s GROUP BY plat",
+            [since, until])
+        khach = {'tiktok': 0, 'facebook': 0}
+        for plat, cnt in self.env.cr.fetchall():
+            if plat in khach:
+                khach[plat] = cnt or 0
+        khach_all = khach['tiktok'] + khach['facebook']
 
-        def _khach(platform):
-            # KHÁCH NHẮN = số khách (gom customer_id) có hội thoại TẠO trong khoảng.
-            sql = (
-                "SELECT count(*) FROM ("
-                "  SELECT coalesce(nullif(customer_id, ''), conversation_id) AS ckey, "
-                "         max(platform) AS plat "
-                "  FROM vd_pancake_conversation "
-                "  WHERE create_date >= %s AND create_date < %s "
-                "    AND coalesce(nullif(customer_id, ''), '') NOT IN "
-                "        (SELECT page_id FROM vd_pancake_page "
-                "         WHERE page_id IS NOT NULL AND page_id <> '') "
-                "  GROUP BY coalesce(nullif(customer_id, ''), conversation_id) "
-                ") t"
-            )
-            params = [since, until]
-            if platform:
-                sql += " WHERE plat = %s"
-                params.append(platform)
-            self.env.cr.execute(sql, params)
-            row = self.env.cr.fetchone()
-            return (row[0] or 0) if row else 0
+        # --- XIN ĐƯỢC = lead Pancake ĐẨY LÊN CRM trong khoảng (gồm khách cũ) ---
+        base = [('vd_pancake_page_id', '!=', False),
+                ('create_date', '>=', since), ('create_date', '<', until)]
+        xin_all = Lead.with_context(active_test=False).search_count(base)
+        xin_tt = Lead.with_context(active_test=False).search_count(
+            base + [('vd_pancake_customer_id', 'like', 'ttm_')])
+        xin_fb = max(0, xin_all - xin_tt)
 
-        def _xin(platform):
-            # XIN ĐƯỢC = số SĐT đẩy lên CRM = lead Pancake tạo trong khoảng.
-            dom = [('vd_pancake_page_id', '!=', False),
-                   ('create_date', '>=', since), ('create_date', '<', until)]
-            if platform:
-                dom = [('vd_pancake_page_id', 'in', plat_pages.get(platform) or [0]),
-                       ('create_date', '>=', since), ('create_date', '<', until)]
-            return Lead.with_context(active_test=False).search_count(dom)
-
-        def _blk(platform):
-            total = _khach(platform)        # SQL chạy + fetch xong tại đây
-            withp = _xin(platform)          # rồi mới gọi ORM
-            pct = int(round(withp * 100.0 / total)) if total else 0
-            return {'total': total, 'with_phone': withp, 'pct': pct}
+        def _mk(total, wp):
+            return {'total': total, 'with_phone': wp,
+                    'pct': int(round(wp * 100.0 / total)) if total else 0}
 
         return {
-            'all': _blk(None),
-            'tiktok': _blk('tiktok'),
-            'facebook': _blk('facebook'),
+            'all': _mk(khach_all, xin_all),
+            'tiktok': _mk(khach['tiktok'], xin_tt),
+            'facebook': _mk(khach['facebook'], xin_fb),
         }
