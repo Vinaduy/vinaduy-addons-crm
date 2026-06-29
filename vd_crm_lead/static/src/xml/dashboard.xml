@@ -3140,6 +3140,11 @@
                         <b><t t-esc="distRep.today.total"/></b> số,
                         chia cho <b><t t-esc="distRep.today.nv_count"/></b> NV
                         (<t t-esc="distRep.today.eligible"/> đang bật nhận)
+                        <div t-if="distRep.today.rate" class="o_vd_pk_rate_tot">
+                            💬 Khách nhắn: <b><t t-esc="distRep.today.rate.all.total"/></b>
+                            · 📞 Xin được số: <b><t t-esc="distRep.today.rate.all.with_phone"/></b>
+                            · Tỷ lệ xin số: <b><t t-esc="distRep.today.rate.all.pct"/>%</b>
+                        </div>
                         <div t-if="distRep.today.merged" class="o_vd_pk_rate_sub">
                             ↳ có <b><t t-esc="distRep.today.created_all"/></b> SĐT về,
                             đã gộp/loại <b><t t-esc="distRep.today.merged"/></b> SĐT trùng hoặc chưa gán
@@ -3199,6 +3204,11 @@
                         <b><t t-esc="distRep.yesterday.total"/></b> số,
                         chia cho <b><t t-esc="distRep.yesterday.nv_count"/></b> NV
                         (<t t-esc="distRep.yesterday.eligible"/> đang bật nhận)
+                        <div t-if="distRep.yesterday.rate" class="o_vd_pk_rate_tot">
+                            💬 Khách nhắn: <b><t t-esc="distRep.yesterday.rate.all.total"/></b>
+                            · 📞 Xin được số: <b><t t-esc="distRep.yesterday.rate.all.with_phone"/></b>
+                            · Tỷ lệ xin số: <b><t t-esc="distRep.yesterday.rate.all.pct"/>%</b>
+                        </div>
                         <div t-if="distRep.yesterday.merged" class="o_vd_pk_rate_sub">
                             ↳ có <b><t t-esc="distRep.yesterday.created_all"/></b> SĐT về,
                             đã gộp/loại <b><t t-esc="distRep.yesterday.merged"/></b> SĐT trùng hoặc chưa gán.

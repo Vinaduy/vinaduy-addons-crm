@@ -9812,6 +9812,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_pk_rate_today_lbl { font-size: 0.9rem; color: #1f2a44; b { font-size: 1rem; } }
 .o_vd_pk_rate_sub { font-size: 0.82rem; font-weight: 600; color: #846a1f; }
+.o_vd_pk_rate_tot {
+    margin-top: 0.2rem; font-size: 0.84rem; font-weight: 600; color: #1f2a44;
+    background: #fff7e6; border: 1px solid #ffe3a3; border-radius: 6px;
+    padding: 0.25rem 0.5rem; display: inline-block;
+    b { color: #e8590c; font-weight: 800; }
+}
 // Nút "Xem danh sách" SĐT bị loại + panel liệt kê + tag lý do.
 .o_vd_pk_excl_btn {
     margin-left: 0.4rem; padding: 0.08rem 0.5rem; font-size: 0.78rem; font-weight: 700;
@@ -9888,8 +9894,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pk_colhead {
     display: flex; align-items: center; gap: 0.4rem;
     padding: 0.15rem 0.5rem 0.3rem;
-    font-size: 0.66rem; font-weight: 800; color: #868e96; text-transform: uppercase;
-    letter-spacing: 0.3px; white-space: nowrap;
+    font-size: 0.66rem; font-weight: 800; color: #868e96;
+    letter-spacing: 0; white-space: nowrap;
 }
 .o_vd_pk_col {
     flex: 0 0 5rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
