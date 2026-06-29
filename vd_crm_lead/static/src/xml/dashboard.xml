@@ -3171,19 +3171,20 @@
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '') + (r.can_receive ? '' : ' o_vd_pk_off')">
-                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '') + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                             <!-- KÊNH PANCAKE: cột TikTok / FB / Tổng + nút bật-tắt -->
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
-                                <button class="o_vd_pk_toggle"
+                                <button t-if="!r.is_boss" class="o_vd_pk_toggle"
                                         t-att-class="r.can_receive ? 'o_on' : 'o_off'"
                                         t-on-click="() => this.onTogglePancakeNV(r.uid)"
                                         t-att-title="r.can_receive ? 'Đang nhận số Pancake — bấm để TẮT' : 'Đã TẮT — bấm để BẬT nhận lại'">
                                     <span class="o_vd_pk_knob"/>
                                 </button>
+                                <span t-else="" class="o_vd_pk_col_sw o_vd_pk_boss_tag" t-att-title="r.role">—</span>
                             </t>
                             <!-- KÊNH THỦ CÔNG: giữ nguyên kiểu cũ -->
                             <t t-else="">
@@ -3229,8 +3230,8 @@
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.yesterday.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off')">
-                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
@@ -3260,8 +3261,8 @@
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
                         <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off')">
-                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/></span>
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
+                            <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>

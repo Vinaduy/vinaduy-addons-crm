@@ -9908,6 +9908,17 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pk_col_fb { color: #1971c2; }
 .o_vd_pk_col_tot { flex: 0 0 4.2rem; color: #1f2a44; }
 .o_vd_pk_col_sw { flex: 0 0 2.6rem; text-align: center; }
+/* Dòng TRƯỞNG NHÓM / GIÁM ĐỐC trong bảng (chỉ xem, không vòng chia) */
+.o_vd_pk_bossrow {
+    background: #eef3ff !important; border: 1px dashed #a5c0ff;
+    .o_vd_pancake_row_nv { color: #1c4ed8; font-weight: 800; }
+}
+.o_vd_pk_role {
+    margin-left: 0.4rem; padding: 0.02rem 0.4rem; border-radius: 999px;
+    background: #1c4ed8; color: #fff; font-size: 0.62rem; font-weight: 800;
+    vertical-align: middle;
+}
+.o_vd_pk_boss_tag { color: #adb5bd; font-weight: 700; }
 
 /* ===== NÚT BẬT/TẮT nhận số (switch đẹp) ===== */
 .o_vd_pk_toggle {

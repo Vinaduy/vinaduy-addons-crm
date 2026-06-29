@@ -6582,10 +6582,17 @@ class CrmLead(models.Model):
 
         # TẤT CẢ NV thật (kể cả đang TẮT nhận) → hiển thị + có nút bật/tắt.
         all_nv = sales.filtered(_is_real_nv)
+        # TRƯỞNG NHÓM + GIÁM ĐỐC (user spec 2026-06-29): HIỂN THỊ trong bảng để
+        # GĐ thấy đủ bộ máy, NHƯNG không nằm trong vòng chia (eligible) nên không
+        # ảnh hưởng cân bằng / tổng / "chia cho N NV". Loại admin kỹ thuật.
+        boss_nv = Users.search([
+            ('share', '=', False), ('active', '=', True),
+        ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
+        role_lbl = {'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc'}
         # NV đang BẬT nhận = "đang trong vòng chia" → dùng để tính cân bằng/eligible.
         eligible = all_nv.filtered('vd_can_receive_pancake')
-        can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in all_nv}
-        name_by = {u.id: (u.name or '') for u in sales}
+        can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in (all_nv | boss_nv)}
+        name_by = {u.id: (u.name or '') for u in (sales | boss_nv)}
         src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
             else [('vd_pancake_page_id', '=', False)]
         # Map page_id -> platform để tách cột TikTok / Facebook (user spec 2026-06-23).
@@ -6663,9 +6670,24 @@ class CrmLead(models.Model):
                              'tiktok': per_tt.get(u.id, 0),
                              'facebook': per_fb.get(u.id, 0),
                              'eval': ev, 'under_target': under,
-                             'can_receive': on})
+                             'can_receive': on, 'is_boss': False, 'role': ''})
             # NV TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.
             rows.sort(key=lambda r: (not r['can_receive'], r['count'], r['name']))
+            # TRƯỞNG NHÓM + GIÁM ĐỐC: thêm xuống CUỐI bảng (chỉ xem, không vòng chia).
+            boss_rows = []
+            for u in boss_nv:
+                boss_rows.append({'uid': u.id,
+                                  'name': name_by.get(u.id) or 'NV #%s' % u.id,
+                                  'count': per.get(u.id, 0),
+                                  'tiktok': per_tt.get(u.id, 0),
+                                  'facebook': per_fb.get(u.id, 0),
+                                  'eval': 'ok', 'under_target': False,
+                                  'can_receive': can_recv.get(u.id, False),
+                                  'is_boss': True,
+                                  'role': role_lbl.get(u.vd_crm_role, '')})
+            # GĐ trước rồi Trưởng nhóm; trong nhóm theo tên.
+            boss_rows.sort(key=lambda r: (r['role'] != 'Giám đốc', r['name']))
+            rows += boss_rows
             uneven = False
             if eval_even and total > 0 and n:
                 counts = [per.get(u.id, 0) for u in eligible]
