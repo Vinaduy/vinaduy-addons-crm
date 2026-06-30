@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Nút nổi THƯ VIỆN - Mẫu nhà (ẩn khi chốt báo giá) -->
+    <t t-name="vd_crm_lead.HouseLibButton">
+        <button t-if="!hidden" class="o_vd_house_btn"
+                t-on-click="open" title="THƯ VIỆN - Mẫu nhà">
+            <span class="o_vd_house_ico"><i class="fa fa-home"/></span>
+            <span class="o_vd_house_txt">THƯ VIỆN - Mẫu nhà</span>
+        </button>
+    </t>
+
+    <!-- Popup thư viện mẫu nhà -->
+    <t t-name="vd_crm_lead.HouseLibDialog">
+        <Dialog title="'THƯ VIỆN - Mẫu nhà thiết kế'" size="'xl'">
+            <div class="o_vd_house">
+                <div t-if="state.loading" class="o_vd_house_loading">Đang tải thư viện...</div>
+                <t t-else="">
+                    <!-- TAB NHÓM -->
+                    <div class="o_vd_house_cats">
+                        <button t-foreach="state.categories" t-as="c" t-key="c.key"
+                                t-att-class="'o_vd_house_cat' + (state.cat === c.key ? ' o_active' : '')"
+                                t-on-click="() => this.selectCat(c.key)">
+                            <t t-esc="c.label"/>
+                        </button>
+                    </div>
+                    <!-- TAB CON KIỂU -->
+                    <div t-if="curCat" class="o_vd_house_styles">
+                        <button t-foreach="curCat.styles" t-as="s" t-key="s.key"
+                                t-att-class="'o_vd_house_style' + (state.style === s.key ? ' o_active' : '')"
+                                t-on-click="() => this.selectStyle(s.key)">
+                            <t t-esc="s.label"/>
+                            <span class="o_vd_house_badge"><t t-esc="s.count"/></span>
+                        </button>
+                    </div>
+
+                    <!-- THANH CÔNG CỤ -->
+                    <div class="o_vd_house_bar">
+                        <div class="o_vd_house_bar_left">
+                            <button class="btn btn-sm btn-primary"
+                                    t-on-click="() => this.downloadSelected()">
+                                ⬇ Tải ảnh đã chọn (<t t-esc="selCount"/>)
+                            </button>
+                            <span class="o_vd_house_hint">Bấm vào ảnh để chọn · rê chuột vào ảnh để Copy</span>
+                        </div>
+                        <div t-if="state.isAdmin" class="o_vd_house_bar_right">
+                            <button t-if="selCount" class="btn btn-sm btn-outline-danger"
+                                    t-on-click="() => this.removeSelected()">🗑 Xoá đã chọn</button>
+                            <label class="btn btn-sm btn-success o_vd_house_uplbl">
+                                <t t-if="state.uploading">Đang tải lên...</t>
+                                <t t-else="">⬆ Tải ảnh lên album này</t>
+                                <input type="file" accept="image/*" multiple="multiple"
+                                       style="display:none"
+                                       t-on-change="(ev) => this.onPickFiles(ev)"/>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- LƯỚI ẢNH -->
+                    <div t-if="!state.images.length" class="o_vd_house_empty">
+                        Album này chưa có ảnh.
+                        <t t-if="state.isAdmin"> Bấm "Tải ảnh lên album này" để thêm.</t>
+                    </div>
+                    <div t-else="" class="o_vd_house_grid">
+                        <div t-foreach="state.images" t-as="im" t-key="im.id"
+                             t-att-class="'o_vd_house_cell' + (isSel(im.id) ? ' o_sel' : '')"
+                             t-on-click="() => this.toggleSel(im.id)">
+                            <img t-att-src="imgUrl(im.id)" loading="lazy" t-att-alt="im.name"/>
+                            <span class="o_vd_house_check"><i class="fa fa-check"/></span>
+                            <button class="o_vd_house_copy"
+                                    t-on-click.stop="() => this.copyOne(im.id)"
+                                    title="Copy ảnh để dán vào Zalo">📋 Copy</button>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </Dialog>
+    </t>
+
+</templates>
