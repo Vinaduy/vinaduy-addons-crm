@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <!-- Nút nổi THƯ VIỆN - Mẫu nhà (ẩn khi chốt báo giá) -->
+    <!-- Nút nổi THƯ VIỆN - Mẫu nhà (giống nút Câu hỏi khó, đặt ngay dưới) -->
     <t t-name="vd_crm_lead.HouseLibButton">
-        <button t-if="!hidden" class="o_vd_house_btn"
+        <button t-if="!hidden" class="o_vd_lib_filter o_vd_house_lib_filter"
                 t-on-click="open" title="THƯ VIỆN - Mẫu nhà">
-            <span class="o_vd_house_ico"><i class="fa fa-home"/></span>
-            <span class="o_vd_house_txt">THƯ VIỆN - Mẫu nhà</span>
+            <span class="o_vd_lib_ico"><i class="fa fa-home"/></span>
+            <span class="o_vd_lib_txt">THƯ VIỆN - Mẫu nhà</span>
         </button>
     </t>
 
-    <!-- Popup thư viện mẫu nhà -->
+    <!-- Popup thư viện mẫu nhà (to 90% màn hình) -->
     <t t-name="vd_crm_lead.HouseLibDialog">
-        <Dialog title="'THƯ VIỆN - Mẫu nhà thiết kế'" size="'xl'">
+        <Dialog title="'THƯ VIỆN - Mẫu nhà thiết kế'" size="'xl'" contentClass="'o_vd_house_modal'">
             <div class="o_vd_house">
                 <div t-if="state.loading" class="o_vd_house_loading">Đang tải thư viện...</div>
                 <t t-else="">
@@ -43,8 +43,8 @@
                             </button>
                             <span class="o_vd_house_hint">Bấm vào ảnh để chọn · rê chuột vào ảnh để Copy</span>
                         </div>
-                        <div t-if="state.isAdmin" class="o_vd_house_bar_right">
-                            <button t-if="selCount" class="btn btn-sm btn-outline-danger"
+                        <div class="o_vd_house_bar_right">
+                            <button t-if="state.canDelete and selCount" class="btn btn-sm btn-outline-danger"
                                     t-on-click="() => this.removeSelected()">🗑 Xoá đã chọn</button>
                             <label class="btn btn-sm btn-success o_vd_house_uplbl">
                                 <t t-if="state.uploading">Đang tải lên...</t>
@@ -58,8 +58,7 @@
 
                     <!-- LƯỚI ẢNH -->
                     <div t-if="!state.images.length" class="o_vd_house_empty">
-                        Album này chưa có ảnh.
-                        <t t-if="state.isAdmin"> Bấm "Tải ảnh lên album này" để thêm.</t>
+                        Album này chưa có ảnh. Bấm "Tải ảnh lên album này" để thêm.
                     </div>
                     <div t-else="" class="o_vd_house_grid">
                         <div t-foreach="state.images" t-as="im" t-key="im.id"

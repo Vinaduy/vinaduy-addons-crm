@@ -1,19 +1,21 @@
 // ===== THƯ VIỆN - Mẫu nhà =====
-// Nút nổi trên form khách hàng — xanh lá, đặt DƯỚI nút "Câu hỏi khó" để không đè.
-.o_vd_house_btn {
-    position: fixed; right: 0; top: calc(50% + 44px); z-index: 1040;
-    display: flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, #12b886, #099268); color: #fff;
-    border: none; border-radius: 10px 0 0 10px; padding: 10px 14px;
-    font-weight: 800; font-size: 0.92rem; cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-    transition: filter 0.15s, transform 0.15s;
-    .o_vd_house_ico { font-size: 1.05rem; }
-    .o_vd_house_txt { white-space: nowrap; }
-    &:hover { filter: brightness(1.06); transform: translateX(-2px); }
+// Nút nổi: DÙNG LẠI style .o_vd_lib_filter (giống nút Câu hỏi khó) — chỉ đổi
+// MÀU (xanh lá) + VỊ TRÍ (ngay dưới nút Câu hỏi khó top:34%, cao 56px + cách 12px).
+.o_vd_house_lib_filter.o_vd_lib_filter {
+    top: calc(34% + 68px);
+    border-color: #c3fae8;
+    background: linear-gradient(135deg, #12b886, #099268);
+    &:hover { box-shadow: 0 14px 34px rgba(9, 146, 104, 0.5); }
 }
 
+// Popup TO 90% màn hình (Dialog size xl + contentClass o_vd_house_modal).
+.modal-dialog:has(.o_vd_house_modal) {
+    max-width: 92vw; width: 92vw;
+}
+.o_vd_house_modal { max-height: 92vh; }
+
 .o_vd_house {
+    display: flex; flex-direction: column; height: 84vh;
     .o_vd_house_loading, .o_vd_house_empty {
         padding: 1.5rem; text-align: center; color: #868e96; font-style: italic;
     }
@@ -53,8 +55,10 @@
     .o_vd_house_uplbl { margin: 0; cursor: pointer; }
     // Lưới ảnh
     .o_vd_house_grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 10px; max-height: 62vh; overflow: auto; padding: 2px;
+        flex: 1 1 auto; min-height: 0;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-auto-rows: min-content; gap: 12px; overflow: auto; padding: 2px;
+        align-content: start;
     }
     .o_vd_house_cell {
         position: relative; border: 2px solid transparent; border-radius: 8px;

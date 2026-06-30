@@ -46,14 +46,10 @@ class VdHouseDesign(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
 
-    def _vd_can_edit(self):
+    def _vd_can_delete(self):
+        """Chỉ ADMIN được xoá ảnh (user spec 2026-06-30)."""
         u = self.env.user
-        return bool(
-            u._is_admin()
-            or u.has_group('base.group_system')
-            or u.has_group('sales_team.group_sale_manager')
-            or u.has_group('vd_crm_lead.vd_crm_group_team_leader')
-        )
+        return bool(u._is_admin() or u.has_group('base.group_system'))
 
     @api.model
     def vd_house_tabs(self):
@@ -69,7 +65,8 @@ class VdHouseDesign(models.Model):
                         [('category', '=', ck), ('style', '=', sk)]),
                 })
             cats.append({'key': ck, 'label': cl, 'styles': styles})
-        return {'is_admin': self._vd_can_edit(), 'categories': cats}
+        # can_delete: chỉ admin. Tải ảnh lên thì MỌI NV đều được.
+        return {'can_delete': self._vd_can_delete(), 'categories': cats}
 
     @api.model
     def vd_house_list(self, category, style):
@@ -80,9 +77,8 @@ class VdHouseDesign(models.Model):
 
     @api.model
     def vd_house_upload(self, category, style, files):
-        """Tải ảnh hàng loạt lên 1 album. files=[{name, data(base64)}]. Admin/QL."""
-        if not self._vd_can_edit():
-            raise AccessError('Chỉ admin / quản lý mới được tải ảnh lên thư viện.')
+        """Tải ảnh hàng loạt lên 1 album. files=[{name, data(base64)}].
+        MỌI nhân viên (internal user) đều được tải lên (user spec 2026-06-30)."""
         if category not in dict(CATEGORIES) or style not in dict(STYLES):
             return 0
         n = 0
@@ -100,8 +96,8 @@ class VdHouseDesign(models.Model):
 
     @api.model
     def vd_house_delete(self, ids):
-        """Xoá ảnh đã chọn. Admin/QL."""
-        if not self._vd_can_edit():
-            raise AccessError('Chỉ admin / quản lý mới được xoá ảnh.')
+        """Xoá ảnh đã chọn — CHỈ ADMIN (user spec 2026-06-30)."""
+        if not self._vd_can_delete():
+            raise AccessError('Chỉ admin mới được xoá ảnh.')
         self.sudo().browse([int(i) for i in (ids or [])]).unlink()
         return True

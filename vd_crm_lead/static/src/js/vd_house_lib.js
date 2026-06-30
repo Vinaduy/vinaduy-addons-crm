@@ -39,7 +39,7 @@ export class VdHouseLibDialog extends Component {
         this.notification = useService("notification");
         this.state = useState({
             loading: true,
-            isAdmin: false,
+            canDelete: false,
             categories: [],
             cat: null,
             style: null,
@@ -49,7 +49,7 @@ export class VdHouseLibDialog extends Component {
         });
         onWillStart(async () => {
             const d = await this.orm.call("vd.house.design", "vd_house_tabs", []);
-            this.state.isAdmin = !!(d && d.is_admin);
+            this.state.canDelete = !!(d && d.can_delete);
             this.state.categories = (d && d.categories) || [];
             const c0 = this.state.categories[0];
             if (c0) {
