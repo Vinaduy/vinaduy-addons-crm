@@ -9889,6 +9889,33 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pk_barlbl { color: #e8590c; font-weight: 900; }
     .o_vd_pk_barwrap { box-shadow: 0 0 0 2px #ffd43b inset; }
 }
+/* Cột đã SỬA TAY: viền xanh + nền nhạt cho biết số do người sửa */
+.o_vd_pk_barcol.o_vd_pk_baredited .o_vd_pk_barwrap {
+    box-shadow: 0 0 0 2px #1c7ed6 inset; background: #e7f5ff;
+}
+/* Icon cây bút trên mỗi cột */
+.o_vd_pk_baredit {
+    margin-top: 2px; border: none; background: transparent; cursor: pointer;
+    font-size: 0.8rem; line-height: 1; padding: 1px 3px; border-radius: 4px;
+    opacity: 0.45; transition: opacity 0.15s;
+    &:hover { opacity: 1; background: #fff3bf; }
+}
+.o_vd_pk_barcol:hover .o_vd_pk_baredit { opacity: 0.9; }
+/* Hộp sửa tay số liệu */
+.o_vd_pk_editbox {
+    margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px;
+    background: #fff; border: 1px solid #74c0fc; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    .o_vd_pk_editbox_title { font-weight: 800; color: #1971c2; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .o_vd_pk_editbox_row {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem;
+        .o_form_label { font-weight: 700; color: #333; margin: 0; }
+    }
+    .o_vd_pk_editinput {
+        width: 7rem; padding: 0.25rem 0.5rem; border: 1px solid #ced4da;
+        border-radius: 6px; font-size: 0.95rem; font-weight: 700; text-align: right;
+    }
+    .o_vd_pk_editbox_btns { display: flex; gap: 0.4rem; margin-top: 0.5rem; align-items: center; }
+}
 
 /* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
 .o_vd_pk_colhead {

@@ -6582,16 +6582,17 @@ class CrmLead(models.Model):
 
         # TẤT CẢ NV thật (kể cả đang TẮT nhận) → hiển thị + có nút bật/tắt.
         all_nv = sales.filtered(_is_real_nv)
-        # TRƯỞNG NHÓM + GIÁM ĐỐC (user spec 2026-06-29): HIỂN THỊ trong bảng để
-        # GĐ thấy đủ bộ máy, NHƯNG không nằm trong vòng chia (eligible) nên không
-        # ảnh hưởng cân bằng / tổng / "chia cho N NV". Loại admin kỹ thuật.
+        # TRƯỞNG NHÓM + GIÁM ĐỐC (user spec 2026-06-30): cũng có nút BẬT/TẮT nhận số
+        # GIỐNG NV — khi BẬT thì vào vòng chia như NV. Loại admin kỹ thuật.
         boss_nv = Users.search([
             ('share', '=', False), ('active', '=', True),
         ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
         role_lbl = {'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc'}
-        # NV đang BẬT nhận = "đang trong vòng chia" → dùng để tính cân bằng/eligible.
-        eligible = all_nv.filtered('vd_can_receive_pancake')
-        can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in (all_nv | boss_nv)}
+        role_by = {u.id: role_lbl.get(u.vd_crm_role, '') for u in boss_nv}
+        # POOL chia số = NV + Trưởng nhóm + Giám đốc. Ai đang BẬT nhận = eligible.
+        pool = all_nv | boss_nv
+        eligible = pool.filtered('vd_can_receive_pancake')
+        can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in pool}
         name_by = {u.id: (u.name or '') for u in (sales | boss_nv)}
         src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
             else [('vd_pancake_page_id', '=', False)]
@@ -6656,12 +6657,13 @@ class CrmLead(models.Model):
             fair_high = -(-total // n) if n else 0   # ceil
             rows = []
             under_count = 0
-            for u in all_nv:
+            # POOL = NV + Trưởng nhóm + Giám đốc — tất cả có nút BẬT/TẮT giống nhau.
+            for u in pool:
                 c = per.get(u.id, 0)
                 # Kênh THỦ CÔNG không phụ thuộc cờ Pancake → coi như luôn "bật".
                 on = can_recv.get(u.id, True) if pancake else True
                 ev = 'few' if c < fair_low else ('many' if c > fair_high else 'ok')
-                # NV đang TẮT → không tính "chưa đủ" (cố ý không nhận).
+                # Đang TẮT → không tính "chưa đủ" (cố ý không nhận).
                 under = on and (c < daily_target)
                 if under:
                     under_count += 1
@@ -6671,24 +6673,11 @@ class CrmLead(models.Model):
                              'tiktok': per_tt.get(u.id, 0),
                              'facebook': per_fb.get(u.id, 0),
                              'eval': ev, 'under_target': under,
-                             'can_receive': on, 'is_boss': False, 'role': ''})
-            # NV TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.
+                             'can_receive': on,
+                             'is_boss': bool(role_by.get(u.id)),
+                             'role': role_by.get(u.id, '')})
+            # TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.
             rows.sort(key=lambda r: (not r['can_receive'], r['count'], r['name']))
-            # TRƯỞNG NHÓM + GIÁM ĐỐC: thêm xuống CUỐI bảng (chỉ xem, không vòng chia).
-            boss_rows = []
-            for u in boss_nv:
-                boss_rows.append({'uid': u.id,
-                                  'name': name_by.get(u.id) or 'NV #%s' % u.id,
-                                  'count': per.get(u.id, 0),
-                                  'tiktok': per_tt.get(u.id, 0),
-                                  'facebook': per_fb.get(u.id, 0),
-                                  'eval': 'ok', 'under_target': False,
-                                  'can_receive': can_recv.get(u.id, False),
-                                  'is_boss': True,
-                                  'role': role_lbl.get(u.vd_crm_role, '')})
-            # GĐ trước rồi Trưởng nhóm; trong nhóm theo tên.
-            boss_rows.sort(key=lambda r: (r['role'] != 'Giám đốc', r['name']))
-            rows += boss_rows
             uneven = False
             if eval_even and total > 0 and n:
                 counts = [per.get(u.id, 0) for u in eligible]
@@ -6704,6 +6693,24 @@ class CrmLead(models.Model):
                     fields.Datetime.to_string(until))
             return block
 
+        # SỬA TAY số liệu tỷ lệ xin số theo ngày (icon cây bút) — admin/quản lý.
+        Ovr = self.env['vd.pancake.rate.override'].sudo()
+        ovr_map = Ovr._vd_overrides_map() if pancake else {}
+
+        def _apply_override(rate_block, d):
+            """Nếu ngày d có dòng sửa tay → thay total/with_phone/pct của 'all'."""
+            if not rate_block or not ovr_map:
+                return
+            o = ovr_map.get(d.isoformat())
+            if not o:
+                return
+            a = rate_block.get('all')
+            if not a:
+                return
+            a['total'] = o['khach']
+            a['with_phone'] = o['xin']
+            a['pct'] = int(round(o['xin'] * 100.0 / o['khach'])) if o['khach'] else 0
+
         result = {
             'today': _build(today_since, today_until, True, 'Hôm nay'),
             'yesterday': _build(yest_since, yest_until, True, 'Hôm qua'),
@@ -6712,6 +6719,9 @@ class CrmLead(models.Model):
         # ⛔ CẢNH BÁO DỪNG CHIA SỐ PANCAKE (chỉ kênh Pancake).
         if pancake:
             result['alert'] = self._vd_pancake_sync_alert()
+            result['can_edit_rate'] = Ovr._vd_can_edit()
+            _apply_override(result['today'].get('rate'), today_d)
+            _apply_override(result['yesterday'].get('rate'), yest_d)
         # TỶ LỆ XIN SỐ 7 NGÀY GẦN NHẤT (chỉ kênh Pancake) — ô trên cùng báo cáo.
         if pancake:
             wd = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']  # weekday() 0..6
@@ -6723,9 +6733,12 @@ class CrmLead(models.Model):
                 blk = Conv._vd_rate_block(
                     fields.Datetime.to_string(since),
                     fields.Datetime.to_string(until))
+                _apply_override(blk, d)   # ưu tiên số sửa tay nếu có
                 rate7.append({
                     'label': wd[d.weekday()],
                     'day': '%d/%d' % (d.day, d.month),
+                    'iso': d.isoformat(),
+                    'edited': d.isoformat() in ovr_map,
                     'is_today': (i == 0),
                     'pct': blk['all']['pct'],
                     'with_phone': blk['all']['with_phone'],

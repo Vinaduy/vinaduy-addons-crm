@@ -516,11 +516,23 @@ class ResUsers(models.Model):
         if exclude_user_ids:
             domain.append(('id', 'not in', list(exclude_user_ids)))
         candidates = self.sudo().search(domain)
-        # has_group('team_leader') True cho cả Trưởng nhóm / Phó GĐ / Admin
-        # (admin implies deputy implies team_leader). → loại 3 vai trò này.
-        candidates = candidates.filtered(
-            lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
-        )
+        if source == 'pancake':
+            # Pancake (user spec 2026-06-30): Trưởng nhóm / Giám đốc CŨNG nhận số
+            # nếu đang BẬT — chỉ loại admin kỹ thuật. Union thêm họ (có thể không
+            # nằm trong group_sale_salesman) rồi loại admin/system.
+            bosses = self.sudo().search([
+                ('share', '=', False), ('active', '=', True),
+            ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
+            if exclude_user_ids:
+                _ex = set(exclude_user_ids)
+                bosses = bosses.filtered(lambda u: u.id not in _ex)
+            candidates = (candidates | bosses).filtered(
+                lambda u: not (u._is_admin() or u.has_group('base.group_system')))
+        else:
+            # Kênh KHÁC: lead không phân cho lãnh đạo → loại Trưởng nhóm/Phó GĐ/Admin.
+            candidates = candidates.filtered(
+                lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
+            )
         if preferred_team_id:
             team_members = candidates.filtered(
                 lambda u: preferred_team_id in u.sale_team_id.ids if u.sale_team_id else False

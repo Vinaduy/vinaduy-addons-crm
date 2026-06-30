@@ -49,6 +49,8 @@ export class VdCrmDashboard extends Component {
             // Panel DANH SÁCH SĐT BỊ LOẠI khỏi chia số (mở từ dòng "đã gộp/loại").
             // {open, scope, loading, items, summary} | null.
             pkExcluded: null,
+            // SỬA TAY số liệu 1 cột biểu đồ tỷ lệ — {iso,label,khach,xin} | null.
+            rateEdit: null,
             // BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn dashboard tới khi đổi.
             must_change_password: false,
             pwForm: { old: "", new1: "", new2: "" },
@@ -426,6 +428,45 @@ export class VdCrmDashboard extends Component {
             console.warn("Toggle Pancake NV lỗi:", e);
         } finally {
             this._pkToggling = false;
+        }
+    }
+
+    // ===== SỬA TAY số liệu 1 cột (icon cây bút) — admin/quản lý =====
+    onEditRate(d) {
+        if (!d || !d.iso) return;
+        this.state.rateEdit = {
+            iso: d.iso,
+            label: (d.label || "") + " " + (d.day || ""),
+            khach: d.total || 0,
+            xin: d.with_phone || 0,
+        };
+    }
+    cancelRateEdit() {
+        this.state.rateEdit = null;
+    }
+    async saveRateEdit() {
+        const e = this.state.rateEdit;
+        if (!e) return;
+        try {
+            await this.orm.call("vd.pancake.rate.override", "vd_save_rate_override",
+                [e.iso, Number(e.khach) || 0, Number(e.xin) || 0]);
+            const rep = await this.orm.call("crm.lead", "vd_pancake_dist_reports", []);
+            Object.assign(this.state, rep);
+            this.state.rateEdit = null;
+        } catch (err) {
+            console.warn("Lưu số liệu tay lỗi:", err);
+        }
+    }
+    async clearRateEdit() {
+        const e = this.state.rateEdit;
+        if (!e) return;
+        try {
+            await this.orm.call("vd.pancake.rate.override", "vd_clear_rate_override", [e.iso]);
+            const rep = await this.orm.call("crm.lead", "vd_pancake_dist_reports", []);
+            Object.assign(this.state, rep);
+            this.state.rateEdit = null;
+        } catch (err) {
+            console.warn("Xoá số liệu tay lỗi:", err);
         }
     }
 
