@@ -1,37 +1,22 @@
 # -*- coding: utf-8 -*-
 """THƯ VIỆN - Mẫu nhà thiết kế.
 
-Kho ảnh mẫu nhà cho NV copy/tải gửi khách qua Zalo. Phân theo:
-- Nhóm (category): Nhà cấp 4 / 2 tầng / 3 tầng / 4 tầng.
-- Kiểu (style) — tab con khác nhau tùy nhóm:
-    cấp 4, 2 tầng : Vuông hiện đại, Mái Nhật, Mái Thái
-    3 tầng, 4 tầng: Vuông hiện đại, Mái Pháp, Tân cổ điển
-Mỗi (nhóm, kiểu) = 1 album, chứa nhiều ảnh. Admin/quản lý tải ảnh hàng loạt;
-NV xem, bấm copy 1 ảnh (dán Zalo) hoặc tải nhiều ảnh đã chọn.
+Kho ảnh mẫu nhà cho NV copy/tải gửi khách qua Zalo. Tổ chức 2 cấp ALBUM ĐỘNG:
+- category = NHÓM (vd: Mẫu 1 Tầng, Mẫu 2 Tầng, Biệt Thự, Trần gỗ...).
+- style    = KIỂU / album con (vd: 1 TMB, 1 T Mái Thái, 2,5 TMB...).
+Tab tự sinh từ chính dữ liệu (distinct category/style) nên thêm nhóm/kiểu mới
+chỉ cần upload ảnh với category/style tương ứng, KHÔNG phải sửa code.
+
+Phân quyền: MỌI nhân viên tải ảnh lên được; CHỈ ADMIN được xoá.
 """
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
-CATEGORIES = [
-    ('cap4', 'Nhà cấp 4'),
-    ('tang2', 'Nhà 2 tầng'),
-    ('tang3', 'Nhà 3 tầng'),
-    ('tang4', 'Nhà 4 tầng'),
+# Thứ tự ưu tiên hiển thị NHÓM (cái nào không có ở đây thì xếp sau, theo tên).
+_CAT_ORDER = [
+    'Mẫu 1 Tầng', 'Mẫu 2 Tầng', 'Mẫu 3 Tầng', 'Mẫu 4 Tầng',
+    'Biệt Thự', 'Trần gỗ', 'Khác',
 ]
-STYLES = [
-    ('vuong_hiendai', 'Vuông hiện đại'),
-    ('mai_nhat', 'Mái Nhật'),
-    ('mai_thai', 'Mái Thái'),
-    ('mai_phap', 'Mái Pháp'),
-    ('tan_co_dien', 'Tân cổ điển'),
-]
-# Tab con (kiểu) theo từng nhóm.
-CAT_STYLES = {
-    'cap4': ['vuong_hiendai', 'mai_nhat', 'mai_thai'],
-    'tang2': ['vuong_hiendai', 'mai_nhat', 'mai_thai'],
-    'tang3': ['vuong_hiendai', 'mai_phap', 'tan_co_dien'],
-    'tang4': ['vuong_hiendai', 'mai_phap', 'tan_co_dien'],
-}
 
 
 class VdHouseDesign(models.Model):
@@ -40,8 +25,8 @@ class VdHouseDesign(models.Model):
     _order = 'sequence, id desc'
 
     name = fields.Char(string='Tên mẫu', default='Mẫu nhà')
-    category = fields.Selection(CATEGORIES, string='Nhóm', required=True, index=True)
-    style = fields.Selection(STYLES, string='Kiểu', required=True, index=True)
+    category = fields.Char(string='Nhóm', required=True, index=True)
+    style = fields.Char(string='Kiểu', required=True, index=True)
     image = fields.Binary(string='Ảnh', attachment=True)
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
@@ -53,19 +38,23 @@ class VdHouseDesign(models.Model):
 
     @api.model
     def vd_house_tabs(self):
-        """Cấu trúc tab: nhóm + kiểu (tab con) + số ảnh mỗi album."""
-        Sl = dict(STYLES)
+        """Tab động: gom distinct (category, style) + đếm ảnh mỗi album."""
+        self.env.cr.execute(
+            "SELECT category, style, count(*) FROM vd_house_design "
+            "WHERE category IS NOT NULL AND style IS NOT NULL "
+            "GROUP BY category, style")
+        bucket = {}
+        for cat, sty, cnt in self.env.cr.fetchall():
+            bucket.setdefault(cat, {})[sty] = cnt
+
+        def cat_key(c):
+            return (_CAT_ORDER.index(c) if c in _CAT_ORDER else len(_CAT_ORDER), c)
+
         cats = []
-        for ck, cl in CATEGORIES:
-            styles = []
-            for sk in CAT_STYLES.get(ck, []):
-                styles.append({
-                    'key': sk, 'label': Sl.get(sk, sk),
-                    'count': self.sudo().search_count(
-                        [('category', '=', ck), ('style', '=', sk)]),
-                })
-            cats.append({'key': ck, 'label': cl, 'styles': styles})
-        # can_delete: chỉ admin. Tải ảnh lên thì MỌI NV đều được.
+        for cat in sorted(bucket.keys(), key=cat_key):
+            styles = [{'key': sk, 'label': sk, 'count': bucket[cat][sk]}
+                      for sk in sorted(bucket[cat].keys())]
+            cats.append({'key': cat, 'label': cat, 'styles': styles})
         return {'can_delete': self._vd_can_delete(), 'categories': cats}
 
     @api.model
@@ -79,7 +68,9 @@ class VdHouseDesign(models.Model):
     def vd_house_upload(self, category, style, files):
         """Tải ảnh hàng loạt lên 1 album. files=[{name, data(base64)}].
         MỌI nhân viên (internal user) đều được tải lên (user spec 2026-06-30)."""
-        if category not in dict(CATEGORIES) or style not in dict(STYLES):
+        category = (category or '').strip()
+        style = (style or '').strip()
+        if not category or not style:
             return 0
         n = 0
         for f in (files or []):
