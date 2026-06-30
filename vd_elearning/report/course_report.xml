@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report PDF: "Tai khoa hoc ve" (noi dung bai giang + cau hoi thi + dap an). Chi admin. -->
+    <record id="action_report_vd_course" model="ir.actions.report">
+        <field name="name">Tải khóa học (PDF)</field>
+        <field name="model">slide.channel</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">vd_elearning.report_vd_course</field>
+        <field name="report_file">vd_elearning.report_vd_course</field>
+        <field name="print_report_name">'Khoa_hoc_%s' % ((object.name or 'khoa_hoc').replace(' ', '_'))</field>
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+    <template id="report_vd_course">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="d" t-value="doc.vd_report_content()"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 style="text-align:center;margin-bottom:4px;">
+                            <span t-esc="d['name']"/>
+                        </h2>
+                        <p style="text-align:center;color:#666;">
+                            Tỉ lệ đạt: <b><span t-esc="d['pass_percent']"/>%</b>
+                            · <span t-esc="len(d['questions'])"/> câu hỏi
+                        </p>
+
+                        <!-- NOI DUNG BAI GIANG -->
+                        <h3 style="border-bottom:2px solid #2b3350;padding-bottom:4px;margin-top:18px;">
+                            Nội dung bài giảng
+                        </h3>
+                        <t t-if="d['contents']">
+                            <t t-foreach="d['contents']" t-as="c">
+                                <div style="margin:10px 0;">
+                                    <h4 t-if="c['name']" t-esc="c['name']"/>
+                                    <div t-out="c['body']"/>
+                                </div>
+                            </t>
+                        </t>
+                        <p t-else="" style="color:#888;">Khóa học chưa có nội dung.</p>
+
+                        <!-- BAI THI -->
+                        <h3 style="border-bottom:2px solid #2b3350;padding-bottom:4px;margin-top:24px;">
+                            Bài thi (<span t-esc="len(d['questions'])"/> câu)
+                        </h3>
+                        <t t-if="d['questions']">
+                            <t t-foreach="d['questions']" t-as="q">
+                                <div style="margin:12px 0;page-break-inside:avoid;">
+                                    <div style="font-weight:bold;">
+                                        <span t-esc="q_index + 1"/>. <span t-esc="q['text']"/>
+                                    </div>
+                                    <ul style="list-style:none;padding-left:18px;margin:6px 0;">
+                                        <t t-foreach="q['answers']" t-as="a">
+                                            <li t-attf-style="margin:3px 0;{{'color:#1a7a3a;font-weight:bold;' if a['is_correct'] else ''}}">
+                                                <span t-if="a['is_correct']">✔ </span>
+                                                <span t-else="">○ </span>
+                                                <span t-esc="a['text']"/>
+                                            </li>
+                                        </t>
+                                    </ul>
+                                </div>
+                            </t>
+                        </t>
+                        <p t-else="" style="color:#888;">Khóa học chưa có câu hỏi thi.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

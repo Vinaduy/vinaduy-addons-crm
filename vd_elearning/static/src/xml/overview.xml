@@ -535,6 +535,9 @@
                     <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
                         <t t-esc="state.saving ? 'Đang lưu...' : 'Lưu khóa học'"/>
                     </button>
+                    <button class="btn btn-light" t-on-click="downloadCourse" title="Tải nội dung + bài thi của khóa học về dạng PDF">
+                        <i class="fa fa-download me-1"/>Tải khóa học (PDF)
+                    </button>
                 </t>
                 <!-- HOC VIEN dang thi -->
                 <t t-elif="state.tab=='exam' &amp;&amp; state.examStarted &amp;&amp; !state.examResult">

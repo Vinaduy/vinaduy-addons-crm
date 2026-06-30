@@ -325,6 +325,30 @@ class SlideChannel(models.Model):
                 'exam_minutes': exam_minutes,                 # hieu luc cho timer
                 'contents': contents, 'questions': questions}
 
+    def vd_report_content(self):
+        """Du lieu render PDF khoa hoc (noi dung bai giang + cau hoi thi + dap an).
+        Dung cho QWeb report 'Tai khoa hoc ve'. CHI admin (lo dap an dung)."""
+        self.ensure_one()
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc tai khoa hoc.')
+        contents = []
+        for s in self.slide_ids.filtered(
+                lambda x: not x.is_category and x.slide_category != 'quiz'
+        ).sorted(lambda x: (x.sequence, x.id)):
+            contents.append({'name': s.name or '',
+                             'body': s.vd_body or s.html_content or ''})
+        questions = []
+        quiz = self.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+        if quiz:
+            for q in quiz.question_ids.sorted(lambda x: (x.sequence, x.id)):
+                questions.append({
+                    'text': q.question or '',
+                    'answers': [{'text': a.text_value or '', 'is_correct': a.is_correct}
+                                for a in q.answer_ids.sorted(lambda x: (x.sequence, x.id))],
+                })
+        return {'name': self.name or '', 'contents': contents, 'questions': questions,
+                'pass_percent': self.vd_pass_percent or 80}
+
     @api.model
     def vd_course_config_save(self, channel_id, pass_percent, max_attempts, exam_minutes=0):
         """Luu cau hinh khoa hoc (ty le dat, so lan thi lai, thoi gian thi). Chi admin."""

@@ -642,6 +642,7 @@ export class VdCourseDialog extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.dialog = useService("dialog");
+        this.action = useService("action");
         this._k = 0;
         const data = this.props.data || {};
         this.state = useState({
@@ -885,6 +886,15 @@ export class VdCourseDialog extends Component {
                 this.state.examMinutesCfg = minutes;
                 // Hieu luc: 0 -> 1 phut/cau.
                 this.state.examMinutes = minutes > 0 ? minutes : this.state.questions.length;
+            },
+        });
+    }
+    // ---- Tai khoa hoc ve dang PDF (noi dung + cau hoi + dap an). Chi admin. ----
+    downloadCourse() {
+        this.action.doAction("vd_elearning.action_report_vd_course", {
+            additionalContext: {
+                active_ids: [this.props.channelId],
+                active_model: "slide.channel",
             },
         });
     }
