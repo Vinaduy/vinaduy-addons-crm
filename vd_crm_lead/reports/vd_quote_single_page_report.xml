@@ -61,63 +61,55 @@
 
                     <!-- ============ HEADER theo design mẫu VINADUY chuẩn ============
                          Dùng ảnh logo thật + SVG cho banner & slant -->
-                    <div style="position:relative;width:100%;height:92px;margin-bottom:0.4rem;">
-                        <!-- Banner NAVY + chỉ vàng gold + tagline (redesign luxury 2026-07-02) -->
-                        <svg width="100%" height="92" viewBox="0 0 1200 92"
+                    <div style="position:relative;width:100%;height:90px;margin-bottom:0.4rem;">
+                        <!-- Banner XANH + nêm cam (gam màu VINADUY) — sắc nét + tagline. -->
+                        <svg width="100%" height="90" viewBox="0 0 1200 90"
                              preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
                              style="display:block;position:absolute;top:0;left:0;">
                             <defs>
-                                <linearGradient id="vd_navy_banner" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#1c4a78"/>
-                                    <stop offset="52%" stop-color="#0f2b4a"/>
-                                    <stop offset="100%" stop-color="#12365c"/>
-                                </linearGradient>
-                                <linearGradient id="vd_gold_line" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#a9812c"/>
-                                    <stop offset="50%" stop-color="#e9d69a"/>
-                                    <stop offset="100%" stop-color="#a9812c"/>
+                                <linearGradient id="vd_blue_banner" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#a9c4da"/>
+                                    <stop offset="50%" stop-color="#4e80ad"/>
+                                    <stop offset="100%" stop-color="#a9c4da"/>
                                 </linearGradient>
                             </defs>
-                            <!-- Dải navy -->
-                            <rect x="150" y="6" width="1050" height="80" fill="url(#vd_navy_banner)"/>
-                            <!-- Chỉ vàng gold trên + dưới -->
-                            <rect x="150" y="6" width="1050" height="3.2" fill="url(#vd_gold_line)"/>
-                            <rect x="150" y="82.8" width="1050" height="3.2" fill="url(#vd_gold_line)"/>
-                            <!-- Nêm vàng gold góc phải -->
-                            <polygon points="1150,6 1200,6 1200,86 1104,86" fill="url(#vd_gold_line)"/>
+                            <!-- Dải xanh -->
+                            <rect x="170" y="6" width="1030" height="78" fill="url(#vd_blue_banner)"/>
+                            <!-- Nêm cam góc phải -->
+                            <polygon points="1140,6 1200,6 1200,84 1096,84" fill="#ec7a2a"/>
                             <!-- Tiêu đề -->
-                            <text x="675" y="49" text-anchor="middle"
-                                  font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="30"
-                                  letter-spacing="7" fill="#ffffff">BẢNG BÁO GIÁ CHI TIẾT</text>
-                            <!-- Tagline vàng -->
-                            <text x="675" y="72" text-anchor="middle"
-                                  font-family="Georgia,'Times New Roman',serif" font-weight="400" font-size="12.5"
-                                  letter-spacing="6" fill="#e9d69a">XÂY NHÀ TRỌN GÓI · KIẾN TẠO TỔ ẤM</text>
+                            <text x="685" y="46" text-anchor="middle"
+                                  font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="29"
+                                  letter-spacing="6" fill="#ffffff">BẢNG BÁO GIÁ CHI TIẾT</text>
+                            <!-- Tagline -->
+                            <text x="685" y="69" text-anchor="middle"
+                                  font-family="Georgia,'Times New Roman',serif" font-weight="400" font-size="12"
+                                  letter-spacing="5" fill="#eef4fa">XÂY NHÀ TRỌN GÓI · KIẾN TẠO TỔ ẤM</text>
                         </svg>
                         <!-- Logo VINADUY thật (data URI base64) đè lên góc trái -->
                         <img t-att-src="ctx.get('logo_data_uri', '')" alt="VINADUY"
-                             style="position:absolute;top:16px;left:14px;height:58px;"/>
+                             style="position:absolute;top:16px;left:14px;height:56px;"/>
                     </div>
 
                     <!-- ============ INTRO BULLETS ============ -->
                     <ul style="padding-left:0.2rem;margin:0.55rem 0 0.7rem;line-height:1.62;font-size:10pt;list-style:none;">
-                        <li style="margin-bottom:0.12rem;"><span style="color:#c19a3e;font-size:8pt;">&#9670;</span>&#160;&#160;<b style="color:#0f2b4a;">VINADUY</b> xin gửi tới Quý Khách hàng bảng báo giá chi tiết xây nhà trọn gói nhà ở dân dụng</li>
-                        <li style="margin-bottom:0.12rem;"><span style="color:#c19a3e;font-size:8pt;">&#9670;</span>&#160;&#160;Bảng báo giá áp dụng với mẫu nhà <b style="color:#a9711f;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="house_lbl"/></b></li>
-                        <li><span style="color:#c19a3e;font-size:8pt;">&#9670;</span>&#160;&#160;Kết cấu móng sử dụng hệ <b style="color:#a9711f;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="found_lbl"/></b></li>
+                        <li style="margin-bottom:0.12rem;"><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;<b style="color:#1864ab;">VINADUY</b> xin gửi tới Quý Khách hàng bảng báo giá chi tiết xây nhà trọn gói nhà ở dân dụng</li>
+                        <li style="margin-bottom:0.12rem;"><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;Bảng báo giá áp dụng với mẫu nhà <b style="color:#c0392b;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="house_lbl"/></b></li>
+                        <li><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;Kết cấu móng sử dụng hệ <b style="color:#c0392b;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="found_lbl"/></b></li>
                     </ul>
 
                     <!-- ============ KHÁCH HÀNG INFO ============ -->
-                    <table style="width:62%;border-collapse:collapse;margin:0.55rem 0 0.85rem;font-size:10pt;border-left:3px solid #c9a24b;">
+                    <table style="width:62%;border-collapse:collapse;margin:0.55rem 0 0.85rem;font-size:10pt;border-left:3px solid #ec7a2a;">
                         <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#f3f7fb;font-weight:700;border-bottom:1px solid #e6edf5;width:32%;color:#0f2b4a;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Khách hàng</td>
-                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #e6edf5;font-weight:600;color:#23303d;"><t t-esc="kh_name"/></td>
+                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;border-bottom:1px solid #d5e3f1;width:32%;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Khách hàng</td>
+                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #d5e3f1;font-weight:600;color:#23303d;"><t t-esc="kh_name"/></td>
                         </tr>
                         <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#f3f7fb;font-weight:700;border-bottom:1px solid #e6edf5;color:#0f2b4a;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Ngày tạo</td>
-                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #e6edf5;color:#23303d;"><t t-esc="ctx.get('today', '')"/></td>
+                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;border-bottom:1px solid #d5e3f1;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Ngày tạo</td>
+                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #d5e3f1;color:#23303d;"><t t-esc="ctx.get('today', '')"/></td>
                         </tr>
                         <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#f3f7fb;font-weight:700;color:#0f2b4a;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Địa chỉ</td>
+                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Địa chỉ</td>
                             <td style="padding:0.44rem 0.9rem;background:#fff;color:#23303d;"><t t-esc="addr or '—'"/></td>
                         </tr>
                     </table>
@@ -142,12 +134,12 @@
                     <div style="border:1.5px solid #cddff2;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;">
                     <table style="width:100%;border-collapse:collapse;font-size:10pt;">
                         <thead>
-                            <tr style="background:#0f2b4a;color:#fff;">
+                            <tr style="background:#1864ab;color:#fff;">
                                 <th style="padding:0.64rem 0.85rem;text-align:left;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Nội dung</th>
                                 <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Diện tích</th>
                                 <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Đơn giá</th>
                                 <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Thành Tiền</th>
-                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;background:#14365d;color:#e9d69a;">Tổng Tiền</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;background:#12507f;">Tổng Tiền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -157,7 +149,7 @@
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:center;color:#33475b;"><t t-esc="ctx.get('found_area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;color:#55677a;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;font-weight:700;color:#16324f;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
-                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border-left:2px solid #c9a24b;background:#0f2b4a;text-align:center;font-weight:800;font-size:14.5pt;color:#e9d69a;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border-left:2px solid #93c5fd;background:#dbeafe;text-align:center;font-weight:800;font-size:14.5pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
                             </tr>
                             <!-- Per-floor rows (Tầng 1, Tầng 2, ..., Tum) — zebra theo index -->
                             <t t-if="floor_rows">
@@ -231,27 +223,20 @@
                         <svg width="100%" height="170" viewBox="0 0 1200 170"
                              preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
                              style="display:block;position:absolute;top:0;left:0;">
-                            <defs>
-                                <linearGradient id="vd_gold_line2" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#a9812c"/>
-                                    <stop offset="50%" stop-color="#e9d69a"/>
-                                    <stop offset="100%" stop-color="#a9812c"/>
-                                </linearGradient>
-                            </defs>
-                            <!-- Panel navy nhạt -->
-                            <polygon points="0,10 540,10 420,132 0,132" fill="#eef3fa"/>
-                            <!-- Chỉ vàng gold đôi -->
-                            <rect x="150" y="150" width="1050" height="3" fill="url(#vd_gold_line2)"/>
-                            <rect x="150" y="155.5" width="1050" height="1.1" fill="#c9a24b" opacity="0.55"/>
+                            <!-- Panel xanh nhạt -->
+                            <polygon points="0,10 540,10 420,132 0,132" fill="#e6eef6"/>
+                            <!-- Chỉ khaki đôi -->
+                            <rect x="150" y="150" width="1050" height="4" fill="#c9b48a"/>
+                            <rect x="150" y="156" width="1050" height="1.1" fill="#c9b48a" opacity="0.55"/>
                             <g transform="translate(30,150)">
                                 <path d="M5 0 C2 0 0 2 0 5 C0 18 12 30 25 30 C28 30 30 28 30 25 L30 21 C30 19 28 17 26 17 L21 17 L18 20 C13 17 13 17 10 12 L13 9 L13 4 C13 2 11 0 9 0 Z"
-                                      fill="#c9a24b" transform="scale(0.92) translate(0,-40)"/>
+                                      fill="#ec7a2a" transform="scale(0.92) translate(0,-40)"/>
                                 <text x="42" y="-20" font-family="Georgia,'Times New Roman',serif"
-                                      font-weight="700" font-size="17" fill="#0f2b4a">
+                                      font-weight="700" font-size="17" fill="#1a1a1a">
                                     1900 9999 46 – 024 99999 868
                                 </text>
                                 <text x="42" y="-2" font-family="Georgia,'Times New Roman',serif"
-                                      font-weight="400" font-size="12" letter-spacing="1.5" fill="#a9812c">
+                                      font-weight="400" font-size="12" letter-spacing="1.5" fill="#d9480f">
                                     vinaduy.com · Kiến tạo không gian sống đẳng cấp
                                 </text>
                             </g>
