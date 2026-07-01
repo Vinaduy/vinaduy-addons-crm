@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate: chỉ seed lần đầu, admin sửa sau không bị đè -->
+    <data noupdate="1">
+
+        <!-- THƯỞNG CÁ NHÂN (mọi NV đều thấy) -->
+        <record id="bonus_personal_1" model="vd.bonus.personal">
+            <field name="name">Hợp đồng thứ 1</field>
+            <field name="contract_no">1</field>
+            <field name="amount">3000000</field>
+            <field name="currency_id" ref="base.VND"/>
+            <field name="sequence">10</field>
+        </record>
+        <record id="bonus_personal_2" model="vd.bonus.personal">
+            <field name="name">Hợp đồng thứ 2</field>
+            <field name="contract_no">2</field>
+            <field name="amount">5000000</field>
+            <field name="currency_id" ref="base.VND"/>
+            <field name="sequence">20</field>
+        </record>
+        <record id="bonus_personal_3" model="vd.bonus.personal">
+            <field name="name">Hợp đồng thứ 3</field>
+            <field name="contract_no">3</field>
+            <field name="amount">7000000</field>
+            <field name="currency_id" ref="base.VND"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- THƯỞNG PHÒNG (mỗi phòng chỉ thấy mốc của mình) -->
+        <record id="bonus_team_hcm2" model="vd.bonus.team">
+            <field name="team">HCM2</field>
+            <field name="amount">10000000</field>
+            <field name="contract_count">6</field>
+            <field name="people_count">6</field>
+            <field name="currency_id" ref="base.VND"/>
+            <field name="sequence">10</field>
+        </record>
+        <record id="bonus_team_hn" model="vd.bonus.team">
+            <field name="team">HN</field>
+            <field name="amount">4000000</field>
+            <field name="contract_count">3</field>
+            <field name="people_count">3</field>
+            <field name="currency_id" ref="base.VND"/>
+            <field name="sequence">10</field>
+        </record>
+
+    </data>
+</odoo>

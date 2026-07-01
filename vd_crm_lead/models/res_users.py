@@ -449,20 +449,22 @@ class ResUsers(models.Model):
 
     @api.model
     def _vd_calc_nv_bonus(self, n_contracts):
-        """Bậc thang thưởng NV theo file Cơ cấu chỉ tiêu 2026.
-        Cumulative — HĐ thứ N có giá trị bonus tier riêng."""
-        TIERS = {
-            1: 3_500_000,
-            2: 5_500_000,
-            3: 7_500_000,
-            4: 8_500_000,
-            5: 9_500_000,
-        }
-        DEFAULT_HIGH = 9_500_000  # HĐ 6+ giữ mức 9.5M
-        total = 0
-        for i in range(1, (n_contracts or 0) + 1):
-            total += TIERS.get(i, DEFAULT_HIGH)
-        return total
+        """Bậc thang thưởng NV — ĐỌC TỪ CẤU HÌNH 'Thưởng cá nhân' (vd.bonus.personal).
+        Cumulative: cộng dồn mốc của từng HĐ. HĐ vượt quá mốc cấu hình cao nhất →
+        dùng mức của mốc cao nhất. Chưa cấu hình → fallback mốc cũ."""
+        n = n_contracts or 0
+        if n <= 0:
+            return 0
+        recs = self.env['vd.bonus.personal'].sudo().search([], order='contract_no')
+        if recs:
+            tiers = {r.contract_no: r.amount for r in recs}
+            max_no = max(tiers)
+            top = tiers[max_no]
+            return sum(tiers.get(i, top) for i in range(1, n + 1))
+        # Fallback khi CHƯA cấu hình mốc nào.
+        TIERS = {1: 3_500_000, 2: 5_500_000, 3: 7_500_000, 4: 8_500_000, 5: 9_500_000}
+        DEFAULT_HIGH = 9_500_000
+        return sum(TIERS.get(i, DEFAULT_HIGH) for i in range(1, n + 1))
 
     @api.depends_context('uid')
     def _compute_vd_overdue_count(self):

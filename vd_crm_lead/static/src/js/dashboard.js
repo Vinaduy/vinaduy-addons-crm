@@ -3109,16 +3109,17 @@ export class VdCrmDashboard extends Component {
     }
 
     bonusTier(n) {
-        // Bậc thang thưởng cho HĐ thứ N theo cơ cấu chỉ tiêu 2026.
-        // Phải match Python: ResUsers._vd_calc_nv_bonus tiers.
-        const TIERS = {
-            1: 3_500_000,
-            2: 5_500_000,
-            3: 7_500_000,
-            4: 8_500_000,
-            5: 9_500_000,
-        };
-        return TIERS[n] || 9_500_000;  // HĐ 6+ giữ mức 9.5M
+        // Đọc từ CẤU HÌNH 'Thưởng cá nhân' (bonusBoard.personal) — match Python.
+        const cfg = (this.state.bonusBoard && this.state.bonusBoard.personal) || [];
+        if (cfg.length) {
+            const map = {};
+            for (const b of cfg) { map[b.contract_no] = b.amount; }
+            const maxNo = Math.max(...cfg.map((b) => b.contract_no));
+            return map[n] !== undefined ? map[n] : map[maxNo];
+        }
+        // Fallback khi chưa cấu hình.
+        const TIERS = { 1: 3_500_000, 2: 5_500_000, 3: 7_500_000, 4: 8_500_000, 5: 9_500_000 };
+        return TIERS[n] || 9_500_000;
     }
 
     formatVnd(n) {

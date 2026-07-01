@@ -1,6 +1,6 @@
 {
     'name': 'VD CRM Lead',
-    'version': '18.0.9.278.0',
+    'version': '18.0.9.279.0',
     'category': 'Sales/CRM',
     'summary': 'Mở rộng Odoo CRM: 7 stages tuỳ chỉnh, dashboard NV, tỉ lệ chốt heuristic, Stringee click-to-call',
     'author': 'VINADUY',
@@ -47,6 +47,7 @@
         'views/vd_pancake_page_views.xml',
         'views/res_users_vd_settings_views.xml',
         'views/vd_bonus_config_views.xml',
+        'data/vd_bonus_data.xml',
         'views/res_config_settings_views.xml',
         'views/menus.xml',
         # Hộp thư hội thoại Facebook (kết nối thẳng Meta) — GĐ1
