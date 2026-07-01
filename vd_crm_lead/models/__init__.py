@@ -17,6 +17,7 @@ from . import vd_pancake_page
 from . import vd_pancake_conversation
 from . import vd_pancake_rate_override
 from . import vd_house_design
+from . import vd_bonus_config
 from . import vd_fb_inbox
 from . import res_users
 from . import res_users_security

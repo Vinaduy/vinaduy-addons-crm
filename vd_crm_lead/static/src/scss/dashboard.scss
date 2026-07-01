@@ -7751,28 +7751,32 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
 }
 
-/* ===== Nav arrows ===== */
+/* ===== Nav arrows — NHỎ, sát mép, chỉ THÒ RA khi hover (user spec 2026-07-01) */
 .o_vd_preview_arrow {
     position: fixed;
     top: 50%;
     transform: translateY(-50%);
-    width: 52px;
-    height: 80px;
-    background: rgba(31, 42, 68, 0.9);
+    width: 16px;            /* mảnh, sát mép */
+    height: 44px;
+    background: rgba(31, 42, 68, 0.45);
     color: #fff;
     border: none;
     cursor: pointer;
-    font-size: 1.5rem;
+    font-size: 0.8rem;
+    opacity: 0.55;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.12s ease, transform 0.12s ease;
+    transition: width 0.16s ease, opacity 0.16s ease, background 0.16s ease;
     z-index: 2000;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 
     &:hover {
+        width: 40px;        /* thò ra khi rê chuột */
+        opacity: 1;
         background: #339af0;
-        transform: translateY(-50%) scale(1.08);
+        font-size: 1.2rem;
     }
     &.o_vd_preview_arrow_left  { left: 0;  border-radius: 0 8px 8px 0; }
     &.o_vd_preview_arrow_right { right: 0; border-radius: 8px 0 0 8px; }
@@ -9916,6 +9920,33 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
     .o_vd_pk_editbox_btns { display: flex; gap: 0.4rem; margin-top: 0.5rem; align-items: center; }
 }
+
+/* ===== TREO THƯỞNG (trang cá nhân) — admin cấu hình ===== */
+.o_vd_bonusbox {
+    margin-top: 0.6rem; border-radius: 10px; padding: 0.5rem 0.65rem;
+    border: 1px dashed #ffd43b; background: #fffdf5;
+}
+.o_vd_bonusbox_head {
+    font-weight: 900; font-size: 0.8rem; color: #b35309;
+    margin-bottom: 0.35rem; letter-spacing: 0.3px;
+}
+.o_vd_bonusbox_personal { border-color: #ffe066; background: #fffbe6; }
+.o_vd_bonusbox_row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 2px 0; font-size: 0.82rem;
+    .o_vd_bonusbox_lbl { color: #495057; font-weight: 600; }
+    .o_vd_bonusbox_amt { color: #e8590c; font-weight: 800; white-space: nowrap; }
+}
+.o_vd_bonusbox_team { border-color: #74c0fc; background: #eef6ff;
+    .o_vd_bonusbox_head { color: #1971c2; } }
+.o_vd_bonusbox_teamrow {
+    display: flex; flex-direction: column; gap: 1px; padding: 4px 0;
+    border-top: 1px dashed #cfe3ff;
+    &:first-of-type { border-top: none; }
+}
+.o_vd_bonusbox_amt_big { font-size: 1.2rem; font-weight: 900; color: #1c7ed6; line-height: 1.1; }
+.o_vd_bonusbox_cond { font-size: 0.8rem; font-weight: 700; color: #343a40; }
+.o_vd_bonusbox_name { font-size: 0.74rem; color: #868e96; font-style: italic; }
 
 /* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
 .o_vd_pk_colhead {

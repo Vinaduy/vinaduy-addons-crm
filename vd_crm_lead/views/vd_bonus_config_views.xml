@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ THƯỞNG CÁ NHÂN ============ -->
+    <record id="view_vd_bonus_personal_list" model="ir.ui.view">
+        <field name="name">vd.bonus.personal.list</field>
+        <field name="model">vd.bonus.personal</field>
+        <field name="arch" type="xml">
+            <list string="Thưởng cá nhân" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="contract_no"/>
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vd_bonus_personal" model="ir.actions.act_window">
+        <field name="name">Thưởng cá nhân</field>
+        <field name="res_model">vd.bonus.personal</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo mốc thưởng cá nhân theo số hợp đồng</p>
+            <p>VD: Hợp đồng thứ nhất 3.500.000đ · thứ 2: 5.500.000đ · thứ 3: 7.500.000đ. Mọi NV đều thấy các mốc này.</p>
+        </field>
+    </record>
+
+    <!-- ============ THƯỞNG PHÒNG ============ -->
+    <record id="view_vd_bonus_team_list" model="ir.ui.view">
+        <field name="name">vd.bonus.team.list</field>
+        <field name="model">vd.bonus.team</field>
+        <field name="arch" type="xml">
+            <list string="Thưởng phòng" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="team"/>
+                <field name="amount"/>
+                <field name="contract_count"/>
+                <field name="people_count"/>
+                <field name="name"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vd_bonus_team" model="ir.actions.act_window">
+        <field name="name">Thưởng phòng</field>
+        <field name="res_model">vd.bonus.team</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo mốc thưởng theo phòng ban</p>
+            <p>VD: HCM2 10 triệu / 6 hợp đồng / 6 người. Mỗi phòng chỉ thấy mốc của phòng mình; phòng nào không tạo thì không có thưởng.</p>
+        </field>
+    </record>
+
+    <!-- ============ MENU: Cấu hình tiền thưởng ============ -->
+    <menuitem id="menu_vd_bonus_root"
+              name="Cấu hình tiền thưởng"
+              parent="crm.crm_menu_config"
+              sequence="45"
+              groups="sales_team.group_sale_manager"/>
+    <menuitem id="menu_vd_bonus_personal"
+              name="Thưởng cá nhân"
+              parent="menu_vd_bonus_root"
+              action="action_vd_bonus_personal"
+              sequence="10"
+              groups="sales_team.group_sale_manager"/>
+    <menuitem id="menu_vd_bonus_team"
+              name="Thưởng phòng"
+              parent="menu_vd_bonus_root"
+              action="action_vd_bonus_team"
+              sequence="20"
+              groups="sales_team.group_sale_manager"/>
+
+</odoo>

@@ -14,6 +14,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
 import { View } from "@web/views/view";
+import { VdHouseLibDialog } from "./vd_house_lib";
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
 const VD_DASH_NV_KEY = "vd_dash_selected_nv";
@@ -35,6 +36,7 @@ export class VdCrmDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.stringee = useService("stringee");
+        this.dialog = useService("dialog");
 
         // === Default date range: 90 ngày gần nhất → hôm nay ===
         const today = new Date();
@@ -51,6 +53,8 @@ export class VdCrmDashboard extends Component {
             pkExcluded: null,
             // SỬA TAY số liệu 1 cột biểu đồ tỷ lệ — {iso,label,khach,xin} | null.
             rateEdit: null,
+            // Bảng THƯỞNG treo (admin cấu hình) hiện trên trang cá nhân.
+            bonusBoard: { personal: [], team: [], team_label: "" },
             // BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn dashboard tới khi đổi.
             must_change_password: false,
             pwForm: { old: "", new1: "", new2: "" },
@@ -324,6 +328,10 @@ export class VdCrmDashboard extends Component {
             this._dirDefaultPersonal = false;
 
             await this.loadDashboard();
+            // Nạp bảng THƯỞNG treo (admin cấu hình) — chạy nền, không chặn dashboard.
+            this.orm.call("vd.bonus.team", "vd_bonus_board", [this.state.selected_user_id || false])
+                .then((d) => { this.state.bonusBoard = d || { personal: [], team: [] }; })
+                .catch(() => {});
             // Nạp SẴN ghi âm tham khảo (global) → hover ra NGAY. Chạy nền.
             this.orm.call("crm.lead", "vd_reference_recordings", []).then((d) => {
                 this.state.refRecData = {
@@ -3085,6 +3093,19 @@ export class VdCrmDashboard extends Component {
         if (pct >= 50)  return "o_vd_perf_bar_info";     // xanh dương
         if (pct >= 25)  return "o_vd_perf_bar_warn";     // vàng
         return "o_vd_perf_bar_low";                       // đỏ
+    }
+
+    // ===== 2 nút THƯ VIỆN nổi trên dashboard (trang khách hàng NV) =====
+    openHardLibrary() {
+        const Comp = registry.category("vd_dialogs").get("hard_library", null);
+        if (Comp) {
+            this.dialog.add(Comp, {});
+        } else {
+            this.notification.add("Chưa cài thư viện câu hỏi khó.", { type: "warning" });
+        }
+    }
+    openHouseLibrary() {
+        this.dialog.add(VdHouseLibDialog, {});
     }
 
     bonusTier(n) {

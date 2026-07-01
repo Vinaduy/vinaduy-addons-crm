@@ -37,6 +37,10 @@ access_vd_pancake_rate_override_admin,vd.pancake.rate.override admin,model_vd_pa
 access_vd_pancake_rate_override_user,vd.pancake.rate.override user,model_vd_pancake_rate_override,base.group_user,1,1,1,1
 access_vd_house_design_admin,vd.house.design admin,model_vd_house_design,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_house_design_user,vd.house.design user,model_vd_house_design,base.group_user,1,0,0,0
+access_vd_bonus_personal_admin,vd.bonus.personal admin,model_vd_bonus_personal,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_bonus_personal_user,vd.bonus.personal user,model_vd_bonus_personal,base.group_user,1,0,0,0
+access_vd_bonus_team_admin,vd.bonus.team admin,model_vd_bonus_team,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_bonus_team_user,vd.bonus.team user,model_vd_bonus_team,base.group_user,1,0,0,0
 access_vd_fb_app_admin,vd.fb.app admin,model_vd_fb_app,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_fb_app_user,vd.fb.app read,model_vd_fb_app,base.group_user,1,0,0,0
 access_vd_fb_page_admin,vd.fb.page admin,model_vd_fb_page,vd_crm_lead.vd_crm_group_admin,1,1,1,1

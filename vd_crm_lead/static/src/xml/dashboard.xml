@@ -4,6 +4,18 @@
     <t t-name="vd_crm_lead.Dashboard">
         <div class="o_vd_crm_dashboard">
 
+            <!-- 2 nút THƯ VIỆN nổi (hiện cả trên trang khách hàng của NV) -->
+            <button t-if="!state.must_change_password" class="o_vd_lib_filter"
+                    t-on-click="() => this.openHardLibrary()" title="THƯ VIỆN - Câu hỏi khó">
+                <span class="o_vd_lib_ico"><i class="fa fa-life-ring"/></span>
+                <span class="o_vd_lib_txt">THƯ VIỆN - Câu hỏi khó</span>
+            </button>
+            <button t-if="!state.must_change_password" class="o_vd_lib_filter o_vd_house_lib_filter"
+                    t-on-click="() => this.openHouseLibrary()" title="THƯ VIỆN - Mẫu nhà">
+                <span class="o_vd_lib_ico"><i class="fa fa-home"/></span>
+                <span class="o_vd_lib_txt">THƯ VIỆN - Mẫu nhà</span>
+            </button>
+
             <!-- 🔒 GATE BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn toàn dashboard -->
             <div t-if="state.must_change_password" class="o_vd_pwd_gate">
                 <div class="o_vd_pwd_box">
@@ -1727,6 +1739,31 @@
                                  class="o_vd_side_perf_hint">
                                 🎯 Chốt HĐ #<t t-esc="state.performance.next_tier_at"/>
                                 → +<t t-esc="formatVnd(state.performance.next_tier_bonus)"/>đ
+                            </div>
+
+                            <!-- TREO THƯỞNG CÁ NHÂN (admin cấu hình - mọi NV đều thấy) -->
+                            <div t-if="state.bonusBoard.personal.length" class="o_vd_bonusbox o_vd_bonusbox_personal">
+                                <div class="o_vd_bonusbox_head">🎁 THƯỞNG CÁ NHÂN</div>
+                                <div t-foreach="state.bonusBoard.personal" t-as="b" t-key="b_index"
+                                     class="o_vd_bonusbox_row">
+                                    <span class="o_vd_bonusbox_lbl"><t t-esc="b.name"/></span>
+                                    <span class="o_vd_bonusbox_amt"><t t-esc="formatVnd(b.amount)"/>đ</span>
+                                </div>
+                            </div>
+
+                            <!-- TREO THƯỞNG PHÒNG (chỉ hiện mốc của PHÒNG mình) -->
+                            <div t-if="state.bonusBoard.team.length" class="o_vd_bonusbox o_vd_bonusbox_team">
+                                <div class="o_vd_bonusbox_head">🏢 THƯỞNG PHÒNG
+                                    <t t-if="state.bonusBoard.team_label"> — <t t-esc="state.bonusBoard.team_label"/></t>
+                                </div>
+                                <div t-foreach="state.bonusBoard.team" t-as="tm" t-key="tm_index"
+                                     class="o_vd_bonusbox_teamrow">
+                                    <span class="o_vd_bonusbox_amt_big"><t t-esc="formatVnd(tm.amount)"/>đ</span>
+                                    <span class="o_vd_bonusbox_cond">
+                                        <t t-esc="tm.contract_count"/> Hợp đồng · <t t-esc="tm.people_count"/> Người
+                                    </span>
+                                    <span t-if="tm.name" class="o_vd_bonusbox_name"><t t-esc="tm.name"/></span>
+                                </div>
                             </div>
                         </div>
 
