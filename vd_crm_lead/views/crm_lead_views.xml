@@ -850,11 +850,6 @@
                                     class="btn btn-success">
                                 <i class="fa fa-download me-1"/>📥 Tải báo giá PDF
                             </button>
-                            <button name="action_preview_quote_full_code" type="object"
-                                    class="btn btn-warning"
-                                    title="Xem báo giá FULL dựng 100% bằng code (thử nghiệm)">
-                                <i class="fa fa-file-pdf-o me-1"/>🧪 Báo giá FULL (thử)
-                            </button>
                             <!-- BÁO GIÁ CŨ — CHỈ hiện khi đã TẠO + GIẢI QUYẾT vấn đề
                                  "Cân đối ngân sách". Hover → popup bảng báo giá chi tiết
                                  GỐC (snapshot lúc tạo vấn đề, trước khi cân đối).
