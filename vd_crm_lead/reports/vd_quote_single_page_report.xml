@@ -120,88 +120,95 @@
                     <t t-set="km_items" t-value="ctx.get('km_items') or []"/>
                     <t t-set="ps_items" t-value="ctx.get('ps_items') or []"/>
                     <t t-set="num_rows" t-value="2 + max(len(floor_rows), 1) + len(surcharges) + len(km_items) + len(ps_items)"/>
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:0.8rem;font-size:10pt;">
+                    <!-- Bảng redesign 2026-07-02: bo góc, header đậm, bỏ lưới dọc
+                         (chỉ giữ kẻ ngang nhẹ), sọc so le (zebra) cho dễ đọc, cột
+                         tiền in đậm, ô Tổng Tiền nổi bật. wkhtmltopdf: border-radius
+                         chạy trên div bọc overflow:hidden. -->
+                    <div style="border:1.5px solid #cddff2;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;">
+                    <table style="width:100%;border-collapse:collapse;font-size:10pt;">
                         <thead>
-                            <tr style="background:linear-gradient(90deg,#5c8fb8 0%,#1864ab 100%);color:#fff;">
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:left;font-weight:700;">Nội dung</th>
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:center;font-weight:700;">Diện tích</th>
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Đơn giá</th>
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:right;font-weight:700;">Thành Tiền</th>
-                                <th style="padding:0.55rem;border:1px solid #1864ab;text-align:center;font-weight:700;background:#4a7aa0;">Tổng Tiền</th>
+                            <tr style="background:#1864ab;color:#fff;">
+                                <th style="padding:0.62rem 0.85rem;text-align:left;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;font-size:9.5pt;">Nội dung</th>
+                                <th style="padding:0.62rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;font-size:9.5pt;">Diện tích</th>
+                                <th style="padding:0.62rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;font-size:9.5pt;">Đơn giá</th>
+                                <th style="padding:0.62rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;font-size:9.5pt;">Thành Tiền</th>
+                                <th style="padding:0.62rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;font-size:9.5pt;background:#0f3f75;">Tổng Tiền</th>
                             </tr>
                         </thead>
                         <tbody>
                             <!-- Móng — diện tích = Tầng 1 (KHÔNG phải total) -->
                             <tr>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="found_lbl"/></td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('found_area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
-                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border:2px solid #1864ab;background:#dbeafe;text-align:center;font-weight:800;font-size:13pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;font-weight:700;color:#16324f;"><t t-esc="found_lbl"/></td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:center;color:#33475b;"><t t-esc="ctx.get('found_area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;color:#55677a;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;font-weight:700;color:#16324f;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
+                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border-left:2px solid #cddff2;background:#eaf2fd;text-align:center;font-weight:800;font-size:14pt;color:#0f4c8a;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
                             </tr>
-                            <!-- Per-floor rows (Tầng 1, Tầng 2, ..., Tum) -->
+                            <!-- Per-floor rows (Tầng 1, Tầng 2, ..., Tum) — zebra theo index -->
                             <t t-if="floor_rows">
                                 <t t-foreach="floor_rows" t-as="fr" t-key="fr_index">
+                                    <t t-set="rbg" t-value="'#f4f8fd' if (fr_index % 2 == 0) else '#ffffff'"/>
                                     <tr>
-                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="fr['label']"/></td>
-                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="fr['area']"/> M2<t t-if="fr.get('pct')"> x <t t-esc="fr['pct']"/>%</t></td>
-                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
-                                        <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="fr['cost']"/> VNĐ</td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;font-weight:700;color:#16324f;background:' + rbg"><t t-esc="fr['label']"/></td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:center;color:#33475b;background:' + rbg"><t t-esc="fr['area']"/> M2<t t-if="fr.get('pct')"> x <t t-esc="fr['pct']"/>%</t></td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:right;color:#55677a;background:' + rbg"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:right;font-weight:700;color:#16324f;background:' + rbg"><t t-esc="fr['cost']"/> VNĐ</td>
                                     </tr>
                                 </t>
                             </t>
                             <t t-else="">
                                 <tr>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;">Tổng sàn (<t t-esc="ctx.get('floors', '1')"/> tầng)</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('total_floor_area', '0')"/> M2</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('floor_cost', '0')"/> VNĐ</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#f4f8fd;font-weight:700;color:#16324f;">Tổng sàn (<t t-esc="ctx.get('floors', '1')"/> tầng)</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#f4f8fd;text-align:center;color:#33475b;"><t t-esc="ctx.get('total_floor_area', '0')"/> M2</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#f4f8fd;text-align:right;color:#55677a;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#f4f8fd;text-align:right;font-weight:700;color:#16324f;"><t t-esc="ctx.get('floor_cost', '0')"/> VNĐ</td>
                                 </tr>
                             </t>
                             <!-- Mái — diện tích = tầng trên cùng -->
                             <tr>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="roof_lbl"/></td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="ctx.get('roof_area', '0')"/> M2 x <t t-esc="ctx.get('roof_pct', '0')"/>%</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
-                                <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="ctx.get('roof_cost', '0')"/> VNĐ</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;font-weight:700;color:#16324f;"><t t-esc="roof_lbl"/></td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:center;color:#33475b;"><t t-esc="ctx.get('roof_area', '0')"/> M2 x <t t-esc="ctx.get('roof_pct', '0')"/>%</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;color:#55677a;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
+                                <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;font-weight:700;color:#16324f;"><t t-esc="ctx.get('roof_cost', '0')"/> VNĐ</td>
                             </tr>
                             <!-- Phát sinh (Thêm WC, cầu thang...) — append sau Mái -->
                             <t t-foreach="surcharges" t-as="sc" t-key="sc_index">
                                 <tr>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;font-weight:600;"><t t-esc="sc['name']"/></td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:center;"><t t-esc="sc['qty_label']"/></td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="sc['unit_price']"/> VNĐ</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #93c5fd;background:#fff;text-align:right;"><t t-esc="sc['total']"/> VNĐ</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;font-weight:700;color:#16324f;"><t t-esc="sc['name']"/></td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:center;color:#33475b;"><t t-esc="sc['qty_label']"/></td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;color:#55677a;"><t t-esc="sc['unit_price']"/> VNĐ</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;font-weight:700;color:#16324f;"><t t-esc="sc['total']"/> VNĐ</td>
                                 </tr>
                             </t>
                             <!-- PHÁT SINH VẬT TƯ — round 12.1. Xanh — CỘNG tiền. -->
                             <t t-foreach="ps_items" t-as="ps" t-key="ps_index">
-                                <tr style="background:#e6fcf5;">
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;font-weight:700;color:#0b7285;">
+                                <tr>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #c3f0e2;background:#e6fcf5;font-weight:700;color:#0b7285;">
                                         <t t-esc="ps['label']"/>
                                     </td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:center;color:#0b7285;">—</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;color:#0b7285;">—</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #63e6be;background:#e6fcf5;text-align:right;font-weight:700;color:#0b7285;">
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #c3f0e2;background:#e6fcf5;text-align:center;color:#0b7285;">—</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #c3f0e2;background:#e6fcf5;text-align:right;color:#0b7285;">—</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #c3f0e2;background:#e6fcf5;text-align:right;font-weight:700;color:#0b7285;">
                                         + <t t-esc="ps['amount']"/> VNĐ
                                     </td>
                                 </tr>
                             </t>
                             <!-- KHUYẾN MÃI / GIẢM GIÁ — round 12. Vàng — TRỪ tiền. -->
                             <t t-foreach="km_items" t-as="km" t-key="km_index">
-                                <tr style="background:#fff8e1;">
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;font-weight:700;color:#d9480f;">
+                                <tr>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #ffe8a3;background:#fff8e1;font-weight:700;color:#d9480f;">
                                         <t t-esc="km['label']"/>
                                     </td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:center;color:#d9480f;">—</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;color:#d9480f;">—</td>
-                                    <td style="padding:0.45rem 0.7rem;border:1px solid #ffd43b;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;">
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #ffe8a3;background:#fff8e1;text-align:center;color:#d9480f;">—</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #ffe8a3;background:#fff8e1;text-align:right;color:#d9480f;">—</td>
+                                    <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #ffe8a3;background:#fff8e1;text-align:right;font-weight:700;color:#d9480f;">
                                         − <t t-esc="km['amount']"/> VNĐ
                                     </td>
                                 </tr>
                             </t>
                         </tbody>
                     </table>
+                    </div>
 
                     <!-- ============ FOOTER theo design mẫu VINADUY chuẩn ============
                          SVG layer: parallelogram + khaki bar + hotline; PNG: dấu mộc thật -->
