@@ -5631,6 +5631,33 @@ class CrmLead(models.Model):
             'target': 'self',
         }
 
+    def action_preview_quote_full_code(self):
+        """🧪 XEM báo giá FULL dựng 100% bằng code (report qweb 6 trang) — popup
+        preview fullscreen. Không phụ thuộc file PowerPoint template."""
+        self.ensure_one()
+        import base64
+        report = self.env.ref('vd_crm_lead.action_vd_quote_full_report',
+                              raise_if_not_found=False)
+        if not report:
+            raise UserError(_('Chưa cài report báo giá FULL (cần nâng cấp module).'))
+        pdf_bytes, _ct = report._render_qweb_pdf(report.report_name, [self.id])
+        kh = self.partner_name or self.contact_name or self.name or ''
+        kh_safe = ''.join(c for c in kh if c.isalnum() or c in ' _-').strip() or str(self.id)
+        wizard = self.env['vd.quote.preview.wizard'].create({
+            'lead_id': self.id,
+            'pdf_data': base64.b64encode(pdf_bytes),
+            'pdf_name': f'BaoGiaFULL_{kh_safe}.pdf',
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'📄 Báo giá FULL (dựng bằng code) — {kh}',
+            'res_model': 'vd.quote.preview.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'dialog_size': 'fullscreen'},
+        }
+
     def action_preview_quote_now(self):
         """👁️ XEM TRƯỚC: mở POPUP TO ĐÙNG (fullscreen modal) hiển thị PDF
         inline qua widget pdf_viewer của Odoo. Scroll xem từng trang ngay
