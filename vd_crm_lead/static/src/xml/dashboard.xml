@@ -1668,9 +1668,6 @@
                             <!-- Bonus với hover tooltip danh sách HĐ -->
                             <div class="o_vd_side_perf_bonus o_vd_has_tooltip">
                                 <div class="o_vd_side_perf_bonus_lbl">💰 THƯỞNG THÁNG <t t-esc="currentMonth"/></div>
-                                <div class="o_vd_side_perf_bonus_val">
-                                    <t t-esc="formatVnd(state.performance.bonus_month)"/>đ
-                                </div>
                                 <div class="o_vd_bonus_tooltip"
                                      t-if="state.performance.closed_contracts and state.performance.closed_contracts.length">
                                     <div class="o_vd_bonus_tooltip_title">
