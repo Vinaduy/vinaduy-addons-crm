@@ -1949,16 +1949,28 @@ class CrmLead(models.Model):
 
     @api.depends('vd_quote_template_suggested_ids')
     def _compute_quote_template_id_auto(self):
-        """Tự pick template đầu tiên match intake nếu chưa có template nào.
-        Giữ nguyên nếu đã có (kể cả khi suggested thay đổi) để không ghi đè
-        manual selection."""
+        """Tự pick template đầu tiên match intake.
+
+        RE-PICK khi template hiện tại KHÔNG còn nằm trong danh sách gợi ý —
+        tức nó MÂU THUẪN với 1 chiều intake ĐÃ nhập (móng / mái / tầng / vùng).
+        Bệnh cũ (bug 2026-07-01): compute chỉ gán khi field TRỐNG và không bao
+        giờ chọn lại → NV đổi móng SAU lúc auto-gán (vd auto-đoán Móng băng cho
+        ≥2 tầng rồi NV đổi sang Cọc) thì template DÍNH file băng cũ → chốt ra
+        file móng SAI (trang data ghi Cọc nhưng trang minh hoạ là Băng).
+
+        Vẫn TÔN TRỌNG chọn tay hợp lệ: template gợi ý CÓ kèm cả template tag
+        trống (legacy) → lựa chọn tay khớp intake luôn nằm trong suggested nên
+        KHÔNG bị ghi đè; chỉ template mâu thuẫn mới bị thay."""
         for rec in self:
-            if not rec.vd_quote_template_id and rec.vd_quote_template_suggested_ids:
-                rec.vd_quote_template_id = rec.vd_quote_template_suggested_ids[0]
+            sugg = rec.vd_quote_template_suggested_ids
+            if not sugg:
+                continue
+            if not rec.vd_quote_template_id or rec.vd_quote_template_id.id not in sugg.ids:
+                rec.vd_quote_template_id = sugg[0]
 
     @api.depends(
         'vd_intake_region', 'vd_intake_foundation_type',
-        'vd_intake_roof_type', 'vd_intake_floors_num',
+        'vd_intake_roof_type', 'vd_intake_house_type', 'vd_intake_floors_num',
     )
     def _compute_quote_template_suggested(self):
         """Compute danh sách template gợi ý dựa trên 4 chiều intake KH.
@@ -1975,8 +1987,12 @@ class CrmLead(models.Model):
         """
         Tpl = self.env['vd.quote.template']
         for rec in self:
-            # Map intake values → category codes
-            roof_raw = rec.vd_intake_roof_type or ''
+            # Map intake values → category codes.
+            # Dùng _vd_resolve_roof_type(): NV thường CHỈ chọn "Mẫu nhà"
+            # (house_type) chứ không chọn "Loại mái" (roof_type) → roof_type
+            # rỗng. Helper suy mái từ house_type (mai_bang→bằng, thái/nhật/tôn→
+            # ngói) để LỌC được đúng mái, tránh gợi ý lẫn Mái Bằng / Mái Ngói.
+            roof_raw = rec._vd_resolve_roof_type() or ''
             if roof_raw == 'mai_bang':
                 roof_simple = 'bang'
             elif roof_raw:
