@@ -1672,30 +1672,6 @@
                             <div class="o_vd_side_card_title">
                                 <i class="fa fa-trophy"/> Thành tích &amp; Thưởng
                             </div>
-                            <div class="o_vd_side_perf_grid">
-                                <div class="o_vd_side_perf_item">
-                                    <div class="o_vd_side_perf_lbl">📑 Tháng</div>
-                                    <div class="o_vd_side_perf_val">
-                                        <t t-esc="state.performance.contracts_month"/>
-                                        <span class="o_vd_side_perf_target">/<t t-esc="state.performance.target_month"/></span>
-                                    </div>
-                                    <div class="o_vd_side_perf_bar">
-                                        <div t-att-class="'o_vd_side_perf_bar_fill ' + perfBarClass(state.performance.perf_pct_month)"
-                                             t-att-style="`width:${Math.min(state.performance.perf_pct_month, 100)}%`"/>
-                                    </div>
-                                </div>
-                                <div class="o_vd_side_perf_item">
-                                    <div class="o_vd_side_perf_lbl">📅 Năm</div>
-                                    <div class="o_vd_side_perf_val">
-                                        <t t-esc="state.performance.contracts_year"/>
-                                        <span class="o_vd_side_perf_target">/<t t-esc="state.performance.target_year"/></span>
-                                    </div>
-                                    <div class="o_vd_side_perf_bar">
-                                        <div t-att-class="'o_vd_side_perf_bar_fill ' + perfBarClass(state.performance.perf_pct_year)"
-                                             t-att-style="`width:${Math.min(state.performance.perf_pct_year, 100)}%`"/>
-                                    </div>
-                                </div>
-                            </div>
 
                             <!-- Bonus với hover tooltip danh sách HĐ -->
                             <div class="o_vd_side_perf_bonus o_vd_has_tooltip">

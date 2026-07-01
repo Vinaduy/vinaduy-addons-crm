@@ -63,7 +63,7 @@ class VdBonusTeam(models.Model):
             'name': r.name or ('Hợp đồng thứ %s' % r.contract_no),
             'contract_no': r.contract_no,
             'amount': r.amount,
-        } for r in Personal.search([])]
+        } for r in Personal.search([('amount', '>', 0)])]
         team_ms = []
         if team_key:
             for r in self.sudo().search([('team', '=', team_key)]):

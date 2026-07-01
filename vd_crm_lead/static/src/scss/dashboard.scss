@@ -9922,15 +9922,27 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 
 /* ===== TREO THƯỞNG (trang cá nhân) — admin cấu hình ===== */
+/* Viền SÁNG NHẤP NHÁY liên tục để thu hút NV (user spec 2026-07-01). */
+@keyframes vdBonusGlowGold {
+    0%, 100% { box-shadow: 0 0 5px rgba(245, 159, 0, 0.35); border-color: #ffe066; }
+    50%      { box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.28), 0 0 18px rgba(245, 159, 0, 0.75); border-color: #f59f00; }
+}
+@keyframes vdBonusGlowBlue {
+    0%, 100% { box-shadow: 0 0 5px rgba(28, 126, 214, 0.35); border-color: #74c0fc; }
+    50%      { box-shadow: 0 0 0 3px rgba(28, 126, 214, 0.28), 0 0 18px rgba(28, 126, 214, 0.75); border-color: #1c7ed6; }
+}
 .o_vd_bonusbox {
-    margin-top: 0.6rem; border-radius: 10px; padding: 0.5rem 0.65rem;
-    border: 1px dashed #ffd43b; background: #fffdf5;
+    margin-top: 0.7rem; border-radius: 10px; padding: 0.55rem 0.7rem;
+    border: 2px solid #ffd43b; background: #fffdf5;
 }
 .o_vd_bonusbox_head {
-    font-weight: 900; font-size: 0.8rem; color: #b35309;
-    margin-bottom: 0.35rem; letter-spacing: 0.3px;
+    font-weight: 900; font-size: 0.85rem; color: #b35309;
+    margin-bottom: 0.4rem; letter-spacing: 0.3px; text-align: center;
 }
-.o_vd_bonusbox_personal { border-color: #ffe066; background: #fffbe6; }
+.o_vd_bonusbox_personal {
+    border-color: #ffe066; background: #fffbe6;
+    animation: vdBonusGlowGold 1.8s ease-in-out infinite;
+}
 .o_vd_bonusbox_row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 2px 0; font-size: 0.82rem;
@@ -9938,6 +9950,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_bonusbox_amt { color: #e8590c; font-weight: 800; white-space: nowrap; }
 }
 .o_vd_bonusbox_team { border-color: #74c0fc; background: #eef6ff;
+    animation: vdBonusGlowBlue 1.8s ease-in-out infinite;
     .o_vd_bonusbox_head { color: #1971c2; } }
 .o_vd_bonusbox_teamrow {
     display: flex; flex-direction: column; gap: 1px; padding: 4px 0;
