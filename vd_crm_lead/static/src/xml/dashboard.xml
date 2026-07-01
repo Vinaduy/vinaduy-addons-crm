@@ -1656,10 +1656,6 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="o_vd_side_user_total">
-                                <span class="o_vd_side_user_total_lbl">Tổng KH</span>
-                                <span class="o_vd_side_user_total_val"><t t-esc="state.kpi.total or 0"/></span>
-                            </div>
                             <!-- Nút thêm KH thủ công cho NV view -->
                             <button class="o_vd_add_lead_btn mt-2"
                                     t-on-click="() => this.createNewLead()">
@@ -1669,13 +1665,9 @@
 
                         <!-- 2. Performance card (Thành tích + Thưởng) -->
                         <div class="o_vd_side_card o_vd_side_perf" t-if="state.performance">
-                            <div class="o_vd_side_card_title">
-                                <i class="fa fa-trophy"/> Thành tích &amp; Thưởng
-                            </div>
-
                             <!-- Bonus với hover tooltip danh sách HĐ -->
                             <div class="o_vd_side_perf_bonus o_vd_has_tooltip">
-                                <div class="o_vd_side_perf_bonus_lbl">💰 Thưởng tháng</div>
+                                <div class="o_vd_side_perf_bonus_lbl">💰 THƯỞNG THÁNG <t t-esc="currentMonth"/></div>
                                 <div class="o_vd_side_perf_bonus_val">
                                     <t t-esc="formatVnd(state.performance.bonus_month)"/>đ
                                 </div>
@@ -1743,52 +1735,7 @@
                             </div>
                         </div>
 
-                        <!-- 3. BÁO CÁO CUỘC GỌI (thay card "Hoạt động hôm nay" cũ —
-                             user spec 2026-06-08). Thiết kế lại dạng thẻ thống kê
-                             sạch: mỗi dòng = icon chip màu + nhãn + số to căn phải,
-                             tỉ lệ nghe máy là pill xanh riêng. Số liệu từ kpi (nguồn
-                             chung _vd_call_report). Đếm theo SỐ CUỘC GỌI. -->
-                        <div class="o_vd_side_card o_vd_cr_card">
-                            <div class="o_vd_side_card_title">
-                                <i class="fa fa-phone"/> Báo cáo cuộc gọi
-                            </div>
-                            <div class="o_vd_cr_list">
-                                <!-- KH mới hôm nay -->
-                                <div class="o_vd_cr_row o_vd_cr_new">
-                                    <span class="o_vd_cr_icon"><i class="fa fa-user-plus"/></span>
-                                    <div class="o_vd_cr_body">
-                                        <span class="o_vd_cr_label">KH mới hôm nay</span>
-                                    </div>
-                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.new_today or 0"/></span>
-                                </div>
-                                <!-- Cuộc gọi hôm nay -->
-                                <div class="o_vd_cr_row o_vd_cr_today">
-                                    <span class="o_vd_cr_icon"><i class="fa fa-phone"/></span>
-                                    <div class="o_vd_cr_body">
-                                        <span class="o_vd_cr_label">Cuộc gọi hôm nay</span>
-                                        <span class="o_vd_cr_sub">
-                                            <i class="fa fa-check-circle"/>
-                                            <t t-esc="state.kpi.calls_today_success or 0"/> nghe máy
-                                            · <b><t t-esc="answeredPct(state.kpi.calls_today_total, state.kpi.calls_today_success)"/>%</b>
-                                        </span>
-                                    </div>
-                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.calls_today_total or 0"/></span>
-                                </div>
-                                <!-- Cuộc gọi tháng này -->
-                                <div class="o_vd_cr_row o_vd_cr_month">
-                                    <span class="o_vd_cr_icon"><i class="fa fa-calendar"/></span>
-                                    <div class="o_vd_cr_body">
-                                        <span class="o_vd_cr_label">Cuộc gọi tháng này</span>
-                                        <span class="o_vd_cr_sub">
-                                            <i class="fa fa-check-circle"/>
-                                            <t t-esc="state.kpi.calls_month_success or 0"/> nghe máy
-                                            · <b><t t-esc="answeredPct(state.kpi.calls_month_total, state.kpi.calls_month_success)"/>%</b>
-                                        </span>
-                                    </div>
-                                    <span class="o_vd_cr_value"><t t-esc="state.kpi.calls_month_total or 0"/></span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- 3. BÁO CÁO CUỘC GỌI: ĐÃ XOÁ theo user spec 2026-07-01 -->
 
                         <!-- 3b. GHI ÂM THAM KHẢO — filter to, nhấp nháy như thông báo.
                              Hover → bảng ghi âm >5' của 3 NV mẫu (toàn công ty xem). -->

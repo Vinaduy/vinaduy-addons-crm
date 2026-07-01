@@ -3127,6 +3127,11 @@ export class VdCrmDashboard extends Component {
         return new Intl.NumberFormat('vi-VN').format(Math.round(n));
     }
 
+    // Tháng thực tế hiện tại (1-12) cho tiêu đề "THƯỞNG THÁNG N".
+    get currentMonth() {
+        return new Date().getMonth() + 1;
+    }
+
     formatDate(s) {
         if (!s) return "";
         return s.replace("T", " ").slice(0, 16);
