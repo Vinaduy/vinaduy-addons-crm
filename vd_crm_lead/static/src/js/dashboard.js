@@ -2699,19 +2699,34 @@ export class VdCrmDashboard extends Component {
     get previewViewProps() {
         const p = this.state.previewLead;
         if (!p.open || !p.ids.length) return null;
-        return {
-            type: "form",
-            resModel: "crm.lead",
-            resId: p.ids[p.index],
-            mode: "edit",
-            // BẬT control panel để có nút Lưu/Huỷ — TRƯỚC đây controlPanel:false
-            // khiến form KHÔNG có nút Save => intake (Tỉnh/Huyện...) KHÔNG bao giờ
-            // lưu xuống DB (log: 0 web_save cả ngày). Đó là gốc của "nó không lưu".
-            // CSS .o_vd_preview_modal sẽ thu gọn breadcrumb, chỉ giữ nút Lưu cho gọn.
-            display: { controlPanel: true },
-            // Sau khi save → refresh cached leads để pill update màu/data
-            onRecordSaved: () => this.refreshAfterPreview(),
-        };
+        const resId = p.ids[p.index];
+        // ===== MEMOIZE (fix mất dữ liệu khi đang nhập) =====
+        // Dashboard re-render MỖI 1s (training tick trainingNow) + poll 8s. Nếu
+        // getter này trả về object props MỚI mỗi render (hàm onRecordSaved cũng
+        // mới), OWL coi như props đổi → <View/> willUpdateProps → RELOAD form
+        // nhúng → nuốt dữ liệu intake đang gõ dở (bệnh "nhập xong 2-5s tự mất").
+        // Cache theo resId: chỉ tạo props mới khi ĐỔI sang KH khác → re-render
+        // định kỳ không sinh props mới → form không reload → giữ nguyên chữ đang gõ.
+        const cache = this._previewViewPropsCache;
+        if (!cache || cache.resId !== resId) {
+            this._previewViewPropsCache = {
+                resId,
+                props: {
+                    type: "form",
+                    resModel: "crm.lead",
+                    resId,
+                    mode: "edit",
+                    // BẬT control panel để có nút Lưu/Huỷ — TRƯỚC đây controlPanel:false
+                    // khiến form KHÔNG có nút Save => intake (Tỉnh/Huyện...) KHÔNG bao giờ
+                    // lưu xuống DB (log: 0 web_save cả ngày). Đó là gốc của "nó không lưu".
+                    // CSS .o_vd_preview_modal sẽ thu gọn breadcrumb, chỉ giữ nút Lưu cho gọn.
+                    display: { controlPanel: true },
+                    // Sau khi save → refresh cached leads để pill update màu/data
+                    onRecordSaved: () => this.refreshAfterPreview(),
+                },
+            };
+        }
+        return this._previewViewPropsCache.props;
     }
 
     async refreshAfterPreview() {
