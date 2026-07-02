@@ -2234,7 +2234,7 @@
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
                                                   t-att-title="lead.name">
-                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
+                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
                                                 <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
                                                 <div class="o_vd_kh_info_panel" t-on-click.stop="">
                                                     <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>
@@ -2403,7 +2403,7 @@
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
                                                   t-att-title="lead.name">
-                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span>
+                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
                                                 <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
                                                 <div class="o_vd_kh_info_panel" t-on-click.stop="">
                                                     <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>

@@ -10536,3 +10536,21 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     0%   { transform: translateY(-6px); opacity: 0; }
     100% { transform: translateY(0);    opacity: 1; }
 }
+
+/* 🏷️ Nhãn "giá cũ" cuối tên KH (bảng Thi công gấp + Xử lý vấn đề) — KH có báo
+   giá tạo trước lần đổi đơn giá. Nhỏ, cam, không chiếm chỗ. */
+.o_vd_oldprice_tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #fff3bf;
+    color: #b35309;
+    border: 1px solid #ffd43b;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    vertical-align: middle;
+    white-space: nowrap;
+    cursor: help;
+}

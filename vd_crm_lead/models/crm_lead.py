@@ -8402,6 +8402,13 @@ class CrmLead(models.Model):
         # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
         call_stats_by_lead = self._dashboard_compute_call_stats(leads)
         _today_d = fields.Date.context_today(self)  # cho cờ 'cần hỗ trợ' (active = hôm nay)
+        # Mốc đổi đơn giá gần nhất — KH có báo giá TRƯỚC mốc này = còn "giá cũ".
+        _price_changed_dt = None
+        try:
+            _pc = self.env['ir.config_parameter'].sudo().get_param('vd_crm_lead.pricing_changed_at')
+            _price_changed_dt = fields.Datetime.from_string(_pc) if _pc else None
+        except Exception:
+            _price_changed_dt = None
 
         import re as _re
         _urgent_tag = self.env.ref(
@@ -8525,6 +8532,12 @@ class CrmLead(models.Model):
                 l.vd_pancake_page_id.platform if l.vd_pancake_page_id else 'manual'
             ),
             'stage_code': l.stage_code or '',
+            # 🏷️ Cờ "giá cũ": KH đã có báo giá tạo TRƯỚC lần đổi đơn giá gần nhất
+            # → bảng giá của KH này vẫn là giá cũ (cần "Làm lại báo giá" để cập nhật).
+            'is_old_price': bool(
+                _price_changed_dt and l.vd_quote_created_date
+                and l.vd_quote_created_date < _price_changed_dt
+            ),
             # Team/Công ty: extract prefix từ tên NV (vd: "HCM1 - Mai" → "HCM1")
             'team_label': self._vd_team_label_for(l.user_id),
             # Số vấn đề đang mở (chưa resolved). >0 → tách ra bảng riêng.
