@@ -850,9 +850,8 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         string='Loại đất',
     )
     i_car_access_select = fields.Selection([
-        ('xe_tai_lon', 'ĐƯỜNG - Xe tải lớn'),
-        ('xe_tai_nho', 'ĐƯỜNG - Xe tải nhỏ'),
-        ('xe_3_banh', 'ĐƯỜNG - Xe 3 bánh'),
+        ('duoc', 'Ô tô vào được'),
+        ('khong', 'Ô tô KHÔNG vào được'),
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
 

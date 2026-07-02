@@ -1693,13 +1693,12 @@ class CrmLead(models.Model):
             if ok and rec.vd_intake_roof_type not in ok:
                 rec.vd_intake_roof_type = False
     vd_intake_car_access = fields.Boolean(string='Ô tô vào được', default=True)
-    # Selection mirror cho UI dropdown (sync 2 chiều với Boolean ở trên):
-    #  - xe_tai_lon / xe_tai_nho → vào được (True)
-    #  - xe_3_banh → không vào được ô tô (False, chỉ xe 3 bánh)
+    # Selection mirror cho UI (sync 2 chiều với Boolean ở trên). Gộp còn 2 lựa
+    # chọn (user spec 2026-07-02): trước đây 3 (tải lớn/tải nhỏ/3 bánh) nhưng giá
+    # chỉ có 2 bậc (ô tô vào / không) nên tải lớn = tải nhỏ. Nay đúng 1-1 với giá.
     vd_intake_car_access_select = fields.Selection([
-        ('xe_tai_lon', 'ĐƯỜNG - Xe tải lớn'),
-        ('xe_tai_nho', 'ĐƯỜNG - Xe tải nhỏ'),
-        ('xe_3_banh', 'ĐƯỜNG - Xe 3 bánh'),
+        ('duoc', 'Ô tô vào được'),
+        ('khong', 'Ô tô KHÔNG vào được'),
     ], string='Ô tô vào',
         compute='_compute_car_access_select',
         inverse='_inverse_car_access_select',
@@ -1708,13 +1707,11 @@ class CrmLead(models.Model):
     @api.depends('vd_intake_car_access')
     def _compute_car_access_select(self):
         for rec in self:
-            # Chỉ set giá trị mặc định khi chưa có (tránh ghi đè lựa chọn cụ thể)
-            if not rec.vd_intake_car_access_select:
-                rec.vd_intake_car_access_select = 'xe_tai_nho' if rec.vd_intake_car_access else 'xe_3_banh'
+            rec.vd_intake_car_access_select = 'duoc' if rec.vd_intake_car_access else 'khong'
 
     def _inverse_car_access_select(self):
         for rec in self:
-            rec.vd_intake_car_access = rec.vd_intake_car_access_select in ('xe_tai_lon', 'xe_tai_nho')
+            rec.vd_intake_car_access = (rec.vd_intake_car_access_select == 'duoc')
 
     # Chỗ để đất móng — KH có chỗ chứa/đổ đất móng đào lên không?
     # Ảnh hưởng đến chi phí thi công (phải thuê xe vận chuyển hay không).
