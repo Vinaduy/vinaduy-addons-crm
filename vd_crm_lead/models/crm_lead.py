@@ -2509,6 +2509,28 @@ class CrmLead(models.Model):
             return f'{n / 1_000:.0f}k'
         return f'{n:.0f}'
 
+    @api.model
+    def vd_get_pricing_notice(self):
+        """Thông báo điều chỉnh đơn giá (đỏ, 24h) cho dashboard phòng KD.
+        Trả {active, title, lines[]} — active=False nếu hết hạn / chưa có."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        until = ICP.get_param('vd_crm_lead.pricing_notice_until')
+        if not until:
+            return {'active': False}
+        try:
+            until_dt = fields.Datetime.from_string(until)
+        except Exception:
+            return {'active': False}
+        if not until_dt or fields.Datetime.now() >= until_dt:
+            return {'active': False}
+        msg = ICP.get_param('vd_crm_lead.pricing_notice_msg') or ''
+        return {
+            'active': True,
+            'title': ICP.get_param('vd_crm_lead.pricing_notice_title')
+                     or '📢 THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ',
+            'lines': [l for l in msg.split('\n') if l.strip()],
+        }
+
     # PREVIEW PDF — Binary field + widget="pdf_viewer" hiển thị inline
     # NV bấm "🔄 Cập nhật preview" → generate file → embed PDF reader
     vd_quote_preview_pdf = fields.Binary(

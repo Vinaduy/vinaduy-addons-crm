@@ -1878,6 +1878,19 @@
                             </div>
                         </div>
 
+                        <!-- 📢 BANNER THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ — đỏ, bên phải ô
+                             tìm kiếm, tự hiện 24h mỗi khi admin sửa đơn giá. -->
+                        <div t-if="state.pricingNotice and state.pricingNotice.active"
+                             class="o_vd_price_notice">
+                            <div class="o_vd_price_notice_title">
+                                <i class="fa fa-bullhorn me-2"/><t t-esc="state.pricingNotice.title"/>
+                            </div>
+                            <div t-foreach="state.pricingNotice.lines" t-as="ln" t-key="ln_index"
+                                 class="o_vd_price_notice_line">
+                                <t t-esc="ln"/>
+                            </div>
+                        </div>
+
                         <!-- ===== TOOLBAR CHỌN NHIỀU KH → CHUYỂN NV =====
                              Chỉ admin / người chia số / giám đốc (canBulkReassign). -->
                         <div t-if="canBulkReassign" class="o_vd_bulk_bar">

@@ -218,7 +218,32 @@ class VdPricingRegion(models.Model):
         res = super().write(vals)
         # Đổi cấu hình đơn giá -> dựng lại nội dung bảng giá trong khóa học để đồng bộ.
         self._vd_sync_course_bang_gia()
+        # Admin sửa đơn giá -> bật banner thông báo 24h cho phòng KD + mốc đổi giá.
+        self._vd_trigger_price_notice(vals)
         return res
+
+    def _vd_trigger_price_notice(self, vals):
+        """User spec 2026-07-02: mỗi khi admin sửa ĐƠN GIÁ (san_/mong_/mai_/
+        thong_/xay/tron) -> lưu mốc đổi giá + bật thông báo đỏ 24h trên dashboard
+        cho toàn phòng KD. Bọc try/except để KHÔNG bao giờ làm hỏng việc lưu giá."""
+        price_prefixes = ('san_', 'mong_', 'mai_', 'thong_', 'xay', 'tron')
+        if not any(str(k).startswith(price_prefixes) for k in (vals or {})):
+            return
+        try:
+            from datetime import timedelta
+            now = fields.Datetime.now()
+            ICP = self.env['ir.config_parameter'].sudo()
+            ICP.set_param('vd_crm_lead.pricing_changed_at', fields.Datetime.to_string(now))
+            ICP.set_param('vd_crm_lead.pricing_notice_until',
+                          fields.Datetime.to_string(now + timedelta(hours=24)))
+            ICP.set_param('vd_crm_lead.pricing_notice_title',
+                          '📢 THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ')
+            ICP.set_param('vd_crm_lead.pricing_notice_msg',
+                          'Đơn giá xây dựng vừa được điều chỉnh.\n'
+                          'Từ bây giờ vui lòng tư vấn và báo giá theo BẢNG GIÁ MỚI.\n'
+                          'Khách đã chốt vẫn giữ giá cũ; cần cập nhật thì làm lại báo giá.')
+        except Exception:
+            pass
 
     @api.model_create_multi
     def create(self, vals_list):

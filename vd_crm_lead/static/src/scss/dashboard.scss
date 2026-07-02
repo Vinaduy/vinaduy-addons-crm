@@ -10501,3 +10501,38 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_emp_filter .o_vd_emp_filter_ico { font-size: 24px; }
     .o_vd_emp_filter .o_vd_emp_filter_hint { font-size: 12px; display: block; }
 }
+
+/* 📢 BANNER THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ — đỏ, nổi bật, tự ẩn sau 24h.
+   Đặt bên phải ô tìm kiếm trong topbar (flex) hoặc xuống dòng nếu chật. */
+.o_vd_price_notice {
+    flex: 1 1 320px;
+    min-width: 280px;
+    margin-left: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f03e3e 0%, #c92a2a 60%, #a51111 100%);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(201, 42, 42, 0.35);
+    border: 1.5px solid #ffd8d8;
+    animation: vd-price-notice-pop 0.3s ease-out;
+
+    .o_vd_price_notice_title {
+        font-weight: 900;
+        font-size: 1.02rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+    }
+    .o_vd_price_notice_line {
+        font-size: 0.86rem;
+        line-height: 1.45;
+        font-weight: 600;
+        opacity: 0.97;
+    }
+}
+@keyframes vd-price-notice-pop {
+    0%   { transform: translateY(-6px); opacity: 0; }
+    100% { transform: translateY(0);    opacity: 1; }
+}

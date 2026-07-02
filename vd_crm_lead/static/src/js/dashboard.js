@@ -48,6 +48,8 @@ export class VdCrmDashboard extends Component {
         // Default = 'customers' (workflow KH-care thường mở trước).
         this.state = useState({
             loading: true,
+            // 📢 Banner đỏ THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ (tự hiện 24h khi admin sửa giá).
+            pricingNotice: { active: false },
             // Panel DANH SÁCH SĐT BỊ LOẠI khỏi chia số (mở từ dòng "đã gộp/loại").
             // {open, scope, loading, items, summary} | null.
             pkExcluded: null,
@@ -240,6 +242,7 @@ export class VdCrmDashboard extends Component {
             this.state.trainingNow = Date.now();
             this._loadTrainingBanner();
             this._loadCourseStats();
+            this._loadPricingNotice();
             this._trainingTick = setInterval(() => {
                 this.state.trainingNow = Date.now();
                 this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
@@ -563,6 +566,16 @@ export class VdCrmDashboard extends Component {
             name: "Học cùng VINADUY",
         });
     }
+    // 📢 Nạp thông báo điều chỉnh đơn giá (đỏ, 24h). An toàn nếu lỗi.
+    async _loadPricingNotice() {
+        try {
+            const n = await this.orm.call("crm.lead", "vd_get_pricing_notice", []);
+            this.state.pricingNotice = n || { active: false };
+        } catch (_e) {
+            this.state.pricingNotice = { active: false };
+        }
+    }
+
     // Báo cáo khóa học: tổng / đã học / chưa học (an toàn nếu eLearning chưa cài).
     async _loadCourseStats() {
         try {
