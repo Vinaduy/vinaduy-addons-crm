@@ -863,6 +863,15 @@
                                     <field name="vd_oldquote_breakdown_html" widget="html" nolabel="1" readonly="1"/>
                                 </div>
                             </div>
+                            <!-- 🔄 LÀM LẠI BÁO GIÁ VỚI ĐƠN GIÁ MỚI — chỉ hiện khi KH còn
+                                 giá cũ (báo giá tạo trước lần đổi đơn giá). Cập nhật cả PDF. -->
+                            <field name="vd_is_old_price" invisible="1"/>
+                            <button name="action_vd_requote_new_price" type="object"
+                                    class="btn btn-warning"
+                                    invisible="not vd_is_old_price"
+                                    title="Cập nhật toàn bộ báo giá của KH này sang ĐƠN GIÁ MỚI (kể cả file PDF)">
+                                <i class="fa fa-refresh me-1"/>🔄 Làm lại báo giá với đơn giá mới
+                            </button>
                         </div>
                     </div>
                 </div>

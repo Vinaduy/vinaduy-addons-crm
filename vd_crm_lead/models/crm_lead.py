@@ -1069,6 +1069,22 @@ class CrmLead(models.Model):
         help='Latch lần đầu intake đủ → khoá → báo giá chi tiết hiện ra. '
              'Dùng để đếm số ngày KH đã ở giai đoạn báo giá/đàm phán.',
     )
+    # 🏷️ Báo giá của KH còn theo GIÁ CŨ = tạo trước lần đổi đơn giá gần nhất.
+    # Dùng cho: nút "Làm lại báo giá với đơn giá mới" + nhãn "giá cũ" trên dashboard.
+    vd_is_old_price = fields.Boolean(
+        string='Báo giá theo giá cũ', compute='_compute_vd_is_old_price')
+
+    @api.depends('vd_quote_created_date')
+    def _compute_vd_is_old_price(self):
+        pc = self.env['ir.config_parameter'].sudo().get_param('vd_crm_lead.pricing_changed_at')
+        try:
+            changed = fields.Datetime.from_string(pc) if pc else None
+        except Exception:
+            changed = None
+        for rec in self:
+            rec.vd_is_old_price = bool(
+                changed and rec.vd_quote_created_date
+                and rec.vd_quote_created_date < changed)
     # Timestamp lần cuối NV chỉnh sửa intake (chưa CHỐT). Cron wipe sau 15 phút
     # im lặng → ép NV phải CHỐT trong 1 lượt khai thác. Bump trong write() khi
     # locked field đổi + lead chưa locked.
@@ -5758,6 +5774,57 @@ class CrmLead(models.Model):
                 'message': (f'🔒 Đã CHỐT báo giá → Đàm phán\n'
                             f'Deadline: {deadline.strftime("%d/%m/%Y")} (7 ngày)'),
                 'type': 'rainbow_man',
+            },
+        }
+
+    def action_vd_requote_new_price(self):
+        """🔄 LÀM LẠI BÁO GIÁ VỚI ĐƠN GIÁ MỚI (user spec 2026-07-02).
+        Cập nhật toàn bộ báo giá của KH này sang bảng giá hiện tại (bao gồm cả
+        file PDF). Xoá nhãn "giá cũ". Nếu KH đã CHỐT → tạo bản chốt mới giá mới."""
+        self.ensure_one()
+        # Giá mới = ước tính LIVE theo config hiện tại (vd_intake_estimate store=False).
+        new_price = self.vd_intake_estimate or 0.0
+        if not new_price:
+            raise UserError(_(
+                'Chưa đủ dữ liệu để tính lại báo giá (diện tích / tầng / móng / mái).'
+            ))
+        was_locked = self.vd_quote_locked
+        self.with_context(vd_skip_intake_lock=True).write({
+            'vd_quote_price': new_price,
+            'vd_quote_created_date': fields.Datetime.now(),  # xoá nhãn "giá cũ"
+        })
+        # Xoá PDF preview cache → lần xem/tải sau tự tạo lại theo giá mới.
+        self.vd_quote_preview_pdf = False
+        self.vd_quote_preview_pdf_name = 'preview_baogia.pdf'
+        # KH đã CHỐT → tạo bản chốt MỚI theo giá mới, thay bản chốt cũ.
+        if was_locked:
+            prev = self.vd_quote_version_ids[:1]
+            vals = self._build_quote_snapshot_vals()
+            vals['state'] = 'locked'
+            new_v = self.env['vd.quote.version'].create(vals)
+            new_v.changes_log = (
+                (new_v._build_diff_log(prev) or '') + '\n🔄 CẬP NHẬT ĐƠN GIÁ MỚI'
+            ).strip()
+            new_v._generate_pdf()
+            self.write({'vd_quote_locked_version_id': new_v.id})
+        self.message_post(
+            subtype_xmlid='mail.mt_note',
+            body=_('🔄 <b>Đã làm lại báo giá theo ĐƠN GIÁ MỚI</b> — tổng: <b>%s đ</b>.'
+                   '%s') % (
+                f'{new_price:,.0f}'.replace(',', '.'),
+                ' Đã tạo lại bản chốt mới.' if was_locked else '',
+            ),
+        )
+        return {
+            'type': 'ir.actions.client', 'tag': 'display_notification',
+            'params': {
+                'title': '🔄 Đã cập nhật đơn giá mới',
+                'message': 'Báo giá của KH đã áp dụng bảng giá mới (kể cả file PDF).',
+                'type': 'success', 'sticky': False,
+                'next': {'type': 'ir.actions.act_window',
+                         'res_model': 'crm.lead', 'res_id': self.id,
+                         'view_mode': 'form', 'views': [(False, 'form')],
+                         'target': 'current'},
             },
         }
 
