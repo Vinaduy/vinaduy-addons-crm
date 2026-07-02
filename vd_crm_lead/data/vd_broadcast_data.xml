@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate=1: seed 1 lần, admin sửa/RESET sau không bị đè khi nâng cấp.
+         Chiến dịch mẫu "Thi công móng" — đặt giờ 8h sáng 03/07/2026 (01:00 UTC). -->
+    <data noupdate="1">
+        <record id="vd_broadcast_camp_thi_cong_mong" model="vd.broadcast.campaign">
+            <field name="name">Thi công móng - Nghiệm thu chất lượng (Tuần 1 tháng 7)</field>
+            <field name="active" eval="True"/>
+            <field name="start_datetime">2026-07-03 01:00:00</field>
+            <field name="window_minutes">30</field>
+
+            <field name="body_html" type="html">
+                <div>
+                    <p><b>🏗️ VINADUY - THI CÔNG MÓNG ĐÚNG CHUẨN, NGHIỆM THU TỪNG BƯỚC</b></p>
+                    <p>Kính gửi Quý khách hàng,</p>
+                    <p>Móng là phần quan trọng NHẤT của ngôi nhà - quyết định độ bền vững cho cả công trình.
+                        Tại VINADUY, mỗi hạng mục móng đều được <b>nghiệm thu chặt chẽ</b> và quay video minh bạch để Quý khách yên tâm:</p>
+                    <ul>
+                        <li>✅ <b>Đo độ sụt bê tông</b> - kiểm soát đúng mác bê tông thiết kế.</li>
+                        <li>✅ <b>Đầm dùi bê tông</b> - bê tông đặc chắc, không rỗ, không rỗng khí.</li>
+                        <li>✅ <b>Đúc mẫu bê tông</b> - lưu mẫu kiểm định cường độ đạt chuẩn.</li>
+                        <li>✅ <b>Bảo dưỡng móng</b> - giữ ẩm đúng kỹ thuật, chống nứt bề mặt.</li>
+                    </ul>
+                    <p>👉 Cùng xem những thước phim thi công móng THỰC TẾ tại công trình VINADUY (video đính kèm).</p>
+                    <p>📞 Anh/chị cần tư vấn xây nhà trọn gói, báo giá chi tiết - liên hệ ngay VINADUY để nhận
+                        ưu đãi và bảng giá mới nhất!</p>
+                    <p><b>VINADUY - Xây tổ ấm, dựng niềm tin.</b></p>
+                </div>
+            </field>
+
+            <field name="personal_html" type="html">
+                <div>
+                    <p><b>🏗️ MÓNG CHẮC - NHÀ BỀN 🏗️</b></p>
+                    <p>Hôm nay lại là một ngày VINADUY "chạy" hết công suất tại công trình 💪</p>
+                    <p>Phần móng được nghiệm thu từng bước: đo độ sụt, đầm dùi, đúc mẫu, bảo dưỡng...
+                        Làm kỹ từ cái nền để gia chủ an tâm ở cả đời 🏠</p>
+                    <p>Ai đang có ý định xây nhà thì inbox em nhé, tư vấn tận tình - báo giá rõ ràng ✅</p>
+                    <p>#VINADUY #XayNhaTronGoi #ThiCongMong #NghiemThuChatLuong</p>
+                </div>
+            </field>
+
+            <field name="rule_html" type="html">
+                <div>
+                    <p><b>📋 QUY ĐỊNH SPAM TIN NHẮN NHÓM ZALO - CÔNG TY VINADUY</b></p>
+                    <p>Mục tiêu: để khách hàng <b>THƯỜNG XUYÊN nhìn thấy hình ảnh, video công trình</b>
+                        công ty đang thi công, tăng độ tin tưởng và tỉ lệ chốt hợp đồng.</p>
+                    <p><b>BƯỚC 1 - Spam vào các NHÓM Zalo khách hàng:</b></p>
+                    <ul>
+                        <li>Tải toàn bộ ảnh/video đính kèm bên dưới về máy.</li>
+                        <li>Gửi <b>nội dung mẫu + ảnh/video</b> vào TẤT CẢ các nhóm Zalo khách hàng bạn đang quản lý.</li>
+                        <li>Gửi lần lượt, KHÔNG gửi trùng 1 nhóm nhiều lần gây làm phiền khách.</li>
+                        <li>Giữ nguyên nội dung mẫu, không tự ý sửa thông tin công ty / số điện thoại.</li>
+                    </ul>
+                    <p><b>BƯỚC 2 - Đăng bài lên trang CÁ NHÂN Zalo:</b></p>
+                    <ul>
+                        <li>Đăng nội dung + ảnh/video lên Nhật ký (trang cá nhân) Zalo của bạn.</li>
+                        <li>Để chế độ CÔNG KHAI để mọi khách hàng đều thấy.</li>
+                    </ul>
+                    <p><b>BƯỚC 3 - Báo cáo và bấm HOÀN THÀNH:</b></p>
+                    <ul>
+                        <li>Điền số nhóm Zalo bạn đã gửi thành công.</li>
+                        <li>Tích cam kết đã đăng bài lên trang Zalo cá nhân.</li>
+                        <li>Bấm HOÀN THÀNH để mở khoá vào CRM.</li>
+                    </ul>
+                    <p style="color:#c0392b;"><b>⚠️ LƯU Ý:</b> Chưa báo cáo thì KHÔNG vào được CRM.
+                        Việc này thực hiện định kỳ mỗi tuần - nhân viên nào không thực hiện sẽ bị khoá truy cập.</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

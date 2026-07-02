@@ -8,6 +8,10 @@ access_vd_tinhnham_region_manager,vd.tinhnham.region manager,model_vd_tinhnham_r
 access_vd_floor_function_tag_user,vd.floor.function.tag read,model_vd_floor_function_tag,base.group_user,1,0,0,0
 access_vd_floor_function_tag_manager,vd.floor.function.tag manager,model_vd_floor_function_tag,sales_team.group_sale_manager,1,1,1,1
 access_vd_lead_floor_func_line_user,vd.lead.floor.func.line user,model_vd_lead_floor_func_line,base.group_user,1,1,1,1
+access_vd_broadcast_campaign_user,vd.broadcast.campaign read,model_vd_broadcast_campaign,base.group_user,1,0,0,0
+access_vd_broadcast_campaign_manager,vd.broadcast.campaign manager,model_vd_broadcast_campaign,sales_team.group_sale_manager,1,1,1,1
+access_vd_broadcast_report_user,vd.broadcast.report user,model_vd_broadcast_report,base.group_user,1,1,1,0
+access_vd_broadcast_report_manager,vd.broadcast.report manager,model_vd_broadcast_report,sales_team.group_sale_manager,1,1,1,1
 access_vd_lead_lost_wizard_user,vd.lead.lost.wizard,model_vd_lead_lost_wizard,base.group_user,1,1,1,1
 access_vd_lead_no_quote_wizard_user,vd.lead.no_quote.wizard,model_vd_lead_no_quote_wizard,base.group_user,1,1,1,1
 access_vd_lead_cancel_history_wizard_user,vd.lead.cancel.history.wizard,model_vd_lead_cancel_history_wizard,base.group_user,1,1,1,1

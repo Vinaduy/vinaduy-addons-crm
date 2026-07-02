@@ -61,6 +61,12 @@ export class VdCrmDashboard extends Component {
             must_change_password: false,
             pwForm: { old: "", new1: "", new2: "" },
             pwSaving: false,
+            // 📢 CHIẾN DỊCH SPAM ZALO: chiến dịch đang khoá NV (chưa báo cáo) | null.
+            // Khoá toàn bộ dashboard, hiện popup 3 bước tới khi NV nộp báo cáo.
+            broadcast: null,
+            broadcastStep: 1,
+            broadcastForm: { sent: "", committed: false, note: "" },
+            broadcastSubmitting: false,
             // Popover NHẮC NHỞ (hover TỔNG KH) — fixed, ghim sát phải; {nv, top} | null.
             reminderHover: null,
             // Popover GHI ÂM (hover TÊN NV) — fixed, hiện bên trái; {user_id, name,
@@ -241,6 +247,7 @@ export class VdCrmDashboard extends Component {
             // danh sách (lịch mới / đã hoàn thành rớt ra). Bỏ qua khi tab ẩn.
             this.state.trainingNow = Date.now();
             this._loadTrainingBanner();
+            this._loadBroadcast();
             this._loadCourseStats();
             this._loadPricingNotice();
             this._trainingTick = setInterval(() => {
@@ -248,6 +255,7 @@ export class VdCrmDashboard extends Component {
                 this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
                 if (this._trainingRefreshN % 60 === 0 && !document.hidden) {
                     this._loadTrainingBanner();
+                    this._loadBroadcast();
                 }
             }, 1000);
             // Nút "Quay lại" trên navbar (vd_back_button.js) sẽ gọi handler này
@@ -515,6 +523,66 @@ export class VdCrmDashboard extends Component {
     }
     closePancakeExcluded() {
         this.state.pkExcluded = null;
+    }
+
+    // ===== 📢 CHIẾN DỊCH SPAM ZALO (gate khoá dashboard) =====
+    // Render HTML thô (nội dung admin soạn) an toàn qua markup.
+    mk(s) {
+        return markup(s || "");
+    }
+    async _loadBroadcast() {
+        try {
+            const c = await this.orm.call("vd.broadcast.campaign", "vd_my_broadcast", []);
+            // Chỉ reset bước/form khi chuyển sang chiến dịch KHÁC (tránh xoá dữ liệu
+            // NV đang gõ mỗi lần refresh 60s).
+            const prevId = this.state.broadcast && this.state.broadcast.id;
+            this.state.broadcast = c || null;
+            if (c && c.id !== prevId) {
+                this.state.broadcastStep = 1;
+                this.state.broadcastForm = { sent: "", committed: false, note: "" };
+            }
+        } catch (_e) {
+            // Model chưa cài / lỗi → không chặn dashboard.
+            this.state.broadcast = null;
+        }
+    }
+    // Đang có chiến dịch chưa báo cáo → khoá toàn bộ trang.
+    get broadcastLockActive() {
+        return !!this.state.broadcast;
+    }
+    goBroadcastStep(n) {
+        this.state.broadcastStep = n;
+    }
+    async submitBroadcast() {
+        const c = this.state.broadcast;
+        if (!c || this.state.broadcastSubmitting) return;
+        const f = this.state.broadcastForm;
+        const sent = parseInt(f.sent, 10);
+        if (!sent || sent <= 0) {
+            this.notification.add("Vui lòng nhập số nhóm Zalo đã gửi (lớn hơn 0).",
+                { type: "warning" });
+            return;
+        }
+        if (!f.committed) {
+            this.notification.add("Bạn phải cam kết đã đăng bài lên trang Zalo cá nhân.",
+                { type: "warning" });
+            return;
+        }
+        this.state.broadcastSubmitting = true;
+        try {
+            await this.orm.call("vd.broadcast.campaign", "vd_submit_report",
+                [c.id, sent, true, f.note || ""]);
+            this.notification.add("Đã ghi nhận báo cáo. Chúc bạn một tuần bán hàng bùng nổ!",
+                { type: "success" });
+            this.state.broadcast = null;
+            this.state.broadcastStep = 1;
+            this.state.broadcastForm = { sent: "", committed: false, note: "" };
+        } catch (e) {
+            this.notification.add(
+                "Gửi báo cáo thất bại. Vui lòng kiểm tra lại thông tin.", { type: "danger" });
+        } finally {
+            this.state.broadcastSubmitting = false;
+        }
     }
 
     // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược) =====

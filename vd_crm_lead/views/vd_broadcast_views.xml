@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ CHIẾN DỊCH SPAM ZALO ============ -->
+    <record id="view_vd_broadcast_campaign_form" model="ir.ui.view">
+        <field name="name">vd.broadcast.campaign.form</field>
+        <field name="model">vd.broadcast.campaign</field>
+        <field name="arch" type="xml">
+            <form string="Chiến dịch Spam Zalo">
+                <header>
+                    <button name="action_start_now" type="object" string="BẬT NGAY (test)"
+                            class="btn-primary"
+                            confirm="Đặt giờ bắt đầu = bây giờ và bắt toàn bộ nhân viên spam lại chiến dịch này?"/>
+                    <button name="action_reset_schedule" type="object" string="RESET lịch (bắt spam lại)"
+                            class="btn-warning"
+                            confirm="Xoá toàn bộ báo cáo cũ của chiến dịch này? Mọi nhân viên sẽ bị khoá và phải spam lại."/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="o_form_label"/>
+                        <h1><field name="name" placeholder="VD: Thi công móng - Tuần 1 tháng 7"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active"/>
+                            <field name="start_datetime"/>
+                            <field name="window_minutes"/>
+                        </group>
+                        <group>
+                            <field name="target_count"/>
+                            <field name="done_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Nội dung spam NHÓM Zalo">
+                            <field name="body_html" widget="html"/>
+                        </page>
+                        <page string="Nội dung trang CÁ NHÂN">
+                            <div class="text-muted mb-2">Để trống sẽ dùng chung nội dung nhóm Zalo.</div>
+                            <field name="personal_html" widget="html"/>
+                        </page>
+                        <page string="Quy định và hướng dẫn">
+                            <field name="rule_html" widget="html"/>
+                        </page>
+                        <page string="Ảnh / Video đính kèm">
+                            <div class="text-muted mb-2">Tải ảnh/video công trình vào đây. Nhân viên sẽ tải xuống rồi gửi kèm.</div>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Nhân viên áp dụng">
+                            <div class="text-muted mb-2">Để TRỐNG = áp cho toàn bộ nhân viên (trừ admin).</div>
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Báo cáo nhân viên">
+                            <field name="report_ids" readonly="1">
+                                <list>
+                                    <field name="user_id"/>
+                                    <field name="sent_count"/>
+                                    <field name="committed"/>
+                                    <field name="done"/>
+                                    <field name="done_at"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vd_broadcast_campaign_list" model="ir.ui.view">
+        <field name="name">vd.broadcast.campaign.list</field>
+        <field name="model">vd.broadcast.campaign</field>
+        <field name="arch" type="xml">
+            <list string="Chiến dịch Spam Zalo">
+                <field name="name"/>
+                <field name="start_datetime"/>
+                <field name="active"/>
+                <field name="done_count"/>
+                <field name="target_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vd_broadcast_campaign" model="ir.actions.act_window">
+        <field name="name">Chiến dịch Spam Zalo</field>
+        <field name="res_model">vd.broadcast.campaign</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_vd_broadcast_campaign"
+              name="Chiến dịch Spam Zalo"
+              parent="crm.crm_menu_config"
+              action="action_vd_broadcast_campaign"
+              sequence="66"
+              groups="sales_team.group_sale_manager"/>
+</odoo>

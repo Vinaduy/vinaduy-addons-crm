@@ -58,6 +58,123 @@
                 </div>
             </div>
 
+            <!-- 📢 GATE SPAM ZALO: đến giờ chiến dịch → khoá toàn bộ dashboard, hiện
+                 popup to 3 bước. Nộp báo cáo (vd_submit_report) xong mới mở khoá. -->
+            <div t-if="broadcastLockActive" class="o_vd_bc_overlay">
+                <div class="o_vd_bc_modal">
+                    <div class="o_vd_bc_header">
+                        <div class="o_vd_bc_htitle">
+                            <i class="fa fa-bullhorn me-2"/>NHIỆM VỤ TUẦN: ĐĂNG HÌNH ẢNH / VIDEO CÔNG TRÌNH
+                        </div>
+                        <div class="o_vd_bc_hcamp" t-esc="state.broadcast.name"/>
+                    </div>
+
+                    <!-- Thanh 3 bước -->
+                    <div class="o_vd_bc_steps">
+                        <t t-foreach="[
+                            {n:1, label:'Spam nhóm Zalo', ico:'fa-users'},
+                            {n:2, label:'Đăng trang cá nhân', ico:'fa-user-circle'},
+                            {n:3, label:'Báo cáo và hoàn thành', ico:'fa-check-circle'}
+                        ]" t-as="st" t-key="st.n">
+                            <div class="o_vd_bc_step"
+                                 t-att-class="state.broadcastStep === st.n ? 'active' : (state.broadcastStep > st.n ? 'done' : '')"
+                                 t-on-click="() => this.goBroadcastStep(st.n)">
+                                <span class="o_vd_bc_step_num">
+                                    <i t-if="state.broadcastStep > st.n" class="fa fa-check"/>
+                                    <t t-else="" t-esc="st.n"/>
+                                </span>
+                                <span class="o_vd_bc_step_lbl"><i t-attf-class="fa {{ st.ico }} me-1"/><t t-esc="st.label"/></span>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="o_vd_bc_body">
+                        <!-- ===== BƯỚC 1: SPAM NHÓM ZALO ===== -->
+                        <div t-if="state.broadcastStep === 1">
+                            <div class="o_vd_bc_sect_title"><i class="fa fa-users me-1"/>Bước 1 — Gửi vào các NHÓM Zalo khách hàng</div>
+                            <div class="o_vd_bc_content" t-out="mk(state.broadcast.body_html)"/>
+
+                            <!-- Ảnh / video tải xuống -->
+                            <div t-if="state.broadcast.attachments.length" class="o_vd_bc_atts">
+                                <div class="o_vd_bc_atts_head"><i class="fa fa-paperclip me-1"/>Ảnh / Video cần gửi kèm (bấm để tải)</div>
+                                <div class="o_vd_bc_atts_grid">
+                                    <t t-foreach="state.broadcast.attachments" t-as="a" t-key="a.id">
+                                        <a class="o_vd_bc_att" t-att-href="a.url" target="_blank" download="download">
+                                            <div class="o_vd_bc_att_thumb">
+                                                <img t-if="a.kind === 'image'" t-att-src="a.src"/>
+                                                <i t-elif="a.kind === 'video'" class="fa fa-film"/>
+                                                <i t-else="" class="fa fa-file"/>
+                                            </div>
+                                            <div class="o_vd_bc_att_name" t-esc="a.name"/>
+                                            <div class="o_vd_bc_att_dl"><i class="fa fa-download me-1"/>Tải xuống</div>
+                                        </a>
+                                    </t>
+                                </div>
+                            </div>
+                            <div t-else="" class="o_vd_bc_noatt">
+                                <i class="fa fa-info-circle me-1"/>Chiến dịch này chưa có ảnh/video đính kèm — chỉ gửi nội dung văn bản.
+                            </div>
+
+                            <div class="o_vd_bc_nav">
+                                <span/>
+                                <button class="o_vd_bc_next" t-on-click="() => this.goBroadcastStep(2)">
+                                    Đã gửi nhóm — Tiếp theo<i class="fa fa-arrow-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ===== BƯỚC 2: ĐĂNG TRANG CÁ NHÂN ===== -->
+                        <div t-if="state.broadcastStep === 2">
+                            <div class="o_vd_bc_sect_title"><i class="fa fa-user-circle me-1"/>Bước 2 — Đăng bài lên trang CÁ NHÂN Zalo</div>
+                            <div class="o_vd_bc_content" t-out="mk(state.broadcast.personal_html)"/>
+                            <div class="o_vd_bc_nav">
+                                <button class="o_vd_bc_back" t-on-click="() => this.goBroadcastStep(1)">
+                                    <i class="fa fa-arrow-left me-1"/>Quay lại
+                                </button>
+                                <button class="o_vd_bc_next" t-on-click="() => this.goBroadcastStep(3)">
+                                    Đã đăng cá nhân — Tiếp theo<i class="fa fa-arrow-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ===== BƯỚC 3: BÁO CÁO ===== -->
+                        <div t-if="state.broadcastStep === 3">
+                            <div class="o_vd_bc_sect_title"><i class="fa fa-check-circle me-1"/>Bước 3 — Báo cáo và bấm HOÀN THÀNH</div>
+                            <div class="o_vd_bc_form">
+                                <label class="o_vd_bc_flbl">Bạn gửi được bao nhiêu nhóm Zalo?</label>
+                                <input type="number" min="0" class="o_vd_bc_finput"
+                                       t-model="state.broadcastForm.sent"
+                                       placeholder="Nhập số nhóm đã gửi..."/>
+                                <label class="o_vd_bc_check">
+                                    <input type="checkbox" t-model="state.broadcastForm.committed"/>
+                                    <span>Tôi <b>cam kết</b> đã đăng bài lên trang Zalo <b>cá nhân</b> của tôi.</span>
+                                </label>
+                                <label class="o_vd_bc_flbl">Ghi chú (không bắt buộc)</label>
+                                <input type="text" class="o_vd_bc_finput"
+                                       t-model="state.broadcastForm.note"
+                                       placeholder="VD: đã gửi 12 nhóm, còn 2 nhóm bị chặn..."/>
+                            </div>
+                            <div class="o_vd_bc_warn">
+                                <i class="fa fa-lock me-1"/>Bấm HOÀN THÀNH mới mở khoá vào CRM. Hãy chắc chắn bạn đã gửi đầy đủ.
+                            </div>
+                            <div class="o_vd_bc_nav">
+                                <button class="o_vd_bc_back" t-on-click="() => this.goBroadcastStep(2)">
+                                    <i class="fa fa-arrow-left me-1"/>Quay lại
+                                </button>
+                                <button class="o_vd_bc_done" t-att-disabled="state.broadcastSubmitting"
+                                        t-on-click="() => this.submitBroadcast()">
+                                    <i class="fa fa-check me-1"/>
+                                    <t t-esc="state.broadcastSubmitting ? 'Đang gửi...' : 'HOÀN THÀNH — MỞ KHOÁ CRM'"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quy định (luôn hiện dưới cùng, thu gọn được không cần) -->
+                    <div t-if="state.broadcast.rule_html" class="o_vd_bc_rules" t-out="mk(state.broadcast.rule_html)"/>
+                </div>
+            </div>
+
             <!-- 🔔 BẢNG NHẮC NHỞ (fixed, render 1 lần ở gốc → không bị khung nào cắt).
                  Mở khi hover tên NV; tự định vị bằng reminderPopStyle. -->
             <div t-if="state.reminderHover" class="o_vd_kh_reminder_popover o_vd_rem_fixed"
