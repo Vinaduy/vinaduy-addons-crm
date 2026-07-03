@@ -106,15 +106,17 @@
                             <div class="o_vd_bc_col_head"><i class="fa fa-download me-2"/>Bước 1 — Tải TOÀN BỘ ảnh/video công trình về máy (bấm từng ô để tải)</div>
                             <div t-if="state.broadcast.attachments.length" class="o_vd_bc_atts_grid o_vd_bc_atts_grid_big">
                                 <t t-foreach="state.broadcast.attachments" t-as="a" t-key="a.id">
-                                    <a class="o_vd_bc_att" t-att-href="a.url" target="_blank" download="download">
+                                    <div class="o_vd_bc_att">
                                         <div class="o_vd_bc_att_thumb">
-                                            <img t-if="a.kind === 'image'" t-att-src="a.src"/>
-                                            <i t-elif="a.kind === 'video'" class="fa fa-film"/>
+                                            <video t-if="a.kind === 'video'" controls="controls" preload="metadata" t-att-src="a.src"/>
+                                            <img t-elif="a.kind === 'image'" t-att-src="a.src"/>
                                             <i t-else="" class="fa fa-file"/>
                                         </div>
                                         <div class="o_vd_bc_att_name" t-esc="a.name"/>
-                                        <div class="o_vd_bc_att_dl"><i class="fa fa-download me-1"/>Tải xuống</div>
-                                    </a>
+                                        <a class="o_vd_bc_att_dl" t-att-href="a.url" target="_blank" download="download">
+                                            <i class="fa fa-download me-1"/>Tải xuống
+                                        </a>
+                                    </div>
                                 </t>
                             </div>
                             <div t-else="" class="o_vd_bc_noatt">

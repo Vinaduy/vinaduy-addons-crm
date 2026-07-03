@@ -1,0 +1,63 @@
+/* Widget tải ảnh/video cho Chiến dịch Spam Zalo (trang cấu hình) */
+.o_vd_media_field {
+    width: 100%;
+
+    .o_vd_media_upload_btn {
+        display: inline-flex; align-items: center;
+        padding: 0.6rem 1.1rem; border-radius: 10px; cursor: pointer;
+        background: linear-gradient(135deg, #0a9d4e, #0a7d3f); color: #fff;
+        font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;
+        &:hover { filter: brightness(1.06); }
+    }
+    .o_vd_media_hint, .o_vd_media_empty {
+        color: #8a6d1a; font-size: 0.86rem; margin: 0.4rem 0;
+    }
+    .o_vd_media_empty { color: #7a857f; }
+
+    /* Thanh tiến trình khi đang tải */
+    .o_vd_media_uploading {
+        display: flex; align-items: center; gap: 0.7rem;
+        padding: 0.5rem 0.7rem; margin: 0.4rem 0;
+        border: 1px solid #d8e8de; border-radius: 10px; background: #f6faf7;
+        .o_vd_media_up_name { flex: 0 0 240px; font-size: 0.86rem; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .o_vd_media_bar { flex: 1 1 auto; height: 10px; border-radius: 6px;
+            background: #e2ece6; overflow: hidden; }
+        .o_vd_media_bar_fill { height: 100%; background: linear-gradient(90deg, #0a9d4e, #0a7d3f);
+            transition: width 0.15s ease; }
+        .o_vd_media_up_pct { flex: 0 0 42px; text-align: right; font-weight: 700;
+            font-size: 0.82rem; color: #0a7d3f; }
+    }
+
+    /* Lưới file đã tải */
+    .o_vd_media_grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem; margin-top: 0.6rem;
+    }
+    .o_vd_media_card {
+        position: relative; border: 1px solid #d8e8de; border-radius: 12px;
+        overflow: hidden; background: #fff;
+        .o_vd_media_del {
+            position: absolute; top: 6px; right: 6px; z-index: 2;
+            width: 26px; height: 26px; border-radius: 50%; border: none;
+            background: rgba(192, 57, 43, 0.92); color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            &:hover { background: #c0392b; }
+        }
+        .o_vd_media_prev {
+            height: 150px; background: #000; display: flex; align-items: center; justify-content: center;
+            video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+            img { width: 100%; height: 100%; object-fit: cover; }
+            i { font-size: 3rem; color: #9fb3a8; }
+        }
+        .o_vd_media_name {
+            padding: 0.5rem 0.6rem 0.1rem; font-size: 0.86rem; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .o_vd_media_dl {
+            display: inline-block; padding: 0.1rem 0.6rem 0.6rem;
+            font-size: 0.82rem; color: #0a7d3f; font-weight: 700; text-decoration: none;
+            &:hover { text-decoration: underline; }
+        }
+    }
+}

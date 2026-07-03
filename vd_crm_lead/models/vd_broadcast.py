@@ -126,7 +126,8 @@ class VdBroadcastCampaign(models.Model):
             return c._vd_payload()
         return None
 
-    def _vd_payload(self):
+    def _vd_att_dicts(self):
+        """Danh sách ảnh/video của chiến dịch (dùng cho popup NV + widget admin)."""
         self.ensure_one()
         atts = []
         for a in self.attachment_ids:
@@ -139,8 +140,32 @@ class VdBroadcastCampaign(models.Model):
                 'mimetype': mimetype,
                 'kind': kind,
                 'url': '/web/content/%s?download=true' % a.id,
-                'src': '/web/image/%s' % a.id if kind == 'image' else '',
+                # video/ảnh cùng dùng /web/content để xem/phát trực tiếp trong trình duyệt
+                'src': '/web/content/%s' % a.id,
             })
+        return atts
+
+    # ---- RPC cho widget upload (trang cấu hình) ----
+    @api.model
+    def vd_media_list(self, campaign_id):
+        camp = self.sudo().browse(int(campaign_id))
+        return camp._vd_att_dicts() if camp.exists() else []
+
+    @api.model
+    def vd_media_unlink(self, campaign_id, attachment_id):
+        if not self._vd_is_admin() and not self.env.user.has_group(
+                'sales_team.group_sale_manager'):
+            raise AccessError('Không có quyền xoá.')
+        camp = self.sudo().browse(int(campaign_id))
+        att = self.env['ir.attachment'].sudo().browse(int(attachment_id))
+        if camp.exists() and att.exists():
+            camp.write({'attachment_ids': [(3, att.id)]})
+            att.unlink()
+        return camp._vd_att_dicts() if camp.exists() else []
+
+    def _vd_payload(self):
+        self.ensure_one()
+        atts = self._vd_att_dicts()
         return {
             'id': self.id,
             'name': self.name or '',

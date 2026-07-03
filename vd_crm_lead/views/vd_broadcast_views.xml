@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <form string="Chiến dịch Spam Zalo">
                 <header>
-                    <button name="action_start_now" type="object" string="BẬT NGAY (test)"
+                    <button name="action_start_now" type="object" string="BẬT NGAY"
                             class="btn-primary"
                             confirm="Đặt giờ bắt đầu = bây giờ và bắt toàn bộ nhân viên spam lại chiến dịch này?"/>
                     <button name="action_reset_schedule" type="object" string="RESET lịch (bắt spam lại)"
@@ -32,19 +32,16 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Nội dung spam NHÓM Zalo">
+                        <page string="Bước 1 - Ảnh / Video">
+                            <div class="text-muted mb-2">Tải ảnh/video công trình vào đây (chọn nhiều cùng lúc, có thanh tiến trình, xem trực tiếp). Nhân viên sẽ tải xuống rồi gửi kèm.</div>
+                            <field name="attachment_ids" widget="vd_media_field" nolabel="1"/>
+                        </page>
+                        <page string="Bước 2 - Tin nhắn NHÓM Zalo">
                             <field name="body_html" widget="html"/>
                         </page>
-                        <page string="Nội dung trang CÁ NHÂN">
+                        <page string="Bước 3 - Đăng bài CÁ NHÂN">
                             <div class="text-muted mb-2">Để trống sẽ dùng chung nội dung nhóm Zalo.</div>
                             <field name="personal_html" widget="html"/>
-                        </page>
-                        <page string="Quy định và hướng dẫn">
-                            <field name="rule_html" widget="html"/>
-                        </page>
-                        <page string="Ảnh / Video đính kèm">
-                            <div class="text-muted mb-2">Tải ảnh/video công trình vào đây. Nhân viên sẽ tải xuống rồi gửi kèm.</div>
-                            <field name="attachment_ids" widget="many2many_binary"/>
                         </page>
                         <page string="Nhân viên áp dụng">
                             <div class="text-muted mb-2">Để TRỐNG = áp cho toàn bộ nhân viên (trừ admin).</div>

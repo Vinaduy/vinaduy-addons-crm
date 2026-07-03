@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdMediaField">
+        <div class="o_vd_media_field">
+            <!-- Nút tải lên -->
+            <label class="o_vd_media_upload_btn">
+                <i class="fa fa-cloud-upload me-2"/>
+                <span>Tải ảnh / video lên (chọn nhiều cùng lúc)</span>
+                <input type="file" multiple="multiple" accept="image/*,video/*"
+                       t-on-change="(ev) => this.onFilesSelected(ev)"
+                       style="display:none"/>
+            </label>
+            <div t-if="!isSaved" class="o_vd_media_hint">
+                <i class="fa fa-info-circle me-1"/>Hãy LƯU chiến dịch một lần trước, rồi mới tải được ảnh/video.
+            </div>
+
+            <!-- Các file ĐANG tải (progress) -->
+            <div t-foreach="state.uploads" t-as="u" t-key="u.key" class="o_vd_media_uploading">
+                <div class="o_vd_media_up_name"><i class="fa fa-spinner fa-spin me-1"/><t t-esc="u.name"/></div>
+                <div class="o_vd_media_bar"><div class="o_vd_media_bar_fill" t-attf-style="width:{{ u.progress }}%"/></div>
+                <div class="o_vd_media_up_pct"><t t-esc="u.progress"/>%</div>
+            </div>
+
+            <!-- Lưới ảnh/video ĐÃ tải — xem/phát trực tiếp -->
+            <div t-if="state.items.length" class="o_vd_media_grid">
+                <t t-foreach="state.items" t-as="a" t-key="a.id">
+                    <div class="o_vd_media_card">
+                        <button class="o_vd_media_del" title="Xoá"
+                                t-on-click="() => this.removeItem(a)">
+                            <i class="fa fa-times"/>
+                        </button>
+                        <div class="o_vd_media_prev">
+                            <video t-if="a.kind === 'video'" controls="controls" preload="metadata"
+                                   t-att-src="a.src"/>
+                            <img t-elif="a.kind === 'image'" t-att-src="a.src"/>
+                            <i t-else="" class="fa fa-file-o"/>
+                        </div>
+                        <div class="o_vd_media_name" t-esc="a.name"/>
+                        <a class="o_vd_media_dl" t-att-href="a.url" target="_blank">
+                            <i class="fa fa-download me-1"/>Tải xuống
+                        </a>
+                    </div>
+                </t>
+            </div>
+            <div t-elif="!state.loading &amp;&amp; !state.uploads.length" class="o_vd_media_empty">
+                Chưa có ảnh/video nào. Bấm nút phía trên để tải lên.
+            </div>
+        </div>
+    </t>
+
+</templates>
