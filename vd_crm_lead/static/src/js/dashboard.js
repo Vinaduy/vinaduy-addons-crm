@@ -65,6 +65,7 @@ export class VdCrmDashboard extends Component {
             // Khoá toàn bộ dashboard, hiện popup 3 bước tới khi NV nộp báo cáo.
             broadcast: null,
             broadcastStep: 1,
+            broadcastShownAt: 0,
             broadcastForm: { sent: "", committed: false, note: "" },
             broadcastSubmitting: false,
             // Popover NHẮC NHỞ (hover TỔNG KH) — fixed, ghim sát phải; {nv, top} | null.
@@ -541,6 +542,21 @@ export class VdCrmDashboard extends Component {
                 this.state.broadcastStep = 1;
                 this.state.broadcastForm = { sent: "", committed: false, note: "" };
             }
+            // Mốc thời gian popup hiện ra (để chặn nút HOÀN THÀNH trong N phút đầu).
+            // Lưu sessionStorage theo chiến dịch → reload không né được (giữ nguyên mốc).
+            if (c) {
+                const key = "vd_bc_shown_" + c.id;
+                let shown = 0;
+                try { shown = parseInt(browser.sessionStorage.getItem(key) || "0", 10); }
+                catch (_e) { shown = 0; }
+                if (!shown) {
+                    shown = Date.now();
+                    try { browser.sessionStorage.setItem(key, String(shown)); } catch (_e) {}
+                }
+                this.state.broadcastShownAt = shown;
+            } else {
+                this.state.broadcastShownAt = 0;
+            }
         } catch (_e) {
             // Model chưa cài / lỗi → không chặn dashboard.
             this.state.broadcast = null;
@@ -552,6 +568,24 @@ export class VdCrmDashboard extends Component {
     }
     goBroadcastStep(n) {
         this.state.broadcastStep = n;
+    }
+    // Số mili-giây còn phải chờ trước khi được bấm HOÀN THÀNH (mặc định 15 phút
+    // kể từ khi popup hiện). Dùng state.trainingNow (cập nhật mỗi giây) để reactive.
+    get broadcastWaitMs() {
+        const c = this.state.broadcast;
+        if (!c || !this.state.broadcastShownAt) return 0;
+        const delayMin = c.finish_delay_minutes != null ? c.finish_delay_minutes : 15;
+        const now = this.state.trainingNow || Date.now();
+        return Math.max(0, this.state.broadcastShownAt + delayMin * 60000 - now);
+    }
+    get broadcastCanFinish() {
+        return this.broadcastWaitMs <= 0;
+    }
+    get broadcastWaitLabel() {
+        let sec = Math.ceil(this.broadcastWaitMs / 1000);
+        const m = Math.floor(sec / 60);
+        const s = sec - m * 60;
+        return m + ":" + (s < 10 ? "0" : "") + s;
     }
     async submitBroadcast() {
         const c = this.state.broadcast;

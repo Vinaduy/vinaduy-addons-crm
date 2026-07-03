@@ -24,6 +24,7 @@
                             <field name="active"/>
                             <field name="start_datetime"/>
                             <field name="window_minutes"/>
+                            <field name="finish_delay_minutes"/>
                         </group>
                         <group>
                             <field name="target_count"/>

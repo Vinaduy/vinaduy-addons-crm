@@ -33,6 +33,9 @@ class VdBroadcastCampaign(models.Model):
     # Khung giờ khuyến nghị hoàn thành (chỉ để hiển thị nhắc nhở, không khoá cứng).
     window_minutes = fields.Integer(string='Khung khuyến nghị (phút)', default=30,
                                     help='8h -> 8h30 = 30 phut. Chi de nhac, khong khoa cung.')
+    # Chặn nút HOÀN THÀNH trong N phút đầu (buộc NV thực sự làm, không bấm cho xong).
+    finish_delay_minutes = fields.Integer(string='Khoá nút Hoàn thành (phút)', default=15,
+                                          help='Nut HOAN THANH chi hien sau N phut ke tu khi popup hien.')
 
     # Nội dung nhân viên COPY để dán vào nhóm Zalo khách hàng.
     body_html = fields.Html(string='Nội dung spam NHÓM Zalo', sanitize=False)
@@ -146,6 +149,7 @@ class VdBroadcastCampaign(models.Model):
             'rule_html': self.rule_html or '',
             'attachments': atts,
             'window_minutes': self.window_minutes or 30,
+            'finish_delay_minutes': self.finish_delay_minutes if self.finish_delay_minutes is not False else 15,
         }
 
     @api.model
