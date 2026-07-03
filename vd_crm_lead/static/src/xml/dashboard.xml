@@ -103,7 +103,7 @@
                                     <b>Trưởng phòng</b> có trách nhiệm <b>giám sát, đôn đốc</b> nhân viên trong phòng thực hiện.
                                 </div>
                             </div>
-                            <div class="o_vd_bc_col_head"><i class="fa fa-download me-2"/>Bước 1 — Tải TOÀN BỘ ảnh/video công trình về máy (bấm từng ô để tải)</div>
+                            <div class="o_vd_bc_col_head"><i class="fa fa-download me-2"/>Bước 1 — Tải TOÀN BỘ ảnh/video công trình về máy (bấm "Tải xuống" ở từng ô). Phải tải ít nhất 1 file mới sang được bước sau.</div>
                             <div t-if="state.broadcast.attachments.length" class="o_vd_bc_atts_grid o_vd_bc_atts_grid_big">
                                 <t t-foreach="state.broadcast.attachments" t-as="a" t-key="a.id">
                                     <div class="o_vd_bc_att">
@@ -113,7 +113,8 @@
                                             <i t-else="" class="fa fa-file"/>
                                         </div>
                                         <div class="o_vd_bc_att_name" t-esc="a.name"/>
-                                        <a class="o_vd_bc_att_dl" t-att-href="a.url" target="_blank" download="download">
+                                        <a class="o_vd_bc_att_dl" t-att-href="a.url" target="_blank" download="download"
+                                           t-on-click="() => this.markBroadcastDownloaded()">
                                             <i class="fa fa-download me-1"/>Tải xuống
                                         </a>
                                     </div>
@@ -167,7 +168,8 @@
                         </button>
                         <span t-else=""/>
                         <button t-if="state.broadcastStep === 1" class="o_vd_bc_next"
-                                t-on-click="() => this.goBroadcastStep(2)">
+                                t-att-class="state.broadcastDownloaded ? '' : 'o_vd_bc_next_dim'"
+                                t-on-click="() => this.proceedFromDownloadStep()">
                             Đã tải video — Tiếp theo<i class="fa fa-arrow-right ms-2"/>
                         </button>
                         <button t-elif="state.broadcastStep === 2" class="o_vd_bc_next"

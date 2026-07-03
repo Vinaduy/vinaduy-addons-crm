@@ -10730,6 +10730,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:disabled { opacity: 0.6; cursor: default; }
 }
 .o_vd_bc_done { background: linear-gradient(135deg, #ff9500, #f2620f); box-shadow: 0 6px 16px rgba(242, 98, 15, 0.3); }
+/* Nút "Tiếp theo" khi CHƯA tải file nào — mờ đi để nhắc phải tải trước */
+.o_vd_bc_next_dim { opacity: 0.55; }
 /* Nút CHỜ (chưa đủ 15 phút) — xám, không bấm được */
 .o_vd_bc_wait {
     border: 1px solid #cfd6d2; border-radius: 14px; padding: 0.8rem 1.6rem;

@@ -29,26 +29,26 @@
             font-size: 0.82rem; color: #0a7d3f; }
     }
 
-    /* Lưới file đã tải */
+    /* Lưới file đã tải — ô NHỎ (~1/3 hàng), xếp NGANG, tự xuống dòng */
     .o_vd_media_grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1rem; margin-top: 0.6rem;
+        display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.6rem;
     }
     .o_vd_media_card {
-        position: relative; border: 1px solid #d8e8de; border-radius: 12px;
+        position: relative; flex: 0 0 auto; width: 180px;
+        border: 1px solid #d8e8de; border-radius: 10px;
         overflow: hidden; background: #fff;
         .o_vd_media_del {
-            position: absolute; top: 6px; right: 6px; z-index: 2;
-            width: 26px; height: 26px; border-radius: 50%; border: none;
+            position: absolute; top: 5px; right: 5px; z-index: 2;
+            width: 22px; height: 22px; border-radius: 50%; border: none;
             background: rgba(192, 57, 43, 0.92); color: #fff; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
             &:hover { background: #c0392b; }
         }
         .o_vd_media_prev {
-            height: 150px; background: #000; display: flex; align-items: center; justify-content: center;
+            height: 104px; background: #000; display: flex; align-items: center; justify-content: center;
             video { width: 100%; height: 100%; object-fit: contain; background: #000; }
             img { width: 100%; height: 100%; object-fit: cover; }
-            i { font-size: 3rem; color: #9fb3a8; }
+            i { font-size: 2.2rem; color: #9fb3a8; }
         }
         .o_vd_media_name {
             padding: 0.5rem 0.6rem 0.1rem; font-size: 0.86rem; font-weight: 700;

@@ -66,6 +66,7 @@ export class VdCrmDashboard extends Component {
             broadcast: null,
             broadcastStep: 1,
             broadcastShownAt: 0,
+            broadcastDownloaded: false,
             broadcastForm: { sent: "", committed: false, note: "" },
             broadcastSubmitting: false,
             // Popover NHẮC NHỞ (hover TỔNG KH) — fixed, ghim sát phải; {nv, top} | null.
@@ -542,20 +543,19 @@ export class VdCrmDashboard extends Component {
                 this.state.broadcastStep = 1;
                 this.state.broadcastForm = { sent: "", committed: false, note: "" };
             }
-            // Mốc thời gian popup hiện ra (để chặn nút HOÀN THÀNH trong N phút đầu).
-            // Lưu sessionStorage theo chiến dịch → reload không né được (giữ nguyên mốc).
+            // MỐC đếm 15 phút = lúc NV đã tải ≥1 file và bấm sang Bước 2 (KHÔNG phải
+            // lúc popup hiện). Lưu sessionStorage theo chiến dịch → reload giữ nguyên.
             if (c) {
-                const key = "vd_bc_shown_" + c.id;
-                let shown = 0;
-                try { shown = parseInt(browser.sessionStorage.getItem(key) || "0", 10); }
-                catch (_e) { shown = 0; }
-                if (!shown) {
-                    shown = Date.now();
-                    try { browser.sessionStorage.setItem(key, String(shown)); } catch (_e) {}
-                }
-                this.state.broadcastShownAt = shown;
+                let anchor = 0, dl = 0;
+                try {
+                    anchor = parseInt(browser.sessionStorage.getItem("vd_bc_anchor_" + c.id) || "0", 10);
+                    dl = parseInt(browser.sessionStorage.getItem("vd_bc_dl_" + c.id) || "0", 10);
+                } catch (_e) { /* ignore */ }
+                this.state.broadcastShownAt = anchor || 0;   // 0 = chưa bắt đầu đếm
+                this.state.broadcastDownloaded = !!dl;
             } else {
                 this.state.broadcastShownAt = 0;
+                this.state.broadcastDownloaded = false;
             }
         } catch (_e) {
             // Model chưa cài / lỗi → không chặn dashboard.
@@ -569,12 +569,38 @@ export class VdCrmDashboard extends Component {
     goBroadcastStep(n) {
         this.state.broadcastStep = n;
     }
-    // Số mili-giây còn phải chờ trước khi được bấm HOÀN THÀNH (mặc định 15 phút
-    // kể từ khi popup hiện). Dùng state.trainingNow (cập nhật mỗi giây) để reactive.
+    // NV bấm "Tải xuống" 1 file → đánh dấu đã tải (điều kiện để bắt đầu đếm giờ).
+    markBroadcastDownloaded() {
+        const c = this.state.broadcast;
+        if (!c) return;
+        this.state.broadcastDownloaded = true;
+        try { browser.sessionStorage.setItem("vd_bc_dl_" + c.id, "1"); } catch (_e) {}
+    }
+    // Bấm "Đã tải video — Tiếp theo": phải tải ≥1 file trước; khi đó MỚI bắt đầu
+    // đếm 15 phút (đặt mốc anchor = bây giờ, lưu sessionStorage).
+    proceedFromDownloadStep() {
+        const c = this.state.broadcast;
+        if (!c) return;
+        if (!this.state.broadcastDownloaded) {
+            this.notification.add(
+                "Bạn phải tải ít nhất 1 video/hình ảnh về máy trước khi sang bước tiếp theo.",
+                { type: "warning" });
+            return;
+        }
+        if (!this.state.broadcastShownAt) {
+            const now = Date.now();
+            this.state.broadcastShownAt = now;
+            try { browser.sessionStorage.setItem("vd_bc_anchor_" + c.id, String(now)); } catch (_e) {}
+        }
+        this.goBroadcastStep(2);
+    }
+    // Số mili-giây còn phải chờ trước khi được bấm HOÀN THÀNH. Đếm từ mốc anchor
+    // (lúc tải xong + sang bước 2). Chưa có anchor → coi như còn đủ full (chưa đếm).
     get broadcastWaitMs() {
         const c = this.state.broadcast;
-        if (!c || !this.state.broadcastShownAt) return 0;
+        if (!c) return 0;
         const delayMin = c.finish_delay_minutes != null ? c.finish_delay_minutes : 15;
+        if (!this.state.broadcastShownAt) return delayMin * 60000;
         const now = this.state.trainingNow || Date.now();
         return Math.max(0, this.state.broadcastShownAt + delayMin * 60000 - now);
     }
