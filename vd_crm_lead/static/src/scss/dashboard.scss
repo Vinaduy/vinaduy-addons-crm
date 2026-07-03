@@ -10566,10 +10566,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     backdrop-filter: blur(4px);
 }
 .o_vd_bc_modal {
-    /* Cap bang px de tren man to KHONG sat mep. Cao vua du, khong cuon ca modal.
-       Interpolation de Sass xuat CSS min() thuan, khong tu tinh px vs vw (tranh loi build). */
-    width: unquote("min(1060px, 94vw)");
-    height: unquote("min(700px, 90vh)");
+    /* To bang 80% man hinh (user yeu cau). Cap px de tren man cuc rong khong qua kho.
+       Dung vw/vh truc tiep (khong tron don vi trong 1 ham) de tranh loi build Sass. */
+    width: 80vw; max-width: 1680px;
+    height: 84vh; max-height: 960px;
     display: flex; flex-direction: column;
     background: #fff; border-radius: 20px;
     border: 2px solid #0a7d3f;
@@ -10659,6 +10659,15 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     overflow-y: auto; min-height: 0;
     display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 0.8rem; align-content: start;
+}
+/* Bước 1 (tải video) — lưới ô to hơn, thumbnail cao hơn để dễ bấm tải */
+.o_vd_bc_atts_grid_big {
+    flex: 1 1 auto;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.1rem;
+    .o_vd_bc_att_thumb { height: 150px; font-size: 3.4rem; }
+    .o_vd_bc_att_name { font-size: 0.98rem; padding: 0.6rem 0.7rem 0.15rem; }
+    .o_vd_bc_att_dl { font-size: 0.95rem; padding: 0.1rem 0.7rem 0.7rem; }
 }
 .o_vd_bc_att {
     display: block; text-decoration: none; color: inherit;

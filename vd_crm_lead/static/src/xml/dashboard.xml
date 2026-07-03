@@ -69,12 +69,13 @@
                         <div class="o_vd_bc_hcamp" t-esc="state.broadcast.name"/>
                     </div>
 
-                    <!-- Thanh 3 bước -->
+                    <!-- Thanh 4 bước -->
                     <div class="o_vd_bc_steps">
                         <t t-foreach="[
-                            {n:1, label:'Spam nhóm Zalo', ico:'fa-users'},
-                            {n:2, label:'Đăng trang cá nhân', ico:'fa-user-circle'},
-                            {n:3, label:'Báo cáo và hoàn thành', ico:'fa-check-circle'}
+                            {n:1, label:'Tải video', ico:'fa-download'},
+                            {n:2, label:'Spam nhóm Zalo', ico:'fa-users'},
+                            {n:3, label:'Đăng trang cá nhân', ico:'fa-user-circle'},
+                            {n:4, label:'Báo cáo và hoàn thành', ico:'fa-check-circle'}
                         ]" t-as="st" t-key="st.n">
                             <div class="o_vd_bc_step"
                                  t-att-class="state.broadcastStep === st.n ? 'active' : (state.broadcastStep > st.n ? 'done' : '')"
@@ -91,7 +92,7 @@
                     <!-- Vùng NỘI DUNG cuộn riêng (flex:1) — modal giữ nguyên kích thước
                          80vw x 80vh khi chuyển bước, chỉ vùng này cuộn. -->
                     <div class="o_vd_bc_scroll">
-                        <!-- ===== BƯỚC 1: SPAM NHÓM ZALO ===== -->
+                        <!-- ===== BƯỚC 1: TẢI VIDEO ===== -->
                         <div t-if="state.broadcastStep === 1" class="o_vd_bc_step_pane">
                             <!-- CẢNH BÁO bắt buộc + giám sát -->
                             <div class="o_vd_bc_alert">
@@ -102,44 +103,40 @@
                                     <b>Trưởng phòng</b> có trách nhiệm <b>giám sát, đôn đốc</b> nhân viên trong phòng thực hiện.
                                 </div>
                             </div>
-                            <div class="o_vd_bc_s1_grid">
-                                <!-- CỘT TRÁI: nội dung tin nhắn -->
-                                <div class="o_vd_bc_s1_left">
-                                    <div class="o_vd_bc_col_head"><i class="fa fa-comment-o me-2"/>Nội dung tin nhắn — copy gửi vào các NHÓM Zalo</div>
-                                    <div class="o_vd_bc_content" t-out="mk(state.broadcast.body_html)"/>
-                                </div>
-                                <!-- CỘT PHẢI: ảnh / video -->
-                                <div class="o_vd_bc_s1_right">
-                                    <div class="o_vd_bc_col_head"><i class="fa fa-paperclip me-2"/>Ảnh / Video gửi kèm (bấm để tải)</div>
-                                    <div t-if="state.broadcast.attachments.length" class="o_vd_bc_atts_grid">
-                                        <t t-foreach="state.broadcast.attachments" t-as="a" t-key="a.id">
-                                            <a class="o_vd_bc_att" t-att-href="a.url" target="_blank" download="download">
-                                                <div class="o_vd_bc_att_thumb">
-                                                    <img t-if="a.kind === 'image'" t-att-src="a.src"/>
-                                                    <i t-elif="a.kind === 'video'" class="fa fa-film"/>
-                                                    <i t-else="" class="fa fa-file"/>
-                                                </div>
-                                                <div class="o_vd_bc_att_name" t-esc="a.name"/>
-                                                <div class="o_vd_bc_att_dl"><i class="fa fa-download me-1"/>Tải xuống</div>
-                                            </a>
-                                        </t>
-                                    </div>
-                                    <div t-else="" class="o_vd_bc_noatt">
-                                        <i class="fa fa-info-circle me-1"/>Chưa có ảnh/video đính kèm — chỉ gửi nội dung văn bản.
-                                    </div>
-                                </div>
+                            <div class="o_vd_bc_col_head"><i class="fa fa-download me-2"/>Bước 1 — Tải TOÀN BỘ ảnh/video công trình về máy (bấm từng ô để tải)</div>
+                            <div t-if="state.broadcast.attachments.length" class="o_vd_bc_atts_grid o_vd_bc_atts_grid_big">
+                                <t t-foreach="state.broadcast.attachments" t-as="a" t-key="a.id">
+                                    <a class="o_vd_bc_att" t-att-href="a.url" target="_blank" download="download">
+                                        <div class="o_vd_bc_att_thumb">
+                                            <img t-if="a.kind === 'image'" t-att-src="a.src"/>
+                                            <i t-elif="a.kind === 'video'" class="fa fa-film"/>
+                                            <i t-else="" class="fa fa-file"/>
+                                        </div>
+                                        <div class="o_vd_bc_att_name" t-esc="a.name"/>
+                                        <div class="o_vd_bc_att_dl"><i class="fa fa-download me-1"/>Tải xuống</div>
+                                    </a>
+                                </t>
+                            </div>
+                            <div t-else="" class="o_vd_bc_noatt">
+                                <i class="fa fa-info-circle me-1"/>Chưa có ảnh/video đính kèm — chỉ gửi nội dung văn bản.
                             </div>
                         </div>
 
-                        <!-- ===== BƯỚC 2: ĐĂNG TRANG CÁ NHÂN ===== -->
+                        <!-- ===== BƯỚC 2: SPAM NHÓM ZALO ===== -->
                         <div t-if="state.broadcastStep === 2" class="o_vd_bc_step_pane">
-                            <div class="o_vd_bc_col_head"><i class="fa fa-user-circle me-2"/>Bước 2 — Đăng bài lên trang CÁ NHÂN Zalo (copy nội dung dưới, đăng CÔNG KHAI)</div>
+                            <div class="o_vd_bc_col_head"><i class="fa fa-users me-2"/>Bước 2 — Copy nội dung dưới + gửi kèm video vào TẤT CẢ các NHÓM Zalo khách hàng</div>
+                            <div class="o_vd_bc_content o_vd_bc_content_full" t-out="mk(state.broadcast.body_html)"/>
+                        </div>
+
+                        <!-- ===== BƯỚC 3: ĐĂNG TRANG CÁ NHÂN ===== -->
+                        <div t-if="state.broadcastStep === 3" class="o_vd_bc_step_pane">
+                            <div class="o_vd_bc_col_head"><i class="fa fa-user-circle me-2"/>Bước 3 — Đăng bài lên trang CÁ NHÂN Zalo (copy nội dung dưới, đăng CÔNG KHAI)</div>
                             <div class="o_vd_bc_content o_vd_bc_content_full" t-out="mk(state.broadcast.personal_html)"/>
                         </div>
 
-                        <!-- ===== BƯỚC 3: BÁO CÁO ===== -->
-                        <div t-if="state.broadcastStep === 3">
-                            <div class="o_vd_bc_sect_title"><i class="fa fa-check-circle me-2"/>Bước 3 — Báo cáo và bấm HOÀN THÀNH</div>
+                        <!-- ===== BƯỚC 4: BÁO CÁO ===== -->
+                        <div t-if="state.broadcastStep === 4">
+                            <div class="o_vd_bc_sect_title"><i class="fa fa-check-circle me-2"/>Bước 4 — Báo cáo và bấm HOÀN THÀNH</div>
                             <div class="o_vd_bc_form">
                                 <label class="o_vd_bc_flbl">Bạn gửi được bao nhiêu nhóm Zalo?</label>
                                 <input type="number" min="0" class="o_vd_bc_finput"
@@ -169,10 +166,14 @@
                         <span t-else=""/>
                         <button t-if="state.broadcastStep === 1" class="o_vd_bc_next"
                                 t-on-click="() => this.goBroadcastStep(2)">
-                            Đã gửi nhóm — Tiếp theo<i class="fa fa-arrow-right ms-2"/>
+                            Đã tải video — Tiếp theo<i class="fa fa-arrow-right ms-2"/>
                         </button>
                         <button t-elif="state.broadcastStep === 2" class="o_vd_bc_next"
                                 t-on-click="() => this.goBroadcastStep(3)">
+                            Đã gửi nhóm — Tiếp theo<i class="fa fa-arrow-right ms-2"/>
+                        </button>
+                        <button t-elif="state.broadcastStep === 3" class="o_vd_bc_next"
+                                t-on-click="() => this.goBroadcastStep(4)">
                             Đã đăng cá nhân — Tiếp theo<i class="fa fa-arrow-right ms-2"/>
                         </button>
                         <button t-elif="broadcastCanFinish" class="o_vd_bc_done" t-att-disabled="state.broadcastSubmitting"
