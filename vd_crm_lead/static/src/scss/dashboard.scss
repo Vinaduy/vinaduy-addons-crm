@@ -10566,10 +10566,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     backdrop-filter: blur(4px);
 }
 .o_vd_bc_modal {
-    /* Cap bằng px → trên màn to KHÔNG sát mép. Cao vừa đủ, không cuộn cả modal.
-       Bọc #{} để Sass xuất CSS min() thuần (không tự tính px vs vw → tránh lỗi build). */
-    width: #{"min(1060px, 94vw)"};
-    height: #{"min(700px, 90vh)"};
+    /* Cap bang px de tren man to KHONG sat mep. Cao vua du, khong cuon ca modal.
+       Interpolation de Sass xuat CSS min() thuan, khong tu tinh px vs vw (tranh loi build). */
+    width: unquote("min(1060px, 94vw)");
+    height: unquote("min(700px, 90vh)");
     display: flex; flex-direction: column;
     background: #fff; border-radius: 20px;
     border: 2px solid #0a7d3f;
