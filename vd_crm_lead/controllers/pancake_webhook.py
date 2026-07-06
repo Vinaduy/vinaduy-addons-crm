@@ -29,6 +29,12 @@ _logger = logging.getLogger(__name__)
 # Regex match SĐT VN cơ bản (10-11 chữ số, đầu 0 hoặc +84)
 _VN_PHONE_RE = re.compile(r'(?:\+84|0)\d{9,10}')
 
+# FALLBACK: bóc SĐT VN từ NỘI DUNG tin của KHÁCH khi Pancake gửi phone_info
+# rỗng (từ ~04/07/2026 Pancake ngừng tự nhận diện số). Lookaround (?<!\d)...(?!\d)
+# để KHÔNG cắt nhầm một khúc của dãy số dài (PSID 15-16 chữ số, mã đơn hàng...).
+# Chấp nhận đầu 0 hoặc +84 / 84.
+_VN_PHONE_FALLBACK_RE = re.compile(r'(?<!\d)(?:\+?84|0)\d{9,10}(?!\d)')
+
 
 class PancakeWebhookController(http.Controller):
 
@@ -159,6 +165,30 @@ class PancakeWebhookController(http.Controller):
                 phone = first.get('phone') or first.get('number') or ''
             elif isinstance(first, str):
                 phone = first
+
+        # >>> FALLBACK khi phone_info RỖNG: bóc SĐT ngay trong tin của KHÁCH <<<
+        # Từ ~04/07/2026 Pancake gửi phone_info=[] (ngừng tự nhận diện số) → 100%
+        # số ngừng về dù hội thoại vẫn chảy. Khi Pancake không cho số, thử bóc SĐT
+        # trong nội dung tin NÀY. AN TOÀN vì tới đây sender ĐÃ được xác nhận KHÔNG
+        # phải page (qua SKIP 1/1c ở trên) → không lặp lại bug cũ vớ nhầm số trong
+        # auto-reply của page. CHỈ soi tin của event này (msg.message /
+        # original_message); TUYỆT ĐỐI không dùng conv.snippet vì snippet có thể là
+        # câu trả lời của page (lại dính số hotline gán bừa cho khách).
+        if not phone:
+            raw_txt = msg.get('message') or msg.get('original_message') or ''
+            plain = re.sub(r'<[^>]+>', ' ', raw_txt)      # bỏ thẻ HTML
+            m = _VN_PHONE_FALLBACK_RE.search(plain)
+            if m:
+                digits = re.sub(r'\D', '', m.group(0))
+                if digits.startswith('84'):
+                    digits = '0' + digits[2:]
+                elif not digits.startswith('0'):
+                    digits = '0' + digits
+                # SĐT VN hợp lệ: 10 số (di động) hoặc 11 (một số đầu số cố định/cũ).
+                if 10 <= len(digits) <= 11:
+                    phone = digits
+                    _logger.info('Pancake webhook %s: SĐT lấy từ NỘI DUNG tin '
+                                 '(phone_info rỗng) → %s', page.name, phone)
 
         Lead = request.env['crm.lead'].sudo()
 
