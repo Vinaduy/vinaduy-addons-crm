@@ -122,9 +122,14 @@ class VdPancakeConversation(models.Model):
         khách XONG (fetch hết) rồi mới gọi ORM đếm lead — KHÔNG xen giữa execute/fetch."""
         Lead = self.env['crm.lead'].sudo()
         # --- KHÁCH MỚI nhắn trong khoảng, tách platform qua tiền tố customer_id ---
+        # TikTok (user spec 2026-07-06): CHỈ tính "khách mới" là khách CÓ ĐỂ LẠI
+        # SĐT — TikTok đổ vào rất nhiều tài khoản dùng-1-lần (user609947106,
+        # az921999...) nhắn 1 câu rồi thôi → thổi phồng "khách nhắn" (vd 04/07 lên
+        # 503). Facebook giữ nguyên (đếm tất cả khách nhắn lần đầu trong ngày).
         self.env.cr.execute(
             "SELECT plat, count(*) FROM ("
             "  SELECT customer_id, min(first_message_at) AS fe, "
+            "    bool_or(has_phone) AS co_phone, "
             "    CASE WHEN customer_id LIKE 'ttm\\_%%' THEN 'tiktok' "
             "         ELSE 'facebook' END AS plat "
             "  FROM vd_pancake_conversation "
@@ -133,7 +138,9 @@ class VdPancakeConversation(models.Model):
             "        (SELECT page_id FROM vd_pancake_page "
             "         WHERE page_id IS NOT NULL AND page_id <> '') "
             "  GROUP BY customer_id "
-            ") t WHERE fe >= %s AND fe < %s GROUP BY plat",
+            ") t WHERE fe >= %s AND fe < %s "
+            "  AND (plat = 'facebook' OR co_phone) "
+            "GROUP BY plat",
             [since, until])
         khach = {'tiktok': 0, 'facebook': 0}
         for plat, cnt in self.env.cr.fetchall():
