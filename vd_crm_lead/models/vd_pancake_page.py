@@ -313,10 +313,16 @@ class VdPancakePage(models.Model):
             if cust_existing:
                 return 'existing'
 
-        # Lấy SĐT từ HỒ SƠ KHÁCH Pancake/Botcake (page_customers API) — nguồn CHUẨN
-        # "khách nào đã cho số". KHÔNG grep snippet nữa (tránh vớ số trong
-        # auto-reply page gán bừa cho khách không cho số).
-        phone = self._fetch_customer_phone(customer_id) if customer_id else ''
+        # Lấy SĐT: ƯU TIÊN số Pancake ĐÃ tự nhận diện trong hội thoại
+        # (recent_phone_numbers[].captured) — nguồn CHUẨN + CHẠY ỔN ĐỊNH. Từ
+        # ~04/07/2026 webhook phone_info bắn về rỗng (Pancake nhận diện async
+        # SAU khi bắn webhook) nên số không kịp vào webhook, NHƯNG API
+        # conversations vẫn có recent_phone_numbers. Fallback hồ sơ khách
+        # (page_customers) chỉ khi conversation chưa gắn số. KHÔNG grep snippet
+        # (tránh vớ số trong auto-reply page gán bừa cho khách không cho số).
+        phone = self._extract_conv_phone(conv)
+        if not phone and customer_id:
+            phone = self._fetch_customer_phone(customer_id)
         if not phone:
             return 'no_phone'
 
@@ -353,6 +359,97 @@ class VdPancakePage(models.Model):
         except Exception:
             pass
         return 'created'
+
+    def _extract_conv_phone(self, conv):
+        """Lấy SĐT Pancake ĐÃ tự nhận diện trong conversation
+        (recent_phone_numbers[].captured). Chuẩn hoá +84/84 → 0; loại dãy
+        không phải SĐT VN 10-11 số. Nguồn chạy ổn định khi webhook phone_info
+        rỗng (đã kiểm chứng qua API 04-06/07/2026)."""
+        for rp in (conv.get('recent_phone_numbers') or []):
+            if not isinstance(rp, dict):
+                continue
+            raw = rp.get('captured') or rp.get('phone') or rp.get('number') or ''
+            d = re.sub(r'\D', '', raw)
+            if d.startswith('84'):
+                d = '0' + d[2:]
+            elif d and not d.startswith('0'):
+                d = '0' + d
+            if 10 <= len(d) <= 11:
+                return d
+        return ''
+
+    @api.model
+    def _cron_sync_pancake_phones(self, days=1, max_conversations=400):
+        """CRON (mỗi 15') — BÙ webhook phone_info rỗng.
+
+        Từ ~04/07/2026 Pancake bắn webhook messaging với phone_info=[] rồi mới
+        nhận diện SĐT SAU (async) ⇒ số không kịp vào webhook. API conversations
+        vẫn có recent_phone_numbers (Pancake đã nhận diện). Cron kéo cửa sổ
+        `days` gần nhất, tạo lead cho SĐT CHƯA có (dedup trong
+        _sync_one_conversation theo page/conv_id/customer_id). Chạy song song
+        fallback bóc-số-từ-tin (real-time) → khách gõ số có dấu cách / gửi ảnh
+        vẫn được vớt trong ≤15'. KHÔNG đụng last_event_at để banner 'webhook
+        lần cuối' vẫn phản ánh webhook thật (không che cảnh báo DỪNG CHIA SỐ)."""
+        pages = self.search([
+            ('active', '=', True),
+            ('auto_create_lead', '=', True),
+            ('page_access_token', '!=', False),
+        ])
+        Lead = self.env['crm.lead'].sudo()
+        ResUsers = self.env['res.users'].sudo()
+        grand = 0
+        for p in pages:
+            try:
+                grand += p._pull_pancake_phones(Lead, ResUsers, days, max_conversations)
+            except Exception:
+                _logger.exception('Cron Pancake phone sync lỗi page %s', p.name)
+        if grand:
+            _logger.info('Cron Pancake phone sync: tạo %s lead mới có SĐT', grand)
+        return True
+
+    def _pull_pancake_phones(self, Lead, ResUsers, days=1, max_conversations=400):
+        """Kéo conversations `days` ngày, tạo lead cho recent_phone_numbers chưa
+        có. Trả số lead tạo mới. Lỗi API nuốt (log) để không chặn page khác."""
+        self.ensure_one()
+        if not self.page_access_token:
+            return 0
+        since_str = (datetime.utcnow() - timedelta(days=days)).strftime('%Y-%m-%d')
+        until_str = (datetime.utcnow() + timedelta(days=1)).strftime('%Y-%m-%d')
+        url = '%s/pages/%s/conversations' % (_PANCAKE_API_BASE, self.page_id)
+        created = total_seen = 0
+        page_number = 1
+        while total_seen < max_conversations:
+            params = {
+                'access_token': self.page_access_token,
+                'since': since_str, 'until': until_str,
+                'page_number': page_number, 'tags': '-1',
+            }
+            try:
+                resp = requests.get(url, params=params, timeout=30)
+                resp.raise_for_status()
+                data = resp.json()
+            except Exception as e:
+                _logger.warning('Pancake phone pull %s: API lỗi — %s', self.name, e)
+                break
+            if not data.get('success'):
+                _logger.warning('Pancake phone pull %s: API trả %s', self.name,
+                                data.get('message'))
+                break
+            conversations = data.get('conversations') or []
+            if not conversations:
+                break
+            for conv in conversations:
+                try:
+                    if self._sync_one_conversation(conv, Lead, ResUsers) == 'created':
+                        created += 1
+                except Exception:
+                    _logger.exception('Pancake phone pull conv %s lỗi',
+                                      conv.get('id'))
+            total_seen += len(conversations)
+            page_number += 1
+            if len(conversations) < 60:
+                break
+        return created
 
     def _fetch_customer_phone(self, customer_id):
         """Gọi Pancake API lấy SĐT của 1 page_customer."""
