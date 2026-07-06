@@ -42,7 +42,7 @@ class VdPancakeConversation(models.Model):
 
     @api.model
     def _vd_touch(self, page, conv_id, customer_id=None, customer_name=None,
-                  phone=None, lead=None, create_if_missing=True):
+                  phone=None, lead=None, create_if_missing=True, when=None):
         """Upsert 1 hội thoại — idempotent theo (page, conv_id). An toàn để gọi
         mỗi event: chỉ NÂNG CẤP has_phone/lead khi có dữ liệu mới, không hạ cấp.
 
@@ -72,6 +72,13 @@ class VdPancakeConversation(models.Model):
                 vals['phone'] = phone
             if lead and not rec.lead_id:
                 vals['lead_id'] = lead.id
+            # HẠ first_message_at về thời điểm THẬT Pancake tạo hội thoại
+            # (inserted_at) nếu sớm hơn giá trị đang lưu. Trước đây
+            # first_message_at = lúc webhook GHI bản ghi (now) → khách CŨ quay lại
+            # nhắn bị tính thành "khách mới hôm nay" (202 thay vì ~94 thật). Cron
+            # kéo API (có when=inserted_at) sẽ tự chữa dần các bản ghi cũ.
+            if when and rec.first_message_at and when < rec.first_message_at:
+                vals['first_message_at'] = when
             try:
                 rec.sudo().write(vals)
             except Exception:
@@ -83,7 +90,7 @@ class VdPancakeConversation(models.Model):
                 'conversation_id': conv_id,
                 'customer_id': customer_id or '',
                 'customer_name': customer_name or '',
-                'first_message_at': now,
+                'first_message_at': when or now,
                 'last_message_at': now,
                 'msg_count': 1,
                 'has_phone': bool(phone),
@@ -96,6 +103,24 @@ class VdPancakeConversation(models.Model):
                 ('page_id', '=', page.id),
                 ('conversation_id', '=', conv_id),
             ], limit=1)
+
+    @api.model
+    def _vd_heal_first_message(self, page, conv_id, when):
+        """Chỉ HẠ first_message_at về inserted_at THẬT của Pancake nếu sớm hơn.
+        Không đụng msg_count/last_message_at (khác _vd_touch) → gọi được cho MỌI
+        hội thoại mỗi lần cron chạy mà không phồng số tin. Dùng để chữa dần các
+        bản ghi cũ có first_message_at = lúc webhook ghi (now) thay vì giờ thật."""
+        if not (page and conv_id and when):
+            return
+        rec = self.sudo().search([
+            ('page_id', '=', page.id),
+            ('conversation_id', '=', conv_id),
+        ], limit=1)
+        if rec and rec.first_message_at and when < rec.first_message_at:
+            try:
+                rec.sudo().write({'first_message_at': when})
+            except Exception:
+                pass
 
     @api.model
     def _vd_rate_block(self, since, until):

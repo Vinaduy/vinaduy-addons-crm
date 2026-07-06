@@ -363,15 +363,28 @@ class VdPancakePage(models.Model):
         # đúng danh sách khách có số trên Botcake.
         # CHỈ cập nhật hội thoại đã có (create_if_missing=False) — KHÔNG để cron
         # tạo bản ghi mới làm phồng "khách nhắn" hôm nay bằng khách CŨ. Webhook
-        # đã tạo bản ghi cho mọi tin khách; ở đây chỉ gắn lead + SĐT vào nó.
+        # đã tạo bản ghi cho mọi tin khách; ở đây chỉ gắn lead + SĐT + CHỮA
+        # first_message_at về inserted_at THẬT của Pancake (UTC) để đếm đúng.
         try:
             self.env['vd.pancake.conversation'].sudo()._vd_touch(
                 self, conv_id, customer_id=str(customer_id),
                 customer_name=customer_name, phone=phone, lead=new_lead,
-                create_if_missing=False)
+                create_if_missing=False,
+                when=self._parse_pancake_dt(conv.get('inserted_at')))
         except Exception:
             pass
         return 'created'
+
+    @api.model
+    def _parse_pancake_dt(self, s):
+        """Parse 'inserted_at'/'updated_at' Pancake ('2026-07-06T16:13:02.xxx',
+        múi giờ UTC — đã kiểm chứng) → datetime naive UTC cho Odoo. None nếu lỗi."""
+        if not s:
+            return None
+        try:
+            return datetime.strptime(str(s)[:19], '%Y-%m-%dT%H:%M:%S')
+        except Exception:
+            return None
 
     def _extract_conv_phone(self, conv):
         """Lấy SĐT Pancake ĐÃ tự nhận diện trong conversation
@@ -451,8 +464,14 @@ class VdPancakePage(models.Model):
             conversations = data.get('conversations') or []
             if not conversations:
                 break
+            Conv = self.env['vd.pancake.conversation'].sudo()
             for conv in conversations:
                 try:
+                    # CHỮA first_message_at cho MỌI hội thoại (kể cả đã có lead)
+                    # về inserted_at thật → "khách nhắn" đếm đúng khách mới.
+                    Conv._vd_heal_first_message(
+                        self, conv.get('id'),
+                        self._parse_pancake_dt(conv.get('inserted_at')))
                     if self._sync_one_conversation(conv, Lead, ResUsers) == 'created':
                         created += 1
                 except Exception:

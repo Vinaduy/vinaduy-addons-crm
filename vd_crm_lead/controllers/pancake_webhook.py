@@ -20,6 +20,7 @@ Spec tham chiếu: https://developer.pancake.biz/webhook
 import json
 import logging
 import re
+from datetime import datetime
 
 from odoo import http, fields
 from odoo.http import request
@@ -102,6 +103,12 @@ class PancakeWebhookController(http.Controller):
         data = payload.get('data') or {}
         conv = data.get('conversation') or {}
         msg = data.get('message') or {}
+
+        # inserted_at THẬT của Pancake (UTC) → dùng làm first_message_at để đếm
+        # "khách mới" đúng (khách CŨ quay lại không bị tính là mới hôm nay). Nếu
+        # payload không có thì _vd_touch tự dùng now() + cron chữa sau.
+        conv_when = self._parse_pancake_dt(
+            conv.get('inserted_at') or msg.get('inserted_at'))
 
         conv_id = conv.get('id') or msg.get('conversation_id')
         if not conv_id:
@@ -218,7 +225,7 @@ class PancakeWebhookController(http.Controller):
             request.env['vd.pancake.conversation'].sudo()._vd_touch(
                 page, conv_id, customer_id=customer_id,
                 customer_name=customer_name, phone=phone or None,
-                lead=existing or None)
+                lead=existing or None, when=conv_when)
         except Exception:
             _logger.exception('Pancake webhook %s: lưu hội thoại lỗi (conv %s)',
                               page.name, conv_id)
@@ -274,7 +281,7 @@ class PancakeWebhookController(http.Controller):
         # Gắn lead vào hội thoại đã lưu để tính tỷ lệ xin số (đã có SĐT).
         try:
             request.env['vd.pancake.conversation'].sudo()._vd_touch(
-                page, conv_id, phone=phone or None, lead=lead)
+                page, conv_id, phone=phone or None, lead=lead, when=conv_when)
         except Exception:
             pass
         _logger.info('Pancake webhook %s: tạo lead %s assignee=%s',
@@ -305,6 +312,16 @@ class PancakeWebhookController(http.Controller):
             (message_text[:1000]).replace('\n', '<br/>'),
         )
         lead.message_post(body=body, message_type='comment')
+
+    def _parse_pancake_dt(self, s):
+        """Parse 'inserted_at' Pancake ('2026-07-06T16:13:02.xxx', UTC) →
+        datetime naive UTC. None nếu thiếu/lỗi."""
+        if not s:
+            return None
+        try:
+            return datetime.strptime(str(s)[:19], '%Y-%m-%dT%H:%M:%S')
+        except Exception:
+            return None
 
     def _ok(self):
         """Trả 200 OK rỗng — Pancake không yêu cầu body cụ thể."""
