@@ -70,14 +70,16 @@
             <field name="user_id" ref="base.user_root"/>
         </record>
 
-        <!-- ĐỒNG BỘ KHÁCH BOTCAKE (user spec 2026-06-26): kéo khách có SĐT từ kho
-             Customer của Botcake về CRM (form quảng cáo / chat) mỗi 10 phút. -->
+        <!-- ĐỒNG BỘ KHÁCH BOTCAKE — TẮT (user spec 2026-07-06): Botcake API trả về
+             TOÀN BỘ kho khách (không có ngày), phân trang `page` kéo cả nghìn khách
+             CŨ mỗi lần chạy → tạo lead loạn + ngập worklist NV + phồng báo cáo.
+             Webhook phone_info thời gian thực mới là nguồn CHÍNH. Tắt cron này. -->
         <record id="ir_cron_vd_botcake_sync" model="ir.cron">
             <field name="name">VD CRM: Đồng bộ khách Botcake (kéo SĐT)</field>
             <field name="model_id" ref="model_vd_pancake_page"/>
             <field name="state">code</field>
             <field name="code">model._cron_sync_botcake(since_days=2)</field>
-            <field name="active" eval="True"/>
+            <field name="active" eval="False"/>
             <field name="interval_number">10</field>
             <field name="interval_type">minutes</field>
             <field name="user_id" ref="base.user_root"/>
