@@ -468,7 +468,8 @@ export const stringeeService = {
             //   - Chết TRƯỚC khi đổ chuông → hỏi server chẩn đoán SỐ TỔNG ĐÀI:
             //     số chết (đổi số) / số trục trặc / số ổn (khách không nghe).
             const handleTerminalNotice = (code, s, reached, c) => {
-                if (reached) {
+                // Thông báo theo trạng thái cuộc gọi khi số vẫn KHOẺ (đã đổ chuông).
+                const showReachedNotice = () => {
                     if (code === 4) {
                         showCallAlert("warning", "Khách bận máy",
                             "Máy khách đang bận. Thử gọi lại sau.");
@@ -476,33 +477,42 @@ export const stringeeService = {
                         showCallAlert("warning", "Khách từ chối",
                             "Khách từ chối / cúp máy.");
                     } else if (state.answerStartedAt) {
-                        // Đã nói chuyện rồi mới kết thúc → bình thường.
                         showCallAlert("success", "Cuộc gọi đã kết thúc", "", { autoMs: 3000 });
                     } else {
-                        // Đổ chuông nhưng KH không bắt máy.
                         showCallAlert("warning", "Khách không nghe máy",
                             "Đã đổ chuông nhưng khách không bắt máy. Thử gọi lại sau.");
                     }
-                    return;
-                }
+                };
                 if (!c._vdFromNumber) {
-                    showCallAlert("info", "Cuộc gọi đã kết thúc", "", { autoMs: 3000 });
+                    if (reached) { showReachedNotice(); }
+                    else { showCallAlert("info", "Cuộc gọi đã kết thúc", "", { autoMs: 3000 }); }
                     return;
                 }
+                // LUÔN hỏi sức khoẻ số — kể cả khi đã đổ chuông — để CẢNH BÁO SỚM
+                // (dead/warning) cho NV theo dõi số có nguy cơ bị nhà mạng gắn cờ.
                 rpc("/stringee/number_health", {
                     from_number: c._vdFromNumber,
                     carrier: c._vdCarrier || "",
                 }).then((h) => {
-                    if (!h || !h.message) {
-                        showCallAlert("warning", "Chưa gọi ra được",
-                            "Cuộc gọi kết thúc trước khi đổ chuông.");
+                    if (h && (h.state === "dead" || h.state === "warning") && h.message) {
+                        showCallAlert(h.level || "warning",
+                            h.title || "Cảnh báo số tổng đài", h.message);
                         return;
                     }
-                    showCallAlert(h.level || "warning", h.title || "Thông báo cuộc gọi",
-                        h.message);
+                    if (reached) { showReachedNotice(); return; }
+                    if (h && h.message) {
+                        showCallAlert(h.level || "warning",
+                            h.title || "Thông báo cuộc gọi", h.message);
+                    } else {
+                        showCallAlert("warning", "Chưa gọi ra được",
+                            "Cuộc gọi kết thúc trước khi đổ chuông.");
+                    }
                 }).catch(() => {
-                    showCallAlert("warning", "Chưa gọi ra được",
-                        "Cuộc gọi kết thúc trước khi đổ chuông.");
+                    if (reached) { showReachedNotice(); }
+                    else {
+                        showCallAlert("warning", "Chưa gọi ra được",
+                            "Cuộc gọi kết thúc trước khi đổ chuông.");
+                    }
                 });
             };
 

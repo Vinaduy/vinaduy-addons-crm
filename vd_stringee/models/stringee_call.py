@@ -235,12 +235,28 @@ class StringeeCall(models.Model):
         )
         recent_total, recent_reached = cr.fetchone()
 
+        # (3) HÔM NAY: cảnh báo SỚM "nguy cơ bị gắn cờ" trước khi số chết hẳn.
+        #     Cửa sổ 3 ngày ở trên hay che mất cú sập trong ngày (mấy hôm trước đổ
+        #     chuông tốt nhưng HÔM NAY tụt về gần 0) → thêm cửa sổ theo NGÀY.
+        cr.execute(
+            "SELECT count(*), count(*) FILTER (WHERE " + reached_sql + ") "
+            "FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number LIKE %s "
+            "  AND (create_date AT TIME ZONE 'Asia/Ho_Chi_Minh')::date "
+            "      = (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date",
+            [like],
+        )
+        today_total, today_reached = cr.fetchone()
+        today_rate = round(100.0 * today_reached / today_total) if today_total else None
+
         num_disp = re.sub(r'\D', '', from_number) if from_number else digits9
         common = {
             'total': total_all, 'reached': reached_all,
             'recent_total': recent_total, 'recent_reached': recent_reached,
+            'today_total': today_total, 'today_reached': today_reached,
+            'today_rate': today_rate,
         }
-        # === Phân loại (CHỈ dead vs alive, dựa tín hiệu đổ chuông thật) ===
+        # === Phân loại (dead / warning / alive, dựa tín hiệu đổ chuông thật) ===
         never_reached = (reached_all == 0 and total_all >= 3)
         broke_recently = (recent_reached == 0 and recent_total >= 8)
         if never_reached or broke_recently:
@@ -264,6 +280,48 @@ class StringeeCall(models.Model):
                 ),
                 **common,
             }
+        # === CẢNH BÁO SỚM: số CHƯA chết nhưng có dấu hiệu nguy cơ bị nhà mạng
+        #     gắn cờ/chặn — để NV theo dõi + giảm nhịp gọi. 2 tín hiệu:
+        #       (a) HÔM NAY tỷ lệ đổ chuông thấp (đã gọi đủ nhiều mà ít nối được).
+        #       (b) HÔM NAY gọi QUÁ DÀY (dễ bị gắn cờ spam).
+        #     Ngưỡng chỉnh được qua ir.config_parameter. ===
+        ICP = self.env['ir.config_parameter'].sudo()
+
+        def _p(key, default):
+            try:
+                return int(ICP.get_param(key, default))
+            except (TypeError, ValueError):
+                return default
+        warn_min_calls = _p('vd_stringee.warn_min_calls', 8)
+        warn_ring_pct = _p('vd_stringee.warn_ring_pct', 45)
+        warn_volume = _p('vd_stringee.warn_daily_volume', 130)
+
+        low_rate = (today_total >= warn_min_calls and today_rate is not None
+                    and today_rate < warn_ring_pct)
+        high_vol = (today_total >= warn_volume)
+        if low_rate or high_vol:
+            if low_rate:
+                detail = (
+                    f'hôm nay đã gọi {today_total} cuộc nhưng chỉ {today_rate}% '
+                    f'đổ chuông (ngưỡng an toàn ≥ {warn_ring_pct}%). Đây là dấu '
+                    f'hiệu số đang bị nhà mạng siết/gắn cờ.'
+                )
+            else:
+                detail = (
+                    f'hôm nay đã gọi {today_total} cuộc — quá dày (ngưỡng '
+                    f'{warn_volume}). Gọi ra dồn dập dễ bị nhà mạng gắn cờ spam.'
+                )
+            return {
+                'state': 'warning', 'level': 'warning',
+                'title': f'Số {label} có NGUY CƠ bị gắn cờ — theo dõi',
+                'message': (
+                    f'⚠️ Số tổng đài {label} {num_disp} — {detail} '
+                    f'→ Nên GIÃN nhịp gọi, ưu tiên nhắn Zalo, và báo admin theo '
+                    f'dõi/đổi số nếu tỷ lệ tiếp tục tụt.'
+                ),
+                **common,
+            }
+
         # Số vẫn đổ chuông/nối được → cuộc này lỗi phía khách/tạm thời.
         return {
             'state': 'alive', 'level': 'info',
