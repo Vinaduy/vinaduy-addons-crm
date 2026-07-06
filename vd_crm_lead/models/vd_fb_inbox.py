@@ -483,6 +483,18 @@ class VdFbPage(models.Model):
             }
             if self.team_id:
                 vals['team_id'] = self.team_id.id
+            # Tự CHIA NV round-robin (như luồng Pancake) — dùng chung pool NV đang
+            # bật nhận Pancake; nếu không thì lead rớt về Public user, NV không thấy.
+            try:
+                assignee = self.env['res.users'].sudo()._vd_pick_next_assignee(
+                    source='pancake',
+                    preferred_team_id=self.team_id.id if self.team_id else None)
+                if assignee:
+                    vals['user_id'] = assignee.id
+                    if self.team_id:
+                        vals['team_id'] = self.team_id.id
+            except Exception:
+                pass  # không có NV eligible / lỗi -> tạo lead không assignee, không chặn
             lead = Lead.create(vals)
         record.lead_id = lead.id
 
