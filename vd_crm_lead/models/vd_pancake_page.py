@@ -289,9 +289,18 @@ class VdPancakePage(models.Model):
         if existing:
             return 'existing'
 
-        # Customer info từ conversation
+        # Customer info từ conversation.
+        # customer_id = PSID (đuôi sau '{page_id}_' của conv_id) để KHỚP với
+        # webhook — webhook lưu sender PSID. API from.id là UUID nội bộ Pancake
+        # KHÁC PSID → nếu dùng sẽ đẻ 'khách' trùng lặp trong thống kê "khách nhắn"
+        # + lệch lead dedup theo customer_id (sự cố 06/07). Fallback from.id nếu
+        # conv_id không theo format mong đợi.
         from_info = conv.get('from') or {}
-        customer_id = from_info.get('id') or from_info.get('page_customer_id') or ''
+        pid = str(self.page_id or '')
+        if conv_id and pid and str(conv_id).startswith(pid + '_'):
+            customer_id = str(conv_id)[len(pid) + 1:]
+        else:
+            customer_id = from_info.get('id') or from_info.get('page_customer_id') or ''
         customer_name = (from_info.get('name') or '').strip()
 
         # Skip nếu sender là chính page (mọi page_id, không chỉ page hiện tại)
@@ -352,10 +361,14 @@ class VdPancakePage(models.Model):
         new_lead = Lead.create(vals)
         # Cập nhật hội thoại với SĐT CHUẨN từ hồ sơ khách → ô tỷ lệ xin số khớp
         # đúng danh sách khách có số trên Botcake.
+        # CHỈ cập nhật hội thoại đã có (create_if_missing=False) — KHÔNG để cron
+        # tạo bản ghi mới làm phồng "khách nhắn" hôm nay bằng khách CŨ. Webhook
+        # đã tạo bản ghi cho mọi tin khách; ở đây chỉ gắn lead + SĐT vào nó.
         try:
             self.env['vd.pancake.conversation'].sudo()._vd_touch(
                 self, conv_id, customer_id=str(customer_id),
-                customer_name=customer_name, phone=phone, lead=new_lead)
+                customer_name=customer_name, phone=phone, lead=new_lead,
+                create_if_missing=False)
         except Exception:
             pass
         return 'created'

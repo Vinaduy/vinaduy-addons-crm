@@ -42,11 +42,16 @@ class VdPancakeConversation(models.Model):
 
     @api.model
     def _vd_touch(self, page, conv_id, customer_id=None, customer_name=None,
-                  phone=None, lead=None):
+                  phone=None, lead=None, create_if_missing=True):
         """Upsert 1 hội thoại — idempotent theo (page, conv_id). An toàn để gọi
         mỗi event: chỉ NÂNG CẤP has_phone/lead khi có dữ liệu mới, không hạ cấp.
 
-        Mọi lỗi nuốt im (không được làm hỏng webhook chính)."""
+        create_if_missing=False → CHỈ cập nhật bản ghi đã có, KHÔNG tạo mới. Dùng
+        cho luồng SYNC/CRON (kéo API): "khách nhắn" (mẫu số tỷ lệ) phải do WEBHOOK
+        thời-gian-thực quyết định — webhook đã _vd_touch cho MỌI tin khách. Nếu
+        cron cũng tạo bản ghi thì (a) set first_message_at = HÔM NAY cho khách CŨ
+        và (b) customer_id = UUID API (khác PSID webhook) → đẻ 'khách' trùng lặp,
+        thổi phồng "khách nhắn" (sự cố 06/07: +44 phantom). Mọi lỗi nuốt im."""
         if not page or not conv_id:
             return self.browse()
         now = fields.Datetime.now()
@@ -54,6 +59,8 @@ class VdPancakeConversation(models.Model):
             ('page_id', '=', page.id),
             ('conversation_id', '=', conv_id),
         ], limit=1)
+        if not rec and not create_if_missing:
+            return self.browse()
         if rec:
             vals = {'last_message_at': now, 'msg_count': (rec.msg_count or 0) + 1}
             if customer_name and not rec.customer_name:
