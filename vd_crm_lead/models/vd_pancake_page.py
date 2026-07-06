@@ -393,11 +393,14 @@ class VdPancakePage(models.Model):
         until = (datetime.utcnow() + timedelta(days=1)).strftime('%Y-%m-%d')
         url = '%s/pages/%s/customer' % (_BOTCAKE_API_BASE, self.page_id)
         seen = {}
-        for pn in range(1, 200):
+        # ⚠️ Botcake phân trang bằng tham số `page` (KHÔNG phải `page_number` —
+        #    API bỏ qua page_number, luôn trả 10 khách trang 1 → trước đây cron chỉ
+        #    kéo được 10 khách/lần). Fix 2026-07-06.
+        for pn in range(1, 500):
             try:
                 resp = requests.get(
                     url, headers={'access-token': tok},
-                    params={'since': since, 'until': until, 'page_number': pn},
+                    params={'since': since, 'until': until, 'page': pn},
                     timeout=30)
                 data = resp.json()
             except Exception as e:
