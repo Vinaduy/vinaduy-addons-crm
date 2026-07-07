@@ -683,6 +683,13 @@ class CrmLead(models.Model):
     # Panel "Làm hợp đồng - Hẹn gặp" chỉ bung khi NV bấm nút (không tự hiện).
     vd_contract_open = fields.Boolean(string='Mở panel làm hợp đồng', default=False, copy=False)
 
+    # NV chủ động đánh dấu KH "Báo giá xong mất tích" (nút/kéo-thả trên dashboard)
+    # — buộc KH vào box đó dù chưa đủ tiêu chí tự động, và RỜI 2 bảng THI CÔNG GẤP
+    # / XỬ LÝ VẤN ĐỀ. user spec 2026-07-07.
+    vd_quoted_lost_manual = fields.Boolean(
+        string='Đánh dấu Báo giá xong mất tích (thủ công)',
+        default=False, copy=False, index=True)
+
     def action_toggle_contract_panel(self):
         self.ensure_one()
         self.vd_contract_open = not self.vd_contract_open
@@ -7746,6 +7753,8 @@ class CrmLead(models.Model):
                 ('vd_intake_complete', '=', True),
                 ('vd_intake_locked', '=', True),
                 ('vd_intake_timeline', '!=', False),
+                # KH đã đánh dấu "Báo giá xong mất tích" → RỜI bảng THI CÔNG GẤP.
+                ('vd_quoted_lost_manual', '=', False),
             ],
         )
         today = date.today()
@@ -7849,6 +7858,8 @@ class CrmLead(models.Model):
                 ('vd_intake_complete', '=', True),
                 ('vd_intake_locked', '=', True),
                 ('id', 'not in', urgent_ids),
+                # KH đã đánh dấu "Báo giá xong mất tích" → RỜI bảng XỬ LÝ VẤN ĐỀ.
+                ('vd_quoted_lost_manual', '=', False),
             ],
             limit=limit,
             # Round 17 sort: ưu tiên KH cũ nhất (= ít ngày còn lại / quá hạn).
@@ -8136,9 +8147,37 @@ class CrmLead(models.Model):
             order='create_date desc',
         )
         matched_ids = self._dashboard_unreachable_ids(candidates, limit, min_days=1)
-        if not matched_ids:
+        # GỘP thêm KH được NV ĐÁNH DẤU thủ công (nút / kéo-thả) — vào box dù chưa
+        # đủ tiêu chí tự động, mọi stage (chưa won/lost). user spec 2026-07-07.
+        manual = self.search(
+            domain_user + [
+                ('vd_quoted_lost_manual', '=', True),
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+                ('active', '=', True),
+            ],
+        )
+        all_ids = list(dict.fromkeys(list(matched_ids) + manual.ids))
+        if not all_ids:
             return []
-        return self._dashboard_serialize_leads(self.browse(matched_ids))
+        return self._dashboard_serialize_leads(self.browse(all_ids))
+
+    @api.model
+    def dashboard_move_to_quoted_lost(self, lead_id):
+        """NV bấm nút / kéo-thả KH vào box BÁO GIÁ XONG MẤT TÍCH → set cờ thủ
+        công. KH sẽ rời 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ và hiện trong box."""
+        lead = self.browse(int(lead_id)).exists()
+        if lead:
+            lead.write({'vd_quoted_lost_manual': True})
+        return True
+
+    @api.model
+    def dashboard_unmark_quoted_lost(self, lead_id):
+        """Gỡ đánh dấu (đưa KH trở lại luồng 2 bảng bình thường)."""
+        lead = self.browse(int(lead_id)).exists()
+        if lead:
+            lead.write({'vd_quoted_lost_manual': False})
+        return True
 
     @api.model
     def dashboard_leads_planned_sign(self, user_id=None, limit=200):

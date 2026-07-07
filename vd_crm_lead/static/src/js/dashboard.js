@@ -14,6 +14,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
 import { View } from "@web/views/view";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { VdHouseLibDialog } from "./vd_house_lib";
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
@@ -192,6 +193,7 @@ export class VdCrmDashboard extends Component {
             // (giống bảng Khách mới) — user spec 2026-07-07.
             urgentExpanded: false,
             xlvdExpanded: false,
+            quotedLostDropHover: false,
             // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
             pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
@@ -1610,6 +1612,59 @@ export class VdCrmDashboard extends Component {
     }
     toggleXlvdTable() {
         this.state.xlvdExpanded = !this.state.xlvdExpanded;
+    }
+
+    // ===== BÁO GIÁ XONG MẤT TÍCH — chuyển KH thủ công (nút + kéo-thả) =====
+    _leadById(leadId) {
+        return [...(this.leadsUrgentConstruction || []),
+                ...(this.leadsWithProblems || [])].find(l => l.id === leadId);
+    }
+    async _doMoveToQuotedLost(leadId) {
+        try {
+            await this.orm.call("crm.lead", "dashboard_move_to_quoted_lost", [leadId]);
+            this.notification.add("Đã chuyển KH vào BÁO GIÁ XONG MẤT TÍCH", { type: "success" });
+            await this.selectStage(this.state.selectedStageId);
+        } catch (e) {
+            this.notification.add("Không chuyển được KH này", { type: "danger" });
+        }
+    }
+    // Nút trên dòng → popup XÁC NHẬN trước khi chuyển.
+    confirmMoveToQuotedLost(ev, leadId) {
+        if (ev) { ev.stopPropagation(); }
+        const lead = this._leadById(leadId);
+        this.dialog.add(ConfirmationDialog, {
+            title: "BÁO GIÁ XONG MẤT TÍCH",
+            body: `Bạn đồng ý chuyển khách "${lead ? lead.name : ''}" vào bảng BÁO GIÁ XONG MẤT TÍCH?`,
+            confirmLabel: "Đồng ý chuyển",
+            cancelLabel: "Huỷ",
+            confirm: () => this._doMoveToQuotedLost(leadId),
+        });
+    }
+    // Kéo-thả: bắt đầu kéo 1 dòng KH.
+    onQuotedLostDragStart(ev, leadId) {
+        this._draggingLeadId = leadId;
+        try {
+            ev.dataTransfer.setData("text/plain", String(leadId));
+            ev.dataTransfer.effectAllowed = "move";
+        } catch (e) { /* một số trình duyệt cấm setData ở dragstart tổng hợp */ }
+    }
+    onQuotedLostDragOver(ev) {
+        ev.preventDefault();
+        if (ev.dataTransfer) { ev.dataTransfer.dropEffect = "move"; }
+        this.state.quotedLostDropHover = true;
+    }
+    onQuotedLostDragLeave() {
+        this.state.quotedLostDropHover = false;
+    }
+    // Thả vào box → chuyển TRỰC TIẾP (không popup, vì thao tác kéo đã là chủ đích).
+    onQuotedLostDrop(ev) {
+        ev.preventDefault();
+        this.state.quotedLostDropHover = false;
+        let leadId = 0;
+        try { leadId = parseInt(ev.dataTransfer.getData("text/plain"), 10); } catch (e) {}
+        if (!leadId) { leadId = this._draggingLeadId || 0; }
+        this._draggingLeadId = null;
+        if (leadId) { this._doMoveToQuotedLost(leadId); }
     }
 
     // 🗑️ Thùng rác CÔNG TY — popup FULL màn hình, danh sách KH đã DUYỆT hủy.
