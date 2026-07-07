@@ -2361,8 +2361,6 @@
                                         <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
                                         <t t-set="urgentShown" t-value="state.urgentExpanded ? leadsUrgentConstruction : leadsUrgentConstruction.slice(0, 15)"/>
                                         <div t-foreach="urgentShown" t-as="lead" t-key="lead.id"
-                                             draggable="true"
-                                             t-on-dragstart="(ev) => this.onQuotedLostDragStart(ev, lead.id)"
                                              t-on-click="() => this.onPillClick(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
@@ -2555,8 +2553,6 @@
                                         <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
                                         <t t-set="xlvdShown" t-value="state.xlvdExpanded ? leadsWithProblems : leadsWithProblems.slice(0, 15)"/>
                                         <div t-foreach="xlvdShown" t-as="lead" t-key="lead.id"
-                                             draggable="true"
-                                             t-on-dragstart="(ev) => this.onQuotedLostDragStart(ev, lead.id)"
                                              t-on-click="() => this.onPillClick(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
@@ -2893,12 +2889,9 @@
                                     </div>
                                     
 
-                            <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost' + (state.quotedLostDropHover ? ' o_vd_drop_hover' : '')"
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
                                  t-on-click="() => this.openCategoryList(leadsQuotedLost)"
-                                 t-on-dragover="(ev) => this.onQuotedLostDragOver(ev)"
-                                 t-on-dragleave="() => this.onQuotedLostDragLeave()"
-                                 t-on-drop="(ev) => this.onQuotedLostDrop(ev)"
-                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Kéo-thả KH vào đây hoặc click để xem danh sách.">
+                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
                                     <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
@@ -2931,6 +2924,12 @@
                                                     t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
                                                     title="Gọi lại KH ngay">
                                                 <i class="fa fa-phone me-1"/> Gọi lại
+                                            </button>
+                                            <!-- Đã liên lạc được → LÔI KH ra khỏi box, về luồng bình thường -->
+                                            <button class="btn btn-sm o_vd_contacted_btn"
+                                                    t-on-click="(ev) => this.markContactedQuotedLost(ev, ld.id)"
+                                                    title="KH đã liên lạc được — lôi ra khỏi Báo giá xong mất tích">
+                                                <i class="fa fa-check me-1"/> Đã liên lạc được
                                             </button>
                                         </div>
                                     </div>

@@ -193,7 +193,6 @@ export class VdCrmDashboard extends Component {
             // (giống bảng Khách mới) — user spec 2026-07-07.
             urgentExpanded: false,
             xlvdExpanded: false,
-            quotedLostDropHover: false,
             // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
             pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
@@ -1640,31 +1639,17 @@ export class VdCrmDashboard extends Component {
             confirm: () => this._doMoveToQuotedLost(leadId),
         });
     }
-    // Kéo-thả: bắt đầu kéo 1 dòng KH.
-    onQuotedLostDragStart(ev, leadId) {
-        this._draggingLeadId = leadId;
+    // Nút "Đã liên lạc được" trong box → LÔI KH ra khỏi BÁO GIÁ XONG MẤT TÍCH,
+    // trả về luồng 2 bảng bình thường.
+    async markContactedQuotedLost(ev, leadId) {
+        if (ev) { ev.stopPropagation(); }
         try {
-            ev.dataTransfer.setData("text/plain", String(leadId));
-            ev.dataTransfer.effectAllowed = "move";
-        } catch (e) { /* một số trình duyệt cấm setData ở dragstart tổng hợp */ }
-    }
-    onQuotedLostDragOver(ev) {
-        ev.preventDefault();
-        if (ev.dataTransfer) { ev.dataTransfer.dropEffect = "move"; }
-        this.state.quotedLostDropHover = true;
-    }
-    onQuotedLostDragLeave() {
-        this.state.quotedLostDropHover = false;
-    }
-    // Thả vào box → chuyển TRỰC TIẾP (không popup, vì thao tác kéo đã là chủ đích).
-    onQuotedLostDrop(ev) {
-        ev.preventDefault();
-        this.state.quotedLostDropHover = false;
-        let leadId = 0;
-        try { leadId = parseInt(ev.dataTransfer.getData("text/plain"), 10); } catch (e) {}
-        if (!leadId) { leadId = this._draggingLeadId || 0; }
-        this._draggingLeadId = null;
-        if (leadId) { this._doMoveToQuotedLost(leadId); }
+            await this.orm.call("crm.lead", "dashboard_unmark_quoted_lost", [leadId]);
+            this.notification.add("Đã lôi KH ra khỏi Báo giá xong mất tích", { type: "success" });
+            await this.selectStage(this.state.selectedStageId);
+        } catch (e) {
+            this.notification.add("Không thao tác được", { type: "danger" });
+        }
     }
 
     // 🗑️ Thùng rác CÔNG TY — popup FULL màn hình, danh sách KH đã DUYỆT hủy.

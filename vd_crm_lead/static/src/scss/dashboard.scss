@@ -6686,13 +6686,22 @@
         &:hover { background: #e03131; }
         &:active { transform: translateY(1px); }
     }
-    /* Box BÁO GIÁ XONG MẤT TÍCH đang được kéo-thả tới → highlight */
-    .o_vd_split_quoted_lost.o_vd_drop_hover {
-        outline: 3px dashed #e03131;
-        outline-offset: 2px;
-        background: #fff0f0 !important;
-        transform: scale(1.03);
-        transition: transform 0.12s ease;
+    /* Nút "Đã liên lạc được" trong popover box → lôi KH ra (xanh lá) */
+    .o_vd_contacted_btn {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.35rem;
+        padding: 0.18rem 0.55rem;
+        background: #2b8a3e;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+        &:hover { background: #2f9e44; color: #fff; }
+        &:active { transform: translateY(1px); }
     }
     /* Báo cáo cuộc gọi — note nhỏ + verdict glanceable + chips */
     .o_vd_prb_req2_pop_subnote {

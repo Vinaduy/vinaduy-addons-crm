@@ -689,6 +689,11 @@ class CrmLead(models.Model):
     vd_quoted_lost_manual = fields.Boolean(
         string='Đánh dấu Báo giá xong mất tích (thủ công)',
         default=False, copy=False, index=True)
+    # NV bấm "Đã liên lạc được" trong box → LÔI KH ra khỏi box (loại cả trường hợp
+    # tự động khớp tiêu chí lẫn đánh dấu tay), trả về luồng 2 bảng. user 2026-07-07.
+    vd_quoted_lost_dismissed = fields.Boolean(
+        string='Đã liên lạc được (rời Báo giá xong mất tích)',
+        default=False, copy=False, index=True)
 
     def action_toggle_contract_panel(self):
         self.ensure_one()
@@ -8143,15 +8148,18 @@ class CrmLead(models.Model):
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('stage_id', 'in', quoted_stages.ids),
+                # NV đã bấm "Đã liên lạc được" → LÔI ra khỏi box.
+                ('vd_quoted_lost_dismissed', '=', False),
             ],
             order='create_date desc',
         )
         matched_ids = self._dashboard_unreachable_ids(candidates, limit, min_days=1)
-        # GỘP thêm KH được NV ĐÁNH DẤU thủ công (nút / kéo-thả) — vào box dù chưa
-        # đủ tiêu chí tự động, mọi stage (chưa won/lost). user spec 2026-07-07.
+        # GỘP thêm KH được NV ĐÁNH DẤU thủ công (nút) — vào box dù chưa đủ tiêu chí
+        # tự động, mọi stage (chưa won/lost). user spec 2026-07-07.
         manual = self.search(
             domain_user + [
                 ('vd_quoted_lost_manual', '=', True),
+                ('vd_quoted_lost_dismissed', '=', False),
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('active', '=', True),
@@ -8173,10 +8181,15 @@ class CrmLead(models.Model):
 
     @api.model
     def dashboard_unmark_quoted_lost(self, lead_id):
-        """Gỡ đánh dấu (đưa KH trở lại luồng 2 bảng bình thường)."""
+        """NV bấm "Đã liên lạc được" → LÔI KH ra khỏi box BÁO GIÁ XONG MẤT TÍCH,
+        đưa về luồng 2 bảng bình thường. Set dismissed=True để loại cả trường hợp
+        KH đang khớp tiêu chí TỰ ĐỘNG (không chỉ đánh dấu tay); clear cờ tay."""
         lead = self.browse(int(lead_id)).exists()
         if lead:
-            lead.write({'vd_quoted_lost_manual': False})
+            lead.write({
+                'vd_quoted_lost_manual': False,
+                'vd_quoted_lost_dismissed': True,
+            })
         return True
 
     @api.model
