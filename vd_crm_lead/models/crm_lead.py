@@ -6741,9 +6741,10 @@ class CrmLead(models.Model):
             for l in leads:
                 uid = l.user_id.id
                 per[uid] = per.get(uid, 0) + 1
-                # Phân loại theo TIỀN TỐ customer_id ('ttm_' = TikTok) vì webhook
-                # đang lưu nhầm khách TikTok vào page Facebook → không tin page nữa.
-                if (l.vd_pancake_customer_id or '').startswith('ttm_'):
+                # Phân loại theo TIỀN TỐ conversation_id ('ttm_' = TikTok) — bền
+                # vững: TikTok conv_id luôn bắt đầu 'ttm_'. KHÔNG dùng customer_id
+                # (nay là PSID số) vì sẽ nhét nhầm khách TikTok vào Facebook.
+                if (l.vd_pancake_conversation_id or '').startswith('ttm_'):
                     per_tt[uid] = per_tt.get(uid, 0) + 1
                 else:
                     per_fb[uid] = per_fb.get(uid, 0) + 1

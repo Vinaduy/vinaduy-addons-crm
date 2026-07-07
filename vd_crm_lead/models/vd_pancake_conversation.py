@@ -158,11 +158,15 @@ class VdPancakeConversation(models.Model):
         # SĐT — TikTok đổ vào rất nhiều tài khoản dùng-1-lần (user609947106,
         # az921999...) nhắn 1 câu rồi thôi → thổi phồng "khách nhắn" (vd 04/07 lên
         # 503). Facebook giữ nguyên (đếm tất cả khách nhắn lần đầu trong ngày).
+        # Phân loại nền tảng theo TIỀN TỐ conversation_id ('ttm_' = TikTok) — BỀN
+        # VỮNG hơn customer_id: TikTok conv_id LUÔN bắt đầu 'ttm_', còn customer_id
+        # nay là PSID số (đã đổi để khớp webhook + hết double-count UUID) nên KHÔNG
+        # dùng customer_id để nhận diện TikTok được nữa (sẽ nhét nhầm TikTok vào FB).
         self.env.cr.execute(
             "SELECT plat, count(*) FROM ("
             "  SELECT customer_id, min(first_message_at) AS fe, "
             "    bool_or(has_phone) AS co_phone, "
-            "    CASE WHEN customer_id LIKE 'ttm\\_%%' THEN 'tiktok' "
+            "    CASE WHEN bool_or(conversation_id LIKE 'ttm\\_%%') THEN 'tiktok' "
             "         ELSE 'facebook' END AS plat "
             "  FROM vd_pancake_conversation "
             "  WHERE customer_id IS NOT NULL AND customer_id <> '' "
@@ -184,8 +188,10 @@ class VdPancakeConversation(models.Model):
         base = [('vd_pancake_page_id', '!=', False),
                 ('create_date', '>=', since), ('create_date', '<', until)]
         xin_all = Lead.with_context(active_test=False).search_count(base)
+        # TikTok nhận diện qua conversation_id (bắt đầu 'ttm_') — KHÔNG dùng
+        # customer_id nữa (nay là PSID số). Nhất quán với cách đếm "khách nhắn".
         xin_tt = Lead.with_context(active_test=False).search_count(
-            base + [('vd_pancake_customer_id', 'like', 'ttm_')])
+            base + [('vd_pancake_conversation_id', 'like', 'ttm_')])
         xin_fb = max(0, xin_all - xin_tt)
 
         def _mk(total, wp):
