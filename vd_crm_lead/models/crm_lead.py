@@ -8034,12 +8034,17 @@ class CrmLead(models.Model):
         return self._dashboard_serialize_leads(self.browse(matched_ids))
 
     @api.model
-    def _dashboard_unreachable_ids(self, candidates, limit=200):
+    def _dashboard_unreachable_ids(self, candidates, limit=200, min_days=3, min_rang=1):
         """Lọc trong `candidates` ra các lead "không liên lạc được": NV đã cố
         gọi nhưng KH chưa bao giờ bắt máy (cond A/B/C). Trả về list lead id.
 
         Dùng chung cho 'CHƯA GỌI ĐƯỢC' (mọi stage) và 'BÁO GIÁ XONG MẤT TÍCH'
         (chỉ stage Báo giá/Đàm phán) để logic không bị lệch nhau.
+
+        min_days / min_rang: ngưỡng số NGÀY gọi khác nhau + số cuộc ĐỔ CHUÔNG tối
+        thiểu. Mặc định (3,1) cho 'CHƯA GỌI ĐƯỢC'. 'BÁO GIÁ XONG MẤT TÍCH' truyền
+        (1,1): KH đã báo giá mà gọi KHÔNG bắt máy là vào ngay, KHÔNG cần đủ số
+        cuộc (user spec 2026-07-07 — bỏ quy định phải gọi bao nhiêu cuộc).
         """
         from datetime import date as _date, timedelta
         today = _date.today()
@@ -8100,7 +8105,7 @@ class CrmLead(models.Model):
                     all_days.add(day)
                 if c.get('state') in ('no_answer', 'busy', 'declined'):
                     rang += 1
-            if rang >= 1 and len(all_days) >= 3:
+            if rang >= min_rang and len(all_days) >= min_days:
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
@@ -8118,16 +8123,19 @@ class CrmLead(models.Model):
         quoted_stages = self.env['crm.stage'].search([('code', 'in', ['quote', 'negotiate'])])
         if not quoted_stages:
             return []
+        # BỎ điều kiện call_count >= 3 (user spec 2026-07-07): KH đã báo giá mà
+        # gọi KHÔNG liên lạc được là vào box ngay, không cần đủ số cuộc. Vẫn cần
+        # ≥1 cuộc ĐỔ CHUÔNG + chưa bao giờ bắt máy (min_days=1) để xác định thật
+        # sự "gọi không được" — nếu chưa từng gọi thì chưa gọi là "mất tích".
         candidates = self.search(
             domain_user + [
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
                 ('stage_id', 'in', quoted_stages.ids),
-                ('call_count', '>=', 3),
             ],
             order='create_date desc',
         )
-        matched_ids = self._dashboard_unreachable_ids(candidates, limit)
+        matched_ids = self._dashboard_unreachable_ids(candidates, limit, min_days=1)
         if not matched_ids:
             return []
         return self._dashboard_serialize_leads(self.browse(matched_ids))

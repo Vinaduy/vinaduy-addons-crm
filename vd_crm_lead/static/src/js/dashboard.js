@@ -188,6 +188,10 @@ export class VdCrmDashboard extends Component {
             // newPillsOverflow: đo bằng JS, chỉ hiện nút khi nội dung thực sự tràn.
             newTableExpanded: false,
             newPillsOverflow: false,
+            // Bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ: thu gọn 15 dòng, nút mở rộng
+            // (giống bảng Khách mới) — user spec 2026-07-07.
+            urgentExpanded: false,
+            xlvdExpanded: false,
             // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
             pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
@@ -1600,6 +1604,12 @@ export class VdCrmDashboard extends Component {
     }
     toggleNewTable() {
         this.state.newTableExpanded = !this.state.newTableExpanded;
+    }
+    toggleUrgentTable() {
+        this.state.urgentExpanded = !this.state.urgentExpanded;
+    }
+    toggleXlvdTable() {
+        this.state.xlvdExpanded = !this.state.xlvdExpanded;
     }
 
     // 🗑️ Thùng rác CÔNG TY — popup FULL màn hình, danh sách KH đã DUYỆT hủy.

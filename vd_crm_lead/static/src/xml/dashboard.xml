@@ -2358,7 +2358,9 @@
                                 <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsUrgentConstruction.length">
-                                        <div t-foreach="leadsUrgentConstruction" t-as="lead" t-key="lead.id"
+                                        <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
+                                        <t t-set="urgentShown" t-value="state.urgentExpanded ? leadsUrgentConstruction : leadsUrgentConstruction.slice(0, 15)"/>
+                                        <div t-foreach="urgentShown" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
@@ -2491,6 +2493,21 @@
                                                 </button>
                                             </span>
                                         </div>
+                                        <button t-if="leadsUrgentConstruction.length > 15"
+                                                t-att-class="'o_vd_new_pills_toggle' + (state.urgentExpanded ? '' : ' o_vd_new_pills_toggle_big')"
+                                                t-on-click="() => this.toggleUrgentTable()">
+                                            <t t-if="state.urgentExpanded">
+                                                <i class="fa fa-chevron-up me-1"/> Thu gọn bảng
+                                            </t>
+                                            <t t-else="">
+                                                <span class="o_vd_expand_main">
+                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                    XEM TẤT CẢ <t t-esc="leadsUrgentConstruction.length"/> KHÁCH
+                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                </span>
+                                                <span class="o_vd_expand_sub">Bấm vào đây để mở rộng bảng</span>
+                                            </t>
+                                        </button>
                                     </t>
                                     <div t-else="" class="o_vd_filter_table_empty">
                                         <i class="fa fa-check-circle me-2"/>
@@ -2527,7 +2544,9 @@
                                 <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsWithProblems.length">
-                                        <div t-foreach="leadsWithProblems" t-as="lead" t-key="lead.id"
+                                        <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
+                                        <t t-set="xlvdShown" t-value="state.xlvdExpanded ? leadsWithProblems : leadsWithProblems.slice(0, 15)"/>
+                                        <div t-foreach="xlvdShown" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
@@ -2658,6 +2677,21 @@
                                                 </button>
                                             </span>
                                         </div>
+                                        <button t-if="leadsWithProblems.length > 15"
+                                                t-att-class="'o_vd_new_pills_toggle' + (state.xlvdExpanded ? '' : ' o_vd_new_pills_toggle_big')"
+                                                t-on-click="() => this.toggleXlvdTable()">
+                                            <t t-if="state.xlvdExpanded">
+                                                <i class="fa fa-chevron-up me-1"/> Thu gọn bảng
+                                            </t>
+                                            <t t-else="">
+                                                <span class="o_vd_expand_main">
+                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                    XEM TẤT CẢ <t t-esc="leadsWithProblems.length"/> KHÁCH
+                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
+                                                </span>
+                                                <span class="o_vd_expand_sub">Bấm vào đây để mở rộng bảng</span>
+                                            </t>
+                                        </button>
                                     </t>
                                     <div t-else="" class="o_vd_filter_table_empty">
                                         <i class="fa fa-inbox me-2"/>
