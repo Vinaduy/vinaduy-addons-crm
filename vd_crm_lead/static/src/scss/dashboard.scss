@@ -10744,35 +10744,52 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 0.8rem; align-content: start;
 }
-/* Bước 1 (tải video) — lưới ô to hơn, thumbnail cao hơn để dễ bấm tải */
+/* Bước 1 (tải video) — ô GỌN để video + nút TẢI XUỐNG luôn thấy cùng nhau
+   (không bị đẩy nút xuống dưới tầm nhìn trên màn nhỏ). user spec 2026-07-08 */
 .o_vd_bc_atts_grid_big {
     flex: 1 1 auto;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.1rem;
-    .o_vd_bc_att_thumb { height: 150px; font-size: 3.4rem; }
-    .o_vd_bc_att_name { font-size: 0.98rem; padding: 0.6rem 0.7rem 0.15rem; }
-    .o_vd_bc_att_dl { font-size: 0.95rem; padding: 0.1rem 0.7rem 0.7rem; }
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.9rem;
+    .o_vd_bc_att_thumb { height: 104px; font-size: 3rem; }
+    .o_vd_bc_att_name { font-size: 0.9rem; padding: 0.4rem 0.6rem 0.1rem; }
+    .o_vd_bc_att_dl { font-size: 0.95rem; }
 }
 .o_vd_bc_att {
-    display: block; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; text-decoration: none; color: inherit;
     border: 1px solid #d8e8de; border-radius: 12px; overflow: hidden;
     background: #fff; transition: all 0.15s ease;
     &:hover { border-color: #0a7d3f; box-shadow: 0 6px 16px rgba(10, 125, 63, 0.18); transform: translateY(-2px); }
     .o_vd_bc_att_thumb {
+        position: relative;
         height: 92px; display: flex; align-items: center; justify-content: center;
         background: #000; color: #0a7d3f; font-size: 2.2rem; overflow: hidden;
         img { width: 100%; height: 100%; object-fit: cover; }
         video { width: 100%; height: 100%; object-fit: contain; background: #000; }
         i { color: #9fb3a8; }
     }
+    /* Nút tải NỔI góc phải-trên video — luôn thấy, bấm = tải + đánh dấu đã tải */
+    .o_vd_bc_att_dl_over {
+        position: absolute; top: 6px; right: 6px; z-index: 3;
+        width: 34px; height: 34px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(10, 125, 63, 0.92); color: #fff !important;
+        font-size: 1rem; text-decoration: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        i { color: #fff; }
+        &:hover { background: #0a7d3f; transform: scale(1.08); }
+    }
     .o_vd_bc_att_name {
         padding: 0.4rem 0.55rem 0.1rem; font-size: 0.86rem; font-weight: 700;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    /* NÚT TẢI XUỐNG — xanh, to, full-width, luôn nổi bật (không phải link chữ nhỏ) */
     .o_vd_bc_att_dl {
-        display: inline-block; padding: 0.05rem 0.55rem 0.5rem;
-        font-size: 0.82rem; color: #0a7d3f; font-weight: 700; text-decoration: none;
-        &:hover { text-decoration: underline; }
+        display: block; margin: auto 0.5rem 0.5rem; padding: 0.55rem 0.5rem;
+        text-align: center; background: #0a7d3f; color: #fff !important;
+        font-weight: 800; border-radius: 9px; text-decoration: none;
+        box-shadow: 0 2px 6px rgba(10, 125, 63, 0.28); cursor: pointer;
+        &:hover { background: #087036; text-decoration: none; transform: translateY(-1px); }
+        &:active { transform: translateY(1px); }
     }
 }
 .o_vd_bc_noatt {

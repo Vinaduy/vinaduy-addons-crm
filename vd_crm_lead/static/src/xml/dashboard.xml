@@ -111,6 +111,12 @@
                                             <video t-if="a.kind === 'video'" controls="controls" preload="metadata" t-att-src="a.src"/>
                                             <img t-elif="a.kind === 'image'" t-att-src="a.src"/>
                                             <i t-else="" class="fa fa-file"/>
+                                            <!-- Nút tải NỔI trên video/ảnh — LUÔN thấy dù card bị cắt -->
+                                            <a class="o_vd_bc_att_dl_over" t-att-href="a.url" target="_blank" download="download"
+                                               t-on-click.stop="() => this.markBroadcastDownloaded()"
+                                               title="Tải file này về máy">
+                                                <i class="fa fa-download"/>
+                                            </a>
                                         </div>
                                         <div class="o_vd_bc_att_name" t-esc="a.name"/>
                                         <a class="o_vd_bc_att_dl" t-att-href="a.url" target="_blank" download="download"
