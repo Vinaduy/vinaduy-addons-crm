@@ -6472,6 +6472,10 @@ class CrmLead(models.Model):
                 ('vd_intake_complete', '=', True),
                 ('vd_intake_locked', '=', True),
                 ('id', 'not in', urgent_leads.ids),
+                # KH đã đưa vào box BÁO GIÁ XONG MẤT TÍCH đã RỜI bảng → KHÔNG tính
+                # vào điều kiện khoá "Yêu cầu tìm vấn đề" (khớp dashboard_leads_
+                # with_problems, tránh khoá oan). user spec 2026-07-08.
+                ('vd_quoted_lost_manual', '=', False),
             ])
 
         def _tbl(leads, tbl_pct):
