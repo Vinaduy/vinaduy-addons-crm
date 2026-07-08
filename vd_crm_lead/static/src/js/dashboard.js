@@ -286,7 +286,16 @@ export class VdCrmDashboard extends Component {
                 if (t && t.closest && t.closest('.o_vd_rec_pop')) return; // bấm trong popover -> giữ
                 this._closeRecNow();
             };
-            this._onDocScrollClose = () => { if (this.state.recHover) this._closeRecNow(); };
+            this._onDocScrollClose = (ev) => {
+                if (!this.state.recHover) return;
+                // FIX (user 2026-07-08): CUỘN BÊN TRONG popover (danh sách ghi âm)
+                // KHÔNG được đóng popup — trước đây scroll capture=true bắt cả cuộn
+                // nội bộ nên popup biến mất khi kéo xem cuộc gọi dưới. Chỉ đóng khi
+                // cuộn NỀN trang (target không thuộc popover).
+                const t = ev && ev.target;
+                if (t && t.closest && t.nodeType === 1 && t.closest('.o_vd_rec_pop')) return;
+                this._closeRecNow();
+            };
             window.addEventListener('pointerdown', this._onDocPointerDown, true);
             window.addEventListener('scroll', this._onDocScrollClose, true);
             document.addEventListener('visibilitychange', this._onDocScrollClose);
@@ -2402,6 +2411,29 @@ export class VdCrmDashboard extends Component {
                 this.state.recHover.loading = false;
             }
         }
+    }
+    // Gom ghi âm theo NGÀY (đã sort desc từ backend) → header đậm mỗi ngày +
+    // đếm số cuộc trong ngày (user spec 2026-07-08).
+    get recGroups() {
+        const recs = (this.state.recHover && this.state.recHover.recordings) || [];
+        const groups = [];
+        let cur = null;
+        for (const r of recs) {
+            const key = r.day_key || '';
+            if (!cur || cur.key !== key) {
+                cur = { key, days_ago: r.days_ago || 0, dm: r.day_dm || '', recs: [] };
+                groups.push(cur);
+            }
+            cur.recs.push(r);
+        }
+        return groups;
+    }
+    recDayLabel(daysAgo) {
+        const d = daysAgo || 0;
+        if (d <= 0) return 'HÔM NAY';
+        if (d === 1) return 'HÔM QUA';
+        if (d === 2) return 'HÔM KIA';
+        return d + ' NGÀY TRƯỚC';
     }
     // Phân trang ghi âm (mỗi trang 100). Giữ popover mở khi đổi trang.
     async goRecPage(page) {

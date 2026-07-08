@@ -271,16 +271,25 @@
                         Chưa có ghi âm nào trên 3 phút.
                     </div>
                     <div t-else="" class="o_vd_rec_list">
-                        <div t-foreach="state.recHover.recordings" t-as="rec" t-key="rec.id" class="o_vd_rec_row">
-                            <span t-attf-class="o_vd_rec_name {{rec.lead_id ? 'o_vd_rec_name_link' : ''}}"
-                                  t-att-title="rec.lead_id ? 'Bấm để mở khách: ' + rec.lead_name : rec.lead_name"
-                                  t-on-click="() => this.openRecLead(rec.lead_id)" t-esc="rec.lead_name"/>
-                            <span t-attf-class="o_vd_rec_badge o_vd_rb_{{rec.status_cls}}" t-esc="rec.status"/>
-                            <span class="o_vd_rec_when"><t t-esc="rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
-                            <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
-                            <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
-                               title="Tải file ghi âm"><i class="fa fa-download"/></a>
-                        </div>
+                        <!-- Nhóm theo NGÀY: mỗi ngày 1 header đậm (HÔM NAY/QUA/KIA/X ngày
+                             trước) + đường kẻ đậm ngăn cách + đếm số cuộc trong ngày. -->
+                        <t t-foreach="recGroups" t-as="grp" t-key="grp.key">
+                            <div class="o_vd_rec_day_divider">
+                                <span class="o_vd_rec_day_lbl"><t t-esc="recDayLabel(grp.days_ago)"/></span>
+                                <span class="o_vd_rec_day_dm"><t t-esc="grp.dm"/></span>
+                                <span class="o_vd_rec_day_count"><t t-esc="grp.recs.length"/> cuộc</span>
+                            </div>
+                            <div t-foreach="grp.recs" t-as="rec" t-key="rec.id" class="o_vd_rec_row">
+                                <span t-attf-class="o_vd_rec_name {{rec.lead_id ? 'o_vd_rec_name_link' : ''}}"
+                                      t-att-title="rec.lead_id ? 'Bấm để mở khách: ' + rec.lead_name : rec.lead_name"
+                                      t-on-click="() => this.openRecLead(rec.lead_id)" t-esc="rec.lead_name"/>
+                                <span t-attf-class="o_vd_rec_badge o_vd_rb_{{rec.status_cls}}" t-esc="rec.status"/>
+                                <span class="o_vd_rec_when"><t t-esc="rec.time or rec.date"/> · <t t-esc="fmtDur(rec.duration)"/></span>
+                                <audio class="o_vd_rec_audio" controls="controls" preload="none" t-att-src="rec.play_url"/>
+                                <a class="o_vd_rec_dl" t-att-href="rec.download_url" download="download"
+                                   title="Tải file ghi âm"><i class="fa fa-download"/></a>
+                            </div>
+                        </t>
                     </div>
                     <div t-if="recTotalPages > 1" class="o_vd_rec_pager">
                         <button class="o_vd_rec_pg_btn" t-att-disabled="state.recHover.page &lt;= 1"

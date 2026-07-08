@@ -283,12 +283,15 @@ class ResUsers(models.Model):
         total_rec = Call.search_count(rec_dom)
         calls = Call.search(rec_dom, order='create_date desc',
                             limit=int(limit), offset=int(offset))
+        today_local = fields.Date.context_today(self)
         res = []
         for c in calls:
             att = c.recording_attachment_id
             if not att:
                 continue
             local_dt = fields.Datetime.context_timestamp(c, c.create_date) if c.create_date else None
+            rec_day = local_dt.date() if local_dt else None
+            days_ago = (today_local - rec_day).days if rec_day else 0
             lead = c.lead_id
             if lead:
                 st = lead._vd_status_label_short()
@@ -304,6 +307,11 @@ class ResUsers(models.Model):
                 'status_cls': st['cls'],
                 'duration': c.duration or 0,
                 'date': local_dt.strftime('%d/%m %H:%M') if local_dt else '',
+                # Nhóm theo NGÀY + số ngày trước (user spec 2026-07-08).
+                'time': local_dt.strftime('%H:%M') if local_dt else '',
+                'day_key': rec_day.isoformat() if rec_day else '',
+                'day_dm': rec_day.strftime('%d/%m') if rec_day else '',
+                'days_ago': days_ago,
                 'play_url': '/web/content/%s?download=false' % att.id,
                 'download_url': '/web/content/%s?download=true' % att.id,
             })

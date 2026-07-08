@@ -8466,20 +8466,56 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     color: #1971c2;
     &:hover { text-decoration: underline; color: #0b4f8a; }
 }
+/* Thẻ trạng thái (Khách mới / Huỷ / Thi công gấp...) — TO, VUÔNG, ĐẬM
+   (user spec 2026-07-08). */
 .o_vd_rec_badge {
     flex: 0 0 auto;
-    font-size: 0.68rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: 1.5px solid transparent;
+    min-width: 90px;
+    text-align: center;
     white-space: nowrap;
+    letter-spacing: 0.2px;
     background: #eef2f6;
     color: #475569;
-    &.o_vd_rb_new    { background: #e7f5ff; color: #1971c2; }
-    &.o_vd_rb_urgent { background: #fff0e6; color: #e8590c; }
-    &.o_vd_rb_xlvd   { background: #fff9db; color: #b45309; }
-    &.o_vd_rb_ref    { background: #f3e8ff; color: #9333ea; }
-    &.o_vd_rb_huy    { background: #ffe3e3; color: #c92a2a; }
+    &.o_vd_rb_new    { background: #e7f5ff; color: #1560a8; border-color: #a5d0f5; }
+    &.o_vd_rb_urgent { background: #fff0e6; color: #d9480f; border-color: #ffc09f; }
+    &.o_vd_rb_xlvd   { background: #fff9db; color: #a16207; border-color: #ffe066; }
+    &.o_vd_rb_ref    { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+    &.o_vd_rb_huy    { background: #ffe3e3; color: #c92a2a; border-color: #ffa8a8; }
+}
+/* Đường kẻ ĐẬM ngăn cách theo NGÀY trong popup ghi âm */
+.o_vd_rec_day_divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.55rem 0 0.3rem;
+    padding: 0.3rem 0.1rem;
+    border-top: 3px solid #495057;
+    &:first-child { border-top: 0; margin-top: 0.1rem; }
+    .o_vd_rec_day_lbl {
+        font-weight: 900;
+        font-size: 0.92rem;
+        color: #212529;
+        letter-spacing: 0.3px;
+    }
+    .o_vd_rec_day_dm {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #868e96;
+    }
+    .o_vd_rec_day_count {
+        margin-left: auto;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #1971c2;
+        background: #e7f5ff;
+        padding: 2px 9px;
+        border-radius: 999px;
+    }
 }
 .o_vd_rec_when {
     flex: 0 0 auto;
