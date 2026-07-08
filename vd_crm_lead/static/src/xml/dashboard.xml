@@ -3768,6 +3768,12 @@
 
                 <!-- TOOLTIP — hover hiện 4 thông tin chính -->
                 <div class="o_vd_won_tooltip">
+                    <!-- KH CHƯA GỌI cuộc nào + đã SANG NGÀY MỚI → CHỈ 1 dòng chữ TO,
+                         bỏ hết nội dung còn lại (user spec 2026-07-08). -->
+                    <t t-if="isUncalledStale(lead)">
+                        <div class="o_vd_tt_uncalled_big"><t t-esc="uncalledDaysLabel(lead)"/> NGÀY RỒI CHƯA GỌI</div>
+                    </t>
+                    <t t-else="">
                     <!-- Badge trạng thái nổi bật ở đầu — chỉ stage KH MỚI -->
                     <t t-if="selectedStage and selectedStage.code === 'new'">
                         <t t-set="cstatus" t-value="pillCallStatusLabel(lead)"/>
@@ -3833,6 +3839,7 @@
                             </span>
                         </div>
                     </t>
+                    </t><!-- /t-else: nội dung tooltip thường (KH đã gọi / mới hôm nay) -->
                 </div>
         </div>
     </t>

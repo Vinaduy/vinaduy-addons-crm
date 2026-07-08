@@ -2577,6 +2577,17 @@
     /* ===== TOOLTIP — hiện khi hover card =====
        User spec 2026-05-28: tooltip pill o hang dau bi che boi header.
        Doi sang xuat hien BEN DUOI pill (top: 100%) thay vi tren. */
+    /* Cảnh báo hover 1 DÒNG chữ TO: "X NGÀY RỒI CHƯA GỌI"
+       (KH bảng Khách mới chưa gọi cuộc nào + đã sang ngày mới) */
+    .o_vd_tt_uncalled_big {
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: #c92a2a;
+        text-align: center;
+        line-height: 1.25;
+        padding: 0.6rem 0.4rem;
+        letter-spacing: 0.3px;
+    }
     .o_vd_won_tooltip {
         position: absolute;
         top: calc(100% + 10px);

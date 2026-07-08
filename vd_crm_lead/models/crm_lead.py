@@ -8657,6 +8657,12 @@ class CrmLead(models.Model):
             'zalo_not_found': bool(l.vd_zalo_not_found),
             # Số ngày từ lúc tạo KH (cho cảnh báo "có thể tư vấn Zalo" — ≥2 ngày).
             'create_days': (fields.Datetime.now() - l.create_date).days if l.create_date else 0,
+            # Số NGÀY LỊCH (giờ VN) từ hôm TẠO KH → hôm nay: 0=hôm nay, 1=hôm qua...
+            # Dùng cho popup hover "X NGÀY RỒI CHƯA GỌI" (KH chưa gọi + đã sang ngày mới).
+            'create_calendar_days': (
+                (_today_d - fields.Datetime.context_timestamp(l, l.create_date).date()).days
+                if l.create_date else 0
+            ),
             # Tạm huỷ báo giá → pill mất xanh, coi như chưa làm báo giá.
             'quote_cancelled': bool(l.vd_quote_cancelled),
             # Nguồn KH: facebook/tiktok/instagram/other/manual — quyết định màu pill

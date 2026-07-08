@@ -1325,6 +1325,18 @@ export class VdCrmDashboard extends Component {
         if (cls === 'o_vd_pill_call_answered') return { icon: '🟢', text: 'GỌI THÀNH CÔNG (CÓ NGHE MÁY)' };
         return { icon: '⚪', text: 'CHƯA GỌI LẦN NÀO' };
     }
+    // KH ở bảng Khách mới CHƯA GỌI cuộc nào VÀ đã SANG NGÀY MỚI (tạo từ hôm qua
+    // trở về trước) → hover chỉ hiện 1 dòng chữ TO "X NGÀY RỒI CHƯA GỌI".
+    isUncalledStale(lead) {
+        const s = this.selectedStage;
+        if (!s || s.code !== 'new') return false;
+        const uncalled = !lead.call_stats || (lead.call_stats.total || 0) === 0;
+        return uncalled && (lead.create_calendar_days || 0) >= 1;
+    }
+    // "ngày thứ N" = số ngày lịch đã trải qua kể cả hôm tạo: hôm qua tạo = 2 ngày.
+    uncalledDaysLabel(lead) {
+        return (lead.create_calendar_days || 0) + 1;
+    }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
         return this._applyProblemFilter(this.state.leadsWithProblemsAll || []);
