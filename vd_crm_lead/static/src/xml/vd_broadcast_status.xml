@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="vd_crm_lead.VdBroadcastStatus">
+        <div t-attf-class="o_vd_bcs o_vd_bcs_{{status}}">
+            <span class="o_vd_bcs_badge">
+                <t t-if="status === 'waiting'">⏳ ĐANG CHỜ BẮT ĐẦU</t>
+                <t t-elif="status === 'running'">
+                    <t t-if="isOverdue">🔴 ĐANG CHẠY · QUÁ KHUNG</t>
+                    <t t-else="">🟢 ĐANG CHẠY</t>
+                </t>
+                <t t-else="">■ ĐÃ KẾT THÚC</t>
+            </span>
+            <span class="o_vd_bcs_timer" t-if="status !== 'ended'">
+                <span class="o_vd_bcs_timer_lbl">
+                    <t t-if="status === 'waiting'">Bắt đầu sau</t>
+                    <t t-elif="isOverdue">Đã quá khung</t>
+                    <t t-else="">Còn lại</t>
+                </span>
+                <b t-esc="countdownLabel"/>
+            </span>
+            <span class="o_vd_bcs_time">
+                Bắt đầu <b t-esc="startLabel"/> → Kết thúc <b t-esc="endLabel"/>
+                <t t-if="status === 'running'"> · Đã chạy <b t-esc="elapsedLabel"/></t>
+            </span>
+            <span class="o_vd_bcs_prog">
+                <span class="o_vd_bcs_prog_lbl">Hoàn thành <b t-esc="doneCount"/>/<t t-esc="targetCount"/> (<t t-esc="donePct"/>%)</span>
+                <span class="o_vd_bcs_bar">
+                    <span class="o_vd_bcs_bar_fill" t-attf-style="width:{{donePct}}%"/>
+                </span>
+            </span>
+        </div>
+    </t>
+</templates>

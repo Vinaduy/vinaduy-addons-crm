@@ -65,6 +65,8 @@ class VdBroadcastCampaign(models.Model):
             c.done_count = len(c.report_ids.filtered('done'))
             targets = c._vd_target_users()
             c.target_count = len(targets)
+            c.vd_progress_pct = int(round(c.done_count * 100.0 / c.target_count)) \
+                if c.target_count else 0
 
     def _vd_is_admin(self):
         return (self.env.user.has_group('base.group_system')
@@ -90,7 +92,7 @@ class VdBroadcastCampaign(models.Model):
             c.active = True
         return True
 
-    # ---- Nút bật ngay để TEST: đặt giờ bắt đầu = bây giờ ----
+    # ---- Nút BẮT ĐẦU CHIẾN DỊCH (bật ngay): đặt giờ bắt đầu = bây giờ ----
     def action_start_now(self):
         if not self._vd_is_admin():
             raise AccessError('Chỉ admin được bật chiến dịch.')
@@ -98,6 +100,32 @@ class VdBroadcastCampaign(models.Model):
             c.write({'active': True, 'start_datetime': fields.Datetime.now()})
             c.report_ids.unlink()
         return True
+
+    # ---- Nút KẾT THÚC CHIẾN DỊCH: gỡ MỌI ràng buộc, thả toàn bộ NV ----
+    def action_end_campaign(self):
+        """KẾT THÚC CHIẾN DỊCH (user spec 2026-07-09): huỷ mọi bắt buộc — chờ giờ,
+        bắt tải, bắt báo cáo. Đặt active=False → vd_my_broadcast trả None → mọi NV
+        (kể cả đang giang dở, chưa báo cáo) được THẢ: popup tự đóng ở lần poll kế
+        (≤60s), thoát vào CRM bình thường mà không cần tuân quy định nào."""
+        if not self._vd_is_admin():
+            raise AccessError('Chỉ admin được kết thúc chiến dịch.')
+        self.write({'active': False})
+        return True
+
+    # ---- % hoàn thành (đã báo cáo / tổng phải làm) cho luồng theo dõi ----
+    vd_progress_pct = fields.Integer(string='% hoàn thành', compute='_compute_stats')
+    # Giờ kết thúc khuyến nghị = giờ bắt đầu + khung khuyến nghị (để widget hiển thị).
+    vd_end_datetime = fields.Datetime(string='Giờ kết thúc (khuyến nghị)',
+                                      compute='_compute_end_dt')
+
+    @api.depends('start_datetime', 'window_minutes')
+    def _compute_end_dt(self):
+        for c in self:
+            if c.start_datetime:
+                c.vd_end_datetime = c.start_datetime + timedelta(
+                    minutes=c.window_minutes or 30)
+            else:
+                c.vd_end_datetime = False
 
     # ==================================================================
     # RPC cho dashboard: chiến dịch đang khoá NV hiện tại (chưa báo cáo).
