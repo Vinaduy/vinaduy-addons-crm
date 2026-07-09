@@ -32,6 +32,7 @@
                         <group>
                             <field name="target_count"/>
                             <field name="done_count"/>
+                            <field name="vd_missing_count"/>
                         </group>
                     </group>
                     <notebook>
@@ -58,8 +59,18 @@
                             <field name="user_ids" widget="many2many_tags"/>
                         </page>
                         <page string="Báo cáo nhân viên">
+                            <div class="alert alert-warning mb-2" role="alert" invisible="active">
+                                <i class="fa fa-stop-circle me-1"/><b>CHIẾN DỊCH ĐÃ DỪNG HẲN.</b>
+                                Các nhân viên dòng ĐỎ (Hoàn thành = trống) là những người
+                                <b>KHÔNG thực hiện</b> chiến dịch (nghỉ phép / không làm) — đã được tự huỷ ràng buộc.
+                            </div>
+                            <div class="alert alert-info mb-2" role="alert" invisible="not active">
+                                <i class="fa fa-clock-o me-1"/>Chiến dịch sẽ <b>tự dừng hẳn cuối ngày hôm nay</b>.
+                                Ai chưa thực hiện tới lúc đó sẽ được tự huỷ ràng buộc và bị ghi nhận
+                                <b>KHÔNG thực hiện</b> ở bảng dưới.
+                            </div>
                             <field name="report_ids" readonly="1">
-                                <list>
+                                <list decoration-danger="not done" decoration-success="done">
                                     <field name="user_id"/>
                                     <field name="sent_count"/>
                                     <field name="committed"/>

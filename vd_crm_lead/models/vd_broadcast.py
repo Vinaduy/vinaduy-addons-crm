@@ -57,6 +57,7 @@ class VdBroadcastCampaign(models.Model):
     report_ids = fields.One2many('vd.broadcast.report', 'campaign_id', string='Báo cáo')
     done_count = fields.Integer(string='Đã hoàn thành', compute='_compute_stats')
     target_count = fields.Integer(string='Tổng phải làm', compute='_compute_stats')
+    vd_missing_count = fields.Integer(string='KHÔNG thực hiện', compute='_compute_stats')
 
     # ------------------------------------------------------------------
     @api.depends('report_ids.done', 'user_ids')
@@ -65,6 +66,7 @@ class VdBroadcastCampaign(models.Model):
             c.done_count = len(c.report_ids.filtered('done'))
             targets = c._vd_target_users()
             c.target_count = len(targets)
+            c.vd_missing_count = max(0, c.target_count - c.done_count)
             c.vd_progress_pct = int(round(c.done_count * 100.0 / c.target_count)) \
                 if c.target_count else 0
 
@@ -106,10 +108,48 @@ class VdBroadcastCampaign(models.Model):
         """KẾT THÚC CHIẾN DỊCH (user spec 2026-07-09): huỷ mọi bắt buộc — chờ giờ,
         bắt tải, bắt báo cáo. Đặt active=False → vd_my_broadcast trả None → mọi NV
         (kể cả đang giang dở, chưa báo cáo) được THẢ: popup tự đóng ở lần poll kế
-        (≤60s), thoát vào CRM bình thường mà không cần tuân quy định nào."""
+        (≤60s), thoát vào CRM bình thường mà không cần tuân quy định nào.
+        Đồng thời GHI NHẬN NV không thực hiện vào 'Báo cáo nhân viên'."""
         if not self._vd_is_admin():
             raise AccessError('Chỉ admin được kết thúc chiến dịch.')
+        self._vd_flag_missing_reports()
         self.write({'active': False})
+        return True
+
+    def _vd_flag_missing_reports(self):
+        """Ghi nhận NV KHÔNG thực hiện: target user CHƯA có báo cáo → tạo report
+        done=False (note giải thích) để hiện đỏ trong 'Báo cáo nhân viên'. Idempotent
+        (unique campaign+user chặn trùng). Dùng khi KẾT THÚC / hết ngày tự dừng."""
+        Report = self.env['vd.broadcast.report'].sudo()
+        for c in self:
+            targets = c._vd_target_users()
+            have = Report.search([('campaign_id', '=', c.id)]).mapped('user_id')
+            for u in (targets - have):
+                try:
+                    Report.create({
+                        'campaign_id': c.id, 'user_id': u.id,
+                        'sent_count': 0, 'committed': False, 'done': False,
+                        'note': 'KHÔNG thực hiện (hết ngày chiến dịch / đã kết thúc)',
+                    })
+                except Exception:
+                    pass
+
+    @api.model
+    def _vd_cron_auto_end_campaigns(self):
+        """CRON đầu ngày (00:05 VN): chiến dịch còn active mà NGÀY bắt đầu (giờ VN)
+        đã QUA (trước hôm nay) → TỰ KẾT THÚC. Lý do (user spec 2026-07-09): NV nghỉ
+        phép vài ngày; ai chưa thực hiện trong NGÀY chạy thì hết ngày tự huỷ ràng
+        buộc — không kẹt popup sang ngày sau. Ghi nhận NV không thực hiện + dừng hẳn."""
+        import pytz
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        today_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn).date()
+        for c in self.sudo().search([('active', '=', True)]):
+            if not c.start_datetime:
+                continue
+            start_date_vn = pytz.utc.localize(c.start_datetime).astimezone(vn).date()
+            if start_date_vn < today_vn:
+                c._vd_flag_missing_reports()
+                c.active = False
         return True
 
     # ---- % hoàn thành (đã báo cáo / tổng phải làm) cho luồng theo dõi ----

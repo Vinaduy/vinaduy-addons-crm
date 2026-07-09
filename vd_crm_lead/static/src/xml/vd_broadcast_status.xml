@@ -8,7 +8,11 @@
                     <t t-if="isOverdue">🔴 ĐANG CHẠY · QUÁ KHUNG</t>
                     <t t-else="">🟢 ĐANG CHẠY</t>
                 </t>
-                <t t-else="">■ ĐÃ KẾT THÚC</t>
+                <t t-else="">■ ĐÃ DỪNG HẲN</t>
+            </span>
+            <span class="o_vd_bcs_time" t-if="status === 'running'">· tự dừng &amp; chốt cuối ngày</span>
+            <span class="o_vd_bcs_time" t-if="status === 'ended' and missingCount">
+                · <b t-esc="missingCount"/> NV không thực hiện
             </span>
             <span class="o_vd_bcs_timer" t-if="status !== 'ended'">
                 <span class="o_vd_bcs_timer_lbl">

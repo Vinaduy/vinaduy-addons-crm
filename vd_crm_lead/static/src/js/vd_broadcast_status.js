@@ -69,6 +69,7 @@ export class VdBroadcastStatus extends Component {
     get donePct() { return this.d.vd_progress_pct || 0; }
     get doneCount() { return this.d.done_count || 0; }
     get targetCount() { return this.d.target_count || 0; }
+    get missingCount() { return this.d.vd_missing_count || 0; }
     get timePct() {
         if (this.status === "ended") return 100;
         if (this.status !== "running" || this.startMs == null || this.endMs == null) return 0;
