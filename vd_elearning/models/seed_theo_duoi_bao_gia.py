@@ -21,7 +21,7 @@ from odoo import api, models
 from .seed_kh_tiem_nang import _WRAP, _box, _formula, _apply, _advice, _mistake
 from .seed_khong_tuoi import _chot
 
-_TDBG_VERSION = 'v1'
+_TDBG_VERSION = 'v2'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 # ---------------------------------------------------------------------------
@@ -171,15 +171,19 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ==================================================================
     def _vd_tdbg_pages(self):
         lead = 'font-size:16px;color:#475569;margin:0 0 12px;line-height:1.7;'
+        # Thứ tự thực tế (user chốt): 1-Gửi mẫu nhà, 2-Gửi báo giá + đảm bảo
+        # chất lượng, 3-Phản hồi sau 2 ngày, 4-Nhắc khởi công + ký giữ giá,
+        # 5-Khai thác & xử lý vấn đề sau báo giá, 6-Gửi hợp đồng + phụ lục,
+        # 7-Khai thác & xử lý vấn đề hợp đồng, 8-Hẹn ký + khảo sát đất.
         return [
             ('Hero', self._tdbg_hero()),
             ('Intro', self._tdbg_intro(lead)),
-            ('B1', self._tdbg_b1(lead)),
-            ('B2', self._tdbg_b2(lead)),
-            ('B3', self._tdbg_b3(lead)),
-            ('B4', self._tdbg_b4(lead)),
-            ('B5', self._tdbg_b5(lead)),
-            ('B678', self._tdbg_b678(lead)),
+            ('S1-MauNha', self._tdbg_maunha(lead)),
+            ('S2-BaoGia', self._tdbg_baogia(lead)),
+            ('S3-PhanHoi', self._tdbg_phanhoi(lead)),
+            ('S4-KhoiCong', self._tdbg_khoicong(lead)),
+            ('S5-KhaiThac', self._tdbg_khaithac(lead)),
+            ('S678-HopDong', self._tdbg_b678(lead)),
             ('Gold', self._tdbg_gold(lead)),
         ]
 
@@ -206,14 +210,14 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                 '<div style="font-size:14.5px;font-weight:800;color:#0f172a;'
                 'margin-top:6px;line-height:1.3;">' + label + '</div></div>')
         flows = (
-            _flow('BƯỚC 1', 'Kiểm tra chất lượng báo giá', '#0369a1')
-            + _flow('BƯỚC 2', 'Lấy phản hồi sau 1&ndash;2 ngày', '#7c3aed')
-            + _flow('BƯỚC 3', 'Gửi mẫu nhà tham khảo', '#b45309')
-            + _flow('BƯỚC 4', 'Nhắc thời gian khởi công', '#be123c')
-            + _flow('BƯỚC 5', 'Khai thác toàn bộ khúc mắc', '#dc2626')
-            + _flow('BƯỚC 6', 'Gửi hợp đồng nghiên cứu', '#0d9488')
-            + _flow('BƯỚC 7', 'Theo dõi hợp đồng', '#0891b2')
-            + _flow('BƯỚC 8', 'Hẹn khảo sát &amp; ký', '#15803d'))
+            _flow('BƯỚC 1', 'Gửi mẫu nhà tham khảo', '#b45309')
+            + _flow('BƯỚC 2', 'Gửi báo giá &mdash; đảm bảo chất lượng', '#0369a1')
+            + _flow('BƯỚC 3', 'Phản hồi sau 1&ndash;2 ngày', '#7c3aed')
+            + _flow('BƯỚC 4', 'Nhắc khởi công &amp; ký giữ giá', '#be123c')
+            + _flow('BƯỚC 5', 'Khai thác &amp; xử lý vấn đề sau báo giá', '#dc2626')
+            + _flow('BƯỚC 6', 'Gửi hợp đồng &amp; phụ lục', '#0d9488')
+            + _flow('BƯỚC 7', 'Khai thác &amp; xử lý vấn đề hợp đồng', '#0891b2')
+            + _flow('BƯỚC 8', 'Hẹn ký hợp đồng &amp; khảo sát đất', '#15803d'))
         return (
             '<h2 style="font-size:22px;font-weight:900;color:#1e293b;'
             'margin:26px 0 10px;">&#127919; Vì sao gửi báo giá xong KHÔNG được ngồi chờ?</h2>'
@@ -230,13 +234,34 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             '<td style="padding:6px 10px;">&#9878;&#65039; Đang <b>so sánh</b> các bên</td></tr>'
             '<tr><td style="padding:6px 10px;" colspan="2">&#10067; <b>Chưa biết nên hỏi gì</b> &mdash; nên khách im lặng chứ không phải hết quan tâm</td></tr>'
             '</tbody></table>'
+
+            + _h('&#128227; Việc ĐẦU TIÊN: chủ động ĐÔN ĐỐC khách xem báo giá')
+            + '<p style="' + lead + '">Gửi báo giá xong, việc bắt buộc phải làm ngay là '
+            '<b>chủ động gọi/nhắn dò hỏi tình hình</b>: khách đã <b>nhận</b> được báo '
+            'giá chưa, đã <b>mở ra xem</b> chưa, đã <b>đọc kỹ</b> chưa. KHÔNG được mặc '
+            'định &#8220;gửi là khách sẽ xem&#8221;.</p>'
+            + _mistake(
+                '<p style="margin:0;">Thực tế rất nhiều khách <b>không xem</b> báo giá, '
+                'hoặc có xem nhưng <b>chưa xem kỹ</b> &mdash; thậm chí lấy lý do '
+                '&#8220;anh/chị chưa xem&#8221;, &#8220;để xem sau&#8221; để tránh trao '
+                'đổi. Nếu nhân viên tin ngay và ngồi chờ &rArr; báo giá nằm im, khách '
+                'nguội dần rồi nghiêng sang đối thủ.</p>')
+            + _box('#0369a1', '#eff6ff', '&#128196;', 'Trong báo giá có gì mà PHẢI đôn đốc khách xem?',
+                   '<p style="margin-bottom:0;">Báo giá của mình có <b>PHỤ LỤC VẬT TƯ '
+                   'đầy đủ</b> (chủng loại, thương hiệu, tiêu chuẩn) và <b>TỔNG GIÁ TRỊ '
+                   'HỢP ĐỒNG đầy đủ</b> &mdash; đây chính là thứ khách cần để so sánh '
+                   'và ra quyết định. Khách chưa xem kỹ phần này thì <b>chưa thể đánh '
+                   'giá đúng</b> giá trị mình mang lại. Vì vậy phải khéo léo '
+                   '<b>đôn đốc, hướng dẫn khách xem đúng các mục quan trọng</b> trong '
+                   'báo giá.</p>')
             + '<p style="font-size:16px;color:#b91c1c;font-weight:800;margin:12px 0;">'
-            '&#128073; Nếu nhân viên không CHỦ ĐỘNG dẫn dắt, khách sẽ dần nghiêng về '
-            'đơn vị khác.</p>'
+            '&#128073; Nếu nhân viên không CHỦ ĐỘNG dẫn dắt và đôn đốc, khách sẽ dần '
+            'nghiêng về đơn vị khác.</p>'
 
             + _formula(
                 'Mục tiêu sau khi gửi báo giá KHÔNG phải là ngồi chờ khách ký, mà là '
-                '<b>từng bước đưa khách đi qua 8 giai đoạn</b> tới lúc ký hợp đồng. '
+                '<b>chủ động đôn đốc khách xem báo giá</b> rồi <b>từng bước đưa khách '
+                'đi qua 8 giai đoạn</b> tới lúc ký hợp đồng. '
                 '<span style="color:#dc2626;">Khách im lặng = quy trình đang bị DỪNG '
                 'lại</span> &mdash; tuyệt đối không để khách &#8220;treo&#8221;.')
 
@@ -252,57 +277,90 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 1 — KIỂM TRA CHẤT LƯỢNG BÁO GIÁ TRƯỚC KHI GỬI
+    #  BƯỚC 2 — GỬI BÁO GIÁ và ĐẢM BẢO CHẤT LƯỢNG BÁO GIÁ (nội dung chuyên sâu)
     # ------------------------------------------------------------------
-    def _tdbg_b1(self, lead):
+    def _tdbg_baogia(self, lead):
         return (
-            _phan('1', 'KIỂM TRA CHẤT LƯỢNG BÁO GIÁ TRƯỚC KHI GỬI',
-                  'Nếu chính nhân viên còn không tự tin thì khách sẽ càng không tin.')
+            _phan('2', 'GỬI BÁO GIÁ và ĐẢM BẢO CHẤT LƯỢNG BÁO GIÁ',
+                  'Việc QUAN TRỌNG BẬC NHẤT của sale: một khi đã quyết định gửi thì báo giá PHẢI thật chuẩn.')
 
-            + _quote('Đừng bao giờ gửi báo giá theo kiểu: &#8220;Em gửi anh/chị tham '
-                     'khảo nhé&#8221;. Trước khi bấm GỬI, phải tự trả lời được 3 câu hỏi.')
+            + '<h2 style="font-size:21px;font-weight:900;color:#0f172a;margin:8px 0 10px;">'
+            '&#128200; Làm báo giá CHUẨN &mdash; kỹ năng sống còn của nhân viên kinh doanh</h2>'
+            + '<p style="' + lead + '">Đây là nội dung <b>chuyên sâu</b>, cả nhân viên '
+            'phải hiểu và làm cho bằng được. Báo giá không phải &#8220;một file gửi cho '
+            'có&#8221; &mdash; nó là <b>vũ khí chốt hợp đồng</b>. Một khi đã quyết định '
+            'gửi báo giá cho khách thì báo giá đó <b>bắt buộc phải THẬT CHUẨN</b>.</p>'
 
-            + _h('Câu hỏi 1 &mdash; Báo giá có ĐÚNG NHU CẦU khách không?')
+            + _quote('Nếu báo giá không khớp tầm tài chính của khách, báo giá đó KHÔNG '
+                     'có tác dụng &mdash; khách sẽ không quan tâm nữa và chuyển sang đối '
+                     'thủ để tham khảo tiếp.')
+
+            + _h('&#127919; &#8220;Chuẩn&#8221; ở đây nghĩa là gì?')
+            + '<p style="' + lead + '">Một báo giá được coi là CHUẨN khi hội đủ '
+            '<b>3 điều kiện</b> &mdash; và điều kiện SỐ 1 là quan trọng nhất:</p>'
             + '<table><thead><tr>'
-            '<th style="width:50%;text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Khách nói / muốn</th>'
-            '<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Nếu gửi lệch &rarr; kết quả</th>'
+            '<th style="width:34%;text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Điều kiện</th>'
+            '<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Ý nghĩa</th>'
             '</tr></thead><tbody>'
-            '<tr><td style="padding:8px 10px;">Tài chính khoảng <b>2,8 tỷ</b></td>'
-            '<td style="padding:8px 10px;color:#b91c1c;">Gửi báo giá <b>3,8 tỷ</b> &rArr; &#10060; SAI</td></tr>'
-            '<tr><td style="padding:8px 10px;">Thích phong cách <b>hiện đại</b></td>'
-            '<td style="padding:8px 10px;color:#b91c1c;">Báo giá theo mẫu <b>tân cổ</b> &rArr; &#10060; SAI</td></tr>'
-            '<tr><td style="padding:8px 10px;">Muốn xây <b>để ở</b></td>'
-            '<td style="padding:8px 10px;color:#b91c1c;">Làm theo tiêu chuẩn <b>đầu tư</b> &rArr; &#10060; SAI</td></tr>'
+            '<tr><td style="padding:8px 10px;color:#b91c1c;"><b>1. KHỚP TẦM TÀI CHÍNH khách đưa ra</b></td>'
+            '<td style="padding:8px 10px;">Con số tổng phải nằm TRONG khoảng ngân sách khách nói. Đây là yếu tố QUYẾT ĐỊNH khách có quan tâm báo giá hay không.</td></tr>'
+            '<tr><td style="padding:8px 10px;"><b>2. Phù hợp DIỆN TÍCH và CÔNG NĂNG khách muốn</b></td>'
+            '<td style="padding:8px 10px;">Số tầng, số phòng, công năng khách yêu cầu phải cân đối được với tầm tài chính đó.</td></tr>'
+            '<tr><td style="padding:8px 10px;"><b>3. Đúng MONG MUỐN và phong cách</b></td>'
+            '<td style="padding:8px 10px;">Phong cách, mức hoàn thiện, thang máy/gara/sân... khớp điều khách mong.</td></tr>'
             '</tbody></table>'
 
-            + _h('Câu hỏi 2 &mdash; Báo giá có GIẢI QUYẾT vấn đề tài chính chưa?')
-            + '<p style="' + lead + '">Trước khi gửi, tự soát 4 câu &mdash; nếu còn 1 '
-            'câu chưa trả lời được thì <b>CHƯA nên gửi</b>:</p>'
-            + '<ul style="' + lead + '">'
-            '<li>Có <b>vượt ngân sách</b> của khách không?</li>'
-            '<li>Có <b>phương án tối ưu</b> không?</li>'
-            '<li>Có <b>phương án giảm chi phí</b> không?</li>'
-            '<li>Có <b>giải thích rõ</b> vì sao ra con số đó không?</li></ul>'
+            + _formula(
+                'Báo giá KHÔNG khớp tầm tài chính = báo giá VÔ TÁC DỤNG. '
+                '<span style="color:#dc2626;">Khách hết quan tâm &rarr; quay sang đối '
+                'thủ.</span> Vì vậy: <b>tập trung TỐI ĐA làm báo giá khớp tầm tài chính '
+                '+ diện tích + công năng &mdash; rồi mới gửi.</b>')
 
-            + _h('Câu hỏi 3 &mdash; Báo giá có ĐÚNG MONG MUỐN của khách chưa?')
-            + '<p style="' + lead + '">Tất cả các yếu tố sau phải <b>KHỚP</b> với điều '
-            'khách mong: số tầng &middot; số phòng &middot; phong cách &middot; mức '
-            'hoàn thiện &middot; có thang máy &middot; có gara &middot; có sân.</p>'
-            + _chot('Nếu mình là khách, mình cũng thấy báo giá này hợp lý. Đó mới là '
-                    'báo giá ĐẠT yêu cầu.')
+            + _h('&#9888;&#65039; Vì sao KHÔNG khớp tài chính là hỏng cả cuộc chơi?')
+            + _mistake(
+                '<p style="margin:0;">Khách nói tầm <b>2,8 tỷ</b> nhưng nhân viên gửi '
+                'báo giá <b>3,8 tỷ</b>. Khách nhìn con số đầu tiên đã thấy '
+                '&#8220;vượt quá xa&#8221; &rArr; không đọc tiếp, không phản hồi, âm '
+                'thầm loại mình khỏi danh sách và tiếp tục tham khảo đơn vị khác. Mình '
+                'mất khách mà không hề hay biết.</p>')
+            + '<p style="' + lead + '">Nhiều khi khách muốn <b>diện tích rộng, công '
+            'năng nhiều</b>, nhưng <b>tầm tài chính không đủ</b> để làm hết. Nếu bê '
+            'nguyên nhu cầu đó tính ra, chi phí sẽ <b>cao hơn ngân sách rất nhiều</b>. '
+            'Nhiệm vụ của nhân viên là <b>cân đối</b>: tư vấn phương án diện tích + '
+            'công năng <b>vừa với túi tiền</b> khách, chứ không phải gửi một con số '
+            'vượt xa rồi để khách tự sốc.</p>'
+
+            + _h('&#9989; Trước khi bấm GỬI, tự trả lời 3 câu hỏi kiểm tra')
+            + _box('#0369a1', '#eff6ff', '&#10068;', 'Câu hỏi 1 (quan trọng nhất) &mdash; Báo giá có KHỚP TẦM TÀI CHÍNH khách đưa ra không?',
+                   '<p style="margin-bottom:0;">Tổng giá trị có nằm trong khoảng ngân '
+                   'sách khách nói không? Nếu vượt &rArr; <b>CHƯA gửi</b>, phải cân đối '
+                   'lại phương án cho khớp trước.</p>')
+            + _box('#7c3aed', '#faf5ff', '&#10068;', 'Câu hỏi 2 &mdash; Báo giá có phù hợp DIỆN TÍCH và CÔNG NĂNG khách đưa ra không?',
+                   '<p style="margin-bottom:0;">Diện tích, số tầng, công năng khách '
+                   'muốn có cân đối được với tầm tài chính đó không? Nếu nhu cầu quá '
+                   'lớn so với ngân sách &rArr; phải tư vấn điều chỉnh cho hợp lý rồi '
+                   'mới báo giá.</p>')
+            + _box('#16a34a', '#f0fdf4', '&#10068;', 'Câu hỏi 3 &mdash; Báo giá có đúng MONG MUỐN của khách chưa?',
+                   '<p style="margin-bottom:0;">Phong cách, mức hoàn thiện, thang máy '
+                   '&middot; gara &middot; sân... phải KHỚP điều khách mong.</p>')
+
+            + _chot('Một khi đã quyết định gửi báo giá thì báo giá đó phải THẬT CHUẨN. '
+                    'Nếu mình là khách, mình cũng thấy báo giá này KHỚP TÚI TIỀN và hợp '
+                    'lý &mdash; đó mới là báo giá đạt yêu cầu.')
 
             + _apply('<p style="margin-bottom:0;">Trước khi bấm GỬI, soát đủ '
-                     '<b>3 câu hỏi</b> trên. <span class="vd-pulse">&#10145;</span> '
-                     'Còn 1 câu chưa chắc &rArr; dừng lại, sửa cho khớp rồi mới gửi. '
-                     'Báo giá tự tin thì khách mới tin.</p>')
+                     '<b>3 câu hỏi</b>, ưu tiên số 1 là <b>KHỚP TẦM TÀI CHÍNH</b>. '
+                     '<span class="vd-pulse">&#10145;</span> Còn lệch tài chính / diện '
+                     'tích / công năng &rArr; DỪNG, cân đối lại phương án rồi mới gửi. '
+                     'Báo giá lệch tài chính = tự đẩy khách sang đối thủ.</p>')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 2 — SAU 1–2 NGÀY BẮT BUỘC LẤY PHẢN HỒI
+    #  BƯỚC 3 — SAU 1–2 NGÀY BẮT BUỘC LẤY PHẢN HỒI
     # ------------------------------------------------------------------
-    def _tdbg_b2(self, lead):
+    def _tdbg_phanhoi(self, lead):
         return (
-            _phan('2', 'SAU 1&ndash;2 NGÀY BẮT BUỘC PHẢI LẤY PHẢN HỒI',
+            _phan('3', 'SAU 1&ndash;2 NGÀY BẮT BUỘC PHẢI LẤY PHẢN HỒI',
                   'Gửi báo giá xong rồi im luôn = nguyên nhân mất RẤT nhiều khách.')
 
             + _mistake('<p style="margin:0;">Gửi báo giá xong&hellip; <b>im luôn</b>: '
@@ -346,12 +404,12 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 3 — GỬI MẪU NHÀ THAM KHẢO
+    #  BƯỚC 1 — GỬI MẪU NHÀ THAM KHẢO (làm ĐẦU TIÊN)
     # ------------------------------------------------------------------
-    def _tdbg_b3(self, lead):
+    def _tdbg_maunha(self, lead):
         return (
-            _phan('3', 'GỬI MẪU NHÀ CHO KHÁCH THAM KHẢO',
-                  'Việc BẮT BUỘC &mdash; nhưng tuyệt đối KHÔNG ép khách chốt mẫu nhà.')
+            _phan('1', 'GỬI MẪU NHÀ CHO KHÁCH THAM KHẢO',
+                  'Làm ĐẦU TIÊN &mdash; nhưng tuyệt đối KHÔNG ép khách chốt mẫu nhà.')
 
             + _h('Mục tiêu khi gửi mẫu nhà')
             + '<ul style="' + lead + '">'
@@ -380,11 +438,11 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 4 — TẠO CẢM GIÁC CẦN QUYẾT ĐỊNH VỀ THỜI GIAN KHỞI CÔNG
+    #  BƯỚC 4 — NHẮC THỜI GIAN KHỞI CÔNG và KÝ HỢP ĐỒNG GIỮ GIÁ (nếu có)
     # ------------------------------------------------------------------
-    def _tdbg_b4(self, lead):
+    def _tdbg_khoicong(self, lead):
         return (
-            _phan('4', 'TẠO CẢM GIÁC CẦN QUYẾT ĐỊNH VỀ THỜI GIAN KHỞI CÔNG',
+            _phan('4', 'NHẮC THỜI GIAN KHỞI CÔNG và KÝ HỢP ĐỒNG GIỮ GIÁ',
                   'Rất quan trọng, đặc biệt cuối năm &mdash; khách nào cũng muốn xong trước Tết.')
 
             + '<p style="' + lead + '">Nếu khởi công muộn, khách sẽ gặp một loạt bất lợi '
@@ -405,16 +463,27 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'lý</b>, mà giúp khách <b>hiểu rõ hệ quả</b> của việc chậm quyết '
                    'định. Nhắc bằng thiện chí, không dọa, không thúc ép lộ liễu.</p>')
 
+            + _h('&#128273; Ký hợp đồng GIỮ GIÁ (nếu công ty có chính sách)')
+            + '<p style="' + lead + '">Khi khách chưa khởi công ngay nhưng đã ưng '
+            'phương án, có thể đề xuất <b>ký hợp đồng giữ giá</b> để khách '
+            '<b>chốt được mức giá hiện tại</b>, tránh biến động khi vật tư tăng. Đây '
+            'vừa là lợi ích cho khách, vừa giúp mình <b>giữ chân khách</b>, không để '
+            'khách trôi sang đối thủ trong lúc còn cân nhắc.</p>'
+            + _say('Hiện bên em đang áp mức giá này, nếu anh/chị chốt phương án thì '
+                   'mình có thể ký hợp đồng giữ giá để khóa mức giá hôm nay, sau này '
+                   'vật tư có tăng gia đình cũng không bị ảnh hưởng ạ.')
+
             + _apply('<p style="margin-bottom:0;">Khéo gắn quyết định của khách với '
-                     '<b>mốc thời gian</b> (trước Tết / mùa khô / kịp tiến độ). '
+                     '<b>mốc thời gian</b> (trước Tết / mùa khô / kịp tiến độ) và '
+                     '<b>đề xuất ký giữ giá</b> nếu có chính sách. '
                      '<span class="vd-pulse">&#10145;</span> Cho khách thấy chi phí của '
                      'việc CHẬM, không dọa khách.</p>')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 5 — KHAI THÁC TOÀN BỘ KHÚC MẮC (quan trọng nhất)
+    #  BƯỚC 5 — KHAI THÁC và XỬ LÝ VẤN ĐỀ SAU BÁO GIÁ (quan trọng nhất)
     # ------------------------------------------------------------------
-    def _tdbg_b5(self, lead):
+    def _tdbg_khaithac(self, lead):
         def _grp(num, title, color, rows):
             head = ('<tr><td colspan="1" style="background:' + color + ';color:#fff;'
                     'font-weight:800;padding:8px 12px;border-radius:8px 8px 0 0;">'
@@ -426,7 +495,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                     'rgba(2,6,23,.08);border-radius:8px;overflow:hidden;">'
                     + head + body + '</table>')
         return (
-            _phan('5', 'KHAI THÁC TOÀN BỘ KHÚC MẮC',
+            _phan('5', 'KHAI THÁC và XỬ LÝ VẤN ĐỀ SAU BÁO GIÁ',
                   'BƯỚC QUAN TRỌNG NHẤT: khách chưa ký thì CHẮC CHẮN còn vấn đề.')
 
             + _quote('Nếu khách chưa ký, chắc chắn còn vấn đề. Nhân viên phải TÌM RA '
@@ -466,48 +535,52 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 6-7-8 — GỬI HỢP ĐỒNG → THEO DÕI → HẸN KHẢO SÁT & KÝ
+    #  BƯỚC 6-7-8 — GỬI HĐ & PHỤ LỤC → XỬ LÝ VẤN ĐỀ HĐ → HẸN KÝ & KHẢO SÁT ĐẤT
     # ------------------------------------------------------------------
     def _tdbg_b678(self, lead):
         return (
-            _phan('6&nbsp;&middot;&nbsp;7&nbsp;&middot;&nbsp;8', 'GỬI HỢP ĐỒNG &rarr; THEO DÕI &rarr; HẸN KHẢO SÁT &amp; KÝ',
-                  'Giai đoạn chốt: khi hết khúc mắc thì PHẢI chuyển bước, không nói chung chung.')
+            _phan('6&nbsp;&middot;&nbsp;7&nbsp;&middot;&nbsp;8', 'GỬI HỢP ĐỒNG &amp; PHỤ LỤC &rarr; XỬ LÝ VẤN ĐỀ HỢP ĐỒNG &rarr; HẸN KÝ &amp; KHẢO SÁT ĐẤT',
+                  'Giai đoạn chốt: khi hết vấn đề sau báo giá thì PHẢI chuyển bước, không nói chung chung.')
 
-            + _h('BƯỚC 6 &mdash; Khi hết khúc mắc thì GỬI HỢP ĐỒNG')
+            + _h('BƯỚC 6 &mdash; GỬI HỢP ĐỒNG và PHỤ LỤC')
             + '<p style="' + lead + '">Khi khách đã: <b>đồng ý báo giá + đồng ý phương '
             'án + không còn vướng mắc lớn</b> &rArr; đừng tiếp tục nói chuyện chung '
-            'chung, phải chuyển sang bước tiếp theo: <b>gửi hợp đồng để khách nghiên '
-            'cứu</b>.</p>'
+            'chung, phải chuyển sang bước tiếp theo: <b>gửi hợp đồng kèm đầy đủ phụ lục '
+            'để khách nghiên cứu</b>. Phụ lục (vật tư, hạng mục, tổng giá trị) phải gửi '
+            'kèm để khách nắm rõ mình cam kết những gì.</p>'
             + _say('Để gia đình mình có thời gian xem kỹ các điều khoản, bên em sẽ gửi '
-                   'trước hợp đồng để anh/chị đọc. Nếu có nội dung nào cần giải thích '
-                   'hoặc điều chỉnh, em sẽ trao đổi ngay để mình yên tâm trước khi ký.')
+                   'trước hợp đồng kèm đầy đủ phụ lục để anh/chị đọc. Nếu có nội dung '
+                   'nào cần giải thích hoặc điều chỉnh, em sẽ trao đổi ngay để mình yên '
+                   'tâm trước khi ký.')
 
-            + _h('BƯỚC 7 &mdash; THEO DÕI hợp đồng (đừng gửi xong rồi mất hút)')
+            + _h('BƯỚC 7 &mdash; KHAI THÁC và XỬ LÝ VẤN ĐỀ HỢP ĐỒNG (đừng gửi xong rồi mất hút)')
             + _mistake('<p style="margin:0;">Gửi hợp đồng &mdash; xong &mdash; '
                        '<b>mất hút</b>. Đây là sai lầm của rất nhiều nhân viên.</p>')
             + '<p style="' + lead + '">Điều ĐÚNG phải làm: <b>sau 1&ndash;2 ngày phải '
-            'hỏi lại</b>:</p>'
+            'chủ động hỏi lại</b> để khai thác và xử lý mọi vướng mắc trong hợp đồng:</p>'
             + '<ul style="' + lead + '">'
-            '<li>Anh/chị đã <b>xem hợp đồng</b> chưa?</li>'
+            '<li>Anh/chị đã <b>xem hợp đồng và phụ lục</b> chưa?</li>'
             '<li>Có <b>điều khoản nào chưa rõ</b> không?</li>'
-            '<li>Có <b>nội dung nào</b> muốn trao đổi thêm không?</li></ul>'
+            '<li>Có <b>nội dung nào</b> muốn trao đổi hoặc điều chỉnh không?</li></ul>'
             + '<p style="font-size:16px;color:#b91c1c;font-weight:800;margin:8px 0;">'
-            '&#128073; Khách còn băn khoăn &rArr; KHÔNG được bỏ qua, phải giải quyết ngay.</p>'
+            '&#128073; Khách còn băn khoăn về hợp đồng &rArr; KHÔNG được bỏ qua, phải '
+            'giải quyết DỨT ĐIỂM ngay.</p>'
 
-            + _h('BƯỚC 8 &mdash; HẸN KHẢO SÁT và KÝ HỢP ĐỒNG')
+            + _h('BƯỚC 8 &mdash; HẸN KÝ HỢP ĐỒNG và KHẢO SÁT ĐẤT')
             + '<p style="' + lead + '">Khi khách đã: <b>đồng ý báo giá + đồng ý thiết '
-            'kế + đồng ý hợp đồng</b> &rArr; bước tiếp theo là:</p>'
+            'kế + đồng ý hợp đồng</b> &rArr; bước cuối cùng là:</p>'
             + '<ul style="' + lead + '">'
-            '<li>Đề nghị <b>lên lịch khảo sát thực tế</b>.</li>'
-            '<li>Đồng thời <b>thống nhất lịch ký hợp đồng</b>.</li>'
+            '<li><b>Thống nhất lịch ký hợp đồng</b>.</li>'
+            '<li>Đề nghị <b>lên lịch khảo sát đất</b> thực tế.</li>'
             '<li>Trao đổi rõ nội dung cần chuẩn bị: quy trình ký kết và khoản '
             '<b>đặt cọc 50.000.000 đồng</b> theo quy định công ty (nếu áp dụng), để '
             'khách chủ động sắp xếp.</li></ul>'
 
-            + _apply('<p style="margin-bottom:0;">Hết khúc mắc &rArr; <b>gửi hợp '
-                     'đồng ngay</b>, đừng để nguội. <span class="vd-pulse">&#10145;'
-                     '</span> Gửi hợp đồng xong đặt lịch <b>1&ndash;2 ngày hỏi lại</b>, '
-                     'rồi chốt lịch <b>khảo sát + ký</b>.</p>')
+            + _apply('<p style="margin-bottom:0;">Hết vấn đề sau báo giá &rArr; '
+                     '<b>gửi hợp đồng + phụ lục ngay</b>, đừng để nguội. '
+                     '<span class="vd-pulse">&#10145;</span> Gửi xong đặt lịch '
+                     '<b>1&ndash;2 ngày hỏi lại</b> xử lý vấn đề hợp đồng, rồi chốt '
+                     'lịch <b>ký + khảo sát đất</b>.</p>')
         )
 
     # ------------------------------------------------------------------
@@ -577,17 +650,17 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Khách đang hài lòng nên không cần hỏi thêm', F),
               ('Nên chờ thêm ít nhất 1 tuần rồi mới liên hệ lại', F)]),
 
-            ('Trước khi bấm GỬI báo giá, nhân viên bắt buộc tự trả lời mấy câu hỏi kiểm tra?',
-             [('3 câu: đúng nhu cầu, giải quyết tài chính, đúng mong muốn khách', T),
-              ('1 câu: giá có rẻ hơn đối thủ không', F),
-              ('2 câu: khách có tiền không và có gấp không', F),
+            ('Trước khi bấm GỬI báo giá, 3 câu hỏi tự kiểm bắt buộc theo thứ tự ưu tiên là gì?',
+             [('Có khớp tầm tài chính khách đưa ra không + có phù hợp diện tích/công năng không + có đúng mong muốn khách không', T),
+              ('Giá có rẻ hơn đối thủ không, có khuyến mãi không, có tặng quà không', F),
+              ('Khách có gấp không, có thiện chí không, có dễ tính không', F),
               ('Không cần tự hỏi, cứ gửi kèm câu "anh/chị tham khảo nhé"', F)]),
 
-            ('Khách nói tài chính khoảng 2,8 tỷ nhưng nhân viên gửi báo giá 3,8 tỷ. Đây là lỗi ở khâu nào?',
-             [('Báo giá không đúng nhu cầu / vượt ngân sách của khách', T),
-              ('Báo giá sai phong cách kiến trúc', F),
-              ('Báo giá đúng nhưng gửi sai thời điểm', F),
-              ('Không phải lỗi, vì nên chào giá cao để còn giảm', F)]),
+            ('Khách nói tầm tài chính khoảng 2,8 tỷ nhưng nhân viên gửi báo giá 3,8 tỷ. Hậu quả ĐÚNG NHẤT là gì?',
+             [('Báo giá không khớp tầm tài chính nên vô tác dụng - khách hết quan tâm và chuyển sang đối thủ tham khảo', T),
+              ('Khách vẫn ký vì nghĩ chất lượng chắc chắn cao hơn', F),
+              ('Không sao, vì cứ báo cao để còn thương lượng giảm dần', F),
+              ('Khách sẽ tự xin giảm giá rồi ký luôn', F)]),
 
             ('Sau khi gửi báo giá bao lâu thì BẮT BUỘC phải lấy phản hồi từ khách?',
              [('Sau 1-2 ngày', T),
@@ -595,7 +668,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Chỉ khi khách chủ động nhắn lại', F),
               ('Sau đúng 1 tháng', F)]),
 
-            ('Mục tiêu THỰC SỰ của cuộc gọi lấy phản hồi (bước 2) là gì?',
+            ('Mục tiêu THỰC SỰ của cuộc gọi lấy phản hồi sau báo giá là gì?',
              [('Để biết khách đang nghĩ gì, khai thác suy nghĩ thật của khách', T),
               ('Để ép khách ký hợp đồng ngay trong cuộc gọi', F),
               ('Để thông báo báo giá sắp hết hạn', F),
@@ -613,11 +686,11 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Vì công ty không cho phép thay đổi mẫu', F),
               ('Vì chọn mẫu là việc của bộ phận thiết kế, không liên quan khách', F)]),
 
-            ('Mục đích chính của việc gửi mẫu nhà (bước 3) là gì?',
-             [('Cho khách thêm ý tưởng, thấy nhiều lựa chọn, xác định sở thích', T),
-              ('Buộc khách phải chốt một mẫu để làm hợp đồng', F),
-              ('Thay thế cho việc khai thác khúc mắc', F),
-              ('Chứng minh công ty có nhiều mẫu hơn đối thủ', F)]),
+            ('Vì sao phải CHỦ ĐỘNG đôn đốc khách xem kỹ báo giá?',
+             [('Vì nhiều khách không xem hoặc chưa xem kỹ, trong khi báo giá có phụ lục vật tư đầy đủ và tổng giá trị hợp đồng để khách đánh giá đúng', T),
+              ('Vì để khách thấy mình sốt ruột mà ký cho nhanh', F),
+              ('Vì công ty bắt buộc phải gọi đủ số cuộc mỗi ngày', F),
+              ('Vì báo giá sẽ tự hết hạn nếu khách không xem ngay', F)]),
 
             ('Khi nhắc khách về thời gian khởi công (bước 4), ranh giới ĐÚNG là gì?',
              [('Giúp khách hiểu hệ quả của việc chậm quyết định, KHÔNG gây áp lực vô lý', T),
@@ -625,14 +698,14 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Nói công ty sắp hết suất nhận công trình', F),
               ('Ép khách phải khởi công trong tuần này', F)]),
 
-            ('Cuối năm, yếu tố thời gian nào thường được dùng để khách thấy cần quyết định sớm?',
-             [('Mong muốn xây xong / ở nhà mới trước Tết, tránh hoàn thiện gấp gáp', T),
-              ('Sợ hết vật liệu xây dựng trên thị trường', F),
-              ('Lo công ty phá sản trước Tết', F),
-              ('Sợ giá đất tăng sau Tết', F)]),
+            ('Khách muốn diện tích rộng, công năng nhiều nhưng tầm tài chính KHÔNG đủ. Trước khi báo giá nên làm gì?',
+             [('Cân đối, tư vấn phương án diện tích/công năng vừa với túi tiền khách rồi mới báo giá', T),
+              ('Cứ tính đủ nhu cầu ra giá thật cao rồi gửi, khách tự liệu', F),
+              ('Bỏ hết công năng khách muốn để hạ giá xuống thấp nhất', F),
+              ('Gửi luôn báo giá vượt ngân sách để khách thấy đẳng cấp', F)]),
 
             ('Bước nào được khóa học coi là QUAN TRỌNG NHẤT trong quy trình theo đuổi?',
-             [('Khai thác toàn bộ khúc mắc của khách', T),
+             [('Khai thác và xử lý vấn đề sau báo giá của khách', T),
               ('Gửi báo giá thật nhanh', F),
               ('Gửi thật nhiều mẫu nhà', F),
               ('Nhắc khách về tiền đặt cọc', F)]),
@@ -655,26 +728,26 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Đã xem hợp đồng chưa, điều khoản nào chưa rõ?', F),
               ('Có vướng thủ tục pháp lý gì không?', F)]),
 
-            ('Khi nào là thời điểm ĐÚNG để chuyển sang GỬI HỢP ĐỒNG (bước 6)?',
+            ('Khi nào là thời điểm ĐÚNG để chuyển sang GỬI HỢP ĐỒNG và PHỤ LỤC (bước 6)?',
              [('Khi khách đã đồng ý báo giá, đồng ý phương án và không còn vướng mắc lớn', T),
               ('Ngay khi vừa gửi báo giá, để tạo áp lực chốt', F),
               ('Khi khách mới chỉ hỏi giá lần đầu', F),
               ('Khi khách còn nhiều băn khoăn nhưng mình muốn thúc', F)]),
 
-            ('Sai lầm phổ biến ở bước THEO DÕI HỢP ĐỒNG (bước 7) là gì?',
-             [('Gửi hợp đồng xong rồi mất hút, không hỏi lại', T),
+            ('Sai lầm phổ biến ở bước KHAI THÁC và XỬ LÝ VẤN ĐỀ HỢP ĐỒNG (bước 7) là gì?',
+             [('Gửi hợp đồng xong rồi mất hút, không chủ động hỏi lại để xử lý vướng mắc', T),
               ('Hỏi lại khách sau 1-2 ngày về điều khoản', F),
-              ('Giải thích ngay khi khách còn băn khoăn', F),
+              ('Giải thích dứt điểm ngay khi khách còn băn khoăn', F),
               ('Gửi kèm lời mời khách trao đổi thêm', F)]),
 
-            ('Sau khi gửi hợp đồng, sau bao lâu nên chủ động hỏi lại khách?',
+            ('Sau khi gửi hợp đồng và phụ lục, sau bao lâu nên chủ động hỏi lại khách?',
              [('Sau 1-2 ngày', T),
               ('Chỉ hỏi khi khách chủ động liên hệ', F),
               ('Sau 2-3 tuần cho khách đủ thời gian', F),
               ('Không cần hỏi, chờ khách ký gửi lại', F)]),
 
-            ('Ở bước 8, khi khách đã đồng ý báo giá - thiết kế - hợp đồng thì việc tiếp theo là gì?',
-             [('Đề nghị lên lịch khảo sát thực tế, thống nhất lịch ký và trao đổi rõ quy trình + khoản đặt cọc', T),
+            ('Ở bước 8 (bước cuối), khi khách đã đồng ý báo giá - thiết kế - hợp đồng thì việc tiếp theo là gì?',
+             [('Thống nhất lịch ký hợp đồng, hẹn lịch khảo sát đất và trao đổi rõ quy trình + khoản đặt cọc', T),
               ('Gửi thêm một bộ báo giá mới để khách so sánh', F),
               ('Quay lại bước gửi mẫu nhà từ đầu', F),
               ('Chờ khách tự đến công ty ký', F)]),
