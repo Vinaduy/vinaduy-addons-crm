@@ -114,6 +114,17 @@
             <field name="vd_max_attempts">3</field>
         </record>
 
+        <!-- Khoa KY NANG SALE: quy trinh theo duoi khach hang sau khi gui bao gia.
+             Noi dung + 20 cau thi do _vd_seed_theo_duoi_bao_gia seed. -->
+        <record id="course_theo_duoi_bao_gia" model="slide.channel">
+            <field name="name">Quy trình theo đuổi khách hàng sau khi gửi báo giá</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">8</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
         <record id="course_tn1" model="slide.channel">
             <field name="name">TN1 - Quản lý đội nhóm</field>
@@ -149,6 +160,7 @@
     <function model="slide.channel" name="_vd_seed_d3_chuyen_doi_mong"/>
     <function model="slide.channel" name="_vd_seed_d4_giam_vat_tu"/>
     <function model="slide.channel" name="_vd_seed_kn_giong_noi"/>
+    <function model="slide.channel" name="_vd_seed_theo_duoi_bao_gia"/>
 
     <!-- Dong bo ten khoa hoc cho MOI ngon ngu (NV xem vi_VN khong con thay ten cu). -->
     <function model="slide.channel" name="_vd_heal_course_name_langs"/>
