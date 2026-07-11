@@ -2,33 +2,34 @@
 """Seed nội dung + 20 câu thi cho khóa "QUY TRÌNH THEO ĐUỔI KHÁCH HÀNG SAU KHI
 GỬI BÁO GIÁ" (Kỹ năng Sale).
 
-TRÌNH BÀY TỐI GIẢN (user chốt 2026-07-11): bỏ animation, bỏ ô/khung/màu rối
-mắt. Chỉ dùng 1 màu nhấn (#e8401f), nền slate cho banner bước, còn lại là chữ
-sạch để nhân viên DỄ ĐỌC - DỄ NHỚ. Toàn bộ typography (h2/h3/p/ul/table) do khối
-<style> scope .vd-tdbg lo, nội dung viết HTML thuần. Chỉ 2 kiểu callout: "Ghi
-nhớ" và "Câu mẫu".
+TRÌNH BÀY (user chốt 2026-07-11): GIỮ ĐẦY ĐỦ nội dung, tổ chức bằng NHIỀU BẢNG
+cho dễ học - dễ nhớ. Màu có QUY TẮC NHẤT QUÁN: mỗi callout 1 màu = 1 ý nghĩa cố
+định xuyên suốt (KHÔNG loạn màu):
+  - GHI NHỚ (cam)       : nguyên tắc cốt lõi
+  - VIỆC PHẢI LÀM (xanh lá): việc hành động ngay - dạy NV làm gì
+  - SAI LẦM CẦN TRÁNH (đỏ): lỗi thường gặp
+  - CÂU MẪU NÊN NÓI (xanh dương): câu chữ để copy dùng
+Bảng dùng chung 1 style xám nhạt. Banner bước nền slate. Không animation.
 
-Thứ tự 8 bước (thực tế): 1-Gửi mẫu nhà, 2-Gửi báo giá + đảm bảo chất lượng,
-3-Phản hồi sau 1-2 ngày, 4-Nhắc khởi công + ký giữ giá, 5-Khai thác & xử lý vấn
-đề sau báo giá, 6-Gửi hợp đồng + phụ lục, 7-Khai thác & xử lý vấn đề hợp đồng,
-8-Hẹn ký + khảo sát đất.
+Thứ tự 8 bước: 1-Gửi mẫu nhà, 2-Gửi báo giá + đảm bảo chất lượng, 3-Phản hồi sau
+1-2 ngày, 4-Nhắc khởi công + ký giữ giá, 5-Khai thác & xử lý vấn đề sau báo giá,
+6-Gửi hợp đồng + phụ lục, 7-Khai thác & xử lý vấn đề hợp đồng, 8-Hẹn ký + khảo
+sát đất.
 
-Helper riêng prefix _tdbg_ (xem reference-seed-method-name-collision). Idempotent
-theo PHIÊN BẢN. Đảo đáp án mỗi lần thi do overview.js xử lý chung.
+Helper riêng prefix _tdbg_. Idempotent theo PHIÊN BẢN. Đảo đáp án mỗi lần thi do
+overview.js xử lý chung. BẪY %: helper dùng '...' % (...) KHÔNG chứa % trong
+template; bảng dựng bằng nối chuỗi (+) để width:50% an toàn.
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v3'
+_TDBG_VERSION = 'v4'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
-_ACCENT = '#e8401f'
-
-# Base typography - scope .vd-tdbg. Không dùng % format -> % an toàn.
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 _STYLE = (
     '<style>'
-    '.vd-tdbg{max-width:800px;font-size:16.5px;line-height:1.72;color:#1f2937;}'
-    '.vd-tdbg h2{font-size:23px;font-weight:800;color:#111827;margin:34px 0 12px;}'
+    '.vd-tdbg{max-width:820px;font-size:16.5px;line-height:1.72;color:#1f2937;}'
+    '.vd-tdbg h2{font-size:23px;font-weight:800;color:#111827;margin:32px 0 12px;}'
     '.vd-tdbg h3{font-size:18px;font-weight:800;color:#111827;'
     'margin:22px 0 8px;padding-left:12px;border-left:4px solid #e8401f;}'
     '.vd-tdbg p{margin:0 0 12px;}'
@@ -38,9 +39,38 @@ _STYLE = (
     '.vd-tdbg table{border-collapse:collapse;width:100%;margin:12px 0 16px;font-size:15.5px;}'
     '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:9px 12px;'
     'text-align:left;vertical-align:top;}'
-    '.vd-tdbg th{background:#f9fafb;font-weight:800;color:#374151;}'
+    '.vd-tdbg th{background:#f1f5f9;font-weight:800;color:#334155;}'
+    '.vd-tdbg .cell-x{color:#b91c1c;font-weight:700;}'
+    '.vd-tdbg .cell-v{color:#15803d;font-weight:700;}'
     '</style>'
 )
+
+
+# --- Callout: mỗi hàm 1 MÀU = 1 Ý NGHĨA cố định (template không chứa %) --------
+def _callout(bar, bg, label_color, label, text):
+    return (
+        '<div style="background:%s;border-left:5px solid %s;border-radius:0 8px 8px 0;'
+        'padding:12px 16px;margin:14px 0;">'
+        '<div style="font-weight:800;color:%s;font-size:13.5px;letter-spacing:.3px;'
+        'margin-bottom:4px;">%s</div><div>%s</div></div>'
+    ) % (bg, bar, label_color, label, text)
+
+
+def _key(text):
+    return _callout('#e8401f', '#fff7ed', '#c2410c', '&#9873; GHI NHỚ', text)
+
+
+def _todo(text):
+    return _callout('#16a34a', '#f0fdf4', '#15803d', '&#9989; VIỆC PHẢI LÀM NGAY', text)
+
+
+def _warn(text):
+    return _callout('#dc2626', '#fef2f2', '#b91c1c', '&#9888;&#65039; SAI LẦM CẦN TRÁNH', text)
+
+
+def _say(text):
+    return _callout('#2563eb', '#eff6ff', '#1d4ed8', '&#128172; CÂU MẪU NÊN NÓI',
+                    '<i>&#8220;' + text + '&#8221;</i>')
 
 
 def _hero():
@@ -58,10 +88,9 @@ def _hero():
 
 
 def _step(num, title, sub):
-    """Banner 1 bước - nền slate, tối giản."""
     return (
         '<div style="background:#1e293b;border-radius:12px;padding:20px 24px;'
-        'margin:38px 0 16px;">'
+        'margin:40px 0 16px;">'
         '<div style="color:#f59e0b;font-size:13px;font-weight:800;'
         'letter-spacing:2px;">BƯỚC %s</div>'
         '<div style="color:#ffffff;font-size:23px;font-weight:800;margin-top:4px;'
@@ -70,31 +99,21 @@ def _step(num, title, sub):
     ) % (num, title, sub)
 
 
-def _key(text):
-    """Callout DUY NHẤT cho điểm cần nhớ - nền ấm nhạt, gạch trái màu nhấn."""
-    return (
-        '<div style="background:#fff7ed;border-left:4px solid %s;'
-        'border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;">'
-        '<b style="color:#c2410c;">&#9888;&#65039; Ghi nhớ:</b> %s</div>'
-    ) % (_ACCENT, text)
-
-
-def _say(text):
-    """Câu mẫu nên nói - in nghiêng, gạch xám, không màu mè."""
-    return (
-        '<div style="border-left:3px solid #cbd5e1;padding:6px 16px;margin:12px 0;'
-        'color:#374151;font-style:italic;">'
-        '&#128172; Câu mẫu: &#8220;%s&#8221;</div>'
-    ) % text
+def _table(head, rows, w0=None):
+    """Dựng bảng bằng nối chuỗi (an toàn với %). head=list th; rows=list of list td."""
+    th = ''.join(
+        '<th' + (' style="width:%s;"' % w0 if (w0 and i == 0) else '') + '>' + h + '</th>'
+        for i, h in enumerate(head))
+    body = ''
+    for r in rows:
+        body += '<tr>' + ''.join('<td>' + c + '</td>' for c in r) + '</tr>'
+    return '<table><tr>' + th + '</tr>' + body + '</table>'
 
 
 def _vs(sai, dung):
-    """Bảng 2 cột Nên tránh / Nên làm - dùng style bảng chung, không tô nền đậm."""
-    return (
-        '<table><tr><th style="width:50%%;">&#10007; Nên tránh</th>'
-        '<th>&#10003; Nên làm</th></tr>'
-        '<tr><td>%s</td><td>%s</td></tr></table>'
-    ) % (sai, dung)
+    return ('<table><tr><th style="width:50%;" class="cell-x">&#10007; Nên tránh</th>'
+            '<th class="cell-v">&#10003; Nên làm</th></tr>'
+            '<tr><td>' + sai + '</td><td>' + dung + '</td></tr></table>')
 
 
 class SlideChannelSeedTheoDuoiBaoGia(models.Model):
@@ -166,42 +185,55 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     #  MỞ ĐẦU
     # ------------------------------------------------------------------
     def _tdbg_intro(self):
-        steps = [
-            'Gửi mẫu nhà tham khảo',
-            'Gửi báo giá &mdash; đảm bảo chất lượng',
-            'Phản hồi sau 1&ndash;2 ngày',
-            'Nhắc khởi công &amp; ký giữ giá',
-            'Khai thác &amp; xử lý vấn đề sau báo giá',
-            'Gửi hợp đồng &amp; phụ lục',
-            'Khai thác &amp; xử lý vấn đề hợp đồng',
-            'Hẹn ký hợp đồng &amp; khảo sát đất',
-        ]
-        li = ''.join('<li><b>%s</b></li>' % s for s in steps)
         return (
             '<h2>Vì sao gửi báo giá xong KHÔNG được ngồi chờ?</h2>'
-            '<p>Nhiều nhân viên mất khách chỉ vì nghĩ: <b>&#8220;Gửi báo giá rồi, '
-            'giờ chờ khách gọi lại&#8221;</b>. Đây là sai lầm. Khách xây nhà thường '
-            'xem nhiều đơn vị, đang cân nhắc tài chính, chưa hiểu hết báo giá và đang '
-            'so sánh. Nếu mình không chủ động dẫn dắt, khách sẽ nghiêng dần sang đơn '
-            'vị khác.</p>'
+            '<p>Rất nhiều nhân viên mất khách chỉ vì nghĩ: <b>&#8220;Gửi báo giá rồi, '
+            'giờ chờ khách gọi lại&#8221;</b>. Đây là sai lầm nghiêm trọng. Vì lúc này '
+            'khách đang cùng lúc làm nhiều việc:</p>'
+            + _table(
+                ['Khách đang làm gì', 'Nghĩa là'],
+                [['Xem <b>rất nhiều</b> đơn vị', 'Mình chỉ là 1 trong nhiều lựa chọn'],
+                 ['Cân nhắc <b>tài chính</b>', 'Rất nhạy cảm với con số tổng'],
+                 ['<b>Chưa hiểu hết</b> báo giá', 'Cần mình giải thích, dẫn dắt'],
+                 ['Đang <b>so sánh</b> các bên', 'Ai chủ động hơn sẽ thắng'],
+                 ['<b>Chưa biết nên hỏi gì</b>', 'Im lặng KHÔNG phải hết quan tâm']],
+                w0='34%')
+            + '<p>Nếu nhân viên không chủ động dẫn dắt, khách sẽ nghiêng dần sang đơn '
+            'vị khác lúc nào không hay.</p>'
 
-            '<h3>Việc đầu tiên: chủ động ĐÔN ĐỐC khách xem báo giá</h3>'
+            + '<h3>Việc đầu tiên: chủ động ĐÔN ĐỐC khách xem báo giá</h3>'
             '<p>Gửi xong phải chủ động gọi/nhắn dò hỏi: khách đã <b>nhận</b> chưa, đã '
-            '<b>mở xem</b> chưa, đã <b>đọc kỹ</b> chưa. Thực tế nhiều khách không xem, '
-            'hoặc xem chưa kỹ, thậm chí lấy lý do &#8220;chưa xem&#8221; để tránh trao '
-            'đổi. Nếu mình tin ngay rồi ngồi chờ thì báo giá nằm im, khách nguội dần.</p>'
-            '<p>Trong báo giá của mình có <b>phụ lục vật tư đầy đủ</b> và <b>tổng giá '
-            'trị hợp đồng</b> &mdash; đây là thứ khách cần để so sánh và ra quyết định. '
-            'Khách chưa xem kỹ phần này thì chưa thể đánh giá đúng giá trị mình mang '
-            'lại. Vì vậy phải khéo léo hướng dẫn khách xem đúng các mục quan trọng.</p>'
-            + _key('Khách im lặng nghĩa là quy trình đang bị DỪNG lại &mdash; tuyệt '
-                   'đối không để khách &#8220;treo&#8221;.')
+            '<b>mở xem</b> chưa, đã <b>đọc kỹ</b> chưa. Tuyệt đối không mặc định '
+            '&#8220;gửi là khách sẽ xem&#8221;.</p>'
+            + _warn('Thực tế nhiều khách KHÔNG xem báo giá, hoặc có xem nhưng CHƯA xem '
+                    'kỹ &mdash; thậm chí lấy lý do &#8220;chưa xem&#8221;, &#8220;để '
+                    'xem sau&#8221; để né trao đổi. Nếu mình tin ngay rồi ngồi chờ thì '
+                    'báo giá nằm im, khách nguội dần rồi sang đối thủ.')
+            + '<p>Vì sao phải đôn đốc? Vì trong báo giá của mình có những thứ khách bắt '
+            'buộc phải đọc mới đánh giá đúng được giá trị:</p>'
+            + _table(
+                ['Trong báo giá có gì', 'Vai trò với khách'],
+                [['<b>Phụ lục vật tư đầy đủ</b>', 'Chủng loại, thương hiệu, tiêu chuẩn &mdash; để khách so sánh chất lượng'],
+                 ['<b>Tổng giá trị hợp đồng</b>', 'Con số đầy đủ, minh bạch &mdash; để khách cân đối tài chính']],
+                w0='34%')
+            + _key('Khách im lặng = quy trình đang bị DỪNG lại. Tuyệt đối không để '
+                   'khách &#8220;treo&#8221;. Phải khéo léo hướng dẫn khách xem đúng '
+                   'phụ lục vật tư và tổng giá trị hợp đồng.')
 
-            + '<h3>Hành trình 8 bước</h3>'
-            '<ol>' + li + '</ol>'
-            '<p>Nguyên tắc xuyên suốt: <b>sau mỗi lần liên hệ, khách phải tiến thêm '
-            'ít nhất 1 bước</b>. Mỗi lần trao đổi đều phải có mục tiêu rõ ràng, đưa '
-            'khách gần hơn tới quyết định ký.</p>'
+            + '<h3>Hành trình 8 bước phải thuộc lòng</h3>'
+            + _table(
+                ['Bước', 'Việc làm', 'Mục tiêu'],
+                [['1', 'Gửi mẫu nhà tham khảo', 'Cho khách thêm ý tưởng, bộc lộ sở thích'],
+                 ['2', 'Gửi báo giá &mdash; đảm bảo chất lượng', 'Báo giá khớp tài chính, đúng nhu cầu'],
+                 ['3', 'Phản hồi sau 1&ndash;2 ngày', 'Biết khách đang nghĩ gì'],
+                 ['4', 'Nhắc khởi công &amp; ký giữ giá', 'Tạo lý do quyết định sớm'],
+                 ['5', 'Khai thác &amp; xử lý vấn đề sau báo giá', 'Gỡ hết khúc mắc (bước quan trọng nhất)'],
+                 ['6', 'Gửi hợp đồng &amp; phụ lục', 'Chuyển sang giai đoạn ký'],
+                 ['7', 'Khai thác &amp; xử lý vấn đề hợp đồng', 'Gỡ vướng mắc điều khoản'],
+                 ['8', 'Hẹn ký hợp đồng &amp; khảo sát đất', 'Chốt lịch ký, đặt cọc']],
+                w0='8%')
+            + _key('Sau MỖI lần liên hệ, khách phải tiến thêm ít nhất 1 bước. Mỗi lần '
+                   'trao đổi đều phải có mục tiêu rõ ràng, đưa khách gần hơn tới ký.')
         )
 
     # ------------------------------------------------------------------
@@ -211,21 +243,24 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         return (
             _step('1', 'Gửi mẫu nhà cho khách tham khảo',
                   'Làm đầu tiên &mdash; nhưng KHÔNG ép khách chốt mẫu.')
-            + '<p>Mục tiêu khi gửi mẫu nhà:</p>'
+            + '<p>Đây là việc nên làm sớm để khách có cơ sở hình dung. Nhưng phải nhớ '
+            'rõ mục tiêu:</p>'
             '<ul>'
             '<li>Cho khách <b>thêm ý tưởng</b>.</li>'
             '<li>Cho khách thấy <b>nhiều lựa chọn</b>.</li>'
             '<li>Giúp khách <b>xác định sở thích</b>.</li>'
             '</ul>'
-            + _vs('&#8220;Anh chị chọn giúp em một mẫu nhé.&#8221; &mdash; ép khách '
+            + _vs('&#8220;Anh chị chọn giúp em một mẫu nhé.&#8221;<br/>&rArr; Ép khách '
                   'chốt mẫu, khách thấy áp lực.',
                   'Gửi mẫu gần nhu cầu để tham khảo, thích chi tiết nào thì mình điều '
                   'chỉnh thiết kế theo.')
             + _say('Em gửi thêm vài mẫu nhà có diện tích và mức đầu tư gần với nhu cầu '
                    'của anh/chị để mình tham khảo. Chi tiết nào anh/chị thích, bên em '
                    'sẽ điều chỉnh thiết kế theo đúng mong muốn của gia đình.')
-            + _key('Khách không mua mẫu nhà &mdash; khách mua giải pháp phù hợp với '
+            + _key('Khách KHÔNG mua mẫu nhà &mdash; khách mua giải pháp phù hợp với '
                    'gia đình mình. Mẫu nhà chỉ để khách hình dung và bộc lộ sở thích.')
+            + _todo('Gửi 3&ndash;5 mẫu sát diện tích + mức đầu tư của khách, kèm đúng '
+                    'câu mẫu ở trên. Mục tiêu là MỞ Ý TƯỞNG, không bắt khách chọn.')
         )
 
     # ------------------------------------------------------------------
@@ -237,46 +272,56 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                   'Việc quan trọng bậc nhất: đã gửi thì báo giá phải THẬT CHUẨN.')
             + '<p>Báo giá không phải &#8220;một file gửi cho có&#8221; &mdash; nó là '
             '<b>vũ khí chốt hợp đồng</b>. Một khi đã quyết định gửi thì báo giá đó bắt '
-            'buộc phải thật chuẩn. Cả nhân viên phải tập trung tối đa cho việc này.</p>'
-
-            + _key('Báo giá không khớp tầm tài chính của khách = báo giá VÔ TÁC DỤNG. '
-                   'Khách sẽ không quan tâm nữa và chuyển sang đối thủ để tham khảo tiếp.')
+            'buộc phải thật chuẩn. Tất cả nhân viên kinh doanh phải tập trung TỐI ĐA '
+            'cho việc làm báo giá.</p>'
+            + _key('Báo giá KHÔNG khớp tầm tài chính của khách = báo giá VÔ TÁC DỤNG. '
+                   'Khách sẽ không quan tâm nữa và chuyển sang đối thủ để tham khảo tiếp. '
+                   'Đây là lý do phải làm báo giá thật chuẩn trước khi gửi.')
 
             + '<h3>&#8220;Chuẩn&#8221; nghĩa là gì? &mdash; 3 điều kiện</h3>'
-            '<table>'
-            '<tr><th style="width:34%;">Điều kiện</th><th>Ý nghĩa</th></tr>'
-            '<tr><td><b>1. Khớp tầm tài chính khách đưa ra</b> (quan trọng nhất)</td>'
-            '<td>Tổng giá trị phải nằm TRONG khoảng ngân sách khách nói. Đây là yếu tố '
-            'quyết định khách có quan tâm báo giá hay không.</td></tr>'
-            '<tr><td><b>2. Phù hợp diện tích và công năng khách muốn</b></td>'
-            '<td>Số tầng, số phòng, công năng phải cân đối được với tầm tài chính đó.</td></tr>'
-            '<tr><td><b>3. Đúng mong muốn và phong cách</b></td>'
-            '<td>Phong cách, mức hoàn thiện, thang máy / gara / sân... khớp điều khách mong.</td></tr>'
-            '</table>'
+            + _table(
+                ['Điều kiện', 'Ý nghĩa'],
+                [['<b>1. Khớp tầm tài chính khách đưa ra</b><br/><span style="color:#b91c1c;">(quan trọng nhất)</span>',
+                  'Tổng giá trị phải nằm TRONG khoảng ngân sách khách nói. Đây là yếu tố quyết định khách có quan tâm báo giá hay không.'],
+                 ['<b>2. Phù hợp diện tích và công năng khách muốn</b>',
+                  'Số tầng, số phòng, công năng phải cân đối được với tầm tài chính đó.'],
+                 ['<b>3. Đúng mong muốn và phong cách</b>',
+                  'Phong cách, mức hoàn thiện, thang máy / gara / sân... khớp điều khách mong.']],
+                w0='34%')
 
-            + '<h3>Vì sao lệch tài chính là hỏng cả cuộc chơi?</h3>'
-            '<p>Khách nói tầm <b>2,8 tỷ</b> nhưng mình gửi báo giá <b>3,8 tỷ</b>. '
-            'Khách nhìn con số đầu đã thấy vượt quá xa &mdash; không đọc tiếp, không '
-            'phản hồi, âm thầm loại mình rồi tiếp tục tham khảo bên khác. Mình mất '
-            'khách mà không hề hay biết.</p>'
-            '<p>Nhiều khi khách muốn <b>diện tích rộng, công năng nhiều</b> nhưng '
+            + '<h3>Báo giá lệch = hỏng cả cuộc chơi</h3>'
+            '<p>Chỉ cần lệch nhu cầu là khách loại mình ngay, dù mình không hề biết:</p>'
+            + _table(
+                ['Khách nói / muốn', 'Nếu gửi lệch', 'Kết quả'],
+                [['Tài chính khoảng <b>2,8 tỷ</b>', 'Gửi báo giá <b>3,8 tỷ</b>', '<span class="cell-x">SAI</span>'],
+                 ['Thích phong cách <b>hiện đại</b>', 'Báo giá mẫu <b>tân cổ</b>', '<span class="cell-x">SAI</span>'],
+                 ['Muốn xây <b>để ở</b>', 'Làm theo chuẩn <b>đầu tư</b>', '<span class="cell-x">SAI</span>']],
+                w0='34%')
+            + '<p>Nhiều khi khách muốn <b>diện tích rộng, công năng nhiều</b> nhưng '
             '<b>tài chính không đủ</b>. Nếu bê nguyên nhu cầu đó tính ra, chi phí sẽ '
             'cao hơn ngân sách rất nhiều. Việc của nhân viên là <b>cân đối</b>: tư vấn '
             'phương án diện tích + công năng vừa túi tiền khách, chứ không gửi một con '
             'số vượt xa rồi để khách tự sốc.</p>'
+            + _warn('Khách nói tầm 2,8 tỷ mà gửi báo giá 3,8 tỷ. Khách nhìn con số đầu '
+                    'đã thấy vượt quá xa &mdash; không đọc tiếp, không phản hồi, âm '
+                    'thầm loại mình rồi đi tham khảo bên khác. Mình mất khách mà không '
+                    'hề hay biết.')
 
             + '<h3>Trước khi bấm GỬI, tự trả lời 3 câu hỏi</h3>'
-            '<ol>'
-            '<li><b>Có khớp tầm tài chính khách đưa ra không?</b> (ưu tiên số 1) '
-            '&mdash; vượt ngân sách thì CHƯA gửi, phải cân đối lại.</li>'
-            '<li><b>Có phù hợp diện tích và công năng khách đưa ra không?</b> '
-            '&mdash; nhu cầu quá lớn so với ngân sách thì tư vấn điều chỉnh trước.</li>'
-            '<li><b>Có đúng mong muốn của khách chưa?</b> &mdash; phong cách, mức hoàn '
-            'thiện, thang máy / gara / sân...</li>'
-            '</ol>'
-            + _key('Một khi đã quyết định gửi thì báo giá phải thật chuẩn. Nếu mình là '
-                   'khách, mình cũng thấy báo giá này khớp túi tiền và hợp lý &mdash; '
-                   'đó mới là báo giá đạt yêu cầu.')
+            + _table(
+                ['Câu hỏi tự kiểm', 'Nếu CHƯA đạt'],
+                [['<b>1. Có khớp tầm tài chính khách đưa ra không?</b> (ưu tiên số 1)',
+                  'Vượt ngân sách &rArr; CHƯA gửi, phải cân đối lại phương án.'],
+                 ['<b>2. Có phù hợp diện tích và công năng khách đưa ra không?</b>',
+                  'Nhu cầu quá lớn so với ngân sách &rArr; tư vấn điều chỉnh trước.'],
+                 ['<b>3. Có đúng mong muốn của khách chưa?</b>',
+                  'Lệch phong cách / hoàn thiện / thang máy / gara &rArr; sửa cho khớp.']],
+                w0='50%')
+            + _key('Nếu mình là khách, mình cũng thấy báo giá này KHỚP TÚI TIỀN và hợp '
+                   'lý &mdash; đó mới là báo giá đạt yêu cầu.')
+            + _todo('Soát đủ 3 câu hỏi, ưu tiên số 1 là KHỚP TẦM TÀI CHÍNH. Còn lệch '
+                    'tài chính / diện tích / công năng &rArr; DỪNG, cân đối lại phương '
+                    'án rồi mới gửi. Đã gửi thì báo giá phải thật chuẩn.')
         )
 
     # ------------------------------------------------------------------
@@ -286,21 +331,35 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         return (
             _step('3', 'Sau 1&ndash;2 ngày bắt buộc lấy phản hồi',
                   'Gửi báo giá xong rồi im luôn = nguyên nhân mất rất nhiều khách.')
-            + '<p>Sai lầm lớn nhất: gửi báo giá xong rồi <b>im luôn</b> &mdash; không '
-            'gọi, không nhắn, không hỏi. Mục tiêu cuộc gọi phản hồi không phải để ép '
-            'ký, mà để <b>biết khách đang nghĩ gì</b>.</p>'
-            '<p>Bộ câu hỏi cần khai thác:</p>'
+            + _warn('Gửi báo giá xong rồi IM LUÔN: không gọi, không nhắn, không hỏi. '
+                    'Đây là sai lầm khiến mất rất nhiều khách hàng.')
+            + '<h3>Mục tiêu cuộc gọi phản hồi</h3>'
+            + _vs('Gọi để <b>ép khách ký</b> ngay.<br/>Hỏi cụt lủn &#8220;anh chị ký '
+                  'chưa?&#8221;.',
+                  'Gọi để <b>BIẾT khách đang nghĩ gì</b>.<br/>Khai thác suy nghĩ thật '
+                  'của khách để dẫn tiếp.')
+            + '<p>Bộ câu hỏi cần khai thác trong 1&ndash;2 ngày sau khi gửi:</p>'
             '<ul>'
             '<li>Anh/chị đã <b>xem báo giá</b> chưa?</li>'
-            '<li>Thấy <b>phần nào hợp lý</b>, <b>phần nào còn băn khoăn</b>?</li>'
+            '<li>Thấy <b>phần nào hợp lý</b>? <b>Phần nào còn băn khoăn</b>?</li>'
             '<li><b>Mức đầu tư</b> có phù hợp không?</li>'
             '<li>Có <b>hạng mục nào</b> muốn điều chỉnh không?</li>'
             '</ul>'
-            '<p>Khách im lặng <b>không</b> có nghĩa là hết quan tâm. Có thể vì: báo giá '
-            'cao hơn dự kiến, chưa đúng nhu cầu, chưa hiểu cách tính, đang chờ đơn vị '
-            'khác, hoặc chưa đủ niềm tin.</p>'
-            + _key('Việc của nhân viên là KHAI THÁC, không phải ĐOÁN. Đặt lịch nhắc '
-                   '1&ndash;2 ngày sau khi gửi để gọi lấy phản hồi.')
+            + '<h3>Khách im lặng &mdash; đừng vội kết luận &#8220;hết quan tâm&#8221;</h3>'
+            + _table(
+                ['Khách im lặng có thể vì', 'Việc mình cần làm'],
+                [['Báo giá cao hơn dự kiến', 'Giải thích giá trị / cân đối lại phương án'],
+                 ['Báo giá chưa đúng nhu cầu', 'Hỏi lại nhu cầu, chỉnh cho khớp'],
+                 ['Chưa hiểu cách tính', 'Giải thích phụ lục, cách ra con số'],
+                 ['Đang chờ đơn vị khác', 'Tạo khác biệt, nhắc lợi thế của mình'],
+                 ['Chưa đủ niềm tin', 'Đưa chứng minh, công trình thực tế'],
+                 ['Chưa biết nên hỏi gì', 'Chủ động gợi câu hỏi, dẫn dắt']],
+                w0='40%')
+            + _key('Khách im KHÔNG có nghĩa là hết quan tâm. Việc của nhân viên là '
+                   'KHAI THÁC, không phải ĐOÁN.')
+            + _todo('Đặt lịch nhắc: 1&ndash;2 ngày sau khi gửi báo giá là gọi lấy '
+                    'phản hồi. Mục tiêu cuộc gọi là hiểu suy nghĩ khách, tuyệt đối '
+                    'không ép ký.')
         )
 
     # ------------------------------------------------------------------
@@ -310,9 +369,15 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         return (
             _step('4', 'Nhắc thời gian khởi công và ký hợp đồng giữ giá',
                   'Đặc biệt cuối năm &mdash; khách nào cũng muốn xong trước Tết.')
-            + '<p>Nếu khởi công muộn, khách dễ gặp bất lợi: thi công gấp, ảnh hưởng '
-            'tiến độ, khó bàn giao, khó hoàn thiện. Nhân viên chủ động nhắc khách về '
-            'yếu tố thời gian.</p>'
+            + '<p>Nếu khởi công muộn, khách sẽ gặp một loạt bất lợi &mdash; đây chính '
+            'là lý do để khách cần quyết định sớm:</p>'
+            + _table(
+                ['Khởi công muộn dẫn tới', 'Hệ quả cho khách'],
+                [['Thi công gấp', 'Chất lượng, an toàn dễ bị ảnh hưởng'],
+                 ['Ảnh hưởng tiến độ', 'Khó kịp mốc ở trước Tết'],
+                 ['Khó bàn giao', 'Dễ trễ hẹn, phát sinh'],
+                 ['Khó hoàn thiện', 'Cuối năm thợ đông, làm gấp áp lực']],
+                w0='40%')
             + _say('Nếu gia đình mình dự kiến ở nhà mới trước Tết thì nên triển khai '
                    'sớm để đảm bảo tiến độ. Để quá sát cuối năm thì việc hoàn thiện sẽ '
                    'rất áp lực.')
@@ -320,12 +385,14 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             '<p>Khi khách chưa khởi công ngay nhưng đã ưng phương án, có thể đề xuất '
             '<b>ký hợp đồng giữ giá</b> để khách chốt được mức giá hiện tại, tránh '
             'biến động khi vật tư tăng. Vừa lợi cho khách, vừa giúp mình giữ chân '
-            'khách, không để trôi sang đối thủ.</p>'
+            'khách, không để trôi sang đối thủ trong lúc còn cân nhắc.</p>'
             + _say('Hiện bên em đang áp mức giá này, nếu anh/chị chốt phương án thì '
                    'mình có thể ký hợp đồng giữ giá để khóa mức giá hôm nay, sau này '
                    'vật tư tăng gia đình cũng không bị ảnh hưởng ạ.')
-            + _key('Mục tiêu là giúp khách hiểu hệ quả của việc chậm quyết định, '
-                   'KHÔNG gây áp lực vô lý, không dọa khách.')
+            + _key('Mục tiêu là giúp khách hiểu HỆ QUẢ của việc chậm quyết định, KHÔNG '
+                   'gây áp lực vô lý, không dọa khách.')
+            + _todo('Khéo gắn quyết định của khách với mốc thời gian (trước Tết / kịp '
+                    'tiến độ) và đề xuất ký giữ giá nếu có chính sách.')
         )
 
     # ------------------------------------------------------------------
@@ -335,25 +402,21 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         return (
             _step('5', 'Khai thác và xử lý vấn đề sau báo giá',
                   'Bước quan trọng nhất: khách chưa ký thì chắc chắn còn vấn đề.')
-            + '<p>Nếu khách chưa ký, chắc chắn còn vấn đề &mdash; nhân viên phải tìm '
-            'ra, không được tự suy đoán. Khai thác đủ theo <b>6 nhóm</b>:</p>'
-            '<table>'
-            '<tr><th style="width:26%;">Nhóm</th><th>Câu hỏi cần khai thác</th></tr>'
-            '<tr><td><b>1. Báo giá</b></td><td>Có phù hợp không? Có vượt tài chính '
-            'không? Có cần điều chỉnh không?</td></tr>'
-            '<tr><td><b>2. Thiết kế</b></td><td>Có thích không? Cần thay đổi gì? Cần '
-            'thêm công năng không?</td></tr>'
-            '<tr><td><b>3. Mẫu nhà</b></td><td>Đã đúng phong cách chưa? Có muốn tham '
-            'khảo thêm không?</td></tr>'
-            '<tr><td><b>4. Gia đình</b></td><td>Đã thống nhất chưa? Ai là người quyết '
-            'định? Cần trao đổi thêm với người thân không?</td></tr>'
-            '<tr><td><b>5. Khởi công</b></td><td>Dự kiến khi nào? Đang chờ việc gì '
-            'không? Có vướng thủ tục không?</td></tr>'
-            '<tr><td><b>6. Niềm tin</b></td><td>Còn điều gì khiến anh/chị chưa yên tâm '
-            'khi chọn bên em?</td></tr>'
-            '</table>'
-            + _key('Câu hỏi nhóm NIỀM TIN đắt giá nhất: giúp lộ ra rào cản thật sự '
+            + '<p>Nếu khách chưa ký, chắc chắn còn vấn đề &mdash; nhân viên phải TÌM '
+            'RA, không được tự suy đoán. Khai thác đủ theo <b>6 nhóm câu hỏi</b>:</p>'
+            + _table(
+                ['Nhóm', 'Câu hỏi cần khai thác'],
+                [['<b>1. Báo giá</b>', 'Có phù hợp không? Có vượt tài chính không? Có cần điều chỉnh không?'],
+                 ['<b>2. Thiết kế</b>', 'Có thích không? Cần thay đổi gì? Cần thêm công năng không?'],
+                 ['<b>3. Mẫu nhà</b>', 'Đã đúng phong cách chưa? Có muốn tham khảo thêm không?'],
+                 ['<b>4. Gia đình</b>', 'Đã thống nhất chưa? Ai là người quyết định? Cần trao đổi thêm với người thân không?'],
+                 ['<b>5. Khởi công</b>', 'Dự kiến khi nào? Đang chờ việc gì không? Có vướng thủ tục không?'],
+                 ['<b>6. Niềm tin</b>', 'Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?']],
+                w0='20%')
+            + _key('Câu hỏi nhóm NIỀM TIN đắt giá nhất: giúp lộ ra rào cản THẬT SỰ '
                    'trước khi ký. Luôn kết thúc bằng câu hỏi này.')
+            + _todo('Mỗi khách chưa chốt, chạy đủ 6 nhóm câu hỏi để tìm khúc mắc thật, '
+                    'rồi XỬ LÝ dứt điểm từng cái. Luôn kết bằng câu hỏi niềm tin.')
         )
 
     # ------------------------------------------------------------------
@@ -374,8 +437,9 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'điều chỉnh, em trao đổi ngay để mình yên tâm trước khi ký.')
 
             + '<h3>Bước 7 &mdash; Khai thác và xử lý vấn đề hợp đồng</h3>'
-            '<p>Sai lầm phổ biến: gửi hợp đồng xong rồi <b>mất hút</b>. Điều đúng: '
-            '<b>sau 1&ndash;2 ngày chủ động hỏi lại</b>:</p>'
+            + _warn('Gửi hợp đồng xong rồi MẤT HÚT. Đây là sai lầm của rất nhiều nhân viên.')
+            + '<p>Điều đúng: <b>sau 1&ndash;2 ngày chủ động hỏi lại</b> để khai thác '
+            'và xử lý mọi vướng mắc trong hợp đồng:</p>'
             '<ul>'
             '<li>Anh/chị đã <b>xem hợp đồng và phụ lục</b> chưa?</li>'
             '<li>Có <b>điều khoản nào chưa rõ</b> không?</li>'
@@ -385,13 +449,16 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             'ngay, không bỏ qua.</p>'
 
             + '<h3>Bước 8 &mdash; Hẹn ký hợp đồng và khảo sát đất</h3>'
-            '<p>Khi khách đã đồng ý <b>báo giá + thiết kế + hợp đồng</b>, bước cuối:</p>'
-            '<ul>'
-            '<li><b>Thống nhất lịch ký hợp đồng.</b></li>'
-            '<li>Đề nghị <b>lên lịch khảo sát đất</b> thực tế.</li>'
-            '<li>Trao đổi rõ quy trình ký kết và khoản <b>đặt cọc 50.000.000 đồng</b> '
-            'theo quy định công ty (nếu áp dụng) để khách chủ động sắp xếp.</li>'
-            '</ul>'
+            '<p>Khi khách đã đồng ý <b>báo giá + thiết kế + hợp đồng</b>, bước cuối cùng:</p>'
+            + _table(
+                ['Việc cần làm', 'Ghi chú'],
+                [['Thống nhất <b>lịch ký hợp đồng</b>', 'Chốt ngày giờ cụ thể'],
+                 ['Hẹn <b>lịch khảo sát đất</b> thực tế', 'Đo đạc, đánh giá hiện trạng'],
+                 ['Trao đổi quy trình ký + <b>đặt cọc 50.000.000đ</b>', 'Theo quy định công ty (nếu áp dụng), để khách chủ động sắp xếp']],
+                w0='44%')
+            + _todo('Hết vấn đề sau báo giá &rArr; gửi hợp đồng + phụ lục ngay. Sau '
+                    '1&ndash;2 ngày hỏi lại xử lý vấn đề hợp đồng, rồi chốt lịch KÝ + '
+                    'KHẢO SÁT ĐẤT.')
         )
 
     # ------------------------------------------------------------------
@@ -399,28 +466,25 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _tdbg_gold(self):
         return (
-            '<h2>Nguyên tắc vàng</h2>'
+            '<h2>&#127942; Nguyên tắc vàng</h2>'
             '<p style="font-size:18px;color:#111827;font-weight:700;">Nhân viên giỏi '
-            'không phải người gửi được NHIỀU báo giá, mà là người biết DẪN DẮT khách '
+            'KHÔNG phải người gửi được NHIỀU báo giá, mà là người biết DẪN DẮT khách '
             'đi qua từng bước tới quyết định ký.</p>'
             '<p>Sau mỗi lần liên hệ, nếu khách tiến thêm một bước (phản hồi báo giá '
             '&rarr; gỡ vấn đề &rarr; xem hợp đồng &rarr; hẹn khảo sát...) thì khả năng '
             'ký tăng lên rất nhiều. Không bao giờ để khách im lặng quá lâu.</p>'
 
-            + '<h3>Bảng tự kiểm sau mỗi lần liên hệ khách</h3>'
-            '<table>'
-            '<tr><th style="width:8%;">#</th><th>Tự hỏi (Có / Chưa)</th></tr>'
-            '<tr><td>1</td><td>Lần này khách đã <b>tiến thêm 1 bước</b> chưa?</td></tr>'
-            '<tr><td>2</td><td>Mình đã <b>biết khách đang nghĩ gì</b> chưa, hay chỉ '
-            'đang đoán?</td></tr>'
-            '<tr><td>3</td><td>Còn <b>vấn đề nào chưa gỡ</b> (tài chính / thiết kế / '
-            'gia đình / niềm tin)?</td></tr>'
-            '<tr><td>4</td><td>Đã hẹn <b>mốc liên hệ tiếp theo</b> chưa?</td></tr>'
-            '<tr><td>5</td><td>Lần này có <b>mục tiêu rõ ràng</b> đưa khách gần hơn '
-            'tới ký không?</td></tr>'
-            '</table>'
-            '<p>Còn ô nào &#8220;Chưa&#8221; &mdash; đó chính là việc phải làm trong '
-            'lần liên hệ kế tiếp.</p>'
+            + '<h3>Bảng tự kiểm sau MỖI lần liên hệ khách</h3>'
+            + _table(
+                ['#', 'Tự hỏi (Có / Chưa)'],
+                [['1', 'Lần này khách đã <b>tiến thêm 1 bước</b> chưa?'],
+                 ['2', 'Mình đã <b>biết khách đang nghĩ gì</b> chưa, hay chỉ đang đoán?'],
+                 ['3', 'Còn <b>vấn đề nào chưa gỡ</b> (tài chính / thiết kế / gia đình / niềm tin)?'],
+                 ['4', 'Đã hẹn <b>mốc liên hệ tiếp theo</b> chưa?'],
+                 ['5', 'Lần này có <b>mục tiêu rõ ràng</b> đưa khách gần hơn tới ký không?']],
+                w0='8%')
+            + _key('Còn ô nào &#8220;Chưa&#8221; &mdash; đó chính là việc phải làm '
+                   'trong lần liên hệ kế tiếp. Gửi báo giá là BẮT ĐẦU, không phải kết thúc.')
         )
 
     # ==================================================================
