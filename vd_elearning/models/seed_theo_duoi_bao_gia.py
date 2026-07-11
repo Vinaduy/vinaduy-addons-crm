@@ -2,119 +2,99 @@
 """Seed nội dung + 20 câu thi cho khóa "QUY TRÌNH THEO ĐUỔI KHÁCH HÀNG SAU KHI
 GỬI BÁO GIÁ" (Kỹ năng Sale).
 
-Bám SÁT tài liệu gốc (Theo đuổi khách hàng sau báo giá.pdf): giữ nguyên tư duy
-"gửi báo giá là điểm BẮT ĐẦU" + hành trình 8 bước, viết chi tiết - chuyên nghiệp
-cho nhân viên MỚI đọc xong là làm được: sơ đồ hành trình, bảng so sánh SAI/ĐÚNG,
-khung công thức, câu chốt thuộc lòng, bảng câu hỏi khai thác và bảng tự kiểm.
+TRÌNH BÀY TỐI GIẢN (user chốt 2026-07-11): bỏ animation, bỏ ô/khung/màu rối
+mắt. Chỉ dùng 1 màu nhấn (#e8401f), nền slate cho banner bước, còn lại là chữ
+sạch để nhân viên DỄ ĐỌC - DỄ NHỚ. Toàn bộ typography (h2/h3/p/ul/table) do khối
+<style> scope .vd-tdbg lo, nội dung viết HTML thuần. Chỉ 2 kiểu callout: "Ghi
+nhớ" và "Câu mẫu".
 
-Khóa KHÔNG có ảnh nguồn => thiết kế typography lớn thay ảnh (hero + banner PHẦN
-+ ô công thức). Helper riêng prefix _tdbg_ (xem reference-seed-method-name-
-collision) - KHÔNG dùng _pN trần. Idempotent theo PHIÊN BẢN.
+Thứ tự 8 bước (thực tế): 1-Gửi mẫu nhà, 2-Gửi báo giá + đảm bảo chất lượng,
+3-Phản hồi sau 1-2 ngày, 4-Nhắc khởi công + ký giữ giá, 5-Khai thác & xử lý vấn
+đề sau báo giá, 6-Gửi hợp đồng + phụ lục, 7-Khai thác & xử lý vấn đề hợp đồng,
+8-Hẹn ký + khảo sát đất.
 
-BẪY %: mọi % literal trong NỘI DUNG để 1 dấu; chỉ escape %% bên trong các hàm
-helper module có dùng '...' % (...). (xem reference-course-writing-format)
-
-Đảo thứ tự đáp án mỗi lần thi đã do overview.js (startExam -> _shuffle) xử lý
-CHUNG cho mọi khóa => không cần cấu hình riêng ở seed.
+Helper riêng prefix _tdbg_ (xem reference-seed-method-name-collision). Idempotent
+theo PHIÊN BẢN. Đảo đáp án mỗi lần thi do overview.js xử lý chung.
 """
 from odoo import api, models
-from .seed_kh_tiem_nang import _WRAP, _box, _formula, _apply, _advice, _mistake
-from .seed_khong_tuoi import _chot
 
-_TDBG_VERSION = 'v2'
+_TDBG_VERSION = 'v3'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
-# ---------------------------------------------------------------------------
-#  HIỆU ỨNG TOÀN KHÓA (nối chuỗi thuần - KHÔNG dùng % format -> % an toàn)
-# ---------------------------------------------------------------------------
+_ACCENT = '#e8401f'
+
+# Base typography - scope .vd-tdbg. Không dùng % format -> % an toàn.
+_WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 _STYLE = (
     '<style>'
-    '.vd-tdbg .vd-hero{position:relative;overflow:hidden;}'
-    '.vd-tdbg .vd-hero::after{content:"";position:absolute;top:0;left:-65%;'
-    'width:45%;height:100%;background:linear-gradient(120deg,'
-    'rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 50%,rgba(255,255,255,0) 100%);'
-    'transform:skewX(-22deg);animation:vdShine 3.6s ease-in-out infinite;}'
-    '.vd-tdbg .vd-phan{animation:vdRise .6s ease both;}'
-    '.vd-tdbg .vd-step{transition:transform .3s ease,box-shadow .3s ease;}'
-    '.vd-tdbg .vd-step:hover{transform:translateY(-5px);'
-    'box-shadow:0 16px 36px rgba(2,6,23,.26);}'
-    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:6px 0 4px;}'
-    '.vd-tdbg .vd-pulse{display:inline-block;animation:vdPulse 1.5s ease-in-out infinite;}'
-    '@keyframes vdShine{0%{left:-65%}55%{left:135%}100%{left:135%}}'
-    '@keyframes vdRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}'
-    '@keyframes vdPulse{0%,100%{transform:translateX(0)}50%{transform:translateX(7px)}}'
+    '.vd-tdbg{max-width:800px;font-size:16.5px;line-height:1.72;color:#1f2937;}'
+    '.vd-tdbg h2{font-size:23px;font-weight:800;color:#111827;margin:34px 0 12px;}'
+    '.vd-tdbg h3{font-size:18px;font-weight:800;color:#111827;'
+    'margin:22px 0 8px;padding-left:12px;border-left:4px solid #e8401f;}'
+    '.vd-tdbg p{margin:0 0 12px;}'
+    '.vd-tdbg ul,.vd-tdbg ol{margin:0 0 14px;padding-left:24px;}'
+    '.vd-tdbg li{margin:5px 0;}'
+    '.vd-tdbg b{color:#111827;}'
+    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:12px 0 16px;font-size:15.5px;}'
+    '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:9px 12px;'
+    'text-align:left;vertical-align:top;}'
+    '.vd-tdbg th{background:#f9fafb;font-weight:800;color:#374151;}'
     '</style>'
 )
 
 
-def _hero(title_small, title_big, sub):
-    """Tiêu đề SIÊU LỚN đầu khóa - đỏ cam thương hiệu + quét sáng."""
+def _hero():
     return (
-        '<div class="vd-hero" style="background:linear-gradient(135deg,'
-        '#f5523c 0%%,#d62f12 100%%);border-radius:22px;padding:44px 28px;'
-        'margin:4px 0 8px;text-align:center;'
-        'box-shadow:0 16px 40px rgba(214,47,18,.40);">'
-        '<div style="color:#ffe6df;font-size:17px;font-weight:800;letter-spacing:4px;'
-        'text-transform:uppercase;margin-bottom:10px;">%s</div>'
-        '<div style="color:#ffffff;font-size:46px;font-weight:900;line-height:1.08;'
-        'letter-spacing:1px;text-shadow:0 3px 10px rgba(0,0,0,.28);">%s</div>'
-        '<div style="color:#fff4f0;font-size:17px;font-weight:600;margin-top:16px;'
-        'max-width:820px;margin-left:auto;margin-right:auto;">%s</div></div>'
-    ) % (title_small, title_big, sub)
+        '<div style="background:#e8401f;border-radius:14px;padding:30px 28px;'
+        'margin-bottom:6px;">'
+        '<div style="color:#ffe0d8;font-size:14px;font-weight:700;'
+        'letter-spacing:2px;">KỸ NĂNG SALE &mdash; CHỐT HỢP ĐỒNG</div>'
+        '<div style="color:#ffffff;font-size:29px;font-weight:800;margin-top:8px;'
+        'line-height:1.2;">Theo đuổi khách hàng sau khi gửi báo giá</div>'
+        '<div style="color:#fff2ee;font-size:16px;margin-top:12px;line-height:1.6;">'
+        'Gửi báo giá chỉ là điểm BẮT ĐẦU, không phải kết thúc. Cả khóa dạy cách '
+        'dẫn khách đi qua 8 bước tới lúc ký hợp đồng.</div></div>'
+    )
 
 
-def _phan(num, title, sub):
-    """Banner CHƯƠNG (BƯỚC N) - nền slate sang, số mờ lớn phía sau."""
+def _step(num, title, sub):
+    """Banner 1 bước - nền slate, tối giản."""
     return (
-        '<div class="vd-phan" style="position:relative;overflow:hidden;'
-        'background:linear-gradient(135deg,#1e293b 0%%,#334155 100%%);'
-        'border-radius:18px;padding:24px 28px;margin:38px 0 20px;'
-        'box-shadow:0 12px 30px rgba(2,6,23,.24);">'
-        '<div style="position:absolute;right:18px;top:-26px;font-size:130px;'
-        'font-weight:900;color:rgba(255,255,255,.07);line-height:1;">%s</div>'
-        '<div style="position:relative;color:#fbbf24;font-size:15px;font-weight:800;'
-        'letter-spacing:3px;text-transform:uppercase;">BƯỚC %s</div>'
-        '<div style="position:relative;color:#ffffff;font-size:26px;font-weight:900;'
-        'margin-top:4px;line-height:1.2;">%s</div>'
-        '<div style="position:relative;color:#cbd5e1;font-size:14.5px;font-weight:600;'
-        'margin-top:8px;">%s</div></div>'
-    ) % (num, num, title, sub)
+        '<div style="background:#1e293b;border-radius:12px;padding:20px 24px;'
+        'margin:38px 0 16px;">'
+        '<div style="color:#f59e0b;font-size:13px;font-weight:800;'
+        'letter-spacing:2px;">BƯỚC %s</div>'
+        '<div style="color:#ffffff;font-size:23px;font-weight:800;margin-top:4px;'
+        'line-height:1.25;">%s</div>'
+        '<div style="color:#cbd5e1;font-size:14.5px;margin-top:7px;">%s</div></div>'
+    ) % (num, title, sub)
 
 
-def _h(title):
-    """Tiêu đề MỤC CON - thanh đỏ bên trái, chữ đậm."""
-    return ('<h3 style="font-size:18px;font-weight:900;color:#0f172a;'
-            'margin:24px 0 10px;padding-left:14px;'
-            'border-left:5px solid #e8401f;">%s</h3>') % title
+def _key(text):
+    """Callout DUY NHẤT cho điểm cần nhớ - nền ấm nhạt, gạch trái màu nhấn."""
+    return (
+        '<div style="background:#fff7ed;border-left:4px solid %s;'
+        'border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;">'
+        '<b style="color:#c2410c;">&#9888;&#65039; Ghi nhớ:</b> %s</div>'
+    ) % (_ACCENT, text)
 
 
-def _quote(text):
-    """Câu trích dạy nghề (in nghiêng) - khung đỏ nhạt sang."""
-    return ('<div style="border-left:5px solid #e8401f;background:#fff7f5;'
-            'border-radius:0 12px 12px 0;padding:14px 18px;margin:14px 0;'
-            'font-size:16.5px;font-style:italic;color:#7f1d1d;font-weight:600;">'
-            '&#128172; %s</div>') % text
+def _say(text):
+    """Câu mẫu nên nói - in nghiêng, gạch xám, không màu mè."""
+    return (
+        '<div style="border-left:3px solid #cbd5e1;padding:6px 16px;margin:12px 0;'
+        'color:#374151;font-style:italic;">'
+        '&#128172; Câu mẫu: &#8220;%s&#8221;</div>'
+    ) % text
 
 
 def _vs(sai, dung):
-    """Bảng 2 cột SAI (đỏ) / ĐÚNG (xanh)."""
-    return ('<table><thead><tr>'
-            '<th style="width:50%%;color:#dc2626;text-align:left;'
-            'border-bottom:2px solid #fecaca;padding:6px 10px;">&#10060; SAI</th>'
-            '<th style="color:#16a34a;text-align:left;'
-            'border-bottom:2px solid #bbf7d0;padding:6px 10px;">&#9989; ĐÚNG</th>'
-            '</tr></thead><tbody><tr>'
-            '<td style="vertical-align:top;padding:8px 10px;background:#fef2f2;">%s</td>'
-            '<td style="vertical-align:top;padding:8px 10px;background:#f0fdf4;">%s</td>'
-            '</tr></tbody></table>') % (sai, dung)
-
-
-def _say(inner):
-    """Ô CÂU MẪU NÊN NÓI (xanh dương, in nghiêng) - để NV copy dùng ngay."""
-    return ('<div style="border-left:5px solid #2563eb;background:#eff6ff;'
-            'border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0;'
-            'font-size:16px;font-style:italic;color:#1e3a8a;font-weight:600;">'
-            '&#128231; Câu mẫu nên nói: &#8220;%s&#8221;</div>') % inner
+    """Bảng 2 cột Nên tránh / Nên làm - dùng style bảng chung, không tô nền đậm."""
+    return (
+        '<table><tr><th style="width:50%%;">&#10007; Nên tránh</th>'
+        '<th>&#10003; Nên làm</th></tr>'
+        '<tr><td>%s</td><td>%s</td></tr></table>'
+    ) % (sai, dung)
 
 
 class SlideChannelSeedTheoDuoiBaoGia(models.Model):
@@ -170,465 +150,277 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     #  NỘI DUNG
     # ==================================================================
     def _vd_tdbg_pages(self):
-        lead = 'font-size:16px;color:#475569;margin:0 0 12px;line-height:1.7;'
-        # Thứ tự thực tế (user chốt): 1-Gửi mẫu nhà, 2-Gửi báo giá + đảm bảo
-        # chất lượng, 3-Phản hồi sau 2 ngày, 4-Nhắc khởi công + ký giữ giá,
-        # 5-Khai thác & xử lý vấn đề sau báo giá, 6-Gửi hợp đồng + phụ lục,
-        # 7-Khai thác & xử lý vấn đề hợp đồng, 8-Hẹn ký + khảo sát đất.
         return [
-            ('Hero', self._tdbg_hero()),
-            ('Intro', self._tdbg_intro(lead)),
-            ('S1-MauNha', self._tdbg_maunha(lead)),
-            ('S2-BaoGia', self._tdbg_baogia(lead)),
-            ('S3-PhanHoi', self._tdbg_phanhoi(lead)),
-            ('S4-KhoiCong', self._tdbg_khoicong(lead)),
-            ('S5-KhaiThac', self._tdbg_khaithac(lead)),
-            ('S678-HopDong', self._tdbg_b678(lead)),
-            ('Gold', self._tdbg_gold(lead)),
+            ('Hero', _hero()),
+            ('Intro', self._tdbg_intro()),
+            ('S1-MauNha', self._tdbg_maunha()),
+            ('S2-BaoGia', self._tdbg_baogia()),
+            ('S3-PhanHoi', self._tdbg_phanhoi()),
+            ('S4-KhoiCong', self._tdbg_khoicong()),
+            ('S5-KhaiThac', self._tdbg_khaithac()),
+            ('S678-HopDong', self._tdbg_b678()),
+            ('Gold', self._tdbg_gold()),
         ]
 
-    def _tdbg_hero(self):
-        return _hero(
-            'Kỹ năng Sale &mdash; Chốt hợp đồng',
-            'THEO ĐUỔI KHÁCH SAU KHI GỬI BÁO GIÁ',
-            'Gửi báo giá KHÔNG phải là kết thúc &mdash; đó chỉ là ĐIỂM BẮT ĐẦU '
-            'của quá trình chốt hợp đồng. Cả khóa dạy em cách DẪN DẮT khách đi '
-            'qua 8 bước, không bao giờ để khách &#8220;treo&#8221;.')
-
     # ------------------------------------------------------------------
-    #  MỞ ĐẦU — TƯ DUY NỀN TẢNG + HÀNH TRÌNH 8 BƯỚC
+    #  MỞ ĐẦU
     # ------------------------------------------------------------------
-    def _tdbg_intro(self, lead):
-        def _flow(order, label, color):
-            return (
-                '<div class="vd-step" style="flex:1 1 150px;min-width:140px;'
-                'background:#ffffff;border:2px solid ' + color + ';border-top:6px solid '
-                + color + ';border-radius:14px;padding:14px 12px;text-align:center;'
-                'box-shadow:0 8px 20px rgba(2,6,23,.10);">'
-                '<div style="font-size:13px;font-weight:900;color:' + color + ';'
-                'letter-spacing:1px;">' + order + '</div>'
-                '<div style="font-size:14.5px;font-weight:800;color:#0f172a;'
-                'margin-top:6px;line-height:1.3;">' + label + '</div></div>')
-        flows = (
-            _flow('BƯỚC 1', 'Gửi mẫu nhà tham khảo', '#b45309')
-            + _flow('BƯỚC 2', 'Gửi báo giá &mdash; đảm bảo chất lượng', '#0369a1')
-            + _flow('BƯỚC 3', 'Phản hồi sau 1&ndash;2 ngày', '#7c3aed')
-            + _flow('BƯỚC 4', 'Nhắc khởi công &amp; ký giữ giá', '#be123c')
-            + _flow('BƯỚC 5', 'Khai thác &amp; xử lý vấn đề sau báo giá', '#dc2626')
-            + _flow('BƯỚC 6', 'Gửi hợp đồng &amp; phụ lục', '#0d9488')
-            + _flow('BƯỚC 7', 'Khai thác &amp; xử lý vấn đề hợp đồng', '#0891b2')
-            + _flow('BƯỚC 8', 'Hẹn ký hợp đồng &amp; khảo sát đất', '#15803d'))
+    def _tdbg_intro(self):
+        steps = [
+            'Gửi mẫu nhà tham khảo',
+            'Gửi báo giá &mdash; đảm bảo chất lượng',
+            'Phản hồi sau 1&ndash;2 ngày',
+            'Nhắc khởi công &amp; ký giữ giá',
+            'Khai thác &amp; xử lý vấn đề sau báo giá',
+            'Gửi hợp đồng &amp; phụ lục',
+            'Khai thác &amp; xử lý vấn đề hợp đồng',
+            'Hẹn ký hợp đồng &amp; khảo sát đất',
+        ]
+        li = ''.join('<li><b>%s</b></li>' % s for s in steps)
         return (
-            '<h2 style="font-size:22px;font-weight:900;color:#1e293b;'
-            'margin:26px 0 10px;">&#127919; Vì sao gửi báo giá xong KHÔNG được ngồi chờ?</h2>'
+            '<h2>Vì sao gửi báo giá xong KHÔNG được ngồi chờ?</h2>'
+            '<p>Nhiều nhân viên mất khách chỉ vì nghĩ: <b>&#8220;Gửi báo giá rồi, '
+            'giờ chờ khách gọi lại&#8221;</b>. Đây là sai lầm. Khách xây nhà thường '
+            'xem nhiều đơn vị, đang cân nhắc tài chính, chưa hiểu hết báo giá và đang '
+            'so sánh. Nếu mình không chủ động dẫn dắt, khách sẽ nghiêng dần sang đơn '
+            'vị khác.</p>'
 
-            + _quote('Gửi báo giá chỉ là điểm BẮT ĐẦU của quá trình chốt hợp đồng, '
-                     'không phải là kết thúc.')
-            + '<p style="' + lead + '">Rất nhiều nhân viên MẤT khách chỉ vì một suy '
-            'nghĩ sai: <b>&#8220;Em gửi báo giá rồi, giờ chờ khách gọi lại&#8221;</b>. '
-            'Đây là <b>sai lầm nghiêm trọng</b>. Vì khách đang xây nhà thường:</p>'
-            + '<table><tbody>'
-            '<tr><td style="padding:6px 10px;">&#128269; Xem <b>rất nhiều</b> đơn vị</td>'
-            '<td style="padding:6px 10px;">&#128176; Đang cân nhắc <b>tài chính</b></td></tr>'
-            '<tr><td style="padding:6px 10px;">&#129300; <b>Chưa hiểu hết</b> báo giá</td>'
-            '<td style="padding:6px 10px;">&#9878;&#65039; Đang <b>so sánh</b> các bên</td></tr>'
-            '<tr><td style="padding:6px 10px;" colspan="2">&#10067; <b>Chưa biết nên hỏi gì</b> &mdash; nên khách im lặng chứ không phải hết quan tâm</td></tr>'
-            '</tbody></table>'
+            '<h3>Việc đầu tiên: chủ động ĐÔN ĐỐC khách xem báo giá</h3>'
+            '<p>Gửi xong phải chủ động gọi/nhắn dò hỏi: khách đã <b>nhận</b> chưa, đã '
+            '<b>mở xem</b> chưa, đã <b>đọc kỹ</b> chưa. Thực tế nhiều khách không xem, '
+            'hoặc xem chưa kỹ, thậm chí lấy lý do &#8220;chưa xem&#8221; để tránh trao '
+            'đổi. Nếu mình tin ngay rồi ngồi chờ thì báo giá nằm im, khách nguội dần.</p>'
+            '<p>Trong báo giá của mình có <b>phụ lục vật tư đầy đủ</b> và <b>tổng giá '
+            'trị hợp đồng</b> &mdash; đây là thứ khách cần để so sánh và ra quyết định. '
+            'Khách chưa xem kỹ phần này thì chưa thể đánh giá đúng giá trị mình mang '
+            'lại. Vì vậy phải khéo léo hướng dẫn khách xem đúng các mục quan trọng.</p>'
+            + _key('Khách im lặng nghĩa là quy trình đang bị DỪNG lại &mdash; tuyệt '
+                   'đối không để khách &#8220;treo&#8221;.')
 
-            + _h('&#128227; Việc ĐẦU TIÊN: chủ động ĐÔN ĐỐC khách xem báo giá')
-            + '<p style="' + lead + '">Gửi báo giá xong, việc bắt buộc phải làm ngay là '
-            '<b>chủ động gọi/nhắn dò hỏi tình hình</b>: khách đã <b>nhận</b> được báo '
-            'giá chưa, đã <b>mở ra xem</b> chưa, đã <b>đọc kỹ</b> chưa. KHÔNG được mặc '
-            'định &#8220;gửi là khách sẽ xem&#8221;.</p>'
-            + _mistake(
-                '<p style="margin:0;">Thực tế rất nhiều khách <b>không xem</b> báo giá, '
-                'hoặc có xem nhưng <b>chưa xem kỹ</b> &mdash; thậm chí lấy lý do '
-                '&#8220;anh/chị chưa xem&#8221;, &#8220;để xem sau&#8221; để tránh trao '
-                'đổi. Nếu nhân viên tin ngay và ngồi chờ &rArr; báo giá nằm im, khách '
-                'nguội dần rồi nghiêng sang đối thủ.</p>')
-            + _box('#0369a1', '#eff6ff', '&#128196;', 'Trong báo giá có gì mà PHẢI đôn đốc khách xem?',
-                   '<p style="margin-bottom:0;">Báo giá của mình có <b>PHỤ LỤC VẬT TƯ '
-                   'đầy đủ</b> (chủng loại, thương hiệu, tiêu chuẩn) và <b>TỔNG GIÁ TRỊ '
-                   'HỢP ĐỒNG đầy đủ</b> &mdash; đây chính là thứ khách cần để so sánh '
-                   'và ra quyết định. Khách chưa xem kỹ phần này thì <b>chưa thể đánh '
-                   'giá đúng</b> giá trị mình mang lại. Vì vậy phải khéo léo '
-                   '<b>đôn đốc, hướng dẫn khách xem đúng các mục quan trọng</b> trong '
-                   'báo giá.</p>')
-            + '<p style="font-size:16px;color:#b91c1c;font-weight:800;margin:12px 0;">'
-            '&#128073; Nếu nhân viên không CHỦ ĐỘNG dẫn dắt và đôn đốc, khách sẽ dần '
-            'nghiêng về đơn vị khác.</p>'
-
-            + _formula(
-                'Mục tiêu sau khi gửi báo giá KHÔNG phải là ngồi chờ khách ký, mà là '
-                '<b>chủ động đôn đốc khách xem báo giá</b> rồi <b>từng bước đưa khách '
-                'đi qua 8 giai đoạn</b> tới lúc ký hợp đồng. '
-                '<span style="color:#dc2626;">Khách im lặng = quy trình đang bị DỪNG '
-                'lại</span> &mdash; tuyệt đối không để khách &#8220;treo&#8221;.')
-
-            + _h('&#128506;&#65039; Hành trình 8 bước phải thuộc lòng')
-            + '<div style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;'
-            'justify-content:center;">' + flows + '</div>'
-            + _box('#2563eb', '#eff6ff', '&#128221;', 'Nguyên tắc xuyên suốt',
-                   '<p style="margin-bottom:0;">Sau <b>mỗi lần liên hệ</b>, khách phải '
-                   '<b>tiến thêm ít nhất 1 bước</b> (phản hồi báo giá &rarr; gỡ khúc '
-                   'mắc &rarr; xem hợp đồng &rarr; hẹn khảo sát...). Mỗi lần tương tác '
-                   'đều phải có <b>mục tiêu rõ ràng</b>, đưa khách gần hơn tới quyết '
-                   'định ký.</p>')
+            + '<h3>Hành trình 8 bước</h3>'
+            '<ol>' + li + '</ol>'
+            '<p>Nguyên tắc xuyên suốt: <b>sau mỗi lần liên hệ, khách phải tiến thêm '
+            'ít nhất 1 bước</b>. Mỗi lần trao đổi đều phải có mục tiêu rõ ràng, đưa '
+            'khách gần hơn tới quyết định ký.</p>'
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 2 — GỬI BÁO GIÁ và ĐẢM BẢO CHẤT LƯỢNG BÁO GIÁ (nội dung chuyên sâu)
+    #  BƯỚC 1 — GỬI MẪU NHÀ
     # ------------------------------------------------------------------
-    def _tdbg_baogia(self, lead):
+    def _tdbg_maunha(self):
         return (
-            _phan('2', 'GỬI BÁO GIÁ và ĐẢM BẢO CHẤT LƯỢNG BÁO GIÁ',
-                  'Việc QUAN TRỌNG BẬC NHẤT của sale: một khi đã quyết định gửi thì báo giá PHẢI thật chuẩn.')
-
-            + '<h2 style="font-size:21px;font-weight:900;color:#0f172a;margin:8px 0 10px;">'
-            '&#128200; Làm báo giá CHUẨN &mdash; kỹ năng sống còn của nhân viên kinh doanh</h2>'
-            + '<p style="' + lead + '">Đây là nội dung <b>chuyên sâu</b>, cả nhân viên '
-            'phải hiểu và làm cho bằng được. Báo giá không phải &#8220;một file gửi cho '
-            'có&#8221; &mdash; nó là <b>vũ khí chốt hợp đồng</b>. Một khi đã quyết định '
-            'gửi báo giá cho khách thì báo giá đó <b>bắt buộc phải THẬT CHUẨN</b>.</p>'
-
-            + _quote('Nếu báo giá không khớp tầm tài chính của khách, báo giá đó KHÔNG '
-                     'có tác dụng &mdash; khách sẽ không quan tâm nữa và chuyển sang đối '
-                     'thủ để tham khảo tiếp.')
-
-            + _h('&#127919; &#8220;Chuẩn&#8221; ở đây nghĩa là gì?')
-            + '<p style="' + lead + '">Một báo giá được coi là CHUẨN khi hội đủ '
-            '<b>3 điều kiện</b> &mdash; và điều kiện SỐ 1 là quan trọng nhất:</p>'
-            + '<table><thead><tr>'
-            '<th style="width:34%;text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Điều kiện</th>'
-            '<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Ý nghĩa</th>'
-            '</tr></thead><tbody>'
-            '<tr><td style="padding:8px 10px;color:#b91c1c;"><b>1. KHỚP TẦM TÀI CHÍNH khách đưa ra</b></td>'
-            '<td style="padding:8px 10px;">Con số tổng phải nằm TRONG khoảng ngân sách khách nói. Đây là yếu tố QUYẾT ĐỊNH khách có quan tâm báo giá hay không.</td></tr>'
-            '<tr><td style="padding:8px 10px;"><b>2. Phù hợp DIỆN TÍCH và CÔNG NĂNG khách muốn</b></td>'
-            '<td style="padding:8px 10px;">Số tầng, số phòng, công năng khách yêu cầu phải cân đối được với tầm tài chính đó.</td></tr>'
-            '<tr><td style="padding:8px 10px;"><b>3. Đúng MONG MUỐN và phong cách</b></td>'
-            '<td style="padding:8px 10px;">Phong cách, mức hoàn thiện, thang máy/gara/sân... khớp điều khách mong.</td></tr>'
-            '</tbody></table>'
-
-            + _formula(
-                'Báo giá KHÔNG khớp tầm tài chính = báo giá VÔ TÁC DỤNG. '
-                '<span style="color:#dc2626;">Khách hết quan tâm &rarr; quay sang đối '
-                'thủ.</span> Vì vậy: <b>tập trung TỐI ĐA làm báo giá khớp tầm tài chính '
-                '+ diện tích + công năng &mdash; rồi mới gửi.</b>')
-
-            + _h('&#9888;&#65039; Vì sao KHÔNG khớp tài chính là hỏng cả cuộc chơi?')
-            + _mistake(
-                '<p style="margin:0;">Khách nói tầm <b>2,8 tỷ</b> nhưng nhân viên gửi '
-                'báo giá <b>3,8 tỷ</b>. Khách nhìn con số đầu tiên đã thấy '
-                '&#8220;vượt quá xa&#8221; &rArr; không đọc tiếp, không phản hồi, âm '
-                'thầm loại mình khỏi danh sách và tiếp tục tham khảo đơn vị khác. Mình '
-                'mất khách mà không hề hay biết.</p>')
-            + '<p style="' + lead + '">Nhiều khi khách muốn <b>diện tích rộng, công '
-            'năng nhiều</b>, nhưng <b>tầm tài chính không đủ</b> để làm hết. Nếu bê '
-            'nguyên nhu cầu đó tính ra, chi phí sẽ <b>cao hơn ngân sách rất nhiều</b>. '
-            'Nhiệm vụ của nhân viên là <b>cân đối</b>: tư vấn phương án diện tích + '
-            'công năng <b>vừa với túi tiền</b> khách, chứ không phải gửi một con số '
-            'vượt xa rồi để khách tự sốc.</p>'
-
-            + _h('&#9989; Trước khi bấm GỬI, tự trả lời 3 câu hỏi kiểm tra')
-            + _box('#0369a1', '#eff6ff', '&#10068;', 'Câu hỏi 1 (quan trọng nhất) &mdash; Báo giá có KHỚP TẦM TÀI CHÍNH khách đưa ra không?',
-                   '<p style="margin-bottom:0;">Tổng giá trị có nằm trong khoảng ngân '
-                   'sách khách nói không? Nếu vượt &rArr; <b>CHƯA gửi</b>, phải cân đối '
-                   'lại phương án cho khớp trước.</p>')
-            + _box('#7c3aed', '#faf5ff', '&#10068;', 'Câu hỏi 2 &mdash; Báo giá có phù hợp DIỆN TÍCH và CÔNG NĂNG khách đưa ra không?',
-                   '<p style="margin-bottom:0;">Diện tích, số tầng, công năng khách '
-                   'muốn có cân đối được với tầm tài chính đó không? Nếu nhu cầu quá '
-                   'lớn so với ngân sách &rArr; phải tư vấn điều chỉnh cho hợp lý rồi '
-                   'mới báo giá.</p>')
-            + _box('#16a34a', '#f0fdf4', '&#10068;', 'Câu hỏi 3 &mdash; Báo giá có đúng MONG MUỐN của khách chưa?',
-                   '<p style="margin-bottom:0;">Phong cách, mức hoàn thiện, thang máy '
-                   '&middot; gara &middot; sân... phải KHỚP điều khách mong.</p>')
-
-            + _chot('Một khi đã quyết định gửi báo giá thì báo giá đó phải THẬT CHUẨN. '
-                    'Nếu mình là khách, mình cũng thấy báo giá này KHỚP TÚI TIỀN và hợp '
-                    'lý &mdash; đó mới là báo giá đạt yêu cầu.')
-
-            + _apply('<p style="margin-bottom:0;">Trước khi bấm GỬI, soát đủ '
-                     '<b>3 câu hỏi</b>, ưu tiên số 1 là <b>KHỚP TẦM TÀI CHÍNH</b>. '
-                     '<span class="vd-pulse">&#10145;</span> Còn lệch tài chính / diện '
-                     'tích / công năng &rArr; DỪNG, cân đối lại phương án rồi mới gửi. '
-                     'Báo giá lệch tài chính = tự đẩy khách sang đối thủ.</p>')
+            _step('1', 'Gửi mẫu nhà cho khách tham khảo',
+                  'Làm đầu tiên &mdash; nhưng KHÔNG ép khách chốt mẫu.')
+            + '<p>Mục tiêu khi gửi mẫu nhà:</p>'
+            '<ul>'
+            '<li>Cho khách <b>thêm ý tưởng</b>.</li>'
+            '<li>Cho khách thấy <b>nhiều lựa chọn</b>.</li>'
+            '<li>Giúp khách <b>xác định sở thích</b>.</li>'
+            '</ul>'
+            + _vs('&#8220;Anh chị chọn giúp em một mẫu nhé.&#8221; &mdash; ép khách '
+                  'chốt mẫu, khách thấy áp lực.',
+                  'Gửi mẫu gần nhu cầu để tham khảo, thích chi tiết nào thì mình điều '
+                  'chỉnh thiết kế theo.')
+            + _say('Em gửi thêm vài mẫu nhà có diện tích và mức đầu tư gần với nhu cầu '
+                   'của anh/chị để mình tham khảo. Chi tiết nào anh/chị thích, bên em '
+                   'sẽ điều chỉnh thiết kế theo đúng mong muốn của gia đình.')
+            + _key('Khách không mua mẫu nhà &mdash; khách mua giải pháp phù hợp với '
+                   'gia đình mình. Mẫu nhà chỉ để khách hình dung và bộc lộ sở thích.')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 3 — SAU 1–2 NGÀY BẮT BUỘC LẤY PHẢN HỒI
+    #  BƯỚC 2 — GỬI BÁO GIÁ & ĐẢM BẢO CHẤT LƯỢNG (trọng tâm khóa)
     # ------------------------------------------------------------------
-    def _tdbg_phanhoi(self, lead):
+    def _tdbg_baogia(self):
         return (
-            _phan('3', 'SAU 1&ndash;2 NGÀY BẮT BUỘC PHẢI LẤY PHẢN HỒI',
-                  'Gửi báo giá xong rồi im luôn = nguyên nhân mất RẤT nhiều khách.')
+            _step('2', 'Gửi báo giá và đảm bảo chất lượng báo giá',
+                  'Việc quan trọng bậc nhất: đã gửi thì báo giá phải THẬT CHUẨN.')
+            + '<p>Báo giá không phải &#8220;một file gửi cho có&#8221; &mdash; nó là '
+            '<b>vũ khí chốt hợp đồng</b>. Một khi đã quyết định gửi thì báo giá đó bắt '
+            'buộc phải thật chuẩn. Cả nhân viên phải tập trung tối đa cho việc này.</p>'
 
-            + _mistake('<p style="margin:0;">Gửi báo giá xong&hellip; <b>im luôn</b>: '
-                       'không gọi, không nhắn, không hỏi. Đây là sai lầm khiến mất rất '
-                       'nhiều khách hàng.</p>')
+            + _key('Báo giá không khớp tầm tài chính của khách = báo giá VÔ TÁC DỤNG. '
+                   'Khách sẽ không quan tâm nữa và chuyển sang đối thủ để tham khảo tiếp.')
 
-            + _h('Mục tiêu cuộc gọi phản hồi')
-            + _vs(
-                'Gọi để <b>ép khách ký</b> ngay.<br/>Gọi để hỏi cụt lủn '
-                '&#8220;anh chị ký chưa?&#8221;.',
-                'Gọi để <b>BIẾT khách đang nghĩ gì</b>.<br/>Khai thác suy nghĩ thật '
-                'của khách để dẫn tiếp.')
-            + '<p style="' + lead + '">Bộ câu hỏi cần khai thác được trong 1&ndash;2 '
-            'ngày sau khi gửi:</p>'
-            + '<ul style="' + lead + '">'
+            + '<h3>&#8220;Chuẩn&#8221; nghĩa là gì? &mdash; 3 điều kiện</h3>'
+            '<table>'
+            '<tr><th style="width:34%;">Điều kiện</th><th>Ý nghĩa</th></tr>'
+            '<tr><td><b>1. Khớp tầm tài chính khách đưa ra</b> (quan trọng nhất)</td>'
+            '<td>Tổng giá trị phải nằm TRONG khoảng ngân sách khách nói. Đây là yếu tố '
+            'quyết định khách có quan tâm báo giá hay không.</td></tr>'
+            '<tr><td><b>2. Phù hợp diện tích và công năng khách muốn</b></td>'
+            '<td>Số tầng, số phòng, công năng phải cân đối được với tầm tài chính đó.</td></tr>'
+            '<tr><td><b>3. Đúng mong muốn và phong cách</b></td>'
+            '<td>Phong cách, mức hoàn thiện, thang máy / gara / sân... khớp điều khách mong.</td></tr>'
+            '</table>'
+
+            + '<h3>Vì sao lệch tài chính là hỏng cả cuộc chơi?</h3>'
+            '<p>Khách nói tầm <b>2,8 tỷ</b> nhưng mình gửi báo giá <b>3,8 tỷ</b>. '
+            'Khách nhìn con số đầu đã thấy vượt quá xa &mdash; không đọc tiếp, không '
+            'phản hồi, âm thầm loại mình rồi tiếp tục tham khảo bên khác. Mình mất '
+            'khách mà không hề hay biết.</p>'
+            '<p>Nhiều khi khách muốn <b>diện tích rộng, công năng nhiều</b> nhưng '
+            '<b>tài chính không đủ</b>. Nếu bê nguyên nhu cầu đó tính ra, chi phí sẽ '
+            'cao hơn ngân sách rất nhiều. Việc của nhân viên là <b>cân đối</b>: tư vấn '
+            'phương án diện tích + công năng vừa túi tiền khách, chứ không gửi một con '
+            'số vượt xa rồi để khách tự sốc.</p>'
+
+            + '<h3>Trước khi bấm GỬI, tự trả lời 3 câu hỏi</h3>'
+            '<ol>'
+            '<li><b>Có khớp tầm tài chính khách đưa ra không?</b> (ưu tiên số 1) '
+            '&mdash; vượt ngân sách thì CHƯA gửi, phải cân đối lại.</li>'
+            '<li><b>Có phù hợp diện tích và công năng khách đưa ra không?</b> '
+            '&mdash; nhu cầu quá lớn so với ngân sách thì tư vấn điều chỉnh trước.</li>'
+            '<li><b>Có đúng mong muốn của khách chưa?</b> &mdash; phong cách, mức hoàn '
+            'thiện, thang máy / gara / sân...</li>'
+            '</ol>'
+            + _key('Một khi đã quyết định gửi thì báo giá phải thật chuẩn. Nếu mình là '
+                   'khách, mình cũng thấy báo giá này khớp túi tiền và hợp lý &mdash; '
+                   'đó mới là báo giá đạt yêu cầu.')
+        )
+
+    # ------------------------------------------------------------------
+    #  BƯỚC 3 — PHẢN HỒI SAU 1-2 NGÀY
+    # ------------------------------------------------------------------
+    def _tdbg_phanhoi(self):
+        return (
+            _step('3', 'Sau 1&ndash;2 ngày bắt buộc lấy phản hồi',
+                  'Gửi báo giá xong rồi im luôn = nguyên nhân mất rất nhiều khách.')
+            + '<p>Sai lầm lớn nhất: gửi báo giá xong rồi <b>im luôn</b> &mdash; không '
+            'gọi, không nhắn, không hỏi. Mục tiêu cuộc gọi phản hồi không phải để ép '
+            'ký, mà để <b>biết khách đang nghĩ gì</b>.</p>'
+            '<p>Bộ câu hỏi cần khai thác:</p>'
+            '<ul>'
             '<li>Anh/chị đã <b>xem báo giá</b> chưa?</li>'
-            '<li>Anh/chị thấy <b>phần nào hợp lý</b>?</li>'
-            '<li><b>Phần nào còn băn khoăn</b>?</li>'
+            '<li>Thấy <b>phần nào hợp lý</b>, <b>phần nào còn băn khoăn</b>?</li>'
             '<li><b>Mức đầu tư</b> có phù hợp không?</li>'
-            '<li>Có <b>hạng mục nào</b> muốn điều chỉnh không?</li></ul>'
-
-            + _h('Khách IM LẶNG &mdash; đừng vội kết luận &#8220;hết quan tâm&#8221;')
-            + _quote('Khách im không có nghĩa là khách không quan tâm. Đó là một tín '
-                     'hiệu CẦN TÌM HIỂU, không phải để đoán.')
-            + '<table><thead><tr>'
-            '<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Khách im lặng có thể vì&hellip;</th>'
-            '</tr></thead><tbody>'
-            '<tr><td style="padding:7px 10px;">&#128176; Báo giá <b>cao hơn dự kiến</b></td></tr>'
-            '<tr><td style="padding:7px 10px;">&#127919; Báo giá <b>chưa đúng nhu cầu</b></td></tr>'
-            '<tr><td style="padding:7px 10px;">&#129300; <b>Chưa hiểu cách tính</b></td></tr>'
-            '<tr><td style="padding:7px 10px;">&#9203; <b>Đang chờ</b> đơn vị khác</td></tr>'
-            '<tr><td style="padding:7px 10px;">&#129309; <b>Chưa đủ niềm tin</b></td></tr>'
-            '<tr><td style="padding:7px 10px;">&#10067; <b>Chưa biết nên hỏi gì</b></td></tr>'
-            '</tbody></table>'
-            + _chot('Việc của nhân viên là KHAI THÁC, không phải ĐOÁN.')
-
-            + _apply('<p style="margin-bottom:0;">Đặt lịch nhắc: <b>1&ndash;2 ngày</b> '
-                     'sau khi gửi báo giá &rArr; gọi lấy phản hồi. '
-                     '<span class="vd-pulse">&#10145;</span> Mục tiêu cuộc gọi là '
-                     '<b>hiểu suy nghĩ khách</b>, tuyệt đối không ép ký.</p>')
+            '<li>Có <b>hạng mục nào</b> muốn điều chỉnh không?</li>'
+            '</ul>'
+            '<p>Khách im lặng <b>không</b> có nghĩa là hết quan tâm. Có thể vì: báo giá '
+            'cao hơn dự kiến, chưa đúng nhu cầu, chưa hiểu cách tính, đang chờ đơn vị '
+            'khác, hoặc chưa đủ niềm tin.</p>'
+            + _key('Việc của nhân viên là KHAI THÁC, không phải ĐOÁN. Đặt lịch nhắc '
+                   '1&ndash;2 ngày sau khi gửi để gọi lấy phản hồi.')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 1 — GỬI MẪU NHÀ THAM KHẢO (làm ĐẦU TIÊN)
+    #  BƯỚC 4 — KHỞI CÔNG + KÝ GIỮ GIÁ
     # ------------------------------------------------------------------
-    def _tdbg_maunha(self, lead):
+    def _tdbg_khoicong(self):
         return (
-            _phan('1', 'GỬI MẪU NHÀ CHO KHÁCH THAM KHẢO',
-                  'Làm ĐẦU TIÊN &mdash; nhưng tuyệt đối KHÔNG ép khách chốt mẫu nhà.')
-
-            + _h('Mục tiêu khi gửi mẫu nhà')
-            + '<ul style="' + lead + '">'
-            '<li>Cho khách có <b>thêm ý tưởng</b>.</li>'
-            '<li>Cho khách nhìn thấy <b>nhiều lựa chọn</b>.</li>'
-            '<li>Giúp khách <b>xác định sở thích</b>.</li></ul>'
-
-            + _vs(
-                '&#8220;Anh chị <b>chọn giúp em một mẫu</b> nhé.&#8221;<br/>&rArr; Ép '
-                'khách chốt mẫu &mdash; khách thấy áp lực.',
-                'Gửi mẫu <b>gần với nhu cầu</b> để khách tham khảo, thích chi tiết nào '
-                'thì bên em <b>điều chỉnh thiết kế</b> theo.')
-            + _say('Em gửi thêm một số mẫu nhà có diện tích và mức đầu tư gần với nhu '
-                   'cầu của anh/chị để mình tham khảo. Nếu có chi tiết nào anh/chị '
-                   'thích, bên em sẽ điều chỉnh thiết kế theo đúng mong muốn của gia đình.')
-
-            + _box('#9333ea', '#faf5ff', '&#128161;', 'Vì sao không được ép chốt mẫu',
-                   '<p style="margin-bottom:0;">Khách <b>không mua mẫu nhà</b>. Khách '
-                   'mua <b>giải pháp phù hợp</b> với gia đình mình. Mẫu nhà chỉ là công '
-                   'cụ để khách hình dung và bộc lộ sở thích.</p>')
-
-            + _apply('<p style="margin-bottom:0;">Gửi 3&ndash;5 mẫu nhà <b>sát diện '
-                     'tích + mức đầu tư</b> của khách kèm đúng câu mẫu ở trên. '
-                     '<span class="vd-pulse">&#10145;</span> Mục tiêu là mở ý tưởng, '
-                     'KHÔNG bắt khách chọn.</p>')
-        )
-
-    # ------------------------------------------------------------------
-    #  BƯỚC 4 — NHẮC THỜI GIAN KHỞI CÔNG và KÝ HỢP ĐỒNG GIỮ GIÁ (nếu có)
-    # ------------------------------------------------------------------
-    def _tdbg_khoicong(self, lead):
-        return (
-            _phan('4', 'NHẮC THỜI GIAN KHỞI CÔNG và KÝ HỢP ĐỒNG GIỮ GIÁ',
-                  'Rất quan trọng, đặc biệt cuối năm &mdash; khách nào cũng muốn xong trước Tết.')
-
-            + '<p style="' + lead + '">Nếu khởi công muộn, khách sẽ gặp một loạt bất lợi '
-            '&mdash; đây chính là lý do để khách cần quyết định sớm:</p>'
-            + '<table><tbody>'
-            '<tr><td style="padding:7px 10px;">&#9201;&#65039; <b>Thi công gấp</b></td>'
-            '<td style="padding:7px 10px;">&#128201; Dễ <b>ảnh hưởng tiến độ</b></td></tr>'
-            '<tr><td style="padding:7px 10px;">&#128230; <b>Khó bàn giao</b></td>'
-            '<td style="padding:7px 10px;">&#128295; <b>Khó hoàn thiện</b></td></tr>'
-            '</tbody></table>'
-
-            + _say('Nếu gia đình mình dự kiến ở nhà mới trước Tết thì mình nên triển '
-                   'khai sớm để đảm bảo tiến độ. Nếu để quá sát thời điểm cuối năm thì '
-                   'việc hoàn thiện sẽ rất áp lực.')
-
-            + _box('#dc2626', '#fef2f2', '&#9888;&#65039;', 'Ranh giới phải nhớ',
-                   '<p style="margin-bottom:0;">Mục tiêu <b>KHÔNG phải gây áp lực vô '
-                   'lý</b>, mà giúp khách <b>hiểu rõ hệ quả</b> của việc chậm quyết '
-                   'định. Nhắc bằng thiện chí, không dọa, không thúc ép lộ liễu.</p>')
-
-            + _h('&#128273; Ký hợp đồng GIỮ GIÁ (nếu công ty có chính sách)')
-            + '<p style="' + lead + '">Khi khách chưa khởi công ngay nhưng đã ưng '
-            'phương án, có thể đề xuất <b>ký hợp đồng giữ giá</b> để khách '
-            '<b>chốt được mức giá hiện tại</b>, tránh biến động khi vật tư tăng. Đây '
-            'vừa là lợi ích cho khách, vừa giúp mình <b>giữ chân khách</b>, không để '
-            'khách trôi sang đối thủ trong lúc còn cân nhắc.</p>'
+            _step('4', 'Nhắc thời gian khởi công và ký hợp đồng giữ giá',
+                  'Đặc biệt cuối năm &mdash; khách nào cũng muốn xong trước Tết.')
+            + '<p>Nếu khởi công muộn, khách dễ gặp bất lợi: thi công gấp, ảnh hưởng '
+            'tiến độ, khó bàn giao, khó hoàn thiện. Nhân viên chủ động nhắc khách về '
+            'yếu tố thời gian.</p>'
+            + _say('Nếu gia đình mình dự kiến ở nhà mới trước Tết thì nên triển khai '
+                   'sớm để đảm bảo tiến độ. Để quá sát cuối năm thì việc hoàn thiện sẽ '
+                   'rất áp lực.')
+            + '<h3>Ký hợp đồng giữ giá (nếu công ty có chính sách)</h3>'
+            '<p>Khi khách chưa khởi công ngay nhưng đã ưng phương án, có thể đề xuất '
+            '<b>ký hợp đồng giữ giá</b> để khách chốt được mức giá hiện tại, tránh '
+            'biến động khi vật tư tăng. Vừa lợi cho khách, vừa giúp mình giữ chân '
+            'khách, không để trôi sang đối thủ.</p>'
             + _say('Hiện bên em đang áp mức giá này, nếu anh/chị chốt phương án thì '
                    'mình có thể ký hợp đồng giữ giá để khóa mức giá hôm nay, sau này '
-                   'vật tư có tăng gia đình cũng không bị ảnh hưởng ạ.')
-
-            + _apply('<p style="margin-bottom:0;">Khéo gắn quyết định của khách với '
-                     '<b>mốc thời gian</b> (trước Tết / mùa khô / kịp tiến độ) và '
-                     '<b>đề xuất ký giữ giá</b> nếu có chính sách. '
-                     '<span class="vd-pulse">&#10145;</span> Cho khách thấy chi phí của '
-                     'việc CHẬM, không dọa khách.</p>')
+                   'vật tư tăng gia đình cũng không bị ảnh hưởng ạ.')
+            + _key('Mục tiêu là giúp khách hiểu hệ quả của việc chậm quyết định, '
+                   'KHÔNG gây áp lực vô lý, không dọa khách.')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 5 — KHAI THÁC và XỬ LÝ VẤN ĐỀ SAU BÁO GIÁ (quan trọng nhất)
+    #  BƯỚC 5 — KHAI THÁC & XỬ LÝ VẤN ĐỀ SAU BÁO GIÁ (quan trọng nhất)
     # ------------------------------------------------------------------
-    def _tdbg_khaithac(self, lead):
-        def _grp(num, title, color, rows):
-            head = ('<tr><td colspan="1" style="background:' + color + ';color:#fff;'
-                    'font-weight:800;padding:8px 12px;border-radius:8px 8px 0 0;">'
-                    + num + '. ' + title + '</td></tr>')
-            body = ''.join(
-                '<tr><td style="padding:7px 12px;border-bottom:1px solid #eef2f7;">'
-                '&#8226; ' + r + '</td></tr>' for r in rows)
-            return ('<table style="margin:12px 0;box-shadow:0 6px 16px '
-                    'rgba(2,6,23,.08);border-radius:8px;overflow:hidden;">'
-                    + head + body + '</table>')
+    def _tdbg_khaithac(self):
         return (
-            _phan('5', 'KHAI THÁC và XỬ LÝ VẤN ĐỀ SAU BÁO GIÁ',
-                  'BƯỚC QUAN TRỌNG NHẤT: khách chưa ký thì CHẮC CHẮN còn vấn đề.')
-
-            + _quote('Nếu khách chưa ký, chắc chắn còn vấn đề. Nhân viên phải TÌM RA '
-                     '&mdash; không được tự suy đoán.')
-
-            + _h('6 nhóm câu hỏi phải khai thác đủ')
-            + _grp('1', 'Báo giá', '#0369a1',
-                   ['Có phù hợp không?', 'Có vượt tài chính không?',
-                    'Có cần điều chỉnh không?'])
-            + _grp('2', 'Thiết kế', '#7c3aed',
-                   ['Có thích không?', 'Có cần thay đổi gì?',
-                    'Có cần thêm công năng?'])
-            + _grp('3', 'Mẫu nhà', '#b45309',
-                   ['Đã đúng phong cách chưa?', 'Có muốn tham khảo thêm không?'])
-            + _grp('4', 'Gia đình', '#be123c',
-                   ['Đã thống nhất chưa?', 'Ai là người quyết định?',
-                    'Có cần trao đổi thêm với người thân không?'])
-            + _grp('5', 'Khởi công', '#0d9488',
-                   ['Dự kiến khi nào?', 'Có đang chờ việc gì không?',
-                    'Có vướng thủ tục không?'])
-            + _grp('6', 'Niềm tin', '#dc2626',
-                   ['Còn điều gì khiến anh/chị chưa yên tâm khi lựa chọn bên em?'])
-
-            + _box('#dc2626', '#fef2f2', '&#128273;', 'Câu hỏi NIỀM TIN &mdash; đắt giá nhất',
-                   '<p style="margin-bottom:0;">Câu &#8220;<b>Còn điều gì khiến anh/chị '
-                   'chưa yên tâm khi chọn bên em?</b>&#8221; giúp phát hiện <b>rào cản '
-                   'THẬT SỰ</b> trước khi bước sang giai đoạn ký kết. Đừng bỏ qua câu '
-                   'này.</p>')
-
-            + _chot('Khách chưa ký = còn khúc mắc chưa được gỡ. Nhiệm vụ của em là '
-                    'KHAI THÁC cho ra, không phải ngồi đoán rồi bỏ cuộc.')
-
-            + _apply('<p style="margin-bottom:0;">Mỗi khách chưa chốt, chạy đủ '
-                     '<b>6 nhóm câu hỏi</b> để tìm khúc mắc thật. '
-                     '<span class="vd-pulse">&#10145;</span> Luôn kết bằng câu hỏi '
-                     '<b>NIỀM TIN</b> để lộ rào cản cuối cùng.</p>')
+            _step('5', 'Khai thác và xử lý vấn đề sau báo giá',
+                  'Bước quan trọng nhất: khách chưa ký thì chắc chắn còn vấn đề.')
+            + '<p>Nếu khách chưa ký, chắc chắn còn vấn đề &mdash; nhân viên phải tìm '
+            'ra, không được tự suy đoán. Khai thác đủ theo <b>6 nhóm</b>:</p>'
+            '<table>'
+            '<tr><th style="width:26%;">Nhóm</th><th>Câu hỏi cần khai thác</th></tr>'
+            '<tr><td><b>1. Báo giá</b></td><td>Có phù hợp không? Có vượt tài chính '
+            'không? Có cần điều chỉnh không?</td></tr>'
+            '<tr><td><b>2. Thiết kế</b></td><td>Có thích không? Cần thay đổi gì? Cần '
+            'thêm công năng không?</td></tr>'
+            '<tr><td><b>3. Mẫu nhà</b></td><td>Đã đúng phong cách chưa? Có muốn tham '
+            'khảo thêm không?</td></tr>'
+            '<tr><td><b>4. Gia đình</b></td><td>Đã thống nhất chưa? Ai là người quyết '
+            'định? Cần trao đổi thêm với người thân không?</td></tr>'
+            '<tr><td><b>5. Khởi công</b></td><td>Dự kiến khi nào? Đang chờ việc gì '
+            'không? Có vướng thủ tục không?</td></tr>'
+            '<tr><td><b>6. Niềm tin</b></td><td>Còn điều gì khiến anh/chị chưa yên tâm '
+            'khi chọn bên em?</td></tr>'
+            '</table>'
+            + _key('Câu hỏi nhóm NIỀM TIN đắt giá nhất: giúp lộ ra rào cản thật sự '
+                   'trước khi ký. Luôn kết thúc bằng câu hỏi này.')
         )
 
     # ------------------------------------------------------------------
-    #  BƯỚC 6-7-8 — GỬI HĐ & PHỤ LỤC → XỬ LÝ VẤN ĐỀ HĐ → HẸN KÝ & KHẢO SÁT ĐẤT
+    #  BƯỚC 6-7-8 — HỢP ĐỒNG
     # ------------------------------------------------------------------
-    def _tdbg_b678(self, lead):
+    def _tdbg_b678(self):
         return (
-            _phan('6&nbsp;&middot;&nbsp;7&nbsp;&middot;&nbsp;8', 'GỬI HỢP ĐỒNG &amp; PHỤ LỤC &rarr; XỬ LÝ VẤN ĐỀ HỢP ĐỒNG &rarr; HẸN KÝ &amp; KHẢO SÁT ĐẤT',
-                  'Giai đoạn chốt: khi hết vấn đề sau báo giá thì PHẢI chuyển bước, không nói chung chung.')
+            _step('6 &middot; 7 &middot; 8',
+                  'Gửi hợp đồng &amp; phụ lục &rarr; xử lý vấn đề &rarr; hẹn ký &amp; khảo sát đất',
+                  'Giai đoạn chốt: hết vấn đề sau báo giá thì phải chuyển bước ngay.')
+            + '<h3>Bước 6 &mdash; Gửi hợp đồng và phụ lục</h3>'
+            '<p>Khi khách đã <b>đồng ý báo giá + đồng ý phương án + hết vướng mắc lớn</b>, '
+            'đừng nói chuyện chung chung nữa &mdash; gửi hợp đồng kèm <b>đầy đủ phụ '
+            'lục</b> (vật tư, hạng mục, tổng giá trị) để khách nghiên cứu và nắm rõ '
+            'mình cam kết những gì.</p>'
+            + _say('Để gia đình xem kỹ các điều khoản, bên em gửi trước hợp đồng kèm '
+                   'đầy đủ phụ lục để anh/chị đọc. Có nội dung nào cần giải thích hoặc '
+                   'điều chỉnh, em trao đổi ngay để mình yên tâm trước khi ký.')
 
-            + _h('BƯỚC 6 &mdash; GỬI HỢP ĐỒNG và PHỤ LỤC')
-            + '<p style="' + lead + '">Khi khách đã: <b>đồng ý báo giá + đồng ý phương '
-            'án + không còn vướng mắc lớn</b> &rArr; đừng tiếp tục nói chuyện chung '
-            'chung, phải chuyển sang bước tiếp theo: <b>gửi hợp đồng kèm đầy đủ phụ lục '
-            'để khách nghiên cứu</b>. Phụ lục (vật tư, hạng mục, tổng giá trị) phải gửi '
-            'kèm để khách nắm rõ mình cam kết những gì.</p>'
-            + _say('Để gia đình mình có thời gian xem kỹ các điều khoản, bên em sẽ gửi '
-                   'trước hợp đồng kèm đầy đủ phụ lục để anh/chị đọc. Nếu có nội dung '
-                   'nào cần giải thích hoặc điều chỉnh, em sẽ trao đổi ngay để mình yên '
-                   'tâm trước khi ký.')
-
-            + _h('BƯỚC 7 &mdash; KHAI THÁC và XỬ LÝ VẤN ĐỀ HỢP ĐỒNG (đừng gửi xong rồi mất hút)')
-            + _mistake('<p style="margin:0;">Gửi hợp đồng &mdash; xong &mdash; '
-                       '<b>mất hút</b>. Đây là sai lầm của rất nhiều nhân viên.</p>')
-            + '<p style="' + lead + '">Điều ĐÚNG phải làm: <b>sau 1&ndash;2 ngày phải '
-            'chủ động hỏi lại</b> để khai thác và xử lý mọi vướng mắc trong hợp đồng:</p>'
-            + '<ul style="' + lead + '">'
+            + '<h3>Bước 7 &mdash; Khai thác và xử lý vấn đề hợp đồng</h3>'
+            '<p>Sai lầm phổ biến: gửi hợp đồng xong rồi <b>mất hút</b>. Điều đúng: '
+            '<b>sau 1&ndash;2 ngày chủ động hỏi lại</b>:</p>'
+            '<ul>'
             '<li>Anh/chị đã <b>xem hợp đồng và phụ lục</b> chưa?</li>'
             '<li>Có <b>điều khoản nào chưa rõ</b> không?</li>'
-            '<li>Có <b>nội dung nào</b> muốn trao đổi hoặc điều chỉnh không?</li></ul>'
-            + '<p style="font-size:16px;color:#b91c1c;font-weight:800;margin:8px 0;">'
-            '&#128073; Khách còn băn khoăn về hợp đồng &rArr; KHÔNG được bỏ qua, phải '
-            'giải quyết DỨT ĐIỂM ngay.</p>'
+            '<li>Có nội dung nào muốn <b>trao đổi hoặc điều chỉnh</b> không?</li>'
+            '</ul>'
+            '<p>Khách còn băn khoăn về hợp đồng thì phải giải quyết <b>dứt điểm</b> '
+            'ngay, không bỏ qua.</p>'
 
-            + _h('BƯỚC 8 &mdash; HẸN KÝ HỢP ĐỒNG và KHẢO SÁT ĐẤT')
-            + '<p style="' + lead + '">Khi khách đã: <b>đồng ý báo giá + đồng ý thiết '
-            'kế + đồng ý hợp đồng</b> &rArr; bước cuối cùng là:</p>'
-            + '<ul style="' + lead + '">'
-            '<li><b>Thống nhất lịch ký hợp đồng</b>.</li>'
+            + '<h3>Bước 8 &mdash; Hẹn ký hợp đồng và khảo sát đất</h3>'
+            '<p>Khi khách đã đồng ý <b>báo giá + thiết kế + hợp đồng</b>, bước cuối:</p>'
+            '<ul>'
+            '<li><b>Thống nhất lịch ký hợp đồng.</b></li>'
             '<li>Đề nghị <b>lên lịch khảo sát đất</b> thực tế.</li>'
-            '<li>Trao đổi rõ nội dung cần chuẩn bị: quy trình ký kết và khoản '
-            '<b>đặt cọc 50.000.000 đồng</b> theo quy định công ty (nếu áp dụng), để '
-            'khách chủ động sắp xếp.</li></ul>'
-
-            + _apply('<p style="margin-bottom:0;">Hết vấn đề sau báo giá &rArr; '
-                     '<b>gửi hợp đồng + phụ lục ngay</b>, đừng để nguội. '
-                     '<span class="vd-pulse">&#10145;</span> Gửi xong đặt lịch '
-                     '<b>1&ndash;2 ngày hỏi lại</b> xử lý vấn đề hợp đồng, rồi chốt '
-                     'lịch <b>ký + khảo sát đất</b>.</p>')
+            '<li>Trao đổi rõ quy trình ký kết và khoản <b>đặt cọc 50.000.000 đồng</b> '
+            'theo quy định công ty (nếu áp dụng) để khách chủ động sắp xếp.</li>'
+            '</ul>'
         )
 
     # ------------------------------------------------------------------
     #  NGUYÊN TẮC VÀNG + BẢNG TỰ KIỂM
     # ------------------------------------------------------------------
-    def _tdbg_gold(self, lead):
+    def _tdbg_gold(self):
         return (
-            '<div style="background:linear-gradient(135deg,#b8860b 0%,#8a6508 100%);'
-            'border-radius:18px;padding:26px 28px;margin:38px 0 18px;text-align:center;'
-            'box-shadow:0 14px 34px rgba(184,134,11,.35);">'
-            '<div style="color:#fff8e1;font-size:15px;font-weight:800;letter-spacing:3px;'
-            'text-transform:uppercase;">&#127942; Nguyên tắc vàng</div>'
-            '<div style="color:#ffffff;font-size:23px;font-weight:900;margin-top:8px;'
-            'line-height:1.35;">Nhân viên giỏi KHÔNG phải người gửi được NHIỀU báo giá, '
-            'mà là người biết DẪN DẮT khách đi qua từng bước tới quyết định ký.</div></div>'
+            '<h2>Nguyên tắc vàng</h2>'
+            '<p style="font-size:18px;color:#111827;font-weight:700;">Nhân viên giỏi '
+            'không phải người gửi được NHIỀU báo giá, mà là người biết DẪN DẮT khách '
+            'đi qua từng bước tới quyết định ký.</p>'
+            '<p>Sau mỗi lần liên hệ, nếu khách tiến thêm một bước (phản hồi báo giá '
+            '&rarr; gỡ vấn đề &rarr; xem hợp đồng &rarr; hẹn khảo sát...) thì khả năng '
+            'ký tăng lên rất nhiều. Không bao giờ để khách im lặng quá lâu.</p>'
 
-            + '<p style="' + lead + '">Nếu sau mỗi lần liên hệ, khách hàng tiến thêm '
-            'một bước (phản hồi báo giá &rarr; gỡ khúc mắc &rarr; xem hợp đồng &rarr; '
-            'hẹn khảo sát...) thì khả năng ký hợp đồng <b>tăng lên rất nhiều</b>.</p>'
-
-            + _chot('Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần '
-                    'tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến GẦN HƠN '
-                    'tới quyết định ký hợp đồng.')
-
-            + _h('&#9989; Bảng tự kiểm sau MỖI lần liên hệ khách (Có/Chưa)')
-            + '<table><thead><tr>'
-            '<th style="width:8%;text-align:center;padding:8px;border-bottom:2px solid #e2e8f0;">#</th>'
-            '<th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;">Tự hỏi</th>'
-            '</tr></thead><tbody>'
-            '<tr><td style="text-align:center;padding:7px;">1</td>'
-            '<td style="padding:7px 10px;">Lần liên hệ này khách đã <b>tiến thêm 1 bước</b> chưa?</td></tr>'
-            '<tr><td style="text-align:center;padding:7px;">2</td>'
-            '<td style="padding:7px 10px;">Mình đã <b>biết khách đang nghĩ gì</b> chưa, hay chỉ đang đoán?</td></tr>'
-            '<tr><td style="text-align:center;padding:7px;">3</td>'
-            '<td style="padding:7px 10px;">Còn <b>khúc mắc nào</b> chưa được gỡ (báo giá / thiết kế / gia đình / niềm tin)?</td></tr>'
-            '<tr><td style="text-align:center;padding:7px;">4</td>'
-            '<td style="padding:7px 10px;">Đã hẹn <b>mốc liên hệ tiếp theo</b> chưa (không để khách treo)?</td></tr>'
-            '<tr><td style="text-align:center;padding:7px;">5</td>'
-            '<td style="padding:7px 10px;">Lần tương tác này có <b>mục tiêu rõ ràng</b> đưa khách gần hơn tới ký không?</td></tr>'
-            '</tbody></table>'
-            + '<p style="' + lead + '">Còn ô nào &#8220;Chưa&#8221; &rArr; đó chính là '
-            'việc phải làm trong lần liên hệ kế tiếp.</p>'
-
-            + _box('#16a34a', '#f0fdf4', '&#127919;', 'Kết luận phải nhớ',
-                   '<p style="margin-bottom:0;">Gửi báo giá là <b>BẮT ĐẦU</b>, không '
-                   'phải kết thúc. Dẫn khách qua đủ <b>8 bước</b>, không bao giờ để '
-                   'khách im lặng quá lâu &mdash; đó là cách nhân viên bình thường trở '
-                   'thành nhân viên CHỐT được hợp đồng.</p>')
+            + '<h3>Bảng tự kiểm sau mỗi lần liên hệ khách</h3>'
+            '<table>'
+            '<tr><th style="width:8%;">#</th><th>Tự hỏi (Có / Chưa)</th></tr>'
+            '<tr><td>1</td><td>Lần này khách đã <b>tiến thêm 1 bước</b> chưa?</td></tr>'
+            '<tr><td>2</td><td>Mình đã <b>biết khách đang nghĩ gì</b> chưa, hay chỉ '
+            'đang đoán?</td></tr>'
+            '<tr><td>3</td><td>Còn <b>vấn đề nào chưa gỡ</b> (tài chính / thiết kế / '
+            'gia đình / niềm tin)?</td></tr>'
+            '<tr><td>4</td><td>Đã hẹn <b>mốc liên hệ tiếp theo</b> chưa?</td></tr>'
+            '<tr><td>5</td><td>Lần này có <b>mục tiêu rõ ràng</b> đưa khách gần hơn '
+            'tới ký không?</td></tr>'
+            '</table>'
+            '<p>Còn ô nào &#8220;Chưa&#8221; &mdash; đó chính là việc phải làm trong '
+            'lần liên hệ kế tiếp.</p>'
         )
 
     # ==================================================================
