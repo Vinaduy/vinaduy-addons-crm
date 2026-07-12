@@ -531,6 +531,15 @@
                                 t-on-click="() => this.applyDistributeMode('least')">📉 Dồn NV ÍT SỐ nhất</button>
                         <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'per_line' ? ' o_active' : '')"
                                 t-on-click="() => this.applyDistributeMode('per_line')">✍️ Tự chọn từng KH</button>
+                        <select t-att-class="'o_vd_distrib_mode o_vd_distrib_one' + (state.distribute.mode === 'one_user' ? ' o_active' : '')"
+                                t-on-change="(ev) => this.applyDistributeOne(ev)"
+                                title="Dồn tất cả khách đã chọn cho 1 nhân viên">
+                            <option value="0" t-att-selected="!state.distribute.oneUserId">👤 Chia hết cho 1 NV...</option>
+                            <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                    t-att-value="u.id" t-att-selected="u.id === state.distribute.oneUserId">
+                                <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
+                            </option>
+                        </select>
                     </div>
                     <div class="o_vd_distrib_body">
                         <table class="o_vd_distrib_table">

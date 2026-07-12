@@ -1808,6 +1808,7 @@ export class VdCrmDashboard extends Component {
             open: true,
             mode: "",
             busy: false,
+            oneUserId: 0,
             lines: recs.map((r) => ({
                 lead_id: r.id,
                 name: r.name || ("KH #" + r.id),
@@ -1829,6 +1830,17 @@ export class VdCrmDashboard extends Component {
             this.state.distribute.lines[idx].user_id = uid;
             this.state.distribute.mode = "";  // NV tự chọn → bỏ chế độ tự động
         }
+    }
+    // CHIA HẾT CHO 1 NV: chọn 1 người → tất cả KH đã chọn dồn về người đó.
+    applyDistributeOne(ev) {
+        const uid = parseInt(ev.target.value, 10) || 0;
+        this.state.distribute.oneUserId = uid;
+        if (!uid) {
+            this.state.distribute.mode = "";
+            return;
+        }
+        for (const ln of (this.state.distribute.lines || [])) ln.user_id = uid;
+        this.state.distribute.mode = "one_user";
     }
     distributeUserLoad(userId) {
         const u = (this.state.users || []).find((x) => x.id === userId);
@@ -1885,6 +1897,7 @@ export class VdCrmDashboard extends Component {
             return;
         }
         this.state.distribute.mode = mode;
+        this.state.distribute.oneUserId = 0;  // rời chế độ "1 NV"
         if (mode === "per_line") return;  // để NV tự chọn từng dòng
         const th = this.distributeThreshold;
         // sức chứa còn lại (theo KH mới chưa gọi); tắt → vô hạn

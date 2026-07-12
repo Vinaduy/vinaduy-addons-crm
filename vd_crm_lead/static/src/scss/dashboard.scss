@@ -8093,6 +8093,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         &:hover { border-color: #1971c2; }
         &.o_active { background: linear-gradient(135deg, #4dabf7, #1971c2); color: #fff; border-color: #1864ab; }
     }
+    /* Picker "Chia hết cho 1 NV" — nhấn mạnh xanh lá cho khác nhóm chia đều */
+    .o_vd_distrib_one {
+        border-color: #40c057;
+        &:hover { border-color: #2f9e44; }
+        &.o_active { background: linear-gradient(135deg, #51cf66, #2f9e44); border-color: #2b8a3e; }
+    }
 }
 .o_vd_distrib_body { overflow-y: auto; flex: 1; }
 /* CHẶN CHIA SỐ — dòng/NV vượt ngưỡng KH mới chưa gọi (user spec 2026-06-12) */
