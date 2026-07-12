@@ -117,6 +117,12 @@
 .o_vd_ub_team { display: none; }
 .o_vd_ub_role { font-size: 0.62rem; font-weight: 600; color: #adb5bd;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Số khách NV đang quản lý */
+.o_vd_ub_leadcnt { font-size: 0.62rem; font-weight: 700; color: #1971c2;
+    background: #e7f5ff; border-radius: 8px; padding: 0 0.35rem;
+    white-space: nowrap; margin-left: auto; }
+/* Ở cột nghỉ việc: còn khách = cảnh báo đỏ (chưa bàn giao) */
+.o_vd_ub_leadcnt.o_vd_ub_leadcnt_warn { color: #e03131; background: #ffe3e3; }
 
 /* TRƯỞNG NHÓM / lãnh đạo = viền + nền vàng nhẹ, sang */
 .o_vd_ub_card.o_vd_ub_leader {

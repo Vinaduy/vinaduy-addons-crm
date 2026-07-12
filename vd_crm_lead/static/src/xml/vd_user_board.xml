@@ -87,6 +87,11 @@
                 <div class="o_vd_ub_meta">
                     <span class="o_vd_ub_team"><t t-esc="c.team"/></span>
                     <span class="o_vd_ub_role"><t t-esc="c.role_label"/></span>
+                    <span t-if="c.lead_count > 0"
+                          t-att-class="'o_vd_ub_leadcnt' + (c.active ? '' : ' o_vd_ub_leadcnt_warn')"
+                          t-att-title="c.lead_count + ' khách đang quản lý'">
+                        👤 <t t-esc="c.lead_count"/> khách
+                    </span>
                 </div>
             </div>
         </div>

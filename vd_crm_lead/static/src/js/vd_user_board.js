@@ -108,6 +108,18 @@ export class VdUserBoard extends Component {
         if (!uid || !from || from === toCol) return;
 
         const working = toCol === "working";
+        // Chặn cho nghỉ việc khi NV còn khách trong tài khoản.
+        if (!working) {
+            const src = this.state.working.find((c) => c.id === uid);
+            if (src && src.lead_count > 0) {
+                this.notification.add(
+                    `Không thể cho nghỉ việc: ${src.name} còn ${src.lead_count} khách trong tài khoản. ` +
+                    `Hãy chuyển hết khách sang NV khác trước.`,
+                    { type: "danger" }
+                );
+                return;
+            }
+        }
         const srcArr = from === "working" ? this.state.working : this.state.off;
         const dstArr = working ? this.state.working : this.state.off;
         const idx = srcArr.findIndex((c) => c.id === uid);

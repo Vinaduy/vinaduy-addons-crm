@@ -602,8 +602,8 @@ class ResUsers(models.Model):
         'employee': 'Nhân viên', 'collaborator': 'CTV',
     }
 
-    def _vd_board_card(self):
-        """Dict 1 thẻ NV cho bảng quản lý."""
+    def _vd_board_card(self, lead_count=0):
+        """Dict 1 thẻ NV cho bảng quản lý. lead_count = số KH đang quản lý."""
         self.ensure_one()
         import re as _re
         full = self.name or self.login or ''
@@ -626,6 +626,7 @@ class ResUsers(models.Model):
             'is_leader': role in ('team_leader', 'director'),
             'login': self.login or '',
             'active': bool(self.active),
+            'lead_count': lead_count,
         }
 
     @api.model
@@ -635,9 +636,18 @@ class ResUsers(models.Model):
         users = self.sudo().with_context(active_test=False).search([
             ('share', '=', False),
         ])
+        # Số KH mỗi NV đang quản lý (lead đang mở, gộp 1 query read_group).
+        counts = {}
+        groups = self.env['crm.lead'].sudo().read_group(
+            [('user_id', 'in', users.ids)], ['user_id'], ['user_id'],
+        )
+        for g in groups:
+            if g.get('user_id'):
+                counts[g['user_id'][0]] = g['user_id_count']
         working, off = [], []
         for u in users:
-            (working if u.active else off).append(u._vd_board_card())
+            (working if u.active else off).append(
+                u._vd_board_card(lead_count=counts.get(u.id, 0)))
         keyf = lambda c: (c['team'], c['name'].lower())
         return {
             'working': sorted(working, key=keyf),
@@ -667,6 +677,13 @@ class ResUsers(models.Model):
             if target.id in (SUPERUSER_ID, caller.id):
                 from odoo.exceptions import UserError
                 raise UserError('Không thể tạm dừng tài khoản admin gốc hoặc chính bạn.')
+            # Chặn nghỉ việc khi NV còn khách trong tài khoản.
+            n = self.env['crm.lead'].sudo().search_count([('user_id', '=', target.id)])
+            if n:
+                from odoo.exceptions import UserError
+                raise UserError(
+                    'Không thể cho nghỉ việc: %s còn %d khách trong tài khoản. '
+                    'Hãy chuyển hết khách sang NV khác trước.' % (target.name, n))
         target.write({'active': want})
         return want
 
