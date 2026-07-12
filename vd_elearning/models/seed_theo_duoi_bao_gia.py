@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v9-deep'
+_TDBG_VERSION = 'v9-1-fml'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
