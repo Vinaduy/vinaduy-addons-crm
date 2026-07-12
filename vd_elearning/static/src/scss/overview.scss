@@ -629,9 +629,9 @@ $vd-line2:   #ece7da;
         border-top: 1px solid $vd-line; background: #fff;
         .btn { padding: .32rem .95rem; font-size: .82rem; border-radius: 9px; }
     }
-    // Khi DANG soan noi dung (editor mo) -> an footer vi nut Luu/Tai/Dong da len
-    // hang tren cua editor (tranh trung). Footer van hien o tab Bai thi.
-    .modal-body:has(.o_vd_ed) ~ .modal-footer { display: none; }
+    // An footer khi khong con nut nao (admin da chuyen het nut len header).
+    // Hoc vien van co nut (Nop bai / Thi lai / span) -> footer hien binh thuong.
+    .modal-footer:not(:has(button, span)) { display: none; }
 }
 
 // ----- tieu de khoa hoc sua truc tiep tren header xanh -----
@@ -664,29 +664,41 @@ $vd-line2:   #ece7da;
 }
 // --- Thanh TAB gop vao header (day sang phai, cung 1 hang) ---
 .o_vd_hdr_tabs {
-    margin-left: auto; display: flex; align-items: center; gap: .3rem; flex: 0 0 auto;
-    .o_vd_ce_tab {
-        border: 0; background: rgba(255,255,255,.16); color: #fff; cursor: pointer;
-        font-weight: 700; font-size: .75rem; padding: .28rem .8rem; border-radius: 8px;
-        white-space: nowrap; transition: all .15s ease;
-        i { color: rgba(255,255,255,.85); font-size: .72rem; }
-        &:hover { background: rgba(255,255,255,.3); }
-        &.active { background: #fff; color: #4a3ad1; box-shadow: 0 3px 10px rgba(0,0,0,.18); i { color: #f1b434; } }
+    margin-left: auto; display: flex; align-items: center; gap: .35rem; flex: 0 0 auto;
+    // Divider ngan cach cac nhom nut
+    .o_vd_hdr_div { width: 1px; height: 22px; background: rgba(255,255,255,.3); margin: 0 .15rem; flex: 0 0 auto; }
+    // NHOM 1: Tabs dang segmented (khoi lien nhau)
+    .o_vd_hdr_seg {
+        display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto;
+        background: rgba(0,0,0,.14); border-radius: 10px; padding: 3px;
     }
+    .o_vd_ce_tab {
+        border: 0; background: transparent; color: rgba(255,255,255,.9); cursor: pointer;
+        font-weight: 700; font-size: .75rem; padding: .3rem .85rem; border-radius: 8px;
+        white-space: nowrap; transition: all .15s ease;
+        i { color: rgba(255,255,255,.8); font-size: .72rem; }
+        &:hover { background: rgba(255,255,255,.16); }
+        &.active { background: #fff; color: #4a3ad1; box-shadow: 0 2px 8px rgba(0,0,0,.2); i { color: #f1b434; } }
+    }
+    // NHOM 2 + 3: cac nut hanh dong - dong bo kieu dang
     .o_vd_ce_cfg {
-        border: 1px solid rgba(255,255,255,.42); border-radius: 8px; cursor: pointer;
-        background: rgba(255,255,255,.12); color: #fff; font-weight: 800; font-size: .73rem;
-        padding: .28rem .8rem; white-space: nowrap; transition: all .15s ease;
+        display: inline-flex; align-items: center; height: 30px;
+        border: 1px solid rgba(255,255,255,.4); border-radius: 8px; cursor: pointer;
+        background: rgba(255,255,255,.12); color: #fff; font-weight: 700; font-size: .73rem;
+        padding: 0 .75rem; white-space: nowrap; transition: all .15s ease;
         i { color: #fff; }
         &:hover { background: #fff; color: #4a3ad1; i { color: #4a3ad1; } }
         &.o_vd_ce_sched:hover { color: #b8860b; i { color: #b8860b; } }
+        &[disabled] { opacity: .6; cursor: default; }
     }
-    // Sua = vang noi bat; Dong = hover do
-    .o_vd_hdr_edit {
-        background: #f1b434; color: #2b2410; border-color: #f1b434;
+    // Nut chinh theo tab (Sua / Luu) = vang noi bat
+    .o_vd_hdr_primary {
+        background: #f1b434; color: #2b2410; border-color: #f1b434; font-weight: 800;
+        box-shadow: 0 2px 10px rgba(241,180,52,.4);
         i { color: #2b2410; }
         &:hover { background: #fff; color: #b8860b; i { color: #b8860b; } }
     }
+    // Dong = hover do
     .o_vd_hdr_close:hover { background: #fff; color: #dc2626; i { color: #dc2626; } }
     // Bo dem gio thi (khi dang thi) - do gon, cung hang header
     .o_vd_exam_timer_bar {

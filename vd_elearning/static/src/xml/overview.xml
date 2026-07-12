@@ -382,19 +382,31 @@
                     </t>
                 </t>
                 <span t-else="" class="o_vd_hdr_name o_vd_hdr_name_ro" t-esc="state.courseName"/>
-                <!-- TAB gop len CUNG HANG voi tieu de (mot hang duy nhat) -->
+                <!-- HEADER 1 hang: [Tabs] | [Hanh dong] | [Dong] -->
                 <div class="o_vd_hdr_tabs">
-                    <button t-if="showContentTab" t-attf-class="o_vd_ce_tab {{state.tab=='content' ? 'active' : ''}}"
-                        t-on-click="() => this.setTab('content')"><i class="fa fa-book me-2"/>Nội dung</button>
-                    <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
-                        t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
-                    <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>CẤU HÌNH</button>
-                    <button t-if="props.editable" class="o_vd_ce_cfg o_vd_ce_sched" t-on-click="openSchedule"><i class="fa fa-bullhorn me-1"/>LÊN LỊCH HỌC</button>
-                    <!-- SUA / TAI / DONG gop len thanh tren cung -->
-                    <button t-if="props.editable &amp;&amp; state.tab=='content' &amp;&amp; state.contents.length &amp;&amp; !state.editingContent"
-                        class="o_vd_ce_cfg o_vd_hdr_edit" t-on-click="() => this.openEditor(state.contents[0])"><i class="fa fa-pencil me-1"/>Sửa</button>
-                    <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="downloadCourse" title="Tải nội dung + bài thi về dạng PDF"><i class="fa fa-download me-1"/>Tải</button>
-                    <button t-if="!state.contentLocked" class="o_vd_ce_cfg o_vd_hdr_close" t-on-click="() => this.props.close()"><i class="fa fa-times me-1"/>Đóng</button>
+                    <!-- NHOM 1: Tabs chuyen view (dang segmented) -->
+                    <div class="o_vd_hdr_seg">
+                        <button t-if="showContentTab" t-attf-class="o_vd_ce_tab {{state.tab=='content' ? 'active' : ''}}"
+                            t-on-click="() => this.setTab('content')"><i class="fa fa-book me-2"/>Nội dung</button>
+                        <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
+                            t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
+                    </div>
+                    <!-- NHOM 2: Hanh dong (admin) - nut chinh theo tab dat truoc -->
+                    <t t-if="props.editable">
+                        <span class="o_vd_hdr_div"/>
+                        <button t-if="state.tab=='content' &amp;&amp; state.contents.length &amp;&amp; !state.editingContent"
+                            class="o_vd_ce_cfg o_vd_hdr_primary" t-on-click="() => this.openEditor(state.contents[0])"><i class="fa fa-pencil me-1"/>Sửa</button>
+                        <button t-if="state.tab=='exam'" class="o_vd_ce_cfg o_vd_hdr_primary"
+                            t-att-disabled="state.saving" t-on-click="save"><i class="fa fa-check me-1"/><t t-esc="state.saving ? 'Đang lưu...' : 'Lưu'"/></button>
+                        <button class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>Cấu hình</button>
+                        <button class="o_vd_ce_cfg o_vd_ce_sched" t-on-click="openSchedule"><i class="fa fa-bullhorn me-1"/>Lên lịch học</button>
+                        <button class="o_vd_ce_cfg" t-on-click="downloadCourse" title="Tải nội dung + bài thi về dạng PDF"><i class="fa fa-download me-1"/>Tải</button>
+                    </t>
+                    <!-- NHOM 3: Dong (tach rieng ben phai) -->
+                    <t t-if="!state.contentLocked">
+                        <span class="o_vd_hdr_div"/>
+                        <button class="o_vd_ce_cfg o_vd_hdr_close" t-on-click="() => this.props.close()"><i class="fa fa-times me-1"/>Đóng</button>
+                    </t>
                     <!-- BO DEM GIO + LUOT THI - nen do tuoi -->
                     <div t-if="!props.editable &amp;&amp; state.contentLocked" class="o_vd_exam_timer_bar">
                         <span class="o_vd_exam_clock"><i class="fa fa-clock-o me-1"/><t t-esc="timeLeftLabel"/></span>
@@ -533,12 +545,8 @@
             </div>
 
             <t t-set-slot="footer">
-                <!-- ADMIN (Tai/Dong da len thanh header; giu Luu de con luu tab Bai thi) -->
-                <t t-if="props.editable">
-                    <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
-                        <t t-esc="state.saving ? 'Đang lưu...' : 'Lưu khóa học'"/>
-                    </button>
-                </t>
+                <!-- ADMIN: khong co nut o footer (Luu/Tai/Dong da len thanh header) -->
+                <t t-if="props.editable"/>
                 <!-- HOC VIEN dang thi -->
                 <t t-elif="state.tab=='exam' &amp;&amp; state.examStarted &amp;&amp; !state.examResult">
                     <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="submitExam">

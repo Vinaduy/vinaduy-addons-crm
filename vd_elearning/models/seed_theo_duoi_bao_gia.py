@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v9-2-nav'
+_TDBG_VERSION = 'v9-3-gap'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -34,7 +34,7 @@ _STYLE = (
     '.vd-tdbg ul,.vd-tdbg ol{margin:0 0 10px;padding-left:22px;}'
     '.vd-tdbg li{margin:5px 0;}'
     '.vd-tdbg b{color:#111827;}'
-    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:10px 0;font-size:15px;}'
+    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:8px 0 6px;font-size:15px;}'
     '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:8px 11px;text-align:left;vertical-align:top;}'
     '.vd-tdbg th{background:#f1f5f9;font-weight:800;color:#334155;}'
     '.vd-tdbg .thok{background:#dcfce7;color:#15803d;}'
@@ -59,14 +59,14 @@ _STYLE = (
     '.vd-tdbg .vc-panel{display:none;}'
     '.vd-tdbg .vc-tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;'
     'color:#e8401f;background:#fff1ec;padding:3px 10px;border-radius:20px;margin-bottom:8px;}'
-    '.vd-tdbg .box{border-left:5px solid;border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;}'
+    '.vd-tdbg .box{border-left:5px solid;border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;}'
     '.vd-tdbg .b-err{background:#fef2f2;border-color:#dc2626;color:#991b1b;}'
     '.vd-tdbg .b-warn{background:#fffbeb;border-color:#f59e0b;color:#92400e;}'
     '.vd-tdbg .b-info{background:#eff6ff;border-color:#3b82f6;color:#1e40af;}'
     '.vd-tdbg .b-ok{background:#f0fdf4;border-color:#16a34a;color:#166534;}'
     # công thức
     '.vd-tdbg .fml{background:linear-gradient(135deg,#faf5ff,#eef2ff);border:2px solid #c4b5fd;'
-    'border-radius:12px;padding:13px 16px;margin:14px 0;}'
+    'border-radius:12px;padding:13px 16px;margin:10px 0;}'
     '.vd-tdbg .fml .fh{font-weight:800;color:#6d28d9;font-size:12.5px;letter-spacing:.6px;margin-bottom:5px;}'
     '.vd-tdbg .fml .fml-b{color:#4c1d95;font-weight:600;}'
     # thứ tự đánh số
