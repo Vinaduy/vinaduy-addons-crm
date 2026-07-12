@@ -70,16 +70,14 @@ $vd-line:   #ece7da;
         .o_vd_tool_hint { margin-left: auto; color: #a7a395; font-size: .74rem; font-style: italic; }
     }
 
-    // ---------------- BANG: NEN PHONG CANH GAME (troi -> dong co + doi + mat troi + may) --
+    // ---------------- BANG: NEN PHONG CANH GAME (troi + may + mat troi + doi co) ----------
     .o_vd_board {
         padding: .35rem .5rem .5rem; overflow-x: auto; border-radius: 14px;
         background:
-            radial-gradient(34% 22% at 24% 15%, rgba(255,255,255,.85), transparent 70%),   // may 1
-            radial-gradient(26% 17% at 52% 9%,  rgba(255,255,255,.7),  transparent 70%),    // may 2
-            radial-gradient(20% 30% at 90% 6%,  rgba(255,240,175,.95), transparent 60%),    // mat troi
-            radial-gradient(72% 40% at 8% 114%, rgba(140,208,145,.6),  transparent 72%),    // doi trai
-            radial-gradient(72% 40% at 74% 118%,rgba(150,212,150,.55), transparent 72%),    // doi phai
-            linear-gradient(180deg, #ddefff 0%, #ecf7ec 50%, #d8efce 100%);                 // troi -> dong co
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='90'%3E%3Cg fill='%23ffffff' opacity='0.92'%3E%3Cellipse cx='72' cy='36' rx='40' ry='18'/%3E%3Cellipse cx='108' cy='30' rx='30' ry='16'/%3E%3Cellipse cx='40' cy='32' rx='26' ry='14'/%3E%3Cellipse cx='262' cy='26' rx='32' ry='15'/%3E%3Cellipse cx='294' cy='32' rx='26' ry='13'/%3E%3C/g%3E%3C/svg%3E") top left / 360px 90px repeat-x,
+            radial-gradient(circle 60px at 93% 46px, #fff4b0 0%, #ffe676 46%, rgba(255,230,118,0) 72%),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='150' preserveAspectRatio='none'%3E%3Cpath d='M0 150L0 74C74 34 150 34 220 64C290 94 366 52 440 66L440 150Z' fill='%2392d36f'/%3E%3Cpath d='M0 150L0 98C92 64 176 92 258 92C340 92 388 74 440 88L440 150Z' fill='%2372bb54'/%3E%3C/svg%3E") bottom left / 440px 150px repeat-x,
+            linear-gradient(180deg, #a6d8ff 0%, #c8ebff 30%, #e6f6ea 60%, #cdeab0 100%);
     }
 
     // ----- 1 DONG = 1 LO TRINH (nen trong suot de thay phong canh) -----
