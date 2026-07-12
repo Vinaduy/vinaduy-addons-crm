@@ -2,66 +2,94 @@
 """Seed nội dung + 20 câu thi cho khóa "QUY TRÌNH THEO ĐUỔI KHÁCH HÀNG SAU KHI
 GỬI BÁO GIÁ" (Kỹ năng Sale).
 
-BÁM SÁT TÀI LIỆU GỐC (Theo đuổi khách hàng sau báo giá.pdf) - trình bày TUẦN TỰ
-theo đúng 8 bước của file (không tách theo tầng Bloom nữa vì làm rời mạch file).
-Bổ sung GIAI ĐOẠN 0 - QUY TẮC TẠO NHÓM (user chốt 2026-07-12): sau khi gọi điện
-xong phải bấm "chốt báo giá" + tạo nhóm Zalo, CẤM nhắn tin riêng cá nhân.
+GIAO DIỆN TƯƠNG TÁC + PROGRESSIVE DISCLOSURE (user chốt 2026-07-12):
+- Mỗi bài học = 1 thẻ <details> bấm-mở (bấm đến đâu hiện đến đó -> tránh quá tải).
+- Trong mỗi bài đi theo lũy tiến: LÝ THUYẾT RÚT GỌN -> nút "Xem ví dụ thực tế"
+  (<details>) -> nút "Làm bài tập tình huống" (<details>) chứa tình huống + nút
+  "Xem đáp án & giải thích" (<details> lồng).
+- Dùng <details>/<summary> NATIVE HTML (không cần JS): vd_body sanitize=False +
+  render qua markup() nên HTML thô giữ nguyên; JS chèn qua innerHTML KHÔNG chạy
+  nên KHÔNG dùng script. Accordion là tính năng gốc trình duyệt.
 
-Trình bày: card + bảng + màu CÓ QUY TẮC cố định (GHI NHỚ=cam, VIỆC PHẢI LÀM=xanh
-lá, SAI LẦM=đỏ, CÂU MẪU=xanh dương), FULL chiều ngang, KHÔNG cắt nội dung. Helper
-dựng bằng nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo version.
-Đảo đáp án mỗi lần thi do overview.js xử lý chung.
+BÁM SÁT tài liệu gốc + GIAI ĐOẠN 0 quy tắc tạo nhóm. FULL chiều ngang, KHÔNG cắt
+nội dung. Helper dựng bằng nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent
+theo version. Đảo đáp án mỗi lần thi do overview.js xử lý chung.
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v6-file'
+_TDBG_VERSION = 'v7-interactive'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
+
+# Dùng ký tự chevron literal trong CSS content (utf-8) để tránh escape \25B8.
 _STYLE = (
     '<style>'
     '.vd-tdbg{font-size:16.5px;line-height:1.72;color:#1f2937;}'
-    '.vd-tdbg h2{font-size:22px;font-weight:800;color:#111827;margin:26px 0 10px;}'
-    '.vd-tdbg h3{font-size:18px;font-weight:800;color:#111827;'
-    'margin:20px 0 8px;padding-left:12px;border-left:4px solid #e8401f;}'
-    '.vd-tdbg p{margin:0 0 12px;}'
-    '.vd-tdbg ul,.vd-tdbg ol{margin:0 0 12px;padding-left:24px;}'
+    '.vd-tdbg h2{font-size:22px;font-weight:800;color:#111827;margin:22px 0 10px;}'
+    '.vd-tdbg h3{font-size:17px;font-weight:800;color:#111827;margin:16px 0 6px;}'
+    '.vd-tdbg p{margin:0 0 10px;}'
+    '.vd-tdbg ul,.vd-tdbg ol{margin:0 0 10px;padding-left:24px;}'
     '.vd-tdbg li{margin:5px 0;}'
     '.vd-tdbg b{color:#111827;}'
-    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:10px 0 14px;font-size:15.5px;}'
-    '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:9px 12px;'
-    'text-align:left;vertical-align:top;}'
+    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:8px 0 12px;font-size:15.5px;}'
+    '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left;vertical-align:top;}'
     '.vd-tdbg th{background:#f1f5f9;font-weight:800;color:#334155;}'
-    '.vd-tdbg .ok{color:#15803d;font-weight:700;}'
     '.vd-tdbg .no{color:#b91c1c;font-weight:700;}'
+    '.vd-tdbg .ok{color:#15803d;font-weight:700;}'
+    # --- ẩn marker mặc định của summary ---
+    '.vd-tdbg summary{list-style:none;cursor:pointer;user-select:none;}'
+    '.vd-tdbg summary::-webkit-details-marker{display:none;}'
+    '.vd-tdbg summary::marker{content:"";}'
+    # --- Thẻ bài học ---
+    '.vd-tdbg details.vd-lesson{border-radius:12px;margin:16px 0;overflow:hidden;'
+    'box-shadow:0 4px 16px rgba(2,6,23,.08);}'
+    '.vd-tdbg summary.vd-lsum{position:relative;background:#1e293b;'
+    'padding:16px 22px 16px 50px;}'
+    '.vd-tdbg summary.vd-lsum::before{content:"\\203A";position:absolute;left:22px;top:14px;'
+    'color:#f59e0b;font-size:24px;font-weight:800;transition:transform .2s;}'
+    '.vd-tdbg details[open]>summary.vd-lsum::before{transform:rotate(90deg);}'
+    '.vd-tdbg .vd-ltag{color:#f59e0b;font-size:12.5px;font-weight:800;letter-spacing:2px;}'
+    '.vd-tdbg .vd-ltitle{color:#fff;font-size:20px;font-weight:800;margin-top:2px;line-height:1.25;}'
+    '.vd-tdbg .vd-lsub{color:#cbd5e1;font-size:13.5px;margin-top:5px;}'
+    '.vd-tdbg .vd-lbody{padding:8px 22px 18px;border:1px solid #e5e7eb;'
+    'border-top:none;border-radius:0 0 12px 12px;}'
+    # --- nhãn Lý thuyết ---
+    '.vd-tdbg .vd-th{font-size:12px;font-weight:800;letter-spacing:.5px;'
+    'color:#0369a1;text-transform:uppercase;margin:8px 0 6px;}'
+    # --- nút Xem ví dụ ---
+    '.vd-tdbg details.vd-ex{border:1px solid #bfdbfe;border-radius:10px;'
+    'margin:12px 0;background:#f5faff;}'
+    '.vd-tdbg summary.vd-exsum{padding:11px 16px;font-weight:800;color:#1d4ed8;font-size:15px;}'
+    '.vd-tdbg .vd-exbody{padding:2px 16px 12px;}'
+    # --- nút Làm bài tập ---
+    '.vd-tdbg details.vd-task{border:2px solid #ea580c;border-radius:10px;margin:14px 0;background:#fff;}'
+    '.vd-tdbg summary.vd-tasksum{padding:13px 16px;font-weight:800;color:#fff;'
+    'background:#ea580c;font-size:15.5px;}'
+    '.vd-tdbg .vd-taskbody{padding:14px 16px;}'
+    '.vd-tdbg .vd-situation{font-style:italic;color:#7c2d12;background:#fff7ed;'
+    'border-radius:8px;padding:10px 14px;margin:0 0 10px;}'
+    '.vd-tdbg .vd-opt{border:1px solid #e5e7eb;border-radius:8px;padding:9px 12px;margin:6px 0;}'
+    '.vd-tdbg .vd-optk{display:inline-block;width:24px;height:24px;line-height:24px;'
+    'text-align:center;border-radius:50%;background:#f1f5f9;font-weight:800;'
+    'margin-right:8px;color:#334155;}'
+    '.vd-tdbg details.vd-ans{margin-top:8px;}'
+    '.vd-tdbg summary.vd-anssum{color:#15803d;font-weight:800;padding:8px 0;}'
+    '.vd-tdbg .vd-ansbody{background:#f0fdf4;border-left:4px solid #16a34a;'
+    'border-radius:0 8px 8px 0;padding:10px 14px;}'
+    # --- callout ---
+    '.vd-tdbg .vd-key{background:#fff7ed;border-left:5px solid #e8401f;'
+    'border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;}'
+    '.vd-tdbg .vd-key b{color:#c2410c;}'
     '</style>'
 )
 
 
-def _callout(bar, bg, label_color, label, text):
-    return (
-        '<div style="background:' + bg + ';border-left:5px solid ' + bar + ';'
-        'border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;">'
-        '<div style="font-weight:800;color:' + label_color + ';font-size:13.5px;'
-        'letter-spacing:.3px;margin-bottom:4px;">' + label + '</div>'
-        '<div>' + text + '</div></div>')
-
-
+# ---------------------------------------------------------------------------
+#  HELPER (nối chuỗi -> không lo bẫy %)
+# ---------------------------------------------------------------------------
 def _key(text):
-    return _callout('#e8401f', '#fff7ed', '#c2410c', '&#9873; GHI NHỚ', text)
-
-
-def _todo(text):
-    return _callout('#16a34a', '#f0fdf4', '#15803d', '&#9989; VIỆC PHẢI LÀM', text)
-
-
-def _warn(text):
-    return _callout('#dc2626', '#fef2f2', '#b91c1c', '&#9940; CẤM / SAI LẦM CẦN TRÁNH', text)
-
-
-def _say(text):
-    return _callout('#2563eb', '#eff6ff', '#1d4ed8', '&#128172; CÂU MẪU NÊN NÓI',
-                    '<i>&#8220;' + text + '&#8221;</i>')
+    return '<div class="vd-key"><b>&#9873; Ghi nhớ:</b> ' + text + '</div>'
 
 
 def _table(head, rows, widths=None):
@@ -75,35 +103,60 @@ def _table(head, rows, widths=None):
     return '<table><tr>' + th + '</tr>' + body + '</table>'
 
 
-def _vs(sai, dung):
-    return ('<table><tr><th style="width:50%;" class="no">&#10007; KHÔNG nên</th>'
-            '<th class="ok">&#10003; NÊN làm</th></tr>'
-            '<tr><td>' + sai + '</td><td>' + dung + '</td></tr></table>')
+def _theory(inner):
+    return '<div class="vd-th">&#128218; Lý thuyết rút gọn</div>' + inner
+
+
+def _example(inner):
+    return ('<details class="vd-ex"><summary class="vd-exsum">&#128204; Xem ví dụ thực tế</summary>'
+            '<div class="vd-exbody">' + inner + '</div></details>')
+
+
+def _opts(items):
+    labels = ['A', 'B', 'C', 'D', 'E']
+    lis = ''
+    for i, t in enumerate(items):
+        lis += ('<div class="vd-opt"><span class="vd-optk">' + labels[i] + '</span>'
+                + t + '</div>')
+    return lis
+
+
+def _exercise(situation, options, answer):
+    return ('<details class="vd-task"><summary class="vd-tasksum">'
+            '&#9997;&#65039; Làm bài tập tình huống</summary>'
+            '<div class="vd-taskbody">'
+            '<div class="vd-situation">' + situation + '</div>'
+            + _opts(options) +
+            '<details class="vd-ans"><summary class="vd-anssum">'
+            '&#128161; Xem đáp án &amp; giải thích</summary>'
+            '<div class="vd-ansbody">' + answer + '</div></details>'
+            '</div></details>')
+
+
+def _lesson(tag, title, sub, inner, is_open=False):
+    op = ' open' if is_open else ''
+    return ('<details class="vd-lesson"' + op + '><summary class="vd-lsum">'
+            '<div class="vd-ltag">' + tag + '</div>'
+            '<div class="vd-ltitle">' + title + '</div>'
+            '<div class="vd-lsub">' + sub + '</div></summary>'
+            '<div class="vd-lbody">' + inner + '</div></details>')
 
 
 def _hero():
     return (
-        '<div style="background:#e8401f;border-radius:16px;padding:30px 28px;'
-        'margin-bottom:8px;">'
-        '<div style="color:#ffe0d8;font-size:14px;font-weight:700;'
-        'letter-spacing:2px;">KỸ NĂNG SALE &mdash; CHỐT HỢP ĐỒNG</div>'
-        '<div style="color:#ffffff;font-size:29px;font-weight:900;margin-top:8px;'
-        'line-height:1.2;">Quy trình theo đuổi khách hàng sau khi gửi báo giá</div>'
-        '<div style="color:#fff2ee;font-size:16px;margin-top:12px;line-height:1.6;">'
+        '<div style="background:#e8401f;border-radius:16px;padding:28px 26px;margin-bottom:10px;">'
+        '<div style="color:#ffe0d8;font-size:14px;font-weight:700;letter-spacing:2px;">'
+        'KỸ NĂNG SALE &mdash; CHỐT HỢP ĐỒNG</div>'
+        '<div style="color:#ffffff;font-size:28px;font-weight:900;margin-top:8px;line-height:1.2;">'
+        'Quy trình theo đuổi khách hàng sau khi gửi báo giá</div>'
+        '<div style="color:#fff2ee;font-size:15.5px;margin-top:12px;line-height:1.6;">'
         'Gửi báo giá KHÔNG phải là kết thúc &mdash; đó chỉ là ĐIỂM BẮT ĐẦU của quá '
-        'trình chốt hợp đồng. Nhiệm vụ của nhân viên là từng bước dẫn khách đi tới '
-        'lúc ký, không bao giờ để khách &#8220;treo&#8221;.</div></div>')
-
-
-def _step(num, title, sub):
-    return (
-        '<div style="background:#1e293b;border-radius:12px;padding:20px 24px;'
-        'margin:40px 0 16px;">'
-        '<div style="color:#f59e0b;font-size:13px;font-weight:800;'
-        'letter-spacing:2px;">' + num + '</div>'
-        '<div style="color:#ffffff;font-size:23px;font-weight:800;margin-top:4px;'
-        'line-height:1.25;">' + title + '</div>'
-        '<div style="color:#cbd5e1;font-size:14.5px;margin-top:7px;">' + sub + '</div></div>')
+        'trình chốt hợp đồng.</div></div>'
+        '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;'
+        'padding:12px 16px;margin:10px 0 4px;color:#1e3a8a;font-size:14.5px;">'
+        '&#128070; <b>Cách học:</b> Bấm vào từng mục để mở nội dung. Trong mỗi bài đi '
+        'theo thứ tự: <b>Lý thuyết</b> &rarr; bấm <b>Xem ví dụ thực tế</b> &rarr; bấm '
+        '<b>Làm bài tập tình huống</b> rồi tự chọn đáp án trước khi mở phần giải thích.</div>')
 
 
 class SlideChannelSeedTheoDuoiBaoGia(models.Model):
@@ -156,7 +209,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         return True
 
     # ==================================================================
-    #  NỘI DUNG (bám sát file: Mục tiêu -> Giai đoạn 0 -> 8 bước -> Vàng)
+    #  NỘI DUNG - mỗi bài 1 thẻ <details> tương tác
     # ==================================================================
     def _vd_tdbg_pages(self):
         return [
@@ -174,271 +227,287 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             ('Gold', self._tdbg_gold()),
         ]
 
-    # ------------------------------------------------------------------
-    #  MỤC TIÊU KHÓA HỌC + SƠ ĐỒ HÀNH TRÌNH (bám sát file)
-    # ------------------------------------------------------------------
     def _tdbg_muctieu(self):
-        return (
-            '<h2>Mục tiêu khóa học</h2>'
-            '<p>Đào tạo nhân viên hiểu rằng: <b>gửi báo giá không phải là kết thúc</b>. '
-            'Thực tế, gửi báo giá chỉ là <b>điểm bắt đầu</b> của quá trình chốt hợp '
-            'đồng. Rất nhiều nhân viên mất khách vì nghĩ: <i>&#8220;Em đã gửi báo giá '
-            'rồi, giờ chờ khách gọi lại&#8221;</i> &mdash; đây là sai lầm nghiêm trọng.</p>'
-            '<p>Khách hàng đang xây nhà thường: xem rất nhiều đơn vị &middot; chưa hiểu '
-            'hết báo giá &middot; chưa biết nên hỏi gì &middot; đang cân nhắc tài chính '
-            '&middot; đang so sánh. Nếu nhân viên không chủ động dẫn dắt, khách sẽ dần '
-            'nghiêng về đơn vị khác.</p>'
-
-            '<h2>Mục tiêu sau khi gửi báo giá</h2>'
-            '<p>Sau khi gửi báo giá, mục tiêu <b>KHÔNG PHẢI</b> là chờ khách ký, mà là '
-            'từng bước đưa khách đi qua các giai đoạn:</p>'
-            + _table(['Giai đoạn khách đi qua'],
-                     [['Báo giá'], ['&darr; Khách phản hồi'], ['&darr; Hiểu suy nghĩ khách'],
-                      ['&darr; Giải quyết toàn bộ khúc mắc'], ['&darr; Gửi hợp đồng'],
-                      ['&darr; Giải quyết hợp đồng'], ['&darr; Hẹn khảo sát'],
-                      ['&darr; Ký hợp đồng']])
+        inner = (
+            _theory(
+                '<p>Đào tạo nhân viên hiểu: gửi báo giá <b>không phải là kết thúc</b>, '
+                'mà là <b>điểm bắt đầu</b> của quá trình chốt hợp đồng. Rất nhiều nhân '
+                'viên mất khách vì nghĩ &#8220;gửi báo giá rồi, giờ chờ khách gọi lại&#8221;.</p>'
+                '<p>Sau khi gửi báo giá, mục tiêu KHÔNG phải là chờ khách ký, mà là '
+                'từng bước đưa khách đi qua: <b>Báo giá &rarr; Phản hồi &rarr; Hiểu suy '
+                'nghĩ khách &rarr; Giải quyết khúc mắc &rarr; Gửi hợp đồng &rarr; Giải '
+                'quyết hợp đồng &rarr; Hẹn khảo sát &rarr; Ký hợp đồng</b>.</p>')
             + _key('Nếu khách im lặng thì quy trình đang bị DỪNG lại. Không được để '
-                   'khách &#8220;treo&#8221;.'))
+                   'khách &#8220;treo&#8221;.')
+            + _example(
+                '<p>Khách hàng đang xây nhà thường cùng lúc: xem rất nhiều đơn vị '
+                '&middot; chưa hiểu hết báo giá &middot; chưa biết nên hỏi gì &middot; '
+                'đang cân nhắc tài chính &middot; đang so sánh. Nếu nhân viên không chủ '
+                'động dẫn dắt, khách sẽ dần nghiêng về đơn vị khác.</p>'))
+        return _lesson('MỤC TIÊU KHÓA HỌC', 'Gửi báo giá là bắt đầu, không phải kết thúc',
+                       'Bấm để mở &middot; hiểu tư duy nền tảng của cả khóa.', inner,
+                       is_open=True)
 
-    # ------------------------------------------------------------------
-    #  GIAI ĐOẠN 0 — QUY TẮC TẠO NHÓM (BỔ SUNG)
-    # ------------------------------------------------------------------
     def _tdbg_taonhom(self):
-        return (
-            _step('GIAI ĐOẠN 0', 'QUY TẮC TẠO NHÓM (bắt buộc đầu tiên)',
-                  'Ngay sau khi gọi điện cho khách xong &mdash; bấm "Chốt báo giá" và LẬP TỨC tạo nhóm.')
-            + '<p>Ngay sau khi gọi điện tư vấn cho khách xong, việc đầu tiên bắt buộc '
-            'là <b>bấm nút &#8220;Chốt báo giá&#8221;</b> trên hệ thống, sau đó '
-            '<b>LẬP TỨC tạo nhóm Zalo</b> với khách. Đây là quy định bắt buộc, làm '
-            'trước cả khi bước vào 8 bước theo đuổi.</p>'
+        inner = (
+            _theory(
+                '<p>Ngay sau khi gọi điện tư vấn cho khách xong: <b>bấm nút "Chốt báo '
+                'giá"</b> rồi <b>LẬP TỨC tạo nhóm Zalo</b>. <b>CẤM nhắn tin riêng</b> '
+                '(Zalo cá nhân) với khách &mdash; Zalo cá nhân chỉ để GỌI ĐIỆN, còn '
+                'nhắn tin thì lái khách lên nhóm, mọi thông tin phản hồi TRÊN NHÓM.</p>'
+                '<p><b>Quy trình tạo nhóm:</b></p>'
+                '<ul>'
+                '<li>Thành viên tối thiểu: <b>bản thân + khách hàng + trưởng phòng</b>.</li>'
+                '<li>Ngay sau khi tạo: <b>đổi ảnh đại diện = logo công ty</b> + <b>đổi '
+                'tên nhóm theo quy tắc quy định</b>.</li>'
+                '<li>Gửi lên nhóm theo thứ tự: <b>(1) 4 video VTV</b> (đầu tiên) &rarr; '
+                '<b>(2) lời chào giới thiệu bản thân</b> &rarr; <b>(3) tổng hợp nhu cầu '
+                'công năng khách</b> &rarr; <b>(4) tối thiểu 20 mẫu nhà</b>.</li>'
+                '<li>Đủ các bước trên mới nhắn tin bình thường &mdash; luôn trên nhóm.</li>'
+                '</ul>')
+            + _key('Không nhắn tin riêng cá nhân. Đưa khách làm quen với việc làm việc '
+                   'trên NHÓM ngay từ tin nhắn đầu tiên.')
+            + _example(
+                '<p>Vì sao cấm nhắn tin riêng? Nhắn riêng kéo theo nhiều hệ lụy:</p>'
+                + _table(['Rủi ro', 'Vì sao xảy ra'],
+                         [['<b>Ký hợp đồng về sau rất khó</b>',
+                           'Khách chỉ biết/quan tâm mỗi người tư vấn cá nhân (bạn), không quan tâm ai khác trong nhóm.'],
+                          ['<b>Khó chuyển giao thiết kế - thi công</b>',
+                           'Khách quen làm việc cá nhân, chỉ biết người ban đầu; về sau không muốn làm việc với người khác/tập thể.'],
+                          ['<b>Kế toán thu tiền khó</b>',
+                           'Khách không biết phải làm việc với ai để thanh toán.']],
+                         widths=['32%', '68%']))
+            + _exercise(
+                'Bạn vừa gọi điện tư vấn xong cho một khách. Khách nhắn tin Zalo cá '
+                'nhân hỏi thêm về giá. Bạn nên làm gì?',
+                ['Trả lời chi tiết ngay trên Zalo cá nhân cho nhanh.',
+                 'Tạo nhóm Zalo (mình + khách + trưởng phòng), đổi ảnh/tên nhóm, gửi 4 video VTV + giới thiệu + nhu cầu + 20 mẫu nhà, rồi trao đổi trên nhóm.',
+                 'Bảo khách gọi điện lại, không nhắn tin gì cả.',
+                 'Chờ trưởng phòng nhắn cho khách trước.'],
+                '<b>Đáp án B.</b> Sau khi gọi xong phải chốt báo giá + tạo nhóm ngay, '
+                'không phản hồi ở Zalo cá nhân. Trả lời riêng (A) vi phạm quy định và '
+                'gây khó cho việc ký hợp đồng, chuyển giao, thu tiền về sau.'))
+        return _lesson('GIAI ĐOẠN 0', 'Quy tắc tạo nhóm (bắt buộc đầu tiên)',
+                       'Chốt báo giá + tạo nhóm ngay &middot; cấm nhắn tin riêng.', inner)
 
-            + '<h3>Vì sao CẤM nhắn tin riêng với khách?</h3>'
-            + _warn('CẤM TUYỆT ĐỐI mọi nhân viên nhắn tin riêng (Zalo cá nhân) với '
-                    'khách hàng. Zalo cá nhân CHỈ được dùng để GỌI ĐIỆN.')
-            + '<p>Nhắn tin riêng với khách kéo theo rất nhiều hệ lụy về sau:</p>'
-            + _table(['Rủi ro', 'Vì sao xảy ra'],
-                     [['<b>Ký hợp đồng về sau rất khó</b>',
-                       'Khách chỉ quan tâm và biết mỗi người tư vấn cá nhân (bạn), không quan tâm và không biết bất kỳ ai khác trong nhóm &mdash; nên khi đi ký hợp đồng sẽ rất khó.'],
-                      ['<b>Khó chuyển giao cho phòng ban khác</b> (thiết kế, thi công)',
-                       'Khách quen làm việc với cá nhân, chỉ biết người làm việc ban đầu; về sau làm việc nhóm/tập thể thì khách không muốn làm việc với bất kỳ ai khác.'],
-                      ['<b>Kế toán thu tiền cũng khó</b>',
-                       'Khách không biết phải làm việc với ai để thanh toán.']],
-                     widths=['34%', '66%'])
-            + _key('Quy định công ty: KHÔNG nhắn tin riêng cá nhân. Phải đưa khách '
-                   'LÀM QUEN với việc làm việc trên NHÓM ngay từ tin nhắn đầu tiên. '
-                   'Zalo cá nhân chỉ để gọi điện; còn nhắn tin thì cố gắng lái khách '
-                   'lên nhóm &mdash; mọi thông tin phản hồi TRÊN NHÓM, không phản hồi '
-                   'ở Zalo cá nhân.')
-
-            + '<h3>Quy trình tạo nhóm bắt buộc</h3>'
-            + '<p><b>1. Tạo nhóm ngay sau khi gọi điện xong.</b> Thành viên tối thiểu:</p>'
-            '<ul>'
-            '<li>Bản thân mình (nhân viên tư vấn)</li>'
-            '<li>Khách hàng</li>'
-            '<li>Trưởng phòng</li>'
-            '</ul>'
-            + '<p><b>2. Ngay sau khi tạo nhóm, bắt buộc làm 2 việc:</b></p>'
-            + _table(['Việc', 'Yêu cầu'],
-                     [['Đổi ảnh đại diện nhóm', 'Dùng LOGO của công ty'],
-                      ['Đổi tên nhóm Zalo', 'Theo đúng quy tắc / quy định đặt tên']],
-                     widths=['38%', '62%'])
-            + '<p><b>3. Gửi nội dung lên nhóm theo ĐÚNG thứ tự sau:</b></p>'
-            + _table(['Thứ tự', 'Nội dung phải gửi'],
-                     [['<b>1</b> (gửi đầu tiên)', 'Gửi <b>4 video VTV</b>'],
-                      ['<b>2</b>', 'Gửi lời chào &amp; giới thiệu bản thân'],
-                      ['<b>3</b>', 'Gửi bản tổng hợp nhu cầu &amp; công năng của khách hàng'],
-                      ['<b>4</b>', 'Gửi mẫu nhà cho khách xem thêm &mdash; <b>tối thiểu 20 mẫu nhà</b>']],
-                     widths=['16%', '84%'])
-            + _todo('Chỉ khi đã tạo nhóm đúng quy định (đủ 3 thành viên, đổi ảnh + tên) '
-                    'và gửi đủ 4 nội dung trên (4 video VTV &rarr; giới thiệu &rarr; '
-                    'tổng hợp nhu cầu &rarr; tối thiểu 20 mẫu nhà) thì mới bắt đầu nhắn '
-                    'tin trao đổi bình thường &mdash; và luôn trao đổi TRÊN NHÓM.'))
-
-    # ------------------------------------------------------------------
-    #  BƯỚC 1 — KIỂM TRA CHẤT LƯỢNG BÁO GIÁ TRƯỚC KHI GỬI
-    # ------------------------------------------------------------------
     def _tdbg_b1(self):
-        return (
-            _step('BƯỚC 1', 'Kiểm tra chất lượng báo giá TRƯỚC khi gửi',
-                  'Nếu chính nhân viên còn không tự tin thì khách càng không tin.')
-            + '<p>Đừng bao giờ gửi báo giá theo kiểu <i>&#8220;Em gửi anh/chị tham '
-            'khảo nhé&#8221;</i>. Trước khi bấm gửi, phải tự trả lời được 3 câu hỏi.</p>'
+        inner = (
+            _theory(
+                '<p>Đừng gửi kiểu &#8220;Em gửi anh/chị tham khảo nhé&#8221;. Trước khi '
+                'bấm gửi, tự trả lời 3 câu:</p>'
+                '<ul>'
+                '<li><b>1. Đúng nhu cầu khách không?</b> (tài chính, phong cách, mục đích xây)</li>'
+                '<li><b>2. Giải quyết vấn đề tài chính chưa?</b> (vượt ngân sách? phương '
+                'án tối ưu? giảm chi phí? giải thích rõ vì sao ra số tiền?)</li>'
+                '<li><b>3. Đúng mong muốn chưa?</b> (số tầng, số phòng, phong cách, mức '
+                'hoàn thiện, thang máy, gara, sân &mdash; tất cả phải khớp)</li>'
+                '</ul>')
+            + _key('Nhân viên phải tự tin: "Nếu mình là khách, mình cũng thấy báo giá '
+                   'này hợp lý". Đó mới là báo giá đạt yêu cầu.')
+            + _example(
+                _table(['Khách nói / muốn', 'Nếu gửi lệch', 'Kết quả'],
+                       [['Tài chính khoảng 2,8 tỷ', 'Gửi báo giá 3,8 tỷ', '<span class="no">SAI</span>'],
+                        ['Khách thích hiện đại', 'Báo giá theo mẫu tân cổ', '<span class="no">SAI</span>'],
+                        ['Khách muốn xây để ở', 'Làm theo tiêu chuẩn đầu tư', '<span class="no">SAI</span>']],
+                       widths=['36%', '40%', '24%']))
+            + _exercise(
+                'Khách nói tài chính khoảng 2,8 tỷ. Báo giá bạn tính ra là 3,8 tỷ. Bạn nên làm gì?',
+                ['Cứ gửi 3,8 tỷ, báo cao để còn thương lượng giảm.',
+                 'Gửi 3,8 tỷ kèm câu "anh/chị tham khảo nhé".',
+                 'Cân đối lại phương án (diện tích/công năng) cho khớp tầm 2,8 tỷ rồi mới gửi.',
+                 'Gửi luôn để khách thấy đẳng cấp.'],
+                '<b>Đáp án C.</b> Báo giá lệch tầm tài chính là vô tác dụng &mdash; '
+                'khách sẽ loại mình. Phải cân đối cho khớp ngân sách rồi mới gửi.'))
+        return _lesson('BƯỚC 1', 'Kiểm tra chất lượng báo giá trước khi gửi',
+                       'Tự trả lời 3 câu hỏi trước khi bấm gửi.', inner)
 
-            + '<h3>1. Báo giá có ĐÚNG NHU CẦU khách không?</h3>'
-            + _table(['Khách nói / muốn', 'Nếu gửi lệch', 'Kết quả'],
-                     [['Tài chính khoảng 2,8 tỷ', 'Lại gửi báo giá 3,8 tỷ', '<span class="no">SAI</span>'],
-                      ['Khách thích hiện đại', 'Lại báo giá theo mẫu tân cổ', '<span class="no">SAI</span>'],
-                      ['Khách muốn xây để ở', 'Lại làm theo tiêu chuẩn đầu tư', '<span class="no">SAI</span>']],
-                     widths=['36%', '40%', '24%'])
-
-            + '<h3>2. Báo giá có GIẢI QUYẾT vấn đề tài chính chưa?</h3>'
-            '<p>Tự soát &mdash; nếu chưa trả lời được thì CHƯA nên gửi:</p>'
-            '<ul>'
-            '<li>Có vượt ngân sách không?</li>'
-            '<li>Có phương án tối ưu không?</li>'
-            '<li>Có phương án giảm chi phí không?</li>'
-            '<li>Có giải thích rõ vì sao lại ra số tiền đó không?</li>'
-            '</ul>'
-
-            + '<h3>3. Báo giá có ĐÚNG MONG MUỐN của khách chưa?</h3>'
-            '<p>Tất cả phải KHỚP: bao nhiêu tầng &middot; bao nhiêu phòng &middot; '
-            'phong cách gì &middot; mức hoàn thiện nào &middot; có thang máy không '
-            '&middot; có gara không &middot; có sân không.</p>'
-            + _key('Nhân viên phải tự tin: &#8220;Nếu mình là khách, mình cũng thấy '
-                   'báo giá này hợp lý&#8221;. Đó mới là báo giá đạt yêu cầu.'))
-
-    # ------------------------------------------------------------------
-    #  BƯỚC 2 — SAU 1-2 NGÀY BẮT BUỘC LẤY PHẢN HỒI
-    # ------------------------------------------------------------------
     def _tdbg_b2(self):
-        return (
-            _step('BƯỚC 2', 'Sau 1&ndash;2 ngày bắt buộc phải lấy phản hồi',
-                  'Gửi báo giá xong rồi im luôn = nguyên nhân mất rất nhiều khách.')
-            + _warn('Sai lầm lớn nhất: gửi báo giá xong&hellip; im luôn &mdash; không '
-                    'gọi, không nhắn, không hỏi.')
-            + '<h3>Mục tiêu: không phải gọi để ép ký, mà để BIẾT khách đang nghĩ gì</h3>'
-            '<p>Ví dụ phải khai thác được:</p>'
-            '<ul>'
-            '<li>Anh/chị đã xem báo giá chưa?</li>'
-            '<li>Anh/chị thấy phần nào hợp lý?</li>'
-            '<li>Phần nào còn băn khoăn?</li>'
-            '<li>Mức đầu tư có phù hợp không?</li>'
-            '<li>Có hạng mục nào anh/chị muốn điều chỉnh không?</li>'
-            '</ul>'
-            + '<h3>Khách im lặng KHÔNG có nghĩa là hết quan tâm</h3>'
-            '<p>Đó là tín hiệu cần tìm hiểu. Có thể vì:</p>'
-            + _table(['Lý do khách im lặng'],
-                     [['Báo giá cao hơn dự kiến'], ['Báo giá chưa đúng nhu cầu'],
-                      ['Chưa hiểu cách tính'], ['Đang chờ đơn vị khác'],
-                      ['Chưa thấy đủ niềm tin'], ['Chưa biết nên hỏi gì']])
-            + _key('Việc của nhân viên là KHAI THÁC, không phải ĐOÁN.'))
+        inner = (
+            _theory(
+                '<p>Sai lầm lớn nhất: gửi báo giá xong rồi <b>im luôn</b>. Sau <b>1&ndash;2 '
+                'ngày bắt buộc phải lấy phản hồi</b> &mdash; không phải để ép ký, mà để '
+                '<b>biết khách đang nghĩ gì</b>. Ví dụ khai thác: đã xem báo giá chưa? '
+                'thấy phần nào hợp lý? phần nào băn khoăn? mức đầu tư phù hợp? có hạng '
+                'mục nào muốn điều chỉnh?</p>')
+            + _key('Khách im lặng KHÔNG có nghĩa là hết quan tâm. Việc của nhân viên là '
+                   'KHAI THÁC, không phải ĐOÁN.')
+            + _example(
+                '<p>Khách im lặng có thể vì:</p>'
+                + _table(['Lý do khách im lặng'],
+                         [['Báo giá cao hơn dự kiến'], ['Báo giá chưa đúng nhu cầu'],
+                          ['Chưa hiểu cách tính'], ['Đang chờ đơn vị khác'],
+                          ['Chưa thấy đủ niềm tin'], ['Chưa biết nên hỏi gì']]))
+            + _exercise(
+                'Bạn gửi báo giá đã 2 ngày, khách không phản hồi gì. Bạn nên làm gì?',
+                ['Coi như khách hết quan tâm, chuyển sang khách khác.',
+                 'Chờ thêm 1 tuần cho khách tự nhắn lại.',
+                 'Chủ động gọi/nhắn để khai thác: khách đã xem chưa, phần nào băn khoăn, mức đầu tư có phù hợp không.',
+                 'Nhắn "anh/chị ký chưa ạ?" để chốt nhanh.'],
+                '<b>Đáp án C.</b> Im lặng là tín hiệu cần tìm hiểu. Mục tiêu cuộc gọi '
+                'là hiểu suy nghĩ khách, không phải ép ký (D sai).'))
+        return _lesson('BƯỚC 2', 'Sau 1&ndash;2 ngày bắt buộc lấy phản hồi',
+                       'Gọi để hiểu khách nghĩ gì, không phải để ép ký.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 3 — GỬI MẪU NHÀ CHO KHÁCH THAM KHẢO
-    # ------------------------------------------------------------------
     def _tdbg_b3(self):
-        return (
-            _step('BƯỚC 3', 'Gửi mẫu nhà cho khách tham khảo',
-                  'Việc bắt buộc &mdash; nhưng KHÔNG được ép khách chốt mẫu nhà.')
-            + '<p>Mục tiêu: cho khách có thêm ý tưởng &middot; cho khách nhìn thấy '
-            'nhiều lựa chọn &middot; giúp khách xác định sở thích.</p>'
-            + _vs('&#8220;Anh chị chọn giúp em một mẫu nhé.&#8221;',
-                  '&#8220;Em gửi thêm một số mẫu nhà có diện tích và mức đầu tư gần với '
-                  'nhu cầu của anh/chị để mình tham khảo.&#8221;')
-            + _say('Em gửi thêm một số mẫu nhà có diện tích và mức đầu tư gần với nhu '
-                   'cầu của anh/chị để mình tham khảo. Nếu có chi tiết nào anh/chị '
-                   'thích, bên em sẽ điều chỉnh thiết kế theo đúng mong muốn của gia đình.')
-            + _key('Khách KHÔNG mua mẫu nhà. Khách mua giải pháp phù hợp với gia đình '
-                   'mình. Vì vậy không được ép khách chốt mẫu nhà.'))
+        inner = (
+            _theory(
+                '<p>Gửi mẫu nhà là việc bắt buộc, nhưng <b>KHÔNG được ép khách chốt '
+                'mẫu</b>. Mục tiêu: cho khách thêm ý tưởng, thấy nhiều lựa chọn, xác '
+                'định sở thích.</p>')
+            + _key('Khách KHÔNG mua mẫu nhà &mdash; khách mua giải pháp phù hợp với gia '
+                   'đình mình.')
+            + _example(
+                '<p><b>KHÔNG nói:</b> &#8220;Anh chị chọn giúp em một mẫu nhé.&#8221;</p>'
+                '<p><b>NÊN nói:</b> &#8220;Em gửi thêm một số mẫu nhà có diện tích và '
+                'mức đầu tư gần với nhu cầu của anh/chị để mình tham khảo. Nếu có chi '
+                'tiết nào anh/chị thích, bên em sẽ điều chỉnh thiết kế theo đúng mong '
+                'muốn của gia đình.&#8221;</p>')
+            + _exercise(
+                'Khi gửi mẫu nhà cho khách tham khảo, câu nào KHÔNG nên nói?',
+                ['&#8220;Anh chị chọn giúp em một mẫu nhé.&#8221;',
+                 '&#8220;Em gửi vài mẫu gần nhu cầu để mình tham khảo.&#8221;',
+                 '&#8220;Thích chi tiết nào bên em điều chỉnh thiết kế theo.&#8221;',
+                 '&#8220;Mấy mẫu này để anh chị có thêm ý tưởng ạ.&#8221;'],
+                '<b>Đáp án A.</b> Ép khách chốt mẫu tạo áp lực. Khách mua giải pháp, '
+                'không mua mẫu nhà.'))
+        return _lesson('BƯỚC 3', 'Gửi mẫu nhà cho khách tham khảo',
+                       'Cho khách thêm ý tưởng &middot; không ép chốt mẫu.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 4 — TẠO CẢM GIÁC CẦN QUYẾT ĐỊNH VỀ THỜI GIAN KHỞI CÔNG
-    # ------------------------------------------------------------------
     def _tdbg_b4(self):
-        return (
-            _step('BƯỚC 4', 'Tạo cảm giác cần quyết định về thời gian khởi công',
-                  'Rất quan trọng, đặc biệt cuối năm &mdash; khách nào cũng muốn xây xong trước Tết.')
-            + '<p>Nếu khởi công muộn: thi công gấp &middot; dễ ảnh hưởng tiến độ '
-            '&middot; khó bàn giao &middot; khó hoàn thiện. Nhân viên phải chủ động '
-            'nhắc khách về yếu tố thời gian.</p>'
-            + _say('Nếu gia đình mình dự kiến ở nhà mới trước Tết thì mình nên triển '
-                   'khai sớm để đảm bảo tiến độ. Nếu để quá sát thời điểm cuối năm thì '
-                   'việc hoàn thiện sẽ rất áp lực.')
+        inner = (
+            _theory(
+                '<p>Đặc biệt cuối năm, khách nào cũng muốn xây xong trước Tết. Khởi '
+                'công muộn dễ dẫn tới: thi công gấp, ảnh hưởng tiến độ, khó bàn giao, '
+                'khó hoàn thiện. Nhân viên chủ động nhắc khách về yếu tố thời gian.</p>')
             + _key('Mục tiêu KHÔNG phải gây áp lực vô lý, mà giúp khách hiểu rõ hệ quả '
-                   'của việc chậm quyết định.'))
+                   'của việc chậm quyết định.')
+            + _example(
+                '<p><b>Câu mẫu:</b> &#8220;Nếu gia đình mình dự kiến ở nhà mới trước '
+                'Tết thì mình nên triển khai sớm để đảm bảo tiến độ. Nếu để quá sát '
+                'thời điểm cuối năm thì việc hoàn thiện sẽ rất áp lực.&#8221;</p>')
+            + _exercise(
+                'Khách còn chần chừ, trong khi đã là cuối năm. Bạn nên nói thế nào?',
+                ['&#8220;Không ký nhanh là giá tăng gấp đôi đấy ạ.&#8221;',
+                 '&#8220;Công ty sắp hết suất nhận công trình rồi.&#8221;',
+                 '&#8220;Nếu gia đình muốn ở nhà mới trước Tết thì nên triển khai sớm để đảm bảo tiến độ, để sát cuối năm hoàn thiện sẽ rất áp lực.&#8221;',
+                 '&#8220;Anh/chị phải khởi công ngay trong tuần này.&#8221;'],
+                '<b>Đáp án C.</b> Giúp khách hiểu hệ quả của việc chậm, không dọa dẫm '
+                'hay ép buộc vô lý (A, B, D đều là gây áp lực).'))
+        return _lesson('BƯỚC 4', 'Tạo cảm giác cần quyết định về thời gian khởi công',
+                       'Nhắc yếu tố thời gian &middot; không gây áp lực vô lý.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 5 — KHAI THÁC TOÀN BỘ KHÚC MẮC (quan trọng nhất)
-    # ------------------------------------------------------------------
     def _tdbg_b5(self):
-        return (
-            _step('BƯỚC 5', 'Khai thác toàn bộ khúc mắc',
-                  'Bước quan trọng nhất: khách chưa ký thì chắc chắn còn vấn đề.')
-            + '<p>Nếu khách chưa ký, chắc chắn còn vấn đề &mdash; nhân viên phải TÌM '
-            'RA, không được tự suy đoán. Những nhóm câu hỏi cần khai thác:</p>'
-            + _table(['Nhóm', 'Câu hỏi cần khai thác'],
-                     [['<b>1. Báo giá</b>', 'Có phù hợp không? Có vượt tài chính không? Có cần điều chỉnh không?'],
-                      ['<b>2. Thiết kế</b>', 'Có thích không? Có cần thay đổi gì? Có cần thêm công năng?'],
-                      ['<b>3. Mẫu nhà</b>', 'Đã đúng phong cách chưa? Có muốn tham khảo thêm không?'],
-                      ['<b>4. Gia đình</b>', 'Đã thống nhất chưa? Ai là người quyết định? Có cần trao đổi thêm với người thân không?'],
-                      ['<b>5. Khởi công</b>', 'Dự kiến khi nào? Có đang chờ việc gì không? Có vướng thủ tục không?'],
-                      ['<b>6. Niềm tin</b>', 'Còn điều gì khiến anh/chị chưa yên tâm khi lựa chọn bên em?']],
-                     widths=['18%', '82%'])
-            + _key('Câu hỏi nhóm 6 &mdash; Niềm tin (&#8220;Còn điều gì khiến anh/chị '
-                   'chưa yên tâm khi lựa chọn bên em?&#8221;) rất quan trọng vì giúp '
-                   'phát hiện RÀO CẢN THẬT SỰ trước khi bước sang giai đoạn ký kết.'))
+        inner = (
+            _theory(
+                '<p><b>Đây là bước quan trọng nhất.</b> Nếu khách chưa ký, chắc chắn '
+                'còn vấn đề &mdash; nhân viên phải TÌM RA, không tự suy đoán. Khai thác '
+                'đủ 6 nhóm câu hỏi.</p>')
+            + _key('Nhóm 6 &mdash; Niềm tin ("Còn điều gì khiến anh/chị chưa yên tâm '
+                   'khi lựa chọn bên em?") giúp phát hiện RÀO CẢN THẬT SỰ trước khi ký.')
+            + _example(
+                _table(['Nhóm', 'Câu hỏi cần khai thác'],
+                       [['1. Báo giá', 'Có phù hợp không? Vượt tài chính không? Cần điều chỉnh không?'],
+                        ['2. Thiết kế', 'Có thích không? Thay đổi gì? Thêm công năng không?'],
+                        ['3. Mẫu nhà', 'Đúng phong cách chưa? Muốn tham khảo thêm không?'],
+                        ['4. Gia đình', 'Đã thống nhất chưa? Ai quyết định? Trao đổi thêm với người thân không?'],
+                        ['5. Khởi công', 'Dự kiến khi nào? Đang chờ việc gì? Vướng thủ tục không?'],
+                        ['6. Niềm tin', 'Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?']],
+                       widths=['20%', '80%']))
+            + _exercise(
+                'Khách đã ưng báo giá và thiết kế nhưng vẫn chưa ký. Câu hỏi nào giúp '
+                'lộ ra rào cản thật sự nhất?',
+                ['&#8220;Có vượt tài chính không ạ?&#8221; (nhóm Báo giá)',
+                 '&#8220;Đã đúng phong cách chưa ạ?&#8221; (nhóm Mẫu nhà)',
+                 '&#8220;Dự kiến khởi công khi nào ạ?&#8221; (nhóm Khởi công)',
+                 '&#8220;Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?&#8221; (nhóm Niềm tin)'],
+                '<b>Đáp án D.</b> Câu hỏi Niềm tin buộc khách nói ra rào cản thật sự '
+                'còn ẩn giấu &mdash; thứ đang chặn khách ký.'))
+        return _lesson('BƯỚC 5', 'Khai thác toàn bộ khúc mắc',
+                       'Bước quan trọng nhất &middot; 6 nhóm câu hỏi.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 6 — KHI KHÔNG CÒN KHÚC MẮC THÌ GỬI HỢP ĐỒNG
-    # ------------------------------------------------------------------
     def _tdbg_b6(self):
-        return (
-            _step('BƯỚC 6', 'Khi không còn khúc mắc thì gửi hợp đồng',
-                  'Đủ điều kiện thì phải chuyển bước, không nói chuyện chung chung nữa.')
-            + '<p>Khi khách đã: <b>đồng ý báo giá + đồng ý phương án + không còn vướng '
-            'mắc lớn</b> thì không tiếp tục nói chuyện chung chung, phải chuyển sang '
-            'bước tiếp theo: <b>gửi hợp đồng để khách nghiên cứu</b>.</p>'
-            + _say('Để gia đình mình có thời gian xem kỹ các điều khoản, bên em sẽ gửi '
-                   'trước hợp đồng để anh/chị đọc. Nếu có nội dung nào cần giải thích '
-                   'hoặc điều chỉnh, em sẽ trao đổi ngay để mình yên tâm trước khi ký.'))
+        inner = (
+            _theory(
+                '<p>Khi khách đã: <b>đồng ý báo giá + đồng ý phương án + không còn vướng '
+                'mắc lớn</b> thì đừng nói chuyện chung chung nữa &mdash; chuyển sang '
+                '<b>gửi hợp đồng để khách nghiên cứu</b>.</p>')
+            + _example(
+                '<p><b>Câu mẫu:</b> &#8220;Để gia đình mình có thời gian xem kỹ các '
+                'điều khoản, bên em sẽ gửi trước hợp đồng để anh/chị đọc. Nếu có nội '
+                'dung nào cần giải thích hoặc điều chỉnh, em sẽ trao đổi ngay để mình '
+                'yên tâm trước khi ký.&#8221;</p>')
+            + _exercise(
+                'Khi nào là thời điểm ĐÚNG để chuyển sang gửi hợp đồng?',
+                ['Ngay khi vừa gửi báo giá, để tạo áp lực chốt.',
+                 'Khi khách đã đồng ý báo giá + phương án và không còn vướng mắc lớn.',
+                 'Khi khách mới chỉ hỏi giá lần đầu.',
+                 'Khi khách còn nhiều băn khoăn nhưng mình muốn thúc.'],
+                '<b>Đáp án B.</b> Chỉ gửi hợp đồng khi đã hết khúc mắc lớn &mdash; gửi '
+                'quá sớm khi khách còn băn khoăn sẽ phản tác dụng.'))
+        return _lesson('BƯỚC 6', 'Khi không còn khúc mắc thì gửi hợp đồng',
+                       'Đủ điều kiện thì chuyển bước, không nói chung chung.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 7 — THEO DÕI HỢP ĐỒNG
-    # ------------------------------------------------------------------
     def _tdbg_b7(self):
-        return (
-            _step('BƯỚC 7', 'Theo dõi hợp đồng',
-                  'Gửi hợp đồng xong rồi mất hút là sai lầm của rất nhiều nhân viên.')
-            + _warn('Sai lầm của nhiều nhân viên: gửi hợp đồng &mdash; xong &mdash; mất hút.')
-            + '<p>Điều đúng phải làm: <b>sau 1&ndash;2 ngày phải hỏi</b>:</p>'
-            '<ul>'
-            '<li>Anh/chị đã xem hợp đồng chưa?</li>'
-            '<li>Có điều khoản nào chưa rõ không?</li>'
-            '<li>Có nội dung nào mình muốn trao đổi thêm không?</li>'
-            '</ul>'
+        inner = (
+            _theory(
+                '<p>Sai lầm của nhiều nhân viên: gửi hợp đồng xong rồi <b>mất hút</b>. '
+                'Điều đúng: <b>sau 1&ndash;2 ngày phải hỏi</b> &mdash; đã xem hợp đồng '
+                'chưa? có điều khoản nào chưa rõ? có nội dung nào muốn trao đổi thêm?</p>')
             + _key('Nếu khách còn băn khoăn thì KHÔNG được bỏ qua &mdash; phải giải '
-                   'quyết ngay.'))
+                   'quyết ngay.')
+            + _exercise(
+                'Bạn đã gửi hợp đồng cho khách 2 ngày, chưa thấy phản hồi. Bạn nên làm gì?',
+                ['Chờ khách tự đọc xong rồi ký gửi lại.',
+                 'Chủ động hỏi lại: đã xem hợp đồng chưa, điều khoản nào chưa rõ, có nội dung nào muốn trao đổi thêm.',
+                 'Nhắn giục khách ký ngay cho kịp.',
+                 'Coi như khách không quan tâm nữa.'],
+                '<b>Đáp án B.</b> Gửi hợp đồng xong phải theo dõi, chủ động hỏi lại sau '
+                '1&ndash;2 ngày &mdash; "mất hút" là sai lầm phổ biến khiến mất khách.'))
+        return _lesson('BƯỚC 7', 'Theo dõi hợp đồng',
+                       'Gửi hợp đồng xong phải chủ động hỏi lại sau 1&ndash;2 ngày.', inner)
 
-    # ------------------------------------------------------------------
-    #  BƯỚC 8 — HẸN KHẢO SÁT VÀ KÝ HỢP ĐỒNG
-    # ------------------------------------------------------------------
     def _tdbg_b8(self):
-        return (
-            _step('BƯỚC 8', 'Hẹn khảo sát và ký hợp đồng',
-                  'Khi khách đã đồng ý báo giá + thiết kế + hợp đồng.')
-            + '<p>Bước tiếp theo là:</p>'
-            '<ul>'
-            '<li>Đề nghị lên lịch khảo sát thực tế.</li>'
-            '<li>Đồng thời thống nhất lịch ký hợp đồng.</li>'
-            '</ul>'
-            '<p>Trao đổi rõ các nội dung cần chuẩn bị, bao gồm quy trình ký kết và '
-            'khoản <b>đặt cọc 50.000.000 đồng</b> theo quy định của công ty (nếu áp '
-            'dụng), để khách chủ động sắp xếp.</p>')
+        inner = (
+            _theory(
+                '<p>Khi khách đã: <b>đồng ý báo giá + thiết kế + hợp đồng</b>, bước tiếp '
+                'theo là: đề nghị lên lịch <b>khảo sát thực tế</b> + thống nhất <b>lịch '
+                'ký hợp đồng</b>. Trao đổi rõ quy trình ký kết và khoản <b>đặt cọc '
+                '50.000.000 đồng</b> theo quy định công ty (nếu áp dụng) để khách chủ '
+                'động sắp xếp.</p>')
+            + _exercise(
+                'Khách đã đồng ý báo giá, thiết kế và hợp đồng. Bước tiếp theo là gì?',
+                ['Gửi thêm một bộ báo giá mới để khách so sánh.',
+                 'Quay lại gửi mẫu nhà từ đầu.',
+                 'Đề nghị lịch khảo sát thực tế + thống nhất lịch ký, trao đổi rõ quy trình ký kết và khoản đặt cọc.',
+                 'Chờ khách tự đến công ty ký.'],
+                '<b>Đáp án C.</b> Đã đồng ý cả 3 thì chốt lịch khảo sát + ký và làm rõ '
+                'khoản đặt cọc 50 triệu (nếu áp dụng).'))
+        return _lesson('BƯỚC 8', 'Hẹn khảo sát và ký hợp đồng',
+                       'Chốt lịch khảo sát + ký &middot; làm rõ đặt cọc 50 triệu.', inner)
 
-    # ------------------------------------------------------------------
-    #  NGUYÊN TẮC VÀNG
-    # ------------------------------------------------------------------
     def _tdbg_gold(self):
-        return (
-            '<h2>&#127942; Nguyên tắc vàng</h2>'
-            '<p style="font-size:18px;color:#111827;font-weight:700;">Một nhân viên '
-            'kinh doanh giỏi không phải là người gửi được nhiều báo giá, mà là người '
-            'biết dẫn dắt khách hàng đi qua từng bước của hành trình ra quyết định.</p>'
-            '<p>Nếu sau mỗi lần liên hệ, khách hàng tiến thêm một bước (phản hồi báo '
-            'giá, giải quyết khúc mắc, xem hợp đồng, hẹn khảo sát...) thì khả năng ký '
-            'hợp đồng sẽ tăng lên rất nhiều.</p>'
-            + _key('Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần '
-                   'tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần hơn '
-                   'tới quyết định ký hợp đồng.'))
+        inner = (
+            _theory(
+                '<p style="font-size:18px;color:#111827;font-weight:700;">Một nhân viên '
+                'kinh doanh giỏi không phải là người gửi được nhiều báo giá, mà là '
+                'người biết dẫn dắt khách hàng đi qua từng bước của hành trình ra quyết '
+                'định.</p>'
+                '<p>Nếu sau mỗi lần liên hệ, khách hàng tiến thêm một bước (phản hồi '
+                'báo giá, giải quyết khúc mắc, xem hợp đồng, hẹn khảo sát...) thì khả '
+                'năng ký hợp đồng sẽ tăng lên rất nhiều.</p>')
+            + _key('Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần tương '
+                   'tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần hơn tới quyết '
+                   'định ký hợp đồng.'))
+        return _lesson('&#127942; NGUYÊN TẮC VÀNG', 'Dẫn dắt khách qua từng bước',
+                       'Tổng kết tư duy cốt lõi của cả khóa.', inner)
 
     # ==================================================================
-    #  20 CÂU HỎI TRẮC NGHIỆM - bám sát file + quy tắc tạo nhóm.
+    #  20 CÂU HỎI TRẮC NGHIỆM (bài thi chấm điểm) - bám sát file + tạo nhóm.
     #  Đáp án nhiễu đều hợp lý để NV phải phân vân. (đáp án, đúng?)
     # ==================================================================
     def _vd_tdbg_questions(self):
         T, F = True, False
         return [
-            # ---- QUY TẮC TẠO NHÓM (Giai đoạn 0) ----
             ('Ngay sau khi gọi điện tư vấn cho khách xong, việc BẮT BUỘC phải làm là gì?',
              [('Bấm nút "Chốt báo giá" rồi lập tức tạo nhóm Zalo với khách', T),
               ('Nhắn tin Zalo cá nhân hỏi thăm khách', F),
@@ -481,7 +550,6 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Đúng 1 mẫu nhà khách chọn', F),
               ('Không cần gửi mẫu nhà lên nhóm', F)]),
 
-            # ---- 8 BƯỚC (bám sát file) ----
             ('Theo khóa học, gửi báo giá cho khách nên được hiểu là gì?',
              [('Điểm BẮT ĐẦU của quá trình chốt hợp đồng', T),
               ('Bước cuối cùng, sau đó chỉ việc chờ khách gọi lại', F),
