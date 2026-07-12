@@ -407,8 +407,13 @@
                         <t t-if="props.editable &amp;&amp; state.editingContent">
                             <div class="o_vd_ed">
                                 <div class="o_vd_ed_head">
-                                    <input class="o_vd_ed_title" t-model="state.editingContent.name" placeholder="Tiêu đề trang nội dung"/>
-                                    <button class="btn o_vd_dlg_ok" t-on-click="closeEditor"><i class="fa fa-check me-1"/>Xong</button>
+                                    <button class="btn o_vd_dlg_ok" t-att-disabled="state.saving" t-on-click="save">
+                                        <i class="fa fa-check me-1"/><t t-esc="state.saving ? 'Đang lưu...' : 'Lưu'"/>
+                                    </button>
+                                    <button class="btn btn-light" t-on-click="downloadCourse" title="Tải nội dung + bài thi của khóa học về dạng PDF">
+                                        <i class="fa fa-download me-1"/>Tải khóa học (PDF)
+                                    </button>
+                                    <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
                                 </div>
                                 <VdRichEditor t-key="state.editingContent._k" html="state.editingContent.body" onChange.bind="onEditorChange"/>
                             </div>
