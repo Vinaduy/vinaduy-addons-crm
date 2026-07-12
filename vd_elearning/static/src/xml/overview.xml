@@ -604,6 +604,8 @@
                             <i t-else="" class="fa fa-graduation-cap o_vd_level_ico"/>
                             <span class="o_vd_level_num" t-esc="node.n"/>
                             <i t-if="node.status=='done'" class="fa fa-check o_vd_done_check"/>
+                            <i t-if="node.status=='locked'" class="fa fa-lock o_vd_lock"/>
+                            <span t-if="node.status=='current'" class="o_vd_playtip">HỌC NGAY</span>
                         </div>
                         <div class="o_vd_level_name" t-esc="node.course.name"/>
                     </div>
