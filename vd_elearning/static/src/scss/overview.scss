@@ -681,6 +681,13 @@ $vd-line2:   #ece7da;
         &:hover { background: #fff; color: #4a3ad1; i { color: #4a3ad1; } }
         &.o_vd_ce_sched:hover { color: #b8860b; i { color: #b8860b; } }
     }
+    // Sua = vang noi bat; Dong = hover do
+    .o_vd_hdr_edit {
+        background: #f1b434; color: #2b2410; border-color: #f1b434;
+        i { color: #2b2410; }
+        &:hover { background: #fff; color: #b8860b; i { color: #b8860b; } }
+    }
+    .o_vd_hdr_close:hover { background: #fff; color: #dc2626; i { color: #dc2626; } }
     // Bo dem gio thi (khi dang thi) - do gon, cung hang header
     .o_vd_exam_timer_bar {
         display: flex; align-items: center; gap: .5rem;

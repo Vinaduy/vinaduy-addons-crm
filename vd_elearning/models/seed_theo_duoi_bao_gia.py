@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v9-1-fml'
+_TDBG_VERSION = 'v9-2-nav'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -45,13 +45,15 @@ _STYLE = (
     '.vd-tdbg .vc-side{flex:0 0 264px;}'
     '.vd-tdbg .vc-sidehead{font-size:12.5px;font-weight:800;letter-spacing:1px;'
     'color:#64748b;text-transform:uppercase;margin:4px 6px 10px;}'
-    '.vd-tdbg .vc-navbtn{display:block;padding:12px 12px;margin:8px 0;border-radius:12px;'
-    'background:#ffffff;color:#475569;font-weight:700;font-size:14.5px;cursor:pointer;'
-    'border:2px solid #eef2f7;transition:all .15s;text-align:center;}'
+    '.vd-tdbg .vc-navbtn{display:flex;align-items:center;gap:8px;text-align:left;'
+    'padding:10px 12px;margin:8px 0;border-radius:12px;'
+    'background:#ffffff;color:#475569;font-weight:700;font-size:14px;cursor:pointer;'
+    'border:2px solid #eef2f7;transition:all .15s;}'
     '.vd-tdbg .vc-navbtn:hover{background:#fff5f1;border-color:#ffd9c9;color:#e8401f;}'
-    '.vd-tdbg .vc-nbadge{display:inline-block;background:#fff1ec;color:#e8401f;font-size:11px;'
-    'font-weight:800;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;margin-bottom:7px;}'
-    '.vd-tdbg .vc-ntitle{display:block;font-weight:700;line-height:1.3;}'
+    '.vd-tdbg .vc-nbadge{flex:0 0 auto;display:inline-block;background:#fff1ec;color:#e8401f;'
+    'font-size:10.5px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:20px;'
+    'white-space:nowrap;}'
+    '.vd-tdbg .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;}'
     '.vd-tdbg .vc-content{flex:1;min-width:0;background:#ffffff;border:1px solid #eef2f7;'
     'border-radius:16px;padding:24px 26px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
     '.vd-tdbg .vc-panel{display:none;}'
@@ -269,7 +271,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     def _vd_tdbg_lessons(self):
         return [
             ('&#129504;', 'MỞ ĐẦU', 'Tư duy &amp; Sai lầm cần tránh', self._l_tuduy()),
-            ('&#128101;', 'GIAI ĐOẠN 0', 'Quy tắc tạo nhóm', self._l_taonhom()),
+            ('&#128101;', '', 'Quy tắc tạo nhóm', self._l_taonhom()),
             ('&#9989;', 'BƯỚC 1', 'Kiểm tra báo giá', self._l_b1()),
             ('&#128222;', 'BƯỚC 2', 'Lấy phản hồi báo giá', self._l_b2()),
             ('&#127919;', 'BƯỚC 3', 'Tín hiệu tiềm năng &rarr; Bám đuổi', self._l_b3()),
@@ -313,7 +315,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_taonhom(self):
         return (
-            self._tag('GIAI ĐOẠN 0 &mdash; BẮT BUỘC ĐẦU TIÊN')
+            self._tag('BẮT BUỘC LÀM ĐẦU TIÊN')
             + '<h3>Quy tắc tạo nhóm</h3>'
             + _box('warn', 'Ngay sau khi gọi điện xong: bấm nút <b>&#8220;Chốt báo '
                    'giá&#8221;</b> rồi <b>LẬP TỨC tạo nhóm Zalo</b> &mdash; chưa nhắn '
@@ -673,7 +675,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'người biết DẪN DẮT khách qua từng bước tới quyết định ký. Sau mỗi '
                    'lần liên hệ, khách phải tiến thêm ít nhất 1 bước.')
             + _table(['Giai đoạn / Bước', 'Công thức thuộc lòng'],
-                     [['<b>Giai đoạn 0 &mdash; Tạo nhóm</b>', 'Chốt báo giá &rarr; tạo nhóm (mình + khách + trưởng phòng) &rarr; đổi ảnh (logo) + tên &rarr; gửi <b>VTV &rarr; Giới thiệu &rarr; Nhu cầu &rarr; 20 mẫu nhà</b>. CẤM nhắn tin riêng.'],
+                     [['<b>Quy tắc tạo nhóm</b>', 'Chốt báo giá &rarr; tạo nhóm (mình + khách + trưởng phòng) &rarr; đổi ảnh (logo) + tên &rarr; gửi <b>VTV &rarr; Giới thiệu &rarr; Nhu cầu &rarr; 20 mẫu nhà</b>. CẤM nhắn tin riêng.'],
                       ['<b>Bước 1 &mdash; Kiểm tra báo giá</b>', 'Báo giá CHUẨN = Đúng tài chính + Đúng nhu cầu + Đúng mong muốn. Lệch 1 trong 3 &rarr; chưa gửi.'],
                       ['<b>Bước 2 &mdash; Phản hồi báo giá</b>', 'KHAI THÁC không ĐOÁN. Hỏi 4 ý: Đã xem kỹ? &mdash; Băn khoăn gì? &mdash; Tài chính hợp? &mdash; Muốn chỉnh gì?'],
                       ['<b>Bước 3 &mdash; Tín hiệu tiềm năng</b>', 'Khách HỎI = Khách QUAN TÂM &rarr; BÁM ĐUỔI NGAY. Không coi nhẹ câu hỏi nhỏ.'],
