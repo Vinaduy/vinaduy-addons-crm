@@ -382,17 +382,15 @@
                     </t>
                 </t>
                 <span t-else="" class="o_vd_hdr_name o_vd_hdr_name_ro" t-esc="state.courseName"/>
-            </t>
-            <div class="o_vd_ce">
-                <!-- TAB -->
-                <div class="o_vd_ce_tabs">
+                <!-- TAB gop len CUNG HANG voi tieu de (mot hang duy nhat) -->
+                <div class="o_vd_hdr_tabs">
                     <button t-if="showContentTab" t-attf-class="o_vd_ce_tab {{state.tab=='content' ? 'active' : ''}}"
                         t-on-click="() => this.setTab('content')"><i class="fa fa-book me-2"/>Nội dung</button>
                     <button t-attf-class="o_vd_ce_tab {{state.tab=='exam' ? 'active' : ''}}"
                         t-on-click="() => this.setTab('exam')"><i class="fa fa-question-circle me-2"/>Bài thi (<t t-esc="state.questions.length"/> câu)</button>
                     <button t-if="props.editable" class="o_vd_ce_cfg" t-on-click="openConfig"><i class="fa fa-cog me-1"/>CẤU HÌNH</button>
                     <button t-if="props.editable" class="o_vd_ce_cfg o_vd_ce_sched" t-on-click="openSchedule"><i class="fa fa-bullhorn me-1"/>LÊN LỊCH HỌC</button>
-                    <!-- BO DEM GIO + LUOT THI - nen do tuoi, cung dong voi tab Bai thi -->
+                    <!-- BO DEM GIO + LUOT THI - nen do tuoi -->
                     <div t-if="!props.editable &amp;&amp; state.contentLocked" class="o_vd_exam_timer_bar">
                         <span class="o_vd_exam_clock"><i class="fa fa-clock-o me-1"/><t t-esc="timeLeftLabel"/></span>
                         <span class="o_vd_exam_metait"><i class="fa fa-check-square-o me-1"/><t t-esc="answeredCount"/>/<t t-esc="state.questions.length"/></span>
@@ -400,7 +398,8 @@
                         <span class="o_vd_exam_lockflag"><i class="fa fa-lock"/></span>
                     </div>
                 </div>
-
+            </t>
+            <div class="o_vd_ce">
                 <div class="o_vd_ce_body">
                     <!-- ============ TAB NOI DUNG ============ -->
                     <t t-if="state.tab=='content'">
