@@ -1,6 +1,6 @@
 {
     'name': 'Vinaduy eLearning',
-    'version': '18.0.1.7.9',
+    'version': '18.0.1.8.0',
     'category': 'Website/eLearning',
     'summary': 'Giao dien hoc online cao cap cho Vinaduy',
     'description': 'Thiet ke lai trang tong quan khoa hoc (courses_home) theo phong cach cao cap, sac net, chuyen nghiep.',

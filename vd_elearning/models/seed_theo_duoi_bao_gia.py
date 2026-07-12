@@ -45,10 +45,13 @@ _STYLE = (
     '.vd-tdbg .vc-side{flex:0 0 264px;}'
     '.vd-tdbg .vc-sidehead{font-size:12.5px;font-weight:800;letter-spacing:1px;'
     'color:#64748b;text-transform:uppercase;margin:4px 6px 10px;}'
-    '.vd-tdbg .vc-navbtn{display:block;padding:12px 14px;margin:8px 0;border-radius:12px;'
+    '.vd-tdbg .vc-navbtn{display:block;padding:12px 12px;margin:8px 0;border-radius:12px;'
     'background:#ffffff;color:#475569;font-weight:700;font-size:14.5px;cursor:pointer;'
-    'border:2px solid #eef2f7;transition:all .15s;}'
+    'border:2px solid #eef2f7;transition:all .15s;text-align:center;}'
     '.vd-tdbg .vc-navbtn:hover{background:#fff5f1;border-color:#ffd9c9;color:#e8401f;}'
+    '.vd-tdbg .vc-nbadge{display:inline-block;background:#fff1ec;color:#e8401f;font-size:11px;'
+    'font-weight:800;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;margin-bottom:7px;}'
+    '.vd-tdbg .vc-ntitle{display:block;font-weight:700;line-height:1.3;}'
     '.vd-tdbg .vc-content{flex:1;min-width:0;background:#ffffff;border:1px solid #eef2f7;'
     'border-radius:16px;padding:24px 26px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
     '.vd-tdbg .vc-panel{display:none;}'
@@ -63,7 +66,7 @@ _STYLE = (
     '.vd-tdbg .fml{background:linear-gradient(135deg,#faf5ff,#eef2ff);border:2px solid #c4b5fd;'
     'border-radius:12px;padding:13px 16px;margin:14px 0;}'
     '.vd-tdbg .fml .fh{font-weight:800;color:#6d28d9;font-size:12.5px;letter-spacing:.6px;margin-bottom:5px;}'
-    '.vd-tdbg .fml .fb{color:#4c1d95;font-weight:600;}'
+    '.vd-tdbg .fml .fml-b{color:#4c1d95;font-weight:600;}'
     # thứ tự đánh số
     '.vd-tdbg .vc-order{margin:12px 0;border:1px solid #ffd9c9;border-radius:12px;overflow:hidden;}'
     '.vd-tdbg .vc-ostep{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;'
@@ -105,7 +108,7 @@ def _box(kind, text):
 
 def _fml(text):
     return ('<div class="fml"><div class="fh">&#128208; CÔNG THỨC THUỘC LÒNG</div>'
-            '<div class="fb">' + text + '</div></div>')
+            '<div class="fml-b">' + text + '</div></div>')
 
 
 def _table(head, rows, widths=None):
@@ -227,16 +230,20 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     def _vd_tdbg_app(self):
         lessons = self._vd_tdbg_lessons()
         radios = navbtns = panels = rules = ''
-        for i, (icon, menu, body) in enumerate(lessons):
+        for i, (icon, badge, title, body) in enumerate(lessons):
             rid = 'vdL' + str(i)
             pid = 'vdP' + str(i)
             radios += ('<input class="navr" type="radio" name="vdnav" id="' + rid + '"'
                        + (' checked' if i == 0 else '') + '>')
-            navbtns += '<label class="vc-navbtn" for="' + rid + '">' + icon + ' ' + menu + '</label>'
+            badge_html = ('<span class="vc-nbadge">' + badge + '</span>') if badge else ''
+            navbtns += ('<label class="vc-navbtn" for="' + rid + '">' + badge_html
+                        + '<span class="vc-ntitle">' + icon + ' ' + title + '</span></label>')
             panels += '<section class="vc-panel" id="' + pid + '">' + body + '</section>'
             rules += '#' + rid + ':checked ~ .vc-layout #' + pid + '{display:block}'
             rules += ('#' + rid + ':checked ~ .vc-layout label[for=' + rid + ']'
                       '{background:#e8401f;color:#fff;border-color:#e8401f}')
+            rules += ('#' + rid + ':checked ~ .vc-layout label[for=' + rid + '] .vc-nbadge'
+                      '{background:#ffffff;color:#e8401f}')
         hero = (
             '<div style="background:linear-gradient(120deg,#ff7a45 0%,#ff9e5e 55%,#ffb877 100%);'
             'border-radius:16px;padding:24px 26px;margin-bottom:14px;'
@@ -261,17 +268,17 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
 
     def _vd_tdbg_lessons(self):
         return [
-            ('&#129504;', 'Tư duy &amp; Sai lầm cần tránh', self._l_tuduy()),
-            ('&#128101;', 'Quy tắc tạo nhóm', self._l_taonhom()),
-            ('&#9989;', 'Bước 1: Kiểm tra báo giá', self._l_b1()),
-            ('&#128222;', 'Bước 2: Lấy phản hồi báo giá', self._l_b2()),
-            ('&#127919;', 'Bước 3: Tín hiệu tiềm năng &rarr; Bám đuổi', self._l_b3()),
-            ('&#9200;', 'Bước 4: Thời gian khởi công', self._l_b4()),
-            ('&#128269;', 'Bước 5: Khai thác &amp; xử lý khúc mắc', self._l_b5()),
-            ('&#128196;', 'Bước 6: Gửi hợp đồng', self._l_b6()),
-            ('&#128064;', 'Bước 7: Lấy phản hồi hợp đồng', self._l_b7()),
-            ('&#9997;&#65039;', 'Bước 8: Hẹn khảo sát &amp; ký (chốt)', self._l_b8()),
-            ('&#127942;', 'Nguyên tắc vàng (tổng hợp)', self._l_gold()),
+            ('&#129504;', 'MỞ ĐẦU', 'Tư duy &amp; Sai lầm cần tránh', self._l_tuduy()),
+            ('&#128101;', 'GIAI ĐOẠN 0', 'Quy tắc tạo nhóm', self._l_taonhom()),
+            ('&#9989;', 'BƯỚC 1', 'Kiểm tra báo giá', self._l_b1()),
+            ('&#128222;', 'BƯỚC 2', 'Lấy phản hồi báo giá', self._l_b2()),
+            ('&#127919;', 'BƯỚC 3', 'Tín hiệu tiềm năng &rarr; Bám đuổi', self._l_b3()),
+            ('&#9200;', 'BƯỚC 4', 'Thời gian khởi công', self._l_b4()),
+            ('&#128269;', 'BƯỚC 5', 'Khai thác &amp; xử lý khúc mắc', self._l_b5()),
+            ('&#128196;', 'BƯỚC 6', 'Gửi hợp đồng', self._l_b6()),
+            ('&#128064;', 'BƯỚC 7', 'Lấy phản hồi hợp đồng', self._l_b7()),
+            ('&#9997;&#65039;', 'BƯỚC 8', 'Hẹn khảo sát &amp; ký (chốt)', self._l_b8()),
+            ('&#127942;', 'TỔNG KẾT', 'Nguyên tắc vàng', self._l_gold()),
         ]
 
     # ------------------------------------------------------------------
