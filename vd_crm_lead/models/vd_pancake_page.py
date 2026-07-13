@@ -26,6 +26,10 @@ _PANCAKE_API_BASE = 'https://pages.fm/api/public_api/v1'
 # Botcake (chatbot) public API — auth qua HEADER 'access-token'. Kho khách
 # (customer) ở đây chứa SĐT khách để lại form/chat (user xác nhận 2026-06-26).
 _BOTCAKE_API_BASE = 'https://botcake.io/api/public_api/v1'
+# Pancake INTERNAL API (pancake.vn) — dùng cho ZALO CÁ NHÂN. API public
+# (pages.fm) trả rỗng cho Zalo cá nhân; chỉ internal API + token PHIÊN đăng
+# nhập mới lấy được hội thoại/SĐT (recent_phone_numbers[].captured).
+_PANCAKE_INTERNAL_BASE = 'https://pancake.vn/api/v1'
 _VN_PHONE_RE = re.compile(r'(?:\+84|0)\d{9,10}')
 
 
@@ -50,12 +54,13 @@ class VdPancakePage(models.Model):
         [('facebook', 'Facebook (Fanpage)'),
          ('tiktok', 'TikTok'),
          ('instagram', 'Instagram'),
+         ('zalo', 'Zalo cá nhân'),
          ('other', 'Khác')],
         string='Nền tảng',
         default='facebook',
         required=True,
         help='Quy định prefix tên KH: Facebook → (Fanpage), TikTok → (Tiktok), '
-             'Instagram → (Instagram), Khác → (Pancake).',
+             'Instagram → (Instagram), Zalo → (Zalo), Khác → (Pancake).',
     )
 
     @api.onchange('page_access_token')
@@ -95,6 +100,8 @@ class VdPancakePage(models.Model):
                 self.platform = 'facebook'
             elif self.page_id.startswith('ttm_') or self.page_id.startswith('tt_'):
                 self.platform = 'tiktok'
+            elif self.page_id.startswith('pzl_'):
+                self.platform = 'zalo'
     page_access_token = fields.Char(
         string='Page Access Token',
         help='Token Pancake cấp cho page (dùng để gọi API REST nếu cần).',
@@ -103,6 +110,21 @@ class VdPancakePage(models.Model):
         string='Botcake API Key',
         help='Public API key trong Botcake (Tích hợp → API). Dùng để KÉO khách + '
              'SĐT từ kho Customer của Botcake về CRM (form quảng cáo / chat).',
+    )
+    vd_zalo_session_token = fields.Char(
+        string='Zalo session token',
+        help='Token PHIÊN đăng nhập Pancake (KHÁC page_access_token). Zalo cá nhân '
+             'không có webhook và API public trả rỗng, nên phải kéo qua internal API '
+             'pancake.vn bằng token phiên. Lấy từ F12 → Network → request tới '
+             'pancake.vn/api/v1/... → copy access_token. Hạn ~90 ngày, hết hạn cần '
+             'lấy lại. Giải mã ra id KHÁC "pzl_".',
+    )
+    vd_zalo_token_invalid = fields.Boolean(
+        string='Token Zalo hết hạn',
+        readonly=True,
+        copy=False,
+        help='Bật khi internal API báo token phiên hết hạn/không hợp lệ → cần cập '
+             'nhật lại vd_zalo_session_token.',
     )
     webhook_secret = fields.Char(
         string='Webhook secret',
@@ -173,6 +195,7 @@ class VdPancakePage(models.Model):
             'facebook': '(Fanpage)',
             'tiktok': '(Tiktok)',
             'instagram': '(Instagram)',
+            'zalo': '(Zalo)',
             'other': '(Pancake)',
         }.get(self.platform, '(Pancake)')
 
@@ -419,14 +442,19 @@ class VdPancakePage(models.Model):
         pages = self.search([
             ('active', '=', True),
             ('auto_create_lead', '=', True),
-            ('page_access_token', '!=', False),
+            '|', ('page_access_token', '!=', False),
+                 ('vd_zalo_session_token', '!=', False),
         ])
         Lead = self.env['crm.lead'].sudo()
         ResUsers = self.env['res.users'].sudo()
         grand = 0
         for p in pages:
             try:
-                grand += p._pull_pancake_phones(Lead, ResUsers, days, max_conversations)
+                if p.vd_zalo_session_token:
+                    # Zalo cá nhân: kéo qua internal API (public API trả rỗng).
+                    grand += p._pull_pancake_internal(Lead, ResUsers)
+                if p.page_access_token:
+                    grand += p._pull_pancake_phones(Lead, ResUsers, days, max_conversations)
             except Exception:
                 _logger.exception('Cron Pancake phone sync lỗi page %s', p.name)
         if grand:
@@ -482,6 +510,82 @@ class VdPancakePage(models.Model):
             if len(conversations) < 60:
                 break
         return created
+
+    # ============================================================
+    # ZALO CÁ NHÂN — kéo qua INTERNAL API (pancake.vn) + token PHIÊN
+    # API public (pages.fm) trả rỗng cho Zalo cá nhân; internal API mới có
+    # hội thoại + recent_phone_numbers. Phân trang page_number/last_id bị
+    # bỏ qua → kéo trang mặc định (hội thoại gần nhất), cron 15' bắt khách
+    # mới. Dedup theo customer_id trong _sync_one_conversation.
+    # ============================================================
+    def _pull_pancake_internal(self, Lead, ResUsers):
+        """Kéo hội thoại Zalo cá nhân qua internal API. Trả số lead tạo mới.
+        Token phiên hết hạn → set vd_zalo_token_invalid + log, không chặn page
+        khác. Lỗi mạng nuốt (log)."""
+        self.ensure_one()
+        tok = (self.vd_zalo_session_token or '').strip()
+        if not tok:
+            return 0
+        url = '%s/pages/%s/conversations' % (_PANCAKE_INTERNAL_BASE, self.page_id)
+        created = 0
+        seen = set()
+        last_id = None
+        for _guard in range(50):  # cursor an toàn — hiện API trả cùng trang
+            params = {'access_token': tok}
+            if last_id:
+                params['last_conversation_id'] = last_id
+            try:
+                resp = requests.get(url, params=params, timeout=30)
+                data = resp.json()
+            except Exception as e:
+                _logger.warning('Zalo internal pull %s: API lỗi — %s', self.name, e)
+                break
+            if isinstance(data, dict) and data.get('success') is False:
+                msg = (data.get('message') or '').lower()
+                if 'access_token' in msg or 'token' in msg or resp.status_code in (401, 403):
+                    if not self.vd_zalo_token_invalid:
+                        self.sudo().vd_zalo_token_invalid = True
+                    _logger.warning('Zalo internal %s: token phiên hết hạn — %s',
+                                    self.name, data.get('message'))
+                else:
+                    _logger.warning('Zalo internal %s: API trả %s', self.name,
+                                    data.get('message'))
+                break
+            convs = (data.get('conversations') if isinstance(data, dict) else None) or []
+            new = [c for c in convs if c.get('id') and c['id'] not in seen]
+            if not new:
+                break
+            # Token dùng được → gỡ cờ hết hạn nếu đang bật.
+            if self.vd_zalo_token_invalid:
+                self.sudo().vd_zalo_token_invalid = False
+            for conv in new:
+                seen.add(conv['id'])
+                try:
+                    if self._sync_one_conversation(conv, Lead, ResUsers) == 'created':
+                        created += 1
+                except Exception:
+                    _logger.exception('Zalo internal conv %s lỗi', conv.get('id'))
+            last_id = convs[-1].get('id')
+        if created:
+            self.last_event_at = fields.Datetime.now()
+        return created
+
+    def action_sync_zalo_internal(self):
+        """Nút thủ công: kéo Zalo cá nhân ngay bây giờ."""
+        self.ensure_one()
+        if not self.vd_zalo_session_token:
+            raise UserError(_('Page "%s" chưa có Zalo session token.') % self.name)
+        created = self._pull_pancake_internal(
+            self.env['crm.lead'].sudo(), self.env['res.users'].sudo())
+        msg = _('Zalo "%s": tạo %s lead mới có SĐT.') % (self.name, created)
+        if self.vd_zalo_token_invalid:
+            msg = _('Token phiên Zalo đã hết hạn — hãy cập nhật lại vd_zalo_session_token.')
+        return {
+            'type': 'ir.actions.client', 'tag': 'display_notification',
+            'params': {'title': _('Đồng bộ Zalo'), 'message': msg,
+                       'type': 'warning' if self.vd_zalo_token_invalid else 'success',
+                       'sticky': False},
+        }
 
     def _fetch_customer_phone(self, customer_id):
         """Gọi Pancake API lấy SĐT của 1 page_customer."""

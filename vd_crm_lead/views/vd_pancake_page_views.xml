@@ -39,6 +39,11 @@
                             string="🔄 Sinh lại Webhook Secret"
                             confirm="Sau khi rotate, URL webhook MỚI phải được cập nhật bên Pancake. Tiếp tục?"
                             class="btn-warning"/>
+                    <button name="action_sync_zalo_internal" type="object"
+                            string="📲 Đồng bộ Zalo cá nhân (ngay)"
+                            class="btn-primary"
+                            invisible="not vd_zalo_session_token"
+                            help="Kéo hội thoại Zalo cá nhân qua internal API (pancake.vn) bằng token phiên. Chạy tự động mỗi 15 phút; nút này để kéo ngay."/>
                     <button name="action_view_leads" type="object"
                             string="👥 Xem KH từ page này"
                             class="btn-secondary"/>
@@ -69,6 +74,13 @@
                                    password="True"
                                    placeholder="eyJhbGci... (Public API key)"
                                    help="Botcake → Tích hợp → API → Public API key. Dùng để kéo khách + SĐT từ kho Customer."/>
+                            <field name="vd_zalo_session_token"
+                                   password="True"
+                                   placeholder="eyJhbGci... (token PHIÊN, chỉ Zalo cá nhân)"
+                                   invisible="platform != 'zalo'"
+                                   help="CHỈ Zalo cá nhân. Token phiên đăng nhập Pancake (F12 -> Network -> request pancake.vn -> access_token). Zalo cá nhân không có webhook nên phải kéo qua internal API."/>
+                            <field name="vd_zalo_token_invalid" invisible="not vd_zalo_token_invalid"
+                                   readonly="1"/>
                             <field name="team_id" options="{'no_create': True}"/>
                         </group>
                         <group string="⚙️ Trạng thái">
@@ -78,8 +90,20 @@
                         </group>
                     </group>
 
-                    <separator string="🌐 Webhook URL — copy dán vào Pancake"/>
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert alert-warning" role="alert" invisible="platform != 'zalo'">
+                        <p class="mb-1"><b>📲 Zalo cá nhân — KHÔNG có webhook.</b></p>
+                        <p class="mb-0">
+                            Zalo không mở webhook cho tài khoản cá nhân nên hệ thống kéo hội thoại
+                            qua <b>internal API (pancake.vn)</b> bằng <b>token phiên</b> ở trên,
+                            tự động mỗi 15 phút. Token phiên hết hạn (~90 ngày) thì lấy lại:
+                            F12 → Network → request tới <code>pancake.vn/api/v1/...</code> → copy
+                            <code>access_token</code> → dán lại vào ô "Zalo session token".
+                        </p>
+                    </div>
+
+                    <separator string="🌐 Webhook URL — copy dán vào Pancake"
+                               invisible="platform == 'zalo'"/>
+                    <div class="alert alert-info" role="alert" invisible="platform == 'zalo'">
                         <p><b>Cách kết nối Pancake:</b></p>
                         <ol>
                             <li>Liên hệ support Pancake → đăng ký nhận webhook cho page <b><field name="page_id" readonly="1" nolabel="1"/></b> (tốn 2 slot/page).</li>
