@@ -295,9 +295,13 @@ class VdPancakePage(models.Model):
             },
         }
 
-    def _sync_one_conversation(self, conv, Lead, ResUsers):
+    def _sync_one_conversation(self, conv, Lead, ResUsers, record_conv=False):
         """Process 1 conversation dict từ Pancake API → tạo lead nếu có SĐT.
         Return: 'created' | 'existing' | 'no_phone'
+
+        record_conv=True → GHI bản ghi vd.pancake.conversation (create_if_missing)
+        để "khách nhắn" đếm được. Dùng cho ZALO cá nhân (không có webhook nên
+        không nguồn nào khác ghi hội thoại). FB/TikTok để False vì webhook đã ghi.
         """
         self.ensure_one()
         conv_id = conv.get('id')
@@ -392,7 +396,7 @@ class VdPancakePage(models.Model):
             self.env['vd.pancake.conversation'].sudo()._vd_touch(
                 self, conv_id, customer_id=str(customer_id),
                 customer_name=customer_name, phone=phone, lead=new_lead,
-                create_if_missing=False,
+                create_if_missing=record_conv,
                 when=self._parse_pancake_dt(conv.get('inserted_at')))
         except Exception:
             pass
@@ -561,7 +565,8 @@ class VdPancakePage(models.Model):
             for conv in new:
                 seen.add(conv['id'])
                 try:
-                    if self._sync_one_conversation(conv, Lead, ResUsers) == 'created':
+                    if self._sync_one_conversation(
+                            conv, Lead, ResUsers, record_conv=True) == 'created':
                         created += 1
                 except Exception:
                     _logger.exception('Zalo internal conv %s lỗi', conv.get('id'))

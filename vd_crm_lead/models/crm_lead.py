@@ -6760,7 +6760,8 @@ class CrmLead(models.Model):
                 # Phân loại theo TIỀN TỐ conversation_id ('ttm_' = TikTok) — bền
                 # vững: TikTok conv_id luôn bắt đầu 'ttm_'. KHÔNG dùng customer_id
                 # (nay là PSID số) vì sẽ nhét nhầm khách TikTok vào Facebook.
-                if (l.vd_pancake_conversation_id or '').startswith('ttm_'):
+                # ZALO cá nhân (conv_id 'pzl_') GỘP vào cột TikTok (user spec 2026-07-13).
+                if (l.vd_pancake_conversation_id or '').startswith(('ttm_', 'pzl_')):
                     per_tt[uid] = per_tt.get(uid, 0) + 1
                 else:
                     per_fb[uid] = per_fb.get(uid, 0) + 1

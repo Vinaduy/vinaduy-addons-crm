@@ -166,7 +166,8 @@ class VdPancakeConversation(models.Model):
             "SELECT plat, count(*) FROM ("
             "  SELECT customer_id, min(first_message_at) AS fe, "
             "    bool_or(has_phone) AS co_phone, "
-            "    CASE WHEN bool_or(conversation_id LIKE 'ttm\\_%%') THEN 'tiktok' "
+            "    CASE WHEN bool_or(conversation_id LIKE 'ttm\\_%%' "
+            "                   OR conversation_id LIKE 'pzl\\_%%') THEN 'tiktok' "
             "         ELSE 'facebook' END AS plat "
             "  FROM vd_pancake_conversation "
             "  WHERE customer_id IS NOT NULL AND customer_id <> '' "
@@ -190,8 +191,10 @@ class VdPancakeConversation(models.Model):
         xin_all = Lead.with_context(active_test=False).search_count(base)
         # TikTok nhận diện qua conversation_id (bắt đầu 'ttm_') — KHÔNG dùng
         # customer_id nữa (nay là PSID số). Nhất quán với cách đếm "khách nhắn".
+        # ZALO ('pzl_') gộp vào TikTok (user spec 2026-07-13).
         xin_tt = Lead.with_context(active_test=False).search_count(
-            base + [('vd_pancake_conversation_id', 'like', 'ttm_')])
+            base + ['|', ('vd_pancake_conversation_id', 'like', 'ttm_'),
+                         ('vd_pancake_conversation_id', 'like', 'pzl_')])
         xin_fb = max(0, xin_all - xin_tt)
 
         def _mk(total, wp):
