@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v9-3-gap'
+_TDBG_VERSION = 'v10-restructure'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -270,9 +270,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
 
     def _vd_tdbg_lessons(self):
         return [
-            ('&#129504;', 'MỞ ĐẦU', 'Tư duy &amp; Sai lầm cần tránh', self._l_tuduy()),
-            ('&#128101;', '', 'Quy tắc tạo nhóm', self._l_taonhom()),
-            ('&#9989;', 'BƯỚC 1', 'Kiểm tra báo giá', self._l_b1()),
+            ('&#128170;', 'BƯỚC 1', 'Tự tin báo giá', self._l_b1()),
             ('&#128222;', 'BƯỚC 2', 'Lấy phản hồi báo giá', self._l_b2()),
             ('&#127919;', 'BƯỚC 3', 'Tín hiệu tiềm năng &rarr; Bám đuổi', self._l_b3()),
             ('&#9200;', 'BƯỚC 4', 'Thời gian khởi công', self._l_b4()),
@@ -284,120 +282,104 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         ]
 
     # ------------------------------------------------------------------
-    def _l_tuduy(self):
-        return (
-            self._tag('TƯ DUY NỀN TẢNG')
-            + '<h3>Gửi báo giá là BẮT ĐẦU, không phải kết thúc</h3>'
-            + _box('err', '<b>Sai lầm chí mạng:</b> Gửi báo giá xong rồi&hellip; im '
-                   'lặng chờ khách gọi lại. Đây là nguyên nhân mất rất nhiều khách.')
-            + '<p>Khách đang xây nhà thường cùng lúc: xem rất nhiều đơn vị &middot; '
-            'chưa hiểu hết báo giá &middot; chưa biết nên hỏi gì &middot; đang cân '
-            'nhắc tài chính &middot; đang so sánh. Không chủ động dẫn dắt thì khách '
-            'nghiêng dần sang đơn vị khác.</p>'
-            + '<h4>Tư duy đúng</h4>'
-            + _nendont(
-                ['Chủ động nhắc &amp; đồng hành cùng khách sau báo giá',
-                 'Bán GIẢI PHÁP phù hợp gia đình khách, không chỉ bán giá',
-                 'Mỗi lần liên hệ đưa khách tiến thêm 1 bước'],
-                ['Gửi xong rồi ngồi chờ khách gọi lại',
-                 'Chỉ chăm chăm so sánh con số tiền với đối thủ',
-                 'Để khách &#8220;treo&#8221;, im lặng quá lâu'])
-            + _fml('Sau báo giá: <b>Báo giá &rarr; Phản hồi &rarr; Hiểu suy nghĩ &rarr; '
-                   'Gỡ khúc mắc &rarr; Gửi hợp đồng &rarr; Gỡ khúc mắc HĐ &rarr; Hẹn ký</b>. '
-                   'Khách im lặng = quy trình đang DỪNG lại.')
-            + _quiz('qz_tuduy',
-                    'Sau khi gửi báo giá 24h mà khách chưa phản hồi, hành động nào chuyên nghiệp nhất?',
-                    [('Gọi điện giục khách ký hợp đồng ngay', False),
-                     ('Nhắn/gọi hỏi thăm khách đã nhận báo giá chưa và có cần giải thích thêm không', True),
-                     ('Tiếp tục im lặng chờ thêm 1 tuần', False)],
-                    'Chủ động quan tâm để hiểu khách nghĩ gì &mdash; không ép, không bỏ mặc.'))
-
-    # ------------------------------------------------------------------
-    def _l_taonhom(self):
-        return (
-            self._tag('BẮT BUỘC LÀM ĐẦU TIÊN')
-            + '<h3>Quy tắc tạo nhóm</h3>'
-            + _box('warn', 'Ngay sau khi gọi điện xong: bấm nút <b>&#8220;Chốt báo '
-                   'giá&#8221;</b> rồi <b>LẬP TỨC tạo nhóm Zalo</b> &mdash; chưa nhắn '
-                   'tin trao đổi vội.')
-            + _box('err', '<b>CẤM nhắn tin riêng (Zalo cá nhân) với khách.</b> Zalo cá '
-                   'nhân chỉ dùng để GỌI ĐIỆN; còn nhắn tin thì lái khách lên nhóm.')
-            + '<h4>Vì sao cấm nhắn tin riêng?</h4>'
-            + _table(['Rủi ro', 'Vì sao xảy ra'],
-                     [['<b>Ký hợp đồng về sau rất khó</b>',
-                       'Khách chỉ biết/quan tâm mỗi người tư vấn cá nhân (bạn), không quan tâm ai khác trong nhóm.'],
-                      ['<b>Khó chuyển giao thiết kế - thi công</b>',
-                       'Khách quen làm việc cá nhân, chỉ biết người ban đầu; về sau không muốn làm việc với người khác/tập thể.'],
-                      ['<b>Kế toán thu tiền khó</b>',
-                       'Khách không biết phải làm việc với ai để thanh toán.']],
-                     widths=['32%', '68%'])
-            + '<h4>Tạo nhóm thế nào?</h4>'
-            + '<p>Nhóm gồm tối thiểu <b>bản thân + khách hàng + trưởng phòng</b>. Ngay '
-            'sau khi tạo: <b>đổi ảnh đại diện = logo công ty</b> + <b>đổi tên nhóm '
-            'theo quy tắc quy định</b>.</p>'
-            + '<h4>&#128204; THỨ TỰ GỬI TIN NHẮN ZALO (thuộc lòng &mdash; gửi ĐÚNG thứ tự)</h4>'
-            + _order([
-                ('4 VIDEO VTV', 'Nội dung PHẢI gửi ĐẦU TIÊN &mdash; tạo uy tín, khẳng định thương hiệu ngay từ đầu.'),
-                ('LỜI CHÀO &amp; GIỚI THIỆU BẢN THÂN', 'Giới thiệu mình là người đồng hành, tạo thiện cảm.'),
-                ('TỔNG HỢP NHU CẦU &amp; CÔNG NĂNG KHÁCH', 'Chốt lại đúng những gì khách muốn &mdash; cho khách thấy mình đã lắng nghe kỹ.'),
-                ('TỐI THIỂU 20 MẪU NHÀ', 'Cho khách thêm ý tưởng, nhiều lựa chọn, tự xác định sở thích &mdash; KHÔNG ép khách chốt mẫu.'),
-                ('SAU ĐÓ MỚI NHẮN TIN BÌNH THƯỜNG', 'Đủ 4 nội dung trên mới trao đổi tiếp &mdash; và luôn trao đổi TRÊN NHÓM.'),
-            ])
-            + _box('info', '<b>Về mẫu nhà:</b> khách KHÔNG mua mẫu nhà &mdash; khách mua '
-                   'giải pháp phù hợp với gia đình. Gửi mẫu để khách có ý tưởng và bộc '
-                   'lộ sở thích.')
-            + _nendont(
-                ['Gửi đủ &amp; đúng thứ tự 4 nội dung rồi mới trao đổi',
-                 'Gửi tối thiểu 20 mẫu để khách có nhiều lựa chọn',
-                 'Luôn phản hồi trên NHÓM'],
-                ['Nhảy cóc, gửi mẫu nhà trước cả video VTV',
-                 'Ép khách &#8220;chọn giúp em 1 mẫu&#8221;',
-                 'Trả lời khách ở Zalo cá nhân'])
-            + _fml('Chốt báo giá &rarr; Tạo nhóm (mình + khách + trưởng phòng) &rarr; '
-                   'Đổi ảnh (logo) + đổi tên &rarr; <b>VTV &rarr; Giới thiệu &rarr; Nhu '
-                   'cầu &rarr; 20 mẫu nhà</b> &rarr; rồi mới nhắn tin.')
-            + _quiz('qz_nhom',
-                    'Sau khi tạo nhóm, nội dung phải gửi ĐẦU TIÊN theo đúng thứ tự là gì?',
-                    [('4 video VTV', True),
-                     ('Lời chào giới thiệu bản thân', False),
-                     ('Gửi ngay 20 mẫu nhà', False),
-                     ('Bảng báo giá chi tiết', False)],
-                    'Thứ tự: 4 video VTV &rarr; giới thiệu &rarr; tổng hợp nhu cầu &rarr; 20 mẫu nhà.'))
-
+    #  (Đã bỏ bài "Tư duy & Sai lầm cần tránh": gộp vào TỔNG KẾT - Nguyên
+    #   tắc vàng. Đã bỏ bài "Quy tắc tạo nhóm": trùng nội dung khóa khác.)
     # ------------------------------------------------------------------
     def _l_b1(self):
         return (
-            self._tag('BƯỚC 1')
-            + '<h3>Kiểm tra chất lượng báo giá trước khi gửi</h3>'
-            + _box('warn', 'Đừng gửi kiểu &#8220;Em gửi anh/chị tham khảo nhé&#8221;. '
-                   'Nếu chính nhân viên còn không tự tin thì khách càng không tin.')
-            + '<h4>Tự trả lời 3 câu trước khi bấm gửi</h4>'
+            self._tag('BƯỚC 1 &mdash; NỀN MÓNG CỦA CẢ QUY TRÌNH')
+            + '<h3>Tự tin báo giá</h3>'
+            + _box('ok', '<b>Công thức cốt lõi:</b> nhân viên phải THỰC SỰ TỰ TIN rằng '
+                   'báo giá này là phương án <b>ưng ý nhất</b> với khách &mdash; tức là '
+                   'báo giá <b>khớp với tầm tài chính</b> của khách. Chính mình còn không '
+                   'tin thì khách càng không tin.')
+            + '<p>Sự tự tin đó KHÔNG đến từ cảm tính, mà đến từ việc bạn đã <b>cân đối '
+            'được tài chính</b> và <b>hiểu chắc năng lực thật</b> của khách. Đây là nền '
+            'móng: làm chắc Bước 1 thì các bước theo đuổi phía sau mới có ý nghĩa.</p>'
+
+            + '<h4>1&#65039;&#8419; Tự trả lời 3 câu trước khi bấm gửi</h4>'
             + _table(['Câu tự kiểm', 'Kiểm tra điều gì', 'Nếu CHƯA đạt'],
-                     [['<b>1. Đúng nhu cầu khách?</b>', 'Tài chính, phong cách, mục đích xây có khớp không', 'Chưa gửi &mdash; hỏi lại nhu cầu, sửa cho khớp'],
-                      ['<b>2. Giải quyết tài chính?</b>', 'Có vượt ngân sách? có phương án tối ưu/giảm chi phí? có giải thích rõ vì sao ra số tiền?', 'Cân đối lại phương án rồi mới gửi'],
-                      ['<b>3. Đúng mong muốn?</b>', 'Số tầng, phòng, phong cách, mức hoàn thiện, thang máy, gara, sân', 'Sửa cho tất cả KHỚP']],
+                     [['<b>Đúng nhu cầu khách?</b>', 'Tài chính, phong cách, mục đích xây có khớp không', 'Chưa gửi &mdash; hỏi lại nhu cầu, sửa cho khớp'],
+                      ['<b>Giải quyết tài chính?</b>', 'Có vượt ngân sách? có phương án tối ưu/giảm chi phí? có giải thích rõ vì sao ra số tiền?', 'Cân đối lại phương án rồi mới gửi'],
+                      ['<b>Đúng mong muốn?</b>', 'Số tầng, phòng, phong cách, mức hoàn thiện, thang máy, gara, sân', 'Sửa cho tất cả KHỚP']],
                      widths=['22%', '52%', '26%'])
+            + _box('warn', 'Đừng gửi kiểu &#8220;Em gửi anh/chị tham khảo nhé&#8221; khi '
+                   'chính mình còn chưa chắc. Gửi lệch nhu cầu = vô tác dụng:')
             + _table(['Khách muốn', 'Nếu gửi lệch', 'Kết quả'],
-                     [['Tài chính ~2,8 tỷ', 'Gửi báo giá 3,8 tỷ', '<span class="no">SAI</span>'],
+                     [['Tài chính ~2,8 tỷ', 'Gửi báo giá 3,8 tỷ (chưa bàn bạc)', '<span class="no">SAI</span>'],
                       ['Thích hiện đại', 'Báo giá mẫu tân cổ', '<span class="no">SAI</span>'],
                       ['Xây để ở', 'Làm theo tiêu chuẩn đầu tư', '<span class="no">SAI</span>']],
                      widths=['34%', '40%', '26%'])
+
+            + '<h4>2&#65039;&#8419; XỬ LÝ theo mức CHÊNH LỆCH tài chính (thuộc lòng)</h4>'
+            + '<p>Đây là phần quan trọng nhất của Bước 1. Tùy mức chênh giữa <b>giá trị '
+            'báo giá</b> và <b>tầm tài chính thật</b> của khách mà xử lý khác nhau:</p>'
+            + _table(['Mức chênh lệch', 'Cách xử lý BẮT BUỘC'],
+                     [['<b>Khớp / chênh &le; 100 triệu</b>',
+                       '<span class="yes">TỰ TIN GỬI</span> &mdash; báo giá đã ưng ý, cân đối tốt.'],
+                      ['<b>Chênh trên 100 triệu</b>',
+                       'BÀN BẠC lại với khách để điều chỉnh, cân đối tầm tài chính cho phù hợp <b>rồi mới quyết định gửi</b>.'],
+                      ['<b>Chênh 100 &ndash; 300 triệu</b>',
+                       'Trao đổi lại: (a) GIẢM DIỆN TÍCH cho khớp, HOẶC (b) xác định khách có thể CỐ THÊM tài chính (vay/mượn/xoay/vay ngân hàng) hay không &mdash; rồi vẫn cố gắng GỬI báo giá.'],
+                      ['<b>Chênh QUÁ LỚN, không xoay được</b>',
+                       'Ví dụ khách muốn xây 1 tỷ nhưng chỉ có 600 triệu và không có cách kiếm thêm &rarr; trường hợp này có thể KHÔNG gửi. Nhân viên tự cân nhắc quyết định.']],
+                     widths=['30%', '70%'])
+            + _box('info', '<b>Chốt chắc năng lực tài chính THẬT của khách.</b> Nhiều '
+                   'khách chỉ có đúng khoản để &#8220;quay đầu&#8221;; nhưng nhiều khách '
+                   'vẫn có thể vay thêm, mượn thêm, xoay xở thêm, hoặc xác định vay ngân '
+                   'hàng. Nhiệm vụ của bạn là HỎI RÕ và chốt chắc: khách có thể cố tới '
+                   'mức nào? Cân đối được tầm tài chính là <b>phương án tối thượng</b> để '
+                   'đi đến thành công.')
+
+            + '<h4>3&#65039;&#8419; Định hướng công ty: VẪN PHẢI gửi báo giá (trừ ca cực đoan)</h4>'
+            + '<p>Chiến lược của công ty: toàn bộ nhân viên cố gắng tối đa <b>gửi báo giá '
+            'ngay trong NGÀY ĐẦU</b>, cùng ngày với ngày gọi điện tư vấn. Kể cả khi báo '
+            'giá cao hơn mong muốn của khách, định hướng vẫn là <b>phải gửi</b> để khách '
+            'có cơ hội nhìn thấy báo giá của mình.</p>'
+            + _box('ok', '<b>Vì sao vẫn phải gửi dù chưa thuyết phục được tầm tài chính '
+                   'ban đầu?</b> Vì có gửi thì khách mới nhìn thấy: bảng báo giá, <b>danh '
+                   'mục vật tư</b>, hình ảnh trong báo giá, các <b>vật tư không có trong '
+                   'hợp đồng</b>. Khách sẽ suy nghĩ, tính toán. Không gửi = khách không có '
+                   'gì để cân nhắc, và mất luôn cơ hội.')
+            + _box('info', '<b>Khách mang báo giá đi so sánh là chuyện BÌNH THƯỜNG.</b> '
+                   'Trong lúc làm báo giá, luôn nghĩ rằng khách có thể so sánh với đơn vị '
+                   'khác &mdash; nhưng KHÔNG có báo giá thì khách chẳng có cơ sở nào để so '
+                   'sánh, cân nhắc, tính toán. Vậy nên nhiệm vụ vẫn là GỬI.')
+            + _box('warn', '<b>Câu nói khi khách nhất quyết làm diện tích lớn vượt tài '
+                   'chính:</b> &#8220;Nếu anh/chị làm với yêu cầu như vậy thì tài chính '
+                   'bên em sẽ vào khoảng &hellip; ạ.&#8221; &mdash; nói rõ mức tiền, rồi '
+                   'vẫn GỬI báo giá để khách tự cân nhắc.')
+
+            + '<h4>&#10060; Những SAI LẦM khiến báo giá bị &#8220;kẹt&#8221;</h4>'
+            + '<ul>'
+            '<li><b>Cuộc gọi đầu không khai thác tầm tài chính thật</b> &mdash; không hỏi '
+            'khách thực sự bỏ ra được bao nhiêu, cố thêm tối đa được bao nhiêu.</li>'
+            '<li><b>Không đưa phương án bàn bạc</b> để chọn diện tích phù hợp nhất với tầm '
+            'tài chính của khách.</li>'
+            '<li><b>Đã cân đối tài chính xong nhưng vẫn không gửi</b> &mdash; chênh chỉ '
+            'khoảng 10&ndash;20% tổng giá trị, đã giải quyết triệt để năng lực tài chính '
+            'thật của khách, vậy mà <b>lưỡng lự 2&ndash;3 ngày</b> vẫn không chịu gửi báo giá.</li>'
+            '</ul>'
             + _nendont(
-                ['Cân đối cho khớp tầm tài chính rồi mới gửi',
-                 'Giải thích rõ được vì sao ra con số đó',
-                 'Tự tin: "mình là khách cũng thấy hợp lý"'],
-                ['Gửi báo giá vượt xa ngân sách khách',
-                 'Gửi kèm câu "anh/chị tham khảo nhé"',
-                 'Gửi khi chính mình còn chưa chắc'])
-            + _fml('Báo giá CHUẨN = <b>Đúng tài chính + Đúng nhu cầu + Đúng mong muốn</b>. '
-                   'Lệch 1 trong 3 &rarr; CHƯA gửi.')
+                ['Cân đối khớp tầm tài chính rồi TỰ TIN gửi',
+                 'Chốt chắc khách cố thêm được tới đâu (vay/mượn/xoay)',
+                 'Gửi ngay trong ngày đầu &mdash; chênh 200&ndash;300tr vẫn cố gửi',
+                 'Giải thích rõ vì sao ra con số đó'],
+                ['Gửi báo giá vượt xa ngân sách mà chưa bàn bạc',
+                 'Bỏ qua khai thác tài chính ở cuộc gọi đầu',
+                 'Đã cân đối xong vẫn lưỡng lự 2&ndash;3 ngày không gửi',
+                 'Gửi kèm câu &#8220;anh/chị tham khảo nhé&#8221; khi mình chưa chắc'])
+            + _fml('Tự tin báo giá = <b>Cân đối KHỚP tài chính</b> (chênh &gt;100tr thì '
+                   'bàn lại; 100&ndash;300tr thì giảm diện tích/khách cố thêm) &rarr; '
+                   '<b>GỬI ngay trong ngày đầu</b>. Cân đối tài chính là phương án tối '
+                   'thượng; trừ ca chênh quá lớn không xoay được &rarr; vẫn phải gửi bằng mọi giá.')
             + _quiz('qz_b1',
-                    'Khách nói tài chính ~2,8 tỷ, báo giá bạn tính ra 3,8 tỷ. Nên làm gì?',
-                    [('Cứ gửi 3,8 tỷ, báo cao để còn thương lượng giảm', False),
-                     ('Gửi 3,8 tỷ kèm câu &#8220;anh/chị tham khảo nhé&#8221;', False),
-                     ('Cân đối lại phương án diện tích/công năng cho khớp tầm 2,8 tỷ rồi mới gửi', True),
-                     ('Gửi luôn để khách thấy đẳng cấp', False)],
-                    'Báo giá lệch tầm tài chính là vô tác dụng &mdash; phải cân đối cho khớp.'))
+                    'Báo giá chênh khoảng 100&ndash;300 triệu so với tầm tài chính khách. Nên làm gì?',
+                    [('Cứ gửi luôn con số cao, không cần bàn bạc', False),
+                     ('Trao đổi lại: giảm diện tích cho khớp HOẶC xác định khách có thể cố thêm (vay/mượn/xoay), rồi vẫn cố gắng gửi báo giá', True),
+                     ('Không gửi báo giá nữa vì chênh quá nhiều', False),
+                     ('Lưỡng lự chờ 2&ndash;3 ngày rồi mới quyết', False)],
+                    'Chênh 100&ndash;300tr: bàn giảm diện tích hoặc chốt khách cố thêm tài chính, rồi VẪN gửi &mdash; cân đối tài chính là tối thượng.'))
 
     # ------------------------------------------------------------------
     def _l_b2(self):
@@ -669,14 +651,33 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_gold(self):
         return (
-            self._tag('&#127942; NGUYÊN TẮC VÀNG &mdash; TỔNG HỢP')
-            + '<h3>Toàn bộ công thức của khóa học</h3>'
-            + _box('ok', 'Nhân viên giỏi KHÔNG phải người gửi nhiều báo giá, mà là '
-                   'người biết DẪN DẮT khách qua từng bước tới quyết định ký. Sau mỗi '
-                   'lần liên hệ, khách phải tiến thêm ít nhất 1 bước.')
-            + _table(['Giai đoạn / Bước', 'Công thức thuộc lòng'],
-                     [['<b>Quy tắc tạo nhóm</b>', 'Chốt báo giá &rarr; tạo nhóm (mình + khách + trưởng phòng) &rarr; đổi ảnh (logo) + tên &rarr; gửi <b>VTV &rarr; Giới thiệu &rarr; Nhu cầu &rarr; 20 mẫu nhà</b>. CẤM nhắn tin riêng.'],
-                      ['<b>Bước 1 &mdash; Kiểm tra báo giá</b>', 'Báo giá CHUẨN = Đúng tài chính + Đúng nhu cầu + Đúng mong muốn. Lệch 1 trong 3 &rarr; chưa gửi.'],
+            self._tag('&#127942; TỔNG KẾT &amp; TƯ DUY NỀN TẢNG')
+            + '<h3>Nguyên tắc vàng: gửi báo giá là BẮT ĐẦU, không phải kết thúc</h3>'
+            + _box('err', '<b>Sai lầm chí mạng:</b> gửi báo giá xong rồi&hellip; im lặng '
+                   'chờ khách gọi lại. Đây là nguyên nhân mất RẤT nhiều khách.')
+            + '<p>Khách đang xây nhà thường cùng lúc: xem rất nhiều đơn vị &middot; chưa '
+            'hiểu hết báo giá &middot; chưa biết nên hỏi gì &middot; đang cân nhắc tài '
+            'chính &middot; đang so sánh. Không chủ động dẫn dắt thì khách nghiêng dần '
+            'sang đơn vị khác. Vì vậy toàn bộ khóa học này xoay quanh một tư duy: <b>sau '
+            'khi gửi báo giá, việc theo đuổi mới thật sự bắt đầu</b>.</p>'
+            + '<h4>Tư duy đúng của người bán hàng giỏi</h4>'
+            + _nendont(
+                ['Chủ động nhắc &amp; đồng hành cùng khách sau báo giá',
+                 'Bán GIẢI PHÁP phù hợp gia đình khách, không chỉ bán giá',
+                 'Mỗi lần liên hệ đưa khách tiến thêm ít nhất 1 bước'],
+                ['Gửi xong rồi ngồi chờ khách gọi lại',
+                 'Chỉ chăm chăm so sánh con số tiền với đối thủ',
+                 'Để khách &#8220;treo&#8221;, im lặng quá lâu'])
+            + _box('ok', 'Nhân viên GIỎI không phải người gửi nhiều báo giá nhất, mà là '
+                   'người biết DẪN DẮT khách qua từng bước tới quyết định ký. Sau mỗi lần '
+                   'liên hệ, khách phải tiến thêm ít nhất 1 bước.')
+            + _fml('Dòng chảy sau báo giá: <b>Báo giá &rarr; Phản hồi &rarr; Hiểu suy '
+                   'nghĩ &rarr; Gỡ khúc mắc &rarr; Gửi hợp đồng &rarr; Gỡ khúc mắc HĐ '
+                   '&rarr; Hẹn ký</b>. Khách im lặng = quy trình đang DỪNG lại &rarr; '
+                   'phải chủ động nối tiếp.')
+            + '<h4>&#128221; Bảng công thức TOÀN KHÓA (thuộc lòng)</h4>'
+            + _table(['Bước', 'Công thức thuộc lòng'],
+                     [['<b>Bước 1 &mdash; Tự tin báo giá</b>', 'Cân đối KHỚP tài chính (chênh &gt;100tr thì bàn lại; 100&ndash;300tr thì giảm diện tích/khách cố thêm) &rarr; GỬI ngay trong ngày đầu. Trừ ca chênh quá lớn không xoay được.'],
                       ['<b>Bước 2 &mdash; Phản hồi báo giá</b>', 'KHAI THÁC không ĐOÁN. Hỏi 4 ý: Đã xem kỹ? &mdash; Băn khoăn gì? &mdash; Tài chính hợp? &mdash; Muốn chỉnh gì?'],
                       ['<b>Bước 3 &mdash; Tín hiệu tiềm năng</b>', 'Khách HỎI = Khách QUAN TÂM &rarr; BÁM ĐUỔI NGAY. Không coi nhẹ câu hỏi nhỏ.'],
                       ['<b>Bước 4 &mdash; Thời gian khởi công</b>', 'Không ký sớm = không kịp Tết: thiết kế 1&ndash;2 tháng + thợ + 4 phòng ban + hoàn thiện. Giúp khách HIỂU, không dọa.'],
@@ -685,9 +686,16 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                       ['<b>Bước 7 &mdash; Phản hồi hợp đồng</b>', 'Dò 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác.'],
                       ['<b>Bước 8 &mdash; Hẹn &amp; ký (CHỐT)</b>', 'Hết khúc mắc HĐ + chốt cọc 50tr (tiền mặt) + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
                      widths=['26%', '74%'])
-            + _box('warn', 'Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi '
-                   'lần tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần '
-                   'hơn tới quyết định ký.')
+            + _box('warn', 'Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần '
+                   'tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần hơn tới '
+                   'quyết định ký.')
+            + _quiz('qz_tuduy',
+                    'Sau khi gửi báo giá 24h mà khách chưa phản hồi, hành động nào chuyên nghiệp nhất?',
+                    [('Gọi điện giục khách ký hợp đồng ngay', False),
+                     ('Nhắn/gọi hỏi thăm khách đã nhận báo giá chưa và có cần giải thích thêm không', True),
+                     ('Tiếp tục im lặng chờ thêm 1 tuần', False),
+                     ('Xóa khách khỏi danh sách theo dõi', False)],
+                    'Chủ động quan tâm để hiểu khách nghĩ gì &mdash; không ép, không bỏ mặc.')
             + _quiz('qz_gold',
                     'Theo nguyên tắc vàng, nhân viên kinh doanh GIỎI là người thế nào?',
                     [('Người gửi được nhiều báo giá nhất trong tháng', False),
@@ -702,59 +710,59 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     def _vd_tdbg_questions(self):
         T, F = True, False
         return [
-            ('Ngay sau khi gọi điện tư vấn cho khách xong, việc BẮT BUỘC phải làm là gì?',
-             [('Bấm nút "Chốt báo giá" rồi lập tức tạo nhóm Zalo với khách', T),
-              ('Nhắn tin Zalo cá nhân hỏi thăm khách', F),
-              ('Chờ khách chủ động nhắn lại rồi mới xử lý', F),
-              ('Gửi ngay báo giá qua Zalo cá nhân cho nhanh', F)]),
+            ('Tư duy nền tảng: sau khi gửi báo giá cho khách thì?',
+             [('Đó mới là BẮT ĐẦU - việc theo đuổi khách thật sự bắt đầu từ đây', T),
+              ('Đó là kết thúc, ngồi chờ khách gọi lại', F),
+              ('Xóa khách khỏi danh sách nếu 1 ngày chưa phản hồi', F),
+              ('Chỉ cần so sánh giá với đối thủ là đủ', F)]),
 
-            ('Vì sao công ty CẤM nhân viên nhắn tin riêng (Zalo cá nhân) với khách?',
-             [('Vì khách chỉ biết/quen làm việc với cá nhân nên sau này ký hợp đồng, chuyển giao thiết kế - thi công và kế toán thu tiền đều rất khó', T),
-              ('Vì nhắn tin riêng tốn thời gian của nhân viên', F),
-              ('Vì công ty muốn kiểm soát nội dung tin nhắn cá nhân', F),
-              ('Vì Zalo cá nhân hay bị khóa', F)]),
+            ('Sau khi gửi báo giá 24h mà khách chưa phản hồi, hành động nào chuyên nghiệp nhất?',
+             [('Nhắn/gọi hỏi thăm khách đã nhận báo giá chưa và có cần giải thích thêm không', T),
+              ('Gọi điện giục khách ký hợp đồng ngay', F),
+              ('Tiếp tục im lặng chờ thêm 1 tuần', F),
+              ('Bỏ mặc, coi như khách không quan tâm', F)]),
 
-            ('Với khách hàng, Zalo CÁ NHÂN của nhân viên CHỈ được dùng để làm gì?',
-             [('Chỉ để gọi điện; còn nhắn tin thì phải lái khách lên nhóm', T),
-              ('Để nhắn tin trao đổi mọi thông tin cho tiện', F),
-              ('Để gửi báo giá và hợp đồng riêng cho khách', F),
-              ('Để chốt hợp đồng riêng với khách', F)]),
+            ('Bước 1 - CÔNG THỨC cốt lõi của "tự tin báo giá" là gì?',
+             [('Nhân viên thực sự tự tin báo giá là phương án ưng ý nhất và KHỚP tầm tài chính của khách', T),
+              ('Báo giá càng cao càng thể hiện đẳng cấp', F),
+              ('Gửi thật nhanh, không cần cân đối tài chính', F),
+              ('Báo giá thấp nhất thị trường để chắc thắng', F)]),
 
-            ('Khi tạo nhóm Zalo, thành viên TỐI THIỂU phải gồm những ai?',
-             [('Bản thân nhân viên + khách hàng + trưởng phòng', T),
-              ('Chỉ cần nhân viên và khách hàng', F),
-              ('Nhân viên, khách hàng và kế toán', F),
-              ('Nhân viên, khách hàng và giám đốc', F)]),
+            ('Bước 1 - báo giá chênh TRÊN 100 triệu so với tầm tài chính khách thì phải làm gì?',
+             [('Bàn bạc lại với khách để điều chỉnh, cân đối tài chính cho phù hợp rồi mới quyết định gửi', T),
+              ('Cứ gửi luôn con số cao, không cần bàn bạc', F),
+              ('Hủy khách ngay lập tức', F),
+              ('Chờ khách tự liên hệ lại', F)]),
 
-            ('Thứ tự gửi tin nhắn Zalo lên nhóm ĐÚNG là gì?',
-             [('4 video VTV → giới thiệu bản thân → tổng hợp nhu cầu công năng → tối thiểu 20 mẫu nhà', T),
-              ('20 mẫu nhà → báo giá → video VTV → giới thiệu', F),
-              ('Giới thiệu → báo giá → hợp đồng → video VTV', F),
-              ('Gửi tùy ý, nội dung nào trước cũng được', F)]),
+            ('Bước 1 - báo giá chênh khoảng 100-300 triệu thì cách xử lý ĐÚNG là?',
+             [('Trao đổi giảm diện tích cho khớp HOẶC xác định khách cố thêm được tài chính (vay/mượn/xoay), rồi vẫn cố gắng gửi báo giá', T),
+              ('Không gửi báo giá vì chênh quá nhiều', F),
+              ('Lưỡng lự chờ 2-3 ngày rồi mới quyết', F),
+              ('Tự giảm giá trị báo giá cho bằng tài chính khách mà không đổi diện tích', F)]),
 
-            ('Nội dung PHẢI gửi ĐẦU TIÊN lên nhóm là gì?',
-             [('4 video VTV', T),
-              ('Lời chào giới thiệu bản thân', F),
-              ('Bảng tổng hợp nhu cầu công năng của khách', F),
-              ('Các mẫu nhà tham khảo', F)]),
+            ('Bước 1 - chiến lược công ty về THỜI ĐIỂM gửi báo giá là gì?',
+             [('Cố gắng tối đa gửi báo giá ngay trong NGÀY ĐẦU, cùng ngày gọi điện tư vấn', T),
+              ('Gửi sau 1 tuần cho khách sốt ruột', F),
+              ('Chỉ gửi khi khách chốt xong mẫu nhà', F),
+              ('Gửi bất cứ khi nào rảnh, không quan trọng', F)]),
 
-            ('Khi tạo nhóm, phải gửi TỐI THIỂU bao nhiêu mẫu nhà lên nhóm?',
-             [('Tối thiểu 20 mẫu nhà', T),
-              ('Tối thiểu 5 mẫu nhà', F),
-              ('Đúng 1 mẫu nhà khách chọn', F),
-              ('Không cần gửi mẫu nhà', F)]),
+            ('Bước 1 - vì sao VẪN phải gửi báo giá dù chưa thuyết phục được tầm tài chính ban đầu (chênh 200-300tr)?',
+             [('Để khách có cơ hội nhìn thấy báo giá, danh mục vật tư, hình ảnh - có cơ sở để so sánh, cân nhắc, tính toán', T),
+              ('Để ép khách phải ký ngay', F),
+              ('Vì công ty phạt nếu không gửi', F),
+              ('Không cần lý do, cứ gửi cho xong', F)]),
+
+            ('Bước 1 - trường hợp nào CÓ THỂ không gửi báo giá?',
+             [('Chênh lệch quá lớn không xoay được, ví dụ khách muốn xây 1 tỷ nhưng chỉ có 600 triệu và không có cách kiếm thêm', T),
+              ('Bất cứ khi nào báo giá cao hơn mong muốn khách', F),
+              ('Khi khách chưa chọn được mẫu nhà', F),
+              ('Khi chênh khoảng 100-200 triệu', F)]),
 
             ('Bước 1 - một báo giá được coi là CHUẨN khi nào?',
              [('Đúng tài chính + đúng nhu cầu + đúng mong muốn của khách', T),
               ('Có tổng giá trị cao nhất có thể', F),
               ('Gửi trước đối thủ', F),
               ('Trình bày nhiều màu sắc, đẹp mắt', F)]),
-
-            ('Khách nói tài chính ~2,8 tỷ nhưng nhân viên gửi báo giá 3,8 tỷ. Đây là?',
-             [('SAI - báo giá không khớp tài chính của khách nên vô tác dụng', T),
-              ('Đúng, vì nên chào cao để còn thương lượng giảm', F),
-              ('Đúng, vì khách sẽ thấy chất lượng cao hơn', F),
-              ('Không quan trọng, miễn là gửi nhanh', F)]),
 
             ('Bước 2 - khi lấy phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
              [('Hỏi cụ thể: đã xem kỹ báo giá + phụ lục chưa, băn khoăn gì, mức đầu tư có phù hợp, muốn điều chỉnh gì', T),
