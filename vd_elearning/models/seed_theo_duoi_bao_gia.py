@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v10-restructure'
+_TDBG_VERSION = 'v11-merge-b2'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -271,13 +271,10 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     def _vd_tdbg_lessons(self):
         return [
             ('&#128170;', 'BƯỚC 1', 'Tự tin báo giá', self._l_b1()),
-            ('&#128222;', 'BƯỚC 2', 'Lấy phản hồi báo giá', self._l_b2()),
-            ('&#127919;', 'BƯỚC 3', 'Tín hiệu tiềm năng &rarr; Bám đuổi', self._l_b3()),
-            ('&#9200;', 'BƯỚC 4', 'Thời gian khởi công', self._l_b4()),
-            ('&#128269;', 'BƯỚC 5', 'Khai thác &amp; xử lý khúc mắc', self._l_b5()),
-            ('&#128196;', 'BƯỚC 6', 'Gửi hợp đồng', self._l_b6()),
-            ('&#128064;', 'BƯỚC 7', 'Lấy phản hồi hợp đồng', self._l_b7()),
-            ('&#9997;&#65039;', 'BƯỚC 8', 'Hẹn khảo sát &amp; ký (chốt)', self._l_b8()),
+            ('&#128269;', 'BƯỚC 2', 'Khai thác vấn đề', self._l_b2()),
+            ('&#128196;', 'BƯỚC 3', 'Gửi hợp đồng', self._l_b6()),
+            ('&#128064;', 'BƯỚC 4', 'Lấy phản hồi hợp đồng', self._l_b7()),
+            ('&#9997;&#65039;', 'BƯỚC 5', 'Hẹn khảo sát &amp; ký (chốt)', self._l_b8()),
             ('&#127942;', 'TỔNG KẾT', 'Nguyên tắc vàng', self._l_gold()),
         ]
 
@@ -304,12 +301,8 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                       ['<b>Đúng mong muốn?</b>', 'Số tầng, phòng, phong cách, mức hoàn thiện, thang máy, gara, sân', 'Sửa cho tất cả KHỚP']],
                      widths=['22%', '52%', '26%'])
             + _box('warn', 'Đừng gửi kiểu &#8220;Em gửi anh/chị tham khảo nhé&#8221; khi '
-                   'chính mình còn chưa chắc. Gửi lệch nhu cầu = vô tác dụng:')
-            + _table(['Khách muốn', 'Nếu gửi lệch', 'Kết quả'],
-                     [['Tài chính ~2,8 tỷ', 'Gửi báo giá 3,8 tỷ (chưa bàn bạc)', '<span class="no">SAI</span>'],
-                      ['Thích hiện đại', 'Báo giá mẫu tân cổ', '<span class="no">SAI</span>'],
-                      ['Xây để ở', 'Làm theo tiêu chuẩn đầu tư', '<span class="no">SAI</span>']],
-                     widths=['34%', '40%', '26%'])
+                   'chính mình còn chưa chắc. Nếu chính nhân viên còn không tự tin thì '
+                   'khách càng không tin.')
 
             + '<h4>2&#65039;&#8419; XỬ LÝ theo mức CHÊNH LỆCH tài chính (thuộc lòng)</h4>'
             + '<p>Đây là phần quan trọng nhất của Bước 1. Tùy mức chênh giữa <b>giá trị '
@@ -384,14 +377,39 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b2(self):
         return (
-            self._tag('BƯỚC 2')
-            + '<h3>Lấy phản hồi báo giá (sau 1&ndash;2 ngày)</h3>'
-            + _box('err', 'Sai lầm lớn nhất: gửi báo giá xong rồi <b>im luôn</b> &mdash; '
-                   'không gọi, không nhắn, không hỏi.')
-            + '<p>Mục tiêu KHÔNG phải gọi để ép ký, mà để <b>BIẾT khách đang nghĩ gì</b>. '
-            'Muốn vậy phải hỏi <b>đúng và cụ thể</b> từng ý &mdash; không hỏi chung chung '
-            'kiểu &#8220;anh xem chưa ạ?&#8221; rồi thôi.</p>'
-            + '<h4>4 ý BẮT BUỘC phải khai thác được</h4>'
+            self._tag('BƯỚC 2 &mdash; TRÁI TIM CỦA QUY TRÌNH')
+            + '<h3>Khai thác vấn đề</h3>'
+            + _box('ok', 'Sau khi gửi báo giá <b>1&ndash;2 ngày</b>, nhân viên BẮT BUỘC '
+                   'quay lại với khách để KHAI THÁC. Không phải &#8220;hỏi thăm tình '
+                   'hình&#8221; cho có, mà phải <b>khai thác liên tục MỌI thông tin, thái '
+                   'độ, biểu cảm, cảm xúc, nhận xét</b> của khách về báo giá &mdash; để '
+                   'nắm bắt được <b>TÂM LÝ và MONG MUỐN THẬT</b> của khách.')
+            + _box('err', '<b>Sai lầm lớn nhất:</b> gửi báo giá xong rồi im luôn, hoặc '
+                   'chỉ gọi &#8220;hỏi tình hình&#8221; chứ thực sự KHÔNG nắm bắt được tâm '
+                   'lý, mong muốn của khách để GIẢI QUYẾT. Gọi mà không ra vấn đề = cuộc '
+                   'gọi vô nghĩa.')
+
+            + '<h4>&#128241; Quy trình tiếp cận: NHẮN trước &mdash; GỌI sau (gọi ÍT nhưng HIỆU QUẢ)</h4>'
+            + _order([
+                ('NHẮN TIN dò hỏi TRÊN NHÓM trước',
+                 'Sau 1&ndash;2 ngày, nhắn tin trên nhóm để dò tình hình trước khi gọi.'),
+                ('Khách nói &#8220;đang xem&#8221; hoặc nhắn 2&ndash;3 lần không trả lời &rarr; GỌI ĐIỆN NGAY',
+                 'Khách nói &#8220;đang xem&#8221; nghĩa là khách ĐÃ xem nhưng lấy lý do trì hoãn &mdash; phải gọi để trao đổi luôn.'),
+                ('GỌI ÍT NHƯNG HIỆU QUẢ',
+                 'Chỉ cần 1 cuộc gọi, nhưng cuộc đó PHẢI khai thác ra được vấn đề khách đang vướng. Đã mất công gọi thì phải RA kết quả, phải lấy được lý do cuối cùng.'),
+            ])
+            + _box('info', '<b>Nguyên tắc CHỤP MÀN HÌNH báo giá:</b> sau khi gửi file, hãy '
+                   '<b>chụp màn hình</b> bảng báo giá (nhất là <b>tổng giá trị hợp đồng</b> '
+                   'và <b>đơn giá theo m&#178;</b>) gửi cho khách dễ nhìn. Dù khách nói '
+                   '&#8220;chưa xem/đang xem&#8221;, chắc chắn khách ĐÃ liếc qua tổng giá '
+                   'trị và đơn giá &mdash; đó là điểm để bắt chuyện khai thác.')
+            + _box('info', '<b>Đã mất công gọi thì CHỐT luôn:</b> &#8220;Bên em làm báo giá '
+                   'với tầm tài chính như vậy thì anh/chị mới xây được ạ. Đây là mức giá '
+                   'tốt nhất, chính xác nhất, không có gì thay đổi. Anh/chị thấy mức này ổn '
+                   'chưa, có cần điều chỉnh gì không? Nếu tài chính hơi vượt thì bên em '
+                   'cân nhắc lại diện tích cho phù hợp.&#8221;')
+
+            + '<h4>1&#65039;&#8419; 4 ý BẮT BUỘC khai thác được</h4>'
             + _table(['Câu hỏi cụ thể', 'Để làm gì'],
                      [['&#8220;Anh/chị đã <b>xem kỹ báo giá</b> và <b>phụ lục vật tư</b> chưa ạ?&#8221;',
                        'Xác nhận khách ĐÃ đọc &mdash; nhiều khách chưa mở ra xem.'],
@@ -402,142 +420,111 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                       ['&#8220;Có <b>hạng mục nào</b> anh/chị muốn điều chỉnh thêm không?&#8221;',
                        'Mở đường để chỉnh phương án, giữ khách tiếp tục trao đổi.']],
                      widths=['54%', '46%'])
-            + '<h4>Khách im lặng KHÔNG có nghĩa là hết quan tâm</h4>'
-            + '<p>Có thể vì: báo giá cao hơn dự kiến &middot; chưa đúng nhu cầu &middot; '
-            'chưa hiểu cách tính &middot; đang chờ đơn vị khác &middot; chưa đủ niềm '
-            'tin &middot; chưa biết nên hỏi gì.</p>'
-            + _nendont(
-                ['Hỏi cụ thể từng ý (xem kỹ chưa, băn khoăn gì, tài chính, điều chỉnh)',
-                 'Coi im lặng là tín hiệu cần TÌM HIỂU',
-                 'Ghi lại phản hồi để dẫn sang bước sau'],
-                ['Hỏi chung chung "anh xem chưa ạ?" rồi thôi',
-                 'Đoán mò lý do khách im',
-                 'Gọi để ép ký ngay'])
-            + _fml('Việc của nhân viên là <b>KHAI THÁC, không phải ĐOÁN</b>. Hỏi đủ 4 ý: '
-                   '<b>Đã xem kỹ? &mdash; Băn khoăn gì? &mdash; Tài chính hợp không? &mdash; Muốn chỉnh gì?</b>')
-            + _quiz('qz_b2',
-                    'Gọi lấy phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
-                    [('&#8220;Anh xem báo giá chưa ạ?&#8221; rồi dừng', False),
-                     ('Hỏi cụ thể: đã xem kỹ báo giá + phụ lục chưa, phần nào băn khoăn, mức đầu tư có phù hợp, muốn điều chỉnh gì', True),
-                     ('&#8220;Anh chị ký chưa ạ?&#8221;', False),
-                     ('Không hỏi, chờ khách tự nhắn', False)],
-                    'Phải hỏi cụ thể từng ý để hiểu khách nghĩ gì, không hỏi chung chung.'))
+            + '<p>Khách im lặng KHÔNG có nghĩa là hết quan tâm &mdash; có thể vì: báo giá '
+            'cao hơn dự kiến &middot; chưa đúng nhu cầu &middot; chưa hiểu cách tính '
+            '&middot; đang chờ đơn vị khác &middot; chưa đủ niềm tin &middot; chưa biết '
+            'nên hỏi gì. Việc của nhân viên là KHAI THÁC, không ĐOÁN.</p>'
 
-    # ------------------------------------------------------------------
-    def _l_b3(self):
-        return (
-            self._tag('BƯỚC 3 &mdash; NHẬN DIỆN TÍN HIỆU')
-            + '<h3>Khách tương tác = tín hiệu tiềm năng &rarr; BÁM ĐUỔI</h3>'
-            + _box('ok', 'Sau khi gửi báo giá 1&ndash;2 ngày, nếu khách có BẤT KỲ tương '
-                   'tác nào &mdash; hỏi về giá, về phụ lục vật tư, hay một câu hỏi rất '
-                   'nhỏ &mdash; thì đó là <b>tín hiệu khách RẤT tiềm năng</b>.')
-            + '<p><b>Vì sao?</b> Khách chịu hỏi tức là khách <b>đã đọc</b>, <b>đã suy '
-            'nghĩ</b> và <b>đang quan tâm</b>. Câu hỏi dù nhỏ cũng là cánh cửa mở &mdash; '
-            'đừng bao giờ coi nhẹ.</p>'
-            + _box('err', '<b>Cần tránh:</b> trả lời qua loa cho xong rồi để nguội. Một '
-                   'câu hỏi nhỏ bị bỏ lỡ = một khách tiềm năng trôi mất.')
-            + '<h4>Khách hỏi thì phải làm gì?</h4>'
-            + _nendont(
-                ['Trả lời NHANH, nhiệt tình, rõ ràng',
-                 'Dùng chính câu hỏi đó làm cầu nối khai thác thêm',
-                 'Chủ động đẩy khách sang bước tiếp (hẹn gọi, gửi thêm thông tin)',
-                 'Xếp khách này vào diện ƯU TIÊN bám đuổi'],
-                ['Trả lời cụt lủn rồi im',
-                 'Để câu hỏi &#8220;treo&#8221; vài ngày mới trả lời',
-                 'Coi câu hỏi nhỏ là không quan trọng'])
-            + _fml('<b>Khách HỎI = Khách QUAN TÂM &rarr; BÁM ĐUỔI NGAY.</b> Tương tác '
-                   'càng sớm, tín hiệu càng mạnh.')
-            + _quiz('qz_b3',
-                    '2 ngày sau khi gửi báo giá, khách nhắn hỏi một câu nhỏ về phụ lục vật tư. Điều này nghĩa là gì?',
-                    [('Khách chỉ hỏi cho có, không cần quan tâm nhiều', False),
-                     ('Tín hiệu khách RẤT tiềm năng &mdash; phải trả lời nhanh và bám đuổi ngay', True),
-                     ('Khách đang làm khó, nên né trả lời', False),
-                     ('Chờ gom nhiều câu hỏi rồi trả lời một lần', False)],
-                    'Khách chịu hỏi là đã đọc và đang quan tâm &mdash; đây là lúc phải bám đuổi.'))
-
-    # ------------------------------------------------------------------
-    def _l_b4(self):
-        return (
-            self._tag('BƯỚC 4')
-            + '<h3>Tạo cảm giác cần quyết định về thời gian khởi công</h3>'
-            + '<p>Đặc biệt cuối năm, khách nào cũng muốn <b>xây xong, bàn giao trước '
-            'Tết</b>. Nhưng nếu KHÔNG ký hợp đồng sớm thì <b>không kịp</b> &mdash; và '
-            'đây là những lý do CÓ THẬT cần cho khách hiểu:</p>'
-            + _table(['Việc cần thời gian', 'Vì sao ảnh hưởng tiến độ'],
-                     [['<b>Thiết kế bản vẽ</b>', 'Mất tối thiểu 1 tháng; khách duyệt bản vẽ chậm có khi mất tới 2 tháng.'],
-                      ['<b>Chuẩn bị thợ</b>', 'Nếu 2 bên không thỏa thuận sớm thì không bố trí, chuẩn bị thợ kịp.'],
-                      ['<b>Các phòng ban chuẩn bị</b>', 'Phòng vật tư, phòng kế hoạch, phòng dự toán, phòng nhân lực &mdash; tất cả đều cần thời gian.'],
-                      ['<b>Hoàn thiện cuối</b>', 'Nội thất, dọn dẹp, sân vườn (nếu có) &mdash; không bố trí sớm thì không kịp Tết.']],
-                     widths=['30%', '70%'])
-            + _box('info', '<b>Câu mẫu:</b> &#8220;Nếu gia đình muốn ở nhà mới trước '
-                   'Tết thì mình nên chốt sớm ạ. Vì riêng thiết kế đã mất khoảng 1&ndash;2 '
-                   'tháng, rồi còn chuẩn bị thợ, vật tư, dự toán, nhân lực; sát cuối năm '
-                   'thì nội thất, sân vườn, dọn dẹp sẽ rất gấp.&#8221;')
-            + _nendont(
-                ['Cho khách thấy rõ chuỗi thời gian: thiết kế &rarr; thợ &rarr; thi công &rarr; hoàn thiện',
-                 'Nhắc bằng thiện chí, giúp khách chủ động',
-                 'Gắn quyết định của khách với mốc &#8220;trước Tết&#8221;'],
-                ['Dọa &#8220;không ký là giá tăng gấp đôi&#8221;',
-                 'Nói &#8220;sắp hết suất&#8221; kiểu ép buộc',
-                 'Bắt khách khởi công ngay tuần này'])
-            + _fml('Không ký sớm = KHÔNG kịp bàn giao trước Tết. Chuỗi: <b>Thiết kế '
-                   '(1&ndash;2 tháng) + Chuẩn bị thợ + 4 phòng ban + Hoàn thiện (nội '
-                   'thất/sân vườn/dọn dẹp)</b>. Mục tiêu: giúp khách HIỂU hệ quả, không '
-                   'gây áp lực vô lý.')
-            + _quiz('qz_b4',
-                    'Vì sao phải nhắc khách ký sớm nếu muốn ở nhà mới trước Tết?',
-                    [('Vì giá sẽ tăng gấp đôi nếu ký muộn', False),
-                     ('Vì thiết kế mất 1&ndash;2 tháng, còn phải chuẩn bị thợ, vật tư, dự toán, nhân lực, rồi nội thất/sân vườn &mdash; không kịp bàn giao', True),
-                     ('Vì công ty sắp hết suất nhận công trình', False),
-                     ('Vì khách phải khởi công ngay trong tuần', False)],
-                    'Cho khách hiểu chuỗi thời gian thật để chủ động quyết định &mdash; không dọa dẫm.'))
-
-    # ------------------------------------------------------------------
-    def _l_b5(self):
-        return (
-            self._tag('BƯỚC 5 &mdash; QUAN TRỌNG NHẤT')
-            + '<h3>Khai thác &amp; xử lý khúc mắc</h3>'
-            + _box('warn', 'Khách chưa ký thì chắc chắn còn vấn đề &mdash; nhân viên '
-                   'phải TÌM RA, không được tự suy đoán.')
-            + '<p>Mỗi nhóm câu hỏi khai thác một loại rào cản khác nhau. Phải hiểu '
-            '<b>vì sao</b> khai thác thì mới hỏi trúng:</p>'
+            + '<h4>2&#65039;&#8419; 5 NHÓM khúc mắc phải TÌM RA (khách chưa ký = còn vấn đề)</h4>'
             + _table(['Nhóm khai thác', 'Hỏi gì', 'Vì sao QUAN TRỌNG'],
                      [['<b>1. Báo giá</b>', 'Có phù hợp? Có vượt tài chính? Cần điều chỉnh?',
-                       'Tài chính là rào cản số 1 &mdash; lệch tiền là khách bỏ.'],
+                       'Tài chính là rào cản SỐ 1 &mdash; lệch tiền là khách bỏ.'],
                       ['<b>2. Mẫu nhà</b>', 'Đã đúng phong cách chưa? Muốn tham khảo thêm?',
                        'Khách chưa ưng &#8220;hình hài&#8221; ngôi nhà thì chưa quyết.'],
                       ['<b>3. Gia đình</b>', 'Đã thống nhất chưa? AI là người quyết định? Cần bàn thêm với người thân?',
-                       'Rất nhiều ca đổ vỡ vì mình thuyết phục sai người &mdash; người quyết thật chưa gật.'],
+                       'Rất nhiều ca đổ vỡ vì thuyết phục sai người &mdash; người quyết thật chưa gật.'],
                       ['<b>4. Khởi công</b>', 'Dự kiến khi nào? Đang chờ việc gì? Vướng thủ tục?',
-                       'Biết mốc thời gian để tạo lý do thúc tiến độ (Bước 4).'],
+                       'Biết mốc thời gian để tạo lý do thúc tiến độ (thi công gấp).'],
                       ['<b>5. Niềm tin</b>', 'Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?',
                        'Lộ ra RÀO CẢN THẬT SỰ còn ẩn giấu &mdash; thứ đang chặn khách ký.']],
                      widths=['16%', '42%', '42%'])
-            + _box('err', '<b>Sai lầm khi KHÔNG khai thác đủ:</b>')
+            + _box('warn', '<b>Cốt lõi:</b> phần lớn vấn đề của khách nằm ở <b>BẢNG BÁO '
+                   'GIÁ và TẦM TÀI CHÍNH</b>. Mọi lý do khác chỉ là phụ. Việc số 1 là làm '
+                   'cho <b>bảng báo giá cân đối được</b> với tài chính của khách.')
+            + _box('info', '<b>Điểm đặc biệt lưu ý &mdash; &#8220;gia đình chưa bàn&#8221;:</b> '
+                   'khách hay lấy lý do phải bàn với gia đình. Nhưng <b>bản thân khách phải '
+                   'OK trước thì gia đình mới OK</b>. Vậy nên phải làm cho CHÍNH khách chốt '
+                   'được tương đối đã, đừng để khách mượn cớ &#8220;gia đình&#8221; mà trôi.')
+
+            + '<h4>3&#65039;&#8419; Khách TƯƠNG TÁC = tín hiệu tiềm năng &rarr; BÁM ĐUỔI ngay</h4>'
+            + '<p>Nếu khách có BẤT KỲ tương tác nào &mdash; hỏi về giá, về phụ lục vật tư, '
+            'hay một câu hỏi rất nhỏ &mdash; thì đó là <b>tín hiệu khách RẤT tiềm '
+            'năng</b>: khách đã đọc, đã suy nghĩ, đang quan tâm. Câu hỏi dù nhỏ cũng là '
+            'cánh cửa mở.</p>'
+            + _nendont(
+                ['Trả lời NHANH, nhiệt tình, rõ ràng',
+                 'Dùng chính câu hỏi đó làm cầu nối khai thác thêm',
+                 'Xếp khách này vào diện ƯU TIÊN bám đuổi'],
+                ['Trả lời qua loa/cụt lủn rồi để nguội',
+                 'Để câu hỏi &#8220;treo&#8221; vài ngày mới trả lời',
+                 'Coi câu hỏi nhỏ là không quan trọng'])
+
+            + '<h4>4&#65039;&#8419; MỌI cuộc gọi phải đề cập THI CÔNG GẤP</h4>'
+            + '<p>Trong mọi cuộc gọi, nhân viên <b>luôn luôn</b> phải đề cập chuyện <b>thi '
+            'công gấp</b>. Đặc biệt cuối năm, ai cũng muốn xây xong, bàn giao trước Tết '
+            '&mdash; không ký sớm thì KHÔNG kịp:</p>'
+            + _table(['Việc cần thời gian', 'Vì sao ảnh hưởng tiến độ'],
+                     [['<b>Thiết kế bản vẽ</b>', 'Tối thiểu 1 tháng; khách duyệt chậm có khi mất tới 2 tháng.'],
+                      ['<b>Chuẩn bị thợ</b>', 'Không thỏa thuận sớm thì không bố trí, chuẩn bị thợ kịp.'],
+                      ['<b>Các phòng ban chuẩn bị</b>', 'Vật tư, kế hoạch, dự toán, nhân lực &mdash; đều cần thời gian.'],
+                      ['<b>Hoàn thiện cuối</b>', 'Nội thất, dọn dẹp, sân vườn &mdash; không bố trí sớm thì không kịp Tết.']],
+                     widths=['30%', '70%'])
+            + _box('info', '<b>Câu mẫu:</b> &#8220;Nếu gia đình muốn ở nhà mới trước Tết '
+                   'thì mình nên chốt sớm ạ. Vì riêng thiết kế đã mất 1&ndash;2 tháng, rồi '
+                   'còn chuẩn bị thợ, vật tư, dự toán, nhân lực; sát cuối năm thì nội thất, '
+                   'sân vườn, dọn dẹp sẽ rất gấp.&#8221; &mdash; giúp khách HIỂU hệ quả, '
+                   'KHÔNG dọa dẫm.')
+
+            + '<h4>&#10060; Những SAI LẦM khi khai thác</h4>'
             + '<ul>'
-            '<li>Bỏ sót nhóm <b>Gia đình</b> &rarr; thuyết phục mãi một người trong khi '
-            'người quyết định thật chưa đồng ý &rarr; công cốc.</li>'
-            '<li>Bỏ qua nhóm <b>Niềm tin</b> &rarr; khách vẫn lăn tăn ngầm rồi im lặng '
-            'bỏ đi &mdash; mình <b>mất khách mà không rõ lý do</b>.</li>'
-            '<li>Chỉ hỏi <b>giá</b> mà quên các nhóm còn lại &rarr; xử lý sai trọng tâm, '
-            'khách thấy mình không hiểu nhu cầu.</li>'
-            '<li><b>Đoán mò</b> thay vì hỏi &rarr; xử lý nhầm vấn đề, càng làm khách xa.</li>'
+            '<li>Gọi hỏi <b>chung chung</b> &#8220;anh xem báo giá chưa?&#8221;; khách nói '
+            '&#8220;đang xem&#8221; thì chỉ đáp &#8220;vâng anh xem đi&#8221; rồi tắt máy '
+            '&mdash; KHÔNG khai thác được gì.</li>'
+            '<li>Gọi <b>rất nhiều cuộc</b> nhưng không cuộc nào ra kết quả (không biết '
+            'khách đã ưng chưa, có thấy đắt/cao không, vật tư có đáp ứng không, đã bàn gia '
+            'đình chưa, thời gian thi công thế nào).</li>'
+            '<li>Chỉ hỏi <b>tình hình</b> chứ không nắm bắt được TÂM LÝ, MONG MUỐN của '
+            'khách để giải quyết.</li>'
+            '<li>Bỏ sót nhóm <b>Gia đình / Niềm tin</b> &rarr; thuyết phục sai người, hoặc '
+            'khách lăn tăn ngầm rồi im lặng bỏ đi &mdash; mất khách không rõ lý do.</li>'
+            '<li>Gửi báo giá xong <b>không biết làm gì</b>, không biết hỏi gì, không biết '
+            'bước tiếp theo &mdash; hay gặp ở nhân viên mới.</li>'
             '</ul>'
-            + _fml('Khai thác đủ <b>5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình '
-                   '&mdash; Khởi công &mdash; Niềm tin</b>. LUÔN kết bằng câu hỏi NIỀM '
-                   'TIN. Chưa ký = còn khúc mắc, phải TÌM RA rồi XỬ LÝ dứt điểm.')
-            + _quiz('qz_b5',
-                    'Đâu là sai lầm nguy hiểm khi khai thác khúc mắc chưa đủ?',
-                    [('Hỏi kỹ cả 5 nhóm câu hỏi', False),
-                     ('Bỏ sót nhóm Gia đình/Niềm tin &rarr; thuyết phục sai người hoặc khách lăn tăn ngầm rồi bỏ đi, mất khách không rõ lý do', True),
-                     ('Luôn kết thúc bằng câu hỏi niềm tin', False),
-                     ('Ghi lại khúc mắc để xử lý dứt điểm', False)],
-                    'Thiếu nhóm Gia đình/Niềm tin là mất khách mà không hiểu vì sao.'))
+            + _nendont(
+                ['Nhắn dò trước, khách &#8220;đang xem&#8221; thì GỌI ngay',
+                 'Gọi ÍT nhưng phải khai thác RA vấn đề (1 cuộc hiệu quả)',
+                 'Khai thác đủ 5 nhóm, luôn kết bằng câu hỏi NIỀM TIN',
+                 'Mọi cuộc gọi đều nhắc THI CÔNG GẤP',
+                 'Chốt để CHÍNH khách OK trước, rồi mới tới gia đình'],
+                ['Hỏi chung chung rồi &#8220;vâng anh xem đi&#8221; tắt máy',
+                 'Gọi nhiều cuộc mà không cuộc nào ra kết quả',
+                 'Chỉ hỏi tình hình, không nắm tâm lý khách',
+                 'Đoán mò thay vì hỏi thẳng',
+                 'Để khách mượn cớ &#8220;gia đình chưa bàn&#8221; rồi trôi'])
+            + _fml('Khai thác vấn đề = <b>Nhắn dò &rarr; GỌI (ít nhưng hiệu quả)</b> để '
+                   'moi bằng được TÂM LÝ thật. Đủ 5 nhóm: <b>Báo giá &mdash; Mẫu nhà '
+                   '&mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin</b> (cốt lõi vẫn là '
+                   'BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP. Bản thân khách '
+                   'OK trước &rarr; gia đình mới OK.')
+            + _quiz('qz_b2a',
+                    'Nhắn tin dò báo giá, khách trả lời &#8220;anh đang xem&#8221;. Nên hiểu và làm gì?',
+                    [('Khách chưa xem gì, cứ chờ thêm vài ngày', False),
+                     ('Khách đã xem nhưng lấy lý do trì hoãn &mdash; phải GỌI ĐIỆN ngay để khai thác vấn đề', True),
+                     ('Đáp &#8220;vâng anh xem đi&#8221; rồi tắt máy', False),
+                     ('Gọi liên tục 5&ndash;6 cuộc cho tới khi khách nghe', False)],
+                    'Khách &#8220;đang xem&#8221; = đã xem nhưng trì hoãn &mdash; gọi 1 cuộc hiệu quả để moi ra vấn đề thật.')
+            + _quiz('qz_b2b',
+                    'Đâu là sai lầm nguy hiểm khi khai thác vấn đề?',
+                    [('Nhắn dò trước rồi mới gọi', False),
+                     ('Chỉ gọi hỏi tình hình / bỏ sót nhóm Gia đình - Niềm tin nên khách lăn tăn ngầm rồi bỏ đi, mất khách không rõ lý do', True),
+                     ('Mọi cuộc gọi đều nhắc thi công gấp', False),
+                     ('Chốt cho chính khách OK trước khi tới gia đình', False)],
+                    'Chỉ hỏi tình hình + bỏ sót Gia đình/Niềm tin = mất khách mà không hiểu vì sao.'))
 
     # ------------------------------------------------------------------
     def _l_b6(self):
         return (
-            self._tag('BƯỚC 6')
+            self._tag('BƯỚC 3')
             + '<h3>Chủ động gửi hợp đồng</h3>'
             + '<p>Khi nhân viên cảm thấy: khách <b>không hỏi gì thêm</b>, HOẶC khách '
             '<b>đang để ý báo giá</b> của mình, HOẶC khách đã có <b>một vài phản hồi</b> '
@@ -573,7 +560,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b7(self):
         return (
-            self._tag('BƯỚC 7')
+            self._tag('BƯỚC 4')
             + '<h3>Lấy phản hồi hợp đồng</h3>'
             + _box('err', 'Sai lầm: gửi hợp đồng xong rồi <b>mất hút</b>. Phải chủ động '
                    'sau 1&ndash;2 ngày để LẤY PHẢN HỒI về hợp đồng.')
@@ -609,7 +596,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b8(self):
         return (
-            self._tag('BƯỚC 8 &mdash; BƯỚC QUYẾT ĐỊNH')
+            self._tag('BƯỚC 5 &mdash; BƯỚC QUYẾT ĐỊNH')
             + '<h3>Hẹn khảo sát và ký hợp đồng</h3>'
             + _box('ok', 'Đây là bước CHỐT cơ bản của một nhân viên kinh doanh. Làm tốt '
                    'bước này (hẹn thành công) thì Sếp đi ký tỷ lệ thành công rất cao '
@@ -678,13 +665,10 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             + '<h4>&#128221; Bảng công thức TOÀN KHÓA (thuộc lòng)</h4>'
             + _table(['Bước', 'Công thức thuộc lòng'],
                      [['<b>Bước 1 &mdash; Tự tin báo giá</b>', 'Cân đối KHỚP tài chính (chênh &gt;100tr thì bàn lại; 100&ndash;300tr thì giảm diện tích/khách cố thêm) &rarr; GỬI ngay trong ngày đầu. Trừ ca chênh quá lớn không xoay được.'],
-                      ['<b>Bước 2 &mdash; Phản hồi báo giá</b>', 'KHAI THÁC không ĐOÁN. Hỏi 4 ý: Đã xem kỹ? &mdash; Băn khoăn gì? &mdash; Tài chính hợp? &mdash; Muốn chỉnh gì?'],
-                      ['<b>Bước 3 &mdash; Tín hiệu tiềm năng</b>', 'Khách HỎI = Khách QUAN TÂM &rarr; BÁM ĐUỔI NGAY. Không coi nhẹ câu hỏi nhỏ.'],
-                      ['<b>Bước 4 &mdash; Thời gian khởi công</b>', 'Không ký sớm = không kịp Tết: thiết kế 1&ndash;2 tháng + thợ + 4 phòng ban + hoàn thiện. Giúp khách HIỂU, không dọa.'],
-                      ['<b>Bước 5 &mdash; Khai thác khúc mắc</b>', 'Đủ 5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin. Luôn kết bằng NIỀM TIN.'],
-                      ['<b>Bước 6 &mdash; Gửi hợp đồng</b>', 'Khách để ý + thời gian gấp &rarr; CHỦ ĐỘNG gửi HĐ để có lý do hẹn ký. Không chần chừ.'],
-                      ['<b>Bước 7 &mdash; Phản hồi hợp đồng</b>', 'Dò 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác.'],
-                      ['<b>Bước 8 &mdash; Hẹn &amp; ký (CHỐT)</b>', 'Hết khúc mắc HĐ + chốt cọc 50tr (tiền mặt) + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
+                      ['<b>Bước 2 &mdash; Khai thác vấn đề</b>', 'Nhắn dò &rarr; GỌI (ít nhưng hiệu quả) để moi TÂM LÝ thật. Đủ 5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin (cốt lõi BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP; bản thân khách OK trước thì gia đình mới OK.'],
+                      ['<b>Bước 3 &mdash; Gửi hợp đồng</b>', 'Khách để ý + thời gian gấp &rarr; CHỦ ĐỘNG gửi HĐ để có lý do hẹn ký. Không chần chừ.'],
+                      ['<b>Bước 4 &mdash; Phản hồi hợp đồng</b>', 'Dò 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác.'],
+                      ['<b>Bước 5 &mdash; Hẹn &amp; ký (CHỐT)</b>', 'Hết khúc mắc HĐ + chốt cọc 50tr (tiền mặt) + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
                      widths=['26%', '74%'])
             + _box('warn', 'Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần '
                    'tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần hơn tới '
@@ -764,7 +748,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Gửi trước đối thủ', F),
               ('Trình bày nhiều màu sắc, đẹp mắt', F)]),
 
-            ('Bước 2 - khi lấy phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
+            ('Bước 2 - khi khai thác phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
              [('Hỏi cụ thể: đã xem kỹ báo giá + phụ lục chưa, băn khoăn gì, mức đầu tư có phù hợp, muốn điều chỉnh gì', T),
               ('Hỏi chung chung "anh xem chưa ạ?" rồi thôi', F),
               ('Hỏi "anh chị ký chưa ạ?" để chốt nhanh', F),
@@ -776,55 +760,55 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Chỉ khi khách chủ động nhắn lại', F),
               ('Sau đúng 1 tháng', F)]),
 
-            ('Bước 3 - 1-2 ngày sau khi gửi báo giá, khách nhắn hỏi một câu nhỏ về phụ lục vật tư. Nghĩa là gì?',
+            ('Bước 2 - 1-2 ngày sau khi gửi báo giá, khách nhắn hỏi một câu nhỏ về phụ lục vật tư. Nghĩa là gì?',
              [('Tín hiệu khách RẤT tiềm năng - phải trả lời nhanh và bám đuổi ngay', T),
               ('Khách chỉ hỏi cho có, không cần quan tâm', F),
               ('Khách đang làm khó, nên né trả lời', F),
               ('Chờ gom nhiều câu hỏi rồi trả lời một lần', F)]),
 
-            ('Bước 4 - vì sao phải nhắc khách ký sớm nếu muốn ở nhà mới trước Tết?',
+            ('Bước 2 - vì sao trong mọi cuộc gọi phải nhắc khách ký sớm (thi công gấp) nếu muốn ở nhà mới trước Tết?',
              [('Vì thiết kế mất 1-2 tháng, còn chuẩn bị thợ, vật tư, dự toán, nhân lực, rồi nội thất/sân vườn - không kịp bàn giao', T),
               ('Vì giá sẽ tăng gấp đôi nếu ký muộn', F),
               ('Vì công ty sắp hết suất nhận công trình', F),
               ('Vì khách phải khởi công ngay trong tuần', F)]),
 
-            ('Bước 4 - mục tiêu khi nhắc khách về thời gian khởi công là gì?',
-             [('Giúp khách hiểu rõ hệ quả của việc chậm quyết định, KHÔNG gây áp lực vô lý', T),
-              ('Dọa khách rằng giá sẽ tăng gấp đôi', F),
-              ('Nói công ty sắp hết suất nhận công trình', F),
-              ('Ép khách phải khởi công trong tuần này', F)]),
+            ('Bước 2 - nguyên tắc gọi điện khi khai thác, và khách nói "anh đang xem" nghĩa là gì?',
+             [('Gọi ÍT nhưng HIỆU QUẢ (1 cuộc phải khai thác ra vấn đề); khách "đang xem" = đã xem nhưng trì hoãn nên phải gọi ngay', T),
+              ('Gọi thật nhiều cuộc cho tới khi khách chốt', F),
+              ('Khách "đang xem" thì cứ chờ thêm vài ngày', F),
+              ('Đáp "vâng anh xem đi" rồi tắt máy', F)]),
 
-            ('Bước 5 - nhóm câu hỏi nào giúp phát hiện RÀO CẢN THẬT SỰ trước khi ký?',
+            ('Bước 2 - nhóm câu hỏi nào giúp phát hiện RÀO CẢN THẬT SỰ trước khi ký?',
              [('Nhóm Niềm tin: "Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?"', T),
               ('Nhóm Báo giá: "Có vượt tài chính không?"', F),
               ('Nhóm Mẫu nhà: "Đã đúng phong cách chưa?"', F),
               ('Nhóm Khởi công: "Dự kiến khi nào?"', F)]),
 
-            ('Bước 5 - sai lầm nguy hiểm khi khai thác khúc mắc chưa đủ là gì?',
+            ('Bước 2 - sai lầm nguy hiểm khi khai thác khúc mắc chưa đủ là gì?',
              [('Bỏ sót nhóm Gia đình/Niềm tin → thuyết phục sai người hoặc khách lăn tăn ngầm rồi bỏ đi, mất khách không rõ lý do', T),
               ('Hỏi kỹ cả 5 nhóm câu hỏi', F),
               ('Luôn kết thúc bằng câu hỏi niềm tin', F),
               ('Ghi lại khúc mắc để xử lý dứt điểm', F)]),
 
-            ('Bước 6 - khi nào nên CHỦ ĐỘNG gửi hợp đồng cho khách?',
+            ('Bước 3 - khi nào nên CHỦ ĐỘNG gửi hợp đồng cho khách?',
              [('Khi thấy khách để ý/có vài phản hồi về báo giá + thời gian khởi công gấp → gửi để có lý do hẹn ký, không chần chừ', T),
               ('Chờ đến khi khách tự hỏi về hợp đồng', F),
               ('Chỉ gửi khi khách đã đồng ý mọi thứ bằng văn bản', F),
               ('Không bao giờ gửi trước khi khách yêu cầu', F)]),
 
-            ('Bước 7 - khi gửi hợp đồng, khách thắc mắc NHIỀU NHẤT về điều gì và nhân viên phải làm gì?',
+            ('Bước 4 - khi gửi hợp đồng, khách thắc mắc NHIỀU NHẤT về điều gì và nhân viên phải làm gì?',
              [('Về phụ lục vật tư - phải KHẲNG ĐỊNH đây là vật tư tốt trên thị trường', T),
               ('Về màu sắc bản vẽ - đổi lại cho khách', F),
               ('Về tên công ty - kể lịch sử công ty', F),
               ('Không cần quan tâm, chờ khách ký', F)]),
 
-            ('Bước 8 - nguyên tắc quan trọng nhất về CÁCH NÓI khi hẹn ký là gì?',
+            ('Bước 5 - nguyên tắc quan trọng nhất về CÁCH NÓI khi hẹn ký là gì?',
              [('Giọng tự tin, nói mạnh, nói chắc, khẳng định - không rụt rè', T),
               ('Nói nhẹ nhàng, rào trước đón sau', F),
               ('Nói thật nhanh cho xong', F),
               ('Để khách nói là chính, mình chỉ nghe', F)]),
 
-            ('Bước 8 - vì sao phải trao đổi trước về việc đặt cọc 50 triệu (ưu tiên tiền mặt)?',
+            ('Bước 5 - vì sao phải trao đổi trước về việc đặt cọc 50 triệu (ưu tiên tiền mặt)?',
              [('Vì nếu không thỏa thuận trước, khi về ký khách hay lấy lý do chưa chuẩn bị tiền; đề cập cọc giúp khách có tâm lý chuẩn bị ký cao hơn', T),
               ('Vì công ty cần tiền gấp', F),
               ('Vì để thử xem khách có tiền không', F),
