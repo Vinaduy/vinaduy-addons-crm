@@ -125,6 +125,18 @@
             <field name="vd_max_attempts">3</field>
         </record>
 
+        <!-- Khoa KY NANG SALE: quy trinh chuan xu ly khach moi trong 1 buoi
+             (goi dien -> ket ban Zalo -> tao nhom -> mau nha -> bao gia).
+             Noi dung + 20 cau thi do _vd_seed_quy_trinh_1_buoi seed. -->
+        <record id="course_quy_trinh_1_buoi" model="slide.channel">
+            <field name="name">Quy trình xử lý khách mới trong 1 buổi (Gọi điện - Kết bạn Zalo - Tạo nhóm - Báo giá)</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">9</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <!-- ============ KHU TRUONG NHOM (it khoa hoc - placeholder, doi ten sau) ============ -->
         <record id="course_tn1" model="slide.channel">
             <field name="name">TN1 - Quản lý đội nhóm</field>
@@ -161,6 +173,7 @@
     <function model="slide.channel" name="_vd_seed_d4_giam_vat_tu"/>
     <function model="slide.channel" name="_vd_seed_kn_giong_noi"/>
     <function model="slide.channel" name="_vd_seed_theo_duoi_bao_gia"/>
+    <function model="slide.channel" name="_vd_seed_quy_trinh_1_buoi"/>
 
     <!-- Dong bo ten khoa hoc cho MOI ngon ngu (NV xem vi_VN khong con thay ten cu). -->
     <function model="slide.channel" name="_vd_heal_course_name_langs"/>

@@ -20,3 +20,4 @@ from . import seed_d3_chuyen_doi_mong
 from . import seed_d4_giam_vat_tu
 from . import seed_kn_giong_noi
 from . import seed_theo_duoi_bao_gia
+from . import seed_quy_trinh_1_buoi
