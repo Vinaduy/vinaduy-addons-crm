@@ -654,6 +654,10 @@
                                     t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
                                 <button t-if="state.isAdmin" class="o_vd_path_btn" title="Gán nhân viên vào lộ trình"
                                     t-on-click="() => this.openAssign(path, zone)"><i class="fa fa-user-plus"/></button>
+                                <!-- Lo trinh RONG (0 khoa) -> hien thung rac xoa vinh vien -->
+                                <button t-if="state.isAdmin &amp;&amp; !path.courses.length" class="o_vd_path_btn o_vd_path_btn_del"
+                                    title="Xóa vĩnh viễn lộ trình rỗng"
+                                    t-on-click="() => this.deletePath(path)"><i class="fa fa-trash"/></button>
                             </div>
                             <!-- THEO DOI LO TRINH: hover marker -> bang day du NV hoan thanh/dang hoc/chua -->
                             <div class="o_vd_learners">

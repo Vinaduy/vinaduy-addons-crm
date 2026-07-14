@@ -1555,6 +1555,28 @@ export class VdElearningOverview extends Component {
         });
     }
 
+    // Xoa VINH VIEN lo trinh RONG (khong con khoa hoc nao). Nut thung rac chi
+    // hien khi path.courses.length == 0 (xem template).
+    async deletePath(path) {
+        if (!this.state.isAdmin || (path.courses && path.courses.length)) return;
+        if (!window.confirm(
+            'Xóa vĩnh viễn lộ trình "' + (path.name || "") + '"?\n' +
+            'Chỉ xóa được lộ trình KHÔNG còn khóa học nào. Thao tác không hoàn tác.'
+        )) {
+            return;
+        }
+        try {
+            await this.orm.unlink("vd.learning.path", [path.id]);
+            this.notification.add("Đã xóa lộ trình.", { type: "success" });
+        } catch (e) {
+            this.notification.add(
+                "Không xóa được lộ trình (có thể còn ràng buộc dữ liệu).",
+                { type: "danger" }
+            );
+        }
+        await this.reload();
+    }
+
     // ---------- KEO - THA (trong & giua cac lo trinh) ----------
     onDragStart(ev, course, zoneKey, pathId) {
         if (!this.state.isAdmin) return;
