@@ -673,11 +673,72 @@ export class VdCourseDialog extends Component {
             saving: false,
         });
         this._examTimer = null;
-        onWillUnmount(() => this._stopTimer());
+        // ---- CONG CHAN DOC BAI: hoc vien phai bam xem HET cac buoc (menu ben
+        //      trai trong noi dung) thi nut "VAO THI" moi hien. Dung DOM truc
+        //      tiep (KHONG qua reactive state) de tranh re-render lam t-out
+        //      reset innerHTML -> mat trang thai :checked cua menu CSS. ----
+        this._viewed = new Set();
+        this._readTotal = 0;
+        this._readHandler = null;
+        this.readRoot = useRef("readRoot");
+        this.examCta = useRef("examCta");
+        onWillUnmount(() => {
+            this._stopTimer();
+            this._detachReadGate();
+        });
         // Khoi phuc phien thi dang do (vd. vua reload trang) - hoc vien thi.
         if (!this.props.editable) {
             this._restoreExam();
+            onMounted(() => this._setupReadGate());
         }
+    }
+
+    // ---- CONG CHAN DOC BAI (chi hoc vien) ----------------------------
+    // Quet noi dung tim cac radio menu (.navr). Co >1 buoc -> bat cong chan:
+    // them class .o_vd_gated (CSS an nut VAO THI, hien thanh tien do). Nghe
+    // 'change' (bubble) tren radio menu; radio quiz (.qopt) bi bo qua. Cap
+    // nhat thanh tien do + go khoa bang thao tac DOM truc tiep.
+    _setupReadGate() {
+        if (this.props.editable) return;
+        const root = this.readRoot.el;
+        const cta = this.examCta.el;
+        if (!root || !cta) return;
+        const navs = root.querySelectorAll("input.navr");
+        if (navs.length <= 1) return;   // khong co menu nhieu buoc -> khong chan
+        this._readTotal = navs.length;
+        this._viewed = new Set();
+        navs.forEach((n) => { if (n.checked) this._viewed.add(n.id || n.name); });
+        cta.classList.add("o_vd_gated");
+        this._renderReadProgress();
+        this._detachReadGate();
+        this._readHandler = (ev) => {
+            const t = ev.target;
+            if (t && t.classList && t.classList.contains("navr") && t.checked) {
+                this._viewed.add(t.id || t.name);
+                this._renderReadProgress();
+                if (this._viewed.size >= this._readTotal) {
+                    cta.classList.remove("o_vd_gated");
+                }
+            }
+        };
+        root.addEventListener("change", this._readHandler);
+    }
+    _renderReadProgress() {
+        const cta = this.examCta.el;
+        if (!cta) return;
+        const total = this._readTotal || 0;
+        const done = this._viewed ? this._viewed.size : 0;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const bar = cta.querySelector(".o_vd_read_prog_bar");
+        const num = cta.querySelector(".o_vd_read_num");
+        if (bar) bar.style.width = pct + "%";
+        if (num) num.textContent = done + "/" + total;
+    }
+    _detachReadGate() {
+        if (this._readHandler && this.readRoot && this.readRoot.el) {
+            this.readRoot.el.removeEventListener("change", this._readHandler);
+        }
+        this._readHandler = null;
     }
     key() {
         return "k" + this._k++;

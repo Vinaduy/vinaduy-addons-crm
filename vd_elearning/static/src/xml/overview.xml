@@ -448,18 +448,32 @@
                                     </div>
                                 </t>
                                 <t t-else="">
-                                    <t t-foreach="state.contents" t-as="c" t-key="c._k">
-                                        <article class="o_vd_ce_read">
-                                            <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
-                                        </article>
-                                    </t>
-                                    <div t-if="state.questions.length" class="o_vd_ce_gotoexam">
+                                    <div class="o_vd_ce_reads" t-ref="readRoot">
+                                        <t t-foreach="state.contents" t-as="c" t-key="c._k">
+                                            <article class="o_vd_ce_read">
+                                                <div class="o_vd_ce_read_body" t-out="bodyHtml(c.body)"/>
+                                            </article>
+                                        </t>
+                                    </div>
+                                    <div t-if="state.questions.length" class="o_vd_ce_gotoexam" t-ref="examCta">
                                         <div class="o_vd_exam_intro">
                                             <div class="o_vd_exam_intro_row">
                                                 <span class="o_vd_exam_chip"><i class="fa fa-list-ol me-1"/><t t-esc="state.questions.length"/> câu hỏi</span>
                                                 <span class="o_vd_exam_chip"><i class="fa fa-clock-o me-1"/><t t-esc="state.examMinutes"/> phút</span>
                                                 <span class="o_vd_exam_chip"><i class="fa fa-trophy me-1"/>Đạt <t t-esc="state.passPercent"/>%</span>
                                                 <span class="o_vd_exam_chip"><i class="fa fa-repeat me-1"/>Lượt thi <t t-esc="attemptLabel"/></span>
+                                            </div>
+                                        </div>
+                                        <!-- CONG CHAN: khi .o_vd_gated (JS them luc chua doc het) thi CSS an
+                                             nut VAO THI + hien panel tien do; xem het cac buoc -> JS go class. -->
+                                        <div class="o_vd_read_lock">
+                                            <div class="o_vd_read_lock_head"><i class="fa fa-lock me-2"/>Đọc hết bài để mở khoá bài thi</div>
+                                            <div class="o_vd_read_prog">
+                                                <div class="o_vd_read_prog_bar"/>
+                                            </div>
+                                            <div class="o_vd_read_prog_txt">
+                                                Đã xem <b><span class="o_vd_read_num">0/0</span></b> phần &#8212;
+                                                hãy bấm mở lần lượt <b>tất cả các mục ở menu bên trái</b> để đọc hết rồi bài thi sẽ tự mở ra.
                                             </div>
                                         </div>
                                         <button class="o_vd_ce_start" t-on-click="startExam">

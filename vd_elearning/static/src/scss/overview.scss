@@ -889,6 +889,36 @@ $vd-line2:   #ece7da;
         &:hover { filter: brightness(1.05); transform: translateY(-2px); }
     }
 
+    // ----- CONG CHAN DOC BAI: chua doc het cac buoc thi khoa nut vao thi -----
+    // Mac dinh: hien nut VAO THI, an panel khoa. Khi JS them .o_vd_gated
+    // (chua doc het) -> dao lai: an nut + hint, hien panel tien do.
+    .o_vd_read_lock { display: none; }
+    .o_vd_ce_gotoexam.o_vd_gated {
+        .o_vd_ce_start, .o_vd_ce_hint { display: none; }
+        .o_vd_read_lock { display: block; }
+    }
+    .o_vd_read_lock {
+        width: 100%; max-width: 560px; text-align: center;
+        border: 2px dashed #f0b429; border-radius: 14px;
+        background: linear-gradient(180deg, #fffdf5, #fff7e6);
+        padding: 1rem 1.2rem;
+    }
+    .o_vd_read_lock_head {
+        font-weight: 900; font-size: .95rem; color: #92610a; margin-bottom: .6rem;
+    }
+    .o_vd_read_prog {
+        height: 12px; border-radius: 999px; background: #f1e7cf; overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(146, 97, 10, .18);
+    }
+    .o_vd_read_prog_bar {
+        height: 100%; border-radius: 999px;
+        background: linear-gradient(90deg, #f6b73c, #ef8c1a);
+        transition: width .3s ease;
+    }
+    .o_vd_read_prog_txt {
+        margin-top: .5rem; font-size: .78rem; color: #8a6d2f; line-height: 1.4;
+    }
+
     // ----- tieu de khoa hoc (sua inline) + tools admin -----
     .o_vd_ce_titlebar { display: flex; align-items: center; gap: .6rem; }
     .o_vd_ce_coursetitle { margin: 0; font-size: 1.15rem; font-weight: 900; color: $vd-ink2; }
