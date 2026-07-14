@@ -9642,6 +9642,102 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_tc_audio { height: 30px; flex: 1 1 auto; min-width: 220px; max-width: 360px; }
 
 /* ===== Popup THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy ===== */
+// ===== 📊 Nut mo bang 30 ngay (trong popover bao cao chia so) =====
+.o_vd_pk_matrix_bar { padding: 0.5rem 0.95rem 0; }
+.o_vd_pk_matrix_btn {
+    width: 100%;
+    border: 0; cursor: pointer;
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+    color: #fff; font-weight: 800; font-size: 0.92rem;
+    padding: 0.55rem 0.8rem; border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.32);
+    span { font-weight: 700; opacity: 0.9; font-size: 0.82rem; }
+    &:hover { filter: brightness(1.06); }
+}
+
+// ===== 📊 BANG CHI TIET 30 NGAY (modal to, moi cot 1 ngay) =====
+.o_vd_pkmx_overlay {
+    position: fixed; inset: 0; z-index: 4300;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2vh 1.5vw;
+}
+.o_vd_pkmx {
+    width: 97vw; max-width: 1900px; height: 94vh;
+    background: #fff; border-radius: 14px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 70px rgba(2, 6, 23, 0.45);
+}
+.o_vd_pkmx_head {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1.1rem;
+    background: linear-gradient(135deg, #4c1d95, #831843);
+    color: #fff; font-weight: 800; font-size: 1.02rem;
+    .o_vd_pkmx_legend { font-size: 0.8rem; font-weight: 700; margin-left: 0.6rem; opacity: 0.95; }
+    .o_vd_pkmx_legend .o_tt { color: #fbcfe8; }
+    .o_vd_pkmx_legend .o_fb { color: #bfdbfe; }
+}
+.o_vd_pkmx_body { flex: 1 1 auto; min-height: 0; display: flex; }
+.o_vd_pkmx_scroll { flex: 1 1 auto; overflow: auto; }
+
+.o_vd_pkmx_tbl {
+    border-collapse: separate; border-spacing: 0;
+    font-size: 0.78rem; white-space: nowrap;
+    // cot NV (sticky trai) + cot Tong (sticky ke tiep)
+    th, td { border-bottom: 1px solid #eef1f5; border-right: 1px solid #eef1f5; }
+    thead th {
+        position: sticky; top: 0; z-index: 3;
+        background: #f1f5f9; color: #334155; font-weight: 800;
+        text-align: center; padding: 0.4rem 0.5rem; vertical-align: middle;
+    }
+    .o_vd_pkmx_nv {
+        position: sticky; left: 0; z-index: 2;
+        width: 168px; min-width: 168px; max-width: 168px;
+        white-space: normal; text-align: left; background: #fff;
+        padding: 0.4rem 0.6rem;
+    }
+    thead .o_vd_pkmx_nv { z-index: 4; background: #e8edf5; }
+    .o_vd_pkmx_sum {
+        position: sticky; left: 168px; z-index: 2;
+        width: 78px; min-width: 78px; background: #fbfcfe;
+        text-align: center; padding: 0.35rem 0.35rem; font-weight: 700;
+    }
+    thead .o_vd_pkmx_sum { z-index: 4; background: #e8edf5; }
+    .o_vd_pkmx_day {
+        min-width: 54px;
+        .o_vd_pkmx_dl { font-size: 0.76rem; }
+        .o_vd_pkmx_dw { font-size: 0.62rem; color: #94a3b8; font-weight: 700; }
+        &.o_today { background: #fff7ed; color: #9a3412; }
+    }
+    tbody td { background: #fff; }
+    tbody tr:nth-child(even) td { background: #fafbfd; }
+    tbody tr:nth-child(even) .o_vd_pkmx_nv { background: #fafbfd; }
+    tbody tr:hover td { background: #eef6ff; }
+    tbody tr:hover .o_vd_pkmx_nv { background: #eef6ff; }
+    .o_vd_pkmx_cell {
+        text-align: center; padding: 0.3rem 0.4rem; font-weight: 700;
+        &.o_today { background: #fff7ed; }
+        &.o_zero { color: #cbd5e1; font-weight: 500; }
+    }
+    .o_vd_pkmx_name { font-weight: 700; color: #0f172a; display: block; line-height: 1.2; }
+    .o_vd_pkmx_role {
+        display: inline-block; margin-top: 2px; font-size: 0.62rem; font-weight: 800;
+        color: #92610a; background: #fef3c7; padding: 1px 6px; border-radius: 8px;
+    }
+    .o_tt { color: #db2777; }
+    .o_fb { color: #2563eb; }
+    .o_sep { color: #cbd5e1; margin: 0 3px; font-weight: 400; }
+    .o_zero .o_tt, .o_zero .o_fb { color: inherit; }
+    tfoot td {
+        position: sticky; bottom: 0; z-index: 3;
+        background: #eef2f9; font-weight: 800; text-align: center;
+        padding: 0.45rem 0.4rem; border-top: 2px solid #cbd5e1;
+    }
+    tfoot .o_vd_pkmx_nv { left: 0; z-index: 5; text-align: left; }
+    tfoot .o_vd_pkmx_sum { left: 168px; z-index: 5; }
+}
+
 .o_vd_trashpop_overlay {
     position: fixed;
     inset: 0;

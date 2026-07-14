@@ -7030,6 +7030,128 @@ class CrmLead(models.Model):
         items.sort(key=lambda r: (order.get(r['reason'], 9), r['created']))
         return {'items': items, 'summary': summary}
 
+    @api.model
+    def vd_pancake_30day_matrix(self, days=30):
+        """BẢNG CHI TIẾT 30 NGÀY (user spec 2026-07-14): mỗi CỘT = 1 ngày, mỗi
+        HÀNG = 1 nhân viên, mỗi ô = 2 chỉ số [TikTok | Facebook] số Pancake đã
+        chia cho NV đó trong ngày đó.
+
+        Ngày tính theo giờ VN (0h→24h), cột cũ nhất bên trái → mới nhất bên phải
+        (hôm nay = cột cuối). Đếm lead Pancake active (giống báo cáo chia số).
+        Phân nền tảng theo tiền tố conversation_id ('ttm_'/'pzl_' = TikTok, còn
+        lại = Facebook — xem [_vd_distribution_report]). 1 SQL group-by cho nhanh.
+
+        Trả {days:[{label,dow,is_today}], rows:[{uid,name,is_boss,role,
+             cells:[{tt,fb}],sum_tt,sum_fb,sum}], totals:{cells:[{tt,fb}],tt,fb}}.
+        """
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _tdd
+        try:
+            days = max(1, min(60, int(days)))
+        except (TypeError, ValueError):
+            days = 30
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        today_d = now_vn.date()
+        first_d = today_d - _tdd(days=days - 1)
+
+        def _utc(d, t):
+            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
+
+        since = _utc(first_d, _time(0, 0))
+        until = _utc(today_d + _tdd(days=1), _time(0, 0))
+
+        # Danh sách ngày (cũ -> mới) + chỉ số cột theo ngày để đổ dữ liệu SQL vào.
+        _dow = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+        day_list, day_idx = [], {}
+        for i in range(days):
+            d = first_d + _tdd(days=i)
+            day_idx[d.isoformat()] = i
+            day_list.append({
+                'label': d.strftime('%d/%m'),
+                'dow': _dow[d.weekday()],
+                'is_today': d == today_d,
+            })
+
+        # POOL nhân viên (giống báo cáo chia số): NV thật + Trưởng nhóm + Giám đốc.
+        Users = self.env['res.users'].sudo()
+        salesman_gid = self.env.ref('sales_team.group_sale_salesman').id
+        leader_gid = self.env.ref('vd_crm_lead.vd_crm_group_team_leader', raise_if_not_found=False)
+        sales = Users.search([
+            ('share', '=', False), ('active', '=', True),
+            ('groups_id', 'in', salesman_gid),
+        ])
+
+        def _is_real_nv(u):
+            if u._is_admin() or u.has_group('base.group_system'):
+                return False
+            if u.has_group('sales_team.group_sale_manager'):
+                return False
+            if leader_gid and u.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+                return False
+            return True
+
+        all_nv = sales.filtered(_is_real_nv)
+        boss_nv = Users.search([
+            ('share', '=', False), ('active', '=', True),
+        ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
+        role_lbl = {'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc'}
+        pool = all_nv | boss_nv
+
+        # Ma trận rỗng: uid -> list ô {tt,fb} theo từng ngày.
+        cells = {u.id: [{'tt': 0, 'fb': 0} for _ in range(days)] for u in pool}
+
+        # 1 SQL: đếm lead Pancake active theo (user_id, ngày VN, nền tảng).
+        self.env.cr.execute(
+            "SELECT user_id, "
+            "  (create_date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d, "
+            "  CASE WHEN vd_pancake_conversation_id LIKE 'ttm\\_%%' "
+            "         OR vd_pancake_conversation_id LIKE 'pzl\\_%%' THEN 'tt' "
+            "       ELSE 'fb' END AS plat, "
+            "  COUNT(*) AS c "
+            "FROM crm_lead "
+            "WHERE vd_pancake_page_id IS NOT NULL AND user_id IS NOT NULL "
+            "  AND active = TRUE "
+            "  AND create_date >= %s AND create_date < %s "
+            "GROUP BY user_id, d, plat",
+            (since, until))
+        for uid, d, plat, c in self.env.cr.fetchall():
+            row = cells.get(uid)
+            if row is None:
+                continue
+            di = day_idx.get(d.isoformat())
+            if di is None:
+                continue
+            row[di]['tt' if plat == 'tt' else 'fb'] += c
+
+        # Dựng hàng NV + tổng theo cột.
+        col_tot = [{'tt': 0, 'fb': 0} for _ in range(days)]
+        rows = []
+        for u in pool:
+            rc = cells[u.id]
+            s_tt = sum(x['tt'] for x in rc)
+            s_fb = sum(x['fb'] for x in rc)
+            for i, x in enumerate(rc):
+                col_tot[i]['tt'] += x['tt']
+                col_tot[i]['fb'] += x['fb']
+            rows.append({
+                'uid': u.id,
+                'name': u.name or 'NV #%s' % u.id,
+                'is_boss': bool(role_lbl.get(u.vd_crm_role)) and u in boss_nv,
+                'role': role_lbl.get(u.vd_crm_role, '') if u in boss_nv else '',
+                'cells': rc,
+                'sum_tt': s_tt, 'sum_fb': s_fb, 'sum': s_tt + s_fb,
+            })
+        # NV nhiều số nhất lên đầu (dễ đọc top NV); boss xếp theo tên sau cùng NV.
+        rows.sort(key=lambda r: (-r['sum'], r['name']))
+        g_tt = sum(c['tt'] for c in col_tot)
+        g_fb = sum(c['fb'] for c in col_tot)
+        return {
+            'days': day_list,
+            'rows': rows,
+            'totals': {'cells': col_tot, 'tt': g_tt, 'fb': g_fb, 'sum': g_tt + g_fb},
+        }
+
     def _vd_inbound_today_chips(self, call_user_domain, limit=400):
         """KHÁCH GỌI ĐẾN của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
         Hiện TẤT CẢ cuộc gọi đến (kể cả quá khứ, user spec 2026-06-24), KHÔNG chỉ

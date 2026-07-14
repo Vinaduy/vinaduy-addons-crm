@@ -652,6 +652,70 @@
                 </div>
             </div>
 
+            <!-- ===== 📊 BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày · ô = TikTok | Facebook) ===== -->
+            <div t-if="state.pkMatrix &amp;&amp; state.pkMatrix.open" class="o_vd_pkmx_overlay"
+                 t-on-click="() => this.closePancakeMatrix()">
+                <div class="o_vd_pkmx" t-on-click.stop="() => {}">
+                    <div class="o_vd_pkmx_head">
+                        <span>📊 Báo cáo chi tiết 30 ngày — số Pancake chia cho NV
+                            <span class="o_vd_pkmx_legend"><b class="o_tt">■ TikTok</b> · <b class="o_fb">■ Facebook</b></span>
+                        </span>
+                        <button type="button" class="o_vd_trashpop_close"
+                                t-on-click="() => this.closePancakeMatrix()">×</button>
+                    </div>
+                    <div class="o_vd_pkmx_body">
+                        <div t-if="state.pkMatrix.loading" class="o_vd_trashpop_loading">
+                            <i class="fa fa-spinner fa-spin me-1"/>Đang tải...
+                        </div>
+                        <div t-elif="!state.pkMatrix.rows.length" class="o_vd_trashpop_empty">
+                            Chưa có dữ liệu 30 ngày.
+                        </div>
+                        <div t-else="" class="o_vd_pkmx_scroll">
+                            <table class="o_vd_pkmx_tbl">
+                                <thead>
+                                    <tr>
+                                        <th class="o_vd_pkmx_nv o_sticky">Nhân viên</th>
+                                        <th class="o_vd_pkmx_sum">Tổng<br/>30 ngày</th>
+                                        <th t-foreach="state.pkMatrix.days" t-as="d" t-key="d_index"
+                                            t-att-class="'o_vd_pkmx_day' + (d.is_today ? ' o_today' : '')">
+                                            <div class="o_vd_pkmx_dl"><t t-esc="d.label"/></div>
+                                            <div class="o_vd_pkmx_dw"><t t-esc="d.dow"/></div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.pkMatrix.rows" t-as="r" t-key="r.uid">
+                                        <td class="o_vd_pkmx_nv o_sticky">
+                                            <span class="o_vd_pkmx_name"><t t-esc="r.name"/></span>
+                                            <span t-if="r.role" class="o_vd_pkmx_role"><t t-esc="r.role"/></span>
+                                        </td>
+                                        <td class="o_vd_pkmx_sum">
+                                            <b class="o_tt"><t t-esc="r.sum_tt"/></b><span class="o_sep">|</span><b class="o_fb"><t t-esc="r.sum_fb"/></b>
+                                        </td>
+                                        <td t-foreach="r.cells" t-as="c" t-key="c_index"
+                                            t-att-class="'o_vd_pkmx_cell' + ((c.tt || c.fb) ? '' : ' o_zero') + (state.pkMatrix.days[c_index].is_today ? ' o_today' : '')">
+                                            <span class="o_tt"><t t-esc="c.tt"/></span><span class="o_sep">|</span><span class="o_fb"><t t-esc="c.fb"/></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="o_vd_pkmx_nv o_sticky">TỔNG THEO NGÀY</td>
+                                        <td class="o_vd_pkmx_sum">
+                                            <b class="o_tt"><t t-esc="state.pkMatrix.totals.tt"/></b><span class="o_sep">|</span><b class="o_fb"><t t-esc="state.pkMatrix.totals.fb"/></b>
+                                        </td>
+                                        <td t-foreach="state.pkMatrix.totals.cells" t-as="c" t-key="c_index"
+                                            t-att-class="'o_vd_pkmx_cell' + (state.pkMatrix.days[c_index].is_today ? ' o_today' : '')">
+                                            <span class="o_tt"><t t-esc="c.tt"/></span><span class="o_sep">|</span><span class="o_fb"><t t-esc="c.fb"/></span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== Panel SĐT BỊ LOẠI khỏi chia số (kiểm tra logic gộp) ===== -->
             <div t-if="state.pkExcluded &amp;&amp; state.pkExcluded.open" class="o_vd_trashpop_overlay"
                  t-on-click="() => this.closePancakeExcluded()">
@@ -3246,6 +3310,14 @@
             <!-- POPOVER hover (rộng + có cột TikTok/FB + nút bật/tắt + tỷ lệ xin số) -->
             <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
+
+                <!-- Nút mở BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày, ô = TikTok | Facebook) -->
+                <div t-if="distShowTarget" class="o_vd_pk_matrix_bar">
+                    <button type="button" class="o_vd_pk_matrix_btn"
+                            t-on-click.stop="() => this.openPancakeMatrix()">
+                        📊 Bảng chi tiết 30 ngày <span>(🎵 TikTok | 📘 Facebook)</span>
+                    </button>
+                </div>
 
                 <!-- ⛔ BANNER DỪNG CHIA SỐ PANCAKE: webhook còn nhận hội thoại nhưng
                      lâu rồi không bắt được số nào → pipeline xin số hỏng. -->

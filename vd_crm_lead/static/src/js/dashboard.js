@@ -541,6 +541,26 @@ export class VdCrmDashboard extends Component {
         this.state.pkExcluded = null;
     }
 
+    // ===== 📊 BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày, mỗi ô = TikTok | Facebook) =====
+    async openPancakeMatrix() {
+        this.state.pkMatrix = { open: true, loading: true, days: [], rows: [], totals: null };
+        try {
+            const data = await this.orm.call("crm.lead", "vd_pancake_30day_matrix", [30]);
+            this.state.pkMatrix = {
+                open: true, loading: false,
+                days: (data && data.days) || [],
+                rows: (data && data.rows) || [],
+                totals: (data && data.totals) || null,
+            };
+        } catch (e) {
+            console.warn("Tải bảng 30 ngày lỗi:", e);
+            this.state.pkMatrix = { open: true, loading: false, days: [], rows: [], totals: null };
+        }
+    }
+    closePancakeMatrix() {
+        this.state.pkMatrix = null;
+    }
+
     // ===== 📢 CHIẾN DỊCH SPAM ZALO (gate khoá dashboard) =====
     // Render HTML thô (nội dung admin soạn) an toàn qua markup.
     mk(s) {
