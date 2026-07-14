@@ -18,28 +18,40 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v11-merge-b2'
+_TDBG_VERSION = 'v12-typo-noquiz'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 
 _STYLE = (
     '<style>'
-    '.vd-tdbg{font-size:16px;line-height:1.7;color:#1f2937;}'
+    '.vd-tdbg{font-size:16.5px;line-height:1.9;color:#293244;letter-spacing:.1px;}'
     '.vd-tdbg .vd-course{background:linear-gradient(180deg,#fff7f3 0%,#f5faff 100%);'
     'border-radius:18px;padding:16px;}'
-    '.vd-tdbg h3{font-size:19px;font-weight:800;color:#0f172a;margin:2px 0 12px;}'
-    '.vd-tdbg h4{font-size:16px;font-weight:800;color:#111827;margin:16px 0 6px;}'
-    '.vd-tdbg p{margin:0 0 10px;}'
-    '.vd-tdbg ul,.vd-tdbg ol{margin:0 0 10px;padding-left:22px;}'
-    '.vd-tdbg li{margin:5px 0;}'
-    '.vd-tdbg b{color:#111827;}'
-    '.vd-tdbg table{border-collapse:collapse;width:100%;margin:8px 0 6px;font-size:15px;}'
-    '.vd-tdbg th,.vd-tdbg td{border:1px solid #e5e7eb;padding:8px 11px;text-align:left;vertical-align:top;}'
-    '.vd-tdbg th{background:#f1f5f9;font-weight:800;color:#334155;}'
+    # tieu de lon: chu to, gach chan cam de tach hẳn phan
+    '.vd-tdbg h3{font-size:24px;font-weight:900;color:#0f172a;margin:4px 0 18px;line-height:1.3;'
+    'padding-bottom:11px;border-bottom:3px solid #ffd0bd;}'
+    # tieu de nho: thanh nhan cam ben trai + chu cam, cach xa phan tren de "tho"
+    '.vd-tdbg h4{font-size:18.5px;font-weight:800;color:#c2410c;margin:30px 0 12px;line-height:1.4;'
+    'padding:2px 0 2px 13px;border-left:5px solid #f97316;}'
+    '.vd-tdbg p{margin:0 0 16px;}'
+    '.vd-tdbg ul,.vd-tdbg ol{margin:2px 0 18px;padding-left:24px;}'
+    '.vd-tdbg li{margin:10px 0;line-height:1.85;}'
+    '.vd-tdbg b{color:#0f172a;font-weight:800;}'
+    # chu nhan manh (vang) + chu "khoa" (do)
+    '.vd-tdbg .hl{background:linear-gradient(180deg,transparent 55%,#fff3a8 55%);font-weight:800;color:#7c4a03;padding:0 2px;}'
+    '.vd-tdbg table{border-collapse:separate;border-spacing:0;width:100%;margin:14px 0 18px;font-size:15.5px;'
+    'line-height:1.65;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(2,6,23,.05);}'
+    '.vd-tdbg th,.vd-tdbg td{border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:12px 15px;text-align:left;vertical-align:top;}'
+    '.vd-tdbg tr td:last-child,.vd-tdbg tr th:last-child{border-right:0;}'
+    '.vd-tdbg tr:last-child td{border-bottom:0;}'
+    '.vd-tdbg th{background:#eef2f9;font-weight:800;color:#334155;font-size:14.5px;letter-spacing:.3px;}'
+    '.vd-tdbg td{background:#fff;}'
+    '.vd-tdbg tr:nth-child(even) td{background:#fafbfd;}'
     '.vd-tdbg .thok{background:#dcfce7;color:#15803d;}'
     '.vd-tdbg .thno{background:#fee2e2;color:#b91c1c;}'
-    '.vd-tdbg .no{color:#b91c1c;font-weight:700;}'
+    '.vd-tdbg .no{color:#b91c1c;font-weight:800;font-size:15px;letter-spacing:.5px;}'
+    '.vd-tdbg .yes{color:#15803d;font-weight:800;}'
     '.vd-tdbg .navr,.vd-tdbg .qopt{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}'
     '.vd-tdbg .vc-layout{display:flex;gap:18px;align-items:flex-start;}'
     '.vd-tdbg .vc-side{flex:0 0 264px;}'
@@ -55,20 +67,22 @@ _STYLE = (
     'white-space:nowrap;}'
     '.vd-tdbg .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;}'
     '.vd-tdbg .vc-content{flex:1;min-width:0;background:#ffffff;border:1px solid #eef2f7;'
-    'border-radius:16px;padding:24px 26px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
+    'border-radius:16px;padding:30px 34px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
     '.vd-tdbg .vc-panel{display:none;}'
-    '.vd-tdbg .vc-tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;'
-    'color:#e8401f;background:#fff1ec;padding:3px 10px;border-radius:20px;margin-bottom:8px;}'
-    '.vd-tdbg .box{border-left:5px solid;border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;}'
+    '.vd-tdbg .vc-tag{display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:1.2px;'
+    'color:#e8401f;background:#fff1ec;padding:5px 13px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;}'
+    # hop mau (callout): to hon, thoang hon, chu ro
+    '.vd-tdbg .box{border-left:5px solid;border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;'
+    'font-size:16px;line-height:1.75;}'
     '.vd-tdbg .b-err{background:#fef2f2;border-color:#dc2626;color:#991b1b;}'
     '.vd-tdbg .b-warn{background:#fffbeb;border-color:#f59e0b;color:#92400e;}'
     '.vd-tdbg .b-info{background:#eff6ff;border-color:#3b82f6;color:#1e40af;}'
     '.vd-tdbg .b-ok{background:#f0fdf4;border-color:#16a34a;color:#166534;}'
-    # công thức
+    # công thức (khung tim) - noi bat, cach xa
     '.vd-tdbg .fml{background:linear-gradient(135deg,#faf5ff,#eef2ff);border:2px solid #c4b5fd;'
-    'border-radius:12px;padding:13px 16px;margin:10px 0;}'
-    '.vd-tdbg .fml .fh{font-weight:800;color:#6d28d9;font-size:12.5px;letter-spacing:.6px;margin-bottom:5px;}'
-    '.vd-tdbg .fml .fml-b{color:#4c1d95;font-weight:600;}'
+    'border-radius:14px;padding:16px 20px;margin:20px 0;box-shadow:0 4px 16px rgba(124,58,237,.1);}'
+    '.vd-tdbg .fml .fh{font-weight:800;color:#6d28d9;font-size:13px;letter-spacing:.8px;margin-bottom:7px;}'
+    '.vd-tdbg .fml .fml-b{color:#4c1d95;font-weight:600;font-size:16.5px;line-height:1.75;}'
     # thứ tự đánh số
     '.vd-tdbg .vc-order{margin:12px 0;border:1px solid #ffd9c9;border-radius:12px;overflow:hidden;}'
     '.vd-tdbg .vc-ostep{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;'
@@ -290,9 +304,10 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'báo giá này là phương án <b>ưng ý nhất</b> với khách &mdash; tức là '
                    'báo giá <b>khớp với tầm tài chính</b> của khách. Chính mình còn không '
                    'tin thì khách càng không tin.')
-            + '<p>Sự tự tin đó KHÔNG đến từ cảm tính, mà đến từ việc bạn đã <b>cân đối '
-            'được tài chính</b> và <b>hiểu chắc năng lực thật</b> của khách. Đây là nền '
-            'móng: làm chắc Bước 1 thì các bước theo đuổi phía sau mới có ý nghĩa.</p>'
+            + '<p>Sự tự tin đó KHÔNG đến từ cảm tính, mà đến từ việc bạn đã <span '
+            'class="hl">cân đối được tài chính</span> và <span class="hl">hiểu chắc năng '
+            'lực thật</span> của khách. Đây là <b>nền móng</b>: làm chắc Bước 1 thì các '
+            'bước theo đuổi phía sau mới có ý nghĩa.</p>'
 
             + '<h4>1&#65039;&#8419; Tự trả lời 3 câu trước khi bấm gửi</h4>'
             + _table(['Câu tự kiểm', 'Kiểm tra điều gì', 'Nếu CHƯA đạt'],
@@ -365,14 +380,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             + _fml('Tự tin báo giá = <b>Cân đối KHỚP tài chính</b> (chênh &gt;100tr thì '
                    'bàn lại; 100&ndash;300tr thì giảm diện tích/khách cố thêm) &rarr; '
                    '<b>GỬI ngay trong ngày đầu</b>. Cân đối tài chính là phương án tối '
-                   'thượng; trừ ca chênh quá lớn không xoay được &rarr; vẫn phải gửi bằng mọi giá.')
-            + _quiz('qz_b1',
-                    'Báo giá chênh khoảng 100&ndash;300 triệu so với tầm tài chính khách. Nên làm gì?',
-                    [('Cứ gửi luôn con số cao, không cần bàn bạc', False),
-                     ('Trao đổi lại: giảm diện tích cho khớp HOẶC xác định khách có thể cố thêm (vay/mượn/xoay), rồi vẫn cố gắng gửi báo giá', True),
-                     ('Không gửi báo giá nữa vì chênh quá nhiều', False),
-                     ('Lưỡng lự chờ 2&ndash;3 ngày rồi mới quyết', False)],
-                    'Chênh 100&ndash;300tr: bàn giảm diện tích hoặc chốt khách cố thêm tài chính, rồi VẪN gửi &mdash; cân đối tài chính là tối thượng.'))
+                   'thượng; trừ ca chênh quá lớn không xoay được &rarr; vẫn phải gửi bằng mọi giá.'))
 
     # ------------------------------------------------------------------
     def _l_b2(self):
@@ -423,7 +431,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             + '<p>Khách im lặng KHÔNG có nghĩa là hết quan tâm &mdash; có thể vì: báo giá '
             'cao hơn dự kiến &middot; chưa đúng nhu cầu &middot; chưa hiểu cách tính '
             '&middot; đang chờ đơn vị khác &middot; chưa đủ niềm tin &middot; chưa biết '
-            'nên hỏi gì. Việc của nhân viên là KHAI THÁC, không ĐOÁN.</p>'
+            'nên hỏi gì. Việc của nhân viên là <span class="hl">KHAI THÁC, không ĐOÁN</span>.</p>'
 
             + '<h4>2&#65039;&#8419; 5 NHÓM khúc mắc phải TÌM RA (khách chưa ký = còn vấn đề)</h4>'
             + _table(['Nhóm khai thác', 'Hỏi gì', 'Vì sao QUAN TRỌNG'],
@@ -505,21 +513,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'moi bằng được TÂM LÝ thật. Đủ 5 nhóm: <b>Báo giá &mdash; Mẫu nhà '
                    '&mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin</b> (cốt lõi vẫn là '
                    'BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP. Bản thân khách '
-                   'OK trước &rarr; gia đình mới OK.')
-            + _quiz('qz_b2a',
-                    'Nhắn tin dò báo giá, khách trả lời &#8220;anh đang xem&#8221;. Nên hiểu và làm gì?',
-                    [('Khách chưa xem gì, cứ chờ thêm vài ngày', False),
-                     ('Khách đã xem nhưng lấy lý do trì hoãn &mdash; phải GỌI ĐIỆN ngay để khai thác vấn đề', True),
-                     ('Đáp &#8220;vâng anh xem đi&#8221; rồi tắt máy', False),
-                     ('Gọi liên tục 5&ndash;6 cuộc cho tới khi khách nghe', False)],
-                    'Khách &#8220;đang xem&#8221; = đã xem nhưng trì hoãn &mdash; gọi 1 cuộc hiệu quả để moi ra vấn đề thật.')
-            + _quiz('qz_b2b',
-                    'Đâu là sai lầm nguy hiểm khi khai thác vấn đề?',
-                    [('Nhắn dò trước rồi mới gọi', False),
-                     ('Chỉ gọi hỏi tình hình / bỏ sót nhóm Gia đình - Niềm tin nên khách lăn tăn ngầm rồi bỏ đi, mất khách không rõ lý do', True),
-                     ('Mọi cuộc gọi đều nhắc thi công gấp', False),
-                     ('Chốt cho chính khách OK trước khi tới gia đình', False)],
-                    'Chỉ hỏi tình hình + bỏ sót Gia đình/Niềm tin = mất khách mà không hiểu vì sao.'))
+                   'OK trước &rarr; gia đình mới OK.'))
 
     # ------------------------------------------------------------------
     def _l_b6(self):
