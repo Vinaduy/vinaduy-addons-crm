@@ -3647,6 +3647,7 @@ class CrmLead(models.Model):
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
         'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
         'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2',
+        'vd_intake_has_lung', 'vd_intake_floor_thongtang_m2',  # thông tầng -> tổng
         'vd_intake_foundation_type', 'vd_intake_roof_type',
         'vd_intake_car_access', 'vd_intake_budget', 'vd_intake_budget_amount',
         'vd_house_extra',  # phụ phí Mẫu nhà "KHÁC" -> đổi đơn giá
@@ -3695,6 +3696,15 @@ class CrmLead(models.Model):
             roof_cost = roof_area * roof_pct * san_unit
 
             total = found_cost + floor_cost + roof_cost
+            # THÔNG TẦNG (fix 2026-07-15: "Phần mềm tính" lệch TỔNG bảng chi tiết
+            # + file báo giá đúng bằng phần thông tầng). Đồng bộ công thức với
+            # _compute_quote_breakdown_html + _build_quote_context: có Lửng →
+            # cộng DT thông tầng × % thông tầng × đơn giá sàn.
+            if rec.vd_intake_has_lung:
+                tt_base = rec.vd_intake_floor_thongtang_m2 or 0.0
+                if tt_base > 0:
+                    tt_pct = rec._get_roof_pct(pricing, 'thong_tang') or 0.0
+                    total += tt_base * (tt_pct / 100.0) * san_unit
             # Phụ phí móng đơn 10% / móng băng-cọc 15% đã BỎ (2026-05-21 spec).
 
             # Phụ phí tỉnh vùng cao (+300k/m² × total_floor_area)
