@@ -195,7 +195,8 @@ class VdPancakePage(models.Model):
             'facebook': '(Fanpage)',
             'tiktok': '(Tiktok)',
             'instagram': '(Instagram)',
-            'zalo': '(Zalo)',
+            # User spec 2026-07-15: BỎ tiền tố "(Zalo)" khỏi tên KH.
+            'zalo': '',
             'other': '(Pancake)',
         }.get(self.platform, '(Pancake)')
 

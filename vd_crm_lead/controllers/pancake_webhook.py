@@ -260,7 +260,7 @@ class PancakeWebhookController(http.Controller):
         # đây phone luôn != '' do skip ở trên).
         display_name = customer_name or phone or 'KH'
         lead_vals = {
-            'name': '%s %s' % (page.name_prefix, display_name),
+            'name': ('%s %s' % (page.name_prefix, display_name)).strip(),
             'partner_name': customer_name or '',
             'phone': phone or '',
             'description': self._build_description(payload, message_text),
