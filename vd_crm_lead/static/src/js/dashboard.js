@@ -1262,9 +1262,9 @@ export class VdCrmDashboard extends Component {
         if (code === 'new') {
             const p = lead.pancake_platform;
             if (p === 'facebook') return '📘';   // FB blue
-            if (p === 'tiktok')   return '🎵';   // TikTok
+            // TikTok + Zalo dùng CHUNG icon TikTok (user spec 2026-07-15)
+            if (p === 'tiktok' || p === 'zalo') return '🎵';
             if (p === 'instagram') return '📷';
-            if (p === 'zalo')     return '💬';   // Zalo
             return '👤';  // manual
         }
         // Default chip
