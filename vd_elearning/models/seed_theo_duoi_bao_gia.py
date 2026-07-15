@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v15-capacity-6steps-wide'
+_TDBG_VERSION = 'v16-summary-tighter'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -28,7 +28,9 @@ _STYLE = (
     # noi rong khoa hoc gan sat mep man hinh (breakout khoi container 1240px cua
     # trinh doc e-learning): 96vw, chi con ~2vw (~1cm) moi ben. User spec 2026-07-15.
     '.vd-tdbg{font-size:16.5px;line-height:1.9;color:#293244;letter-spacing:.1px;'
-    'width:96vw;max-width:1720px;position:relative;left:50%;transform:translateX(-50%);}'
+    'width:96vw;max-width:1720px;position:relative;left:50%;transform:translateX(-50%);'
+    # giam ~2/3 khoang trang phia tren (2cm -> ~0.7cm): keo noi dung len
+    'margin-top:-1.3cm;}'
     '.vd-tdbg .vd-course{background:linear-gradient(180deg,#fff7f3 0%,#f5faff 100%);'
     'border-radius:18px;padding:16px;}'
     # tieu de lon: chu to, gach chan cam de tach hẳn phan
@@ -293,7 +295,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             ('&#128196;', 'BƯỚC 4', 'Gửi hợp đồng', self._l_b6()),
             ('&#128064;', 'BƯỚC 5', 'Phản hồi hợp đồng', self._l_b7()),
             ('&#9997;&#65039;', 'BƯỚC 6', 'Hẹn khảo sát và ký', self._l_b8()),
-            ('&#127942;', 'TỔNG KẾT', 'Nguyên tắc vàng', self._l_gold()),
+            ('&#127942;', 'TỔNG KẾT', 'Tổng hợp kiến thức', self._l_gold()),
         ]
 
     # ------------------------------------------------------------------
@@ -817,26 +819,20 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_gold(self):
         return (
-            self._tag('&#127942; TỔNG KẾT &amp; TƯ DUY NỀN TẢNG')
-            + '<h3>Nguyên tắc vàng: gửi báo giá là BẮT ĐẦU, không phải kết thúc</h3>'
-            + _box('err', '<b>Sai lầm chí mạng:</b> gửi báo giá xong rồi&hellip; im lặng '
-                   'chờ khách gọi lại. Đây là nguyên nhân mất RẤT nhiều khách.')
-            + '<p>Khách đang xây nhà thường cùng lúc: xem rất nhiều đơn vị &middot; chưa '
-            'hiểu hết báo giá &middot; chưa biết nên hỏi gì &middot; đang cân nhắc tài '
-            'chính &middot; đang so sánh. Không chủ động dẫn dắt thì khách nghiêng dần '
-            'sang đơn vị khác. Vì vậy toàn bộ khóa học này xoay quanh một tư duy: <b>sau '
-            'khi gửi báo giá, việc theo đuổi mới thật sự bắt đầu</b>.</p>'
-            + '<h4>Tư duy đúng của người bán hàng giỏi</h4>'
-            + _nendont(
-                ['Chủ động nhắc &amp; đồng hành cùng khách sau báo giá',
-                 'Bán GIẢI PHÁP phù hợp gia đình khách, không chỉ bán giá',
-                 'Mỗi lần liên hệ đưa khách tiến thêm ít nhất 1 bước'],
-                ['Gửi xong rồi ngồi chờ khách gọi lại',
-                 'Chỉ chăm chăm so sánh con số tiền với đối thủ',
-                 'Để khách &#8220;treo&#8221;, im lặng quá lâu'])
-            + _box('ok', 'Nhân viên GIỎI không phải người gửi nhiều báo giá nhất, mà là '
-                   'người biết DẪN DẮT khách qua từng bước tới quyết định ký. Sau mỗi lần '
-                   'liên hệ, khách phải tiến thêm ít nhất 1 bước.')
+            self._tag('&#127942; TỔNG HỢP KIẾN THỨC')
+            + '<h3>Tổng hợp kiến thức &mdash; nhớ nhanh cả quy trình</h3>'
+            + _box('ok', '<b>Một câu cốt lõi:</b> gửi báo giá xong là lúc việc theo đuổi '
+                   'MỚI BẮT ĐẦU. Mỗi lần liên hệ phải đưa khách tiến thêm <b>ít nhất 1 '
+                   'bước</b> &mdash; tuyệt đối không gửi xong rồi ngồi chờ khách gọi lại.')
+            + '<h4>&#128273; 6 BƯỚC &mdash; nhớ nhanh</h4>'
+            + '<ul>'
+            '<li><b>Bước 1 &mdash; Tự tin báo giá:</b> cân đối KHỚP tài chính &rarr; TỰ TIN gửi ngay trong ngày đầu.</li>'
+            '<li><b>Bước 2 &mdash; Gửi năng lực:</b> video/hình/bản vẽ công trình THẬT, gửi RẢI nhiều lần lấy cớ hỏi thăm.</li>'
+            '<li><b>Bước 3 &mdash; Khai thác:</b> nhắn dò &rarr; GỌI, moi đủ 5 nhóm (Báo giá &middot; Mẫu nhà &middot; Gia đình &middot; Khởi công &middot; Niềm tin).</li>'
+            '<li><b>Bước 4 &mdash; Gửi hợp đồng:</b> khách có 2&ndash;3 phản hồi + OK giá &rarr; CHỦ ĐỘNG gửi hợp đồng mẫu.</li>'
+            '<li><b>Bước 5 &mdash; Phản hồi HĐ:</b> gỡ DỨT ĐIỂM 6 khúc mắc + tung KM 1&ndash;2% ĐỔI lấy chữ ký (ghi vào hợp đồng).</li>'
+            '<li><b>Bước 6 &mdash; Hẹn &amp; ký:</b> hẹn CHẮC CHẮN &mdash; về là KÝ, về là ĐẶT CỌC 50 triệu.</li>'
+            '</ul>'
             + _fml('Dòng chảy sau báo giá: <b>Báo giá &rarr; GỬI NĂNG LỰC (video/hình/bản '
                    'vẽ) &rarr; Khai thác &amp; Phản hồi &rarr; Gỡ khúc mắc &rarr; Gửi hợp '
                    'đồng &rarr; Phản hồi HĐ + Khuyến mãi &rarr; Hẹn ký chắc chắn</b>. '
@@ -861,7 +857,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                      ('Xóa khách khỏi danh sách theo dõi', False)],
                     'Chủ động quan tâm để hiểu khách nghĩ gì &mdash; không ép, không bỏ mặc.')
             + _quiz('qz_gold',
-                    'Theo nguyên tắc vàng, nhân viên kinh doanh GIỎI là người thế nào?',
+                    'Tư duy cốt lõi: nhân viên kinh doanh GIỎI là người thế nào?',
                     [('Người gửi được nhiều báo giá nhất trong tháng', False),
                      ('Người biết dẫn dắt khách qua từng bước tới quyết định ký', True),
                      ('Người có giá chào thấp nhất cho khách', False),
