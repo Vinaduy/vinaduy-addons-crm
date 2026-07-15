@@ -18,14 +18,17 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v14-2bg-screenshot-30q'
+_TDBG_VERSION = 'v15-capacity-6steps-wide'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 
 _STYLE = (
     '<style>'
-    '.vd-tdbg{font-size:16.5px;line-height:1.9;color:#293244;letter-spacing:.1px;}'
+    # noi rong khoa hoc gan sat mep man hinh (breakout khoi container 1240px cua
+    # trinh doc e-learning): 96vw, chi con ~2vw (~1cm) moi ben. User spec 2026-07-15.
+    '.vd-tdbg{font-size:16.5px;line-height:1.9;color:#293244;letter-spacing:.1px;'
+    'width:96vw;max-width:1720px;position:relative;left:50%;transform:translateX(-50%);}'
     '.vd-tdbg .vd-course{background:linear-gradient(180deg,#fff7f3 0%,#f5faff 100%);'
     'border-radius:18px;padding:16px;}'
     # tieu de lon: chu to, gach chan cam de tach hẳn phan
@@ -54,7 +57,7 @@ _STYLE = (
     '.vd-tdbg .yes{color:#15803d;font-weight:800;}'
     '.vd-tdbg .navr,.vd-tdbg .qopt{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}'
     '.vd-tdbg .vc-layout{display:flex;gap:18px;align-items:flex-start;}'
-    '.vd-tdbg .vc-side{flex:0 0 264px;}'
+    '.vd-tdbg .vc-side{flex:0 0 300px;}'
     '.vd-tdbg .vc-sidehead{font-size:12.5px;font-weight:800;letter-spacing:1px;'
     'color:#64748b;text-transform:uppercase;margin:4px 6px 10px;}'
     '.vd-tdbg .vc-navbtn{display:flex;align-items:center;gap:8px;text-align:left;'
@@ -65,7 +68,7 @@ _STYLE = (
     '.vd-tdbg .vc-nbadge{flex:0 0 auto;display:inline-block;background:#fff1ec;color:#e8401f;'
     'font-size:10.5px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:20px;'
     'white-space:nowrap;}'
-    '.vd-tdbg .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;}'
+    '.vd-tdbg .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;white-space:nowrap;}'
     '.vd-tdbg .vc-content{flex:1;min-width:0;background:#ffffff;border:1px solid #eef2f7;'
     'border-radius:16px;padding:30px 34px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
     '.vd-tdbg .vc-panel{display:none;}'
@@ -223,7 +226,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         })
 
         quiz = Slide.create({
-            'channel_id': ch.id, 'name': 'Bài thi - 30 câu',
+            'channel_id': ch.id, 'name': 'Bài thi - 34 câu',
             'slide_category': 'quiz', 'sequence': 999, 'is_published': True,
         })
         qseq = 1
@@ -285,10 +288,11 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     def _vd_tdbg_lessons(self):
         return [
             ('&#128170;', 'BƯỚC 1', 'Tự tin báo giá', self._l_b1()),
-            ('&#128269;', 'BƯỚC 2', 'Khai thác vấn đề', self._l_b2()),
-            ('&#128196;', 'BƯỚC 3', 'Gửi hợp đồng', self._l_b6()),
-            ('&#128064;', 'BƯỚC 4', 'Lấy phản hồi hợp đồng', self._l_b7()),
-            ('&#9997;&#65039;', 'BƯỚC 5', 'Hẹn khảo sát &amp; ký (chốt)', self._l_b8()),
+            ('&#127959;&#65039;', 'BƯỚC 2', 'Gửi năng lực thi công', self._l_capacity()),
+            ('&#128269;', 'BƯỚC 3', 'Khai thác vấn đề', self._l_b2()),
+            ('&#128196;', 'BƯỚC 4', 'Gửi hợp đồng', self._l_b6()),
+            ('&#128064;', 'BƯỚC 5', 'Phản hồi hợp đồng', self._l_b7()),
+            ('&#9997;&#65039;', 'BƯỚC 6', 'Hẹn khảo sát và ký', self._l_b8()),
             ('&#127942;', 'TỔNG KẾT', 'Nguyên tắc vàng', self._l_gold()),
         ]
 
@@ -418,7 +422,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b2(self):
         return (
-            self._tag('BƯỚC 2 &mdash; TRÁI TIM CỦA QUY TRÌNH')
+            self._tag('BƯỚC 3 &mdash; TRÁI TIM CỦA QUY TRÌNH')
             + '<h3>Khai thác vấn đề</h3>'
             + _box('ok', 'Sau khi gửi báo giá <b>1&ndash;2 ngày</b>, nhân viên BẮT BUỘC '
                    'quay lại với khách để KHAI THÁC. Không phải &#8220;hỏi thăm tình '
@@ -544,9 +548,89 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'OK trước &rarr; gia đình mới OK.'))
 
     # ------------------------------------------------------------------
+    def _l_capacity(self):
+        return (
+            self._tag('BƯỚC 2 &mdash; CHỨNG MINH NĂNG LỰC THẬT')
+            + '<h3>Gửi năng lực thi công</h3>'
+            + _box('ok', '<b>Cốt lõi:</b> sau khi báo giá, chuyên viên <b>BẮT BUỘC</b> '
+                   'gửi <b>video, hình ảnh, bản vẽ</b> vào NHÓM ZALO của khách để '
+                   '<b>chứng minh NĂNG LỰC THẬT</b> của công ty. Con số báo giá + vài '
+                   'mẫu nhà là CHƯA ĐỦ để khách xuống tiền &mdash; khách cần thấy công '
+                   'ty <b>làm thật, làm tốt, làm bài bản</b>.')
+            + _box('err', '<b>SAI LẦM LỚN NHẤT của nhân viên:</b> gửi mỗi <b>bảng báo '
+                   'giá</b> và mỗi <b>mẫu nhà</b> rồi ngồi hi vọng chốt được khách. '
+                   'Không gửi bằng chứng gì thật &rarr; khách <b>chưa đủ niềm tin</b>, '
+                   'thấy công ty <b>chung chung, không thực tế</b>, rồi âm thầm nghiêng '
+                   'sang đơn vị khác. Chốt khách kiểu đó gần như <b>không bao giờ thành</b>.')
+
+            + '<h4>&#128204; 4 loại BẰNG CHỨNG bắt buộc phải gửi vào nhóm</h4>'
+            + _table(['Loại bằng chứng', 'Gửi cụ thể cái gì', 'Chứng minh điều gì cho khách'],
+                     [['<b>1. Công trình ĐÃ bàn giao</b>',
+                       'Video quay <b>các công trình thực tế đã hoàn thiện, đã bàn giao</b> cho khách trước &mdash; quay toàn cảnh mặt tiền + vài góc nội thất.',
+                       'Công ty làm THẬT, có <b>sản phẩm hoàn chỉnh</b>, đã có khách vào ở &mdash; không phải &#8220;vẽ&#8221; trên giấy.'],
+                      ['<b>2. Đang thi công &amp; nghiệm thu</b>',
+                       'Video công trình <b>đang xây có công nhân mặc ĐỒNG PHỤC</b>; video <b>nghiệm thu vật tư</b>, <b>nghiệm thu cốt thép</b>, <b>nghiệm thu móng</b>&hellip;',
+                       'Quy trình <b>bài bản, có giám sát</b>, vật tư đúng cam kết, làm việc <b>minh bạch</b> &mdash; khách yên tâm không bị &#8220;rút ruột&#8221;.'],
+                      ['<b>3. Sự kiện công trình</b>',
+                       'Hình ảnh <b>LỄ KHỞI CÔNG</b>, <b>LỄ BÀN GIAO</b> nhà cho khách.',
+                       'Công ty <b>chuyên nghiệp, uy tín</b>, được nhiều gia đình tin chọn &mdash; tạo cảm giác an tâm và &#8220;đẳng cấp&#8221;.'],
+                      ['<b>4. Bản vẽ công năng</b>',
+                       'Gửi <b>bản vẽ công năng các nhà tương tự</b> (giống nhu cầu/diện tích của khách).',
+                       'Năng lực <b>thiết kế</b> thật; giúp khách <b>hình dung được ngôi nhà</b> của mình sẽ ra sao.']],
+                     widths=['22%', '43%', '35%'])
+
+            + '<h4>&#128197; NGUYÊN TẮC GỬI RẢI: nhiều lần, nhiều lịch &mdash; KHÔNG gửi 1 lúc</h4>'
+            + '<p>Tuyệt đối <b>đừng đổ hết</b> mọi video, hình ảnh, bản vẽ trong <b>một '
+            'lần</b>: vừa làm khách <b>bội thực &mdash; loãng</b> thông tin, vừa <b>đốt '
+            'sạch &#8220;cớ&#8221;</b> để liên hệ lại. Hãy <b>chia nhỏ</b>, gửi thành '
+            '<b>nhiều lần, rải qua nhiều ngày</b>. Mỗi lần chỉ gửi <span class="hl">1&ndash;2 '
+            'nội dung</span> &mdash; vừa nuôi niềm tin, vừa <b>lấy cớ hỏi thăm</b> để hâm '
+            'nóng quan hệ và kéo dài mạch trao đổi với khách.</p>'
+            + _order([
+                ('HÔM NAY: gửi 1&ndash;2 VIDEO NGHIỆM THU',
+                 'Gửi video nghiệm thu cốt thép / móng, kèm câu: &#8220;Bên em làm nghiệm thu chặt thế này cho anh/chị yên tâm ạ&#8221; &mdash; LẤY CỚ hỏi thăm tình hình khách.'),
+                ('1&ndash;2 HÔM SAU: gửi video CÔNG TRÌNH ĐANG THI CÔNG',
+                 'Video công nhân mặc đồng phục đang làm &mdash; cho thấy đội ngũ chuyên nghiệp, có tổ chức.'),
+                ('VÀI HÔM SAU: gửi CÔNG TRÌNH ĐÃ BÀN GIAO + lễ bàn giao',
+                 'Video nhà hoàn thiện + ảnh lễ bàn giao &mdash; &#8220;bằng chứng thép&#8221; là công ty làm thật, khách đã ở.'),
+                ('XEN KẼ khi khách quan tâm mẫu: gửi BẢN VẼ công năng tương tự',
+                 'Đúng lúc khách đang lăn tăn về công năng/diện tích thì đưa bản vẽ nhà tương tự cho khách hình dung.'),
+            ])
+            + _box('info', '<b>Mỗi lần gửi là một LÝ DO để liên hệ.</b> Đừng nhắn khan '
+                   '&#8220;anh/chị suy nghĩ chưa&#8221; &mdash; hãy để chính video/hình '
+                   'ảnh làm cái cớ tự nhiên: gửi xong hỏi &#8220;anh/chị xem thấy thế nào '
+                   'ạ?&#8221; là mở được cuộc trò chuyện mới.')
+
+            + _nendont(
+                ['Gửi đủ 4 loại bằng chứng THẬT vào nhóm',
+                 'Ưu tiên video nghiệm thu + công trình đã bàn giao (thuyết phục nhất)',
+                 'GỬI RẢI nhiều lần, mỗi lần 1&ndash;2 nội dung',
+                 'Dùng mỗi lần gửi làm CỚ hỏi thăm, hâm nóng'],
+                ['Chỉ gửi báo giá + mẫu nhà rồi ngồi chờ chốt',
+                 'Đổ hết mọi video/hình/bản vẽ trong 1 lần cho &#8220;xong&#8221;',
+                 'Gửi xong im luôn, không dùng để bắt chuyện',
+                 'Nghĩ &#8220;khách tự tin tưởng&#8221; mà không cần chứng minh'])
+            + _box('err', '<b>Rủi ro nếu KHÔNG gửi năng lực:</b> khách <b>KHÔNG TIN</b> '
+                   '(chưa thấy gì thật), <b>KHÔNG được thuyết phục</b> (chỉ có con số + '
+                   'hình mẫu chung chung), thấy công ty <b>KHÔNG THỰC TẾ</b>. Đây là lý '
+                   'do rất nhiều khách &#8220;bốc hơi&#8221; sau báo giá mà NV không hiểu '
+                   'vì sao.')
+            + _fml('Gửi năng lực = <b>4 bằng chứng THẬT</b> (Công trình đã bàn giao '
+                   '&mdash; Đang thi công/nghiệm thu &mdash; Lễ khởi công/bàn giao &mdash; '
+                   'Bản vẽ công năng) &rarr; <b>GỬI RẢI</b> nhiều lần lấy cớ hỏi thăm. '
+                   'Không gửi = khách không tin = KHÔNG chốt được.')
+            + _quiz('qz_cap',
+                    'Sau khi gửi báo giá, muốn khách TIN và chốt được thì chuyên viên phải làm gì?',
+                    [('Chỉ cần gửi bảng báo giá + mẫu nhà rồi chờ khách quyết', False),
+                     ('Gửi video/hình ảnh/bản vẽ chứng minh năng lực thi công thật &mdash; và gửi RẢI nhiều lần để lấy cớ hỏi thăm', True),
+                     ('Gửi tất cả video, hình ảnh, bản vẽ trong một lần cho nhanh gọn', False),
+                     ('Không cần gửi gì, khách tự tin tưởng công ty', False)],
+                    'Phải chứng minh năng lực bằng bằng chứng thật, gửi rải nhiều lần &mdash; không chỉ báo giá + mẫu nhà.'))
+
+    # ------------------------------------------------------------------
     def _l_b6(self):
         return (
-            self._tag('BƯỚC 3')
+            self._tag('BƯỚC 4')
             + '<h3>Chủ động gửi hợp đồng</h3>'
             + '<p>Khi nhân viên cảm thấy: khách <b>không hỏi gì thêm</b>, HOẶC khách '
             '<b>đang để ý báo giá</b> của mình, HOẶC khách đã có <b>một vài phản hồi</b> '
@@ -587,10 +671,16 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b7(self):
         return (
-            self._tag('BƯỚC 4')
-            + '<h3>Lấy phản hồi hợp đồng</h3>'
+            self._tag('BƯỚC 5')
+            + '<h3>Phản hồi hợp đồng</h3>'
             + _box('err', 'Sai lầm: gửi hợp đồng xong rồi <b>mất hút</b>. Phải chủ động '
                    'sau 1&ndash;2 ngày để LẤY PHẢN HỒI về hợp đồng.')
+            + _box('info', '<b>Hiểu đúng bối cảnh:</b> hợp đồng ở giai đoạn này thường do '
+                   'chuyên viên <b>chủ động ÉP GỬI</b> hoặc <b>tạo tình huống</b> để khách '
+                   'tham khảo trước (xem Bước 4) &mdash; nên đây cũng chính là lúc khách '
+                   '<b>THẮC MẮC, PHÂN VÂN, LƯỠNG LỰ nhiều nhất</b>. Nhiệm vụ của bạn: '
+                   '<b>cầm tay chỉ việc</b>, giải quyết DỨT ĐIỂM từng khúc mắc, rồi dùng '
+                   '<b>khuyến mãi đúng lúc</b> làm cú hích cuối.')
             + '<p>Khi nhận hợp đồng, khách sẽ thắc mắc &mdash; nhân viên phải <b>lựa để '
             'dò xem khách có băn khoăn những điểm này không</b> để còn xử lý:</p>'
             + _table(['# ', 'Khách hay thắc mắc về', 'Nhân viên xử lý thế nào'],
@@ -609,9 +699,54 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                 ['Gửi hợp đồng xong im luôn',
                  'Nói mơ hồ về vật tư/bảo hành/đợt ứng',
                  'Bỏ qua khi khách còn lăn tăn'])
-            + _fml('Gửi hợp đồng &rarr; sau 1&ndash;2 ngày LẤY PHẢN HỒI. Dò 6 điểm: '
-                   '<b>Phụ lục vật tư (khẳng định tốt) &mdash; Đợt ứng &mdash; Tiền bảo '
-                   'hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác</b>.')
+            + '<h4>&#128075; Cầm tay chỉ việc: XỬ LÝ DỨT ĐIỂM từng khúc mắc</h4>'
+            + '<p>Không được để BẤT KỲ khúc mắc nào của khách còn treo. Làm tuần tự, '
+            'dứt điểm từng cái:</p>'
+            + _order([
+                ('LIỆT KÊ hết thắc mắc của khách',
+                 'Hỏi thẳng: &#8220;Anh/chị đọc hợp đồng thấy còn điểm nào chưa rõ hay chưa yên tâm không ạ?&#8221; &mdash; ghi ra đủ, không bỏ sót.'),
+                ('GIẢI THÍCH từng điểm đến khi khách GẬT',
+                 'Mỗi khúc mắc (vật tư, đợt ứng, bảo hành, tiến độ&hellip;) giải thích rõ ràng, có dẫn chứng, hỏi lại &#8220;chỗ này anh/chị yên tâm chưa ạ?&#8221; rồi mới sang điểm kế.'),
+                ('KHẲNG ĐỊNH phụ lục vật tư là TỐT',
+                 'Đây là điểm khách lăn tăn nhất &mdash; nói CHẮC, có hình ảnh/nghiệm thu vật tư (nối tiếp Bước 2) để khách tin.'),
+                ('CHỐT lại: &#8220;anh/chị còn băn khoăn gì nữa không?&#8221;',
+                 'Chỉ khi khách nói KHÔNG còn thắc mắc thì mới chuyển sang hẹn ký. Còn lăn tăn = chưa được hẹn.'),
+            ])
+
+            + '<h4>&#127873; Vũ khí CHỐT: tung KHUYẾN MÃI đúng lúc</h4>'
+            + '<p>Vì khách đang <b>phân vân, lưỡng lự</b> ở giai đoạn này, khuyến mãi là '
+            '&#8220;cú hích&#8221; cuối để khách quyết. Nhưng phải dùng ĐÚNG CÁCH:</p>'
+            + _box('ok', '<b>Bạn có quyền ĐỀ XUẤT trưởng phòng</b> khuyến mãi cho khách '
+                   '<b>từ 1&ndash;2%</b> giá trị hợp đồng.')
+            + _box('warn', '<b>ĐIỀU KIỆN BẮT BUỘC:</b> chỉ được đưa ra con số khuyến mãi '
+                   'khi khách đã <b>đồng ý KÝ</b> &mdash; tức khuyến mãi để <b>LẤY CHỮ '
+                   'KÝ</b>, KHÔNG phải cho khách &#8220;biết trước rồi vẫn về cân nhắc&#8221;. '
+                   'Khách cam kết ký thì trưởng phòng mới cho phép bạn tung khuyến mãi.')
+            + _box('err', '<b>PHẢI GHI VÀO HỢP ĐỒNG:</b> số tiền khuyến mãi phải ghi RÕ '
+                   'trong hợp đồng là <b>&#8220;khuyến mãi số tiền &hellip;&#8221;</b>, HOẶC '
+                   '<b>quy đổi thành vật tư / hạng mục làm thêm</b> cho khách &mdash; nhưng '
+                   'dù cách nào cũng <b>BẮT BUỘC ghi vào hợp đồng</b>, tuyệt đối KHÔNG hứa '
+                   'miệng.')
+            + _nendont(
+                ['Xử lý DỨT ĐIỂM mọi khúc mắc trước khi hẹn',
+                 'Đề xuất trưởng phòng KM 1&ndash;2% khi cần cú hích',
+                 'Chỉ tung KM khi khách CAM KẾT KÝ',
+                 'Ghi rõ KM (tiền hoặc vật tư) VÀO hợp đồng'],
+                ['Để khách còn lăn tăn mà đã đòi hẹn ký',
+                 'Tung khuyến mãi khi khách chưa cam kết gì',
+                 'Cho khách biết KM rồi để khách &#8220;về suy nghĩ&#8221;',
+                 'Hứa miệng khuyến mãi, không ghi hợp đồng'])
+            + _fml('Phản hồi hợp đồng = <b>Dò &amp; xử lý DỨT ĐIỂM 6 điểm</b> (Phụ lục vật '
+                   'tư khẳng định tốt &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời '
+                   'gian bảo hành &mdash; Tiến độ &mdash; Khác) &rarr; khi khách phân vân '
+                   'thì <b>tung KM 1&ndash;2% ĐỔI LẤY chữ ký</b>, và <b>GHI KM vào hợp đồng</b>.')
+            + _quiz('qz_km',
+                    'Về khuyến mãi ở bước phản hồi hợp đồng, nguyên tắc ĐÚNG là gì?',
+                    [('Đề xuất trưởng phòng KM 1-2%, chỉ tung khi khách cam kết KÝ, và GHI RÕ khoản KM (tiền hoặc quy thành vật tư) vào hợp đồng', True),
+                     ('Cứ báo khuyến mãi sớm cho khách biết để khách về cân nhắc', False),
+                     ('Hứa miệng khuyến mãi cho nhanh, không cần ghi hợp đồng', False),
+                     ('Tự ý giảm giá bao nhiêu cũng được, không cần hỏi trưởng phòng', False)],
+                    'KM để ĐỔI lấy chữ ký (khách cam kết ký mới tung), 1-2%, và BẮT BUỘC ghi vào hợp đồng.')
             + _quiz('qz_b7',
                     'Khi gửi hợp đồng, khách thường thắc mắc NHIỀU NHẤT về điều gì, và nhân viên phải làm gì?',
                     [('Về màu sắc bản vẽ &mdash; đổi lại cho khách', False),
@@ -623,11 +758,28 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
     # ------------------------------------------------------------------
     def _l_b8(self):
         return (
-            self._tag('BƯỚC 5 &mdash; BƯỚC QUYẾT ĐỊNH')
+            self._tag('BƯỚC 6 &mdash; BƯỚC QUYẾT ĐỊNH')
             + '<h3>Hẹn khảo sát và ký hợp đồng</h3>'
-            + _box('ok', 'Đây là bước CHỐT cơ bản của một nhân viên kinh doanh. Làm tốt '
-                   'bước này (hẹn thành công) thì Sếp đi ký tỷ lệ thành công rất cao '
-                   '&mdash; <b>10 khách ký được 9</b>.')
+            + _box('ok', 'Đây là bước cơ bản nhưng QUYẾT ĐỊNH của một nhân viên kinh '
+                   'doanh. Làm tốt bước này (hẹn thành công) thì Sếp đi ký tỷ lệ thành '
+                   'công rất cao &mdash; <b>10 khách ký được 9</b>.')
+
+            + '<h4>&#127919; Cách HẸN: phải CHẮC CHẮN &mdash; KHÔNG &#8220;tiện đường&#8221;</h4>'
+            + _box('err', '<b>SAI LẦM của rất nhiều chuyên viên:</b> hẹn khách theo kiểu '
+                   '&#8220;<i>bên em TIỆN ĐƯỜNG thì qua khảo sát</i>&#8221; &mdash; chỉ hẹn '
+                   '<b>khảo sát</b> mà KHÔNG nhấn mạnh <b>về là KÝ, về là ĐẶT CỌC</b>. Hẹn '
+                   'kiểu tiện đường khiến khách <b>không chuẩn bị tâm lý ký</b>, coi đó chỉ '
+                   'là buổi &#8220;ghé xem&#8221; &rarr; đi xong về tay không.')
+            + _box('ok', '<b>ĐÚNG &mdash; hẹn CHẮC CHẮN:</b> nói rõ với khách buổi này là '
+                   '<b>KHẢO SÁT &rarr; rồi KÝ hợp đồng &rarr; và ĐẶT CỌC</b> luôn. Chốt '
+                   '<b>ngày &amp; giờ cụ thể</b>, để khách <b>chuẩn bị sẵn tiền cọc + tâm '
+                   'lý quyết</b>. Nhiệm vụ của bạn là làm cho lịch hẹn <b>DỨT KHOÁT, chắc '
+                   'chắn</b> &mdash; không mập mờ &#8220;khi nào rảnh&#8221;, không &#8220;tiện thì qua&#8221;.')
+            + _box('info', '<b>Câu mẫu hẹn chắc:</b> &#8220;Em sắp lịch qua khảo sát nhà '
+                   'mình vào <b>sáng thứ 7 lúc 9h</b> nhé anh/chị. Khảo sát xong bên mình '
+                   '<b>ký hợp đồng và đặt cọc</b> luôn cho kịp tiến độ ạ. Anh/chị chuẩn bị '
+                   'giúp em khoản cọc <b>50 triệu</b> (ưu tiên tiền mặt) nhé.&#8221;')
+
             + '<h4>Trước khi đi hẹn, PHẢI đảm bảo</h4>'
             + '<ul>'
             '<li><b>Tất cả khúc mắc về hợp đồng đã được giải quyết</b> &mdash; khách '
@@ -685,17 +837,18 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             + _box('ok', 'Nhân viên GIỎI không phải người gửi nhiều báo giá nhất, mà là '
                    'người biết DẪN DẮT khách qua từng bước tới quyết định ký. Sau mỗi lần '
                    'liên hệ, khách phải tiến thêm ít nhất 1 bước.')
-            + _fml('Dòng chảy sau báo giá: <b>Báo giá &rarr; Phản hồi &rarr; Hiểu suy '
-                   'nghĩ &rarr; Gỡ khúc mắc &rarr; Gửi hợp đồng &rarr; Gỡ khúc mắc HĐ '
-                   '&rarr; Hẹn ký</b>. Khách im lặng = quy trình đang DỪNG lại &rarr; '
-                   'phải chủ động nối tiếp.')
+            + _fml('Dòng chảy sau báo giá: <b>Báo giá &rarr; GỬI NĂNG LỰC (video/hình/bản '
+                   'vẽ) &rarr; Khai thác &amp; Phản hồi &rarr; Gỡ khúc mắc &rarr; Gửi hợp '
+                   'đồng &rarr; Phản hồi HĐ + Khuyến mãi &rarr; Hẹn ký chắc chắn</b>. '
+                   'Khách im lặng = quy trình đang DỪNG lại &rarr; phải chủ động nối tiếp.')
             + '<h4>&#128221; Bảng công thức TOÀN KHÓA (thuộc lòng)</h4>'
             + _table(['Bước', 'Công thức thuộc lòng'],
                      [['<b>Bước 1 &mdash; Tự tin báo giá</b>', 'Cân đối KHỚP tài chính rồi TỰ TIN gửi ngay trong ngày đầu (chênh trên 100tr thì bàn lại: giảm diện tích/khách cố thêm; trừ ca chênh quá lớn không xoay được). Khách nhất quyết giữ diện tích lớn mà vẫn thiếu 100&ndash;300tr &rarr; GỬI 2 BÁO GIÁ song song (đúng diện tích + diện tích cắt giảm) để khách so sánh. Chụp màn hình tổng giá trị + đơn giá/m&#178; cho khách dễ nhìn.'],
-                      ['<b>Bước 2 &mdash; Khai thác vấn đề</b>', 'Nhắn dò &rarr; GỌI (ít nhưng hiệu quả) để moi TÂM LÝ thật. Đủ 5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin (cốt lõi BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP; bản thân khách OK trước thì gia đình mới OK.'],
-                      ['<b>Bước 3 &mdash; Gửi hợp đồng</b>', 'Khách có ít nhất 2&ndash;3 phản hồi về báo giá + đã OK với tầm tài chính &rarr; CHỦ ĐỘNG gửi HỢP ĐỒNG MẪU để có lý do hẹn ký. Không chần chừ.'],
-                      ['<b>Bước 4 &mdash; Phản hồi hợp đồng</b>', 'Dò 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác.'],
-                      ['<b>Bước 5 &mdash; Hẹn &amp; ký (CHỐT)</b>', 'Hết khúc mắc HĐ + chốt cọc 50tr (tiền mặt) + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
+                      ['<b>Bước 2 &mdash; Gửi năng lực thi công</b>', 'BẮT BUỘC gửi 4 bằng chứng THẬT vào nhóm: công trình đã bàn giao &mdash; đang thi công/nghiệm thu (công nhân đồng phục) &mdash; lễ khởi công/bàn giao &mdash; bản vẽ công năng tương tự. GỬI RẢI nhiều lần lấy cớ hỏi thăm. Không gửi = khách không tin = không chốt.'],
+                      ['<b>Bước 3 &mdash; Khai thác vấn đề</b>', 'Nhắn dò &rarr; GỌI (ít nhưng hiệu quả) để moi TÂM LÝ thật. Đủ 5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin (cốt lõi BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP; bản thân khách OK trước thì gia đình mới OK.'],
+                      ['<b>Bước 4 &mdash; Gửi hợp đồng</b>', 'Khách có ít nhất 2&ndash;3 phản hồi về báo giá + đã OK với tầm tài chính &rarr; CHỦ ĐỘNG gửi HỢP ĐỒNG MẪU để có lý do hẹn ký. Không chần chừ.'],
+                      ['<b>Bước 5 &mdash; Phản hồi hợp đồng</b>', 'Cầm tay chỉ việc, xử lý DỨT ĐIỂM 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác. Khách phân vân &rarr; tung KHUYẾN MÃI 1&ndash;2% ĐỔI lấy chữ ký; GHI khoản KM (tiền/vật tư) vào hợp đồng.'],
+                      ['<b>Bước 6 &mdash; Hẹn khảo sát và ký</b>', 'Hẹn CHẮC CHẮN (không &#8220;tiện đường&#8221;): khảo sát &rarr; KÝ &rarr; ĐẶT CỌC 50tr (tiền mặt), chốt ngày giờ cụ thể. Hết khúc mắc HĐ + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
                      widths=['26%', '74%'])
             + _box('warn', 'Không bao giờ để khách &#8220;im lặng&#8221; quá lâu. Mỗi lần '
                    'tương tác đều phải có mục tiêu rõ ràng và đưa khách tiến gần hơn tới '
@@ -775,7 +928,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Gửi trước đối thủ', F),
               ('Trình bày nhiều màu sắc, đẹp mắt', F)]),
 
-            ('Bước 2 - khi khai thác phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
+            ('Bước 3 - khi khai thác phản hồi báo giá, cách hỏi nào ĐÚNG nhất?',
              [('Hỏi cụ thể: đã xem kỹ báo giá + phụ lục chưa, băn khoăn gì, mức đầu tư có phù hợp, muốn điều chỉnh gì', T),
               ('Hỏi chung chung "anh xem chưa ạ?" rồi thôi', F),
               ('Hỏi "anh chị ký chưa ạ?" để chốt nhanh', F),
@@ -787,55 +940,55 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Chỉ khi khách chủ động nhắn lại', F),
               ('Sau đúng 1 tháng', F)]),
 
-            ('Bước 2 - 1-2 ngày sau khi gửi báo giá, khách nhắn hỏi một câu nhỏ về phụ lục vật tư. Nghĩa là gì?',
+            ('Bước 3 - 1-2 ngày sau khi gửi báo giá, khách nhắn hỏi một câu nhỏ về phụ lục vật tư. Nghĩa là gì?',
              [('Tín hiệu khách RẤT tiềm năng - phải trả lời nhanh và bám đuổi ngay', T),
               ('Khách chỉ hỏi cho có, không cần quan tâm', F),
               ('Khách đang làm khó, nên né trả lời', F),
               ('Chờ gom nhiều câu hỏi rồi trả lời một lần', F)]),
 
-            ('Bước 2 - vì sao trong mọi cuộc gọi phải nhắc khách ký sớm (thi công gấp) nếu muốn ở nhà mới trước Tết?',
+            ('Bước 3 - vì sao trong mọi cuộc gọi phải nhắc khách ký sớm (thi công gấp) nếu muốn ở nhà mới trước Tết?',
              [('Vì thiết kế mất 1-2 tháng, còn chuẩn bị thợ, vật tư, dự toán, nhân lực, rồi nội thất/sân vườn - không kịp bàn giao', T),
               ('Vì giá sẽ tăng gấp đôi nếu ký muộn', F),
               ('Vì công ty sắp hết suất nhận công trình', F),
               ('Vì khách phải khởi công ngay trong tuần', F)]),
 
-            ('Bước 2 - nguyên tắc gọi điện khi khai thác, và khách nói "anh đang xem" nghĩa là gì?',
+            ('Bước 3 - nguyên tắc gọi điện khi khai thác, và khách nói "anh đang xem" nghĩa là gì?',
              [('Gọi ÍT nhưng HIỆU QUẢ (1 cuộc phải khai thác ra vấn đề); khách "đang xem" = đã xem nhưng trì hoãn nên phải gọi ngay', T),
               ('Gọi thật nhiều cuộc cho tới khi khách chốt', F),
               ('Khách "đang xem" thì cứ chờ thêm vài ngày', F),
               ('Đáp "vâng anh xem đi" rồi tắt máy', F)]),
 
-            ('Bước 2 - nhóm câu hỏi nào giúp phát hiện RÀO CẢN THẬT SỰ trước khi ký?',
+            ('Bước 3 - nhóm câu hỏi nào giúp phát hiện RÀO CẢN THẬT SỰ trước khi ký?',
              [('Nhóm Niềm tin: "Còn điều gì khiến anh/chị chưa yên tâm khi chọn bên em?"', T),
               ('Nhóm Báo giá: "Có vượt tài chính không?"', F),
               ('Nhóm Mẫu nhà: "Đã đúng phong cách chưa?"', F),
               ('Nhóm Khởi công: "Dự kiến khi nào?"', F)]),
 
-            ('Bước 2 - sai lầm nguy hiểm khi khai thác khúc mắc chưa đủ là gì?',
+            ('Bước 3 - sai lầm nguy hiểm khi khai thác khúc mắc chưa đủ là gì?',
              [('Bỏ sót nhóm Gia đình/Niềm tin → thuyết phục sai người hoặc khách lăn tăn ngầm rồi bỏ đi, mất khách không rõ lý do', T),
               ('Hỏi kỹ cả 5 nhóm câu hỏi', F),
               ('Luôn kết thúc bằng câu hỏi niềm tin', F),
               ('Ghi lại khúc mắc để xử lý dứt điểm', F)]),
 
-            ('Bước 3 - khi nào nên CHỦ ĐỘNG gửi hợp đồng cho khách?',
+            ('Bước 4 - khi nào nên CHỦ ĐỘNG gửi hợp đồng cho khách?',
              [('Khi thấy khách để ý/có vài phản hồi về báo giá + thời gian khởi công gấp → gửi để có lý do hẹn ký, không chần chừ', T),
               ('Chờ đến khi khách tự hỏi về hợp đồng', F),
               ('Chỉ gửi khi khách đã đồng ý mọi thứ bằng văn bản', F),
               ('Không bao giờ gửi trước khi khách yêu cầu', F)]),
 
-            ('Bước 4 - khi gửi hợp đồng, khách thắc mắc NHIỀU NHẤT về điều gì và nhân viên phải làm gì?',
+            ('Bước 5 - khi gửi hợp đồng, khách thắc mắc NHIỀU NHẤT về điều gì và nhân viên phải làm gì?',
              [('Về phụ lục vật tư - phải KHẲNG ĐỊNH đây là vật tư tốt trên thị trường', T),
               ('Về màu sắc bản vẽ - đổi lại cho khách', F),
               ('Về tên công ty - kể lịch sử công ty', F),
               ('Không cần quan tâm, chờ khách ký', F)]),
 
-            ('Bước 5 - nguyên tắc quan trọng nhất về CÁCH NÓI khi hẹn ký là gì?',
+            ('Bước 6 - nguyên tắc quan trọng nhất về CÁCH NÓI khi hẹn ký là gì?',
              [('Giọng tự tin, nói mạnh, nói chắc, khẳng định - không rụt rè', T),
               ('Nói nhẹ nhàng, rào trước đón sau', F),
               ('Nói thật nhanh cho xong', F),
               ('Để khách nói là chính, mình chỉ nghe', F)]),
 
-            ('Bước 5 - vì sao phải trao đổi trước về việc đặt cọc 50 triệu (ưu tiên tiền mặt)?',
+            ('Bước 6 - vì sao phải trao đổi trước về việc đặt cọc 50 triệu (ưu tiên tiền mặt)?',
              [('Vì nếu không thỏa thuận trước, khi về ký khách hay lấy lý do chưa chuẩn bị tiền; đề cập cọc giúp khách có tâm lý chuẩn bị ký cao hơn', T),
               ('Vì công ty cần tiền gấp', F),
               ('Vì để thử xem khách có tiền không', F),
@@ -871,19 +1024,19 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Nói xấu đối thủ để khách sợ không dám so sánh', F),
               ('Không gửi báo giá nữa vì sợ bị so sánh', F)]),
 
-            ('Bước 3 - dấu hiệu ĐỦ ĐIỀU KIỆN để chủ động gửi HỢP ĐỒNG MẪU cho khách là gì?',
+            ('Bước 4 - dấu hiệu ĐỦ ĐIỀU KIỆN để chủ động gửi HỢP ĐỒNG MẪU cho khách là gì?',
              [('Khách đã có ít nhất 2-3 phản hồi về báo giá và đã OK với tầm tài chính của báo giá đó', T),
               ('Khách chưa phản hồi lần nào về báo giá', F),
               ('Khách mới chỉ vừa nhận được file báo giá', F),
               ('Phải chờ đến khi khách tự yêu cầu hợp đồng', F)]),
 
-            ('Bước 2 - 5 NHÓM khúc mắc bắt buộc phải khai thác gồm những gì?',
+            ('Bước 3 - 5 NHÓM khúc mắc bắt buộc phải khai thác gồm những gì?',
              [('Báo giá - Mẫu nhà - Gia đình - Khởi công - Niềm tin', T),
               ('Báo giá - Màu sơn - Nội thất - Phong thủy - Hàng xóm', F),
               ('Chỉ cần hỏi về giá là đủ', F),
               ('Tên công ty - Lịch sử - Giải thưởng - Quy mô - Địa chỉ', F)]),
 
-            ('Bước 4 - điểm nào sau đây KHÔNG nằm trong "6 điểm" cần dò khi lấy phản hồi hợp đồng?',
+            ('Bước 5 - điểm nào sau đây KHÔNG nằm trong "6 điểm" cần dò khi lấy phản hồi hợp đồng?',
              [('Màu sắc bản vẽ', T),
               ('Phụ lục vật tư', F),
               ('Các đợt ứng (tiến độ thanh toán)', F),
@@ -895,9 +1048,33 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Nhắc đi nhắc lại rằng giá mình rẻ hơn đối thủ', F),
               ('Không cần mục tiêu, gọi cho vui vẻ là chính', F)]),
 
-            ('Bước 2 - khách lấy lý do "phải bàn với gia đình" thì nên xử lý thế nào?',
+            ('Bước 3 - khách lấy lý do "phải bàn với gia đình" thì nên xử lý thế nào?',
              [('Làm cho CHÍNH khách OK trước đã, vì bản thân khách OK thì gia đình mới OK; đừng để khách mượn cớ gia đình rồi trôi', T),
               ('Chờ khách bàn xong với gia đình rồi mới liên hệ lại', F),
               ('Yêu cầu gặp cả gia đình mới tư vấn tiếp', F),
               ('Bỏ qua khách này vì khó chốt', F)]),
+
+            ('Bước 2 - sau khi báo giá, để khách TIN và có cơ sở chốt thì chuyên viên BẮT BUỘC phải làm gì?',
+             [('Gửi video/hình ảnh/bản vẽ chứng minh năng lực thi công thật vào nhóm (công trình đã bàn giao, đang thi công/nghiệm thu, lễ khởi công/bàn giao, bản vẽ công năng)', T),
+              ('Chỉ cần gửi bảng báo giá và mẫu nhà là đủ', F),
+              ('Gọi điện giục khách ký ngay', F),
+              ('Không cần gửi gì, để khách tự tìm hiểu', F)]),
+
+            ('Bước 2 - nguyên tắc GỬI năng lực thi công cho khách là gì?',
+             [('Gửi RẢI nhiều lần, mỗi lần 1-2 nội dung để lấy cớ hỏi thăm và hâm nóng quan hệ', T),
+              ('Gửi tất cả video, hình ảnh, bản vẽ trong một lần cho nhanh gọn', F),
+              ('Chỉ gửi khi khách chủ động yêu cầu', F),
+              ('Gửi một video duy nhất rồi thôi', F)]),
+
+            ('Bước 5 - nguyên tắc ĐÚNG về khuyến mãi khi khách phân vân với hợp đồng là gì?',
+             [('Đề xuất trưởng phòng KM 1-2%, chỉ tung khi khách CAM KẾT KÝ, và GHI RÕ khoản KM (tiền hoặc quy thành vật tư) vào hợp đồng', T),
+              ('Báo khuyến mãi sớm cho khách biết để khách về cân nhắc thêm', F),
+              ('Hứa miệng khuyến mãi cho nhanh, không cần ghi hợp đồng', F),
+              ('Tự ý giảm giá bao nhiêu cũng được, không cần hỏi trưởng phòng', F)]),
+
+            ('Bước 6 - cách HẸN khách đúng để đi đến ký hợp đồng là gì?',
+             [('Hẹn CHẮC CHẮN: nói rõ khảo sát xong là KÝ và ĐẶT CỌC, chốt ngày giờ cụ thể', T),
+              ('Hẹn kiểu "bên em tiện đường thì qua khảo sát"', F),
+              ('Chỉ hẹn khảo sát, không nhắc đến việc ký hay đặt cọc', F),
+              ('Để khách tự chọn lúc nào rảnh thì báo lại', F)]),
         ]
