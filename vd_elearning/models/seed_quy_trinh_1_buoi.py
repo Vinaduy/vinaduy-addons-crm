@@ -17,14 +17,18 @@ Idempotent theo version lưu ở ir.config_parameter.
 """
 from odoo import api, models
 
-_Q1B_VERSION = 'v1'
+_Q1B_VERSION = 'v2-1day-steps-wide'
 _PARAM_KEY = 'vd_elearning.quy_trinh_1_buoi_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 
 _STYLE = (
     '<style>'
-    '.vd-q1b{font-size:16px;line-height:1.7;color:#1f2937;}'
+    # noi rong khoa hoc gan sat mep (breakout khoi container 1240px) + giam
+    # khoang trang tren ~2/3. User spec 2026-07-15.
+    '.vd-q1b{font-size:16px;line-height:1.7;color:#1f2937;'
+    'width:96vw;max-width:1720px;position:relative;left:50%;transform:translateX(-50%);'
+    'margin-top:-1.3cm;}'
     '.vd-q1b .vd-course{background:linear-gradient(180deg,#fff7f3 0%,#f5faff 100%);'
     'border-radius:18px;padding:16px;}'
     '.vd-q1b h3{font-size:19px;font-weight:800;color:#0f172a;margin:2px 0 12px;}'
@@ -42,7 +46,7 @@ _STYLE = (
     '.vd-q1b .yes{color:#15803d;font-weight:700;}'
     '.vd-q1b .navr,.vd-q1b .qopt{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}'
     '.vd-q1b .vc-layout{display:flex;gap:18px;align-items:flex-start;}'
-    '.vd-q1b .vc-side{flex:0 0 264px;}'
+    '.vd-q1b .vc-side{flex:0 0 300px;}'
     '.vd-q1b .vc-sidehead{font-size:12.5px;font-weight:800;letter-spacing:1px;'
     'color:#64748b;text-transform:uppercase;margin:4px 6px 10px;}'
     '.vd-q1b .vc-navbtn{display:flex;align-items:center;gap:8px;text-align:left;'
@@ -53,7 +57,7 @@ _STYLE = (
     '.vd-q1b .vc-nbadge{flex:0 0 auto;display:inline-block;background:#fff1ec;color:#e8401f;'
     'font-size:10.5px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:20px;'
     'white-space:nowrap;}'
-    '.vd-q1b .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;}'
+    '.vd-q1b .vc-ntitle{flex:1 1 auto;font-weight:700;line-height:1.25;white-space:nowrap;}'
     '.vd-q1b .vc-content{flex:1;min-width:0;background:#ffffff;border:1px solid #eef2f7;'
     'border-radius:16px;padding:24px 26px;box-shadow:0 8px 28px rgba(2,6,23,.06);}'
     '.vd-q1b .vc-panel{display:none;}'
@@ -219,7 +223,7 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
         })
 
         quiz = Slide.create({
-            'channel_id': ch.id, 'name': 'Bài thi - 20 câu',
+            'channel_id': ch.id, 'name': 'Bài thi - 22 câu',
             'slide_category': 'quiz', 'sequence': 999, 'is_published': True,
         })
         qseq = 1
@@ -282,14 +286,14 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
 
     def _q1b_lessons(self):
         return [
-            ('&#129504;', 'MỞ ĐẦU', 'Tư duy &amp; Dòng thời gian 1 buổi', self._q1b_l_open()),
-            ('&#128222;', 'BÀI 1', 'Gọi điện tư vấn lần đầu', self._q1b_l1()),
-            ('&#129309;', 'BÀI 2', 'Kết bạn Zalo', self._q1b_l2()),
-            ('&#128101;', 'BÀI 3', 'Tạo nhóm Zalo', self._q1b_l3()),
-            ('&#127916;', 'BÀI 4', 'Hoàn thiện nhóm (10 phút)', self._q1b_l4()),
-            ('&#127968;', 'BÀI 5', 'Gửi mẫu nhà', self._q1b_l5()),
-            ('&#128181;', 'BÀI 6', 'Làm &amp; gửi báo giá', self._q1b_l6()),
-            ('&#127942;', 'TỔNG KẾT', 'Nguyên tắc vàng', self._q1b_l_gold()),
+            ('&#129504;', 'MỞ ĐẦU', 'Quy trình 1 ngày', self._q1b_l_open()),
+            ('&#128222;', 'BƯỚC 1', 'Gọi điện tư vấn lần đầu', self._q1b_l1()),
+            ('&#129309;', 'BƯỚC 2', 'Kết bạn Zalo', self._q1b_l2()),
+            ('&#128101;', 'BƯỚC 3', 'Tạo nhóm Zalo', self._q1b_l3()),
+            ('&#127916;', 'BƯỚC 4', 'Hoàn thiện nhóm', self._q1b_l4()),
+            ('&#127968;', 'BƯỚC 5', 'Gửi mẫu nhà', self._q1b_l5()),
+            ('&#128181;', 'BƯỚC 6', 'Gửi báo giá', self._q1b_l6()),
+            ('&#127942;', 'TỔNG KẾT', 'Tổng hợp kiến thức', self._q1b_l_gold()),
         ]
 
     # ------------------------------------------------------------------
@@ -298,11 +302,16 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
     def _q1b_l_open(self):
         return (
             self._q1b_tag('TƯ DUY NỀN TẢNG')
-            + '<h3>Một khách mới = một quy trình TRỌN GÓI trong 1 buổi</h3>'
-            + _box('ok', 'Mục tiêu bắt buộc của MỌI chuyên viên tư vấn: từ lúc <b>gọi '
-                   'điện tư vấn lần đầu</b> cho tới khi <b>gửi được báo giá</b>, tất cả '
-                   'chỉ gói gọn trong <b>1 buổi sáng hoặc 1 buổi chiều (khoảng 4 tiếng)</b>, '
-                   'cùng lắm là <b>trong 1 ngày</b>.')
+            + '<h3>Một khách mới = một quy trình TRỌN GÓI trong 1 NGÀY</h3>'
+            + _box('ok', '<b>Mục tiêu bắt buộc của MỌI chuyên viên tư vấn:</b> từ lúc '
+                   '<b>gọi điện tư vấn lần đầu</b> &rarr; kết bạn Zalo &rarr; tạo nhóm '
+                   '&rarr; làm báo giá &rarr; <b>GỬI báo giá cho khách</b> &mdash; TẤT CẢ '
+                   'phải gói gọn <b>TRONG 1 NGÀY</b>. Tuyệt đối không để công việc của '
+                   'khách này kéo sang ngày hôm sau.')
+            + _box('warn', '<b>Hiểu đúng chữ &#8220;1 NGÀY&#8221;:</b> trong CÙNG một ngày '
+                   'bạn phải làm ĐỦ MỌI THỨ &mdash; gọi điện, kết bạn Zalo, tạo nhóm, hoàn '
+                   'thiện nhóm, gửi mẫu nhà, làm và GỬI báo giá. Làm xong trọn vẹn khách '
+                   'này rồi mới yên tâm sang khách khác; không &#8220;làm dở rồi để đó&#8221;.')
             + '<p>Toàn bộ chuỗi công việc phải chạy LIÊN TỤC, không đứt đoạn: gọi điện '
             'tư vấn &rarr; kết bạn Zalo &rarr; tạo nhóm &rarr; hoàn thiện nhóm (đổi tên, '
             'ảnh, gửi video/lời chào/tổng hợp) &rarr; gửi mẫu nhà &rarr; làm và gửi báo '
@@ -327,7 +336,7 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                  'Gửi lời mời, 5 phút sau khách chưa đồng ý thì gọi lại nhắc ngay.'),
                 ('TẠO NHÓM ZALO (mình + khách + trưởng phòng)',
                  'Kết bạn xong là tạo nhóm liền, KHÔNG xin phép khách.'),
-                ('HOÀN THIỆN NHÓM trong 10 phút',
+                ('HOÀN THIỆN NHÓM ngay',
                  'Đổi tên + ảnh nhóm, gửi 4 video VTV, lời chào, tổng hợp cuộc gọi.'),
                 ('GỬI MẪU NHÀ trong ~15 phút',
                  'Gửi 5&ndash;10 mẫu (20&ndash;30 nếu khách phân vân). KHÔNG chờ khách chốt mẫu.'),
@@ -335,27 +344,36 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                  'Cả chuỗi trên gói trong ~30 phút; báo giá đã có sẵn, đợi đủ 2 tiếng mới gửi cho tự nhiên.'),
             ])
             + _fml('1 KHÁCH MỚI = <b>Gọi + Chốt báo giá &rarr; Kết bạn &rarr; Tạo nhóm '
-                   '&rarr; Hoàn thiện nhóm (10&#8242;) &rarr; Mẫu nhà (15&#8242;) &rarr; '
-                   'Báo giá (sau 2 tiếng)</b>. Tất cả trong 1 BUỔI. Đứt bước nào = mất '
-                   'khách bước đó.')
+                   '&rarr; Hoàn thiện nhóm &rarr; Mẫu nhà &rarr; GỬI báo giá</b>. TẤT CẢ '
+                   'trong 1 NGÀY. Đứt bước nào = mất khách bước đó.')
             + _quiz('q1b_open',
-                    'Toàn bộ quy trình từ gọi điện lần đầu đến gửi báo giá nên hoàn tất trong bao lâu?',
-                    [('Trong 1 buổi (khoảng 4 tiếng), cùng lắm là 1 ngày', True),
+                    'Toàn bộ quy trình từ gọi điện lần đầu đến gửi báo giá phải hoàn tất trong bao lâu?',
+                    [('Trong 1 NGÀY — gọi điện, tạo nhóm, làm và gửi báo giá đều xong trong cùng ngày', True),
                      ('Trong khoảng 1 tuần cho thong thả', False),
                      ('Bao lâu cũng được, miễn là khách chốt mẫu xong', False),
                      ('Chỉ cần gọi điện là đủ, các bước sau tùy hứng', False)],
-                    'Cả quy trình phải chạy liên tục trong 1 buổi, cùng lắm 1 ngày &mdash; không để đứt đoạn.'))
+                    'Cả quy trình phải chạy liên tục và hoàn tất TRONG 1 NGÀY &mdash; không đứt đoạn, không kéo sang hôm sau.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 1 - GỌI ĐIỆN
+    #  BƯỚC1 - GỌI ĐIỆN
     # ------------------------------------------------------------------
     def _q1b_l1(self):
         return (
-            self._q1b_tag('BÀI 1 &mdash; BƯỚC KHỞI ĐẦU')
+            self._q1b_tag('BƯỚC 1 &mdash; CUỘC GỌI QUAN TRỌNG NHẤT')
             + '<h3>Gọi điện tư vấn lần đầu: lấy ĐỦ thông tin để sinh báo giá</h3>'
+            + _box('err', '<b>ĐÂY LÀ CUỘC GỌI QUAN TRỌNG NHẤT.</b> Cuộc gọi ĐẦU TIÊN là '
+                   'cuộc gọi <b>tạo NIỀM TIN</b>, tạo <b>sự tin tưởng</b>, tạo <b>ấn tượng '
+                   'chuyên nghiệp</b> trong mắt khách. Bằng MỌI GIÁ phải có được cuộc gọi '
+                   'đầu và phải gọi <b>THÀNH CÔNG</b> &mdash; đây là nền tảng của cả quy '
+                   'trình, hỏng cuộc gọi đầu là hỏng tất cả.')
+            + '<p>Gọi lần đầu <b>KHÔNG phải chỉ để &#8220;hỏi lấy thông tin&#8221;</b> rồi '
+            'cúp máy. Phải gọi để <b>TÂM SỰ</b> &mdash; trò chuyện, lắng nghe, thấu hiểu '
+            'mong muốn của gia đình khách; vừa lấy đủ thông tin, vừa để khách CẢM NHẬN '
+            'được sự tận tâm và chuyên nghiệp của bạn. Khách tin bạn ngay từ cuộc gọi đầu '
+            'thì mọi bước sau mới thuận buồm xuôi gió.</p>'
             + _box('ok', 'Nguyên tắc: khi gọi tư vấn, cố gắng <b>trao đổi càng lâu càng '
-                   'tốt</b> (5&ndash;10 phút), <b>khai thác ĐẦY ĐỦ thông tin</b> để phần '
-                   'mềm sinh ra được bảng báo giá.')
+                   'tốt</b> (5&ndash;10 phút), vừa <b>tâm sự tạo thiện cảm</b> vừa '
+                   '<b>khai thác ĐẦY ĐỦ thông tin</b> để phần mềm sinh ra được bảng báo giá.')
             + '<h4>Vì sao đây là bước quyết định?</h4>'
             + '<p>Nếu cuộc gọi thiếu thông tin thì phần mềm <b>không sinh được báo giá</b>, '
             'và quy trình xử lý khách <b>dừng lại ngay tại bước này</b>. Nhiều chuyên '
@@ -379,13 +397,24 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                      widths=['30%', '38%', '32%'])
             + _box('warn', 'Điền tạm là để KHÔNG dừng quy trình &mdash; không phải để làm '
                    'ẩu. Vẫn cố khai thác đủ nhất có thể; chỉ điền tạm cho ý nào thực sự bị bỏ sót.')
-            + '<h4>&#9989; Kết thúc cuộc gọi = BẤM &#8220;CHỐT BÁO GIÁ&#8221; NGAY</h4>'
-            + '<p>Khi kết thúc cuộc gọi, việc BẮT BUỘC ngay lập tức là bấm nút '
-            '<b>&#8220;Chốt báo giá&#8221;</b>. Khi đó phần mềm sẽ:</p>'
-            + '<ul><li>Sinh ra <b>file báo giá</b> cho khách.</li>'
-            '<li>Sinh ra <b>tên nhóm Zalo mới</b> để bạn dùng tạo nhóm ở bước sau.</li></ul>'
-            + _box('info', 'Vì vậy hãy tư vấn sao cho khi gác máy là đã có ĐỦ thông tin '
-                   '&mdash; gác máy xong bấm chốt báo giá luôn, không chần chừ.')
+            + '<h4>&#128308; BẮT BUỘC: BẤM &#8220;CHỐT BÁO GIÁ&#8221; TRÊN PHẦN MỀM CRM</h4>'
+            + _box('err', '<b>Đây là thao tác nhiều chuyên viên hay QUÊN hoặc xem nhẹ</b> '
+                   '&mdash; và trình bày kiểu cũ khiến nhân viên KHÔNG cảm nhận được là '
+                   'phải làm. Nói rõ: kết thúc cuộc gọi, việc BẮT BUỘC ngay lập tức là vào '
+                   '<b>phần mềm CRM</b> bấm nút <b>&#8220;CHỐT BÁO GIÁ&#8221;</b>. Không '
+                   'bấm = coi như CHƯA xử lý xong khách, và bạn <b>KHÔNG có gì để gửi</b>.')
+            + '<p>Vì sao <b>bắt buộc phải CHỐT BÁO GIÁ trên CRM</b>? Vì chỉ khi bấm CHỐT, '
+            'phần mềm mới:</p>'
+            + '<ul>'
+            '<li>Sinh ra <b>FILE BÁO GIÁ</b> &mdash; <b>không CHỐT thì không có file báo '
+            'giá để gửi cho khách</b>.</li>'
+            '<li>Sinh ra <b>TÊN NHÓM ZALO mới</b> để bạn tạo nhóm ở bước sau.</li>'
+            '<li>Đẩy khách <b>xuống đúng bảng làm việc</b> trên phần mềm: bảng <b>THI CÔNG '
+            'GẤP</b> và bảng <b>XỬ LÝ VẤN ĐỀ</b>. Chưa CHỐT thì khách vẫn nằm ở &#8220;Khách '
+            'mới&#8221;, KHÔNG lọt vào quy trình theo đuổi &mdash; rất dễ bị bỏ quên.</li>'
+            '</ul>'
+            + _box('info', 'Hãy tư vấn sao cho khi gác máy là đã có ĐỦ thông tin &mdash; '
+                   'gác máy xong vào CRM <b>bấm CHỐT BÁO GIÁ luôn</b>, không chần chừ.')
             + _nendont(
                 ['Trao đổi lâu, khai thác đủ mọi ý để sinh báo giá',
                  'Quên ý nào thì điền tạm phương án hợp lý ngay',
@@ -405,11 +434,11 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                     'Quên thông tin thì điền tạm (đường nhỏ) để không dừng quy trình &mdash; tuyệt đối không chờ.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 2 - KẾT BẠN ZALO
+    #  BƯỚC2 - KẾT BẠN ZALO
     # ------------------------------------------------------------------
     def _q1b_l2(self):
         return (
-            self._q1b_tag('BÀI 2 &mdash; MẮT XÍCH SỐNG CÒN')
+            self._q1b_tag('BƯỚC 2 &mdash; MẮT XÍCH SỐNG CÒN')
             + '<h3>Kết bạn Zalo &mdash; gọi nhắc khách đồng ý NGAY</h3>'
             + _box('ok', 'Ngay sau khi kết thúc cuộc gọi tư vấn, bước tiếp theo là '
                    '<b>kết bạn Zalo với khách</b>. Đây là mắt xích rất quan trọng, vì '
@@ -430,6 +459,19 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             + _say('&#8220;Anh ơi, em vừa gửi lời mời kết bạn Zalo cho mình rồi đấy ạ, '
                    'anh đồng ý giúp em để em lập nhóm gửi thông tin và báo giá cho gia '
                    'đình mình nhé!&#8221;')
+            + '<h4>&#128241; Khách BẬN, bảo &#8220;cứ kết bạn Zalo đi&#8221; &mdash; xử lý thế nào?</h4>'
+            + '<p>Rất hay gặp: gọi cho khách nhưng khách đang bận, khách bảo <b>&#8220;cứ '
+            'kết bạn Zalo rồi trao đổi sau&#8221;</b>. Quy trình của công ty trong trường '
+            'hợp này là VẪN chạy đủ các bước, KHÔNG vì khách bận mà bỏ dở:</p>'
+            + _order([
+                ('KẾT BẠN Zalo LUÔN', 'Gửi lời mời kết bạn ngay, không bỏ lỡ.'),
+                ('VẪN TẠO NHÓM luôn', 'Kết bạn xong lập nhóm (mình + khách + trưởng phòng) như bình thường.'),
+                ('VẪN GỬI đủ nội dung theo quy định', 'Đổi tên/ảnh nhóm, 4 video VTV, lời chào, tổng hợp cuộc gọi &mdash; đổ đầy đủ vào nhóm.'),
+                ('NHẮN TIN tư vấn như bình thường', 'Chủ động nhắn trao đổi/tư vấn qua nhóm để giữ mạch, không im lặng.'),
+            ])
+            + _box('warn', '<b>NHƯNG vẫn ƯU TIÊN GỌI ĐIỆN:</b> nhắn tin chỉ là phương án '
+                   'khi khách bận. Hễ có cơ hội (khách rảnh, khách phản hồi) thì <b>gọi '
+                   'điện</b> để trao đổi &mdash; gọi luôn hiệu quả và tạo niềm tin hơn nhắn tin.')
             + _nendont(
                 ['Gửi lời mời xong theo dõi ngay',
                  '5 phút khách chưa đồng ý &rarr; gọi điện nhắc liền',
@@ -453,11 +495,11 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                     'Phải gọi điện nhắc NGAY &mdash; khách không kết bạn thì cả quy trình sau đứng lại.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 3 - TẠO NHÓM
+    #  BƯỚC3 - TẠO NHÓM
     # ------------------------------------------------------------------
     def _q1b_l3(self):
         return (
-            self._q1b_tag('BÀI 3 &mdash; KỶ LUẬT THÉP')
+            self._q1b_tag('BƯỚC 3 &mdash; KỶ LUẬT THÉP')
             + '<h3>Tạo nhóm Zalo &mdash; CẤM tuyệt đối nhắn tin cá nhân</h3>'
             + _box('ok', 'Kết bạn xong là <b>lập tức tạo nhóm Zalo</b>. Nhóm gồm: '
                    '<b>chuyên viên tư vấn + khách hàng + trưởng phòng</b>.')
@@ -504,15 +546,14 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                     'Cấm nhắn cá nhân &mdash; luôn tạo nhóm và trả lời trên nhóm; không cần xin phép khách.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 4 - HOÀN THIỆN NHÓM
+    #  BƯỚC4 - HOÀN THIỆN NHÓM
     # ------------------------------------------------------------------
     def _q1b_l4(self):
         return (
-            self._q1b_tag('BÀI 4 &mdash; TRONG 10 PHÚT')
+            self._q1b_tag('BƯỚC 4 &mdash; HOÀN THIỆN NHÓM')
             + '<h3>Hoàn thiện nhóm: đổi tên/ảnh + 4 video VTV + lời chào + tổng hợp</h3>'
             + _box('ok', 'Ngay sau khi tạo nhóm, tập thói quen làm LIỀN &amp; CÙNG LÚC '
-                   'một chuỗi việc &mdash; tốt nhất hoàn tất trong <b>10 phút</b> kể từ '
-                   'khi kết thúc cuộc gọi.')
+                   'một chuỗi việc &mdash; làm ngay, liền mạch kể từ khi kết thúc cuộc gọi.')
             + '<h4>&#128204; 5 việc BẮT BUỘC làm ngay khi tạo nhóm xong</h4>'
             + _order([
                 ('ĐỔI TÊN NHÓM', 'Đổi theo đúng tên nhóm phần mềm đã sinh khi bấm chốt báo giá.'),
@@ -531,29 +572,28 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             + _box('warn', 'Công ty sẽ <b>kiểm soát tất cả các nhóm Zalo</b> &mdash; vì '
                    'vậy phải đổ đầy đủ những tin nhắn trên vào nhóm, không được thiếu.')
             + _nendont(
-                ['Làm cả 5 việc liền mạch trong 10 phút',
+                ['Làm cả 5 việc liền mạch, ngay sau khi tạo nhóm',
                  'Gửi đúng thời điểm khi khách còn nhớ cuộc gọi',
                  'Đổ đầy đủ nội dung để công ty kiểm soát được'],
                 ['Quên, 1&ndash;2 ngày sau mới gửi (vô duyên, ngại)',
                  'Gửi thiếu, gửi lệch thứ tự',
                  'Bỏ qua vì nghĩ &#8220;để sau cũng được&#8221;'])
-            + _fml('Tạo nhóm xong (trong 10 phút): <b>Đổi tên &rarr; Đổi ảnh &rarr; 4 '
-                   'video VTV &rarr; Lời chào &rarr; Tổng hợp cuộc gọi</b>. Làm ngay, '
-                   'đầy đủ, đúng lúc.')
+            + _fml('Tạo nhóm xong làm NGAY: <b>Đổi tên &rarr; Đổi ảnh &rarr; 4 video VTV '
+                   '&rarr; Lời chào &rarr; Tổng hợp cuộc gọi</b>. Làm ngay, đầy đủ, đúng lúc.')
             + _quiz('q1b_4',
-                    'Sau khi tạo nhóm xong, trong 10 phút phải làm những việc nào?',
+                    'Sau khi tạo nhóm xong, phải làm ngay những việc nào?',
                     [('Chỉ cần đổi tên nhóm là đủ', False),
                      ('Đổi tên + đổi ảnh nhóm, gửi 4 video VTV, gửi lời chào, gửi tổng hợp thông tin cuộc gọi', True),
                      ('Chờ khách nhắn trước rồi mới gửi gì đó', False),
                      ('Gửi ngay báo giá để chốt cho nhanh', False)],
-                    'Đủ 5 việc: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi &mdash; trong 10 phút.'))
+                    'Đủ 5 việc: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi &mdash; làm ngay, liền mạch.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 5 - GỬI MẪU NHÀ
+    #  BƯỚC5 - GỬI MẪU NHÀ
     # ------------------------------------------------------------------
     def _q1b_l5(self):
         return (
-            self._q1b_tag('BÀI 5 &mdash; TRONG ~15 PHÚT')
+            self._q1b_tag('BƯỚC 5 &mdash; GỬI MẪU NHÀ')
             + '<h3>Gửi mẫu nhà đúng ý &mdash; nhưng TUYỆT ĐỐI không chờ khách chốt mẫu</h3>'
             + _box('ok', 'Khi gọi điện, cố gắng hiểu khách muốn làm kiểu nhà nào để sau '
                    'khi tạo nhóm gửi mẫu cho <b>chính xác với mong muốn</b> của khách. '
@@ -609,12 +649,12 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                     'Không bao giờ chờ khách chốt mẫu mới báo giá &mdash; mẫu nào giá cũng như nhau, chọn mẫu là bước sau khi ký.'))
 
     # ------------------------------------------------------------------
-    #  BÀI 6 - LÀM & GỬI BÁO GIÁ
+    #  BƯỚC6 - LÀM & GỬI BÁO GIÁ
     # ------------------------------------------------------------------
     def _q1b_l6(self):
         return (
-            self._q1b_tag('BÀI 6 &mdash; BƯỚC ĐÍCH')
-            + '<h3>Làm &amp; gửi báo giá: giãn ~2 tiếng, KHÔNG chờ đợi thêm</h3>'
+            self._q1b_tag('BƯỚC 6 &mdash; GỬI BÁO GIÁ')
+            + '<h3>Gửi báo giá: giãn ~2 tiếng, KHÔNG chờ đợi thêm</h3>'
             + _box('ok', 'Từ khi kết thúc cuộc gọi đến bước gửi mẫu nhà, cố gắng hoàn '
                    'thiện toàn bộ trong <b>30 phút</b>. Vì đã bấm &#8220;Chốt báo '
                    'giá&#8221; khi gác máy nên <b>file báo giá đã có sẵn</b> rồi.')
@@ -654,13 +694,34 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             + _box('info', '<b>Vì sao báo giá quan trọng đến vậy?</b> Trong báo giá có '
                    'đầy đủ thông tin: <b>báo giá vật tư, thông tin pháp lý, hợp đồng thi '
                    'công</b> &mdash; là bộ dữ liệu then chốt gửi cho khách.')
+
+            + '<h4>&#128247; BẮT BUỘC khi gửi: TẢI FILE + CHỤP MÀN HÌNH bảng báo giá</h4>'
+            + '<p>Quy định BẮT BUỘC về cách gửi báo giá cho khách &mdash; làm đúng 4 việc:</p>'
+            + _order([
+                ('TẢI FILE báo giá từ phần mềm CRM về',
+                 'Vào CRM tải đúng file báo giá đã CHỐT của khách.'),
+                ('GỬI FILE báo giá vào NHÓM ZALO',
+                 'Gửi nguyên file cho khách trong nhóm.'),
+                ('MỞ file lên &rarr; CHỤP MÀN HÌNH bảng báo giá',
+                 'Bắt buộc mở file ra, chụp lại bảng báo giá &mdash; nhất là TỔNG GIÁ TRỊ hợp đồng.'),
+                ('GỬI ẢNH CHỤP kèm ngay cạnh file',
+                 'Gửi ảnh chụp vào nhóm để khách nhìn thấy luôn, không phải mở file.'),
+            ])
+            + _box('warn', '<b>Vì sao phải chụp màn hình gửi kèm?</b> Nhiều khi khách '
+                   '<b>KHÔNG mở file lên đọc</b>. Mà thứ khách quan tâm nhất là <b>TỔNG '
+                   'GIÁ TRỊ hợp đồng</b>. Gửi thẳng ảnh bảng báo giá cho khách xem cho tiện '
+                   '&mdash; sau này khách <b>không lấy lý do &#8220;chưa xem&#8221;</b> được nữa.')
+            + _box('err', '<b>LỖI nhiều chuyên viên hay mắc:</b> chỉ gửi mỗi file mà '
+                   '<b>KHÔNG chụp màn hình</b> bảng báo giá. Kết quả: khách toàn nói lý do '
+                   '<b>&#8220;anh/chị chưa xem&#8221;</b>, quy trình theo đuổi bị kẹt. '
+                   'Chụp và gửi ảnh là BẮT BUỘC, tuyệt đối không được bỏ.')
             + _nendont(
                 ['Thống nhất tổng DT/sàn + tổng m&#178; + tài chính &rarr; báo giá luôn',
                  'Giãn tối thiểu 2 tiếng rồi gửi cho tự nhiên',
-                 'Thiếu ~100tr &rarr; vẫn báo giá, hướng khách xoay thêm',
-                 'Tài chính quá nhỏ &rarr; mạnh dạn bỏ qua/hủy'],
+                 'Tải file + CHỤP MÀN HÌNH bảng báo giá gửi kèm vào nhóm',
+                 'Thiếu ~100tr &rarr; vẫn báo giá, hướng khách xoay thêm'],
                 ['Đợi khách chốt mẫu / kích thước / pháp lý / miếng đất mới báo giá',
-                 'Đợi 1&ndash;2 ngày hỏi thêm rồi mới làm',
+                 'Chỉ gửi mỗi file, KHÔNG chụp màn hình &rarr; khách nói &#8220;chưa xem&#8221;',
                  'Gửi báo giá ngay tức thì (khách nghi làm ẩu)',
                  'Kéo báo giá sang ngày hôm sau'])
             + _fml('Báo giá đã sẵn từ lúc chốt. Thống nhất <b>tổng DT/sàn + tổng m&#178; '
@@ -679,30 +740,40 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
     # ------------------------------------------------------------------
     def _q1b_l_gold(self):
         return (
-            self._q1b_tag('&#127942; NGUYÊN TẮC VÀNG &mdash; TỔNG HỢP')
-            + '<h3>Toàn bộ công thức của khóa học</h3>'
-            + _box('ok', 'Một chuyên viên giỏi là người chạy TRỌN quy trình cho mỗi '
-                   'khách mới trong 1 buổi, không để đứt bước nào. Cuộc gọi tư vấn chỉ '
-                   'có nghĩa khi kéo được tới tận báo giá.')
+            self._q1b_tag('&#127942; TỔNG HỢP KIẾN THỨC')
+            + '<h3>Tổng hợp kiến thức &mdash; nhớ nhanh cả quy trình 1 ngày</h3>'
+            + _box('ok', '<b>Một câu cốt lõi:</b> 1 khách mới = 1 quy trình TRỌN GÓI '
+                   'trong <b>1 NGÀY</b> &mdash; gọi điện, kết bạn, tạo nhóm, gửi mẫu, làm '
+                   'và GỬI báo giá; tất cả xong trong cùng ngày, không để đứt bước nào.')
+            + '<h4>&#128273; 6 BƯỚC &mdash; nhớ nhanh</h4>'
+            + '<ul>'
+            '<li><b>Bước 1 &mdash; Gọi điện:</b> cuộc gọi QUAN TRỌNG NHẤT (tạo niềm tin, tâm sự); khai thác ĐỦ thông tin &rarr; gác máy vào CRM bấm CHỐT BÁO GIÁ.</li>'
+            '<li><b>Bước 2 &mdash; Kết bạn Zalo:</b> gửi lời mời, 5 phút chưa đồng ý &rarr; GỌI NHẮC NGAY. Khách bận thì vẫn kết bạn + tạo nhóm + gửi đủ nội dung.</li>'
+            '<li><b>Bước 3 &mdash; Tạo nhóm:</b> kết bạn xong TẠO NHÓM NGAY (mình + khách + trưởng phòng); CẤM nhắn cá nhân.</li>'
+            '<li><b>Bước 4 &mdash; Hoàn thiện nhóm:</b> làm ngay: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi.</li>'
+            '<li><b>Bước 5 &mdash; Gửi mẫu nhà:</b> gửi 5&ndash;10 mẫu (có sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.</li>'
+            '<li><b>Bước 6 &mdash; Gửi báo giá:</b> đủ tổng DT sàn + tổng m&#178; + tài chính &rarr; giãn 2 tiếng rồi GỬI. Tải file + CHỤP MÀN HÌNH bảng báo giá gửi kèm.</li>'
+            '</ul>'
+            + '<h4>&#128221; Bảng công thức thuộc lòng (chi tiết)</h4>'
             + _table(['Bước', 'Công thức thuộc lòng'],
-                     [['<b>Mở đầu &mdash; Tư duy</b>', 'Cả quy trình gọn trong 1 BUỔI (4 tiếng), cùng lắm 1 ngày. Mỗi bước xong kích hoạt bước kế; không dừng chờ.'],
-                      ['<b>Bài 1 &mdash; Gọi điện</b>', 'Khai thác ĐỦ thông tin; quên ý nào ĐIỀN TẠM (đường nhỏ / tháng gần nhất / 1 khách 1 bếp 3 ngủ 2 wc); gác máy là BẤM CHỐT BÁO GIÁ.'],
-                      ['<b>Bài 2 &mdash; Kết bạn Zalo</b>', 'Gửi lời mời; 5 phút chưa đồng ý &rarr; GỌI NHẮC NGAY. Không kết bạn = không nhóm = không báo giá.'],
-                      ['<b>Bài 3 &mdash; Tạo nhóm</b>', 'Kết bạn xong TẠO NHÓM NGAY (mình + khách + trưởng phòng), KHÔNG xin phép. CẤM nhắn cá nhân &mdash; cá nhân chỉ gọi điện.'],
-                      ['<b>Bài 4 &mdash; Hoàn thiện nhóm</b>', 'Trong 10 phút: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi.'],
-                      ['<b>Bài 5 &mdash; Gửi mẫu nhà</b>', 'Giúp khách chốt kiểu dáng; gửi 5&ndash;10 mẫu (có mẫu sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.'],
-                      ['<b>Bài 6 &mdash; Báo giá</b>', 'Đủ tổng DT sàn + tổng m&#178; + tài chính &rarr; GIÃN 2 TIẾNG rồi GỬI. Không chờ mẫu/kích thước/pháp lý. Thiếu ~100tr vẫn báo; quá nhỏ thì bỏ.']],
+                     [['<b>Mở đầu &mdash; Quy trình 1 ngày</b>', 'Cả quy trình gọn TRONG 1 NGÀY. Mỗi bước xong kích hoạt bước kế; không dừng chờ, không kéo sang hôm sau.'],
+                      ['<b>Bước 1 &mdash; Gọi điện</b>', 'Cuộc gọi QUAN TRỌNG NHẤT: tâm sự tạo niềm tin + khai thác ĐỦ thông tin; quên ý nào ĐIỀN TẠM (đường nhỏ / tháng gần nhất / 1 khách 1 bếp 3 ngủ 2 wc); gác máy vào CRM BẤM CHỐT BÁO GIÁ (mới có file + đẩy khách xuống bảng Thi công gấp / Xử lý vấn đề).'],
+                      ['<b>Bước 2 &mdash; Kết bạn Zalo</b>', 'Gửi lời mời; 5 phút chưa đồng ý &rarr; GỌI NHẮC NGAY. Khách bận vẫn kết bạn + tạo nhóm + gửi đủ nội dung + nhắn tư vấn (ưu tiên gọi nếu có cơ hội). Không kết bạn = không nhóm = không báo giá.'],
+                      ['<b>Bước 3 &mdash; Tạo nhóm</b>', 'Kết bạn xong TẠO NHÓM NGAY (mình + khách + trưởng phòng), KHÔNG xin phép. CẤM nhắn cá nhân &mdash; cá nhân chỉ gọi điện.'],
+                      ['<b>Bước 4 &mdash; Hoàn thiện nhóm</b>', 'Làm ngay: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi.'],
+                      ['<b>Bước 5 &mdash; Gửi mẫu nhà</b>', 'Giúp khách chốt kiểu dáng; gửi 5&ndash;10 mẫu (có mẫu sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.'],
+                      ['<b>Bước 6 &mdash; Gửi báo giá</b>', 'Đủ tổng DT sàn + tổng m&#178; + tài chính &rarr; GIÃN 2 TIẾNG rồi GỬI. Tải file + CHỤP MÀN HÌNH bảng báo giá gửi kèm vào nhóm. Không chờ mẫu/kích thước/pháp lý; thiếu ~100tr vẫn báo, quá nhỏ thì bỏ.']],
                      widths=['24%', '76%'])
             + _box('warn', 'Nguyên tắc bao trùm: <b>KHÔNG BAO GIỜ để quy trình dừng lại '
                    'chờ đợi.</b> Thiếu thông tin thì điền tạm; khách chưa quyết thì vẫn '
-                   'đi tiếp. Gọi điện xong 2&ndash;3 ngày chưa có báo giá là thất bại.')
+                   'đi tiếp. Gọi điện xong mà sang ngày hôm sau vẫn chưa có báo giá là thất bại.')
             + _quiz('q1b_gold',
                     'Đâu là nguyên tắc bao trùm toàn bộ khóa học này?',
                     [('Càng làm chậm, kỹ càng thì khách càng tin tưởng', False),
-                     ('Không để quy trình dừng chờ đợi &mdash; thiếu thông tin thì điền tạm, khách chưa quyết vẫn đi tiếp, hoàn tất trong 1 buổi', True),
+                     ('Không để quy trình dừng chờ đợi &mdash; thiếu thông tin thì điền tạm, khách chưa quyết vẫn đi tiếp, hoàn tất TRONG 1 NGÀY', True),
                      ('Chỉ cần gọi điện tốt là đủ, các bước sau không quan trọng', False),
                      ('Luôn chờ khách chốt mọi thứ rồi mới báo giá cho chắc', False)],
-                    'Cốt lõi: chạy trọn quy trình trong 1 buổi, tuyệt đối không dừng chờ đợi.'))
+                    'Cốt lõi: chạy trọn quy trình TRONG 1 NGÀY, tuyệt đối không dừng chờ đợi.'))
 
     # ==================================================================
     #  20 CÂU HỎI TRẮC NGHIỆM (bài THI chấm điểm)
@@ -711,7 +782,7 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
         T, F = True, False
         return [
             ('Toàn bộ quy trình từ gọi điện lần đầu đến gửi báo giá phải hoàn tất trong bao lâu?',
-             [('Trong 1 buổi (khoảng 4 tiếng), cùng lắm là 1 ngày', T),
+             [('Trong 1 NGÀY — tất cả gọi điện, tạo nhóm, làm và gửi báo giá đều xong trong cùng ngày', T),
               ('Trong khoảng 1 tuần', F),
               ('Trong 1 tháng', F),
               ('Bao lâu cũng được, miễn khách chốt mẫu', F)]),
@@ -794,7 +865,7 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
               ('Gửi báo giá và hợp đồng riêng', F),
               ('Chốt hợp đồng riêng với khách', F)]),
 
-            ('Sau khi tạo nhóm xong, trong 10 phút phải làm những việc gì?',
+            ('Sau khi tạo nhóm xong, phải làm ngay những việc gì?',
              [('Đổi tên + đổi ảnh nhóm, gửi 4 video VTV, gửi lời chào, gửi tổng hợp thông tin cuộc gọi', T),
               ('Chỉ đổi tên nhóm', F),
               ('Chờ khách nhắn trước rồi mới làm', F),
@@ -829,4 +900,16 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
               ('Gửi ngay lập tức khi vừa chốt', F),
               ('Đợi 2-3 ngày cho chắc chắn', F),
               ('Chỉ gửi khi khách đã chốt mẫu và kích thước', F)]),
+
+            ('Vì sao BẮT BUỘC phải bấm "CHỐT BÁO GIÁ" trên phần mềm CRM sau cuộc gọi?',
+             [('Vì chỉ khi CHỐT mới sinh ra file báo giá để gửi và mới đẩy khách xuống bảng Thi công gấp / Xử lý vấn đề', T),
+              ('Vì để phần mềm tính hoa hồng cho nhân viên', F),
+              ('Vì chốt để xóa khách khỏi danh sách', F),
+              ('Không bắt buộc, khi nào rảnh chốt cũng được', F)]),
+
+            ('Khi gửi báo giá cho khách, quy định BẮT BUỘC ngoài việc gửi file là gì?',
+             [('Mở file lên, CHỤP MÀN HÌNH bảng báo giá (nhất là tổng giá trị) và gửi ảnh kèm vào nhóm để khách không lấy lý do "chưa xem"', T),
+              ('Chỉ cần gửi mỗi file là đủ', F),
+              ('Gửi file qua tin nhắn cá nhân cho riêng khách', F),
+              ('Đọc toàn bộ báo giá qua điện thoại cho khách nghe', F)]),
         ]
