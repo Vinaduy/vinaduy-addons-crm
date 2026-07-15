@@ -1334,7 +1334,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                             </span>
                                         </div>
                                         <div class="o_vd_pf_section_body"
-                                             t-att-class="{'o_vd_pf_intake_locked': not i_editing}">
+                                             t-att-class="{'o_vd_pf_intake_locked': !i_editing}">
                                             <!-- Readonly mirror: Tổng sàn + Phần mềm tính giá -->
                                             <div class="o_vd_pf_intake_summary">
                                                 <span>📐 Tổng sàn: <field name="i_total_m2" readonly="1" nolabel="1"/> m²</span>
