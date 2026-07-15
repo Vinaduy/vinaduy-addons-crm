@@ -2115,7 +2115,17 @@ export class VdCrmDashboard extends Component {
 
     openLead(leadId) {
         // KHOÁ TOÀN BỘ — chặn mở MỌI KH trừ KH mới chưa gọi (vùng CHƯA GỌI).
-        if (this.uncalledNewLockActive && !this._isUncalledNewLead(leadId)) {
+        // FIX (user spec 2026-07-15): khi KHOÁ TOÀN BỘ + KHOÁ CHỐT BÁO GIÁ cùng
+        // bật, 4 KH 💰 chưa chốt (ĐÃ gọi rồi nên KHÔNG thuộc vùng CHƯA GỌI) bị
+        // KHOÁ TOÀN BỘ chặn → NV không vào chốt được để gỡ khoá kia = DEADLOCK.
+        // Cho KHOÁ TOÀN BỘ chừa LỐI THOÁT của khoá khác: vẫn mở KH cần CHỐT báo
+        // giá / cần NHẮN Zalo (các KH này không tính vào số "chưa gọi" nên không
+        // phá mục đích khoá).
+        const isOtherLockEscape =
+            (this.quoteChotLockActive && this.quoteChotAllowedIds.has(leadId))
+            || (this.zaloFriendLockActive && this.zaloFriendAllowedIds.has(leadId));
+        if (this.uncalledNewLockActive && !this._isUncalledNewLead(leadId)
+                && !isOtherLockEscape) {
             const u = this.state.uncalled_new_lock;
             this.notification.add(
                 "🔒 KHOÁ TOÀN BỘ: còn " + (u.count || 0) + " khách MỚI CHƯA GỌI "

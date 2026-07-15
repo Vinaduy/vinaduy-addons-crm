@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Seed nội dung + 20 câu thi cho khóa "QUY TRÌNH THEO ĐUỔI KHÁCH HÀNG SAU KHI
+"""Seed nội dung + 30 câu thi cho khóa "QUY TRÌNH THEO ĐUỔI KHÁCH HÀNG SAU KHI
 GỬI BÁO GIÁ" (Kỹ năng Sale).
 
 GIAO DIỆN kiểu Streamlit: menu trái chọn từng bài (micro-learning) + hộp màu +
@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v12-typo-noquiz'
+_TDBG_VERSION = 'v13-2bg-screenshot-30q'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -223,7 +223,7 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
         })
 
         quiz = Slide.create({
-            'channel_id': ch.id, 'name': 'Bài thi - 20 câu',
+            'channel_id': ch.id, 'name': 'Bài thi - 30 câu',
             'slide_category': 'quiz', 'sequence': 999, 'is_published': True,
         })
         qseq = 1
@@ -325,10 +325,8 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             + _table(['Mức chênh lệch', 'Cách xử lý BẮT BUỘC'],
                      [['<b>Khớp / chênh &le; 100 triệu</b>',
                        '<span class="yes">TỰ TIN GỬI</span> &mdash; báo giá đã ưng ý, cân đối tốt.'],
-                      ['<b>Chênh trên 100 triệu</b>',
-                       'BÀN BẠC lại với khách để điều chỉnh, cân đối tầm tài chính cho phù hợp <b>rồi mới quyết định gửi</b>.'],
-                      ['<b>Chênh 100 &ndash; 300 triệu</b>',
-                       'Trao đổi lại: (a) GIẢM DIỆN TÍCH cho khớp, HOẶC (b) xác định khách có thể CỐ THÊM tài chính (vay/mượn/xoay/vay ngân hàng) hay không &mdash; rồi vẫn cố gắng GỬI báo giá.'],
+                      ['<b>Chênh trên 100 triệu (đến ~300 triệu)</b>',
+                       'BÀN BẠC lại với khách để cân đối cho phù hợp <b>rồi mới quyết định gửi</b>: (a) GIẢM DIỆN TÍCH cho khớp, HOẶC (b) xác định khách có thể CỐ THÊM tài chính (vay/mượn/xoay/vay ngân hàng) hay không &mdash; rồi vẫn cố gắng GỬI báo giá.'],
                       ['<b>Chênh QUÁ LỚN, không xoay được</b>',
                        'Ví dụ khách muốn xây 1 tỷ nhưng chỉ có 600 triệu và không có cách kiếm thêm &rarr; trường hợp này có thể KHÔNG gửi. Nhân viên tự cân nhắc quyết định.']],
                      widths=['30%', '70%'])
@@ -349,14 +347,49 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'mục vật tư</b>, hình ảnh trong báo giá, các <b>vật tư không có trong '
                    'hợp đồng</b>. Khách sẽ suy nghĩ, tính toán. Không gửi = khách không có '
                    'gì để cân nhắc, và mất luôn cơ hội.')
-            + _box('info', '<b>Khách mang báo giá đi so sánh là chuyện BÌNH THƯỜNG.</b> '
-                   'Trong lúc làm báo giá, luôn nghĩ rằng khách có thể so sánh với đơn vị '
-                   'khác &mdash; nhưng KHÔNG có báo giá thì khách chẳng có cơ sở nào để so '
-                   'sánh, cân nhắc, tính toán. Vậy nên nhiệm vụ vẫn là GỬI.')
-            + _box('warn', '<b>Câu nói khi khách nhất quyết làm diện tích lớn vượt tài '
-                   'chính:</b> &#8220;Nếu anh/chị làm với yêu cầu như vậy thì tài chính '
-                   'bên em sẽ vào khoảng &hellip; ạ.&#8221; &mdash; nói rõ mức tiền, rồi '
-                   'vẫn GỬI báo giá để khách tự cân nhắc.')
+            + _box('info', '<b>Khách mang báo giá đi so sánh là chuyện HẾT SỨC BÌNH '
+                   'THƯỜNG &mdash; đừng sợ.</b> Không một khách nào bỏ ra cả tỷ đồng xây '
+                   'nhà (khoản tiền lớn cả đời) mà chỉ hỏi đúng một đơn vị rồi ký ngay. '
+                   'Gần như 100% khách đều xin 3&ndash;5 báo giá của nhiều nhà thầu để đặt '
+                   'cạnh nhau so sánh &mdash; đó là nhu cầu CHÍNH ĐÁNG của người bỏ tiền, '
+                   'không phải khách &#8220;chê&#8221; mình. Điều mấu chốt: <b>muốn được '
+                   'so sánh thì trước hết PHẢI có báo giá của mình trong tay khách</b>. '
+                   'Nếu vì sợ bị so sánh mà không gửi, khách chỉ còn báo giá của đối thủ '
+                   'để cân nhắc &mdash; mình tự loại mình khỏi cuộc chơi. Ngược lại, khi '
+                   'báo giá của mình nằm trên bàn cùng các đơn vị khác, mình MỚI có cơ hội '
+                   'chứng minh: vật tư tốt hơn, hạng mục đầy đủ hơn, tư vấn tận tâm hơn. '
+                   'Vậy nên tư duy đúng là <b>cứ TỰ TIN GỬI, rồi chủ động đồng hành để '
+                   'khách thấy mình là lựa chọn hợp lý nhất</b>.')
+            + _box('info', '<b>Nguyên tắc CHỤP MÀN HÌNH báo giá:</b> sau khi gửi file, hãy '
+                   '<b>chụp màn hình</b> bảng báo giá (nhất là <b>tổng giá trị hợp đồng</b> '
+                   'và <b>đơn giá theo m&#178;</b>) gửi cho khách dễ nhìn. Dù khách nói '
+                   '&#8220;chưa xem/đang xem&#8221;, chắc chắn khách ĐÃ liếc qua tổng giá '
+                   'trị và đơn giá &mdash; đó là điểm để bắt chuyện khai thác sau này.')
+
+            + '<h4>&#128260; Chiến thuật QUAN TRỌNG: GỬI 2 BÁO GIÁ song song khi khách nhất quyết giữ diện tích lớn</h4>'
+            + '<p>Đây là tình huống rất hay gặp và <b>cực kỳ quan trọng</b>: khi bạn đã '
+            'trao đổi với khách về việc cần <b>cắt giảm diện tích</b> cho phù hợp tầm tài '
+            'chính, nhưng khách <b>nhất quyết không nghe</b>, vẫn yêu cầu làm đúng diện '
+            'tích lớn đó &mdash; trong khi tài chính của khách vẫn còn <b>thiếu từ 100 đến '
+            '300 triệu</b>. Cách xử lý đúng là chủ động làm <b>2 bảng báo giá</b>:</p>'
+            + _order([
+                ('Làm BÁO GIÁ 1 &mdash; theo ĐÚNG diện tích khách yêu cầu',
+                 'Tôn trọng mong muốn của khách: làm một báo giá đầy đủ theo diện tích lớn mà khách nhất quyết giữ.'),
+                ('CHỦ ĐỘNG làm thêm BÁO GIÁ 2 &mdash; diện tích đã cắt giảm cho phù hợp',
+                 'Bạn tự tay làm thêm báo giá thứ hai, chủ động cắt giảm diện tích để tổng tiền khớp với tầm tài chính thật của khách.'),
+                ('GỬI CẢ 2 báo giá CÙNG MỘT THỜI ĐIỂM',
+                 'Gửi đồng thời 2 bảng báo giá cho khách, để khách tự đặt 2 mức TỔNG TIỀN cạnh nhau mà so sánh.'),
+            ])
+            + _box('warn', '<b>Vì sao phải làm vậy?</b> Nếu chỉ gửi báo giá theo diện tích '
+                   'lớn khách yêu cầu thì tổng tiền RẤT CAO; gửi xong khách nhìn con số đó '
+                   'sẽ nản, không quan tâm nữa rồi trôi mất. Khi có thêm báo giá thứ hai '
+                   'với diện tích phù hợp &mdash; tài chính đương nhiên phù hợp hơn vì '
+                   'diện tích đã cắt giảm &mdash; khách có cơ hội cân nhắc và thường sẽ '
+                   'nghiêng về phương án vừa túi tiền.')
+            + _box('ok', '<b>Câu KHẲNG ĐỊNH bắt buộc phải nói với khách:</b> &#8220;Em đảm '
+                   'bảo với diện tích đã cắt giảm này, bên em vẫn thiết kế ĐỦ công năng và '
+                   'ĐỦ số phòng ngủ như anh/chị mong muốn ạ.&#8221; &mdash; phải nói CHẮC '
+                   'để khách yên tâm rằng cắt diện tích KHÔNG có nghĩa là thiếu tiện nghi.')
 
             + '<h4>&#10060; Những SAI LẦM khiến báo giá bị &#8220;kẹt&#8221;</h4>'
             + '<ul>'
@@ -406,11 +439,6 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                 ('GỌI ÍT NHƯNG HIỆU QUẢ',
                  'Chỉ cần 1 cuộc gọi, nhưng cuộc đó PHẢI khai thác ra được vấn đề khách đang vướng. Đã mất công gọi thì phải RA kết quả, phải lấy được lý do cuối cùng.'),
             ])
-            + _box('info', '<b>Nguyên tắc CHỤP MÀN HÌNH báo giá:</b> sau khi gửi file, hãy '
-                   '<b>chụp màn hình</b> bảng báo giá (nhất là <b>tổng giá trị hợp đồng</b> '
-                   'và <b>đơn giá theo m&#178;</b>) gửi cho khách dễ nhìn. Dù khách nói '
-                   '&#8220;chưa xem/đang xem&#8221;, chắc chắn khách ĐÃ liếc qua tổng giá '
-                   'trị và đơn giá &mdash; đó là điểm để bắt chuyện khai thác.')
             + _box('info', '<b>Đã mất công gọi thì CHỐT luôn:</b> &#8220;Bên em làm báo giá '
                    'với tầm tài chính như vậy thì anh/chị mới xây được ạ. Đây là mức giá '
                    'tốt nhất, chính xác nhất, không có gì thay đổi. Anh/chị thấy mức này ổn '
@@ -527,6 +555,11 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
             'hoặc <b>cố tình tạo tình huống</b> để gửi hợp đồng.</p>'
             + _box('ok', '<b>Mục đích:</b> gửi hợp đồng để có <b>LÝ DO chính đáng</b> '
                    'dồn khách vào việc hẹn gặp ký. Hành động sớm &mdash; không chần chừ.')
+            + _box('info', '<b>Dấu hiệu ĐỦ ĐIỀU KIỆN để gửi hợp đồng mẫu:</b> chỉ cần '
+                   'khách đã có <b>ít nhất 2&ndash;3 phản hồi</b> về báo giá, VÀ bạn đã '
+                   'chốt được rằng <b>với tầm tài chính đó khách OK với báo giá</b> '
+                   '&mdash; thì chuyên viên tư vấn <b>phải chủ động gửi HỢP ĐỒNG MẪU</b> '
+                   'cho khách ngay, không cần chờ thêm tín hiệu nào khác.')
             + _box('info', '<b>Câu mẫu:</b> &#8220;Để gia đình chủ động xem trước các '
                    'điều khoản, bên em gửi luôn file hợp đồng để anh/chị tham khảo. Có '
                    'chỗ nào cần giải thích em trao đổi ngay, rồi mình sắp lịch gặp để '
@@ -658,9 +691,9 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
                    'phải chủ động nối tiếp.')
             + '<h4>&#128221; Bảng công thức TOÀN KHÓA (thuộc lòng)</h4>'
             + _table(['Bước', 'Công thức thuộc lòng'],
-                     [['<b>Bước 1 &mdash; Tự tin báo giá</b>', 'Cân đối KHỚP tài chính (chênh &gt;100tr thì bàn lại; 100&ndash;300tr thì giảm diện tích/khách cố thêm) &rarr; GỬI ngay trong ngày đầu. Trừ ca chênh quá lớn không xoay được.'],
+                     [['<b>Bước 1 &mdash; Tự tin báo giá</b>', 'Cân đối KHỚP tài chính rồi TỰ TIN gửi ngay trong ngày đầu (chênh trên 100tr thì bàn lại: giảm diện tích/khách cố thêm; trừ ca chênh quá lớn không xoay được). Khách nhất quyết giữ diện tích lớn mà vẫn thiếu 100&ndash;300tr &rarr; GỬI 2 BÁO GIÁ song song (đúng diện tích + diện tích cắt giảm) để khách so sánh. Chụp màn hình tổng giá trị + đơn giá/m&#178; cho khách dễ nhìn.'],
                       ['<b>Bước 2 &mdash; Khai thác vấn đề</b>', 'Nhắn dò &rarr; GỌI (ít nhưng hiệu quả) để moi TÂM LÝ thật. Đủ 5 nhóm: Báo giá &mdash; Mẫu nhà &mdash; Gia đình &mdash; Khởi công &mdash; Niềm tin (cốt lõi BÁO GIÁ + TÀI CHÍNH). Mọi cuộc gọi nhắc THI CÔNG GẤP; bản thân khách OK trước thì gia đình mới OK.'],
-                      ['<b>Bước 3 &mdash; Gửi hợp đồng</b>', 'Khách để ý + thời gian gấp &rarr; CHỦ ĐỘNG gửi HĐ để có lý do hẹn ký. Không chần chừ.'],
+                      ['<b>Bước 3 &mdash; Gửi hợp đồng</b>', 'Khách có ít nhất 2&ndash;3 phản hồi về báo giá + đã OK với tầm tài chính &rarr; CHỦ ĐỘNG gửi HỢP ĐỒNG MẪU để có lý do hẹn ký. Không chần chừ.'],
                       ['<b>Bước 4 &mdash; Phản hồi hợp đồng</b>', 'Dò 6 điểm: Phụ lục vật tư (KHẲNG ĐỊNH tốt) &mdash; Đợt ứng &mdash; Tiền bảo hành &mdash; Thời gian bảo hành &mdash; Tiến độ &mdash; Khác.'],
                       ['<b>Bước 5 &mdash; Hẹn &amp; ký (CHỐT)</b>', 'Hết khúc mắc HĐ + chốt cọc 50tr (tiền mặt) + giọng TỰ TIN, MẠNH, CHẮC, KHẲNG ĐỊNH. Hẹn tốt = 10 ký 9.']],
                      widths=['26%', '74%'])
@@ -807,4 +840,58 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Vì công ty cần tiền gấp', F),
               ('Vì để thử xem khách có tiền không', F),
               ('Vì đặt cọc là thủ tục không quan trọng', F)]),
+
+            ('Bước 1 - khách NHẤT QUYẾT giữ diện tích lớn mà tài chính vẫn thiếu 100-300 triệu, cách xử lý chuyên nghiệp nhất là?',
+             [('Làm 2 báo giá: một theo đúng diện tích khách yêu cầu + một chủ động cắt giảm diện tích cho phù hợp, gửi CÙNG LÚC để khách so sánh', T),
+              ('Chỉ gửi báo giá theo diện tích lớn khách yêu cầu', F),
+              ('Từ chối làm báo giá vì khách không nghe', F),
+              ('Tự ý cắt diện tích rồi chỉ gửi mỗi bản đã cắt', F)]),
+
+            ('Bước 1 - vì sao khi làm 2 báo giá phải GỬI CẢ HAI CÙNG MỘT THỜI ĐIỂM?',
+             [('Để khách đặt 2 mức tổng tiền cạnh nhau so sánh; nếu chỉ gửi bản diện tích lớn giá cao thì khách sẽ nản và trôi mất', T),
+              ('Để khách rối trí không kịp so sánh', F),
+              ('Vì công ty quy định luôn phải gửi 2 file', F),
+              ('Để có cớ tính thêm phí thiết kế', F)]),
+
+            ('Bước 1 - khi gửi báo giá bản diện tích đã CẮT GIẢM, câu khẳng định bắt buộc phải nói với khách là gì?',
+             [('"Với diện tích cắt giảm này bên em vẫn thiết kế ĐỦ công năng và ĐỦ số phòng ngủ như anh/chị mong muốn"', T),
+              ('"Diện tích nhỏ thì đành chấp nhận thiếu phòng ạ"', F),
+              ('"Anh/chị tự cân nhắc, em không đảm bảo được"', F),
+              ('Không cần nói thêm gì, cứ gửi là được', F)]),
+
+            ('Bước 1 - nguyên tắc CHỤP MÀN HÌNH báo giá là gì?',
+             [('Chụp màn hình bảng báo giá, nhất là tổng giá trị hợp đồng và đơn giá theo m2, gửi cho khách dễ nhìn', T),
+              ('Chỉ gửi file PDF, tuyệt đối không chụp gì', F),
+              ('Chụp màn hình để gửi khoe cho khách khác', F),
+              ('Không nên cho khách thấy tổng giá trị hợp đồng', F)]),
+
+            ('Bước 1 - khi khách mang báo giá đi so sánh với đơn vị khác, tư duy ĐÚNG của nhân viên là?',
+             [('Đó là chuyện bình thường; muốn được so sánh thì PHẢI gửi báo giá, rồi chủ động chứng minh mình là lựa chọn hợp lý nhất', T),
+              ('Giấu báo giá để khách không đem đi so sánh được', F),
+              ('Nói xấu đối thủ để khách sợ không dám so sánh', F),
+              ('Không gửi báo giá nữa vì sợ bị so sánh', F)]),
+
+            ('Bước 3 - dấu hiệu ĐỦ ĐIỀU KIỆN để chủ động gửi HỢP ĐỒNG MẪU cho khách là gì?',
+             [('Khách đã có ít nhất 2-3 phản hồi về báo giá và đã OK với tầm tài chính của báo giá đó', T),
+              ('Khách chưa phản hồi lần nào về báo giá', F),
+              ('Khách mới chỉ vừa nhận được file báo giá', F),
+              ('Phải chờ đến khi khách tự yêu cầu hợp đồng', F)]),
+
+            ('Bước 2 - 5 NHÓM khúc mắc bắt buộc phải khai thác gồm những gì?',
+             [('Báo giá - Mẫu nhà - Gia đình - Khởi công - Niềm tin', T),
+              ('Báo giá - Màu sơn - Nội thất - Phong thủy - Hàng xóm', F),
+              ('Chỉ cần hỏi về giá là đủ', F),
+              ('Tên công ty - Lịch sử - Giải thưởng - Quy mô - Địa chỉ', F)]),
+
+            ('Bước 4 - điểm nào sau đây KHÔNG nằm trong "6 điểm" cần dò khi lấy phản hồi hợp đồng?',
+             [('Màu sắc bản vẽ', T),
+              ('Phụ lục vật tư', F),
+              ('Các đợt ứng (tiến độ thanh toán)', F),
+              ('Tiến độ thi công', F)]),
+
+            ('Tổng kết - sau MỖI lần liên hệ với khách, mục tiêu tối thiểu phải đạt được là gì?',
+             [('Đưa khách tiến thêm ÍT NHẤT 1 bước tới quyết định ký', T),
+              ('Chỉ cần chào hỏi cho khách nhớ mặt là được', F),
+              ('Nhắc đi nhắc lại rằng giá mình rẻ hơn đối thủ', F),
+              ('Không cần mục tiêu, gọi cho vui vẻ là chính', F)]),
         ]
