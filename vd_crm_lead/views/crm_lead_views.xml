@@ -350,9 +350,11 @@
                                     <span class="o_vd_step_num">4</span>
                                     <span class="o_vd_step_text">Mẫu nhà</span>
                                 </div>
-                                <div class="o_vd_step_body">
+                                <div class="o_vd_step_body o_vd_step_body_house">
                                     <field name="vd_intake_house_type" nolabel="1"
                                            widget="vd_selection_inline"/>
+                                    <field name="vd_house_extra" nolabel="1"
+                                           widget="vd_house_extra_picker"/>
                                 </div>
                             </div>
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="vd_crm_lead.VdHouseExtraPicker">
+        <div class="o_vd_hextra">
+            <!-- Lựa chọn đang BẬT: hiện chip ở GIỮA dòng -->
+            <div class="o_vd_hextra_chips">
+                <t t-foreach="activeOpts()" t-as="o" t-key="o.key">
+                    <span class="o_vd_hextra_chip">
+                        <t t-esc="o.label"/>
+                        <button type="button" class="o_vd_hextra_x"
+                                t-on-click.prevent.stop="() => this.removeChip(o.key)"
+                                title="Bỏ tùy chọn này">×</button>
+                    </span>
+                </t>
+            </div>
+            <!-- Nút KHÁC ở CUỐI dòng (sát mép phải) + popup hover -->
+            <div class="o_vd_hextra_khac"
+                 t-on-mouseenter="() => this.openPop()"
+                 t-on-mouseleave="() => this.closePop()">
+                <button type="button"
+                        t-att-class="'o_vd_hextra_btn' + (ui.open ? ' open' : '')">
+                    KHÁC
+                </button>
+                <div t-if="ui.open" class="o_vd_hextra_pop">
+                    <div class="o_vd_hextra_pop_head">Tùy chọn thêm (cộng đơn giá)</div>
+                    <t t-foreach="opts" t-as="o" t-key="o.key">
+                        <button type="button"
+                                t-att-class="'o_vd_hextra_opt' + (isOn(o.key) ? ' on' : '')"
+                                t-on-click.prevent.stop="() => this.toggle(o.key)">
+                            <span class="o_vd_hextra_opt_sw"/>
+                            <span class="o_vd_hextra_opt_lbl"><t t-esc="o.label"/></span>
+                            <span class="o_vd_hextra_opt_note"><t t-esc="o.note"/></span>
+                        </button>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

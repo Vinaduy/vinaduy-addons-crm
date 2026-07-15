@@ -1281,6 +1281,14 @@ class CrmLead(models.Model):
         string='Mô tả kiểu nhà khác',
         help='Chỉ điền khi Kiểu nhà = "Khác". NV nhập tự do mô tả kiểu nhà KH muốn.',
     )
+    # Mẫu nhà - TÙY CHỌN THÊM (nút "KHÁC" cuối dòng Mẫu nhà). Lưu CSV token phụ
+    # phí CỘNG VÀO ĐƠN GIÁ sàn (đ/m²): 2mt=Nhà 2 mặt tiền (+300k),
+    # tcd_nhe=Tân cổ điển nhẹ (+300k), tcd_nang=Tân cổ điển nặng (+500k).
+    # Bản đồ token->phụ phí ở _VD_HOUSE_EXTRA; cộng trong _vd_san_unit_for.
+    vd_house_extra = fields.Char(
+        string='Mẫu nhà - tùy chọn thêm', default='',
+        help='Phụ phí mẫu nhà cộng vào đơn giá sàn (CSV: 2mt / tcd_nhe / tcd_nang).',
+    )
     vd_intake_floors = fields.Char(
         string='Số tầng',
         help='Hỏi: "Quy mô bao nhiêu tầng ạ?". VD: "2,5 tầng" hoặc "1 trệt 2 lầu"',
@@ -2302,6 +2310,7 @@ class CrmLead(models.Model):
         'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_foundation_type',
         'vd_intake_house_type', 'vd_intake_roof_type', 'vd_intake_region',
         'vd_intake_car_access', 'vd_intake_estimate', 'vd_quote_price',
+        'vd_house_extra',  # phụ phí Mẫu nhà "KHÁC" -> đổi đơn giá
         'vd_intake_floors_select', 'vd_intake_has_tum',
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
         'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
@@ -2611,6 +2620,7 @@ class CrmLead(models.Model):
     @api.depends(
         'name', 'phone', 'vd_intake_province_id', 'vd_intake_district',
         'vd_intake_house_type', 'vd_intake_foundation_type', 'vd_intake_roof_type',
+        'vd_house_extra',  # phụ phí Mẫu nhà "KHÁC" -> đổi đơn giá
         'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_estimate',
         'vd_intake_floors_select', 'vd_intake_has_tum',
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
@@ -3513,14 +3523,34 @@ class CrmLead(models.Model):
             return getattr(pricing, f'san_40_{suffix}')
         return getattr(pricing, f'san_lt40_{suffix}')
 
+    # Bản đồ phụ phí "KHÁC" của Mẫu nhà: token -> (nhãn, phụ phí đ/m²).
+    _VD_HOUSE_EXTRA = {
+        '2mt': ('Nhà 2 mặt tiền', 300_000),
+        'tcd_nhe': ('Tân cổ điển nhẹ', 300_000),
+        'tcd_nang': ('Tân cổ điển nặng', 500_000),
+    }
+
+    def _vd_house_extra_tokens(self):
+        return [t for t in (self.vd_house_extra or '').split(',')
+                if t in self._VD_HOUSE_EXTRA]
+
+    def _vd_house_extra_surcharge(self):
+        """Tổng phụ phí (đ/m²) từ các tùy chọn 'KHÁC' của Mẫu nhà — cộng vào
+        đơn giá sàn. Nhiều tùy chọn thì cộng dồn."""
+        return sum(self._VD_HOUSE_EXTRA[t][1] for t in self._vd_house_extra_tokens())
+
     def _vd_san_unit_for(self, pricing):
         """Đơn giá sàn cho lead này — bậc giá theo DT 1 SÀN (Tầng 1 footprint).
         Fix 2026-06-12: trước đây mọi call site truyền TỔNG diện tích sàn →
-        nhà tổng ≥75m² luôn rơi bậc rẻ nhất (6.4tr) dù mặt sàn chỉ 40-65m²."""
+        nhà tổng ≥75m² luôn rơi bậc rẻ nhất (6.4tr) dù mặt sàn chỉ 40-65m².
+
+        Cộng thêm phụ phí Mẫu nhà "KHÁC" (2 mặt tiền / tân cổ điển) — mọi call
+        site tính báo giá đều qua đây nên phụ phí tự chảy vào cả 3 dòng."""
         if not pricing:
             return 0.0
         found_area, _ = self._vd_get_found_roof_areas()
-        return self._get_san_unit_price(pricing, found_area, self.vd_intake_car_access)
+        base = self._get_san_unit_price(pricing, found_area, self.vd_intake_car_access)
+        return base + self._vd_house_extra_surcharge()
 
     def _get_foundation_pct(self, pricing, ftype, is_lon):
         if ftype == 'don':
@@ -3619,6 +3649,7 @@ class CrmLead(models.Model):
         'vd_intake_floor_7_m2', 'vd_intake_floor_tum_m2',
         'vd_intake_foundation_type', 'vd_intake_roof_type',
         'vd_intake_car_access', 'vd_intake_budget', 'vd_intake_budget_amount',
+        'vd_house_extra',  # phụ phí Mẫu nhà "KHÁC" -> đổi đơn giá
     )
     def _compute_intake_estimate(self):
         """Luôn dùng công thức CHI TIẾT (móng + sàn + mái) — không còn binary
@@ -3995,7 +4026,7 @@ class CrmLead(models.Model):
         'vd_intake_position', 'vd_intake_land_type', 'vd_intake_dimensions',
         'vd_intake_area_m2', 'vd_intake_length_m', 'vd_intake_width_m',
         'vd_intake_house_length_m', 'vd_intake_house_width_m', 'vd_intake_total_m2',
-        'vd_intake_house_type', 'vd_intake_house_type_other',
+        'vd_intake_house_type', 'vd_intake_house_type_other', 'vd_house_extra',
         'vd_intake_foundation_type', 'vd_intake_roof_type',
         'vd_intake_floors_select', 'vd_intake_floors_num', 'vd_intake_has_tum',
         'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',

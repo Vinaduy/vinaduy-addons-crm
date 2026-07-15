@@ -12785,6 +12785,185 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     opacity: 0.7;
 }
 
+/* ===== Mẫu nhà — nút "KHÁC" (tùy chọn thêm cộng đơn giá) ===== */
+/* Row Mẫu nhà: chips Mái (trái) + chip tùy chọn (giữa) + KHÁC (phải, sát mép) */
+.o_vd_intake_inline .o_vd_step_body_house {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+.o_vd_intake_inline .o_vd_step_body_house > .o_field_widget:first-child {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+/* bỏ width:100% của o_vd_selinline trong row này để KHÁC nằm cùng dòng */
+.o_vd_intake_inline .o_vd_step_body_house .o_vd_selinline {
+    width: auto;
+}
+.o_vd_intake_inline .o_vd_step_body_house > .o_field_widget:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.o_vd_hextra {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.o_vd_hextra_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.o_vd_hextra_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #7c5cff, #5b4be6);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.15;
+    padding: 5px 8px 5px 14px;
+    border-radius: 999px;
+    box-shadow: 0 3px 8px rgba(91, 75, 230, 0.4);
+    white-space: nowrap;
+}
+.o_vd_hextra_khac {
+    position: relative;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+/* Nút KHÁC — kiểu chip viền đứt để gợi ý "thêm lựa chọn" */
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_btn {
+    border: 1px dashed #b9a9f0 !important;
+    background: #f6f3ff !important;
+    color: #6b5bd0 !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    line-height: 1.15 !important;
+    padding: 6px 16px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 999px !important;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_btn.open,
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_btn:hover {
+    border-color: #7c5cff !important;
+    background: #efeaff !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_x {
+    border: none !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #fff !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Popup hover 3 tùy chọn */
+.o_vd_hextra_pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 60;
+    min-width: 250px;
+    background: #fff;
+    border: 1px solid #e3ddf7;
+    border-radius: 12px;
+    box-shadow: 0 12px 34px rgba(2, 6, 23, 0.20);
+    padding: 8px;
+}
+.o_vd_hextra_pop_head {
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 8px 8px;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_opt {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 1px solid #eef0f6 !important;
+    background: #fff !important;
+    border-radius: 9px !important;
+    padding: 9px 12px !important;
+    margin: 4px 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    cursor: pointer;
+    text-align: left;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+.o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_opt:hover {
+    border-color: #cbd5e1 !important;
+    background: #f8fafc !important;
+}
+.o_vd_hextra_opt_sw {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 20px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    position: relative;
+    transition: all 0.15s ease;
+}
+.o_vd_hextra_opt_sw::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+.o_vd_hextra_opt.on .o_vd_hextra_opt_sw {
+    background: #16a34a;
+}
+.o_vd_hextra_opt.on .o_vd_hextra_opt_sw::after {
+    left: 16px;
+}
+.o_vd_hextra_opt_lbl {
+    flex: 1 1 auto;
+    font-weight: 700;
+    color: #334155;
+    font-size: 15px;
+}
+.o_vd_hextra_opt_note {
+    flex: 0 0 auto;
+    font-weight: 800;
+    color: #c2410c;
+    font-size: 13px;
+}
+/* Khoá thông tin → không bấm được KHÁC */
+.o_vd_steps_panel.vd-intake-locked .o_vd_hextra_khac,
+.o_vd_steps_panel.vd-intake-locked .o_vd_hextra_x {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
 /* ===== Ô DIỆN TÍCH đưa vào đầu hàng CÔNG NĂNG (tầng/tum/lửng) ===== */
 .o_vd_intake_inline .o_vd_floor_function_row .o_vd_func_area {
     flex: 0 0 auto !important;
