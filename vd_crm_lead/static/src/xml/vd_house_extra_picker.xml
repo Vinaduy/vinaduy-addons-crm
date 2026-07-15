@@ -8,7 +8,7 @@
                     <span class="o_vd_hextra_chip">
                         <t t-esc="o.label"/>
                         <button type="button" class="o_vd_hextra_x"
-                                t-on-click.prevent.stop="() => this.removeChip(o.key)"
+                                t-on-click.prevent.stop="() => this.removeChip(o)"
                                 title="Bỏ tùy chọn này">×</button>
                     </span>
                 </t>
@@ -22,14 +22,14 @@
                     KHÁC
                 </button>
                 <div t-if="ui.open" class="o_vd_hextra_pop">
-                    <div class="o_vd_hextra_pop_head">Tùy chọn thêm (cộng đơn giá)</div>
+                    <div class="o_vd_hextra_pop_head">Tùy chọn thêm</div>
                     <t t-foreach="opts" t-as="o" t-key="o.key">
                         <button type="button"
-                                t-att-class="'o_vd_hextra_opt' + (isOn(o.key) ? ' on' : '')"
-                                t-on-click.prevent.stop="() => this.toggle(o.key)">
+                                t-att-class="'o_vd_hextra_opt' + (isOn(o) ? ' on' : '')"
+                                t-on-click.prevent.stop="() => this.toggle(o)">
                             <span class="o_vd_hextra_opt_sw"/>
                             <span class="o_vd_hextra_opt_lbl"><t t-esc="o.label"/></span>
-                            <span class="o_vd_hextra_opt_note"><t t-esc="o.note"/></span>
+                            <span t-if="o.note" class="o_vd_hextra_opt_note"><t t-esc="o.note"/></span>
                         </button>
                     </t>
                 </div>

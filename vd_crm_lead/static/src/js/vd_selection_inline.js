@@ -12,10 +12,17 @@ import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
 export class VdSelectionInline extends Component {
     static template = "vd_crm_lead.VdSelectionInline";
-    static props = { ...standardFieldProps };
+    static props = {
+        ...standardFieldProps,
+        // options="{'exclude': ['mai_ton']}" -> ẩn các option này khỏi hàng chip
+        // (vd Nhà mái tôn đã chuyển vào popup KHÁC).
+        exclude: { type: Array, optional: true },
+    };
 
     get options() {
-        return this.props.record.fields[this.props.name].selection || [];
+        const all = this.props.record.fields[this.props.name].selection || [];
+        const ex = this.props.exclude || [];
+        return ex.length ? all.filter((o) => !ex.includes(o[0])) : all;
     }
     get value() {
         return this.props.record.data[this.props.name] || false;
@@ -43,6 +50,9 @@ export const vdSelectionInlineField = {
     component: VdSelectionInline,
     displayName: "Lựa chọn dạng chip (hiện hết)",
     supportedTypes: ["selection"],
+    extractProps: ({ options }) => ({
+        exclude: (options && options.exclude) || [],
+    }),
 };
 
 registry.category("fields").add("vd_selection_inline", vdSelectionInlineField);

@@ -352,7 +352,8 @@
                                 </div>
                                 <div class="o_vd_step_body o_vd_step_body_house">
                                     <field name="vd_intake_house_type" nolabel="1"
-                                           widget="vd_selection_inline"/>
+                                           widget="vd_selection_inline"
+                                           options="{'exclude': ['mai_ton']}"/>
                                     <field name="vd_house_extra" nolabel="1"
                                            widget="vd_house_extra_picker"/>
                                 </div>

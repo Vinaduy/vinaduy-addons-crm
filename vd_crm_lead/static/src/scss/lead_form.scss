@@ -12882,13 +12882,20 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
+    left: auto;
     z-index: 60;
-    min-width: 250px;
+    /* width TƯỜNG MINH: containing block (.o_vd_hextra_khac) chỉ rộng bằng nút
+       KHÁC (~46px) nên shrink-to-fit làm popup co lại 1 ký tự -> ép cứng width. */
+    width: 264px !important;
+    min-width: 264px !important;
+    max-width: 264px !important;
+    box-sizing: border-box;
     background: #fff;
     border: 1px solid #e3ddf7;
     border-radius: 12px;
     box-shadow: 0 12px 34px rgba(2, 6, 23, 0.20);
     padding: 8px;
+    white-space: normal;
 }
 .o_vd_hextra_pop_head {
     font-size: 12px;
@@ -12897,6 +12904,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 4px 8px 8px;
+    white-space: nowrap;
 }
 .o_vd_intake_inline .o_vd_steps_panel .o_vd_step button.o_vd_hextra_opt {
     display: flex !important;
@@ -12950,6 +12958,7 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     font-weight: 700;
     color: #334155;
     font-size: 15px;
+    white-space: nowrap;
 }
 .o_vd_hextra_opt_note {
     flex: 0 0 auto;
