@@ -11561,6 +11561,65 @@ $vd-panel-head-radius: 10px;
     padding: 0.3rem 0;
 }
 
+/* Redesign 2026-07-15: Cân đối ngân sách — 2 cột, mỗi trường 1 dòng (nhãn+giá trị) */
+.o_vd_pf_intake_btns {
+    margin-left: auto;
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+.o_vd_pf_intake_grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.15rem 1.4rem;
+    margin-top: 0.5rem;
+}
+.o_vd_pf_intake_cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.35rem 0.1rem;
+    border-bottom: 1px dashed #eef1f5;
+}
+.o_vd_pf_intake_cell > label {
+    flex: 0 0 auto;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+    white-space: nowrap;
+}
+.o_vd_pf_intake_cell > .o_field_widget {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 700;
+    color: #1f2937;
+}
+.o_vd_pf_intake_cell.o_vd_pf_intake_check {
+    gap: 0.4rem;
+}
+.o_vd_pf_intake_cell.o_vd_pf_intake_check > .o_field_widget {
+    flex: 0 0 auto;
+}
+.o_vd_pf_intake_history {
+    margin-top: 0.7rem;
+    border: 1px solid #e6eaf0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.o_vd_pf_hist_head {
+    background: #f1f4f9;
+    padding: 6px 10px;
+    font-weight: 700;
+    font-size: 12.5px;
+    color: #475569;
+}
+.o_vd_pf_intake_history .o_field_widget { display: block; }
+@media (max-width: 720px) {
+    .o_vd_pf_intake_grid2 { grid-template-columns: 1fr; }
+}
+
 /* Round 7 phase 3: Family disagree checklist */
 .o_vd_pf_family_checklist {
     display: flex;

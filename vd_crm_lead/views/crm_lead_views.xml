@@ -1088,7 +1088,7 @@
                                          NV phải tick để xác nhận đã trao đổi vấn đề này với KH.
                                          User spec 2026-06-12: ẩn với vấn đề Khuyến mãi. -->
                                     <div class="o_vd_pf_section o_vd_pf_section_contact"
-                                         invisible="tag_code == 'promotion'">
+                                         invisible="tag_code in ('promotion', 'budget_balance')">
                                         <div class="o_vd_pf_section_head">
                                             <span class="o_vd_pf_section_icon">📞</span>
                                             <span class="o_vd_pf_section_title">1. ĐÃ LIÊN HỆ KH VỀ VẤN ĐỀ NÀY CHƯA?</span>
@@ -1316,17 +1316,25 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                          Resolved → readonly (phải tạo vấn đề mới để sửa tiếp). -->
                                     <div class="o_vd_pf_section o_vd_pf_section_intake_edit"
                                          invisible="tag_code != 'budget_balance'">
+                                        <field name="i_editing" invisible="1"/>
                                         <div class="o_vd_pf_section_head">
                                             <span class="o_vd_pf_section_icon">✏️</span>
                                             <span class="o_vd_pf_section_title">SỬA THÔNG TIN BÁO GIÁ</span>
-                                            <span class="o_vd_pf_section_sub"
-                                                  invisible="status != 'resolved'"
-                                                  style="margin-left:0.6rem;color:#c92a2a;font-size:12px;font-weight:600;">
-                                                🔒 Đã giải quyết — tạo vấn đề mới Cân đối ngân sách để sửa tiếp
+                                            <span class="o_vd_pf_intake_btns">
+                                                <button name="action_intake_edit" type="object"
+                                                        class="btn btn-sm btn-outline-primary o_vd_pf_intake_btn_edit"
+                                                        invisible="i_editing">
+                                                    <i class="fa fa-pencil me-1"/>SỬA
+                                                </button>
+                                                <button name="action_intake_save_done" type="object"
+                                                        class="btn btn-sm btn-success o_vd_pf_intake_btn_save"
+                                                        invisible="not i_editing">
+                                                    <i class="fa fa-check me-1"/>LƯU (hoàn thành)
+                                                </button>
                                             </span>
                                         </div>
-                                        <div class="o_vd_pf_section_body o_vd_pf_intake_grid"
-                                             t-att-class="{'o_vd_pf_intake_locked': status == 'resolved'}">
+                                        <div class="o_vd_pf_section_body"
+                                             t-att-class="{'o_vd_pf_intake_locked': not i_editing}">
                                             <!-- Readonly mirror: Tổng sàn + Phần mềm tính giá -->
                                             <div class="o_vd_pf_intake_summary">
                                                 <span>📐 Tổng sàn: <field name="i_total_m2" readonly="1" nolabel="1"/> m²</span>
@@ -1335,121 +1343,102 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                                 </span>
                                             </div>
 
-                                            <!-- ROW 1: Mẫu nhà + Móng + Mái -->
-                                            <div class="o_vd_pf_intake_row">
-                                                <div class="o_vd_pf_intake_field">
+                                            <!-- 2 CỘT: mỗi trường 1 dòng (nhãn + giá trị), chia đều -->
+                                            <div class="o_vd_pf_intake_grid2">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_house_type">🏠 Mẫu nhà</label>
-                                                    <field name="i_house_type" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_house_type" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_foundation_type">🏗️ Loại móng</label>
-                                                    <field name="i_foundation_type" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_foundation_type" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_roof_type">🔻 Loại mái</label>
-                                                    <field name="i_roof_type" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_roof_type" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                            </div>
-
-                                            <!-- ROW 2: Tỉnh + Vùng giá (vùng auto từ tỉnh) -->
-                                            <div class="o_vd_pf_intake_row">
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_province_id">📍 Tỉnh/Thành</label>
-                                                    <field name="i_province_id" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_province_id" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_region">🌏 Vùng giá</label>
                                                     <field name="i_region" nolabel="1" readonly="1"/>
                                                 </div>
-                                            </div>
-
-                                            <!-- ROW 3: Số tầng + Tum + Lửng -->
-                                            <div class="o_vd_pf_intake_row">
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_floors_select">🏢 Số tầng</label>
-                                                    <field name="i_floors_select" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floors_select" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field o_vd_pf_intake_check">
-                                                    <field name="i_has_tum" readonly="status == 'resolved'"/>
+                                                <div class="o_vd_pf_intake_cell o_vd_pf_intake_check">
+                                                    <field name="i_has_tum" readonly="not i_editing"/>
                                                     <label for="i_has_tum">Có Tum</label>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field o_vd_pf_intake_check">
-                                                    <field name="i_has_lung" readonly="status == 'resolved'"/>
+                                                <div class="o_vd_pf_intake_cell o_vd_pf_intake_check">
+                                                    <field name="i_has_lung" readonly="not i_editing"/>
                                                     <label for="i_has_lung">Có Lửng</label>
                                                 </div>
-                                            </div>
-
-                                            <!-- ROW 4: Diện tích từng tầng (chỉ hiện ô tương ứng với số tầng đã chọn) -->
-                                            <div class="o_vd_pf_intake_row">
-                                                <div class="o_vd_pf_intake_field">
+                                                <div class="o_vd_pf_intake_cell">
                                                     <label for="i_floor_1_m2">T1 (m²)</label>
-                                                    <field name="i_floor_1_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_1_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select not in ['2','3','4','5','6','7']">
                                                     <label for="i_floor_2_m2">T2 (m²)</label>
-                                                    <field name="i_floor_2_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_2_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select not in ['3','4','5','6','7']">
                                                     <label for="i_floor_3_m2">T3 (m²)</label>
-                                                    <field name="i_floor_3_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_3_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select not in ['4','5','6','7']">
                                                     <label for="i_floor_4_m2">T4 (m²)</label>
-                                                    <field name="i_floor_4_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_4_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select not in ['5','6','7']">
                                                     <label for="i_floor_5_m2">T5 (m²)</label>
-                                                    <field name="i_floor_5_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_5_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select not in ['6','7']">
                                                     <label for="i_floor_6_m2">T6 (m²)</label>
-                                                    <field name="i_floor_6_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_6_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="i_floors_select != '7'">
                                                     <label for="i_floor_7_m2">T7 (m²)</label>
-                                                    <field name="i_floor_7_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_7_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="not i_has_tum">
                                                     <label for="i_floor_tum_m2">Tum (m²)</label>
-                                                    <field name="i_floor_tum_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_tum_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="not i_has_lung">
                                                     <label for="i_floor_lung_m2">Lửng (m²)</label>
-                                                    <field name="i_floor_lung_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_lung_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
-                                                <div class="o_vd_pf_intake_field"
+                                                <div class="o_vd_pf_intake_cell"
                                                      invisible="not i_has_lung">
                                                     <label for="i_floor_thongtang_m2">Thông tầng (m²)</label>
-                                                    <field name="i_floor_thongtang_m2" nolabel="1"
-                                                           readonly="status == 'resolved'"/>
+                                                    <field name="i_floor_thongtang_m2" nolabel="1" readonly="not i_editing"/>
                                                 </div>
                                             </div>
 
                                             <div class="o_vd_pf_intake_hint">
-                                                💡 Thay đổi các trường trên sẽ cập nhật trực tiếp vào THÔNG TIN TƯ VẤN
-                                                + báo giá chi tiết tự tính lại. Lịch sử thay đổi log vào chatter KH.
+                                                💡 Bấm <b>SỬA</b> để chỉnh; bấm <b>LƯU</b> sẽ cập nhật báo giá chi tiết
+                                                + tự chuyển sang <b>ĐÃ GIẢI QUYẾT</b>. Mỗi lần sửa ghi 1 dòng ở bảng dưới.
+                                            </div>
+
+                                            <!-- BẢNG LỊCH SỬ CHỈNH SỬA (mỗi dòng = 1 lần sửa) -->
+                                            <div class="o_vd_pf_intake_history"
+                                                 invisible="not intake_edit_log_html">
+                                                <div class="o_vd_pf_hist_head">🕓 Lịch sử chỉnh sửa báo giá</div>
+                                                <field name="intake_edit_log_html" widget="html"
+                                                       nolabel="1" readonly="1"/>
                                             </div>
                                         </div>
                                     </div>
@@ -1713,7 +1702,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                     <!-- ===== 5. KẾT QUẢ + TỔNG KẾT ===== -->
                                     <!-- KM có trạng thái + lịch sử riêng ở mục KM → ẩn section 5 (2026-06-12) -->
                                     <div class="o_vd_pf_section o_vd_pf_section_outcome"
-                                         invisible="tag_code == 'promotion'">
+                                         invisible="tag_code in ('promotion', 'budget_balance')">
                                         <div class="o_vd_pf_section_head">
                                             <span class="o_vd_pf_section_icon">🎯</span>
                                             <span class="o_vd_pf_section_title">5. KẾT QUẢ SAU XỬ LÝ</span>
@@ -1735,8 +1724,9 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                         </div>
                                     </div>
 
-                                    <!-- Tips gợi ý gốc từ catalog (collapsed) -->
-                                    <details class="o_vd_pf_tips_details">
+                                    <!-- Tips gợi ý gốc từ catalog (collapsed) — ẩn với Cân đối ngân sách -->
+                                    <details class="o_vd_pf_tips_details"
+                                             invisible="tag_code == 'budget_balance'">
                                         <summary>💡 Tips gợi ý gốc từ catalog</summary>
                                         <field name="tag_tip_html" widget="html" readonly="1"/>
                                     </details>

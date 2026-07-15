@@ -565,6 +565,113 @@ class VdLeadProblem(models.Model):
     # vd_intake_estimate là Float (không phải Monetary) → related cùng type
     i_estimate = fields.Float(related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính')
 
+    # --- Redesign 2026-07-15: SỬA/LƯU (bấm SỬA mới cho sửa, LƯU -> tự hoàn thành) ---
+    # i_editing: đang ở chế độ SỬA (fields editable). Mặc định False -> chỉ xem.
+    i_editing = fields.Boolean(string='Đang sửa báo giá', default=False, copy=False)
+    # snapshot giá trị (dạng hiển thị) trước khi sửa -> so sánh sinh lịch sử khi LƯU.
+    i_edit_snapshot = fields.Text(string='Snapshot trước sửa', copy=False)
+    # Lịch sử chỉnh sửa (append 1 dòng/lần LƯU) — hiện ở bảng dưới cùng.
+    intake_edit_log_html = fields.Html(
+        string='Lịch sử chỉnh sửa báo giá', sanitize=False, copy=False, readonly=True,
+    )
+
+    # Các trường theo dõi thay đổi (label để in lịch sử).
+    _INTAKE_TRACK = [
+        ('i_house_type', '🏠 Mẫu nhà'),
+        ('i_foundation_type', '🏗️ Loại móng'),
+        ('i_roof_type', '🔻 Loại mái'),
+        ('i_province_id', '📍 Tỉnh/Thành'),
+        ('i_floors_select', '🏢 Số tầng'),
+        ('i_has_tum', 'Có Tum'),
+        ('i_has_lung', 'Có Lửng'),
+        ('i_floor_1_m2', 'T1 (m²)'),
+        ('i_floor_2_m2', 'T2 (m²)'),
+        ('i_floor_3_m2', 'T3 (m²)'),
+        ('i_floor_4_m2', 'T4 (m²)'),
+        ('i_floor_5_m2', 'T5 (m²)'),
+        ('i_floor_6_m2', 'T6 (m²)'),
+        ('i_floor_7_m2', 'T7 (m²)'),
+        ('i_floor_tum_m2', 'Tum (m²)'),
+        ('i_floor_lung_m2', 'Lửng (m²)'),
+        ('i_floor_thongtang_m2', 'Thông tầng (m²)'),
+    ]
+
+    def _intake_field_display(self, fname):
+        """Giá trị hiển thị của 1 trường intake (label cho selection, tên cho m2o)."""
+        self.ensure_one()
+        val = self[fname]
+        field = self._fields[fname]
+        if field.type == 'selection':
+            sel = dict(field._description_selection(self.env))
+            return sel.get(val) or '—'
+        if field.type == 'many2one':
+            return val.display_name if val else '—'
+        if field.type == 'boolean':
+            return 'Có' if val else 'Không'
+        if field.type == 'float':
+            return ('%g' % (val or 0))
+        return str(val) if val else '—'
+
+    def _intake_snapshot_dict(self):
+        self.ensure_one()
+        return {f: self._intake_field_display(f) for f, _ in self._INTAKE_TRACK}
+
+    def action_intake_edit(self):
+        """Bấm SỬA → vào chế độ sửa. Nếu đã giải quyết thì mở lại (in_progress)."""
+        import json
+        self.ensure_one()
+        if self.tag_code != 'budget_balance':
+            return True
+        self.i_edit_snapshot = json.dumps(
+            self._intake_snapshot_dict(), ensure_ascii=False)
+        vals = {'i_editing': True}
+        if self.status == 'resolved':
+            vals['status'] = 'in_progress'
+        self.write(vals)
+        return True
+
+    def action_intake_save_done(self):
+        """Bấm LƯU → ghi lịch sử thay đổi + CHUYỂN NGAY sang Đã giải quyết."""
+        import json
+        self.ensure_one()
+        if self.tag_code != 'budget_balance':
+            return True
+        # Form đã tự lưu các i_* vừa sửa vào lead trước khi gọi method này.
+        try:
+            old = json.loads(self.i_edit_snapshot or '{}')
+        except Exception:
+            old = {}
+        new = self._intake_snapshot_dict()
+        changes = []
+        for fname, label in self._INTAKE_TRACK:
+            ov, nv = old.get(fname), new.get(fname)
+            if ov is not None and ov != nv:
+                changes.append((label, ov, nv))
+        if changes:
+            when = fields.Datetime.context_timestamp(
+                self, fields.Datetime.now()).strftime('%d/%m/%Y %H:%M')
+            summary = ' · '.join(
+                '<b>%s</b>: %s → <b style="color:#c92a2a;">%s</b>' % (lbl, o, n)
+                for lbl, o, n in changes)
+            row = (
+                '<div style="display:flex;gap:10px;align-items:baseline;'
+                'padding:8px 10px;border-bottom:1px solid #eef1f5;font-size:0.85rem;">'
+                '<span style="color:#868e96;white-space:nowrap;">%s</span>'
+                '<span style="font-weight:700;white-space:nowrap;">%s</span>'
+                '<span style="flex:1;">%s</span></div>'
+            ) % (when, self.env.user.name, summary)
+            self.intake_edit_log_html = row + (self.intake_edit_log_html or '')
+            self.lead_id.message_post(
+                subtype_xmlid='mail.mt_note',
+                body=_('✏️ %s sửa thông tin báo giá: %s') % (
+                    self.env.user.name,
+                    ' · '.join('%s: %s → %s' % (l, o, n) for l, o, n in changes)),
+            )
+        self.write({
+            'status': 'resolved', 'i_editing': False, 'i_edit_snapshot': False,
+        })
+        return True
+
     # ============================================================
     # BÁO GIÁ CŨ (snapshot) — chỉ áp dụng cho tag_code='budget_balance'.
     # User spec 2026-05-31: khi NV TẠO vấn đề "Cân đối ngân sách", chụp lại

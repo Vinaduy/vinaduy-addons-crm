@@ -1264,6 +1264,7 @@ export class VdCrmDashboard extends Component {
             if (p === 'facebook') return '📘';   // FB blue
             if (p === 'tiktok')   return '🎵';   // TikTok
             if (p === 'instagram') return '📷';
+            if (p === 'zalo')     return '💬';   // Zalo
             return '👤';  // manual
         }
         // Default chip

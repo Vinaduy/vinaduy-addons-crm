@@ -3825,6 +3825,8 @@
                         </svg>
                         <i t-elif="lead.pancake_platform === 'instagram'"
                            class="fa fa-instagram o_vd_pill_icon_ig"/>
+                        <i t-elif="lead.pancake_platform === 'zalo'"
+                           class="fa fa-comment o_vd_pill_icon_zalo"/>
                         <i t-else="" class="fa fa-user o_vd_pill_icon_manual"/>
                     </t>
                 </span>
