@@ -18,7 +18,7 @@ Helper nối chuỗi (+) -> tránh bẫy %. Prefix _tdbg_. Idempotent theo versi
 """
 from odoo import api, models
 
-_TDBG_VERSION = 'v13-2bg-screenshot-30q'
+_TDBG_VERSION = 'v14-2bg-screenshot-30q'
 _PARAM_KEY = 'vd_elearning.theo_duoi_bao_gia_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -894,4 +894,10 @@ class SlideChannelSeedTheoDuoiBaoGia(models.Model):
               ('Chỉ cần chào hỏi cho khách nhớ mặt là được', F),
               ('Nhắc đi nhắc lại rằng giá mình rẻ hơn đối thủ', F),
               ('Không cần mục tiêu, gọi cho vui vẻ là chính', F)]),
+
+            ('Bước 2 - khách lấy lý do "phải bàn với gia đình" thì nên xử lý thế nào?',
+             [('Làm cho CHÍNH khách OK trước đã, vì bản thân khách OK thì gia đình mới OK; đừng để khách mượn cớ gia đình rồi trôi', T),
+              ('Chờ khách bàn xong với gia đình rồi mới liên hệ lại', F),
+              ('Yêu cầu gặp cả gia đình mới tư vấn tiếp', F),
+              ('Bỏ qua khách này vì khó chốt', F)]),
         ]
