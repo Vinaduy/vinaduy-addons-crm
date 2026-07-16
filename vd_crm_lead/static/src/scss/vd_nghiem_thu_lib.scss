@@ -1,0 +1,39 @@
+// ===== THƯ VIỆN tài liệu (Video nghiệm thu / Công năng 3D / Hợp đồng) =====
+// Dùng lại style .o_vd_lib_filter (giống nút Mẫu nhà) — đổi MÀU + VỊ TRÍ.
+// Xếp NGAY DƯỚI nút Mẫu nhà (top: 34% + 68px). Mỗi nút cách 68px.
+.o_vd_nt_lib_filter.o_vd_lib_filter {
+    top: calc(34% + 136px);
+    border-color: #ffd8a8;
+    background: linear-gradient(135deg, #f76707, #e8590c);
+    &:hover { box-shadow: 0 14px 34px rgba(232, 89, 12, 0.5); }
+}
+.o_vd_cn3d_lib_filter.o_vd_lib_filter {
+    top: calc(34% + 204px);
+    border-color: #d0bfff;
+    background: linear-gradient(135deg, #7048e8, #5f3dc4);
+    &:hover { box-shadow: 0 14px 34px rgba(95, 61, 196, 0.5); }
+}
+.o_vd_hd_lib_filter.o_vd_lib_filter {
+    top: calc(34% + 272px);
+    border-color: #99e9f2;
+    background: linear-gradient(135deg, #1098ad, #0c8599);
+    &:hover { box-shadow: 0 14px 34px rgba(12, 133, 153, 0.5); }
+}
+
+// Popup TO 90% màn hình (Dialog size xl + contentClass o_vd_nt_modal).
+.modal-dialog:has(.o_vd_nt_modal) {
+    max-width: 92vw; width: 92vw;
+}
+.o_vd_nt_modal { max-height: 92vh; }
+.o_vd_nt_wrap {
+    display: flex; flex-direction: column; height: 84vh;
+}
+.o_vd_nt_hint {
+    padding: 8px 12px; font-size: 13px; color: #495057;
+    background: #fff4e6; border: 1px solid #ffe8cc; border-radius: 8px;
+    margin-bottom: 8px;
+}
+.o_vd_nt_frame {
+    flex: 1 1 auto; width: 100%; border: 0; border-radius: 10px;
+    background: #fff;
+}

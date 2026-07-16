@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- 3 nút nổi THƯ VIỆN tài liệu (đặt dưới nút Mẫu nhà) -->
+    <t t-name="vd_crm_lead.DriveLibsButton">
+        <t t-if="!hidden">
+            <t t-foreach="libs" t-as="lib" t-key="lib.key">
+                <button t-attf-class="o_vd_lib_filter {{lib.cls}}"
+                        t-on-click="() => this.open(lib)" t-att-title="lib.title">
+                    <span class="o_vd_lib_ico"><i t-attf-class="fa {{lib.icon}}"/></span>
+                    <span class="o_vd_lib_txt"><t t-esc="lib.title"/></span>
+                </button>
+            </t>
+        </t>
+    </t>
+
+    <!-- Popup: nhúng kho tài liệu qua URL nội bộ /vd_drive_lib/embed?key=... -->
+    <t t-name="vd_crm_lead.DriveLibDialog">
+        <Dialog title="props.libTitle" size="'xl'" contentClass="'o_vd_nt_modal'">
+            <div class="o_vd_nt_wrap">
+                <div class="o_vd_nt_hint">
+                    <i class="fa fa-info-circle me-1"/>
+                    Bấm vào tài liệu để <b>xem</b> hoặc <b>tải về máy</b> gửi khách. Tài liệu ở
+                    chế độ CHỈ XEM &#8212; không xóa/sửa được.
+                </div>
+                <iframe class="o_vd_nt_frame" t-att-src="embedSrc"
+                        referrerpolicy="no-referrer" allow="autoplay"/>
+            </div>
+        </Dialog>
+    </t>
+
+</templates>
