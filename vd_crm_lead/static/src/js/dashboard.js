@@ -16,6 +16,7 @@ import { browser } from "@web/core/browser/browser";
 import { View } from "@web/views/view";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { VdHouseLibDialog } from "./vd_house_lib";
+import { VdDriveLibDialog } from "./vd_nghiem_thu_lib";
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
 const VD_DASH_NV_KEY = "vd_dash_selected_nv";
@@ -3400,6 +3401,17 @@ export class VdCrmDashboard extends Component {
     }
     openHouseLibrary() {
         this.dialog.add(VdHouseLibDialog, {});
+    }
+    // 3 THƯ VIỆN tài liệu Drive — hiện trên DANH SÁCH khách (khi không mở preview).
+    get driveLibs() {
+        return [
+            { key: "nghiem_thu", title: "THƯ VIỆN - Video nghiệm thu", icon: "fa-film", cls: "o_vd_nt_lib_filter" },
+            { key: "cong_nang_3d", title: "THƯ VIỆN - Công năng 3D", icon: "fa-cube", cls: "o_vd_cn3d_lib_filter" },
+            { key: "hop_dong", title: "THƯ VIỆN - Hợp đồng", icon: "fa-file-text-o", cls: "o_vd_hd_lib_filter" },
+        ];
+    }
+    openDriveLib(lib) {
+        this.dialog.add(VdDriveLibDialog, { libKey: lib.key, libTitle: lib.title });
     }
 
     bonusTier(n) {

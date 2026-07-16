@@ -15,6 +15,16 @@
                 <span class="o_vd_lib_ico"><i class="fa fa-home"/></span>
                 <span class="o_vd_lib_txt">THƯ VIỆN - Mẫu nhà</span>
             </button>
+            <!-- 3 nút THƯ VIỆN tài liệu Drive (Video nghiệm thu / Công năng 3D / Hợp đồng) -->
+            <t t-if="!state.must_change_password">
+                <t t-foreach="driveLibs" t-as="lib" t-key="lib.key">
+                    <button t-attf-class="o_vd_lib_filter {{lib.cls}}"
+                            t-on-click="() => this.openDriveLib(lib)" t-att-title="lib.title">
+                        <span class="o_vd_lib_ico"><i t-attf-class="fa {{lib.icon}}"/></span>
+                        <span class="o_vd_lib_txt"><t t-esc="lib.title"/></span>
+                    </button>
+                </t>
+            </t>
 
             <!-- 🔒 GATE BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn toàn dashboard -->
             <div t-if="state.must_change_password" class="o_vd_pwd_gate">
@@ -3116,8 +3126,20 @@
                             </span>
                         </div>
                         <div class="o_vd_preview_topbar_right">
-                            <!-- "Mở form đầy đủ" đã bỏ — popup này LÀ main view. Nếu cần edit
-                                 sâu khác, dùng Odoo backend menu list view bình thường. -->
+                            <!-- Mũi tên chuyển KH cùng nhóm — đưa lên topbar (cùng thanh
+                                 tên/SĐT) để không đè lên các nút THƯ VIỆN nổi. -->
+                            <button t-if="state.previewLead.index > 0"
+                                    class="o_vd_preview_navtop"
+                                    t-on-click.stop="() => this.prevPreview()"
+                                    title="KH trước (←)">
+                                <i class="fa fa-chevron-left"/>
+                            </button>
+                            <button t-if="state.previewLead.index &lt; state.previewLead.ids.length - 1"
+                                    class="o_vd_preview_navtop"
+                                    t-on-click.stop="() => this.nextPreview()"
+                                    title="KH sau (→)">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
                             <button class="o_vd_preview_close"
                                     t-on-click="() => this.closePreview()"
                                     title="Đóng (Esc)">
@@ -3138,19 +3160,6 @@
                     </div>
                 </div>
 
-                <!-- Nav arrows -->
-                <button t-if="state.previewLead.index > 0"
-                        class="o_vd_preview_arrow o_vd_preview_arrow_left"
-                        t-on-click.stop="() => this.prevPreview()"
-                        title="KH trước (←)">
-                    <i class="fa fa-chevron-left"/>
-                </button>
-                <button t-if="state.previewLead.index &lt; state.previewLead.ids.length - 1"
-                        class="o_vd_preview_arrow o_vd_preview_arrow_right"
-                        t-on-click.stop="() => this.nextPreview()"
-                        title="KH sau (→)">
-                    <i class="fa fa-chevron-right"/>
-                </button>
             </div>
         </div>
     </t>

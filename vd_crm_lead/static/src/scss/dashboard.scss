@@ -7408,6 +7408,22 @@
         &:hover { background: #1c7ed6; }
     }
 }
+/* Nút chuyển KH trước/sau — nằm trên topbar (cạnh nút đóng), không đè nút THƯ VIỆN */
+.o_vd_preview_navtop {
+    background: linear-gradient(135deg, #4dabf7, #1c7ed6);
+    border: none;
+    color: #fff;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease, transform 0.12s ease;
+    &:hover { background: #1971c2; transform: scale(1.08); }
+}
 .o_vd_preview_close {
     background: rgba(255, 255, 255, 0.12);
     border: none;
