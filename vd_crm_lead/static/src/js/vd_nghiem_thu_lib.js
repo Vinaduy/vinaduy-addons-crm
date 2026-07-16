@@ -1,16 +1,16 @@
 /** @odoo-module **/
 /**
- * THƯ VIỆN tài liệu (Hướng A: nhúng Drive, bảo mật link).
- * Render 3 nút nổi trên form khách (giống THƯ VIỆN - Mẫu nhà): Video nghiệm thu,
- * Công năng 3D, Hợp đồng. Mỗi nút mở popup chứa iframe trỏ tới URL NỘI BỘ
- * /vd_drive_lib/embed?key=... (KHÔNG chứa link Google ở client). NV chỉ xem + tải,
- * không xóa được (quyền Drive = Người xem).
+ * THƯ VIỆN tài liệu (Hướng A+: Google Drive API).
+ * 3 nút nổi (Video nghiệm thu / Công năng 3D / Hợp đồng). Mỗi nút mở popup dựng
+ * LƯỚI file từ Drive (qua controller /vd_drive_lib/list) — mỗi file có nút TẢI
+ * (trỏ /vd_drive_lib/dl) để tải thẳng về máy, KHÔNG cần mở xem. NV chỉ xem/tải,
+ * không xóa (folder Drive chia sẻ quyền Người xem). API key + folder id ở server.
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component } from "@odoo/owl";
+import { Component, useState, onWillStart } from "@odoo/owl";
 
 const VD_LIBS = [
     { key: "nghiem_thu", title: "THƯ VIỆN - Video nghiệm thu", icon: "fa-film", cls: "o_vd_nt_lib_filter" },
@@ -26,8 +26,48 @@ export class VdDriveLibDialog extends Component {
         libTitle: String,
         close: { type: Function, optional: true },
     };
-    get embedSrc() {
-        return "/vd_drive_lib/embed?key=" + encodeURIComponent(this.props.libKey);
+
+    setup() {
+        this.state = useState({ loading: true, error: "", groups: [], tab: 0 });
+        onWillStart(async () => {
+            await this.load();
+        });
+    }
+
+    async load() {
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            const resp = await fetch(
+                "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey),
+                { credentials: "same-origin" }
+            );
+            const data = await resp.json();
+            if (data.error) {
+                this.state.error = data.error;
+            } else {
+                this.state.groups = data.groups || [];
+                this.state.tab = 0;
+            }
+        } catch (e) {
+            console.warn("[vd_drive_lib] load lỗi:", e);
+            this.state.error = "Không tải được danh sách tài liệu.";
+        }
+        this.state.loading = false;
+    }
+
+    get curGroup() {
+        return this.state.groups[this.state.tab] || null;
+    }
+    thumb(id) {
+        return "https://drive.google.com/thumbnail?id=" + id + "&sz=w400";
+    }
+    dlUrl(id) {
+        return ("/vd_drive_lib/dl?key=" + encodeURIComponent(this.props.libKey)
+            + "&id=" + encodeURIComponent(id));
+    }
+    onThumbError(ev) {
+        ev.target.classList.add("o_vd_dl_noimg");
     }
 }
 

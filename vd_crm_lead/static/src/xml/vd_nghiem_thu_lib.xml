@@ -14,17 +14,48 @@
         </t>
     </t>
 
-    <!-- Popup: nhúng kho tài liệu qua URL nội bộ /vd_drive_lib/embed?key=... -->
+    <!-- Popup: lưới file Drive, mỗi file có nút TẢI -->
     <t t-name="vd_crm_lead.DriveLibDialog">
         <Dialog title="props.libTitle" size="'xl'" contentClass="'o_vd_nt_modal'">
             <div class="o_vd_nt_wrap">
                 <div class="o_vd_nt_hint">
-                    <i class="fa fa-info-circle me-1"/>
-                    Bấm vào tài liệu để <b>xem</b> hoặc <b>tải về máy</b> gửi khách. Tài liệu ở
-                    chế độ CHỈ XEM &#8212; không xóa/sửa được.
+                    <i class="fa fa-download me-1"/>
+                    Bấm <b>Tải</b> ở từng tài liệu để lưu về máy (không cần mở xem). Tài liệu
+                    ở chế độ CHỈ XEM &#8212; không xóa/sửa được.
                 </div>
-                <iframe class="o_vd_nt_frame" t-att-src="embedSrc"
-                        referrerpolicy="no-referrer" allow="autoplay"/>
+
+                <div t-if="state.loading" class="o_vd_nt_center">Đang tải danh sách…</div>
+                <div t-elif="state.error" class="o_vd_nt_err">
+                    <i class="fa fa-exclamation-triangle me-1"/><t t-esc="state.error"/>
+                </div>
+                <t t-else="">
+                    <!-- Tab nhóm (thư mục con: Móng / Xây thô / Hoàn thiện…) -->
+                    <div t-if="state.groups.length > 1" class="o_vd_nt_tabs">
+                        <button t-foreach="state.groups" t-as="g" t-key="g_index"
+                                t-attf-class="o_vd_nt_tab {{state.tab === g_index ? 'o_active' : ''}}"
+                                t-on-click="() => (state.tab = g_index)">
+                            <t t-esc="g.name"/>
+                            <span class="o_vd_nt_cnt"><t t-esc="g.files.length"/></span>
+                        </button>
+                    </div>
+
+                    <div t-if="!curGroup or !curGroup.files.length" class="o_vd_nt_center">
+                        Chưa có tài liệu trong mục này.
+                    </div>
+                    <div t-else="" class="o_vd_nt_grid">
+                        <div t-foreach="curGroup.files" t-as="f" t-key="f.id" class="o_vd_dl_card">
+                            <div class="o_vd_dl_thumb">
+                                <img t-att-src="thumb(f.id)" loading="lazy"
+                                     t-on-error="onThumbError"/>
+                                <i class="fa fa-file-video-o o_vd_dl_fallico"/>
+                            </div>
+                            <div class="o_vd_dl_name" t-att-title="f.name"><t t-esc="f.name"/></div>
+                            <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)" target="_blank">
+                                <i class="fa fa-download me-1"/>Tải
+                            </a>
+                        </div>
+                    </div>
+                </t>
             </div>
         </Dialog>
     </t>
