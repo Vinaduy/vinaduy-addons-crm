@@ -35,7 +35,11 @@ _logger = logging.getLogger(__name__)
 # key -> folder id. Override qua System Parameter 'vd_crm_lead.drive_lib_folder_<key>'.
 _LIB_FOLDERS = {
     'nghiem_thu': '1MW9BYFZsirgcnyeuzaMTM1_2ciDm3XFW',
-    'cong_nang_3d': '1-PUp_K3vv-Bk0fZiLvgdR_8ROEQDuuN2',
+    # Công năng: TRỎ THẲNG vào folder con "Công Năng" (chỉ bản vẽ PDF) — tách khỏi
+    # folder "3D". Root cũ '1-PUp...' chứa cả 2 folder con (Công Năng + 3D).
+    'cong_nang_3d': '1NAzIBliVpj6KfEnfLtuVRm8odP96wDn1',
+    # Kho 3D riêng (user 2026-07-18): folder "3D" (58 folder mẫu + video).
+    '3d': '1Mg8SmIaaz64hAk_FLWWDnsgD1bYLFsEx',
     'hop_dong': '1-VBqkAsF0v8M96OUH6OXJ1eHkvRpeECb',
 }
 # API key (server-side). Override qua System Parameter 'vd_crm_lead.drive_lib_api_key'.

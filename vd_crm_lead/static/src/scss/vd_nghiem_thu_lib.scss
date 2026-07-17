@@ -13,8 +13,14 @@
     background: linear-gradient(135deg, #7048e8, #5f3dc4);
     &:hover { box-shadow: 0 14px 34px rgba(95, 61, 196, 0.5); }
 }
+.o_vd_3d_lib_filter.o_vd_lib_filter {
+    top: calc(34% + 340px);
+    border-color: #eebefa;
+    background: linear-gradient(135deg, #d6336c, #a61e4d);
+    &:hover { box-shadow: 0 14px 34px rgba(166, 30, 77, 0.5); }
+}
 .o_vd_hd_lib_filter.o_vd_lib_filter {
-    top: calc(34% + 272px);
+    top: calc(34% + 408px);
     border-color: #99e9f2;
     background: linear-gradient(135deg, #1098ad, #0c8599);
     &:hover { box-shadow: 0 14px 34px rgba(12, 133, 153, 0.5); }

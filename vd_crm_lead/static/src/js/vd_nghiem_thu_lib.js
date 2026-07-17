@@ -13,7 +13,8 @@ import { Component, useState, onWillUnmount } from "@odoo/owl";
 
 const VD_LIBS = [
     { key: "nghiem_thu", title: "THƯ VIỆN - Video nghiệm thu", icon: "fa-film", cls: "o_vd_nt_lib_filter" },
-    { key: "cong_nang_3d", title: "THƯ VIỆN - Công năng 3D", icon: "fa-cube", cls: "o_vd_cn3d_lib_filter" },
+    { key: "cong_nang_3d", title: "THƯ VIỆN - Công năng", icon: "fa-th-large", cls: "o_vd_cn3d_lib_filter" },
+    { key: "3d", title: "THƯ VIỆN - 3D", icon: "fa-cube", cls: "o_vd_3d_lib_filter" },
     { key: "hop_dong", title: "THƯ VIỆN - Hợp đồng", icon: "fa-file-text-o", cls: "o_vd_hd_lib_filter" },
 ];
 
