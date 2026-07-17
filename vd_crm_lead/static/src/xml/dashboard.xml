@@ -3315,6 +3315,8 @@
                 </span>
                 <span t-if="distShowTarget and distRep.alert and distRep.alert.stopped"
                       class="o_vd_pancake_stopchip">⛔ DỪNG CHIA SỐ PANCAKE</span>
+                <span t-if="distShowTarget and distRep.alert and distRep.alert.silent and distRep.alert.silent.length"
+                      class="o_vd_pancake_stopchip o_vd_pancake_silentchip">⚠️ Nguồn <t t-foreach="distRep.alert.silent" t-as="s" t-key="s.platform"><t t-if="s_index"> + </t><t t-esc="s.label"/></t> thiếu số</span>
             </div>
             <!-- POPOVER hover (rộng + có cột TikTok/FB + nút bật/tắt + tỷ lệ xin số) -->
             <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
@@ -3339,6 +3341,17 @@
                         Lần cuối có số: <b><t t-esc="distRep.alert.last_phone"/></b>.
                         → Kiểm tra Pancake (cấu hình tự lấy SĐT / webhook gửi phone_info).
                     </div>
+                </div>
+
+                <!-- ⚠️ BANNER NGUỒN ZALO/TIKTOK THIẾU SỐ THEO NGÀY (Chủ nhật không tính). -->
+                <div t-if="distShowTarget and distRep.alert and distRep.alert.silent and distRep.alert.silent.length"
+                     class="o_vd_pk_stopped o_vd_pk_silent">
+                    <div class="o_vd_pk_stopped_ttl">⚠️ NGUỒN THIẾU SỐ THEO NGÀY</div>
+                    <div class="o_vd_pk_stopped_sub" t-foreach="distRep.alert.silent" t-as="s" t-key="s.platform">
+                        <b><t t-esc="s.label"/></b>: <t t-esc="s.n"/> ngày không có số
+                        (<t t-esc="s.empty_days.join(', ')"/>) — lần cuối có số <b><t t-esc="s.last_date"/></b>.
+                    </div>
+                    <div class="o_vd_pk_stopped_sub">Chủ nhật không tính. → Kiểm tra token Zalo / webhook TikTok trên Pancake.</div>
                 </div>
 
                 <!-- ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + 7 NGÀY GẦN NHẤT ===== -->

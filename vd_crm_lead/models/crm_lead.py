@@ -6703,7 +6703,51 @@ class CrmLead(models.Model):
             vn = _pytz.timezone('Asia/Ho_Chi_Minh')
             last_str = _pytz.utc.localize(last_dt).astimezone(vn).strftime('%H:%M %d/%m')
         return {'stopped': stopped, 'hours': hours, 'convs_24h': convs_24h,
-                'last_phone': last_str, 'threshold': threshold}
+                'last_phone': last_str, 'threshold': threshold,
+                'silent': self._vd_source_silence_alert()}
+
+    @api.model
+    def _vd_source_silence_alert(self):
+        """⚠️ CẢNH BÁO NGUỒN ZALO/TIKTOK NGỪNG CÓ SỐ THEO NGÀY (user spec 2026-07-17).
+
+        Zalo + TikTok PHẢI có số MỖI NGÀY. CHỦ NHẬT KHÔNG TÍNH (2 nguồn này
+        thường không có số Chủ nhật) → bỏ qua. Với mỗi nguồn: lấy NGÀY CUỐI có
+        số (theo last_message_at), rồi đếm các NGÀY ĐÃ HẾT (loại hôm nay đang
+        diễn ra) KHÔNG phải Chủ nhật kể từ sau ngày đó. Còn ≥1 ngày trống →
+        nguồn đang tậm tịt → cảnh báo. Nguồn còn số hôm nay/hôm qua (chưa qua
+        ngày trống nào) → im lặng, KHÔNG báo (tránh nhiễu sau khi vừa hồi phục).
+        Chỉ xét nguồn TỪNG có số (đã cấu hình thật). Trả list
+        {platform,label,last_date,n,empty_days:[dd/mm]}."""
+        import pytz
+        from datetime import timedelta as _td
+        Conv = self.env['vd.pancake.conversation'].sudo()
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        today = now_vn.date()
+        labels = {'tiktok': 'TikTok', 'zalo': 'Zalo'}
+        out = []
+        for plat in ('tiktok', 'zalo'):
+            last = Conv.search(
+                [('has_phone', '=', True), ('platform', '=', plat),
+                 ('last_message_at', '!=', False)],
+                order='last_message_at desc', limit=1)
+            if not last:
+                continue  # nguồn CHƯA BAO GIỜ có số → chưa cấu hình, đừng báo
+            last_d = pytz.utc.localize(last.last_message_at).astimezone(vn).date()
+            empty, d = [], last_d + _td(days=1)
+            while d < today:  # < today ⇒ LOẠI hôm nay (đang diễn ra, tránh báo sớm)
+                if d.weekday() != 6:  # 6 = Chủ nhật
+                    empty.append(d)
+                d += _td(days=1)
+            if not empty:
+                continue
+            out.append({
+                'platform': plat, 'label': labels[plat],
+                'last_date': last_d.strftime('%d/%m'),
+                'n': len(empty),
+                'empty_days': [x.strftime('%d/%m') for x in empty][:10],
+            })
+        return out
 
     def _vd_distribution_report(self, pancake=True):
         """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH Pancake tự

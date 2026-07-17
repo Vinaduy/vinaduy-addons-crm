@@ -9985,6 +9985,17 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     padding: 1px 7px; border-radius: 6px; white-space: nowrap;
     animation: vdStopBlink 1.3s ease-in-out infinite;
 }
+/* ⚠️ Nguồn Zalo/TikTok thiếu số theo ngày — chip VÀNG (phân biệt DỪNG đỏ) */
+.o_vd_pancake_silentchip {
+    background: #e8590c; color: #fff;
+    animation: vdStopBlink 1.6s ease-in-out infinite;
+}
+/* ⚠️ Banner nguồn thiếu số — cam/vàng thay vì đỏ */
+.o_vd_pk_silent {
+    background: #fff4e6; border-color: #ffc078; border-left-color: #e8590c;
+    .o_vd_pk_stopped_ttl { color: #d9480f; }
+    .o_vd_pk_stopped_sub { color: #8a3d0b; }
+}
 /* ⛔ Banner trong popover báo cáo chia số */
 .o_vd_pk_stopped {
     margin: 0.55rem 0.7rem 0.2rem; padding: 0.6rem 0.75rem;

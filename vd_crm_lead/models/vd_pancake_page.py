@@ -534,11 +534,14 @@ class VdPancakePage(models.Model):
         url = '%s/pages/%s/conversations' % (_PANCAKE_INTERNAL_BASE, self.page_id)
         created = 0
         seen = set()
-        last_id = None
-        for _guard in range(50):  # cursor an toàn — hiện API trả cùng trang
-            params = {'access_token': tok}
-            if last_id:
-                params['last_conversation_id'] = last_id
+        # PHÂN TRANG: internal API BỎ QUA `last_conversation_id`/`page_number` đơn
+        # lẻ (trả lại đúng trang) — CHỈ khi truyền CẢ `page_number` KÈM
+        # `current_count` mới sang trang mới. Cửa sổ API còn XOAY giữa các lần gọi
+        # nên phải gom NHIỀU trang (không dừng ở 60 hội thoại) để không sót khách
+        # nằm ngoài top-N; cron 15' phủ nốt phần xoay. (fix 2026-07-17: trước đây
+        # chỉ lấy 1 trang → 0788644444/0398887947 sót vì ngoài cửa sổ.)
+        for _pg in range(1, 21):
+            params = {'access_token': tok, 'page_number': _pg, 'current_count': 60}
             try:
                 resp = requests.get(url, params=params, timeout=30)
                 data = resp.json()
@@ -559,7 +562,7 @@ class VdPancakePage(models.Model):
             convs = (data.get('conversations') if isinstance(data, dict) else None) or []
             new = [c for c in convs if c.get('id') and c['id'] not in seen]
             if not new:
-                break
+                break  # hết trang mới → dừng
             # Token dùng được → gỡ cờ hết hạn nếu đang bật.
             if self.vd_zalo_token_invalid:
                 self.sudo().vd_zalo_token_invalid = False
@@ -571,7 +574,6 @@ class VdPancakePage(models.Model):
                         created += 1
                 except Exception:
                     _logger.exception('Zalo internal conv %s lỗi', conv.get('id'))
-            last_id = convs[-1].get('id')
         if created:
             self.last_event_at = fields.Datetime.now()
         return created
