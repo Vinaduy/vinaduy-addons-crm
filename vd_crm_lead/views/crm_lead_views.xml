@@ -1345,88 +1345,45 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                                                 </span>
                                             </div>
 
-                                            <!-- 2 CỘT: mỗi trường 1 dòng (nhãn + giá trị), chia đều -->
-                                            <div class="o_vd_pf_intake_grid2">
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_house_type">🏠 Mẫu nhà</label>
-                                                    <field name="i_house_type" nolabel="1" readonly="not i_editing"/>
+                                            <!-- 5 DÒNG CŨ → MỚI (redesign 2026-07-17): mỗi dòng 1 trường,
+                                                 trái = dữ liệu cũ (snapshot lúc tạo), phải = dữ liệu mới
+                                                 (sửa khi bấm SỬA); thẳng cột, có khung. -->
+                                            <div class="o_vd_pf_diff">
+                                                <div class="o_vd_pf_diff_row o_vd_pf_diff_headrow">
+                                                    <span class="o_vd_pf_diff_label"/>
+                                                    <span class="o_vd_pf_diff_old">Dữ liệu cũ</span>
+                                                    <span class="o_vd_pf_diff_arrow"/>
+                                                    <span class="o_vd_pf_diff_new">Dữ liệu mới</span>
                                                 </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_foundation_type">🏗️ Loại móng</label>
-                                                    <field name="i_foundation_type" nolabel="1" readonly="not i_editing"/>
+                                                <div class="o_vd_pf_diff_row">
+                                                    <span class="o_vd_pf_diff_label">⏰ Thời gian</span>
+                                                    <span class="o_vd_pf_diff_old"><field name="old_i_timeline" nolabel="1" readonly="1"/></span>
+                                                    <span class="o_vd_pf_diff_arrow">→</span>
+                                                    <span class="o_vd_pf_diff_new"><field name="i_timeline" nolabel="1" readonly="not i_editing" placeholder="Chưa xác định"/></span>
                                                 </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_roof_type">🔻 Loại mái</label>
-                                                    <field name="i_roof_type" nolabel="1" readonly="not i_editing"/>
+                                                <div class="o_vd_pf_diff_row">
+                                                    <span class="o_vd_pf_diff_label">📐 Diện tích</span>
+                                                    <span class="o_vd_pf_diff_old"><field name="old_i_area" nolabel="1" readonly="1"/></span>
+                                                    <span class="o_vd_pf_diff_arrow">→</span>
+                                                    <span class="o_vd_pf_diff_new o_vd_pf_diff_new_unit"><field name="i_area" nolabel="1" readonly="not i_editing"/><span class="o_vd_pf_diff_unit">m²</span></span>
                                                 </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_province_id">📍 Tỉnh/Thành</label>
-                                                    <field name="i_province_id" nolabel="1" readonly="not i_editing"/>
+                                                <div class="o_vd_pf_diff_row">
+                                                    <span class="o_vd_pf_diff_label">🏠 Mẫu nhà</span>
+                                                    <span class="o_vd_pf_diff_old"><field name="old_i_house_type" nolabel="1" readonly="1"/></span>
+                                                    <span class="o_vd_pf_diff_arrow">→</span>
+                                                    <span class="o_vd_pf_diff_new"><field name="i_house_type" nolabel="1" readonly="not i_editing"/></span>
                                                 </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_region">🌏 Vùng giá</label>
-                                                    <field name="i_region" nolabel="1" readonly="1"/>
+                                                <div class="o_vd_pf_diff_row">
+                                                    <span class="o_vd_pf_diff_label">🏢 Số tầng</span>
+                                                    <span class="o_vd_pf_diff_old"><field name="old_i_floors" nolabel="1" readonly="1"/></span>
+                                                    <span class="o_vd_pf_diff_arrow">→</span>
+                                                    <span class="o_vd_pf_diff_new"><field name="i_floors_select" nolabel="1" readonly="not i_editing"/></span>
                                                 </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_floors_select">🏢 Số tầng</label>
-                                                    <field name="i_floors_select" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell o_vd_pf_intake_check">
-                                                    <field name="i_has_tum" readonly="not i_editing"/>
-                                                    <label for="i_has_tum">Có Tum</label>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell o_vd_pf_intake_check">
-                                                    <field name="i_has_lung" readonly="not i_editing"/>
-                                                    <label for="i_has_lung">Có Lửng</label>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell">
-                                                    <label for="i_floor_1_m2">T1 (m²)</label>
-                                                    <field name="i_floor_1_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select not in ['2','3','4','5','6','7']">
-                                                    <label for="i_floor_2_m2">T2 (m²)</label>
-                                                    <field name="i_floor_2_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select not in ['3','4','5','6','7']">
-                                                    <label for="i_floor_3_m2">T3 (m²)</label>
-                                                    <field name="i_floor_3_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select not in ['4','5','6','7']">
-                                                    <label for="i_floor_4_m2">T4 (m²)</label>
-                                                    <field name="i_floor_4_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select not in ['5','6','7']">
-                                                    <label for="i_floor_5_m2">T5 (m²)</label>
-                                                    <field name="i_floor_5_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select not in ['6','7']">
-                                                    <label for="i_floor_6_m2">T6 (m²)</label>
-                                                    <field name="i_floor_6_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="i_floors_select != '7'">
-                                                    <label for="i_floor_7_m2">T7 (m²)</label>
-                                                    <field name="i_floor_7_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="not i_has_tum">
-                                                    <label for="i_floor_tum_m2">Tum (m²)</label>
-                                                    <field name="i_floor_tum_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="not i_has_lung">
-                                                    <label for="i_floor_lung_m2">Lửng (m²)</label>
-                                                    <field name="i_floor_lung_m2" nolabel="1" readonly="not i_editing"/>
-                                                </div>
-                                                <div class="o_vd_pf_intake_cell"
-                                                     invisible="not i_has_lung">
-                                                    <label for="i_floor_thongtang_m2">Thông tầng (m²)</label>
-                                                    <field name="i_floor_thongtang_m2" nolabel="1" readonly="not i_editing"/>
+                                                <div class="o_vd_pf_diff_row">
+                                                    <span class="o_vd_pf_diff_label">💰 Tầm tài chính</span>
+                                                    <span class="o_vd_pf_diff_old"><field name="old_i_budget" nolabel="1" readonly="1"/></span>
+                                                    <span class="o_vd_pf_diff_arrow">→</span>
+                                                    <span class="o_vd_pf_diff_new"><field name="i_budget" nolabel="1" readonly="not i_editing"/></span>
                                                 </div>
                                             </div>
 

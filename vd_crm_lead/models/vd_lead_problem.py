@@ -565,6 +565,22 @@ class VdLeadProblem(models.Model):
     # vd_intake_estimate là Float (không phải Monetary) → related cùng type
     i_estimate = fields.Float(related='lead_id.vd_intake_estimate', readonly=True, string='Phần mềm tính')
 
+    # --- Redesign 2026-07-17: dialog Cân đối = 5 dòng CŨ → MỚI ---
+    # NEW (editable) cho 3 trường còn thiếu; house_type/floors_select đã có ở trên.
+    i_timeline = fields.Char(
+        related='lead_id.vd_intake_timeline', readonly=False, string='Thời gian')
+    i_area = fields.Float(
+        digits=(10, 1), related='lead_id.vd_intake_total_m2', readonly=False,
+        string='Diện tích (m²)')
+    i_budget = fields.Selection(
+        related='lead_id.vd_intake_budget', readonly=False, string='Tầm tài chính')
+    # OLD (snapshot dạng chuỗi hiển thị, chụp lúc TẠO vấn đề — báo giá gốc).
+    old_i_timeline = fields.Char(string='Thời gian (cũ)', readonly=True, copy=False)
+    old_i_area = fields.Char(string='Diện tích (cũ)', readonly=True, copy=False)
+    old_i_house_type = fields.Char(string='Mẫu nhà (cũ)', readonly=True, copy=False)
+    old_i_floors = fields.Char(string='Số tầng (cũ)', readonly=True, copy=False)
+    old_i_budget = fields.Char(string='Tầm tài chính (cũ)', readonly=True, copy=False)
+
     # --- Redesign 2026-07-15: SỬA/LƯU (bấm SỬA mới cho sửa, LƯU -> tự hoàn thành) ---
     # i_editing: đang ở chế độ SỬA (fields editable). Mặc định False -> chỉ xem.
     i_editing = fields.Boolean(string='Đang sửa báo giá', default=False, copy=False)
@@ -577,6 +593,9 @@ class VdLeadProblem(models.Model):
 
     # Các trường theo dõi thay đổi (label để in lịch sử).
     _INTAKE_TRACK = [
+        ('i_timeline', '⏰ Thời gian'),
+        ('i_area', '📐 Diện tích (m²)'),
+        ('i_budget', '💰 Tầm tài chính'),
         ('i_house_type', '🏠 Mẫu nhà'),
         ('i_foundation_type', '🏗️ Loại móng'),
         ('i_roof_type', '🔻 Loại mái'),
@@ -687,6 +706,7 @@ class VdLeadProblem(models.Model):
     )
 
     _INTAKE_FIELD_NAMES = (
+        'i_timeline', 'i_area', 'i_budget',
         'i_house_type', 'i_foundation_type', 'i_roof_type', 'i_province_id',
         'i_floor_1_m2', 'i_floor_2_m2', 'i_floor_3_m2', 'i_floor_4_m2',
         'i_floor_5_m2', 'i_floor_6_m2', 'i_floor_7_m2',
@@ -726,6 +746,15 @@ class VdLeadProblem(models.Model):
                 continue
             lead = self.env['crm.lead'].browse(vals['lead_id'])
             vals['old_quote_html'] = lead.vd_quote_breakdown_html or ''
+            # Snapshot 5 trường CŨ (báo giá gốc) → hiển thị cột "Dữ liệu cũ".
+            def _sel(fn, val):
+                return dict(lead._fields[fn]._description_selection(self.env)).get(val) or '—'
+            vals.setdefault('old_i_timeline', lead.vd_intake_timeline or '—')
+            vals.setdefault('old_i_area',
+                            ('%g m²' % lead.vd_intake_total_m2) if lead.vd_intake_total_m2 else '—')
+            vals.setdefault('old_i_house_type', _sel('vd_intake_house_type', lead.vd_intake_house_type))
+            vals.setdefault('old_i_floors', _sel('vd_intake_floors_select', lead.vd_intake_floors_select))
+            vals.setdefault('old_i_budget', _sel('vd_intake_budget', lead.vd_intake_budget))
         records = super().create(vals_list)
         # User spec 2026-06-06: MỌI vấn đề tự có hạn xử lý = ngày tạo + cấu hình
         # (mặc định 7 ngày). Bỏ qua nếu vals đã set deadline (vd copy/migrate).

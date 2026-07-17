@@ -11602,6 +11602,88 @@ $vd-panel-head-radius: 10px;
 .o_vd_pf_intake_cell.o_vd_pf_intake_check > .o_field_widget {
     flex: 0 0 auto;
 }
+/* ===== Redesign 2026-07-17: bảng CŨ → MỚI (4 cột: nhãn · cũ · mũi tên · mới) ===== */
+.o_vd_pf_diff {
+    margin-top: 0.55rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+.o_vd_pf_diff_row {
+    display: grid;
+    grid-template-columns: 150px 1fr 28px 1fr;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    padding: 0.5rem 0.85rem;
+    border-bottom: 1px solid #eef2f7;
+    min-width: 0;
+}
+.o_vd_pf_diff_row:last-child { border-bottom: 0; }
+.o_vd_pf_diff_headrow {
+    background: #f8fafc;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+.o_vd_pf_diff_headrow .o_vd_pf_diff_old { color: #64748b; }
+.o_vd_pf_diff_headrow .o_vd_pf_diff_new { color: #b45309; }
+.o_vd_pf_diff_label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+    white-space: nowrap;
+}
+.o_vd_pf_diff_old {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f8fafc;
+    border-radius: 7px;
+    padding: 0.28rem 0.55rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.o_vd_pf_diff_arrow {
+    text-align: center;
+    font-weight: 900;
+    color: #cbd5e1;
+    font-size: 15px;
+}
+.o_vd_pf_diff_new {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+    font-weight: 800;
+    color: #0f172a;
+}
+.o_vd_pf_diff_new > .o_field_widget {
+    min-width: 0;
+    flex: 1 1 auto;
+    font-weight: 800;
+    color: #0f172a;
+}
+.o_vd_pf_diff_new_unit .o_field_widget { flex: 0 0 auto; }
+.o_vd_pf_diff_unit { font-size: 12px; font-weight: 700; color: #64748b; }
+/* Đang SỬA → ô "mới" nổi khung để biết đang chỉnh */
+.o_vd_pf_section_body:not(.o_vd_pf_intake_locked) .o_vd_pf_diff_new > .o_field_widget {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 7px;
+    padding: 0.2rem 0.4rem;
+}
+@media (max-width: 720px) {
+    .o_vd_pf_diff_row { grid-template-columns: 110px 1fr 20px 1fr; }
+}
+
 .o_vd_pf_intake_history {
     margin-top: 0.7rem;
     border: 1px solid #e6eaf0;
