@@ -117,10 +117,10 @@ class VdDriveLibController(http.Controller):
                                   'mime': c.get('mimeType', '')})
 
         sort_children(root_children)
-        with ThreadPoolExecutor(max_workers=8) as ex:
+        with ThreadPoolExecutor(max_workers=6) as ex:
             while queue and scanned < cap:
-                batch = queue[:8]
-                del queue[:8]
+                batch = queue[:6]
+                del queue[:6]
                 scanned += len(batch)
                 for children in ex.map(lambda fid: self._safe_list(fid, api_key), batch):
                     sort_children(children)
@@ -173,19 +173,37 @@ class VdDriveLibController(http.Controller):
 
         # Quét MỌI thư mục cấp 1 SONG SONG (trước đây tuần tự → chậm: mỗi kho
         # ~6-8 folder × Drive API = cộng dồn). Chỉ dùng `requests` + api_key trong
-        # thread (KHÔNG đụng request.env) nên an toàn. ex.map giữ đúng thứ tự.
-        def _one_group(fo):
-            try:
-                allf = self._collect_all_files(fo['id'], api_key)
-            except Exception:  # noqa: BLE001
-                allf = []
+        # thread (KHÔNG đụng request.env) nên an toàn.
+        def _scan(fo):
+            allf = self._collect_all_files(fo['id'], api_key)  # có thể NÉM
             return {'name': fo['name'], 'files': [fobj(f) for f in allf]}
 
+        folder_groups = [None] * len(top_folders)
+        had_error = False
         if top_folders:
-            with ThreadPoolExecutor(max_workers=min(8, len(top_folders))) as ex:
-                groups.extend(ex.map(_one_group, top_folders))
+            with ThreadPoolExecutor(max_workers=min(6, len(top_folders))) as ex:
+                futs = {ex.submit(_scan, fo): i for i, fo in enumerate(top_folders)}
+                failed = []
+                for fut in futs:
+                    i = futs[fut]
+                    try:
+                        folder_groups[i] = fut.result()
+                    except Exception:  # noqa: BLE001
+                        failed.append(i)
+            # RETRY nhóm lỗi TUẦN TỰ (tránh burst rate-limit khi quét song song)
+            # → 'PLVT Miền Nam' không bị rớt vì rate-limit tạm.
+            for i in failed:
+                try:
+                    folder_groups[i] = _scan(top_folders[i])
+                except Exception:  # noqa: BLE001
+                    folder_groups[i] = {'name': top_folders[i]['name'], 'files': []}
+                    had_error = True
+        groups.extend(g for g in folder_groups if g is not None)
         payload = {'groups': groups}
-        _LIST_CACHE[root] = (time.time() + _CACHE_TTL, payload)
+        # CHỈ cache khi KHÔNG lỗi → tránh giữ 10' bản thiếu nhóm (lần sau mở lại
+        # quét mới thay vì phục vụ cache hỏng).
+        if not had_error:
+            _LIST_CACHE[root] = (time.time() + _CACHE_TTL, payload)
         return self._json(payload)
 
     @http.route('/vd_drive_lib/thumb', type='http', auth='user', website=False)
