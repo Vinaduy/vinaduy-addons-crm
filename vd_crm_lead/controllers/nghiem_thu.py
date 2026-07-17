@@ -35,7 +35,7 @@ _LIB_FOLDERS = {
     'hop_dong': '1-VBqkAsF0v8M96OUH6OXJ1eHkvRpeECb',
 }
 # API key (server-side). Override qua System Parameter 'vd_crm_lead.drive_lib_api_key'.
-_API_KEY = 'AIzaSyCHkGs3J3QKnSTC-RQCGxIH3yHCEJxnel0'
+_API_KEY = 'AIzaSyCnG0g9C9EHZ41JMHl364pzLo_auEkLKlk'
 
 _FOLDER_MIME = 'application/vnd.google-apps.folder'
 _DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
@@ -68,6 +68,17 @@ class VdDriveLibController(http.Controller):
         r.raise_for_status()
         return r.json().get('files', [])
 
+    def _collect_files(self, folder_id, api_key, depth=0):
+        """Đệ quy gom TẤT CẢ file dưới 1 folder (mọi cấp thư mục con)."""
+        if depth > 5:
+            return []
+        children = self._list_children(folder_id, api_key)
+        files = [c for c in children if c.get('mimeType') != _FOLDER_MIME]
+        for c in children:
+            if c.get('mimeType') == _FOLDER_MIME:
+                files.extend(self._collect_files(c['id'], api_key, depth + 1))
+        return files
+
     def _json(self, payload, status=200):
         return request.make_response(
             json.dumps(payload),
@@ -95,8 +106,7 @@ class VdDriveLibController(http.Controller):
                                'files': [{'id': f['id'], 'name': f['name']}
                                          for f in root_files]})
             for fo in folders:
-                sub = self._list_children(fo['id'], api_key)
-                subfiles = [c for c in sub if c.get('mimeType') != _FOLDER_MIME]
+                subfiles = self._collect_files(fo['id'], api_key)
                 groups.append({'name': fo['name'],
                                'files': [{'id': f['id'], 'name': f['name']}
                                          for f in subfiles]})
