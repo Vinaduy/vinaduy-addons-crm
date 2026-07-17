@@ -20,8 +20,8 @@
             <div class="o_vd_nt_wrap">
                 <div class="o_vd_nt_hint">
                     <i class="fa fa-download me-1"/>
-                    Bấm <b>Tải</b> ở từng tài liệu để lưu về máy (không cần mở xem). Tài liệu
-                    ở chế độ CHỈ XEM &#8212; không xóa/sửa được.
+                    Bấm <b>Tải</b> ở từng tài liệu để lưu về máy (không cần mở xem), hoặc
+                    <b>Tải tất cả</b> ở dưới. Tài liệu CHỈ XEM &#8212; không xóa/sửa được.
                 </div>
 
                 <div t-if="state.loading" class="o_vd_nt_center">Đang tải danh sách…</div>
@@ -45,18 +45,25 @@
                     <div t-else="" class="o_vd_nt_grid">
                         <div t-foreach="curGroup.files" t-as="f" t-key="f.id" class="o_vd_dl_card">
                             <div class="o_vd_dl_thumb">
-                                <img t-att-src="thumb(f.id)" loading="lazy"
-                                     t-on-error="onThumbError"/>
                                 <i class="fa fa-file-video-o o_vd_dl_fallico"/>
+                                <img t-att-src="thumb(f.id)" loading="lazy"/>
                             </div>
                             <div class="o_vd_dl_name" t-att-title="f.name"><t t-esc="f.name"/></div>
-                            <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)" target="_blank">
-                                <i class="fa fa-download me-1"/>Tải
+                            <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)">
+                                <i class="fa fa-download"/> Tải
                             </a>
                         </div>
                     </div>
                 </t>
             </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-success o_vd_nt_dlall"
+                        t-att-disabled="curCount ? undefined : 'disabled'"
+                        t-on-click="() => this.downloadAll()">
+                    <i class="fa fa-download me-1"/>Tải tất cả (<t t-esc="curCount"/>)
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+            </t>
         </Dialog>
     </t>
 

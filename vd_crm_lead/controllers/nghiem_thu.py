@@ -20,8 +20,10 @@ YÊU CẦU: mỗi folder Drive phải share "Bất kỳ ai có đường liên k
 """
 import json
 import logging
+from urllib.parse import quote
 
 import requests
+from werkzeug.wrappers import Response
 
 from odoo import http
 from odoo.http import request
@@ -120,14 +122,60 @@ class VdDriveLibController(http.Controller):
             _logger.exception('Drive list lỗi: %s', e)
             return self._json({'error': 'Lỗi tải danh sách tài liệu.'})
 
-    @http.route('/vd_drive_lib/dl', type='http', auth='user', website=False)
-    def vd_drive_lib_dl(self, key=None, id=None, **kw):
-        # Chỉ cho tải khi key hợp lệ (auth='user' đã chặn người ngoài).
+    @http.route('/vd_drive_lib/thumb', type='http', auth='user', website=False)
+    def vd_drive_lib_thumb(self, key=None, id=None, **kw):
+        """Proxy ảnh thumbnail của Drive qua server → ảnh SAME-ORIGIN (tránh lỗi
+        cross-origin làm đơ trang + không phụ thuộc NV có đăng nhập Google)."""
         if key not in _LIB_FOLDERS or not id:
             return request.not_found()
-        url = ('https://drive.google.com/uc?export=download&id=%s&confirm=t'
-               % id)
-        return request.redirect(url, code=302, local=False)
+        try:
+            r = requests.get('https://drive.google.com/thumbnail',
+                             params={'id': id, 'sz': 'w400'}, timeout=15, stream=True)
+            r.raise_for_status()
+        except Exception:  # noqa: BLE001
+            return request.not_found()
+        return Response(
+            r.iter_content(8192),
+            headers=[('Content-Type', r.headers.get('Content-Type', 'image/jpeg')),
+                     ('Cache-Control', 'public, max-age=86400')],
+            direct_passthrough=True,
+        )
+
+    @http.route('/vd_drive_lib/dl', type='http', auth='user', website=False)
+    def vd_drive_lib_dl(self, key=None, id=None, **kw):
+        """Tải file: PROXY-STREAM qua Odoo (Drive API alt=media) → tải SẠCH trong
+        Odoo (same-origin, có nút Tải/attribute download hoạt động), KHÔNG lộ Google,
+        KHÔNG dính trang xác nhận virus. Stream chunk → nhẹ RAM."""
+        if key not in _LIB_FOLDERS or not id:
+            return request.not_found()
+        api_key = self._api_key()
+        try:
+            meta = requests.get(
+                '%s/%s' % (_DRIVE_API, id),
+                params={'key': api_key, 'fields': 'name,mimeType,size',
+                        'supportsAllDrives': 'true'}, timeout=15)
+            meta.raise_for_status()
+            meta = meta.json()
+            name = meta.get('name') or (id + '.bin')
+            mime = meta.get('mimeType') or 'application/octet-stream'
+            upstream = requests.get(
+                '%s/%s' % (_DRIVE_API, id),
+                params={'key': api_key, 'alt': 'media', 'supportsAllDrives': 'true'},
+                stream=True, timeout=120)
+            upstream.raise_for_status()
+        except Exception:  # noqa: BLE001
+            _logger.exception('Drive dl lỗi (id=%s)', id)
+            return request.not_found()
+        headers = [
+            ('Content-Type', mime),
+            ('Content-Disposition', "attachment; filename*=UTF-8''%s" % quote(name)),
+            ('Cache-Control', 'no-store'),
+        ]
+        cl = upstream.headers.get('Content-Length')
+        if cl:
+            headers.append(('Content-Length', cl))
+        return Response(upstream.iter_content(chunk_size=262144),
+                        headers=headers, direct_passthrough=True)
 
     # Giữ route nhúng (dự phòng) — hiện popup dùng lưới nút Tải là chính.
     @http.route('/vd_drive_lib/embed', type='http', auth='user', website=False)

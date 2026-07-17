@@ -1,16 +1,16 @@
 /** @odoo-module **/
 /**
  * THƯ VIỆN tài liệu (Hướng A+: Google Drive API).
- * 3 nút nổi (Video nghiệm thu / Công năng 3D / Hợp đồng). Mỗi nút mở popup dựng
- * LƯỚI file từ Drive (qua controller /vd_drive_lib/list) — mỗi file có nút TẢI
- * (trỏ /vd_drive_lib/dl) để tải thẳng về máy, KHÔNG cần mở xem. NV chỉ xem/tải,
- * không xóa (folder Drive chia sẻ quyền Người xem). API key + folder id ở server.
+ * 3 nút nổi (Video nghiệm thu / Công năng 3D / Hợp đồng). Popup dựng LƯỚI file từ
+ * Drive (controller /vd_drive_lib/list). Thumbnail + tải đều qua proxy SAME-ORIGIN
+ * (/vd_drive_lib/thumb, /vd_drive_lib/dl) → tải sạch, ẩn Google, không đơ trang.
+ * NV chỉ xem/tải, không xóa (folder Drive quyền Người xem).
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, useState, onWillStart } from "@odoo/owl";
+import { Component, useState, onWillStart, onWillUnmount } from "@odoo/owl";
 
 const VD_LIBS = [
     { key: "nghiem_thu", title: "THƯ VIỆN - Video nghiệm thu", icon: "fa-film", cls: "o_vd_nt_lib_filter" },
@@ -29,20 +29,21 @@ export class VdDriveLibDialog extends Component {
 
     setup() {
         this.state = useState({ loading: true, error: "", groups: [], tab: 0 });
+        this._alive = true;
+        onWillUnmount(() => { this._alive = false; });
         onWillStart(async () => {
             await this.load();
         });
     }
 
     async load() {
-        this.state.loading = true;
-        this.state.error = "";
         try {
             const resp = await fetch(
                 "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey),
                 { credentials: "same-origin" }
             );
             const data = await resp.json();
+            if (!this._alive) return;
             if (data.error) {
                 this.state.error = data.error;
             } else {
@@ -50,24 +51,43 @@ export class VdDriveLibDialog extends Component {
                 this.state.tab = 0;
             }
         } catch (e) {
+            if (!this._alive) return;
             console.warn("[vd_drive_lib] load lỗi:", e);
             this.state.error = "Không tải được danh sách tài liệu.";
         }
-        this.state.loading = false;
+        if (this._alive) this.state.loading = false;
     }
 
     get curGroup() {
         return this.state.groups[this.state.tab] || null;
     }
+    get curCount() {
+        return this.curGroup ? this.curGroup.files.length : 0;
+    }
     thumb(id) {
-        return "https://drive.google.com/thumbnail?id=" + id + "&sz=w400";
+        return ("/vd_drive_lib/thumb?key=" + encodeURIComponent(this.props.libKey)
+            + "&id=" + encodeURIComponent(id));
     }
     dlUrl(id) {
         return ("/vd_drive_lib/dl?key=" + encodeURIComponent(this.props.libKey)
             + "&id=" + encodeURIComponent(id));
     }
-    onThumbError(ev) {
-        ev.target.classList.add("o_vd_dl_noimg");
+
+    // Tải TẤT CẢ file trong tab hiện tại — bấm tuần tự, giãn nhịp để trình duyệt
+    // không chặn. Link same-origin nên thuộc tính download hoạt động.
+    downloadAll() {
+        const files = (this.curGroup && this.curGroup.files) || [];
+        if (!files.length) return;
+        files.forEach((f, i) => {
+            setTimeout(() => {
+                const a = document.createElement("a");
+                a.href = this.dlUrl(f.id);
+                a.download = f.name || "";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, i * 700);
+        });
     }
 }
 
