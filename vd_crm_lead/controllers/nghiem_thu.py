@@ -20,6 +20,7 @@ YÊU CẦU: mỗi folder Drive phải share "Bất kỳ ai có đường liên k
 """
 import json
 import logging
+import time
 from urllib.parse import quote
 
 import requests
@@ -42,6 +43,10 @@ _API_KEY = 'AIzaSyCnG0g9C9EHZ41JMHl364pzLo_auEkLKlk'
 _FOLDER_MIME = 'application/vnd.google-apps.folder'
 _DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
 
+# Cache theo folder id (mỗi worker giữ riêng) → mở lại nhanh, đỡ gọi Google lặp.
+_LIST_CACHE = {}      # folder_id -> (expire_ts, payload_dict)
+_CACHE_TTL = 600      # 10 phút
+
 
 class VdDriveLibController(http.Controller):
 
@@ -56,7 +61,8 @@ class VdDriveLibController(http.Controller):
                 or _LIB_FOLDERS.get(key))
 
     def _list_children(self, folder_id, api_key):
-        """Liệt kê con TRỰC TIẾP của 1 folder (cả file + thư mục con)."""
+        """Liệt kê con TRỰC TIẾP của 1 folder (cả file + thư mục con). 1 API call,
+        timeout ngắn để KHÔNG giữ worker lâu (tránh treo cả server)."""
         params = {
             'q': "'%s' in parents and trashed=false" % folder_id,
             'key': api_key,
@@ -66,20 +72,9 @@ class VdDriveLibController(http.Controller):
             'supportsAllDrives': 'true',
             'includeItemsFromAllDrives': 'true',
         }
-        r = requests.get(_DRIVE_API, params=params, timeout=20)
+        r = requests.get(_DRIVE_API, params=params, timeout=12)
         r.raise_for_status()
         return r.json().get('files', [])
-
-    def _collect_files(self, folder_id, api_key, depth=0):
-        """Đệ quy gom TẤT CẢ file dưới 1 folder (mọi cấp thư mục con)."""
-        if depth > 5:
-            return []
-        children = self._list_children(folder_id, api_key)
-        files = [c for c in children if c.get('mimeType') != _FOLDER_MIME]
-        for c in children:
-            if c.get('mimeType') == _FOLDER_MIME:
-                files.extend(self._collect_files(c['id'], api_key, depth + 1))
-        return files
 
     def _json(self, payload, status=200):
         return request.make_response(
@@ -91,36 +86,36 @@ class VdDriveLibController(http.Controller):
 
     # ---- routes ----------------------------------------------------------
     @http.route('/vd_drive_lib/list', type='http', auth='user', website=False)
-    def vd_drive_lib_list(self, key=None, **kw):
+    def vd_drive_lib_list(self, key=None, folder=None, **kw):
+        """Liệt kê 1 THƯ MỤC (duyệt từng cấp — KHÔNG đệ quy) → nhanh, không treo
+        worker. folder rỗng = thư mục gốc của kho. Trả {folders, files, is_root}."""
         if key not in _LIB_FOLDERS:
             return self._json({'error': 'Kho không hợp lệ.'}, status=404)
         api_key = self._api_key()
         root = self._folder_id(key)
         if not (api_key and root):
             return self._json({'error': 'Chưa cấu hình API key hoặc folder.'})
+        fid = folder or root
+        # cache theo folder
+        hit = _LIST_CACHE.get(fid)
+        if hit and hit[0] > time.time():
+            return self._json(hit[1])
         try:
-            children = self._list_children(root, api_key)
-            folders = [c for c in children if c.get('mimeType') == _FOLDER_MIME]
-            root_files = [c for c in children if c.get('mimeType') != _FOLDER_MIME]
-            groups = []
-            if root_files:
-                groups.append({'name': 'Tất cả',
-                               'files': [{'id': f['id'], 'name': f['name']}
-                                         for f in root_files]})
-            for fo in folders:
-                subfiles = self._collect_files(fo['id'], api_key)
-                groups.append({'name': fo['name'],
-                               'files': [{'id': f['id'], 'name': f['name']}
-                                         for f in subfiles]})
-            return self._json({'groups': groups})
-        except requests.HTTPError as e:
-            _logger.warning('Drive list lỗi HTTP: %s', e)
-            return self._json({'error': 'Không đọc được thư mục Drive. '
-                               'Kiểm tra: folder đã chia sẻ "ai có link → Người xem" '
-                               'và API key còn hạn/đúng quyền Drive API.'})
+            children = self._list_children(fid, api_key)
+        except requests.HTTPError:
+            return self._json({'error': 'Không đọc được thư mục Drive. Kiểm tra: '
+                               'folder đã chia sẻ "ai có link → Người xem" và đã BẬT '
+                               'Google Drive API.'})
         except Exception as e:  # noqa: BLE001
-            _logger.exception('Drive list lỗi: %s', e)
-            return self._json({'error': 'Lỗi tải danh sách tài liệu.'})
+            _logger.warning('Drive list lỗi (folder=%s): %s', fid, e)
+            return self._json({'error': 'Mạng tới Google chập chờn, thử lại sau ít giây.'})
+        folders = [{'id': c['id'], 'name': c['name']} for c in children
+                   if c.get('mimeType') == _FOLDER_MIME]
+        files = [{'id': c['id'], 'name': c['name']} for c in children
+                 if c.get('mimeType') != _FOLDER_MIME]
+        payload = {'folders': folders, 'files': files, 'is_root': fid == root}
+        _LIST_CACHE[fid] = (time.time() + _CACHE_TTL, payload)
+        return self._json(payload)
 
     @http.route('/vd_drive_lib/thumb', type='http', auth='user', website=False)
     def vd_drive_lib_thumb(self, key=None, id=None, **kw):

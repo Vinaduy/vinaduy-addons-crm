@@ -14,36 +14,45 @@
         </t>
     </t>
 
-    <!-- Popup: lưới file Drive, mỗi file có nút TẢI -->
+    <!-- Popup: duyệt thư mục Drive (breadcrumb + folder + file có nút TẢI) -->
     <t t-name="vd_crm_lead.DriveLibDialog">
         <Dialog title="props.libTitle" size="'xl'" contentClass="'o_vd_nt_modal'">
             <div class="o_vd_nt_wrap">
-                <div class="o_vd_nt_hint">
-                    <i class="fa fa-download me-1"/>
-                    Bấm <b>Tải</b> ở từng tài liệu để lưu về máy (không cần mở xem), hoặc
-                    <b>Tải tất cả</b> ở dưới. Tài liệu CHỈ XEM &#8212; không xóa/sửa được.
+                <!-- Breadcrumb -->
+                <div class="o_vd_nt_crumbs">
+                    <button class="o_vd_nt_crumb" t-on-click="() => this.goRoot()">
+                        <i class="fa fa-home me-1"/><t t-esc="props.libTitle.replace('THƯ VIỆN - ','')"/>
+                    </button>
+                    <t t-foreach="state.stack" t-as="c" t-key="c_index">
+                        <span class="o_vd_nt_crumb_sep">/</span>
+                        <button class="o_vd_nt_crumb" t-on-click="() => this.goCrumb(c_index)">
+                            <t t-esc="c.name"/>
+                        </button>
+                    </t>
                 </div>
 
-                <div t-if="state.loading" class="o_vd_nt_center">Đang tải danh sách…</div>
+                <div t-if="state.loading" class="o_vd_nt_center">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải…
+                </div>
                 <div t-elif="state.error" class="o_vd_nt_err">
                     <i class="fa fa-exclamation-triangle me-1"/><t t-esc="state.error"/>
                 </div>
                 <t t-else="">
-                    <!-- Tab nhóm (thư mục con: Móng / Xây thô / Hoàn thiện…) -->
-                    <div t-if="state.groups.length > 1" class="o_vd_nt_tabs">
-                        <button t-foreach="state.groups" t-as="g" t-key="g_index"
-                                t-attf-class="o_vd_nt_tab {{state.tab === g_index ? 'o_active' : ''}}"
-                                t-on-click="() => (state.tab = g_index)">
-                            <t t-esc="g.name"/>
-                            <span class="o_vd_nt_cnt"><t t-esc="g.files.length"/></span>
-                        </button>
+                    <div t-if="!state.folders.length &amp;&amp; !state.files.length" class="o_vd_nt_center">
+                        Thư mục này trống.
                     </div>
-
-                    <div t-if="!curGroup or !curGroup.files.length" class="o_vd_nt_center">
-                        Chưa có tài liệu trong mục này.
-                    </div>
-                    <div t-else="" class="o_vd_nt_grid">
-                        <div t-foreach="curGroup.files" t-as="f" t-key="f.id" class="o_vd_dl_card">
+                    <div class="o_vd_nt_grid">
+                        <!-- Thư mục con -->
+                        <div t-foreach="state.folders" t-as="fo" t-key="fo.id"
+                             class="o_vd_dl_card o_vd_dl_folder" t-on-click="() => this.openFolder(fo)">
+                            <div class="o_vd_dl_thumb o_vd_dl_folderico">
+                                <i class="fa fa-folder"/>
+                            </div>
+                            <div class="o_vd_dl_name" t-att-title="fo.name"><t t-esc="fo.name"/></div>
+                            <span class="o_vd_dl_btn o_vd_dl_open"><i class="fa fa-folder-open"/> Mở</span>
+                        </div>
+                        <!-- File -->
+                        <div t-foreach="state.files" t-as="f" t-key="f.id" class="o_vd_dl_card">
                             <div class="o_vd_dl_thumb">
                                 <i class="fa fa-file-video-o o_vd_dl_fallico"/>
                                 <img t-att-src="thumb(f.id)" loading="lazy"/>
@@ -58,9 +67,9 @@
             </div>
             <t t-set-slot="footer">
                 <button class="btn btn-success o_vd_nt_dlall"
-                        t-att-disabled="curCount ? undefined : 'disabled'"
+                        t-att-disabled="state.files.length ? undefined : 'disabled'"
                         t-on-click="() => this.downloadAll()">
-                    <i class="fa fa-download me-1"/>Tải tất cả (<t t-esc="curCount"/>)
+                    <i class="fa fa-download me-1"/>Tải tất cả file (<t t-esc="state.files.length"/>)
                 </button>
                 <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
             </t>

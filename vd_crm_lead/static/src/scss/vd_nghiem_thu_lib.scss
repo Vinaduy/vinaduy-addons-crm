@@ -34,7 +34,26 @@
     background: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a; font-weight: 600;
 }
 
-// Tab nhóm (thư mục con)
+// Breadcrumb duyệt thư mục
+.o_vd_nt_crumbs {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-bottom: 10px;
+}
+.o_vd_nt_crumb {
+    border: none; background: #eef2f7; color: #334155; border-radius: 7px;
+    padding: 4px 11px; font-weight: 700; font-size: 13px; cursor: pointer;
+    &:hover { background: #dbe4ee; }
+}
+.o_vd_nt_crumb_sep { color: #adb5bd; font-weight: 700; }
+
+// Card thư mục con
+.o_vd_dl_folder { cursor: pointer; }
+.o_vd_dl_folderico {
+    background: #fff9db !important;
+    i { font-size: 3rem; color: #f59f00; z-index: 0; }
+}
+.o_vd_dl_open { background: linear-gradient(135deg, #4dabf7, #1c7ed6) !important; }
+
+// Tab nhóm (không còn dùng — giữ style cũ vô hại)
 .o_vd_nt_tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.7rem; }
 .o_vd_nt_tab {
     border: 1px solid #ced4da; background: #fff; color: #343a40;

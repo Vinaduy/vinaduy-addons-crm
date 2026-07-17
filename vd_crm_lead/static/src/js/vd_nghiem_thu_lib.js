@@ -1,16 +1,15 @@
 /** @odoo-module **/
 /**
- * THƯ VIỆN tài liệu (Hướng A+: Google Drive API).
- * 3 nút nổi (Video nghiệm thu / Công năng 3D / Hợp đồng). Popup dựng LƯỚI file từ
- * Drive (controller /vd_drive_lib/list). Thumbnail + tải đều qua proxy SAME-ORIGIN
- * (/vd_drive_lib/thumb, /vd_drive_lib/dl) → tải sạch, ẩn Google, không đơ trang.
- * NV chỉ xem/tải, không xóa (folder Drive quyền Người xem).
+ * THƯ VIỆN tài liệu (Hướng A+: Google Drive API) — DUYỆT theo thư mục.
+ * 3 nút nổi. Popup duyệt từng thư mục (breadcrumb): bấm folder để vào, bấm Tải ở
+ * từng file. Mỗi lần chỉ gọi 1 API (nhanh, không treo server). Thumbnail + tải đều
+ * qua proxy SAME-ORIGIN (/vd_drive_lib/thumb, /dl) → sạch, ẩn Google, không đơ.
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, useState, onWillStart, onWillUnmount } from "@odoo/owl";
+import { Component, useState, onWillUnmount } from "@odoo/owl";
 
 const VD_LIBS = [
     { key: "nghiem_thu", title: "THƯ VIỆN - Video nghiệm thu", icon: "fa-film", cls: "o_vd_nt_lib_filter" },
@@ -28,27 +27,32 @@ export class VdDriveLibDialog extends Component {
     };
 
     setup() {
-        this.state = useState({ loading: true, error: "", groups: [], tab: 0 });
+        // stack = breadcrumb các thư mục con đã vào [{id,name}]; rỗng = gốc.
+        this.state = useState({
+            loading: true, error: "", folders: [], files: [], stack: [],
+        });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
-        onWillStart(async () => {
-            await this.load();
-        });
+        // Mở dialog HIỆN NGAY (spinner), tải nền — KHÔNG chặn mount (tránh treo).
+        this.load(null);
     }
 
-    async load() {
+    async load(folderId) {
+        this.state.loading = true;
+        this.state.error = "";
         try {
-            const resp = await fetch(
-                "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey),
-                { credentials: "same-origin" }
-            );
+            const url = "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey)
+                + (folderId ? "&folder=" + encodeURIComponent(folderId) : "");
+            const resp = await fetch(url, { credentials: "same-origin" });
             const data = await resp.json();
             if (!this._alive) return;
             if (data.error) {
                 this.state.error = data.error;
+                this.state.folders = [];
+                this.state.files = [];
             } else {
-                this.state.groups = data.groups || [];
-                this.state.tab = 0;
+                this.state.folders = data.folders || [];
+                this.state.files = data.files || [];
             }
         } catch (e) {
             if (!this._alive) return;
@@ -58,12 +62,21 @@ export class VdDriveLibDialog extends Component {
         if (this._alive) this.state.loading = false;
     }
 
-    get curGroup() {
-        return this.state.groups[this.state.tab] || null;
+    // Điều hướng thư mục
+    openFolder(f) {
+        this.state.stack.push({ id: f.id, name: f.name });
+        this.load(f.id);
     }
-    get curCount() {
-        return this.curGroup ? this.curGroup.files.length : 0;
+    goRoot() {
+        this.state.stack = [];
+        this.load(null);
     }
+    goCrumb(i) {
+        const c = this.state.stack[i];
+        this.state.stack = this.state.stack.slice(0, i + 1);
+        this.load(c.id);
+    }
+
     thumb(id) {
         return ("/vd_drive_lib/thumb?key=" + encodeURIComponent(this.props.libKey)
             + "&id=" + encodeURIComponent(id));
@@ -73,10 +86,10 @@ export class VdDriveLibDialog extends Component {
             + "&id=" + encodeURIComponent(id));
     }
 
-    // Tải TẤT CẢ file trong tab hiện tại — bấm tuần tự, giãn nhịp để trình duyệt
-    // không chặn. Link same-origin nên thuộc tính download hoạt động.
+    // Tải TẤT CẢ file trong thư mục hiện tại (giãn nhịp; link same-origin nên
+    // thuộc tính download hoạt động).
     downloadAll() {
-        const files = (this.curGroup && this.curGroup.files) || [];
+        const files = this.state.files || [];
         if (!files.length) return;
         files.forEach((f, i) => {
             setTimeout(() => {
