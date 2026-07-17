@@ -151,12 +151,20 @@ class VdDriveLibController(http.Controller):
             groups.append({'name': 'Tất cả',
                            'files': sorted([fobj(f) for f in root_files],
                                            key=lambda x: x['name'].lower())})
-        for fo in top_folders:
+
+        # Quét MỌI thư mục cấp 1 SONG SONG (trước đây tuần tự → chậm: mỗi kho
+        # ~6-8 folder × Drive API = cộng dồn). Chỉ dùng `requests` + api_key trong
+        # thread (KHÔNG đụng request.env) nên an toàn. ex.map giữ đúng thứ tự.
+        def _one_group(fo):
             try:
                 allf = self._collect_all_files(fo['id'], api_key)
             except Exception:  # noqa: BLE001
                 allf = []
-            groups.append({'name': fo['name'], 'files': [fobj(f) for f in allf]})
+            return {'name': fo['name'], 'files': [fobj(f) for f in allf]}
+
+        if top_folders:
+            with ThreadPoolExecutor(max_workers=min(8, len(top_folders))) as ex:
+                groups.extend(ex.map(_one_group, top_folders))
         payload = {'groups': groups}
         _LIST_CACHE[root] = (time.time() + _CACHE_TTL, payload)
         return self._json(payload)

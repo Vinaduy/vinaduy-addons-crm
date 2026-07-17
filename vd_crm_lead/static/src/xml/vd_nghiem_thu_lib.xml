@@ -41,7 +41,7 @@
                                             <img t-att-src="thumb(f.id)" loading="lazy"/>
                                         </div>
                                         <div class="o_vd_dl_foot">
-                                            <span class="o_vd_dl_name" t-att-title="f.name"><t t-esc="f.name"/></span>
+                                            <span class="o_vd_dl_name" t-att-title="f.name"><t t-esc="displayName(f.name)"/></span>
                                             <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)"><i class="fa fa-download"/> Tải</a>
                                         </div>
                                     </div>
@@ -49,7 +49,7 @@
                                     <div t-else="" class="o_vd_dl_doc">
                                         <i t-attf-class="fa {{fileIcon(f)}} o_vd_dl_docmini"/>
                                         <span class="o_vd_dl_docname" t-att-title="f.name"
-                                              t-on-click="() => this.openFile(f.id)"><t t-esc="f.name"/></span>
+                                              t-on-click="() => this.openFile(f.id)"><t t-esc="displayName(f.name)"/></span>
                                         <a t-if="canCopy(f)" class="o_vd_dl_copybtn"
                                            t-att-href="copyUrl(f)" target="_blank"
                                            title="Tạo bản sao để điền (cần đăng nhập Google)">
@@ -64,14 +64,10 @@
                     </t>
                 </t>
             </div>
-            <t t-set-slot="footer">
-                <button class="btn btn-success o_vd_nt_dlall"
-                        t-att-disabled="allFiles.length ? undefined : 'disabled'"
-                        t-on-click="() => this.downloadAll()">
-                    <i class="fa fa-download me-1"/>Tải tất cả (<t t-esc="allFiles.length"/>)
-                </button>
-                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
-            </t>
+            <!-- Bỏ chân popup + 2 nút (user 2026-07-18): footer slot RỖNG để không
+                 hiện nút mặc định; SCSS ẩn hẳn .modal-footer của dialog này. Đóng
+                 bằng nút ✕ góc phải. -->
+            <t t-set-slot="footer"></t>
         </Dialog>
     </t>
 

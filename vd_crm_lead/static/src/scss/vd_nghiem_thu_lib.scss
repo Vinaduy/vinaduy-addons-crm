@@ -23,6 +23,8 @@
 // Popup TO 90% màn hình.
 .modal-dialog:has(.o_vd_nt_modal) { max-width: 92vw; width: 92vw; }
 .o_vd_nt_modal { max-height: 92vh; }
+// Bỏ chân popup (footer rỗng) — đóng bằng nút ✕ góc phải (user 2026-07-18).
+.modal:has(.o_vd_nt_modal) .modal-footer { display: none; }
 .o_vd_nt_wrap { display: flex; flex-direction: column; height: 84vh; overflow-y: auto; }
 // Nhóm (thư mục con)
 .o_vd_nt_group { margin-bottom: 14px; }

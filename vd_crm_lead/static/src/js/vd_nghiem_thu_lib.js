@@ -88,6 +88,11 @@ export class VdDriveLibDialog extends Component {
             + encodeURIComponent(target);
     }
 
+    // Tên hiển thị: bỏ đuôi file (.docx/.pdf/.xlsx…) cho gọn (user 2026-07-18).
+    displayName(name) {
+        return (name || "").replace(/\.[A-Za-z0-9]{2,5}$/, "");
+    }
+
     hasThumb(f) {
         const m = f.mime || "";
         return m.startsWith("video/") || m.startsWith("image/");
