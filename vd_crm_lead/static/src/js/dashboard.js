@@ -3391,16 +3391,25 @@ export class VdCrmDashboard extends Component {
     }
 
     // ===== 2 nút THƯ VIỆN nổi trên dashboard (trang khách hàng NV) =====
+    // Mở 1 popup THƯ VIỆN — KHÓA chống mở nhiều popup khi bấm liên tục / lúc đang
+    // tải chậm (user spec 2026-07-17: bấm nhiều lần rồi bung ra hàng loạt popup).
+    _openLibDialog(Comp, props) {
+        if (!Comp || this._libDialogOpen) return;
+        this._libDialogOpen = true;
+        this.dialog.add(Comp, props || {}, {
+            onClose: () => { this._libDialogOpen = false; },
+        });
+    }
     openHardLibrary() {
         const Comp = registry.category("vd_dialogs").get("hard_library", null);
         if (Comp) {
-            this.dialog.add(Comp, {});
+            this._openLibDialog(Comp);
         } else {
             this.notification.add("Chưa cài thư viện câu hỏi khó.", { type: "warning" });
         }
     }
     openHouseLibrary() {
-        this.dialog.add(VdHouseLibDialog, {});
+        this._openLibDialog(VdHouseLibDialog);
     }
     // 3 THƯ VIỆN tài liệu Drive — hiện trên DANH SÁCH khách (khi không mở preview).
     get driveLibs() {
@@ -3411,7 +3420,7 @@ export class VdCrmDashboard extends Component {
         ];
     }
     openDriveLib(lib) {
-        this.dialog.add(VdDriveLibDialog, { libKey: lib.key, libTitle: lib.title });
+        this._openLibDialog(VdDriveLibDialog, { libKey: lib.key, libTitle: lib.title });
     }
 
     bonusTier(n) {

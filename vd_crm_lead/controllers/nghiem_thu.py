@@ -21,6 +21,7 @@ YÊU CẦU: mỗi folder Drive phải share "Bất kỳ ai có đường liên k
 import json
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
 
 import requests
@@ -76,6 +77,37 @@ class VdDriveLibController(http.Controller):
         r.raise_for_status()
         return r.json().get('files', [])
 
+    def _safe_list(self, folder_id, api_key):
+        try:
+            return self._list_children(folder_id, api_key)
+        except Exception:  # noqa: BLE001
+            return []
+
+    def _collect_all_files(self, root_id, api_key, cap=300):
+        """Gom TẤT CẢ file dưới root (đệ quy) — quét thư mục con SONG SONG (nhanh).
+        cap = số thư mục tối đa quét (chống nổ). Lỗi root -> ném (route bắt)."""
+        root_children = self._list_children(root_id, api_key)  # có thể ném lỗi
+        files, queue, scanned = [], [], 0
+
+        def sort_children(children):
+            for c in children:
+                if c.get('mimeType') == _FOLDER_MIME:
+                    queue.append(c['id'])
+                else:
+                    files.append({'id': c['id'], 'name': c.get('name', ''),
+                                  'mime': c.get('mimeType', '')})
+
+        sort_children(root_children)
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            while queue and scanned < cap:
+                batch = queue[:8]
+                del queue[:8]
+                scanned += len(batch)
+                for children in ex.map(lambda fid: self._safe_list(fid, api_key), batch):
+                    sort_children(children)
+        files.sort(key=lambda f: (f.get('name') or '').lower())
+        return files
+
     def _json(self, payload, status=200):
         return request.make_response(
             json.dumps(payload),
@@ -86,35 +118,29 @@ class VdDriveLibController(http.Controller):
 
     # ---- routes ----------------------------------------------------------
     @http.route('/vd_drive_lib/list', type='http', auth='user', website=False)
-    def vd_drive_lib_list(self, key=None, folder=None, **kw):
-        """Liệt kê 1 THƯ MỤC (duyệt từng cấp — KHÔNG đệ quy) → nhanh, không treo
-        worker. folder rỗng = thư mục gốc của kho. Trả {folders, files, is_root}."""
+    def vd_drive_lib_list(self, key=None, **kw):
+        """Trả PHẲNG toàn bộ file trong kho (đệ quy mọi thư mục con, quét song
+        song). Có cache 10' → chỉ chậm lần đầu. Mỗi file: {id,name,mime}."""
         if key not in _LIB_FOLDERS:
             return self._json({'error': 'Kho không hợp lệ.'}, status=404)
         api_key = self._api_key()
         root = self._folder_id(key)
         if not (api_key and root):
             return self._json({'error': 'Chưa cấu hình API key hoặc folder.'})
-        fid = folder or root
-        # cache theo folder
-        hit = _LIST_CACHE.get(fid)
+        hit = _LIST_CACHE.get(root)
         if hit and hit[0] > time.time():
             return self._json(hit[1])
         try:
-            children = self._list_children(fid, api_key)
+            files = self._collect_all_files(root, api_key)
         except requests.HTTPError:
             return self._json({'error': 'Không đọc được thư mục Drive. Kiểm tra: '
                                'folder đã chia sẻ "ai có link → Người xem" và đã BẬT '
                                'Google Drive API.'})
         except Exception as e:  # noqa: BLE001
-            _logger.warning('Drive list lỗi (folder=%s): %s', fid, e)
+            _logger.warning('Drive list lỗi (key=%s): %s', key, e)
             return self._json({'error': 'Mạng tới Google chập chờn, thử lại sau ít giây.'})
-        folders = [{'id': c['id'], 'name': c['name']} for c in children
-                   if c.get('mimeType') == _FOLDER_MIME]
-        files = [{'id': c['id'], 'name': c['name']} for c in children
-                 if c.get('mimeType') != _FOLDER_MIME]
-        payload = {'folders': folders, 'files': files, 'is_root': fid == root}
-        _LIST_CACHE[fid] = (time.time() + _CACHE_TTL, payload)
+        payload = {'files': files}
+        _LIST_CACHE[root] = (time.time() + _CACHE_TTL, payload)
         return self._json(payload)
 
     @http.route('/vd_drive_lib/thumb', type='http', auth='user', website=False)

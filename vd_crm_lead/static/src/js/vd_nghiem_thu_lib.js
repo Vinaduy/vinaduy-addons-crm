@@ -1,9 +1,9 @@
 /** @odoo-module **/
 /**
- * THƯ VIỆN tài liệu (Hướng A+: Google Drive API) — DUYỆT theo thư mục.
- * 3 nút nổi. Popup duyệt từng thư mục (breadcrumb): bấm folder để vào, bấm Tải ở
- * từng file. Mỗi lần chỉ gọi 1 API (nhanh, không treo server). Thumbnail + tải đều
- * qua proxy SAME-ORIGIN (/vd_drive_lib/thumb, /dl) → sạch, ẩn Google, không đơ.
+ * THƯ VIỆN tài liệu (Hướng A+: Google Drive API) — hiện PHẲNG toàn bộ file.
+ * 3 nút nổi. Popup hiện lưới TẤT CẢ file trong kho (đệ quy mọi thư mục con, quét
+ * song song + cache ở server). Video có ảnh xem trước; tài liệu (pdf/word) dùng
+ * icon. Mỗi file 1 thẻ: tên + nút Tải cùng 1 dòng. Tải/thumb qua proxy same-origin.
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -27,31 +27,25 @@ export class VdDriveLibDialog extends Component {
     };
 
     setup() {
-        // stack = breadcrumb các thư mục con đã vào [{id,name}]; rỗng = gốc.
-        this.state = useState({
-            loading: true, error: "", folders: [], files: [], stack: [],
-        });
+        this.state = useState({ loading: true, error: "", files: [] });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
-        // Mở dialog HIỆN NGAY (spinner), tải nền — KHÔNG chặn mount (tránh treo).
-        this.load(null);
+        this.load();
     }
 
-    async load(folderId) {
+    async load() {
         this.state.loading = true;
         this.state.error = "";
         try {
-            const url = "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey)
-                + (folderId ? "&folder=" + encodeURIComponent(folderId) : "");
-            const resp = await fetch(url, { credentials: "same-origin" });
+            const resp = await fetch(
+                "/vd_drive_lib/list?key=" + encodeURIComponent(this.props.libKey),
+                { credentials: "same-origin" });
             const data = await resp.json();
             if (!this._alive) return;
             if (data.error) {
                 this.state.error = data.error;
-                this.state.folders = [];
                 this.state.files = [];
             } else {
-                this.state.folders = data.folders || [];
                 this.state.files = data.files || [];
             }
         } catch (e) {
@@ -62,21 +56,20 @@ export class VdDriveLibDialog extends Component {
         if (this._alive) this.state.loading = false;
     }
 
-    // Điều hướng thư mục
-    openFolder(f) {
-        this.state.stack.push({ id: f.id, name: f.name });
-        this.load(f.id);
+    hasThumb(f) {
+        const m = f.mime || "";
+        return m.startsWith("video/") || m.startsWith("image/");
     }
-    goRoot() {
-        this.state.stack = [];
-        this.load(null);
+    fileIcon(f) {
+        const m = f.mime || "";
+        if (m.startsWith("video/")) return "fa-file-video-o";
+        if (m.startsWith("image/")) return "fa-file-image-o";
+        if (m.includes("pdf")) return "fa-file-pdf-o";
+        if (m.includes("word") || m.includes("document")) return "fa-file-word-o";
+        if (m.includes("sheet") || m.includes("excel")) return "fa-file-excel-o";
+        if (m.includes("presentation") || m.includes("powerpoint")) return "fa-file-powerpoint-o";
+        return "fa-file-o";
     }
-    goCrumb(i) {
-        const c = this.state.stack[i];
-        this.state.stack = this.state.stack.slice(0, i + 1);
-        this.load(c.id);
-    }
-
     thumb(id) {
         return ("/vd_drive_lib/thumb?key=" + encodeURIComponent(this.props.libKey)
             + "&id=" + encodeURIComponent(id));
@@ -86,8 +79,6 @@ export class VdDriveLibDialog extends Component {
             + "&id=" + encodeURIComponent(id));
     }
 
-    // Tải TẤT CẢ file trong thư mục hiện tại (giãn nhịp; link same-origin nên
-    // thuộc tính download hoạt động).
     downloadAll() {
         const files = this.state.files || [];
         if (!files.length) return;
@@ -111,12 +102,17 @@ export class VdDriveLibsButton extends Component {
     setup() {
         this.dialog = useService("dialog");
         this.libs = VD_LIBS;
+        this._open = false;
     }
     get hidden() {
         return !!this.props.record.data.stage_is_won;
     }
     open(lib) {
-        this.dialog.add(VdDriveLibDialog, { libKey: lib.key, libTitle: lib.title });
+        if (this._open) return;   // chống mở nhiều popup
+        this._open = true;
+        this.dialog.add(VdDriveLibDialog,
+            { libKey: lib.key, libTitle: lib.title },
+            { onClose: () => { this._open = false; } });
     }
 }
 
