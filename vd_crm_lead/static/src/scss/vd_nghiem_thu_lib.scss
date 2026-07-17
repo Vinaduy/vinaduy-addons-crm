@@ -34,8 +34,8 @@
 .o_vd_nt_gcount { color: #adb5bd; font-weight: 700; margin-left: 4px; }
 // Thẻ TÀI LIỆU nhỏ ngang (~1cm x 5cm), bấm mở Google Docs
 .o_vd_dl_doc {
-    display: flex; align-items: center; gap: 8px; height: 46px;
-    border: 1px solid #e9ecef; border-radius: 8px; background: #fff; padding: 0 8px;
+    display: flex; align-items: center; gap: 8px; min-height: 48px;
+    border: 1px solid #e9ecef; border-radius: 8px; background: #fff; padding: 5px 9px;
     box-shadow: 0 1px 4px rgba(2,6,23,.04);
     &:hover { box-shadow: 0 4px 12px rgba(2,6,23,.10); }
 }
@@ -48,7 +48,9 @@
 .o_vd_dl_docmini.fa-file-o { color: #868e96; }
 .o_vd_dl_docname {
     flex: 1 1 auto; min-width: 0; cursor: pointer;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    // Cho tên xuống tối đa 2 dòng (không cắt cụt 1 dòng) — hết bị che chữ
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis; line-height: 1.25;
     font-size: 12.5px; font-weight: 700; color: #1971c2;
     &:hover { text-decoration: underline; }
 }
@@ -65,10 +67,11 @@
 }
 // Nút "Tạo bản sao" (tài liệu Word/Excel/PowerPoint) — thay nút Tải
 .o_vd_dl_copybtn {
-    flex: 0 0 auto; padding: 5px 9px; border-radius: 6px;
+    flex: 0 0 auto; padding: 3px 7px; border-radius: 5px;
     background: linear-gradient(135deg, #4dabf7, #1c7ed6); color: #fff !important;
-    text-decoration: none; font-size: 11.5px; font-weight: 700; white-space: nowrap;
-    display: inline-flex; align-items: center;
+    text-decoration: none; font-size: 10px; font-weight: 700; white-space: nowrap;
+    display: inline-flex; align-items: center; line-height: 1.3;
+    .fa { font-size: 10px; }
     &:hover { background: linear-gradient(135deg, #339af0, #1971c2); }
 }
 .o_vd_nt_hint {
@@ -84,7 +87,7 @@
 // Lưới file PHẲNG — thẻ GỌN (tên + Tải cùng dòng), dồn lên trên, hiện 4-5 hàng
 .o_vd_nt_grid {
     display: grid; gap: 12px;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     align-content: start;   // KHÔNG giãn hàng -> dồn lên trên, hết khoảng trắng
     padding: 2px 2px 4px;
 }
