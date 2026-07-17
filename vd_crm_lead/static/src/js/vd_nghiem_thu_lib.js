@@ -27,7 +27,7 @@ export class VdDriveLibDialog extends Component {
     };
 
     setup() {
-        this.state = useState({ loading: true, error: "", files: [] });
+        this.state = useState({ loading: true, error: "", groups: [] });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
         this.load();
@@ -44,9 +44,9 @@ export class VdDriveLibDialog extends Component {
             if (!this._alive) return;
             if (data.error) {
                 this.state.error = data.error;
-                this.state.files = [];
+                this.state.groups = [];
             } else {
-                this.state.files = data.files || [];
+                this.state.groups = data.groups || [];
             }
         } catch (e) {
             if (!this._alive) return;
@@ -54,6 +54,17 @@ export class VdDriveLibDialog extends Component {
             this.state.error = "Không tải được danh sách tài liệu.";
         }
         if (this._alive) this.state.loading = false;
+    }
+
+    get allFiles() {
+        return (this.state.groups || []).flatMap((g) => g.files || []);
+    }
+    // File cần xem trước (video/ảnh) -> thẻ có thumbnail; còn lại là tài liệu.
+    openUrl(id) {
+        return "https://drive.google.com/file/d/" + id + "/view";
+    }
+    openFile(id) {
+        window.open(this.openUrl(id), "_blank", "noopener");
     }
 
     hasThumb(f) {
@@ -80,7 +91,7 @@ export class VdDriveLibDialog extends Component {
     }
 
     downloadAll() {
-        const files = this.state.files || [];
+        const files = this.allFiles;
         if (!files.length) return;
         files.forEach((f, i) => {
             setTimeout(() => {

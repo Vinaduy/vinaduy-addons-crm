@@ -119,8 +119,8 @@ class VdDriveLibController(http.Controller):
     # ---- routes ----------------------------------------------------------
     @http.route('/vd_drive_lib/list', type='http', auth='user', website=False)
     def vd_drive_lib_list(self, key=None, **kw):
-        """Trả PHẲNG toàn bộ file trong kho (đệ quy mọi thư mục con, quét song
-        song). Có cache 10' → chỉ chậm lần đầu. Mỗi file: {id,name,mime}."""
+        """Trả file theo NHÓM = thư mục con cấp 1. Mỗi nhóm gom hết file bên trong
+        (đệ quy, quét song song). Cache 10'. Mỗi file: {id,name,mime}."""
         if key not in _LIB_FOLDERS:
             return self._json({'error': 'Kho không hợp lệ.'}, status=404)
         api_key = self._api_key()
@@ -131,7 +131,7 @@ class VdDriveLibController(http.Controller):
         if hit and hit[0] > time.time():
             return self._json(hit[1])
         try:
-            files = self._collect_all_files(root, api_key)
+            root_children = self._list_children(root, api_key)
         except requests.HTTPError:
             return self._json({'error': 'Không đọc được thư mục Drive. Kiểm tra: '
                                'folder đã chia sẻ "ai có link → Người xem" và đã BẬT '
@@ -139,7 +139,25 @@ class VdDriveLibController(http.Controller):
         except Exception as e:  # noqa: BLE001
             _logger.warning('Drive list lỗi (key=%s): %s', key, e)
             return self._json({'error': 'Mạng tới Google chập chờn, thử lại sau ít giây.'})
-        payload = {'files': files}
+
+        def fobj(f):
+            return {'id': f['id'], 'name': f.get('name', ''),
+                    'mime': f.get('mime') or f.get('mimeType', '')}
+
+        top_folders = [c for c in root_children if c.get('mimeType') == _FOLDER_MIME]
+        root_files = [c for c in root_children if c.get('mimeType') != _FOLDER_MIME]
+        groups = []
+        if root_files:
+            groups.append({'name': 'Tất cả',
+                           'files': sorted([fobj(f) for f in root_files],
+                                           key=lambda x: x['name'].lower())})
+        for fo in top_folders:
+            try:
+                allf = self._collect_all_files(fo['id'], api_key)
+            except Exception:  # noqa: BLE001
+                allf = []
+            groups.append({'name': fo['name'], 'files': [fobj(f) for f in allf]})
+        payload = {'groups': groups}
         _LIST_CACHE[root] = (time.time() + _CACHE_TTL, payload)
         return self._json(payload)
 

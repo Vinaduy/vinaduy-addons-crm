@@ -23,7 +23,46 @@
 // Popup TO 90% màn hình.
 .modal-dialog:has(.o_vd_nt_modal) { max-width: 92vw; width: 92vw; }
 .o_vd_nt_modal { max-height: 92vh; }
-.o_vd_nt_wrap { display: flex; flex-direction: column; height: 84vh; }
+.o_vd_nt_wrap { display: flex; flex-direction: column; height: 84vh; overflow-y: auto; }
+// Nhóm (thư mục con)
+.o_vd_nt_group { margin-bottom: 14px; }
+.o_vd_nt_grouphead {
+    font-size: 14px; font-weight: 800; color: #343a40;
+    padding: 6px 4px; border-bottom: 2px solid #f1f3f5; margin-bottom: 8px;
+    position: sticky; top: 0; background: #fff; z-index: 2;
+}
+.o_vd_nt_gcount { color: #adb5bd; font-weight: 700; margin-left: 4px; }
+// Thẻ TÀI LIỆU nhỏ ngang (~1cm x 5cm), bấm mở Google Docs
+.o_vd_dl_doc {
+    display: flex; align-items: center; gap: 8px; height: 46px;
+    border: 1px solid #e9ecef; border-radius: 8px; background: #fff; padding: 0 8px;
+    box-shadow: 0 1px 4px rgba(2,6,23,.04);
+    &:hover { box-shadow: 0 4px 12px rgba(2,6,23,.10); }
+}
+.o_vd_dl_docmini { flex: 0 0 auto; font-size: 1.55rem; }
+.o_vd_dl_docmini.fa-file-pdf-o { color: #e03131; }
+.o_vd_dl_docmini.fa-file-word-o { color: #1971c2; }
+.o_vd_dl_docmini.fa-file-excel-o { color: #2f9e44; }
+.o_vd_dl_docmini.fa-file-powerpoint-o { color: #e8590c; }
+.o_vd_dl_docmini.fa-file-image-o { color: #ae3ec9; }
+.o_vd_dl_docmini.fa-file-o { color: #868e96; }
+.o_vd_dl_docname {
+    flex: 1 1 auto; min-width: 0; cursor: pointer;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 12.5px; font-weight: 700; color: #1971c2;
+    &:hover { text-decoration: underline; }
+}
+.o_vd_dl_openbtn {
+    flex: 0 0 auto; color: #495057; padding: 5px 7px; border-radius: 6px;
+    text-decoration: none;
+    &:hover { background: #e7f5ff; color: #1971c2; }
+}
+.o_vd_dl_dlmini {
+    flex: 0 0 auto; padding: 5px 8px; border-radius: 6px;
+    background: linear-gradient(135deg, #12b886, #099268); color: #fff !important;
+    text-decoration: none; font-size: 12px;
+    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); }
+}
 .o_vd_nt_hint {
     padding: 8px 12px; font-size: 13px; color: #495057;
     background: #fff4e6; border: 1px solid #ffe8cc; border-radius: 8px; margin-bottom: 8px;
@@ -36,10 +75,10 @@
 
 // Lưới file PHẲNG — thẻ GỌN (tên + Tải cùng dòng), dồn lên trên, hiện 4-5 hàng
 .o_vd_nt_grid {
-    flex: 1 1 auto; overflow-y: auto; display: grid; gap: 12px;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     align-content: start;   // KHÔNG giãn hàng -> dồn lên trên, hết khoảng trắng
-    padding: 2px 2px 8px;
+    padding: 2px 2px 4px;
 }
 .o_vd_dl_card {
     border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden;

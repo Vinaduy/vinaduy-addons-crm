@@ -24,30 +24,48 @@
                 <div t-elif="state.error" class="o_vd_nt_err">
                     <i class="fa fa-exclamation-triangle me-1"/><t t-esc="state.error"/>
                 </div>
-                <div t-elif="!state.files.length" class="o_vd_nt_center">Chưa có tài liệu.</div>
-                <div t-else="" class="o_vd_nt_grid">
-                    <div t-foreach="state.files" t-as="f" t-key="f.id" class="o_vd_dl_card">
-                        <div class="o_vd_dl_thumb">
-                            <t t-if="hasThumb(f)">
-                                <i t-attf-class="fa {{fileIcon(f)}} o_vd_dl_fallico"/>
-                                <img t-att-src="thumb(f.id)" loading="lazy"/>
-                            </t>
-                            <i t-else="" t-attf-class="fa {{fileIcon(f)}} o_vd_dl_docico"/>
+                <div t-elif="!allFiles.length" class="o_vd_nt_center">Chưa có tài liệu.</div>
+                <t t-else="">
+                    <t t-foreach="state.groups" t-as="g" t-key="g_index">
+                        <div t-if="g.files.length" class="o_vd_nt_group">
+                            <div class="o_vd_nt_grouphead">
+                                <i class="fa fa-folder-open me-1"/><t t-esc="g.name"/>
+                                <span class="o_vd_nt_gcount">(<t t-esc="g.files.length"/>)</span>
+                            </div>
+                            <div class="o_vd_nt_grid">
+                                <t t-foreach="g.files" t-as="f" t-key="f.id">
+                                    <!-- VIDEO/ẢNH: thẻ có ảnh xem trước -->
+                                    <div t-if="hasThumb(f)" class="o_vd_dl_card">
+                                        <div class="o_vd_dl_thumb" t-on-click="() => this.openFile(f.id)">
+                                            <i t-attf-class="fa {{fileIcon(f)}} o_vd_dl_fallico"/>
+                                            <img t-att-src="thumb(f.id)" loading="lazy"/>
+                                        </div>
+                                        <div class="o_vd_dl_foot">
+                                            <span class="o_vd_dl_name" t-att-title="f.name"><t t-esc="f.name"/></span>
+                                            <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)"><i class="fa fa-download"/> Tải</a>
+                                        </div>
+                                    </div>
+                                    <!-- TÀI LIỆU: thẻ NHỎ ngang, bấm mở Google Docs -->
+                                    <div t-else="" class="o_vd_dl_doc">
+                                        <i t-attf-class="fa {{fileIcon(f)}} o_vd_dl_docmini"/>
+                                        <span class="o_vd_dl_docname" t-att-title="f.name"
+                                              t-on-click="() => this.openFile(f.id)"><t t-esc="f.name"/></span>
+                                        <a class="o_vd_dl_openbtn" t-att-href="openUrl(f.id)" target="_blank"
+                                           title="Mở / xem trên Google Docs"><i class="fa fa-external-link"/></a>
+                                        <a class="o_vd_dl_dlmini" t-att-href="dlUrl(f.id)"
+                                           title="Tải về máy"><i class="fa fa-download"/></a>
+                                    </div>
+                                </t>
+                            </div>
                         </div>
-                        <div class="o_vd_dl_foot">
-                            <span class="o_vd_dl_name" t-att-title="f.name"><t t-esc="f.name"/></span>
-                            <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)">
-                                <i class="fa fa-download"/> Tải
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                    </t>
+                </t>
             </div>
             <t t-set-slot="footer">
                 <button class="btn btn-success o_vd_nt_dlall"
-                        t-att-disabled="state.files.length ? undefined : 'disabled'"
+                        t-att-disabled="allFiles.length ? undefined : 'disabled'"
                         t-on-click="() => this.downloadAll()">
-                    <i class="fa fa-download me-1"/>Tải tất cả (<t t-esc="state.files.length"/>)
+                    <i class="fa fa-download me-1"/>Tải tất cả (<t t-esc="allFiles.length"/>)
                 </button>
                 <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
             </t>
