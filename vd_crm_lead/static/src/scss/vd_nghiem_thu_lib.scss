@@ -26,6 +26,31 @@
 // Bỏ chân popup (footer rỗng) — đóng bằng nút ✕ góc phải (user 2026-07-18).
 .modal:has(.o_vd_nt_modal) .modal-footer { display: none; }
 .o_vd_nt_wrap { display: flex; flex-direction: column; height: 84vh; overflow-y: auto; }
+// BỘ LỌC (Công năng 3D): hàng chip số tầng + mặt tiền
+.o_vd_nt_filters {
+    position: sticky; top: 0; z-index: 5;
+    background: #fff; padding: 8px 4px 10px; margin-bottom: 6px;
+    border-bottom: 2px solid #f1f3f5;
+}
+.o_vd_nt_frow {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    & + & { margin-top: 7px; }
+}
+.o_vd_nt_flabel {
+    flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: #495057;
+    margin-right: 4px; min-width: 78px;
+}
+.o_vd_nt_fchip {
+    border: 1px solid #ced4da; background: #f8f9fa; color: #495057;
+    border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 700;
+    cursor: pointer; line-height: 1.4; transition: all .12s;
+    &:hover { border-color: #74c0fc; background: #e7f5ff; }
+    &.o_active {
+        border-color: #1c7ed6; color: #fff;
+        background: linear-gradient(135deg, #4dabf7, #1c7ed6);
+        box-shadow: 0 2px 6px rgba(28, 126, 214, .35);
+    }
+}
 // Nhóm (thư mục con)
 .o_vd_nt_group { margin-bottom: 14px; }
 .o_vd_nt_grouphead {

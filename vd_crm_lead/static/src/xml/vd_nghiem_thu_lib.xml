@@ -26,7 +26,29 @@
                 </div>
                 <div t-elif="!allFiles.length" class="o_vd_nt_center">Chưa có tài liệu.</div>
                 <t t-else="">
-                    <t t-foreach="state.groups" t-as="g" t-key="g_index">
+                    <!-- BỘ LỌC (Công năng 3D): theo số tầng + mặt tiền -->
+                    <div t-if="showFilters" class="o_vd_nt_filters">
+                        <div class="o_vd_nt_frow">
+                            <span class="o_vd_nt_flabel">🏢 Số tầng:</span>
+                            <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === null}"
+                                    t-on-click="() => this.setFloors(null)">Tất cả</button>
+                            <t t-foreach="floorsList" t-as="v" t-key="v">
+                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === v}"
+                                        t-on-click="() => this.setFloors(v)"><t t-esc="floorLabel(v)"/></button>
+                            </t>
+                        </div>
+                        <div class="o_vd_nt_frow">
+                            <span class="o_vd_nt_flabel">📐 Mặt tiền:</span>
+                            <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === null}"
+                                    t-on-click="() => this.setFront(null)">Tất cả</button>
+                            <t t-foreach="frontList" t-as="v" t-key="v">
+                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === v}"
+                                        t-on-click="() => this.setFront(v)"><t t-esc="v"/>m</button>
+                            </t>
+                        </div>
+                    </div>
+                    <div t-if="filteredEmpty" class="o_vd_nt_center">Không có bản vẽ khớp bộ lọc.</div>
+                    <t t-foreach="displayGroups" t-as="g" t-key="g_index">
                         <div t-if="g.files.length" class="o_vd_nt_group">
                             <div class="o_vd_nt_grouphead">
                                 <i class="fa fa-folder-open me-1"/><t t-esc="g.name"/>

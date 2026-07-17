@@ -63,7 +63,10 @@ class VdDriveLibController(http.Controller):
 
     def _list_children(self, folder_id, api_key):
         """Liệt kê con TRỰC TIẾP của 1 folder (cả file + thư mục con). 1 API call,
-        timeout ngắn để KHÔNG giữ worker lâu (tránh treo cả server)."""
+        timeout ngắn để KHÔNG giữ worker lâu (tránh treo cả server). RETRY khi
+        Google giới hạn tốc độ (403 rateLimit / 429 / 5xx) — vì quét SONG SONG
+        nhiều folder dễ dính rate-limit tạm → nếu không thử lại thì 1 nhóm sẽ trả
+        rỗng và BỊ ẨN (vd 'PLVT Miền Nam' biến mất)."""
         params = {
             'q': "'%s' in parents and trashed=false" % folder_id,
             'key': api_key,
@@ -73,9 +76,21 @@ class VdDriveLibController(http.Controller):
             'supportsAllDrives': 'true',
             'includeItemsFromAllDrives': 'true',
         }
-        r = requests.get(_DRIVE_API, params=params, timeout=12)
-        r.raise_for_status()
-        return r.json().get('files', [])
+        last_exc = None
+        for attempt in range(4):
+            r = requests.get(_DRIVE_API, params=params, timeout=12)
+            # 429/5xx = transient; 403 rateLimit cũng transient (khác 403 quyền).
+            transient = r.status_code in (429, 500, 502, 503) or (
+                r.status_code == 403 and 'ratelimit' in (r.text or '').lower())
+            if transient:
+                last_exc = requests.HTTPError('%s rate/transient' % r.status_code)
+                time.sleep(0.4 * (attempt + 1))
+                continue
+            r.raise_for_status()
+            return r.json().get('files', [])
+        if last_exc:
+            raise last_exc
+        return []
 
     def _safe_list(self, folder_id, api_key):
         try:

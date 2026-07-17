@@ -27,10 +27,67 @@ export class VdDriveLibDialog extends Component {
     };
 
     setup() {
-        this.state = useState({ loading: true, error: "", groups: [] });
+        this.state = useState({
+            loading: true, error: "", groups: [],
+            fFloors: null, fFront: null,   // bộ lọc số tầng / mặt tiền (Công năng)
+        });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
         this.load();
+    }
+
+    // ===== BỘ LỌC (chỉ kho Công năng 3D) — parse tên file "2.5T - 5x13 - TH002" =====
+    get showFilters() {
+        return this.props.libKey === "cong_nang_3d";
+    }
+    // Số tầng: token đầu "4,5T" / "2.5T" / "1T" → 4.5 / 2.5 / 1.
+    parseFloors(name) {
+        const m = (name || "").match(/(\d+(?:[.,]\d+)?)\s*T\b/i);
+        return m ? parseFloat(m[1].replace(",", ".")) : null;
+    }
+    // Mặt tiền: số trước dấu "x" trong "5x13" / "10.4x11.5" → làm tròn xuống mét.
+    parseFront(name) {
+        const m = (name || "").match(/(\d+(?:[.,]\d+)?)\s*[xX]\s*\d/);
+        return m ? Math.floor(parseFloat(m[1].replace(",", "."))) : null;
+    }
+    get floorsList() {
+        const s = new Set();
+        for (const f of this.allFiles) {
+            const v = this.parseFloors(f.name);
+            if (v !== null) s.add(v);
+        }
+        return [...s].sort((a, b) => a - b);
+    }
+    get frontList() {
+        const s = new Set();
+        for (const f of this.allFiles) {
+            const v = this.parseFront(f.name);
+            if (v !== null) s.add(v);
+        }
+        return [...s].sort((a, b) => a - b);
+    }
+    floorLabel(v) {
+        return String(v).replace(".", ",") + " tầng";
+    }
+    setFloors(v) { this.state.fFloors = (this.state.fFloors === v) ? null : v; }
+    setFront(v) { this.state.fFront = (this.state.fFront === v) ? null : v; }
+    // Nhóm đã áp bộ lọc để render.
+    get displayGroups() {
+        const ff = this.state.fFloors, fr = this.state.fFront;
+        if (!this.showFilters || (ff === null && fr === null)) return this.state.groups;
+        return (this.state.groups || []).map((g) => ({
+            name: g.name,
+            files: (g.files || []).filter((f) => {
+                if (ff !== null && this.parseFloors(f.name) !== ff) return false;
+                if (fr !== null && this.parseFront(f.name) !== fr) return false;
+                return true;
+            }),
+        }));
+    }
+    get filteredEmpty() {
+        return this.showFilters
+            && (this.state.fFloors !== null || this.state.fFront !== null)
+            && !this.displayGroups.some((g) => (g.files || []).length);
     }
 
     async load() {
