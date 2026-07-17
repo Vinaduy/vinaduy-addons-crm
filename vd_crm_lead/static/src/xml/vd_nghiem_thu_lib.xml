@@ -45,14 +45,17 @@
                                             <a class="o_vd_dl_btn" t-att-href="dlUrl(f.id)"><i class="fa fa-download"/> Tải</a>
                                         </div>
                                     </div>
-                                    <!-- TÀI LIỆU: thẻ NHỎ ngang, bấm mở Google Docs -->
+                                    <!-- TÀI LIỆU: thẻ NHỎ ngang; bấm tên = mở xem; nút chính = Tạo bản sao -->
                                     <div t-else="" class="o_vd_dl_doc">
                                         <i t-attf-class="fa {{fileIcon(f)}} o_vd_dl_docmini"/>
                                         <span class="o_vd_dl_docname" t-att-title="f.name"
                                               t-on-click="() => this.openFile(f.id)"><t t-esc="f.name"/></span>
-                                        <a class="o_vd_dl_openbtn" t-att-href="openUrl(f.id)" target="_blank"
-                                           title="Mở / xem trên Google Docs"><i class="fa fa-external-link"/></a>
-                                        <a class="o_vd_dl_dlmini" t-att-href="dlUrl(f.id)"
+                                        <a t-if="canCopy(f)" class="o_vd_dl_copybtn"
+                                           t-att-href="copyUrl(f)" target="_blank"
+                                           title="Tạo bản sao để điền (cần đăng nhập Google)">
+                                            <i class="fa fa-copy me-1"/>Tạo bản sao
+                                        </a>
+                                        <a t-else="" class="o_vd_dl_dlmini" t-att-href="dlUrl(f.id)"
                                            title="Tải về máy"><i class="fa fa-download"/></a>
                                     </div>
                                 </t>

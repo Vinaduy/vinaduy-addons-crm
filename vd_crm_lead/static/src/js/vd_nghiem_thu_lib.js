@@ -67,6 +67,27 @@ export class VdDriveLibDialog extends Component {
         window.open(this.openUrl(id), "_blank", "noopener");
     }
 
+    // Loại tài liệu Google có thể "Tạo bản sao" để điền (Word/Excel/PowerPoint/GDoc).
+    docKind(f) {
+        const m = f.mime || "";
+        if (m.includes("presentation")) return "presentation";
+        if (m.includes("spreadsheet") || m.includes("excel")) return "spreadsheets";
+        if (m.includes("wordprocessing") || m.includes("vnd.google-apps.document")) return "document";
+        return null;
+    }
+    canCopy(f) {
+        return !!this.docKind(f);
+    }
+    // URL "Tạo bản sao": ÉP qua màn đăng nhập/chọn tài khoản Google rồi tới lệnh
+    // /copy (bản sao vào Drive cá nhân của NV -> mỗi NV 1 bản, không đụng bản gốc).
+    copyUrl(f) {
+        const kind = this.docKind(f);
+        if (!kind) return "";
+        const target = "https://docs.google.com/" + kind + "/d/" + f.id + "/copy";
+        return "https://accounts.google.com/AccountChooser?continue="
+            + encodeURIComponent(target);
+    }
+
     hasThumb(f) {
         const m = f.mime || "";
         return m.startsWith("video/") || m.startsWith("image/");
