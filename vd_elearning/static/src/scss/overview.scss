@@ -54,6 +54,16 @@ $vd-line:   #ece7da;
         &:hover { border-color: $vd-gold-d; }
         &:focus { outline: none; border-color: $vd-gold-d; }
     }
+    // Nút THÊM NHÂN VIÊN hiện rõ trên thanh tab (user 2026-07-20).
+    .o_vd_addemp_btn {
+        flex: 0 0 auto; white-space: nowrap; border: 0; cursor: pointer;
+        color: #fff; font-weight: 800; font-size: .8rem; letter-spacing: .02em;
+        padding: .55rem 1.1rem; border-radius: 10px;
+        background: linear-gradient(135deg, #17b978, #0f9d63);
+        box-shadow: 0 6px 14px rgba(15, 157, 99, .3);
+        transition: all .16s ease;
+        &:hover { background: linear-gradient(135deg, #12a86b, #0b8a55); box-shadow: 0 8px 18px rgba(15, 157, 99, .42); }
+    }
 
     // ---------------- KHUNG THE ----------------
     .o_vd_card {
@@ -639,6 +649,72 @@ $vd-line2:   #ece7da;
         &.o_vd_hist_b_done { background: rgba(46, 155, 84, .15); color: #1f7d41; }
         &.o_vd_hist_b_fail { background: rgba(224, 49, 49, .12); color: #c92a2a; }
         &.o_vd_hist_b_pending { background: #efece2; color: #8a8472; }
+    }
+
+    // ===== BẢNG THÀNH TÍCH (redesign 2026-07-20): huy chương + bảng sang =====
+    .o_vd_ach_box {
+        border: 1px solid $vd-line2; border-radius: 16px; overflow: hidden;
+        background: #fff; box-shadow: 0 8px 24px rgba($vd-ink, .07);
+    }
+    .o_vd_ach_head {
+        display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+        padding: .85rem 1.1rem;
+        background: linear-gradient(120deg, #2b3350 0%, #3a4670 60%, #4b3fa0 100%);
+        color: #fff;
+        .o_vd_ach_title { font-weight: 900; font-size: .95rem; letter-spacing: .04em;
+            i { color: #ffd451; } }
+        .o_vd_ach_medals { margin-left: auto; display: flex; gap: .45rem; flex-wrap: wrap; }
+        .o_vd_ach_m {
+            display: inline-flex; align-items: center; gap: .28rem;
+            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+            padding: .2rem .6rem; border-radius: 999px; font-size: .82rem; font-weight: 800;
+            b { font-size: .92rem; }
+        }
+        .o_vd_ach_pass { background: rgba(46,204,113,.24); border-color: rgba(46,204,113,.4);
+            i { color: #74f7a8; } }
+    }
+    .o_vd_ach_tbl {
+        width: 100%; border-collapse: collapse; font-size: .82rem;
+        thead th {
+            text-align: left; color: #8a8472; font-weight: 800; font-size: .72rem;
+            text-transform: uppercase; letter-spacing: .03em;
+            padding: .55rem .7rem; background: #faf8f1; border-bottom: 2px solid $vd-line2;
+            white-space: nowrap;
+        }
+        td { padding: .5rem .7rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink2; vertical-align: middle; }
+        tbody tr:hover td { background: rgba($vd-gold, .06); }
+        tbody tr:last-child td { border-bottom: 0; }
+        .o_vd_ach_c_medal { width: 58px; text-align: center; }
+        .o_vd_ach_c_num { width: 74px; text-align: center; white-space: nowrap; }
+        .o_vd_ach_c_date { width: 110px; color: #8a8472; white-space: nowrap; font-weight: 600; }
+        .o_vd_ach_c_name b { color: $vd-ink; font-weight: 800; }
+        .o_vd_ach_best { color: #1f7d41; font-weight: 800; }
+        // hàng chưa đạt: mờ + nền đỏ nhạt
+        tr.o_vd_ach_row_fail td { color: #b0a99a; background: rgba(224,49,49,.03); }
+        // viền trái theo hạng huy chương
+        tr.o_vd_ach_gold td:first-child { box-shadow: inset 4px 0 0 #f5b301; }
+        tr.o_vd_ach_silver td:first-child { box-shadow: inset 4px 0 0 #9aa7b4; }
+        tr.o_vd_ach_bronze td:first-child { box-shadow: inset 4px 0 0 #cd7f32; }
+    }
+    .o_vd_ach_badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 50%; font-size: 1.15rem;
+        box-shadow: 0 2px 6px rgba($vd-ink, .18);
+        &.o_vd_ach_b_gold { background: radial-gradient(circle at 35% 30%, #fff3c4, #f5b301); }
+        &.o_vd_ach_b_silver { background: radial-gradient(circle at 35% 30%, #ffffff, #c4ccd6); }
+        &.o_vd_ach_b_bronze { background: radial-gradient(circle at 35% 30%, #f0cba0, #cd7f32); }
+        &.o_vd_ach_b_none { background: #efece2; color: #b0a99a; font-size: 1rem; font-weight: 900; box-shadow: none; }
+    }
+    .o_vd_ach_result {
+        display: inline-flex; align-items: center; font-size: .74rem; font-weight: 800;
+        padding: .18rem .6rem; border-radius: 999px; white-space: nowrap;
+        &.o_vd_ach_r_done { background: rgba(46, 155, 84, .15); color: #1f7d41; }
+        &.o_vd_ach_r_fail { background: rgba(224, 49, 49, .12); color: #c92a2a; }
+    }
+    .o_vd_ach_att {
+        display: inline-flex; align-items: center; justify-content: center; min-width: 22px;
+        padding: .05rem .35rem; border-radius: 6px; background: #efece2;
+        color: #6b6452; font-weight: 800; font-size: .74rem;
     }
 }
 

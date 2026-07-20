@@ -1437,6 +1437,30 @@ export class VdElearningOverview extends Component {
         }
     }
 
+    // Huy chương theo ĐIỂM CAO NHẤT (chỉ khi ĐÃ ĐẠT): 100% Vàng, >=90% Bạc,
+    // còn lại Đồng. Chưa đạt -> không huy chương.
+    examMedal(ex) {
+        if (!ex || !ex.passed) return null;
+        const p = ex.best_percent || 0;
+        if (p >= 100) return { emoji: "🥇", cls: "gold", label: "Vàng" };
+        if (p >= 90) return { emoji: "🥈", cls: "silver", label: "Bạc" };
+        return { emoji: "🥉", cls: "bronze", label: "Đồng" };
+    }
+    // Tổng huy chương + số khóa đạt/chưa đạt cho phần đầu bảng thành tích.
+    get examMedals() {
+        const h = (this.state.selectedEmp && this.state.selectedEmp.examHistory) || [];
+        let gold = 0, silver = 0, bronze = 0, passed = 0;
+        for (const ex of h) {
+            const m = this.examMedal(ex);
+            if (!m) continue;
+            passed += 1;
+            if (m.cls === "gold") gold += 1;
+            else if (m.cls === "silver") silver += 1;
+            else bronze += 1;
+        }
+        return { gold, silver, bronze, passed, total: h.length };
+    }
+
     // epoch ms -> "HH:MM DD/MM" (gio dia phuong) cho bang lich su thi NV.
     examWhen(ts) {
         if (!ts) return "-";

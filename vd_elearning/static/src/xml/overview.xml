@@ -781,33 +781,50 @@
                     </div>
 
                     <!-- LICH SU THI cua NV (ben vung - khong mat khi gan lai lo trinh) -->
-                    <div class="o_vd_hist_box" style="margin-top:18px;">
-                        <div class="o_vd_hist_head">
-                            <i class="fa fa-history me-1"/>LỊCH SỬ THI
-                            <span class="o_vd_hist_count">
-                                <b t-esc="(state.selectedEmp.examHistory || []).length"/> khóa đã thi
-                            </span>
+                    <div class="o_vd_ach_box" style="margin-top:18px;">
+                        <!-- BẢNG THÀNH TÍCH (redesign 2026-07-20): huy chương theo điểm -->
+                        <div class="o_vd_ach_head">
+                            <div class="o_vd_ach_title"><i class="fa fa-trophy me-2"/>BẢNG THÀNH TÍCH</div>
+                            <div class="o_vd_ach_medals">
+                                <span class="o_vd_ach_m o_vd_ach_gold" title="Đạt 100%">🥇 <b t-esc="examMedals.gold"/></span>
+                                <span class="o_vd_ach_m o_vd_ach_silver" title="Đạt 90-99%">🥈 <b t-esc="examMedals.silver"/></span>
+                                <span class="o_vd_ach_m o_vd_ach_bronze" title="Đạt (dưới 90%)">🥉 <b t-esc="examMedals.bronze"/></span>
+                                <span class="o_vd_ach_m o_vd_ach_pass" title="Số khóa đã đạt / đã thi"><i class="fa fa-check"/> <b t-esc="examMedals.passed"/>/<t t-esc="examMedals.total"/></span>
+                            </div>
                         </div>
-                        <table class="o_vd_hist_tbl">
+                        <table class="o_vd_ach_tbl">
                             <thead>
-                                <tr><th>Khóa học</th><th>Kết quả</th><th>Điểm</th><th>Cao nhất</th><th>Số lần</th><th>Lần thi gần nhất</th></tr>
+                                <tr>
+                                    <th class="o_vd_ach_c_medal">Hạng</th>
+                                    <th class="o_vd_ach_c_name">Khóa học</th>
+                                    <th>Kết quả</th>
+                                    <th class="o_vd_ach_c_num">Điểm</th>
+                                    <th class="o_vd_ach_c_num">Cao nhất</th>
+                                    <th class="o_vd_ach_c_num">Số lần</th>
+                                    <th class="o_vd_ach_c_date">Lần thi gần nhất</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="state.selectedEmp.examHistory || []" t-as="ex" t-key="ex.channel_id || ex_index">
-                                    <tr t-attf-class="{{ex.passed ? 'o_vd_hist_done' : 'o_vd_hist_pending'}}">
-                                        <td><b t-esc="ex.course_name"/></td>
-                                        <td>
-                                            <span t-if="ex.passed" class="o_vd_hist_badge o_vd_hist_b_done"><i class="fa fa-check me-1"/>Đã thi đạt</span>
-                                            <span t-else="" class="o_vd_hist_badge o_vd_hist_b_fail"><i class="fa fa-times me-1"/>Thi chưa đạt</span>
+                                    <t t-set="medal" t-value="examMedal(ex)"/>
+                                    <tr t-attf-class="{{ex.passed ? 'o_vd_ach_row_done' : 'o_vd_ach_row_fail'}} {{medal ? 'o_vd_ach_'+medal.cls : ''}}">
+                                        <td class="o_vd_ach_c_medal">
+                                            <span t-if="medal" t-attf-class="o_vd_ach_badge o_vd_ach_b_{{medal.cls}}" t-att-title="'Huy chương ' + medal.label"><t t-esc="medal.emoji"/></span>
+                                            <span t-else="" class="o_vd_ach_badge o_vd_ach_b_none" title="Chưa đạt">—</span>
                                         </td>
-                                        <td><b t-esc="ex.percent"/>%</td>
-                                        <td t-esc="ex.best_percent + '%'"/>
-                                        <td t-esc="ex.attempts"/>
-                                        <td t-esc="examWhen(ex.done_ts)"/>
+                                        <td class="o_vd_ach_c_name"><b t-esc="ex.course_name"/></td>
+                                        <td>
+                                            <span t-if="ex.passed" class="o_vd_ach_result o_vd_ach_r_done"><i class="fa fa-check-circle me-1"/>Đạt</span>
+                                            <span t-else="" class="o_vd_ach_result o_vd_ach_r_fail"><i class="fa fa-times-circle me-1"/>Chưa đạt</span>
+                                        </td>
+                                        <td class="o_vd_ach_c_num"><b t-esc="ex.percent"/>%</td>
+                                        <td class="o_vd_ach_c_num o_vd_ach_best" t-esc="ex.best_percent + '%'"/>
+                                        <td class="o_vd_ach_c_num"><span class="o_vd_ach_att" t-esc="ex.attempts"/></td>
+                                        <td class="o_vd_ach_c_date" t-esc="examWhen(ex.done_ts)"/>
                                     </tr>
                                 </t>
                                 <tr t-if="!(state.selectedEmp.examHistory || []).length">
-                                    <td colspan="6" class="o_vd_assign_empty">Nhân viên chưa thi khóa nào.</td>
+                                    <td colspan="7" class="o_vd_assign_empty">Nhân viên chưa thi khóa nào.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -836,6 +853,11 @@
                             <option t-att-value="emp.id" t-esc="emp.name"/>
                         </t>
                     </select>
+                    <button t-if="activeZone" class="o_vd_addemp_btn"
+                            t-on-click="() => this.openAssignZone(activeZone)"
+                            title="Thêm nhân viên vào chương trình đào tạo (lộ trình đầu)">
+                        <i class="fa fa-user-plus me-2"/>THÊM NHÂN VIÊN
+                    </button>
                 </nav>
 
                 <div class="o_vd_card">
