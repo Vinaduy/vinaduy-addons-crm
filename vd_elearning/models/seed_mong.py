@@ -16,8 +16,9 @@ Idempotent theo VERSION (ir.config_parameter). Bump version -> seed lại.
 """
 from odoo import api, models
 
-_MO_VERSION = 'v4-svg-streamlit'
+_MO_VERSION = 'v5-svg-photos'
 _PARAM_KEY = 'vd_elearning.mong_seed_version'
+_IMG = '/vd_elearning/static/src/img/mong/'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
 
@@ -90,6 +91,16 @@ _STYLE = (
     '.vd-mong .fig .cap{font-size:13px;color:#64748b;margin-top:6px;font-weight:600;}'
     '.vd-mong .fig .figh{font-size:12.5px;font-weight:800;letter-spacing:.6px;'
     'color:#0f172a;text-transform:uppercase;margin-bottom:8px;text-align:left;}'
+    # gallery anh thuc te
+    '.vd-mong .phwrap{margin:12px 0;}'
+    '.vd-mong .phhead{font-size:12.5px;font-weight:800;letter-spacing:.6px;color:#0f172a;'
+    'text-transform:uppercase;margin-bottom:8px;}'
+    '.vd-mong .phrow{display:flex;flex-wrap:wrap;gap:12px;}'
+    '.vd-mong .phrow figure{margin:0;flex:1 1 230px;min-width:190px;max-width:360px;}'
+    '.vd-mong .phrow img{width:100%;height:210px;object-fit:cover;border-radius:12px;'
+    'box-shadow:0 6px 18px rgba(2,6,23,.18);}'
+    '.vd-mong .phrow figcaption{font-size:12px;color:#64748b;text-align:center;'
+    'margin-top:5px;font-weight:600;}'
     # thu tu danh so
     '.vd-mong .vc-order{margin:12px 0;border:1px solid #c7d2fe;border-radius:12px;overflow:hidden;}'
     '.vd-mong .vc-ostep{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;'
@@ -148,6 +159,16 @@ def _wrong(items):
 def _fig(head, svg, cap):
     return ('<div class="fig"><div class="figh">' + head + '</div>' + svg
             + '<div class="cap">' + cap + '</div></div>')
+
+
+def _photos(head, items):
+    """Gallery ANH THUC TE. items = list (ten_file, chu_thich)."""
+    figs = ''
+    for name, cap in items:
+        c = ('<figcaption>' + cap + '</figcaption>') if cap else ''
+        figs += '<figure><img src="' + _IMG + name + '"/>' + c + '</figure>'
+    return ('<div class="phwrap"><div class="phhead">&#128247; ' + head + '</div>'
+            '<div class="phrow">' + figs + '</div></div>')
 
 
 def _table(head, rows, widths=None):
@@ -565,6 +586,8 @@ class SlideChannelSeedMong(models.Model):
             '<b>đất liền thổ</b> (cứng) và <b>đất yếu</b> (ao hồ, san lấp).</p>'
             + _fig('Đất liền thổ vs Đất yếu', _svg_dat(),
                    'Đất liền thổ cứng tự nhiên, chịu lực tốt; đất yếu có bùn nước, không đỡ nổi nhà nếu không ép cọc.')
+            + _photos('Hình thực tế', [('image24.jpg', 'Đất liền thổ (cứng tự nhiên)'),
+                                       ('image16.jpg', 'Đất yếu (ao hồ, san lấp)')])
             + _table(['Tiêu chí', 'ĐẤT LIỀN THỔ', 'ĐẤT YẾU'],
                      [['<b>Bản chất</b>', 'Đất <b>cứng tự nhiên</b>, chưa đào bới san lấp',
                        'Đất <b>ao hồ, san lấp</b>, có bùn, ẩm'],
@@ -603,6 +626,8 @@ class SlideChannelSeedMong(models.Model):
             + '<h3>Móng đơn: 3 bộ phận, các đế TÁCH RỜI &mdash; rẻ nhất</h3>'
             + _fig('Mặt cắt móng đơn &mdash; 3 bộ phận', _svg_mong_don(),
                    'Các đế móng tách rời từng cục, nối lên dầm móng bằng đoạn cột; dầm móng khóa các đế lại.')
+            + _photos('Hình thực tế móng đơn', [('image30.jpg', ''), ('image25.jpg', ''),
+                                                ('image26.jpg', ''), ('image15.jpg', '')])
             + '<h4>Gồm 3 bộ phận</h4>'
             + _order([
                 ('ĐẾ MÓNG', 'Các đế móng KHÔNG liên kết với nhau &mdash; tách rời từng cục (đặt dưới mỗi cột).'),
@@ -638,6 +663,8 @@ class SlideChannelSeedMong(models.Model):
             + '<h3>Móng băng: 2 bộ phận, đế CHẠY DÀI LIỀN MẠCH &mdash; trung bình</h3>'
             + _fig('Mặt cắt móng băng &mdash; 2 bộ phận', _svg_mong_bang(),
                    'Đế móng chạy dài liền mạch (không tách rời), dầm móng liền với đế.')
+            + _photos('Hình thực tế móng băng', [('image20.jpg', ''), ('image17.jpg', ''),
+                                                 ('image18.jpg', ''), ('image23.jpg', '')])
             + '<h4>Gồm 2 bộ phận</h4>'
             + _order([
                 ('ĐẾ MÓNG', 'Đế móng CHẠY DÀI, LIỀN MẠCH (không tách rời từng cục như móng đơn).'),
@@ -676,6 +703,8 @@ class SlideChannelSeedMong(models.Model):
             'cứng để giữ nhà. Phía trên cọc là phần móng.</p>'
             + _fig('Mặt cắt móng cọc &mdash; cọc + đài + dầm', _svg_mong_coc(),
                    'Cọc bê tông xuyên lớp đất yếu, cắm xuống lớp đất tốt; đài móng đặt trên đầu cọc, dầm móng liền đài.')
+            + _photos('Hình thực tế móng cọc', [('image27.jpg', ''), ('image29.jpg', ''),
+                                                ('image28.png', '')])
             + '<h4>Các bộ phận</h4>'
             + _order([
                 ('CỌC BÊ TÔNG', 'Ép sâu xuống đất tới lớp chịu lực &mdash; là CHI PHÍ PHÁT SINH thêm của móng cọc.'),
@@ -744,6 +773,7 @@ class SlideChannelSeedMong(models.Model):
             + '<h4>&#128295; Cọc bê tông đúc sẵn</h4>'
             + _fig('Cọc bê tông đúc sẵn &mdash; kích thước &amp; đơn giá', _svg_coc_betong(),
                    'Tiết diện 20x20 hoặc 25x25 cm, mỗi đoạn dài 5-6 m; giá theo mét dài.')
+            + _photos('Hình thực tế cọc bê tông', [('image33.jpg', ''), ('image36.jpg', '')])
             + _table(['Thông tin', 'Chi tiết'],
                      [['<b>Tiết diện</b>', '<b>20x20 cm</b> và <b>25x25 cm</b>'],
                       ['<b>Chiều dài</b>', '<b>5 - 6 m</b> mỗi đoạn'],
@@ -753,6 +783,8 @@ class SlideChannelSeedMong(models.Model):
             + '<h4>&#9878;&#65039; 2 phương pháp ép cọc</h4>'
             + _fig('Ép tải vs Ép neo', _svg_ep_tai_neo(),
                    'Ép tải dùng đối trọng đè (tải lớn nhưng rung đất); ép neo dùng neo khoan giữ (tải nhỏ, hợp hẻm nhỏ).')
+            + _photos('Hình thực tế', [('image34.jpg', 'Ép tải (đối trọng)'),
+                                       ('image39.jpg', 'Ép neo (neo khoan)')])
             + _table(['Tiêu chí', 'ÉP TẢI', 'ÉP NEO'],
                      [['<b>Cách làm</b>', 'Dùng máy có <b>đối trọng (tải)</b> đè cọc xuống', 'Dùng <b>neo khoan dẫn hướng</b> giữ khung rồi đóng cọc'],
                       ['<b>Tải trọng ép</b>', '<span class="cheap">60 - 120 tấn</span>', '<b>40 tấn</b>'],
@@ -795,8 +827,11 @@ class SlideChannelSeedMong(models.Model):
                        'Yêu cầu nền đất phải <b>ẩm, nhiều nước</b> &mdash; đất khô lâu thì cọc sẽ <b>mục</b>.'],
                       ['<b>Cọc khoan nhồi</b> (cả nước)', 'Đơn giá <b>~700 - 800k / 1 m dài trọn gói</b>.']],
                      widths=['40%', '60%'])
+            + _photos('Hình thực tế cọc ít dùng', [('image42.jpg', ''), ('image37.jpg', ''),
+                                                   ('image40.jpg', ''), ('image44.jpg', '')])
             + _box('info', '<b>Miền Tây là miền sông nước</b> &rarr; nền đất rất yếu nên <b>gần '
                    'như 100% phải ép cọc</b>.')
+            + _photos('Miền Tây sông nước', [('image45.jpg', 'Nền đất yếu, hầu hết phải ép cọc')])
             + '<h4>&#127919; NHẬN BIẾT NHANH &mdash; KỊCH BẢN TƯ VẤN</h4>'
             + _order([
                 ('Hỏi ĐẤT', 'Đất thổ cư cứng lâu năm (liền thổ) hay đất san lấp / phân lô (yếu)?'),
