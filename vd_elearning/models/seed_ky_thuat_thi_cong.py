@@ -19,7 +19,7 @@ Idempotent theo version lưu ở ir.config_parameter.
 """
 from odoo import api, models
 
-_KTTC_VERSION = 'v1-ky-thuat-thi-cong'
+_KTTC_VERSION = 'v2-mong-3-tinh-huong'
 _PARAM_KEY = 'vd_elearning.ky_thuat_thi_cong_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -218,37 +218,59 @@ def _quiz(qid, question, options, explain):
 # ---------------------------------------------------------------------------
 #  SVG MÔ PHỎNG (self-contained, viewBox, responsive)
 # ---------------------------------------------------------------------------
+def _svg_mong_house(cx):
+    """Ve khung NHA (than + mai) tai tam cx, day than o y=150."""
+    x = cx - 66
+    return ('<rect x="' + str(x) + '" y="98" width="132" height="52" fill="#e5e7eb" stroke="#94a3b8"/>'
+            '<polygon points="' + str(cx - 78) + ',98 ' + str(cx) + ',62 ' + str(cx + 78) + ',98" '
+            'fill="#cbd5e1" stroke="#94a3b8"/>'
+            '<text x="' + str(cx) + '" y="130" font-size="13" fill="#334155" '
+            'font-weight="800" text-anchor="middle">NHÀ</text>')
+
+
+def _svg_mong_label(cx, th, ten):
+    return ('<text x="' + str(cx) + '" y="272" font-size="11" fill="#c2410e" '
+            'font-weight="800" text-anchor="middle">' + th + '</text>'
+            '<text x="' + str(cx) + '" y="291" font-size="14" fill="#1d4ed8" '
+            'font-weight="900" text-anchor="middle">' + ten + '</text>')
+
+
 def _svg_mong():
-    return (
-        '<svg viewBox="0 0 640 300" width="640" role="img" aria-label="Móng cọc và móng băng">'
-        '<defs><linearGradient id="ks" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fbbf24"/>'
-        '</linearGradient></defs>'
-        # nen dat
-        '<rect x="0" y="150" width="640" height="60" fill="#fde68a"/>'
-        '<rect x="0" y="210" width="640" height="70" fill="#86efac"/>'
-        '<text x="12" y="176" font-size="12" fill="#92400e" font-weight="700">LỚP ĐẤT YẾU</text>'
-        '<text x="12" y="248" font-size="12" fill="#166534" font-weight="700">LỚP ĐẤT TỐT (đất cứng)</text>'
-        # --- MONG COC ---
-        '<rect x="40" y="70" width="180" height="60" fill="#e5e7eb" stroke="#94a3b8"/>'
-        '<polygon points="40,70 130,30 220,70" fill="#cbd5e1" stroke="#94a3b8"/>'
-        '<text x="130" y="106" font-size="13" fill="#334155" font-weight="800" text-anchor="middle">NHÀ</text>'
-        '<rect x="55" y="130" width="150" height="18" fill="#64748b"/>'
-        # coc xuong dat tot
-        '<rect x="70" y="148" width="14" height="95" fill="#475569"/>'
-        '<rect x="123" y="148" width="14" height="95" fill="#475569"/>'
-        '<rect x="176" y="148" width="14" height="95" fill="#475569"/>'
-        '<text x="130" y="270" font-size="13" fill="#1d4ed8" font-weight="800" text-anchor="middle">MÓNG CỌC</text>'
-        '<text x="245" y="200" font-size="11" fill="#1e3a8a">tải trọng &darr; xuống đất tốt</text>'
-        # --- MONG BANG ---
-        '<rect x="430" y="70" width="170" height="60" fill="#e5e7eb" stroke="#94a3b8"/>'
-        '<polygon points="430,70 515,30 600,70" fill="#cbd5e1" stroke="#94a3b8"/>'
-        '<text x="515" y="106" font-size="13" fill="#334155" font-weight="800" text-anchor="middle">NHÀ</text>'
-        # dai mong nong
-        '<polygon points="445,130 585,130 600,150 430,150" fill="#64748b"/>'
-        '<text x="515" y="270" font-size="13" fill="#1d4ed8" font-weight="800" text-anchor="middle">MÓNG BĂNG</text>'
-        '<text x="515" y="176" font-size="11" fill="#92400e" text-anchor="middle">chỉ tựa lớp đất trên</text>'
-        '</svg>')
+    c1, c2, c3 = 140, 400, 655
+    svg = ('<svg viewBox="0 0 800 305" width="800" role="img" '
+           'aria-label="Ba tinh huong mong: coc, bang, don">')
+    # nen dat (2 lop)
+    svg += ('<rect x="0" y="175" width="800" height="52" fill="#fde68a"/>'
+            '<rect x="0" y="227" width="800" height="55" fill="#86efac"/>'
+            '<text x="10" y="197" font-size="11" fill="#92400e" font-weight="700">LỚP ĐẤT YẾU</text>'
+            '<text x="10" y="250" font-size="11" fill="#166534" font-weight="700">LỚP ĐẤT TỐT (đất cứng)</text>')
+    # duong ke chia 3 tinh huong
+    svg += ('<line x1="268" y1="50" x2="268" y2="262" stroke="#cbd5e1" stroke-dasharray="3 4"/>'
+            '<line x1="528" y1="50" x2="528" y2="262" stroke="#cbd5e1" stroke-dasharray="3 4"/>')
+    # --- Tinh huong 1: MONG COC (coc xuyen dat yeu xuong dat tot) ---
+    svg += _svg_mong_house(c1)
+    svg += '<rect x="' + str(c1 - 56) + '" y="150" width="112" height="12" fill="#64748b"/>'
+    for dx in (-44, -6, 32):
+        svg += '<rect x="' + str(c1 + dx) + '" y="162" width="12" height="80" fill="#475569"/>'
+    svg += ('<text x="' + str(c1) + '" y="252" font-size="10.5" fill="#1e3a8a" '
+            'text-anchor="middle">cọc xuống tận đất tốt</text>')
+    svg += _svg_mong_label(c1, 'TÌNH HUỐNG 1', 'MÓNG CỌC')
+    # --- Tinh huong 2: MONG BANG (dai lien tua lop dat tren) ---
+    svg += _svg_mong_house(c2)
+    svg += ('<polygon points="' + str(c2 - 60) + ',150 ' + str(c2 + 60) + ',150 '
+            + str(c2 + 72) + ',172 ' + str(c2 - 72) + ',172" fill="#64748b"/>')
+    svg += ('<text x="' + str(c2) + '" y="200" font-size="10.5" fill="#92400e" '
+            'text-anchor="middle">dải liền tựa đất trên</text>')
+    svg += _svg_mong_label(c2, 'TÌNH HUỐNG 2', 'MÓNG BĂNG')
+    # --- Tinh huong 3: MONG DON (dai de rieng le duoi tung cot) ---
+    svg += _svg_mong_house(c3)
+    for dx in (-52, -13, 26):
+        svg += ('<rect x="' + str(c3 + dx) + '" y="150" width="6" height="14" fill="#475569"/>'
+                '<rect x="' + str(c3 + dx - 8) + '" y="164" width="22" height="12" fill="#64748b"/>')
+    svg += ('<text x="' + str(c3) + '" y="200" font-size="10.5" fill="#92400e" '
+            'text-anchor="middle">đế đơn riêng dưới từng cột</text>')
+    svg += _svg_mong_label(c3, 'TÌNH HUỐNG 3', 'MÓNG ĐƠN')
+    return svg + '</svg>'
 
 
 def _svg_nut():
@@ -545,9 +567,19 @@ class SlideChannelSeedKyThuatThiCong(models.Model):
             + '<h3>Móng: khách đang sợ lún, nứt, nghiêng &mdash; và sợ MẤT TIỀN</h3>'
             + '<p>Đây là câu hỏi xuất hiện rất nhiều. Khách lo nhà bị lún, nứt, nghiêng, sau '
             'này phải sửa. Thực chất khách đang hỏi: <b>&#8220;Tôi có mất tiền oan không?&#8221;</b></p>'
-            + _fig('Móng cọc vs Móng băng (mặt cắt)', _svg_mong(),
-                   'Móng cọc truyền tải trọng xuống tận lớp đất tốt; móng băng chỉ tựa lớp đất phía trên.')
-            + '<h4>Trường hợp 1 &mdash; Báo giá là MÓNG CỌC (phương án tốt nhất)</h4>'
+            + _box('ok', '<b>NGUYÊN TẮC CHUNG khi khách hỏi &#8220;móng như vậy có đảm bảo '
+                   'không?&#8221;:</b> việc ĐẦU TIÊN là <b>KHẲNG ĐỊNH LÀ CÓ</b> &mdash; móng '
+                   'trong báo giá đã đảm bảo kết cấu cho công trình. Sau đó mới xử lý theo '
+                   'ĐÚNG loại móng ghi trong báo giá của khách. Có <b>3 tình huống</b>: móng '
+                   'cọc, móng băng, móng đơn.')
+            + _box('warn', '<b>Sợi chỉ đỏ xuyên suốt cả 3 tình huống:</b> nếu <b>đào đất móng '
+                   'lên mà gặp đất yếu</b>, không thi công được theo báo giá thì bên em '
+                   '<b>cho ÉP CỌC (chuyển móng cọc)</b> &mdash; tuyệt đối không cố làm trên '
+                   'nền đất yếu. Câu này khiến khách rất yên tâm vì thấy công ty có trách nhiệm.')
+            + _fig('3 tình huống móng: cọc / băng / đơn (mặt cắt)', _svg_mong(),
+                   'Móng cọc xuống tận đất tốt; móng băng là dải liền; móng đơn là đế riêng dưới từng cột. '
+                   'Cả 3: đào lên gặp đất yếu thì chuyển ép cọc.')
+            + '<h4>&#128290; Tình huống 1 &mdash; Báo giá là MÓNG CỌC (phương án tốt nhất)</h4>'
             + _box('ok', 'Trả lời thật <b>CHẮC CHẮN</b>, khẳng định &mdash; không nói &#8220;chắc là ổn&#8221;.')
             + _say('&#8220;Anh chị hoàn toàn yên tâm. Hồ sơ bên em tư vấn cho mình là <b>móng '
                    'cọc</b> &mdash; phương án an toàn nhất hiện nay cho nhà dân dụng. Móng cọc '
@@ -555,31 +587,44 @@ class SlideChannelSeedKyThuatThiCong(models.Model):
                    'ảnh hưởng bởi lớp đất yếu bên trên. Nhờ vậy sau này mình không phải lo '
                    'lún, nứt kết cấu hay sụt nền. Đây cũng là lý do rất nhiều công trình hiện '
                    'nay ưu tiên móng cọc.&#8221;')
-            + '<h4>Trường hợp 2 &mdash; Báo giá là MÓNG BĂNG (câu dễ trả lời SAI)</h4>'
-            + _box('err', '<b>KHÔNG được nói &#8220;móng băng lúc nào cũng tốt&#8221;.</b> '
-                   'Móng băng chỉ đảm bảo khi <b>nền đất cứng, đất liền thổ</b>.')
-            + _say('&#8220;Anh chị yên tâm. Với nhà 2 tầng thì <b>móng băng hoàn toàn đáp ứng</b> '
-                   'nếu nền đất cứng, đất liền thổ; đất tốt thì 3 tầng vẫn an toàn theo thiết '
-                   'kế. Nhưng bên em <b>không bao giờ đánh đổi chất lượng</b>: sau khi đào móng, '
-                   'nếu đội kỹ thuật phát hiện nền đất yếu hơn dự kiến thì bên em <b>lập tức '
-                   'dừng thi công</b> để kiểm tra lại địa chất, cần thì chuyển sang <b>móng '
-                   'cọc</b>. Tuyệt đối không cố làm móng băng trên nền đất yếu để tiết kiệm chi phí.&#8221;')
-            + _box('info', 'Khách rất thích câu <b>&#8220;nếu đất yếu bên em sẽ dừng thi '
-                   'công&#8221;</b> &mdash; nó thể hiện công ty có trách nhiệm.')
+            + '<h4>&#128290; Tình huống 2 &mdash; Báo giá là MÓNG BĂNG</h4>'
+            + _box('ok', 'Vẫn <b>KHẲNG ĐỊNH đảm bảo kết cấu</b> trước, rồi nêu cam kết ép cọc '
+                   'nếu đất yếu. KHÔNG nói lấp lửng &#8220;chắc là ổn&#8221;.')
+            + _say('&#8220;Anh chị yên tâm, <b>móng băng bên em tính là đảm bảo kết cấu</b> cho '
+                   'căn nhà của mình. Bên em <b>không bao giờ đánh đổi chất lượng</b>: khi đào '
+                   'đất móng lên, nếu đội kỹ thuật thấy <b>nền đất yếu</b> hơn dự kiến thì bên '
+                   'em sẽ <b>cho ép cọc (chuyển sang móng cọc)</b> luôn, chứ tuyệt đối không cố '
+                   'làm móng băng trên nền đất yếu ạ.&#8221;')
+            + '<h4>&#128290; Tình huống 3 &mdash; Báo giá là MÓNG ĐƠN</h4>'
+            + _box('ok', 'Cũng <b>KHẲNG ĐỊNH đảm bảo</b>, giải thích theo số tầng, và giữ '
+                   'nguyên cam kết ép cọc nếu đào lên gặp đất yếu.')
+            + _table(['Trường hợp nhà', 'Cách khẳng định'],
+                     [['<b>Nhà 1 tầng</b>', 'Làm móng đơn là <b>quá chắc chắn</b>, anh chị hoàn toàn yên tâm.'],
+                      ['<b>Nhà 2 tầng</b>', '<b>Rất nhiều khách</b> bên em vẫn làm móng đơn và đảm bảo tốt.'],
+                      ['<b>Đào lên gặp đất yếu, không thi công được</b>', 'Bên em <b>chuyển làm móng cọc (ép cọc)</b> &mdash; không cố làm móng đơn trên đất yếu.']],
+                     widths=['40%', '60%'])
+            + _say('&#8220;Báo giá của mình là móng đơn ạ. Nhà 1 tầng thì làm móng đơn là <b>quá '
+                   'chắc chắn</b>; nhà 2 tầng thì <b>rất nhiều khách</b> bên em cũng làm móng '
+                   'đơn và đảm bảo tốt. Trường hợp đào móng lên mà là <b>đất yếu, không thi '
+                   'công móng đơn được</b> thì bên em sẽ <b>làm móng cọc</b> cho mình, nên anh '
+                   'chị cứ yên tâm ạ.&#8221;')
+            + _box('info', 'Khách rất thích câu <b>&#8220;đào lên đất yếu bên em sẽ ép cọc&#8221;</b> '
+                   '&mdash; nó thể hiện công ty có trách nhiệm, không cố làm ẩu để tiết kiệm.')
             + _wrong([
-                'Nói lấp lửng: &#8220;chắc là ổn&#8221;, &#8220;em nghĩ được&#8221;, &#8220;chắc không sao đâu&#8221;.',
-                'Khẳng định &#8220;móng băng lúc nào cũng tốt&#8221; kể cả trên nền đất yếu.',
-                'Không nêu được cam kết <b>dừng thi công / chuyển móng cọc</b> khi gặp đất yếu.'])
-            + _fml('Móng cọc &rarr; <b>KHẲNG ĐỊNH chắc</b> (an toàn nhất, hết lo lún nứt). '
-                   'Móng băng &rarr; tốt <b>NẾU đất cứng</b>; gặp đất yếu &rarr; <b>DỪNG thi '
-                   'công, chuyển móng cọc</b>. Không đánh đổi chất lượng.')
+                'Nghe khách hỏi là <b>ngập ngừng</b>, nói &#8220;chắc là ổn&#8221;, &#8220;em nghĩ được&#8221; thay vì KHẲNG ĐỊNH là CÓ.',
+                'Với móng băng / móng đơn mà <b>quên cam kết ÉP CỌC</b> khi đào lên gặp đất yếu.',
+                'Chê móng băng/móng đơn là &#8220;yếu&#8221; &mdash; làm khách hoang mang chính báo giá của họ.',
+                'Khẳng định cứng &#8220;đất kiểu gì cũng làm được móng băng/đơn&#8221; (sai &mdash; đất yếu phải ép cọc).'])
+            + _fml('Khách hỏi móng có đảm bảo &rarr; <b>KHẲNG ĐỊNH LÀ CÓ trước</b>. Cọc: an '
+                   'toàn nhất. Băng: đảm bảo kết cấu. Đơn: 1 tầng quá chắc, 2 tầng nhiều khách '
+                   'vẫn làm. Cả 3 &mdash; <b>đào lên gặp ĐẤT YẾU thì ÉP CỌC</b> (chuyển móng cọc).')
             + _quiz('kttc_mong',
-                    'Báo giá của khách là MÓNG BĂNG. Khách hỏi "móng có đảm bảo không?". Trả lời nào ĐÚNG chuẩn?',
-                    [('Móng băng lúc nào cũng tốt, anh chị cứ yên tâm tuyệt đối', False),
-                     ('Đảm bảo nếu nền đất cứng; nếu đào móng gặp đất yếu bên em sẽ dừng thi công, chuyển sang móng cọc', True),
-                     ('Em không chắc, để em hỏi lại kỹ thuật đã', False),
-                     ('Móng nào cũng như nhau nên anh chị đừng lo', False)],
-                    'Móng băng tốt khi đất cứng; gặp đất yếu phải DỪNG thi công và chuyển móng cọc &mdash; không đánh đổi chất lượng.'))
+                    'Báo giá của khách là MÓNG BĂNG (hoặc MÓNG ĐƠN). Khách hỏi "móng có đảm bảo không?". Trả lời ĐÚNG chuẩn là gì?',
+                    [('Ngập ngừng "chắc là ổn ạ", để em hỏi lại kỹ thuật', False),
+                     ('Khẳng định LÀ CÓ, đảm bảo kết cấu; nếu đào móng lên gặp đất yếu thì bên em cho ép cọc (chuyển móng cọc)', True),
+                     ('Nói móng này hơi yếu, anh chị nên nâng cấp lên móng cọc cho chắc', False),
+                     ('Đất kiểu gì cũng làm được móng băng/đơn nên anh chị đừng lo', False)],
+                    'Luôn KHẲNG ĐỊNH là CÓ (đảm bảo kết cấu) trước; gặp đất yếu khi đào móng thì ép cọc &mdash; không cố làm trên đất yếu.'))
 
     # ------------------------------------------------------------------
     #  CHƯƠNG 2 - VẬT TƯ
