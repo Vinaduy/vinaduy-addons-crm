@@ -71,30 +71,42 @@
         <div class="o_vd_certpop"
              t-on-mouseenter="() => props.onEnter()"
              t-on-mouseleave="() => props.onLeave()">
-            <div class="o_vd_confetti">
-                <t t-foreach="pieces" t-as="p" t-key="p_index">
-                    <span t-att-class="'o_vd_cft' + (p.round ? ' o_vd_cft_round' : '')"
-                          t-attf-style="left:{{p.left}}%;background:{{p.color}};width:{{p.size}}px;height:{{p.size}}px;animation-delay:{{p.delay}}s;animation-duration:{{p.dur}}s;--rot:{{p.rot}}deg;"/>
-                </t>
-            </div>
-            <div class="o_vd_cert o_vd_cert_mini">
-                <div class="o_vd_cert_inner">
-                    <div class="o_vd_cert_logo">VINADUY</div>
-                    <div class="o_vd_cert_company"><t t-esc="props.companyName"/></div>
-                    <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
-                    <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
-                    <div class="o_vd_cert_course"><t t-esc="props.courseName"/></div>
-                    <div class="o_vd_cert_name"><t t-esc="props.empName"/></div>
-                    <div class="o_vd_cert_role"><t t-esc="props.roleLabel"/></div>
-                    <div class="o_vd_cert_score">
-                        <span class="o_vd_cert_medal">🏅</span>
-                        <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="props.percent"/></b> ĐIỂM</span>
+            <!-- KHOA CHUA HOAN THANH: popup nho "CHUA HOC" (khong hien giay chung nhan gia) -->
+            <t t-if="props.notDone">
+                <div class="o_vd_chuahoc">
+                    <div class="o_vd_chuahoc_icon">📚</div>
+                    <div class="o_vd_chuahoc_title">CHƯA HỌC</div>
+                    <div class="o_vd_chuahoc_course"><t t-esc="props.courseName"/></div>
+                    <div class="o_vd_chuahoc_sub">Khóa học này chưa hoàn thành nên chưa có giấy chứng nhận.</div>
+                </div>
+            </t>
+            <!-- KHOA DA DAT: giay chung nhan + phao hoa + nut tai -->
+            <t t-else="">
+                <div class="o_vd_confetti">
+                    <t t-foreach="pieces" t-as="p" t-key="p_index">
+                        <span t-att-class="'o_vd_cft' + (p.round ? ' o_vd_cft_round' : '')"
+                              t-attf-style="left:{{p.left}}%;background:{{p.color}};width:{{p.size}}px;height:{{p.size}}px;animation-delay:{{p.delay}}s;animation-duration:{{p.dur}}s;--rot:{{p.rot}}deg;"/>
+                    </t>
+                </div>
+                <div class="o_vd_cert o_vd_cert_mini">
+                    <div class="o_vd_cert_inner">
+                        <div class="o_vd_cert_logo">VINADUY</div>
+                        <div class="o_vd_cert_company"><t t-esc="props.companyName"/></div>
+                        <div class="o_vd_cert_title">GIẤY CHỨNG NHẬN</div>
+                        <div class="o_vd_cert_sub">HOÀN THÀNH KHÓA HỌC</div>
+                        <div class="o_vd_cert_course"><t t-esc="props.courseName"/></div>
+                        <div class="o_vd_cert_name"><t t-esc="props.empName"/></div>
+                        <div class="o_vd_cert_role"><t t-esc="props.roleLabel"/></div>
+                        <div class="o_vd_cert_score">
+                            <span class="o_vd_cert_medal">🏅</span>
+                            <span class="o_vd_cert_scoretxt">ĐẠT <b><t t-esc="props.percent"/></b> ĐIỂM</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <button class="o_vd_cert_dlbtn" t-on-click="() => props.onDownload()">
-                <i class="fa fa-image me-1"/>Tải ảnh chứng nhận
-            </button>
+                <button class="o_vd_cert_dlbtn" t-on-click="() => props.onDownload()">
+                    <i class="fa fa-image me-1"/>Tải ảnh chứng nhận
+                </button>
+            </t>
         </div>
     </t>
 

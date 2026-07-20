@@ -609,6 +609,7 @@ export class VdCertPopover extends Component {
         close: { type: Function, optional: true },
         empName: String, roleLabel: String, companyName: String,
         courseName: String, percent: [Number, String],
+        notDone: { type: Boolean, optional: true },
         onEnter: Function, onLeave: Function, onDownload: Function,
     };
     setup() {
@@ -1317,13 +1318,18 @@ export class VdElearningOverview extends Component {
             dateStr: this._certDate(),
         });
     }
-    // Hover vào node khóa ĐÃ ĐẠT -> hiện popover giấy chứng nhận + pháo hoa.
+    // Hover vào node khóa -> hiện giấy chứng nhận (nếu ĐÃ ĐẠT) hoặc popup nhỏ
+    // "CHƯA HỌC" (nếu khóa chưa hoàn thành). Không hiện giấy chứng nhận giả 100
+    // điểm cho khóa NV chưa học. User spec 2026-07-21.
     onCertEnter(ev, course) {
-        const item = this.certForCourse(course.id);
-        if (!item) return;
         clearTimeout(this._certPopTimer);
         const c = this.state.myCerts || {};
+        const item = this.certForCourse(course.id);
+        // Chỉ coi là ĐÃ ĐẠT khi có chứng nhận THẬT (item không phải mẫu preview),
+        // hoặc đang ở chế độ admin xem trước THIẾT KẾ (chưa chọn NV nào).
+        const showCert = !!item && (!item.preview || !this.state.selectedEmp);
         this.certPop.open(ev.currentTarget, {
+            notDone: !showCert,
             empName: c.emp_name || (this.state.selectedEmp && this.state.selectedEmp.name) || "",
             roleLabel: c.role_label || "NHÂN VIÊN KINH DOANH",
             companyName: c.company_name || "CÔNG TY CỔ PHẦN VINADUY",
@@ -1383,10 +1389,20 @@ export class VdElearningOverview extends Component {
         const s = this.state.selectedEmp;
         const done = new Set(s.completedIds || []);
         const map = {};
+        // prefixDone = MỌI khóa ĐỨNG TRƯỚC khóa hiện tại đều đã hoàn thành?
+        // Nếu NV đã học hết các khóa trước thì khóa chưa học kế tiếp được MỞ để
+        // NV CHỦ ĐỘNG vào học — kể cả khóa MỚI chèn vào lộ trình đã hoàn thành
+        // (không cần admin gán lại). User spec 2026-07-21.
+        let prefixDone = true;
         for (const c of path.courses) {
-            if (done.has(c.id)) map[c.id] = "done";
-            else if (c.id === s.courseId) map[c.id] = "current";
-            else map[c.id] = "locked";
+            if (done.has(c.id)) {
+                map[c.id] = "done";
+            } else if (c.id === s.courseId || prefixDone) {
+                map[c.id] = "current";
+                prefixDone = false;
+            } else {
+                map[c.id] = "locked";
+            }
         }
         return this.trackNodes(path.courses, this.studentEmp, 0, map);
     }
