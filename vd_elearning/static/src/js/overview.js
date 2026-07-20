@@ -1285,11 +1285,18 @@ export class VdElearningOverview extends Component {
     // Giấy chứng nhận của khóa (CHỈ giao diện của chính mình + đã đạt). Dùng cho
     // popup hover trên node khóa học (user spec 2026-06-24).
     certForCourse(courseId) {
-        const e = this.state.selectedEmp;
-        if (!e || !e.locked) return null;          // chỉ xem của mình
+        // Chứng nhận THẬT đã đạt (của mình HOẶC của NV admin đang xem).
         const c = this.state.myCerts;
-        if (!c || !c.items) return null;
-        return c.items.find((it) => it.channel_id === courseId) || null;
+        if (c && c.items) {
+            const found = c.items.find((it) => it.channel_id === courseId);
+            if (found) return found;
+        }
+        // ADMIN: luôn hiện MẪU chứng nhận khi hover khóa (kể cả chưa chọn NV /
+        // khóa chưa đạt) — để xem trước thiết kế (user 2026-07-20).
+        if (this.state.isAdmin) {
+            return { channel_id: courseId, percent: 100, preview: true };
+        }
+        return null;                               // NV: chỉ hiện khóa ĐÃ đạt
     }
     _certDate() {
         const d = new Date();
@@ -1407,6 +1414,16 @@ export class VdElearningOverview extends Component {
             locked: false,
             examHistory: [],
         };
+        // Chung nhan THAT cua NV nay -> hover khoa da dat hien dung ten NV.
+        try {
+            const certs = await this.orm.call(
+                "slide.channel", "vd_certificates_for", [row.id]);
+            if (this.state.selectedEmp && this.state.selectedEmp.id === row.id) {
+                this.state.myCerts = certs;
+            }
+        } catch (e) {
+            this.state.myCerts = null;
+        }
         // Lich su thi BEN VUNG cua NV (doc tu vd.exam.result).
         try {
             const hist = await this.orm.call(
@@ -1465,6 +1482,7 @@ export class VdElearningOverview extends Component {
 
     backToAdmin() {
         this.state.selectedEmp = null;
+        this.state.myCerts = null;   // bỏ cert NV vừa xem → về mẫu preview admin
     }
 
     // THƯ VIỆN - Câu hỏi khó: mở kho câu hỏi + kịch bản trả lời (cạnh khóa học).
@@ -1503,6 +1521,19 @@ export class VdElearningOverview extends Component {
         }
         await this.orm.call("slide.channel", "vd_course_delete", [course.id]);
         await this.reload();
+    }
+
+    // Nút THÊM NHÂN VIÊN chung (FAB) — gán vào lộ trình ĐẦU của khu; NV hoàn thành
+    // sẽ tự lên lộ trình kế (progression). Trong popup vẫn chọn được "Vị trí học"
+    // khác nếu muốn xếp NV vào giữa chương trình.
+    openAssignZone(zone) {
+        const p0 = (zone && zone.paths && zone.paths[0]) || null;
+        if (!p0) {
+            this.notification.add("Khu này chưa có lộ trình nào để gán nhân viên.",
+                { type: "warning" });
+            return;
+        }
+        return this.openAssign(p0, zone);
     }
 
     async openAssign(path, zone) {

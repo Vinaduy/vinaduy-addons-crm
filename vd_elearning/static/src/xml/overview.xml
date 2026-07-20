@@ -652,8 +652,8 @@
                             <div class="o_vd_path_tools">
                                 <button t-if="state.isAdmin" class="o_vd_path_btn" title="Đổi tên lộ trình"
                                     t-on-click="() => this.renamePath(path)"><i class="fa fa-pencil"/></button>
-                                <button t-if="state.isAdmin" class="o_vd_path_btn" title="Gán nhân viên vào lộ trình"
-                                    t-on-click="() => this.openAssign(path, zone)"><i class="fa fa-user-plus"/></button>
+                                <!-- Gán NV ở từng lộ trình ĐÃ BỎ (user 2026-07-20): dùng nút
+                                     THÊM NHÂN VIÊN chung (FAB) → gán vào lộ trình đầu, tự lên bậc. -->
                                 <!-- Lo trinh RONG (0 khoa) -> hien thung rac xoa vinh vien -->
                                 <button t-if="state.isAdmin &amp;&amp; !path.courses.length" class="o_vd_path_btn o_vd_path_btn_del"
                                     title="Xóa vĩnh viễn lộ trình rỗng"
@@ -713,6 +713,9 @@
                     </button>
                     <button class="o_vd_fab_item" t-on-click="() => this.openAddPath(zone.key)">
                         <i class="fa fa-sitemap me-2"/>THÊM LỘ TRÌNH
+                    </button>
+                    <button class="o_vd_fab_item" t-on-click="() => this.openAssignZone(zone)">
+                        <i class="fa fa-user-plus me-2"/>THÊM NHÂN VIÊN
                     </button>
                 </div>
                 <button class="o_vd_fab_btn" aria-label="Thêm"><i class="fa fa-plus"/></button>

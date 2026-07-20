@@ -713,7 +713,23 @@ class SlideChannel(models.Model):
     def vd_my_certificates(self):
         """Danh sách giấy chứng nhận ĐÃ ĐẠT của NV đang đăng nhập (lưu bền vững ở
         vd.exam.result.passed) + thông tin NV để vẽ lại chứng nhận."""
-        user = self.env.user
+        return self._vd_certs_for_user(self.env.user)
+
+    @api.model
+    def vd_certificates_for(self, user_id):
+        """Chứng nhận ĐÃ ĐẠT của 1 NV — cho ADMIN xem theo nhân viên (hover khóa
+        hiện chứng nhận của NV đó). Chỉ admin/quản lý được gọi."""
+        u = self.env.user
+        if not (u._is_admin() or u.has_group('base.group_system')
+                or u.has_group('sales_team.group_sale_manager')):
+            return {'items': []}
+        user = self.env['res.users'].sudo().browse(int(user_id or 0))
+        if not user.exists():
+            return {'items': []}
+        return self._vd_certs_for_user(user)
+
+    def _vd_certs_for_user(self, user):
+        """Payload chứng nhận (thông tin NV + danh sách khóa đã đạt) cho 1 user."""
         ER = self.env['vd.exam.result'].sudo()
         recs = ER.search([('user_id', '=', user.id), ('passed', '=', True)])
         base = self._vd_cert_payload(user)
