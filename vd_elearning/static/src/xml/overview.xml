@@ -780,11 +780,17 @@
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
                     </div>
 
-                    <!-- LICH SU THI cua NV (ben vung - khong mat khi gan lai lo trinh) -->
-                    <div class="o_vd_ach_box" style="margin-top:18px;">
-                        <!-- BẢNG THÀNH TÍCH (redesign 2026-07-20): huy chương theo điểm -->
+                    <!-- LỊCH SỬ HỌC: filter (hover) -> popup bảng (user 2026-07-20) -->
+                    <div class="o_vd_histfilter">
+                        <button type="button" class="o_vd_histfilter_btn">
+                            <i class="fa fa-history me-2"/>LỊCH SỬ HỌC
+                            <span class="o_vd_histfilter_sum">🥇<b t-esc="examMedals.gold"/> 🥈<b t-esc="examMedals.silver"/> 🥉<b t-esc="examMedals.bronze"/></span>
+                            <i class="fa fa-caret-down ms-1"/>
+                        </button>
+                        <div class="o_vd_histpop">
+                        <div class="o_vd_ach_box">
                         <div class="o_vd_ach_head">
-                            <div class="o_vd_ach_title"><i class="fa fa-trophy me-2"/>BẢNG THÀNH TÍCH</div>
+                            <div class="o_vd_ach_title"><i class="fa fa-history me-2"/>LỊCH SỬ HỌC</div>
                             <div class="o_vd_ach_medals">
                                 <span class="o_vd_ach_m o_vd_ach_gold" title="Đạt 100%">🥇 <b t-esc="examMedals.gold"/></span>
                                 <span class="o_vd_ach_m o_vd_ach_silver" title="Đạt 90-99%">🥈 <b t-esc="examMedals.silver"/></span>
@@ -828,6 +834,8 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
+                        </div>
                     </div>
                 </div>
             </t>
