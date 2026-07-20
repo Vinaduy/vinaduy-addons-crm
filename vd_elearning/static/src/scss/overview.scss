@@ -736,7 +736,7 @@ $vd-line2:   #ece7da;
     // popup mở LÊN TRÊN (card overflow:hidden -> mở xuống bị cắt); phủ board.
     .o_vd_histpop {
         display: none; position: absolute; bottom: 100%; left: 0; z-index: 60;
-        padding-bottom: 10px; width: min(940px, 92vw);
+        padding-bottom: 10px; width: #{"min(940px, 92vw)"};
     }
     .o_vd_histfilter:hover .o_vd_histpop,
     .o_vd_histpop:hover { display: block; }
