@@ -782,12 +782,14 @@
 
                     <!-- LỊCH SỬ HỌC: filter (hover) -> popup bảng (user 2026-07-20) -->
                     <div class="o_vd_histfilter">
-                        <button type="button" class="o_vd_histfilter_btn">
+                        <button type="button" class="o_vd_histfilter_btn"
+                                t-att-class="{'o_active': state.histOpen}"
+                                t-on-click="() => this.toggleHist()">
                             <i class="fa fa-history me-2"/>LỊCH SỬ HỌC
                             <span class="o_vd_histfilter_sum">🥇<b t-esc="examMedals.gold"/> 🥈<b t-esc="examMedals.silver"/> 🥉<b t-esc="examMedals.bronze"/></span>
-                            <i class="fa fa-caret-down ms-1"/>
+                            <i t-attf-class="fa ms-1 {{state.histOpen ? 'fa-caret-up' : 'fa-caret-down'}}"/>
                         </button>
-                        <div class="o_vd_histpop">
+                        <div class="o_vd_histpop" t-if="state.histOpen">
                         <div class="o_vd_ach_box">
                         <div class="o_vd_ach_head">
                             <div class="o_vd_ach_title"><i class="fa fa-history me-2"/>LỊCH SỬ HỌC</div>

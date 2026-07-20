@@ -1233,6 +1233,7 @@ export class VdElearningOverview extends Component {
             loading: true,
             myCerts: null,   // {emp_name, role_label, company_name, items:[...]}
             riderDragging: false,  // admin keo avatar NV de gan vao khoa chua hoan thanh
+            histOpen: false,       // popup LICH SU HOC chi hien khi BAM nut (khong hover)
         });
         this.dragData = null;
         this.pathDragData = null;
@@ -1414,6 +1415,7 @@ export class VdElearningOverview extends Component {
             locked: false,
             examHistory: [],
         };
+        this.state.histOpen = false;   // doi NV -> dong popup lich su
         // Chung nhan THAT cua NV nay -> hover khoa da dat hien dung ten NV.
         try {
             const certs = await this.orm.call(
@@ -1435,6 +1437,11 @@ export class VdElearningOverview extends Component {
         } catch (e) {
             // Khong chan giao dien neu loi doc lich su.
         }
+    }
+
+    // Popup LỊCH SỬ HỌC: ẩn hẳn, chỉ hiện khi BẤM nút (không hover).
+    toggleHist() {
+        this.state.histOpen = !this.state.histOpen;
     }
 
     // Huy chương theo ĐIỂM CAO NHẤT (chỉ khi ĐÃ ĐẠT): 100% Vàng, >=90% Bạc,
