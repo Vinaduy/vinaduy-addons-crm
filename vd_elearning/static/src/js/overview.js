@@ -637,7 +637,6 @@ export class VdCourseDialog extends Component {
         channelId: Number,
         editable: Boolean,
         lockMode: { type: Boolean, optional: true },
-        watermark: { type: String, optional: true },
         data: Object,
         onSaved: Function,
     };
@@ -676,14 +675,6 @@ export class VdCourseDialog extends Component {
             saving: false,
             blurred: false,               // che mo khi cua so mat focus (chong chup len)
         });
-        // Chu dong dau chim (watermark) = ten NV + ngay -> chup/chia se lo danh tinh.
-        this.wmText = "";
-        if (this.props.lockMode && this.props.watermark) {
-            const d = new Date();
-            const p = (n) => (n < 10 ? "0" : "") + n;
-            this.wmText = this.props.watermark + "  ·  "
-                + p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear();
-        }
         this._examTimer = null;
         // ---- CONG CHAN DOC BAI: hoc vien phai bam xem HET cac buoc (menu ben
         //      trai trong noi dung) thi nut "VAO THI" moi hien. Dung DOM truc
@@ -719,8 +710,8 @@ export class VdCourseDialog extends Component {
             };
             this._blockHandler = (ev) => { ev.preventDefault(); ev.stopPropagation(); return false; };
             // Che mo NGAY khi cua so mat focus / an tab (app chup man hinh nhu Zalo
-            // Ctrl+Alt+S thuong chiem focus) -> anh chup chi thay man mo + watermark.
-            // KHONG the chan chup cap HDH/app ngoai; day la lop rao can + truy vet.
+            // Ctrl+Alt+S thuong chiem focus) -> anh chup chi thay man mo.
+            // KHONG the chan chup cap HDH/app ngoai; day chi la lop rao can.
             this._blurOn = () => { this.state.blurred = true; };
             this._blurOff = () => { this.state.blurred = false; };
             this._visHandler = () => { this.state.blurred = !!document.hidden; };
@@ -782,11 +773,6 @@ export class VdCourseDialog extends Component {
                 }
             });
         }
-    }
-
-    // Danh sach o watermark de rai kin man hinh (t-foreach trong template).
-    get wmTiles() {
-        return this.wmText ? Array.from({ length: 140 }, (_, i) => i) : [];
     }
 
     // ---- CONG CHAN DOC BAI (chi hoc vien) ----------------------------
@@ -1628,13 +1614,6 @@ export class VdElearningOverview extends Component {
                 if (el.requestFullscreen) { el.requestFullscreen().catch(() => {}); }
             } catch (_e) { /* noop */ }
         }
-        // Ten NV -> dong dau chim (watermark) len tai lieu: chup/chia se = lo danh
-        // tinh, truy vet duoc (khong the chan chup man hinh cap HDH/app ngoai).
-        const emp = this.state.selectedEmp;
-        const watermark = lockMode
-            ? ((emp && emp.name ? emp.name : 'NHÂN VIÊN')
-               + (emp && emp.id ? ' #' + emp.id : ''))
-            : '';
         const data = await this.orm.call("slide.channel", "vd_course_load", [course.id]);
         this.dialog.add(VdCourseDialog, {
             title: "Khóa học - " + course.name,
@@ -1643,7 +1622,6 @@ export class VdElearningOverview extends Component {
             // Khi xem theo nhan vien (selectedEmp) thi luon chi-doc.
             editable: this.state.isAdmin && !this.state.selectedEmp,
             lockMode,
-            watermark,
             data,
             onSaved: async () => {
                 await this.reload();

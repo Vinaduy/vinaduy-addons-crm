@@ -772,17 +772,6 @@ $vd-line2:   #ece7da;
     // van cho tuong tac cac nut/menu/dap an (label, input, button)
     label, input, button, a, .o_vd_ce_tab, .navr, .qopt { pointer-events: auto; }
 }
-// DAU CHIM (watermark) rai kin: chup man hinh se dinh ten NV -> truy vet, ran de.
-.o_vd_wm {
-    position: fixed; inset: 0; z-index: 4000; pointer-events: none; overflow: hidden;
-    display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
-    gap: 46px 70px; transform: rotate(-24deg) scale(1.4); transform-origin: center;
-    .o_vd_wm_t {
-        font-size: 15px; font-weight: 800; letter-spacing: .04em; white-space: nowrap;
-        color: rgba(30, 41, 59, .12); user-select: none;
-    }
-    @media (prefers-color-scheme: dark) { .o_vd_wm_t { color: rgba(255,255,255,.14); } }
-}
 // MAN CHE MO khi mat focus (app chup chiem focus -> anh chi thay man mo)
 .o_vd_blurguard {
     position: fixed; inset: 0; z-index: 5000; pointer-events: none;

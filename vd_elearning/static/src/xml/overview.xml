@@ -428,10 +428,6 @@
                     </div>
                 </div>
             </t>
-            <!-- DAU CHIM (watermark) ten NV phu kin -> chup/chia se lo danh tinh -->
-            <div t-if="props.lockMode &amp;&amp; wmText" class="o_vd_wm" aria-hidden="true">
-                <span t-foreach="wmTiles" t-as="w" t-key="w" class="o_vd_wm_t" t-esc="wmText"/>
-            </div>
             <!-- MAN CHE MO khi cua so mat focus (app chup chiem focus) -->
             <div t-if="props.lockMode &amp;&amp; state.blurred" class="o_vd_blurguard">
                 <div class="o_vd_blurguard_msg">
