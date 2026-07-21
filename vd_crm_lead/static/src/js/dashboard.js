@@ -3041,6 +3041,11 @@ export class VdCrmDashboard extends Component {
     }
 
     // Mở form Odoo đầy đủ (navigate trang) — khi user cần edit nâng cao
+    // Mở BẢNG TO danh sách khách hàng đã chia (NV chỉ thấy khách của mình).
+    openImportedCustomers() {
+        this.action.doAction("vd_crm_lead.vd_imported_customer_action");
+    }
+
     openLeadFullForm() {
         const p = this.state.previewLead;
         const id = p.open ? p.ids[p.index] : null;

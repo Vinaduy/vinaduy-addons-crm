@@ -65,3 +65,6 @@ access_vd_field_option_user,vd.field.option user,model_vd_field_option,base.grou
 access_vd_field_option_admin,vd.field.option admin,model_vd_field_option,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_user_pwd_history_admin,vd.user.password.history admin,model_vd_user_password_history,vd_crm_lead.vd_crm_group_admin,1,1,1,1
 access_vd_password_view_wizard_admin,vd.password.view.wizard admin,model_vd_password_view_wizard,vd_crm_lead.vd_crm_group_admin,1,1,1,1
+access_vd_imported_customer_user,vd.imported.customer user,model_vd_imported_customer,base.group_user,1,0,0,0
+access_vd_imported_customer_admin,vd.imported.customer admin,model_vd_imported_customer,vd_crm_group_admin,1,1,1,1
+access_vd_imported_customer_deputy,vd.imported.customer deputy,model_vd_imported_customer,vd_crm_group_deputy_director,1,1,0,0

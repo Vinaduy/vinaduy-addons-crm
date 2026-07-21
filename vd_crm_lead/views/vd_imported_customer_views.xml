@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- SEARCH: lọc theo trạng thái, nguồn, NV phụ trách -->
+    <record id="vd_imported_customer_search" model="ir.ui.view">
+        <field name="name">vd.imported.customer.search</field>
+        <field name="model">vd.imported.customer</field>
+        <field name="arch" type="xml">
+            <search string="Danh sách khách hàng">
+                <field name="name" string="Tên / SĐT" filter_domain="['|',('name','ilike',self),('phone','ilike',self)]"/>
+                <field name="phone"/>
+                <field name="status"/>
+                <field name="customer_group"/>
+                <field name="user_id"/>
+                <separator/>
+                <filter name="f_mine" string="Khách của tôi" domain="[('user_id','=',uid)]"/>
+                <filter name="f_unassigned" string="Chưa chia" domain="[('user_id','=',False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="g_user" string="Nhân viên" context="{'group_by':'user_id'}"/>
+                    <filter name="g_status" string="Trạng thái" context="{'group_by':'status'}"/>
+                    <filter name="g_source" string="Nguồn" context="{'group_by':'customer_group'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- TREE: mỗi cột có help (rê chuột lên tiêu đề để xem chú thích) -->
+    <record id="vd_imported_customer_tree" model="ir.ui.view">
+        <field name="name">vd.imported.customer.tree</field>
+        <field name="model">vd.imported.customer</field>
+        <field name="arch" type="xml">
+            <list string="Danh sách khách hàng" create="0" import="0" default_order="id desc">
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="status" optional="show"/>
+                <field name="customer_group" optional="show"/>
+                <field name="address" optional="show"/>
+                <field name="area" optional="show"/>
+                <field name="house_type" optional="show"/>
+                <field name="floors" optional="show"/>
+                <field name="budget" optional="show"/>
+                <field name="timeline" optional="hide"/>
+                <field name="func" optional="hide"/>
+                <field name="func_note" optional="hide"/>
+                <field name="land_type" optional="hide"/>
+                <field name="position" optional="hide"/>
+                <field name="red_book" optional="hide"/>
+                <field name="age" optional="hide"/>
+                <field name="total_calls" optional="show"/>
+                <field name="tags" optional="hide"/>
+                <field name="email" optional="hide"/>
+                <field name="birthday" optional="hide"/>
+                <field name="created_raw" optional="hide"/>
+                <field name="last_update" optional="hide"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM: xem chi tiết 1 khách (tooltip qua help từng field) -->
+    <record id="vd_imported_customer_form" model="ir.ui.view">
+        <field name="name">vd.imported.customer.form</field>
+        <field name="model">vd.imported.customer</field>
+        <field name="arch" type="xml">
+            <form string="Khách hàng" create="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1" placeholder="(không tên)"/></h1>
+                        <h3><field name="phone" readonly="1"/></h3>
+                    </div>
+                    <group>
+                        <group string="Nhu cầu xây dựng">
+                            <field name="status" readonly="1"/>
+                            <field name="address" readonly="1"/>
+                            <field name="area" readonly="1"/>
+                            <field name="house_type" readonly="1"/>
+                            <field name="floors" readonly="1"/>
+                            <field name="land_type" readonly="1"/>
+                            <field name="position" readonly="1"/>
+                            <field name="red_book" readonly="1"/>
+                            <field name="budget" readonly="1"/>
+                            <field name="timeline" readonly="1"/>
+                        </group>
+                        <group string="Thông tin khác">
+                            <field name="customer_group" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="total_calls" readonly="1"/>
+                            <field name="age" readonly="1"/>
+                            <field name="email" readonly="1"/>
+                            <field name="birthday" readonly="1"/>
+                            <field name="tags" readonly="1"/>
+                            <field name="created_raw" readonly="1"/>
+                            <field name="last_update" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Công năng">
+                        <field name="func" nolabel="1" readonly="1"/>
+                        <field name="func_note" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTION: mở bảng to (danh sách khách hàng đã chia) -->
+    <record id="vd_imported_customer_action" model="ir.actions.act_window">
+        <field name="name">Danh sách khách hàng</field>
+        <field name="res_model">vd.imported.customer</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="vd_imported_customer_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có khách hàng nào được chia.</p>
+        </field>
+    </record>
+
+</odoo>

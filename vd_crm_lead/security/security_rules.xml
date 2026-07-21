@@ -45,4 +45,27 @@
         <field name="perm_create">True</field>
         <field name="perm_unlink">False</field>
     </record>
+
+    <!-- ===== DANH SÁCH KHÁCH HÀNG import: NV thấy khách CỦA MÌNH ===== -->
+    <record id="vd_imported_customer_rule_own" model="ir.rule">
+        <field name="name">Khách import: NV thấy khách của mình</field>
+        <field name="model_id" ref="model_vd_imported_customer"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+    <!-- Phó GĐ + Admin: thấy TẤT CẢ khách (global=False → OR với rule own) -->
+    <record id="vd_imported_customer_rule_all" model="ir.rule">
+        <field name="name">Khách import: Phó GĐ + Admin thấy tất cả</field>
+        <field name="model_id" ref="model_vd_imported_customer"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('vd_crm_group_deputy_director')), (4, ref('vd_crm_group_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
 </odoo>

@@ -50,6 +50,7 @@
         'data/vd_bonus_data.xml',
         'views/res_config_settings_views.xml',
         'views/vd_broadcast_views.xml',
+        'views/vd_imported_customer_views.xml',
         'views/menus.xml',
         'data/vd_broadcast_data.xml',
         # Hộp thư hội thoại Facebook (kết nối thẳng Meta) — GĐ1

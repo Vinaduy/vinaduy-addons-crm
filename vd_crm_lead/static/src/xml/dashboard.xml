@@ -2158,6 +2158,11 @@
                                 </button>
                             </t>
                         </div>
+                        <!-- DANH SÁCH KHÁCH HÀNG (import Pancake) — mở bảng to, NV thấy khách của mình -->
+                        <button class="o_vd_customerlist_btn" t-on-click="() => this.openImportedCustomers()"
+                                title="Xem toàn bộ danh sách khách hàng đã chia cho bạn">
+                            <i class="fa fa-address-book me-1"/>DANH SÁCH KHÁCH HÀNG
+                        </button>
                         </div><!-- /.o_vd_topbar_row -->
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
