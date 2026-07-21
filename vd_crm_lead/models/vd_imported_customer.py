@@ -131,6 +131,47 @@ class VdImportedCustomer(models.Model):
         } for r in recs]
 
     @api.model
+    def vd_omi_take(self, rec_id):
+        """LẤY KHÁCH VỀ: chuyển khách OMI thành lead của NV → hiện ở bảng KHÁCH MỚI
+        (stage 'Khách mới'). Archive bản ghi OMI. Chỉ NV sở hữu / quản lý."""
+        rec = self.sudo().browse(int(rec_id or 0))
+        if not rec.exists():
+            return {'ok': False}
+        u = self.env.user
+        if not (rec.user_id.id == u.id or u._is_admin()
+                or u.has_group('base.group_system')
+                or u.has_group('vd_crm_lead.vd_crm_group_deputy_director')):
+            return {'ok': False}
+        Lead = self.env['crm.lead'].sudo()
+        d = rec.phone_norm or ''
+        lead = Lead.search([('phone', 'like', '%' + d[-9:])], limit=1) if len(d) >= 9 else Lead
+        owner = rec.user_id.id or u.id
+        if lead:
+            if not lead.user_id:
+                lead.user_id = owner
+        else:
+            info = []
+            for lbl, val in (('Trạng thái', rec.status), ('Nguồn', rec.customer_group),
+                             ('Địa chỉ', rec.address), ('Diện tích', rec.area),
+                             ('Kiểu nhà', rec.house_type), ('Số tầng', rec.floors),
+                             ('Ngân sách', rec.budget), ('Loại đất', rec.land_type),
+                             ('Công năng', rec.func), ('Nhãn', rec.tags)):
+                if val:
+                    info.append('%s: %s' % (lbl, val))
+            vals = {
+                'name': rec.name or rec.phone or 'Khách OMI',
+                'contact_name': rec.name or '', 'phone': rec.phone,
+                'user_id': owner, 'type': 'lead',
+                'description': '📥 Lấy khách về từ SỐ OMI.\n' + '\n'.join(info),
+            }
+            stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
+            if stage:
+                vals['stage_id'] = stage.id
+            lead = Lead.create(vals)
+        rec.write({'active': False, 'converted_lead_id': lead.id})
+        return {'ok': True, 'lead_id': lead.id}
+
+    @api.model
     def vd_omi_cancel(self, rec_id):
         """HỦY KHÁCH OMI (⋮ → Hủy khách): archive bản ghi để bỏ khỏi SỐ OMI.
         Chỉ NV sở hữu / quản lý mới hủy được."""

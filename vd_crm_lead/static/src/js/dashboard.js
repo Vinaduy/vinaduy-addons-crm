@@ -30,7 +30,7 @@ export class VdOmiDialog extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
-        this.state = useState({ loading: true, items: [], q: "", menuId: null });
+        this.state = useState({ loading: true, items: [], q: "" });
         onWillStart(async () => {
             try {
                 this.state.items = await this.orm.call(
@@ -50,13 +50,8 @@ export class VdOmiDialog extends Component {
     call(item) {
         this.props.onCall(item.phone, item.name);
     }
-    // ⋮ menu cuối dòng: mở/đóng.
-    toggleMenu(id) {
-        this.state.menuId = this.state.menuId === id ? null : id;
-    }
-    // Hủy khách OMI → archive + bỏ khỏi danh sách (liên kết chức năng hủy KH).
+    // Hủy khách OMI → archive + bỏ khỏi danh sách.
     async cancelCustomer(c) {
-        this.state.menuId = null;
         if (!window.confirm("Hủy khách \"" + (c.name || c.phone) + "\" khỏi SỐ OMI?")) {
             return;
         }
@@ -66,6 +61,22 @@ export class VdOmiDialog extends Component {
             this.notification.add("Đã hủy khách khỏi SỐ OMI.", { type: "success" });
         } catch (e) {
             this.notification.add("Hủy khách lỗi.", { type: "danger" });
+        }
+    }
+    // LẤY KHÁCH VỀ → tạo lead của NV (hiện ở bảng Khách mới) + bỏ khỏi SỐ OMI.
+    async takeCustomer(c) {
+        try {
+            const r = await this.orm.call("vd.imported.customer", "vd_omi_take", [c.id]);
+            if (r && r.ok) {
+                this.state.items = this.state.items.filter((i) => i.id !== c.id);
+                this.notification.add(
+                    "Đã lấy khách về — xem ở bảng KHÁCH MỚI (tải lại trang nếu chưa thấy).",
+                    { type: "success" });
+            } else {
+                this.notification.add("Không lấy được khách này.", { type: "warning" });
+            }
+        } catch (e) {
+            this.notification.add("Lấy khách về lỗi.", { type: "danger" });
         }
     }
     // Gộp thông tin phụ thành 1 dòng gọn (khách = 1 dòng, sát nhau).
