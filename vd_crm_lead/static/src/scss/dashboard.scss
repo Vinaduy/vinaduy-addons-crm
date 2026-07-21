@@ -11092,3 +11092,23 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     box-shadow: 0 3px 9px rgba(9, 146, 104, .32);
     &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); transform: translateY(-1px); }
 }
+
+/* ⋮ menu cuối dòng SỐ OMI → Hủy khách */
+.o_vd_omi_kebab { flex: 0 0 auto; position: relative; }
+.o_vd_omi_kebab_btn {
+    border: 0; background: transparent; cursor: pointer; color: #868e96;
+    width: 26px; height: 26px; border-radius: 6px; font-size: 15px;
+    &:hover { background: #eef1f5; color: #212529; }
+}
+.o_vd_omi_kebab_menu {
+    position: absolute; right: 0; top: calc(100% + 2px); z-index: 20;
+    background: #fff; border: 1px solid #e6eaf0; border-radius: 10px;
+    box-shadow: 0 10px 26px rgba(2,6,23,.18); padding: 4px; min-width: 150px;
+}
+.o_vd_omi_kebab_item {
+    display: flex; align-items: center; width: 100%; border: 0; background: transparent;
+    cursor: pointer; padding: 8px 12px; border-radius: 7px; font-size: 13px; font-weight: 700;
+    color: #495057; white-space: nowrap;
+    &:hover { background: #f1f3f5; }
+}
+.o_vd_omi_kebab_cancel { color: #c92a2a; &:hover { background: #fff0f0; } }

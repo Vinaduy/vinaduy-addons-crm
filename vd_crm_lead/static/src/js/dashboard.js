@@ -29,7 +29,8 @@ export class VdOmiDialog extends Component {
     static props = { onCall: Function, close: { type: Function, optional: true } };
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ loading: true, items: [], q: "" });
+        this.notification = useService("notification");
+        this.state = useState({ loading: true, items: [], q: "", menuId: null });
         onWillStart(async () => {
             try {
                 this.state.items = await this.orm.call(
@@ -48,6 +49,24 @@ export class VdOmiDialog extends Component {
     }
     call(item) {
         this.props.onCall(item.phone, item.name);
+    }
+    // ⋮ menu cuối dòng: mở/đóng.
+    toggleMenu(id) {
+        this.state.menuId = this.state.menuId === id ? null : id;
+    }
+    // Hủy khách OMI → archive + bỏ khỏi danh sách (liên kết chức năng hủy KH).
+    async cancelCustomer(c) {
+        this.state.menuId = null;
+        if (!window.confirm("Hủy khách \"" + (c.name || c.phone) + "\" khỏi SỐ OMI?")) {
+            return;
+        }
+        try {
+            await this.orm.call("vd.imported.customer", "vd_omi_cancel", [c.id]);
+            this.state.items = this.state.items.filter((i) => i.id !== c.id);
+            this.notification.add("Đã hủy khách khỏi SỐ OMI.", { type: "success" });
+        } catch (e) {
+            this.notification.add("Hủy khách lỗi.", { type: "danger" });
+        }
     }
     // Gộp thông tin phụ thành 1 dòng gọn (khách = 1 dòng, sát nhau).
     infoLine(c) {

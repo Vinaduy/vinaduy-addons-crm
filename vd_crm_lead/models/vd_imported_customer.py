@@ -102,8 +102,22 @@ class VdImportedCustomer(models.Model):
     @api.model
     def vd_omi_list(self):
         """Danh sách SỐ OMI của NV đang đăng nhập — thẻ (không cột), ưu tiên khách
-        NHIỀU THÔNG TIN lên đầu. NV chỉ thấy của mình (ir.rule)."""
+        NHIỀU THÔNG TIN lên đầu. NV chỉ thấy của mình (ir.rule).
+
+        `calls` = số cuộc NV ĐÃ GỌI số này (từ stringee_call, KHÔNG phải total_calls
+        lịch sử import từ Pancake)."""
         recs = self.search([('user_id', '=', self.env.uid), ('active', '=', True)])
+        # Đếm cuộc gọi THẬT của NV tới từng số (đuôi 9 chữ số). Lọc user_id trước
+        # (index) rồi regexp trên tập nhỏ. KHÔNG chèn ORM giữa execute và fetchall.
+        tails = list({(r.phone_norm or '')[-9:] for r in recs if r.phone_norm})
+        calls_by_tail = {}
+        if tails:
+            self.env.cr.execute(
+                "SELECT right(regexp_replace(callee_number,'[^0-9]','','g'),9) AS t, "
+                "count(*) FROM stringee_call WHERE user_id = %s AND "
+                "right(regexp_replace(callee_number,'[^0-9]','','g'),9) IN %s GROUP BY t",
+                (self.env.uid, tuple(tails)))
+            calls_by_tail = dict(self.env.cr.fetchall())
         return [{
             'id': r.id, 'name': r.name or '(không tên)', 'phone': r.phone or '',
             'status': r.status or '', 'address': r.address or '',
@@ -112,6 +126,22 @@ class VdImportedCustomer(models.Model):
             'land_type': r.land_type or '', 'position': r.position or '',
             'budget': r.budget or '', 'red_book': r.red_book or '',
             'timeline': r.timeline or '', 'customer_group': r.customer_group or '',
-            'tags': r.tags or '', 'total_calls': r.total_calls or 0,
-            'info_score': r.info_score or 0,
+            'tags': r.tags or '', 'info_score': r.info_score or 0,
+            'calls': calls_by_tail.get((r.phone_norm or '')[-9:], 0),
         } for r in recs]
+
+    @api.model
+    def vd_omi_cancel(self, rec_id):
+        """HỦY KHÁCH OMI (⋮ → Hủy khách): archive bản ghi để bỏ khỏi SỐ OMI.
+        Chỉ NV sở hữu / quản lý mới hủy được."""
+        rec = self.sudo().browse(int(rec_id or 0))
+        if not rec.exists():
+            return False
+        u = self.env.user
+        allowed = (rec.user_id.id == u.id or u._is_admin()
+                   or u.has_group('base.group_system')
+                   or u.has_group('vd_crm_lead.vd_crm_group_deputy_director'))
+        if not allowed:
+            return False
+        rec.write({'active': False})
+        return True

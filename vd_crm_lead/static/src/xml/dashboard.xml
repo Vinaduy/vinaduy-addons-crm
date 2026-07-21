@@ -2346,8 +2346,8 @@
                                             <t t-set="newNotCalledCount" t-value="leadsNoProblems.filter(l => !l.call_stats || !l.call_stats.total).length"/>
                                             <t t-set="callbackCount" t-value="leadsNoProblems.filter(l => l.call_stats and l.call_stats.total &gt; 0).length"/>
                                             <t t-set="hasNeedCall" t-value="newNotCalledCount &gt; 0 or callbackCount &gt; 0"/>
-                                            <div t-if="hasBlock or hasNeedCall"
-                                                 class="o_vd_new_required_wrap o_vd_new_required_combo">
+                                            <!-- Luôn hiện dòng này để nút SỐ OMI CÙNG DÒNG với thẻ khách mới chưa gọi -->
+                                            <div class="o_vd_new_required_wrap o_vd_new_required_combo">
                                                 <span t-if="hasBlock" class="o_vd_new_required_badge">
                                                     ⚠️ YÊU CẦU XỬ LÝ KHÁCH MỚI
                                                 </span>
@@ -2356,15 +2356,15 @@
                                                     <span class="o_vd_need_call_sep">—</span>
                                                     <b><t t-esc="callbackCount"/></b> Khách cần gọi lại
                                                 </span>
+                                                <!-- SỐ OMI: cùng dòng thẻ khách mới chưa gọi; hover mở popup 90% -->
+                                                <button class="o_vd_omi_btn"
+                                                        t-on-mouseenter="() => this.openOmi()"
+                                                        t-on-click="() => this.openOmi()"
+                                                        title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
+                                                    <i class="fa fa-headphones me-2"/>SỐ OMI
+                                                    <i class="fa fa-angle-right o_vd_omi_btn_arrow ms-1"/>
+                                                </button>
                                             </div>
-                                            <!-- SỐ OMI: nằm cùng khu KHÁCH MỚI CHƯA GỌI; hover mở popup 90% -->
-                                            <button class="o_vd_omi_btn"
-                                                    t-on-mouseenter="() => this.openOmi()"
-                                                    t-on-click="() => this.openOmi()"
-                                                    title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
-                                                <i class="fa fa-headphones me-2"/>SỐ OMI
-                                                <i class="fa fa-angle-right o_vd_omi_btn_arrow ms-1"/>
-                                            </button>
                                         </div>
                                     </div>
                                     <!-- User spec 2026-06-12: gom 3 nút vào 1 cột → xếp DỌC khi >40 KH.
@@ -4286,12 +4286,22 @@
                         <span t-if="c.status" class="o_vd_omi_r_status" t-esc="c.status"/>
                         <span t-if="c.customer_group" class="o_vd_omi_r_src" t-esc="c.customer_group"/>
                         <span class="o_vd_omi_r_info" t-att-title="infoLine(c)" t-esc="infoLine(c)"/>
-                        <span class="o_vd_omi_r_calls" title="Số cuộc đã gọi khách này">
-                            <i class="fa fa-phone"/> <t t-esc="c.total_calls"/>
+                        <span class="o_vd_omi_r_calls" title="Số cuộc BẠN đã gọi số này">
+                            <i class="fa fa-phone"/> <t t-esc="c.calls"/>
                         </span>
                         <button class="o_vd_omi_callnow" t-on-click="() => this.call(c)" title="Gọi ngay khách này">
                             <i class="fa fa-phone me-1"/>GỌI NGAY
                         </button>
+                        <div class="o_vd_omi_kebab">
+                            <button class="o_vd_omi_kebab_btn" t-on-click="() => this.toggleMenu(c.id)" title="Thao tác khác">
+                                <i class="fa fa-ellipsis-v"/>
+                            </button>
+                            <div t-if="state.menuId === c.id" class="o_vd_omi_kebab_menu">
+                                <button class="o_vd_omi_kebab_item o_vd_omi_kebab_cancel" t-on-click="() => this.cancelCustomer(c)">
+                                    <i class="fa fa-ban me-2"/>Hủy khách
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div t-if="!filtered.length" class="o_vd_omi_center">Không có khách OMI nào.</div>
                 </div>
