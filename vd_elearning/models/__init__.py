@@ -21,4 +21,5 @@ from . import seed_d4_giam_vat_tu
 from . import seed_kn_giong_noi
 from . import seed_theo_duoi_bao_gia
 from . import seed_quy_trinh_1_buoi
+from . import seed_lam_bao_gia
 from . import seed_ky_thuat_thi_cong

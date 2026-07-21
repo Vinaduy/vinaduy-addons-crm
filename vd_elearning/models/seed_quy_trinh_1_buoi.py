@@ -17,7 +17,7 @@ Idempotent theo version lưu ở ir.config_parameter.
 """
 from odoo import api, models
 
-_Q1B_VERSION = 'v2-1day-steps-wide'
+_Q1B_VERSION = 'v3-drop-step6-baogia'
 _PARAM_KEY = 'vd_elearning.quy_trinh_1_buoi_seed_version'
 
 _WRAP = 'font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
@@ -222,12 +222,13 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             'sequence': 1, 'is_published': True,
         })
 
+        questions = self._q1b_questions()
         quiz = Slide.create({
-            'channel_id': ch.id, 'name': 'Bài thi - 22 câu',
+            'channel_id': ch.id, 'name': 'Bài thi - %d câu' % len(questions),
             'slide_category': 'quiz', 'sequence': 999, 'is_published': True,
         })
         qseq = 1
-        for text, answers in self._q1b_questions():
+        for text, answers in questions:
             Question.create({
                 'slide_id': quiz.id, 'question': text, 'sequence': qseq,
                 'answer_ids': [
@@ -269,7 +270,7 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             '<div style="color:#fff;font-size:26px;font-weight:900;margin-top:6px;line-height:1.2;'
             'text-shadow:0 2px 8px rgba(0,0,0,.15);">'
             'Quy trình chuẩn: Gọi điện &rarr; Kết bạn Zalo &rarr; Tạo nhóm &rarr; '
-            'Mẫu nhà &rarr; Báo giá</div>'
+            'Hoàn thiện nhóm &rarr; Mẫu nhà</div>'
             '<div style="color:#fff8f4;font-size:14.5px;margin-top:9px;">'
             '&#9200; TOÀN BỘ quy trình phải xong trong <b>1 BUỔI (khoảng 4 tiếng)</b> '
             'hoặc cùng lắm <b>1 NGÀY</b>. &#128073; Bấm từng mục ở MENU BÊN TRÁI để học '
@@ -292,7 +293,6 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             ('&#128101;', 'BƯỚC 3', 'Tạo nhóm Zalo', self._q1b_l3()),
             ('&#127916;', 'BƯỚC 4', 'Hoàn thiện nhóm', self._q1b_l4()),
             ('&#127968;', 'BƯỚC 5', 'Gửi mẫu nhà', self._q1b_l5()),
-            ('&#128181;', 'BƯỚC 6', 'Gửi báo giá', self._q1b_l6()),
             ('&#127942;', 'TỔNG KẾT', 'Tổng hợp kiến thức', self._q1b_l_gold()),
         ]
 
@@ -305,21 +305,25 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             + '<h3>Một khách mới = một quy trình TRỌN GÓI trong 1 NGÀY</h3>'
             + _box('ok', '<b>Mục tiêu bắt buộc của MỌI chuyên viên tư vấn:</b> từ lúc '
                    '<b>gọi điện tư vấn lần đầu</b> &rarr; kết bạn Zalo &rarr; tạo nhóm '
-                   '&rarr; làm báo giá &rarr; <b>GỬI báo giá cho khách</b> &mdash; TẤT CẢ '
-                   'phải gói gọn <b>TRONG 1 NGÀY</b>. Tuyệt đối không để công việc của '
+                   '&rarr; hoàn thiện nhóm &rarr; <b>gửi mẫu nhà cho khách</b> &mdash; TẤT '
+                   'CẢ phải gói gọn <b>TRONG 1 NGÀY</b>. Tuyệt đối không để công việc của '
                    'khách này kéo sang ngày hôm sau.')
+            + _box('info', '<b>Việc LÀM &amp; GỬI BÁO GIÁ được học riêng</b> ở khóa '
+                   '<b>&#8220;Làm báo giá&#8221;</b> (khóa kế tiếp). Khóa này tập trung '
+                   'xử lý gọn khách mới đến bước gửi mẫu nhà + bấm &#8220;Chốt báo '
+                   'giá&#8221; trên CRM; phần điều phối báo giá sẽ nói kỹ ở khóa sau.')
             + _box('warn', '<b>Hiểu đúng chữ &#8220;1 NGÀY&#8221;:</b> trong CÙNG một ngày '
                    'bạn phải làm ĐỦ MỌI THỨ &mdash; gọi điện, kết bạn Zalo, tạo nhóm, hoàn '
-                   'thiện nhóm, gửi mẫu nhà, làm và GỬI báo giá. Làm xong trọn vẹn khách '
-                   'này rồi mới yên tâm sang khách khác; không &#8220;làm dở rồi để đó&#8221;.')
+                   'thiện nhóm, gửi mẫu nhà. Làm xong trọn vẹn khách này rồi mới yên tâm '
+                   'sang khách khác; không &#8220;làm dở rồi để đó&#8221;.')
             + '<p>Toàn bộ chuỗi công việc phải chạy LIÊN TỤC, không đứt đoạn: gọi điện '
             'tư vấn &rarr; kết bạn Zalo &rarr; tạo nhóm &rarr; hoàn thiện nhóm (đổi tên, '
-            'ảnh, gửi video/lời chào/tổng hợp) &rarr; gửi mẫu nhà &rarr; làm và gửi báo '
-            'giá. <b>Mỗi bước làm xong BẮT BUỘC kích hoạt bước kế tiếp.</b></p>'
+            'ảnh, gửi video/lời chào/tổng hợp) &rarr; gửi mẫu nhà. <b>Mỗi bước làm xong '
+            'BẮT BUỘC kích hoạt bước kế tiếp.</b></p>'
             + _box('err', '<b>Sai lầm chí mạng:</b> để quy trình bị đứt ở một bước rồi '
                    'kéo dài sang 2&ndash;3 ngày. Rất nhiều chuyên viên gọi điện xong '
-                   '2&ndash;3 ngày sau vẫn KHÔNG làm nổi báo giá &mdash; đây là lý do '
-                   'mất khách nhiều nhất.')
+                   '2&ndash;3 ngày sau vẫn KHÔNG hoàn thiện nổi nhóm / gửi mẫu nhà &mdash; '
+                   'đây là lý do mất khách nhiều nhất.')
             + '<h4>Vì sao phải nhanh và liền mạch?</h4>'
             + _nendont(
                 ['Khách còn &#8220;nóng&#8221;, còn nhớ cuộc gọi &rarr; dễ tương tác',
@@ -340,15 +344,15 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                  'Đổi tên + ảnh nhóm, gửi 4 video VTV, lời chào, tổng hợp cuộc gọi.'),
                 ('GỬI MẪU NHÀ trong ~15 phút',
                  'Gửi 5&ndash;10 mẫu (20&ndash;30 nếu khách phân vân). KHÔNG chờ khách chốt mẫu.'),
-                ('GIÃN ~2 TIẾNG &rarr; GỬI BÁO GIÁ',
-                 'Cả chuỗi trên gói trong ~30 phút; báo giá đã có sẵn, đợi đủ 2 tiếng mới gửi cho tự nhiên.'),
+                ('CHỐT BÁO GIÁ trên CRM &rarr; chuyển khóa &#8220;Làm báo giá&#8221;',
+                 'Gác máy đã bấm Chốt báo giá nên file đã có sẵn; cách điều phối &amp; gửi báo giá học riêng ở khóa &#8220;Làm báo giá&#8221;.'),
             ])
             + _fml('1 KHÁCH MỚI = <b>Gọi + Chốt báo giá &rarr; Kết bạn &rarr; Tạo nhóm '
-                   '&rarr; Hoàn thiện nhóm &rarr; Mẫu nhà &rarr; GỬI báo giá</b>. TẤT CẢ '
-                   'trong 1 NGÀY. Đứt bước nào = mất khách bước đó.')
+                   '&rarr; Hoàn thiện nhóm &rarr; Mẫu nhà</b>. TẤT CẢ trong 1 NGÀY. Đứt '
+                   'bước nào = mất khách bước đó. (Điều phối báo giá &rarr; khóa &#8220;Làm báo giá&#8221;.)')
             + _quiz('q1b_open',
-                    'Toàn bộ quy trình từ gọi điện lần đầu đến gửi báo giá phải hoàn tất trong bao lâu?',
-                    [('Trong 1 NGÀY — gọi điện, tạo nhóm, làm và gửi báo giá đều xong trong cùng ngày', True),
+                    'Toàn bộ quy trình xử lý khách mới (gọi điện, tạo nhóm, gửi mẫu nhà) phải hoàn tất trong bao lâu?',
+                    [('Trong 1 NGÀY — gọi điện, kết bạn, tạo nhóm, hoàn thiện nhóm, gửi mẫu nhà đều xong trong cùng ngày', True),
                      ('Trong khoảng 1 tuần cho thong thả', False),
                      ('Bao lâu cũng được, miễn là khách chốt mẫu xong', False),
                      ('Chỉ cần gọi điện là đủ, các bước sau tùy hứng', False)],
@@ -649,7 +653,8 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                     'Không bao giờ chờ khách chốt mẫu mới báo giá &mdash; mẫu nào giá cũng như nhau, chọn mẫu là bước sau khi ký.'))
 
     # ------------------------------------------------------------------
-    #  BƯỚC6 - LÀM & GỬI BÁO GIÁ
+    #  (Đã BỎ "BƯỚC 6 - Gửi báo giá": tách sang khóa riêng "Làm báo giá".
+    #   Method _q1b_l6 giữ lại nhưng KHÔNG còn nằm trong menu _q1b_lessons.)
     # ------------------------------------------------------------------
     def _q1b_l6(self):
         return (
@@ -743,16 +748,18 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
             self._q1b_tag('&#127942; TỔNG HỢP KIẾN THỨC')
             + '<h3>Tổng hợp kiến thức &mdash; nhớ nhanh cả quy trình 1 ngày</h3>'
             + _box('ok', '<b>Một câu cốt lõi:</b> 1 khách mới = 1 quy trình TRỌN GÓI '
-                   'trong <b>1 NGÀY</b> &mdash; gọi điện, kết bạn, tạo nhóm, gửi mẫu, làm '
-                   'và GỬI báo giá; tất cả xong trong cùng ngày, không để đứt bước nào.')
-            + '<h4>&#128273; 6 BƯỚC &mdash; nhớ nhanh</h4>'
+                   'trong <b>1 NGÀY</b> &mdash; gọi điện, kết bạn, tạo nhóm, hoàn thiện '
+                   'nhóm, gửi mẫu nhà; tất cả xong trong cùng ngày, không để đứt bước nào.')
+            + _box('info', '<b>Làm &amp; gửi báo giá</b> được học riêng ở khóa <b>&#8220;Làm '
+                   'báo giá&#8221;</b> (khóa kế tiếp) &mdash; đừng quên gác máy là bấm '
+                   '<b>Chốt báo giá</b> trên CRM để có sẵn file cho khóa sau.')
+            + '<h4>&#128273; 5 BƯỚC &mdash; nhớ nhanh</h4>'
             + '<ul>'
             '<li><b>Bước 1 &mdash; Gọi điện:</b> cuộc gọi QUAN TRỌNG NHẤT (tạo niềm tin, tâm sự); khai thác ĐỦ thông tin &rarr; gác máy vào CRM bấm CHỐT BÁO GIÁ.</li>'
             '<li><b>Bước 2 &mdash; Kết bạn Zalo:</b> gửi lời mời, 5 phút chưa đồng ý &rarr; GỌI NHẮC NGAY. Khách bận thì vẫn kết bạn + tạo nhóm + gửi đủ nội dung.</li>'
             '<li><b>Bước 3 &mdash; Tạo nhóm:</b> kết bạn xong TẠO NHÓM NGAY (mình + khách + trưởng phòng); CẤM nhắn cá nhân.</li>'
             '<li><b>Bước 4 &mdash; Hoàn thiện nhóm:</b> làm ngay: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi.</li>'
             '<li><b>Bước 5 &mdash; Gửi mẫu nhà:</b> gửi 5&ndash;10 mẫu (có sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.</li>'
-            '<li><b>Bước 6 &mdash; Gửi báo giá:</b> đủ tổng DT sàn + tổng m&#178; + tài chính &rarr; giãn 2 tiếng rồi GỬI. Tải file + CHỤP MÀN HÌNH bảng báo giá gửi kèm.</li>'
             '</ul>'
             + '<h4>&#128221; Bảng công thức thuộc lòng (chi tiết)</h4>'
             + _table(['Bước', 'Công thức thuộc lòng'],
@@ -761,12 +768,12 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
                       ['<b>Bước 2 &mdash; Kết bạn Zalo</b>', 'Gửi lời mời; 5 phút chưa đồng ý &rarr; GỌI NHẮC NGAY. Khách bận vẫn kết bạn + tạo nhóm + gửi đủ nội dung + nhắn tư vấn (ưu tiên gọi nếu có cơ hội). Không kết bạn = không nhóm = không báo giá.'],
                       ['<b>Bước 3 &mdash; Tạo nhóm</b>', 'Kết bạn xong TẠO NHÓM NGAY (mình + khách + trưởng phòng), KHÔNG xin phép. CẤM nhắn cá nhân &mdash; cá nhân chỉ gọi điện.'],
                       ['<b>Bước 4 &mdash; Hoàn thiện nhóm</b>', 'Làm ngay: đổi tên + ảnh, 4 video VTV, lời chào, tổng hợp cuộc gọi.'],
-                      ['<b>Bước 5 &mdash; Gửi mẫu nhà</b>', 'Giúp khách chốt kiểu dáng; gửi 5&ndash;10 mẫu (có mẫu sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.'],
-                      ['<b>Bước 6 &mdash; Gửi báo giá</b>', 'Đủ tổng DT sàn + tổng m&#178; + tài chính &rarr; GIÃN 2 TIẾNG rồi GỬI. Tải file + CHỤP MÀN HÌNH bảng báo giá gửi kèm vào nhóm. Không chờ mẫu/kích thước/pháp lý; thiếu ~100tr vẫn báo, quá nhỏ thì bỏ.']],
+                      ['<b>Bước 5 &mdash; Gửi mẫu nhà</b>', 'Giúp khách chốt kiểu dáng; gửi 5&ndash;10 mẫu (có mẫu sẵn: 5 giống nhất; phân vân: 20&ndash;30). KHÔNG chờ khách chốt mẫu mới báo giá.']],
                      widths=['24%', '76%'])
             + _box('warn', 'Nguyên tắc bao trùm: <b>KHÔNG BAO GIỜ để quy trình dừng lại '
                    'chờ đợi.</b> Thiếu thông tin thì điền tạm; khách chưa quyết thì vẫn '
-                   'đi tiếp. Gọi điện xong mà sang ngày hôm sau vẫn chưa có báo giá là thất bại.')
+                   'đi tiếp. Gọi điện xong mà sang ngày hôm sau vẫn chưa hoàn thiện nhóm / '
+                   'gửi mẫu nhà là thất bại.')
             + _quiz('q1b_gold',
                     'Đâu là nguyên tắc bao trùm toàn bộ khóa học này?',
                     [('Càng làm chậm, kỹ càng thì khách càng tin tưởng', False),
@@ -895,21 +902,9 @@ class SlideChannelSeedQuyTrinh1Buoi(models.Model):
               ('Không gửi mẫu nào cả', F),
               ('Gửi 2 mẫu cho khách đỡ rối', F)]),
 
-            ('Sau khi đã bấm chốt báo giá, nên gửi file báo giá cho khách khi nào?',
-             [('Giãn tối thiểu ~2 tiếng rồi mới gửi, để khách không nghĩ báo giá làm ẩu trong vài phút', T),
-              ('Gửi ngay lập tức khi vừa chốt', F),
-              ('Đợi 2-3 ngày cho chắc chắn', F),
-              ('Chỉ gửi khi khách đã chốt mẫu và kích thước', F)]),
-
             ('Vì sao BẮT BUỘC phải bấm "CHỐT BÁO GIÁ" trên phần mềm CRM sau cuộc gọi?',
              [('Vì chỉ khi CHỐT mới sinh ra file báo giá để gửi và mới đẩy khách xuống bảng Thi công gấp / Xử lý vấn đề', T),
               ('Vì để phần mềm tính hoa hồng cho nhân viên', F),
               ('Vì chốt để xóa khách khỏi danh sách', F),
               ('Không bắt buộc, khi nào rảnh chốt cũng được', F)]),
-
-            ('Khi gửi báo giá cho khách, quy định BẮT BUỘC ngoài việc gửi file là gì?',
-             [('Mở file lên, CHỤP MÀN HÌNH bảng báo giá (nhất là tổng giá trị) và gửi ảnh kèm vào nhóm để khách không lấy lý do "chưa xem"', T),
-              ('Chỉ cần gửi mỗi file là đủ', F),
-              ('Gửi file qua tin nhắn cá nhân cho riêng khách', F),
-              ('Đọc toàn bộ báo giá qua điện thoại cho khách nghe', F)]),
         ]

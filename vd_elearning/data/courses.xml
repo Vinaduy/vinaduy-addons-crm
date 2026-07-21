@@ -137,6 +137,18 @@
             <field name="vd_max_attempts">3</field>
         </record>
 
+        <!-- Khoa KY NANG SALE: LAM BAO GIA - Quy trinh lai 4 buoc "Tha con san sat,
+             bat con ca map". Chen NGAY SAU khoa 1 buoi (vd_seq=10). Noi dung + bai
+             thi do _vd_seed_lam_bao_gia seed. -->
+        <record id="course_lam_bao_gia" model="slide.channel">
+            <field name="name">Làm báo giá</field>
+            <field name="channel_type">training</field>
+            <field name="vd_role_zone">sales</field>
+            <field name="vd_seq">10</field>
+            <field name="vd_pass_percent">100</field>
+            <field name="vd_max_attempts">3</field>
+        </record>
+
         <!-- Khoa CAU HOI KHO: KY THUAT THI CONG (mong/vat tu/nut/tham/be tong/tran/
              bao hanh/tuong). Noi dung + 20 cau thi do _vd_seed_ky_thuat_thi_cong seed;
              seed tu gan vao lo trinh "Cau hoi kho" (tao trong DB). -->
@@ -186,6 +198,7 @@
     <function model="slide.channel" name="_vd_seed_kn_giong_noi"/>
     <function model="slide.channel" name="_vd_seed_theo_duoi_bao_gia"/>
     <function model="slide.channel" name="_vd_seed_quy_trinh_1_buoi"/>
+    <function model="slide.channel" name="_vd_seed_lam_bao_gia"/>
     <function model="slide.channel" name="_vd_seed_ky_thuat_thi_cong"/>
 
     <!-- Dong bo ten khoa hoc cho MOI ngon ngu (NV xem vi_VN khong con thay ten cu). -->
