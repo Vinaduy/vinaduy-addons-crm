@@ -2067,6 +2067,15 @@
                         <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
                              (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
                         <div class="o_vd_topbar_row">
+                        <!-- SỐ OMI: cùng dòng, ĐỨNG TRƯỚC ô tìm kiếm (user 2026-07-21) → hover mở popup 90% -->
+                        <button t-if="!isAdminView" class="o_vd_omi_bigbtn o_vd_omi_inline"
+                                t-on-mouseenter="() => this.openOmi()"
+                                t-on-click="() => this.openOmi()"
+                                title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
+                            <i class="fa fa-headphones o_vd_omi_bigbtn_ico"/>
+                            <span class="o_vd_omi_bigbtn_txt">SỐ OMI</span>
+                            <i class="fa fa-angle-right o_vd_omi_btn_arrow"/>
+                        </button>
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
                         <div class="o_vd_nv_search_wrap" t-if="!isAdminView">
                             <div class="o_vd_nv_search">
@@ -2159,20 +2168,6 @@
                             </t>
                         </div>
                         </div><!-- /.o_vd_topbar_row -->
-
-                        <!-- SỐ OMI: nút TO nổi bật TRÊN CÙNG, trước tất cả khách hàng
-                             (user 2026-07-21) → hover mở popup 90%. -->
-                        <div class="o_vd_omi_topbar">
-                            <button class="o_vd_omi_bigbtn"
-                                    t-on-mouseenter="() => this.openOmi()"
-                                    t-on-click="() => this.openOmi()"
-                                    title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
-                                <i class="fa fa-headphones o_vd_omi_bigbtn_ico"/>
-                                <span class="o_vd_omi_bigbtn_txt">SỐ OMI</span>
-                                <span class="o_vd_omi_bigbtn_sub">— Bấm để lấy khách gọi thêm</span>
-                                <i class="fa fa-angle-right o_vd_omi_btn_arrow"/>
-                            </button>
-                        </div>
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
                              riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong

@@ -11113,31 +11113,32 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_omi_kebab_cancel { color: #c92a2a; &:hover { background: #fff0f0; } }
 
-/* SỐ OMI: nút TO nổi bật trên cùng (trước tất cả khách hàng) */
-.o_vd_omi_topbar { display: flex; justify-content: center; margin: 6px 0 12px; }
+/* SỐ OMI: nút nổi bật CÙNG DÒNG, đứng TRƯỚC ô tìm kiếm */
 .o_vd_omi_bigbtn {
-    display: inline-flex; align-items: center; gap: 10px; cursor: pointer; border: 0;
-    color: #fff; font-weight: 900; letter-spacing: .03em;
-    padding: 0.85rem 2.4rem; border-radius: 16px; position: relative;
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 0;
+    color: #fff; font-weight: 900; letter-spacing: .03em; white-space: nowrap;
+    padding: 0.7rem 1.5rem; border-radius: 14px; position: relative;
     background: linear-gradient(135deg, #ff922b 0%, #f76707 50%, #e8590c 100%);
-    box-shadow: 0 10px 26px rgba(232, 89, 12, 0.5);
+    box-shadow: 0 8px 20px rgba(232, 89, 12, 0.45);
     transition: all .16s ease;
-    .o_vd_omi_bigbtn_ico { font-size: 1.5rem; }
-    .o_vd_omi_bigbtn_txt { font-size: 1.5rem; }
-    .o_vd_omi_bigbtn_sub { font-size: .95rem; font-weight: 700; opacity: .95; }
-    .o_vd_omi_btn_arrow { font-size: 1.4rem; transition: transform .16s ease; }
+    .o_vd_omi_bigbtn_ico { font-size: 1.25rem; }
+    .o_vd_omi_bigbtn_txt { font-size: 1.15rem; }
+    .o_vd_omi_bigbtn_sub { font-size: .9rem; font-weight: 700; opacity: .95; }
+    .o_vd_omi_btn_arrow { font-size: 1.15rem; transition: transform .16s ease; }
     &:hover {
         background: linear-gradient(135deg, #ffa94d, #ff922b);
-        box-shadow: 0 16px 34px rgba(232, 89, 12, 0.62);
-        transform: translateY(-2px) scale(1.02);
-        .o_vd_omi_btn_arrow { transform: translateX(4px); }
+        box-shadow: 0 12px 28px rgba(232, 89, 12, 0.58);
+        transform: translateY(-1px) scale(1.02);
+        .o_vd_omi_btn_arrow { transform: translateX(3px); }
     }
     &::after {
-        content: ""; position: absolute; inset: 0; border-radius: 16px;
+        content: ""; position: absolute; inset: 0; border-radius: 14px;
         box-shadow: 0 0 0 0 rgba(232, 89, 12, 0.55);
         animation: vdOmiPulse 2s ease-out infinite;
     }
 }
+/* biến thể inline: đứng trước ô tìm kiếm, cùng hàng */
+.o_vd_omi_inline { flex: 0 0 auto; margin-right: 12px; align-self: center; }
 /* 2 nút nhỏ nhẹ trước GỌI NGAY: Hủy / Lấy khách về */
 .o_vd_omi_soft {
     flex: 0 0 auto; cursor: pointer; border: 1px solid transparent;
