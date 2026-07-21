@@ -11061,15 +11061,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #fff4e6; }
     &:last-child { border-bottom: 0; }
 }
-.o_vd_omi_call {
-    flex: 0 0 auto; border: 0; cursor: pointer; color: #fff;
-    width: 30px; height: 30px; border-radius: 8px; font-size: 13px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #12b886, #099268);
-    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); transform: scale(1.08); }
-}
 .o_vd_omi_r_name {
-    flex: 0 0 160px; max-width: 160px; font-weight: 800; color: #212529;
+    flex: 0 0 240px; max-width: 240px; font-weight: 800; color: #212529;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .o_vd_omi_r_phone { flex: 0 0 auto; font-weight: 800; color: #1971c2; white-space: nowrap; }
@@ -11084,4 +11077,18 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_omi_r_info {
     flex: 1 1 auto; min-width: 0; color: #6b7280;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* số cuộc đã gọi + nút GỌI NGAY ở cuối dòng */
+.o_vd_omi_r_calls {
+    flex: 0 0 auto; font-weight: 800; font-size: 11.5px; color: #495057;
+    background: #eef1f5; padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+    .fa { color: #868e96; }
+}
+.o_vd_omi_callnow {
+    flex: 0 0 auto; border: 0; cursor: pointer; color: #fff; font-weight: 900;
+    font-size: 12px; letter-spacing: .02em; padding: 5px 14px; border-radius: 8px;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #12b886, #099268);
+    box-shadow: 0 3px 9px rgba(9, 146, 104, .32);
+    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); transform: translateY(-1px); }
 }

@@ -2235,14 +2235,6 @@
                                             <div class="o_vd_filter_table_count">
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
-                                            <!-- SỐ OMI: cùng dòng tiêu đề bảng Khách mới; hover mở popup 90% -->
-                                            <button class="o_vd_omi_btn"
-                                                    t-on-mouseenter="() => this.openOmi()"
-                                                    t-on-click="() => this.openOmi()"
-                                                    title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
-                                                <i class="fa fa-headphones me-2"/>SỐ OMI
-                                                <i class="fa fa-angle-right o_vd_omi_btn_arrow ms-1"/>
-                                            </button>
                                             <button t-if="state.selectMode and leadsNoProblems.length"
                                                     class="o_vd_select_all_btn"
                                                     t-on-click.stop="() => this.toggleSelectAll(leadsNoProblems.map(l => l.id))"
@@ -2365,6 +2357,14 @@
                                                     <b><t t-esc="callbackCount"/></b> Khách cần gọi lại
                                                 </span>
                                             </div>
+                                            <!-- SỐ OMI: nằm cùng khu KHÁCH MỚI CHƯA GỌI; hover mở popup 90% -->
+                                            <button class="o_vd_omi_btn"
+                                                    t-on-mouseenter="() => this.openOmi()"
+                                                    t-on-click="() => this.openOmi()"
+                                                    title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
+                                                <i class="fa fa-headphones me-2"/>SỐ OMI
+                                                <i class="fa fa-angle-right o_vd_omi_btn_arrow ms-1"/>
+                                            </button>
                                         </div>
                                     </div>
                                     <!-- User spec 2026-06-12: gom 3 nút vào 1 cột → xếp DỌC khi >40 KH.
@@ -4281,14 +4281,17 @@
                 <div t-else="" class="o_vd_omi_list">
                     <!-- Mỗi khách = 1 DÒNG, sát nhau -->
                     <div t-foreach="filtered" t-as="c" t-key="c.id" class="o_vd_omi_row">
-                        <button class="o_vd_omi_call" t-on-click="() => this.call(c)" title="Gọi khách này">
-                            <i class="fa fa-phone"/>
-                        </button>
                         <span class="o_vd_omi_r_name" t-att-title="c.name" t-esc="c.name"/>
                         <span class="o_vd_omi_r_phone" t-esc="c.phone"/>
                         <span t-if="c.status" class="o_vd_omi_r_status" t-esc="c.status"/>
                         <span t-if="c.customer_group" class="o_vd_omi_r_src" t-esc="c.customer_group"/>
                         <span class="o_vd_omi_r_info" t-att-title="infoLine(c)" t-esc="infoLine(c)"/>
+                        <span class="o_vd_omi_r_calls" title="Số cuộc đã gọi khách này">
+                            <i class="fa fa-phone"/> <t t-esc="c.total_calls"/>
+                        </span>
+                        <button class="o_vd_omi_callnow" t-on-click="() => this.call(c)" title="Gọi ngay khách này">
+                            <i class="fa fa-phone me-1"/>GỌI NGAY
+                        </button>
                     </div>
                     <div t-if="!filtered.length" class="o_vd_omi_center">Không có khách OMI nào.</div>
                 </div>

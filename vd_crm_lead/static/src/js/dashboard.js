@@ -51,6 +51,7 @@ export class VdOmiDialog extends Component {
     }
     // Gộp thông tin phụ thành 1 dòng gọn (khách = 1 dòng, sát nhau).
     infoLine(c) {
+        // Bỏ "Thời gian" (trên 5 tháng...) và "Công năng" theo yêu cầu.
         const p = [];
         if (c.address) p.push(c.address);
         if (c.area) p.push("📐 " + c.area);
@@ -58,8 +59,6 @@ export class VdOmiDialog extends Component {
         if (c.floors) p.push(c.floors);
         if (c.budget) p.push("💰 " + c.budget);
         if (c.land_type) p.push(c.land_type);
-        if (c.timeline) p.push("🕒 " + c.timeline);
-        if (c.func) p.push(c.func);
         if (c.tags) p.push("🏷 " + c.tags);
         return p.join("  ·  ");
     }
