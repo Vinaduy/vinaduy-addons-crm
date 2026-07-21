@@ -4282,7 +4282,9 @@
                 <div t-if="state.loading" class="o_vd_omi_center"><i class="fa fa-spinner fa-spin me-1"/> Đang tải...</div>
                 <div t-else="" class="o_vd_omi_list">
                     <!-- Mỗi khách = 1 DÒNG, sát nhau -->
-                    <div t-foreach="filtered" t-as="c" t-key="c.id" class="o_vd_omi_row">
+                    <div t-foreach="filtered" t-as="c" t-key="c.id"
+                         t-attf-class="o_vd_omi_row {{c.cancelled ? 'o_vd_omi_row_cancelled' : ''}}">
+                        <span t-if="c.cancelled" class="o_vd_omi_r_cancelbadge" title="Khách đã hủy">✖ ĐÃ HỦY</span>
                         <span class="o_vd_omi_r_name" t-att-title="c.name" t-esc="c.name"/>
                         <span class="o_vd_omi_r_phone" t-esc="c.phone"/>
                         <span t-if="c.status" class="o_vd_omi_r_status" t-esc="c.status"/>
@@ -4291,10 +4293,11 @@
                         <span class="o_vd_omi_r_calls" title="Số cuộc BẠN đã gọi số này">
                             <i class="fa fa-phone"/> <t t-esc="c.calls"/>
                         </span>
-                        <button class="o_vd_omi_soft o_vd_omi_soft_cancel" t-on-click="() => this.cancelCustomer(c)"
-                                title="Hủy khách này khỏi SỐ OMI">
+                        <button t-if="!c.cancelled" class="o_vd_omi_soft o_vd_omi_soft_cancel" t-on-click="() => this.cancelCustomer(c)"
+                                title="Hủy khách này — chọn lý do, khách xuống cuối danh sách">
                             <i class="fa fa-ban me-1"/>Hủy
                         </button>
+                        <span t-else="" class="o_vd_omi_soft o_vd_omi_soft_done"><i class="fa fa-check me-1"/>Đã hủy</span>
                         <button class="o_vd_omi_soft o_vd_omi_soft_take" t-on-click="() => this.takeCustomer(c)"
                                 title="Lấy khách về — chuyển vào bảng Khách mới của bạn">
                             <i class="fa fa-download me-1"/>Lấy khách về
@@ -4306,6 +4309,36 @@
                     <div t-if="!filtered.length" class="o_vd_omi_center">Không có khách OMI nào.</div>
                 </div>
             </div>
+        </Dialog>
+    </t>
+
+    <!-- ===== BẢNG CHỌN LÝ DO HỦY khách OMI ===== -->
+    <t t-name="vd_crm_lead.OmiCancelDialog">
+        <Dialog title="'Hủy khách — chọn lý do'" size="'md'">
+            <div class="o_vd_omicx">
+                <div class="o_vd_omicx_cust">
+                    <b t-esc="props.customer.name"/> · <span t-esc="props.customer.phone"/>
+                </div>
+                <div class="o_vd_omicx_lbl">Lý do hủy:</div>
+                <div class="o_vd_omicx_cats">
+                    <label t-foreach="props.cats" t-as="cat" t-key="cat.key"
+                           t-attf-class="o_vd_omicx_cat {{state.category === cat.key ? 'o_active' : ''}}">
+                        <input type="radio" name="omicx" t-att-value="cat.key"
+                               t-att-checked="state.category === cat.key"
+                               t-on-change="() => this.state.category = cat.key"/>
+                        <span t-esc="cat.label"/>
+                    </label>
+                </div>
+                <div class="o_vd_omicx_lbl">Ghi chú thêm (không bắt buộc):</div>
+                <textarea class="o_vd_omicx_note" t-model="state.note"
+                          placeholder="Nhập lý do chi tiết nếu cần..."/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-danger" t-on-click="() => this.confirm()">
+                    <i class="fa fa-ban me-1"/>Xác nhận hủy
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+            </t>
         </Dialog>
     </t>
 

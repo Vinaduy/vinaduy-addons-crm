@@ -20,9 +20,18 @@ def _norm_phone(p):
 class VdImportedCustomer(models.Model):
     _name = 'vd.imported.customer'
     _description = 'Danh sách khách hàng (import Pancake)'
-    # Ưu tiên khách CÓ THÔNG TIN lên đầu (info_score cao trước).
-    _order = 'info_score desc, id desc'
+    # Khách HỦY xuống CUỐI; còn lại ưu tiên khách CÓ THÔNG TIN lên đầu.
+    _order = 'cancelled, info_score desc, id desc'
     _rec_name = 'name'
+
+    _CANCEL_CATEGORIES = [
+        ('no_budget', 'Không đủ ngân sách'),
+        ('competitor', 'Đã chọn bên khác'),
+        ('cancel_plan', 'Hủy / hoãn kế hoạch xây'),
+        ('wrong_number', 'Sai số / không đúng số'),
+        ('no_need', 'Không có nhu cầu'),
+        ('other', 'Lý do khác'),
+    ]
 
     # Các trường tính "độ đầy đủ thông tin" để xếp khách nhiều thông tin lên trước.
     _INFO_FIELDS = ('status', 'address', 'area', 'house_type', 'floors', 'func',
@@ -88,6 +97,16 @@ class VdImportedCustomer(models.Model):
     converted_lead_id = fields.Many2one(
         'crm.lead', string='Đã chuyển thành lead', ondelete='set null',
         help='Khi gọi kết nối thành công, khách OMI chuyển thành lead quản lý này.')
+    cancelled = fields.Boolean(
+        string='Đã hủy', default=False, index=True,
+        help='Khách đã bị NV bấm HỦY — xuống cuối bảng SỐ OMI, không xoá.')
+    cancel_category = fields.Selection(
+        selection='_sel_cancel_categories', string='Nhóm lý do hủy')
+    cancel_reason = fields.Text(string='Lý do hủy (chi tiết)')
+
+    @api.model
+    def _sel_cancel_categories(self):
+        return self._CANCEL_CATEGORIES
 
     @api.depends('phone')
     def _compute_phone_norm(self):
@@ -128,7 +147,14 @@ class VdImportedCustomer(models.Model):
             'timeline': r.timeline or '', 'customer_group': r.customer_group or '',
             'tags': r.tags or '', 'info_score': r.info_score or 0,
             'calls': calls_by_tail.get((r.phone_norm or '')[-9:], 0),
+            'cancelled': r.cancelled,
+            'cancel_category': r.cancel_category or '',
         } for r in recs]
+
+    @api.model
+    def vd_omi_cancel_categories(self):
+        """Danh sách nhóm lý do hủy cho popup chọn khi bấm HỦY."""
+        return [{'key': k, 'label': v} for k, v in self._CANCEL_CATEGORIES]
 
     @api.model
     def vd_omi_take(self, rec_id):
@@ -172,9 +198,9 @@ class VdImportedCustomer(models.Model):
         return {'ok': True, 'lead_id': lead.id}
 
     @api.model
-    def vd_omi_cancel(self, rec_id):
-        """HỦY KHÁCH OMI (⋮ → Hủy khách): archive bản ghi để bỏ khỏi SỐ OMI.
-        Chỉ NV sở hữu / quản lý mới hủy được."""
+    def vd_omi_cancel(self, rec_id, category=None, note=None):
+        """HỦY KHÁCH OMI: chọn lý do → đánh dấu cancelled (xuống CUỐI bảng), KHÔNG
+        xoá. Chỉ NV sở hữu / quản lý mới hủy được."""
         rec = self.sudo().browse(int(rec_id or 0))
         if not rec.exists():
             return False
@@ -184,5 +210,10 @@ class VdImportedCustomer(models.Model):
                    or u.has_group('vd_crm_lead.vd_crm_group_deputy_director'))
         if not allowed:
             return False
-        rec.write({'active': False})
+        vals = {'cancelled': True}
+        if category:
+            vals['cancel_category'] = category
+        if note:
+            vals['cancel_reason'] = note
+        rec.write(vals)
         return True

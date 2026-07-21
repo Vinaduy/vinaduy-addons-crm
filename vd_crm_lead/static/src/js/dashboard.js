@@ -23,6 +23,25 @@ import { Dialog } from "@web/core/dialog/dialog";
 // Khách OMI KHÔNG tính vào số KH quản lý; gọi kết nối thành công thì server tự
 // chuyển số về NV gọi (stringee_call._vd_omi_convert_on_answer). Thẻ (không cột),
 // ưu tiên khách nhiều thông tin lên đầu (backend vd_omi_list order info_score).
+// Popup CHỌN LÝ DO HỦY (bảng lựa chọn khi hủy — như hủy KH ở lead).
+export class VdOmiCancelDialog extends Component {
+    static template = "vd_crm_lead.OmiCancelDialog";
+    static components = { Dialog };
+    static props = {
+        customer: Object, cats: Array, onConfirm: Function,
+        close: { type: Function, optional: true },
+    };
+    setup() {
+        this.state = useState({
+            category: (this.props.cats[0] || {}).key || "", note: "",
+        });
+    }
+    confirm() {
+        this.props.onConfirm(this.state.category, this.state.note);
+        this.props.close();
+    }
+}
+
 export class VdOmiDialog extends Component {
     static template = "vd_crm_lead.OmiDialog";
     static components = { Dialog };
@@ -30,11 +49,14 @@ export class VdOmiDialog extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
-        this.state = useState({ loading: true, items: [], q: "" });
+        this.dialog = useService("dialog");
+        this.state = useState({ loading: true, items: [], q: "", cats: [] });
         onWillStart(async () => {
             try {
                 this.state.items = await this.orm.call(
                     "vd.imported.customer", "vd_omi_list", []);
+                this.state.cats = await this.orm.call(
+                    "vd.imported.customer", "vd_omi_cancel_categories", []);
             } catch (e) {
                 this.state.items = [];
             }
@@ -42,26 +64,36 @@ export class VdOmiDialog extends Component {
         });
     }
     get filtered() {
+        let items = this.state.items;
         const q = (this.state.q || "").toLowerCase().trim();
-        if (!q) return this.state.items;
-        return this.state.items.filter(
-            (i) => ((i.name || "") + " " + (i.phone || "")).toLowerCase().includes(q));
+        if (q) {
+            items = items.filter(
+                (i) => ((i.name || "") + " " + (i.phone || "")).toLowerCase().includes(q));
+        }
+        // Khách HỦY xuống CUỐI (giữ thứ tự còn lại).
+        return [...items].sort((a, b) => (a.cancelled ? 1 : 0) - (b.cancelled ? 1 : 0));
     }
     call(item) {
         this.props.onCall(item.phone, item.name);
     }
-    // Hủy khách OMI → archive + bỏ khỏi danh sách.
-    async cancelCustomer(c) {
-        if (!window.confirm("Hủy khách \"" + (c.name || c.phone) + "\" khỏi SỐ OMI?")) {
-            return;
-        }
-        try {
-            await this.orm.call("vd.imported.customer", "vd_omi_cancel", [c.id]);
-            this.state.items = this.state.items.filter((i) => i.id !== c.id);
-            this.notification.add("Đã hủy khách khỏi SỐ OMI.", { type: "success" });
-        } catch (e) {
-            this.notification.add("Hủy khách lỗi.", { type: "danger" });
-        }
+    // HỦY khách OMI → mở bảng chọn lý do → đánh dấu hủy + xuống CUỐI (không xoá).
+    cancelCustomer(c) {
+        this.dialog.add(VdOmiCancelDialog, {
+            customer: c,
+            cats: this.state.cats,
+            onConfirm: async (category, note) => {
+                try {
+                    await this.orm.call("vd.imported.customer", "vd_omi_cancel",
+                        [c.id, category, note]);
+                    const it = this.state.items.find((i) => i.id === c.id);
+                    if (it) { it.cancelled = true; it.cancel_category = category; }
+                    this.notification.add("Đã hủy khách — chuyển xuống cuối danh sách.",
+                        { type: "success" });
+                } catch (e) {
+                    this.notification.add("Hủy khách lỗi.", { type: "danger" });
+                }
+            },
+        });
     }
     // LẤY KHÁCH VỀ → tạo lead của NV (hiện ở bảng Khách mới) + bỏ khỏi SỐ OMI.
     async takeCustomer(c) {
