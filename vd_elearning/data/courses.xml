@@ -144,7 +144,9 @@
             <field name="name">Làm báo giá</field>
             <field name="channel_type">training</field>
             <field name="vd_role_zone">sales</field>
-            <field name="vd_seq">10</field>
+            <!-- 35 = ngay sau khoa "Tao nhom" (312, seq=30) va truoc nhom seq=40.
+                 Thu tu that do admin keo-tha; DB da set 35 truc tiep cho id 461. -->
+            <field name="vd_seq">35</field>
             <field name="vd_pass_percent">100</field>
             <field name="vd_max_attempts">3</field>
         </record>
