@@ -2074,6 +2074,7 @@
                                 title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
                             <i class="fa fa-headphones o_vd_omi_bigbtn_ico"/>
                             <span class="o_vd_omi_bigbtn_txt">SỐ OMI</span>
+                            <span class="o_vd_omi_bigbtn_sub">— Bấm để lấy khách gọi thêm</span>
                             <i class="fa fa-angle-right o_vd_omi_btn_arrow"/>
                         </button>
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
