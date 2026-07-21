@@ -49,6 +49,20 @@ export class VdOmiDialog extends Component {
     call(item) {
         this.props.onCall(item.phone, item.name);
     }
+    // Gộp thông tin phụ thành 1 dòng gọn (khách = 1 dòng, sát nhau).
+    infoLine(c) {
+        const p = [];
+        if (c.address) p.push(c.address);
+        if (c.area) p.push("📐 " + c.area);
+        if (c.house_type) p.push(c.house_type);
+        if (c.floors) p.push(c.floors);
+        if (c.budget) p.push("💰 " + c.budget);
+        if (c.land_type) p.push(c.land_type);
+        if (c.timeline) p.push("🕒 " + c.timeline);
+        if (c.func) p.push(c.func);
+        if (c.tags) p.push("🏷 " + c.tags);
+        return p.join("  ·  ");
+    }
 }
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).

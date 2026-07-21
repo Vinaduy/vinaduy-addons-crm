@@ -11000,15 +11000,33 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #f2f6f4; }
 }
 
-/* Nút DANH SÁCH KHÁCH HÀNG (import Pancake) trên topbar */
-.o_vd_customerlist_btn {
+/* Nút SỐ OMI — cùng dòng tiêu đề bảng "Khách mới", TO + nổi bật */
+.o_vd_omi_btn {
     flex: 0 0 auto; white-space: nowrap; border: 0; cursor: pointer;
-    color: #fff; font-weight: 800; font-size: 0.82rem; letter-spacing: 0.02em;
-    padding: 0.55rem 1.05rem; border-radius: 10px; margin-left: 8px;
-    background: linear-gradient(135deg, #5b4be6, #7048e8);
-    box-shadow: 0 6px 16px rgba(95, 61, 196, 0.32);
-    transition: all 0.15s ease;
-    &:hover { background: linear-gradient(135deg, #4b3fd0, #5f3dc4); box-shadow: 0 9px 20px rgba(95, 61, 196, 0.45); transform: translateY(-1px); }
+    display: inline-flex; align-items: center; margin-left: 12px;
+    color: #fff; font-weight: 900; font-size: 0.98rem; letter-spacing: 0.03em;
+    padding: 0.6rem 1.35rem; border-radius: 12px;
+    background: linear-gradient(135deg, #f76707 0%, #e8590c 55%, #d9480f 100%);
+    box-shadow: 0 8px 20px rgba(232, 89, 12, 0.42);
+    transition: all 0.16s ease; position: relative;
+    .o_vd_omi_btn_arrow { transition: transform 0.16s ease; }
+    &:hover {
+        background: linear-gradient(135deg, #ff8b26, #f76707);
+        box-shadow: 0 12px 26px rgba(232, 89, 12, 0.55);
+        transform: translateY(-2px) scale(1.03);
+        .o_vd_omi_btn_arrow { transform: translateX(3px); }
+    }
+    /* nhấp nháy nhẹ thu hút chú ý */
+    &::after {
+        content: ""; position: absolute; inset: 0; border-radius: 12px;
+        box-shadow: 0 0 0 0 rgba(232, 89, 12, 0.5);
+        animation: vdOmiPulse 2.2s ease-out infinite;
+    }
+}
+@keyframes vdOmiPulse {
+    0% { box-shadow: 0 0 0 0 rgba(232, 89, 12, 0.5); }
+    70% { box-shadow: 0 0 0 12px rgba(232, 89, 12, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(232, 89, 12, 0); }
 }
 
 /* ============ SỐ OMI: modal 90% + thẻ khách (user 2026-07-21) ============ */
@@ -11030,31 +11048,40 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     padding: 7px 12px; font-size: 12.5px; color: #7a5c00; margin-bottom: 10px;
 }
 .o_vd_omi_center { padding: 2rem; text-align: center; color: #868e96; font-style: italic; }
-.o_vd_omi_grid {
-    flex: 1 1 auto; overflow-y: auto; display: grid; gap: 12px;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    align-content: start; padding: 2px;
+/* Mỗi khách = 1 DÒNG, sát nhau (dense) */
+.o_vd_omi_list {
+    flex: 1 1 auto; overflow-y: auto; padding: 0;
+    border: 1px solid #edf0f4; border-radius: 10px;
 }
-.o_vd_omi_card {
-    border: 1px solid #e9ecef; border-radius: 12px; background: #fff;
-    box-shadow: 0 1px 5px rgba(2,6,23,.05); padding: 10px 12px;
-    display: flex; flex-direction: column; gap: 6px; transition: box-shadow .15s;
-    &:hover { box-shadow: 0 6px 18px rgba(2,6,23,.12); }
+.o_vd_omi_row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 10px; border-bottom: 1px solid #f2f4f7; min-width: 0;
+    font-size: 12.5px; line-height: 1.4;
+    &:nth-child(even) { background: #fbfcfe; }
+    &:hover { background: #fff4e6; }
+    &:last-child { border-bottom: 0; }
 }
-.o_vd_omi_card_head { display: flex; align-items: center; gap: 8px; }
-.o_vd_omi_name { flex: 1 1 auto; min-width: 0; font-weight: 800; color: #212529; font-size: 14px; }
 .o_vd_omi_call {
-    flex: 0 0 auto; border: 0; cursor: pointer; color: #fff; font-weight: 800;
-    font-size: 12.5px; padding: 5px 12px; border-radius: 8px;
+    flex: 0 0 auto; border: 0; cursor: pointer; color: #fff;
+    width: 30px; height: 30px; border-radius: 8px; font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center;
     background: linear-gradient(135deg, #12b886, #099268);
-    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); }
+    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); transform: scale(1.08); }
 }
-.o_vd_omi_phone { font-weight: 800; color: #1971c2; font-size: 13.5px; }
-.o_vd_omi_fields { display: flex; flex-wrap: wrap; gap: 4px 10px; }
-.o_vd_omi_f {
-    font-size: 12px; color: #495057; line-height: 1.5;
-    b { color: #868e96; font-weight: 700; }
+.o_vd_omi_r_name {
+    flex: 0 0 160px; max-width: 160px; font-weight: 800; color: #212529;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.o_vd_omi_wide { flex-basis: 100%; }
-.o_vd_omi_status b, .o_vd_omi_status { color: #d9480f; }
-.o_vd_omi_tags { color: #6741d9; }
+.o_vd_omi_r_phone { flex: 0 0 auto; font-weight: 800; color: #1971c2; white-space: nowrap; }
+.o_vd_omi_r_status {
+    flex: 0 0 auto; font-weight: 800; font-size: 11px; color: #d9480f;
+    background: rgba(232,89,12,.1); padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+}
+.o_vd_omi_r_src {
+    flex: 0 0 auto; font-weight: 700; font-size: 11px; color: #6741d9;
+    background: rgba(103,65,217,.1); padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+}
+.o_vd_omi_r_info {
+    flex: 1 1 auto; min-width: 0; color: #6b7280;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}

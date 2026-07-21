@@ -2158,13 +2158,6 @@
                                 </button>
                             </t>
                         </div>
-                        <!-- SỐ OMI (khách OMI) — HOVER mở bảng thẻ 90%; gọi nối máy → tự về NV -->
-                        <button class="o_vd_customerlist_btn o_vd_omi_btn"
-                                t-on-mouseenter="() => this.openOmi()"
-                                t-on-click="() => this.openOmi()"
-                                title="Khách OMI — gọi kết nối thành công thì số tự chuyển về bạn">
-                            <i class="fa fa-phone-square me-1"/>SỐ OMI
-                        </button>
                         </div><!-- /.o_vd_topbar_row -->
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
@@ -2242,6 +2235,14 @@
                                             <div class="o_vd_filter_table_count">
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
+                                            <!-- SỐ OMI: cùng dòng tiêu đề bảng Khách mới; hover mở popup 90% -->
+                                            <button class="o_vd_omi_btn"
+                                                    t-on-mouseenter="() => this.openOmi()"
+                                                    t-on-click="() => this.openOmi()"
+                                                    title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
+                                                <i class="fa fa-headphones me-2"/>SỐ OMI
+                                                <i class="fa fa-angle-right o_vd_omi_btn_arrow ms-1"/>
+                                            </button>
                                             <button t-if="state.selectMode and leadsNoProblems.length"
                                                     class="o_vd_select_all_btn"
                                                     t-on-click.stop="() => this.toggleSelectAll(leadsNoProblems.map(l => l.id))"
@@ -4277,28 +4278,17 @@
                     💡 Khách OMI KHÔNG tính vào số khách bạn quản lý. Bấm <b>Gọi</b> — nếu khách <b>bắt máy</b> thì số này TỰ chuyển về thành khách của bạn. Khách nhiều thông tin xếp lên đầu.
                 </div>
                 <div t-if="state.loading" class="o_vd_omi_center"><i class="fa fa-spinner fa-spin me-1"/> Đang tải...</div>
-                <div t-else="" class="o_vd_omi_grid">
-                    <div t-foreach="filtered" t-as="c" t-key="c.id" class="o_vd_omi_card">
-                        <div class="o_vd_omi_card_head">
-                            <span class="o_vd_omi_name" t-esc="c.name"/>
-                            <button class="o_vd_omi_call" t-on-click="() => this.call(c)" title="Gọi khách này">
-                                <i class="fa fa-phone me-1"/>Gọi
-                            </button>
-                        </div>
-                        <div class="o_vd_omi_phone"><i class="fa fa-phone-square me-1"/><t t-esc="c.phone"/></div>
-                        <div class="o_vd_omi_fields">
-                            <span t-if="c.status" class="o_vd_omi_f o_vd_omi_status"><b>Trạng thái:</b> <t t-esc="c.status"/></span>
-                            <span t-if="c.customer_group" class="o_vd_omi_f"><b>Nguồn:</b> <t t-esc="c.customer_group"/></span>
-                            <span t-if="c.address" class="o_vd_omi_f"><b>Địa chỉ:</b> <t t-esc="c.address"/></span>
-                            <span t-if="c.area" class="o_vd_omi_f"><b>Diện tích:</b> <t t-esc="c.area"/></span>
-                            <span t-if="c.house_type" class="o_vd_omi_f"><b>Kiểu nhà:</b> <t t-esc="c.house_type"/></span>
-                            <span t-if="c.floors" class="o_vd_omi_f"><b>Số tầng:</b> <t t-esc="c.floors"/></span>
-                            <span t-if="c.budget" class="o_vd_omi_f"><b>Ngân sách:</b> <t t-esc="c.budget"/></span>
-                            <span t-if="c.land_type" class="o_vd_omi_f"><b>Loại đất:</b> <t t-esc="c.land_type"/></span>
-                            <span t-if="c.timeline" class="o_vd_omi_f"><b>Thời gian:</b> <t t-esc="c.timeline"/></span>
-                            <span t-if="c.func" class="o_vd_omi_f o_vd_omi_wide"><b>Công năng:</b> <t t-esc="c.func"/></span>
-                            <span t-if="c.tags" class="o_vd_omi_f o_vd_omi_wide o_vd_omi_tags"><b>Nhãn:</b> <t t-esc="c.tags"/></span>
-                        </div>
+                <div t-else="" class="o_vd_omi_list">
+                    <!-- Mỗi khách = 1 DÒNG, sát nhau -->
+                    <div t-foreach="filtered" t-as="c" t-key="c.id" class="o_vd_omi_row">
+                        <button class="o_vd_omi_call" t-on-click="() => this.call(c)" title="Gọi khách này">
+                            <i class="fa fa-phone"/>
+                        </button>
+                        <span class="o_vd_omi_r_name" t-att-title="c.name" t-esc="c.name"/>
+                        <span class="o_vd_omi_r_phone" t-esc="c.phone"/>
+                        <span t-if="c.status" class="o_vd_omi_r_status" t-esc="c.status"/>
+                        <span t-if="c.customer_group" class="o_vd_omi_r_src" t-esc="c.customer_group"/>
+                        <span class="o_vd_omi_r_info" t-att-title="infoLine(c)" t-esc="infoLine(c)"/>
                     </div>
                     <div t-if="!filtered.length" class="o_vd_omi_center">Không có khách OMI nào.</div>
                 </div>
