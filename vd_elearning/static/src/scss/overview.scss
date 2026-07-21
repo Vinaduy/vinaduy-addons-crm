@@ -772,6 +772,29 @@ $vd-line2:   #ece7da;
     // van cho tuong tac cac nut/menu/dap an (label, input, button)
     label, input, button, a, .o_vd_ce_tab, .navr, .qopt { pointer-events: auto; }
 }
+// DAU CHIM (watermark) rai kin: chup man hinh se dinh ten NV -> truy vet, ran de.
+.o_vd_wm {
+    position: fixed; inset: 0; z-index: 4000; pointer-events: none; overflow: hidden;
+    display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+    gap: 46px 70px; transform: rotate(-24deg) scale(1.4); transform-origin: center;
+    .o_vd_wm_t {
+        font-size: 15px; font-weight: 800; letter-spacing: .04em; white-space: nowrap;
+        color: rgba(30, 41, 59, .12); user-select: none;
+    }
+    @media (prefers-color-scheme: dark) { .o_vd_wm_t { color: rgba(255,255,255,.14); } }
+}
+// MAN CHE MO khi mat focus (app chup chiem focus -> anh chi thay man mo)
+.o_vd_blurguard {
+    position: fixed; inset: 0; z-index: 5000; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15, 23, 42, .82);
+    -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+    .o_vd_blurguard_msg {
+        color: #fff; font-weight: 800; font-size: 1.05rem; letter-spacing: .01em;
+        padding: .9rem 1.4rem; border-radius: 14px;
+        background: rgba(2, 6, 23, .55); box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    }
+}
 
 // ep dialog phu KIN man hinh (ke ca navbar) bang position fixed
 .modal-content.o_vd_fullcontent {
