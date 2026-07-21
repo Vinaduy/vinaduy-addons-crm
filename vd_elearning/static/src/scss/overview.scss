@@ -720,22 +720,35 @@ $vd-line2:   #ece7da;
     // ----- FILTER "LỊCH SỬ HỌC": hover -> popup bảng (user 2026-07-20) -----
     .o_vd_histfilter { position: relative; display: inline-block; margin-top: 16px; }
     .o_vd_histfilter_btn {
-        display: inline-flex; align-items: center; gap: .3rem; cursor: pointer;
-        border: 1px solid $vd-line2; border-radius: 12px;
-        padding: .55rem 1rem; font-weight: 900; font-size: .82rem; letter-spacing: .02em;
-        color: #fff; background: linear-gradient(120deg, #2b3350, #4b3fa0);
-        box-shadow: 0 6px 16px rgba($vd-ink, .18); transition: all .16s ease;
-        i.fa-history { color: #ffd451; }
-        .o_vd_histfilter_sum {
-            display: inline-flex; gap: .4rem; margin: 0 .3rem; font-size: .82rem;
-            background: rgba(255,255,255,.14); border-radius: 999px; padding: .1rem .55rem;
-            b { font-weight: 800; }
+        display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+        border: 0; border-radius: 999px;
+        padding: .5rem .7rem .5rem .55rem; font-weight: 900; font-size: .82rem; letter-spacing: .02em;
+        color: #fff; background: linear-gradient(120deg, #2b3350, #4b3fa0 62%, #6d28d9);
+        box-shadow: 0 8px 20px rgba($vd-ink, .22); transition: all .16s ease;
+        .o_vd_hf_ic {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(255,255,255,.16); color: #ffd451; font-size: .82rem;
         }
-        &:hover { box-shadow: 0 10px 22px rgba($vd-ink, .28); transform: translateY(-1px); }
+        .o_vd_hf_lbl { white-space: nowrap; }
+        .o_vd_histfilter_sum {
+            display: inline-flex; gap: .28rem; margin: 0 .1rem; font-size: .8rem;
+            .o_vd_hf_m {
+                display: inline-flex; align-items: center; gap: .12rem;
+                border-radius: 999px; padding: .08rem .42rem; line-height: 1.5;
+                background: rgba(255,255,255,.12);
+                b { font-weight: 900; }
+            }
+            .o_vd_hf_g { background: rgba(255,206,84,.22); }
+            .o_vd_hf_s { background: rgba(203,213,225,.22); }
+            .o_vd_hf_b { background: rgba(217,131,71,.24); }
+        }
+        i.fa-caret-up, i.fa-caret-down { opacity: .85; }
+        &:hover { box-shadow: 0 12px 26px rgba($vd-ink, .32); transform: translateY(-1px); filter: brightness(1.06); }
     }
-    .o_vd_histfilter_btn.o_active { box-shadow: 0 10px 22px rgba($vd-ink, .3); transform: translateY(-1px); }
+    .o_vd_histfilter_btn.o_active { box-shadow: 0 12px 26px rgba($vd-ink, .34); transform: translateY(-1px); }
     // popup mở LÊN TRÊN (card overflow:hidden -> mở xuống bị cắt); phủ board.
-    // CHỈ hiện khi BẤM nút (t-if state.histOpen) — không hover.
+    // Hiện khi HOVER vào nút (hoặc bấm) — padding-bottom làm cầu nối chuột.
     .o_vd_histpop {
         position: absolute; bottom: 100%; left: 0; z-index: 60;
         padding-bottom: 10px; width: #{"min(940px, 92vw)"};
@@ -748,6 +761,18 @@ $vd-line2:   #ece7da;
 }
 
 // ============ KHOA HOC (popup full man hinh): noi dung + bai thi ============
+// CHE DO KHOA (NV hoc/thi): chong boi den / chon / keo tha / luu anh tai lieu.
+// (Fullscreen that su + chan chuot phai/copy/phim tat xu ly o JS.)
+.modal-content.o_vd_lockmode {
+    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    * { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+    img, svg, video { -webkit-user-drag: none; -khtml-user-drag: none; user-drag: none; pointer-events: none; }
+    iframe { pointer-events: auto; }   // van cho xem/tua video bai giang
+    // van cho tuong tac cac nut/menu/dap an (label, input, button)
+    label, input, button, a, .o_vd_ce_tab, .navr, .qopt { pointer-events: auto; }
+}
+
 // ep dialog phu KIN man hinh (ke ca navbar) bang position fixed
 .modal-content.o_vd_fullcontent {
     position: fixed !important; inset: 0 !important;

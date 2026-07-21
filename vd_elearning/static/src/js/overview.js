@@ -636,6 +636,7 @@ export class VdCourseDialog extends Component {
         title: String,
         channelId: Number,
         editable: Boolean,
+        lockMode: { type: Boolean, optional: true },
         data: Object,
         onSaved: Function,
     };
@@ -691,6 +692,59 @@ export class VdCourseDialog extends Component {
         if (!this.props.editable) {
             this._restoreExam();
             onMounted(() => this._setupReadGate());
+        }
+        // ---- CHE DO KHOA (NV hoc/thi): toan man hinh + chong sao chep ----
+        // Muc dich: khong nhin thay trinh duyet, chan chuot phai / copy / keo tha
+        // / phim tat luu-in-chup; ESC hoac thoat fullscreen -> dong han ve lo trinh.
+        if (this.props.lockMode) {
+            this._wasFs = false;
+            this._fsHandler = () => {
+                if (document.fullscreenElement) {
+                    this._wasFs = true;
+                } else if (this._wasFs) {
+                    // Da tung vao fullscreen roi thoat (ESC / F11) -> dong khoa hoc.
+                    this._wasFs = false;
+                    try { this.props.close(); } catch (_e) { /* noop */ }
+                }
+            };
+            this._blockHandler = (ev) => { ev.preventDefault(); ev.stopPropagation(); return false; };
+            this._keyHandler = (ev) => {
+                const k = (ev.key || '').toLowerCase();
+                if ((ev.ctrlKey || ev.metaKey)
+                    && ['c', 'x', 's', 'p', 'u', 'a'].includes(k)) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                }
+                if (ev.key === 'PrintScreen') { ev.preventDefault(); }
+            };
+            onMounted(() => {
+                document.addEventListener('fullscreenchange', this._fsHandler);
+                document.addEventListener('contextmenu', this._blockHandler, true);
+                document.addEventListener('copy', this._blockHandler, true);
+                document.addEventListener('cut', this._blockHandler, true);
+                document.addEventListener('dragstart', this._blockHandler, true);
+                document.addEventListener('keydown', this._keyHandler, true);
+                // Neu chua vao fullscreen (vd. gesture bi mat sau await) -> thu lai.
+                if (!document.fullscreenElement) {
+                    try {
+                        const el = document.documentElement;
+                        if (el.requestFullscreen) { el.requestFullscreen().catch(() => {}); }
+                    } catch (_e) { /* noop */ }
+                } else {
+                    this._wasFs = true;
+                }
+            });
+            onWillUnmount(() => {
+                document.removeEventListener('fullscreenchange', this._fsHandler);
+                document.removeEventListener('contextmenu', this._blockHandler, true);
+                document.removeEventListener('copy', this._blockHandler, true);
+                document.removeEventListener('cut', this._blockHandler, true);
+                document.removeEventListener('dragstart', this._blockHandler, true);
+                document.removeEventListener('keydown', this._keyHandler, true);
+                if (document.fullscreenElement) {
+                    try { document.exitFullscreen(); } catch (_e) { /* noop */ }
+                }
+            });
         }
     }
 
@@ -1455,9 +1509,19 @@ export class VdElearningOverview extends Component {
         }
     }
 
-    // Popup LỊCH SỬ HỌC: ẩn hẳn, chỉ hiện khi BẤM nút (không hover).
+    // Popup LỊCH SỬ HỌC (lịch sử thi): HOVER vào nút -> bung popup bảng; rời ra
+    // -> đóng (trễ nhẹ để kịp rê chuột vào popup). Bấm cũng bật/tắt được.
     toggleHist() {
+        clearTimeout(this._histTimer);
         this.state.histOpen = !this.state.histOpen;
+    }
+    openHist() {
+        clearTimeout(this._histTimer);
+        this.state.histOpen = true;
+    }
+    scheduleHistClose() {
+        clearTimeout(this._histTimer);
+        this._histTimer = setTimeout(() => { this.state.histOpen = false; }, 220);
     }
 
     // Huy chương theo ĐIỂM CAO NHẤT (chỉ khi ĐÃ ĐẠT): 100% Vàng, >=90% Bạc,
@@ -1501,6 +1565,16 @@ export class VdElearningOverview extends Component {
     }
 
     async openCourse(course) {
+        // NHAN VIEN (khong phai admin): vao che do HOC/THI toan man hinh chong
+        // sao chep. Goi requestFullscreen NGAY trong cu click (con "user gesture")
+        // truoc khi await -> tranh bi trinh duyet chan. lockMode bat khoa sao chep.
+        const lockMode = !this.state.isAdmin;
+        if (lockMode) {
+            try {
+                const el = document.documentElement;
+                if (el.requestFullscreen) { el.requestFullscreen().catch(() => {}); }
+            } catch (_e) { /* noop */ }
+        }
         const data = await this.orm.call("slide.channel", "vd_course_load", [course.id]);
         this.dialog.add(VdCourseDialog, {
             title: "Khóa học - " + course.name,
@@ -1508,6 +1582,7 @@ export class VdElearningOverview extends Component {
             // CHI admin (o giao dien quan tri) moi duoc sua/thiet ke.
             // Khi xem theo nhan vien (selectedEmp) thi luon chi-doc.
             editable: this.state.isAdmin && !this.state.selectedEmp,
+            lockMode,
             data,
             onSaved: async () => {
                 await this.reload();

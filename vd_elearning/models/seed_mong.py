@@ -16,7 +16,7 @@ Idempotent theo VERSION (ir.config_parameter). Bump version -> seed lại.
 """
 from odoo import api, models
 
-_MO_VERSION = 'v5-svg-photos'
+_MO_VERSION = 'v6-mongbang-de-sat-dam'
 _PARAM_KEY = 'vd_elearning.mong_seed_version'
 _IMG = '/vd_elearning/static/src/img/mong/'
 
@@ -317,17 +317,14 @@ def _svg_mong_bang():
             '<line x1="0" y1="150" x2="620" y2="150" stroke="#a1824a" stroke-width="2"/>'
             '<text x="12" y="290" font-size="11" fill="#7c5a1e" font-weight="700">Đất cứng, liền thổ</text>')
     svg += _house(310)
-    # dam mong lien
-    svg += '<rect x="110" y="156" width="400" height="14" fill="#334155"/>'
-    # doan cot
-    for cx in (170, 310, 450):
-        svg += '<rect x="' + str(cx - 10) + '" y="170" width="20" height="40" fill="#475569"/>'
-    # de chay dai lien mach (1 dai)
-    svg += '<polygon points="118,210 502,210 516,236 104,236" fill="#64748b"/>'
-    svg += ('<text x="522" y="166" font-size="11" fill="#0f172a" font-weight="800">DẦM MÓNG</text>'
-            '<text x="522" y="182" font-size="10.5" fill="#475569">liền với đế</text>'
-            '<text x="310" y="256" font-size="11" fill="#0f172a" font-weight="800" text-anchor="middle">ĐẾ MÓNG</text>'
-            '<text x="310" y="272" font-size="10.5" fill="#16a34a" font-weight="700" text-anchor="middle">chạy dài liền mạch</text>')
+    # DAM MONG (lien) - mau nhat hon, nam ngay duoi mat dat
+    svg += '<rect x="108" y="156" width="404" height="16" fill="#64748b"/>'
+    # DE MONG chay dai lien mach - SAT LEN CHAM day dam mong (y=172), mau DAM hon
+    svg += '<polygon points="118,172 502,172 520,210 100,210" fill="#293548"/>'
+    svg += ('<text x="524" y="166" font-size="11.5" fill="#0f172a" font-weight="800">DẦM MÓNG</text>'
+            '<text x="524" y="182" font-size="10.5" fill="#475569">liền với đế</text>'
+            '<text x="310" y="230" font-size="11.5" fill="#0f172a" font-weight="800" text-anchor="middle">ĐẾ MÓNG</text>'
+            '<text x="310" y="246" font-size="10.5" fill="#16a34a" font-weight="700" text-anchor="middle">chạy dài liền mạch (sát dầm)</text>')
     return svg + '</svg>'
 
 

@@ -374,7 +374,7 @@
 
     <!-- ============ POPUP FULL MAN HINH: KHOA HOC (noi dung + bai thi) ============ -->
     <t t-name="vd_elearning.CourseDialog">
-        <Dialog title="props.title" size="'fs'" fullscreen="true" contentClass="'o_vd_fullcontent'">
+        <Dialog title="props.title" size="'fs'" fullscreen="true" contentClass="props.lockMode ? 'o_vd_fullcontent o_vd_lockmode' : 'o_vd_fullcontent'">
             <t t-set-slot="header" t-slot-scope="scope">
                 <button class="o_vd_hdr_back" t-on-click="scope.close" title="Đóng"><i class="fa fa-arrow-left"/></button>
                 <span class="o_vd_hdr_pre">Khóa học</span>
@@ -792,13 +792,20 @@
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
                     </div>
 
-                    <!-- LỊCH SỬ HỌC: filter (hover) -> popup bảng (user 2026-07-20) -->
-                    <div class="o_vd_histfilter">
+                    <!-- LỊCH SỬ HỌC: filter HOVER -> popup bảng lịch sử thi (user 2026-07-21) -->
+                    <div class="o_vd_histfilter"
+                         t-on-mouseenter="() => this.openHist()"
+                         t-on-mouseleave="() => this.scheduleHistClose()">
                         <button type="button" class="o_vd_histfilter_btn"
                                 t-att-class="{'o_active': state.histOpen}"
                                 t-on-click="() => this.toggleHist()">
-                            <i class="fa fa-history me-2"/>LỊCH SỬ HỌC
-                            <span class="o_vd_histfilter_sum">🥇<b t-esc="examMedals.gold"/> 🥈<b t-esc="examMedals.silver"/> 🥉<b t-esc="examMedals.bronze"/></span>
+                            <span class="o_vd_hf_ic"><i class="fa fa-history"/></span>
+                            <span class="o_vd_hf_lbl">LỊCH SỬ THI</span>
+                            <span class="o_vd_histfilter_sum">
+                                <span class="o_vd_hf_m o_vd_hf_g">🥇<b t-esc="examMedals.gold"/></span>
+                                <span class="o_vd_hf_m o_vd_hf_s">🥈<b t-esc="examMedals.silver"/></span>
+                                <span class="o_vd_hf_m o_vd_hf_b">🥉<b t-esc="examMedals.bronze"/></span>
+                            </span>
                             <i t-attf-class="fa ms-1 {{state.histOpen ? 'fa-caret-up' : 'fa-caret-down'}}"/>
                         </button>
                         <div class="o_vd_histpop" t-if="state.histOpen">
