@@ -17,6 +17,39 @@ import { View } from "@web/views/view";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { VdHouseLibDialog } from "./vd_house_lib";
 import { VdDriveLibDialog } from "./vd_nghiem_thu_lib";
+import { Dialog } from "@web/core/dialog/dialog";
+
+// ============ SỐ OMI — popup thẻ khách OMI + nút gọi (user 2026-07-21) ============
+// Khách OMI KHÔNG tính vào số KH quản lý; gọi kết nối thành công thì server tự
+// chuyển số về NV gọi (stringee_call._vd_omi_convert_on_answer). Thẻ (không cột),
+// ưu tiên khách nhiều thông tin lên đầu (backend vd_omi_list order info_score).
+export class VdOmiDialog extends Component {
+    static template = "vd_crm_lead.OmiDialog";
+    static components = { Dialog };
+    static props = { onCall: Function, close: { type: Function, optional: true } };
+    setup() {
+        this.orm = useService("orm");
+        this.state = useState({ loading: true, items: [], q: "" });
+        onWillStart(async () => {
+            try {
+                this.state.items = await this.orm.call(
+                    "vd.imported.customer", "vd_omi_list", []);
+            } catch (e) {
+                this.state.items = [];
+            }
+            this.state.loading = false;
+        });
+    }
+    get filtered() {
+        const q = (this.state.q || "").toLowerCase().trim();
+        if (!q) return this.state.items;
+        return this.state.items.filter(
+            (i) => ((i.name || "") + " " + (i.phone || "")).toLowerCase().includes(q));
+    }
+    call(item) {
+        this.props.onCall(item.phone, item.name);
+    }
+}
 
 // User spec 2026-05-31: nhớ NV manager đang xem qua F5 (sessionStorage, theo tab).
 const VD_DASH_NV_KEY = "vd_dash_selected_nv";
@@ -3041,9 +3074,21 @@ export class VdCrmDashboard extends Component {
     }
 
     // Mở form Odoo đầy đủ (navigate trang) — khi user cần edit nâng cao
-    // Mở BẢNG TO danh sách khách hàng đã chia (NV chỉ thấy khách của mình).
-    openImportedCustomers() {
-        this.action.doAction("vd_crm_lead.vd_imported_customer_action");
+    // SỐ OMI: hover nút → popup thẻ khách OMI (90% màn hình). Guard mở 1 lần.
+    openOmi() {
+        if (this._omiOpen) return;
+        this._omiOpen = true;
+        this.dialog.add(VdOmiDialog, {
+            onCall: (phone, name) => this.callOmiNumber(phone, name),
+        }, { onClose: () => { this._omiOpen = false; } });
+    }
+    callOmiNumber(phone, name) {
+        if (!phone) {
+            this.notification.add("Khách chưa có SĐT.", { type: "warning" });
+            return;
+        }
+        this.stringee.call(phone, name || "").catch(
+            (e) => this.notification.add(e.message || "Gọi thất bại", { type: "danger" }));
     }
 
     openLeadFullForm() {

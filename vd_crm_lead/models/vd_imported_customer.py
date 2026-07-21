@@ -5,14 +5,29 @@ Import 1 lần toàn bộ danh sách khách → chia ĐỀU cho các NV đang nh
 (vd_can_receive_pancake). Mỗi NV chỉ THẤY khách của mình (ir.rule); quản lý/
 admin thấy tất cả. Mỗi cột có `help` để NV rê chuột biết ý nghĩa.
 """
-from odoo import fields, models
+import re
+
+from odoo import api, fields, models
+
+
+def _norm_phone(p):
+    d = re.sub(r'[^0-9]', '', p or '')
+    if d.startswith('84'):
+        d = '0' + d[2:]
+    return d
 
 
 class VdImportedCustomer(models.Model):
     _name = 'vd.imported.customer'
     _description = 'Danh sách khách hàng (import Pancake)'
-    _order = 'id desc'
+    # Ưu tiên khách CÓ THÔNG TIN lên đầu (info_score cao trước).
+    _order = 'info_score desc, id desc'
     _rec_name = 'name'
+
+    # Các trường tính "độ đầy đủ thông tin" để xếp khách nhiều thông tin lên trước.
+    _INFO_FIELDS = ('status', 'address', 'area', 'house_type', 'floors', 'func',
+                    'func_note', 'land_type', 'position', 'budget', 'red_book',
+                    'timeline', 'email')
 
     name = fields.Char(
         string='Tên khách', index=True,
@@ -64,3 +79,39 @@ class VdImportedCustomer(models.Model):
         'res.users', string='Nhân viên phụ trách', index=True, ondelete='set null',
         help='Nhân viên được chia khách này. NV chỉ thấy khách của mình.')
     active = fields.Boolean(default=True)
+    phone_norm = fields.Char(
+        string='SĐT chuẩn hoá', compute='_compute_phone_norm', store=True, index=True,
+        help='Số điện thoại đã chuẩn hoá (bỏ ký tự lạ, +84→0) để so khớp/gọi.')
+    info_score = fields.Integer(
+        string='Độ đầy đủ thông tin', compute='_compute_info_score', store=True,
+        help='Số trường có dữ liệu — khách nhiều thông tin xếp lên trước.')
+    converted_lead_id = fields.Many2one(
+        'crm.lead', string='Đã chuyển thành lead', ondelete='set null',
+        help='Khi gọi kết nối thành công, khách OMI chuyển thành lead quản lý này.')
+
+    @api.depends('phone')
+    def _compute_phone_norm(self):
+        for r in self:
+            r.phone_norm = _norm_phone(r.phone)
+
+    @api.depends(*_INFO_FIELDS)
+    def _compute_info_score(self):
+        for r in self:
+            r.info_score = sum(1 for f in self._INFO_FIELDS if (r[f] or '').strip())
+
+    @api.model
+    def vd_omi_list(self):
+        """Danh sách SỐ OMI của NV đang đăng nhập — thẻ (không cột), ưu tiên khách
+        NHIỀU THÔNG TIN lên đầu. NV chỉ thấy của mình (ir.rule)."""
+        recs = self.search([('user_id', '=', self.env.uid), ('active', '=', True)])
+        return [{
+            'id': r.id, 'name': r.name or '(không tên)', 'phone': r.phone or '',
+            'status': r.status or '', 'address': r.address or '',
+            'area': r.area or '', 'house_type': r.house_type or '',
+            'floors': r.floors or '', 'func': r.func or '',
+            'land_type': r.land_type or '', 'position': r.position or '',
+            'budget': r.budget or '', 'red_book': r.red_book or '',
+            'timeline': r.timeline or '', 'customer_group': r.customer_group or '',
+            'tags': r.tags or '', 'total_calls': r.total_calls or 0,
+            'info_score': r.info_score or 0,
+        } for r in recs]

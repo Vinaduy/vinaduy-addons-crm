@@ -28,3 +28,4 @@ from . import crm_lead
 from . import vd_call_watch
 from . import stringee_call
 from . import vd_imported_customer
+from . import stringee_call_omi

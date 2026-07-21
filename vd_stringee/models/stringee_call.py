@@ -937,6 +937,13 @@ class StringeeCall(models.Model):
 
         if vals:
             rec.write(vals)
+        # SỐ OMI: cuộc gọi vừa được KH bắt máy THẬT (answer_time set lần này) →
+        # chuyển số OMI tương ứng về NV gọi (method ở vd_crm_lead; nuốt lỗi).
+        if vals.get('answer_time') and rec.user_id and rec.callee_number:
+            try:
+                rec._vd_omi_convert_on_answer()
+            except Exception:
+                _logger.exception('OMI convert hook lỗi (call %s)', rec.name)
         # Try eager recording fetch on terminal state
         if bumped in _TERMINAL_STATES and not rec.recording_attachment_id:
             try:

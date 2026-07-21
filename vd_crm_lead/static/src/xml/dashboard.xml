@@ -2158,10 +2158,12 @@
                                 </button>
                             </t>
                         </div>
-                        <!-- DANH SÁCH KHÁCH HÀNG (import Pancake) — mở bảng to, NV thấy khách của mình -->
-                        <button class="o_vd_customerlist_btn" t-on-click="() => this.openImportedCustomers()"
-                                title="Xem toàn bộ danh sách khách hàng đã chia cho bạn">
-                            <i class="fa fa-address-book me-1"/>DANH SÁCH KHÁCH HÀNG
+                        <!-- SỐ OMI (khách OMI) — HOVER mở bảng thẻ 90%; gọi nối máy → tự về NV -->
+                        <button class="o_vd_customerlist_btn o_vd_omi_btn"
+                                t-on-mouseenter="() => this.openOmi()"
+                                t-on-click="() => this.openOmi()"
+                                title="Khách OMI — gọi kết nối thành công thì số tự chuyển về bạn">
+                            <i class="fa fa-phone-square me-1"/>SỐ OMI
                         </button>
                         </div><!-- /.o_vd_topbar_row -->
 
@@ -4260,6 +4262,48 @@
                                         </div>
                                     </div>
                                 </div>
+    </t>
+
+    <!-- ============ SỐ OMI: popup thẻ khách OMI 90% + nút gọi ============ -->
+    <t t-name="vd_crm_lead.OmiDialog">
+        <Dialog title="'SỐ OMI — Khách OMI'" size="'xl'" contentClass="'o_vd_omi_modal'">
+            <div class="o_vd_omi_wrap">
+                <div class="o_vd_omi_bar">
+                    <i class="fa fa-search o_vd_omi_search_ico"/>
+                    <input type="text" class="o_vd_omi_search" placeholder="Tìm khách OMI theo tên / SĐT..." t-model="state.q"/>
+                    <span class="o_vd_omi_count"><b t-esc="filtered.length"/> khách OMI</span>
+                </div>
+                <div class="o_vd_omi_note">
+                    💡 Khách OMI KHÔNG tính vào số khách bạn quản lý. Bấm <b>Gọi</b> — nếu khách <b>bắt máy</b> thì số này TỰ chuyển về thành khách của bạn. Khách nhiều thông tin xếp lên đầu.
+                </div>
+                <div t-if="state.loading" class="o_vd_omi_center"><i class="fa fa-spinner fa-spin me-1"/> Đang tải...</div>
+                <div t-else="" class="o_vd_omi_grid">
+                    <div t-foreach="filtered" t-as="c" t-key="c.id" class="o_vd_omi_card">
+                        <div class="o_vd_omi_card_head">
+                            <span class="o_vd_omi_name" t-esc="c.name"/>
+                            <button class="o_vd_omi_call" t-on-click="() => this.call(c)" title="Gọi khách này">
+                                <i class="fa fa-phone me-1"/>Gọi
+                            </button>
+                        </div>
+                        <div class="o_vd_omi_phone"><i class="fa fa-phone-square me-1"/><t t-esc="c.phone"/></div>
+                        <div class="o_vd_omi_fields">
+                            <span t-if="c.status" class="o_vd_omi_f o_vd_omi_status"><b>Trạng thái:</b> <t t-esc="c.status"/></span>
+                            <span t-if="c.customer_group" class="o_vd_omi_f"><b>Nguồn:</b> <t t-esc="c.customer_group"/></span>
+                            <span t-if="c.address" class="o_vd_omi_f"><b>Địa chỉ:</b> <t t-esc="c.address"/></span>
+                            <span t-if="c.area" class="o_vd_omi_f"><b>Diện tích:</b> <t t-esc="c.area"/></span>
+                            <span t-if="c.house_type" class="o_vd_omi_f"><b>Kiểu nhà:</b> <t t-esc="c.house_type"/></span>
+                            <span t-if="c.floors" class="o_vd_omi_f"><b>Số tầng:</b> <t t-esc="c.floors"/></span>
+                            <span t-if="c.budget" class="o_vd_omi_f"><b>Ngân sách:</b> <t t-esc="c.budget"/></span>
+                            <span t-if="c.land_type" class="o_vd_omi_f"><b>Loại đất:</b> <t t-esc="c.land_type"/></span>
+                            <span t-if="c.timeline" class="o_vd_omi_f"><b>Thời gian:</b> <t t-esc="c.timeline"/></span>
+                            <span t-if="c.func" class="o_vd_omi_f o_vd_omi_wide"><b>Công năng:</b> <t t-esc="c.func"/></span>
+                            <span t-if="c.tags" class="o_vd_omi_f o_vd_omi_wide o_vd_omi_tags"><b>Nhãn:</b> <t t-esc="c.tags"/></span>
+                        </div>
+                    </div>
+                    <div t-if="!filtered.length" class="o_vd_omi_center">Không có khách OMI nào.</div>
+                </div>
+            </div>
+        </Dialog>
     </t>
 
 </templates>

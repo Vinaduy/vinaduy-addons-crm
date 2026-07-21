@@ -11010,3 +11010,51 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     transition: all 0.15s ease;
     &:hover { background: linear-gradient(135deg, #4b3fd0, #5f3dc4); box-shadow: 0 9px 20px rgba(95, 61, 196, 0.45); transform: translateY(-1px); }
 }
+
+/* ============ SỐ OMI: modal 90% + thẻ khách (user 2026-07-21) ============ */
+.modal-dialog:has(.o_vd_omi_modal) { max-width: 90vw; width: 90vw; }
+.o_vd_omi_modal { max-height: 90vh; }
+.o_vd_omi_wrap { display: flex; flex-direction: column; height: 82vh; }
+.o_vd_omi_bar {
+    display: flex; align-items: center; gap: 10px; padding: 2px 2px 10px;
+    .o_vd_omi_search_ico { color: #adb5bd; }
+    .o_vd_omi_search {
+        flex: 1 1 auto; border: 1px solid #dee2e6; border-radius: 10px;
+        padding: 8px 12px; font-size: 14px;
+        &:focus { outline: none; border-color: #5b4be6; }
+    }
+    .o_vd_omi_count { flex: 0 0 auto; font-weight: 800; color: #5f3dc4; white-space: nowrap; }
+}
+.o_vd_omi_note {
+    background: #fff8e1; border: 1px solid #ffe08a; border-radius: 8px;
+    padding: 7px 12px; font-size: 12.5px; color: #7a5c00; margin-bottom: 10px;
+}
+.o_vd_omi_center { padding: 2rem; text-align: center; color: #868e96; font-style: italic; }
+.o_vd_omi_grid {
+    flex: 1 1 auto; overflow-y: auto; display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    align-content: start; padding: 2px;
+}
+.o_vd_omi_card {
+    border: 1px solid #e9ecef; border-radius: 12px; background: #fff;
+    box-shadow: 0 1px 5px rgba(2,6,23,.05); padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px; transition: box-shadow .15s;
+    &:hover { box-shadow: 0 6px 18px rgba(2,6,23,.12); }
+}
+.o_vd_omi_card_head { display: flex; align-items: center; gap: 8px; }
+.o_vd_omi_name { flex: 1 1 auto; min-width: 0; font-weight: 800; color: #212529; font-size: 14px; }
+.o_vd_omi_call {
+    flex: 0 0 auto; border: 0; cursor: pointer; color: #fff; font-weight: 800;
+    font-size: 12.5px; padding: 5px 12px; border-radius: 8px;
+    background: linear-gradient(135deg, #12b886, #099268);
+    &:hover { background: linear-gradient(135deg, #0ca678, #087f5b); }
+}
+.o_vd_omi_phone { font-weight: 800; color: #1971c2; font-size: 13.5px; }
+.o_vd_omi_fields { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.o_vd_omi_f {
+    font-size: 12px; color: #495057; line-height: 1.5;
+    b { color: #868e96; font-weight: 700; }
+}
+.o_vd_omi_wide { flex-basis: 100%; }
+.o_vd_omi_status b, .o_vd_omi_status { color: #d9480f; }
+.o_vd_omi_tags { color: #6741d9; }
