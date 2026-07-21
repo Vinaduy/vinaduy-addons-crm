@@ -5737,13 +5737,11 @@
         }
         /* Variant BÁO GIÁ XONG MẤT TÍCH — header đỏ-cam + hàng KH có cột số ngày */
         .o_vd_trash_popover.o_vd_trash_popover_quoted_lost {
-            /* RỘNG GẤP ĐÔI + KHÔNG bị mép màn hình che (user 2026-07-22):
-               anchor phải, giới hạn trong viewport, mở sang trái. */
-            min-width: 1040px !important;
-            max-width: #{"min(1360px, 94vw)"} !important;
-            width: 74vw !important;
-            right: 0 !important;
-            left: auto !important;
+            /* RỘNG GẤP ĐÔI (user 2026-07-22). KHÔNG set right/left — để JS
+               onTrashPopoverMove định vị fixed + né mép màn hình + né overflow
+               (giống box CHƯA GỌI ĐƯỢC). */
+            min-width: 1040px;
+            max-width: #{"min(1360px, 92vw)"};
             .o_vd_trash_popover_head {
                 background: linear-gradient(135deg, #e8590c 0%, #fd7e14 100%);
             }
@@ -5752,12 +5750,13 @@
                 background: #fff4e6;
             }
         }
-        /* Đẩy popover MẤT TÍCH lệch phải để mép phải chạm mép hàng, không tràn màn hình */
-        @media (min-width: 1281px) {
-            .o_vd_trash_popover.o_vd_trash_popover_quoted_lost { right: calc(-340px - 1.8rem) !important; }
-        }
+        /* 6 phần tử (tên · SĐT · số ngày · NV · Gọi lại · Đã liên lạc) → 6 CỘT
+           để TẤT CẢ nằm 1 DÒNG (trước đây 5 cột nên nút Đã-liên-lạc rớt xuống
+           nguyên dòng — xấu). User 2026-07-22: gọn, chuyên nghiệp. */
         .o_vd_quoted_lost_row {
-            grid-template-columns: minmax(110px, 1fr) auto auto auto auto;
+            grid-template-columns: minmax(150px, 1.5fr) auto auto minmax(64px, auto) auto auto;
+            gap: 0.4rem 0.6rem;
+            padding: 0.35rem 0.6rem;
         }
         .o_vd_quoted_lost_days {
             font-weight: 700;
@@ -5767,6 +5766,19 @@
             border-radius: 999px;
             font-size: 0.72rem;
             white-space: nowrap;
+        }
+        /* Nút "Đã liên lạc được" — GỌN, viền xanh nhạt (không phủ nguyên dòng) */
+        .o_vd_contacted_btn {
+            padding: 0.2rem 0.6rem !important;
+            font-size: 0.74rem !important;
+            font-weight: 700 !important;
+            white-space: nowrap;
+            background: #ebfbee !important;
+            border: 1px solid #8ce99a !important;
+            color: #2b8a3e !important;
+            border-radius: 7px !important;
+            &:hover { background: #d3f9d8 !important; border-color: #40c057 !important; }
+            i { font-size: 0.7rem; }
         }
         /* Round 11: bảng THAM KHẢO 6 cột (style ~ giống bảng KH HỦY) */
         .o_vd_reference_table {

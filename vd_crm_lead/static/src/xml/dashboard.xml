@@ -2999,6 +2999,7 @@
 
                             <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
                                  t-on-click="() => this.openCategoryList(leadsQuotedLost)"
+                                 t-on-mousemove="onTrashPopoverMove"
                                  title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
