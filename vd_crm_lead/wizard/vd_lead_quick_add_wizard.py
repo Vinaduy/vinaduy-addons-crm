@@ -544,19 +544,25 @@ class VdLeadQuickAddWizard(models.TransientModel):
             ))
 
     def _vd_eligible_users(self):
-        """POOL NV nhận KH: salesman, không phải lãnh đạo, đang nhận KH mới."""
+        """POOL NV nhận số chia đều (Quét số / thủ công). GIỐNG pool báo cáo:
+        salesman + Trưởng nhóm + Giám đốc đang BẬT nhận (loại admin kỹ thuật) →
+        Du/Mai cũng được chia đều như NV khác (user spec 2026-07-25)."""
         ResUsers = self.env['res.users'].sudo()
-        candidates = ResUsers.search([
+        sales = ResUsers.search([
             ('share', '=', False),
             ('active', '=', True),
             ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
         ])
+        # Trưởng nhóm / Giám đốc (theo vai trò) CŨNG vào pool nếu đang BẬT nhận.
+        bosses = ResUsers.search([
+            ('share', '=', False), ('active', '=', True),
+        ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
+        pool = (sales | bosses).filtered(
+            lambda u: not (u._is_admin() or u.has_group('base.group_system')))
         # ĐỒNG BỘ (user spec 2026-07-24): công tắc vd_can_receive_pancake gate CẢ
         # chia thủ công — tắt NV ở bảng nhận số = loại khỏi pool chia đều luôn.
-        return candidates.filtered(
-            lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
-                      and u.vd_can_receive_new_leads
-                      and u.vd_can_receive_pancake
+        return pool.filtered(
+            lambda u: u.vd_can_receive_new_leads and u.vd_can_receive_pancake
         )
 
     def _vd_user_new_total(self, uid):

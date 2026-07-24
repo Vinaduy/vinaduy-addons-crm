@@ -9910,10 +9910,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     visibility: visible;
     transform: none;
     width: 100%;
-    max-width: 100%;
+    max-width: 1180px;   /* không kéo dài quá rộng để cột số không bị đẩy xa */
     max-height: none;
     overflow: visible;
-    box-shadow: none;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
     border: 1px solid #ffe3a3;
     &::before { content: none; }
 }
@@ -9980,8 +9980,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pancake_row { font-size: 0.92rem; padding: 0.35rem 0.6rem; }
     .o_vd_pancake_row_eval { font-size: 0.7rem; }
     .o_vd_pancake_row_cnt { font-size: 0.92rem; min-width: 1.9rem; }
-    .o_vd_pk_col { flex: 0 0 4.4rem; font-size: 0.95rem; }
-    .o_vd_pk_col_tot { flex: 0 0 4rem; }
+    .o_vd_pk_col { flex: 0 0 5.6rem; font-size: 0.95rem; }
+    .o_vd_pk_col_tot { flex: 0 0 5.2rem; }
     .o_vd_pk_colhead { font-size: 0.72rem; white-space: nowrap; letter-spacing: 0; }
 }
 .o_vd_pancake_filter:hover .o_vd_pancake_pop {
@@ -10001,8 +10001,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pancake_empty { font-size: 0.78rem; color: #adb5bd; font-style: italic; }
 .o_vd_pancake_rows { display: flex; flex-direction: column; gap: 0.2rem; }
 .o_vd_pancake_row {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.25rem 0.5rem; background: #f8f9fa; border-radius: 6px; font-size: 0.8rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.28rem 0.6rem; background: #f8f9fa; border-radius: 6px; font-size: 0.85rem;
     .o_vd_pancake_row_nv { font-weight: 600; color: #1f2a44; flex: 1 1 auto; min-width: 0;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .o_vd_pancake_row_eval {
@@ -10240,21 +10240,25 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 
 /* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
 .o_vd_pk_colhead {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.15rem 0.5rem 0.3rem;
-    font-size: 0.68rem; font-weight: 800; color: #868e96;
+    display: flex; align-items: stretch; gap: 0.6rem;
+    padding: 0.2rem 0.6rem 0.35rem;
+    font-size: 0.74rem; font-weight: 800; color: #495057;
     letter-spacing: 0; white-space: nowrap;
-    border-bottom: 1px solid #ffe3a3; margin-bottom: 0.2rem;
+    border-bottom: 2px solid #ffe3a3; margin-bottom: 0.35rem;
+    .o_vd_pk_col { padding: 0.32rem 0.2rem; font-size: 0.73rem; }
     /* "Nhân viên" PHẢI giãn như trong dòng dữ liệu để 3 cột số nằm ĐÚNG trên
        các con số bên dưới (trước đây không giãn -> tiêu đề dồn về trái). */
     .o_vd_pancake_row_nv { flex: 1 1 auto; min-width: 0; font-weight: 800; }
 }
 .o_vd_pk_col {
-    flex: 0 0 5rem; text-align: center; font-weight: 700; font-size: 0.8rem; color: #495057;
+    flex: 0 0 5.6rem; text-align: center; font-weight: 800; font-size: 0.9rem;
+    color: #495057; padding: 0.18rem 0.25rem; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center;
 }
-.o_vd_pk_col_tt { color: #6741d9; }
-.o_vd_pk_col_fb { color: #1971c2; }
-.o_vd_pk_col_quet { color: #e8590c; }   /* Quét số (đẩy file/dán) */
+/* Làn màu riêng cho từng cột (áp cả tiêu đề lẫn ô số) → tách cột rõ ràng */
+.o_vd_pk_col_tt   { color: #6741d9; background: #f3f0ff; }
+.o_vd_pk_col_fb   { color: #1971c2; background: #e7f5ff; }
+.o_vd_pk_col_quet { color: #e8590c; background: #fff4e6; }   /* Quét số (đẩy file/dán) */
 
 /* ===== ➕ THÊM NV nhận số lại (danh sách NV đang tắt) ===== */
 .o_vd_pk_addbar { position: relative; margin: 0.5rem 0.2rem 0.2rem; }
@@ -10290,8 +10294,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
 }
 .o_vd_pk_addempty { color: #2b8a3e; font-weight: 700; font-size: 0.86rem; padding: 0.2rem; }
-.o_vd_pk_col_tot { flex: 0 0 4.2rem; color: #1f2a44; }
-.o_vd_pk_col_sw { flex: 0 0 2.6rem; text-align: center; }
+.o_vd_pk_col_tot { flex: 0 0 5.2rem; color: #1f2a44; background: #eef1f4; }
+.o_vd_pk_col_sw { flex: 0 0 3rem; text-align: center; background: none; }
 /* Dòng TRƯỞNG NHÓM / GIÁM ĐỐC trong bảng (chỉ xem, không vòng chia) */
 .o_vd_pk_bossrow {
     background: #eef3ff !important; border: 1px dashed #a5c0ff;
