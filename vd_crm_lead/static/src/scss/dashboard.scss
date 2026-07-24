@@ -9910,7 +9910,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     visibility: visible;
     transform: none;
     width: 100%;
-    max-width: 1180px;   /* không kéo dài quá rộng để cột số không bị đẩy xa */
+    max-width: 100%;   /* dùng hết bề rộng panel — không để trống khoảng hồng bên phải */
     max-height: none;
     overflow: visible;
     box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
@@ -10295,7 +10295,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_pk_addempty { color: #2b8a3e; font-weight: 700; font-size: 0.86rem; padding: 0.2rem; }
 .o_vd_pk_col_tot { flex: 0 0 5.2rem; color: #1f2a44; background: #eef1f4; }
-.o_vd_pk_col_sw { flex: 0 0 3rem; text-align: center; background: none; }
+.o_vd_pk_col_sw {
+    flex: 0 0 3rem; text-align: center; background: none;
+    display: inline-flex; align-items: center; justify-content: center;
+}
 /* Dòng TRƯỞNG NHÓM / GIÁM ĐỐC trong bảng (chỉ xem, không vòng chia) */
 .o_vd_pk_bossrow {
     background: #eef3ff !important; border: 1px dashed #a5c0ff;

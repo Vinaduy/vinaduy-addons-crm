@@ -6315,6 +6315,7 @@ class CrmLead(models.Model):
             in_table = sum(1 for l in leads if l.id not in unreachable_ids)
             result.append({
                 'id': u.id, 'name': u.name, 'login': u.login,
+                'team': self._vd_team_label_for(u),
                 'total': total_by_user.get(u.id, 0),
                 'new_not_called': not_called,
                 'new_total': in_table,

@@ -2018,6 +2018,7 @@ export class VdCrmDashboard extends Component {
             mode: "",
             busy: false,
             oneUserId: 0,
+            oneTeam: "",
             lines: recs.map((r) => ({
                 lead_id: r.id,
                 name: r.name || ("KH #" + r.id),
@@ -2044,12 +2045,41 @@ export class VdCrmDashboard extends Component {
     applyDistributeOne(ev) {
         const uid = parseInt(ev.target.value, 10) || 0;
         this.state.distribute.oneUserId = uid;
+        this.state.distribute.oneTeam = "";
         if (!uid) {
             this.state.distribute.mode = "";
             return;
         }
         for (const ln of (this.state.distribute.lines || [])) ln.user_id = uid;
         this.state.distribute.mode = "one_user";
+    }
+    // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
+    get distributeTeams() {
+        const m = {};
+        for (const u of (this.state.users || [])) {
+            if (!u.id) continue;
+            const t = u.team || "KHÁC";
+            m[t] = (m[t] || 0) + 1;
+        }
+        return Object.keys(m).sort().map((t) => ({ team: t, count: m[t] }));
+    }
+    // CHIA ĐỀU trong 1 PHÒNG: chỉ vòng chia cho NV thuộc phòng được chọn.
+    applyDistributeTeam(ev) {
+        const team = ev.target.value || "";
+        this.state.distribute.oneTeam = team;
+        this.state.distribute.oneUserId = 0;
+        if (!team) {
+            this.state.distribute.mode = "";
+            return;
+        }
+        const users = (this.state.users || []).filter(
+            (u) => u.id && (u.team || "KHÁC") === team);
+        if (!users.length) {
+            this.notification.add("Phòng này không có nhân viên nhận số.", { type: "warning" });
+            return;
+        }
+        this._distributeEvenAmong(users);
+        this.state.distribute.mode = "team";
     }
     distributeUserLoad(userId) {
         const u = (this.state.users || []).find((x) => x.id === userId);
@@ -2098,6 +2128,32 @@ export class VdCrmDashboard extends Component {
         const cur = this._userUncalled(userId);
         return ` — còn ${Math.max(0, th - cur)}/${th}`;
     }
+    // Vòng chia ĐỀU danh sách KH cho tập NV truyền vào (round-robin theo tải,
+    // tôn trọng sức chứa của dòng CHƯA gọi). Dùng cho "đều TẤT CẢ NV" và "đều 1 phòng".
+    _distributeEvenAmong(users) {
+        const lines = this.state.distribute.lines || [];
+        if (!users.length) return;
+        const th = this.distributeThreshold;
+        const remain = {};
+        users.forEach((u) => {
+            remain[u.id] = th > 0 ? Math.max(0, th - (u.new_not_called || 0)) : Infinity;
+        });
+        const load = {};
+        users.forEach((u) => { load[u.id] = u.new_total || 0; });
+        const order = [...users].sort((a, b) => load[a.id] - load[b.id]);
+        let i = 0;
+        for (const ln of lines) {
+            // dòng CHƯA gọi: bỏ qua NV hết chỗ; dòng đã gọi: gán bình thường
+            if (ln.uncalled && th > 0) {
+                let guard = 0;
+                while (remain[order[i % order.length].id] <= 0 && guard < order.length) { i++; guard++; }
+            }
+            const u = order[i % order.length];
+            ln.user_id = u.id;
+            if (ln.uncalled && th > 0 && remain[u.id] > 0) remain[u.id] -= 1;
+            i++;
+        }
+    }
     applyDistributeMode(mode) {
         const lines = this.state.distribute.lines || [];
         const users = (this.state.users || []).filter((u) => u.id);
@@ -2107,6 +2163,7 @@ export class VdCrmDashboard extends Component {
         }
         this.state.distribute.mode = mode;
         this.state.distribute.oneUserId = 0;  // rời chế độ "1 NV"
+        this.state.distribute.oneTeam = "";   // rời chế độ "1 phòng"
         if (mode === "per_line") return;  // để NV tự chọn từng dòng
         const th = this.distributeThreshold;
         // sức chứa còn lại (theo KH mới chưa gọi); tắt → vô hạn
@@ -2118,18 +2175,7 @@ export class VdCrmDashboard extends Component {
         users.forEach((u) => { load[u.id] = u.new_total || 0; });
         const order = [...users].sort((a, b) => load[a.id] - load[b.id]);
         if (mode === "even_all") {
-            let i = 0;
-            for (const ln of lines) {
-                // dòng CHƯA gọi: bỏ qua NV hết chỗ; dòng đã gọi: gán bình thường
-                if (ln.uncalled && th > 0) {
-                    let guard = 0;
-                    while (remain[order[i % order.length].id] <= 0 && guard < order.length) { i++; guard++; }
-                }
-                const u = order[i % order.length];
-                ln.user_id = u.id;
-                if (ln.uncalled && th > 0 && remain[u.id] > 0) remain[u.id] -= 1;
-                i++;
-            }
+            this._distributeEvenAmong(users);
         } else if (mode === "least") {
             for (const ln of lines) {
                 let avail = users;
