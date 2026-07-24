@@ -2009,7 +2009,7 @@ export class VdCrmDashboard extends Component {
         }
         let recs = [];
         try {
-            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile", "call_count"]);
+            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile", "call_count", "user_id"]);
         } catch (e) {
             recs = ids.map((id) => ({ id, name: "KH #" + id, phone: "" }));
         }
@@ -2024,6 +2024,9 @@ export class VdCrmDashboard extends Component {
                 name: r.name || ("KH #" + r.id),
                 phone: r.phone || r.mobile || "",
                 user_id: 0,
+                // CHỦ hiện tại của KH — loại khỏi vòng nhận khi chia lại (không gán
+                // ngược cho chính người đang giữ KH đó).
+                owner_id: (r.user_id && r.user_id[0]) || 0,
                 // KH MỚI chưa gọi (call_count=0) — chỉ dòng này ăn "sức chứa" NV.
                 uncalled: (r.call_count || 0) === 0,
             })),
@@ -2065,21 +2068,31 @@ export class VdCrmDashboard extends Component {
     // Roster ĐÚNG = NV đang BẬT nhận số trong báo cáo chia số (khớp đúng bảng
     // người dùng nhìn thấy). Không dùng state.users vì tập đó rộng hơn (mọi NV
     // có lead) -> đếm phòng bị phồng lên.
-    // Loại CHÍNH người đang chia ra khỏi vòng nhận (chia KH của mình cho NGƯỜI
-    // KHÁC trong phòng — không gán ngược lại cho bản thân).
+    // NV bị LOẠI khỏi vòng nhận khi chia lại = CHỦ hiện tại của các KH đang chia
+    // (không gán ngược KH về chính người đang giữ) + chính người đang thao tác.
+    // Nhờ vậy: admin lấy KH của NV A chia cho phòng thì A bị loại; NV tự chia KH
+    // của mình thì chính NV đó bị loại.
+    _distributeExcludeIds() {
+        const s = new Set();
+        for (const ln of (this.state.distribute?.lines || [])) {
+            if (ln.owner_id) s.add(ln.owner_id);
+        }
+        if (this.state.current_user_id) s.add(this.state.current_user_id);
+        return s;
+    }
     _reportRoster() {
         const rep = this.state.pancake_report;
         const rows = (rep && rep.today && rep.today.rows) || [];
-        const me = this.state.current_user_id || 0;
-        return rows.filter((r) => r.can_receive && r.uid !== me);
+        const excl = this._distributeExcludeIds();
+        return rows.filter((r) => r.can_receive && !excl.has(r.uid));
     }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
-        const me = this.state.current_user_id || 0;
+        const excl = this._distributeExcludeIds();
         const roster = this._reportRoster();
         const src = roster.length
             ? roster.map((r) => ({ id: r.uid, name: r.name }))
-            : (this.state.users || []).filter((u) => u.id && u.id !== me);
+            : (this.state.users || []).filter((u) => u.id && !excl.has(u.id));
         const m = {};
         for (const u of src) {
             if (!u.id) continue;
@@ -2107,9 +2120,9 @@ export class VdCrmDashboard extends Component {
                 .filter((r) => this._userTeamLabel(r) === team)
                 .map((r) => byId[r.uid] || { id: r.uid, name: r.name, new_total: 0, new_not_called: 0 });
         } else {
-            const me = this.state.current_user_id || 0;
+            const excl = this._distributeExcludeIds();
             users = (this.state.users || []).filter(
-                (u) => u.id && u.id !== me && this._userTeamLabel(u) === team);
+                (u) => u.id && !excl.has(u.id) && this._userTeamLabel(u) === team);
         }
         if (!users.length) {
             this.notification.add(
