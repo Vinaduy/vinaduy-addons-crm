@@ -3466,36 +3466,37 @@
                     <div t-if="distRep.today.uneven" class="o_vd_pancake_pop_warn">
                         ⚠️ Chia KHÔNG đều — kiểm tra NV nào đang TẮT nhận số bên dưới.
                     </div>
-                    <!-- Tiêu đề cột (chỉ kênh Pancake có tách TikTok/FB) -->
-                    <div t-if="distShowTarget and distRep.today.rows.length" class="o_vd_pk_colhead">
+                    <!-- CHỈ hiện NV ĐANG BẬT nhận (user spec 2026-07-24). NV tắt →
+                         gom vào nút "➕ Thêm NV nhận số" bên dưới. -->
+                    <t t-set="onRows" t-value="distRep.today.rows.filter(r => r.can_receive)"/>
+                    <t t-set="offRows" t-value="distRep.today.rows.filter(r => !r.can_receive)"/>
+                    <!-- Tiêu đề cột -->
+                    <div t-if="distShowTarget and onRows.length" class="o_vd_pk_colhead">
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
                         <span class="o_vd_pk_col o_vd_pk_col_fb">📘 Facebook</span>
                         <span class="o_vd_pk_col o_vd_pk_col_quet">🧲 Quét số</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng số</span>
-                        <span class="o_vd_pk_col_sw">Bật nhận</span>
+                        <span class="o_vd_pk_col_sw">Tắt</span>
                     </div>
-                    <div t-if="!distRep.today.rows.length" class="o_vd_pancake_empty">
-                        Chưa có số trong khung giờ này.
+                    <div t-if="!onRows.length" class="o_vd_pancake_empty">
+                        Chưa có NV nào đang bật nhận số — bấm ➕ bên dưới để thêm.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
-                        <div t-foreach="distRep.today.rows" t-as="r" t-key="r_index"
-                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '') + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
+                        <div t-foreach="onRows" t-as="r" t-key="r.uid"
+                             t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (distShowTarget and r.under_target ? ' o_vd_pk_under' : '') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
-                            <!-- KÊNH PANCAKE: cột TikTok / FB / Tổng + nút bật-tắt -->
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_quet"><t t-esc="r.quet"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
-                                <button class="o_vd_pk_toggle"
-                                        t-att-class="r.can_receive ? 'o_on' : 'o_off'"
+                                <button class="o_vd_pk_toggle o_on"
                                         t-on-click="() => this.onTogglePancakeNV(r.uid)"
-                                        t-att-title="r.can_receive ? 'Đang nhận số Pancake — bấm để TẮT' : 'Đã TẮT — bấm để BẬT nhận lại'">
+                                        title="Đang nhận số — bấm để TẮT (ẩn khỏi danh sách)">
                                     <span class="o_vd_pk_knob"/>
                                 </button>
                             </t>
-                            <!-- KÊNH THỦ CÔNG: giữ nguyên kiểu cũ -->
                             <t t-else="">
                                 <span class="o_vd_pancake_row_eval">
                                     <t t-if="r.eval === 'few'">QUÁ ÍT</t>
@@ -3504,6 +3505,24 @@
                                 </span>
                                 <span class="o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                             </t>
+                        </div>
+                    </div>
+                    <!-- ➕ THÊM NV nhận số lại (danh sách NV đang TẮT) -->
+                    <div t-if="distShowTarget" class="o_vd_pk_addbar">
+                        <button type="button" class="o_vd_pk_addbtn"
+                                t-att-class="state.distAddOpen ? 'o_open' : ''"
+                                t-on-click.stop="() => this.toggleDistAdd()">
+                            ➕ Thêm NV nhận số
+                            <span t-if="offRows.length" class="o_vd_pk_addcount"><t t-esc="offRows.length"/> đang tắt</span>
+                        </button>
+                        <div t-if="state.distAddOpen" class="o_vd_pk_addmenu">
+                            <div t-if="!offRows.length" class="o_vd_pk_addempty">✓ Tất cả NV đang bật nhận số.</div>
+                            <button t-foreach="offRows" t-as="r" t-key="r.uid" type="button"
+                                    class="o_vd_pk_additem"
+                                    t-on-click.stop="() => this.onTogglePancakeNV(r.uid)">
+                                <span class="o_vd_pk_addplus">+</span>
+                                <span class="o_vd_pk_additem_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -3539,7 +3558,7 @@
                         Hôm qua chưa có số.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
-                        <div t-foreach="distRep.yesterday.rows" t-as="r" t-key="r_index"
+                        <div t-foreach="distRep.yesterday.rows.filter(r => r.can_receive || r.count)" t-as="r" t-key="r.uid"
                              t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                             <t t-if="distShowTarget">
@@ -3571,7 +3590,7 @@
                         Tháng này chưa có số.
                     </div>
                     <div t-else="" class="o_vd_pancake_rows">
-                        <div t-foreach="distRep.month.rows" t-as="r" t-key="r_index"
+                        <div t-foreach="distRep.month.rows.filter(r => r.can_receive || r.count)" t-as="r" t-key="r.uid"
                              t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
                             <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                             <t t-if="distShowTarget">

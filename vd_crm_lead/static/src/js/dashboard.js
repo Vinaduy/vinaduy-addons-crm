@@ -165,6 +165,8 @@ export class VdCrmDashboard extends Component {
             // Panel DANH SÁCH SĐT BỊ LOẠI khỏi chia số (mở từ dòng "đã gộp/loại").
             // {open, scope, loading, items, summary} | null.
             pkExcluded: null,
+            // Tab CHIA SỐ: mở dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt).
+            distAddOpen: false,
             // SỬA TAY số liệu 1 cột biểu đồ tỷ lệ — {iso,label,khach,xin} | null.
             rateEdit: null,
             // Bảng THƯỞNG treo (admin cấu hình) hiện trên trang cá nhân.
@@ -628,6 +630,11 @@ export class VdCrmDashboard extends Component {
             this.state.selectedStageId = null;
         }
         this.state.loading = false;
+    }
+
+    // ===== Mở/đóng dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt) =====
+    toggleDistAdd() {
+        this.state.distAddOpen = !this.state.distAddOpen;
     }
 
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====

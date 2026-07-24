@@ -10255,6 +10255,41 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pk_col_tt { color: #6741d9; }
 .o_vd_pk_col_fb { color: #1971c2; }
 .o_vd_pk_col_quet { color: #e8590c; }   /* Quét số (đẩy file/dán) */
+
+/* ===== ➕ THÊM NV nhận số lại (danh sách NV đang tắt) ===== */
+.o_vd_pk_addbar { position: relative; margin: 0.5rem 0.2rem 0.2rem; }
+.o_vd_pk_addbtn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border: 1.5px dashed #74c0fc; background: #e7f5ff; color: #1971c2;
+    font-weight: 800; font-size: 0.9rem;
+    padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+    &:hover { background: #d0ebff; border-color: #4dabf7; }
+    &.o_open { background: #4dabf7; color: #fff; border-color: #1971c2; }
+    .o_vd_pk_addcount {
+        background: #fff3bf; color: #e67700; font-weight: 800;
+        font-size: 0.72rem; padding: 0.05rem 0.5rem; border-radius: 999px;
+    }
+}
+.o_vd_pk_addmenu {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-top: 0.5rem; padding: 0.6rem;
+    background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px;
+}
+.o_vd_pk_additem {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border: 1px solid #b2f2bb; background: #ebfbee; color: #2b8a3e;
+    font-weight: 700; font-size: 0.86rem;
+    padding: 0.32rem 0.7rem; border-radius: 8px; cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
+    &:hover { background: #d3f9d8; transform: translateY(-1px); }
+    .o_vd_pk_addplus {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.1rem; height: 1.1rem; border-radius: 50%;
+        background: #2f9e44; color: #fff; font-weight: 900; font-size: 0.85rem;
+    }
+}
+.o_vd_pk_addempty { color: #2b8a3e; font-weight: 700; font-size: 0.86rem; padding: 0.2rem; }
 .o_vd_pk_col_tot { flex: 0 0 4.2rem; color: #1f2a44; }
 .o_vd_pk_col_sw { flex: 0 0 2.6rem; text-align: center; }
 /* Dòng TRƯỞNG NHÓM / GIÁM ĐỐC trong bảng (chỉ xem, không vòng chia) */

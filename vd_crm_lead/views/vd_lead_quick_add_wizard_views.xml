@@ -151,13 +151,13 @@
                      Bỏ tick + LƯU = tắt CẢ chia tự động lẫn thủ công (đồng bộ). -->
                 <div groups="vd_crm_lead.vd_crm_group_team_leader"
                      class="o_vd_distribute_bar o_vd_recv_bar">
-                    <span class="o_vd_distribute_lbl">🔘 NV đang nhận số — bỏ tick = TẮT cả chia tự động + thủ công:</span>
+                    <span class="o_vd_distribute_lbl">🔘 NV đang nhận số — gỡ (✕) để TẮT chia số, bấm ➕ để thêm NV:</span>
                     <field name="vd_receiving_candidate_ids" invisible="1"/>
-                    <field name="vd_receiving_user_ids" widget="many2many_checkboxes"
-                           nolabel="1" class="o_vd_recv_checks"
+                    <field name="vd_receiving_user_ids" widget="many2many_tags"
+                           nolabel="1" class="o_vd_recv_tags"
+                           options="{'no_create': True, 'no_open': True}"
+                           placeholder="➕ Thêm NV nhận số..."
                            domain="[('id', 'in', vd_receiving_candidate_ids)]"/>
-                    <button name="action_save_receiving" type="object"
-                            string="💾 Lưu NV nhận số" class="btn-primary"/>
                 </div>
 
                 <footer>

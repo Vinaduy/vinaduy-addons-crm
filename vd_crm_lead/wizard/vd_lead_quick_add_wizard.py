@@ -147,6 +147,16 @@ class VdLeadQuickAddWizard(models.TransientModel):
             if bool(u.vd_can_receive_pancake) != want:
                 u.sudo().write({'vd_can_receive_pancake': want})
 
+    @api.onchange('vd_receiving_user_ids')
+    def _onchange_vd_receiving_user_ids(self):
+        """Thêm (➕) / gỡ (✕) NV ở ô tag → ghi NGAY vd_can_receive_pancake để đồng
+        bộ tức thì với bảng bật/tắt bên báo cáo dashboard (user spec 2026-07-24)."""
+        if self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+            try:
+                self._vd_sync_receiving()
+            except Exception:
+                pass
+
     def action_save_receiving(self):
         """💾 Lưu bảng BẬT/TẮT NV nhận số → ghi vd_can_receive_pancake (đồng bộ
         dashboard + chia tự động). Chia lại nếu đang ở bước chia."""
