@@ -125,6 +125,13 @@ class CrmLead(models.Model):
         string='Pancake Customer ID', index=True, copy=False,
         help='page_customer_id (UUID) của Pancake.',
     )
+    # KH nhập từ FILE EXCEL (đẩy danh sách số lên) — thẻ hiện icon Facebook nhưng
+    # màu XÁM ĐẬM để phân biệt với số Facebook thật webhook về (user spec 2026-07-24).
+    vd_from_excel = fields.Boolean(
+        string='Nhập từ file Excel', default=False, index=True, copy=False,
+        help='KH được đẩy lên từ file Excel (không qua webhook). Thẻ hiện icon '
+             'Facebook màu xám đậm.',
+    )
 
     # ============ DUPLICATE PHONE DETECTION + MERGE ============
     vd_duplicate_lead_ids = fields.One2many(
@@ -8877,6 +8884,8 @@ class CrmLead(models.Model):
             'pancake_platform': (
                 l.vd_pancake_page_id.platform if l.vd_pancake_page_id else 'manual'
             ),
+            # KH đẩy từ file Excel → thẻ hiện icon Facebook XÁM ĐẬM.
+            'from_excel': l.vd_from_excel,
             'stage_code': l.stage_code or '',
             # 🏷️ Cờ "giá cũ": KH đã có báo giá tạo TRƯỚC lần đổi đơn giá gần nhất
             # → bảng giá của KH này vẫn là giá cũ (cần "Làm lại báo giá" để cập nhật).

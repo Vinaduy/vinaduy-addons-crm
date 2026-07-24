@@ -82,6 +82,12 @@ class VdLeadQuickAddWizard(models.TransientModel):
             else:
                 w.can_chia_so = True
 
+    # ===== NHẬP TỪ FILE EXCEL (user spec 2026-07-24) =====
+    # Đẩy file .xlsx/.csv → tự lấy Tên + SĐT → nạp vào bảng → tự chia đều cho
+    # TẤT CẢ nhân viên. Số nhập từ file gắn cờ vd_is_excel (thẻ FB xám đậm).
+    vd_import_file = fields.Binary(string='File Excel/CSV')
+    vd_import_filename = fields.Char(string='Tên file')
+
     # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
     vd_bulk_user_id = fields.Many2one(
         'res.users', string='Gán NV cho khách đã chọn',
@@ -143,6 +149,196 @@ class VdLeadQuickAddWizard(models.TransientModel):
             'type': 'ir.actions.act_url',
             'url': '/web/content/%s?download=true' % att.id,
             'target': 'self',
+        }
+
+    # ==================== NHẬP TỪ FILE EXCEL / CSV ====================
+    def _vd_parse_import_rows(self, data, filename):
+        """Đọc bytes file .xlsx/.csv → list[list[str]] (mỗi hàng 1 list ô)."""
+        import io
+        fn = (filename or '').lower()
+        if fn.endswith('.csv') or fn.endswith('.txt'):
+            text = None
+            for enc in ('utf-8-sig', 'utf-8', 'cp1258', 'latin-1'):
+                try:
+                    text = data.decode(enc)
+                    break
+                except Exception:
+                    continue
+            if text is None:
+                text = data.decode('utf-8', 'ignore')
+            import csv
+            delim = ';' if text.count(';') > text.count(',') else ','
+            reader = csv.reader(io.StringIO(text), delimiter=delim)
+            return [[(c or '').strip() for c in r] for r in reader]
+        # Mặc định: .xlsx qua openpyxl
+        try:
+            import openpyxl
+        except ImportError:
+            raise UserError(_(
+                'Server chưa có thư viện openpyxl để đọc .xlsx. '
+                'Hãy lưu file dạng .csv rồi đẩy lại.'))
+        try:
+            wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+        except Exception:
+            raise UserError(_(
+                'Không mở được file — hãy chắc chắn đây là file Excel (.xlsx) '
+                'hoặc CSV (.csv).'))
+        ws = wb.active
+        rows = []
+        for r in ws.iter_rows(values_only=True):
+            rows.append([('' if c is None else str(c)).strip() for c in r])
+        wb.close()
+        return rows
+
+    _VD_IMP_PHONE_KEYS = ('sđt', 'sdt', 'điện thoại', 'dien thoai', 'phone',
+                          'số điện', 'so dien', 'mobile', 'số đt', 'so dt', 'tel')
+    _VD_IMP_NAME_KEYS = ('tên', 'ten', 'name', 'khách', 'khach', 'họ tên', 'ho ten')
+
+    def _vd_extract_name_phone(self, rows):
+        """Từ bảng thô → list[(tên, sđt)]. Ưu tiên dò cột theo tiêu đề; không có
+        thì đoán theo nội dung (ô giống SĐT VN = SĐT, ô chữ dài = tên)."""
+        name_col = phone_col = None
+        header_idx = -1
+        for i, row in enumerate(rows[:6]):
+            lc = [(c or '').strip().lower() for c in row]
+            pc = nc = None
+            for j, c in enumerate(lc):
+                if pc is None and any(k in c for k in self._VD_IMP_PHONE_KEYS):
+                    pc = j
+                if nc is None and any(k in c for k in self._VD_IMP_NAME_KEYS):
+                    nc = j
+            if pc is not None:
+                phone_col, name_col, header_idx = pc, nc, i
+                break
+        data_rows = rows[header_idx + 1:] if header_idx >= 0 else rows
+        out = []
+        for row in data_rows:
+            name = row[name_col] if (name_col is not None and name_col < len(row)) else ''
+            phone = row[phone_col] if (phone_col is not None and phone_col < len(row)) else ''
+            if not phone:
+                for c in row:
+                    if self._vd_phone_is_valid(c):
+                        phone = c
+                        break
+            if not name:
+                cands = [c for c in row if c and c != phone and self._vd_name_is_valid(c)]
+                if cands:
+                    name = max(cands, key=len)
+            if phone:
+                out.append(((name or '').strip(), phone.strip()))
+        return out
+
+    def action_import_excel(self):
+        """Đẩy file Excel/CSV → tự lấy Tên + SĐT → nạp bảng → tự CHIA ĐỀU cho tất cả
+        NV. Số nhập từ file gắn cờ Excel (thẻ Facebook xám đậm). User 2026-07-24."""
+        self.ensure_one()
+        self._vd_check_leader()
+        if not self.vd_import_file:
+            raise UserError(_('Hãy chọn file Excel/CSV trước khi bấm NHẬP FILE.'))
+        import base64
+        data = base64.b64decode(self.vd_import_file)
+        pairs = self._vd_extract_name_phone(
+            self._vd_parse_import_rows(data, self.vd_import_filename))
+        if not pairs:
+            raise UserError(_(
+                'Không đọc được SĐT nào từ file. Kiểm tra file có cột '
+                '"SĐT"/"Điện thoại"/"Phone" và có dữ liệu.'))
+
+        Lead = self.env['crm.lead'].sudo()
+
+        def _core(p):
+            s = Lead._vd_normalize_phones_set(p)
+            return next(iter(s)) if s else ''
+
+        seen = set()
+        for l in self.line_ids:
+            c = _core(l.phone)
+            if c:
+                seen.add(c)
+
+        skipped_bad = skipped_dup = 0
+        clean = []  # list[(name, '0xxxxxxxxx')]
+        for name, phone in pairs:
+            core = _core(phone)
+            cphone = '0' + core if core else ''
+            if not core or not self._vd_phone_is_valid(cphone):
+                skipped_bad += 1
+                continue
+            if core in seen:
+                skipped_dup += 1
+                continue
+            seen.add(core)
+            clean.append((name, cphone))
+
+        # Loại số ĐÃ CÓ trong hệ thống (1 truy vấn gộp, kể cả lead đã archive).
+        if clean:
+            variants = []
+            for _n, cp in clean:
+                nat = cp[1:]
+                variants += [cp, nat, '84' + nat, '+84' + nat]
+            existing = set()
+            for r in Lead.with_context(active_test=False).search_read(
+                    [('phone', 'in', variants)], ['phone']):
+                cc = _core(r.get('phone'))
+                if cc:
+                    existing.add(cc)
+            kept = []
+            for name, cp in clean:
+                if cp[1:] in existing:
+                    skipped_dup += 1
+                else:
+                    kept.append((name, cp))
+            clean = kept
+
+        if not clean:
+            raise UserError(_(
+                'Tất cả %d số trong file đều TRÙNG (đã có trong hệ thống) hoặc '
+                'SAI định dạng — không có số mới để nhập.'
+            ) % len(pairs))
+
+        # Nạp vào bảng: xoá các dòng trống, thêm dòng mới từ file.
+        self.line_ids.filtered(lambda l: not l.name and not l.phone).unlink()
+        cmds = []
+        for name, cp in clean:
+            nm = self.env['crm.lead']._vd_normalize_kh_name(name) if name else ''
+            if not self._vd_name_is_valid(nm):
+                nm = 'Khách ' + cp[-4:]
+            cmds.append((0, 0, {
+                'name': nm, 'phone': cp, 'source': 'facebook',
+                'vd_is_excel': True, 'status': 'new',
+            }))
+        self.write({'line_ids': cmds})
+
+        # TỰ CHIA ĐỀU cho tất cả NV. Nếu vượt ngưỡng thì giữ nguyên số đã nhập,
+        # để leader tự chọn cách chia (không rollback cả đợt import).
+        self.show_distribute = True
+        self.distribute_mode = 'even_all'
+        dist_note = ''
+        try:
+            self._vd_apply_distribution()
+        except UserError as e:
+            self.distribute_mode = False
+            dist_note = ' — CHƯA chia được: %s' % (e.args[0] if e.args else '')
+
+        self.vd_import_file = False
+        self.vd_import_filename = False
+
+        parts = [_('Đã nhập %d số') % len(clean)]
+        if skipped_dup:
+            parts.append(_('bỏ %d trùng') % skipped_dup)
+        if skipped_bad:
+            parts.append(_('bỏ %d sai định dạng') % skipped_bad)
+        msg = ' · '.join(parts) + dist_note
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Nhập file xong'),
+                'message': msg,
+                'type': 'warning' if dist_note else 'success',
+                'sticky': bool(dist_note),
+                'next': self._vd_reopen(),
+            },
         }
 
     def action_select_all(self):
@@ -487,6 +683,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'user_id': assignee.id,
                 'type': 'lead',
             }
+            # KH nhập từ file Excel → cờ để thẻ hiện icon Facebook xám đậm.
+            if line.vd_is_excel:
+                vals['vd_from_excel'] = True
             stage_id = stage_cache.get(line.status)
             if stage_id:
                 vals['stage_id'] = stage_id
@@ -631,6 +830,9 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     sequence = fields.Integer(string='STT', default=10)
     # Tích chọn nhiều khách để gán NV hàng loạt (user spec 2026-06-26).
     vd_selected = fields.Boolean(string='Chọn', default=False)
+    # Dòng này được nạp từ FILE EXCEL → khi tạo lead sẽ set vd_from_excel=True
+    # (thẻ hiện icon Facebook xám đậm). User spec 2026-07-24.
+    vd_is_excel = fields.Boolean(default=False)
     name = fields.Char(string='Tên KH', required=False)
     phone = fields.Char(string='SĐT', required=False)
 

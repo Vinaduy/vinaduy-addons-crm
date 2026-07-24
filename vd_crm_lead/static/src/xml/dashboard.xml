@@ -3849,7 +3849,12 @@
                     </t>
                     <!-- Stage NEW (và khác): icon nguồn KH -->
                     <t t-else="">
-                        <i t-if="lead.pancake_platform === 'facebook'"
+                        <!-- KH đẩy từ FILE EXCEL: icon Facebook màu XÁM ĐẬM (phân
+                             biệt với số Facebook thật webhook về) -->
+                        <i t-if="lead.from_excel"
+                           class="fa fa-facebook o_vd_pill_icon_fb_excel"
+                           title="Số nhập từ file Excel"/>
+                        <i t-elif="lead.pancake_platform === 'facebook'"
                            class="fa fa-facebook o_vd_pill_icon_fb"/>
                         <svg t-elif="lead.pancake_platform === 'tiktok' || lead.pancake_platform === 'zalo'"
                              class="o_vd_pill_icon_tt"

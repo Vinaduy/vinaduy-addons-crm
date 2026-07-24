@@ -79,6 +79,17 @@
 
                 <!-- ===== THAO TÁC HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
                 <div class="o_vd_distribute_bar">
+                    <!-- ===== NHẬP TỪ FILE EXCEL/CSV — tự lấy Tên+SĐT + tự chia đều
+                         cho tất cả NV (leader). Số nhập file = thẻ FB xám đậm. ===== -->
+                    <span class="o_vd_distribute_lbl"
+                          groups="vd_crm_lead.vd_crm_group_team_leader">📤 Nhập file:</span>
+                    <field name="vd_import_filename" invisible="1"/>
+                    <field name="vd_import_file" filename="vd_import_filename" nolabel="1"
+                           groups="vd_crm_lead.vd_crm_group_team_leader"/>
+                    <button name="action_import_excel" type="object"
+                            string="⬆️ NHẬP FILE + CHIA ĐỀU" class="btn-primary"
+                            groups="vd_crm_lead.vd_crm_group_team_leader"
+                            invisible="not vd_import_file"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
                     <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
