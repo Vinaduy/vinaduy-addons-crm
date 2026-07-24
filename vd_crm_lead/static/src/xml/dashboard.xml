@@ -924,12 +924,11 @@
 
                             <!-- ===== Analytics header: 2 chip hover-switch + search + clock ===== -->
                             <div class="o_vd_an_topbar">
-                                <!-- Hover-switch giữa bảng NV và bảng KH có vấn đề -->
+                                <!-- Tab CLICK (user spec 2026-07-24): bỏ hover-switch,
+                                     chỉ đổi tab khi BẤM. Thêm tab "Chia số". -->
                                 <div t-if="isCustomerFocus" class="o_vd_dash_subview_chips"
                                      t-att-data-active="state.dashSubView">
-                                    <span class="o_vd_dash_subview_thumb"/>
                                     <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'nv' ? 'o_active' : '')"
-                                            t-on-mouseenter="() => this.setDashSubView('nv')"
                                             t-on-click="() => this.setDashSubView('nv')">
                                         <i class="fa fa-users-cog o_vd_dash_subview_icon"/>
                                         <span class="o_vd_dash_subview_lbl">
@@ -938,7 +937,6 @@
                                         </span>
                                     </button>
                                     <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'kh' ? 'o_active' : '')"
-                                            t-on-mouseenter="() => this.setDashSubView('kh')"
                                             t-on-click="() => this.setDashSubView('kh')">
                                         <i class="fa fa-id-card-o o_vd_dash_subview_icon"/>
                                         <span class="o_vd_dash_subview_lbl">
@@ -948,12 +946,21 @@
                                     </button>
                                     <!-- User spec 2026-05-29: ALL khách hàng toàn cty -->
                                     <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'all' ? 'o_active' : '')"
-                                            t-on-mouseenter="() => this.setDashSubView('all')"
                                             t-on-click="() => this.setDashSubView('all')">
                                         <i class="fa fa-list-ul o_vd_dash_subview_icon"/>
                                         <span class="o_vd_dash_subview_lbl">
                                             <span class="o_vd_dash_subview_title">ALL khách hàng</span>
                                             <span class="o_vd_dash_subview_sub">Toàn bộ công ty</span>
+                                        </span>
+                                    </button>
+                                    <!-- Tab CHIA SỐ (chỉ quản lý có báo cáo) — bấm ra bảng đầy đủ -->
+                                    <button t-if="state.pancake_report and state.pancake_report.today"
+                                            t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_dist ' + (state.dashSubView === 'dist' ? 'o_active' : '')"
+                                            t-on-click="() => this.setDashSubView('dist')">
+                                        <i class="fa fa-bolt o_vd_dash_subview_icon"/>
+                                        <span class="o_vd_dash_subview_lbl">
+                                            <span class="o_vd_dash_subview_title">Chia số</span>
+                                            <span class="o_vd_dash_subview_sub">Báo cáo chia số</span>
                                         </span>
                                     </button>
                                 </div>
@@ -1020,21 +1027,7 @@
                                  ============================================================ -->
                             <div t-if="state.analytics and isCustomerFocus" class="o_vd_kh_grid">
                             <div t-if="state.dashSubView === 'nv'" class="o_vd_kh_box">
-                                <!-- FILTER CHIA SỐ (user 2026-06-05): PANCAKE (tự động) +
-                                     THỦ CÔNG (nhập tay), gọn vừa chữ, hover ra báo cáo. -->
-                                <div class="o_vd_dist_filters">
-                                    <!-- GỘP 1 view (user spec 2026-07-24): 1 báo cáo duy
-                                         nhất gồm TikTok / Facebook / Quét số. Bỏ filter
-                                         "Chia số thủ công". -->
-                                    <t t-set="distRep" t-value="state.pancake_report"/>
-                                    <t t-set="distTitle" t-value="'CHIA SỐ'"/>
-                                    <t t-set="distIcon" t-value="'fa-bolt'"/>
-                                    <t t-set="distShowTarget" t-value="true"/>
-                                    <t t-call="vd_crm_lead.DistFilter"/>
-                                </div>
-                                <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
-                                     Trạng thái) — mỗi thẻ NV đã tự mang nhãn. -->
-
+                                <!-- Báo cáo CHIA SỐ đã chuyển thành TAB riêng (2026-07-24). -->
                                 <t t-call="vd_crm_lead.VdKhTeamList"/>
                             </div>
 
@@ -1175,6 +1168,16 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- ===== TAB CHIA SỐ: bảng báo cáo đầy đủ (2026-07-24) ===== -->
+                            <div t-if="state.dashSubView === 'dist'" class="o_vd_kh_dist_col">
+                                <t t-set="distRep" t-value="state.pancake_report"/>
+                                <t t-set="distTitle" t-value="'CHIA SỐ'"/>
+                                <t t-set="distIcon" t-value="'fa-bolt'"/>
+                                <t t-set="distShowTarget" t-value="true"/>
+                                <t t-set="distPanel" t-value="true"/>
+                                <t t-call="vd_crm_lead.DistFilter"/>
                             </div>
                             </div><!-- /.o_vd_kh_grid -->
 
@@ -3312,9 +3315,10 @@
          ============================================================ -->
     <t t-name="vd_crm_lead.DistFilter">
         <div t-if="distRep and distRep.today"
-             t-att-class="'o_vd_pancake_filter' + (distRep.today.uneven ? ' o_vd_pancake_uneven' : '')">
-            <i t-att-class="'fa o_vd_pancake_ico ' + distIcon"/>
-            <div class="o_vd_pancake_lbl">
+             t-att-class="'o_vd_pancake_filter' + (distRep.today.uneven ? ' o_vd_pancake_uneven' : '') + (distPanel ? ' o_vd_pancake_filter_panel' : '')">
+            <!-- Chip nhãn (icon + cảnh báo) — CHỈ khi là filter hover, ẩn ở chế độ TAB -->
+            <i t-if="!distPanel" t-att-class="'fa o_vd_pancake_ico ' + distIcon"/>
+            <div t-if="!distPanel" class="o_vd_pancake_lbl">
                 <span class="o_vd_pancake_title"><t t-esc="distTitle"/></span>
                 <span t-if="distRep.today.uneven" class="o_vd_pancake_warn">Chia không đều số</span>
                 <span t-if="distShowTarget and distRep.today.under_count"
@@ -3327,8 +3331,8 @@
                 <span t-if="distShowTarget and distRep.alert and distRep.alert.silent and distRep.alert.silent.length"
                       class="o_vd_pancake_stopchip o_vd_pancake_silentchip">⚠️ Nguồn <t t-foreach="distRep.alert.silent" t-as="s" t-key="s.platform"><t t-if="s_index"> + </t><t t-esc="s.label"/></t> thiếu số</span>
             </div>
-            <!-- POPOVER hover (rộng + có cột TikTok/FB + nút bật/tắt + tỷ lệ xin số) -->
-            <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '')">
+            <!-- Nội dung báo cáo: hover popover (filter) HOẶC bảng tĩnh full (tab). -->
+            <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '') + (distPanel ? ' o_vd_pancake_pop_static' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
 
                 <!-- Nút mở BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày, ô = TikTok | Facebook) -->

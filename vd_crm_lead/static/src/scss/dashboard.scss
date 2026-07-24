@@ -2856,13 +2856,32 @@
                 color: #4a3a85;
                 .o_vd_dash_subview_icon { opacity: 1; transform: scale(1.05); }
             }
+            /* Click-tab (2026-07-24): active = nền gradient tím ngay trên chip
+               (bỏ thumb trượt để không phụ thuộc số lượng tab). */
             &.o_active {
                 color: #fff;
+                background: linear-gradient(135deg, #6a4ce0 0%, #8b66f0 50%, #a584ff 100%);
+                box-shadow:
+                    0 6px 16px rgba(106, 76, 224, 0.38),
+                    0 2px 4px rgba(106, 76, 224, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.25);
                 .o_vd_dash_subview_icon { opacity: 1; }
                 .o_vd_dash_subview_sub { opacity: 0.9; }
             }
             &:active { transform: scale(0.985); }
         }
+        /* Tab CHIA SỐ: sắc cam-đỏ riêng cho dễ nhận */
+        .o_vd_dash_subview_chip_dist {
+            color: #c92a2a;
+            .o_vd_dash_subview_icon { color: #e8590c; }
+            &.o_active {
+                background: linear-gradient(135deg, #f03e3e 0%, #ff6b6b 55%, #ffa94d 100%);
+                box-shadow: 0 6px 16px rgba(224, 49, 49, 0.34);
+                .o_vd_dash_subview_icon { color: #fff; }
+            }
+        }
+        /* Bỏ thumb trượt cũ (không còn span) */
+        .o_vd_dash_subview_thumb { display: none; }
     }
     @media (max-width: 768px) {
         .o_vd_dash_subview_chips {
@@ -9874,6 +9893,30 @@ body.o_vd_preview_active .o_vd_preview_body_form {
    ============================================================ */
 /* 2 filter cạnh nhau, mỗi cái GỌN vừa chữ */
 .o_vd_dist_filters { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 0.7rem; }
+/* ===== TAB CHIA SỐ: báo cáo dạng BẢNG TĨNH đầy đủ (không hover popover) ===== */
+.o_vd_kh_dist_col { padding: 0.2rem 0.1rem 1.2rem; }
+.o_vd_pancake_filter.o_vd_pancake_filter_panel {
+    display: block;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    cursor: default;
+    animation: none;
+}
+.o_vd_pancake_pop.o_vd_pancake_pop_static {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+    border: 1px solid #ffe3a3;
+    &::before { content: none; }
+}
 .o_vd_pancake_filter {
     position: relative;
     display: inline-flex;
