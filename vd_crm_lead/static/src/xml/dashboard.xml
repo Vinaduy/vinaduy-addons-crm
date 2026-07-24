@@ -1023,15 +1023,13 @@
                                 <!-- FILTER CHIA SỐ (user 2026-06-05): PANCAKE (tự động) +
                                      THỦ CÔNG (nhập tay), gọn vừa chữ, hover ra báo cáo. -->
                                 <div class="o_vd_dist_filters">
+                                    <!-- GỘP 1 view (user spec 2026-07-24): 1 báo cáo duy
+                                         nhất gồm TikTok / Facebook / Quét số. Bỏ filter
+                                         "Chia số thủ công". -->
                                     <t t-set="distRep" t-value="state.pancake_report"/>
-                                    <t t-set="distTitle" t-value="'PANCAKE'"/>
+                                    <t t-set="distTitle" t-value="'CHIA SỐ'"/>
                                     <t t-set="distIcon" t-value="'fa-bolt'"/>
                                     <t t-set="distShowTarget" t-value="true"/>
-                                    <t t-call="vd_crm_lead.DistFilter"/>
-                                    <t t-set="distRep" t-value="state.manual_report"/>
-                                    <t t-set="distTitle" t-value="'CHIA SỐ THỦ CÔNG'"/>
-                                    <t t-set="distIcon" t-value="'fa-hand-pointer-o'"/>
-                                    <t t-set="distShowTarget" t-value="false"/>
                                     <t t-call="vd_crm_lead.DistFilter"/>
                                 </div>
                                 <!-- r2026-06-05: BỎ HẲN hàng header (Nhân viên / Cần hỗ trợ /
@@ -3322,7 +3320,7 @@
                 <span t-if="distShowTarget and distRep.today.under_count"
                       class="o_vd_pancake_under">
                     ⚠️ <t t-esc="distRep.today.under_count"/>/<t t-esc="distRep.today.eligible"/> NV
-                    chưa đủ <t t-esc="distRep.today.target"/> khách FB/TikTok hôm nay
+                    chưa đủ <t t-esc="distRep.today.target"/> khách hôm nay
                 </span>
                 <span t-if="distShowTarget and distRep.alert and distRep.alert.stopped"
                       class="o_vd_pancake_stopchip">⛔ DỪNG CHIA SỐ PANCAKE</span>
@@ -3469,6 +3467,7 @@
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
                         <span class="o_vd_pk_col o_vd_pk_col_fb">📘 Facebook</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_quet">🧲 Quét số</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng số</span>
                         <span class="o_vd_pk_col_sw">Bật nhận</span>
                     </div>
@@ -3483,6 +3482,7 @@
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_quet"><t t-esc="r.quet"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                                 <button class="o_vd_pk_toggle"
                                         t-att-class="r.can_receive ? 'o_on' : 'o_off'"
@@ -3528,6 +3528,7 @@
                         <span class="o_vd_pancake_row_nv">Nhân viên</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
                         <span class="o_vd_pk_col o_vd_pk_col_fb">📘 Facebook</span>
+                        <span class="o_vd_pk_col o_vd_pk_col_quet">🧲 Quét số</span>
                         <span class="o_vd_pk_col o_vd_pk_col_tot">Tổng số</span>
                     </div>
                     <div t-if="!distRep.yesterday.total" class="o_vd_pancake_empty">
@@ -3540,6 +3541,7 @@
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_quet"><t t-esc="r.quet"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                             </t>
                             <t t-else="">
@@ -3571,6 +3573,7 @@
                             <t t-if="distShowTarget">
                                 <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span class="o_vd_pk_col o_vd_pk_col_quet"><t t-esc="r.quet"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                             </t>
                             <t t-else="">

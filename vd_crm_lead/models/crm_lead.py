@@ -6804,8 +6804,13 @@ class CrmLead(models.Model):
         eligible = pool.filtered('vd_can_receive_pancake')
         can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in pool}
         name_by = {u.id: (u.name or '') for u in (sales | boss_nv)}
-        src_dom = [('vd_pancake_page_id', '!=', False)] if pancake \
-            else [('vd_pancake_page_id', '=', False)]
+        # GỘP kênh QUÉT SỐ (đẩy file Excel / dán danh sách → vd_from_excel) vào
+        # báo cáo Pancake (user spec 2026-07-24): 1 view duy nhất, cột riêng "Quét số".
+        if pancake:
+            src_dom = ['|', ('vd_pancake_page_id', '!=', False),
+                       ('vd_from_excel', '=', True)]
+        else:
+            src_dom = [('vd_pancake_page_id', '=', False)]
         # Map page_id -> platform để tách cột TikTok / Facebook (user spec 2026-06-23).
         plat_by_page = {}
         if pancake:
@@ -6846,14 +6851,18 @@ class CrmLead(models.Model):
             per = {}        # tổng theo NV
             per_tt = {}     # TikTok theo NV
             per_fb = {}     # Facebook theo NV
+            per_quet = {}   # QUÉT SỐ (đẩy file/dán) theo NV
             for l in leads:
                 uid = l.user_id.id
                 per[uid] = per.get(uid, 0) + 1
+                # QUÉT SỐ: lead đẩy từ file Excel / dán danh sách (vd_from_excel).
+                if l.vd_from_excel:
+                    per_quet[uid] = per_quet.get(uid, 0) + 1
                 # Phân loại theo TIỀN TỐ conversation_id ('ttm_' = TikTok) — bền
                 # vững: TikTok conv_id luôn bắt đầu 'ttm_'. KHÔNG dùng customer_id
                 # (nay là PSID số) vì sẽ nhét nhầm khách TikTok vào Facebook.
                 # ZALO cá nhân (conv_id 'pzl_') GỘP vào cột TikTok (user spec 2026-07-13).
-                if (l.vd_pancake_conversation_id or '').startswith(('ttm_', 'pzl_')):
+                elif (l.vd_pancake_conversation_id or '').startswith(('ttm_', 'pzl_')):
                     per_tt[uid] = per_tt.get(uid, 0) + 1
                 else:
                     per_fb[uid] = per_fb.get(uid, 0) + 1
@@ -6884,6 +6893,7 @@ class CrmLead(models.Model):
                              'count': c,
                              'tiktok': per_tt.get(u.id, 0),
                              'facebook': per_fb.get(u.id, 0),
+                             'quet': per_quet.get(u.id, 0),
                              'eval': ev, 'under_target': under,
                              'can_receive': on,
                              'is_boss': bool(role_by.get(u.id)),
@@ -7004,8 +7014,9 @@ class CrmLead(models.Model):
     def vd_pancake_dist_reports(self):
         """Wrapper PUBLIC cho JS: trả lại 2 báo cáo chia số sau khi bật/tắt NV."""
         return {
+            # GỘP 1 view (user spec 2026-07-24): chỉ 1 báo cáo, đã bao gồm cột Quét số.
             'pancake_report': self._vd_distribution_report(pancake=True),
-            'manual_report': self._vd_distribution_report(pancake=False),
+            'manual_report': {},
         }
 
     @api.model
@@ -7771,7 +7782,7 @@ class CrmLead(models.Model):
             # CHIA SỐ (2026-06-05): báo cáo chia số tự động (Pancake) + thủ công
             # (nhập tay) hôm nay/tháng + cảnh báo chia không đều. Chỉ ở màn quản lý.
             'pancake_report': self._vd_distribution_report(pancake=True) if is_manager else {},
-            'manual_report': self._vd_distribution_report(pancake=False) if is_manager else {},
+            'manual_report': {},
             'performance': performance,
             # BẢO MẬT (user spec 2026-06-18): buộc NV đổi mật khẩu khi hết chu kỳ
             # 30 ngày — frontend chặn dashboard tới khi đổi xong.
