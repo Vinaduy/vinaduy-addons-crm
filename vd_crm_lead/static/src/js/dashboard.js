@@ -2086,6 +2086,20 @@ export class VdCrmDashboard extends Component {
         const excl = this._distributeExcludeIds();
         return rows.filter((r) => r.can_receive && !excl.has(r.uid));
     }
+    // uid các NV đang TẮT nhận số (can_receive=false) trong báo cáo chia số.
+    // TẮT nhận số auto -> ẩn khỏi MỌI ô chọn khi chia (yêu cầu user 2026-07-25).
+    _distributeOffIds() {
+        const rep = this.state.pancake_report;
+        const rows = (rep && rep.today && rep.today.rows) || [];
+        const s = new Set();
+        for (const r of rows) { if (!r.can_receive) s.add(r.uid); }
+        return s;
+    }
+    // NV được phép hiện trong các ô chọn chia (đã bỏ NV đang TẮT nhận số).
+    get distributeEligibleUsers() {
+        const off = this._distributeOffIds();
+        return (this.state.users || []).filter((u) => u.id && !off.has(u.id));
+    }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
         const excl = this._distributeExcludeIds();
@@ -2121,8 +2135,10 @@ export class VdCrmDashboard extends Component {
                 .map((r) => byId[r.uid] || { id: r.uid, name: r.name, new_total: 0, new_not_called: 0 });
         } else {
             const excl = this._distributeExcludeIds();
+            const off = this._distributeOffIds();
             users = (this.state.users || []).filter(
-                (u) => u.id && !excl.has(u.id) && this._userTeamLabel(u) === team);
+                (u) => u.id && !excl.has(u.id) && !off.has(u.id)
+                    && this._userTeamLabel(u) === team);
         }
         if (!users.length) {
             this.notification.add(
@@ -2207,9 +2223,9 @@ export class VdCrmDashboard extends Component {
     }
     applyDistributeMode(mode) {
         const lines = this.state.distribute.lines || [];
-        const users = (this.state.users || []).filter((u) => u.id);
+        const users = this.distributeEligibleUsers;  // đã bỏ NV tắt nhận số
         if (!users.length) {
-            this.notification.add("Không có nhân viên để chia.", { type: "warning" });
+            this.notification.add("Không có nhân viên đang bật nhận số để chia.", { type: "warning" });
             return;
         }
         this.state.distribute.mode = mode;

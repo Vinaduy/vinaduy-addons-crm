@@ -556,7 +556,7 @@
                                     t-on-change="(ev) => this.applyDistributeOne(ev)"
                                     title="Dồn tất cả khách đã chọn cho 1 nhân viên">
                                 <option value="0" t-att-selected="!state.distribute.oneUserId">👤 Chia hết cho 1 NV...</option>
-                                <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                <option t-foreach="distributeEligibleUsers" t-as="u" t-key="u.id"
                                         t-att-value="u.id" t-att-selected="u.id === state.distribute.oneUserId">
                                     <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
                                 </option>
@@ -578,7 +578,7 @@
                                         <select class="o_vd_distrib_nv"
                                                 t-on-change="(ev) => this.setDistributeLineUser(ln_index, ev)">
                                             <option value="0" t-att-selected="!ln.user_id">— Chọn NV —</option>
-                                            <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                            <option t-foreach="distributeEligibleUsers" t-as="u" t-key="u.id"
                                                     t-att-value="u.id" t-att-selected="u.id === ln.user_id">
                                                 <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
                                             </option>
