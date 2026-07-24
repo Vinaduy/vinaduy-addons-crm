@@ -2062,10 +2062,22 @@ export class VdCrmDashboard extends Component {
         if (idx > 0) return name.slice(0, idx).trim().toUpperCase();
         return (u && u.team) || "KHÁC";
     }
+    // Roster ĐÚNG = NV đang BẬT nhận số trong báo cáo chia số (khớp đúng bảng
+    // người dùng nhìn thấy). Không dùng state.users vì tập đó rộng hơn (mọi NV
+    // có lead) -> đếm phòng bị phồng lên.
+    _reportRoster() {
+        const rep = this.state.pancake_report;
+        const rows = (rep && rep.today && rep.today.rows) || [];
+        return rows.filter((r) => r.can_receive);
+    }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
+        const roster = this._reportRoster();
+        const src = roster.length
+            ? roster.map((r) => ({ id: r.uid, name: r.name }))
+            : (this.state.users || []).filter((u) => u.id);
         const m = {};
-        for (const u of (this.state.users || [])) {
+        for (const u of src) {
             if (!u.id) continue;
             const t = this._userTeamLabel(u);
             m[t] = (m[t] || 0) + 1;
@@ -2081,8 +2093,19 @@ export class VdCrmDashboard extends Component {
             this.state.distribute.mode = "";
             return;
         }
-        const users = (this.state.users || []).filter(
-            (u) => u.id && this._userTeamLabel(u) === team);
+        const roster = this._reportRoster();
+        let users;
+        if (roster.length) {
+            // Lấy đúng NV đang bật nhận thuộc phòng; ghép dữ liệu tải từ state.users.
+            const byId = {};
+            for (const u of (this.state.users || [])) byId[u.id] = u;
+            users = roster
+                .filter((r) => this._userTeamLabel(r) === team)
+                .map((r) => byId[r.uid] || { id: r.uid, name: r.name, new_total: 0, new_not_called: 0 });
+        } else {
+            users = (this.state.users || []).filter(
+                (u) => u.id && this._userTeamLabel(u) === team);
+        }
         if (!users.length) {
             this.notification.add("Phòng này không có nhân viên nhận số.", { type: "warning" });
             return;
