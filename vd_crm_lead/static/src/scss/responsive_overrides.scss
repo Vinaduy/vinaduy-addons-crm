@@ -994,6 +994,29 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     color: #5f3dc4;
     white-space: nowrap;
 }
+/* Ô DÁN danh sách số + banner tóm tắt nạp file (user spec 2026-07-24) */
+.o_vd_quick_add_form .o_vd_paste_bar { background: #e7f5ff; border-color: #a5d8ff; }
+.o_vd_quick_add_form .o_vd_paste_bar .o_vd_distribute_lbl { color: #1971c2; }
+.o_vd_quick_add_form .o_vd_paste_area {
+    flex: 1 1 340px;
+    min-width: 260px;
+    textarea {
+        width: 100%;
+        min-height: 70px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        border: 1.5px solid #a5d8ff;
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem;
+    }
+}
+.o_vd_quick_add_form .o_vd_import_summary {
+    margin: 0.4rem 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    span, .o_field_widget { font-weight: 700; }
+}
 /* Cách chia số = filter CHIP, active rõ ràng (user spec 2026-06-05) */
 .o_vd_quick_add_form .o_vd_distribute_radio {
     display: flex;

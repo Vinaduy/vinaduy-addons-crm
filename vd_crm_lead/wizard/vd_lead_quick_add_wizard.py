@@ -5,10 +5,14 @@ Mỗi dòng = 1 KH: tên, SĐT, nguồn, ngày, trạng thái.
 Trạng thái rỗng → mặc định 'Khách mới'. Có chọn → lead được đẩy thẳng vào stage đó.
 Auto-assign theo round-robin (leader/admin) hoặc gán cho chính mình (NV).
 """
+import logging
+
 from lxml import etree
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 SOURCE_SELECTION = [
@@ -87,6 +91,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
     # TẤT CẢ nhân viên. Số nhập từ file gắn cờ vd_is_excel (thẻ FB xám đậm).
     vd_import_file = fields.Binary(string='File Excel/CSV')
     vd_import_filename = fields.Char(string='Tên file')
+    # Dán danh sách 'Tên  SĐT' (mỗi dòng 1 khách) → nạp nhanh không cần file.
+    vd_import_paste = fields.Text(string='Dán danh sách số')
+    # Banner tóm tắt sau khi nạp file/dán (đã nạp N số, bỏ M trùng...).
+    vd_import_summary = fields.Char()
 
     # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
     vd_bulk_user_id = fields.Many2one(
@@ -101,6 +109,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
             'res_model': self._name,
             'res_id': self.id,
             'view_mode': 'form',
+            # views tường minh → tránh crash '_preprocessAction reading map' khi
+            # act_window được chạy qua doAction thiếu khoá views.
+            'views': [[False, 'form']],
             'target': 'new',
             'context': dict(self.env.context, dialog_size='fullscreen'),
         }
@@ -243,7 +254,57 @@ class VdLeadQuickAddWizard(models.TransientModel):
             raise UserError(_(
                 'Không đọc được SĐT nào từ file. Kiểm tra file có cột '
                 '"SĐT"/"Điện thoại"/"Phone" và có dữ liệu.'))
+        self.vd_import_file = False
+        self.vd_import_filename = False
+        return self._vd_finish_import(pairs, source_word=_('file'))
 
+    def _vd_parse_pasted_text(self, text):
+        """Dán danh sách 'Tên  SĐT' mỗi dòng 1 khách → list[(tên, sđt)].
+        Tự tách SĐT ra khỏi tên dù ở đầu/cuối, dù cách nhau bằng tab/dấu phẩy/
+        khoảng trắng, dù số có khoảng trắng bên trong (0977 261 290)."""
+        import re
+        out = []
+        for raw in (text or '').splitlines():
+            line = raw.strip()
+            if not line:
+                continue
+            m = re.search(r'(?:\+?84|0)[\s.\-]?\d[\d\s.\-]{7,13}', line)
+            phone, name = '', line
+            if m:
+                phone = m.group(0)
+                name = (line[:m.start()] + ' ' + line[m.end():])
+            else:
+                toks = re.split(r'[\s,;\t|]+', line)
+                for i, t in enumerate(toks):
+                    if self._vd_phone_is_valid(t):
+                        phone = t
+                        name = ' '.join(toks[:i] + toks[i + 1:])
+                        break
+            name = re.sub(r'[\s,;\t|]+', ' ', name).strip(' -,;|')
+            if phone:
+                out.append((name, phone.strip()))
+        return out
+
+    def action_import_paste(self):
+        """Dán danh sách số vào ô → nạp bảng + tự CHIA ĐỀU. Thay cho đẩy file
+        Excel khi chỉ cần copy vài dòng. User spec 2026-07-24."""
+        self.ensure_one()
+        self._vd_check_leader()
+        if not (self.vd_import_paste or '').strip():
+            raise UserError(_(
+                'Hãy dán danh sách khách vào ô (mỗi dòng: Tên rồi SĐT).'))
+        pairs = self._vd_parse_pasted_text(self.vd_import_paste)
+        if not pairs:
+            raise UserError(_(
+                'Không tách được SĐT nào từ danh sách đã dán. Mỗi dòng cần có 1 '
+                'số di động, ví dụ:\nNguyễn Ánh 0977261290'))
+        self.vd_import_paste = False
+        return self._vd_finish_import(pairs, source_word=_('danh sách dán'))
+
+    def _vd_finish_import(self, pairs, source_word=''):
+        """Xử lý CHUNG cho nhập-file & dán-text: lọc trùng/sai → NẠP bảng + HIỆN
+        danh sách. KHÔNG tự chia — leader xem danh sách rồi bấm CHỌN NHÂN VIÊN /
+        CHIA SỐ mới chia (user spec 2026-07-24). `pairs` = list[(tên, sđt-thô)]."""
         Lead = self.env['crm.lead'].sudo()
 
         def _core(p):
@@ -292,11 +353,11 @@ class VdLeadQuickAddWizard(models.TransientModel):
 
         if not clean:
             raise UserError(_(
-                'Tất cả %d số trong file đều TRÙNG (đã có trong hệ thống) hoặc '
+                'Tất cả %d số trong %s đều TRÙNG (đã có trong hệ thống) hoặc '
                 'SAI định dạng — không có số mới để nhập.'
-            ) % len(pairs))
+            ) % (len(pairs), source_word or _('danh sách')))
 
-        # Nạp vào bảng: xoá các dòng trống, thêm dòng mới từ file.
+        # Nạp vào bảng: xoá các dòng trống, thêm dòng mới.
         self.line_ids.filtered(lambda l: not l.name and not l.phone).unlink()
         cmds = []
         for name, cp in clean:
@@ -309,37 +370,17 @@ class VdLeadQuickAddWizard(models.TransientModel):
             }))
         self.write({'line_ids': cmds})
 
-        # TỰ CHIA ĐỀU cho tất cả NV. Nếu vượt ngưỡng thì giữ nguyên số đã nhập,
-        # để leader tự chọn cách chia (không rollback cả đợt import).
-        self.show_distribute = True
-        self.distribute_mode = 'even_all'
-        dist_note = ''
-        try:
-            self._vd_apply_distribution()
-        except UserError as e:
-            self.distribute_mode = False
-            dist_note = ' — CHƯA chia được: %s' % (e.args[0] if e.args else '')
-
-        self.vd_import_file = False
-        self.vd_import_filename = False
-
-        parts = [_('Đã nhập %d số') % len(clean)]
+        # CHỈ nạp + hiện danh sách. KHÔNG tự chia số — leader xem xong rồi bấm
+        # CHỌN NHÂN VIÊN → chọn cách chia → CHIA SỐ. Tóm tắt hiện ở banner.
+        parts = [_('✅ Đã nạp %d số vào danh sách') % len(clean)]
         if skipped_dup:
             parts.append(_('bỏ %d trùng') % skipped_dup)
         if skipped_bad:
             parts.append(_('bỏ %d sai định dạng') % skipped_bad)
-        msg = ' · '.join(parts) + dist_note
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Nhập file xong'),
-                'message': msg,
-                'type': 'warning' if dist_note else 'success',
-                'sticky': bool(dist_note),
-                'next': self._vd_reopen(),
-            },
-        }
+        self.vd_import_summary = (
+            ' · '.join(parts)
+            + _('. Kiểm tra danh sách rồi bấm CHỌN NHÂN VIÊN để chia số.'))
+        return self._vd_reopen()
 
     def action_select_all(self):
         """Tích / BỎ tích TẤT CẢ khách (toggle)."""
@@ -767,6 +808,11 @@ class VdLeadQuickAddWizard(models.TransientModel):
                     'unit_price': preset.unit_price,
                 })
 
+        # 🔔 THÔNG BÁO + CHUÔNG cho NV vừa được ĐẨY SỐ (user spec 2026-07-24).
+        # Gửi qua bus → tab dashboard của NV kêu chuông to + hiện thông báo.
+        # Không ping chính người đang đẩy (NV tự thêm mình).
+        self._vd_notify_pushed(created, exclude_uid=user.id)
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -778,6 +824,32 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'next': {'type': 'ir.actions.client', 'tag': 'reload'},
             },
         }
+
+    def _vd_notify_pushed(self, leads, exclude_uid=None):
+        """Bắn thông báo realtime tới từng NV vừa được đẩy số → dashboard kêu
+        chuông + hiện thông báo. Bọc try/except để KHÔNG chặn tạo lead."""
+        try:
+            from collections import Counter
+            counts = Counter(
+                l.user_id.id for l in leads
+                if l.user_id and l.user_id.id != exclude_uid)
+            if not counts:
+                return
+            Bus = self.env['bus.bus']
+            pusher = self.env.user.name or ''
+            ResUsers = self.env['res.users'].sudo()
+            for uid, cnt in counts.items():
+                partner = ResUsers.browse(uid).partner_id
+                if not partner:
+                    continue
+                msg = {'count': cnt, 'from': pusher}
+                # Odoo 18: res.partner._bus_send; fallback bus.bus._sendone.
+                if hasattr(partner, '_bus_send'):
+                    partner._bus_send('vd.leads.pushed', msg)
+                else:
+                    Bus._sendone(partner, 'vd.leads.pushed', msg)
+        except Exception:
+            _logger.exception('vd.leads.pushed: không gửi được thông báo bus')
 
 
 class VdLeadQuickAddWizardLine(models.TransientModel):

@@ -11,6 +11,11 @@
                 <field name="can_chia_so" invisible="1"/>
                 <field name="vd_all_assigned" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
+                <!-- Banner tóm tắt sau khi nạp file/dán danh sách -->
+                <div class="alert alert-success o_vd_import_summary" role="status"
+                     invisible="not vd_import_summary">
+                    <field name="vd_import_summary" nolabel="1" readonly="1"/>
+                </div>
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom" string="Danh sách KH cần thêm"
                           decoration-danger="vd_warn_bad">
@@ -87,11 +92,24 @@
                     <field name="vd_import_file" filename="vd_import_filename" nolabel="1"
                            groups="vd_crm_lead.vd_crm_group_team_leader"/>
                     <button name="action_import_excel" type="object"
-                            string="⬆️ NHẬP FILE + CHIA ĐỀU" class="btn-primary"
+                            string="⬆️ TẢI DANH SÁCH TỪ FILE" class="btn-primary"
                             groups="vd_crm_lead.vd_crm_group_team_leader"
                             invisible="not vd_import_file"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
+                </div>
+
+                <!-- ===== DÁN DANH SÁCH SỐ — thay cho đẩy file Excel (leader) =====
+                     Copy nhiều dòng "Tên  SĐT" → dán vào ô → bấm ĐẨY SỐ + CHIA ĐỀU. -->
+                <div class="o_vd_distribute_bar o_vd_paste_bar"
+                     groups="vd_crm_lead.vd_crm_group_team_leader">
+                    <span class="o_vd_distribute_lbl">📋 Dán danh sách số:</span>
+                    <field name="vd_import_paste" nolabel="1"
+                           class="o_vd_paste_area"
+                           placeholder="Mỗi dòng 1 khách, ví dụ:&#10;Nguyễn Ánh 0977261290&#10;Hà Nam 0988777666&#10;Nguyệt Sơn 0966777888"/>
+                    <button name="action_import_paste" type="object"
+                            string="⬆️ TẢI DANH SÁCH ĐÃ DÁN" class="btn-primary"
+                            invisible="not vd_import_paste"/>
                     <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
                     <button name="action_select_all" type="object"
                             string="Chọn / bỏ TẤT CẢ" class="btn-secondary"/>
