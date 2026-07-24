@@ -147,6 +147,19 @@
                     </div>
                 </div>
 
+                <!-- ===== BẢNG BẬT/TẮT NV NHẬN SỐ (chuyển từ dashboard vào đây) =====
+                     Bỏ tick + LƯU = tắt CẢ chia tự động lẫn thủ công (đồng bộ). -->
+                <div groups="vd_crm_lead.vd_crm_group_team_leader"
+                     class="o_vd_distribute_bar o_vd_recv_bar">
+                    <span class="o_vd_distribute_lbl">🔘 NV đang nhận số — bỏ tick = TẮT cả chia tự động + thủ công:</span>
+                    <field name="vd_receiving_candidate_ids" invisible="1"/>
+                    <field name="vd_receiving_user_ids" widget="many2many_checkboxes"
+                           nolabel="1" class="o_vd_recv_checks"
+                           domain="[('id', 'in', vd_receiving_candidate_ids)]"/>
+                    <button name="action_save_receiving" type="object"
+                            string="💾 Lưu NV nhận số" class="btn-primary"/>
+                </div>
+
                 <footer>
                     <button name="action_show_distribute" type="object"
                             string="👥 CHỌN NHÂN VIÊN"

@@ -96,6 +96,70 @@ class VdLeadQuickAddWizard(models.TransientModel):
     # Banner tóm tắt sau khi nạp file/dán (đã nạp N số, bỏ M trùng...).
     vd_import_summary = fields.Char()
 
+    # ===== BẢNG BẬT/TẮT NV NHẬN SỐ (chuyển từ dashboard vào wizard, 2026-07-24) =====
+    # Tick = NV đang nhận số. Bỏ tick + LƯU → ghi vd_can_receive_pancake=False →
+    # tắt CẢ chia tự động lẫn thủ công (đồng bộ với báo cáo dashboard).
+    vd_receiving_candidate_ids = fields.Many2many(
+        'res.users', 'vd_qa_recv_cand_rel', 'wiz_id', 'user_id',
+        compute='_compute_vd_receiving_candidates',
+        string='NV có thể nhận số')
+    vd_receiving_user_ids = fields.Many2many(
+        'res.users', 'vd_qa_recv_on_rel', 'wiz_id', 'user_id',
+        string='NV đang BẬT nhận số')
+
+    def _vd_receiving_candidates(self):
+        """POOL NV có thể nhận số (giống báo cáo dashboard): sales + trưởng nhóm/
+        giám đốc, loại admin kỹ thuật."""
+        Users = self.env['res.users'].sudo()
+        sales = Users.search([
+            ('share', '=', False), ('active', '=', True),
+            ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
+        ])
+        bosses = Users.search([
+            ('share', '=', False), ('active', '=', True),
+        ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
+        return (sales | bosses).filtered(
+            lambda u: not (u._is_admin() or u.has_group('base.group_system'))
+        ).sorted('name')
+
+    @api.depends_context('uid')
+    def _compute_vd_receiving_candidates(self):
+        pool = self._vd_receiving_candidates()
+        for w in self:
+            w.vd_receiving_candidate_ids = [(6, 0, pool.ids)]
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if 'vd_receiving_user_ids' in fields_list:
+            pool = self._vd_receiving_candidates()
+            on = pool.filtered('vd_can_receive_pancake')
+            res['vd_receiving_user_ids'] = [(6, 0, on.ids)]
+        return res
+
+    def _vd_sync_receiving(self):
+        """Ghi vd_can_receive_pancake cho toàn pool theo tick hiện tại — nguồn
+        SỰ THẬT là bảng tick trong wizard. Đồng bộ dashboard + auto."""
+        pool = self._vd_receiving_candidates()
+        on_ids = set(self.vd_receiving_user_ids.ids)
+        for u in pool:
+            want = u.id in on_ids
+            if bool(u.vd_can_receive_pancake) != want:
+                u.sudo().write({'vd_can_receive_pancake': want})
+
+    def action_save_receiving(self):
+        """💾 Lưu bảng BẬT/TẮT NV nhận số → ghi vd_can_receive_pancake (đồng bộ
+        dashboard + chia tự động). Chia lại nếu đang ở bước chia."""
+        self.ensure_one()
+        self._vd_check_leader()
+        self._vd_sync_receiving()
+        if self.show_distribute and self.distribute_mode and self.distribute_mode != 'per_line':
+            try:
+                self._vd_apply_distribution()
+            except UserError:
+                pass
+        return self._vd_reopen()
+
     # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
     vd_bulk_user_id = fields.Many2one(
         'res.users', string='Gán NV cho khách đã chọn',
@@ -477,9 +541,12 @@ class VdLeadQuickAddWizard(models.TransientModel):
             ('active', '=', True),
             ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
         ])
+        # ĐỒNG BỘ (user spec 2026-07-24): công tắc vd_can_receive_pancake gate CẢ
+        # chia thủ công — tắt NV ở bảng nhận số = loại khỏi pool chia đều luôn.
         return candidates.filtered(
             lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader')
                       and u.vd_can_receive_new_leads
+                      and u.vd_can_receive_pancake
         )
 
     def _vd_user_new_total(self, uid):
@@ -527,6 +594,8 @@ class VdLeadQuickAddWizard(models.TransientModel):
         """Bấm CHỌN NHÂN VIÊN → hiện bộ chọn cách chia (sau khi đã nhập KH)."""
         self.ensure_one()
         self._vd_check_leader()
+        # Tick BẬT/TẮT NV là nguồn sự thật → ghi trước khi tính pool.
+        self._vd_sync_receiving()
         valid_lines = self.line_ids.filtered(lambda l: l.name and l.phone)
         if not valid_lines:
             raise UserError(_('Hãy nhập ít nhất 1 khách (Tên + SĐT) trước khi chia số.'))
@@ -629,6 +698,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
     def action_redistribute(self):
         """Nút 'Chia lại' — áp dụng lại distribution với cấu hình hiện tại."""
         self.ensure_one()
+        self._vd_sync_receiving()
         self._vd_apply_distribution()
         return {
             'type': 'ir.actions.act_window',
@@ -642,6 +712,8 @@ class VdLeadQuickAddWizard(models.TransientModel):
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""
         self.ensure_one()
+        if self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+            self._vd_sync_receiving()
         Lead = self.env['crm.lead']
         ResUsers = self.env['res.users']
 

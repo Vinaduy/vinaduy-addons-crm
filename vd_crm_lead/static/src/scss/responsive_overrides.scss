@@ -1017,6 +1017,20 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     align-items: center;
     span, .o_field_widget { font-weight: 700; }
 }
+/* Bảng BẬT/TẮT NV nhận số trong wizard (user spec 2026-07-24) */
+.o_vd_quick_add_form .o_vd_recv_bar { background: #fff4e6; border-color: #ffd8a8; }
+.o_vd_quick_add_form .o_vd_recv_bar .o_vd_distribute_lbl { color: #e8590c; }
+.o_vd_quick_add_form .o_vd_recv_checks {
+    flex: 1 1 100%;
+    .o_field_many2many_checkboxes,
+    > div {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 0.15rem 1rem;
+    }
+    .form-check, .o_checkbox { margin: 0; }
+    label { font-weight: 600; white-space: nowrap; }
+}
 /* Cách chia số = filter CHIP, active rõ ràng (user spec 2026-06-05) */
 .o_vd_quick_add_form .o_vd_distribute_radio {
     display: flex;

@@ -344,10 +344,11 @@ class ResUsers(models.Model):
     # ===== TOGGLE NHẬN KH TỪ PANCAKE =====
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.
     vd_can_receive_pancake = fields.Boolean(
-        string='Nhận KH từ Pancake',
+        string='Nhận số (tự động + thủ công)',
         default=True,
-        help='Admin tắt cờ này khi muốn TẠM DỪNG đẩy KH Pancake cho NV này '
-             '(vd: NV nghỉ phép, đang training). Round-robin sẽ skip NV.',
+        help='Công tắc nhận số DUY NHẤT của NV. Tắt = DỪNG cả chia tự động '
+             '(Pancake/TikTok/Facebook) LẪN chia thủ công (đẩy file/dán/round-robin). '
+             'Đồng bộ giữa báo cáo dashboard và bảng Thêm KH mới.',
     )
 
     # ============ THÔNG TIN LÀM VIỆC — số tháng + năng lực ============
@@ -563,7 +564,10 @@ class ResUsers(models.Model):
             today_map = Lead._vd_today_assigned_count_map(eligible.ids, pancake_only=True)
         else:
             # Kênh KHÁC (nhập tay / auto nội bộ): giữ cổng quá hạn + chặn tồn.
-            eligible = candidates.filtered('vd_can_receive_new_leads')
+            # ĐỒNG BỘ (user spec 2026-07-24): công tắc vd_can_receive_pancake giờ
+            # là công tắc nhận số DUY NHẤT — tắt NV = tắt cả tự động LẪN thủ công.
+            eligible = candidates.filtered(
+                lambda u: u.vd_can_receive_new_leads and u.vd_can_receive_pancake)
             if not eligible:
                 return self.env['res.users']  # empty
             # CHẶN CHIA SỐ (user spec 2026-06-12): loại NV đang tồn >= ngưỡng KH
