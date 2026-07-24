@@ -2065,17 +2065,21 @@ export class VdCrmDashboard extends Component {
     // Roster ĐÚNG = NV đang BẬT nhận số trong báo cáo chia số (khớp đúng bảng
     // người dùng nhìn thấy). Không dùng state.users vì tập đó rộng hơn (mọi NV
     // có lead) -> đếm phòng bị phồng lên.
+    // Loại CHÍNH người đang chia ra khỏi vòng nhận (chia KH của mình cho NGƯỜI
+    // KHÁC trong phòng — không gán ngược lại cho bản thân).
     _reportRoster() {
         const rep = this.state.pancake_report;
         const rows = (rep && rep.today && rep.today.rows) || [];
-        return rows.filter((r) => r.can_receive);
+        const me = this.state.current_user_id || 0;
+        return rows.filter((r) => r.can_receive && r.uid !== me);
     }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
+        const me = this.state.current_user_id || 0;
         const roster = this._reportRoster();
         const src = roster.length
             ? roster.map((r) => ({ id: r.uid, name: r.name }))
-            : (this.state.users || []).filter((u) => u.id);
+            : (this.state.users || []).filter((u) => u.id && u.id !== me);
         const m = {};
         for (const u of src) {
             if (!u.id) continue;
@@ -2103,11 +2107,13 @@ export class VdCrmDashboard extends Component {
                 .filter((r) => this._userTeamLabel(r) === team)
                 .map((r) => byId[r.uid] || { id: r.uid, name: r.name, new_total: 0, new_not_called: 0 });
         } else {
+            const me = this.state.current_user_id || 0;
             users = (this.state.users || []).filter(
-                (u) => u.id && this._userTeamLabel(u) === team);
+                (u) => u.id && u.id !== me && this._userTeamLabel(u) === team);
         }
         if (!users.length) {
-            this.notification.add("Phòng này không có nhân viên nhận số.", { type: "warning" });
+            this.notification.add(
+                "Phòng này không có NV khác đang bật nhận số để chia.", { type: "warning" });
             return;
         }
         this._distributeEvenAmong(users);
