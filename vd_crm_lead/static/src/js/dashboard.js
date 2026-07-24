@@ -2053,12 +2053,21 @@ export class VdCrmDashboard extends Component {
         for (const ln of (this.state.distribute.lines || [])) ln.user_id = uid;
         this.state.distribute.mode = "one_user";
     }
+    // PHÒNG của 1 NV = tiền tố TÊN trước " - " (khớp đúng tên hiển thị trong
+    // báo cáo, vd "HCM2 - Lê Xuân Hưng" -> "HCM2"). Không dùng thẻ vd_team vì
+    // thẻ này hay sai/cũ (đẻ ra nhóm rác "BÁN HÀ"/"CTV").
+    _userTeamLabel(u) {
+        const name = (u && u.name) || "";
+        const idx = name.indexOf(" - ");
+        if (idx > 0) return name.slice(0, idx).trim().toUpperCase();
+        return (u && u.team) || "KHÁC";
+    }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
         const m = {};
         for (const u of (this.state.users || [])) {
             if (!u.id) continue;
-            const t = u.team || "KHÁC";
+            const t = this._userTeamLabel(u);
             m[t] = (m[t] || 0) + 1;
         }
         return Object.keys(m).sort().map((t) => ({ team: t, count: m[t] }));
@@ -2073,7 +2082,7 @@ export class VdCrmDashboard extends Component {
             return;
         }
         const users = (this.state.users || []).filter(
-            (u) => u.id && (u.team || "KHÁC") === team);
+            (u) => u.id && this._userTeamLabel(u) === team);
         if (!users.length) {
             this.notification.add("Phòng này không có nhân viên nhận số.", { type: "warning" });
             return;

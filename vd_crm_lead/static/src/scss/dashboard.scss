@@ -8159,6 +8159,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         &:hover { border-color: #2f9e44; }
         &.o_active { background: linear-gradient(135deg, #51cf66, #2f9e44); border-color: #2b8a3e; }
     }
+    /* 2 dropdown (chia theo PHÒNG + theo NV) nằm CHUNG 1 dòng, chia đôi bề rộng */
+    .o_vd_distrib_selrow {
+        flex: 1 1 100%;
+        display: flex;
+        gap: 0.5rem;
+        .o_vd_distrib_mode { flex: 1 1 0; min-width: 0; }
+    }
 }
 .o_vd_distrib_body { overflow-y: auto; flex: 1; }
 /* CHẶN CHIA SỐ — dòng/NV vượt ngưỡng KH mới chưa gọi (user spec 2026-06-12) */
