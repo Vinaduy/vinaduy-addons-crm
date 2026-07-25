@@ -8198,6 +8198,16 @@ class CrmLead(models.Model):
 
         scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
 
+        # KH HUỶ/LƯU TRỮ bị CLEAR user_id khi archive → scope manager
+        # ('user_id','!=',False) sẽ LOẠI mất (admin không tìm ra KH đã huỷ).
+        # Manager/admin tìm KHÔNG chỉ định NV → bỏ mọi ràng buộc user_id để tìm
+        # được cả KH chưa/hết gán. NV thường vẫn giữ scope riêng (chỉ KH của mình).
+        if not user_id and self._dashboard_is_manager():
+            domain_user = [
+                d for d in domain_user
+                if not (isinstance(d, (list, tuple)) and len(d) == 3 and d[0] == 'user_id')
+            ]
+
         # active_test=False → bao gồm lead LƯU TRỮ + THÙNG RÁC (active=False).
         Lead = self.with_context(active_test=False)
         if is_phone_q:
