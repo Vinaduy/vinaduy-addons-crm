@@ -2380,21 +2380,26 @@
     .o_vd_nv_search_item_main {
         display: flex;
         align-items: center;
+        flex-wrap: nowrap;                     /* DÒNG 1: Tên + SĐT */
         gap: 0.7rem;
         font-size: 0.95rem;
     }
     .o_vd_nv_search_item_name {
         font-weight: 700;
         color: #0f1e34;
+        flex: 1 1 auto; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .o_vd_nv_search_item_phone {
         color: #1971c2;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
+        flex: 0 0 auto; white-space: nowrap;
     }
     .o_vd_nv_search_item_meta {
         display: flex;
         align-items: center;
+        flex-wrap: nowrap;                     /* DÒNG 2: NV + thẻ + thời lượng */
         gap: 0.5rem;
         font-size: 0.8rem;
         color: #6c757d;
@@ -2409,6 +2414,31 @@
     .o_vd_nv_search_item_user {
         color: #6741d9;
         font-weight: 600;
+        flex: 1 1 auto; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ===== THẺ trạng thái + THỜI LƯỢNG tư vấn trong ô tìm kiếm (dùng chung 2 ô) ===== */
+    .o_vd_search_tag {
+        flex: 0 0 auto;
+        padding: 0.06rem 0.5rem;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 0.72rem;
+        white-space: nowrap;
+        border: 1px solid transparent;
+    }
+    .o_vd_search_tag_new    { background: #e7f5ff; color: #1971c2; border-color: #a5d8ff; }
+    .o_vd_search_tag_ref    { background: #e6fcf5; color: #0ca678; border-color: #96f2d7; }
+    .o_vd_search_tag_urgent { background: #fff0f0; color: #e03131; border-color: #ffc9c9; }
+    .o_vd_search_tag_xlvd   { background: #fff4e6; color: #e8590c; border-color: #ffd8a8; }
+    .o_vd_search_tag_huy    { background: #f1f3f5; color: #868e96; border-color: #dee2e6; }
+    .o_vd_search_talk {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        color: #495057;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
     }
 
     /* ===== PILL "ĐÃ CÓ BÁO GIÁ" — chưa CHỐT (user spec 2026-05-27) =====
@@ -2954,24 +2984,30 @@
             .o_vd_an_search_item_main {
                 display: flex;
                 align-items: center;
+                flex-wrap: nowrap;              /* DÒNG 1: Tên + SĐT, không xuống dòng */
                 gap: 0.6rem;
                 font-size: 0.88rem;
-                .o_vd_an_search_item_name { font-weight: 600; color: var(--bs-body-color); }
-                .o_vd_an_search_item_phone { color: #1864ab; font-family: monospace; font-size: 0.82rem; }
+                .o_vd_an_search_item_name {
+                    font-weight: 600; color: var(--bs-body-color);
+                    flex: 1 1 auto; min-width: 0;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                }
+                .o_vd_an_search_item_phone {
+                    color: #1864ab; font-family: monospace; font-size: 0.82rem;
+                    flex: 0 0 auto; white-space: nowrap;
+                }
             }
             .o_vd_an_search_item_meta {
                 display: flex;
-                gap: 0.7rem;
-                margin-top: 0.15rem;
+                align-items: center;
+                flex-wrap: nowrap;              /* DÒNG 2: NV + thẻ + thời lượng */
+                gap: 0.5rem;
+                margin-top: 0.2rem;
                 font-size: 0.75rem;
                 color: var(--bs-secondary-color, #6c757d);
-                .o_vd_an_search_item_archived {
-                    color: #ad6800;
-                    background: #fff8e1;
-                    border: 1px solid #ffe69c;
-                    border-radius: 4px;
-                    padding: 0 0.35rem;
-                    font-weight: 700;
+                .o_vd_an_search_item_user {
+                    flex: 1 1 auto; min-width: 0;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                 }
                 .o_vd_an_search_item_nouser { color: #adb5bd; font-style: italic; }
             }

@@ -8230,6 +8230,7 @@ class CrmLead(models.Model):
             groups[key].append(l)
 
         matches = []
+        match_gids = []   # [lead_ids] mỗi match → cộng phút tư vấn cả bản trùng
         for key in order:
             leads = groups[key]
             # Ưu tiên lead ĐANG xử lý (active + chưa vào thùng rác); không có thì
@@ -8245,6 +8246,9 @@ class CrmLead(models.Model):
                 state_label = l.stage_id.name or ''
             if archived_others > 0:
                 state_label = '%s · +%d bản trùng đã gộp' % (state_label, archived_others)
+            # THẺ trạng thái ngắn: Khách mới / Thi công gấp / Xử lý vấn đề /
+            # Đang tham khảo / Huỷ (KH lưu trữ/huỷ → 'Huỷ').
+            tag = l._vd_status_label_short()
             matches.append({
                 'id': l.id,
                 'name': l.name or l.partner_name or '(không tên)',
@@ -8253,9 +8257,41 @@ class CrmLead(models.Model):
                 'state_label': state_label,
                 'archived': not l.active,
                 'user_name': l.user_id.name or '',
+                'tag_label': tag.get('label') or '',
+                'tag_cls': tag.get('cls') or 'new',
+                'talk_secs': 0,
+                'talk_label': '',
             })
+            match_gids.append([x.id for x in leads])
             if len(matches) >= limit:
                 break
+
+        # TỔNG PHÚT TƯ VẤN = tổng thời lượng các cuộc ĐÃ KẾT NỐI THẬT (có
+        # answer_time HOẶC có bản ghi âm >0s — duration khi đó = talk time /
+        # độ dài file ghi âm). KHÔNG tính cuộc chỉ đổ chuông. 1 query cho mọi lead.
+        all_ids = [i for gids in match_gids for i in gids]
+        talk_by_lead = {}
+        if all_ids:
+            self.env.cr.execute(
+                """
+                SELECT lead_id, COALESCE(SUM(duration), 0)
+                FROM stringee_call
+                WHERE lead_id = ANY(%s)
+                  AND (answer_time IS NOT NULL
+                       OR (recording_attachment_id IS NOT NULL AND duration > 0))
+                GROUP BY lead_id
+                """,
+                (all_ids,),
+            )
+            for lid, secs in self.env.cr.fetchall():
+                talk_by_lead[lid] = int(secs or 0)
+        for m, gids in zip(matches, match_gids):
+            secs = sum(talk_by_lead.get(i, 0) for i in gids)
+            m['talk_secs'] = secs
+            if secs >= 60:
+                m['talk_label'] = '%d phút' % round(secs / 60.0)
+            elif secs > 0:
+                m['talk_label'] = '%d giây' % secs
         return matches
 
     @api.model
