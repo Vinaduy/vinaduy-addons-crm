@@ -133,17 +133,18 @@
                                 </button>
                             </div>
                             <field name="vd_can_reassign" invisible="1"/>
-                            <!-- 1 field DUY NHẤT: admin/người chia số → editable dropdown
-                                 "Chuyển cho NV..."; NV thường → readonly (chỉ xem tên).
-                                 Dùng many2one thường (dropdown rõ) thay avatar để chuyển
-                                 NV được ngay. Backend write() vẫn chặn NV thường. -->
-                            <span class="o_vd_header_user o_vd_header_user_end o_vd_header_user_reassign"
-                                  title="Nhân viên phụ trách — admin bấm để chuyển cho NV khác">
-                                <i class="fa fa-exchange o_vd_reassign_ico"/>
-                                <field name="user_id" nolabel="1"
-                                       readonly="not vd_can_reassign"
-                                       placeholder="Chuyển cho NV..."
-                                       options="{'no_create': True, 'no_open': True}"/>
+                            <!-- NV phụ trách (chỉ xem) + nút CHUYỂN NV cho admin/người
+                                 chia số → mở hộp thoại chọn NV mới và bấm Chuyển. -->
+                            <span class="o_vd_header_user o_vd_header_user_end"
+                                  title="Nhân viên phụ trách">
+                                <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
+                                <button name="action_open_reassign" type="object"
+                                        class="o_vd_reassign_btn"
+                                        invisible="not vd_can_reassign"
+                                        title="Chuyển khách hàng này cho nhân viên khác">
+                                    <i class="fa fa-exchange"/>
+                                    <span>Chuyển NV</span>
+                                </button>
                             </span>
                         </div>
                     </div>

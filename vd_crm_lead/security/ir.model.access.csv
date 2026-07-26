@@ -16,6 +16,7 @@ access_vd_lead_lost_wizard_user,vd.lead.lost.wizard,model_vd_lead_lost_wizard,ba
 access_vd_lead_no_quote_wizard_user,vd.lead.no_quote.wizard,model_vd_lead_no_quote_wizard,base.group_user,1,1,1,1
 access_vd_lead_cancel_history_wizard_user,vd.lead.cancel.history.wizard,model_vd_lead_cancel_history_wizard,base.group_user,1,1,1,1
 access_vd_lead_callback_wizard_user,vd.lead.callback.wizard,model_vd_lead_callback_wizard,base.group_user,1,1,1,1
+access_vd_lead_reassign_wizard_user,vd.lead.reassign.wizard,model_vd_lead_reassign_wizard,base.group_user,1,1,1,1
 access_vd_contract_sign_wizard_user,vd.contract.sign.wizard,model_vd_contract_sign_wizard,base.group_user,1,1,1,1
 access_vd_meeting_schedule_wizard_user,vd.meeting.schedule.wizard,model_vd_meeting_schedule_wizard,base.group_user,1,1,1,1
 access_vd_quote_template_user,vd.quote.template user,model_vd_quote_template,base.group_user,1,1,1,0

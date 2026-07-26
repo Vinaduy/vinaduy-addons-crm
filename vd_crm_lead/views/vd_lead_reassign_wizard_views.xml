@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_vd_lead_reassign_wizard_form" model="ir.ui.view">
+        <field name="name">vd.lead.reassign.wizard.form</field>
+        <field name="model">vd.lead.reassign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Chuyển khách cho nhân viên khác">
+                <group>
+                    <field name="lead_id" invisible="1"/>
+                    <field name="lead_name" readonly="1"/>
+                    <field name="current_user_id" readonly="1"/>
+                    <field name="new_user_id"
+                           options="{'no_create': True, 'no_open': True}"/>
+                </group>
+                <footer>
+                    <button name="action_do_reassign" type="object"
+                            string="Chuyển ngay" class="btn-primary"/>
+                    <button string="Huỷ" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vd_lead_reassign_wizard" model="ir.actions.act_window">
+        <field name="name">Chuyển khách cho nhân viên khác</field>
+        <field name="res_model">vd.lead.reassign.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

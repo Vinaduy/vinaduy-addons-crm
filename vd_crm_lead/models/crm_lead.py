@@ -317,6 +317,18 @@ class CrmLead(models.Model):
         for rec in self:
             rec.vd_can_reassign = can
 
+    def action_open_reassign(self):
+        """Mở hộp thoại CHUYỂN KH cho NV khác (nút trên header form KH)."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Chuyển khách cho nhân viên khác'),
+            'res_model': 'vd.lead.reassign.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_lead_id': self.id},
+        }
+
     @api.depends('call_ids')
     def _compute_call_count(self):
         for rec in self:

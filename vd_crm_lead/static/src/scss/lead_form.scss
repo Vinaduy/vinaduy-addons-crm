@@ -2682,23 +2682,26 @@ div.o_vd_layout_right {
     margin-left: auto !important;
 }
 
-/* ===== Chip CHUYỂN KH cho NV khác (admin/người chia số) — dropdown NV ===== */
-.o_vd_header_user_reassign {
+/* ===== Nút CHUYỂN NV (admin/người chia số) trên header form KH ===== */
+.o_vd_reassign_btn {
     display: inline-flex !important;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.15rem 0.55rem !important;
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.7rem;
+    background: linear-gradient(135deg, #ffd8a8 0%, #ffa94d 100%);
+    color: #7a3d00 !important;
+    border: none;
     border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
-    &:hover { background: rgba(255, 255, 255, 0.20); border-color: #ffd8a8; }
-    .o_vd_reassign_ico { color: #ffd8a8; font-size: 0.9rem; flex: 0 0 auto; }
-    /* dropdown NV: nền trong, chữ sáng để hợp header xanh đậm */
-    .o_field_widget { min-width: 150px; }
-    input { color: inherit !important; }
-    .o_input_dropdown input::placeholder { color: rgba(255, 255, 255, 0.6) !important; }
+    box-shadow: 0 2px 6px rgba(255, 169, 77, 0.35);
+    transition: filter 0.15s ease, transform 0.05s ease;
+    &:hover { filter: brightness(1.06); }
+    &:active { transform: translateY(1px); }
+    i { font-size: 0.85rem; }
 }
 
 .o_vd_name_chip_wrap {
