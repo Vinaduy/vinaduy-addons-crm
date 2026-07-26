@@ -184,6 +184,8 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <!-- User spec 2026-05-29: pre-create 12 dong, full screen -->
-        <field name="context">{'default_line_ids': [(0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {}), (0, 0, {})], 'dialog_size': 'fullscreen'}</field>
+        <!-- Không tạo dòng trống mặc định (user spec 2026-07-26): đã có Tải file
+             + Dán danh sách để nạp KH → mở wizard là bảng RỖNG, không 12 dòng thừa. -->
+        <field name="context">{'dialog_size': 'fullscreen'}</field>
     </record>
 </odoo>

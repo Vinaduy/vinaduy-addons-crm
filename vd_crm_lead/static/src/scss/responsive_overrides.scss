@@ -331,23 +331,24 @@ html, body {
     border: none !important;
     box-shadow: none !important;
 }
-/* Cột "Tải NV" + "Nhân viên" KHÔNG xuống dòng (2026-07-26: dùng CLASS thay
-   td[name] vì Odoo 18 không gắn attr name lên td) */
-.o_vd_quick_add_form .o_list_table td[name="assignee_stat_label"],
-.o_vd_quick_add_form .o_list_table td[name="assignee_stat_label"] *,
-.o_vd_quick_add_form .o_list_table .o_vd_qa_nowrap,
-.o_vd_quick_add_form .o_list_table .o_vd_qa_nowrap * {
+/* Cột "Tải NV" + "Nhân viên" KHÔNG xuống dòng (2026-07-26 v2: target RỘNG, KHÔNG
+   phụ thuộc .o_list_table — target cả td[name], class field, và mọi con) */
+.o_vd_quick_add_form td[name="user_id"],
+.o_vd_quick_add_form td[name="user_id"] *,
+.o_vd_quick_add_form td[name="assignee_stat_label"],
+.o_vd_quick_add_form td[name="assignee_stat_label"] *,
+.o_vd_quick_add_form .o_vd_qa_nowrap,
+.o_vd_quick_add_form .o_vd_qa_nowrap * {
     white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
 }
-/* Cột NV + Tải NV rộng thoáng, không bó hẹp gây wrap */
-.o_vd_quick_add_form .o_list_table td.o_field_cell:has(> .o_vd_qa_nowrap) {
-    min-width: 11rem;
-}
+.o_vd_quick_add_form td[name="user_id"],
+.o_vd_quick_add_form td[name="assignee_stat_label"] { min-width: 12rem !important; }
 /* Cột STT: nhỏ gọn, căn giữa */
-.o_vd_quick_add_form .o_list_table .o_vd_qa_stt {
-    text-align: center; font-weight: 700; color: #868e96;
+.o_vd_quick_add_form td[name="vd_stt"], .o_vd_quick_add_form .o_vd_qa_stt {
+    text-align: center; font-weight: 700; color: #868e96; width: 3rem;
 }
-.o_vd_quick_add_form .o_list_table td:has(> .o_vd_qa_stt) { width: 3rem; text-align: center; }
 .o_vd_quick_add_form .o_list_table .o_vd_select_dd .o_vd_select_dd_input,
 .o_vd_quick_add_form .o_list_table .o_field_many2one input,
 .o_vd_quick_add_form .o_list_table .o_field_many2one .o_input,
