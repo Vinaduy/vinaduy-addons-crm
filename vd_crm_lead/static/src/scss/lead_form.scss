@@ -2682,6 +2682,25 @@ div.o_vd_layout_right {
     margin-left: auto !important;
 }
 
+/* ===== Chip CHUYỂN KH cho NV khác (admin/người chia số) — dropdown NV ===== */
+.o_vd_header_user_reassign {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.55rem !important;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    &:hover { background: rgba(255, 255, 255, 0.20); border-color: #ffd8a8; }
+    .o_vd_reassign_ico { color: #ffd8a8; font-size: 0.9rem; flex: 0 0 auto; }
+    /* dropdown NV: nền trong, chữ sáng để hợp header xanh đậm */
+    .o_field_widget { min-width: 150px; }
+    input { color: inherit !important; }
+    .o_input_dropdown input::placeholder { color: rgba(255, 255, 255, 0.6) !important; }
+}
+
 .o_vd_name_chip_wrap {
     display: inline-flex !important;
     align-items: stretch;

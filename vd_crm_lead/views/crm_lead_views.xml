@@ -132,8 +132,21 @@
                                     <field name="phone" nolabel="1" readonly="1"/>
                                 </button>
                             </div>
-                            <span class="o_vd_header_user o_vd_header_user_end" title="Nhân viên phụ trách — bấm để đổi cho NV khác">
-                                <field name="user_id" widget="many2one_avatar_user" nolabel="1"/>
+                            <field name="vd_can_reassign" invisible="1"/>
+                            <!-- NV thường: chỉ XEM avatar NV phụ trách -->
+                            <span class="o_vd_header_user o_vd_header_user_end"
+                                  invisible="vd_can_reassign"
+                                  title="Nhân viên phụ trách">
+                                <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
+                            </span>
+                            <!-- Admin / người chia số: DROPDOWN chuyển KH cho NV khác -->
+                            <span class="o_vd_header_user o_vd_header_user_end o_vd_header_user_reassign"
+                                  invisible="not vd_can_reassign"
+                                  title="Chuyển khách hàng này cho nhân viên khác">
+                                <i class="fa fa-exchange o_vd_reassign_ico"/>
+                                <field name="user_id" nolabel="1"
+                                       placeholder="Chuyển cho NV..."
+                                       options="{'no_create': True, 'no_open': True}"/>
                             </span>
                         </div>
                     </div>

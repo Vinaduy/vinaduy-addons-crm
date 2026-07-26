@@ -305,6 +305,18 @@ class CrmLead(models.Model):
     # chatter (mail.tracking.value) -> render bảng "Lịch sử chuyển NV" ở panel cuộc gọi.
     user_id = fields.Many2one('res.users', tracking=True)
 
+    # Quyền CHUYỂN KH cho NV khác (user spec 2026-07-26): admin + role có
+    # can_reassign_lead=True → hiện dropdown chuyển NV ngay trên header form lead;
+    # NV thường chỉ XEM avatar. Khớp đúng phân quyền write() ở dưới.
+    vd_can_reassign = fields.Boolean(
+        string='Được chuyển KH', compute='_compute_vd_can_reassign')
+
+    def _compute_vd_can_reassign(self):
+        role_model = self.env['vd.crm.role.config'].sudo()
+        can = self.env.user._is_superuser() or role_model.can_user_reassign(self.env.user)
+        for rec in self:
+            rec.vd_can_reassign = can
+
     @api.depends('call_ids')
     def _compute_call_count(self):
         for rec in self:
