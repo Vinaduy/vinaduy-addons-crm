@@ -3309,6 +3309,25 @@ export class VdCrmDashboard extends Component {
         return this._previewViewPropsCache.props;
     }
 
+    // CHUYỂN KH cho NV khác — nút trên topbar preview (chỉ admin/người chia số).
+    // Mở wizard vd.lead.reassign.wizard (dialog) cho KH đang xem.
+    async openReassignFromPreview() {
+        const p = this.state.previewLead;
+        if (!p.open || !p.ids.length) return;
+        const leadId = p.ids[p.index];
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Chuyển khách cho nhân viên khác",
+            res_model: "vd.lead.reassign.wizard",
+            view_mode: "form",
+            views: [[false, "form"]],
+            target: "new",
+            context: { default_lead_id: leadId },
+        }, {
+            onClose: () => this.refreshAfterPreview(),
+        });
+    }
+
     async refreshAfterPreview() {
         if (this.state.selectedStageId) {
             try {

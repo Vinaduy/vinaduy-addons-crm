@@ -7397,6 +7397,27 @@
     align-items: center;
     gap: 0.5rem;
 }
+/* Nút CHUYỂN NV (admin) trên topbar preview — chip cam nổi bật trên nền tối */
+.o_vd_preview_reassign {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+    padding: 0.28rem 0.7rem;
+    background: linear-gradient(135deg, #ffd8a8 0%, #ffa94d 100%);
+    color: #7a3d00;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255, 169, 77, 0.45);
+    transition: filter 0.15s ease, transform 0.05s ease;
+    &:hover { filter: brightness(1.07); }
+    &:active { transform: translateY(1px); }
+    i { font-size: 0.85rem; }
+}
 /* Copy chip (tên + phone) — sang trọng: viền gold mảnh, nền trong suốt, hover bừng sáng */
 .o_vd_preview_copy_btn {
     display: inline-flex;

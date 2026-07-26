@@ -3165,6 +3165,13 @@
                                 <i class="fa fa-user-circle"/>
                                 <t t-esc="L.user_name"/>
                             </span>
+                            <!-- CHUYỂN KH cho NV khác — chỉ admin/người chia số/trưởng nhóm -->
+                            <button t-if="state.can_reassign" class="o_vd_preview_reassign"
+                                    t-on-click.stop="() => this.openReassignFromPreview()"
+                                    title="Chuyển khách hàng này cho nhân viên khác">
+                                <i class="fa fa-exchange"/>
+                                <span>Chuyển NV</span>
+                            </button>
                         </div>
                         <div class="o_vd_preview_topbar_right">
                             <!-- Mũi tên chuyển KH cùng nhóm — đưa lên topbar (cùng thanh
