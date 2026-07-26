@@ -133,18 +133,15 @@
                                 </button>
                             </div>
                             <field name="vd_can_reassign" invisible="1"/>
-                            <!-- NV thường: chỉ XEM avatar NV phụ trách -->
-                            <span class="o_vd_header_user o_vd_header_user_end"
-                                  invisible="vd_can_reassign"
-                                  title="Nhân viên phụ trách">
-                                <field name="user_id" widget="many2one_avatar_user" nolabel="1" readonly="1"/>
-                            </span>
-                            <!-- Admin / người chia số: DROPDOWN chuyển KH cho NV khác -->
+                            <!-- 1 field DUY NHẤT: admin/người chia số → editable dropdown
+                                 "Chuyển cho NV..."; NV thường → readonly (chỉ xem tên).
+                                 Dùng many2one thường (dropdown rõ) thay avatar để chuyển
+                                 NV được ngay. Backend write() vẫn chặn NV thường. -->
                             <span class="o_vd_header_user o_vd_header_user_end o_vd_header_user_reassign"
-                                  invisible="not vd_can_reassign"
-                                  title="Chuyển khách hàng này cho nhân viên khác">
+                                  title="Nhân viên phụ trách — admin bấm để chuyển cho NV khác">
                                 <i class="fa fa-exchange o_vd_reassign_ico"/>
                                 <field name="user_id" nolabel="1"
+                                       readonly="not vd_can_reassign"
                                        placeholder="Chuyển cho NV..."
                                        options="{'no_create': True, 'no_open': True}"/>
                             </span>
