@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.VdBonusConfigBoard">
+        <div class="o_vd_bonus_board">
+            <div class="o_vd_bonus_head">
+                <h2>🎁 Cấu hình tiền thưởng</h2>
+                <div class="o_vd_bonus_sub">Chọn phòng ban rồi thêm/sửa các mốc thưởng. "CHUNG" áp cho mọi phòng chưa cấu hình riêng.</div>
+            </div>
+
+            <div t-if="state.loading" class="o_vd_bonus_loading">Đang tải...</div>
+
+            <t t-else="">
+                <!-- Tabs phòng ban (thẻ) -->
+                <div class="o_vd_bonus_tabs">
+                    <button t-att-class="'o_vd_bonus_tab' + (isCommon ? ' o_active' : '')"
+                            t-on-click="() => this.setTab('common')">
+                        <span class="o_vd_bonus_tab_ico">🌐</span>
+                        <span class="o_vd_bonus_tab_lbl">CHUNG</span>
+                        <span class="o_vd_bonus_tab_cnt"><t t-esc="state.common.length"/> mốc</span>
+                    </button>
+                    <button t-foreach="state.teams" t-as="tm" t-key="tm.key"
+                            t-att-class="'o_vd_bonus_tab' + (state.activeKey === tm.key ? ' o_active' : '')"
+                            t-on-click="() => this.setTab(tm.key)">
+                        <span class="o_vd_bonus_tab_ico">🏢</span>
+                        <span class="o_vd_bonus_tab_lbl"><t t-esc="tm.label"/></span>
+                        <span class="o_vd_bonus_tab_cnt"><t t-esc="tm.personal.length + tm.team.length"/> mốc</span>
+                    </button>
+                </div>
+
+                <div class="o_vd_bonus_grid">
+                    <!-- ===== KHU THƯỞNG CÁ NHÂN ===== -->
+                    <section class="o_vd_bonus_sec o_vd_bonus_sec_personal">
+                        <div class="o_vd_bonus_sec_head">
+                            <span class="o_vd_bonus_sec_ttl">👤 Thưởng cá nhân
+                                <t t-if="isCommon"> — CHUNG</t>
+                                <t t-else=""> — <t t-esc="state.activeKey"/></t>
+                            </span>
+                            <button class="o_vd_bonus_add" t-on-click="() => this.addPersonal()">＋ Thêm mốc</button>
+                        </div>
+                        <div class="o_vd_bonus_cards">
+                            <div t-if="!personalList.length" class="o_vd_bonus_empty">Chưa có mốc thưởng cá nhân.</div>
+                            <div t-foreach="personalList" t-as="it" t-key="it.id || ('n' + it_index)"
+                                 t-att-class="'o_vd_bonus_card' + (it.active ? '' : ' o_off')">
+                                <div class="o_vd_bonus_card_no">HĐ thứ
+                                    <input type="number" min="1" class="o_vd_bonus_inp_no" t-model="it.contract_no"/>
+                                </div>
+                                <input type="text" class="o_vd_bonus_inp_name" placeholder="Tên mốc (tự điền)" t-model="it.name"/>
+                                <div class="o_vd_bonus_amt_row">
+                                    <input type="number" class="o_vd_bonus_inp_amt" t-model="it.amount"/>
+                                    <span class="o_vd_bonus_unit">đ</span>
+                                </div>
+                                <div class="o_vd_bonus_card_foot">
+                                    <label class="o_vd_bonus_active"><input type="checkbox" t-model="it.active"/> Bật</label>
+                                    <button class="o_vd_bonus_save" t-on-click="() => this.saveItem('personal', it)">💾 Lưu</button>
+                                    <button class="o_vd_bonus_del" t-on-click="() => this.deleteItem('personal', it, personalList)">🗑</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== KHU THƯỞNG PHÒNG (chỉ khi chọn 1 phòng cụ thể) ===== -->
+                    <section t-if="!isCommon" class="o_vd_bonus_sec o_vd_bonus_sec_team">
+                        <div class="o_vd_bonus_sec_head">
+                            <span class="o_vd_bonus_sec_ttl">🏆 Thưởng phòng — <t t-esc="state.activeKey"/></span>
+                            <button class="o_vd_bonus_add" t-on-click="() => this.addTeam()">＋ Thêm mốc</button>
+                        </div>
+                        <div class="o_vd_bonus_cards">
+                            <div t-if="!teamList.length" class="o_vd_bonus_empty">Phòng này chưa có mốc thưởng phòng.</div>
+                            <div t-foreach="teamList" t-as="it" t-key="it.id || ('nt' + it_index)"
+                                 t-att-class="'o_vd_bonus_card o_vd_bonus_card_team' + (it.active ? '' : ' o_off')">
+                                <div class="o_vd_bonus_amt_row o_vd_bonus_amt_big">
+                                    <input type="number" class="o_vd_bonus_inp_amt" t-model="it.amount"/>
+                                    <span class="o_vd_bonus_unit">đ</span>
+                                </div>
+                                <div class="o_vd_bonus_team_metrics">
+                                    <label>Số HĐ <input type="number" min="0" t-model="it.contract_count"/></label>
+                                    <label>Số người <input type="number" min="0" t-model="it.people_count"/></label>
+                                </div>
+                                <input type="text" class="o_vd_bonus_inp_name" placeholder="Tên mốc (tuỳ chọn)" t-model="it.name"/>
+                                <div class="o_vd_bonus_card_foot">
+                                    <label class="o_vd_bonus_active"><input type="checkbox" t-model="it.active"/> Bật</label>
+                                    <button class="o_vd_bonus_save" t-on-click="() => this.saveItem('team', it)">💾 Lưu</button>
+                                    <button class="o_vd_bonus_del" t-on-click="() => this.deleteItem('team', it, teamList)">🗑</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

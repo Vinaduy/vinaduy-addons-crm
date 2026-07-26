@@ -1,0 +1,103 @@
+.o_vd_bonus_board {
+    padding: 1.2rem 1.6rem 3rem;
+    height: 100%;
+    overflow-y: auto;
+    background: #f6f7fb;
+    color: #1f2a44;
+
+    .o_vd_bonus_head {
+        margin-bottom: 1rem;
+        h2 { margin: 0; font-weight: 900; font-size: 1.5rem; color: #6741d9; }
+        .o_vd_bonus_sub { color: #6c757d; font-size: 0.9rem; margin-top: 0.2rem; }
+    }
+    .o_vd_bonus_loading { padding: 2rem; color: #868e96; }
+
+    /* Tabs phòng ban dạng thẻ */
+    .o_vd_bonus_tabs {
+        display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.2rem;
+    }
+    .o_vd_bonus_tab {
+        display: flex; flex-direction: column; align-items: center;
+        min-width: 96px; padding: 0.55rem 0.9rem;
+        background: #fff; border: 2px solid #e9ecef; border-radius: 14px;
+        cursor: pointer; transition: all 0.14s ease;
+        .o_vd_bonus_tab_ico { font-size: 1.25rem; line-height: 1; }
+        .o_vd_bonus_tab_lbl { font-weight: 800; font-size: 0.95rem; margin-top: 0.15rem; }
+        .o_vd_bonus_tab_cnt { font-size: 0.72rem; color: #adb5bd; }
+        &:hover { border-color: #b197fc; }
+        &.o_active {
+            background: linear-gradient(135deg, #f3f0ff, #e5dbff);
+            border-color: #7048e8;
+            .o_vd_bonus_tab_lbl { color: #5f3dc4; }
+            .o_vd_bonus_tab_cnt { color: #7048e8; }
+        }
+    }
+
+    .o_vd_bonus_grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+        @media (max-width: 980px) { grid-template-columns: 1fr; }
+    }
+    .o_vd_bonus_sec {
+        background: #fff; border: 1px solid #e9ecef; border-radius: 16px;
+        padding: 1rem 1.1rem 1.2rem; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    }
+    .o_vd_bonus_sec_personal { border-top: 4px solid #4dabf7; }
+    .o_vd_bonus_sec_team { border-top: 4px solid #f59f00; }
+    .o_vd_bonus_sec_head {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 0.8rem;
+        .o_vd_bonus_sec_ttl { font-weight: 900; font-size: 1.05rem; }
+    }
+    .o_vd_bonus_add {
+        border: none; border-radius: 999px; padding: 0.3rem 0.8rem;
+        background: linear-gradient(135deg, #69db7c, #2f9e44); color: #fff;
+        font-weight: 800; font-size: 0.82rem; cursor: pointer;
+        &:hover { filter: brightness(1.05); }
+    }
+    .o_vd_bonus_empty { color: #adb5bd; font-style: italic; padding: 0.8rem 0.2rem; }
+
+    .o_vd_bonus_cards { display: flex; flex-direction: column; gap: 0.7rem; }
+    .o_vd_bonus_card {
+        border: 1px solid #edf0f5; border-radius: 12px; padding: 0.7rem 0.8rem;
+        background: #fbfcfe; display: flex; flex-direction: column; gap: 0.45rem;
+        transition: opacity 0.15s ease;
+        &.o_off { opacity: 0.55; }
+    }
+    .o_vd_bonus_card_no {
+        font-weight: 700; font-size: 0.85rem; color: #1971c2;
+        display: flex; align-items: center; gap: 0.4rem;
+        .o_vd_bonus_inp_no { width: 3.2rem; }
+    }
+    input[type="number"], input[type="text"] {
+        border: 1px solid #ced4da; border-radius: 7px; padding: 0.25rem 0.45rem;
+        font-size: 0.9rem; color: #1f2a44; background: #fff;
+        &:focus { outline: none; border-color: #4dabf7; box-shadow: 0 0 0 2px rgba(77,171,247,0.2); }
+    }
+    .o_vd_bonus_inp_name { width: 100%; }
+    .o_vd_bonus_amt_row {
+        display: flex; align-items: center; gap: 0.3rem;
+        .o_vd_bonus_inp_amt { flex: 1 1 auto; font-weight: 800; font-size: 1rem; color: #2b8a3e; text-align: right; }
+        .o_vd_bonus_unit { font-weight: 800; color: #868e96; }
+    }
+    .o_vd_bonus_amt_big .o_vd_bonus_inp_amt { font-size: 1.15rem; color: #e8590c; }
+    .o_vd_bonus_team_metrics {
+        display: flex; gap: 0.7rem;
+        label { font-size: 0.78rem; color: #495057; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+        input { width: 3.4rem; }
+    }
+    .o_vd_bonus_card_foot {
+        display: flex; align-items: center; gap: 0.5rem; margin-top: 0.15rem;
+        .o_vd_bonus_active { font-size: 0.8rem; color: #495057; display: flex; align-items: center; gap: 0.25rem; margin: 0; margin-right: auto; }
+        .o_vd_bonus_save {
+            border: none; border-radius: 8px; padding: 0.28rem 0.7rem;
+            background: linear-gradient(135deg, #4dabf7, #1971c2); color: #fff;
+            font-weight: 800; font-size: 0.8rem; cursor: pointer;
+            &:hover { filter: brightness(1.06); }
+        }
+        .o_vd_bonus_del {
+            border: 1px solid #ffc9c9; background: #fff5f5; color: #e03131;
+            border-radius: 8px; padding: 0.28rem 0.55rem; cursor: pointer; font-size: 0.85rem;
+            &:hover { background: #ffe3e3; }
+        }
+    }
+}

@@ -10,7 +10,7 @@ _DEFAULT_OVERDUE_THRESHOLD = 15
 
 # Danh sách phòng ban chọn được trên thẻ (user spec 2026-06-13).
 _VD_TEAM_SELECTION = [
-    ('HCM1', 'HCM1'), ('HCM2', 'HCM2'), ('HN', 'HN'),
+    ('HCM1', 'HCM1'), ('HCM2', 'HCM2'), ('HN', 'HN'), ('HN2', 'HN2'),
     ('CTV', 'CTV'), ('VINADUY', 'VINADUY'),
 ]
 
