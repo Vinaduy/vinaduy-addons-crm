@@ -536,67 +536,74 @@ class VdPancakePage(models.Model):
         seen = set()
         # ⚠️ FIX 2026-07-26: CRON PHẢI dùng ĐÚNG bộ tham số như TRÌNH DUYỆT
         # (`cursor_mode=true` + `tags="ALL"` + `mode=AND` + `unread_first=false`
-        # + `from_platform=web`). Cách CŨ (`page_number`/`current_count`) trả về
-        # một KHUNG HOÀN TOÀN KHÁC (đo thực tế: 0% trùng với khung trình duyệt)
-        # → cron BỎ SÓT hàng loạt hội thoại có SĐT thật (đo được 22 số/lần bị sót,
-        # gồm cả 0878188189). Phân trang cursor: truyền `last_conversation_id` =
-        # id hội thoại CUỐI để lấy trang cũ hơn; hết hội thoại mới → dừng.
-        last_conv_id = None
-        for _pg in range(1, 26):
-            params = {
-                'access_token': tok,
-                'unread_first': 'false',
-                'mode': 'AND',
-                'tags': '"ALL"',
-                'except_tags': '[]',
-                'cursor_mode': 'true',
-                'from_platform': 'web',
-            }
-            if last_conv_id:
-                params['last_conversation_id'] = last_conv_id
-            try:
-                resp = requests.get(url, params=params, timeout=30)
-                data = resp.json()
-            except Exception as e:
-                _logger.warning('Zalo internal pull %s: API lỗi — %s', self.name, e)
+        # + `from_platform=web`). Cách CŨ (chỉ `page_number`/`current_count`) trả
+        # về KHUNG SAI (0% trùng khung trình duyệt) → bỏ sót hàng loạt SĐT thật.
+        #
+        # PHÂN TRANG QUÁI của internal API: KHÔNG có cursor thật (last_conversation_id/
+        # until/before/offset đều bị BỎ QUA — luôn trả 40 mới nhất). NHƯNG mỗi
+        # `current_count` KHÁC NHAU lại trả 1 KHUNG (khoảng thời gian) KHÁC nhau.
+        # Đo thực tế: chỉ cursor_mode → chỉ HÔM NAY; thêm page_number+current_count
+        # và QUÉT nhiều current_count (40/60/20/80) → phủ tới HÔM QUA/HÔM KIA
+        # (gom 100 hội thoại vs 40, kéo thêm 30 lead gồm cả khách hôm qua). Vì API
+        # không chính thống nên đây là cách gom rộng nhất; cron 15' phủ phần xoay.
+        aborted = False
+        for _cc in (40, 60, 20, 80):
+            if aborted:
                 break
-            if isinstance(data, dict) and data.get('success') is False:
-                msg = (data.get('message') or '').lower()
-                # Token phiên hết hạn: Pancake trả HTTP 200 + success=False với
-                # message "Login session expired" (KHÔNG chứa 'token', KHÔNG 401)
-                # → phải bắt thêm 'session'/'expired'/'login'/'unauthor' để bật cờ.
-                expired = (
-                    resp.status_code in (401, 403)
-                    or any(k in msg for k in (
-                        'access_token', 'token', 'session', 'expired',
-                        'login', 'unauthor'))
-                )
-                if expired:
-                    if not self.vd_zalo_token_invalid:
-                        self.sudo().vd_zalo_token_invalid = True
-                    _logger.warning('Zalo internal %s: token phiên hết hạn — %s',
-                                    self.name, data.get('message'))
-                else:
-                    _logger.warning('Zalo internal %s: API trả %s', self.name,
-                                    data.get('message'))
-                break
-            convs = (data.get('conversations') if isinstance(data, dict) else None) or []
-            new = [c for c in convs if c.get('id') and c['id'] not in seen]
-            if not new:
-                break  # hết trang mới → dừng
-            # Con trỏ trang sau = id hội thoại CUỐI của trang này.
-            last_conv_id = convs[-1].get('id') if convs else None
-            # Token dùng được → gỡ cờ hết hạn nếu đang bật.
-            if self.vd_zalo_token_invalid:
-                self.sudo().vd_zalo_token_invalid = False
-            for conv in new:
-                seen.add(conv['id'])
+            for _pg in range(1, 21):
+                params = {
+                    'access_token': tok,
+                    'unread_first': 'false',
+                    'mode': 'AND',
+                    'tags': '"ALL"',
+                    'except_tags': '[]',
+                    'cursor_mode': 'true',
+                    'from_platform': 'web',
+                    'page_number': _pg,
+                    'current_count': _cc,
+                }
                 try:
-                    if self._sync_one_conversation(
-                            conv, Lead, ResUsers, record_conv=True) == 'created':
-                        created += 1
-                except Exception:
-                    _logger.exception('Zalo internal conv %s lỗi', conv.get('id'))
+                    resp = requests.get(url, params=params, timeout=30)
+                    data = resp.json()
+                except Exception as e:
+                    _logger.warning('Zalo internal pull %s: API lỗi — %s', self.name, e)
+                    break
+                if isinstance(data, dict) and data.get('success') is False:
+                    msg = (data.get('message') or '').lower()
+                    # Token phiên hết hạn: Pancake trả HTTP 200 + success=False với
+                    # message "Login session expired" (KHÔNG chứa 'token', KHÔNG 401)
+                    # → bắt thêm 'session'/'expired'/'login'/'unauthor' để bật cờ.
+                    expired = (
+                        resp.status_code in (401, 403)
+                        or any(k in msg for k in (
+                            'access_token', 'token', 'session', 'expired',
+                            'login', 'unauthor'))
+                    )
+                    if expired:
+                        if not self.vd_zalo_token_invalid:
+                            self.sudo().vd_zalo_token_invalid = True
+                        _logger.warning('Zalo internal %s: token phiên hết hạn — %s',
+                                        self.name, data.get('message'))
+                    else:
+                        _logger.warning('Zalo internal %s: API trả %s', self.name,
+                                        data.get('message'))
+                    aborted = True  # token/lỗi → dừng hẳn mọi vòng
+                    break
+                convs = (data.get('conversations') if isinstance(data, dict) else None) or []
+                new = [c for c in convs if c.get('id') and c['id'] not in seen]
+                if not new:
+                    break  # hết hội thoại mới cho current_count này → sang cc khác
+                # Token dùng được → gỡ cờ hết hạn nếu đang bật.
+                if self.vd_zalo_token_invalid:
+                    self.sudo().vd_zalo_token_invalid = False
+                for conv in new:
+                    seen.add(conv['id'])
+                    try:
+                        if self._sync_one_conversation(
+                                conv, Lead, ResUsers, record_conv=True) == 'created':
+                            created += 1
+                    except Exception:
+                        _logger.exception('Zalo internal conv %s lỗi', conv.get('id'))
         if created:
             self.last_event_at = fields.Datetime.now()
         return created
