@@ -988,6 +988,18 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         'vd.lead.quick.add.wizard', required=True, ondelete='cascade',
     )
     sequence = fields.Integer(string='STT', default=10)
+    # Số thứ tự HIỂN THỊ 1..N từ trên xuống (để biết đang có bao nhiêu khách).
+    vd_stt = fields.Integer(string='#', compute='_compute_vd_stt')
+
+    @api.depends('wizard_id.line_ids', 'wizard_id.line_ids.sequence')
+    def _compute_vd_stt(self):
+        pos = {}
+        for wiz in self.mapped('wizard_id'):
+            for i, ln in enumerate(wiz.line_ids, 1):
+                pos[ln.id] = i
+        for rec in self:
+            rec.vd_stt = pos.get(rec.id, 0)
+
     # Tích chọn nhiều khách để gán NV hàng loạt (user spec 2026-06-26).
     vd_selected = fields.Boolean(string='Chọn', default=False)
     # Dòng này được nạp từ FILE EXCEL → khi tạo lead sẽ set vd_from_excel=True

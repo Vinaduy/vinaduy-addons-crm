@@ -21,28 +21,23 @@
                           decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
                         <field name="vd_selected" widget="boolean" string="☑ Chọn"/>
+                        <field name="vd_stt" string="#" readonly="1" class="o_vd_qa_stt"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..."/>
                         <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
-                        <!-- Sao chép NGUỒN xuống dòng dưới — client-side (user spec 2026-06-10) -->
-                        <field name="vd_copydown_src" widget="vd_copy_down" nolabel="1" string=" "
-                               options="{'field': 'source'}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
                         <field name="status" column_invisible="1"/>
-                        <field name="user_id"
+                        <field name="user_id" class="o_vd_qa_nowrap"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Chưa chia)"/>
-                        <!-- Sao chép NV xuống dòng dưới — CLIENT-SIDE, không cần lưu
-                             (widget vd_copy_user_down, user spec 2026-06-10) -->
-                        <field name="vd_copydown" widget="vd_copy_down" nolabel="1" string=" "
-                               options="{'field': 'user_id'}"/>
                         <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" string="Tải NV" readonly="1"
+                               class="o_vd_qa_nowrap"
                                decoration-danger="assignee_overloaded"
                                decoration-bf="assignee_overloaded"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
