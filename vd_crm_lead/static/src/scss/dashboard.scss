@@ -10118,6 +10118,32 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     .o_vd_pk_stopped_sub { font-size: 0.78rem; color: #7a1f1f; line-height: 1.45; margin-top: 3px; }
 }
 
+/* ===== 🔑 BANNER TOKEN ZALO HẾT HẠN — nổi bật đỏ trên đầu dashboard admin ===== */
+.o_vd_zalo_tokdead {
+    display: flex; align-items: flex-start; gap: 0.8rem;
+    margin: 0 0 1rem; padding: 0.85rem 1.1rem;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+    border: 2px solid #ff8787; border-left: 7px solid #e03131;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(224, 49, 49, 0.18);
+    animation: vd-pf-pulse 1.9s ease-in-out infinite;
+    .o_vd_zalo_tokdead_ico { font-size: 1.9rem; line-height: 1; flex: 0 0 auto; }
+    .o_vd_zalo_tokdead_body { flex: 1 1 auto; min-width: 0; }
+    .o_vd_zalo_tokdead_ttl {
+        font-size: 1.05rem; font-weight: 900; color: #c92a2a; letter-spacing: 0.3px;
+    }
+    .o_vd_zalo_tokdead_sub {
+        font-size: 0.85rem; color: #7a1f1f; line-height: 1.5; margin-top: 4px;
+        b { color: #a61e1e; }
+    }
+    .o_vd_zalo_tokdead_fix {
+        font-size: 0.82rem; color: #495057; line-height: 1.5; margin-top: 6px;
+        padding: 0.45rem 0.6rem; background: rgba(255, 255, 255, 0.7);
+        border: 1px dashed #ffa8a8; border-radius: 8px;
+        b { color: #1864ab; }
+    }
+}
+
 /* ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + biểu đồ 7 ngày (kênh Pancake) ===== */
 .o_vd_pk_rate {
     margin: 0.6rem 0.7rem 0.2rem;

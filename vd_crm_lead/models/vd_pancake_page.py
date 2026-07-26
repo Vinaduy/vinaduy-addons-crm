@@ -550,7 +550,16 @@ class VdPancakePage(models.Model):
                 break
             if isinstance(data, dict) and data.get('success') is False:
                 msg = (data.get('message') or '').lower()
-                if 'access_token' in msg or 'token' in msg or resp.status_code in (401, 403):
+                # Token phiên hết hạn: Pancake trả HTTP 200 + success=False với
+                # message "Login session expired" (KHÔNG chứa 'token', KHÔNG 401)
+                # → phải bắt thêm 'session'/'expired'/'login'/'unauthor' để bật cờ.
+                expired = (
+                    resp.status_code in (401, 403)
+                    or any(k in msg for k in (
+                        'access_token', 'token', 'session', 'expired',
+                        'login', 'unauthor'))
+                )
+                if expired:
                     if not self.vd_zalo_token_invalid:
                         self.sudo().vd_zalo_token_invalid = True
                     _logger.warning('Zalo internal %s: token phiên hết hạn — %s',

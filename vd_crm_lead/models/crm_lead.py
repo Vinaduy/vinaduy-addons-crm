@@ -6710,9 +6710,17 @@ class CrmLead(models.Model):
         if last_dt:
             vn = _pytz.timezone('Asia/Ho_Chi_Minh')
             last_str = _pytz.utc.localize(last_dt).astimezone(vn).strftime('%H:%M %d/%m')
+        # 🔑 TOKEN ZALO HẾT HẠN: page Zalo cá nhân đang bật cờ token phiên hỏng
+        # → số Zalo KHÔNG về cho tới khi cập nhật token mới. Hiện banner cho admin.
+        zalo_dead = self.env['vd.pancake.page'].sudo().search([
+            ('platform', '=', 'zalo'), ('active', '=', True),
+            ('vd_zalo_token_invalid', '=', True),
+        ])
         return {'stopped': stopped, 'hours': hours, 'convs_24h': convs_24h,
                 'last_phone': last_str, 'threshold': threshold,
-                'silent': self._vd_source_silence_alert()}
+                'silent': self._vd_source_silence_alert(),
+                'zalo_token': [{'name': p.name, 'page_id': p.page_id}
+                               for p in zalo_dead]}
 
     @api.model
     def _vd_source_silence_alert(self):

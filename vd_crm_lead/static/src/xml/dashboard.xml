@@ -930,6 +930,23 @@
                     <!-- ===== ADMIN CONTENT ===== -->
                     <main class="o_vd_admin_content">
 
+                        <!-- 🔑 BANNER TOKEN ZALO HẾT HẠN (mọi tab admin) — số Zalo ngừng về -->
+                        <div t-if="state.pancake_report and state.pancake_report.alert and state.pancake_report.alert.zalo_token and state.pancake_report.alert.zalo_token.length"
+                             class="o_vd_zalo_tokdead">
+                            <div class="o_vd_zalo_tokdead_ico">🔑</div>
+                            <div class="o_vd_zalo_tokdead_body">
+                                <div class="o_vd_zalo_tokdead_ttl">⚠️ TOKEN ZALO BỊ HẾT HẠN — SỐ ZALO ĐANG KHÔNG VỀ</div>
+                                <div class="o_vd_zalo_tokdead_sub">
+                                    Trang
+                                    <b><t t-foreach="state.pancake_report.alert.zalo_token" t-as="z" t-key="z.page_id"><t t-if="z_index"> · </t><t t-esc="z.name"/></t></b>
+                                    mất kết nối phiên. Khách để lại số trên Zalo sẽ KHÔNG vào hệ thống cho tới khi cập nhật token mới.
+                                </div>
+                                <div class="o_vd_zalo_tokdead_fix">
+                                    👉 Cách sửa: đăng nhập <b>pancake.vn</b> (tài khoản Zalo đó) → <b>F12 → Network</b> → mở 1 request tới pancake.vn → copy <b>access_token</b> → dán vào cấu hình Trang Zalo (ô <i>Zalo session token</i>) → Lưu → bấm <b>Kéo Zalo ngay</b>.
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- ============== TAB: TỔNG QUAN — BI ANALYTICS DASHBOARD ============== -->
                         <div t-if="state.adminTab === 'overview'"
                              class="o_vd_admin_tab o_vd_analytics">
