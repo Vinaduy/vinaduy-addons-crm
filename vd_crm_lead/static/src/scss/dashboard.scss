@@ -2387,7 +2387,7 @@
     .o_vd_nv_search_item_name {
         font-weight: 700;
         color: #0f1e34;
-        flex: 1 1 auto; min-width: 0;
+        flex: 0 1 auto; min-width: 0;   /* KHÔNG giãn → SĐT sát ngay sau tên */
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .o_vd_nv_search_item_phone {
@@ -2414,7 +2414,7 @@
     .o_vd_nv_search_item_user {
         color: #6741d9;
         font-weight: 600;
-        flex: 1 1 auto; min-width: 0;
+        flex: 0 1 auto; min-width: 0;   /* KHÔNG giãn → thẻ + thời lượng sát ngay sau NV */
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
@@ -2991,7 +2991,7 @@
                 font-size: 0.88rem;
                 .o_vd_an_search_item_name {
                     font-weight: 600; color: var(--bs-body-color);
-                    flex: 1 1 auto; min-width: 0;
+                    flex: 0 1 auto; min-width: 0;   /* KHÔNG giãn → SĐT nằm sát ngay sau tên */
                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                 }
                 .o_vd_an_search_item_phone {
@@ -3008,7 +3008,7 @@
                 font-size: 0.75rem;
                 color: var(--bs-secondary-color, #6c757d);
                 .o_vd_an_search_item_user {
-                    flex: 1 1 auto; min-width: 0;
+                    flex: 0 1 auto; min-width: 0;   /* KHÔNG giãn → thẻ + thời lượng sát ngay sau NV */
                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                 }
                 .o_vd_an_search_item_nouser { color: #adb5bd; font-style: italic; }
