@@ -96,7 +96,9 @@
             <field name="state">code</field>
             <field name="code">model._cron_sync_pancake_phones(days=1)</field>
             <field name="active" eval="True"/>
-            <field name="interval_number">15</field>
+            <!-- 5' (giảm từ 15' — 2026-07-26): cửa sổ list API xoay theo thời gian,
+                 chạy dày hơn để bắt kịp hội thoại có SĐT trước khi xoay ra khỏi khung. -->
+            <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
             <field name="user_id" ref="base.user_root"/>
         </record>

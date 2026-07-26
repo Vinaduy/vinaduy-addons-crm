@@ -547,13 +547,19 @@ class VdPancakePage(models.Model):
         # (gom 100 hội thoại vs 40, kéo thêm 30 lead gồm cả khách hôm qua). Vì API
         # không chính thống nên đây là cách gom rộng nhất; cron 15' phủ phần xoay.
         aborted = False
-        for _cc in (40, 60, 20, 80):
+        # QUÉT 2 CHIỀU (unread_first false+true × nhiều current_count): cửa sổ list
+        # API XOAY theo thời gian nên 1 khung hay sót cả hội thoại MỚI có SĐT
+        # (đo: "Bích Hồng" 0395859118 có số, mới 08:28, vẫn ngoài khung 60). Quét
+        # rộng nhiều khung/lần + cron dày (5') để giảm tối đa xác suất sót.
+        combos = [(uf, cc) for uf in ('false', 'true')
+                  for cc in (40, 60, 20, 80, 100)]
+        for _uf, _cc in combos:
             if aborted:
                 break
             for _pg in range(1, 21):
                 params = {
                     'access_token': tok,
-                    'unread_first': 'false',
+                    'unread_first': _uf,
                     'mode': 'AND',
                     'tags': '"ALL"',
                     'except_tags': '[]',
