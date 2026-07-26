@@ -1028,6 +1028,7 @@
                                                 <span t-else="" class="o_vd_an_search_item_user o_vd_an_search_item_nouser">👤 Chưa giao</span>
                                                 <span t-if="r.tag_label"
                                                       t-att-class="'o_vd_search_tag o_vd_search_tag_' + (r.tag_cls || 'new')"><t t-esc="r.tag_label"/></span>
+                                                <span t-if="r.call_count" class="o_vd_search_calls" title="Số lần đã gọi khách này">📞 <t t-esc="r.call_count"/></span>
                                                 <span t-if="r.talk_label" class="o_vd_search_talk" title="Tổng phút tư vấn đã kết nối">⏱️ <t t-esc="r.talk_label"/></span>
                                             </div>
                                         </div>
@@ -2137,6 +2138,7 @@
                                             <span t-if="r.user_name" class="o_vd_nv_search_item_user">👤 <t t-esc="r.user_name"/></span>
                                             <span t-if="r.tag_label"
                                                   t-att-class="'o_vd_search_tag o_vd_search_tag_' + (r.tag_cls || 'new')"><t t-esc="r.tag_label"/></span>
+                                            <span t-if="r.call_count" class="o_vd_search_calls" title="Số lần đã gọi khách này">📞 <t t-esc="r.call_count"/></span>
                                             <span t-if="r.talk_label" class="o_vd_search_talk" title="Tổng phút tư vấn đã kết nối">⏱️ <t t-esc="r.talk_label"/></span>
                                         </div>
                                     </div>

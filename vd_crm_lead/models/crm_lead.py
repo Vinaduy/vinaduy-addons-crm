@@ -8279,6 +8279,7 @@ class CrmLead(models.Model):
                 'tag_cls': tag.get('cls') or 'new',
                 'talk_secs': 0,
                 'talk_label': '',
+                'call_count': 0,
             })
             match_gids.append([x.id for x in leads])
             if len(matches) >= limit:
@@ -8289,19 +8290,26 @@ class CrmLead(models.Model):
         # độ dài file ghi âm). KHÔNG tính cuộc chỉ đổ chuông. 1 query cho mọi lead.
         all_ids = [i for gids in match_gids for i in gids]
         talk_by_lead = {}
+        calls_by_lead = {}
         if all_ids:
+            # 1 query: SỐ LẦN GỌI (tất cả cuộc) + TỔNG PHÚT TƯ VẤN (chỉ cuộc ĐÃ
+            # KẾT NỐI THẬT — có answer_time HOẶC bản ghi âm >0s).
             self.env.cr.execute(
                 """
-                SELECT lead_id, COALESCE(SUM(duration), 0)
+                SELECT lead_id,
+                       COUNT(*) AS call_cnt,
+                       COALESCE(SUM(duration) FILTER (
+                           WHERE answer_time IS NOT NULL
+                              OR (recording_attachment_id IS NOT NULL AND duration > 0)
+                       ), 0) AS talk_secs
                 FROM stringee_call
                 WHERE lead_id = ANY(%s)
-                  AND (answer_time IS NOT NULL
-                       OR (recording_attachment_id IS NOT NULL AND duration > 0))
                 GROUP BY lead_id
                 """,
                 (all_ids,),
             )
-            for lid, secs in self.env.cr.fetchall():
+            for lid, cnt, secs in self.env.cr.fetchall():
+                calls_by_lead[lid] = int(cnt or 0)
                 talk_by_lead[lid] = int(secs or 0)
         for m, gids in zip(matches, match_gids):
             secs = sum(talk_by_lead.get(i, 0) for i in gids)
@@ -8310,6 +8318,7 @@ class CrmLead(models.Model):
                 m['talk_label'] = '%d phút' % round(secs / 60.0)
             elif secs > 0:
                 m['talk_label'] = '%d giây' % secs
+            m['call_count'] = sum(calls_by_lead.get(i, 0) for i in gids)
         return matches
 
     @api.model
