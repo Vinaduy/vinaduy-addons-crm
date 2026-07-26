@@ -534,14 +534,26 @@ class VdPancakePage(models.Model):
         url = '%s/pages/%s/conversations' % (_PANCAKE_INTERNAL_BASE, self.page_id)
         created = 0
         seen = set()
-        # PHÂN TRANG: internal API BỎ QUA `last_conversation_id`/`page_number` đơn
-        # lẻ (trả lại đúng trang) — CHỈ khi truyền CẢ `page_number` KÈM
-        # `current_count` mới sang trang mới. Cửa sổ API còn XOAY giữa các lần gọi
-        # nên phải gom NHIỀU trang (không dừng ở 60 hội thoại) để không sót khách
-        # nằm ngoài top-N; cron 15' phủ nốt phần xoay. (fix 2026-07-17: trước đây
-        # chỉ lấy 1 trang → 0788644444/0398887947 sót vì ngoài cửa sổ.)
-        for _pg in range(1, 21):
-            params = {'access_token': tok, 'page_number': _pg, 'current_count': 60}
+        # ⚠️ FIX 2026-07-26: CRON PHẢI dùng ĐÚNG bộ tham số như TRÌNH DUYỆT
+        # (`cursor_mode=true` + `tags="ALL"` + `mode=AND` + `unread_first=false`
+        # + `from_platform=web`). Cách CŨ (`page_number`/`current_count`) trả về
+        # một KHUNG HOÀN TOÀN KHÁC (đo thực tế: 0% trùng với khung trình duyệt)
+        # → cron BỎ SÓT hàng loạt hội thoại có SĐT thật (đo được 22 số/lần bị sót,
+        # gồm cả 0878188189). Phân trang cursor: truyền `last_conversation_id` =
+        # id hội thoại CUỐI để lấy trang cũ hơn; hết hội thoại mới → dừng.
+        last_conv_id = None
+        for _pg in range(1, 26):
+            params = {
+                'access_token': tok,
+                'unread_first': 'false',
+                'mode': 'AND',
+                'tags': '"ALL"',
+                'except_tags': '[]',
+                'cursor_mode': 'true',
+                'from_platform': 'web',
+            }
+            if last_conv_id:
+                params['last_conversation_id'] = last_conv_id
             try:
                 resp = requests.get(url, params=params, timeout=30)
                 data = resp.json()
@@ -572,6 +584,8 @@ class VdPancakePage(models.Model):
             new = [c for c in convs if c.get('id') and c['id'] not in seen]
             if not new:
                 break  # hết trang mới → dừng
+            # Con trỏ trang sau = id hội thoại CUỐI của trang này.
+            last_conv_id = convs[-1].get('id') if convs else None
             # Token dùng được → gỡ cờ hết hạn nếu đang bật.
             if self.vd_zalo_token_invalid:
                 self.sudo().vd_zalo_token_invalid = False
