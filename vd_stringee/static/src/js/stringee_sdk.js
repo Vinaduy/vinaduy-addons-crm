@@ -156,6 +156,7 @@ async function fetchToken() {
         token: res?.token || "",
         userId: res?.user_id || "",
         fromNumber: res?.from_number || "",
+        hasSwitchboard: !!res?.has_switchboard,
     };
 }
 
@@ -177,6 +178,8 @@ export const stringeeService = {
             inFlight: null,  // promise call() đang chạy — chặn duplicate
             lastCallAt: 0,
             lastCallTo: "",
+            useSwitchboard: false,  // NV bật nút "Gọi qua tổng đài" (số cố định)
+            hasSwitchboard: false,  // NV có được gán số tổng đài không (ẩn/hiện nút)
             // === Derived state cho UI (cập nhật trong attachCallEvents) ===
             inCall: false,        // true khi có call đang active (calling/ringing/answered)
             callStatus: "",       // CALLING | RINGING | ANSWERED | ""
@@ -617,11 +620,12 @@ export const stringeeService = {
                 return state.client;
             }
             console.log("[VD-STRINGEE] ensureConnected: fetching token...");
-            const { token, userId, fromNumber } = await fetchToken();
+            const { token, userId, fromNumber, hasSwitchboard } = await fetchToken();
             console.log("[VD-STRINGEE] fetchToken result:", {
                 hasToken: !!token, tokenLen: token?.length,
-                userId, fromNumber,
+                userId, fromNumber, hasSwitchboard,
             });
+            state.hasSwitchboard = !!hasSwitchboard;
             if (!token) {
                 state.hasUser = false;
                 return null;
@@ -747,7 +751,8 @@ export const stringeeService = {
 
                 // Không có user → REST fallback (server-side dedup 30s)
                 if (!client) {
-                    const res = await rpc("/stringee/click_to_call", { callee: targetNumber });
+                    const res = await rpc("/stringee/click_to_call", {
+                        callee: targetNumber, use_switchboard: !!state.useSwitchboard });
                     notification.add(
                         res.error
                             ? `Lỗi: ${res.error}`
@@ -769,7 +774,8 @@ export const stringeeService = {
                 let fromNumber = "";
                 let fromCarrier = "";
                 try {
-                    const r = await rpc("/stringee/resolve_from_number", { callee: targetNumber });
+                    const r = await rpc("/stringee/resolve_from_number", {
+                        callee: targetNumber, use_switchboard: !!state.useSwitchboard });
                     if (r && r.error) {
                         // Server soạn sẵn thông báo rõ: thiếu số mạng nào / khách khác mạng.
                         showCallAlert("danger", "Không gọi được — không có số cùng mạng", r.error);

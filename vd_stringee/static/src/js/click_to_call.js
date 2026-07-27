@@ -20,6 +20,8 @@ export class VdDialpadFab extends Component {
     setup() {
         this.stringee = useService("stringee");
         this.notification = useService("notification");
+        // State CHIA SẺ của service (để nút "Gọi qua tổng đài" tự re-render).
+        this.s = useState(this.stringee.state);
         // lookup: null = chưa tra; {found, text, type} sau khi tra số.
         this.state = useState({ open: false, number: "", calling: false, lookup: null });
         this.inputRef = useRef("numInput");
@@ -84,6 +86,17 @@ export class VdDialpadFab extends Component {
         if (this.state.number || this.state.calling) return;
         this._cancelHoverClose();
         this._hoverCloseTimer = setTimeout(() => this.close(), 240);
+    }
+
+    // Bật/tắt "Gọi qua tổng đài" (số cố định) — dùng chung cho mọi cuộc gọi sau.
+    toggleSwitchboard() {
+        this.s.useSwitchboard = !this.s.useSwitchboard;
+        this.notification.add(
+            this.s.useSwitchboard
+                ? "ĐÃ BẬT gọi qua SỐ TỔNG ĐÀI (số cố định) — mọi mạng."
+                : "Đã tắt — gọi bằng số cùng mạng khách như thường.",
+            { type: this.s.useSwitchboard ? "success" : "info" },
+        );
     }
 
     press(d) {

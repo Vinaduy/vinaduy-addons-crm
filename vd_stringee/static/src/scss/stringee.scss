@@ -822,6 +822,34 @@
 .vd_dp_lk_warn { background: #fdecea; color: #b3261e; }
 .vd_dp_lk_new  { background: #eef1f5; color: #5a6573; }
 
+// Nút bật/tắt GỌI QUA TỔNG ĐÀI (số cố định)
+.vd_dp_switch {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    margin: 0 2px 10px; padding: 8px 12px;
+    border: 1.5px solid #d7dbe3; border-radius: 12px; cursor: pointer;
+    background: #f4f6fa; color: #5a6573; font-weight: 700; font-size: 13px;
+    transition: all .14s ease;
+    .vd_dp_switch_ic {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px; border-radius: 8px;
+        background: #e4e8ef; color: #7a8494; font-size: 14px;
+    }
+    .vd_dp_switch_lbl { flex: 1; text-align: left; }
+    .vd_dp_switch_pill {
+        font-size: 11px; font-weight: 900; letter-spacing: .5px;
+        padding: 2px 9px; border-radius: 999px;
+        background: #e0e4ea; color: #8a93a2;
+    }
+    &:hover { border-color: #b9c0cc; }
+}
+.vd_dp_switch_on {
+    background: linear-gradient(120deg, #1f7a4d, #27a35f);
+    border-color: #1f7a4d; color: #fff;
+    box-shadow: 0 6px 16px rgba(39,163,95,.34);
+    .vd_dp_switch_ic { background: rgba(255,255,255,.22); color: #fff; }
+    .vd_dp_switch_pill { background: #fff; color: #1f7a4d; }
+}
+
 .vd_dp_grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 12px; justify-items: center; margin: 4px 2px 12px;

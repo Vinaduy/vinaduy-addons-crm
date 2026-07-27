@@ -372,12 +372,14 @@ class StringeeController(http.Controller):
 
     # ----- Browser → server (authenticated) -----
     @http.route('/stringee/resolve_from_number', type='json', auth='user')
-    def resolve_from_number(self, callee):
+    def resolve_from_number(self, callee, use_switchboard=False):
         """JS hỏi server: gọi số KH này thì lấy đầu số CÙNG MẠNG nào?
-        Trả {'from_number','carrier'} hoặc {'error'} (không có số cùng mạng)."""
+        use_switchboard=True (NV bật nút gọi tổng đài) → lấy số cố định.
+        Trả {'from_number','carrier'} hoặc {'error'} (không có số phù hợp)."""
         if not callee:
             return {'error': 'missing callee'}
-        return request.env.user._vd_resolve_outbound(callee)
+        return request.env.user._vd_resolve_outbound(
+            callee, use_switchboard=bool(use_switchboard))
 
     @http.route('/stringee/lookup_number', type='json', auth='user')
     def lookup_number(self, number):
@@ -400,13 +402,15 @@ class StringeeController(http.Controller):
         )
 
     @http.route('/stringee/click_to_call', type='json', auth='user')
-    def click_to_call(self, callee, partner_id=None):
+    def click_to_call(self, callee, partner_id=None, use_switchboard=False):
         """Place an outbound call from the server. Used by buttons in Odoo UI."""
         if not callee:
             return {'error': 'missing callee'}
         # Gọi CÙNG MẠNG (user spec 2026-06-01): chọn đầu số cùng mạng KH;
-        # không có → báo lỗi, KHÔNG gọi bằng mạng khác.
-        resolved = request.env.user._vd_resolve_outbound(callee)
+        # không có → báo lỗi, KHÔNG gọi bằng mạng khác. use_switchboard=True →
+        # gọi bằng số tổng đài (số cố định) mọi mạng.
+        resolved = request.env.user._vd_resolve_outbound(
+            callee, use_switchboard=bool(use_switchboard))
         if resolved.get('error'):
             return {'error': resolved['error']}
         rec = request.env['stringee.call'].sudo().make_call(
@@ -589,8 +593,12 @@ class StringeeController(http.Controller):
         except Exception as e:
             _logger.exception("[Stringee user_token] gen_user_token FAILED: %s", e)
             raise
+        # NV có số TỔNG ĐÀI (số cố định) → hiện nút "Gọi qua tổng đài" trên bàn phím.
+        has_switchboard = bool(user.stringee_hotline_ids.filtered(
+            lambda h: h.active and h.carrier == 'other' and not h._vd_is_dead()))
         return {
             'token': token,
             'user_id': user.stringee_user_id,
             'from_number': from_number,
+            'has_switchboard': has_switchboard,
         }

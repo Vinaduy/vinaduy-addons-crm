@@ -96,22 +96,28 @@ class ResUsers(models.Model):
                 continue
             user.sudo().write({'stringee_user_id': 'vduser_%d' % user.id})
 
-    def _vd_resolve_outbound(self, to_number):
+    def _vd_resolve_outbound(self, to_number, use_switchboard=False):
         """Chọn số gọi ra CÙNG MẠNG với KH (to_number).
-        - Ưu tiên số NV đã được gán cho mạng đó (stringee_hotline_ids).
-        - Không có số cùng mạng → trả {'error': ...} (KHÔNG fallback mạng khác).
+        - use_switchboard=True: NV bật nút "Gọi qua tổng đài" → dùng SỐ CỐ ĐỊNH
+          (carrier 'other') gọi được MỌI mạng. Không có số cố định → báo lỗi.
+        - Ngược lại (mặc định): ưu tiên số NV đã gán cho mạng KH (stringee_hotline_ids);
+          không có số cùng mạng → trả {'error': ...} (KHÔNG fallback mạng khác).
         Trả: {'from_number': '84...', 'carrier': 'viettel'} hoặc {'error': '...'}.
         """
         self.ensure_one()
-        # ---- SỐ CỐ ĐỊNH (landline / TỔNG ĐÀI, carrier 'other') ----
-        # Số cố định KHÔNG bị chặn nội mạng như số di động → gọi được MỌI mạng
-        # khách. NV nào được gán số cố định sống thì ƯU TIÊN dùng số đó cho mọi
-        # cuộc (số đẹp, ít bị nhà mạng gắn cờ). User spec 2026-07-27.
-        landline = self.stringee_hotline_ids.filtered(
-            lambda h: h.active and h.carrier == 'other' and not h._vd_is_dead()
-        )[:1]
-        if landline:
-            return {'from_number': landline.number, 'carrier': landline.carrier}
+        # ---- SỐ CỐ ĐỊNH (landline / TỔNG ĐÀI): CHỈ khi NV BẬT nút gọi tổng đài ----
+        # Số cố định KHÔNG bị chặn nội mạng → gọi được MỌI mạng khách (số đẹp,
+        # ít bị gắn cờ). User spec 2026-07-27. Không bật thì gọi như cũ (cùng mạng).
+        if use_switchboard:
+            landline = self.stringee_hotline_ids.filtered(
+                lambda h: h.active and h.carrier == 'other' and not h._vd_is_dead()
+            )[:1]
+            if landline:
+                return {'from_number': landline.number, 'carrier': landline.carrier}
+            return {'error': (
+                'Bạn CHƯA được gán SỐ TỔNG ĐÀI (số cố định) để gọi. → Báo admin '
+                'gán số tổng đài cho bạn, hoặc TẮT nút "Gọi qua tổng đài".'
+            )}
         carrier = vd_carrier_from_number(to_number)
         if carrier not in _SAME_CARRIER_SUPPORTED:
             return {'error': (

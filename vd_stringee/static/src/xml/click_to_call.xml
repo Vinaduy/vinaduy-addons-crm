@@ -54,6 +54,17 @@
                     <t t-esc="state.lookup.text"/>
                 </div>
 
+                <!-- Nút bật/tắt GỌI QUA TỔNG ĐÀI (số cố định) — chỉ NV có số này -->
+                <button t-if="s.hasSwitchboard" type="button"
+                        class="vd_dp_switch"
+                        t-att-class="s.useSwitchboard ? 'vd_dp_switch_on' : ''"
+                        t-on-click="() => this.toggleSwitchboard()"
+                        t-att-title="s.useSwitchboard ? 'Đang gọi qua số tổng đài — bấm để tắt' : 'Bật để gọi qua số tổng đài (số cố định, mọi mạng)'">
+                    <span class="vd_dp_switch_ic"><i class="fa fa-building-o"/></span>
+                    <span class="vd_dp_switch_lbl">Gọi qua tổng đài</span>
+                    <span class="vd_dp_switch_pill" t-esc="s.useSwitchboard ? 'BẬT' : 'TẮT'"/>
+                </button>
+
                 <div class="vd_dp_grid">
                     <button t-foreach="keys" t-as="k" t-key="k.d" class="vd_dp_key"
                             t-on-click="() => this.press(k.d)">
