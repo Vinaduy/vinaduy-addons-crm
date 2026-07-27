@@ -125,6 +125,23 @@
     align-content: start;   // KHÔNG giãn hàng -> dồn lên trên, hết khoảng trắng
     padding: 2px 2px 4px;
 }
+// LƯỚI DÀY cho thư viện VIDEO nghiệm thu: thẻ nhỏ ~1/2 → ~9-10 thẻ/hàng, KHÔNG
+// cuộn ngang (auto-fill tự xuống hàng). Chỉ áp cho kho video (không phá kho PDF).
+.o_vd_nt_grid_dense {
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    .o_vd_dl_thumb { height: 84px; }
+    // Chân thẻ: tên XUỐNG DÒNG (2 dòng) rồi nút Tải full-width bên dưới (thẻ hẹp
+    // không đủ chỗ để tên + nút cùng 1 dòng).
+    .o_vd_dl_foot { flex-direction: column; align-items: stretch; gap: 4px; padding: 5px 6px; }
+    .o_vd_dl_name {
+        white-space: normal; display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden; line-height: 1.22;
+        font-size: 11.5px; min-height: 2.4em;
+    }
+    .o_vd_dl_btn { justify-content: center; width: 100%; padding: 3px 6px; font-size: 11px; }
+    .o_vd_dl_fallico { font-size: 1.8rem; }
+}
 .o_vd_dl_card {
     border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden;
     background: #fff; display: flex; flex-direction: column;

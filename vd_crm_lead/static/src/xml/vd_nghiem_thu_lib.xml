@@ -26,35 +26,50 @@
                 </div>
                 <div t-elif="!allFiles.length" class="o_vd_nt_center">Chưa có tài liệu.</div>
                 <t t-else="">
-                    <!-- BỘ LỌC (Công năng 3D): theo số tầng + mặt tiền -->
+                    <!-- BỘ LỌC -->
                     <div t-if="showFilters" class="o_vd_nt_filters">
-                        <div class="o_vd_nt_frow">
-                            <span class="o_vd_nt_flabel">🏢 Số tầng:</span>
-                            <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === null}"
-                                    t-on-click="() => this.setFloors(null)">Tất cả</button>
-                            <t t-foreach="floorsList" t-as="v" t-key="v">
-                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === v}"
-                                        t-on-click="() => this.setFloors(v)"><t t-esc="floorLabel(v)"/></button>
-                            </t>
-                        </div>
-                        <div class="o_vd_nt_frow">
-                            <span class="o_vd_nt_flabel">📐 Mặt tiền:</span>
-                            <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === null}"
-                                    t-on-click="() => this.setFront(null)">Tất cả</button>
-                            <t t-foreach="frontList" t-as="v" t-key="v">
-                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === v}"
-                                        t-on-click="() => this.setFront(v)"><t t-esc="v"/>m</button>
-                            </t>
-                        </div>
+                        <!-- Công năng: theo số tầng + mặt tiền -->
+                        <t t-if="isCnLib">
+                            <div class="o_vd_nt_frow">
+                                <span class="o_vd_nt_flabel">🏢 Số tầng:</span>
+                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === null}"
+                                        t-on-click="() => this.setFloors(null)">Tất cả</button>
+                                <t t-foreach="floorsList" t-as="v" t-key="v">
+                                    <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFloors === v}"
+                                            t-on-click="() => this.setFloors(v)"><t t-esc="floorLabel(v)"/></button>
+                                </t>
+                            </div>
+                            <div class="o_vd_nt_frow">
+                                <span class="o_vd_nt_flabel">📐 Mặt tiền:</span>
+                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === null}"
+                                        t-on-click="() => this.setFront(null)">Tất cả</button>
+                                <t t-foreach="frontList" t-as="v" t-key="v">
+                                    <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fFront === v}"
+                                            t-on-click="() => this.setFront(v)"><t t-esc="v"/>m</button>
+                                </t>
+                            </div>
+                        </t>
+                        <!-- Video nghiệm thu: theo HẠNG MỤC (từ khóa tên video) -->
+                        <t t-if="isNtLib">
+                            <div class="o_vd_nt_frow">
+                                <span class="o_vd_nt_flabel">🏗️ Hạng mục:</span>
+                                <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fCat === null}"
+                                        t-on-click="() => this.setCat(null)">Tất cả</button>
+                                <t t-foreach="ntCatsList" t-as="c" t-key="c.key">
+                                    <button class="o_vd_nt_fchip" t-att-class="{'o_active': state.fCat === c.key}"
+                                            t-on-click="() => this.setCat(c.key)"><t t-esc="c.label"/></button>
+                                </t>
+                            </div>
+                        </t>
                     </div>
-                    <div t-if="filteredEmpty" class="o_vd_nt_center">Không có bản vẽ khớp bộ lọc.</div>
+                    <div t-if="filteredEmpty" class="o_vd_nt_center">Không có mục nào khớp bộ lọc.</div>
                     <t t-foreach="displayGroups" t-as="g" t-key="g_index">
                         <div t-if="g.files.length" class="o_vd_nt_group">
                             <div class="o_vd_nt_grouphead">
                                 <i class="fa fa-folder-open me-1"/><t t-esc="g.name"/>
                                 <span class="o_vd_nt_gcount">(<t t-esc="g.files.length"/>)</span>
                             </div>
-                            <div class="o_vd_nt_grid">
+                            <div class="o_vd_nt_grid" t-att-class="{'o_vd_nt_grid_dense': isNtLib}">
                                 <t t-foreach="g.files" t-as="f" t-key="f.id">
                                     <!-- VIDEO/ẢNH: thẻ có ảnh xem trước -->
                                     <div t-if="hasThumb(f)" class="o_vd_dl_card">

@@ -18,6 +18,20 @@ const VD_LIBS = [
     { key: "hop_dong", title: "THƯ VIỆN - Hợp đồng", icon: "fa-file-text-o", cls: "o_vd_hd_lib_filter" },
 ];
 
+// BỘ LỌC "Hạng mục" cho thư viện Video nghiệm thu — chip theo TỪ KHÓA trong tên
+// video (1 video có thể khớp nhiều hạng mục). Chip chỉ hiện khi có ≥1 video khớp.
+const NT_CATS = [
+    { key: "mong", label: "Móng", kw: ["móng"] },
+    { key: "coc", label: "Ép cọc", kw: ["cọc", "ép cọc"] },
+    { key: "sat", label: "Sắt thép", kw: ["sắt", "thép"] },
+    { key: "coppha", label: "Coppha", kw: ["coppha", "cốp pha", "cofa"] },
+    { key: "cot", label: "Cột", kw: ["cột"] },
+    { key: "tuong", label: "Tường - Gạch", kw: ["tường", "gạch", "xây"] },
+    { key: "betong", label: "Bê tông", kw: ["bê tông", "betong"] },
+    { key: "san", label: "Sàn", kw: ["sàn"] },
+    { key: "bephot", label: "Bể phốt", kw: ["bể phốt", "bể phot"] },
+];
+
 export class VdDriveLibDialog extends Component {
     static template = "vd_crm_lead.DriveLibDialog";
     static components = { Dialog };
@@ -31,16 +45,31 @@ export class VdDriveLibDialog extends Component {
         this.state = useState({
             loading: true, error: "", groups: [],
             fFloors: null, fFront: null,   // bộ lọc số tầng / mặt tiền (Công năng)
+            fCat: null,                    // bộ lọc hạng mục (Video nghiệm thu)
         });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
         this.load();
     }
 
-    // ===== BỘ LỌC (chỉ kho Công năng 3D) — parse tên file "2.5T - 5x13 - TH002" =====
-    get showFilters() {
-        return this.props.libKey === "cong_nang_3d";
+    // ===== BỘ LỌC =====
+    get isCnLib() { return this.props.libKey === "cong_nang_3d"; }
+    get isNtLib() { return this.props.libKey === "nghiem_thu"; }
+    get showFilters() { return this.isCnLib || this.isNtLib; }
+
+    // --- Video nghiệm thu: lọc theo HẠNG MỤC (từ khóa trong tên) ---
+    ntMatch(name, catKey) {
+        const cat = NT_CATS.find((c) => c.key === catKey);
+        if (!cat) return true;
+        const n = (name || "").toLowerCase();
+        return cat.kw.some((k) => n.includes(k));
     }
+    get ntCatsList() {
+        const files = this.allFiles;
+        return NT_CATS.filter((c) => files.some((f) => this.ntMatch(f.name, c.key)));
+    }
+    setCat(v) { this.state.fCat = (this.state.fCat === v) ? null : v; }
+
     // Số tầng: token đầu "4,5T" / "2.5T" / "1T" → 4.5 / 2.5 / 1.
     parseFloors(name) {
         const m = (name || "").match(/(\d+(?:[.,]\d+)?)\s*T\b/i);
@@ -74,21 +103,30 @@ export class VdDriveLibDialog extends Component {
     setFront(v) { this.state.fFront = (this.state.fFront === v) ? null : v; }
     // Nhóm đã áp bộ lọc để render.
     get displayGroups() {
-        const ff = this.state.fFloors, fr = this.state.fFront;
-        if (!this.showFilters || (ff === null && fr === null)) return this.state.groups;
-        return (this.state.groups || []).map((g) => ({
-            name: g.name,
-            files: (g.files || []).filter((f) => {
-                if (ff !== null && this.parseFloors(f.name) !== ff) return false;
-                if (fr !== null && this.parseFront(f.name) !== fr) return false;
-                return true;
-            }),
-        }));
+        if (this.isCnLib) {
+            const ff = this.state.fFloors, fr = this.state.fFront;
+            if (ff === null && fr === null) return this.state.groups;
+            return (this.state.groups || []).map((g) => ({
+                name: g.name,
+                files: (g.files || []).filter((f) => {
+                    if (ff !== null && this.parseFloors(f.name) !== ff) return false;
+                    if (fr !== null && this.parseFront(f.name) !== fr) return false;
+                    return true;
+                }),
+            }));
+        }
+        if (this.isNtLib && this.state.fCat) {
+            return (this.state.groups || []).map((g) => ({
+                name: g.name,
+                files: (g.files || []).filter((f) => this.ntMatch(f.name, this.state.fCat)),
+            }));
+        }
+        return this.state.groups;
     }
     get filteredEmpty() {
-        return this.showFilters
-            && (this.state.fFloors !== null || this.state.fFront !== null)
-            && !this.displayGroups.some((g) => (g.files || []).length);
+        const active = (this.isCnLib && (this.state.fFloors !== null || this.state.fFront !== null))
+            || (this.isNtLib && !!this.state.fCat);
+        return active && !this.displayGroups.some((g) => (g.files || []).length);
     }
 
     async load() {
