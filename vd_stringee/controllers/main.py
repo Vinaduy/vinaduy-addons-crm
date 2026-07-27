@@ -274,12 +274,15 @@ class StringeeController(http.Controller):
                 # TRƯỞNG PHÒNG trước; 10s không ai nghe → đổ chuông TẤT CẢ NV.
                 # Bỏ qua NV quản lý KH: đây là số chung của công ty.
                 Users = request.env['res.users'].sudo()
+                # vd_crm_role là field COMPUTE (không search được) → lấy hết caller
+                # rồi lọc theo role trong Python (đọc field từng record thì OK).
+                callers = Users.search([
+                    ('share', '=', False), ('active', '=', True),
+                    ('stringee_user_id', '!=', False)])
 
-                def _suis(extra_domain):
-                    dom = [('share', '=', False), ('active', '=', True),
-                           ('stringee_user_id', '!=', False)] + extra_domain
+                def _suis(recs):
                     out = []
-                    for u in Users.search(dom):
+                    for u in recs:
                         s = (u.stringee_user_id or '').strip()
                         if s and s not in out:
                             out.append(s)
@@ -298,8 +301,9 @@ class StringeeController(http.Controller):
                         'continueOnFail': True,
                     }
 
-                leaders = _suis([('vd_crm_role', '=', 'team_leader')])
-                everyone = _suis([])
+                leaders = _suis(callers.filtered(
+                    lambda u: u.vd_crm_role == 'team_leader'))
+                everyone = _suis(callers)
                 if leaders:
                     actions.append(_grp_connect(leaders, 10))    # trưởng phòng: 10s
                 if everyone:
