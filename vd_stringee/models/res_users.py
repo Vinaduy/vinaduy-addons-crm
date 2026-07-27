@@ -103,6 +103,15 @@ class ResUsers(models.Model):
         Trả: {'from_number': '84...', 'carrier': 'viettel'} hoặc {'error': '...'}.
         """
         self.ensure_one()
+        # ---- SỐ CỐ ĐỊNH (landline / TỔNG ĐÀI, carrier 'other') ----
+        # Số cố định KHÔNG bị chặn nội mạng như số di động → gọi được MỌI mạng
+        # khách. NV nào được gán số cố định sống thì ƯU TIÊN dùng số đó cho mọi
+        # cuộc (số đẹp, ít bị nhà mạng gắn cờ). User spec 2026-07-27.
+        landline = self.stringee_hotline_ids.filtered(
+            lambda h: h.active and h.carrier == 'other' and not h._vd_is_dead()
+        )[:1]
+        if landline:
+            return {'from_number': landline.number, 'carrier': landline.carrier}
         carrier = vd_carrier_from_number(to_number)
         if carrier not in _SAME_CARRIER_SUPPORTED:
             return {'error': (

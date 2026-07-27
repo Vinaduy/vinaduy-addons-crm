@@ -128,6 +128,7 @@ class StringeeController(http.Controller):
         def _digits(s):
             return _re.sub(r'\D', '', s or '')
         hotline_digits_set = set()
+        switchboard_sfx_set = set()   # số CỐ ĐỊNH (carrier 'other') = TỔNG ĐÀI
         global_digits = _digits(from_number)
         if global_digits:
             hotline_digits_set.add(global_digits)
@@ -135,6 +136,8 @@ class StringeeController(http.Controller):
             _hd = _digits(_h.number)
             if _hd:
                 hotline_digits_set.add(_hd)
+                if _h.carrier == 'other':
+                    switchboard_sfx_set.add(_hd[-9:])
 
         Call = request.env['stringee.call'].sudo()
         existing = Call.search([('name', '=', call_id)], limit=1) if call_id else Call.browse()
@@ -265,6 +268,44 @@ class StringeeController(http.Controller):
                     {'type': 'internal', 'number': effective_from, 'alias': effective_from},
                     to_num,
                 ))
+            elif _digits(to_num)[-9:] in switchboard_sfx_set:
+                # === TỔNG ĐÀI (số cố định): đổ chuông NHÓM leo thang ===
+                # user spec 2026-07-27: KH gọi vào số tổng đài → đổ chuông TẤT CẢ
+                # TRƯỞNG PHÒNG trước; 10s không ai nghe → đổ chuông TẤT CẢ NV.
+                # Bỏ qua NV quản lý KH: đây là số chung của công ty.
+                Users = request.env['res.users'].sudo()
+
+                def _suis(extra_domain):
+                    dom = [('share', '=', False), ('active', '=', True),
+                           ('stringee_user_id', '!=', False)] + extra_domain
+                    out = []
+                    for u in Users.search(dom):
+                        s = (u.stringee_user_id or '').strip()
+                        if s and s not in out:
+                            out.append(s)
+                    return out
+
+                def _grp_connect(suis, timeout):
+                    # `to` là ARRAY → Stringee đổ chuông ĐỒNG THỜI mọi endpoint,
+                    # ai bắt máy trước được nối; timeout hết → continueOnFail sang
+                    # action kế tiếp.
+                    return {
+                        'action': 'connect',
+                        'to': [{'type': 'internal', 'number': s, 'alias': ''}
+                               for s in suis],
+                        'peerToPeerCall': False,
+                        'timeout': timeout,
+                        'continueOnFail': True,
+                    }
+
+                leaders = _suis([('vd_crm_role', '=', 'team_leader')])
+                everyone = _suis([])
+                if leaders:
+                    actions.append(_grp_connect(leaders, 10))    # trưởng phòng: 10s
+                if everyone:
+                    actions.append(_grp_connect(everyone, 30))   # rồi tất cả NV
+                # Không ai online / chưa có stringee_user_id → không append,
+                # Stringee tự hang-up.
             else:
                 # PSTN inbound (KH gọi vào hotline). Định tuyến về browser NV
                 # quản lý KH (incomingcall2 → auto-answer) thay vì bridge

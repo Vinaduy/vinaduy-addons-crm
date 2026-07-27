@@ -18,7 +18,7 @@ _CARRIER_ORDER = [
     ('vietnamobile', 'Vietnamobile'),
     ('itelecom', 'iTel'),
     ('gmobile', 'Gmobile'),
-    ('other', 'Khác'),
+    ('other', 'Số cố định'),
 ]
 
 
