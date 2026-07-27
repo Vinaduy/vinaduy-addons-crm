@@ -798,71 +798,22 @@
                         <div t-if="!state.selectedEmp.paths.length" class="o_vd_emp_empty">Chưa có lộ trình đào tạo nào.</div>
                     </div>
 
-                    <!-- LỊCH SỬ HỌC: filter HOVER -> popup bảng lịch sử thi (user 2026-07-21) -->
-                    <div class="o_vd_histfilter"
-                         t-on-mouseenter="() => this.openHist()"
-                         t-on-mouseleave="() => this.scheduleHistClose()">
-                        <button type="button" class="o_vd_histfilter_btn"
-                                t-att-class="{'o_active': state.histOpen}"
-                                t-on-click="() => this.toggleHist()">
-                            <span class="o_vd_hf_ic"><i class="fa fa-history"/></span>
-                            <span class="o_vd_hf_lbl">LỊCH SỬ THI</span>
-                            <span class="o_vd_histfilter_sum">
-                                <span class="o_vd_hf_m o_vd_hf_g">🥇<b t-esc="examMedals.gold"/></span>
-                                <span class="o_vd_hf_m o_vd_hf_s">🥈<b t-esc="examMedals.silver"/></span>
-                                <span class="o_vd_hf_m o_vd_hf_b">🥉<b t-esc="examMedals.bronze"/></span>
+                    <!-- LỊCH SỬ THI: nút chuyên nghiệp -> mở popup bảng rộng 90% (user 2026-07-27) -->
+                    <div class="o_vd_histfilter">
+                        <button type="button" class="o_vd_histbtn"
+                                t-on-click="() => this.openExamHistory()">
+                            <span class="o_vd_histbtn_ic"><i class="fa fa-trophy"/></span>
+                            <span class="o_vd_histbtn_txt">
+                                <span class="o_vd_histbtn_lbl">LỊCH SỬ THI</span>
+                                <span class="o_vd_histbtn_sub"><b t-esc="examMedals.passed"/>/<t t-esc="examMedals.total"/> khóa đạt</span>
                             </span>
-                            <i t-attf-class="fa ms-1 {{state.histOpen ? 'fa-caret-up' : 'fa-caret-down'}}"/>
+                            <span class="o_vd_histbtn_medals">
+                                <span class="o_vd_histbtn_m gold">🥇<b t-esc="examMedals.gold"/></span>
+                                <span class="o_vd_histbtn_m silver">🥈<b t-esc="examMedals.silver"/></span>
+                                <span class="o_vd_histbtn_m bronze">🥉<b t-esc="examMedals.bronze"/></span>
+                            </span>
+                            <i class="fa fa-expand o_vd_histbtn_arrow"/>
                         </button>
-                        <div class="o_vd_histpop" t-if="state.histOpen">
-                        <div class="o_vd_ach_box">
-                        <div class="o_vd_ach_head">
-                            <div class="o_vd_ach_title"><i class="fa fa-history me-2"/>LỊCH SỬ HỌC</div>
-                            <div class="o_vd_ach_medals">
-                                <span class="o_vd_ach_m o_vd_ach_gold" title="Đạt 100%">🥇 <b t-esc="examMedals.gold"/></span>
-                                <span class="o_vd_ach_m o_vd_ach_silver" title="Đạt 90-99%">🥈 <b t-esc="examMedals.silver"/></span>
-                                <span class="o_vd_ach_m o_vd_ach_bronze" title="Đạt (dưới 90%)">🥉 <b t-esc="examMedals.bronze"/></span>
-                                <span class="o_vd_ach_m o_vd_ach_pass" title="Số khóa đã đạt / đã thi"><i class="fa fa-check"/> <b t-esc="examMedals.passed"/>/<t t-esc="examMedals.total"/></span>
-                            </div>
-                        </div>
-                        <table class="o_vd_ach_tbl">
-                            <thead>
-                                <tr>
-                                    <th class="o_vd_ach_c_medal">Hạng</th>
-                                    <th class="o_vd_ach_c_name">Khóa học</th>
-                                    <th>Kết quả</th>
-                                    <th class="o_vd_ach_c_num">Điểm</th>
-                                    <th class="o_vd_ach_c_num">Cao nhất</th>
-                                    <th class="o_vd_ach_c_num">Số lần</th>
-                                    <th class="o_vd_ach_c_date">Lần thi gần nhất</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="state.selectedEmp.examHistory || []" t-as="ex" t-key="ex.channel_id || ex_index">
-                                    <t t-set="medal" t-value="examMedal(ex)"/>
-                                    <tr t-attf-class="{{ex.passed ? 'o_vd_ach_row_done' : 'o_vd_ach_row_fail'}} {{medal ? 'o_vd_ach_'+medal.cls : ''}}">
-                                        <td class="o_vd_ach_c_medal">
-                                            <span t-if="medal" t-attf-class="o_vd_ach_badge o_vd_ach_b_{{medal.cls}}" t-att-title="'Huy chương ' + medal.label"><t t-esc="medal.emoji"/></span>
-                                            <span t-else="" class="o_vd_ach_badge o_vd_ach_b_none" title="Chưa đạt">—</span>
-                                        </td>
-                                        <td class="o_vd_ach_c_name"><b t-esc="ex.course_name"/></td>
-                                        <td>
-                                            <span t-if="ex.passed" class="o_vd_ach_result o_vd_ach_r_done"><i class="fa fa-check-circle me-1"/>Đạt</span>
-                                            <span t-else="" class="o_vd_ach_result o_vd_ach_r_fail"><i class="fa fa-times-circle me-1"/>Chưa đạt</span>
-                                        </td>
-                                        <td class="o_vd_ach_c_num"><b t-esc="ex.percent"/>%</td>
-                                        <td class="o_vd_ach_c_num o_vd_ach_best" t-esc="ex.best_percent + '%'"/>
-                                        <td class="o_vd_ach_c_num"><span class="o_vd_ach_att" t-esc="ex.attempts"/></td>
-                                        <td class="o_vd_ach_c_date" t-esc="examWhen(ex.done_ts)"/>
-                                    </tr>
-                                </t>
-                                <tr t-if="!(state.selectedEmp.examHistory || []).length">
-                                    <td colspan="7" class="o_vd_assign_empty">Nhân viên chưa thi khóa nào.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                        </div>
                     </div>
                 </div>
             </t>
@@ -1066,6 +1017,118 @@
                         </div>
                     </div>
                 </t>
+            </div>
+        </Dialog>
+    </t>
+
+    <!-- ===== POPUP LỊCH SỬ THI (rộng ~90% màn hình, chia theo KẾT QUẢ) ===== -->
+    <t t-name="vd_elearning.ExamHistoryDialog">
+        <Dialog title="'Lịch sử thi'" size="'xl'" contentClass="'o_vd_examhist_dialog'">
+            <div class="o_vd_eh">
+                <!-- Đầu bảng: nhân viên + thẻ tổng quan -->
+                <div class="o_vd_eh_head">
+                    <div class="o_vd_eh_who">
+                        <div class="o_vd_eh_avatar"><i class="fa fa-user"/></div>
+                        <div>
+                            <div class="o_vd_eh_htitle"><i class="fa fa-history me-2"/>LỊCH SỬ THI</div>
+                            <div class="o_vd_eh_name" t-esc="props.empName"/>
+                        </div>
+                    </div>
+                    <div class="o_vd_eh_stats">
+                        <div class="o_vd_eh_stat o_vd_eh_s_total">
+                            <div class="o_vd_eh_num" t-esc="stats.total"/>
+                            <div class="o_vd_eh_cap">Khóa đã thi</div>
+                        </div>
+                        <div class="o_vd_eh_stat o_vd_eh_s_pass">
+                            <div class="o_vd_eh_num" t-esc="stats.passed"/>
+                            <div class="o_vd_eh_cap">Đã đạt</div>
+                        </div>
+                        <div class="o_vd_eh_stat o_vd_eh_s_fail">
+                            <div class="o_vd_eh_num" t-esc="stats.failed"/>
+                            <div class="o_vd_eh_cap">Chưa đạt</div>
+                        </div>
+                        <div class="o_vd_eh_stat o_vd_eh_s_rate">
+                            <div class="o_vd_eh_num"><t t-esc="stats.rate"/>%</div>
+                            <div class="o_vd_eh_cap">Tỷ lệ đạt</div>
+                        </div>
+                        <div class="o_vd_eh_medals">
+                            <span class="o_vd_eh_med gold" title="Đạt 100%">🥇<b t-esc="stats.gold"/></span>
+                            <span class="o_vd_eh_med silver" title="Đạt 90-99%">🥈<b t-esc="stats.silver"/></span>
+                            <span class="o_vd_eh_med bronze" title="Đạt dưới 90%">🥉<b t-esc="stats.bronze"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="!(props.history || []).length" class="o_vd_eh_empty">
+                    <i class="fa fa-inbox me-2"/>Nhân viên chưa thi khóa nào.
+                </div>
+
+                <div class="o_vd_eh_body">
+                    <!-- KHỐI ĐÃ ĐẠT -->
+                    <div t-if="passedItems.length" class="o_vd_eh_group o_vd_eh_g_pass">
+                        <div class="o_vd_eh_gtitle">
+                            <i class="fa fa-check-circle me-2"/>ĐÃ ĐẠT
+                            <span class="o_vd_eh_gcount" t-esc="passedItems.length"/>
+                        </div>
+                        <table class="o_vd_eh_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="o_vd_eh_c_medal">Hạng</th>
+                                    <th class="o_vd_eh_c_name">Khóa học</th>
+                                    <th class="o_vd_eh_c_num">Điểm gần nhất</th>
+                                    <th class="o_vd_eh_c_num">Cao nhất</th>
+                                    <th class="o_vd_eh_c_num">Số lần thi</th>
+                                    <th class="o_vd_eh_c_date">Lần thi gần nhất</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="passedItems" t-as="ex" t-key="ex.channel_id || ex_index">
+                                    <t t-set="m" t-value="medal(ex)"/>
+                                    <tr t-attf-class="o_vd_eh_row o_vd_eh_r_pass o_vd_eh_{{m ? m.cls : ''}}">
+                                        <td class="o_vd_eh_c_medal">
+                                            <span t-attf-class="o_vd_eh_badge o_vd_eh_b_{{m.cls}}" t-att-title="'Huy chương ' + m.label"><t t-esc="m.emoji"/></span>
+                                        </td>
+                                        <td class="o_vd_eh_c_name"><b t-esc="ex.course_name"/></td>
+                                        <td class="o_vd_eh_c_num"><t t-esc="ex.percent"/>%</td>
+                                        <td class="o_vd_eh_c_num o_vd_eh_best"><b t-esc="ex.best_percent"/>%</td>
+                                        <td class="o_vd_eh_c_num"><span class="o_vd_eh_att" t-esc="ex.attempts"/></td>
+                                        <td class="o_vd_eh_c_date" t-esc="when(ex.done_ts)"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- KHỐI CHƯA ĐẠT -->
+                    <div t-if="failedItems.length" class="o_vd_eh_group o_vd_eh_g_fail">
+                        <div class="o_vd_eh_gtitle">
+                            <i class="fa fa-times-circle me-2"/>CHƯA ĐẠT
+                            <span class="o_vd_eh_gcount" t-esc="failedItems.length"/>
+                        </div>
+                        <table class="o_vd_eh_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="o_vd_eh_c_name">Khóa học</th>
+                                    <th class="o_vd_eh_c_num">Điểm gần nhất</th>
+                                    <th class="o_vd_eh_c_num">Cao nhất</th>
+                                    <th class="o_vd_eh_c_num">Số lần thi</th>
+                                    <th class="o_vd_eh_c_date">Lần thi gần nhất</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="failedItems" t-as="ex" t-key="ex.channel_id || ex_index">
+                                    <tr class="o_vd_eh_row o_vd_eh_r_fail">
+                                        <td class="o_vd_eh_c_name"><b t-esc="ex.course_name"/></td>
+                                        <td class="o_vd_eh_c_num"><t t-esc="ex.percent"/>%</td>
+                                        <td class="o_vd_eh_c_num o_vd_eh_best"><b t-esc="ex.best_percent"/>%</td>
+                                        <td class="o_vd_eh_c_num"><span class="o_vd_eh_att" t-esc="ex.attempts"/></td>
+                                        <td class="o_vd_eh_c_date" t-esc="when(ex.done_ts)"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </Dialog>
     </t>

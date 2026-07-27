@@ -62,6 +62,13 @@ class SlideChannel(models.Model):
         quiz = slides.filtered(lambda s: s.slide_category == 'quiz')[:1]
         return bool(quiz and quiz.question_ids)
 
+    @staticmethod
+    def _vd_course_has_quiz(c):
+        """Khoa CO BAI THI (quiz co cau hoi). Dung de xac dinh khoa 'chan' lo trinh:
+        chi khoa co bai thi moi bat buoc DAT thi lo trinh moi tinh la hoan thanh."""
+        quiz = c.slide_ids.filtered(lambda s: s.slide_category == 'quiz')[:1]
+        return bool(quiz and quiz.question_ids)
+
     @api.model
     def _vd_assign_default_paths(self):
         """Gan khoa hoc chua co lo trinh vao 'Lo trinh co ban' cua zone (idempotent)."""
@@ -177,6 +184,8 @@ class SlideChannel(models.Model):
                 'published': bool(c.is_published),
                 # Co noi dung HOAC bai thi -> icon tim; rong -> icon xam + xoa duoc.
                 'has_content': self._vd_course_has_content(c),
+                # Co bai thi -> khoa BAT BUOC dat de mo lo trinh ke tiep (cong chan).
+                'has_quiz': self._vd_course_has_quiz(c),
             } for c in recs]
 
         PathModel = self.env['vd.learning.path'].sudo()

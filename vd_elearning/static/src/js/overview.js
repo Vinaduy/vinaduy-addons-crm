@@ -1292,6 +1292,54 @@ export class VdHardLibraryDialog extends Component {
     }
 }
 
+// ---- Popup LỊCH SỬ THI: bảng thành tích chia theo KẾT QUẢ (đạt / chưa đạt) ----
+// Mở rộng ~90% màn hình, thiết kế thẻ tổng quan + 2 bảng chuyên nghiệp.
+export class VdExamHistoryDialog extends Component {
+    static template = "vd_elearning.ExamHistoryDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        empName: String,
+        history: Array,
+    };
+    // Huy chương theo ĐIỂM CAO NHẤT (chỉ khi ĐÃ ĐẠT): 100% Vàng, >=90% Bạc, còn lại Đồng.
+    medal(ex) {
+        if (!ex || !ex.passed) return null;
+        const p = ex.best_percent || 0;
+        if (p >= 100) return { emoji: "🥇", cls: "gold", label: "Vàng" };
+        if (p >= 90) return { emoji: "🥈", cls: "silver", label: "Bạc" };
+        return { emoji: "🥉", cls: "bronze", label: "Đồng" };
+    }
+    when(ts) {
+        if (!ts) return "-";
+        const d = new Date(ts);
+        const p = (n) => (n < 10 ? "0" : "") + n;
+        return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+    get passedItems() {
+        return (this.props.history || []).filter((ex) => ex.passed)
+            .sort((a, b) => (b.best_percent || 0) - (a.best_percent || 0));
+    }
+    get failedItems() {
+        return (this.props.history || []).filter((ex) => !ex.passed);
+    }
+    get stats() {
+        const h = this.props.history || [];
+        let gold = 0, silver = 0, bronze = 0, passed = 0;
+        for (const ex of h) {
+            const m = this.medal(ex);
+            if (!m) continue;
+            passed += 1;
+            if (m.cls === "gold") gold += 1;
+            else if (m.cls === "silver") silver += 1;
+            else bronze += 1;
+        }
+        const total = h.length;
+        return { gold, silver, bronze, passed, total, failed: total - passed,
+                 rate: total ? Math.round((100 * passed) / total) : 0 };
+    }
+}
+
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -1315,7 +1363,6 @@ export class VdElearningOverview extends Component {
             loading: true,
             myCerts: null,   // {emp_name, role_label, company_name, items:[...]}
             riderDragging: false,  // admin keo avatar NV de gan vao khoa chua hoan thanh
-            histOpen: false,       // popup LICH SU HOC chi hien khi BAM nut (khong hover)
         });
         this.dragData = null;
         this.pathDragData = null;
@@ -1481,7 +1528,28 @@ export class VdElearningOverview extends Component {
     studentPathNodes(path) {
         const s = this.state.selectedEmp;
         const done = new Set(s.completedIds || []);
+        const paths = s.paths || [];
+        const idx = paths.indexOf(path);
         const map = {};
+        // ---- CỔNG CHẶN LỘ TRÌNH (user spec 2026-07-27) ----
+        // Phải HOÀN THÀNH HẾT lộ trình đứng trước (mọi khóa CÓ BÀI THI đều đã đạt)
+        // thì lộ trình này mới được mở. Khóa chỉ có nội dung (không có bài thi)
+        // không tính là chặn — đồng bộ với _vd_progress_user_paths ở server.
+        let prevPathsDone = true;
+        for (let i = 0; i < idx; i++) {
+            const prevCourses = paths[i].courses || [];
+            if (prevCourses.some((c) => c.has_quiz && !done.has(c.id))) {
+                prevPathsDone = false;
+                break;
+            }
+        }
+        if (!prevPathsDone) {
+            // Lộ trình trước chưa xong -> KHÓA toàn bộ khóa của lộ trình này.
+            for (const c of path.courses) {
+                map[c.id] = done.has(c.id) ? "done" : "locked";
+            }
+            return this.trackNodes(path.courses, this.studentEmp, 0, map);
+        }
         // prefixDone = MỌI khóa ĐỨNG TRƯỚC khóa hiện tại đều đã hoàn thành?
         // Nếu NV đã học hết các khóa trước thì khóa chưa học kế tiếp được MỞ để
         // NV CHỦ ĐỘNG vào học — kể cả khóa MỚI chèn vào lộ trình đã hoàn thành
@@ -1524,7 +1592,6 @@ export class VdElearningOverview extends Component {
             locked: false,
             examHistory: [],
         };
-        this.state.histOpen = false;   // doi NV -> dong popup lich su
         // Chung nhan THAT cua NV nay -> hover khoa da dat hien dung ten NV.
         try {
             const certs = await this.orm.call(
@@ -1548,19 +1615,15 @@ export class VdElearningOverview extends Component {
         }
     }
 
-    // Popup LỊCH SỬ HỌC (lịch sử thi): HOVER vào nút -> bung popup bảng; rời ra
-    // -> đóng (trễ nhẹ để kịp rê chuột vào popup). Bấm cũng bật/tắt được.
-    toggleHist() {
-        clearTimeout(this._histTimer);
-        this.state.histOpen = !this.state.histOpen;
-    }
-    openHist() {
-        clearTimeout(this._histTimer);
-        this.state.histOpen = true;
-    }
-    scheduleHistClose() {
-        clearTimeout(this._histTimer);
-        this._histTimer = setTimeout(() => { this.state.histOpen = false; }, 220);
+    // Nút LỊCH SỬ THI -> mở popup bảng thành tích rộng ~90% màn hình, chia theo
+    // kết quả (đạt / chưa đạt). User spec 2026-07-27.
+    openExamHistory() {
+        const s = this.state.selectedEmp;
+        if (!s) return;
+        this.dialog.add(VdExamHistoryDialog, {
+            empName: s.name || "",
+            history: s.examHistory || [],
+        });
     }
 
     // Huy chương theo ĐIỂM CAO NHẤT (chỉ khi ĐÃ ĐẠT): 100% Vàng, >=90% Bạc,

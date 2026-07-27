@@ -717,47 +717,143 @@ $vd-line2:   #ece7da;
         color: #6b6452; font-weight: 800; font-size: .74rem;
     }
 
-    // ----- FILTER "LỊCH SỬ HỌC": hover -> popup bảng (user 2026-07-20) -----
-    .o_vd_histfilter { position: relative; display: inline-block; margin-top: 16px; }
-    .o_vd_histfilter_btn {
-        display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
-        border: 0; border-radius: 999px;
-        padding: .5rem .7rem .5rem .55rem; font-weight: 900; font-size: .82rem; letter-spacing: .02em;
-        color: #fff; background: linear-gradient(120deg, #2b3350, #4b3fa0 62%, #6d28d9);
-        box-shadow: 0 8px 20px rgba($vd-ink, .22); transition: all .16s ease;
-        .o_vd_hf_ic {
+    // ----- NÚT "LỊCH SỬ THI" -> mở popup rộng 90% (user 2026-07-27) -----
+    .o_vd_histfilter { display: inline-block; margin-top: 16px; }
+    .o_vd_histbtn {
+        display: inline-flex; align-items: center; gap: .7rem; cursor: pointer;
+        border: 0; border-radius: 16px;
+        padding: .55rem 1rem .55rem .6rem; text-align: left;
+        color: #fff; background: linear-gradient(120deg, #2b3350, #4b3fa0 60%, #6d28d9);
+        box-shadow: 0 10px 24px rgba($vd-ink, .24); transition: all .16s ease;
+        .o_vd_histbtn_ic {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 26px; height: 26px; border-radius: 50%;
-            background: rgba(255,255,255,.16); color: #ffd451; font-size: .82rem;
+            width: 40px; height: 40px; border-radius: 12px; font-size: 1.15rem;
+            background: linear-gradient(135deg, #ffd451, #f5a623); color: #6b3b00;
+            box-shadow: 0 4px 12px rgba(245,166,35,.4);
         }
-        .o_vd_hf_lbl { white-space: nowrap; }
-        .o_vd_histfilter_sum {
-            display: inline-flex; gap: .28rem; margin: 0 .1rem; font-size: .8rem;
-            .o_vd_hf_m {
-                display: inline-flex; align-items: center; gap: .12rem;
-                border-radius: 999px; padding: .08rem .42rem; line-height: 1.5;
-                background: rgba(255,255,255,.12);
-                b { font-weight: 900; }
+        .o_vd_histbtn_txt { display: flex; flex-direction: column; line-height: 1.15; }
+        .o_vd_histbtn_lbl { font-weight: 900; font-size: .9rem; letter-spacing: .03em; }
+        .o_vd_histbtn_sub { font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.75);
+            b { color: #ffe08a; } }
+        .o_vd_histbtn_medals {
+            display: inline-flex; gap: .3rem; margin-left: .2rem;
+            .o_vd_histbtn_m {
+                display: inline-flex; align-items: center; gap: .15rem;
+                border-radius: 999px; padding: .12rem .5rem; font-size: .8rem; font-weight: 800;
+                background: rgba(255,255,255,.12); b { font-weight: 900; }
+                &.gold { background: rgba(255,206,84,.22); }
+                &.silver { background: rgba(203,213,225,.22); }
+                &.bronze { background: rgba(217,131,71,.24); }
             }
-            .o_vd_hf_g { background: rgba(255,206,84,.22); }
-            .o_vd_hf_s { background: rgba(203,213,225,.22); }
-            .o_vd_hf_b { background: rgba(217,131,71,.24); }
         }
-        i.fa-caret-up, i.fa-caret-down { opacity: .85; }
-        &:hover { box-shadow: 0 12px 26px rgba($vd-ink, .32); transform: translateY(-1px); filter: brightness(1.06); }
+        .o_vd_histbtn_arrow { opacity: .7; font-size: .82rem; margin-left: .15rem; }
+        &:hover { box-shadow: 0 14px 30px rgba($vd-ink, .34); transform: translateY(-1px);
+            filter: brightness(1.06); .o_vd_histbtn_arrow { opacity: 1; } }
     }
-    .o_vd_histfilter_btn.o_active { box-shadow: 0 12px 26px rgba($vd-ink, .34); transform: translateY(-1px); }
-    // popup mở LÊN TRÊN (card overflow:hidden -> mở xuống bị cắt); phủ board.
-    // Hiện khi HOVER vào nút (hoặc bấm) — padding-bottom làm cầu nối chuột.
-    .o_vd_histpop {
-        position: absolute; bottom: 100%; left: 0; z-index: 60;
-        padding-bottom: 10px; width: #{"min(940px, 92vw)"};
+}
+
+// ============ POPUP LỊCH SỬ THI (Dialog rộng ~90% màn hình) ============
+.o_dialog:has(.o_vd_examhist_dialog) .modal-dialog {
+    max-width: 92vw; width: 1160px;
+}
+.o_vd_examhist_dialog {
+    .modal-body { padding: 0; background: #f6f4ec; }
+    .o_vd_eh { display: flex; flex-direction: column; max-height: 82vh; }
+    // ----- ĐẦU BẢNG: nhân viên + thẻ tổng quan -----
+    .o_vd_eh_head {
+        display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+        padding: 1.1rem 1.4rem;
+        background: linear-gradient(120deg, #2b3350 0%, #3a4670 55%, #4b3fa0 100%);
+        color: #fff;
     }
-    .o_vd_histpop .o_vd_ach_box {
-        max-height: 64vh; overflow-y: auto; box-shadow: 0 18px 44px rgba($vd-ink, .28);
+    .o_vd_eh_who { display: flex; align-items: center; gap: .8rem; }
+    .o_vd_eh_avatar {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 46px; height: 46px; border-radius: 50%; font-size: 1.3rem;
+        background: rgba(255,255,255,.14); color: #ffd451;
     }
-    // giữ thanh medal khi cuộn trong popup
-    .o_vd_histpop .o_vd_ach_head { position: sticky; top: 0; z-index: 3; }
+    .o_vd_eh_htitle { font-weight: 800; font-size: .78rem; letter-spacing: .06em;
+        color: rgba(255,255,255,.7); i { color: #ffd451; } }
+    .o_vd_eh_name { font-weight: 900; font-size: 1.25rem; line-height: 1.2; }
+    .o_vd_eh_stats { display: flex; align-items: stretch; gap: .7rem; margin-left: auto; flex-wrap: wrap; }
+    .o_vd_eh_stat {
+        min-width: 92px; padding: .5rem .9rem; border-radius: 12px; text-align: center;
+        background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16);
+        .o_vd_eh_num { font-weight: 900; font-size: 1.5rem; line-height: 1.1; }
+        .o_vd_eh_cap { font-size: .68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .04em; color: rgba(255,255,255,.72); }
+        &.o_vd_eh_s_pass { background: rgba(46,204,113,.22); border-color: rgba(46,204,113,.4);
+            .o_vd_eh_num { color: #74f7a8; } }
+        &.o_vd_eh_s_fail { background: rgba(224,49,49,.18); border-color: rgba(224,49,49,.35);
+            .o_vd_eh_num { color: #ff9d9d; } }
+        &.o_vd_eh_s_rate .o_vd_eh_num { color: #ffd451; }
+    }
+    .o_vd_eh_medals { display: flex; flex-direction: column; justify-content: center; gap: .3rem; }
+    .o_vd_eh_med {
+        display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; font-weight: 800;
+        padding: .12rem .55rem; border-radius: 999px; background: rgba(255,255,255,.12);
+        &.gold { background: rgba(255,206,84,.22); }
+        &.silver { background: rgba(203,213,225,.22); }
+        &.bronze { background: rgba(217,131,71,.24); }
+    }
+    // ----- THÂN: 2 khối bảng -----
+    .o_vd_eh_body { padding: 1.2rem 1.4rem 1.5rem; overflow-y: auto; }
+    .o_vd_eh_empty {
+        padding: 2.5rem; text-align: center; color: #8a8472; font-weight: 700; font-size: 1rem;
+    }
+    .o_vd_eh_group {
+        background: #fff; border: 1px solid #e7e2d4; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 6px 20px rgba($vd-ink, .06); margin-bottom: 1.3rem;
+        &:last-child { margin-bottom: 0; }
+    }
+    .o_vd_eh_gtitle {
+        display: flex; align-items: center; gap: .3rem;
+        padding: .7rem 1.1rem; font-weight: 900; font-size: .95rem; letter-spacing: .03em; color: #fff;
+        .o_vd_eh_gcount {
+            margin-left: .6rem; display: inline-flex; align-items: center; justify-content: center;
+            min-width: 26px; height: 22px; padding: 0 .4rem; border-radius: 999px;
+            background: rgba(255,255,255,.25); font-size: .82rem; font-weight: 900;
+        }
+    }
+    .o_vd_eh_g_pass .o_vd_eh_gtitle { background: linear-gradient(120deg, #1f7d41, #2e9b54); }
+    .o_vd_eh_g_fail .o_vd_eh_gtitle { background: linear-gradient(120deg, #b02a2a, #d94848); }
+    .o_vd_eh_tbl {
+        width: 100%; border-collapse: collapse; font-size: .88rem;
+        thead th {
+            text-align: left; color: #8a8472; font-weight: 800; font-size: .74rem;
+            text-transform: uppercase; letter-spacing: .03em;
+            padding: .6rem .9rem; background: #faf8f1; border-bottom: 2px solid $vd-line2; white-space: nowrap;
+        }
+        td { padding: .6rem .9rem; border-bottom: 1px solid #f4f1e8; color: $vd-ink2; vertical-align: middle; }
+        tbody tr:hover td { background: rgba($vd-gold, .07); }
+        tbody tr:last-child td { border-bottom: 0; }
+        .o_vd_eh_c_medal { width: 66px; text-align: center; }
+        .o_vd_eh_c_num { width: 108px; text-align: center; white-space: nowrap; }
+        .o_vd_eh_c_date { width: 150px; color: #8a8472; white-space: nowrap; font-weight: 600; }
+        .o_vd_eh_c_name b { color: $vd-ink; font-weight: 800; }
+        .o_vd_eh_best b { color: #1f7d41; font-weight: 900; }
+        tr.o_vd_eh_gold td:first-child { box-shadow: inset 4px 0 0 #f5b301; }
+        tr.o_vd_eh_silver td:first-child { box-shadow: inset 4px 0 0 #9aa7b4; }
+        tr.o_vd_eh_bronze td:first-child { box-shadow: inset 4px 0 0 #cd7f32; }
+        tr.o_vd_eh_r_fail td { color: #9c9384; }
+    }
+    .o_vd_eh_badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem;
+        box-shadow: 0 2px 6px rgba($vd-ink, .18);
+        &.o_vd_eh_b_gold { background: radial-gradient(circle at 35% 30%, #fff3c4, #f5b301); }
+        &.o_vd_eh_b_silver { background: radial-gradient(circle at 35% 30%, #ffffff, #c4ccd6); }
+        &.o_vd_eh_b_bronze { background: radial-gradient(circle at 35% 30%, #f0cba0, #cd7f32); }
+    }
+    .o_vd_eh_att {
+        display: inline-flex; align-items: center; justify-content: center; min-width: 24px;
+        padding: .1rem .4rem; border-radius: 6px; background: #efece2;
+        color: #6b6452; font-weight: 800; font-size: .78rem;
+    }
+    @media (max-width: 720px) {
+        .o_vd_eh_stats { width: 100%; }
+        .o_vd_eh_c_date { display: none; }
+    }
 }
 
 // ============ KHOA HOC (popup full man hinh): noi dung + bai thi ============
