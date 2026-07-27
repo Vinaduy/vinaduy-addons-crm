@@ -46,6 +46,7 @@ export class VdDriveLibDialog extends Component {
             loading: true, error: "", groups: [],
             fFloors: null, fFront: null,   // bộ lọc số tầng / mặt tiền (Công năng)
             fCat: null,                    // bộ lọc hạng mục (Video nghiệm thu)
+            sel: {},                       // id video được tick chọn (tải hàng loạt)
         });
         this._alive = true;
         onWillUnmount(() => { this._alive = false; });
@@ -69,6 +70,49 @@ export class VdDriveLibDialog extends Component {
         return NT_CATS.filter((c) => files.some((f) => this.ntMatch(f.name, c.key)));
     }
     setCat(v) { this.state.fCat = (this.state.fCat === v) ? null : v; }
+
+    // --- CHỌN + TẢI HÀNG LOẠT (video nghiệm thu) ---
+    get showBulk() { return this.isNtLib && this.displayedVideos.length > 0; }
+    // Các video (có thumbnail) đang HIỂN THỊ theo bộ lọc hiện tại.
+    get displayedVideos() {
+        return this.displayGroups.flatMap(
+            (g) => (g.files || []).filter((f) => this.hasThumb(f)));
+    }
+    isSelected(id) { return !!this.state.sel[id]; }
+    toggleSel(id) {
+        if (this.state.sel[id]) delete this.state.sel[id];
+        else this.state.sel[id] = true;
+    }
+    get selCount() {
+        return Object.keys(this.state.sel).filter((k) => this.state.sel[k]).length;
+    }
+    get allDisplayedSelected() {
+        const vids = this.displayedVideos;
+        return vids.length > 0 && vids.every((f) => this.state.sel[f.id]);
+    }
+    toggleSelectAll() {
+        const vids = this.displayedVideos;
+        if (this.allDisplayedSelected) {
+            for (const f of vids) delete this.state.sel[f.id];
+        } else {
+            for (const f of vids) this.state.sel[f.id] = true;
+        }
+    }
+    // Tải lần lượt các video đã chọn (giãn cách để trình duyệt không chặn loạt tải).
+    downloadSelected() {
+        const ids = Object.keys(this.state.sel).filter((k) => this.state.sel[k]);
+        if (!ids.length) return;
+        ids.forEach((id, i) => {
+            setTimeout(() => {
+                const a = document.createElement("a");
+                a.href = this.dlUrl(id);
+                a.download = "";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, i * 700);
+        });
+    }
 
     // Số tầng: token đầu "4,5T" / "2.5T" / "1T" → 4.5 / 2.5 / 1.
     parseFloors(name) {
