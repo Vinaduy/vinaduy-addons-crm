@@ -269,10 +269,42 @@ class StringeeController(http.Controller):
                     to_num,
                 ))
             elif _digits(to_num)[-9:] in switchboard_sfx_set:
-                # === TỔNG ĐÀI (số cố định): đổ chuông NHÓM leo thang ===
-                # user spec 2026-07-27: KH gọi vào số tổng đài → đổ chuông TẤT CẢ
-                # TRƯỞNG PHÒNG trước; 10s không ai nghe → đổ chuông TẤT CẢ NV.
-                # Bỏ qua NV quản lý KH: đây là số chung của công ty.
+                # === TỔNG ĐÀI (số cố định) ===
+                # (A) FORWARD ra SỐ DI ĐỘNG thật nếu có cấu hình
+                #     `vd_stringee.switchboard_forward` (CSV số). Bridge PSTN→PSTN,
+                #     NÉ lỗi 488 (WebRTC) của Stringee khi đổ chuông vào browser.
+                #     User spec 2026-07-28. Đổi số qua Cài đặt hệ thống, không cần deploy.
+                fwd_raw = Param.get_param('vd_stringee.switchboard_forward') or ''
+                fwd_nums = []
+                for _x in fwd_raw.replace(';', ',').replace(' ', ',').split(','):
+                    _d = _digits(_x)
+                    if not _d:
+                        continue
+                    if _d.startswith('0'):
+                        _d = '84' + _d[1:]
+                    elif len(_d) == 9:
+                        _d = '84' + _d
+                    if _d not in fwd_nums:
+                        fwd_nums.append(_d)
+                if fwd_nums:
+                    # Đổ chuông lần lượt từng số di động (25s/số), ai nghe trước được nối.
+                    for _n in fwd_nums:
+                        actions.append({
+                            'action': 'connect',
+                            'to': {'type': 'external', 'number': _n, 'alias': ''},
+                            'from': {'type': 'external', 'number': to_num,
+                                     'alias': from_num or to_num},
+                            'peerToPeerCall': False,
+                            'timeout': 25,
+                            'continueOnFail': True,
+                        })
+                    _logger.info("[Stringee answer_url] TONG DAI forward callId=%s -> %s",
+                                 call_id, fwd_nums)
+                    return request.make_response(
+                        json.dumps(actions, ensure_ascii=False),
+                        headers=[('Content-Type', 'application/json; charset=utf-8')])
+                # (B) Không cấu hình forward → đổ chuông browser NV (đổ chuông nhóm).
+                # user spec 2026-07-27: TRƯỞNG PHÒNG trước → rồi TẤT CẢ NV.
                 Users = request.env['res.users'].sudo()
                 # vd_crm_role là field COMPUTE (không search được) → lấy hết caller
                 # rồi lọc theo role trong Python (đọc field từng record thì OK).
