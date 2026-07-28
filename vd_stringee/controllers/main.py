@@ -288,14 +288,15 @@ class StringeeController(http.Controller):
                             out.append(s)
                     return out
 
-                def _grp_connect(suis, timeout):
-                    # `to` là ARRAY → Stringee đổ chuông ĐỒNG THỜI mọi endpoint,
-                    # ai bắt máy trước được nối; timeout hết → continueOnFail sang
-                    # action kế tiếp.
+                def _one_connect(sui, timeout):
+                    # Stringee SCCO connect CHUẨN: `to` là 1 OBJECT (KHÔNG array).
+                    # Nhiều connect action nối tiếp = đổ chuông TỪNG máy lần lượt;
+                    # continueOnFail → không nghe thì sang người kế. (Trước dùng
+                    # `to` array đổ chuông đồng thời NHƯNG Stringee không nhận →
+                    # cuộc gọi tắt ngay, khách tút tút. User spec 2026-07-28.)
                     return {
                         'action': 'connect',
-                        'to': [{'type': 'internal', 'number': s, 'alias': ''}
-                               for s in suis],
+                        'to': {'type': 'internal', 'number': sui, 'alias': ''},
                         'peerToPeerCall': False,
                         'timeout': timeout,
                         'continueOnFail': True,
@@ -304,10 +305,12 @@ class StringeeController(http.Controller):
                 leaders = _suis(callers.filtered(
                     lambda u: u.vd_crm_role == 'team_leader'))
                 everyone = _suis(callers)
-                if leaders:
-                    actions.append(_grp_connect(leaders, 10))    # trưởng phòng: 10s
-                if everyone:
-                    actions.append(_grp_connect(everyone, 30))   # rồi tất cả NV
+                rest = [s for s in everyone if s not in leaders]
+                # Trưởng phòng trước (mỗi người 6s) → rồi lần lượt từng NV (5s).
+                for s in leaders:
+                    actions.append(_one_connect(s, 6))
+                for s in rest:
+                    actions.append(_one_connect(s, 5))
                 # Không ai online / chưa có stringee_user_id → không append,
                 # Stringee tự hang-up.
             else:
