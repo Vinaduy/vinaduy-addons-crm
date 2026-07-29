@@ -199,24 +199,25 @@ class PancakeWebhookController(http.Controller):
 
         Lead = request.env['crm.lead'].sudo()
 
-        # Dedup theo (page_id, conversation_id) — tránh duplicate khi Pancake retry
-        existing = Lead.search([
+        # Dedup theo (page_id, conversation_id) — TÍNH CẢ lead đã ARCHIVE (KH đã
+        # hủy). User spec 2026-07-29: 1 khách = 1 lead. Trước đây chỉ match lead
+        # ACTIVE → khách bị hủy rồi nhắn LẠI đẻ lead TRÙNG. Nay tìm cả archive +
+        # cho SỐNG LẠI (revive) thay vì tạo mới. Inbound/quick-add không có
+        # customer_id Pancake nên không ảnh hưởng.
+        existing = Lead.with_context(active_test=False).search([
             ('vd_pancake_page_id', '=', page.id),
             ('vd_pancake_conversation_id', '=', conv_id),
-        ], limit=1)
-        # >>> DEDUP THEO KHÁCH (page_customer_id) <<<
-        # Pancake/TikTok sinh conversation_id MỚI cho gần như mỗi tin của CÙNG 1
-        # khách → nếu chỉ chống trùng theo conversation_id thì 1 khách nhắn 16 lần
-        # đẻ 16 lead (sau đó cron mới gộp + NV phải hủy tay). Gom ngay tại nguồn:
-        # nếu page này đã có lead ACTIVE của đúng customer_id đó → ghi tin vào lead
-        # cũ, KHÔNG tạo mới. Chỉ match lead ACTIVE → khách bị "Khách huỷ"/archive
-        # rồi quay lại nhắn vẫn tạo lead mới (đúng nghiệp vụ). Inbound/quick-add
-        # KHÔNG có customer_id Pancake nên không bị ảnh hưởng.
+        ], limit=1, order='create_date desc')
+        # >>> DEDUP THEO KHÁCH (page_customer_id) — Pancake sinh conversation_id
+        # mới mỗi tin của cùng 1 khách; gom về 1 lead theo customer_id.
         if not existing and customer_id:
-            existing = Lead.search([
+            existing = Lead.with_context(active_test=False).search([
                 ('vd_pancake_page_id', '=', page.id),
                 ('vd_pancake_customer_id', '=', customer_id),
             ], order='create_date desc', limit=1)
+        # KH đã hủy nhắn lại → khôi phục lead cũ về 'Khách mới' (không đẻ trùng).
+        if existing:
+            page._vd_revive_pancake_lead(existing)
 
         # >>> LƯU HỘI THOẠI (kể cả CHƯA có SĐT) để đo TỶ LỆ XIN SỐ <<<
         # Gọi cho MỌI tin nhắn khách (đã loại tin do page gửi ở SKIP 1). Idempotent

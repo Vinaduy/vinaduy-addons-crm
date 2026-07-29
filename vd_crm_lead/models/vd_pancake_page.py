@@ -296,6 +296,30 @@ class VdPancakePage(models.Model):
             },
         }
 
+    def _vd_revive_pancake_lead(self, lead):
+        """KH (Pancake) nhắn LẠI mà lead đã bị HỦY/archive → cho SỐNG LẠI về 'Khách
+        mới' thay vì đẻ lead trùng. Giữ NV chủ (khôi phục vd_cancel_prev_user_id nếu
+        user_id trống). Lead đang active → không đụng. User spec 2026-07-29."""
+        lead = lead.with_context(active_test=False)[:1]
+        if not lead or lead.active:
+            return
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
+        vals = {'active': True, 'vd_cancel_state': False,
+                'vd_lost_reason': False, 'vd_lost_date': False,
+                'vd_lost_is_auto': False}
+        if new_stage:
+            vals['stage_id'] = new_stage.id
+        if not lead.user_id and lead.vd_cancel_prev_user_id:
+            vals['user_id'] = lead.vd_cancel_prev_user_id.id
+        try:
+            lead.with_context(vd_skip_intake_lock=True, mail_notrack=True,
+                              vd_skip_dedup=True).write(vals)
+            lead.message_post(
+                subtype_xmlid='mail.mt_note',
+                body='🔁 Khách nhắn lại qua Pancake → khôi phục lead (không tạo lead trùng).')
+        except Exception:
+            pass
+
     def _sync_one_conversation(self, conv, Lead, ResUsers, record_conv=False):
         """Process 1 conversation dict từ Pancake API → tạo lead nếu có SĐT.
         Return: 'created' | 'existing' | 'no_phone'
@@ -309,12 +333,15 @@ class VdPancakePage(models.Model):
         if not conv_id:
             return 'no_phone'
 
-        # Dedup trước
-        existing = Lead.search([
+        # Dedup trước — TÍNH CẢ lead đã ARCHIVE (KH đã hủy). Trước đây chỉ tìm lead
+        # active → khách hủy rồi nhắn LẠI → không thấy → đẻ lead TRÙNG. Nay tìm cả
+        # archive; nếu lead cũ đã hủy → cho SỐNG LẠI về 'Khách mới' (1 khách 1 lead).
+        existing = Lead.with_context(active_test=False).search([
             ('vd_pancake_page_id', '=', self.id),
             ('vd_pancake_conversation_id', '=', conv_id),
-        ], limit=1)
+        ], limit=1, order='create_date desc')
         if existing:
+            self._vd_revive_pancake_lead(existing)
             return 'existing'
 
         # Customer info từ conversation.
@@ -343,11 +370,12 @@ class VdPancakePage(models.Model):
         # Dedup theo KHÁCH (giống webhook): 1 customer_id = 1 lead, tránh nổ lead
         # khi Pancake đẻ conversation_id mới mỗi tin của cùng 1 khách.
         if customer_id:
-            cust_existing = Lead.search([
+            cust_existing = Lead.with_context(active_test=False).search([
                 ('vd_pancake_page_id', '=', self.id),
                 ('vd_pancake_customer_id', '=', str(customer_id)),
-            ], limit=1)
+            ], limit=1, order='create_date desc')
             if cust_existing:
+                self._vd_revive_pancake_lead(cust_existing)
                 return 'existing'
 
         # Lấy SĐT: ƯU TIÊN số Pancake ĐÃ tự nhận diện trong hội thoại
