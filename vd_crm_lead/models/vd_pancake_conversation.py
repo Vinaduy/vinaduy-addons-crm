@@ -84,21 +84,28 @@ class VdPancakeConversation(models.Model):
             except Exception:
                 pass
             return rec
+        # SAVEPOINT: 2 event/tiến trình vào CÙNG LÚC cùng conversation → cả 2 search
+        # rỗng → cả 2 create → 1 đụng unique. KHÔNG bọc savepoint thì lỗi unique làm
+        # ABORT cả transaction (PostgreSQL) → câu search cứu bên dưới cũng chết + cả
+        # request webhook hỏng (mất tin khách). Bọc savepoint + flush ngay để lỗi chỉ
+        # rollback phần create, transaction vẫn sống → tìm lại bản đã có an toàn.
         try:
-            return self.sudo().create({
-                'page_id': page.id,
-                'conversation_id': conv_id,
-                'customer_id': customer_id or '',
-                'customer_name': customer_name or '',
-                'first_message_at': when or now,
-                'last_message_at': now,
-                'msg_count': 1,
-                'has_phone': bool(phone),
-                'phone': phone or '',
-                'lead_id': lead.id if lead else False,
-            })
+            with self.env.cr.savepoint():
+                rec = self.sudo().create({
+                    'page_id': page.id,
+                    'conversation_id': conv_id,
+                    'customer_id': customer_id or '',
+                    'customer_name': customer_name or '',
+                    'first_message_at': when or now,
+                    'last_message_at': now,
+                    'msg_count': 1,
+                    'has_phone': bool(phone),
+                    'phone': phone or '',
+                    'lead_id': lead.id if lead else False,
+                })
+                rec.flush_recordset()   # ép INSERT NGAY trong savepoint để bắt unique
+            return rec
         except Exception:
-            # Đụng unique do 2 event vào cùng lúc → tìm lại bản vừa tạo.
             return self.sudo().search([
                 ('page_id', '=', page.id),
                 ('conversation_id', '=', conv_id),
