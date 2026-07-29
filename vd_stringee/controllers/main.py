@@ -325,12 +325,18 @@ class StringeeController(http.Controller):
                     _t = targets[idx]
                     conn = {
                         'action': 'connect',
+                        # BẮT BUỘC có `from` — thiếu field này Stringee KHÔNG thực thi
+                        # connect (user/Stringee 2026-07-29, gốc lỗi khách gọi đến tút
+                        # tút). Gọi ĐẾN: from = KHÁCH (external, số gọi vào).
+                        'from': {'type': 'external', 'number': from_num,
+                                 'alias': from_num or ''},
                         'to': {'type': _t['type'], 'number': _t['number'], 'alias': ''},
                         'peerToPeerCall': False,
                         'timeout': 20,
                         'continueOnFail': True,
                     }
                     if _t['type'] == 'external':
+                        # Forward ra SỐ DI ĐỘNG: caller-id = hotline (số được cấp phép).
                         conn['from'] = {'type': 'external', 'number': to_num,
                                         'alias': from_num or to_num}
                     if existing:
