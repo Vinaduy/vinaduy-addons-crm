@@ -3690,9 +3690,23 @@
         <div t-if="!cancelLeads.length" class="o_vd_trash_popover_empty">
             ✓ Không có KH nào trong nhóm này
         </div>
+        <!-- Thanh CHỌN TẤT CẢ + DUYỆT HÀNG LOẠT (admin/trưởng phòng) -->
+        <div t-if="showCancelBulk(cancelLeads)" class="o_vd_cancel_bulkbar" t-on-click.stop="() => {}">
+            <label class="o_vd_cancel_selall">
+                <input type="checkbox" t-att-checked="allCancelSelected(cancelLeads)"
+                       t-on-click.stop="() => {}"
+                       t-on-change="() => this.toggleCancelSelectAll(cancelLeads)"/>
+                <span>Chọn tất cả (<t t-esc="_pendingCancel(cancelLeads).length"/> chờ duyệt)</span>
+            </label>
+            <button class="o_vd_cancel_bulkbtn" t-att-disabled="!cancelSelCount(cancelLeads)"
+                    t-on-click.stop.prevent="() => this.approveSelectedCancel(cancelLeads)">
+                <i class="fa fa-check-square-o me-1"/>Duyệt <t t-esc="cancelSelCount(cancelLeads)"/> đã chọn
+            </button>
+        </div>
         <table t-if="cancelLeads.length" class="o_vd_cancel_table">
             <thead>
                 <tr>
+                    <th t-if="showCancelBulk(cancelLeads)" class="o_vd_ct_sel"></th>
                     <th class="o_vd_ct_kh">Khách hàng</th>
                     <th class="o_vd_ct_nv">NV phụ trách</th>
                     <th class="o_vd_ct_reason">Chủ đề / Lý do hủy</th>
@@ -3704,6 +3718,12 @@
                 <tr t-foreach="cancelLeads" t-as="ld" t-key="ld.id"
                     t-att-class="'o_vd_cancel_row ' + (ld.cancel_state === 'approved' ? 'o_vd_cancel_done' : 'o_vd_cancel_pending')"
                     t-on-click.stop="() => this.openLead(ld.id)">
+                    <td t-if="showCancelBulk(cancelLeads)" class="o_vd_cancel_selcell" t-on-click.stop="() => {}">
+                        <input t-if="isPendingCancel(ld)" type="checkbox"
+                               t-att-checked="isCancelSel(ld.id)"
+                               t-on-click.stop="() => {}"
+                               t-on-change="() => this.toggleCancelSel(ld.id)"/>
+                    </td>
                     <td class="o_vd_cancel_kh">
                         <div class="o_vd_cancel_name"
                              t-on-click.stop.prevent="() => this._copyToClipboard(ld.name, '📋 Đã copy tên: ' + ld.name, 'Không có tên để copy')"

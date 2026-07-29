@@ -204,6 +204,7 @@ export class VdCrmDashboard extends Component {
             // Popover 🗑️ KH HỦY CHỜ DUYỆT (hover thùng rác dòng NV) — render ở gốc
             // (fixed) để không bị che ở cuối bảng; {user_id, name, leads, rect} | null.
             cancelHover: null,
+            cancelSel: {},   // id KH hủy được tick chọn (duyệt hàng loạt)
             user: { id: 0, name: "", is_all: false },
             is_manager: false,
             // Giám đốc (không phải admin) → mặc định mở chế độ CÁ NHÂN.
@@ -3139,6 +3140,57 @@ export class VdCrmDashboard extends Component {
             this.notification.add("Không duyệt được. " + (e.message || ""), {
                 type: "danger",
             });
+        }
+    }
+
+    // ===== CHỌN NHIỀU + DUYỆT HÀNG LOẠT KH hủy (admin/trưởng phòng) =====
+    isPendingCancel(ld) {
+        return !!ld && ld.cancel_state !== 'approved' && ld.cancel_state !== 'rejected';
+    }
+    _pendingCancel(leads) {
+        return (leads || []).filter((l) => this.isPendingCancel(l));
+    }
+    // Hiện cột tick + thanh duyệt hàng loạt: có quyền duyệt + còn KH chờ duyệt.
+    showCancelBulk(leads) {
+        return (this.state.is_manager || this.state.is_team_leader)
+            && this._pendingCancel(leads).length > 0;
+    }
+    isCancelSel(id) { return !!this.state.cancelSel[id]; }
+    toggleCancelSel(id) {
+        if (this.state.cancelSel[id]) delete this.state.cancelSel[id];
+        else this.state.cancelSel[id] = true;
+    }
+    cancelSelCount(leads) {
+        return this._pendingCancel(leads).filter((l) => this.state.cancelSel[l.id]).length;
+    }
+    allCancelSelected(leads) {
+        const p = this._pendingCancel(leads);
+        return p.length > 0 && p.every((l) => this.state.cancelSel[l.id]);
+    }
+    toggleCancelSelectAll(leads) {
+        const p = this._pendingCancel(leads);
+        if (this.allCancelSelected(leads)) {
+            for (const l of p) delete this.state.cancelSel[l.id];
+        } else {
+            for (const l of p) this.state.cancelSel[l.id] = true;
+        }
+    }
+    // Duyệt hủy TẤT CẢ KH đã chọn trong 1 lần gọi (server lặp for rec in self).
+    async approveSelectedCancel(leads) {
+        const ids = this._pendingCancel(leads)
+            .filter((l) => this.state.cancelSel[l.id]).map((l) => l.id);
+        if (!ids.length) return;
+        if (!window.confirm(`Duyệt hủy ${ids.length} khách đã chọn?`)) return;
+        try {
+            await this.orm.call("crm.lead", "action_approve_cancel", [ids]);
+            this.notification.add(`✓ Đã duyệt hủy ${ids.length} KH.`, { type: "success" });
+            for (const id of ids) {
+                this._markCancelState(id, "approved");
+                delete this.state.cancelSel[id];
+            }
+        } catch (e) {
+            console.error("[dashboard] approveSelectedCancel failed:", e);
+            this.notification.add("Không duyệt được. " + (e.message || ""), { type: "danger" });
         }
     }
 

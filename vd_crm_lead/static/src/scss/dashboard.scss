@@ -5998,12 +5998,37 @@
             padding: 0 !important;
             background: #fff;
         }
+        /* Thanh CHỌN TẤT CẢ + DUYỆT HÀNG LOẠT KH hủy */
+        .o_vd_cancel_bulkbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 7px 12px; background: #fff5f5;
+            border-bottom: 1px solid #ffd8d8; flex-wrap: wrap;
+        }
+        .o_vd_cancel_selall {
+            display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+            font-size: 12.5px; font-weight: 800; color: #b3261e; margin: 0;
+            input { width: 16px; height: 16px; cursor: pointer; accent-color: #2f9e44; }
+        }
+        .o_vd_cancel_bulkbtn {
+            margin-left: auto; display: inline-flex; align-items: center;
+            border: 0; border-radius: 8px; padding: 6px 14px; cursor: pointer;
+            font-size: 12.5px; font-weight: 800; color: #fff;
+            background: linear-gradient(135deg, #40c057, #2f9e44);
+            box-shadow: 0 3px 9px rgba(47,158,68,.32); transition: all .12s;
+            &:hover:not([disabled]) { background: linear-gradient(135deg, #37b24d, #2b8a3e); transform: translateY(-1px); }
+            &[disabled] { opacity: .45; cursor: default; box-shadow: none; }
+        }
         .o_vd_cancel_table {
             width: 100%;
             /* table-layout fixed: cột CHIA THEO % bảng → KHÔNG bao giờ tràn ngang
                (hết thanh cuộn trái/phải). User spec 2026-06-21. */
             table-layout: fixed;
             border-collapse: collapse;
+            .o_vd_ct_sel { width: 34px; text-align: center; }
+            .o_vd_cancel_selcell {
+                text-align: center; vertical-align: middle;
+                input { width: 16px; height: 16px; cursor: pointer; accent-color: #2f9e44; }
+            }
             font-size: 0.82rem;
             color: #1f2a44;
 
