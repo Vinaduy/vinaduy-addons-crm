@@ -243,6 +243,40 @@ class CrmLead(models.Model):
         )
         return True
 
+    def _vd_dedup_phone_now(self):
+        """DEDUP TỨC THÌ ngay khi tạo/đẩy lead: nếu SĐT của lead này ĐÃ có lead
+        ACTIVE khác (chưa won/lost) → GỘP NGAY, KHÔNG đợi cron 2h. Keeper = lead
+        NHIỀU cuộc gọi / tạo SỚM nhất (thường là lead CŨ → giữ nguyên NV chủ cũ),
+        dupe mới bị dồn lịch sử + archive. → 1 khách 1 NV tức thì, dù đẩy tự động
+        (Pancake) hay đẩy tay. User spec 2026-07-29. Bọc try ở nơi gọi."""
+        self.ensure_one()
+        if not self.active or self.stage_is_won or self.stage_is_lost:
+            return
+        phones = self._vd_normalize_phones_set(self.phone, self.mobile)
+        if not phones:
+            return
+        base = [('active', '=', True), ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False), ('id', '!=', self.id)]
+        cand = self.sudo().browse()
+        for ph in phones:
+            last9 = ph[-9:] if len(ph) >= 9 else ph
+            if not last9:
+                continue
+            cand |= self.sudo().search(
+                base + ['|', ('phone', 'like', last9), ('mobile', 'like', last9)])
+        # Lọc chắc chắn trùng SĐT chuẩn hoá (tránh 'like' khớp lỏng).
+        dupes = cand.filtered(
+            lambda d: bool(self._vd_normalize_phones_set(d.phone, d.mobile) & phones))
+        if not dupes:
+            return
+        grp = self | dupes
+        keeper = grp.sorted(
+            key=lambda c: (len(c.call_ids),
+                           -(c.create_date.timestamp() if c.create_date else 0)),
+            reverse=True)[0]
+        keeper.sudo()._vd_absorb_dupes(grp - keeper)
+        return keeper
+
     @api.model
     def _vd_cron_merge_dup_phones(self):
         """CRON: tự động gộp các lead TRÙNG SĐT (active, chưa won/lost) -> 1 KH 1 NV.
@@ -1952,6 +1986,11 @@ class CrmLead(models.Model):
     vd_cancel_approved_date = fields.Datetime(
         string='Ngày duyệt hủy', readonly=True, copy=False,
     )
+    # NV phụ trách TRƯỚC khi duyệt hủy — để BỎ HỦY thì trả về ĐÚNG NV đó (không
+    # chuyển sang NV khác). Duyệt hủy gỡ user_id=False nên phải lưu lại ở đây.
+    vd_cancel_prev_user_id = fields.Many2one(
+        'res.users', string='NV trước khi hủy', readonly=True, copy=False,
+    )
 
     def action_approve_cancel(self):
         """Admin duyệt đề xuất hủy → archive lead (active=False) + record audit.
@@ -1978,7 +2017,7 @@ class CrmLead(models.Model):
         for rec in self:
             if rec.vd_cancel_state == 'approved':
                 continue  # đã duyệt rồi, skip
-            rec.with_context(mail_notrack=True, tracking_disable=True).write({
+            vals = {
                 'vd_cancel_state': 'approved',
                 'vd_cancel_approved_by_id': self.env.user.id,
                 'vd_cancel_approved_date': fields.Datetime.now(),
@@ -1987,7 +2026,11 @@ class CrmLead(models.Model):
                 # rác công ty KHÔNG còn thuộc NV nào (NV không thấy lại trong mọi
                 # bảng theo user_id; chỉ Admin/Giám đốc xem ở thùng rác công ty).
                 'user_id': False,
-            })
+            }
+            # LƯU NV phụ trách hiện tại → BỎ HỦY trả về ĐÚNG NV này (user 2026-07-29).
+            if rec.user_id:
+                vals['vd_cancel_prev_user_id'] = rec.user_id.id
+            rec.with_context(mail_notrack=True, tracking_disable=True).write(vals)
             rec.message_post(
                 subtype_xmlid='mail.mt_note',
                 body=_('✓ <b>Đã duyệt hủy</b> bởi %s — KH chính thức archive.') % self.env.user.name,
@@ -4058,7 +4101,17 @@ class CrmLead(models.Model):
                 vals['partner_name'] = self._vd_clean_input_name(vals['partner_name']) or vals['partner_name']
             # Tầm tài chính: range → amount auto
             self._sync_budget_range_to_amount(vals)
-        return super().create(vals_list)
+        leads = super().create(vals_list)
+        # DEDUP TỨC THÌ (user 2026-07-29): lead mới trùng SĐT với lead active khác
+        # → gộp NGAY, không đợi cron 2h. Giữ NV chủ cũ (keeper = lead nhiều cuộc gọi/
+        # tạo sớm nhất). Bỏ qua khi context vd_skip_dedup (tránh vòng lặp lúc gộp).
+        if not self.env.context.get('vd_skip_dedup'):
+            for _ld in leads:
+                try:
+                    _ld._vd_dedup_phone_now()
+                except Exception:
+                    _logger.exception("VD dedup-now lỗi (lead id=%s)", _ld.id)
+        return leads
 
     # Các field intake bị khoá sau khi NV bấm "Lưu & Chuyển sang Báo giá".
     # NV không write được nữa; admin/leader bypass bằng action_unlock_intake.
@@ -4707,16 +4760,23 @@ class CrmLead(models.Model):
             if self.vd_lost_date else '—'
         )
 
-        self.with_context(
-            vd_skip_intake_lock=True, mail_notrack=True,
-        ).write({
+        # BỎ HỦY: trả về ĐÚNG NV phụ trách trước khi hủy (không chuyển NV khác);
+        # giữ nguyên mọi thông tin KH. User spec 2026-07-29.
+        _restore_vals = {
             'stage_id': new_stage.id,
             'active': True,
+            'vd_cancel_state': False,
             'vd_lost_reason': False,
             'vd_lost_date': False,
             'vd_lost_user_id': False,
             'vd_lost_is_auto': False,
-        })
+        }
+        if self.vd_cancel_prev_user_id and not self.user_id:
+            _restore_vals['user_id'] = self.vd_cancel_prev_user_id.id
+        _restore_vals['vd_cancel_prev_user_id'] = False
+        self.with_context(
+            vd_skip_intake_lock=True, mail_notrack=True,
+        ).write(_restore_vals)
         self.message_post(
             subtype_xmlid='mail.mt_note',
             body=_(
