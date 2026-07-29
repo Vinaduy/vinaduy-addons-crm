@@ -269,16 +269,15 @@ class StringeeController(http.Controller):
                     to_num,
                 ))
             elif _digits(to_num)[-9:] in switchboard_sfx_set:
-                # === TỔNG ĐÀI (số cố định) — đổ chuông TUẦN TỰ, 1 AGENT / 1 SCCO ===
-                # Stringee spec (user 2026-07-29): MỖI lần trả SCCO chỉ 1 action
-                # `connect` (1 người). Người đó không nghe (timeout) → continueOnFail
-                # → Stringee GỌI LẠI answer_url cho CÙNG call_id → ta trả người KẾ.
-                # Nhớ "đã đổ tới ai" bằng existing.vd_ring_index (tăng mỗi lần trả).
-                # KHÔNG kèm action `record` (record cuộc CHƯA nghe máy làm fail media
-                # → trước đây trả 1 lúc 19 connect + record dẫn đầu nên Stringee bỏ,
-                # cuộc gọi chết ~70ms, khách tút tút).
-                # Thứ tự: TRƯỞNG PHÒNG trước → rồi các NV; hoặc forward ra SỐ DI ĐỘNG
-                # nếu có config vd_stringee.switchboard_forward.
+                # === TỔNG ĐÀI: đổ chuông ĐỒNG THỜI các NV gán vào SỐ trong kho số ===
+                # user spec 2026-07-29: khách gọi vào tổng đài → đổ chuông CÙNG LÚC
+                # tất cả NV mà admin GÁN vào số tổng đài (bảng kho số →
+                # assigned_user_ids), ai nghe trước được nối. Đổi danh sách = kéo-thả
+                # NV vào/ra số trong bảng kho số, KHÔNG cần sửa code.
+                # `to` là ARRAY (đổ chuông đồng thời) + BẮT BUỘC field `from` (thiếu
+                # `from` thì Stringee KHÔNG thực thi connect → gốc lỗi khách tút tút).
+                # KHÔNG kèm action `record` (record cuộc CHƯA nghe máy làm fail media).
+                # Hoặc forward ra SỐ DI ĐỘNG nếu có config switchboard_forward.
                 fwd_raw = Param.get_param('vd_stringee.switchboard_forward') or ''
                 fwd_nums = []
                 for _x in fwd_raw.replace(';', ',').replace(' ', ',').split(','):
@@ -292,62 +291,40 @@ class StringeeController(http.Controller):
                     if _d not in fwd_nums:
                         fwd_nums.append(_d)
                 if fwd_nums:
-                    targets = [{'type': 'external', 'number': _n} for _n in fwd_nums]
-                else:
-                    Users = request.env['res.users'].sudo()
-                    # vd_crm_role là field COMPUTE (không search được) → lấy hết caller
-                    # rồi lọc role trong Python (đọc field từng record thì OK).
-                    callers = Users.search([
-                        ('share', '=', False), ('active', '=', True),
-                        ('stringee_user_id', '!=', False)])
-
-                    def _suis(recs):
-                        out = []
-                        for u in recs:
-                            s = (u.stringee_user_id or '').strip()
-                            if s and s not in out:
-                                out.append(s)
-                        return out
-                    _leaders = _suis(callers.filtered(
-                        lambda u: u.vd_crm_role == 'team_leader'))
-                    _rest = [s for s in _suis(callers) if s not in _leaders]
-                    _ordered = _leaders + _rest
-                    # Ưu tiên đổ chuông TRƯỚC các stringee_user_id trong config
-                    # `vd_stringee.switchboard_first` (CSV) — vd admin để test.
-                    _first_raw = Param.get_param('vd_stringee.switchboard_first') or ''
-                    _first = [x.strip() for x in _first_raw.replace(';', ',').split(',')
-                              if x.strip()]
-                    _ordered = _first + [s for s in _ordered if s not in _first]
-                    targets = [{'type': 'internal', 'number': s} for s in _ordered]
-
-                idx = existing.vd_ring_index if existing else 0
-                if idx < len(targets):
-                    _t = targets[idx]
-                    conn = {
+                    scco = [{
                         'action': 'connect',
-                        # BẮT BUỘC có `from` — thiếu field này Stringee KHÔNG thực thi
-                        # connect (user/Stringee 2026-07-29, gốc lỗi khách gọi đến tút
-                        # tút). Gọi ĐẾN: from = KHÁCH (external, số gọi vào).
-                        'from': {'type': 'external', 'number': from_num,
-                                 'alias': from_num or ''},
-                        'to': {'type': _t['type'], 'number': _t['number'], 'alias': ''},
-                        'peerToPeerCall': False,
-                        'timeout': 20,
-                        'continueOnFail': True,
-                    }
-                    if _t['type'] == 'external':
-                        # Forward ra SỐ DI ĐỘNG: caller-id = hotline (số được cấp phép).
-                        conn['from'] = {'type': 'external', 'number': to_num,
-                                        'alias': from_num or to_num}
-                    if existing:
-                        existing.sudo().write({'vd_ring_index': idx + 1})
-                    scco = [conn]
+                        'from': {'type': 'external', 'number': to_num,
+                                 'alias': from_num or to_num},
+                        'to': [{'type': 'external', 'number': _n, 'alias': ''}
+                               for _n in fwd_nums],
+                        'peerToPeerCall': False, 'timeout': 25, 'continueOnFail': True,
+                    }]
                 else:
-                    scco = []   # hết người → Stringee tự kết thúc cuộc gọi
-                _logger.info(
-                    "[Stringee answer_url] TONG DAI idx=%s/%s callId=%s -> %s",
-                    idx, len(targets), call_id,
-                    (targets[idx]['number'] if idx < len(targets) else 'END'))
+                    # NV gán vào CHÍNH số tổng đài đang gọi tới (assigned_user_ids).
+                    Hot = request.env['vd.stringee.hotline'].sudo()
+                    _sfx = _digits(to_num)[-9:]
+                    hotline = Hot.search([('carrier', '=', 'other')]).filtered(
+                        lambda h: _digits(h.number)[-9:] == _sfx)[:1]
+                    suis = []
+                    if hotline:
+                        for u in hotline.assigned_user_ids:
+                            if u.active and not u.share:
+                                s = (u.stringee_user_id or '').strip()
+                                if s and s not in suis:
+                                    suis.append(s)
+                    if suis:
+                        scco = [{
+                            'action': 'connect',
+                            'from': {'type': 'external', 'number': from_num,
+                                     'alias': from_num or ''},
+                            'to': [{'type': 'internal', 'number': s, 'alias': ''}
+                                   for s in suis],
+                            'peerToPeerCall': False, 'timeout': 25, 'continueOnFail': True,
+                        }]
+                    else:
+                        scco = []   # chưa gán NV nào → Stringee tự kết thúc
+                _logger.info("[Stringee answer_url] TONG DAI dong-thoi callId=%s -> %s",
+                             call_id, json.dumps(scco, ensure_ascii=False))
                 return request.make_response(
                     json.dumps(scco, ensure_ascii=False),
                     headers=[('Content-Type', 'application/json; charset=utf-8')])
