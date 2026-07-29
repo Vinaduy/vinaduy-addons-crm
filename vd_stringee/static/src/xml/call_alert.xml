@@ -21,11 +21,20 @@
                     </span>
                 </div>
             </div>
+            <!-- Cuộc gọi ĐẾN đang rung: nút NGHE MÁY (xanh) + TỪ CHỐI (đỏ) -->
+            <button t-if="ringingIncoming" type="button" class="o_vd_cp_answer"
+                    t-on-click="onAnswer" title="Nghe máy">
+                <i class="fa fa-phone"/>
+            </button>
+            <button t-if="ringingIncoming" type="button" class="o_vd_cp_reject"
+                    t-on-click="onReject" title="Từ chối">
+                <i class="fa fa-times"/>
+            </button>
             <button t-if="answered" type="button" class="o_vd_cp_transfer"
                     t-on-click="onToggleTransfer" title="Chuyển máy cho NV khác">
                 <i class="fa fa-exchange"/>
             </button>
-            <button type="button" class="o_vd_cp_hang" t-on-click="onHangup" title="Cúp máy">
+            <button t-if="!ringingIncoming" type="button" class="o_vd_cp_hang" t-on-click="onHangup" title="Cúp máy">
                 <i class="fa fa-phone"/>
             </button>
             <!-- Danh sách NV để chuyển máy -->

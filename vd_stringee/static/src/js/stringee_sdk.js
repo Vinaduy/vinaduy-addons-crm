@@ -180,6 +180,7 @@ export const stringeeService = {
             lastCallTo: "",
             useSwitchboard: false,  // NV bật nút "Gọi qua tổng đài" (số cố định)
             hasSwitchboard: false,  // NV có được gán số tổng đài không (ẩn/hiện nút)
+            pendingIncoming: null,  // cuộc gọi ĐẾN đang RUNG chờ NV bấm Nghe máy
             // === Derived state cho UI (cập nhật trong attachCallEvents) ===
             inCall: false,        // true khi có call đang active (calling/ringing/answered)
             callStatus: "",       // CALLING | RINGING | ANSWERED | ""
@@ -220,15 +221,53 @@ export const stringeeService = {
         }
 
         // Đánh dấu live state cho CUỘC GỌI ĐẾN (auto-answer) → popup hiện ngay.
-        function markIncomingLive(c) {
+        // Cuộc gọi ĐẾN: chỉ RUNG CHỜ (không tự bắt máy) — NV bấm "Nghe máy" mới
+        // answer(). Trước đây auto-answer → máy đầu tiên nhận (vd admin) tự bắt máy,
+        // đổ chuông nhóm vô nghĩa. User spec 2026-07-29.
+        function markIncomingRinging(c) {
             state.inCall = true;
-            state.callStatus = "ANSWERED";
+            state.callStatus = "RINGING";
             state.callDirection = "in";
             state.callName = (c && c.fromAlias) || "";
             state.callNumber = (c && c.fromNumber) || "";
             state.callStartedAt = Date.now();
-            state.answerStartedAt = Date.now();
+            state.answerStartedAt = 0;         // CHƯA nghe máy
+            state.pendingIncoming = c;
             hideCallAlert();
+            startIncomingRingtone();           // chuông reo giục NV
+        }
+        // NV bấm "Nghe máy" → answer() thật sự (v2 cần initAnswer trước).
+        function answerIncoming() {
+            const c = state.pendingIncoming;
+            if (!c) return;
+            stopIncomingRingtone();
+            try {
+                if (typeof c.initAnswer === "function") {
+                    c.initAnswer(() => { try { c.answer(() => {}); } catch (_e) {} });
+                } else {
+                    c.answer(() => {});
+                }
+            } catch (e) {
+                console.error("[VD-STRINGEE] answerIncoming throw:", e);
+            }
+            state.pendingIncoming = null;
+            state.callStatus = "ANSWERED";
+            state.answerStartedAt = Date.now();
+        }
+        // NV bấm "Từ chối" → reject; Stringee sẽ đổ tiếp người khác (continueOnFail).
+        function rejectIncoming() {
+            const c = state.pendingIncoming;
+            stopIncomingRingtone();
+            if (c) { try { c.reject(() => {}); } catch (_e) {} }
+            state.pendingIncoming = null;
+            if (state.currentCall === c) state.currentCall = null;
+            state.inCall = false;
+            state.callStatus = "";
+            state.callDirection = "out";
+            state.callName = "";
+            state.callNumber = "";
+            state.callStartedAt = 0;
+            state.answerStartedAt = 0;
         }
 
         // ===================================================================
@@ -282,6 +321,41 @@ export const stringeeService = {
             }
         }
 
+        // CHUÔNG CUỘC GỌI ĐẾN (giục NV nghe): 2 tiếng bíp/giây, lặp — khác tiếng
+        // ringback gọi đi. WebAudio; trình duyệt đã có tương tác trước nên phát được.
+        let _inCtx = null, _inTimer = null;
+        function startIncomingRingtone() {
+            stopIncomingRingtone();
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return;
+                _inCtx = new Ctx();
+                if (_inCtx.state === "suspended") { _inCtx.resume().catch(() => {}); }
+                const ring = () => {
+                    if (!_inCtx) return;
+                    [0, 0.4].forEach((off) => {
+                        const osc = _inCtx.createOscillator();
+                        const g = _inCtx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.value = 480;
+                        const t = _inCtx.currentTime + off;
+                        g.gain.setValueAtTime(0.0001, t);
+                        g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+                        g.gain.setValueAtTime(0.22, t + 0.22);
+                        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.27);
+                        osc.connect(g); g.connect(_inCtx.destination);
+                        osc.start(t); osc.stop(t + 0.3);
+                    });
+                };
+                ring();
+                _inTimer = setInterval(ring, 1500);
+            } catch (_e) { /* noop */ }
+        }
+        function stopIncomingRingtone() {
+            if (_inTimer) { clearInterval(_inTimer); _inTimer = null; }
+            if (_inCtx) { try { _inCtx.close(); } catch (_e) {} _inCtx = null; }
+        }
+
         // ===================================================================
         // Setup events theo doc: connect, authen, requestnewtoken,
         // incomingcall, disconnect.
@@ -327,19 +401,7 @@ export const stringeeService = {
                 }
                 attachCallEvents(incomingCall);
                 state.currentCall = incomingCall;
-                markIncomingLive(incomingCall);
-                try {
-                    incomingCall.answer((res) => {
-                        console.log("[VD-STRINGEE] incomingcall.answer callback:", res);
-                    });
-                } catch (e) {
-                    console.error("[VD-STRINGEE] incomingcall.answer throw:", e);
-                    notification.add(
-                        `Stringee: trả lời cuộc gọi đến lỗi (${e.message})`,
-                        { type: "danger" },
-                    );
-                    state.currentCall = null;
-                }
+                markIncomingRinging(incomingCall);   // RUNG chờ, KHÔNG tự bắt máy
             });
 
             // Inbound call (SDK v2 / StringeeCall2)
@@ -358,28 +420,7 @@ export const stringeeService = {
                 }
                 attachCallEvents(incomingCall);
                 state.currentCall = incomingCall;
-                markIncomingLive(incomingCall);
-                try {
-                    if (typeof incomingCall.initAnswer === "function") {
-                        incomingCall.initAnswer((initRes) => {
-                            console.log("[VD-STRINGEE] incomingcall2.initAnswer res:", initRes);
-                            incomingCall.answer((res) => {
-                                console.log("[VD-STRINGEE] incomingcall2.answer res:", res);
-                            });
-                        });
-                    } else {
-                        incomingCall.answer((res) => {
-                            console.log("[VD-STRINGEE] incomingcall2.answer (no initAnswer) res:", res);
-                        });
-                    }
-                } catch (e) {
-                    console.error("[VD-STRINGEE] incomingcall2 answer throw:", e);
-                    notification.add(
-                        `Stringee v2: trả lời cuộc gọi đến lỗi (${e.message})`,
-                        { type: "danger" },
-                    );
-                    state.currentCall = null;
-                }
+                markIncomingRinging(incomingCall);   // RUNG chờ, KHÔNG tự bắt máy
             });
         }
 
@@ -886,6 +927,8 @@ export const stringeeService = {
             // call.hangup(callback) — graceful hangup.
             // Cleanup state fully NGAY (không đợi signalingstate ENDED) để
             // UI chuyển về idle tức thì — user click nút đỏ là thấy đổi xanh.
+            stopIncomingRingtone();
+            state.pendingIncoming = null;
             const cur = state.currentCall;
             const callId = cur && (cur.callId || cur.id || '');
             if (cur) {
@@ -945,7 +988,7 @@ export const stringeeService = {
         }
 
         return { state, call, hangup, ensureConnected, showCallAlert, hideCallAlert,
-                 transfer, transferTargets };
+                 transfer, transferTargets, answerIncoming, rejectIncoming };
     },
 };
 

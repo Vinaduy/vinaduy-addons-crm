@@ -48,6 +48,16 @@ export class VdCallAlert extends Component {
     get answered() {
         return this.s.callStatus === "ANSWERED" || !!this.s.answerStartedAt;
     }
+    // Cuộc gọi ĐẾN đang RUNG chờ (chưa bấm nghe) → hiện nút Nghe máy / Từ chối.
+    get ringingIncoming() {
+        return this.incoming && !this.answered && !!this.s.pendingIncoming;
+    }
+    onAnswer() {
+        try { this.stringee.answerIncoming(); } catch (_e) { /* noop */ }
+    }
+    onReject() {
+        try { this.stringee.rejectIncoming(); } catch (_e) { /* noop */ }
+    }
 
     get statusLabel() {
         if (this.incoming) return this.answered ? "Cuộc gọi đến" : "Cuộc gọi đến…";
