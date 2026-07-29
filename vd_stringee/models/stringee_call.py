@@ -125,6 +125,10 @@ class StringeeCall(models.Model):
     caller_number = fields.Char(string='Từ số')
     callee_number = fields.Char(string='Đến số')
 
+    # TỔNG ĐÀI: đổ chuông tuần tự 1 agent/SCCO — số agent đã đổ tới (mỗi lần
+    # answer_url trả 1 người + tăng chỉ số; continueOnFail → Stringee gọi lại).
+    vd_ring_index = fields.Integer(default=0, copy=False)
+
     user_id = fields.Many2one(
         'res.users', string='NV phụ trách',
         default=lambda self: self.env.user, ondelete='set null',
