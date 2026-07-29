@@ -248,14 +248,22 @@ class StringeeCall(models.Model):
             lead = call.lead_id
             phone = call.callee_number if call.direction == 'outbound' else call.caller_number
             if not lead and phone:
-                lead = Lead.search([
-                    '|', ('phone', '=', phone), ('mobile', '=', phone),
-                    ('user_id', '=', call.user_id.id or self.env.user.id),
-                ], limit=1, order='create_date desc')
-                if not lead:
+                # Khớp theo 9 SỐ CUỐI (suffix) — inbound caller từ Stringee là
+                # '84977261290' còn lead lưu '0977261290'; khớp CHÍNH XÁC sẽ lệch
+                # tiền tố 84/0 → KHÔNG thấy → tạo lead MỚI mỗi cuộc gọi đến, gán NV
+                # khác nhau → 1 khách phân bổ nhiều NV. Dùng suffix-9 để TÁI DÙNG
+                # lead có sẵn (giữ nguyên NV chủ), KHÔNG đẻ lead trùng. (2026-07-29)
+                _digits = re.sub(r'\D', '', phone or '')
+                _last9 = _digits[-9:] if len(_digits) >= 9 else _digits
+                if _last9:
                     lead = Lead.search([
-                        '|', ('phone', '=', phone), ('mobile', '=', phone),
+                        '|', ('phone', 'like', _last9), ('mobile', 'like', _last9),
+                        ('user_id', '=', call.user_id.id or self.env.user.id),
                     ], limit=1, order='create_date desc')
+                    if not lead:
+                        lead = Lead.search([
+                            '|', ('phone', 'like', _last9), ('mobile', 'like', _last9),
+                        ], limit=1, order='create_date desc')
                 if not lead and call.direction == 'inbound':
                     new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
                     lead = Lead.create({
