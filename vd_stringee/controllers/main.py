@@ -311,8 +311,14 @@ class StringeeController(http.Controller):
                     _leaders = _suis(callers.filtered(
                         lambda u: u.vd_crm_role == 'team_leader'))
                     _rest = [s for s in _suis(callers) if s not in _leaders]
-                    targets = [{'type': 'internal', 'number': s}
-                               for s in (_leaders + _rest)]
+                    _ordered = _leaders + _rest
+                    # Ưu tiên đổ chuông TRƯỚC các stringee_user_id trong config
+                    # `vd_stringee.switchboard_first` (CSV) — vd admin để test.
+                    _first_raw = Param.get_param('vd_stringee.switchboard_first') or ''
+                    _first = [x.strip() for x in _first_raw.replace(';', ',').split(',')
+                              if x.strip()]
+                    _ordered = _first + [s for s in _ordered if s not in _first]
+                    targets = [{'type': 'internal', 'number': s} for s in _ordered]
 
                 idx = existing.vd_ring_index if existing else 0
                 if idx < len(targets):
