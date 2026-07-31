@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Wizard admin xem mật khẩu + lịch sử đổi của 1 nhân viên.
 Bắt buộc admin nhập lại MẬT KHẨU CHÍNH MÌNH (re-auth) mới giải mã hiển thị."""
+import html
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessDenied, UserError
 
@@ -37,13 +38,22 @@ class VdPasswordViewWizard(models.TransientModel):
             local = fields.Datetime.context_timestamp(h, h.change_date) if h.change_date else None
             when = local.strftime('%d/%m/%Y %H:%M') if local else ''
             by = h.changed_by_id.name or ''
+            # Mật khẩu ẨN mặc định — bấm con mắt 👁️ mới hiện (thẻ <details> gốc của
+            # trình duyệt, không cần JS). Escape để mật khẩu có < > & " không vỡ bảng.
+            pw_cell = (
+                '<details style="display:inline-block;">'
+                '<summary style="cursor:pointer;color:#2563eb;font-weight:600;'
+                'user-select:none;">👁️ Bấm để xem</summary>'
+                '<span style="font-weight:700;font-family:monospace;color:#b91c1c;'
+                'user-select:all;">%s</span>'
+                '</details>' % html.escape(plain)
+            )
             rows += (
                 '<tr>'
                 '<td style="padding:6px 10px;border:1px solid #e2e8f0;">%s</td>'
-                '<td style="padding:6px 10px;border:1px solid #e2e8f0;font-weight:700;'
-                'font-family:monospace;color:#b91c1c;">%s</td>'
+                '<td style="padding:6px 10px;border:1px solid #e2e8f0;">%s</td>'
                 '<td style="padding:6px 10px;border:1px solid #e2e8f0;color:#64748b;">%s</td>'
-                '</tr>' % (when, plain, by)
+                '</tr>' % (html.escape(when), pw_cell, html.escape(by))
             )
         if not rows:
             body = ('<div style="color:#92400e;background:#fffbeb;border:1px dashed #fbbf24;'
