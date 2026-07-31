@@ -118,6 +118,19 @@ export function vdScheduleIntakeSave(record, reason) {
 }
 window.__vdScheduleIntakeSave = vdScheduleIntakeSave;
 
+// ===== 1 ĐƯỜNG LƯU CHUNG cho MỌI chip/picker intake =====
+// Thay cho record.save() TỨC THÌ (reload) rải rác ở ~10 widget chip/picker. Mỗi lần
+// chọn: (1) đánh dấu "vừa tương tác" để hoãn autosave 1.5s, (2) lên lịch lưu-ngầm CÓ
+// BẢO VỆ (chỉ thật lưu khi user đã rời ô + ngừng gõ). Nhờ vậy KHI ĐANG NHẬP form
+// KHÔNG BAO GIỜ reload → hết nuốt số/lựa chọn đang nhập. Reload (nếu có) chỉ xảy ra
+// lúc user đã nghỉ tay hẳn — khi đó không còn gì in-flight để mất.
+export function vdCommitIntakeChange(record, reason) {
+    if (!record) return;
+    window.__vdIntake.lastType = Date.now();
+    vdScheduleIntakeSave(record, reason);
+}
+window.__vdCommitIntakeChange = vdCommitIntakeChange;
+
 export class VdNumInput extends Component {
     static template = "vd_crm_lead.VdNumInput";
     static props = {

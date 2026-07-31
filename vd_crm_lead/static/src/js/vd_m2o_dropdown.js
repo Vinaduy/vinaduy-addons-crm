@@ -286,9 +286,9 @@ export class VdM2oDropdown extends Component {
             }
         }
         this._close();
-        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("m2o-dropdown save"); } catch (_) {}
-        // Auto-save → backend compute vd_intake_complete + auto-lock.
-        try { await this.props.record.save(); } catch (_) {}
+        // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập). Strategy ORM-write ở trên
+        // đã đảm bảo lưu DB khi cần; ở đây chỉ lên lịch lưu form lúc user nghỉ tay.
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-dropdown"); } catch (_) {}
         try { this.render(true); } catch (_) {}
     }
 
@@ -296,7 +296,7 @@ export class VdM2oDropdown extends Component {
         if (ev) { try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {} }
         try {
             await this.props.record.update({ [this.props.name]: false });
-            await this.props.record.save();
+            try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-dropdown-clear"); } catch (_) {}
         } catch (e) {
             console.error("[vd_m2o_dropdown] clear failed:", e);
         }

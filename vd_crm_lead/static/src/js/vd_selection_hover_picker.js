@@ -119,13 +119,9 @@ export class VdSelectionHoverPicker extends Component {
         } catch (e) {
             console.error("[vd_shp] update failed:", e);
         }
-        // FLUSH ô số đang gõ (Ngang/Dài, m² tầng) RỒI LƯU NGAY — giống pattern an
-        // toàn của vd_selection_inline / m2o picker. Trước đây chỉ scheduleSave (hoãn,
-        // không flush) nên số vừa gõ ở ô khác bị mất khi chọn picker này.
-        try {
-            if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("shp:" + this.props.name);
-            await this.props.record.save();
-        } catch (e) { console.error("[vd_shp] save failed:", e); }
+        // Lưu-ngầm CÓ BẢO VỆ — KHÔNG reload khi đang nhập (thay save() tức thì đã
+        // từng nuốt số vừa gõ ở ô khác khi chọn picker này).
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "shp:" + this.props.name); } catch (_) {}
         try { this.render(true); } catch (_) {}
         this.state.open = false;
     }
@@ -137,6 +133,7 @@ export class VdSelectionHoverPicker extends Component {
         } catch (e) {
             console.error("[vd_shp] clear failed:", e);
         }
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "shp-clear"); } catch (_) {}
         try { this.render(true); } catch (_) {}
     }
 }

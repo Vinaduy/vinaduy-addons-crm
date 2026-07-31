@@ -48,18 +48,8 @@ export class VdHouseExtraPicker extends Component {
     }
 
     async _afterSave() {
-        // Flush ô số intake đang gõ TRƯỚC để reload-sau-save không nuốt số
-        // in-flight (xem memory: intake_save_wipes_inflight_number).
-        try {
-            if (window.__vdFlushIntakeInputs) {
-                await window.__vdFlushIntakeInputs("hextra");
-            }
-        } catch (_e) { /* ignore */ }
-        try {
-            await this.props.record.save();
-        } catch (e) {
-            console.error("[vd_hextra] save failed:", e);
-        }
+        // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập) — thay save() tức thì.
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "hextra"); } catch (_) {}
     }
 
     async _saveTokens(tokens) {

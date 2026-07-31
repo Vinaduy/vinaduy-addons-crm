@@ -341,9 +341,10 @@ export class VdM2oHoverPicker extends Component {
             }
         }
 
-        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("m2o-picker save"); } catch (_) {}
-        // Auto-save form → trigger backend compute vd_intake_complete + auto-lock
-        try { await this.props.record.save(); } catch (_) {}
+        // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập). Strategy-3 ở trên đã
+        // ORM-write khi record.update fail nên vẫn đảm bảo lưu DB; ở đây chỉ lên
+        // lịch lưu form (compute vd_intake_complete + auto-lock) lúc user nghỉ tay.
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-picker"); } catch (_) {}
         // Force render để UI bar cập nhật ngay
         try { this.render(true); } catch (_) {}
         this.state.open = false;
@@ -360,6 +361,7 @@ export class VdM2oHoverPicker extends Component {
         } catch (e) {
             console.error("[vd_m2o_hover_picker] clear failed:", e);
         }
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-picker-clear"); } catch (_) {}
     }
 }
 

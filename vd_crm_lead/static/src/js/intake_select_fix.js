@@ -473,7 +473,10 @@ function schedule() {
         attachReadableHintAll();        // chỉ XOÁ hint cũ, không tạo mới
         attachLiveSeparatorAll();        // gõ tới đâu phân cách số tới đó
         clearZeroDisplays();
-        attachAutoSaveBlur();            // blur Float/Char inputs → auto-save form
+        // BỎ attachAutoSaveBlur: đây là 1 trong ~3 đường tự-lưu chạy đua nhau (click
+        // nút Lưu cloud → reload) gây nuốt dữ liệu đang nhập. Mọi thao tác intake nay
+        // đi qua 1 đường lưu-ngầm CÓ BẢO VỆ duy nhất (__vdCommitIntakeChange /
+        // __vdScheduleIntakeSave) + lưới an toàn khi rời bảng (intake_safety_save).
         syncIntakeLockedClass();         // sync class .vd-intake-locked theo state
     }, 150);
 }

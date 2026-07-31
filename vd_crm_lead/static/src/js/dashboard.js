@@ -3284,7 +3284,26 @@ export class VdCrmDashboard extends Component {
         }
     }
 
-    closePreview() {
+    // Lưu form intake (nếu dirty) TRƯỚC khi đóng / chuyển KH. Cần vì chip/picker nay
+    // KHÔNG save() tức thì (lưu-ngầm debounce) → phải flush + save 1 lần khi rời để
+    // không mất thao tác cuối. Flush ô số đang gõ trước để không nuốt số in-flight.
+    async _saveIntakeBeforeLeave() {
+        let rec = null;
+        try { rec = window.__vdGetIntakeRecord && window.__vdGetIntakeRecord(); } catch (_e) {}
+        if (!rec) return;
+        let dirty = true;
+        try {
+            if (typeof rec.isDirty === "boolean") dirty = rec.isDirty;
+            else if (typeof rec.dirty === "boolean") dirty = rec.dirty;
+        } catch (_e) {}
+        if (!dirty) return;
+        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("leave-preview"); } catch (_e) {}
+        try { await rec.save(); } catch (_e) {}
+    }
+
+    async closePreview() {
+        // Lưu thao tác intake cuối cùng trước khi gỡ form nhúng (nếu không sẽ mất).
+        await this._saveIntakeBeforeLeave();
         // Ở view KHÁCH MỚI (có pill xanh "đã báo giá"): NV có thể vừa bấm CHỐT /
         // HUỶ BÁO GIÁ trong preview → tải lại để pill cập nhật màu ngay (mất/ra
         // xanh) + gỡ khoá CHỐT nếu còn ≤ 3.
@@ -3313,15 +3332,18 @@ export class VdCrmDashboard extends Component {
         document.body.style.overflow = '';
     }
 
-    prevPreview() {
+    async prevPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index <= 0) return;
+        // Chuyển sang KH khác = gỡ form nhúng hiện tại → lưu thao tác cuối trước.
+        await this._saveIntakeBeforeLeave();
         this.state.previewLead.index = p.index - 1;
     }
 
-    nextPreview() {
+    async nextPreview() {
         const p = this.state.previewLead;
         if (!p.open || p.index >= p.ids.length - 1) return;
+        await this._saveIntakeBeforeLeave();
         this.state.previewLead.index = p.index + 1;
     }
 

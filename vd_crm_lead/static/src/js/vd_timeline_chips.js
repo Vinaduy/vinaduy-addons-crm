@@ -101,10 +101,10 @@ export class VdTimelineChips extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(async () => {
+        this._closeTimer = setTimeout(() => {
             this.state.open = false;
-            try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("timeline"); } catch (_e) {}
-            try { await this.props.record.save(); } catch (_e) {}
+            // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập) — thay save() tức thì.
+            try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "timeline"); } catch (_) {}
         }, 150);
     }
 
@@ -120,14 +120,14 @@ export class VdTimelineChips extends Component {
             arr.push(label);
         }
         this.props.record.update({ [this.props.name]: arr.join(SEP) });
-        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline"); } catch (_) {}
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "timeline"); } catch (_) {}
     }
 
     onRemoveSelected(label, ev) {
         ev.stopPropagation();
         const arr = this.selectedArray().filter((x) => x !== label);
         this.props.record.update({ [this.props.name]: arr.join(SEP) });
-        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "timeline rm"); } catch (_) {}
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "timeline rm"); } catch (_) {}
     }
 }
 

@@ -212,11 +212,13 @@ export class VdSelectionDropdown extends Component {
         this.props.record.update({ [this.props.name]: value });
         this.state.open = false;
         this.state.search = "";
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-dd"); } catch (_) {}
     }
 
     clearValue(ev) {
         ev.stopPropagation();
         this.props.record.update({ [this.props.name]: false });
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-dd-clear"); } catch (_) {}
     }
 }
 

@@ -106,14 +106,8 @@ export class VdFloorFunctionChips extends Component {
     }
 
     async _persistNow() {
-        try {
-            if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("floor-func");
-        } catch (_e) { /* ignore */ }
-        try {
-            await this.props.record.save();
-        } catch (e) {
-            try { console.error("[floor-func] save failed:", e); } catch (_) {}
-        }
+        // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập) — thay save() tức thì.
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "floor-func"); } catch (_) {}
     }
 
     async onChipClick(tag, ev) {
@@ -125,15 +119,15 @@ export class VdFloorFunctionChips extends Component {
         } else {
             await this.saveRecord([tag.id]);
         }
-        // SAVE DỒN (idle) — không reload từng phát.
-        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "floor-func"); } catch (_) {}
+        // SAVE DỒN (idle, có bảo vệ) — không reload từng phát.
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "floor-func"); } catch (_) {}
     }
 
     async onRemoveSelected(tag, ev) {
         ev.stopPropagation();
         const rec = this.x2manyValue.records.find((r) => r.resId === tag.id);
         if (rec) await this.removeRecord(rec);
-        try { if (window.__vdScheduleIntakeSave) window.__vdScheduleIntakeSave(this.props.record, "floor-func rm"); } catch (_) {}
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "floor-func rm"); } catch (_) {}
     }
 }
 
