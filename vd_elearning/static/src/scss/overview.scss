@@ -1698,3 +1698,33 @@ $vd-line2:   #ece7da;
         margin-top: 7px; font-size: 12px; color: #64748b; line-height: 1.45;
     }
 }
+
+// ===== Nội dung khóa = PDF up lên + nhập câu hỏi Excel (2026-07-31) =====
+.o_vd_pdf_admin, .o_vd_qimport {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 12px; margin: 0 0 12px;
+    background: #f6f4ec; border: 1px solid #e7e2d4; border-radius: 12px;
+}
+.o_vd_pdf_upbtn, .o_vd_qimport_btn {
+    display: inline-flex; align-items: center; cursor: pointer; margin: 0;
+    padding: 8px 16px; border-radius: 9px; font-weight: 800; font-size: 13px;
+    color: #fff; background: linear-gradient(135deg, #c0392b, #922b21);
+    box-shadow: 0 3px 10px rgba(192,57,43,.3); transition: all .12s;
+    &:hover { filter: brightness(1.07); transform: translateY(-1px); }
+}
+.o_vd_qimport_btn { background: linear-gradient(135deg, #2f9e44, #1f7a34); box-shadow: 0 3px 10px rgba(47,158,68,.3); }
+.o_vd_pdf_rmbtn, .o_vd_qimport_tpl {
+    display: inline-flex; align-items: center; cursor: pointer; border: 0;
+    padding: 7px 13px; border-radius: 9px; font-weight: 700; font-size: 12.5px;
+    background: #efece2; color: #6b6452;
+    &:hover { background: #e6e1d3; }
+}
+.o_vd_pdf_name { font-size: 12.5px; font-weight: 700; color: #1f7a34; i { color: #2f9e44; } }
+.o_vd_pdf_hint { font-size: 12px; color: #9a927e; font-style: italic; }
+.o_vd_pdf_view {
+    border: 1px solid #e2dcce; border-radius: 12px; overflow: hidden;
+    background: #525659; box-shadow: 0 4px 16px rgba(32,36,58,.12);
+}
+.o_vd_pdf_iframe {
+    display: block; width: 100%; height: 76vh; border: 0;
+}

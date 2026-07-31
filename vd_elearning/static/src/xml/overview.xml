@@ -438,6 +438,37 @@
                 <div class="o_vd_ce_body">
                     <!-- ============ TAB NOI DUNG ============ -->
                     <t t-if="state.tab=='content'">
+                        <!-- NUT UP / GO PDF NOI DUNG (admin, khi khong dang soan text) -->
+                        <div t-if="props.editable &amp;&amp; !state.editingContent" class="o_vd_pdf_admin">
+                            <label class="o_vd_pdf_upbtn">
+                                <i class="fa fa-file-pdf-o me-1"/><t t-esc="state.uploadingPdf ? 'Đang tải...' : (state.hasPdf ? 'Đổi PDF nội dung' : 'Tải lên PDF nội dung')"/>
+                                <input type="file" accept="application/pdf,.pdf" style="display:none" t-on-change="(ev) => this.uploadPdf(ev)"/>
+                            </label>
+                            <button t-if="state.hasPdf" class="o_vd_pdf_rmbtn" t-on-click="() => this.removePdf()"><i class="fa fa-trash me-1"/>Gỡ PDF</button>
+                            <span t-if="state.hasPdf" class="o_vd_pdf_name"><i class="fa fa-check-circle me-1"/><t t-esc="state.pdfName"/></span>
+                            <span t-if="!state.hasPdf" class="o_vd_pdf_hint">— hoặc soạn nội dung tay ở dưới</span>
+                        </div>
+                        <!-- KHUNG XEM PDF (admin xem truoc + hoc vien hoc): khoa co PDF -->
+                        <t t-if="state.hasPdf">
+                            <div class="o_vd_pdf_view">
+                                <iframe t-att-src="state.pdfUrl" class="o_vd_pdf_iframe" title="Nội dung khóa học"/>
+                            </div>
+                            <!-- Hoc vien co PDF: nut VAO THI ngay duoi (neu co cau hoi) -->
+                            <div t-if="!props.editable &amp;&amp; state.questions.length" class="o_vd_ce_gotoexam">
+                                <div class="o_vd_exam_intro">
+                                    <div class="o_vd_exam_intro_row">
+                                        <span class="o_vd_exam_chip"><i class="fa fa-list-ol me-1"/><t t-esc="state.questions.length"/> câu hỏi</span>
+                                        <span class="o_vd_exam_chip"><i class="fa fa-clock-o me-1"/><t t-esc="state.examMinutes"/> phút</span>
+                                        <span class="o_vd_exam_chip"><i class="fa fa-trophy me-1"/>Đạt <t t-esc="state.passPercent"/>%</span>
+                                    </div>
+                                </div>
+                                <button class="o_vd_ce_start" t-on-click="startExam">
+                                    <i class="fa fa-graduation-cap me-2"/>VÀO THI NGAY <i class="fa fa-arrow-right ms-2"/>
+                                </button>
+                            </div>
+                        </t>
+                        <!-- KHONG co PDF -> giu nguyen luong soan tay / doc cu -->
+                        <t t-if="!state.hasPdf">
                         <!-- TRINH SOAN FULL MAN HINH (admin) -->
                         <t t-if="props.editable &amp;&amp; state.editingContent">
                             <div class="o_vd_ed">
@@ -503,6 +534,7 @@
                                 </t>
                             </div>
                         </t>
+                        </t>
                     </t>
 
                     <!-- ============ TAB BAI THI ============ -->
@@ -510,6 +542,15 @@
                         <!-- ADMIN: soan cau hoi -->
                         <t t-if="props.editable">
                             <div class="o_vd_ce_list">
+                                <!-- NHAP CAU HOI hang loat tu Excel -->
+                                <div class="o_vd_qimport">
+                                    <label class="o_vd_qimport_btn">
+                                        <i class="fa fa-upload me-1"/><t t-esc="state.importingQ ? 'Đang nhập...' : 'Nhập câu hỏi từ Excel'"/>
+                                        <input type="file" accept=".xlsx" style="display:none" t-on-change="(ev) => this.importQuestions(ev)"/>
+                                    </label>
+                                    <button class="o_vd_qimport_tpl" t-on-click="() => this.downloadQuestionTemplate()"><i class="fa fa-download me-1"/>Tải file mẫu</button>
+                                    <span class="o_vd_pdf_hint">— hoặc thêm từng câu tay ở dưới</span>
+                                </div>
                                 <button class="o_vd_ce_add o_vd_ce_add_block" t-on-click="addQuestion"><i class="fa fa-plus me-1"/>Thêm câu hỏi</button>
                                 <t t-foreach="state.questions" t-as="q" t-key="q._k">
                                     <div class="o_vd_ce_q">

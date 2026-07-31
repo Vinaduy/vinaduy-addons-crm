@@ -674,6 +674,11 @@ export class VdCourseDialog extends Component {
             })),
             saving: false,
             blurred: false,               // che mo khi cua so mat focus (chong chup len)
+            hasPdf: !!data.has_pdf,        // noi dung khoa la FILE PDF up len
+            pdfName: data.pdf_name || "",
+            pdfUrl: data.pdf_url || "",
+            uploadingPdf: false,
+            importingQ: false,
         });
         this._examTimer = null;
         // ---- CONG CHAN DOC BAI: hoc vien phai bam xem HET cac buoc (menu ben
@@ -1100,6 +1105,87 @@ export class VdCourseDialog extends Component {
         const c = { _k: this.key(), id: false, name: "Nội dung khóa học", body: "" };
         this.state.contents.push(c);
         this.state.editingContent = c;
+    }
+
+    // ---- NOI DUNG KHOA = FILE PDF (up len thay vi soan tay / seed .py) ----
+    _readFileB64(file) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(String(r.result || ""));
+            r.onerror = reject;
+            r.readAsDataURL(file);   // data:...;base64,xxxx
+        });
+    }
+    async uploadPdf(ev) {
+        const file = ev.target.files && ev.target.files[0];
+        ev.target.value = "";
+        if (!file) return;
+        if (!/\.pdf$/i.test(file.name)) {
+            this.notification.add("Chỉ nhận file PDF.", { type: "warning" });
+            return;
+        }
+        this.state.uploadingPdf = true;
+        try {
+            const b64 = await this._readFileB64(file);
+            const res = await this.orm.call("slide.channel", "vd_course_upload_pdf",
+                [this.props.channelId, b64, file.name]);
+            this.state.hasPdf = true;
+            this.state.pdfName = res.pdf_name || file.name;
+            // them ?t= de iframe reload dung ban moi (tranh cache)
+            this.state.pdfUrl = (res.pdf_url || "") + "?t=" + Date.now();
+            this.notification.add("Đã tải lên PDF nội dung khóa.", { type: "success" });
+            await this.props.onSaved();
+        } catch (e) {
+            this.notification.add("Tải PDF thất bại. " + (e.message || ""), { type: "danger" });
+        } finally {
+            this.state.uploadingPdf = false;
+        }
+    }
+    async removePdf() {
+        if (!window.confirm("Gỡ PDF nội dung khóa này?")) return;
+        try {
+            await this.orm.call("slide.channel", "vd_course_remove_pdf", [this.props.channelId]);
+            this.state.hasPdf = false;
+            this.state.pdfName = "";
+            this.state.pdfUrl = "";
+            this.notification.add("Đã gỡ PDF.", { type: "success" });
+            await this.props.onSaved();
+        } catch (e) {
+            this.notification.add("Gỡ PDF thất bại.", { type: "danger" });
+        }
+    }
+    // ---- NHAP CAU HOI hang loat tu Excel ----
+    downloadQuestionTemplate() {
+        window.open("/vd_elearning/question_template", "_blank");
+    }
+    async importQuestions(ev) {
+        const file = ev.target.files && ev.target.files[0];
+        ev.target.value = "";
+        if (!file) return;
+        if (!/\.xlsx$/i.test(file.name)) {
+            this.notification.add("Chỉ nhận file Excel (.xlsx).", { type: "warning" });
+            return;
+        }
+        this.state.importingQ = true;
+        try {
+            const b64 = await this._readFileB64(file);
+            const res = await this.orm.call("slide.channel", "vd_import_questions_excel",
+                [this.props.channelId, b64]);
+            // nap lai cau hoi tu server
+            const data = await this.orm.call("slide.channel", "vd_course_load", [this.props.channelId]);
+            this.state.questions = (data.questions || []).map((q) => ({
+                _k: this.key(), id: q.id, text: q.text,
+                answers: (q.answers || []).map((a) => ({
+                    _k: this.key(), id: a.id, text: a.text,
+                    is_correct: a.is_correct, chosen: false,
+                })),
+            }));
+            this.notification.add(`Đã nhập ${res.created || 0} câu hỏi từ Excel.`, { type: "success" });
+        } catch (e) {
+            this.notification.add("Nhập câu hỏi thất bại. " + (e.message || ""), { type: "danger" });
+        } finally {
+            this.state.importingQ = false;
+        }
     }
     openEditor(c) {
         this.state.editingContent = c;

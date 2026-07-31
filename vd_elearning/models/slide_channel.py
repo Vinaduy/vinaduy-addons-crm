@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class SlideChannel(models.Model):
@@ -27,6 +27,10 @@ class SlideChannel(models.Model):
     # Thoi gian lam bai (phut). 0 = tu dong 1 phut/cau (20 cau = 20 phut).
     vd_exam_minutes = fields.Integer(string='Thoi gian thi (phut)', default=0,
                                      help='0 = tu dong 1 phut moi cau')
+    # NOI DUNG KHOA = FILE PDF up len (thay vi soan tay / seed .py). Admin up 1 PDF,
+    # NV hoc thi xem PDF nhung trong khung hoc. User spec 2026-07-31.
+    vd_pdf = fields.Binary(string='PDF noi dung', attachment=True)
+    vd_pdf_name = fields.Char(string='Ten file PDF')
 
     @api.model
     def _vd_apply_course_defaults(self):
@@ -332,7 +336,89 @@ class SlideChannel(models.Model):
                 'max_attempts': ch.vd_max_attempts or 0,
                 'exam_minutes_cfg': ch.vd_exam_minutes or 0,  # raw (0 = auto)
                 'exam_minutes': exam_minutes,                 # hieu luc cho timer
+                'has_pdf': bool(ch.vd_pdf),
+                'pdf_name': ch.vd_pdf_name or '',
+                'pdf_url': ('/vd_elearning/course_pdf/%d' % ch.id) if ch.vd_pdf else '',
                 'contents': contents, 'questions': questions}
+
+    def vd_course_upload_pdf(self, channel_id, pdf_b64, pdf_name=''):
+        """Admin up FILE PDF lam noi dung khoa. pdf_b64 = base64 (co the kem
+        prefix 'data:...;base64,'). Xoa het slide article text cu neu muon dung PDF."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc up noi dung khoa.')
+        ch = self.sudo().browse(channel_id)
+        raw = pdf_b64 or ''
+        if ',' in raw and raw[:5] == 'data:':
+            raw = raw.split(',', 1)[1]
+        ch.write({'vd_pdf': raw, 'vd_pdf_name': pdf_name or 'noidung.pdf'})
+        return {'ok': True, 'pdf_name': ch.vd_pdf_name,
+                'pdf_url': '/vd_elearning/course_pdf/%d' % ch.id}
+
+    def vd_course_remove_pdf(self, channel_id):
+        """Admin go PDF -> quay ve dung noi dung soan tay."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc sua noi dung khoa.')
+        self.sudo().browse(channel_id).write({'vd_pdf': False, 'vd_pdf_name': False})
+        return {'ok': True}
+
+    def vd_import_questions_excel(self, channel_id, file_b64):
+        """Admin NHAP CAU HOI hang loat tu Excel. Moi dong 1 cau:
+        [Cau hoi | Dap an 1 | Dap an 2 | Dap an 3 | Dap an 4 | So dap an dung].
+        Cot 'So dap an dung' = so thu tu dap an dung (1..4), hoac de trong = dap an 1.
+        Bo qua dong trong / dong tieu de. Them vao quiz cua khoa (khong xoa cau cu)."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc nhap cau hoi.')
+        import base64 as _b64
+        import io as _io
+        try:
+            from openpyxl import load_workbook
+        except Exception:
+            raise UserError('Server thieu thu vien openpyxl de doc Excel.')
+        raw = file_b64 or ''
+        if ',' in raw and raw[:5] == 'data:':
+            raw = raw.split(',', 1)[1]
+        try:
+            wb = load_workbook(_io.BytesIO(_b64.b64decode(raw)), read_only=True, data_only=True)
+        except Exception:
+            raise UserError('File khong doc duoc (phai la .xlsx).')
+        ws = wb.active
+        ch = self.sudo().browse(channel_id)
+        quiz = ch.slide_ids.filtered(lambda x: x.slide_category == 'quiz')[:1]
+        if not quiz:
+            quiz = self.env['slide.slide'].sudo().create({
+                'name': 'Bai thi', 'channel_id': ch.id,
+                'slide_category': 'quiz', 'sequence': 999})
+        base_seq = max(quiz.question_ids.mapped('sequence') or [0])
+        Q = self.env['slide.question'].sudo()
+        created = 0
+        for row in ws.iter_rows(values_only=True):
+            cells = [('' if c is None else str(c)).strip() for c in (row or [])]
+            if not cells or not cells[0]:
+                continue
+            qtext = cells[0]
+            # Bo dong tieu de (cot dau chua 'cau hoi'/'question')
+            if qtext.lower() in ('cau hoi', 'câu hỏi', 'question', 'noi dung', 'nội dung'):
+                continue
+            answers = [c for c in cells[1:5] if c]
+            if len(answers) < 2:
+                continue
+            # Cot 6 = so dap an dung (1..n); mac dinh 1.
+            correct_idx = 1
+            if len(cells) >= 6 and cells[5]:
+                try:
+                    correct_idx = int(float(cells[5]))
+                except Exception:
+                    correct_idx = 1
+            if correct_idx < 1 or correct_idx > len(answers):
+                correct_idx = 1
+            base_seq += 1
+            cmds = [(0, 0, {'text_value': atext, 'is_correct': (i == correct_idx),
+                            'sequence': i})
+                    for i, atext in enumerate(answers, start=1)]
+            Q.create({'slide_id': quiz.id, 'question': qtext,
+                      'sequence': base_seq, 'answer_ids': cmds})
+            created += 1
+        return {'ok': True, 'created': created}
 
     def vd_report_content(self):
         """Du lieu render PDF khoa hoc (noi dung bai giang + cau hoi thi + dap an).
