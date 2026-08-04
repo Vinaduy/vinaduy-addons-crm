@@ -8891,8 +8891,13 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     top: calc(100% + 6px);
     left: 0;
     z-index: 3001;
-    min-width: 300px;
-    max-width: 360px;
+    // Containing block (.o_vd_bulk_kebab_wrap) chỉ rộng bằng nút ⋮ nên menu
+    // absolute co về shrink-to-fit + min-width bị reset ở đâu đó → phải ÉP width
+    // cố định bằng !important cho khỏi bị bó nhỏ, chữ xuống dòng từng từ.
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 92vw !important;
+    box-sizing: border-box;
     background: #fff;
     border: 1px solid #dee2e6;
     border-radius: 11px;
