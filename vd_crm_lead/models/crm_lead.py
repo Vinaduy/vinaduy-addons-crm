@@ -6447,6 +6447,114 @@ class CrmLead(models.Model):
         return len(leads)
 
     @api.model
+    def dashboard_user_lead_ids(self, user_id):
+        """Trả về TOÀN BỘ id KH (active) thuộc 1 NV — cho chức năng 'chọn 1 phát
+        toàn bộ khách trong tài khoản của 1 nhân viên' trên dashboard.
+
+        Cùng quyền với reassign (admin / người chia số / giám đốc).
+        """
+        from odoo.exceptions import AccessError
+        role_model = self.env['vd.crm.role.config'].sudo()
+        if not (self.env.user._is_superuser() or role_model.can_user_reassign(self.env.user)):
+            raise AccessError(_(
+                'Bạn không có quyền chọn toàn bộ KH của nhân viên khác. '
+                'Chỉ Admin, người chia số hoặc giám đốc mới được làm.'
+            ))
+        try:
+            uid = int(user_id or 0)
+        except (TypeError, ValueError):
+            uid = 0
+        if not uid:
+            return []
+        leads = self.sudo().search([('user_id', '=', uid)], order='create_date desc')
+        return leads.ids
+
+    @api.model
+    def dashboard_export_leads_xlsx(self, lead_ids):
+        """Xuất danh sách KH đã chọn ra file Excel (.xlsx). Trả về URL để tải.
+
+        Cùng quyền với reassign (admin / người chia số / giám đốc).
+        """
+        import io
+        import base64
+        import xlsxwriter
+        from odoo.exceptions import AccessError
+        role_model = self.env['vd.crm.role.config'].sudo()
+        if not (self.env.user._is_superuser() or role_model.can_user_reassign(self.env.user)):
+            raise AccessError(_(
+                'Bạn không có quyền xuất danh sách KH. '
+                'Chỉ Admin, người chia số hoặc giám đốc mới được làm.'
+            ))
+        ids = [int(i) for i in (lead_ids or [])]
+        leads = self.sudo().browse(ids).exists()
+
+        output = io.BytesIO()
+        wb = xlsxwriter.Workbook(output, {'in_memory': True, 'remove_timezone': True})
+        ws = wb.add_worksheet('Khach hang')
+        fmt_hdr = wb.add_format({
+            'bold': True, 'bg_color': '#4F46E5', 'font_color': '#FFFFFF',
+            'border': 1, 'align': 'center', 'valign': 'vcenter',
+        })
+        fmt_cell = wb.add_format({'border': 1, 'valign': 'vcenter'})
+        fmt_dt = wb.add_format({
+            'border': 1, 'valign': 'vcenter', 'num_format': 'dd/mm/yyyy hh:mm',
+        })
+        headers = [
+            'STT', 'Tên khách hàng', 'Điện thoại', 'Di động', 'NV phụ trách',
+            'Phòng ban', 'Giai đoạn', 'Nguồn', 'Số cuộc gọi', 'Tỉnh/TP',
+            'Phường/Xã', 'Ngày tạo',
+        ]
+        widths = [5, 26, 14, 14, 20, 16, 18, 18, 11, 18, 18, 18]
+        for c, (h, w) in enumerate(zip(headers, widths)):
+            ws.write(0, c, h, fmt_hdr)
+            ws.set_column(c, c, w)
+        ws.freeze_panes(1, 0)
+        if leads:
+            ws.autofilter(0, 0, len(leads), len(headers) - 1)
+
+        row = 1
+        for l in leads:
+            prov = l.vd_intake_province_id.name if l.vd_intake_province_id else ''
+            dist = ''
+            if 'vd_intake_district' in l._fields and l.vd_intake_district:
+                dist = l.vd_intake_district.display_name or ''
+            ws.write(row, 0, row, fmt_cell)
+            ws.write(row, 1, l.name or '', fmt_cell)
+            ws.write(row, 2, l.phone or '', fmt_cell)
+            ws.write(row, 3, l.mobile or '', fmt_cell)
+            ws.write(row, 4, l.user_id.name or '', fmt_cell)
+            ws.write(row, 5, self._vd_team_label_for(l.user_id) if l.user_id else '', fmt_cell)
+            ws.write(row, 6, l.stage_id.name or '', fmt_cell)
+            ws.write(row, 7, l.source_id.name or '', fmt_cell)
+            ws.write(row, 8, l.call_count or 0, fmt_cell)
+            ws.write(row, 9, prov, fmt_cell)
+            ws.write(row, 10, dist, fmt_cell)
+            cdt = fields.Datetime.context_timestamp(l, l.create_date) if l.create_date else False
+            if cdt:
+                ws.write_datetime(row, 11, cdt.replace(tzinfo=None), fmt_dt)
+            else:
+                ws.write(row, 11, '', fmt_cell)
+            row += 1
+
+        wb.close()
+        data = output.getvalue()
+        output.close()
+
+        fname = 'Khach_hang_%s.xlsx' % fields.Datetime.now().strftime('%Y%m%d_%H%M%S')
+        att = self.env['ir.attachment'].sudo().create({
+            'name': fname,
+            'type': 'binary',
+            'datas': base64.b64encode(data),
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': 'crm.lead',
+        })
+        return {
+            'url': '/web/content/%d?download=true' % att.id,
+            'name': fname,
+            'count': len(leads),
+        }
+
+    @api.model
     def dashboard_bulk_distribute(self, assignments):
         """CHIA SỐ: mỗi KH chuyển sang 1 NV KHÁC NHAU (user spec 2026-06-08).
 

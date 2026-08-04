@@ -286,6 +286,10 @@ export class VdCrmDashboard extends Component {
             selectedLeadIds: {},
             reassignTargetId: 0,
             reassignBusy: false,
+            // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
+            // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' (bảng chọn
+            // NV cho từng chức năng); busy: đang chạy chọn-tất-cả / xuất / chuyển.
+            bulkMenu: { open: false, sub: "", busy: false },
             // ===== HƯỚNG DẪN NÚT SOS (coachmark tự hiện) =====
             // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
             // trên 3 ngày khác nhau.
@@ -1997,6 +2001,121 @@ export class VdCrmDashboard extends Component {
                 { type: "danger", title: "Không chuyển được KH" });
         } finally {
             this.state.reassignBusy = false;
+        }
+    }
+
+    // ============ MENU 3 CHẤM (kebab) — thao tác theo NGUYÊN 1 NHÂN VIÊN ========
+    // Gom 3 chức năng vào 1 dropdown (không rải nút): (1) chọn 1 phát toàn bộ KH
+    // của 1 NV, (2) xuất KH đã chọn ra Excel, (3) chuyển 1 phát toàn bộ KH đã chọn
+    // sang 1 NV khác.
+    toggleBulkMenu() {
+        const open = !this.state.bulkMenu.open;
+        this.state.bulkMenu = { open, sub: "", busy: false };
+    }
+    closeBulkMenu() {
+        if (this.state.bulkMenu.open || this.state.bulkMenu.sub) {
+            this.state.bulkMenu = { open: false, sub: "", busy: false };
+        }
+    }
+    openBulkSub(sub) {
+        // Mở bảng chọn NV cho chức năng tương ứng ('selectUser' | 'transferUser').
+        this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true };
+    }
+    // Danh sách NV để chọn trong menu — kèm tổng KH (state.users từ dashboard_users).
+    get bulkMenuUsers() {
+        return (this.state.users || [])
+            .filter((u) => u && u.id)
+            .slice()
+            .sort((a, b) => (b.total || 0) - (a.total || 0));
+    }
+    // Bấm 1 NV trong bảng cấp 2 → điều hướng theo chức năng đang mở.
+    onBulkUserPick(bu) {
+        if (!bu || !bu.id) return;
+        if (this.state.bulkMenu.sub === "transferUser") {
+            this.bulkTransferAllTo(bu.id, bu.name);
+        } else {
+            this.bulkSelectAllOfUser(bu.id, bu.name);
+        }
+    }
+    // (1) Chọn 1 phát TOÀN BỘ khách của 1 NV → nạp hết id vào vùng đã chọn.
+    async bulkSelectAllOfUser(userId, userName) {
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const ids = await this.orm.call(
+                "crm.lead", "dashboard_user_lead_ids", [userId]);
+            const next = {};
+            for (const id of (ids || [])) next[id] = true;
+            this.state.selectedLeadIds = next;
+            this.state.selectMode = true;
+            this.notification.add(
+                `Đã chọn ${ids.length} khách của "${userName}".`,
+                { type: "success", title: "Chọn toàn bộ KH" });
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chọn được" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false };
+        }
+    }
+    // (2) Xuất TOÀN BỘ khách đã chọn ra Excel (.xlsx) → tải file về.
+    async bulkExportExcel() {
+        const ids = this.selectedLeadIdList;
+        if (!ids.length) {
+            this.notification.add("Chưa chọn khách hàng nào để xuất.",
+                { type: "warning" });
+            return;
+        }
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const res = await this.orm.call(
+                "crm.lead", "dashboard_export_leads_xlsx", [ids]);
+            if (res && res.url) {
+                const a = document.createElement("a");
+                a.href = res.url;
+                a.download = res.name || "khach_hang.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                this.notification.add(
+                    `Đã xuất ${res.count} khách ra Excel.`,
+                    { type: "success", title: "Xuất Excel" });
+            }
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không xuất được" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false };
+        }
+    }
+    // (3) Chuyển 1 phát TOÀN BỘ khách đã chọn sang 1 NV khác.
+    async bulkTransferAllTo(userId, userName) {
+        const ids = this.selectedLeadIdList;
+        if (!ids.length) {
+            this.notification.add("Chưa chọn khách hàng nào để chuyển.",
+                { type: "warning" });
+            return;
+        }
+        const ok = window.confirm(
+            `Chuyển ${ids.length} khách hàng sang nhân viên "${userName}"?`);
+        if (!ok) return;
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_reassign", [ids, userId]);
+            this.notification.add(
+                `Đã chuyển ${moved} khách hàng sang "${userName}".`,
+                { type: "success", title: "Chuyển KH thành công" });
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            await this.loadDashboard();
+            if (this.state.is_manager) {
+                await this._reloadDashUsers();
+            }
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chuyển được KH" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false };
         }
     }
 

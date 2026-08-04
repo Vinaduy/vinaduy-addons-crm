@@ -8865,6 +8865,121 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         border-color: #1971c2;
     }
 }
+/* ===== MENU 3 CHẤM (kebab) — thao tác theo nguyên 1 nhân viên ===== */
+.o_vd_bulk_kebab_wrap { position: relative; display: inline-flex; }
+.o_vd_bulk_kebab {
+    font-size: 1.1rem;
+    line-height: 1;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    color: #495057;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover { background: #e9ecef; }
+    &.o_open { color: #fff; background: #4F46E5; border-color: #4F46E5; }
+}
+.o_vd_bulk_menu_backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: transparent;
+}
+.o_vd_bulk_menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 3001;
+    min-width: 300px;
+    max-width: 360px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 11px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    padding: 0.35rem;
+    overflow: hidden;
+}
+.o_vd_bulk_menu_hd {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #6741d9;
+    padding: 0.35rem 0.5rem 0.45rem;
+    b { color: #4F46E5; }
+}
+.o_vd_bmi_back {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0 0.4rem;
+    color: #495057;
+    background: #f1f3f5;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    cursor: pointer;
+    &:hover { background: #e9ecef; }
+}
+.o_vd_bulk_menu_it {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    text-align: left;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #212529;
+    padding: 0.55rem 0.55rem;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { background: #f3f0ff; }
+    &:disabled { opacity: 0.42; cursor: not-allowed; background: transparent; }
+    .o_vd_bmi_ic { font-size: 1rem; flex: 0 0 auto; }
+    .o_vd_bmi_tx { flex: 1 1 auto; b { color: #4F46E5; } }
+    .o_vd_bmi_ar { flex: 0 0 auto; color: #adb5bd; font-weight: 800; }
+}
+.o_vd_bulk_menu_list {
+    max-height: 340px;
+    overflow-y: auto;
+}
+.o_vd_bulk_menu_uit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    font-size: 0.83rem;
+    padding: 0.5rem 0.55rem;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { background: #f3f0ff; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    .o_vd_bmu_nm { font-weight: 600; color: #212529; }
+    .o_vd_bmu_ct {
+        flex: 0 0 auto;
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: #5f3dc4;
+        background: #f3f0ff;
+        border-radius: 20px;
+        padding: 0.1rem 0.5rem;
+    }
+}
+.o_vd_bulk_menu_empty {
+    font-size: 0.8rem;
+    color: #868e96;
+    padding: 0.6rem 0.55rem;
+    text-align: center;
+}
 .o_vd_bulk_count {
     font-size: 0.82rem;
     color: #343a40;

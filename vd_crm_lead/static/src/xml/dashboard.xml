@@ -2182,6 +2182,64 @@
                                     <t t-esc="state.company_trash_count"/>
                                 </span>
                             </button>
+                            <!-- ⋮ MENU 3 CHẤM: gom thao tác theo NGUYÊN 1 NHÂN VIÊN
+                                 (chọn toàn bộ KH / xuất Excel / chuyển sang NV khác)
+                                 — không rải nút ra thanh. -->
+                            <div class="o_vd_bulk_kebab_wrap">
+                                <button class="o_vd_bulk_kebab"
+                                        t-att-class="state.bulkMenu.open ? 'o_vd_bulk_kebab o_open' : 'o_vd_bulk_kebab'"
+                                        title="Thao tác theo nhân viên"
+                                        t-on-click.stop="() => this.toggleBulkMenu()">⋮</button>
+                                <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu_backdrop"
+                                     t-on-click="() => this.closeBulkMenu()"/>
+                                <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu">
+                                    <!-- Cấp 1: 3 chức năng -->
+                                    <t t-if="!state.bulkMenu.sub">
+                                        <div class="o_vd_bulk_menu_hd">Thao tác theo nhân viên</div>
+                                        <button class="o_vd_bulk_menu_it"
+                                                t-att-disabled="state.bulkMenu.busy"
+                                                t-on-click="() => this.openBulkSub('selectUser')">
+                                            <span class="o_vd_bmi_ic">🧑‍💼</span>
+                                            <span class="o_vd_bmi_tx">Chọn toàn bộ KH của 1 nhân viên</span>
+                                            <span class="o_vd_bmi_ar">›</span>
+                                        </button>
+                                        <button class="o_vd_bulk_menu_it"
+                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
+                                                t-on-click="() => this.bulkExportExcel()">
+                                            <span class="o_vd_bmi_ic">📊</span>
+                                            <span class="o_vd_bmi_tx">Xuất Excel KH đã chọn<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
+                                        </button>
+                                        <button class="o_vd_bulk_menu_it"
+                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
+                                                t-on-click="() => this.openBulkSub('transferUser')">
+                                            <span class="o_vd_bmi_ic">🔁</span>
+                                            <span class="o_vd_bmi_tx">Chuyển toàn bộ KH đã chọn sang NV khác<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
+                                            <span class="o_vd_bmi_ar">›</span>
+                                        </button>
+                                    </t>
+                                    <!-- Cấp 2: chọn nhân viên -->
+                                    <t t-else="">
+                                        <div class="o_vd_bulk_menu_hd">
+                                            <button class="o_vd_bmi_back"
+                                                    t-on-click="() => this.openBulkSub('')">‹</button>
+                                            <t t-if="state.bulkMenu.sub === 'selectUser'">Lấy toàn bộ KH của nhân viên</t>
+                                            <t t-else="">Chuyển <b t-esc="selectedCount"/> KH sang nhân viên</t>
+                                        </div>
+                                        <div class="o_vd_bulk_menu_list">
+                                            <button t-foreach="bulkMenuUsers" t-as="bu" t-key="bu.id"
+                                                    class="o_vd_bulk_menu_uit"
+                                                    t-att-disabled="state.bulkMenu.busy"
+                                                    t-on-click="() => this.onBulkUserPick(bu)">
+                                                <span class="o_vd_bmu_nm"><t t-esc="bu.name"/></span>
+                                                <span class="o_vd_bmu_ct"><t t-esc="bu.total || 0"/> KH</span>
+                                            </button>
+                                            <div t-if="!bulkMenuUsers.length" class="o_vd_bulk_menu_empty">
+                                                Không có nhân viên nào.
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
                             <t t-if="state.selectMode">
                                 <span class="o_vd_bulk_count">
                                     Đã chọn <b><t t-esc="selectedCount"/></b> KH
