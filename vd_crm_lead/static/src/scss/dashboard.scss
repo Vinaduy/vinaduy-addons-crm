@@ -11541,3 +11541,115 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     padding: 8px 10px; font-size: 13px; resize: vertical;
     &:focus { outline: none; border-color: #fa5252; }
 }
+
+/* =====================================================================
+   SKIN NHẸ NHÀNG — SANG TRỌNG (user spec 2026-08-05)
+   Gom cả khu sidebar + panel icon về ĐÚNG 3 GAM:
+     · Indigo  (thương hiệu, xanh tím)  · Teal mint (tươi)  · Champagne (thưởng, sang)
+   Nền trắng/xám nhẹ. Bỏ đỏ chói + TẮT các hiệu ứng nhấp nháy/quét sáng.
+   Đặt CUỐI file để đè rule cũ (cùng specificity -> source sau thắng); thêm
+   !important cho chắc ở các chỗ có gradient/!important cũ.
+   ===================================================================== */
+$vd-ink:       #3b4256;
+$vd-line:      #e7e9f1;
+$vd-indigo:    #5b6bd6;
+$vd-indigo-d:  #4553b8;
+$vd-indigo-bg: #eef0fc;
+$vd-teal:      #2e9e92;
+$vd-teal-d:    #23867b;
+$vd-gold:      #a9822f;
+$vd-gold-d:    #8a6a24;
+$vd-gold-bg:   #fbf4e4;
+$vd-gold-ln:   #ead9ae;
+$vd-rose:      #b06a6a;
+
+.o_vd_crm_dashboard {
+
+    /* Nút "Thêm mới": xanh lá chói -> teal mint */
+    .o_vd_add_lead_btn {
+        background: linear-gradient(135deg, #3bb7a6 0%, $vd-teal-d 100%) !important;
+        box-shadow: 0 1px 3px rgba(46, 158, 146, 0.22) !important;
+        &:hover { box-shadow: 0 3px 8px rgba(46, 158, 146, 0.34) !important; }
+    }
+
+    /* THƯỞNG THÁNG: thẻ đỏ -> champagne */
+    .o_vd_side_perf_bonus {
+        background: linear-gradient(135deg, #fdf8ec 0%, $vd-gold-bg 100%) !important;
+        border-color: $vd-gold-ln !important;
+        .o_vd_side_perf_bonus_lbl { color: $vd-gold-d !important; text-shadow: none !important; }
+    }
+    .o_vd_side_perf_hint {
+        border-color: $vd-gold-ln !important;
+        color: $vd-gold-d !important;
+    }
+    .o_vd_side_perf .o_vd_side_card_title i.fa { color: $vd-gold !important; }
+
+    /* THƯỞNG CÁ NHÂN / PHÒNG: vàng chói + glow -> champagne / indigo TĨNH */
+    .o_vd_bonusbox {
+        border-color: $vd-gold-ln !important;
+        background: $vd-gold-bg !important;
+        animation: none !important;
+    }
+    .o_vd_bonusbox_head { color: $vd-gold-d !important; }
+    .o_vd_bonusbox_row .o_vd_bonusbox_amt { color: $vd-gold-d !important; }
+    .o_vd_bonusbox_team {
+        border-color: #cdd6ea !important; background: $vd-indigo-bg !important;
+        .o_vd_bonusbox_head { color: $vd-indigo-d !important; }
+    }
+    .o_vd_bonusbox_amt_big { color: $vd-indigo-d !important; }
+
+    /* GHI ÂM THAM KHẢO: đỏ chói -> indigo dịu, thôi rung chuông */
+    .o_vd_refrec_filter {
+        background: linear-gradient(135deg, #6f7ee0 0%, $vd-indigo-d 100%) !important;
+        border-color: #d6dbf7 !important;
+        animation: none !important;
+        .o_vd_refrec_bell { animation: none !important; }
+    }
+
+    /* HỌC CÙNG VINADUY: xanh chói + quét sáng/nhịp -> teal dịu TĨNH */
+    .o_vd_learn_btn {
+        background: linear-gradient(135deg, #47b9ab 0%, $vd-teal 55%, $vd-teal-d 100%) !important;
+        border-color: #cdece7 !important;
+        animation: none !important;
+        &::before { display: none !important; }
+    }
+    .o_vd_learn_report { border-color: #cdece7 !important; }
+    .o_vd_learn_bar_fill { background: linear-gradient(90deg, #4bbfae, $vd-teal-d) !important; }
+    .o_vd_learn_total .o_vd_learn_num { color: $vd-indigo !important; }
+    .o_vd_learn_done  .o_vd_learn_num { color: $vd-teal !important; }
+    .o_vd_learn_todo  .o_vd_learn_num { color: $vd-gold !important; }
+
+    /* PANEL ICON: nền/viền đỏ -> trắng ngà + viền xám nhẹ */
+    .o_vd_trash_box {
+        background: #fcfcfe !important;
+        border: 1px solid $vd-line !important;
+        box-shadow: none !important;
+    }
+    .o_vd_trash_icon {
+        background: linear-gradient(135deg, #9aa3b8 0%, #6b7690 100%) !important;
+        box-shadow: none !important;
+    }
+    /* Emoji to: giảm chói nhẹ cho tươi mà không gắt */
+    .o_vd_trash_icon_emoji { filter: saturate(0.82) !important; }
+
+    /* Accent từng ô -> đúng 3 gam */
+    .o_vd_trash_box.o_vd_split_reference {
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: $vd-teal !important; }
+    }
+    .o_vd_trash_box.o_vd_split_notcalled {
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: $vd-indigo !important; }
+    }
+    .o_vd_trash_box.o_vd_split_quoted_lost {
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: $vd-gold !important; }
+    }
+    .o_vd_trash_box.o_vd_split_planned_sign {
+        background: $vd-indigo-bg !important; border-color: #d3d9f2 !important;
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: $vd-indigo-d !important; }
+    }
+    .o_vd_trash_box.o_vd_split_trash {
+        .o_vd_trash_label, .o_vd_trash_count { color: $vd-rose !important; }
+    }
+    /* nhãn/số mặc định (không variant) -> mực dịu thay đỏ gắt */
+    .o_vd_trash_label { color: $vd-ink !important; }
+    .o_vd_trash_count { color: $vd-ink !important; }
+}
