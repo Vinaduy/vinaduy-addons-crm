@@ -208,16 +208,29 @@ export class VdSelectionDropdown extends Component {
         }
     }
 
-    selectOption(value) {
-        this.props.record.update({ [this.props.name]: value });
+    // AWAIT update trước khi lên lịch lưu — trước đây không await nên có lúc lưu
+    // chạy trước khi giá trị kịp vào record.
+    async selectOption(value) {
         this.state.open = false;
         this.state.search = "";
+        await this.props.record.update({ [this.props.name]: value });
+        try {
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, false);
+            }
+        } catch (_) {}
         try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-dd"); } catch (_) {}
     }
 
-    clearValue(ev) {
+    async clearValue(ev) {
         ev.stopPropagation();
-        this.props.record.update({ [this.props.name]: false });
+        await this.props.record.update({ [this.props.name]: false });
+        // NV chủ động xoá → cấm onchange server tự điền lại.
+        try {
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, true);
+            }
+        } catch (_) {}
         try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-dd-clear"); } catch (_) {}
     }
 }

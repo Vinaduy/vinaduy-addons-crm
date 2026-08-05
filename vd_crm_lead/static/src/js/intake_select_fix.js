@@ -465,6 +465,9 @@ function schedule() {
     if (_schedTimer) clearTimeout(_schedTimer);
     _schedTimer = setTimeout(() => {
         _schedTimer = null;
+        // Popup intake KHÔNG mở → không có gì để vá. Bỏ qua NGAY để dashboard
+        // (re-render nhiều lần/giây) không phải chạy 8 hàm quét DOM mỗi nhịp.
+        if (!document.querySelector(".o_vd_intake_compact, .o_vd_steps_panel")) return;
         patchAllSelects();
         attachMonthPicker();
         fadeZeroDims();
@@ -481,62 +484,10 @@ function schedule() {
     }, 150);
 }
 
-// ===== AUTO-SAVE on blur cho Float/Char inputs trong steps panel =====
-// Để auto-lock trigger ngay khi user blur khỏi ô cuối (Tầng N m², Diện tích...)
-// thay vì phải bấm cloud icon Save thủ công.
-//
-// QUAN TRỌNG — KHÔNG áp dụng cho ô Many2one (.o-autocomplete: Tỉnh/Huyện):
-// ô số/chữ commit value NGAY khi blur, nhưng Many2one commit BẤT ĐỒNG BỘ.
-// Nếu auto-save (debounce 350ms) bấm Lùu đúng lúc user vừa chọn ô m2o kế tiếp
-// → form reload khi giá trị m2o trước đó CHƯA kịp commit → mất giá trị.
-// Bug thực tế: chọn Tỉnh xong chọn Huyện → Tỉnh bị xoá trắng. Loại m2o khỏi
-// auto-save-blur; Tỉnh/Huyện vẫn được lưu khi user bấm CHỐT hoặc blur ô khác.
-async function _autoSaveFormSafe() {
-    try {
-        // NẾU NV vẫn đang focus 1 ô trong khu nhập (steps panel / overlay
-        // dropdown) → KHOAN save. Save kéo theo reload form → xoá chữ đang gõ ở
-        // ô kế. Chỉ save khi user đã rời hẳn khu intake. (Fix mất dữ liệu.)
-        const ae = document.activeElement;
-        if (ae && ae.closest && ae.closest(
-            ".o_vd_steps_panel, .o_vd_intake_compact, .o-overlay-container, " +
-            ".o_vd_selection_hover_picker, .o-autocomplete"
-        )) {
-            return;
-        }
-        // Vừa gõ số < 1.5s → khoan (giá trị có thể chưa ổn định).
-        const g = window.__vdIntake;
-        if (g && Date.now() - (g.lastType || 0) < 1500) {
-            return;
-        }
-        // Ép mọi ô số commit giá trị in-flight TRƯỚC khi save → không mất dữ liệu.
-        try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("blur autosave"); } catch (_) {}
-        // Tìm cloud icon Save (Odoo 18 form view); click nếu form dirty.
-        const btn = document.querySelector(
-            ".o_form_view.o_form_dirty button.o_form_button_save, " +
-            ".o_form_view button.o_form_button_save:not([disabled])"
-        );
-        if (btn && btn.offsetParent !== null) {
-            btn.click();
-        }
-    } catch (e) {
-        // im lặng — không phá UI
-    }
-}
-let _autoSaveDebounce = null;
-function attachAutoSaveBlur() {
-    try {
-        document.querySelectorAll(
-            ".o_vd_steps_panel input, .o_vd_steps_panel textarea"
-        ).forEach((el) => {
-            if (el.dataset.vdAutoSaveBlur === "1") return;
-            el.dataset.vdAutoSaveBlur = "1";
-            el.addEventListener("blur", () => {
-                if (_autoSaveDebounce) clearTimeout(_autoSaveDebounce);
-                _autoSaveDebounce = setTimeout(_autoSaveFormSafe, 350);
-            });
-        });
-    } catch (e) {}
-}
+// ===== (ĐÃ XOÁ) auto-save-on-blur bằng cách click nút Lưu của Odoo =====
+// Đây là 1 trong 3 đường tự-lưu chạy đua nhau; nút Lưu chuẩn = save CÓ RELOAD →
+// dựng lại form giữa lúc NV thao tác → nuốt dữ liệu. Toàn bộ việc lưu nay do
+// vd_num_input.js lo (record.save({reload:false})), đừng thêm lại đường nào khác.
 
 // ===== Sync class 'vd-intake-locked' lên .o_vd_steps_panel =====
 // Odoo 18: field Boolean invisible="1" KHÔNG render <input> DOM nên không

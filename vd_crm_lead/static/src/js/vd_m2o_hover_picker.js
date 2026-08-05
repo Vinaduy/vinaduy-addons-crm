@@ -290,7 +290,7 @@ export class VdM2oHoverPicker extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(() => { this.state.open = false; }, 180);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 380);
     }
 
     async selectRecord(rec, ev) {
@@ -321,8 +321,10 @@ export class VdM2oHoverPicker extends Component {
             }
         }
 
-        // STRATEGY 3: nếu vẫn fail (hoặc data không phản ánh), gọi ORM write thẳng
-        // rồi reload record. Brute force, đảm bảo lưu DB.
+        // STRATEGY 3: nếu vẫn fail (hoặc data không phản ánh), gọi ORM write thẳng.
+        // TUYỆT ĐỐI KHÔNG record.load() sau đó: load() VỨT SẠCH mọi thay đổi chưa
+        // lưu của CẢ BẢNG (chip vừa chọn, ô số vừa gõ) → đây là 1 trong những
+        // đường làm NV "chọn địa chỉ xong mất hết trường đã điền".
         const curData = this.props.record.data[fname];
         const curId = this._extractId(curData);
         if (!updated || curId !== rec.id) {
@@ -330,7 +332,6 @@ export class VdM2oHoverPicker extends Component {
                 const resId = this.props.record.resId;
                 if (resId) {
                     await this.orm.write(this.props.record.resModel, [resId], { [fname]: rec.id });
-                    await this.props.record.load();
                     updated = true;
                     console.log("[vd_m2o_picker] ORM WRITE OK, data=", this.props.record.data[fname]);
                 } else {

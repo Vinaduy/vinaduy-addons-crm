@@ -7,22 +7,13 @@
  *  - Dùng useInputField (hook chuẩn Odoo) cho hiển thị: KHÔNG reset input khi
  *    đang focus/gõ dở.
  *
- *  ===== FIX MẤT DỮ LIỆU + GIẬT LAG (2026-06-16, vòng 2) =====
- *  Bệnh gốc: form intake gọi `record.save()` (→ RELOAD toàn form) sau MỖI thao
- *  tác (chọn picker, gõ số, +Tầng...). Reload liên tục gây:
- *    1. Mất giá trị đang gõ (reload đọc lại giá trị cũ).
- *    2. Re-render input → mất con trỏ / khó click vào ô để gõ.
- *    3. Server bận reload → nút +Tầng/+Tum/Xoá tầng (server action) phản hồi chậm.
- *  Thêm 1 race: flush (commit giá trị đang gõ) KHÔNG await trước save → save chạy
- *  trước khi giá trị kịp vào record.
- *
- *  Cách sửa DỨT ĐIỂM:
- *   A. DỒN mọi save về 1 hàm `vdScheduleIntakeSave` debounce 900ms, CHỈ thật save
- *      khi user đã NGHỈ tay (không focus trong khu nhập, không gõ < 1.5s). Chọn
- *      picker / gõ số chỉ `record.update` (cập nhật in-memory, UI đổi ngay) — KHÔNG
- *      reload giữa chừng nữa → hết mất dữ liệu, hết mất con trỏ, nút bấm nhẹ hơn.
- *   B. Flush ĐỒNG BỘ + AWAIT: `window.__vdFlushIntakeInputs()` ép mọi ô số commit
- *      giá trị đang gõ (đọc thẳng từ DOM) vào record TRƯỚC khi save.
+ *  ===== FIX MẤT DỮ LIỆU — BẢN DỨT ĐIỂM 2026-08-05 =====
+ *  File này giữ ĐƯỜNG LƯU DUY NHẤT của cả bảng THÔNG TIN TƯ VẤN
+ *  (__vdCommitIntakeChange / __vdSaveIntakeNow). Xem khối chú thích ở giữa file:
+ *  mọi lần lưu nay là `record.save({ reload: false })` — ghi DB nhưng KHÔNG đọc
+ *  lại/dựng lại form, nên không còn bất kỳ đường nào nuốt dữ liệu đang nhập.
+ *  QUY TẮC: KHÔNG widget nào được gọi record.save() (mặc định có reload) hay
+ *  record.load() (vứt sạch thay đổi chưa lưu) trong khu intake.
  *
  * Gắn: <field name="..." widget="vd_num_input"/>  — backend KHÔNG đổi.
  */
@@ -74,56 +65,100 @@ export function vdGetIntakeRecord() {
 }
 window.__vdGetIntakeRecord = vdGetIntakeRecord;
 
-// Có nên cho save (→ reload) chạy bây giờ không?
-//  - Còn focus trong khu nhập / overlay dropdown → KHÔNG (sẽ reload giữa lúc nhập).
-//  - User vừa gõ < 1.5s → KHÔNG (giá trị có thể chưa ổn định).
-export function vdCanAutosaveIntake() {
-    const since = Date.now() - (window.__vdIntake.lastType || 0);
-    if (since < 1500) {
-        vdlog("save HOÃN: vừa gõ", since, "ms trước");
-        return false;
-    }
-    const ae = document.activeElement;
-    if (ae && ae.closest && ae.closest(
-        ".o_vd_steps_panel, .o_vd_intake_compact, .o-overlay-container, " +
-        ".o_vd_selection_hover_picker, .o-autocomplete"
-    )) {
-        vdlog("save HOÃN: focus còn trong khu nhập/overlay");
-        return false;
-    }
-    return true;
-}
-
-// ===== SAVE DỒN: 1 timer chung cho toàn intake (debounce 900ms, idle) =====
-// Mọi nơi muốn lưu form intake → gọi vdScheduleIntakeSave thay vì record.save()
-// trực tiếp. Nhờ vậy chọn/gõ liên tục KHÔNG reload từng phát; chỉ save 1 lần khi
-// user nghỉ tay → UI mượt, không mất con trỏ, không mất dữ liệu.
+// ===== LƯU KHÔNG RELOAD (2026-08-05) — chấm dứt hẳn bệnh nuốt dữ liệu =====
+//
+// GỐC BỆNH (10 lần sửa trước không dứt): mọi đường lưu đều gọi `record.save()`
+// MẶC ĐỊNH = web_save + ĐỌC LẠI toàn bộ record từ DB (`_setData`) → dựng lại
+// toàn bộ field component. Bất kỳ thứ gì đang dở (chữ trong ô chưa commit, chip
+// vừa bấm đang chờ onchange, dropdown đang mở) đều bị thay thế bằng dữ liệu DB
+// → "chọn 2-3 trường là mất sạch" + "bấm rất khó" (DOM bị thay dưới tay NV).
+// Các bản vá cũ chỉ cố ĐOÁN lúc nào an toàn để reload (guard focus/1.5s) — đoán
+// sai là mất; và guard đó KHÔNG bao giờ đúng vì bấm chip = focus rơi về <body>
+// nên hệ thống tưởng "NV đã nghỉ tay" và reload ngay giữa lúc thao tác.
+//
+// CÁCH DỨT ĐIỂM: Odoo 18 hỗ trợ `record.save({ reload: false })` — vẫn web_save
+// xuống DB nhưng KHÔNG đọc lại, chỉ merge _changes vào _values và bỏ cờ dirty.
+// Màn hình giữ NGUYÊN 100% những gì NV đang thấy/đang gõ. Ngoài ra `save()` và
+// `update()` cùng chạy trong `model.mutex` nên KHÔNG THỂ chen vào giữa 1 lần
+// update/onchange → không còn race. Vì không còn gì để mất, bỏ luôn mọi guard
+// "chỉ lưu khi nghỉ tay": lưu ngay sau mỗi thao tác (gom 400ms cho đỡ RPC).
+const VD_SAVE_DEBOUNCE = 400;
+// Lưu hỏng (thiếu trường bắt buộc...) → lùi lại, tránh spam thông báo đỏ.
+const VD_SAVE_BACKOFF = 15000;
 let _vdSaveTimer = null;
+let _vdInflight = null;
+let _vdSaveBlockedUntil = 0;
+
+// Lưu NGAY (không debounce) — dùng khi rời bảng / đổi KH / ẩn tab.
+// Nếu đang có 1 lượt lưu chạy dở → CHỜ nó xong rồi lưu tiếp (không bỏ qua, để
+// thao tác cuối cùng chắc chắn xuống DB).
+export async function vdSaveIntakeNow(record, reason) {
+    if (!record) return false;
+    if (_vdSaveTimer) { clearTimeout(_vdSaveTimer); _vdSaveTimer = null; }
+    if (_vdInflight) { try { await _vdInflight; } catch (_e) {} }
+    const run = async () => {
+        try {
+            await vdFlushIntakeInputs("save:" + (reason || "?"));
+            // reload:false = KHÔNG đọc lại từ DB → không dựng lại form → không nuốt.
+            const ok = await record.save({ reload: false });
+            if (ok === false) {
+                // Form đang thiếu/sai trường bắt buộc → Odoo đã báo. Lùi 15s.
+                _vdSaveBlockedUntil = Date.now() + VD_SAVE_BACKOFF;
+                vdlog("SAVE bị từ chối (trường không hợp lệ) —", reason);
+            } else {
+                vdlog("ĐÃ LƯU (không reload):", reason);
+            }
+            return ok !== false;
+        } catch (e) {
+            _vdSaveBlockedUntil = Date.now() + VD_SAVE_BACKOFF;
+            vdlog("save err", e);
+            return false;
+        }
+    };
+    _vdInflight = run();
+    try {
+        return await _vdInflight;
+    } finally {
+        _vdInflight = null;
+    }
+}
+window.__vdSaveIntakeNow = vdSaveIntakeNow;
+
 export function vdScheduleIntakeSave(record, reason) {
     if (!record) return;
+    if (Date.now() < _vdSaveBlockedUntil) return;
     if (_vdSaveTimer) clearTimeout(_vdSaveTimer);
-    _vdSaveTimer = setTimeout(async () => {
+    _vdSaveTimer = setTimeout(() => {
         _vdSaveTimer = null;
-        if (!vdCanAutosaveIntake()) {
-            // Vẫn đang thao tác → khoan. Dữ liệu đã nằm trong record (in-memory),
-            // lần thao tác kế hoặc blur-ra-ngoài sẽ save. Không reload cắt ngang.
-            return;
-        }
-        await vdFlushIntakeInputs("scheduled save:" + (reason || "?"));
-        try {
-            await record.save();
-            vdlog("SAVED (", reason, ")");
-        } catch (e) { vdlog("save err", e); }
-    }, 900);
+        vdSaveIntakeNow(record, reason);
+    }, VD_SAVE_DEBOUNCE);
 }
 window.__vdScheduleIntakeSave = vdScheduleIntakeSave;
 
 // ===== 1 ĐƯỜNG LƯU CHUNG cho MỌI chip/picker intake =====
-// Thay cho record.save() TỨC THÌ (reload) rải rác ở ~10 widget chip/picker. Mỗi lần
-// chọn: (1) đánh dấu "vừa tương tác" để hoãn autosave 1.5s, (2) lên lịch lưu-ngầm CÓ
-// BẢO VỆ (chỉ thật lưu khi user đã rời ô + ngừng gõ). Nhờ vậy KHI ĐANG NHẬP form
-// KHÔNG BAO GIỜ reload → hết nuốt số/lựa chọn đang nhập. Reload (nếu có) chỉ xảy ra
-// lúc user đã nghỉ tay hẳn — khi đó không còn gì in-flight để mất.
+// Mọi widget (chip, picker, dropdown, ô số) chỉ gọi hàm này sau khi đã
+// record.update(). Không widget nào được tự gọi record.save() — save mặc định
+// (có reload) là thứ gây mất dữ liệu.
+// ===== ĐÁNH DẤU "NV CHỦ ĐỘNG TẮT TRƯỜNG NÀY" =====
+// Bệnh: bấm tắt 1 lựa chọn → vài giây sau bấm trường khác thì nó HIỆN LẠI, vì
+// onchange bên server (móng tự theo số tầng/đất, m² tầng tự theo diện tích, tiền
+// tự theo tầm tài chính) cứ thấy trường trống là tự điền — không phân biệt "chưa
+// nhập" với "vừa cố ý xoá". Ghi tên field vào vd_intake_manual_off để server
+// biết mà chừa ra; chọn lại giá trị thì gỡ tên khỏi danh sách.
+export async function vdMarkManualOff(record, fieldName, isOff) {
+    try {
+        if (!record || !record.fields || !record.fields.vd_intake_manual_off) return;
+        const cur = String(record.data.vd_intake_manual_off || "")
+            .split(",").map((s) => s.trim()).filter(Boolean);
+        const has = cur.includes(fieldName);
+        if (isOff === has) return;                       // không đổi gì
+        const next = isOff ? cur.concat([fieldName]) : cur.filter((f) => f !== fieldName);
+        await record.update({ vd_intake_manual_off: next.join(",") });
+        vdlog(isOff ? "ĐÁNH DẤU tắt tay:" : "GỠ dấu tắt tay:", fieldName);
+    } catch (e) { vdlog("manual-off err", e); }
+}
+window.__vdMarkManualOff = vdMarkManualOff;
+
 export function vdCommitIntakeChange(record, reason) {
     if (!record) return;
     window.__vdIntake.lastType = Date.now();
@@ -181,7 +216,11 @@ export class VdNumInput extends Component {
         const curNum = this.props.record.data[this.props.name] || 0;
         if (val === curNum) return null;
         vdlog((sync ? "commit(flush)" : "commit"), this.props.name, ":", curNum, "->", val);
-        return this.props.record.update({ [this.props.name]: val }).catch((e) => vdlog("update err", this.props.name, e));
+        return this.props.record.update({ [this.props.name]: val })
+            // Xoá trắng ô (=0) là CỐ Ý → cấm onchange tự điền lại từ diện tích;
+            // gõ số trở lại thì gỡ dấu.
+            .then(() => vdMarkManualOff(this.props.record, this.props.name, val === 0))
+            .catch((e) => vdlog("update err", this.props.name, e));
     }
 
     // Lọc ký tự ngay khi gõ + commit sớm vào record (debounce) → không chờ blur.
@@ -207,10 +246,13 @@ export class VdNumInput extends Component {
         this._commitTimer = setTimeout(() => {
             this._commitTimer = null;
             this._commitNow(false);
-        }, 300);
+            // Lưu ngầm luôn (không reload) → số đã gõ nằm trong DB kể cả khi NV
+            // chưa rời ô, chưa bấm gì thêm, hay trình duyệt sập.
+            vdScheduleIntakeSave(this.props.record, "vd_num typing");
+        }, 400);
     }
 
-    // Blur/Enter: commit chắc chắn + lên lịch SAVE DỒN (idle, guarded).
+    // Blur/Enter: commit chắc chắn + lưu ngầm (KHÔNG reload).
     onChange() {
         this._commitNow(true);
         vdScheduleIntakeSave(this.props.record, "vd_num change");

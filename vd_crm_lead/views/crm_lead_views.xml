@@ -394,6 +394,9 @@
                                     <field name="vd_intake_floors_count" invisible="1"/>
                                     <field name="vd_intake_floors_select" invisible="1"/>
                                     <field name="vd_intake_has_lung" invisible="1"/>
+                                    <!-- CSV các trường NV chủ động XOÁ → onchange
+                                         tự-điền phải bỏ qua, khỏi "tắt xong lại hiện lại" -->
+                                    <field name="vd_intake_manual_off" invisible="1"/>
 
                                     <!-- ===== 4 BUTTON GROUP — luôn đứng đầu, không bao giờ ẩn ===== -->
                                     <span class="o_vd_floor_btn_group">

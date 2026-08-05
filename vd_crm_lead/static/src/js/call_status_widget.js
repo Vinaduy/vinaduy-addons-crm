@@ -132,6 +132,16 @@ export class VdCallStatusWidget extends Component {
     // Trạng thái call vẫn cập nhật tức thì qua callClientState (Stringee SDK),
     // không phụ thuộc lần load() này. (Fallback an toàn nếu isDirty thiếu.)
     async _safeLoad() {
+        // 2026-08-05: CHẶN CỨNG khi bảng THÔNG TIN TƯ VẤN đang mở. Cờ dirty KHÔNG
+        // đủ: có khoảng trống giữa lúc NV bấm chip / gõ số và lúc giá trị vào
+        // record — poller 2s (chạy suốt cuộc gọi, đúng lúc NV đang khai thác)
+        // rơi vào khoảng đó là load() vứt sạch. Trạng thái cuộc gọi vẫn cập nhật
+        // tức thì qua Stringee SDK + bus nên không cần load ở đây.
+        try {
+            const panel = document.querySelector(".o_vd_steps_panel");
+            const lastTouch = (window.__vdIntake && window.__vdIntake.lastType) || 0;
+            if (panel && Date.now() - lastTouch < 30000) return false;
+        } catch (_e) {}
         // isDirty() là ASYNC method (Odoo 18) — PHẢI await, không phải getter.
         try {
             if (await this.props.record.isDirty()) {

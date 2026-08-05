@@ -70,14 +70,26 @@ export class VdSelectionChips extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(() => { this.state.open = false; }, 180);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 380);
     }
 
     async onChipClick(value, ev) {
         ev.stopPropagation();
+        // Bấm lại CÙNG chip trong 1,2s = sốt ruột chờ server, KHÔNG phải muốn bỏ
+        // chọn → bỏ qua (trước đây lần bấm thứ 2 xoá luôn lựa chọn vừa chọn).
+        const now = Date.now();
+        if (value === this._lastPickVal && now - this._lastPickTs < 1200) return;
+        this._lastPickVal = value;
+        this._lastPickTs = now;
         // Click vào chip đang chọn → bỏ chọn (clear). Click khác → set value mới.
         const newVal = (value === this.currentValue) ? false : value;
         await this.props.record.update({ [this.props.name]: newVal });
+        // Tắt tay → cấm onchange server tự điền lại.
+        try {
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, newVal === false);
+            }
+        } catch (_) {}
         // KHÔNG save() ngay (reload nuốt ô số/lựa chọn đang nhập). Lưu-ngầm có bảo vệ.
         try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-chip:" + this.props.name); } catch (_) {}
         this.state.open = false;
@@ -86,6 +98,11 @@ export class VdSelectionChips extends Component {
     async clearValue(ev) {
         ev.stopPropagation();
         await this.props.record.update({ [this.props.name]: false });
+        try {
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, true);
+            }
+        } catch (_) {}
         try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "sel-chip-clear"); } catch (_) {}
     }
 }

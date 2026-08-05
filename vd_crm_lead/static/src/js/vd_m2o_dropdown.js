@@ -264,8 +264,11 @@ export class VdM2oDropdown extends Component {
         } catch (e) {
             console.warn("[vd_m2o_dropdown] record.update failed:", e);
         }
-        // VERIFY giá trị đã vào record; chưa vào → ORM write thẳng rồi reload
-        // (brute force, đảm bảo LƯU đúng — fix 'bấm chọn tỉnh không lưu').
+        // VERIFY giá trị đã vào record; chưa vào → ORM write thẳng (đảm bảo LƯU
+        // đúng — fix 'bấm chọn tỉnh không lưu').
+        // TUYỆT ĐỐI KHÔNG record.load() ở đây: load() VỨT SẠCH mọi thay đổi chưa
+        // lưu của CẢ BẢNG (chip, ô số vừa gõ) — đây chính là 1 trong các đường
+        // làm "chọn Tỉnh/Phường xong là mất hết trường đã điền trước đó".
         const curId = this._extractId(this.props.record.data[fname]);
         if (!updated || curId !== rec.id) {
             try {
@@ -276,7 +279,6 @@ export class VdM2oDropdown extends Component {
                         wvals["vd_intake_province_id"] = this._extractId(vals["vd_intake_province_id"]);
                     }
                     await this.orm.write(this.props.record.resModel, [resId], wvals);
-                    await this.props.record.load();
                     updated = true;
                 } else {
                     console.warn("[vd_m2o_dropdown] no resId — can't ORM write");

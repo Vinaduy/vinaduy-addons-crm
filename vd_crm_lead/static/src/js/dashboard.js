@@ -382,9 +382,17 @@ export class VdCrmDashboard extends Component {
                 this.bus.subscribe("vd.leads.pushed", this._onLeadsPushed);
             }
             this._trainingTick = setInterval(() => {
-                this.state.trainingNow = Date.now();
+                // 2026-08-05: KHÔNG đập nhịp 1s khi popup KH đang mở. Mỗi lần ghi
+                // trainingNow là 1 lần re-render TOÀN dashboard (template rất lớn)
+                // + kích MutationObserver của intake_select_fix → main-thread giật
+                // liên tục ngay lúc NV đang bấm chọn ("bấm rất khó bấm"). Banner
+                // đếm ngược nằm dưới popup, không ai nhìn thấy lúc này.
+                const previewOpen = !!(this.state.previewLead && this.state.previewLead.open);
+                if (!previewOpen) {
+                    this.state.trainingNow = Date.now();
+                }
                 this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
-                if (this._trainingRefreshN % 60 === 0 && !document.hidden) {
+                if (this._trainingRefreshN % 60 === 0 && !document.hidden && !previewOpen) {
                     this._loadTrainingBanner();
                     this._loadBroadcast();
                 }
@@ -3416,8 +3424,15 @@ export class VdCrmDashboard extends Component {
             else if (typeof rec.dirty === "boolean") dirty = rec.dirty;
         } catch (_e) {}
         if (!dirty) return;
+        // Lưu KHÔNG RELOAD (form sắp bị gỡ, reload chỉ tổ chậm + nuốt thao tác cuối).
+        try {
+            if (window.__vdSaveIntakeNow) {
+                await window.__vdSaveIntakeNow(rec, "leave-preview");
+                return;
+            }
+        } catch (_e) {}
         try { if (window.__vdFlushIntakeInputs) await window.__vdFlushIntakeInputs("leave-preview"); } catch (_e) {}
-        try { await rec.save(); } catch (_e) {}
+        try { await rec.save({ reload: false }); } catch (_e) {}
     }
 
     async closePreview() {
@@ -3431,6 +3446,10 @@ export class VdCrmDashboard extends Component {
         this._unlockScroll();
         if (needReload) {
             this.loadDashboard();
+        } else if (this._vdNeedRefreshAfterPreview) {
+            // Đã có lưu ngầm trong lúc popup mở → giờ mới nạp lại danh sách.
+            this._vdNeedRefreshAfterPreview = false;
+            this.refreshAfterPreview();
         }
     }
 
@@ -3494,8 +3513,18 @@ export class VdCrmDashboard extends Component {
                     // lưu xuống DB (log: 0 web_save cả ngày). Đó là gốc của "nó không lưu".
                     // CSS .o_vd_preview_modal sẽ thu gọn breadcrumb, chỉ giữ nút Lưu cho gọn.
                     display: { controlPanel: true },
-                    // Sau khi save → refresh cached leads để pill update màu/data
-                    onRecordSaved: () => this.refreshAfterPreview(),
+                    // Sau khi save → refresh cached leads để pill update màu/data.
+                    // NHƯNG khi popup CÒN MỞ thì KHÔNG refresh: mỗi lần lưu ngầm
+                    // (NV bấm 1 chip là lưu 1 lần) sẽ kéo theo 1 RPC nạp lại toàn
+                    // bộ dashboard → treo main-thread → "bấm rất khó bấm". Dồn
+                    // lại, refresh 1 lần khi đóng popup.
+                    onRecordSaved: () => {
+                        if (this.state.previewLead && this.state.previewLead.open) {
+                            this._vdNeedRefreshAfterPreview = true;
+                            return;
+                        }
+                        this.refreshAfterPreview();
+                    },
                 },
             };
         }

@@ -108,7 +108,7 @@ export class VdSelectionHoverPicker extends Component {
 
     onMouseLeave() {
         if (this._closeTimer) clearTimeout(this._closeTimer);
-        this._closeTimer = setTimeout(() => { this.state.open = false; }, 180);
+        this._closeTimer = setTimeout(() => { this.state.open = false; }, 380);
     }
 
     async selectOption(key, ev) {
@@ -116,6 +116,10 @@ export class VdSelectionHoverPicker extends Component {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         try {
             await this.props.record.update({ [this.props.name]: key });
+            // Chọn lại giá trị → gỡ dấu "NV tự tắt" (cho phép onchange auto lại).
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, false);
+            }
         } catch (e) {
             console.error("[vd_shp] update failed:", e);
         }
@@ -130,6 +134,10 @@ export class VdSelectionHoverPicker extends Component {
         if (ev) { try { ev.stopPropagation(); } catch (_) {} }
         try {
             await this.props.record.update({ [this.props.name]: false });
+            // NV chủ động xoá → cấm onchange server tự điền lại (móng, mái...).
+            if (window.__vdMarkManualOff) {
+                await window.__vdMarkManualOff(this.props.record, this.props.name, true);
+            }
         } catch (e) {
             console.error("[vd_shp] clear failed:", e);
         }

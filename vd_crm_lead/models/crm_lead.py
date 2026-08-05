@@ -1610,25 +1610,52 @@ class CrmLead(models.Model):
         if self.vd_intake_floors_select or self.vd_intake_has_tum:
             self.vd_intake_floors_num = base + (0.5 if self.vd_intake_has_tum else 0.0)
 
+        # SỐ TẦNG THẬT = floors_select, nếu trống thì lấy floors_count (nút +Tầng
+        # trên UI chạy theo floors_count). FIX 2026-08-05: trước đây chỉ đọc
+        # floors_select → lead nào floors_select trống (nhưng có 1-N tầng theo
+        # floors_count) thì n=0, và onchange này CHẠY MỖI KHI NV gõ "Diện tích
+        # nhà" → xoá trắng m² của TẤT CẢ các tầng NV vừa điền.
         n = int(self.vd_intake_floors_select) if self.vd_intake_floors_select else 0
-        # CLEAR diện tích các tầng vượt số tầng đã chọn (tránh count tầng ẩn vào tổng)
-        for i in range(n + 1, 8):
-            fname = f'vd_intake_floor_{i}_m2'
-            if self[fname]:
-                self[fname] = 0
+        if not n:
+            n = max(0, min(7, self.vd_intake_floors_count or 0))
+        # CLEAR diện tích các tầng vượt số tầng đã chọn (tránh count tầng ẩn vào
+        # tổng) — CHỈ khi đã biết chắc số tầng (n > 0). n = 0 nghĩa là chưa khai
+        # số tầng, KHÔNG được coi là "0 tầng" để xoá dữ liệu NV đã nhập.
+        if n > 0:
+            for i in range(n + 1, 8):
+                fname = f'vd_intake_floor_{i}_m2'
+                if self[fname]:
+                    self[fname] = 0
         if not self.vd_intake_has_tum and self.vd_intake_floor_tum_m2:
             self.vd_intake_floor_tum_m2 = 0
 
         # Auto-fill diện tích từng tầng từ L×R (chỉ điền nếu trường tầng đang trống)
         # area_m2 là Float (footprint) → làm tròn về số nguyên cho ô tầng (Integer)
+        # KHÔNG điền lại ô mà NV vừa CHỦ ĐỘNG XOÁ (xem vd_intake_manual_off).
         area = int(round(self.vd_intake_area_m2 or 0.0))
         if area > 0:
             for i in range(1, n + 1):
                 fname = f'vd_intake_floor_{i}_m2'
-                if not self[fname]:
+                if not self[fname] and not self._vd_is_manual_off(fname):
                     self[fname] = area
-            if self.vd_intake_has_tum and not self.vd_intake_floor_tum_m2:
+            if (self.vd_intake_has_tum and not self.vd_intake_floor_tum_m2
+                    and not self._vd_is_manual_off('vd_intake_floor_tum_m2')):
                 self.vd_intake_floor_tum_m2 = area
+
+    # ===== NV CHỦ ĐỘNG TẮT 1 TRƯỜNG → onchange KHÔNG được điền lại =====
+    # Bệnh (user 2026-08-05): "bấm tắt 1 lựa chọn, vài giây sau bấm trường khác
+    # thì nó HIỆN LẠI". Vì các onchange auto (móng theo số tầng/loại đất, m² tầng
+    # theo diện tích, tiền theo tầm tài chính) cứ thấy trường TRỐNG là tự điền —
+    # không phân biệt "chưa nhập" với "NV vừa cố ý xoá". Trường này ghi CSV tên
+    # các field NV đã tự tắt; widget JS thêm/gỡ tên khi NV xoá/chọn lại.
+    vd_intake_manual_off = fields.Char(
+        string='Trường NV chủ động tắt', default='', copy=False,
+        help='CSV tên field NV đã tự xoá → các onchange tự-điền phải bỏ qua.',
+    )
+
+    def _vd_is_manual_off(self, fname):
+        self.ensure_one()
+        return fname in (self.vd_intake_manual_off or '').split(',')
 
     def _vd_auto_foundation(self):
         """Tự động chọn loại móng (user spec 2026-06-22):
@@ -1637,6 +1664,9 @@ class CrmLead(models.Model):
         - còn lại (1 tầng, đất cứng) -> Móng đơn.
         NV vẫn đổi tay được sau đó; chỉ tự set khi số tầng / loại đất thay đổi."""
         for rec in self:
+            # NV đã tự xoá Móng → tôn trọng, không tự chọn lại.
+            if rec._vd_is_manual_off('vd_intake_foundation_type'):
+                continue
             sel = rec.vd_intake_floors_select or ''
             floors = int(sel) if sel.isdigit() else (rec.vd_intake_floors_count or 1)
             if rec.vd_intake_land_type == 'dat_yeu':
@@ -1876,6 +1906,8 @@ class CrmLead(models.Model):
     @api.onchange('vd_intake_budget_range')
     def _onchange_budget_range(self):
         """UI: user pick range → set amount tương ứng."""
+        if self._vd_is_manual_off('vd_intake_budget_amount'):
+            return
         if self.vd_intake_budget_range:
             self.vd_intake_budget_amount = self._VD_BUDGET_RANGE_AMOUNT.get(
                 self.vd_intake_budget_range, 0,
