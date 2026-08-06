@@ -2345,11 +2345,11 @@ export class VdCrmDashboard extends Component {
     // Phòng = tiền tố tên NV (dùng _userTeamLabel, khớp báo cáo). Ẩn NV đang TẮT
     // nhận số (_distributeOffIds). Chia đều = round-robin qua các NV đã tích.
     get bulkMenuTeams() {
-        // LỌC theo can_receive (_distributeOffIds): NV đã TẮT nhận số thì KHÔNG hiện
-        // (user chốt 2026-08-05: đã tắt chia số = không được xuất hiện để chia).
-        let off = new Set();
-        try { off = this._distributeOffIds ? this._distributeOffIds() : new Set(); } catch (_e) {}
-        const src = (this.state.users || []).filter((u) => u.id && !off.has(u.id));
+        // CHỈ NV đang BẬT nhận số — lọc theo CỜ THẬT `can_receive` (vd_can_receive
+        // _pancake) do dashboard_users trả về. KHÔNG dùng _distributeOffIds (đọc báo
+        // cáo Pancake HÔM NAY) vì báo cáo chỉ liệt kê NV có số hôm nay → NV đã tắt mà
+        // hôm nay không có số (vd Sen/Quy) lọt lưới, vẫn hiện. Cờ user thì luôn đúng.
+        const src = (this.state.users || []).filter((u) => u.id && u.can_receive);
         const m = {};
         for (const u of src) {
             const t = this._userTeamLabel(u);

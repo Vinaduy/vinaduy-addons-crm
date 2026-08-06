@@ -6435,6 +6435,9 @@ class CrmLead(models.Model):
                 'total': total_by_user.get(u.id, 0),
                 'new_not_called': not_called,
                 'new_total': in_table,
+                # Cờ THẬT bật/tắt nhận số (dùng lọc "chia cho phòng" — đáng tin hơn
+                # báo cáo Pancake hôm nay vốn bỏ sót NV tắt mà hôm nay không có số).
+                'can_receive': bool(u.vd_can_receive_pancake),
             })
         return result
 
