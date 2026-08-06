@@ -434,18 +434,30 @@ export class VdCrmDashboard extends Component {
             window.addEventListener('pointerdown', this._onDocPointerDown, true);
             window.addEventListener('scroll', this._onDocScrollClose, true);
             document.addEventListener('visibilitychange', this._onDocScrollClose);
+            // Đo độ trễ BẤM→cập nhật: ghi mốc ở capture-phase (trước handler OWL).
+            this._onDocClickTimer = (ev) => {
+                const t = ev.target;
+                if (t && t.closest && t.closest('.o_vd_crm_dashboard')) {
+                    this._clickT0 = performance.now();
+                }
+            };
+            document.addEventListener('click', this._onDocClickTimer, true);
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
-        // + Đo thời gian patch DOM: nếu > 250ms → log cảnh báo (chẩn đoán "đơ").
+        // + ĐO ĐỘ TRỄ THỰC: từ lúc BẤM (capture-phase, trước handler) → tới khi DOM
+        //   cập nhật xong (onPatched) = handler + render(dựng vDOM+getter) + patch.
+        //   Log MỌI lần bấm để thấy đúng con số "đơ" (kể cả khi pha render mới là thủ
+        //   phạm — onWillPatch/onPatched cũ chỉ đo patch nên bỏ sót).
         onWillPatch(() => { this._patchT0 = performance.now(); });
         onPatched(() => {
             this._measureNewPills();
-            if (this._patchT0) {
-                const ms = performance.now() - this._patchT0;
-                window.__vdLastPatchMs = Math.round(ms);
-                if (ms > 250) {
-                    try { console.warn("[VD dashboard] patch DOM", Math.round(ms), "ms — DOM quá lớn?"); } catch (_e) {}
-                }
+            const nowp = performance.now();
+            if (this._patchT0) window.__vdLastPatchMs = Math.round(nowp - this._patchT0);
+            if (this._clickT0) {
+                const ms = Math.round(nowp - this._clickT0);
+                window.__vdClickToPatchMs = ms;
+                this._clickT0 = 0;
+                try { console.warn("[VD dashboard] BẤM→cập nhật", ms, "ms (patch " + (window.__vdLastPatchMs||0) + "ms)"); } catch (_e) {}
             }
         });
         onWillUnmount(() => {
