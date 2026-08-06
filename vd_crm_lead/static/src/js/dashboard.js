@@ -2038,12 +2038,12 @@ export class VdCrmDashboard extends Component {
             if (!list.length) return head + `<div class="o_vd_tilepop_empty">✓ Không có KH nào</div>`;
             const rows = list.map((ld) => {
                 const cs = ld.call_stats || {};
-                const call = ld.phone ? `<button class="o_vd_tilepop_btn" data-act="call" data-id="${ld.id}">📞 Gọi lại</button>` : "";
+                const call = ld.phone ? `<button class="o_vd_tilepop_btn" data-act="call" data-id="${ld.id}"><i class="fa fa-phone"></i> Gọi lại</button>` : "";
                 return `<div class="o_vd_tilepop_row" data-act="open" data-id="${ld.id}">`
                     + `<span class="o_vd_tilepop_nm">${e(ld.name)}</span>`
-                    + `<span class="o_vd_tilepop_ph">${e(ld.phone || "—")}</span>`
-                    + `<span class="o_vd_tilepop_st">${cs.total || 0}c·${cs.distinct_days || 0}n</span>`
-                    + `<span class="o_vd_tilepop_nv">${e(ld.user_name || "—")}</span>`
+                    + `<span class="o_vd_tilepop_ph"><i class="fa fa-phone"></i> ${e(ld.phone || "—")}</span>`
+                    + `<span class="o_vd_tilepop_st">📞 ${cs.total || 0} · 📅 ${cs.distinct_days || 0}N</span>`
+                    + `<span class="o_vd_tilepop_nv"><i class="fa fa-user-o"></i> ${e(ld.user_name || "—")}</span>`
                     + call + `</div>`;
             }).join("");
             return head + `<div class="o_vd_tilepop_body">${rows}</div>`;
