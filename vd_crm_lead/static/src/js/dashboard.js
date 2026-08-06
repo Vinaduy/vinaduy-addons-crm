@@ -1094,8 +1094,15 @@ export class VdCrmDashboard extends Component {
         try {
             const data = await this.orm.call(
                 "crm.lead", "vd_dashboard_active_calls", []
-            );
-            this.state.activeCalls = data || {};
+            ) || {};
+            // CHỈ gán lại khi DỮ LIỆU ĐỔI THẬT. Trước đây gán mỗi 8s dù không đổi →
+            // re-render TOÀN dashboard (DOM rất lớn) mỗi 8s = "lác màn hình". Đa số
+            // thời điểm không ai đang gọi → data không đổi → bỏ qua → 0 re-render.
+            const sig = JSON.stringify(data);
+            if (sig !== this._activeCallsSig) {
+                this._activeCallsSig = sig;
+                this.state.activeCalls = data;
+            }
         } catch (err) {
             // Silent fail — không spam console khi WS đứt / restart server
         }
@@ -1105,8 +1112,13 @@ export class VdCrmDashboard extends Component {
             try {
                 const help = await this.orm.call(
                     "crm.lead", "vd_dashboard_help_live", []
-                );
-                this._applyLiveHelp(help || {});
+                ) || {};
+                // Chỉ áp khi ĐỔI → tránh mutate analytics + re-render thừa mỗi 5-8s.
+                const hsig = JSON.stringify(help);
+                if (hsig !== this._helpSig) {
+                    this._helpSig = hsig;
+                    this._applyLiveHelp(help);
+                }
             } catch (err) { /* silent */ }
         }
     }
@@ -2158,9 +2170,11 @@ export class VdCrmDashboard extends Component {
     // Phòng = tiền tố tên NV (dùng _userTeamLabel, khớp báo cáo). Ẩn NV đang TẮT
     // nhận số (_distributeOffIds). Chia đều = round-robin qua các NV đã tích.
     get bulkMenuTeams() {
-        let off = new Set();
-        try { off = this._distributeOffIds ? this._distributeOffIds() : new Set(); } catch (_e) {}
-        const src = (this.state.users || []).filter((u) => u.id && !off.has(u.id));
+        // KHÔNG lọc theo can_receive (_distributeOffIds): cờ đó chỉ dành cho chia
+        // số Pancake TỰ ĐỘNG; ở đây là chia THỦ CÔNG nên phải hiện ĐỦ NV của phòng
+        // (vd HCM2 có 8 NV nhưng chỉ 2 người bật nhận-auto → trước đây chỉ hiện 2).
+        // NV bị tắt vẫn hiện; người chia tự tích/bỏ.
+        const src = (this.state.users || []).filter((u) => u.id);
         const m = {};
         for (const u of src) {
             const t = this._userTeamLabel(u);
