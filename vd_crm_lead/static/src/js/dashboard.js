@@ -286,6 +286,10 @@ export class VdCrmDashboard extends Component {
             selectedLeadIds: {},
             reassignTargetId: 0,
             reassignBusy: false,
+            // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
+            // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
+            // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
+            hoverPillId: 0,
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
             // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
             // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
@@ -1843,6 +1847,19 @@ export class VdCrmDashboard extends Component {
             return;
         }
         this.openLead(leadId);
+    }
+    // Hover pill: DELAY 90ms rồi mới dựng tooltip (rê chuột lướt qua nhiều pill
+    // KHÔNG kích re-render → không giật). Rời pill → gỡ tooltip ngay.
+    onPillEnter(leadId) {
+        if (this._pillHoverTimer) clearTimeout(this._pillHoverTimer);
+        this._pillHoverTimer = setTimeout(() => {
+            this._pillHoverTimer = null;
+            if (this.state.hoverPillId !== leadId) this.state.hoverPillId = leadId;
+        }, 90);
+    }
+    onPillLeave(leadId) {
+        if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
+        if (this.state.hoverPillId === leadId) this.state.hoverPillId = 0;
     }
     toggleSelectMode() {
         this.state.selectMode = !this.state.selectMode;
