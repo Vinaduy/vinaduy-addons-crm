@@ -383,13 +383,15 @@ export class VdCrmDashboard extends Component {
                 this.bus.subscribe("vd.leads.pushed", this._onLeadsPushed);
             }
             this._trainingTick = setInterval(() => {
-                // 2026-08-05: KHÔNG đập nhịp 1s khi popup KH đang mở. Mỗi lần ghi
-                // trainingNow là 1 lần re-render TOÀN dashboard (template rất lớn)
-                // + kích MutationObserver của intake_select_fix → main-thread giật
-                // liên tục ngay lúc NV đang bấm chọn ("bấm rất khó bấm"). Banner
-                // đếm ngược nằm dưới popup, không ai nhìn thấy lúc này.
+                // 2026-08-05: Mỗi lần ghi trainingNow là 1 lần re-render TOÀN dashboard
+                // (template RẤT lớn) + kích MutationObserver intake_select_fix →
+                // main-thread giật. TRƯỚC ĐÂY tick 1s LIÊN TỤC kể cả khi KHÔNG có gì
+                // đếm ngược → cả trang "đơ" cả ngày. Nay CHỈ bump trainingNow khi thật
+                // sự cần đồng hồ chạy: (a) popup KH đóng, (b) tab đang xem, (c) có
+                // buổi học đang trong cửa sổ đếm ngược HOẶC popup broadcast đang chờ
+                // giờ. Ngoài ra để yên → 0 re-render → hết đơ.
                 const previewOpen = !!(this.state.previewLead && this.state.previewLead.open);
-                if (!previewOpen) {
+                if (!previewOpen && !document.hidden && this._needsLiveTick()) {
                     this.state.trainingNow = Date.now();
                 }
                 this._trainingRefreshN = (this._trainingRefreshN || 0) + 1;
@@ -921,6 +923,30 @@ export class VdCrmDashboard extends Component {
         const d = new Date(s.start_ts);
         const p = (n) => (n < 10 ? "0" : "") + n;
         return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
+    }
+    // Có cần đồng hồ chạy 1s (bump trainingNow → re-render) không? DÙNG Date.now()
+    // THẬT (không phải trainingNow đã đóng băng) để không bỏ lỡ lúc buổi học vừa
+    // bước vào cửa sổ đếm ngược. Trả true khi:
+    //  - 1 buổi học đang trong cửa sổ đếm ngược (đã tới mốc "lead", chưa tới giờ), HOẶC
+    //  - popup broadcast (Spam Zalo) đang chờ đủ thời gian (mm:ss còn > 0).
+    // Ngoài các trường hợp đó KHÔNG đụng state → 0 re-render mỗi giây → hết đơ.
+    _needsLiveTick() {
+        const now = Date.now();
+        const tnow = this.state.trainingNow || 0;
+        for (const s of (this.state.trainingBanner || [])) {
+            const start = s.start_ts || 0;
+            const leadMs = (s.lead_minutes || 15) * 60000;
+            // đang trong cửa sổ đếm ngược → chạy giây
+            if (now >= start - leadMs && now < start) return true;
+            // vừa tới giờ nhưng đồng hồ chưa vượt mốc → tick 1 nhịp để KHOÁ dashboard
+            if (now >= start && tnow < start) return true;
+        }
+        const c = this.state.broadcast;
+        if (c && this.state.broadcastShownAt) {
+            const delayMin = c.finish_delay_minutes != null ? c.finish_delay_minutes : 15;
+            if (this.state.broadcastShownAt + delayMin * 60000 - now > 0) return true;
+        }
+        return false;
     }
     // HỌC CÙNG VINADUY: mở trang khóa học (lộ trình học online của NV).
     openElearning() {
