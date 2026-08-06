@@ -1604,6 +1604,22 @@ export class VdCrmDashboard extends Component {
             { key: 'z3', icon: '✅', label: 'ĐÃ KẾT BẠN ZALO', hint: 'Đang chăm → đẩy lên Báo giá', leads: z3 },
         ];
     }
+    // KHI THU GỌN: mỗi vùng chỉ DỰNG 25 pill đầu (thay vì cả 300+ rồi cắt bằng CSS)
+    // → DOM nhẹ hẳn, render nhanh; vẫn giữ cả 3 vùng + SỐ THẬT ở header. Bấm "XEM
+    // TẤT CẢ" → dựng đủ. `count` = số thật của vùng (dùng cho header, không phải số
+    // pill đã cắt).
+    get newPillsZonesCapped() {
+        const expanded = this.state.newTableExpanded;
+        return this.newPillsZones.map((z) => ({
+            ...z,
+            count: z.leads.length,
+            leads: expanded ? z.leads : z.leads.slice(0, 25),
+        }));
+    }
+    get newPillsHasMore() {
+        if (this.state.newTableExpanded) return false;
+        return this.newPillsZones.some((z) => z.leads.length > 25);
+    }
 
     // CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B) — badge ⏰, thay cho
     // viền glow cũ. Đơn giản: đã gọi rồi (total>0) + CHƯA đủ 3 ngày gọi khác

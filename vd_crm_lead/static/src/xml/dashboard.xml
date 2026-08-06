@@ -2457,13 +2457,13 @@
                                                      thẻ + tiêu đề đều là con TRỰC TIẾP của newPillsWrap để
                                                      _measureNewPills đếm dòng đúng. -->
                                                 <div t-ref="newPillsWrap"
-                                                     t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (state.newPillsOverflow and !state.newTableExpanded ? ' o_vd_new_pills_fade' : '')">
-                                                    <t t-foreach="newPillsZones" t-as="zone" t-key="zone.key">
-                                                        <t t-if="zone.leads.length">
+                                                     t-att-class="'o_vd_new_pills' + (state.newTableExpanded ? ' o_vd_new_pills_expanded' : ' o_vd_new_pills_collapsed') + (newPillsHasMore ? ' o_vd_new_pills_fade' : '')">
+                                                    <t t-foreach="newPillsZonesCapped" t-as="zone" t-key="zone.key">
+                                                        <t t-if="zone.count">
                                                             <div t-att-class="'o_vd_pill_zone_head o_vd_pill_zone_' + zone.key">
                                                                 <span class="o_vd_pill_zone_ico"><t t-esc="zone.icon"/></span>
                                                                 <span class="o_vd_pill_zone_name"><t t-esc="zone.label"/></span>
-                                                                <span class="o_vd_pill_zone_count"><t t-esc="zone.leads.length"/></span>
+                                                                <span class="o_vd_pill_zone_count"><t t-esc="zone.count"/></span>
                                                                 <span class="o_vd_pill_zone_hint"><t t-esc="zone.hint"/></span>
                                                             </div>
                                                             <t t-foreach="zone.leads" t-as="lead" t-key="lead.id">
@@ -2472,7 +2472,7 @@
                                                         </t>
                                                     </t>
                                                 </div>
-                                                <button t-if="state.newPillsOverflow"
+                                                <button t-if="newPillsHasMore || state.newTableExpanded"
                                                         t-att-class="'o_vd_new_pills_toggle' + (state.newTableExpanded ? '' : ' o_vd_new_pills_toggle_big')"
                                                         t-on-click="() => this.toggleNewTable()">
                                                     <t t-if="state.newTableExpanded">
