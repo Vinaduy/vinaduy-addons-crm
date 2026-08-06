@@ -290,6 +290,11 @@ export class VdCrmDashboard extends Component {
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
             // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
             hoverPillId: 0,
+            // Chỉ DỰNG bảng trong ô icon phải khi hover đúng ô đó (lazy). Trước đây
+            // 5 ô dựng sẵn cả bảng (CHƯA GỌI 200 dòng, THAM KHẢO 85...) trong DOM →
+            // mỗi lần render đều phải dựng lại hết. '' | 'reference' | 'notcalled' |
+            // 'lost' | 'quoted_lost' | 'planned_sign'.
+            hoverTile: "",
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
             // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
             // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
@@ -1876,6 +1881,18 @@ export class VdCrmDashboard extends Component {
     onPillLeave(leadId) {
         if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
         if (this.state.hoverPillId === leadId) this.state.hoverPillId = 0;
+    }
+    // Hover ô icon phải → sau 70ms mới dựng bảng trong ô (lazy). Rời ô → gỡ ngay.
+    onTileEnter(key) {
+        if (this._tileHoverTimer) clearTimeout(this._tileHoverTimer);
+        this._tileHoverTimer = setTimeout(() => {
+            this._tileHoverTimer = null;
+            if (this.state.hoverTile !== key) this.state.hoverTile = key;
+        }, 70);
+    }
+    onTileLeave(key) {
+        if (this._tileHoverTimer) { clearTimeout(this._tileHoverTimer); this._tileHoverTimer = null; }
+        if (this.state.hoverTile === key) this.state.hoverTile = "";
     }
     toggleSelectMode() {
         this.state.selectMode = !this.state.selectMode;
