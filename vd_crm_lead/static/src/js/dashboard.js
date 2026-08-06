@@ -521,6 +521,8 @@ export class VdCrmDashboard extends Component {
             this._dirDefaultPersonal = false;
 
             await this.loadDashboard();
+            // Nạp báo cáo CHIA SỐ Pancake 1 LẦN (nền) — tab CHIA SỐ + dialog chia số cần.
+            this._maybeLoadPancakeReport();
             // Nạp bảng THƯỞNG treo (admin cấu hình) — chạy nền, không chặn dashboard.
             this.orm.call("vd.bonus.team", "vd_bonus_board", [this.state.selected_user_id || false])
                 .then((d) => { this.state.bonusBoard = d || { personal: [], team: [] }; })
@@ -673,16 +675,16 @@ export class VdCrmDashboard extends Component {
             this.state.selectedStageId = null;
         }
         this.state.loading = false;
-        // Nạp NỀN báo cáo CHIA SỐ Pancake (đã bỏ khỏi payload chính vì tốn ~1.5s).
-        // Không await → dashboard hiện ngay, báo cáo đổ vào sau (chỉ tab CHIA SỐ cần).
-        this._maybeLoadPancakeReport();
     }
 
-    // Tải báo cáo chia số Pancake (nặng ~1.5s) TÁCH khỏi tải chính, throttle 20s.
+    // Tải báo cáo chia số Pancake (nặng ~1.5s) TÁCH khỏi tải chính. Gọi 1 LẦN lúc
+    // mở trang (KHÔNG gọi sau mỗi reload — trước đây gọi trong loadDashboard làm cứ
+    // ~1.5s sau mỗi thao tác lại có 1 cú vẽ-lại-toàn-trang bất ngờ = GIẬT). Chuyển
+    // số thủ công không đổi tỷ lệ xin số nên không cần nạp lại. Throttle 60s phòng hờ.
     _maybeLoadPancakeReport(force) {
         if (!this.state.is_manager) return;
         const now = Date.now();
-        if (!force && this._pkRepAt && now - this._pkRepAt < 20000) return;
+        if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
         this._pkRepAt = now;
         this.orm.call("crm.lead", "vd_pancake_dist_reports", [])
             .then((rep) => { if (rep) Object.assign(this.state, rep); })
@@ -2104,7 +2106,7 @@ export class VdCrmDashboard extends Component {
             await this.loadDashboard();
             // Cập nhật lại số liệu (chưa gọi / tổng mới) trên dropdown NV.
             if (this.state.is_manager) {
-                this._reloadDashUsers();  // nen - khong chan thao tac
+                await this._reloadDashUsers();
             }
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
@@ -2220,7 +2222,7 @@ export class VdCrmDashboard extends Component {
             this.state.selectMode = false;
             await this.loadDashboard();
             if (this.state.is_manager) {
-                this._reloadDashUsers();  // nen - khong chan thao tac
+                await this._reloadDashUsers();
             }
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
@@ -2306,7 +2308,7 @@ export class VdCrmDashboard extends Component {
             this.state.selectMode = false;
             await this.loadDashboard();
             if (this.state.is_manager) {
-                this._reloadDashUsers();  // nen - khong chan thao tac
+                await this._reloadDashUsers();
             }
         } catch (e) {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
