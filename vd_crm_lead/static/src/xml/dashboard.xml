@@ -3054,55 +3054,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC (naked, không pills) -->
+                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC — popover HOVER dùng Ô DÙNG CHUNG
+                                         (o_vd_tilepop, dựng bằng DOM trực tiếp, KHÔNG vẽ lại trang; nút
+                                         Gọi lại/mở khách chạy qua event-delegation). -->
                                     <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
                                          t-on-click="() => this.openCategoryList(leadsNotCalled)"
-                                         t-on-mousemove="onTrashPopoverMove"
-                                         t-on-mouseenter="() => this.onTileEnter('notcalled')"
+                                         t-on-mouseenter="(ev) => this.onTileEnter('notcalled', ev)"
                                          t-on-mouseleave="() => this.onTileLeave('notcalled')"
                                          title="Click để mở popup danh sách KH chưa gọi được">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
-                                        </div>
-                                        <div class="o_vd_trash_popover o_vd_popover_anchor_center">
-                                            <div class="o_vd_trash_popover_head">
-                                                📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
-                                                <div class="o_vd_trash_popover_hint">
-                                                    ≥3 cuộc gọi · ≥3 ngày khác nhau · toàn thuê bao / không bắt máy
-                                                </div>
-                                            </div>
-                                            <div class="o_vd_trash_popover_body" t-if="state.hoverTile === 'notcalled'">
-                                                <div t-if="!leadsNotCalled.length" class="o_vd_trash_popover_empty">
-                                                    ✓ Không có KH nào trong nhóm này
-                                                </div>
-                                                <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
-                                                     class="o_vd_trash_popover_item o_vd_notcalled_row"
-                                                     t-on-click.stop="() => this.openLead(ld.id)">
-                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
-                                                    <span class="o_vd_trash_popover_phone">
-                                                        📞 <t t-esc="ld.phone or '—'"/>
-                                                    </span>
-                                                    <!-- User spec 2026-05-28: hien so cuoc + so ngay -->
-                                                    <span class="o_vd_notcalled_stats"
-                                                          t-if="ld.call_stats"
-                                                          t-att-title="ld.call_stats.total + ' cuoc trong ' + ld.call_stats.distinct_days + ' ngay khac nhau'">
-                                                        📞 <t t-esc="ld.call_stats.total or 0"/>
-                                                        · 📅 <t t-esc="ld.call_stats.distinct_days or 0"/>N
-                                                    </span>
-                                                    <span class="o_vd_trash_popover_nv">
-                                                        <t t-esc="ld.user_name or '—'"/>
-                                                    </span>
-                                                    <!-- Gọi lại — click trực tiếp, không cần mở form -->
-                                                    <button t-if="ld.phone"
-                                                            class="btn btn-sm btn-success o_vd_notcalled_call_btn"
-                                                            t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
-                                                            title="Goi lai KH ngay">
-                                                        <i class="fa fa-phone me-1"/> Gọi lại
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->

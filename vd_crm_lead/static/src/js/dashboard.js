@@ -473,6 +473,9 @@ export class VdCrmDashboard extends Component {
             window.removeEventListener('keydown', this._onKeydown);
             if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
             if (this._pillTipEl) { try { this._pillTipEl.remove(); } catch (_e) {} this._pillTipEl = null; }
+            if (this._tileShowTimer) { clearTimeout(this._tileShowTimer); this._tileShowTimer = null; }
+            if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
+            if (this._tilePopEl) { try { this._tilePopEl.remove(); } catch (_e) {} this._tilePopEl = null; }
             if (window.__vdDashBackHandler) {
                 delete window.__vdDashBackHandler;
             }
@@ -1975,7 +1978,18 @@ export class VdCrmDashboard extends Component {
         if (this._pillTipEl) this._pillTipEl.style.display = "none";
     }
     // Hover ô icon phải → sau 70ms mới dựng bảng trong ô (lazy). Rời ô → gỡ ngay.
-    onTileEnter(key) {
+    // Danh sách ô ĐÃ chuyển sang "ô dùng chung + hover" (không vẽ lại trang). Ô nào
+    // ở đây thì hover dựng popover trực tiếp bằng DOM (nút bên trong vẫn bấm được
+    // qua event-delegation). Ô KHÁC vẫn dùng OWL lazy (state.hoverTile) như cũ.
+    _tileSharedKeys() { return new Set(["notcalled"]); }
+    onTileEnter(key, ev) {
+        if (this._tileSharedKeys().has(key)) {
+            const el = ev && ev.currentTarget;
+            if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
+            if (this._tileShowTimer) clearTimeout(this._tileShowTimer);
+            this._tileShowTimer = setTimeout(() => { this._tileShowTimer = null; this._showTilePop(key, el); }, 70);
+            return;
+        }
         if (this._tileHoverTimer) clearTimeout(this._tileHoverTimer);
         this._tileHoverTimer = setTimeout(() => {
             this._tileHoverTimer = null;
@@ -1983,8 +1997,83 @@ export class VdCrmDashboard extends Component {
         }, 70);
     }
     onTileLeave(key) {
+        if (this._tileSharedKeys().has(key)) {
+            if (this._tileShowTimer) { clearTimeout(this._tileShowTimer); this._tileShowTimer = null; }
+            this._hideTilePopSoon();
+            return;
+        }
         if (this._tileHoverTimer) { clearTimeout(this._tileHoverTimer); this._tileHoverTimer = null; }
         if (this.state.hoverTile === key) this.state.hoverTile = "";
+    }
+    // ===== Ô DÙNG CHUNG cho popover ô icon (hover KHÔNG vẽ lại trang) =====
+    _ensureTilePop() {
+        if (this._tilePopEl && document.body.contains(this._tilePopEl)) return this._tilePopEl;
+        const d = document.createElement("div");
+        d.className = "o_vd_tilepop";
+        d.style.display = "none";
+        // Giữ mở khi chuột di vào popover (để bấm nút); rời popover → ẩn.
+        d.addEventListener("mouseenter", () => {
+            if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
+        });
+        d.addEventListener("mouseleave", () => this._hideTilePopSoon());
+        // EVENT DELEGATION: nút/hàng bên trong vẫn bấm được dù popover là DOM thuần.
+        d.addEventListener("click", (ev) => {
+            const t = ev.target.closest("[data-act]");
+            if (!t) return;
+            const id = parseInt(t.getAttribute("data-id"), 10);
+            const act = t.getAttribute("data-act");
+            if (!id) return;
+            if (act === "call") { ev.stopPropagation(); this.callLeadDirect(ev, id); }
+            else if (act === "open") { this._hideTilePop(); this.openLead(id); }
+        });
+        document.body.appendChild(d);
+        this._tilePopEl = d;
+        return d;
+    }
+    _tilePopHtml(key) {
+        const e = (s) => this._escHtml(s);
+        if (key === "notcalled") {
+            const list = this.leadsNotCalled || [];
+            const head = `<div class="o_vd_tilepop_head">📵 CHƯA GỌI ĐƯỢC (${list.length})</div>`;
+            if (!list.length) return head + `<div class="o_vd_tilepop_empty">✓ Không có KH nào</div>`;
+            const rows = list.map((ld) => {
+                const cs = ld.call_stats || {};
+                const call = ld.phone ? `<button class="o_vd_tilepop_btn" data-act="call" data-id="${ld.id}">📞 Gọi lại</button>` : "";
+                return `<div class="o_vd_tilepop_row" data-act="open" data-id="${ld.id}">`
+                    + `<span class="o_vd_tilepop_nm">${e(ld.name)}</span>`
+                    + `<span class="o_vd_tilepop_ph">${e(ld.phone || "—")}</span>`
+                    + `<span class="o_vd_tilepop_st">${cs.total || 0}c·${cs.distinct_days || 0}n</span>`
+                    + `<span class="o_vd_tilepop_nv">${e(ld.user_name || "—")}</span>`
+                    + call + `</div>`;
+            }).join("");
+            return head + `<div class="o_vd_tilepop_body">${rows}</div>`;
+        }
+        return "";
+    }
+    _showTilePop(key, tileEl) {
+        if (!tileEl || !document.body.contains(tileEl)) return;
+        const html = this._tilePopHtml(key);
+        if (!html) return;
+        const d = this._ensureTilePop();
+        d.innerHTML = html;
+        d.style.display = "block";
+        // Neo BÊN TRÁI ô (panel nằm mép phải màn hình).
+        const r = tileEl.getBoundingClientRect();
+        const tw = d.offsetWidth, th = d.offsetHeight;
+        let left = r.left - tw - 10;
+        if (left < 6) left = 6;
+        let top = r.top;
+        if (top + th > window.innerHeight - 6) top = window.innerHeight - 6 - th;
+        d.style.left = Math.max(6, left) + "px";
+        d.style.top = Math.max(6, top) + "px";
+    }
+    _hideTilePopSoon() {
+        if (this._tileHideTimer) clearTimeout(this._tileHideTimer);
+        this._tileHideTimer = setTimeout(() => this._hideTilePop(), 200);
+    }
+    _hideTilePop() {
+        if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
+        if (this._tilePopEl) this._tilePopEl.style.display = "none";
     }
     toggleSelectMode() {
         this.state.selectMode = !this.state.selectMode;
