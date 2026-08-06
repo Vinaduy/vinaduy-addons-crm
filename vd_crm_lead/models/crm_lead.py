@@ -8011,9 +8011,13 @@ class CrmLead(models.Model):
             # vd_crm_lead.zalo_lock_enabled = 1.
             'zalo_lock_enabled': (self.env['ir.config_parameter'].sudo()
                                   .get_param('vd_crm_lead.zalo_lock_enabled', '0') == '1'),
-            # CHIA SỐ (2026-06-05): báo cáo chia số tự động (Pancake) + thủ công
-            # (nhập tay) hôm nay/tháng + cảnh báo chia không đều. Chỉ ở màn quản lý.
-            'pancake_report': self._vd_distribution_report(pancake=True) if is_manager else {},
+            # CHIA SỐ (2026-06-05): báo cáo chia số tự động (Pancake) + thủ công.
+            # HOÃN (2026-08-05): _vd_distribution_report tốn ~1.56s (24× _vd_rate_block)
+            # → BỎ khỏi tải chính, client nạp NỀN qua vd_pancake_dist_reports sau khi
+            # dashboard đã hiện (chỉ dùng ở TAB CHIA SỐ + dialog chia số, không phải
+            # màn mặc định). Nhờ vậy mỗi lần load/reload (kể cả sau chuyển số) nhanh
+            # hơn ~1.5s.
+            'pancake_report': {},
             'manual_report': {},
             'performance': performance,
             # BẢO MẬT (user spec 2026-06-18): buộc NV đổi mật khẩu khi hết chu kỳ
