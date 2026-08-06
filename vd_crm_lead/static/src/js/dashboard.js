@@ -9,7 +9,7 @@
  *
  * Click a lead row to open it (form view), click "Gọi" to dial via vd_stringee.
  */
-import { Component, markup, onMounted, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, markup, onMounted, onPatched, onWillPatch, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
@@ -436,7 +436,18 @@ export class VdCrmDashboard extends Component {
             document.addEventListener('visibilitychange', this._onDocScrollClose);
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
-        onPatched(() => this._measureNewPills());
+        // + Đo thời gian patch DOM: nếu > 250ms → log cảnh báo (chẩn đoán "đơ").
+        onWillPatch(() => { this._patchT0 = performance.now(); });
+        onPatched(() => {
+            this._measureNewPills();
+            if (this._patchT0) {
+                const ms = performance.now() - this._patchT0;
+                window.__vdLastPatchMs = Math.round(ms);
+                if (ms > 250) {
+                    try { console.warn("[VD dashboard] patch DOM", Math.round(ms), "ms — DOM quá lớn?"); } catch (_e) {}
+                }
+            }
+        });
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
             if (window.__vdDashBackHandler) {
@@ -1866,6 +1877,16 @@ export class VdCrmDashboard extends Component {
             if (this.state.newPillsOverflow) this.state.newPillsOverflow = false;
             return;
         }
+        // CHẶN ÉP-LAYOUT THỪA: đọc offsetTop/scrollHeight = ép browser layout ĐỒNG
+        // BỘ. Hàm này chạy trong onPatched = MỖI lần render (bấm kebab, mở KH, poll,
+        // chọn KH...) dù danh sách pill KHÔNG đổi → thrash layout, làm mọi thao tác
+        // "đơ". Chỉ đo lại khi số pill / mở-rộng / stage ĐỔI (chỉ đọc children.length
+        // — KHÔNG ép layout).
+        const sig = el.children.length + '|' +
+            (this.state.newTableExpanded ? 1 : 0) + '|' +
+            (this.state.selectedStageId || 0);
+        if (sig === this._measSig) return;
+        this._measSig = sig;
         const rowTops = [];
         for (const p of el.children) {
             const t = p.offsetTop;
