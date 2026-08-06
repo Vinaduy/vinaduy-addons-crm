@@ -4043,8 +4043,8 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
-             t-on-mouseenter="() => this.onPillEnter(lead.id)"
-             t-on-mouseleave="() => this.onPillLeave(lead.id)"
+             t-on-mouseenter="(ev) => this.onPillEnter(lead, ev)"
+             t-on-mouseleave="() => this.onPillLeave()"
              t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span t-if="state.selectMode" class="o_vd_pill_check">
                     <t t-if="isLeadSelected(lead.id)">☑</t>
@@ -4113,82 +4113,9 @@
                       class="o_vd_pill_quote_dot"
                       title="Đã đủ thông tin báo giá — bấm CHỐT để chuyển sang bảng Báo giá">💰</span>
 
-                <!-- TOOLTIP — LAZY: chỉ dựng khi hover đúng pill này (giảm ~5000 node
-                     vô hình khỏi DOM → hết đơ). CSS vẫn hiện như cũ. -->
-                <div class="o_vd_won_tooltip" t-if="state.hoverPillId === lead.id">
-                    <!-- KH CHƯA GỌI cuộc nào + đã SANG NGÀY MỚI → CHỈ 1 dòng chữ TO,
-                         bỏ hết nội dung còn lại (user spec 2026-07-08). -->
-                    <t t-if="isUncalledStale(lead)">
-                        <div class="o_vd_tt_uncalled_big"><t t-esc="uncalledDaysLabel(lead)"/> NGÀY RỒI CHƯA GỌI</div>
-                    </t>
-                    <t t-else="">
-                    <!-- Badge trạng thái nổi bật ở đầu — chỉ stage KH MỚI -->
-                    <t t-if="selectedStage and selectedStage.code === 'new'">
-                        <t t-set="cstatus" t-value="pillCallStatusLabel(lead)"/>
-                        <div t-att-class="'o_vd_won_tt_status ' + pillCallClass(lead)">
-                            <t t-esc="cstatus.icon"/>
-                            <span class="o_vd_won_tt_status_text"><t t-esc="cstatus.text"/></span>
-                        </div>
-                        <!-- CẢNH BÁO ZALO (user spec 2026-06-09): KH chưa kết bạn,
-                             gọi nhiều lần không nghe → yêu cầu kết bạn + tư vấn Zalo. -->
-                        <div t-if="lead.must_zalo" class="o_vd_tt_zalo_warn">
-                            <img src="/vd_crm_lead/static/src/img/zalo.webp" class="o_vd_tt_zalo_logo"/>
-                            <span>⚠️ CHƯA NHẮN ZALO — đã gọi nhiều lần không nghe máy.
-                                Hãy <b>NHẮN TIN ZALO</b> cho khách này (kết bạn khi khách trả lời).</span>
-                        </div>
-                    </t>
-                    <div class="o_vd_won_tt_row">
-                        <span class="o_vd_won_tt_lbl">👤 Tên KH:</span>
-                        <span><t t-esc="lead.name"/></span>
-                    </div>
-                    <div class="o_vd_won_tt_row">
-                        <span class="o_vd_won_tt_lbl">📞 SĐT:</span>
-                        <span><t t-esc="lead.phone or '—'"/></span>
-                    </div>
-                    <div class="o_vd_won_tt_row" t-if="selectedStage and selectedStage.code === 'won'">
-                        <span class="o_vd_won_tt_lbl">📍 Địa chỉ ký:</span>
-                        <span><t t-esc="lead.planned_sign_location or '—'"/></span>
-                    </div>
-                    <div class="o_vd_won_tt_row" t-if="state.is_manager and lead.user_name">
-                        <span class="o_vd_won_tt_lbl">👔 NV phụ trách:</span>
-                        <span><t t-esc="lead.user_name"/></span>
-                    </div>
-                    <!-- Giá trị HĐ — CHỈ hiện ở stage Khách chốt (theo yêu cầu user) -->
-                    <div t-if="selectedStage and selectedStage.code === 'won'" class="o_vd_won_tt_row">
-                        <span class="o_vd_won_tt_lbl">💰 Giá trị HĐ:</span>
-                        <span><t t-if="lead.quote_price"><t t-esc="formatVnd(lead.quote_price)"/>đ</t><t t-else="">—</t></span>
-                    </div>
-                    <!-- Thống kê cuộc gọi — chỉ stage Khách mới, chỉ khi đã có cuộc gọi -->
-                    <t t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0">
-                        <div class="o_vd_won_tt_row o_vd_won_tt_callstats">
-                            <span class="o_vd_won_tt_lbl">📊 Tổng cuộc gọi:</span>
-                            <span>
-                                <strong><t t-esc="lead.call_stats.total"/></strong>
-                                · <t t-esc="lead.call_stats.distinct_days"/> ngày
-                            </span>
-                        </div>
-                        <div t-if="lead.call_stats.answered > 0" class="o_vd_won_tt_row o_vd_won_tt_answered">
-                            <span class="o_vd_won_tt_lbl">🟢 Đã liên lạc:</span>
-                            <span><strong><t t-esc="lead.call_stats.answered"/></strong> cuộc</span>
-                        </div>
-                        <div t-if="lead.call_stats.no_answer > 0" class="o_vd_won_tt_row o_vd_won_tt_blue">
-                            <span class="o_vd_won_tt_lbl">🔔 Có chuông, không bắt:</span>
-                            <span><strong><t t-esc="lead.call_stats.no_answer"/></strong> cuộc</span>
-                        </div>
-                        <div t-if="lead.call_stats.busy_like > 0" class="o_vd_won_tt_row o_vd_won_tt_blue">
-                            <span class="o_vd_won_tt_lbl">📞 Máy bận / Từ chối:</span>
-                            <span><strong><t t-esc="lead.call_stats.busy_like"/></strong> cuộc</span>
-                        </div>
-                        <div t-if="lead.call_stats.subscriber > 0" class="o_vd_won_tt_row o_vd_won_tt_red">
-                            <span class="o_vd_won_tt_lbl">📵 Thuê bao:</span>
-                            <span>
-                                <strong><t t-esc="lead.call_stats.subscriber"/></strong> cuộc
-                                · <t t-esc="lead.call_stats.distinct_days_subscriber"/> ngày
-                            </span>
-                        </div>
-                    </t>
-                    </t><!-- /t-else: nội dung tooltip thường (KH đã gọi / mới hôm nay) -->
-                </div>
+                <!-- TOOLTIP: KHÔNG còn nhúng trong pill. Hiện qua 1 ô DÙNG CHUNG cấp
+                     trang, điều khiển trực tiếp bằng JS (_showPillTip) → hover KHÔNG
+                     làm dashboard vẽ lại, và popup KHÔNG nằm trong DOM khi không dùng. -->
         </div>
     </t>
 

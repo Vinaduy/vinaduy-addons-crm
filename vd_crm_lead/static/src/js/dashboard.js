@@ -471,6 +471,8 @@ export class VdCrmDashboard extends Component {
         });
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
+            if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
+            if (this._pillTipEl) { try { this._pillTipEl.remove(); } catch (_e) {} this._pillTipEl = null; }
             if (window.__vdDashBackHandler) {
                 delete window.__vdDashBackHandler;
             }
@@ -1885,18 +1887,85 @@ export class VdCrmDashboard extends Component {
         }
         this.openLead(leadId);
     }
-    // Hover pill: DELAY 90ms rồi mới dựng tooltip (rê chuột lướt qua nhiều pill
-    // KHÔNG kích re-render → không giật). Rời pill → gỡ tooltip ngay.
-    onPillEnter(leadId) {
+    // Hover pill: hiện tooltip qua 1 ô DÙNG CHUNG cấp trang, điều khiển TRỰC TIẾP
+    // bằng DOM (KHÔNG đổi state OWL) → dashboard KHÔNG vẽ lại → hover cực nhẹ. Delay
+    // 90ms để rê chuột lướt qua nhiều pill không bật liên tục.
+    onPillEnter(lead, ev) {
+        const el = ev && ev.currentTarget;
         if (this._pillHoverTimer) clearTimeout(this._pillHoverTimer);
         this._pillHoverTimer = setTimeout(() => {
             this._pillHoverTimer = null;
-            if (this.state.hoverPillId !== leadId) this.state.hoverPillId = leadId;
+            this._showPillTip(lead, el);
         }, 90);
     }
-    onPillLeave(leadId) {
+    onPillLeave() {
         if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
-        if (this.state.hoverPillId === leadId) this.state.hoverPillId = 0;
+        this._hidePillTip();
+    }
+    _ensurePillTip() {
+        if (this._pillTipEl && document.body.contains(this._pillTipEl)) return this._pillTipEl;
+        const d = document.createElement("div");
+        d.className = "o_vd_ptip";
+        d.style.display = "none";
+        document.body.appendChild(d);
+        this._pillTipEl = d;
+        return d;
+    }
+    _escHtml(s) {
+        return String(s == null ? "" : s).replace(/[&<>"]/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    }
+    _pillTipHtml(lead) {
+        const e = (s) => this._escHtml(s);
+        if (this.isUncalledStale(lead)) {
+            return `<div class="o_vd_ptip_big">${this.uncalledDaysLabel(lead)} NGÀY RỒI CHƯA GỌI</div>`;
+        }
+        const isNew = this.selectedStage && this.selectedStage.code === "new";
+        const isWon = this.selectedStage && this.selectedStage.code === "won";
+        const p = [];
+        if (isNew) {
+            const st = this.pillCallStatusLabel(lead);
+            p.push(`<div class="o_vd_ptip_status">${e(st.icon)} ${e(st.text)}</div>`);
+            if (lead.must_zalo) {
+                p.push(`<div class="o_vd_ptip_warn">⚠️ CHƯA NHẮN ZALO — đã gọi nhiều lần không nghe. Hãy NHẮN ZALO cho khách.</div>`);
+            }
+        }
+        p.push(`<div class="o_vd_ptip_row"><b>👤</b> ${e(lead.name)}</div>`);
+        p.push(`<div class="o_vd_ptip_row"><b>📞</b> ${e(lead.phone || "—")}</div>`);
+        if (this.state.is_manager && lead.user_name) {
+            p.push(`<div class="o_vd_ptip_row"><b>👔</b> ${e(lead.user_name)}</div>`);
+        }
+        if (isWon) {
+            if (lead.planned_sign_location) p.push(`<div class="o_vd_ptip_row"><b>📍</b> ${e(lead.planned_sign_location)}</div>`);
+            if (lead.quote_price) p.push(`<div class="o_vd_ptip_row"><b>💰</b> ${e(this.formatVnd(lead.quote_price))}đ</div>`);
+        }
+        const cs = lead.call_stats;
+        if (isNew && cs && cs.total > 0) {
+            let line = `📊 ${cs.total} cuộc · ${cs.distinct_days} ngày`;
+            if (cs.answered > 0) line += ` · 🟢 ${cs.answered} nghe`;
+            if (cs.subscriber > 0) line += ` · 📵 ${cs.subscriber} thuê bao`;
+            p.push(`<div class="o_vd_ptip_row">${line}</div>`);
+        }
+        return p.join("");
+    }
+    _showPillTip(lead, el) {
+        if (!lead || !el || !document.body.contains(el)) return;
+        const d = this._ensurePillTip();
+        d.innerHTML = this._pillTipHtml(lead);
+        d.style.display = "block";
+        const r = el.getBoundingClientRect();
+        const tw = d.offsetWidth, th = d.offsetHeight;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let left = r.left + r.width / 2 - tw / 2;
+        if (left < 6) left = 6;
+        if (left + tw > vw - 6) left = vw - 6 - tw;
+        let top = r.bottom + 8;
+        if (top + th > vh - 6) top = r.top - th - 8;   // không đủ chỗ dưới → lật lên
+        d.style.left = Math.max(6, left) + "px";
+        d.style.top = Math.max(6, top) + "px";
+    }
+    _hidePillTip() {
+        if (this._pillTipEl) this._pillTipEl.style.display = "none";
     }
     // Hover ô icon phải → sau 70ms mới dựng bảng trong ô (lazy). Rời ô → gỡ ngay.
     onTileEnter(key) {

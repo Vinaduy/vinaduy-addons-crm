@@ -11616,6 +11616,39 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 
 /* =====================================================================
+   TOOLTIP KHÁCH (pill) — 1 ô DÙNG CHUNG cấp body, chỉ CHỮ, cỡ TO (user spec
+   2026-08-05). ĐẶT NGOÀI .o_vd_crm_dashboard nên KHÔNG dính zoom:0.7 → chữ to
+   rõ. Hiện/ẩn bằng JS (_showPillTip) → hover KHÔNG làm dashboard vẽ lại.
+   ===================================================================== */
+.o_vd_ptip {
+    position: fixed;
+    z-index: 100000;
+    max-width: 480px;
+    background: #fff;
+    color: #1f2a44;
+    border: 1px solid #d0d7e2;
+    border-radius: 12px;
+    box-shadow: 0 16px 42px rgba(15, 23, 42, 0.28);
+    padding: 0.9rem 1.15rem;
+    font-size: 1.1rem;
+    line-height: 1.55;
+    font-weight: 600;
+    pointer-events: none;
+}
+.o_vd_ptip_big {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #e03131;
+    text-align: center;
+    padding: 0.35rem 0.5rem;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+.o_vd_ptip_status { font-size: 1.18rem; font-weight: 800; color: #1971c2; margin-bottom: 0.4rem; }
+.o_vd_ptip_warn { font-size: 1rem; font-weight: 800; color: #e8590c; margin-bottom: 0.4rem; }
+.o_vd_ptip_row { padding: 0.14rem 0; b { font-weight: 800; margin-right: 0.35rem; } }
+
+/* =====================================================================
    SKIN NHẸ NHÀNG — SANG TRỌNG (user spec 2026-08-05)
    Gom cả khu sidebar + panel icon về ĐÚNG 3 GAM:
      · Indigo  (thương hiệu, xanh tím)  · Teal mint (tươi)  · Champagne (thưởng, sang)
