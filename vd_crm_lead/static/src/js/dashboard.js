@@ -287,9 +287,10 @@ export class VdCrmDashboard extends Component {
             reassignTargetId: 0,
             reassignBusy: false,
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
-            // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' (bảng chọn
-            // NV cho từng chức năng); busy: đang chạy chọn-tất-cả / xuất / chuyển.
-            bulkMenu: { open: false, sub: "", busy: false },
+            // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
+            // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
+            // {uid:true} người nhận đã tích trong phòng (chia đều).
+            bulkMenu: { open: false, sub: "", busy: false, team: "", teamChecked: {} },
             // ===== HƯỚNG DẪN NÚT SOS (coachmark tự hiện) =====
             // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
             // trên 3 ngày khác nhau.
@@ -2018,15 +2019,15 @@ export class VdCrmDashboard extends Component {
     // sang 1 NV khác.
     toggleBulkMenu() {
         const open = !this.state.bulkMenu.open;
-        this.state.bulkMenu = { open, sub: "", busy: false };
+        this.state.bulkMenu = { open, sub: "", busy: false, team: "", teamChecked: {} };
     }
     closeBulkMenu() {
         if (this.state.bulkMenu.open || this.state.bulkMenu.sub) {
-            this.state.bulkMenu = { open: false, sub: "", busy: false };
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
         }
     }
     openBulkSub(sub) {
-        // Mở bảng chọn NV cho chức năng tương ứng ('selectUser' | 'transferUser').
+        // Mở bảng cấp 2/3 tương ứng ('selectUser'|'transferUser'|'teamPick'|'teamRoster').
         this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true };
     }
     // Danh sách NV để chọn trong menu — kèm tổng KH (state.users từ dashboard_users).
@@ -2062,7 +2063,7 @@ export class VdCrmDashboard extends Component {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
             this.notification.add(msg, { type: "danger", title: "Không chọn được" });
         } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false };
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
         }
     }
     // (2) Xuất TOÀN BỘ khách đã chọn ra Excel (.xlsx) → tải file về.
@@ -2092,7 +2093,7 @@ export class VdCrmDashboard extends Component {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
             this.notification.add(msg, { type: "danger", title: "Không xuất được" });
         } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false };
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
         }
     }
     // (3) Chuyển 1 phát TOÀN BỘ khách đã chọn sang 1 NV khác.
@@ -2123,7 +2124,91 @@ export class VdCrmDashboard extends Component {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
             this.notification.add(msg, { type: "danger", title: "Không chuyển được KH" });
         } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false };
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
+        }
+    }
+
+    // ===== (4) CHIA TOÀN BỘ KH ĐÃ CHỌN CHO 1 PHÒNG — chia đều cho NV được tích ==
+    // Phòng = tiền tố tên NV (dùng _userTeamLabel, khớp báo cáo). Ẩn NV đang TẮT
+    // nhận số (_distributeOffIds). Chia đều = round-robin qua các NV đã tích.
+    get bulkMenuTeams() {
+        let off = new Set();
+        try { off = this._distributeOffIds ? this._distributeOffIds() : new Set(); } catch (_e) {}
+        const src = (this.state.users || []).filter((u) => u.id && !off.has(u.id));
+        const m = {};
+        for (const u of src) {
+            const t = this._userTeamLabel(u);
+            (m[t] = m[t] || []).push(u);
+        }
+        return Object.keys(m).sort().map((t) => ({
+            team: t,
+            members: m[t].slice().sort((a, b) => (b.total || 0) - (a.total || 0)),
+            count: m[t].length,
+        }));
+    }
+    get bulkCurrentTeamMembers() {
+        const t = this.state.bulkMenu.team;
+        const found = this.bulkMenuTeams.find((x) => x.team === t);
+        return found ? found.members : [];
+    }
+    get bulkTeamCheckedIds() {
+        const ck = this.state.bulkMenu.teamChecked || {};
+        return this.bulkCurrentTeamMembers.filter((m) => ck[m.id]).map((m) => m.id);
+    }
+    // Chọn 1 phòng ở cấp 2 → mở cấp 3, mặc định TÍCH HẾT người trong phòng.
+    openBulkTeamRoster(tm) {
+        const checked = {};
+        for (const m of (tm.members || [])) checked[m.id] = true;
+        this.state.bulkMenu = {
+            ...this.state.bulkMenu, sub: "teamRoster", team: tm.team,
+            teamChecked: checked, open: true,
+        };
+    }
+    toggleBulkTeamMember(uid) {
+        const ck = { ...(this.state.bulkMenu.teamChecked || {}) };
+        if (ck[uid]) delete ck[uid]; else ck[uid] = true;
+        this.state.bulkMenu = { ...this.state.bulkMenu, teamChecked: ck };
+    }
+    bulkTeamSetAll(on) {
+        const ck = {};
+        if (on) for (const m of this.bulkCurrentTeamMembers) ck[m.id] = true;
+        this.state.bulkMenu = { ...this.state.bulkMenu, teamChecked: ck };
+    }
+    async bulkDistributeToTeam() {
+        const leadIds = this.selectedLeadIdList;
+        const uids = this.bulkTeamCheckedIds;
+        const team = this.state.bulkMenu.team;
+        if (!leadIds.length) {
+            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
+            return;
+        }
+        if (!uids.length) {
+            this.notification.add("Chưa tích người nhận nào.", { type: "warning" });
+            return;
+        }
+        const ok = window.confirm(
+            `Chia đều ${leadIds.length} khách cho ${uids.length} nhân viên phòng "${team}"?`);
+        if (!ok) return;
+        // Round-robin: KH thứ i -> NV uids[i % N] → chia đều tuyệt đối.
+        const assignments = leadIds.map((lid, i) => [lid, uids[i % uids.length]]);
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_distribute", [assignments]);
+            this.notification.add(
+                `Đã chia ${moved} khách cho ${uids.length} nhân viên phòng "${team}".`,
+                { type: "success", title: "Chia số theo phòng" });
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            await this.loadDashboard();
+            if (this.state.is_manager) {
+                await this._reloadDashUsers();
+            }
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chia được" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
         }
     }
 

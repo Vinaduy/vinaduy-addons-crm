@@ -2193,7 +2193,7 @@
                                 <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu_backdrop"
                                      t-on-click="() => this.closeBulkMenu()"/>
                                 <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu">
-                                    <!-- Cấp 1: 3 chức năng -->
+                                    <!-- Cấp 1: 4 chức năng -->
                                     <t t-if="!state.bulkMenu.sub">
                                         <div class="o_vd_bulk_menu_hd">Thao tác theo nhân viên</div>
                                         <button class="o_vd_bulk_menu_it"
@@ -2216,9 +2216,16 @@
                                             <span class="o_vd_bmi_tx">Chuyển toàn bộ KH đã chọn sang NV khác<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
                                             <span class="o_vd_bmi_ar">›</span>
                                         </button>
+                                        <button class="o_vd_bulk_menu_it"
+                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
+                                                t-on-click="() => this.openBulkSub('teamPick')">
+                                            <span class="o_vd_bmi_ic">🏢</span>
+                                            <span class="o_vd_bmi_tx">Chia đều toàn bộ KH đã chọn cho 1 phòng<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
+                                            <span class="o_vd_bmi_ar">›</span>
+                                        </button>
                                     </t>
-                                    <!-- Cấp 2: chọn nhân viên -->
-                                    <t t-else="">
+                                    <!-- Cấp 2: chọn nhân viên (selectUser / transferUser) -->
+                                    <t t-elif="state.bulkMenu.sub === 'selectUser' || state.bulkMenu.sub === 'transferUser'">
                                         <div class="o_vd_bulk_menu_hd">
                                             <button class="o_vd_bmi_back"
                                                     t-on-click="() => this.openBulkSub('')">‹</button>
@@ -2237,6 +2244,58 @@
                                                 Không có nhân viên nào.
                                             </div>
                                         </div>
+                                    </t>
+                                    <!-- Cấp 2b: chọn PHÒNG -->
+                                    <t t-elif="state.bulkMenu.sub === 'teamPick'">
+                                        <div class="o_vd_bulk_menu_hd">
+                                            <button class="o_vd_bmi_back"
+                                                    t-on-click="() => this.openBulkSub('')">‹</button>
+                                            Chia <b t-esc="selectedCount"/> KH cho phòng
+                                        </div>
+                                        <div class="o_vd_bulk_menu_list">
+                                            <button t-foreach="bulkMenuTeams" t-as="tm" t-key="tm.team"
+                                                    class="o_vd_bulk_menu_uit"
+                                                    t-att-disabled="state.bulkMenu.busy"
+                                                    t-on-click="() => this.openBulkTeamRoster(tm)">
+                                                <span class="o_vd_bmu_nm">🏢 <t t-esc="tm.team"/></span>
+                                                <span class="o_vd_bmu_ct"><t t-esc="tm.count"/> NV ›</span>
+                                            </button>
+                                            <div t-if="!bulkMenuTeams.length" class="o_vd_bulk_menu_empty">
+                                                Không có phòng nào.
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <!-- Cấp 3: chốt người nhận trong phòng -->
+                                    <t t-else="">
+                                        <div class="o_vd_bulk_menu_hd">
+                                            <button class="o_vd_bmi_back"
+                                                    t-on-click="() => this.openBulkSub('teamPick')">‹</button>
+                                            Phòng <t t-esc="state.bulkMenu.team"/> — chọn người nhận
+                                        </div>
+                                        <div class="o_vd_bulk_roster_tools">
+                                            <button class="o_vd_bulk_roster_tool"
+                                                    t-on-click="() => this.bulkTeamSetAll(true)">Chọn tất cả</button>
+                                            <button class="o_vd_bulk_roster_tool"
+                                                    t-on-click="() => this.bulkTeamSetAll(false)">Bỏ tất cả</button>
+                                        </div>
+                                        <div class="o_vd_bulk_menu_list">
+                                            <button t-foreach="bulkCurrentTeamMembers" t-as="mb" t-key="mb.id"
+                                                    t-att-class="'o_vd_bulk_roster_it' + (state.bulkMenu.teamChecked[mb.id] ? ' o_on' : '')"
+                                                    t-att-disabled="state.bulkMenu.busy"
+                                                    t-on-click="() => this.toggleBulkTeamMember(mb.id)">
+                                                <span class="o_vd_bulk_roster_ck"><t t-if="state.bulkMenu.teamChecked[mb.id]">✓</t></span>
+                                                <span class="o_vd_bmu_nm"><t t-esc="mb.name"/></span>
+                                                <span class="o_vd_bmu_ct"><t t-esc="mb.total || 0"/> KH</span>
+                                            </button>
+                                            <div t-if="!bulkCurrentTeamMembers.length" class="o_vd_bulk_menu_empty">
+                                                Phòng không có nhân viên.
+                                            </div>
+                                        </div>
+                                        <button class="o_vd_bulk_roster_go"
+                                                t-att-disabled="!bulkTeamCheckedIds.length || state.bulkMenu.busy"
+                                                t-on-click="() => this.bulkDistributeToTeam()">
+                                            Chia đều <t t-esc="selectedCount"/> KH cho <b t-esc="bulkTeamCheckedIds.length"/> người
+                                        </button>
                                     </t>
                                 </div>
                             </div>

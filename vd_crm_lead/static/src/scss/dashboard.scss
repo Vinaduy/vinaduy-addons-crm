@@ -8985,6 +8985,79 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     padding: 0.6rem 0.55rem;
     text-align: center;
 }
+/* Cấp 3: chốt người nhận trong 1 phòng (tích/bỏ từng NV) + nút chia đều */
+.o_vd_bulk_roster_tools {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.2rem 0.5rem 0.4rem;
+}
+.o_vd_bulk_roster_tool {
+    flex: 1 1 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0.28rem 0.4rem;
+    color: #5b6bd6;
+    background: #eef0fc;
+    border: 1px solid #d6dbf7;
+    border-radius: 7px;
+    cursor: pointer;
+    &:hover { background: #e2e6fb; }
+}
+.o_vd_bulk_roster_it {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    font-size: 0.83rem;
+    padding: 0.42rem 0.55rem;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { background: #f5f6fb; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    .o_vd_bulk_roster_ck {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 900;
+        color: #fff;
+        background: #fff;
+        border: 1.5px solid #ced4da;
+        border-radius: 5px;
+    }
+    .o_vd_bmu_nm { flex: 1 1 auto; color: #495057; }
+    .o_vd_bmu_ct {
+        flex: 0 0 auto; font-size: 0.74rem; font-weight: 700;
+        color: #868e96; background: #f1f3f5; border-radius: 20px; padding: 0.1rem 0.5rem;
+    }
+    &.o_on {
+        background: #eef0fc;
+        .o_vd_bulk_roster_ck { background: #5b6bd6; border-color: #5b6bd6; }
+        .o_vd_bmu_nm { color: #3b4256; font-weight: 700; }
+    }
+}
+.o_vd_bulk_roster_go {
+    display: block;
+    width: calc(100% - 1rem);
+    margin: 0.35rem 0.5rem 0.4rem;
+    font-size: 0.86rem;
+    font-weight: 800;
+    padding: 0.55rem 0.5rem;
+    color: #fff;
+    background: linear-gradient(135deg, #6f7ee0, #4553b8);
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    b { font-size: 0.95rem; }
+    &:hover { filter: brightness(1.04); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+}
 .o_vd_bulk_count {
     font-size: 0.82rem;
     color: #343a40;
