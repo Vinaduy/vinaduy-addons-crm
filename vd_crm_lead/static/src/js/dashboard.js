@@ -1921,30 +1921,37 @@ export class VdCrmDashboard extends Component {
             return `<div class="o_vd_ptip_big">${this.uncalledDaysLabel(lead)} NGÀY RỒI CHƯA GỌI</div>`;
         }
         const isNew = this.selectedStage && this.selectedStage.code === "new";
-        const isWon = this.selectedStage && this.selectedStage.code === "won";
-        const p = [];
+        const cs = lead.call_stats || {};
+        // Số ngày từ ngày tạo → hôm nay (create_calendar_days = số ngày lịch đã qua).
+        const createdDays = (lead.create_calendar_days != null ? lead.create_calendar_days
+            : (lead.create_days != null ? lead.create_days : 0));
         if (isNew) {
-            const st = this.pillCallStatusLabel(lead);
-            p.push(`<div class="o_vd_ptip_status">${e(st.icon)} ${e(st.text)}</div>`);
-            if (lead.must_zalo) {
-                p.push(`<div class="o_vd_ptip_warn">⚠️ CHƯA NHẮN ZALO — đã gọi nhiều lần không nghe. Hãy NHẮN ZALO cho khách.</div>`);
+            const p = [];
+            // 1) DÒNG THỐNG KÊ CUỘC GỌI (dòng cuối cũ — GIỮ).
+            if ((cs.total || 0) > 0) {
+                let line = `📊 ${cs.total} cuộc · ${cs.distinct_days || 0} ngày`;
+                if (cs.answered > 0) line += ` · 🟢 ${cs.answered} nghe`;
+                p.push(`<div class="o_vd_ptip_row">${line}</div>`);
+            } else {
+                p.push(`<div class="o_vd_ptip_row">📊 Chưa gọi cuộc nào</div>`);
             }
+            // 2) SỐ NGÀY TỪ LÚC TẠO ĐẾN HÔM NAY.
+            p.push(`<div class="o_vd_ptip_row">📅 Khách đã tạo <b>${createdDays}</b> ngày</div>`);
+            // 3) TỶ LỆ GỌI THÀNH CÔNG (nghe máy) = answered / tổng cuộc.
+            const rate = (cs.total || 0) > 0 ? Math.round((cs.answered || 0) / cs.total * 100) : 0;
+            p.push(`<div class="o_vd_ptip_row">✅ Tỷ lệ nghe máy: <b>${rate}%</b> (${cs.answered || 0}/${cs.total || 0})</div>`);
+            return p.join("");
         }
+        // Stage khác (won...) — giữ Tên / SĐT / NV + thông tin ký HĐ.
+        const p = [];
         p.push(`<div class="o_vd_ptip_row"><b>👤</b> ${e(lead.name)}</div>`);
         p.push(`<div class="o_vd_ptip_row"><b>📞</b> ${e(lead.phone || "—")}</div>`);
         if (this.state.is_manager && lead.user_name) {
             p.push(`<div class="o_vd_ptip_row"><b>👔</b> ${e(lead.user_name)}</div>`);
         }
-        if (isWon) {
+        if (this.selectedStage && this.selectedStage.code === "won") {
             if (lead.planned_sign_location) p.push(`<div class="o_vd_ptip_row"><b>📍</b> ${e(lead.planned_sign_location)}</div>`);
             if (lead.quote_price) p.push(`<div class="o_vd_ptip_row"><b>💰</b> ${e(this.formatVnd(lead.quote_price))}đ</div>`);
-        }
-        const cs = lead.call_stats;
-        if (isNew && cs && cs.total > 0) {
-            let line = `📊 ${cs.total} cuộc · ${cs.distinct_days} ngày`;
-            if (cs.answered > 0) line += ` · 🟢 ${cs.answered} nghe`;
-            if (cs.subscriber > 0) line += ` · 📵 ${cs.subscriber} thuê bao`;
-            p.push(`<div class="o_vd_ptip_row">${line}</div>`);
         }
         return p.join("");
     }
