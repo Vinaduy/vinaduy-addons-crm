@@ -7713,11 +7713,10 @@ class CrmLead(models.Model):
         """
         scope_user, scope_label, domain_user, call_user_domain = self._dashboard_resolve_scope(user_id)
         is_manager = self._dashboard_is_manager()
-        # Auto-trash KH 4+ ngày không nghe máy — chạy trước khi tính counts
-        try:
-            self._vd_auto_trash_no_answer_leads(domain_user)
-        except Exception:
-            pass
+        # Auto-trash KH 4+ ngày không nghe máy: ĐÃ CHUYỂN sang CRON 15' (ir_cron_vd
+        # _auto_trash_no_answer). Trước đây chạy INLINE mỗi lần load → tốn ~1.5-2.4s
+        # cho quản lý (_dashboard_compute_call_stats trên nhiều lead) làm trang chậm.
+        # Ngưỡng 4 NGÀY nên chạy nền 15' là quá đủ.
 
         Stage = self.env['crm.stage']
         # Chỉ 4 stage chính: Khách mới / Báo giá / Đàm phán / Chốt

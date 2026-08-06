@@ -103,6 +103,20 @@
             <field name="user_id" ref="base.user_root"/>
         </record>
 
+        <!-- TỰ HỦY KH THUÊ BAO/SAI SỐ 4+ NGÀY (user spec 2026-06-21): chuyển từ
+             INLINE-mỗi-lần-load (tốn ~2s cho quản lý) sang CRON 15' (2026-08-05).
+             Quét TOÀN BỘ (domain rỗng) nên phủ đủ mọi NV, không phụ thuộc ai đang xem. -->
+        <record id="ir_cron_vd_auto_trash_no_answer" model="ir.cron">
+            <field name="name">VD CRM: Tự hủy KH thuê bao/sai số 4+ ngày</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="state">code</field>
+            <field name="code">model._vd_auto_trash_no_answer_leads([])</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="user_id" ref="base.user_root"/>
+        </record>
+
         <!-- GỘP LEAD TRÙNG SĐT (user spec 2026-06-22): 1 số KH = 1 NV quản lý.
              Chạy mỗi 2 giờ, gộp lead active trùng số (chưa won/lost) vào keeper
              (lead nhiều cuộc gọi nhất, hoà thì first-touch). -->
