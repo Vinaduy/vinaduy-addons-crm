@@ -6468,6 +6468,11 @@
         .o_vd_daybtn_main { color: #495057; } }
     .o_vd_daybtn_none.o_vd_daybtn_on { background: #868e96; border-color: #868e96;
         .o_vd_daybtn_main { color: #fff; } }
+    /* Chip "Mới gọi" (0–3 ngày, vừa gọi xong) — xanh lá. */
+    .o_vd_daybtn_moigoi { border-color: #b2f2bb; background: #ebfbee;
+        .o_vd_daybtn_main { color: #2b8a3e; } }
+    .o_vd_daybtn_moigoi.o_vd_daybtn_on { background: #2b8a3e; border-color: #2b8a3e;
+        .o_vd_daybtn_main { color: #fff; } }
 
     /* KHỐI LỌC GỘP — 1 thẻ cân đối, thoáng; 2 dòng ngăn bởi kẻ đứt (user 2026-08-07). */
     .o_vd_dayfilter_wrap {

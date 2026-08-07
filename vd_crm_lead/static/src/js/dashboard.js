@@ -1763,11 +1763,12 @@ export class VdCrmDashboard extends Component {
         const cb = { cb_today: 0, cb_tomorrow: 0, cb_2d: 0, cb_3d: 0, cb_week: 0, cb_nextweek: 0,
             cb_month: 0, cb_nextmonth: 0, cb_3month: 0, cb_4month: 0, cb_6month: 0, cb_1year: 0 };
         const days = {}; for (const n of opts) days[n] = 0;
-        let none = 0;
+        let none = 0, moigoi = 0;
         for (const l of (pool || [])) {
             if (!l.callback_date) {
                 none++;
                 const dd = l.days_since_call || 0;
+                if (dd < opts[0]) { moigoi++; continue; }  // [0,3) = VỪA GỌI
                 for (let i = 0; i < opts.length; i++) { if (dd >= opts[i] && dd < uppers[i]) { days[opts[i]]++; break; } }
                 continue;
             }
@@ -1786,7 +1787,7 @@ export class VdCrmDashboard extends Component {
             else if (d <= 180) cb.cb_6month++;
             else cb.cb_1year++;
         }
-        return { all: (pool || []).length, cb, none, days };
+        return { all: (pool || []).length, cb, none, moigoi, days };
     }
     _dayStatsCached(scope) {
         // Chữ ký RẺ trước (chỉ token tham chiếu + ngày) — KHÔNG đụng pool nặng.
@@ -1850,6 +1851,7 @@ export class VdCrmDashboard extends Component {
     filterCount(scope, k) {
         const s = this._dayStatsCached(scope);
         if (k === "cb_none") return s.none;
+        if (k === "moigoi") return s.moigoi;
         if (typeof k === "string") return s.cb[k] || 0;
         return s.days[k] || 0;
     }
@@ -1861,6 +1863,7 @@ export class VdCrmDashboard extends Component {
     // (CHỈ KH CHƯA đặt hẹn — KH có hẹn nằm ở nhóm cb_* tương ứng).
     _dayBucketFilter(list, n) {
         if (!n) return list || [];
+        if (n === "moigoi") return (list || []).filter((l) => !l.callback_date && (l.days_since_call || 0) < this.dayFilterOptions[0]);
         if (typeof n === "string") return (list || []).filter((l) => this._cbMatch(l, n));
         const upper = this._dayUpper(n);
         return (list || []).filter((l) => {

@@ -3357,6 +3357,12 @@
                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
                 <span class="o_vd_daybtn_cnt"><t t-esc="filterAllCount(scope)"/></span>
             </span>
+            <span t-att-class="'o_vd_daybtn o_vd_daybtn_moigoi' + (filterVal(scope) === 'moigoi' ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, 'moigoi')"
+                  title="Khách VỪA GỌI xong (0–3 ngày)">
+                <span class="o_vd_daybtn_main">🆕 Mới gọi</span>
+                <span t-if="filterCount(scope, 'moigoi')" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, 'moigoi')"/></span>
+            </span>
             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
                   t-att-class="'o_vd_daybtn' + (filterVal(scope) === d ? ' o_vd_daybtn_on' : '')"
                   t-on-click="() => this.setFilter(scope, d)"
