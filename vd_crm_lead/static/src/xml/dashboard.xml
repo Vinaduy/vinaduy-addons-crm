@@ -2446,6 +2446,26 @@
                                                  báo giá chưa chốt; hướng dẫn NV cách xử lý. -->
                                             <!-- Coachmark bong bóng cũ đã thay bằng badge ổ khoá góc
                                                  trên-phải (o_vd_chot_lock_badge) — 2026-06-05. -->
+                                            <!-- BỘ LỌC SỐ NGÀY CHƯA GỌI cho bảng KHÁCH MỚI (độc lập với
+                                                 bộ lọc 2 bảng TCG/XLVĐ). user 2026-08-06. -->
+                                            <div t-if="_leadsNoProblemsRaw.length" class="o_vd_problem_filter_bar o_vd_dayfilter_bar">
+                                                <span class="o_vd_pfilter_lbl">🔎 Lọc số ngày chưa gọi:</span>
+                                                <span class="o_vd_daybtn o_vd_daybtn_all"
+                                                      t-att-class="!state.newDayFilter ? 'o_vd_daybtn_on' : ''"
+                                                      t-on-click="() => this.setNewDayFilter(0)" title="Xem tất cả">
+                                                    <span class="o_vd_daybtn_main">↺ Tất cả</span>
+                                                    <span class="o_vd_daybtn_cnt"><t t-esc="newDayFilterAllCount"/></span>
+                                                </span>
+                                                <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
+                                                      class="o_vd_daybtn"
+                                                      t-att-class="state.newDayFilter === d ? 'o_vd_daybtn_on' : ''"
+                                                      t-on-click="() => this.setNewDayFilter(d)"
+                                                      t-att-title="dayRangeTitle(d)">
+                                                    <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
+                                                    <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
+                                                    <span t-if="newDayFilterCount(d)" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount(d)"/></span>
+                                                </span>
+                                            </div>
                                             <t t-if="leadsNoProblems.length">
                                                 <!-- Thu gọn tối đa ~10 dòng; nút Mở rộng trượt mép
                                                      dưới xuống để hiện toàn bộ KH. -->
@@ -2560,8 +2580,8 @@
                                   t-on-click="() => this.setDayFilter(d)"
                                   t-att-title="dayRangeTitle(d)">
                                 <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
-                                <span class="o_vd_daybtn_lbl">Ngày<br/>chưa gọi</span>
-                                <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(d)"/></span>
+                                <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
+                                <span t-if="dayFilterCount(d)" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(d)"/></span>
                             </span>
                         </div>
 

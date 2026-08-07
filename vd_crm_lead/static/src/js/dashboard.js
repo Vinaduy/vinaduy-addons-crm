@@ -229,9 +229,11 @@ export class VdCrmDashboard extends Component {
             leadsUrgentConstructionAll: [],
             // Filter/sort hover cho 2 bảng TCG + XLVD (null = thứ tự gốc)
             problemSort: null,
-            // LỌC NHANH theo SỐ NGÀY CHƯA GỌI (0 = tất cả; 3/5/8/15/25/40 = chỉ KH
-            // chưa gọi ≥ N ngày). Thay bộ lọc cũ (user 2026-08-06).
+            // LỌC NHANH theo SỐ NGÀY CHƯA GỌI (0 = tất cả; 3/5/8/15/25/40 = khoảng
+            // riêng). dayFilter = cho 2 bảng TCG+XLVĐ; newDayFilter = cho bảng KHÁCH
+            // MỚI (độc lập). (user 2026-08-06)
             dayFilter: 0,
+            newDayFilter: 0,
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
             // Báo cáo KH mới vs Hủy (6 kỳ) cho popover thùng rác màn NV — đồng bộ
@@ -1589,7 +1591,12 @@ export class VdCrmDashboard extends Component {
     //   2. 🔵 Có cuộc gọi — sort theo total ASC (ít → nhiều)
     //   3. 🟢 Có cuộc gọi thành công ≥ 120s                       — kế
     //   4. 🔴 Đỏ xẫm: 3 ngày khác nhau không nghe máy (answered=0) — cuối
+    // Bản ĐÃ LỌC theo newDayFilter (dùng render pill KHÁCH MỚI). Bản gốc =
+    // _leadsNoProblemsRaw (để ĐẾM số khách mỗi khoảng, không phụ thuộc lọc).
     get leadsNoProblems() {
+        return this._dayBucketFilter(this._leadsNoProblemsRaw, this.state.newDayFilter || 0);
+    }
+    get _leadsNoProblemsRaw() {
         // User spec 2026-05-28 (round 2 — revert): chỉ loại lead trong
         // "CHƯA GỌI ĐƯỢC" bucket. KH có báo giá (complete=True) chưa CHỐT
         // VẪN ở KH MỚI (pill xanh lá + 💰) — KHÔNG loại trừ.
@@ -1707,26 +1714,31 @@ export class VdCrmDashboard extends Component {
     // LỌC theo số ngày chưa gọi — MỖI khách chỉ thuộc 1 KHOẢNG (loại trừ nhau):
     // 3=[3,5) · 5=[5,8) · 8=[8,15) · 15=[15,25) · 25=[25,40) · 40=[40,∞). KH gọi
     // trong 3 ngày gần đây KHÔNG thuộc khoảng nào (đã gọi gần đây).
-    _applyDayFilter(list) {
-        const n = this.state.dayFilter || 0;
-        if (!n) return list;
-        const opts = this.dayFilterOptions;
-        const idx = opts.indexOf(n);
-        const upper = (idx >= 0 && idx < opts.length - 1) ? opts[idx + 1] : Infinity;
-        return (list || []).filter((l) => {
-            const d = l.days_since_call || 0;
-            return d >= n && d < upper;
-        });
-    }
-    setDayFilter(n) { this.state.dayFilter = this.state.dayFilter === n ? 0 : n; }
     get dayFilterOptions() { return [3, 5, 8, 15, 25, 40]; }
-    dayRangeTitle(d) {
+    _dayUpper(n) {
         const opts = this.dayFilterOptions;
-        const i = opts.indexOf(d);
-        const up = (i >= 0 && i < opts.length - 1) ? opts[i + 1] : null;
-        return up ? `KH chưa gọi ${d}–${up} ngày` : `KH chưa gọi từ ${d} ngày trở lên`;
+        const i = opts.indexOf(n);
+        return (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
     }
-    // Danh sách gộp (unique) 2 bảng TCG + XLVD — dùng để ĐẾM số khách theo khoảng ngày.
+    // Lọc list theo KHOẢNG ngày [n, upper) — mỗi KH chỉ 1 khoảng (loại trừ).
+    _dayBucketFilter(list, n) {
+        if (!n) return list || [];
+        const upper = this._dayUpper(n);
+        return (list || []).filter((l) => { const d = l.days_since_call || 0; return d >= n && d < upper; });
+    }
+    _dayBucketCount(list, d) {
+        const upper = this._dayUpper(d);
+        let c = 0;
+        for (const l of (list || [])) { const dd = l.days_since_call || 0; if (dd >= d && dd < upper) c++; }
+        return c;
+    }
+    dayRangeTitle(d) {
+        const up = this._dayUpper(d);
+        return up === Infinity ? `KH chưa gọi từ ${d} ngày trở lên` : `KH chưa gọi ${d}–${up} ngày`;
+    }
+    // ===== BỘ LỌC 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ =====
+    _applyDayFilter(list) { return this._dayBucketFilter(list, this.state.dayFilter || 0); }
+    setDayFilter(n) { this.state.dayFilter = this.state.dayFilter === n ? 0 : n; }
     get _dayFilterPool() {
         const seen = new Set();
         const out = [];
@@ -1736,19 +1748,12 @@ export class VdCrmDashboard extends Component {
         }
         return out;
     }
-    // Số khách rơi vào ĐÚNG khoảng của chip d (loại trừ nhau).
-    dayFilterCount(d) {
-        const opts = this.dayFilterOptions;
-        const i = opts.indexOf(d);
-        const upper = (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
-        let c = 0;
-        for (const l of this._dayFilterPool) {
-            const dd = l.days_since_call || 0;
-            if (dd >= d && dd < upper) c++;
-        }
-        return c;
-    }
+    dayFilterCount(d) { return this._dayBucketCount(this._dayFilterPool, d); }
     get dayFilterAllCount() { return this._dayFilterPool.length; }
+    // ===== BỘ LỌC bảng KHÁCH MỚI (độc lập) =====
+    setNewDayFilter(n) { this.state.newDayFilter = this.state.newDayFilter === n ? 0 : n; }
+    newDayFilterCount(d) { return this._dayBucketCount(this._leadsNoProblemsRaw, d); }
+    get newDayFilterAllCount() { return this._leadsNoProblemsRaw.length; }
 
     // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
     // 2026-05-31). null = giữ thứ tự gốc.

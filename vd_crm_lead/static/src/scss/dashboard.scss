@@ -6405,49 +6405,48 @@
     .o_vd_pf_all.o_vd_pfilter_on      { background: #495057; border-color: #495057; color: #fff; }
     .o_vd_pf_day.o_vd_pfilter_on      { background: #4553b8; border-color: #4553b8; color: #fff; box-shadow: 0 2px 6px rgba(69,83,184,0.3); }
 
-    /* ===== NÚT LỌC NGÀY (to + badge đếm số khách ở góc) — user 2026-08-06 ===== */
-    .o_vd_dayfilter_bar { gap: 0.7rem; row-gap: 0.95rem; }
+    /* ===== NÚT LỌC NGÀY — gọn, tinh, badge đếm nhỏ ở góc (user 2026-08-06) ===== */
+    .o_vd_dayfilter_bar { gap: 0.5rem; row-gap: 0.7rem; }
     .o_vd_daybtn {
         position: relative;
         display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        padding: 0.42rem 0.9rem;
-        border-radius: 12px;
-        border: 1.5px solid #d3d9f2;
+        align-items: baseline;
+        gap: 0.28rem;
+        padding: 0.26rem 0.6rem;
+        border-radius: 9px;
+        border: 1px solid #d3d9f2;
         background: #eef0fc;
         color: #3b4256;
         cursor: pointer;
         user-select: none;
+        line-height: 1.1;
         transition: all 0.12s ease;
         &:hover { border-color: #5b6bd6; background: #e3e7fb; }
 
-        .o_vd_daybtn_num { font-size: 1.55rem; font-weight: 900; line-height: 1; color: #4553b8; }
-        .o_vd_daybtn_lbl { font-size: 0.72rem; font-weight: 700; line-height: 1.05; color: #6b7280; text-align: left; }
-        .o_vd_daybtn_main { font-size: 0.95rem; font-weight: 800; }
+        .o_vd_daybtn_num { font-size: 1.02rem; font-weight: 900; color: #4553b8; }
+        .o_vd_daybtn_lbl { font-size: 0.72rem; font-weight: 700; color: #6b7280; white-space: nowrap; }
+        .o_vd_daybtn_main { font-size: 0.85rem; font-weight: 800; }
 
-        /* Badge đếm số khách — góc trên phải, như huy hiệu thông báo. */
+        /* Badge đếm số khách — góc trên phải, nhỏ gọn. */
         .o_vd_daybtn_cnt {
-            position: absolute; top: -10px; right: -10px;
-            min-width: 25px; height: 25px; padding: 0 7px;
+            position: absolute; top: -7px; right: -7px;
+            min-width: 18px; height: 18px; padding: 0 5px;
             display: inline-flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; font-weight: 900;
-            color: #fff; background: #4553b8;
-            border: 2px solid #fff; border-radius: 999px;
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+            font-size: 0.68rem; font-weight: 800;
+            color: #fff; background: #e8590c;
+            border: 1.5px solid #fff; border-radius: 999px;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
         }
 
         &.o_vd_daybtn_on {
             background: #4553b8; border-color: #4553b8; color: #fff;
-            box-shadow: 0 3px 10px rgba(69, 83, 184, 0.4);
+            box-shadow: 0 2px 8px rgba(69, 83, 184, 0.35);
             .o_vd_daybtn_num { color: #fff; }
             .o_vd_daybtn_lbl { color: #dfe3fb; }
             .o_vd_daybtn_main { color: #fff; }
-            .o_vd_daybtn_cnt { background: #fff; color: #4553b8; border-color: #4553b8; }
         }
     }
-    .o_vd_daybtn_all.o_vd_daybtn_on { background: #495057; border-color: #495057;
-        .o_vd_daybtn_cnt { color: #495057; border-color: #495057; } }
+    .o_vd_daybtn_all.o_vd_daybtn_on { background: #495057; border-color: #495057; }
     /* ===== Nút 🆘 SOS — gọn (bằng nút Gọi lại), "SOS" to; đỏ tĩnh / đỏ nháy / xanh ===== */
     .o_vd_sos {
         position: relative;
