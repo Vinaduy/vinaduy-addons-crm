@@ -11673,37 +11673,47 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     flex: 0 0 auto;
 }
 .o_vd_tilepop_empty { padding: 0.9rem; text-align: center; color: #868e96; font-style: italic; font-size: 0.82rem; }
-.o_vd_tilepop_body { overflow-y: auto; padding: 0.15rem 0.25rem; }
+/* flex:1 1 auto + min-height:0 = BẮT BUỘC để 200 dòng CUỘN được trong khung
+   max-height 78vh (không thì tràn / bị ẩn, không có thanh cuộn). */
+.o_vd_tilepop_body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0.1rem 0.2rem; }
 .o_vd_tilepop_row {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.3rem 0.5rem;
-    border-radius: 6px;
+    gap: 0.5rem;
+    padding: 0.08rem 0.45rem;
+    line-height: 1.25;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 0.8rem;
-    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.76rem;
+    border-bottom: 1px solid #f3f4f7;
     &:last-child { border-bottom: 0; }
     &:hover { background: #f3f0ff; }
     .o_vd_tilepop_nm { flex: 1 1 auto; font-weight: 700; color: #212529; min-width: 5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .o_vd_tilepop_ph { flex: 0 0 auto; color: #1971c2; font-weight: 700; i { margin-right: 0.15rem; } }
-    .o_vd_tilepop_st { flex: 0 0 auto; color: #6741d9; font-size: 0.74rem; font-weight: 700; }
-    .o_vd_tilepop_nv { flex: 0 0 auto; color: #868e96; font-size: 0.75rem; max-width: 8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; i { margin-right: 0.15rem; } }
+    .o_vd_tilepop_ph { flex: 0 0 auto; color: #1971c2; font-weight: 700; i { margin-right: 0.12rem; } }
+    .o_vd_tilepop_st { flex: 0 0 auto; color: #6741d9; font-size: 0.72rem; font-weight: 700; }
 }
 .o_vd_tilepop_btn {
     flex: 0 0 auto;
     border: 0;
-    border-radius: 6px;
-    padding: 0.22rem 0.6rem;
-    font-size: 0.76rem;
+    border-radius: 5px;
+    padding: 0.12rem 0.55rem;
+    font-size: 0.73rem;
     font-weight: 800;
     color: #fff;
     background: #2f9e44;
     cursor: pointer;
     white-space: nowrap;
-    i { margin-right: 0.2rem; }
+    i { margin-right: 0.18rem; }
     &:hover { background: #2b8a3e; }
 }
+/* KH HỦY mở bằng CLICK-ghim: ép popover HIỆN dù không hover (JS đã set vị trí). */
+.o_vd_crm_dashboard .o_vd_trash_popover.o_vd_pop_pinned {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+.o_vd_crm_dashboard .o_vd_tile_clickable { cursor: pointer; }
+.o_vd_crm_dashboard .o_vd_tile_pinned { box-shadow: 0 0 0 2px #5b6bd6 inset; border-radius: 8px; }
 
 /* =====================================================================
    SKIN NHẸ NHÀNG — SANG TRỌNG (user spec 2026-08-05)

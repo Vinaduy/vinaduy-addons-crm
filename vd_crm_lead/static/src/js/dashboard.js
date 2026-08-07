@@ -295,6 +295,8 @@ export class VdCrmDashboard extends Component {
             // mỗi lần render đều phải dựng lại hết. '' | 'reference' | 'notcalled' |
             // 'lost' | 'quoted_lost' | 'planned_sign'.
             hoverTile: "",
+            // Ô mở bằng CLICK-ghim (KH HỦY): bấm mở, bấm lại / bấm ra ngoài đóng.
+            pinnedTile: "",
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
             // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
             // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
@@ -451,6 +453,14 @@ export class VdCrmDashboard extends Component {
                 }
             };
             document.addEventListener('click', this._onDocClickTimer, true);
+            // Đóng popover KH HỦY (click-ghim) khi bấm RA NGOÀI ô đó.
+            this._onDocClickPin = (ev) => {
+                if (!this.state.pinnedTile) return;
+                const t = ev.target;
+                if (t && t.closest && t.closest('.o_vd_tile_clickable')) return;
+                this.state.pinnedTile = "";
+            };
+            document.addEventListener('click', this._onDocClickPin, false);
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
         // + ĐO ĐỘ TRỄ THỰC: từ lúc BẤM (capture-phase, trước handler) → tới khi DOM
@@ -476,6 +486,7 @@ export class VdCrmDashboard extends Component {
             if (this._tileShowTimer) { clearTimeout(this._tileShowTimer); this._tileShowTimer = null; }
             if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
             if (this._tilePopEl) { try { this._tilePopEl.remove(); } catch (_e) {} this._tilePopEl = null; }
+            if (this._onDocClickPin) { document.removeEventListener('click', this._onDocClickPin, false); this._onDocClickPin = null; }
             if (window.__vdDashBackHandler) {
                 delete window.__vdDashBackHandler;
             }
@@ -2005,6 +2016,43 @@ export class VdCrmDashboard extends Component {
         if (this._tileHoverTimer) { clearTimeout(this._tileHoverTimer); this._tileHoverTimer = null; }
         if (this.state.hoverTile === key) this.state.hoverTile = "";
     }
+    // KH HỦY mở bằng CLICK-ghim: bấm ô mở/đóng; bấm ra ngoài đóng (xử lý ở
+    // _onDocClickPin gắn lúc onMounted).
+    togglePinTile(key) {
+        const open = this.state.pinnedTile !== key;
+        this.state.pinnedTile = open ? key : "";
+        if (open) {
+            // Định vị popover SAU khi render (giống onTrashPopoverMove — có xử lý
+            // zoom:0.7 — nhưng neo theo Ô thay vì con trỏ).
+            requestAnimationFrame(() => this._positionPinnedPopover());
+        }
+    }
+    _positionPinnedPopover() {
+        const box = document.querySelector(".o_vd_tile_pinned");
+        if (!box) return;
+        const pop = box.querySelector(".o_vd_trash_popover");
+        if (!pop) return;
+        const rect = box.getBoundingClientRect();
+        const z = box.offsetWidth ? (rect.width / box.offsetWidth) : 1;
+        const edge = 10;
+        const vw = window.innerWidth / z, vh = window.innerHeight / z;
+        const pw = pop.offsetWidth || 560, ph = pop.offsetHeight || 320;
+        const bx = rect.left / z, by = rect.top / z, bw = rect.width / z;
+        let x = bx - pw - 10;                       // bên TRÁI ô (panel ở mép phải)
+        if (x < edge) x = bx + bw + 10;             // không đủ → bên phải
+        if (x + pw > vw - edge) x = Math.max(edge, vw - pw - edge);
+        let y = by;
+        if (y + ph > vh - edge) y = vh - ph - edge; // tràn dưới → đẩy lên
+        if (y < edge) y = edge;
+        pop.style.position = "fixed";
+        pop.style.left = x + "px";
+        pop.style.top = y + "px";
+        pop.style.right = "auto";
+        pop.style.bottom = "auto";
+        pop.style.margin = "0";
+        pop.style.transform = "none";
+    }
+    noop() {}
     // ===== Ô DÙNG CHUNG cho popover ô icon (hover KHÔNG vẽ lại trang) =====
     _ensureTilePop() {
         if (this._tilePopEl && document.body.contains(this._tilePopEl)) return this._tilePopEl;
@@ -2043,7 +2091,6 @@ export class VdCrmDashboard extends Component {
                     + `<span class="o_vd_tilepop_nm">${e(ld.name)}</span>`
                     + `<span class="o_vd_tilepop_ph"><i class="fa fa-phone"></i> ${e(ld.phone || "—")}</span>`
                     + `<span class="o_vd_tilepop_st">📞 ${cs.total || 0} · 📅 ${cs.distinct_days || 0}N</span>`
-                    + `<span class="o_vd_tilepop_nv"><i class="fa fa-user-o"></i> ${e(ld.user_name || "—")}</span>`
                     + call + `</div>`;
             }).join("");
             return head + `<div class="o_vd_tilepop_body">${rows}</div>`;
