@@ -2546,19 +2546,18 @@
                         <!-- ===== FILTER hover cho 2 bảng TCG + XLVD (user spec 2026-05-31).
                              Đưa chuột vào chip = tự lọc/sắp xếp. ===== -->
                         <div t-if="isNewStageSplit" class="o_vd_problem_filter_bar">
-                            <span class="o_vd_pfilter_lbl">🔎 Lọc nhanh:</span>
+                            <span class="o_vd_pfilter_lbl">🔎 Lọc số ngày chưa gọi:</span>
                             <span class="o_vd_pfilter_chip o_vd_pf_all"
-                                  t-att-class="!state.problemSort ? 'o_vd_pfilter_on' : ''"
-                                  t-on-mouseenter="() => this.setProblemSort(null)"
-                                  title="Bỏ lọc — xem tất cả (mặc định)">↺ Tất cả</span>
-                            <span class="o_vd_pfilter_chip o_vd_pf_expiring"
-                                  t-att-class="state.problemSort === 'expiring' ? 'o_vd_pfilter_on' : ''"
-                                  t-on-mouseenter="() => this.setProblemSort('expiring')"
-                                  title="KH chưa tìm được vấn đề · sắp hết hạn lên trước">⏰ Sắp hết hạn</span>
-                            <span class="o_vd_pfilter_chip o_vd_pf_problem"
-                                  t-att-class="state.problemSort === 'problem' ? 'o_vd_pfilter_on' : ''"
-                                  t-on-mouseenter="() => this.setProblemSort('problem')"
-                                  title="KH đã tạo vấn đề">⚠️ Vấn đề</span>
+                                  t-att-class="!state.dayFilter ? 'o_vd_pfilter_on' : ''"
+                                  t-on-click="() => this.setDayFilter(0)"
+                                  title="Xem tất cả (mặc định)">↺ Tất cả</span>
+                            <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
+                                  class="o_vd_pfilter_chip o_vd_pf_day"
+                                  t-att-class="state.dayFilter === d ? 'o_vd_pfilter_on' : ''"
+                                  t-on-click="() => this.setDayFilter(d)"
+                                  t-att-title="'Chỉ KH chưa gọi từ ' + d + ' ngày trở lên'">
+                                <t t-esc="d"/> Ngày chưa gọi
+                            </span>
                         </div>
 
                         <!-- BẢNG KHÁCH ĐÃ LÀM HỢP ĐỒNG (user spec 2026-06-20 r3): chuyển

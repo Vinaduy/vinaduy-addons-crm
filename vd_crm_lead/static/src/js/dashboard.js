@@ -229,6 +229,9 @@ export class VdCrmDashboard extends Component {
             leadsUrgentConstructionAll: [],
             // Filter/sort hover cho 2 bảng TCG + XLVD (null = thứ tự gốc)
             problemSort: null,
+            // LỌC NHANH theo SỐ NGÀY CHƯA GỌI (0 = tất cả; 3/5/8/15/25/40 = chỉ KH
+            // chưa gọi ≥ N ngày). Thay bộ lọc cũ (user 2026-08-06).
+            dayFilter: 0,
             // KH đã hủy (stage_is_lost) — render thùng rác cuối cùng (count only)
             leadsLostAll: [],
             // Báo cáo KH mới vs Hủy (6 kỳ) cho popover thùng rác màn NV — đồng bộ
@@ -1695,12 +1698,20 @@ export class VdCrmDashboard extends Component {
     }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
-        return this._applyProblemFilter(this.state.leadsWithProblemsAll || []);
+        return this._applyDayFilter(this.state.leadsWithProblemsAll || []);
     }
 
     get leadsUrgentConstruction() {
-        return this._applyProblemFilter(this.state.leadsUrgentConstructionAll || []);
+        return this._applyDayFilter(this.state.leadsUrgentConstructionAll || []);
     }
+    // LỌC theo số ngày chưa gọi (dayFilter = ngưỡng N; hiện KH có days_since_call ≥ N).
+    _applyDayFilter(list) {
+        const n = this.state.dayFilter || 0;
+        if (!n) return list;
+        return (list || []).filter((l) => (l.days_since_call || 0) >= n);
+    }
+    setDayFilter(n) { this.state.dayFilter = this.state.dayFilter === n ? 0 : n; }
+    get dayFilterOptions() { return [3, 5, 8, 15, 25, 40]; }
 
     // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
     // 2026-05-31). null = giữ thứ tự gốc.

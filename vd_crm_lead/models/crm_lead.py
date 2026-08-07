@@ -9218,6 +9218,12 @@ class CrmLead(models.Model):
                 if (l.vd_quote_created_date or (l.vd_intake_locked and l.create_date))
                 else None
             ),
+            # SỐ NGÀY CHƯA GỌI = số ngày kể từ lần gọi gần nhất (chưa gọi lần nào →
+            # tính từ ngày tạo). Cho bộ lọc nhanh 3/5/8/15/25/40 ngày (user 2026-08-06).
+            'days_since_call': (
+                (fields.Datetime.now() - (l.last_call_date or l.create_date)).days
+                if (l.last_call_date or l.create_date) else 0
+            ),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'answered_long': 0,
