@@ -1882,6 +1882,10 @@ export class VdCrmDashboard extends Component {
         }
         return c;
     }
+    dayNumLabel(d) {
+        const opts = this.dayFilterOptions;
+        return d === opts[opts.length - 1] ? ("TRÊN " + d + " NGÀY") : (d + " NGÀY");
+    }
     dayRangeTitle(d) {
         const up = this._dayUpper(d);
         return up === Infinity ? `KH chưa gọi từ ${d} ngày trở lên` : `KH chưa gọi ${d}–${up} ngày`;

@@ -6417,22 +6417,29 @@
     .o_vd_daybtn {
         position: relative;
         display: inline-flex;
-        align-items: baseline;
-        gap: 0.28rem;
-        padding: 0.34rem 0.74rem;
+        flex: 0 0 auto;
+        width: 120px;               /* MỌI thẻ BẰNG NHAU (user 2026-08-07) */
+        min-height: 50px;
+        box-sizing: border-box;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.06rem;
+        padding: 0.34rem 0.4rem;
         border-radius: 9px;
         border: 1px solid #d3d9f2;
         background: #eef0fc;
         color: #3b4256;
         cursor: pointer;
         user-select: none;
-        line-height: 1.1;
+        line-height: 1.15;
         transition: all 0.12s ease;
         &:hover { border-color: #5b6bd6; background: #e3e7fb; }
 
-        .o_vd_daybtn_num { font-size: 1.02rem; font-weight: 900; color: #4553b8; }
-        .o_vd_daybtn_lbl { font-size: 0.72rem; font-weight: 700; color: #6b7280; white-space: nowrap; }
-        .o_vd_daybtn_main { font-size: 0.85rem; font-weight: 800; }
+        .o_vd_daybtn_num { font-size: 1.0rem; font-weight: 900; color: #4553b8; letter-spacing: 0.2px; }
+        .o_vd_daybtn_lbl { font-size: 0.86rem; font-weight: 700; color: #6b7280; }
+        .o_vd_daybtn_main { font-size: 0.95rem; font-weight: 800; }
 
         /* Badge đếm số khách — góc trên phải, nhỏ gọn. */
         .o_vd_daybtn_cnt {
@@ -6484,12 +6491,13 @@
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
         .o_vd_dayfilter_bar {
             display: flex; align-items: center; flex-wrap: wrap;
-            gap: 0.62rem; row-gap: 0.62rem;
-            padding: 0.62rem 0;
+            gap: 0.5rem; row-gap: 0.5rem;
+            padding: 0.3rem 0;
         }
         .o_vd_pfilter_lbl { min-width: 128px; letter-spacing: 0.2px; }
     }
-    .o_vd_dayfilter_cbrow { border-bottom: 1px dashed #e6e8f2; }
+    /* 2 dòng SÁT nhau, KHÔNG kẻ ngăn (user 2026-08-07). */
+    .o_vd_dayfilter_cbrow { }
 
     /* Menu "Xa hơn ▾" — dropdown các mốc xa (Tháng sau … 1 Năm sau). */
     .o_vd_daymore { position: relative; display: inline-flex; }

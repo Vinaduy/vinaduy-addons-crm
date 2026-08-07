@@ -3352,11 +3352,6 @@
         <!-- DÒNG 2: CHƯA GỌI X NGÀY (chỉ KH chưa đặt hẹn) -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
             <span class="o_vd_pfilter_lbl">☎️ CHƯA GỌI:</span>
-            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, 0)" title="Xem tất cả">
-                <span class="o_vd_daybtn_main">↺ Tất cả</span>
-                <span class="o_vd_daybtn_cnt"><t t-esc="filterAllCount(scope)"/></span>
-            </span>
             <span t-att-class="'o_vd_daybtn o_vd_daybtn_moigoi' + (filterVal(scope) === 'moigoi' ? ' o_vd_daybtn_on' : '')"
                   t-on-click="() => this.setFilter(scope, 'moigoi')"
                   title="Khách VỪA GỌI xong (0–3 ngày)">
@@ -3367,8 +3362,8 @@
                   t-att-class="'o_vd_daybtn' + (filterVal(scope) === d ? ' o_vd_daybtn_on' : '')"
                   t-on-click="() => this.setFilter(scope, d)"
                   t-att-title="dayRangeTitle(d)">
-                <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
-                <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
+                <span class="o_vd_daybtn_num"><t t-esc="dayNumLabel(d)"/></span>
+                <span class="o_vd_daybtn_lbl">Chưa gọi</span>
                 <span t-if="filterCount(scope, d)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, d)"/></span>
             </span>
         </div>
