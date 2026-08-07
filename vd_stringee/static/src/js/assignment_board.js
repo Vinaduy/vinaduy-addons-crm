@@ -492,9 +492,15 @@ export class VdStringeeAssignmentBoard extends Component {
         }
         this.state.busy = true;
         try {
-            await this.orm.call(MODEL, "assign_user_hotline", [user.id, payload.id]);
+            const res = await this.orm.call(
+                MODEL, "assign_user_hotline", [user.id, payload.id]);
             await this.load();
-            this.notification.add(`Đã gán số cho ${user.name}`, { type: "success" });
+            // Gán số CHẾT thì backend từ chối — phải báo ĐỎ, đừng im lặng như cũ.
+            const ok = res && res.ok;
+            this.notification.add(
+                (res && res.message) || `Đã gán số cho ${user.name}`,
+                { type: ok ? "success" : "danger", sticky: !ok },
+            );
         } finally {
             this.state.busy = false;
         }

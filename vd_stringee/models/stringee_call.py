@@ -384,6 +384,19 @@ class StringeeCall(models.Model):
             [str(alive_days), str(dead_days), str(dead_days), tuple(nums)],
         )
         rows = cr.fetchall()
+        # ===== CHUỖI KHÔNG ĐỔ CHUÔNG (bằng chứng chính để kết luận số chết) =====
+        # Ngưỡng cũ "4 ngày ≥3 cuộc mà 0 chuông" QUÁ DỄ ĐẠT (user 2026-08-07):
+        # 3 khách liên tiếp tắt máy / thuê bao bận là số tốt cũng bị chấm chết,
+        # rồi cron gỡ khỏi NV. Nay phải hội đủ CẢ BA:
+        #   1. chuỗi cuộc gọi GẦN NHẤT liên tiếp không đổ chuông >= dead_streak,
+        #   2. chuỗi đó trải >= dead_min_days NGÀY khác nhau HOẶC >= 2 NV khác
+        #      nhau (loại trừ 1 NV hỏng mic / 1 phiên mạng lỗi),
+        #   3. và 4 ngày gần đây không có cuộc nào đổ chuông.
+        # Ngưỡng chỉnh được qua ir.config_parameter, khỏi sửa code.
+        streaks = self._vd_no_ring_streaks(nums)
+        icp = self.env['ir.config_parameter'].sudo()
+        dead_streak = int(icp.get_param('vd_stringee.dead_streak', 12) or 12)
+        dead_min_days = int(icp.get_param('vd_stringee.dead_min_days', 2) or 2)
         for row in rows:
             (number, total, rch, rch_recent, recent_total, recent_reached,
              secs, first_at, last_at) = row
@@ -391,19 +404,28 @@ class StringeeCall(models.Model):
             last_d = last_at.date() if last_at else None
             active_days = ((today - first_d).days + 1) if first_d else 0
             per_day = round(total / active_days, 1) if active_days else 0
+            st = streaks.get(number) or {}
+            st_calls = st.get('calls') or 0
+            st_days = st.get('days') or 0
+            st_users = st.get('users') or 0
+            hard_dead = (
+                st_calls >= dead_streak
+                and (st_days >= dead_min_days or st_users >= 2)
+                and recent_reached == 0
+            )
             if total == 0:
                 health = 'unused'
-            elif recent_total >= dead_min and recent_reached == 0:
-                # Gần đây gọi nhiều mà 0 đổ chuông -> nhà mạng chặn số (kể cả khi
-                # 30 ngày trước còn đổ chuông).
+            elif hard_dead:
                 health = 'dead'
-            elif rch_recent > 0:
+            elif rch_recent > 0 or rch > 0:
+                # Từng đổ chuông → GIỮ alive (chưa đủ bằng chứng chết).
                 health = 'alive'
-            elif rch > 0:
-                # Từng đổ chuông, gần đây ít dùng -> GIỮ alive (tránh tự gỡ số tốt).
-                health = 'alive'
+            elif st_calls >= dead_streak:
+                # Chưa từng đổ chuông lần nào dù đã gọi rất nhiều → chết.
+                health = 'dead'
             else:
-                health = 'dead'   # gọi nhiều nhưng chưa cuộc nào đổ chuông
+                # Gọi lác đác, chưa đổ chuông → CHƯA đủ cơ sở kết luận.
+                health = 'unused'
             out[number] = {
                 'total': total, 'reached': rch, 'reached_recent': rch_recent,
                 'secs': int(secs or 0),
@@ -411,6 +433,10 @@ class StringeeCall(models.Model):
                 'last': last_d.strftime('%d/%m/%Y') if last_d else '',
                 'active_days': active_days, 'per_day': per_day,
                 'health': health,
+                # Cho popover kho số giải thích VÌ SAO chấm chết.
+                'streak_calls': st_calls, 'streak_days': st_days,
+                'streak_users': st_users,
+                'dead_streak': dead_streak,
             }
         # Số chưa có cuộc nào → unused
         for n in nums:
@@ -418,7 +444,66 @@ class StringeeCall(models.Model):
                 'total': 0, 'reached': 0, 'reached_recent': 0, 'secs': 0,
                 'first': '', 'last': '', 'active_days': 0, 'per_day': 0,
                 'health': 'unused',
+                'streak_calls': 0, 'streak_days': 0, 'streak_users': 0,
+                'dead_streak': 0,
             })
+        return out
+
+    @api.model
+    def _vd_has_ring_after(self, number, since):
+        """Số này có cuộc ĐỔ CHUÔNG THẬT nào sau mốc `since` không?
+        Dùng để quyết định cho 1 số CHẾT sống lại — không cho hồi sinh chỉ vì
+        nằm im mấy ngày (bệnh cũ: số bị chặn cứ 4 ngày lại tự xanh)."""
+        if not number:
+            return False
+        cr = self.env.cr
+        cr.execute(
+            "SELECT 1 FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number = %s "
+            "  AND create_date > %s "
+            "  AND (raw_events ILIKE '%%ringing%%' OR raw_events ILIKE '%%answered%%' "
+            "       OR answer_time IS NOT NULL) "
+            "LIMIT 1",
+            [number, since or '1970-01-01'],
+        )
+        return bool(cr.fetchone())
+
+    @api.model
+    def _vd_no_ring_streaks(self, numbers, window_days=45):
+        """Chuỗi cuộc gọi GẦN NHẤT liên tiếp KHÔNG đổ chuông của từng số.
+
+        Cách tính: lấy mốc cuộc ĐỔ CHUÔNG cuối cùng, đếm mọi cuộc SAU mốc đó →
+        đúng bằng chuỗi trượt hiện tại. Trả {number: {calls, days, users}}.
+        Giới hạn cửa sổ 45 ngày cho nhẹ; số chết lâu hơn thì chuỗi vẫn thừa
+        ngưỡng nên không ảnh hưởng kết luận.
+        """
+        out = {}
+        nums = [n for n in (numbers or []) if n]
+        if not nums:
+            return out
+        reached = ("(raw_events ILIKE '%%ringing%%' OR raw_events ILIKE "
+                   "'%%answered%%' OR answer_time IS NOT NULL)")
+        cr = self.env.cr
+        cr.execute(
+            "WITH base AS ("
+            "  SELECT caller_number AS num, create_date, user_id, "
+            "         " + reached + " AS ok "
+            "  FROM stringee_call "
+            "  WHERE direction='outbound' AND caller_number IN %s "
+            "    AND create_date > (now() at time zone 'utc') - (%s || ' days')::interval "
+            "), lr AS ("
+            "  SELECT num, max(create_date) FILTER (WHERE ok) AS last_ring FROM base GROUP BY num"
+            ") "
+            "SELECT b.num, count(*) AS calls, "
+            "       count(DISTINCT b.create_date::date) AS days, "
+            "       count(DISTINCT b.user_id) AS users "
+            "FROM base b JOIN lr ON lr.num = b.num "
+            "WHERE lr.last_ring IS NULL OR b.create_date > lr.last_ring "
+            "GROUP BY b.num",
+            [tuple(nums), str(window_days)],
+        )
+        for num, calls, days, users in cr.fetchall():
+            out[num] = {'calls': calls, 'days': days, 'users': users}
         return out
 
     # ---------- REST helpers ----------

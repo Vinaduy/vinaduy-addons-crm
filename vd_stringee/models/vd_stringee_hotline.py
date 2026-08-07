@@ -7,10 +7,13 @@ Khi NV gọi ra:
 
 Đặt model trong vd_stringee để không phụ thuộc vd_crm_lead.
 """
+import logging
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 # Thứ tự + label cột nhà mạng hiển thị trên bảng kéo-thả.
 _CARRIER_ORDER = [
@@ -187,17 +190,62 @@ class VdStringeeHotline(models.Model):
         hotlines = self.with_context(active_test=False).search([])
         if not hotlines:
             return True
-        stats = self.env['stringee.call']._vd_numbers_stats(hotlines.mapped('number'))
+        Call = self.env['stringee.call']
+        stats = Call._vd_numbers_stats(hotlines.mapped('number'))
         now = fields.Datetime.now()
+        stripped = []          # [(số, [tên NV bị gỡ])] để log + gán bù
         for h in hotlines:
             health = (stats.get(h.number) or {}).get('health') or 'unused'
-            h.write({'vd_health': health, 'vd_health_at': now})
+            # ===== ĐÃ CHẾT THÌ Ở LẠI CHẾT (user spec 2026-08-07) =====
+            # Trước đây số bị chặn chỉ cần NẰM IM vài ngày là cửa sổ đánh giá
+            # rỗng → tự chấm 'alive' → lại chia cho NV → NV gọi vào hư không →
+            # chết lại → gỡ lại. Nay muốn sống lại phải có cuộc ĐỔ CHUÔNG THẬT
+            # phát sinh SAU mốc chấm chết, hoặc admin ép xanh / chốt tay sau khi
+            # gọi thử.
+            if h.vd_health == 'dead' and health != 'dead' and not h.vd_force_alive:
+                if not Call._vd_has_ring_after(h.number, h.vd_health_at):
+                    health = 'dead'
+            vals = {'vd_health': health}
+            if health != h.vd_health:
+                vals['vd_health_at'] = now
+            h.write(vals)
             # Số CHẾT (không ép xanh) → gỡ khỏi tất cả NV ngay.
             if health == 'dead' and not h.vd_force_alive:
+                users = h.assigned_user_ids
+                if users:
+                    stripped.append((h, users.mapped('name')))
+                    for u in users:
+                        self._vd_replace_dead_number(u, h)
                 if h.assigned_user_ids:
                     h.assigned_user_ids = [(5, 0, 0)]
                 if h.user_ids:
                     h.user_ids.write({'stringee_from_number_id': False})
+        for h, names in stripped:
+            _logger.warning(
+                "[VD hotline] GỠ SỐ CHẾT %s (%s) khỏi %d NV: %s",
+                h.number, h.carrier, len(names), ', '.join(names))
+        return True
+
+    def _vd_replace_dead_number(self, user, dead_hotline):
+        """Gỡ số chết thì GÁN BÙ ngay số cùng mạng đang sống (user spec
+        2026-08-07). Trước đây chỉ gỡ rồi thôi → NV mất kênh gọi mà không ai
+        biết, có người ngồi bấm 30 phút không ra cuộc nào. Chọn số ít NV dùng
+        nhất cho đỡ dồn tải; không còn số sống cùng mạng thì ghi cảnh báo."""
+        carrier = dead_hotline.carrier
+        alive = self.search([
+            ('active', '=', True), ('carrier', '=', carrier),
+            ('id', '!=', dead_hotline.id),
+        ]).filtered(lambda x: not x._vd_is_dead())
+        if not alive:
+            _logger.warning(
+                "[VD hotline] %s mất số %s (%s) mà KHO KHÔNG CÒN SỐ SỐNG cùng mạng.",
+                user.name, dead_hotline.number, carrier)
+            return False
+        target = min(alive, key=lambda x: (len(x.assigned_user_ids), x.number))
+        user.sudo().stringee_hotline_ids = [(4, target.id)]
+        _logger.warning(
+            "[VD hotline] %s: thay số chết %s -> %s (%s).",
+            user.name, dead_hotline.number, target.number, carrier)
         return True
 
     # ========================= GỌI THỬ 1 SỐ (admin) =========================
@@ -366,14 +414,24 @@ class VdStringeeHotline(models.Model):
         if not h.exists():
             return {'ok': False, 'message': 'Không tìm thấy số.'}
         users = h.assigned_user_ids.mapped('name')
+        # Chốt SỐNG mà hệ thống KHÔNG ghi nhận cuộc đổ chuông nào gần đây → đây
+        # là admin khẳng định bằng tai, phải ÉP XANH thì cron mới không chấm chết
+        # lại sau 1 tiếng. Có đổ chuông thật rồi thì khỏi ép — số liệu tự nói.
+        force = False
+        if rang:
+            since = fields.Datetime.now() - timedelta(hours=2)
+            force = not self.env['stringee.call']._vd_has_ring_after(h.number, since)
         h.write({
             'vd_health': 'alive' if rang else 'dead',
             'vd_health_at': fields.Datetime.now(),
-            # Kết quả gọi thử là bằng chứng THẬT → không cần cờ "ép xanh" thủ công.
-            'vd_force_alive': False,
+            'vd_force_alive': force,
         })
         if rang:
-            return {'ok': True, 'message': 'Đã chốt: %s CÒN SỐNG.' % h.number}
+            msg = 'Đã chốt: %s CÒN SỐNG.' % h.number
+            if force:
+                msg += (' Hệ thống chưa ghi nhận cuộc đổ chuông nào nên đã ÉP XANH '
+                        'theo xác nhận của bạn.')
+            return {'ok': True, 'message': msg}
         msg = 'Đã chốt: %s CHẾT.' % h.number
         if users:
             msg += ' Cron sẽ gỡ khỏi %d NV: %s.' % (len(users), ', '.join(users))
@@ -468,6 +526,12 @@ class VdStringeeHotline(models.Model):
                 'last': ns.get('last') or '',
                 'active_days': ns.get('active_days') or 0,
                 'per_day': ns.get('per_day') or 0,
+                # Bằng chứng chấm chết — popover hiện ra để admin tự soi, khỏi
+                # phải tin suông vào cái chấm đỏ.
+                'streak_calls': ns.get('streak_calls') or 0,
+                'streak_days': ns.get('streak_days') or 0,
+                'streak_users': ns.get('streak_users') or 0,
+                'dead_streak': ns.get('dead_streak') or 0,
             })
         carriers = []
         for code, label in _CARRIER_ORDER:
@@ -614,22 +678,33 @@ class VdStringeeHotline(models.Model):
 
     @api.model
     def assign_user_hotline(self, user_id, hotline_id):
-        """Gán số cho NV. 1 mạng 1 số → bỏ số cùng mạng cũ trước khi gán số mới."""
+        """Gán số cho NV. 1 mạng 1 số → bỏ số cùng mạng cũ trước khi gán số mới.
+
+        Trả {'ok', 'message'} — TRƯỚC ĐÂY trả False im lặng khi gặp số chết nên
+        admin kéo số vào NV, bảng không báo gì, tưởng xong mà thực ra không ăn
+        (user 2026-08-07: NV ngồi gọi cả buổi không có đầu số).
+        """
         self._check_board_access()
         user = self.env['res.users'].browse(user_id).sudo()
         hotline = self.browse(hotline_id)
         if not user.exists() or not hotline.exists() or not hotline.active:
-            return False
+            return {'ok': False, 'message': 'Số hoặc nhân viên không hợp lệ.'}
         # Chặn gán SỐ CHẾT (user spec 2026-06-09).
         if hotline._vd_is_dead():
-            return False
+            return {'ok': False, 'message':
+                    'KHÔNG gán được: %s đang là SỐ CHẾT (không đổ chuông). '
+                    'Bấm nút điện thoại để GỌI THỬ, nếu thật sự còn sống thì '
+                    'chốt "Số SỐNG" rồi gán lại.' % hotline.number}
         same_carrier = user.stringee_hotline_ids.filtered(
             lambda h: h.active and h.carrier == hotline.carrier and h.id != hotline.id
         )
         cmds = [(3, h.id) for h in same_carrier]
         cmds.append((4, hotline.id))
         user.stringee_hotline_ids = cmds
-        return True
+        msg = 'Đã gán %s cho %s' % (hotline.number, user.name)
+        if same_carrier:
+            msg += ' (thay %s)' % ', '.join(same_carrier.mapped('number'))
+        return {'ok': True, 'message': msg}
 
     @api.model
     def unassign_user_hotline(self, user_id, hotline_id):

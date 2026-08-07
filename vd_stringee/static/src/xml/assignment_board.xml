@@ -166,6 +166,17 @@
                 </div>
                 <div class="o_vd_pop_span o_vd_dim" t-else="">Chưa phát sinh cuộc gọi nào.</div>
 
+                <!-- Bằng chứng chấm chết: chuỗi cuộc liên tiếp không đổ chuông -->
+                <div class="o_vd_pop_span" t-if="state.hover.number.streak_calls">
+                    Chuỗi KHÔNG đổ chuông gần nhất:
+                    <b t-esc="state.hover.number.streak_calls"/> cuộc
+                    <span class="o_vd_dim">
+                        (<t t-esc="state.hover.number.streak_days"/> ngày,
+                        <t t-esc="state.hover.number.streak_users"/> NV — ngưỡng chết
+                        <t t-esc="state.hover.number.dead_streak"/> cuộc)
+                    </span>
+                </div>
+
                 <div class="o_vd_pop_sub">Nhân viên được gán (<t t-esc="state.hover.number.detail.length"/>)</div>
                 <table class="o_vd_pop_tbl" t-if="state.hover.number.detail.length">
                     <thead>
