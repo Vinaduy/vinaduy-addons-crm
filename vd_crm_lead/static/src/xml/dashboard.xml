@@ -1996,8 +1996,7 @@
                         <!-- 3b. GHI ÂM THAM KHẢO — filter to, nhấp nháy như thông báo.
                              Hover → bảng ghi âm >5' của 3 NV mẫu (toàn công ty xem). -->
                         <div class="o_vd_refrec_filter"
-                             t-on-mouseenter="(ev) => this.onRefRecEnter(ev)"
-                             t-on-mouseleave="() => this.onRefRecLeave()">
+                             t-on-click="(ev) => this.toggleRefRec(ev)">
                             <i class="fa fa-headphones o_vd_refrec_ico"/>
                             <span class="o_vd_refrec_txt">GHI ÂM THAM KHẢO</span>
                             <i class="fa fa-bullhorn o_vd_refrec_bell"/>
@@ -2096,9 +2095,8 @@
                         <div class="o_vd_topbar_row">
                         <!-- SỐ OMI: cùng dòng, ĐỨNG TRƯỚC ô tìm kiếm (user 2026-07-21) → hover mở popup 90% -->
                         <button t-if="!isAdminView" class="o_vd_omi_bigbtn o_vd_omi_inline"
-                                t-on-mouseenter="() => this.openOmi()"
                                 t-on-click="() => this.openOmi()"
-                                title="SỐ OMI — khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
+                                title="SỐ OMI — BẤM để mở. Khách OMI, gọi kết nối thành công thì số tự chuyển về bạn">
                             <i class="fa fa-headphones o_vd_omi_bigbtn_ico"/>
                             <span class="o_vd_omi_bigbtn_txt">SỐ OMI</span>
                             <span class="o_vd_omi_bigbtn_sub">— Bấm để lấy khách gọi thêm</span>
@@ -2974,12 +2972,9 @@
                              duoc / Huy / Bao gia mat tich / Gui hop dong - doc, vien rieng. -->
 
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
-                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference"
-                                         t-on-click="() => this.openCategoryList(leadsReference)"
-                                         t-on-mousemove="onTrashPopoverMove"
-                                         t-on-mouseenter="() => this.onTileEnter('reference')"
-                                         t-on-mouseleave="() => this.onTileLeave('reference')"
-                                         title="Click để mở popup danh sách KH tham khảo">
+                                    <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_reference o_vd_tile_clickable' + (state.pinnedTile === 'reference' ? ' o_vd_tile_pinned' : '')"
+                                         t-on-click.stop="() => this.togglePinTile('reference')"
+                                         title="Bấm để xem danh sách KH tham khảo">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">THAM KHẢO</div>
@@ -2987,14 +2982,15 @@
                                         </div>
                                         <!-- Round 11: popover wide với chủ đề CHƯA BÁO GIÁ +
                                              callback date + nút GỌI LẠI nếu đến ngày. -->
-                                        <div class="o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_right o_vd_popover_ref_shift">
+                                        <div t-att-class="'o_vd_trash_popover o_vd_trash_popover_wide_ref o_vd_popover_anchor_right o_vd_popover_ref_shift' + (state.pinnedTile === 'reference' ? ' o_vd_pop_pinned' : '')"
+                                             t-on-click.stop="() => this.noop()">
                                             <div class="o_vd_trash_popover_head">
                                                 👀 KH THAM KHẢO (<t t-esc="leadsReference.length"/>)
                                                 <div class="o_vd_trash_popover_hint">
                                                     KH CHƯA BÁO GIÁ · Đang nuôi dưỡng · Đến ngày callback hiện nút GỌI LẠI
                                                 </div>
                                             </div>
-                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body" t-if="state.hoverTile === 'reference'">
+                                            <div class="o_vd_trash_popover_body o_vd_trash_table_body" t-if="state.pinnedTile === 'reference'">
                                                 <div t-if="!leadsReference.length" class="o_vd_trash_popover_empty">
                                                     ✓ Không có KH nào trong nhóm này
                                                 </div>
@@ -3054,18 +3050,43 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC — popover HOVER dùng Ô DÙNG CHUNG
-                                         (o_vd_tilepop, dựng bằng DOM trực tiếp, KHÔNG vẽ lại trang; nút
-                                         Gọi lại/mở khách chạy qua event-delegation). -->
-                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled"
-                                         t-on-click="() => this.openCategoryList(leadsNotCalled)"
-                                         t-on-mouseenter="(ev) => this.onTileEnter('notcalled', ev)"
-                                         t-on-mouseleave="() => this.onTileLeave('notcalled')"
-                                         title="Click để mở popup danh sách KH chưa gọi được">
+                                    <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC — mở bằng CLICK-ghim (giống KH HỦY). -->
+                                    <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_notcalled o_vd_tile_clickable' + (state.pinnedTile === 'notcalled' ? ' o_vd_tile_pinned' : '')"
+                                         t-on-click.stop="() => this.togglePinTile('notcalled')"
+                                         title="Bấm để xem danh sách KH chưa gọi được">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
                                             <div class="o_vd_trash_count"><t t-esc="leadsNotCalled.length"/></div>
+                                        </div>
+                                        <div t-att-class="'o_vd_trash_popover o_vd_popover_anchor_center' + (state.pinnedTile === 'notcalled' ? ' o_vd_pop_pinned' : '')"
+                                             t-on-click.stop="() => this.noop()">
+                                            <div class="o_vd_trash_popover_head">
+                                                📵 KH CHƯA GỌI ĐƯỢC (<t t-esc="leadsNotCalled.length"/>)
+                                                <div class="o_vd_trash_popover_hint">
+                                                    ≥3 cuộc gọi · ≥3 ngày khác nhau · toàn thuê bao / không bắt máy
+                                                </div>
+                                            </div>
+                                            <div class="o_vd_trash_popover_body" t-if="state.pinnedTile === 'notcalled'">
+                                                <div t-if="!leadsNotCalled.length" class="o_vd_trash_popover_empty">
+                                                    ✓ Không có KH nào trong nhóm này
+                                                </div>
+                                                <div t-foreach="leadsNotCalled" t-as="ld" t-key="ld.id"
+                                                     class="o_vd_trash_popover_item o_vd_notcalled_row"
+                                                     t-on-click.stop="() => this.openLead(ld.id)">
+                                                    <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                                    <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                                    <span class="o_vd_notcalled_stats" t-if="ld.call_stats">
+                                                        📞 <t t-esc="ld.call_stats.total or 0"/> · 📅 <t t-esc="ld.call_stats.distinct_days or 0"/>N
+                                                    </span>
+                                                    <button t-if="ld.phone"
+                                                            class="btn btn-sm btn-success o_vd_notcalled_call_btn"
+                                                            t-on-click.stop="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                            title="Gọi lại KH ngay">
+                                                        <i class="fa fa-phone me-1"/> Gọi lại
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- COUNTER: THÙNG RÁC KH HỦY (naked) -->
@@ -3114,27 +3135,24 @@
                                     </div>
                                     
 
-                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost"
-                                 t-on-click="() => this.openCategoryList(leadsQuotedLost)"
-                                 t-on-mousemove="onTrashPopoverMove"
-                                 t-on-mouseenter="() => this.onTileEnter('quoted_lost')"
-                                 t-on-mouseleave="() => this.onTileLeave('quoted_lost')"
-                                 title="KH đã báo giá rồi mất tích — không liên lạc được. Click để xem danh sách.">
+                            <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost o_vd_tile_clickable' + (state.pinnedTile === 'quoted_lost' ? ' o_vd_tile_pinned' : '')"
+                                 t-on-click.stop="() => this.togglePinTile('quoted_lost')"
+                                 title="KH đã báo giá rồi mất tích. Bấm để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
                                     <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
                                     <div class="o_vd_trash_count"><t t-esc="leadsQuotedLost.length"/></div>
                                 </div>
-                                <!-- Hover popover: danh sách KH + số ngày từ ngày báo giá + nút Gọi lại.
-                                     anchor_right vì box ở mép phải → bung sang trái, không bị che. -->
-                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_quoted_lost">
+                                <!-- Popover CLICK: danh sách KH + số ngày từ ngày báo giá + nút Gọi lại. -->
+                                <div t-att-class="'o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_quoted_lost' + (state.pinnedTile === 'quoted_lost' ? ' o_vd_pop_pinned' : '')"
+                                     t-on-click.stop="() => this.noop()">
                                     <div class="o_vd_trash_popover_head">
                                         📵 BÁO GIÁ XONG MẤT TÍCH (<t t-esc="leadsQuotedLost.length"/>)
                                         <div class="o_vd_trash_popover_hint">
                                             Đã báo giá nhưng không liên lạc được · Số ngày = kể từ ngày báo giá
                                         </div>
                                     </div>
-                                    <div class="o_vd_trash_popover_body" t-if="state.hoverTile === 'quoted_lost'">
+                                    <div class="o_vd_trash_popover_body" t-if="state.pinnedTile === 'quoted_lost'">
                                         <div t-if="!leadsQuotedLost.length" class="o_vd_trash_popover_empty">
                                             ✓ Không có KH nào trong nhóm này
                                         </div>
@@ -3165,24 +3183,23 @@
                             </div>
                             <!-- BOX: KHÁCH GỬI HỢP ĐỒNG — đã kích hoạt "Làm hợp đồng - Hẹn
                                  gặp" (đặt lịch ký HĐ) chưa ký xong (user spec 2026-06-12). -->
-                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_planned_sign"
-                                 t-on-click="() => this.openCategoryList(leadsPlannedSign)"
-                                 t-on-mouseenter="() => this.onTileEnter('planned_sign')"
-                                 t-on-mouseleave="() => this.onTileLeave('planned_sign')"
-                                 title="KH đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp). Click để xem danh sách.">
+                            <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_planned_sign o_vd_tile_clickable' + (state.pinnedTile === 'planned_sign' ? ' o_vd_tile_pinned' : '')"
+                                 t-on-click.stop="() => this.togglePinTile('planned_sign')"
+                                 title="KH đã đặt lịch ký HĐ. Bấm để xem danh sách.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📝</div>
                                 <div class="o_vd_trash_meta">
                                     <div class="o_vd_trash_label">KHÁCH GỬI<br/>HỢP ĐỒNG</div>
                                     <div class="o_vd_trash_count"><t t-esc="leadsPlannedSign.length"/></div>
                                 </div>
-                                <div class="o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_planned_sign">
+                                <div t-att-class="'o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_planned_sign' + (state.pinnedTile === 'planned_sign' ? ' o_vd_pop_pinned' : '')"
+                                     t-on-click.stop="() => this.noop()">
                                     <div class="o_vd_trash_popover_head">
                                         📝 KHÁCH GỬI HỢP ĐỒNG (<t t-esc="leadsPlannedSign.length"/>)
                                         <div class="o_vd_trash_popover_hint">
                                             Đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp) · chưa ký xong
                                         </div>
                                     </div>
-                                    <div class="o_vd_trash_popover_body" t-if="state.hoverTile === 'planned_sign'">
+                                    <div class="o_vd_trash_popover_body" t-if="state.pinnedTile === 'planned_sign'">
                                         <div t-if="!leadsPlannedSign.length" class="o_vd_trash_popover_empty">
                                             ✓ Không có KH nào trong nhóm này
                                         </div>

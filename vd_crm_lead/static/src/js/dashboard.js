@@ -453,12 +453,18 @@ export class VdCrmDashboard extends Component {
                 }
             };
             document.addEventListener('click', this._onDocClickTimer, true);
-            // Đóng popover KH HỦY (click-ghim) khi bấm RA NGOÀI ô đó.
+            // Đóng các popover CLICK khi bấm RA NGOÀI.
             this._onDocClickPin = (ev) => {
-                if (!this.state.pinnedTile) return;
                 const t = ev.target;
-                if (t && t.closest && t.closest('.o_vd_tile_clickable')) return;
-                this.state.pinnedTile = "";
+                const closest = t && t.closest ? (s) => t.closest(s) : () => null;
+                // 5 ô filter (click-ghim) → đóng nếu bấm ngoài ô.
+                if (this.state.pinnedTile && !closest('.o_vd_tile_clickable')) {
+                    this.state.pinnedTile = "";
+                }
+                // GHI ÂM THAM KHẢO → đóng nếu bấm ngoài filter + popover.
+                if (this.state.refRecHover && !closest('.o_vd_refrec_filter') && !closest('.o_vd_refrec_pop')) {
+                    this.state.refRecHover = null;
+                }
             };
             document.addEventListener('click', this._onDocClickPin, false);
         });
@@ -3634,6 +3640,12 @@ export class VdCrmDashboard extends Component {
             this.state.refRecHover = null;
             this._refRecTimer = null;
         }, 320);
+    }
+    // GHI ÂM THAM KHẢO mở bằng CLICK (bảng to): bấm mở/đóng; bấm ra ngoài đóng
+    // (xử lý ở _onDocClickPin).
+    toggleRefRec(ev) {
+        if (this.state.refRecHover) { this.state.refRecHover = null; return; }
+        this.onRefRecEnter(ev);
     }
     onRefRecPopEnter() {
         if (this._refRecTimer) {
