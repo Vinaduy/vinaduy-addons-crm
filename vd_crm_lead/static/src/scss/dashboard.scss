@@ -6418,28 +6418,29 @@
         position: relative;
         display: inline-flex;
         flex: 0 0 auto;
-        width: 120px;               /* MỌI thẻ BẰNG NHAU (user 2026-08-07) */
-        min-height: 50px;
+        min-width: 84px;
+        height: 30px;               /* 1 DÒNG, cao gọn -40% (user 2026-08-07) */
         box-sizing: border-box;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
         text-align: center;
-        gap: 0.06rem;
-        padding: 0.34rem 0.4rem;
-        border-radius: 9px;
+        white-space: nowrap;        /* TUYỆT ĐỐI không xuống dòng */
+        gap: 0.26rem;
+        padding: 0 0.7rem;
+        border-radius: 8px;
         border: 1px solid #d3d9f2;
         background: #eef0fc;
         color: #3b4256;
         cursor: pointer;
         user-select: none;
-        line-height: 1.15;
+        line-height: 1;
         transition: all 0.12s ease;
         &:hover { border-color: #5b6bd6; background: #e3e7fb; }
 
-        .o_vd_daybtn_num { font-size: 1.0rem; font-weight: 900; color: #4553b8; letter-spacing: 0.2px; }
-        .o_vd_daybtn_lbl { font-size: 0.86rem; font-weight: 700; color: #6b7280; }
-        .o_vd_daybtn_main { font-size: 0.95rem; font-weight: 800; }
+        .o_vd_daybtn_num { font-size: 0.95rem; font-weight: 900; color: #4553b8; letter-spacing: 0.2px; white-space: nowrap; }
+        .o_vd_daybtn_lbl { font-size: 0.82rem; font-weight: 700; color: #6b7280; white-space: nowrap; }
+        .o_vd_daybtn_main { font-size: 0.9rem; font-weight: 800; white-space: nowrap; }
 
         /* Badge đếm số khách — góc trên phải, nhỏ gọn. */
         .o_vd_daybtn_cnt {
