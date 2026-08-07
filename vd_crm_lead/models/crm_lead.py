@@ -8122,9 +8122,13 @@ class CrmLead(models.Model):
 
     def _vd_uncalled_new_lock_payload(self, scope_user):
         """KHOÁ TOÀN BỘ bảng khi NV tồn quá nhiều KH mới CHƯA GỌI (user spec
-        2026-06-12). Đếm KH bucket KHÁCH MỚI có 0 cuộc gọi (call_stats.total==0
-        → khớp ĐÚNG 'vùng CHƯA GỌI' frontend, cùng cách lọc số chết). Chỉ áp khi
-        xem 1 NV cụ thể; >ngưỡng → khoá; gọi cho ≤ngưỡng → tự mở. Ngưỡng 0 = tắt."""
+        2026-06-12). Đếm theo FIELD `call_count == 0` (số cuộc gọi THẬT) — TIN CẬY.
+
+        FIX 2026-08-06: trước đây đếm `call_stats.total==0` (tính từ raw_events
+        ILIKE). Raw_events hay BỊ THIẾU/LỆCH (đổi SĐT, event bị dọn) → nhiều KH đã
+        gọi (call_count≥1) vẫn ra total==0 → KHOÁ OAN (vd Mai Thị Thao: raw=33 nhưng
+        call_count=0 chỉ 2). call_count là field lõi, tăng mỗi cuộc gọi → đúng thực
+        tế NV. Chỉ áp khi xem 1 NV; >ngưỡng → khoá; gọi bớt ≤ngưỡng → tự mở. 0=tắt."""
         ICP = self.env['ir.config_parameter'].sudo()
         threshold = int(ICP.get_param(
             'vd_crm_lead.uncalled_new_lock_threshold', 15) or 15)
@@ -8132,13 +8136,9 @@ class CrmLead(models.Model):
                 'count': 0, 'locked': False}
         if threshold <= 0 or not scope_user:
             return base
-        new_leads = self.search(
-            self._dashboard_new_bucket_domain([('user_id', '=', scope_user.id)]))
-        if not new_leads:
-            return base
-        stats = self._dashboard_compute_call_stats(new_leads)
-        base['count'] = sum(
-            1 for l in new_leads if (stats.get(l.id, {}).get('total') or 0) == 0)
+        base['count'] = self.search_count(
+            self._dashboard_new_bucket_domain([('user_id', '=', scope_user.id)])
+            + [('call_count', '=', 0)])
         base['locked'] = base['count'] > threshold
         return base
 
