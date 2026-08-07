@@ -1789,16 +1789,14 @@ export class VdCrmDashboard extends Component {
         return { all: (pool || []).length, cb, none, days };
     }
     _dayStatsCached(scope) {
-        let pool, sig;
-        if (scope === "new") {
-            pool = this._leadsNoProblemsRaw;
-            sig = "new|" + this._todayKey() + "|" + this._refToken(this.state.leads) + "|" + this._refToken(this.state.leadsNotCalledAll);
-        } else {
-            pool = this._dayFilterPool;
-            sig = "prob|" + this._todayKey() + "|" + this._refToken(this.state.leadsWithProblemsAll) + "|" + this._refToken(this.state.leadsUrgentConstructionAll);
-        }
+        // Chữ ký RẺ trước (chỉ token tham chiếu + ngày) — KHÔNG đụng pool nặng.
+        const sig = scope === "new"
+            ? "new|" + this._todayKey() + "|" + this._refToken(this.state.leads) + "|" + this._refToken(this.state.leadsNotCalledAll)
+            : "prob|" + this._todayKey() + "|" + this._refToken(this.state.leadsWithProblemsAll) + "|" + this._refToken(this.state.leadsUrgentConstructionAll);
         const cache = this.__dsCache || (this.__dsCache = {});
         if (cache[scope] && cache[scope].sig === sig) return cache[scope].stats;
+        // Cache TRƯỢT (đổi data / sang ngày) → mới lọc+sort pool + đếm 1 lượt.
+        const pool = scope === "new" ? this._leadsNoProblemsRaw : this._dayFilterPool;
         const stats = this._dayStats(pool);
         cache[scope] = { sig, stats };
         return stats;
