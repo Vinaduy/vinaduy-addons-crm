@@ -11949,7 +11949,7 @@ $vd-rose:      #b06a6a;
        dịu (indigo · teal · champagne), phân biệt bằng ICON. base .o_vd_lib_filter
        nằm ở module vd_elearning nên override tại đây (đều nằm trong dashboard). */
     // Câu hỏi khó (life-ring — chỉ .o_vd_lib_filter, không variant) -> indigo
-    .o_vd_lib_filter:not(.o_vd_house_lib_filter):not(.o_vd_3d_lib_filter):not(.o_vd_nt_lib_filter):not(.o_vd_cn3d_lib_filter):not(.o_vd_hd_lib_filter) {
+    .o_vd_lib_filter:not(.o_vd_house_lib_filter):not(.o_vd_3d_lib_filter):not(.o_vd_nt_lib_filter):not(.o_vd_cn3d_lib_filter):not(.o_vd_hd_lib_filter):not(.o_vd_bg_lib_filter) {
         background: linear-gradient(135deg, #6f7ee0, $vd-indigo-d) !important;
         border-color: #d6dbf7 !important;
     }

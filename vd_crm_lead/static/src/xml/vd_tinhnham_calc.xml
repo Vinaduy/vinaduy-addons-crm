@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="vd_crm_lead.VdTinhnhamCalc">
-        <div class="o_vd_tncalc">
-            <button class="o_vd_tncalc_trigger" type="button">
-                <i class="fa fa-table me-1"/>BẢNG BÁO GIÁ
-                <i class="fa fa-angle-down ms-1 o_vd_tncalc_caret"/>
-            </button>
-
-            <div class="o_vd_tncalc_drop">
-            <div class="o_vd_tncalc_box">
+    <!-- RUỘT bảng báo giá (dùng chung cho popup + widget cũ) -->
+    <t t-name="vd_crm_lead.VdPriceTableBody">
+        <div class="o_vd_tncalc_box">
             <div class="o_vd_tncalc_tabs">
                 <t t-foreach="regions" t-as="r" t-key="r.key">
                     <button t-attf-class="o_vd_tncalc_tab {{state.region === r.key ? 'active' : ''}}"
@@ -79,9 +73,39 @@
             </table>
 
             <div class="o_vd_tncalc_note"><i class="fa fa-info-circle me-1"/><t t-esc="mong.note"/></div>
-            </div><!-- /.o_vd_tncalc_box -->
-            </div><!-- /.o_vd_tncalc_drop -->
         </div>
+    </t>
+
+    <!-- Widget cũ (hover xổ bảng) — giữ lại cho nơi nào còn dùng -->
+    <t t-name="vd_crm_lead.VdTinhnhamCalc">
+        <div class="o_vd_tncalc">
+            <button class="o_vd_tncalc_trigger" type="button">
+                <i class="fa fa-table me-1"/>BẢNG BÁO GIÁ
+                <i class="fa fa-angle-down ms-1 o_vd_tncalc_caret"/>
+            </button>
+            <div class="o_vd_tncalc_drop">
+                <t t-call="vd_crm_lead.VdPriceTableBody"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- Nút nổi "BẢNG BÁO GIÁ" (giống nút THƯ VIỆN - Câu hỏi khó) -->
+    <t t-name="vd_crm_lead.PriceLibButton">
+        <button t-if="!hidden" class="o_vd_lib_filter o_vd_bg_lib_filter"
+                t-on-click="open" title="BẢNG BÁO GIÁ">
+            <span class="o_vd_lib_ico"><i class="fa fa-table"/></span>
+            <span class="o_vd_lib_txt">BẢNG BÁO GIÁ</span>
+        </button>
+    </t>
+
+    <!-- Popup BẢNG BÁO GIÁ -->
+    <t t-name="vd_crm_lead.PriceTableDialog">
+        <Dialog title="'BẢNG BÁO GIÁ'" size="'lg'" contentClass="'o_vd_price_modal'">
+            <div class="o_vd_tncalc o_vd_tncalc_indialog">
+                <t t-call="vd_crm_lead.VdPriceTableBody"/>
+            </div>
+            <t t-set-slot="footer"></t>
+        </Dialog>
     </t>
 
 </templates>

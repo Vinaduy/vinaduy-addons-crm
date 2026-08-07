@@ -1,3 +1,24 @@
+// ===== NÚT NỔI "BẢNG BÁO GIÁ" (giống nút THƯ VIỆN - Câu hỏi khó) =====
+// Xếp NGAY TRÊN nút Câu hỏi khó (top 34% - 68px) để không đè 6 nút thư viện.
+.o_vd_bg_lib_filter.o_vd_lib_filter {
+    top: calc(34% - 68px);
+    border-color: #c7b8ff;
+    background: linear-gradient(135deg, #7c5cff, #5b4be6);
+    &:hover { box-shadow: 0 14px 34px rgba(91, 75, 230, 0.5); }
+}
+
+// ===== POPUP BẢNG BÁO GIÁ =====
+.o_vd_price_modal {
+    .o_vd_tncalc_indialog .o_vd_tncalc_box {
+        margin-top: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+    }
+}
+.modal:has(.o_vd_price_modal) .modal-footer { display: none; }
+
 // ===== BẢNG BÁO GIÁ (form khách, khu Vấn đề) — button hover xổ bảng =====
 .o_vd_tncalc {
     position: relative;

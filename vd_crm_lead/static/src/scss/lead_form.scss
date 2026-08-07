@@ -5592,6 +5592,18 @@ div.o_vd_layout_right {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    /* GỘP Hủy + KHÁCH THAM KHẢO thành 1 cụm SÁT nhau (user spec 2026-08-07) */
+    .o_vd_cancel_calls_btn, .o_vd_cancelled_badge_btn {
+        margin: 0 !important;
+        margin-right: -0.5rem !important;   /* triệt gap -> dính sát nút kế bên */
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .o_vd_cancel_calls_btn + .o_vd_act_btn,
+    .o_vd_cancelled_badge_btn + .o_vd_act_btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }
 .o_vd_act_btn {
     display: inline-flex;
@@ -8744,6 +8756,32 @@ $vd-panel-head-radius: 10px;
         background: linear-gradient(135deg, #495057, #868e96);
         color: #fff;
         box-shadow: 0 2px 6px rgba(73, 80, 87, 0.3);
+    }
+
+    /* NGÀY GỌI LẠI — badge ngay sau badge đánh giá (user spec 2026-08-07).
+       KH chưa đặt hẹn -> field rỗng -> cả cụm ẩn (invisible ở view). */
+    .o_vd_cs_cb {
+        display: inline-flex;
+        align-items: center;
+        .o_vd_cr_badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0.18rem 0.65rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .o_vd_cr_cb {
+            background: linear-gradient(135deg, #5f6fd6, #7c8ae8);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(95, 111, 214, 0.3);
+        }
+        .o_field_widget, .o_field_char, span[name='vd_callback_badge'] {
+            color: #fff !important;
+            font-weight: 800;
+        }
     }
 }
 

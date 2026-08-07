@@ -46,6 +46,9 @@
                 <field name="stage_is_won" widget="vd_house_lib_btn" nolabel="1"/>
                 <!-- 3 nút nổi THƯ VIỆN tài liệu Drive: Video nghiệm thu / Công năng 3D / Hợp đồng -->
                 <field name="stage_is_won" widget="vd_drive_libs_btn" nolabel="1"/>
+                <!-- Nút nổi BẢNG BÁO GIÁ (bấm mở popup) - user spec 2026-08-07 -->
+                <field name="vd_intake_region" invisible="1"/>
+                <field name="stage_is_won" widget="vd_price_lib_btn" nolabel="1"/>
                 <field name="vd_active_call_state" invisible="1"/>
                 <field name="vd_active_call_answer_time" invisible="1"/>
                 <field name="company_currency" invisible="1"/>
@@ -692,24 +695,18 @@
                                             <span class="o_vd_cr_badge o_vd_cr_none" invisible="vd_lead_call_rating != 'none'">🚫 Không nghe máy</span>
                                             <span class="o_vd_cr_badge o_vd_cr_unreachable" invisible="vd_lead_call_rating != 'unreachable'">📵 Thuê bao</span>
                                         </span>
+                                        <!-- NGÀY GỌI LẠI — hiện ngày + số ngày còn lại/quá hạn.
+                                             KH chưa thiết lập ngày gọi lại -> để TRỐNG. -->
+                                        <field name="vd_callback_badge" invisible="1"/>
+                                        <span class="o_vd_cs_sep" invisible="not vd_callback_badge">|</span>
+                                        <span class="o_vd_cs_part o_vd_cs_cb" invisible="not vd_callback_badge">
+                                            <span class="o_vd_cr_badge o_vd_cr_cb">
+                                                📅 Ngày gọi lại: <field name="vd_callback_badge" readonly="1" nolabel="1"/>
+                                            </span>
+                                        </span>
                                     </div>
                                     <!-- Lịch sử cuộc gọi + Lịch sử Zalo đã CHUYỂN xuống FAB (dưới nút Zalo) -->
-                                    <!-- Hủy / ĐÃ HUỶ — toggle theo stage_is_lost -->
                                     <field name="stage_is_lost" invisible="1"/>
-                                    <button name="action_mark_no_demand" type="object"
-                                            class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
-                                            title="KH không có nhu cầu — hủy lead"
-                                            invisible="stage_is_lost">
-                                        <i class="fa fa-times-circle me-1"/>
-                                        Hủy
-                                    </button>
-                                    <button name="action_show_cancel_history" type="object"
-                                            class="btn btn-sm btn-danger o_vd_cancelled_badge_btn"
-                                            title="Xem lịch sử huỷ — ai huỷ, khi nào, lý do"
-                                            invisible="not stage_is_lost">
-                                        <i class="fa fa-trash me-1"/>
-                                        🚫 ĐÃ HUỶ — xem chi tiết
-                                    </button>
                                     <!-- Round 11: thêm CHƯA BÁO GIÁ — visible khi intake CHƯA complete.
                                          Khi intake complete → CHỐT BÁO GIÁ hiện, CHƯA BÁO GIÁ ẩn. -->
                                     <field name="vd_intake_locked" invisible="1"/>
@@ -718,6 +715,22 @@
                                     <field name="vd_no_quote_state" invisible="1"/>
                                     <!-- Cụm hành động chính — đẩy về CUỐI hàng (góc dưới-phải) + thiết kế nổi bật -->
                                     <div class="o_vd_intake_actions">
+                                        <!-- Hủy / ĐÃ HUỶ — GỘP chung cụm, SÁT nút KHÁCH THAM KHẢO
+                                             (user spec 2026-08-07) -->
+                                        <button name="action_mark_no_demand" type="object"
+                                                class="btn btn-sm btn-outline-info o_vd_cancel_calls_btn"
+                                                title="KH không có nhu cầu — hủy lead"
+                                                invisible="stage_is_lost">
+                                            <i class="fa fa-times-circle me-1"/>
+                                            Hủy
+                                        </button>
+                                        <button name="action_show_cancel_history" type="object"
+                                                class="btn btn-sm btn-danger o_vd_cancelled_badge_btn"
+                                                title="Xem lịch sử huỷ — ai huỷ, khi nào, lý do"
+                                                invisible="not stage_is_lost">
+                                            <i class="fa fa-trash me-1"/>
+                                            🚫 ĐÃ HUỶ — xem chi tiết
+                                        </button>
                                         <button string="⏸️ KHÁCH THAM KHẢO"
                                                 name="action_open_no_quote_wizard" type="object"
                                                 class="o_vd_act_btn o_vd_act_ref"
@@ -899,15 +912,8 @@
                 </div><!-- /.o_vd_layout_left -->
                 <div class="o_vd_layout_right">
 
-                <!-- ============================================================
-                     🧮 BẢNG BÁO GIÁ TÍNH NHẨM — chỉ hiện khi khách CÒN MỚI
-                     (chưa khai thác đủ + chưa chốt báo giá). Điền đủ / chốt -> ẩn.
-                     ============================================================ -->
-                <div class="o_vd_tncalc_panel"
-                     invisible="vd_quote_locked or vd_intake_complete or vd_intake_locked or stage_is_won or stage_is_lost">
-                    <field name="vd_intake_region" invisible="1"/>
-                    <field name="vd_intake_total_m2" widget="vd_tinhnham_calc" nolabel="1"/>
-                </div>
+                <!-- BẢNG BÁO GIÁ đã CHUYỂN thành nút nổi bên phải + popup
+                     (user spec 2026-08-07) — bỏ bảng nhúng ở đây. -->
 
                 <!-- ============================================================
                      🤝 PANEL ĐÀM PHÁN — visible khi stage = negotiate

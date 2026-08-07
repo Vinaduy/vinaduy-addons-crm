@@ -427,6 +427,35 @@ class CrmLead(models.Model):
             else:
                 rec.vd_lead_call_rating = 'high' if (answered / total) >= 0.5 else 'low'
 
+    # ===== NGÀY GỌI LẠI — nhãn hiển thị cạnh badge đánh giá cuộc gọi =====
+    # (user spec 2026-08-07) Hiện ngày hẹn gọi lại + SỐ NGÀY còn lại / quá hạn.
+    # KH KHÔNG được thiết lập ngày gọi lại -> chuỗi rỗng -> view ẩn chỗ đó.
+    vd_callback_badge = fields.Char(
+        string='Nhãn ngày gọi lại', compute='_compute_callback_badge', store=False,
+    )
+
+    @api.depends('callback_date', 'vd_no_quote_callback_date')
+    def _compute_callback_badge(self):
+        today = fields.Date.context_today(self)
+        for rec in self:
+            # Ưu tiên hẹn gọi lại sau cuộc gọi; không có thì lấy hẹn của THAM KHẢO.
+            day = False
+            if rec.callback_date:
+                day = fields.Datetime.context_timestamp(rec, rec.callback_date).date()
+            elif rec.vd_no_quote_callback_date:
+                day = rec.vd_no_quote_callback_date
+            if not day:
+                rec.vd_callback_badge = ''
+                continue
+            delta = (day - today).days
+            if delta > 0:
+                extra = 'còn %d ngày' % delta
+            elif delta == 0:
+                extra = 'hôm nay'
+            else:
+                extra = 'quá hạn %d ngày' % abs(delta)
+            rec.vd_callback_badge = '%s (%s)' % (day.strftime('%d/%m'), extra)
+
     # ===== Báo cáo nhanh + lịch sử cuộc gọi SAU BÁO GIÁ (panel VẤN ĐỀ) =====
     vd_post_quote_call_report = fields.Html(
         string='Lịch sử cuộc gọi sau báo giá',

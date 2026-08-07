@@ -16,6 +16,7 @@ import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { Dialog } from "@web/core/dialog/dialog";
 
 // Bảng giá mặc định (fallback) khi chưa tải được từ server. Khi có dữ liệu từ
 // vd.pricing.region thì state.data được thay -> ĐỒNG BỘ với cấu hình đơn giá.
@@ -67,16 +68,15 @@ const FALLBACK = {
     luu_y: "Hệ số móng đơn cộng thêm 10%; móng băng, móng cọc cộng thêm 15%.",
 };
 
-export class VdTinhnhamCalc extends Component {
-    static template = "vd_crm_lead.VdTinhnhamCalc";
-    static props = { ...standardFieldProps };
-
+/** Lớp nền: nạp bảng giá + getter — dùng chung cho widget cũ và POPUP. */
+export class VdPriceTableBase extends Component {
     setup() {
         this.orm = useService("orm");
-        const d = this.props.record.data || {};
+        const d = (this.props.record && this.props.record.data) || {};
         this.state = useState({ region: "bac", data: FALLBACK });
-        if (d.vd_intake_region && FALLBACK.regions.some((r) => r.key === d.vd_intake_region)) {
-            this.state.region = d.vd_intake_region;
+        const reg = d.vd_intake_region || this.props.region;
+        if (reg && FALLBACK.regions.some((r) => r.key === reg)) {
+            this.state.region = reg;
         }
         // Tải đơn giá từ cấu hình (vd.pricing.region) -> đồng bộ với khóa học + báo giá.
         onWillStart(async () => {
@@ -110,6 +110,12 @@ export class VdTinhnhamCalc extends Component {
     }
 }
 
+/** Widget cũ (hover xổ bảng trong khu "Vấn đề") — giữ để không vỡ view khác. */
+export class VdTinhnhamCalc extends VdPriceTableBase {
+    static template = "vd_crm_lead.VdTinhnhamCalc";
+    static props = { ...standardFieldProps };
+}
+
 export const vdTinhnhamCalc = {
     component: VdTinhnhamCalc,
     displayName: "Bảng báo giá",
@@ -117,3 +123,42 @@ export const vdTinhnhamCalc = {
 };
 
 registry.category("fields").add("vd_tinhnham_calc", vdTinhnhamCalc);
+
+/** POPUP BẢNG BÁO GIÁ — mở từ nút nổi bên phải màn hình. */
+export class VdPriceTableDialog extends VdPriceTableBase {
+    static template = "vd_crm_lead.PriceTableDialog";
+    static components = { Dialog };
+    static props = {
+        region: { type: String, optional: true },
+        close: { type: Function, optional: true },
+    };
+}
+
+/**
+ * Nút nổi "BẢNG BÁO GIÁ" — làm GIỐNG HỆT nút "THƯ VIỆN - Câu hỏi khó"
+ * (user spec 2026-08-07): bấm là mở popup bảng báo giá.
+ * Ẩn khi đã CHỐT báo giá (stage_is_won) như các nút thư viện khác.
+ */
+export class VdPriceLibButton extends Component {
+    static template = "vd_crm_lead.PriceLibButton";
+    static props = { ...standardFieldProps };
+    setup() {
+        this.dialog = useService("dialog");
+        this._open = false;
+    }
+    get hidden() {
+        return !!this.props.record.data.stage_is_won;
+    }
+    open() {
+        if (this._open) return;
+        this._open = true;
+        const region = this.props.record.data.vd_intake_region || "bac";
+        this.dialog.add(VdPriceTableDialog, { region },
+            { onClose: () => { this._open = false; } });
+    }
+}
+
+registry.category("fields").add("vd_price_lib_btn", {
+    component: VdPriceLibButton,
+    supportedTypes: ["boolean"],
+});
