@@ -11713,6 +11713,9 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     pointer-events: auto !important;
 }
 .o_vd_crm_dashboard .o_vd_tile_clickable { cursor: pointer; }
+/* 4 ô dùng HOVER + ô-dùng-chung (o_vd_tilepop): ẨN hẳn popover OWL cũ (giữ trong
+   template nhưng không hiện, tránh 2 popup chồng). */
+.o_vd_crm_dashboard .o_vd_tile_shared > .o_vd_trash_popover { display: none !important; }
 .o_vd_crm_dashboard .o_vd_tile_pinned { box-shadow: 0 0 0 2px #5b6bd6 inset; border-radius: 8px; }
 
 /* =====================================================================

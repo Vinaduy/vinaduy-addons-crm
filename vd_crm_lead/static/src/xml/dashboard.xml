@@ -2972,9 +2972,10 @@
                              duoc / Huy / Bao gia mat tich / Gui hop dong - doc, vien rieng. -->
 
                                     <!-- COUNTER: KH THAM KHẢO (đã liên lạc, chưa báo giá) -->
-                                    <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_reference o_vd_tile_clickable' + (state.pinnedTile === 'reference' ? ' o_vd_tile_pinned' : '')"
-                                         t-on-click.stop="() => this.togglePinTile('reference')"
-                                         title="Bấm để xem danh sách KH tham khảo">
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_reference o_vd_tile_shared"
+                                         t-on-mouseenter="(ev) => this.onTileEnter('reference', ev)"
+                                         t-on-mouseleave="() => this.onTileLeave('reference')"
+                                         title="Danh sách KH tham khảo">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">👀</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">THAM KHẢO</div>
@@ -3051,9 +3052,10 @@
                                         </div>
                                     </div>
                                     <!-- COUNTER: KHÁCH CHƯA GỌI ĐƯỢC — mở bằng CLICK-ghim (giống KH HỦY). -->
-                                    <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_notcalled o_vd_tile_clickable' + (state.pinnedTile === 'notcalled' ? ' o_vd_tile_pinned' : '')"
-                                         t-on-click.stop="() => this.togglePinTile('notcalled')"
-                                         title="Bấm để xem danh sách KH chưa gọi được">
+                                    <div class="o_vd_trash_box o_vd_split_trash o_vd_split_notcalled o_vd_tile_shared"
+                                         t-on-mouseenter="(ev) => this.onTileEnter('notcalled', ev)"
+                                         t-on-mouseleave="() => this.onTileLeave('notcalled')"
+                                         title="Danh sách KH chưa gọi được">
                                         <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                         <div class="o_vd_trash_meta">
                                             <div class="o_vd_trash_label">CHƯA GỌI ĐƯỢC</div>
@@ -3135,9 +3137,10 @@
                                     </div>
                                     
 
-                            <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost o_vd_tile_clickable' + (state.pinnedTile === 'quoted_lost' ? ' o_vd_tile_pinned' : '')"
-                                 t-on-click.stop="() => this.togglePinTile('quoted_lost')"
-                                 title="KH đã báo giá rồi mất tích. Bấm để xem danh sách.">
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_quoted_lost o_vd_tile_shared"
+                                 t-on-mouseenter="(ev) => this.onTileEnter('quoted_lost', ev)"
+                                 t-on-mouseleave="() => this.onTileLeave('quoted_lost')"
+                                 title="KH đã báo giá rồi mất tích.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📵</div>
                                 <div class="o_vd_trash_meta">
                                     <div class="o_vd_trash_label">BÁO GIÁ XONG<br/>MẤT TÍCH</div>
@@ -3183,9 +3186,10 @@
                             </div>
                             <!-- BOX: KHÁCH GỬI HỢP ĐỒNG — đã kích hoạt "Làm hợp đồng - Hẹn
                                  gặp" (đặt lịch ký HĐ) chưa ký xong (user spec 2026-06-12). -->
-                            <div t-att-class="'o_vd_trash_box o_vd_split_trash o_vd_split_planned_sign o_vd_tile_clickable' + (state.pinnedTile === 'planned_sign' ? ' o_vd_tile_pinned' : '')"
-                                 t-on-click.stop="() => this.togglePinTile('planned_sign')"
-                                 title="KH đã đặt lịch ký HĐ. Bấm để xem danh sách.">
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_planned_sign o_vd_tile_shared"
+                                 t-on-mouseenter="(ev) => this.onTileEnter('planned_sign', ev)"
+                                 t-on-mouseleave="() => this.onTileLeave('planned_sign')"
+                                 title="KH đã đặt lịch ký HĐ.">
                                 <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📝</div>
                                 <div class="o_vd_trash_meta">
                                     <div class="o_vd_trash_label">KHÁCH GỬI<br/>HỢP ĐỒNG</div>

@@ -1998,7 +1998,7 @@ export class VdCrmDashboard extends Component {
     // Danh sách ô ĐÃ chuyển sang "ô dùng chung + hover" (không vẽ lại trang). Ô nào
     // ở đây thì hover dựng popover trực tiếp bằng DOM (nút bên trong vẫn bấm được
     // qua event-delegation). Ô KHÁC vẫn dùng OWL lazy (state.hoverTile) như cũ.
-    _tileSharedKeys() { return new Set(["notcalled"]); }
+    _tileSharedKeys() { return new Set(["notcalled", "reference", "quoted_lost", "planned_sign"]); }
     onTileEnter(key, ev) {
         if (this._tileSharedKeys().has(key)) {
             const el = ev && ev.currentTarget;
@@ -2078,6 +2078,7 @@ export class VdCrmDashboard extends Component {
             const act = t.getAttribute("data-act");
             if (!id) return;
             if (act === "call") { ev.stopPropagation(); this.callLeadDirect(ev, id); }
+            else if (act === "contacted") { ev.stopPropagation(); this.markContactedQuotedLost(ev, id); }
             else if (act === "open") { this._hideTilePop(); this.openLead(id); }
         });
         document.body.appendChild(d);
@@ -2086,20 +2087,43 @@ export class VdCrmDashboard extends Component {
     }
     _tilePopHtml(key) {
         const e = (s) => this._escHtml(s);
-        if (key === "notcalled") {
-            const list = this.leadsNotCalled || [];
-            const head = `<div class="o_vd_tilepop_head">📵 CHƯA GỌI ĐƯỢC (${list.length})</div>`;
+        const callBtn = (ld) => ld.phone
+            ? `<button class="o_vd_tilepop_btn" data-act="call" data-id="${ld.id}"><i class="fa fa-phone"></i> Gọi lại</button>` : "";
+        const wrap = (title, list, rowFn) => {
+            const head = `<div class="o_vd_tilepop_head">${title} (${list.length})</div>`;
             if (!list.length) return head + `<div class="o_vd_tilepop_empty">✓ Không có KH nào</div>`;
-            const rows = list.map((ld) => {
+            return head + `<div class="o_vd_tilepop_body">${list.map(rowFn).join("")}</div>`;
+        };
+        const base = (ld, extra) => `<div class="o_vd_tilepop_row" data-act="open" data-id="${ld.id}">`
+            + `<span class="o_vd_tilepop_nm">${e(ld.name)}</span>`
+            + `<span class="o_vd_tilepop_ph"><i class="fa fa-phone"></i> ${e(ld.phone || "—")}</span>`
+            + (extra || "") + callBtn(ld) + `</div>`;
+        if (key === "notcalled") {
+            return wrap("📵 CHƯA GỌI ĐƯỢC", this.leadsNotCalled || [], (ld) => {
                 const cs = ld.call_stats || {};
-                const call = ld.phone ? `<button class="o_vd_tilepop_btn" data-act="call" data-id="${ld.id}"><i class="fa fa-phone"></i> Gọi lại</button>` : "";
+                return base(ld, `<span class="o_vd_tilepop_st">📞 ${cs.total || 0} · 📅 ${cs.distinct_days || 0}N</span>`);
+            });
+        }
+        if (key === "reference") {
+            return wrap("👀 THAM KHẢO", this.leadsReference || [], (ld) => {
+                let cb = "";
+                if (ld.no_quote_callback_due) cb = `<span class="o_vd_tilepop_st" style="color:#e03131">🔥 gọi lại</span>`;
+                else if (ld.no_quote_callback_days != null) cb = `<span class="o_vd_tilepop_st">⏳ ${ld.no_quote_callback_days}N</span>`;
+                return base(ld, cb);
+            });
+        }
+        if (key === "quoted_lost") {
+            return wrap("📵 BÁO GIÁ XONG MẤT TÍCH", this.leadsQuotedLost || [], (ld) => {
+                const d = ld.quote_days != null ? `<span class="o_vd_tilepop_st">📅 ${ld.quote_days}N</span>` : "";
+                const contacted = `<button class="o_vd_tilepop_btn" style="background:#1971c2" data-act="contacted" data-id="${ld.id}"><i class="fa fa-check"></i> Đã LL</button>`;
                 return `<div class="o_vd_tilepop_row" data-act="open" data-id="${ld.id}">`
                     + `<span class="o_vd_tilepop_nm">${e(ld.name)}</span>`
                     + `<span class="o_vd_tilepop_ph"><i class="fa fa-phone"></i> ${e(ld.phone || "—")}</span>`
-                    + `<span class="o_vd_tilepop_st">📞 ${cs.total || 0} · 📅 ${cs.distinct_days || 0}N</span>`
-                    + call + `</div>`;
-            }).join("");
-            return head + `<div class="o_vd_tilepop_body">${rows}</div>`;
+                    + d + callBtn(ld) + contacted + `</div>`;
+            });
+        }
+        if (key === "planned_sign") {
+            return wrap("📝 KHÁCH GỬI HỢP ĐỒNG", this.leadsPlannedSign || [], (ld) => base(ld, ""));
         }
         return "";
     }
