@@ -1720,33 +1720,55 @@ export class VdCrmDashboard extends Component {
         const i = opts.indexOf(n);
         return (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
     }
-    // Trạng thái hẹn gọi lại: 'due' (đến/quá hẹn) · 'scheduled' (hẹn tương lai) ·
-    // 'none' (chưa hẹn). KH có hẹn tương lai KHÔNG rơi vào khoảng "chưa gọi X ngày"
-    // (đã có kế hoạch, không phải bị bỏ bê); KH đến hẹn có chip "⏰ Đến hẹn" riêng.
-    _leadCbState(l) {
-        if (!l || !l.callback_date) return "none";
-        const t = new Date(String(l.callback_date).replace(" ", "T") + "Z").getTime();
-        if (isNaN(t)) return "none";
-        return t <= Date.now() ? "due" : "scheduled";
+    // Số NGÀY LỊCH từ HÔM NAY tới ngày hẹn gọi lại (âm = quá hạn, 0 = hôm nay,
+    // 1 = ngày mai...). null = KH chưa đặt hẹn. TỰ XOAY theo ngày hiện tại: hẹn
+    // "ngày mai" hôm nay = 1; sang hôm sau = 0 (hôm nay).
+    _cbDaysFromNow(l) {
+        if (!l || !l.callback_date) return null;
+        const t = new Date(String(l.callback_date).replace(" ", "T") + "Z");
+        if (isNaN(t.getTime())) return null;
+        const d0 = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+        return Math.round((d0(t) - d0(new Date())) / 86400000);
     }
-    // Lọc list. n=0 → tất cả; n='due' → KH đến hẹn; n số → khoảng ngày (chỉ KH CHƯA hẹn).
+    // Các nhóm lọc theo THỜI ĐIỂM gọi lại (tự xoay theo ngày). Chỉ KH ĐÃ đặt hẹn.
+    get cbBucketOptions() {
+        return [
+            { k: "cb_overdue", l: "Quá hạn" },
+            { k: "cb_today", l: "Hôm nay" },
+            { k: "cb_tomorrow", l: "Ngày mai" },
+            { k: "cb_week", l: "Tuần này" },
+            { k: "cb_month", l: "Tháng này" },
+        ];
+    }
+    _cbMatch(l, key) {
+        const d = this._cbDaysFromNow(l);
+        if (d === null) return false;
+        if (key === "cb_overdue") return d < 0;
+        if (key === "cb_today") return d === 0;
+        if (key === "cb_tomorrow") return d === 1;
+        if (key === "cb_week") return d >= 2 && d <= 7;
+        if (key === "cb_month") return d >= 8 && d <= 31;
+        return false;
+    }
+    // Lọc list. n=0 → tất cả; n='cb_*' → nhóm theo ngày hẹn; n số → "chưa gọi X ngày"
+    // (CHỈ KH CHƯA đặt hẹn — KH có hẹn nằm ở nhóm cb_* tương ứng).
     _dayBucketFilter(list, n) {
         if (!n) return list || [];
-        if (n === "due") return (list || []).filter((l) => this._leadCbState(l) === "due");
+        if (typeof n === "string") return (list || []).filter((l) => this._cbMatch(l, n));
         const upper = this._dayUpper(n);
         return (list || []).filter((l) => {
-            if (this._leadCbState(l) !== "none") return false;
+            if (l.callback_date) return false;
             const d = l.days_since_call || 0; return d >= n && d < upper;
         });
     }
     _dayBucketCount(list, n) {
-        if (n === "due") {
-            let c = 0; for (const l of (list || [])) if (this._leadCbState(l) === "due") c++; return c;
+        if (typeof n === "string") {
+            let c = 0; for (const l of (list || [])) if (this._cbMatch(l, n)) c++; return c;
         }
         const upper = this._dayUpper(n);
         let c = 0;
         for (const l of (list || [])) {
-            if (this._leadCbState(l) !== "none") continue;
+            if (l.callback_date) continue;
             const dd = l.days_since_call || 0; if (dd >= n && dd < upper) c++;
         }
         return c;

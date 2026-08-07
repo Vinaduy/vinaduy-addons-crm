@@ -2331,12 +2331,12 @@
                                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
                                 <span class="o_vd_daybtn_cnt"><t t-esc="newDayFilterAllCount"/></span>
                             </span>
-                            <span class="o_vd_daybtn o_vd_daybtn_due"
-                                  t-att-class="state.newDayFilter === 'due' ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setNewDayFilter('due')"
-                                  title="Khách ĐẾN HẸN / quá hẹn gọi lại">
-                                <span class="o_vd_daybtn_main">⏰ Đến hẹn</span>
-                                <span t-if="newDayFilterCount('due')" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount('due')"/></span>
+                            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_overdue' ? ' o_vd_daybtn_overdue' : '') + (state.newDayFilter === cb.k ? ' o_vd_daybtn_on' : '')"
+                                  t-on-click="() => this.setNewDayFilter(cb.k)"
+                                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
+                                <span class="o_vd_daybtn_main">⏰ <t t-esc="cb.l"/></span>
+                                <span t-if="newDayFilterCount(cb.k)" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount(cb.k)"/></span>
                             </span>
                             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
                                   class="o_vd_daybtn"
@@ -2582,12 +2582,12 @@
                                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
                                 <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterAllCount"/></span>
                             </span>
-                            <span class="o_vd_daybtn o_vd_daybtn_due"
-                                  t-att-class="state.dayFilter === 'due' ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setDayFilter('due')"
-                                  title="Khách ĐẾN HẸN / quá hẹn gọi lại">
-                                <span class="o_vd_daybtn_main">⏰ Đến hẹn</span>
-                                <span t-if="dayFilterCount('due')" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount('due')"/></span>
+                            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_overdue' ? ' o_vd_daybtn_overdue' : '') + (state.dayFilter === cb.k ? ' o_vd_daybtn_on' : '')"
+                                  t-on-click="() => this.setDayFilter(cb.k)"
+                                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
+                                <span class="o_vd_daybtn_main">⏰ <t t-esc="cb.l"/></span>
+                                <span t-if="dayFilterCount(cb.k)" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(cb.k)"/></span>
                             </span>
                             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
                                   class="o_vd_daybtn"
