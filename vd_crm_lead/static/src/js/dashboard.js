@@ -3846,6 +3846,24 @@ export class VdCrmDashboard extends Component {
         }
     }
 
+    // Duyệt hủy TẤT CẢ KH đang chờ trong danh sách (không cần tick từng cái).
+    async approveAllCancel(leads) {
+        const ids = this._pendingCancel(leads).map((l) => l.id);
+        if (!ids.length) return;
+        if (!window.confirm(`Duyệt hủy TẤT CẢ ${ids.length} khách đang chờ?`)) return;
+        try {
+            await this.orm.call("crm.lead", "action_approve_cancel", [ids]);
+            this.notification.add(`✓ Đã duyệt hủy ${ids.length} KH.`, { type: "success" });
+            for (const id of ids) {
+                this._markCancelState(id, "approved");
+                delete this.state.cancelSel[id];
+            }
+        } catch (e) {
+            console.error("[dashboard] approveAllCancel failed:", e);
+            this.notification.add("Không duyệt được. " + (e.message || ""), { type: "danger" });
+        }
+    }
+
     /**
      * TỪ CHỐI hủy 1 KH → trả về pipeline. KHÔNG reload: đổi tại chỗ sang chip
      * "↩ Đã trả về". KH biến mất khỏi danh sách khi F5.

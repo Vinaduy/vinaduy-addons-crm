@@ -20,7 +20,8 @@ _logger = logging.getLogger(__name__)
 
 # NV tồn >= ngưỡng này KH "chờ duyệt hủy" → phần mềm CHẶN không cho hủy thêm,
 # ép trưởng phòng duyệt/từ chối bớt xuống DƯỚI ngưỡng (user spec 2026-06-21).
-_VD_PENDING_CANCEL_BLOCK = 20
+# Nâng 20 → 50 (user spec 2026-07-31).
+_VD_PENDING_CANCEL_BLOCK = 50
 
 
 class CrmLead(models.Model):

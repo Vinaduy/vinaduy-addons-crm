@@ -6018,6 +6018,13 @@
             &:hover:not([disabled]) { background: linear-gradient(135deg, #37b24d, #2b8a3e); transform: translateY(-1px); }
             &[disabled] { opacity: .45; cursor: default; box-shadow: none; }
         }
+        /* "Duyệt tất cả" — sát nút "duyệt đã chọn", màu xanh dương để phân biệt. */
+        .o_vd_cancel_bulkall {
+            margin-left: 8px;
+            background: linear-gradient(135deg, #4dabf7, #1c7ed6);
+            box-shadow: 0 3px 9px rgba(28,126,214,.32);
+            &:hover:not([disabled]) { background: linear-gradient(135deg, #339af0, #1971c2); }
+        }
         .o_vd_cancel_table {
             width: 100%;
             /* table-layout fixed: cột CHIA THEO % bảng → KHÔNG bao giờ tràn ngang

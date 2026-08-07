@@ -3838,6 +3838,10 @@
                     t-on-click.stop.prevent="() => this.approveSelectedCancel(cancelLeads)">
                 <i class="fa fa-check-square-o me-1"/>Duyệt <t t-esc="cancelSelCount(cancelLeads)"/> đã chọn
             </button>
+            <button class="o_vd_cancel_bulkbtn o_vd_cancel_bulkall"
+                    t-on-click.stop.prevent="() => this.approveAllCancel(cancelLeads)">
+                <i class="fa fa-check-double me-1"/>Duyệt tất cả (<t t-esc="_pendingCancel(cancelLeads).length"/>)
+            </button>
         </div>
         <table t-if="cancelLeads.length" class="o_vd_cancel_table">
             <thead>
