@@ -7,6 +7,8 @@ Khi NV gọi ra:
 
 Đặt model trong vd_stringee để không phụ thuộc vd_crm_lead.
 """
+from datetime import timedelta
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -214,6 +216,79 @@ class VdStringeeHotline(models.Model):
         last = self.env['stringee.call'].sudo().search(
             [('caller_number', '=', h.number)], order='id desc', limit=1)
         return {'number': h.number, 'carrier': h.carrier, 'last_id': last.id or 0}
+
+    @api.model
+    def vd_number_daily_report(self, hotline_id, days=15):
+        """Báo cáo NGÀY của 1 số, neo vào NGÀY ĐỔ CHUÔNG CUỐI CÙNG.
+
+        Vì sao neo kiểu này (user spec 2026-08-07): nhìn 15 ngày cuối theo lịch
+        thì số đã chết cả tháng chỉ ra toàn số 0 — vô nghĩa. Neo vào lần đổ
+        chuông cuối thì thấy ngay KHOẢNH KHẮC CHẾT: ngày cuối còn chuông, rồi
+        các ngày sau gọi rát mà 0 chuông = nhà mạng chặn.
+
+        Cửa sổ: từ ngày đổ chuông cuối → +14 ngày (không quá hôm nay). Nếu chưa
+        đủ 15 ngày (số vẫn đang sống) thì lùi mốc đầu về trước cho đủ 15 dòng.
+        """
+        self._check_board_access()
+        h = self.browse(hotline_id)
+        if not h.exists():
+            return {'rows': [], 'anchor': False}
+        n = max(1, int(days or 15))
+        # Tính SẴN mọi thứ TRƯỚC cr.execute — query ORM xen giữa execute và
+        # fetchall sẽ đè con trỏ làm fetchall rỗng (đã dính bug này 2026-06-09).
+        tz = self.env.user.tz or 'Asia/Ho_Chi_Minh'
+        today = fields.Date.context_today(self)
+        number = h.number
+        reached = ("(raw_events ILIKE '%%ringing%%' OR raw_events ILIKE "
+                   "'%%answered%%' OR answer_time IS NOT NULL)")
+        local_date = ("((create_date AT TIME ZONE 'UTC') AT TIME ZONE %s)::date")
+        cr = self.env.cr
+        cr.execute(
+            "SELECT " + local_date + " AS d, count(*) AS total, "
+            "  count(*) FILTER (WHERE " + reached + ") AS ring, "
+            "  count(*) FILTER (WHERE answer_time IS NOT NULL) AS answered, "
+            "  COALESCE(sum(duration), 0) AS secs "
+            "FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number = %s "
+            "GROUP BY 1 ORDER BY 1",
+            [tz, number],
+        )
+        rows = cr.fetchall()
+        if not rows:
+            return {'rows': [], 'anchor': False, 'number': number}
+        by_day = {r[0]: r for r in rows}
+        ring_days = [r[0] for r in rows if r[2]]
+        anchor = ring_days[-1] if ring_days else rows[-1][0]
+        # Cửa sổ 15 ngày bắt đầu từ mốc; nếu đụng hôm nay thì lùi lại cho đủ.
+        start = anchor
+        end = min(start + timedelta(days=n - 1), today)
+        if (end - start).days < n - 1:
+            start = end - timedelta(days=n - 1)
+        out = []
+        d = start
+        while d <= end:
+            r = by_day.get(d)
+            total = r[1] if r else 0
+            ring = r[2] if r else 0
+            out.append({
+                'date': d.strftime('%d/%m'),
+                'dow': ('T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN')[d.weekday()],
+                'total': total,
+                'ring': ring,
+                'answered': r[3] if r else 0,
+                'minutes': round((r[4] if r else 0) / 60.0),
+                'rate': round(ring * 100.0 / total) if total else 0,
+                'is_anchor': d == anchor,
+                # Ngày "báo động": có gọi kha khá mà 0 đổ chuông = dấu hiệu bị chặn.
+                'bad': bool(total >= 3 and ring == 0),
+            })
+            d += timedelta(days=1)
+        return {
+            'rows': out,
+            'anchor': anchor.strftime('%d/%m/%Y'),
+            'anchor_ring': bool(ring_days),
+            'number': number,
+        }
 
     @api.model
     def vd_test_call_candidates(self, hotline_id, limit=24):

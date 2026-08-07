@@ -178,6 +178,46 @@
                     </tbody>
                 </table>
                 <div t-else="" class="o_vd_dim o_vd_pop_empty">Chưa gán cho NV nào.</div>
+
+                <!-- 15 ngày kể từ lần ĐỔ CHUÔNG CUỐI — nhìn ra đúng ngày số chết -->
+                <div class="o_vd_pop_sub">
+                    15 ngày từ lần đổ chuông cuối
+                    <span t-if="state.daily and state.daily.anchor" class="o_vd_dim">
+                        (<t t-esc="state.daily.anchor"/>)
+                    </span>
+                </div>
+                <div t-if="!state.daily" class="o_vd_dim o_vd_pop_empty">Đang tải…</div>
+                <div t-elif="!state.daily.rows.length" class="o_vd_dim o_vd_pop_empty">
+                    Chưa phát sinh cuộc gọi nào.
+                </div>
+                <table t-else="" class="o_vd_pop_tbl o_vd_pop_daily">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th class="text-end">Gọi</th>
+                            <th class="text-end">Đổ chuông</th>
+                            <th class="text-end">Tỷ lệ</th>
+                            <th class="text-end">Phút</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="state.daily.rows" t-as="r" t-key="r.date">
+                            <tr t-att-class="{'o_vd_row_anchor': r.is_anchor, 'o_vd_row_bad': r.bad}">
+                                <td>
+                                    <t t-esc="r.date"/>
+                                    <span class="o_vd_dim ms-1" t-esc="r.dow"/>
+                                </td>
+                                <td class="text-end" t-esc="r.total"/>
+                                <td class="text-end" t-esc="r.ring"/>
+                                <td class="text-end">
+                                    <t t-if="r.total"><t t-esc="r.rate"/>%</t>
+                                    <span t-else="" class="o_vd_dim">—</span>
+                                </td>
+                                <td class="text-end" t-esc="r.minutes"/>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
             </div>
             </t>
 

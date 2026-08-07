@@ -29,6 +29,7 @@ export class VdStringeeAssignmentBoard extends Component {
             search: "",
             busy: false,
             hover: null, // {number, top, left}
+            daily: null, // báo cáo 15 ngày của số đang hover (null = đang tải)
             // Popup chia số: open + map chọn số/NV theo id
             dist: { open: false, nums: {}, users: {} },
             // Popup GỌI THỬ 1 số (nút điện thoại trên mỗi chip)
@@ -43,6 +44,7 @@ export class VdStringeeAssignmentBoard extends Component {
     }
 
     async load() {
+        this._dailyCache = {};   // số liệu ngày có thể đã đổi (vừa gọi thử / chốt)
         const data = await this.orm.call(MODEL, "get_assignment_board", []);
         this.state.carriers = data.carriers;
         this.state.users = data.users;
@@ -87,16 +89,43 @@ export class VdStringeeAssignmentBoard extends Component {
         const r = ev.currentTarget.getBoundingClientRect();
         // position:fixed theo viewport → không bị cắt bởi vùng cuộn của kho số.
         this.state.hover = { number, top: Math.round(r.bottom + 6), left: Math.round(r.left) };
+        this._loadDaily(number);
     }
     onChipLeave() {
         this.state.hover = null;
+    }
+
+    // Báo cáo 15 ngày (neo vào lần đổ chuông cuối) — nạp LƯỜI lúc hover, cache
+    // theo id để rê chuột qua lại không bắn lại RPC.
+    async _loadDaily(number) {
+        this._dailyCache = this._dailyCache || {};
+        if (this._dailyCache[number.id]) {
+            this.state.daily = this._dailyCache[number.id];
+            return;
+        }
+        this.state.daily = null;   // hiện "Đang tải…"
+        let res;
+        try {
+            res = await this.orm.call(MODEL, "vd_number_daily_report", [number.id]);
+        } catch (_e) {
+            res = { rows: [], anchor: false };
+        }
+        this._dailyCache[number.id] = res;
+        // Chuột đã rời/đổi sang số khác trong lúc chờ → bỏ kết quả cũ.
+        if (this.state.hover && this.state.hover.number.id === number.id) {
+            this.state.daily = res;
+        }
     }
     get popStyle() {
         const h = this.state.hover;
         if (!h) {
             return "";
         }
-        return `top:${h.top}px; left:${h.left}px;`;
+        // Popover nay cao hơn (thêm bảng 15 ngày) → kẹp lại để không tràn đáy
+        // màn hình khi hover chip nằm cuối danh sách.
+        const maxTop = Math.max(8, window.innerHeight - 620);
+        const top = Math.max(8, Math.min(h.top, maxTop));
+        return `top:${top}px; left:${h.left}px;`;
     }
 
     // ============ POPUP CHIA SỐ (chọn số → chọn NV → CHIA SỐ) ============
