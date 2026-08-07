@@ -1765,13 +1765,13 @@ export class VdCrmDashboard extends Component {
         const days = {}; for (const n of opts) days[n] = 0;
         let none = 0, moigoi = 0;
         for (const l of (pool || [])) {
-            if (!l.callback_date) {
-                none++;
-                const dd = l.days_since_call || 0;
-                if (dd < opts[0]) { moigoi++; continue; }  // [0,3) = VỪA GỌI
-                for (let i = 0; i < opts.length; i++) { if (dd >= opts[i] && dd < uppers[i]) { days[opts[i]]++; break; } }
-                continue;
-            }
+            // DÒNG "CHƯA GỌI" — phân theo SỐ NGÀY kể từ cuộc gọi gần nhất cho MỌI
+            // khách (kể cả khách ĐÃ có hẹn: vẫn tính "bao lâu chưa gọi").
+            const dd = l.days_since_call || 0;
+            if (dd < opts[0]) moigoi++;  // [0,3) = VỪA GỌI
+            else { for (let i = 0; i < opts.length; i++) { if (dd >= opts[i] && dd < uppers[i]) { days[opts[i]]++; break; } } }
+            // DÒNG "LỊCH HẸN GỌI" — phân theo ngày hẹn (chỉ khách có hẹn).
+            if (!l.callback_date) { none++; continue; }
             const d = this._cbDaysFromNow(l);
             if (d === null) continue;
             if (d <= 0) cb.cb_today++;
@@ -1863,11 +1863,11 @@ export class VdCrmDashboard extends Component {
     // (CHỈ KH CHƯA đặt hẹn — KH có hẹn nằm ở nhóm cb_* tương ứng).
     _dayBucketFilter(list, n) {
         if (!n) return list || [];
-        if (n === "moigoi") return (list || []).filter((l) => !l.callback_date && (l.days_since_call || 0) < this.dayFilterOptions[0]);
+        // Nhóm số ngày CHƯA GỌI — TẤT CẢ khách (kể cả có hẹn). Nhóm cb_* = theo lịch hẹn.
+        if (n === "moigoi") return (list || []).filter((l) => (l.days_since_call || 0) < this.dayFilterOptions[0]);
         if (typeof n === "string") return (list || []).filter((l) => this._cbMatch(l, n));
         const upper = this._dayUpper(n);
         return (list || []).filter((l) => {
-            if (l.callback_date) return false;
             const d = l.days_since_call || 0; return d >= n && d < upper;
         });
     }
@@ -1878,7 +1878,6 @@ export class VdCrmDashboard extends Component {
         const upper = this._dayUpper(n);
         let c = 0;
         for (const l of (list || [])) {
-            if (l.callback_date) continue;
             const dd = l.days_since_call || 0; if (dd >= n && dd < upper) c++;
         }
         return c;
