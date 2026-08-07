@@ -303,15 +303,12 @@ export class VdCrmDashboard extends Component {
             // Ô mở bằng CLICK-ghim (KH HỦY): bấm mở, bấm lại / bấm ra ngoài đóng.
             pinnedTile: "",
             cbMoreOpen: "",
+            rowGearOpen: 0,
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
             // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
             // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
             // {uid:true} người nhận đã tích trong phòng (chia đều).
             bulkMenu: { open: false, sub: "", busy: false, team: "", teamChecked: {} },
-            // ===== HƯỚNG DẪN NÚT SOS (coachmark tự hiện) =====
-            // {show, count} — payload dashboard_data; ẩn sau 3 lần "Đã đọc"
-            // trên 3 ngày khác nhau.
-            sos_guide: { show: false, count: 0 },
             // Thùng rác CÔNG TY — tổng KH ĐÃ DUYỆT hủy (chỉ Admin + Giám đốc).
             company_trash_count: 0,
             can_see_company_trash: false,
@@ -474,6 +471,10 @@ export class VdCrmDashboard extends Component {
                 // Menu "Xa hơn" của bộ lọc hẹn → đóng nếu bấm ngoài.
                 if (this.state.cbMoreOpen && !closest('.o_vd_daymore')) {
                     this.state.cbMoreOpen = "";
+                }
+                // Menu bánh răng trên dòng → đóng nếu bấm ngoài.
+                if (this.state.rowGearOpen && !closest('.o_vd_rowgear')) {
+                    this.state.rowGearOpen = 0;
                 }
             };
             document.addEventListener('click', this._onDocClickPin, false);
@@ -1185,41 +1186,6 @@ export class VdCrmDashboard extends Component {
             }
         } catch (err) {
             // Silent fail — không spam console khi WS đứt / restart server
-        }
-        // User spec 2026-06-01: SOS phải LIVE — poll trạng thái hỗ trợ mỗi 5s
-        // rồi ghi thẳng vào nv trong analytics (không cần F5 mới hiện).
-        if (this.state.is_manager) {
-            try {
-                const help = await this.orm.call(
-                    "crm.lead", "vd_dashboard_help_live", []
-                ) || {};
-                // Chỉ áp khi ĐỔI → tránh mutate analytics + re-render thừa mỗi 5-8s.
-                const hsig = JSON.stringify(help);
-                if (hsig !== this._helpSig) {
-                    this._helpSig = hsig;
-                    this._applyLiveHelp(help);
-                }
-            } catch (err) { /* silent */ }
-        }
-    }
-
-    /** Ghi đè help_count/help_waiting/help_leads của từng NV bằng dữ liệu LIVE. */
-    _applyLiveHelp(help) {
-        const ana = this.state.analytics;
-        if (!ana || !ana.kh_by_team) return;
-        for (const grp of ana.kh_by_team) {
-            for (const nv of grp.nvs) {
-                const h = help[nv.user_id];
-                if (h) {
-                    nv.help_count = h.count;
-                    nv.help_waiting = h.waiting;
-                    nv.help_leads = h.leads;
-                } else if (nv.help_count) {
-                    nv.help_count = 0;
-                    nv.help_waiting = 0;
-                    nv.help_leads = [];
-                }
-            }
         }
     }
 
@@ -2457,9 +2423,29 @@ export class VdCrmDashboard extends Component {
             this.notification.add("Không chuyển được KH này", { type: "danger" });
         }
     }
+    // ⚙️ Menu bánh răng trên dòng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ.
+    toggleRowGear(ev, leadId) {
+        if (ev) { ev.stopPropagation(); }
+        this.state.rowGearOpen = this.state.rowGearOpen === leadId ? 0 : leadId;
+    }
+    // "Huỷ khách" → mở wizard nhập lý do (đặt vd_cancel_state='proposed' chờ admin duyệt).
+    async cancelLead(ev, leadId) {
+        if (ev) { ev.stopPropagation(); }
+        this.state.rowGearOpen = 0;
+        try {
+            const action = await this.orm.call("crm.lead", "action_mark_no_demand", [leadId]);
+            await this.action.doAction(action, {
+                onClose: () => { if (this.state.selectedStageId) this.selectStage(this.state.selectedStageId); },
+            });
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Không huỷ được khách này.";
+            this.notification.add(msg, { type: "danger" });
+        }
+    }
     // Nút trên dòng → popup XÁC NHẬN trước khi chuyển.
     confirmMoveToQuotedLost(ev, leadId) {
         if (ev) { ev.stopPropagation(); }
+        this.state.rowGearOpen = 0;
         const lead = this._leadById(leadId);
         this.dialog.add(ConfirmationDialog, {
             title: "BÁO GIÁ XONG MẤT TÍCH",
@@ -3104,27 +3090,6 @@ export class VdCrmDashboard extends Component {
             const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
             this.notification.add(msg, { type: "danger", title: "Không chia được số" });
             if (this.state.distribute) this.state.distribute.busy = false;
-        }
-    }
-
-    // ========================================================================
-    // HƯỚNG DẪN NÚT SOS — coachmark neo vào 1 nút SOS, NV bấm "Đã đọc"
-    // ========================================================================
-    // Lead đầu tiên có nút SOS để neo coachmark (ưu tiên bảng THI CÔNG GẤP).
-    get firstSosLeadId() {
-        const u = this.leadsUrgentConstruction;
-        if (u && u.length) return u[0].id;
-        const p = this.leadsWithProblems;
-        if (p && p.length) return p[0].id;
-        return null;
-    }
-    async ackSosGuide() {
-        try {
-            const res = await this.orm.call("res.users", "vd_sos_guide_ack", []);
-            this.state.sos_guide = res || { show: false, count: 0 };
-        } catch (_e) {
-            // Lỗi mạng → vẫn ẩn trong phiên này, lần sau payload quyết định lại.
-            this.state.sos_guide = { ...this.state.sos_guide, show: false };
         }
     }
 
@@ -4414,47 +4379,6 @@ export class VdCrmDashboard extends Component {
             return;
         }
         this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
-    }
-    // 🆘 NV gửi yêu cầu hỗ trợ. scope: 'today' (trong ngày) | 'multi' (đến khi chốt).
-    // Đã gửi KHÔNG huỷ được; tối đa 3 KH/NV. Cấp trên thấy ngay (hàng highlight đỏ).
-    async requestHelp(ev, leadId, scope) {
-        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
-        try {
-            await this.orm.call(
-                "crm.lead", "vd_request_help", [[leadId]],
-                { context: { help_scope: scope } },
-            );
-            if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Không thực hiện được.";
-            this.notification.add(msg, { type: "warning" });
-        }
-    }
-    // Refresh sau khi thao tác cờ hỗ trợ: cập nhật cả bảng NV (admin analytics)
-    // lẫn list theo stage (NV view) tuỳ màn hình đang mở.
-    async _refreshAfterHelp() {
-        if (this.state.analytics) await this.loadAnalytics();
-        if (this.state.selectedStageId) await this.selectStage(this.state.selectedStageId);
-    }
-    // Cấp trên: 🔴 chờ → 🟢 đang hỗ trợ
-    async ackHelp(ev, leadId) {
-        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
-        try {
-            await this.orm.call("crm.lead", "vd_ack_help", [[leadId]]);
-            await this._refreshAfterHelp();
-        } catch (e) {
-            this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
-        }
-    }
-    // Cấp trên: hoàn tất hỗ trợ → xoá cờ
-    async doneHelp(ev, leadId) {
-        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
-        try {
-            await this.orm.call("crm.lead", "vd_done_help", [[leadId]]);
-            await this._refreshAfterHelp();
-        } catch (e) {
-            this.notification.add(e?.data?.message || e?.message || "Lỗi", { type: "warning" });
-        }
     }
     // Bọc HTML bảng báo giá chi tiết bằng markup() → t-out render raw (không escape).
     // Panel THÔNG TIN KHÁCH HÀNG (hover tên KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).

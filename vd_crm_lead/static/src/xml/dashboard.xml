@@ -2643,90 +2643,32 @@
                                                 <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                    <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
-                                                          t-att-class="'o_vd_prb_countdown o_vd_dlc_' + p.deadline_state"
-                                                          t-esc="p.deadline_label"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"
-                                                     t-on-click.stop="(ev) => (!lead.need_help ? this.requestHelp(ev, lead.id, 'today') : null)">
-                                                    <span class="o_vd_sos_face">SOS</span>
-                                                    <!-- Coachmark hướng dẫn SOS — tự hiện, neo vào nút SOS đầu tiên;
-                                                         ẩn sau 3 lần "Đã đọc" trên 3 ngày khác nhau (per-user). -->
-                                                    <div t-if="state.sos_guide and state.sos_guide.show and lead.id === firstSosLeadId"
-                                                         class="o_vd_sos_guide" t-on-click.stop="">
-                                                        <div class="o_vd_sos_guide_arrow"/>
-                                                        <div class="o_vd_sos_guide_head">🆘 Nút SOS — gọi cấp trên hỗ trợ</div>
-                                                        <div class="o_vd_sos_guide_body">
-                                                            Gặp khách khó, cần hỗ trợ? Bấm <b>SOS</b> để cấp trên vào giúp.<br/>
-                                                            • Bấm thẳng nút SOS = hỗ trợ <b>trong ngày</b>.<br/>
-                                                            • Mở menu chọn <b>🤝 Hỗ trợ CHỐT</b> nếu cần nhiều ngày.<br/>
-                                                            ⚠️ Đã gửi <b>không huỷ được</b> · mỗi NV tối đa <b>3 KH</b>.
-                                                        </div>
-                                                        <button class="o_vd_sos_guide_btn"
-                                                                t-on-click.stop="() => this.ackSosGuide()">
-                                                            ✅ Đã đọc (<t t-esc="(state.sos_guide.count or 0) + 1"/>/3 ngày)
-                                                        </button>
-                                                    </div>
-                                                    <div class="o_vd_sos_pop" t-on-click.stop="">
-                                                        <t t-if="!lead.need_help">
-                                                            <div class="o_vd_sos_pop_head">🆘 Cần cấp trên hỗ trợ</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                Bấm trực tiếp = hỗ trợ trong ngày. Hoặc chọn bên dưới.<br/>
-                                                                ⚠️ Đã gửi <b>KHÔNG huỷ được</b>. Mỗi NV tối đa <b>3 KH</b>.
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_multi"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
-                                                                🤝 Hỗ trợ CHỐT (nhiều ngày)
-                                                            </button>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_today"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'today')">
-                                                                🛠️ Hỗ trợ XỬ LÝ VẤN ĐỀ (1 ngày)
-                                                            </button>
-                                                        </t>
-                                                        <t t-elif="lead.help_status === 'waiting'">
-                                                            <div class="o_vd_sos_pop_head">🔴 ĐANG CHỜ CẤP TRÊN</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                <t t-if="lead.need_help_scope === 'multi'">🤝 Hỗ trợ <b>CHỐT</b> — nhiều ngày đến khi chốt.</t>
-                                                                <t t-else="">🛠️ Hỗ trợ <b>xử lý vấn đề</b> — trong ngày.</t><br/>
-                                                                NV không tự huỷ được.
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_ack"
-                                                                    t-on-click.stop="(ev) => this.ackHelp(ev, lead.id)">
-                                                                ✅ Cấp trên: ĐANG HỖ TRỢ
-                                                            </button>
-                                                            <button t-if="lead.need_help_scope !== 'multi'"
-                                                                    class="o_vd_sos_opt o_vd_sos_opt_multi"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
-                                                                🤝 Chuyển sang hỗ trợ CHỐT
-                                                            </button>
-                                                        </t>
-                                                        <t t-else="">
-                                                            <div class="o_vd_sos_pop_head o_vd_sos_pop_head_on">🟢 ĐANG ĐƯỢC HỖ TRỢ</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                Cấp trên đang hỗ trợ KH này.<br/>
-                                                                <t t-if="lead.need_help_scope === 'multi'">🤝 Hỗ trợ CHỐT (nhiều ngày).</t>
-                                                                <t t-else="">🛠️ Xử lý vấn đề (1 ngày).</t>
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_done"
-                                                                    t-on-click.stop="(ev) => this.doneHelp(ev, lead.id)">
-                                                                ✔️ Hoàn tất hỗ trợ
-                                                            </button>
-                                                        </t>
-                                                    </div>
-                                                </div>
-                                                <!-- Gọi lại — LUÔN đứng CUỐI CÙNG (sau SOS) -->
+                                                <!-- Gọi lại -->
                                                 <button t-if="lead.phone" class="o_vd_callback_btn"
                                                         t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
                                                         title="Gọi lại KH ngay">
                                                     <i class="fa fa-phone"/> <span>Gọi lại</span>
                                                 </button>
-                                                <!-- BÁO GIÁ XONG MẤT TÍCH — nút chuyển thủ công (popup xác nhận) -->
-                                                <button class="o_vd_quotedlost_btn"
-                                                        t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)"
-                                                        title="Chuyển KH này vào bảng BÁO GIÁ XONG MẤT TÍCH">
-                                                    <i class="fa fa-ban"/> <span>Mất tích</span>
-                                                </button>
+                                                <!-- ⚙️ MENU thao tác — Mất tích sau báo giá / Huỷ khách -->
+                                                <div class="o_vd_rowgear">
+                                                    <button class="o_vd_rowgear_btn"
+                                                            t-on-click.stop="(ev) => this.toggleRowGear(ev, lead.id)"
+                                                            title="Thao tác khác">
+                                                        <i class="fa fa-cog"/>
+                                                    </button>
+                                                    <div t-if="state.rowGearOpen === lead.id" class="o_vd_rowgear_menu" t-on-click.stop="">
+                                                        <button class="o_vd_rowgear_item"
+                                                                t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)">
+                                                            <i class="fa fa-ban"/> <span>Mất tích sau báo giá</span>
+                                                        </button>
+                                                        <button class="o_vd_rowgear_item o_vd_rowgear_item_danger"
+                                                                t-on-click.stop="(ev) => this.cancelLead(ev, lead.id)">
+                                                            <i class="fa fa-trash"/> <span>Huỷ khách</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </span>
                                         </div>
                                         <button t-if="leadsUrgentConstruction.length > 15"
@@ -2833,90 +2775,32 @@
                                                 <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
                                                       t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
                                                     <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                    <span t-if="p.deadline_state and p.deadline_state !== 'none' and p.deadline_state !== 'done'"
-                                                          t-att-class="'o_vd_prb_countdown o_vd_dlc_' + p.deadline_state"
-                                                          t-esc="p.deadline_label"/>
                                                 </span>
                                                 <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <div t-att-class="'o_vd_sos ' + (!lead.need_help ? 'o_vd_sos_idle' : (lead.help_status === 'helping' ? 'o_vd_sos_helping' : 'o_vd_sos_waiting'))"
-                                                     t-on-click.stop="(ev) => (!lead.need_help ? this.requestHelp(ev, lead.id, 'today') : null)">
-                                                    <span class="o_vd_sos_face">SOS</span>
-                                                    <!-- Coachmark hướng dẫn SOS — tự hiện, neo vào nút SOS đầu tiên;
-                                                         ẩn sau 3 lần "Đã đọc" trên 3 ngày khác nhau (per-user). -->
-                                                    <div t-if="state.sos_guide and state.sos_guide.show and lead.id === firstSosLeadId"
-                                                         class="o_vd_sos_guide" t-on-click.stop="">
-                                                        <div class="o_vd_sos_guide_arrow"/>
-                                                        <div class="o_vd_sos_guide_head">🆘 Nút SOS — gọi cấp trên hỗ trợ</div>
-                                                        <div class="o_vd_sos_guide_body">
-                                                            Gặp khách khó, cần hỗ trợ? Bấm <b>SOS</b> để cấp trên vào giúp.<br/>
-                                                            • Bấm thẳng nút SOS = hỗ trợ <b>trong ngày</b>.<br/>
-                                                            • Mở menu chọn <b>🤝 Hỗ trợ CHỐT</b> nếu cần nhiều ngày.<br/>
-                                                            ⚠️ Đã gửi <b>không huỷ được</b> · mỗi NV tối đa <b>3 KH</b>.
-                                                        </div>
-                                                        <button class="o_vd_sos_guide_btn"
-                                                                t-on-click.stop="() => this.ackSosGuide()">
-                                                            ✅ Đã đọc (<t t-esc="(state.sos_guide.count or 0) + 1"/>/3 ngày)
-                                                        </button>
-                                                    </div>
-                                                    <div class="o_vd_sos_pop" t-on-click.stop="">
-                                                        <t t-if="!lead.need_help">
-                                                            <div class="o_vd_sos_pop_head">🆘 Cần cấp trên hỗ trợ</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                Bấm trực tiếp = hỗ trợ trong ngày. Hoặc chọn bên dưới.<br/>
-                                                                ⚠️ Đã gửi <b>KHÔNG huỷ được</b>. Mỗi NV tối đa <b>3 KH</b>.
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_multi"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
-                                                                🤝 Hỗ trợ CHỐT (nhiều ngày)
-                                                            </button>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_today"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'today')">
-                                                                🛠️ Hỗ trợ XỬ LÝ VẤN ĐỀ (1 ngày)
-                                                            </button>
-                                                        </t>
-                                                        <t t-elif="lead.help_status === 'waiting'">
-                                                            <div class="o_vd_sos_pop_head">🔴 ĐANG CHỜ CẤP TRÊN</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                <t t-if="lead.need_help_scope === 'multi'">🤝 Hỗ trợ <b>CHỐT</b> — nhiều ngày đến khi chốt.</t>
-                                                                <t t-else="">🛠️ Hỗ trợ <b>xử lý vấn đề</b> — trong ngày.</t><br/>
-                                                                NV không tự huỷ được.
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_ack"
-                                                                    t-on-click.stop="(ev) => this.ackHelp(ev, lead.id)">
-                                                                ✅ Cấp trên: ĐANG HỖ TRỢ
-                                                            </button>
-                                                            <button t-if="lead.need_help_scope !== 'multi'"
-                                                                    class="o_vd_sos_opt o_vd_sos_opt_multi"
-                                                                    t-on-click.stop="(ev) => this.requestHelp(ev, lead.id, 'multi')">
-                                                                🤝 Chuyển sang hỗ trợ CHỐT
-                                                            </button>
-                                                        </t>
-                                                        <t t-else="">
-                                                            <div class="o_vd_sos_pop_head o_vd_sos_pop_head_on">🟢 ĐANG ĐƯỢC HỖ TRỢ</div>
-                                                            <div class="o_vd_sos_pop_guide">
-                                                                Cấp trên đang hỗ trợ KH này.<br/>
-                                                                <t t-if="lead.need_help_scope === 'multi'">🤝 Hỗ trợ CHỐT (nhiều ngày).</t>
-                                                                <t t-else="">🛠️ Xử lý vấn đề (1 ngày).</t>
-                                                            </div>
-                                                            <button class="o_vd_sos_opt o_vd_sos_opt_done"
-                                                                    t-on-click.stop="(ev) => this.doneHelp(ev, lead.id)">
-                                                                ✔️ Hoàn tất hỗ trợ
-                                                            </button>
-                                                        </t>
-                                                    </div>
-                                                </div>
-                                                <!-- Gọi lại — LUÔN đứng CUỐI CÙNG (sau SOS) -->
+                                                <!-- Gọi lại -->
                                                 <button t-if="lead.phone" class="o_vd_callback_btn"
                                                         t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
                                                         title="Gọi lại KH ngay">
                                                     <i class="fa fa-phone"/> <span>Gọi lại</span>
                                                 </button>
-                                                <!-- BÁO GIÁ XONG MẤT TÍCH — nút chuyển thủ công (popup xác nhận) -->
-                                                <button class="o_vd_quotedlost_btn"
-                                                        t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)"
-                                                        title="Chuyển KH này vào bảng BÁO GIÁ XONG MẤT TÍCH">
-                                                    <i class="fa fa-ban"/> <span>Mất tích</span>
-                                                </button>
+                                                <!-- ⚙️ MENU thao tác — Mất tích sau báo giá / Huỷ khách -->
+                                                <div class="o_vd_rowgear">
+                                                    <button class="o_vd_rowgear_btn"
+                                                            t-on-click.stop="(ev) => this.toggleRowGear(ev, lead.id)"
+                                                            title="Thao tác khác">
+                                                        <i class="fa fa-cog"/>
+                                                    </button>
+                                                    <div t-if="state.rowGearOpen === lead.id" class="o_vd_rowgear_menu" t-on-click.stop="">
+                                                        <button class="o_vd_rowgear_item"
+                                                                t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)">
+                                                            <i class="fa fa-ban"/> <span>Mất tích sau báo giá</span>
+                                                        </button>
+                                                        <button class="o_vd_rowgear_item o_vd_rowgear_item_danger"
+                                                                t-on-click.stop="(ev) => this.cancelLead(ev, lead.id)">
+                                                            <i class="fa fa-trash"/> <span>Huỷ khách</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </span>
                                         </div>
                                         <button t-if="leadsWithProblems.length > 15"
@@ -4359,55 +4243,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                <!-- 🆘 CẦN HỖ TRỢ (cột riêng — tách khỏi Trạng thái) -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_help">
-                                                    <div t-if="nv.help_count"
-                                                         t-att-class="'o_vd_sos o_vd_sos_dash ' + (nv.help_waiting ? 'o_vd_sos_waiting' : 'o_vd_sos_helping')">
-                                                        <span class="o_vd_sos_face">SOS</span>
-                                                        <span class="o_vd_sos_dash_count"><t t-esc="nv.help_count"/></span>
-                                                    </div>
-                                                    <span t-else="" class="o_vd_kh_help_none">—</span>
-                                                    <div t-if="nv.help_count" class="o_vd_kh_nv_popover o_vd_kh_help_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🆘 CẦN HỖ TRỢ - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.help_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.help_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 t-att-class="'o_vd_kh_help_item o_vd_kh_help_' + ld.status">
-                                                                <div class="o_vd_kh_help_item_top"
-                                                                     t-on-click="() => this.openLead(ld.lead_id)">
-                                                                    <span t-att-class="'o_vd_kh_help_dot o_vd_kh_help_dot_' + ld.status"/>
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                    <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                                    <span t-att-class="'o_vd_kh_help_scope o_vd_kh_help_scope_' + ld.scope">
-                                                                        <t t-if="ld.scope === 'multi'">⏳ Nhiều ngày</t>
-                                                                        <t t-else="">📅 Trong ngày</t>
-                                                                    </span>
-                                                                </div>
-                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
-                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                                    </span>
-                                                                </div>
-                                                                <div class="o_vd_kh_help_actions">
-                                                                    <button t-if="ld.status === 'waiting'"
-                                                                            class="o_vd_help_btn o_vd_help_btn_ack"
-                                                                            t-on-click="(ev) => this.ackHelp(ev, ld.lead_id)">
-                                                                        🟢 Đang hỗ trợ
-                                                                    </button>
-                                                                    <span t-else="" class="o_vd_help_helping_lbl">🟢 Đang hỗ trợ</span>
-                                                                    <button class="o_vd_help_btn o_vd_help_btn_done"
-                                                                            t-on-click="(ev) => this.doneHelp(ev, ld.lead_id)">
-                                                                        ✓ Hoàn tất
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div><!-- /.o_vd_kh_metric_help -->
 
                                                 <!-- 🗑️ THÙNG RÁC — KH hủy CHỜ DUYỆT (user spec 2026-06-21).
                                                      Đặt cuối, ngay trước thẻ "Không gọi". Hover → bảng KH cần
