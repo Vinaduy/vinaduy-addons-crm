@@ -208,6 +208,15 @@ class VdStringeeHotline(models.Model):
             vals = {'vd_health': health}
             if health != h.vd_health:
                 vals['vd_health_at'] = now
+            # ===== BẰNG CHỨNG THẮNG CỜ "ÉP XANH" (user 2026-08-07) =====
+            # Ép xanh sinh ra cho số MỚI chưa có lịch sử gọi. Nhưng nó đang bị
+            # dùng như tấm khiên vĩnh viễn: 84917690658 ép xanh, 0 đổ chuông từ
+            # 23/07 mà NV vẫn phải cầm gọi. Nay khi đã đủ bằng chứng chết (chuỗi
+            # dài, nhiều ngày/nhiều NV) thì TỰ TẮT ép xanh.
+            if health == 'dead' and h.vd_force_alive:
+                vals['vd_force_alive'] = False
+                _logger.warning(
+                    "[VD hotline] %s: tắt ÉP XANH vì đủ bằng chứng chết.", h.number)
             h.write(vals)
             # Số CHẾT (không ép xanh) → gỡ khỏi tất cả NV ngay.
             if health == 'dead' and not h.vd_force_alive:
