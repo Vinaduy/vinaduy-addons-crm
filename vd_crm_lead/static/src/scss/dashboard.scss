@@ -6419,7 +6419,7 @@
         display: inline-flex;
         align-items: baseline;
         gap: 0.28rem;
-        padding: 0.26rem 0.6rem;
+        padding: 0.34rem 0.74rem;
         border-radius: 9px;
         border: 1px solid #d3d9f2;
         background: #eef0fc;
@@ -6469,10 +6469,22 @@
     .o_vd_daybtn_none.o_vd_daybtn_on { background: #868e96; border-color: #868e96;
         .o_vd_daybtn_main { color: #fff; } }
 
-    /* 2 DÒNG lọc riêng: LỊCH HẸN (cam) — kẻ đứt — CHƯA GỌI (chàm). */
-    .o_vd_dayfilter_cbrow { margin: 0.2rem 0 0.1rem; padding: 0.1rem 0.2rem; }
-    .o_vd_dayfilter_daysrow { margin: 0 0 0.55rem; padding: 0.45rem 0.2rem 0.1rem;
-        border-top: 1px dashed #e2e5ef; }
+    /* KHỐI LỌC GỘP — 1 thẻ cân đối, thoáng; 2 dòng ngăn bởi kẻ đứt (user 2026-08-07). */
+    .o_vd_dayfilter_wrap {
+        margin: 0.4rem 0 0.75rem;
+        padding: 0.1rem 0.85rem;
+        background: #fbfbfe;
+        border: 1px solid #e6e8f2;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        .o_vd_dayfilter_bar {
+            display: flex; align-items: center; flex-wrap: wrap;
+            gap: 0.62rem; row-gap: 0.62rem;
+            padding: 0.62rem 0;
+        }
+        .o_vd_pfilter_lbl { min-width: 128px; letter-spacing: 0.2px; }
+    }
+    .o_vd_dayfilter_cbrow { border-bottom: 1px dashed #e6e8f2; }
 
     /* Menu "Xa hơn ▾" — dropdown các mốc xa (Tháng sau … 1 Năm sau). */
     .o_vd_daymore { position: relative; display: inline-flex; }

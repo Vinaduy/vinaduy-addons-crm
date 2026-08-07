@@ -3314,6 +3314,7 @@
          cho các mốc xa; (2) CHƯA GỌI X NGÀY — chỉ KH chưa đặt hẹn.
          ============================================================ -->
     <t t-name="vd_crm_lead.DayFilterBar">
+      <div class="o_vd_dayfilter_wrap">
         <!-- DÒNG 1: LỊCH HẸN GỌI -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_cbrow">
             <span class="o_vd_pfilter_lbl">📅 LỊCH HẸN GỌI:</span>
@@ -3350,6 +3351,7 @@
         </div>
         <!-- DÒNG 2: CHƯA GỌI X NGÀY (chỉ KH chưa đặt hẹn) -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
+            <span class="o_vd_pfilter_lbl">☎️ CHƯA GỌI:</span>
             <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
                   t-on-click="() => this.setFilter(scope, 0)" title="Xem tất cả">
                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
@@ -3364,6 +3366,7 @@
                 <span t-if="filterCount(scope, d)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, d)"/></span>
             </span>
         </div>
+      </div>
     </t>
 
     <!-- ============================================================

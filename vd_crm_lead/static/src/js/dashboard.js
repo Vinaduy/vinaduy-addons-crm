@@ -1725,37 +1725,105 @@ export class VdCrmDashboard extends Component {
         const i = opts.indexOf(n);
         return (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
     }
+    _todayKey() { const d = new Date(); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); }
     // Số NGÀY LỊCH từ HÔM NAY tới ngày hẹn gọi lại (âm = quá hạn, 0 = hôm nay,
     // 1 = ngày mai...). null = KH chưa đặt hẹn. TỰ XOAY theo ngày hiện tại: hẹn
     // "ngày mai" hôm nay = 1; sang hôm sau = 0 (hôm nay).
+    // CACHE theo (id, ngày, callback_date) — tránh parse Date lặp lại mỗi render
+    // (nguyên nhân đơ khi bấm lọc). Lưu ở Map ngoài object lead (không đụng reactive).
     _cbDaysFromNow(l) {
         if (!l || !l.callback_date) return null;
+        const today = this._todayKey();
+        if (this.__cbCacheDay !== today) { this.__cbCache = new Map(); this.__cbCacheDay = today; }
+        const hit = this.__cbCache.get(l.id);
+        if (hit && hit.cd === l.callback_date) return hit.v;
         const t = new Date(String(l.callback_date).replace(" ", "T") + "Z");
-        if (isNaN(t.getTime())) return null;
-        const d0 = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
-        return Math.round((d0(t) - d0(new Date())) / 86400000);
+        let v = null;
+        if (!isNaN(t.getTime())) {
+            const now = new Date(); now.setHours(0, 0, 0, 0);
+            const cbd = new Date(t); cbd.setHours(0, 0, 0, 0);
+            v = Math.round((cbd.getTime() - now.getTime()) / 86400000);
+        }
+        this.__cbCache.set(l.id, { cd: l.callback_date, v });
+        return v;
+    }
+    // Token ổn định theo THAM CHIẾU mảng (WeakMap) — mảng bị gán lại (reload data) →
+    // token mới → memo đếm tính lại; bấm lọc (không đụng data) → giữ token → memo trúng.
+    _refToken(obj) {
+        if (!obj) return "0";
+        if (!this.__refTokens) { this.__refTokens = new WeakMap(); this.__refSeq = 0; }
+        let t = this.__refTokens.get(obj);
+        if (t === undefined) { t = ++this.__refSeq; this.__refTokens.set(obj, t); }
+        return String(t);
+    }
+    // ĐẾM 1 LƯỢT tất cả nhóm (thay vì mỗi thẻ 1 lượt × 26 thẻ). Memoize theo scope.
+    _dayStats(pool) {
+        const opts = this.dayFilterOptions;
+        const uppers = opts.map((n) => this._dayUpper(n));
+        const cb = { cb_today: 0, cb_tomorrow: 0, cb_2d: 0, cb_3d: 0, cb_week: 0, cb_nextweek: 0,
+            cb_month: 0, cb_nextmonth: 0, cb_3month: 0, cb_4month: 0, cb_6month: 0, cb_1year: 0 };
+        const days = {}; for (const n of opts) days[n] = 0;
+        let none = 0;
+        for (const l of (pool || [])) {
+            if (!l.callback_date) {
+                none++;
+                const dd = l.days_since_call || 0;
+                for (let i = 0; i < opts.length; i++) { if (dd >= opts[i] && dd < uppers[i]) { days[opts[i]]++; break; } }
+                continue;
+            }
+            const d = this._cbDaysFromNow(l);
+            if (d === null) continue;
+            if (d <= 0) cb.cb_today++;
+            else if (d === 1) cb.cb_tomorrow++;
+            else if (d === 2) cb.cb_2d++;
+            else if (d === 3) cb.cb_3d++;
+            else if (d <= 7) cb.cb_week++;
+            else if (d <= 14) cb.cb_nextweek++;
+            else if (d <= 30) cb.cb_month++;
+            else if (d <= 60) cb.cb_nextmonth++;
+            else if (d <= 90) cb.cb_3month++;
+            else if (d <= 120) cb.cb_4month++;
+            else if (d <= 180) cb.cb_6month++;
+            else cb.cb_1year++;
+        }
+        return { all: (pool || []).length, cb, none, days };
+    }
+    _dayStatsCached(scope) {
+        let pool, sig;
+        if (scope === "new") {
+            pool = this._leadsNoProblemsRaw;
+            sig = "new|" + this._todayKey() + "|" + this._refToken(this.state.leads) + "|" + this._refToken(this.state.leadsNotCalledAll);
+        } else {
+            pool = this._dayFilterPool;
+            sig = "prob|" + this._todayKey() + "|" + this._refToken(this.state.leadsWithProblemsAll) + "|" + this._refToken(this.state.leadsUrgentConstructionAll);
+        }
+        const cache = this.__dsCache || (this.__dsCache = {});
+        if (cache[scope] && cache[scope].sig === sig) return cache[scope].stats;
+        const stats = this._dayStats(pool);
+        cache[scope] = { sig, stats };
+        return stats;
     }
     // Nhóm lọc LỊCH HẸN GỌI — CỬA SỔ TRƯỢT theo số ngày tới ngày hẹn (tự xoay mỗi
     // ngày). Hôm nay gồm cả quá hạn (d<=0 = cần gọi hôm nay).
     get cbBucketOptions() {
         return [
-            { k: "cb_today", l: "Hôm nay" },
-            { k: "cb_tomorrow", l: "Ngày mai" },
-            { k: "cb_2d", l: "2 Ngày nữa" },
-            { k: "cb_3d", l: "3 Ngày nữa" },
-            { k: "cb_week", l: "Tuần này" },
-            { k: "cb_nextweek", l: "Tuần sau" },
-            { k: "cb_month", l: "Tháng này" },
+            { k: "cb_today", l: "Hôm nay gọi" },
+            { k: "cb_tomorrow", l: "Ngày mai gọi" },
+            { k: "cb_2d", l: "2 Ngày nữa gọi" },
+            { k: "cb_3d", l: "3 Ngày nữa gọi" },
+            { k: "cb_week", l: "Tuần này gọi" },
+            { k: "cb_nextweek", l: "Tuần sau gọi" },
+            { k: "cb_month", l: "Tháng này gọi" },
         ];
     }
     // Các mốc XA — ẩn trong menu xổ xuống.
     get cbMoreOptions() {
         return [
-            { k: "cb_nextmonth", l: "Tháng sau" },
-            { k: "cb_3month", l: "3 Tháng sau" },
-            { k: "cb_4month", l: "4 Tháng sau" },
-            { k: "cb_6month", l: "6 Tháng sau" },
-            { k: "cb_1year", l: "1 Năm sau" },
+            { k: "cb_nextmonth", l: "Tháng sau gọi" },
+            { k: "cb_3month", l: "3 Tháng sau gọi" },
+            { k: "cb_4month", l: "4 Tháng sau gọi" },
+            { k: "cb_6month", l: "6 Tháng sau gọi" },
+            { k: "cb_1year", l: "1 Năm sau gọi" },
         ];
     }
     _cbMatch(l, key) {
@@ -1781,8 +1849,13 @@ export class VdCrmDashboard extends Component {
     // ===== Helper dùng CHUNG cho 2 thanh lọc (scope: 'new' = KHÁCH MỚI · 'prob' = TCG/XLVĐ)
     setFilter(scope, n) { scope === "new" ? this.setNewDayFilter(n) : this.setDayFilter(n); }
     filterVal(scope) { return scope === "new" ? this.state.newDayFilter : this.state.dayFilter; }
-    filterCount(scope, k) { return scope === "new" ? this.newDayFilterCount(k) : this.dayFilterCount(k); }
-    filterAllCount(scope) { return scope === "new" ? this.newDayFilterAllCount : this.dayFilterAllCount; }
+    filterCount(scope, k) {
+        const s = this._dayStatsCached(scope);
+        if (k === "cb_none") return s.none;
+        if (typeof k === "string") return s.cb[k] || 0;
+        return s.days[k] || 0;
+    }
+    filterAllCount(scope) { return this._dayStatsCached(scope).all; }
     toggleCbMore(scope) { this.state.cbMoreOpen = this.state.cbMoreOpen === scope ? "" : scope; }
     setFilterMore(scope, k) { this.setFilter(scope, k); this.state.cbMoreOpen = ""; }
     cbMoreActive(scope) { const v = this.filterVal(scope); return this.cbMoreOptions.some((o) => o.k === v); }
