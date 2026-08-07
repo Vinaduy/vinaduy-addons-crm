@@ -2545,18 +2545,23 @@
 
                         <!-- ===== FILTER hover cho 2 bảng TCG + XLVD (user spec 2026-05-31).
                              Đưa chuột vào chip = tự lọc/sắp xếp. ===== -->
-                        <div t-if="isNewStageSplit" class="o_vd_problem_filter_bar">
+                        <div t-if="isNewStageSplit" class="o_vd_problem_filter_bar o_vd_dayfilter_bar">
                             <span class="o_vd_pfilter_lbl">🔎 Lọc số ngày chưa gọi:</span>
-                            <span class="o_vd_pfilter_chip o_vd_pf_all"
-                                  t-att-class="!state.dayFilter ? 'o_vd_pfilter_on' : ''"
+                            <span class="o_vd_daybtn o_vd_daybtn_all"
+                                  t-att-class="!state.dayFilter ? 'o_vd_daybtn_on' : ''"
                                   t-on-click="() => this.setDayFilter(0)"
-                                  title="Xem tất cả (mặc định)">↺ Tất cả</span>
+                                  title="Xem tất cả (mặc định)">
+                                <span class="o_vd_daybtn_main">↺ Tất cả</span>
+                                <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterAllCount"/></span>
+                            </span>
                             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
-                                  class="o_vd_pfilter_chip o_vd_pf_day"
-                                  t-att-class="state.dayFilter === d ? 'o_vd_pfilter_on' : ''"
+                                  class="o_vd_daybtn"
+                                  t-att-class="state.dayFilter === d ? 'o_vd_daybtn_on' : ''"
                                   t-on-click="() => this.setDayFilter(d)"
                                   t-att-title="dayRangeTitle(d)">
-                                <t t-esc="d"/> Ngày chưa gọi
+                                <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
+                                <span class="o_vd_daybtn_lbl">Ngày<br/>chưa gọi</span>
+                                <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(d)"/></span>
                             </span>
                         </div>
 

@@ -1726,6 +1726,29 @@ export class VdCrmDashboard extends Component {
         const up = (i >= 0 && i < opts.length - 1) ? opts[i + 1] : null;
         return up ? `KH chưa gọi ${d}–${up} ngày` : `KH chưa gọi từ ${d} ngày trở lên`;
     }
+    // Danh sách gộp (unique) 2 bảng TCG + XLVD — dùng để ĐẾM số khách theo khoảng ngày.
+    get _dayFilterPool() {
+        const seen = new Set();
+        const out = [];
+        for (const l of [...(this.state.leadsWithProblemsAll || []),
+                         ...(this.state.leadsUrgentConstructionAll || [])]) {
+            if (l && l.id != null && !seen.has(l.id)) { seen.add(l.id); out.push(l); }
+        }
+        return out;
+    }
+    // Số khách rơi vào ĐÚNG khoảng của chip d (loại trừ nhau).
+    dayFilterCount(d) {
+        const opts = this.dayFilterOptions;
+        const i = opts.indexOf(d);
+        const upper = (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
+        let c = 0;
+        for (const l of this._dayFilterPool) {
+            const dd = l.days_since_call || 0;
+            if (dd >= d && dd < upper) c++;
+        }
+        return c;
+    }
+    get dayFilterAllCount() { return this._dayFilterPool.length; }
 
     // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
     // 2026-05-31). null = giữ thứ tự gốc.
