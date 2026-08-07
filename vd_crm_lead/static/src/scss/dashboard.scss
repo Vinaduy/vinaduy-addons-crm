@@ -6463,6 +6463,40 @@
         .o_vd_daybtn_main { color: #c92a2a; } }
     .o_vd_daybtn_overdue.o_vd_daybtn_on { background: #c92a2a; border-color: #c92a2a;
         .o_vd_daybtn_main { color: #fff; } }
+    /* Chip "Không hẹn" — trung tính (xám). */
+    .o_vd_daybtn_none { border-color: #dee2e6; background: #f1f3f5;
+        .o_vd_daybtn_main { color: #495057; } }
+    .o_vd_daybtn_none.o_vd_daybtn_on { background: #868e96; border-color: #868e96;
+        .o_vd_daybtn_main { color: #fff; } }
+
+    /* 2 DÒNG lọc riêng: LỊCH HẸN (cam) — kẻ đứt — CHƯA GỌI (chàm). */
+    .o_vd_dayfilter_cbrow { margin: 0.2rem 0 0.1rem; padding: 0.1rem 0.2rem; }
+    .o_vd_dayfilter_daysrow { margin: 0 0 0.55rem; padding: 0.45rem 0.2rem 0.1rem;
+        border-top: 1px dashed #e2e5ef; }
+
+    /* Menu "Xa hơn ▾" — dropdown các mốc xa (Tháng sau … 1 Năm sau). */
+    .o_vd_daymore { position: relative; display: inline-flex; }
+    .o_vd_daybtn_more { border-color: #ffd8a8; background: #fff4e6;
+        .o_vd_daybtn_main { color: #b35309; } }
+    .o_vd_daybtn_more.o_vd_daybtn_on { background: #e8590c; border-color: #e8590c;
+        .o_vd_daybtn_main { color: #fff; } }
+    .o_vd_daymore_menu {
+        position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+        min-width: 190px; padding: 0.3rem;
+        background: #fff; border: 1px solid #e2e5ef; border-radius: 10px;
+        box-shadow: 0 8px 26px rgba(15, 23, 42, 0.18);
+        display: flex; flex-direction: column; gap: 0.12rem;
+    }
+    .o_vd_daymore_item {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+        padding: 0.34rem 0.55rem; border-radius: 7px; cursor: pointer;
+        font-size: 0.82rem; font-weight: 700; color: #3b4256;
+        &:hover { background: #fff4e6; }
+        &.o_on { background: #e8590c; color: #fff;
+            .o_vd_daymore_cnt { color: #fff; } }
+        .o_vd_daymore_lbl { white-space: nowrap; }
+        .o_vd_daymore_cnt { font-size: 0.75rem; font-weight: 800; color: #e8590c; }
+    }
     /* ===== Nút 🆘 SOS — gọn (bằng nút Gọi lại), "SOS" to; đỏ tĩnh / đỏ nháy / xanh ===== */
     .o_vd_sos {
         position: relative;

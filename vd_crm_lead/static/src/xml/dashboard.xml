@@ -2322,32 +2322,10 @@
                         <div class="o_vd_boards_col">
                         <!-- BỘ LỌC SỐ NGÀY CHƯA GỌI cho bảng KHÁCH MỚI — đặt NGOÀI section
                              (giống bộ lọc bảng THI CÔNG GẤP). Độc lập với bộ lọc TCG/XLVĐ. -->
-                        <div t-if="isNewStageSplit and _leadsNoProblemsRaw.length"
-                             class="o_vd_problem_filter_bar o_vd_dayfilter_bar o_vd_dayfilter_new">
-                            <span class="o_vd_pfilter_lbl">🔎 Lọc KHÁCH MỚI theo số ngày chưa gọi:</span>
-                            <span class="o_vd_daybtn o_vd_daybtn_all"
-                                  t-att-class="!state.newDayFilter ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setNewDayFilter(0)" title="Xem tất cả">
-                                <span class="o_vd_daybtn_main">↺ Tất cả</span>
-                                <span class="o_vd_daybtn_cnt"><t t-esc="newDayFilterAllCount"/></span>
-                            </span>
-                            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_overdue' ? ' o_vd_daybtn_overdue' : '') + (state.newDayFilter === cb.k ? ' o_vd_daybtn_on' : '')"
-                                  t-on-click="() => this.setNewDayFilter(cb.k)"
-                                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
-                                <span class="o_vd_daybtn_main">⏰ <t t-esc="cb.l"/></span>
-                                <span t-if="newDayFilterCount(cb.k)" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount(cb.k)"/></span>
-                            </span>
-                            <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
-                                  class="o_vd_daybtn"
-                                  t-att-class="state.newDayFilter === d ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setNewDayFilter(d)"
-                                  t-att-title="dayRangeTitle(d)">
-                                <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
-                                <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
-                                <span t-if="newDayFilterCount(d)" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount(d)"/></span>
-                            </span>
-                        </div>
+                        <t t-if="isNewStageSplit and _leadsNoProblemsRaw.length">
+                            <t t-set="scope" t-value="'new'"/>
+                            <t t-call="vd_crm_lead.DayFilterBar"/>
+                        </t>
                         <section class="o_vd_lead_section"
                                  t-att-class="state.alertFilter ? 'o_vd_lead_section o_vd_lead_section_alert' : 'o_vd_lead_section'">
                             <!-- KHOÁ TOÀN BỘ (user spec 2026-06-12): tồn >ngưỡng KH mới
@@ -2573,32 +2551,10 @@
 
                         <!-- ===== FILTER hover cho 2 bảng TCG + XLVD (user spec 2026-05-31).
                              Đưa chuột vào chip = tự lọc/sắp xếp. ===== -->
-                        <div t-if="isNewStageSplit" class="o_vd_problem_filter_bar o_vd_dayfilter_bar">
-                            <span class="o_vd_pfilter_lbl">🔎 Lọc số ngày chưa gọi:</span>
-                            <span class="o_vd_daybtn o_vd_daybtn_all"
-                                  t-att-class="!state.dayFilter ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setDayFilter(0)"
-                                  title="Xem tất cả (mặc định)">
-                                <span class="o_vd_daybtn_main">↺ Tất cả</span>
-                                <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterAllCount"/></span>
-                            </span>
-                            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_overdue' ? ' o_vd_daybtn_overdue' : '') + (state.dayFilter === cb.k ? ' o_vd_daybtn_on' : '')"
-                                  t-on-click="() => this.setDayFilter(cb.k)"
-                                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
-                                <span class="o_vd_daybtn_main">⏰ <t t-esc="cb.l"/></span>
-                                <span t-if="dayFilterCount(cb.k)" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(cb.k)"/></span>
-                            </span>
-                            <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
-                                  class="o_vd_daybtn"
-                                  t-att-class="state.dayFilter === d ? 'o_vd_daybtn_on' : ''"
-                                  t-on-click="() => this.setDayFilter(d)"
-                                  t-att-title="dayRangeTitle(d)">
-                                <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
-                                <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
-                                <span t-if="dayFilterCount(d)" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount(d)"/></span>
-                            </span>
-                        </div>
+                        <t t-if="isNewStageSplit">
+                            <t t-set="scope" t-value="'prob'"/>
+                            <t t-call="vd_crm_lead.DayFilterBar"/>
+                        </t>
 
                         <!-- BẢNG "KHÁCH ĐÃ LÀM HỢP ĐỒNG" đã BỎ theo yêu cầu user 2026-08-06. -->
 
@@ -3351,6 +3307,65 @@
          đậm + đếm ngày; quá hạn → cron khoá mở KHÁCH MỚI.
          Dùng: t-set pf = state.problem_find.urgent | .xlvd  rồi t-call.
          ============================================================ -->
+    <!-- ============================================================
+         THANH LỌC dùng CHUNG cho bảng KHÁCH MỚI + THI CÔNG GẤP/XLVĐ.
+         t-set scope='new' (KHÁCH MỚI) | 'prob' (TCG/XLVĐ) trước khi t-call.
+         2 DÒNG riêng: (1) LỊCH HẸN GỌI — cửa sổ trượt theo ngày hẹn, +menu "Xa hơn"
+         cho các mốc xa; (2) CHƯA GỌI X NGÀY — chỉ KH chưa đặt hẹn.
+         ============================================================ -->
+    <t t-name="vd_crm_lead.DayFilterBar">
+        <!-- DÒNG 1: LỊCH HẸN GỌI -->
+        <div class="o_vd_dayfilter_bar o_vd_dayfilter_cbrow">
+            <span class="o_vd_pfilter_lbl">📅 LỊCH HẸN GỌI:</span>
+            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_today' ? ' o_vd_daybtn_overdue' : '') + (filterVal(scope) === cb.k ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, cb.k)"
+                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
+                <span class="o_vd_daybtn_main"><t t-esc="cb.l"/></span>
+                <span t-if="filterCount(scope, cb.k)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, cb.k)"/></span>
+            </span>
+            <!-- Không hẹn -->
+            <span t-att-class="'o_vd_daybtn o_vd_daybtn_none' + (filterVal(scope) === 'cb_none' ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, 'cb_none')"
+                  title="Khách CHƯA đặt lịch hẹn gọi lại">
+                <span class="o_vd_daybtn_main">Không hẹn</span>
+                <span t-if="filterCount(scope, 'cb_none')" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, 'cb_none')"/></span>
+            </span>
+            <!-- Menu XA HƠN (Tháng sau … 1 Năm sau) -->
+            <span class="o_vd_daymore">
+                <span t-att-class="'o_vd_daybtn o_vd_daybtn_more' + (cbMoreActive(scope) ? ' o_vd_daybtn_on' : '')"
+                      t-on-click="() => this.toggleCbMore(scope)"
+                      title="Các mốc xa hơn">
+                    <span class="o_vd_daybtn_main">Xa hơn ▾</span>
+                </span>
+                <div t-if="state.cbMoreOpen === scope" class="o_vd_daymore_menu">
+                    <div t-foreach="cbMoreOptions" t-as="cm" t-key="cm.k"
+                         t-att-class="'o_vd_daymore_item' + (filterVal(scope) === cm.k ? ' o_on' : '')"
+                         t-on-click="() => this.setFilterMore(scope, cm.k)">
+                        <span class="o_vd_daymore_lbl"><t t-esc="cm.l"/></span>
+                        <span class="o_vd_daymore_cnt"><t t-esc="filterCount(scope, cm.k)"/></span>
+                    </div>
+                </div>
+            </span>
+        </div>
+        <!-- DÒNG 2: CHƯA GỌI X NGÀY (chỉ KH chưa đặt hẹn) -->
+        <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
+            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, 0)" title="Xem tất cả">
+                <span class="o_vd_daybtn_main">↺ Tất cả</span>
+                <span class="o_vd_daybtn_cnt"><t t-esc="filterAllCount(scope)"/></span>
+            </span>
+            <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
+                  t-att-class="'o_vd_daybtn' + (filterVal(scope) === d ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, d)"
+                  t-att-title="dayRangeTitle(d)">
+                <span class="o_vd_daybtn_num"><t t-esc="d"/></span>
+                <span class="o_vd_daybtn_lbl">ngày chưa gọi</span>
+                <span t-if="filterCount(scope, d)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, d)"/></span>
+            </span>
+        </div>
+    </t>
+
     <!-- ============================================================
          GIÁM ĐỐC: 1 nút "NHÂN VIÊN" TO (gấp đôi) trên đầu bảng NV (user spec
          2026-06-20 r2). Hover → giãn bảng hiện TOÀN BỘ NV; rời chuột khỏi bảng /

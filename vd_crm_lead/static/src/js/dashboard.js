@@ -302,6 +302,7 @@ export class VdCrmDashboard extends Component {
             hoverTile: "",
             // Ô mở bằng CLICK-ghim (KH HỦY): bấm mở, bấm lại / bấm ra ngoài đóng.
             pinnedTile: "",
+            cbMoreOpen: "",
             // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
             // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
             // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
@@ -469,6 +470,10 @@ export class VdCrmDashboard extends Component {
                 // GHI ÂM THAM KHẢO → đóng nếu bấm ngoài filter + popover.
                 if (this.state.refRecHover && !closest('.o_vd_refrec_filter') && !closest('.o_vd_refrec_pop')) {
                     this.state.refRecHover = null;
+                }
+                // Menu "Xa hơn" của bộ lọc hẹn → đóng nếu bấm ngoài.
+                if (this.state.cbMoreOpen && !closest('.o_vd_daymore')) {
+                    this.state.cbMoreOpen = "";
                 }
             };
             document.addEventListener('click', this._onDocClickPin, false);
@@ -1730,26 +1735,57 @@ export class VdCrmDashboard extends Component {
         const d0 = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
         return Math.round((d0(t) - d0(new Date())) / 86400000);
     }
-    // Các nhóm lọc theo THỜI ĐIỂM gọi lại (tự xoay theo ngày). Chỉ KH ĐÃ đặt hẹn.
+    // Nhóm lọc LỊCH HẸN GỌI — CỬA SỔ TRƯỢT theo số ngày tới ngày hẹn (tự xoay mỗi
+    // ngày). Hôm nay gồm cả quá hạn (d<=0 = cần gọi hôm nay).
     get cbBucketOptions() {
         return [
-            { k: "cb_overdue", l: "Quá hạn" },
             { k: "cb_today", l: "Hôm nay" },
             { k: "cb_tomorrow", l: "Ngày mai" },
+            { k: "cb_2d", l: "2 Ngày nữa" },
+            { k: "cb_3d", l: "3 Ngày nữa" },
             { k: "cb_week", l: "Tuần này" },
+            { k: "cb_nextweek", l: "Tuần sau" },
             { k: "cb_month", l: "Tháng này" },
         ];
     }
+    // Các mốc XA — ẩn trong menu xổ xuống.
+    get cbMoreOptions() {
+        return [
+            { k: "cb_nextmonth", l: "Tháng sau" },
+            { k: "cb_3month", l: "3 Tháng sau" },
+            { k: "cb_4month", l: "4 Tháng sau" },
+            { k: "cb_6month", l: "6 Tháng sau" },
+            { k: "cb_1year", l: "1 Năm sau" },
+        ];
+    }
     _cbMatch(l, key) {
+        if (key === "cb_none") return !(l && l.callback_date);
         const d = this._cbDaysFromNow(l);
         if (d === null) return false;
-        if (key === "cb_overdue") return d < 0;
-        if (key === "cb_today") return d === 0;
-        if (key === "cb_tomorrow") return d === 1;
-        if (key === "cb_week") return d >= 2 && d <= 7;
-        if (key === "cb_month") return d >= 8 && d <= 31;
-        return false;
+        switch (key) {
+            case "cb_today": return d <= 0;
+            case "cb_tomorrow": return d === 1;
+            case "cb_2d": return d === 2;
+            case "cb_3d": return d === 3;
+            case "cb_week": return d >= 4 && d <= 7;
+            case "cb_nextweek": return d >= 8 && d <= 14;
+            case "cb_month": return d >= 15 && d <= 30;
+            case "cb_nextmonth": return d >= 31 && d <= 60;
+            case "cb_3month": return d >= 61 && d <= 90;
+            case "cb_4month": return d >= 91 && d <= 120;
+            case "cb_6month": return d >= 121 && d <= 180;
+            case "cb_1year": return d >= 181;
+            default: return false;
+        }
     }
+    // ===== Helper dùng CHUNG cho 2 thanh lọc (scope: 'new' = KHÁCH MỚI · 'prob' = TCG/XLVĐ)
+    setFilter(scope, n) { scope === "new" ? this.setNewDayFilter(n) : this.setDayFilter(n); }
+    filterVal(scope) { return scope === "new" ? this.state.newDayFilter : this.state.dayFilter; }
+    filterCount(scope, k) { return scope === "new" ? this.newDayFilterCount(k) : this.dayFilterCount(k); }
+    filterAllCount(scope) { return scope === "new" ? this.newDayFilterAllCount : this.dayFilterAllCount; }
+    toggleCbMore(scope) { this.state.cbMoreOpen = this.state.cbMoreOpen === scope ? "" : scope; }
+    setFilterMore(scope, k) { this.setFilter(scope, k); this.state.cbMoreOpen = ""; }
+    cbMoreActive(scope) { const v = this.filterVal(scope); return this.cbMoreOptions.some((o) => o.k === v); }
     // Lọc list. n=0 → tất cả; n='cb_*' → nhóm theo ngày hẹn; n số → "chưa gọi X ngày"
     // (CHỈ KH CHƯA đặt hẹn — KH có hẹn nằm ở nhóm cb_* tương ứng).
     _dayBucketFilter(list, n) {
