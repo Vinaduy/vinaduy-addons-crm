@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState, onWillStart } from "@odoo/owl";
+import { Component, useState, onWillStart, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -20,6 +20,7 @@ export class VdStringeeAssignmentBoard extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
+        this.stringee = useService("stringee");
         this.state = useState({
             carriers: [],
             users: [],
@@ -30,8 +31,15 @@ export class VdStringeeAssignmentBoard extends Component {
             hover: null, // {number, top, left}
             // Popup chia số: open + map chọn số/NV theo id
             dist: { open: false, nums: {}, users: {} },
+            // Popup GỌI THỬ 1 số (nút điện thoại trên mỗi chip)
+            test: {
+                open: false, hotline: null, phone: "",
+                phase: "idle",   // idle | calling | rang | answered | nores | error
+                msg: "", lastId: 0, secs: 0,
+            },
         });
         onWillStart(() => this.load());
+        onWillUnmount(() => this._stopTestPoll());
     }
 
     async load() {
@@ -168,6 +176,185 @@ export class VdStringeeAssignmentBoard extends Component {
             this.notification.add(res.message || "Đã chia số", {
                 type: res.ok ? "success" : "warning",
                 sticky: !res.ok,
+            });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    // ==================== GỌI THỬ 1 SỐ (nút điện thoại) ====================
+    // Vì sao cần: sức khoẻ số tự tính theo lịch sử gọi, mà số bị nhà mạng chặn
+    // nằm im vài ngày là cửa sổ đánh giá rỗng → tự xanh lại → chia cho NV → NV
+    // gọi vào hư không. Admin bấm gọi thử 1 cuộc là biết CHẮC, rồi chốt tay.
+    async openTest(ev, hotline) {
+        ev.stopPropagation();
+        this.state.hover = null;
+        this.state.test = {
+            open: true, hotline, phone: "",
+            phase: "idle", msg: "", lastId: 0, secs: 0,
+            // Gợi ý số KH CÙNG MẠNG — test nội mạng mới đúng cái NV gặp phải.
+            cands: [], candLabel: "", candLoading: true, candSearch: "",
+        };
+        try {
+            const res = await this.orm.call(
+                MODEL, "vd_test_call_candidates", [hotline.id]);
+            if (!this.state.test.open || this.state.test.hotline.id !== hotline.id) {
+                return;   // admin đã đóng / mở số khác trong lúc chờ
+            }
+            this.state.test.cands = res.leads || [];
+            this.state.test.candLabel = res.label || "";
+        } catch (_e) {
+            this.state.test.cands = [];
+        } finally {
+            this.state.test.candLoading = false;
+        }
+    }
+
+    get testCandidates() {
+        const t = this.state.test;
+        const s = (t.candSearch || "").trim().toLowerCase();
+        if (!s) {
+            return t.cands;
+        }
+        return t.cands.filter(
+            (c) => (c.name || "").toLowerCase().includes(s)
+                || (c.phone || "").includes(s)
+        );
+    }
+
+    onCandSearch(ev) {
+        this.state.test.candSearch = ev.target.value || "";
+    }
+
+    pickCandidate(c) {
+        this.state.test.phone = (c.phone || "").replace(/[^0-9+]/g, "");
+    }
+
+    closeTest() {
+        this._stopTestPoll();
+        // Còn đang đổ chuông mà đóng popup → cúp luôn, không để nó reo tiếp.
+        if (this.state.test.phase === "calling") {
+            try { this.stringee.hangup(); } catch (_e) {}
+        }
+        this.state.test.open = false;
+    }
+
+    onTestPhoneInput(ev) {
+        this.state.test.phone = (ev.target.value || "").replace(/[^0-9+]/g, "");
+    }
+
+    _stopTestPoll() {
+        if (this._testTimer) {
+            clearInterval(this._testTimer);
+            this._testTimer = null;
+        }
+    }
+
+    get testCanCall() {
+        const t = this.state.test;
+        return t.phone.replace(/[^0-9]/g, "").length >= 9 && t.phase !== "calling";
+    }
+
+    async doTestCall() {
+        const t = this.state.test;
+        if (!this.testCanCall || !t.hotline) {
+            return;
+        }
+        this._stopTestPoll();
+        t.phase = "calling";
+        t.msg = "Đang gọi… chờ đổ chuông";
+        t.secs = 0;
+        try {
+            const begin = await this.orm.call(
+                MODEL, "vd_test_call_begin", [t.hotline.id]);
+            if (begin.error) {
+                t.phase = "error";
+                t.msg = begin.error;
+                return;
+            }
+            t.lastId = begin.last_id || 0;
+            // Gọi ĐÚNG đường NV vẫn gọi (Web SDK, fallback REST) nhưng ÉP đầu số
+            // đang kiểm tra → kết quả phản ánh đúng trải nghiệm của NV.
+            // KHÔNG await: promise này chỉ xong khi cuộc gọi kết thúc, trong khi
+            // vòng soi kết quả phải chạy NGAY từ giây đầu.
+            this.stringee.call(t.phone, `Gọi thử ${t.hotline.number}`, {
+                forceFrom: t.hotline.number,
+            }).catch((e) => {
+                const t3 = this.state.test;
+                if (t3.phase === "calling") {
+                    t3.phase = "error";
+                    t3.msg = (e && e.message) || "Không gọi được.";
+                    this._stopTestPoll();
+                }
+            });
+        } catch (e) {
+            t.phase = "error";
+            t.msg = (e && e.message) || "Không khởi tạo được cuộc gọi thử.";
+            return;
+        }
+        // Soi kết quả từ SERVER (raw_events) — cùng nguồn với cron sức khoẻ, nên
+        // kết luận ở đây khớp đúng với cái cron sẽ chấm.
+        this._testTimer = setInterval(async () => {
+            const t2 = this.state.test;
+            if (!t2.open) {
+                this._stopTestPoll();
+                return;
+            }
+            t2.secs += 2;
+            let res;
+            try {
+                res = await this.orm.call(
+                    MODEL, "vd_test_call_status", [t2.hotline.id, t2.lastId]);
+            } catch (_e) {
+                return;
+            }
+            if (res && res.found) {
+                if (res.answered) {
+                    t2.phase = "answered";
+                    t2.msg = "ĐÃ NGHE MÁY — số này gọi ra bình thường.";
+                    this._stopTestPoll();
+                    return;
+                }
+                if (res.rang) {
+                    t2.phase = "rang";
+                    t2.msg = "CÓ ĐỔ CHUÔNG — số còn sống (khách chưa bắt máy).";
+                }
+                const done = ["ended", "declined", "no_answer", "failed", "busy"]
+                    .includes(res.state);
+                if (done && !res.rang) {
+                    t2.phase = "nores";
+                    t2.msg = "KHÔNG hề đổ chuông"
+                        + (res.hangup_cause ? ` (${res.hangup_cause})` : "")
+                        + " — nhiều khả năng nhà mạng đã chặn số này.";
+                    this._stopTestPoll();
+                    return;
+                }
+            }
+            if (t2.secs >= 46) {
+                this._stopTestPoll();
+                if (t2.phase === "calling") {
+                    t2.phase = "nores";
+                    t2.msg = "Hết 45 giây vẫn KHÔNG đổ chuông — coi như số chặn.";
+                }
+            }
+        }, 2000);
+    }
+
+    async testVerdict(rang) {
+        const t = this.state.test;
+        if (!t.hotline || this.state.busy) {
+            return;
+        }
+        this._stopTestPoll();
+        this.state.busy = true;
+        try {
+            const res = await this.orm.call(
+                MODEL, "vd_test_call_verdict", [t.hotline.id, !!rang]);
+            this.state.test.open = false;
+            await this.load();
+            this.notification.add(res.message || "Đã ghi kết quả", {
+                type: rang ? "success" : "warning",
+                sticky: !rang,
             });
         } finally {
             this.state.busy = false;

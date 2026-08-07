@@ -198,6 +198,112 @@ class VdStringeeHotline(models.Model):
                     h.user_ids.write({'stringee_from_number_id': False})
         return True
 
+    # ========================= GỌI THỬ 1 SỐ (admin) =========================
+    # Bệnh trước đó: số bị nhà mạng chặn → 4 ngày không ai gọi → cửa sổ đánh giá
+    # RỖNG → tự chấm 'alive' trở lại → chia cho NV → chết tiếp → cron gỡ. Admin
+    # không có cách nào KIỂM CHỨNG số còn sống hay không ngoài việc thả cho NV
+    # gọi thật. Bộ 3 method dưới cho admin tự gọi thử 1 số bất kỳ rồi CHỐT kết quả.
+    @api.model
+    def vd_test_call_begin(self, hotline_id):
+        """Mốc trước khi gọi thử: trả id cuộc gọi cuối của số này để lát nữa chỉ
+        soi những cuộc SINH RA SAU mốc (khỏi nhầm với lịch sử cũ)."""
+        self._check_board_access()
+        h = self.browse(hotline_id)
+        if not h.exists():
+            return {'error': 'Không tìm thấy số.'}
+        last = self.env['stringee.call'].sudo().search(
+            [('caller_number', '=', h.number)], order='id desc', limit=1)
+        return {'number': h.number, 'carrier': h.carrier, 'last_id': last.id or 0}
+
+    @api.model
+    def vd_test_call_candidates(self, hotline_id, limit=24):
+        """Gợi ý số KHÁCH CÙNG MẠNG với số đang test (user spec 2026-08-07).
+
+        Test số Viettel thì phải gọi vào số Viettel mới biết nó có bị chặn nội
+        mạng hay không — bắt admin tự nhớ số khách nào mạng nào là vô lý. Lọc
+        theo ĐẦU SỐ ngay trong SQL (LIKE '09xx%') cho nhanh, khỏi tải cả bảng.
+        """
+        self._check_board_access()
+        h = self.browse(hotline_id)
+        if not h.exists():
+            return {'carrier': '', 'label': '', 'leads': []}
+        label = dict(_CARRIER_ORDER).get(h.carrier, h.carrier)
+        prefixes = _CARRIER_PREFIX.get(h.carrier)
+        if not prefixes:
+            # Số cố định / mạng lạ: không suy được đầu số khách → khỏi gợi ý.
+            return {'carrier': h.carrier, 'label': label, 'leads': []}
+        # KH lưu SĐT dạng '09xxxxxxxx' (write() đã normalize 84 → 0).
+        domain = [('phone', '!=', False)]
+        or_terms = ['|'] * (len(prefixes) - 1)
+        domain += or_terms + [('phone', '=like', '0%s%%' % p) for p in sorted(prefixes)]
+        leads = self.env['crm.lead'].sudo().search(
+            domain, order='id desc', limit=int(limit) * 3)
+        seen, out = set(), []
+        for lead in leads:
+            phone = _digits_only(lead.phone)
+            if not phone or phone in seen:
+                continue
+            seen.add(phone)
+            out.append({
+                'name': lead.partner_name or lead.name or '(KH)',
+                'phone': lead.phone,
+                'user': lead.user_id.name or '',
+            })
+            if len(out) >= int(limit):
+                break
+        return {'carrier': h.carrier, 'label': label, 'leads': out}
+
+    @api.model
+    def vd_test_call_status(self, hotline_id, last_id=0):
+        """Soi cuộc gọi thử vừa bấm. Tiêu chí ĐỔ CHUÔNG dùng ĐÚNG nguồn mà cron
+        sức khoẻ dùng (raw_events ringing/answered / answer_time) — KHÔNG dùng
+        duration (hay = 0 dù cuộc nối thật)."""
+        self._check_board_access()
+        h = self.browse(hotline_id)
+        if not h.exists():
+            return {'error': 'Không tìm thấy số.'}
+        call = self.env['stringee.call'].sudo().search([
+            ('caller_number', '=', h.number),
+            ('id', '>', int(last_id or 0)),
+        ], order='id desc', limit=1)
+        if not call:
+            return {'found': False}
+        raw = (call.raw_events or '').lower()
+        return {
+            'found': True,
+            'state': call.state or '',
+            'rang': bool(call.answer_time) or 'ringing' in raw or 'answered' in raw,
+            'answered': 'answered' in raw or bool(call.answer_time),
+            'hangup_cause': call.hangup_cause or '',
+            'callee': call.callee_number or '',
+        }
+
+    @api.model
+    def vd_test_call_verdict(self, hotline_id, rang):
+        """Admin CHỐT kết quả gọi thử → ghi thẳng sức khoẻ số.
+
+        - rang=True  → 'alive': số dùng được, bảng kho hết gạch đỏ, chia được ngay.
+        - rang=False → 'dead' : cron sẽ gỡ số khỏi mọi NV (không để NV gọi vào
+          hư không). Trả kèm danh sách NV đang dùng số để admin biết ai mất số.
+        """
+        self._check_board_access()
+        h = self.browse(hotline_id)
+        if not h.exists():
+            return {'ok': False, 'message': 'Không tìm thấy số.'}
+        users = h.assigned_user_ids.mapped('name')
+        h.write({
+            'vd_health': 'alive' if rang else 'dead',
+            'vd_health_at': fields.Datetime.now(),
+            # Kết quả gọi thử là bằng chứng THẬT → không cần cờ "ép xanh" thủ công.
+            'vd_force_alive': False,
+        })
+        if rang:
+            return {'ok': True, 'message': 'Đã chốt: %s CÒN SỐNG.' % h.number}
+        msg = 'Đã chốt: %s CHẾT.' % h.number
+        if users:
+            msg += ' Cron sẽ gỡ khỏi %d NV: %s.' % (len(users), ', '.join(users))
+        return {'ok': True, 'message': msg}
+
     # ===================== BẢNG KÉO-THẢ (OWL client action) =====================
     def _check_board_access(self):
         """Chỉ admin / quản lý sale được thao tác bảng phân số."""

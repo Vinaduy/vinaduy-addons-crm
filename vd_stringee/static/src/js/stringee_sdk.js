@@ -721,7 +721,10 @@ export const stringeeService = {
         // ===================================================================
         // Outbound call — qua Web SDK nếu có user, ngược lại fallback REST.
         // ===================================================================
-        async function call(targetNumberRaw, displayName) {
+        // opts.forceFrom = ép đầu số gọi đi (GỌI THỬ 1 số từ bảng kho số). Bỏ qua
+        // luật "cùng mạng" vì mục đích là kiểm tra CHÍNH đầu số đó còn sống không.
+        async function call(targetNumberRaw, displayName, opts) {
+            const forceFrom = (opts && opts.forceFrom) || "";
             console.log("[VD-STRINGEE] call() invoked with:", targetNumberRaw,
                         " | currentCall:", !!state.currentCall,
                         " | inFlight:", !!state.inFlight,
@@ -793,7 +796,8 @@ export const stringeeService = {
                 // Không có user → REST fallback (server-side dedup 30s)
                 if (!client) {
                     const res = await rpc("/stringee/click_to_call", {
-                        callee: targetNumber, use_switchboard: !!state.useSwitchboard });
+                        callee: targetNumber, use_switchboard: !!state.useSwitchboard,
+                        force_from: forceFrom || null });
                     notification.add(
                         res.error
                             ? `Lỗi: ${res.error}`
@@ -814,20 +818,27 @@ export const stringeeService = {
                 // cố định theo token). Không có số cùng mạng → BÁO LỖI, KHÔNG gọi.
                 let fromNumber = "";
                 let fromCarrier = "";
-                try {
-                    const r = await rpc("/stringee/resolve_from_number", {
-                        callee: targetNumber, use_switchboard: !!state.useSwitchboard });
-                    if (r && r.error) {
-                        // Server soạn sẵn thông báo rõ: thiếu số mạng nào / khách khác mạng.
-                        showCallAlert("danger", "Không gọi được — không có số cùng mạng", r.error);
+                if (forceFrom) {
+                    // GỌI THỬ: dùng thẳng số admin chỉ định, không hỏi server —
+                    // mục đích là kiểm chứng CHÍNH đầu số đó, kể cả khi nó khác
+                    // mạng khách hoặc chưa gán cho ai.
+                    fromNumber = forceFrom;
+                } else {
+                    try {
+                        const r = await rpc("/stringee/resolve_from_number", {
+                            callee: targetNumber, use_switchboard: !!state.useSwitchboard });
+                        if (r && r.error) {
+                            // Server soạn sẵn thông báo rõ: thiếu số mạng nào / khách khác mạng.
+                            showCallAlert("danger", "Không gọi được — không có số cùng mạng", r.error);
+                            return null;
+                        }
+                        fromNumber = (r && r.from_number) || "";
+                        fromCarrier = (r && r.carrier) || "";
+                    } catch (_e) {
+                        showCallAlert("danger", "Không gọi được",
+                            "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.");
                         return null;
                     }
-                    fromNumber = (r && r.from_number) || "";
-                    fromCarrier = (r && r.carrier) || "";
-                } catch (_e) {
-                    showCallAlert("danger", "Không gọi được",
-                        "Không xác định được đầu số cùng mạng để gọi. Thử lại hoặc báo admin.");
-                    return null;
                 }
                 if (!fromNumber) {
                     showCallAlert("danger", "Bạn không có số để gọi",

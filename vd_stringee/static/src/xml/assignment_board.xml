@@ -52,6 +52,10 @@
                                               t-esc="n.number"/>
                                         <span class="o_vd_chip_net"/>
                                         <span class="o_vd_chip_count" t-esc="n.user_count"/>
+                                        <span class="o_vd_chip_test" title="Gọi thử số này"
+                                              t-on-click="(ev) => this.openTest(ev, n)">
+                                            <i class="fa fa-phone"/>
+                                        </span>
                                     </span>
                                 </t>
                             </div>
@@ -176,6 +180,93 @@
                 <div t-else="" class="o_vd_dim o_vd_pop_empty">Chưa gán cho NV nào.</div>
             </div>
             </t>
+
+            <!-- ===== POPUP GỌI THỬ 1 SỐ: nhập số khách → gọi → chốt sống/chết ===== -->
+            <div t-if="state.test.open" class="o_vd_dist_overlay"
+                 t-on-click="() => this.closeTest()">
+                <div class="o_vd_test_modal" t-on-click.stop="() => {}">
+                    <div class="o_vd_dist_head">
+                        <span><i class="fa fa-phone me-2"/>Gọi thử số
+                              <b t-esc="state.test.hotline.number"/></span>
+                        <button type="button" class="o_vd_dist_close"
+                                t-on-click="() => this.closeTest()">×</button>
+                    </div>
+
+                    <div class="o_vd_test_body">
+                        <label class="o_vd_test_lbl">Số khách để gọi thử</label>
+                        <input type="text" class="o_vd_test_input"
+                               placeholder="Nhập số điện thoại (nên dùng máy cầm tay của bạn)"
+                               t-att-value="state.test.phone"
+                               t-att-disabled="state.test.phase === 'calling'"
+                               t-on-input="(ev) => this.onTestPhoneInput(ev)"/>
+                        <div class="o_vd_test_hint">
+                            Cuộc gọi đi bằng ĐÚNG đầu số
+                            <b t-esc="state.test.hotline.number"/> — nghe được chuông
+                            là số còn sống, im re là nhà mạng đã chặn.
+                        </div>
+
+                        <!-- Số khách CÙNG MẠNG: bấm 1 phát là điền, khỏi phải tự
+                             nhớ số nào mạng nào. -->
+                        <div class="o_vd_test_cands">
+                            <div class="o_vd_test_cands_h">
+                                <span>Số khách cùng mạng
+                                      <b t-esc="state.test.candLabel"/></span>
+                                <input type="text" class="o_vd_test_search ms-auto"
+                                       placeholder="Tìm tên / số…"
+                                       t-att-value="state.test.candSearch"
+                                       t-on-input="(ev) => this.onCandSearch(ev)"/>
+                            </div>
+                            <div t-if="state.test.candLoading" class="o_vd_dim">Đang tải…</div>
+                            <div t-elif="!testCandidates.length" class="o_vd_dim">
+                                Không tìm thấy khách nào cùng mạng — nhập tay số bất kỳ ở trên.
+                            </div>
+                            <div t-else="" class="o_vd_test_cand_list">
+                                <t t-foreach="testCandidates" t-as="c" t-key="c.phone">
+                                    <div class="o_vd_test_cand"
+                                         t-att-class="{'o_vd_sel': state.test.phone === c.phone}"
+                                         t-on-click="() => this.pickCandidate(c)">
+                                        <span class="o_vd_test_cand_p" t-esc="c.phone"/>
+                                        <span class="o_vd_test_cand_n" t-esc="c.name"/>
+                                        <span t-if="c.user" class="o_vd_dim" t-esc="c.user"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div t-if="state.test.phase !== 'idle'"
+                             class="o_vd_test_status"
+                             t-att-class="'o_vd_test_' + state.test.phase">
+                            <i t-if="state.test.phase === 'calling'" class="fa fa-spinner fa-spin me-2"/>
+                            <i t-elif="state.test.phase === 'answered' or state.test.phase === 'rang'"
+                               class="fa fa-check-circle me-2"/>
+                            <i t-else="" class="fa fa-times-circle me-2"/>
+                            <span t-esc="state.test.msg"/>
+                            <span t-if="state.test.phase === 'calling'" class="o_vd_dim ms-2">
+                                (<t t-esc="state.test.secs"/>s)
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="o_vd_test_foot">
+                        <button type="button" class="btn btn-primary"
+                                t-att-disabled="!testCanCall"
+                                t-on-click="() => this.doTestCall()">
+                            <i class="fa fa-phone me-1"/>GỌI THỬ
+                        </button>
+                        <span class="o_vd_dim ms-auto me-2">Chốt kết quả:</span>
+                        <button type="button" class="btn btn-success me-2"
+                                t-att-disabled="state.busy"
+                                t-on-click="() => this.testVerdict(true)">
+                            Số SỐNG
+                        </button>
+                        <button type="button" class="btn btn-danger"
+                                t-att-disabled="state.busy"
+                                t-on-click="() => this.testVerdict(false)">
+                            Số CHẾT
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- ===== POPUP CHIA SỐ: chọn số → chọn NV → CHIA SỐ ===== -->
             <div t-if="state.dist.open" class="o_vd_dist_overlay"

@@ -188,6 +188,15 @@
         border-radius: 8px;
         padding: 0 5px;
     }
+    /* Nút GỌI THỬ trên mỗi số trong kho — admin kiểm chứng số còn sống không. */
+    .o_vd_chip_test {
+        cursor: pointer;
+        font-size: 11px;
+        opacity: .5;
+        padding: 0 2px 0 4px;
+        border-left: 1px solid rgba(0, 0, 0, .12);
+        &:hover { opacity: 1; color: #0d6efd; }
+    }
     .o_vd_chip_assigned { cursor: default; }
     .o_vd_chip_x {
         cursor: pointer;
@@ -901,4 +910,118 @@
 @media (max-width: 480px) {
     .vd_dialpad_panel { right: 8px; left: 8px; width: auto; bottom: 12px; }
     .vd_dp_key, .vd_dp_call { width: 60px; height: 60px; }
+}
+
+/* ===================== POPUP GỌI THỬ 1 SỐ ===================== */
+.o_vd_test_modal {
+    width: 520px;
+    max-width: 94vw;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .32);
+    overflow: hidden;
+    animation: o_vd_dist_in .18s ease-out;
+}
+.o_vd_test_body {
+    padding: 16px 18px;
+    .o_vd_test_lbl {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475467;
+        margin-bottom: 6px;
+    }
+    .o_vd_test_input {
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+        border: 1px solid #d0d5dd;
+        border-radius: 9px;
+        &:focus { outline: none; border-color: #6c8cff; }
+    }
+    .o_vd_test_hint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #667085;
+        line-height: 1.5;
+    }
+    .o_vd_test_status {
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        background: #f2f4f7;
+        color: #344054;
+        &.o_vd_test_rang,
+        &.o_vd_test_answered { background: #e7f6ec; color: #15803d; }
+        &.o_vd_test_nores,
+        &.o_vd_test_error { background: #fdecec; color: #b42318; }
+    }
+}
+.o_vd_test_foot {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    border-top: 1px solid #eef0f2;
+    background: #fbfcfd;
+}
+
+/* Danh sách số khách CÙNG MẠNG trong popup gọi thử */
+.o_vd_test_cands {
+    margin-top: 14px;
+    border-top: 1px dashed #e3e6ea;
+    padding-top: 10px;
+    .o_vd_test_cands_h {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475467;
+        margin-bottom: 8px;
+    }
+    .o_vd_test_search {
+        width: 150px;
+        padding: 3px 8px;
+        font-size: 12px;
+        font-weight: 400;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        &:focus { outline: none; border-color: #6c8cff; }
+    }
+    .o_vd_dim { color: #98a2b3; font-size: 12px; }
+    .o_vd_test_cand_list {
+        max-height: 210px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .o_vd_test_cand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 8px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 12.5px;
+        &:hover { background: #f2f4f7; }
+        &.o_vd_sel { background: #e0ecfe; color: #1849a9; font-weight: 600; }
+        .o_vd_test_cand_p {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            flex: 0 0 auto;
+        }
+        .o_vd_test_cand_n {
+            flex: 1 1 auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
 }

@@ -420,15 +420,29 @@ class StringeeController(http.Controller):
         )
 
     @http.route('/stringee/click_to_call', type='json', auth='user')
-    def click_to_call(self, callee, partner_id=None, use_switchboard=False):
-        """Place an outbound call from the server. Used by buttons in Odoo UI."""
+    def click_to_call(self, callee, partner_id=None, use_switchboard=False,
+                      force_from=None):
+        """Place an outbound call from the server. Used by buttons in Odoo UI.
+
+        force_from: GỌI THỬ từ bảng kho số — ép đúng đầu số admin muốn kiểm tra,
+        bỏ qua luật cùng mạng / luật số đã gán. Chỉ admin bảng kho số được dùng.
+        """
         if not callee:
             return {'error': 'missing callee'}
-        # Gọi CÙNG MẠNG (user spec 2026-06-01): chọn đầu số cùng mạng KH;
-        # không có → báo lỗi, KHÔNG gọi bằng mạng khác. use_switchboard=True →
-        # gọi bằng số tổng đài (số cố định) mọi mạng.
-        resolved = request.env.user._vd_resolve_outbound(
-            callee, use_switchboard=bool(use_switchboard))
+        if force_from:
+            # Chặn người thường ép số: dùng đúng quyền của bảng phân số.
+            request.env['vd.stringee.hotline']._check_board_access()
+            hotline = request.env['vd.stringee.hotline'].sudo().search(
+                [('number', '=', force_from)], limit=1)
+            if not hotline:
+                return {'error': 'Số gọi thử %s không có trong kho số.' % force_from}
+            resolved = {'from_number': hotline.number, 'carrier': hotline.carrier}
+        else:
+            # Gọi CÙNG MẠNG (user spec 2026-06-01): chọn đầu số cùng mạng KH;
+            # không có → báo lỗi, KHÔNG gọi bằng mạng khác. use_switchboard=True →
+            # gọi bằng số tổng đài (số cố định) mọi mạng.
+            resolved = request.env.user._vd_resolve_outbound(
+                callee, use_switchboard=bool(use_switchboard))
         if resolved.get('error'):
             return {'error': resolved['error']}
         rec = request.env['stringee.call'].sudo().make_call(
