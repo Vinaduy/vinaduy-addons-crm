@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState, onWillStart, onWillUnmount } from "@odoo/owl";
+import { Component, useState, onMounted, onWillStart, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -40,7 +40,36 @@ export class VdStringeeAssignmentBoard extends Component {
             },
         });
         onWillStart(() => this.load());
-        onWillUnmount(() => this._stopTestPoll());
+        // Popup mở bằng CLICK → phải tự đóng khi bấm ra ngoài / bấm Esc.
+        this._onDocClick = (ev) => {
+            if (!this.state.hover) {
+                return;
+            }
+            const t = ev.target;
+            if (t && t.closest && (t.closest(".o_vd_pop") || t.closest(".o_vd_chip"))) {
+                return;
+            }
+            this.state.hover = null;
+        };
+        this._onDocKey = (ev) => {
+            if (ev.key !== "Escape") {
+                return;
+            }
+            if (this.state.test.open) {
+                this.closeTest();
+            } else if (this.state.hover) {
+                this.state.hover = null;
+            }
+        };
+        onMounted(() => {
+            document.addEventListener("click", this._onDocClick, true);
+            document.addEventListener("keydown", this._onDocKey);
+        });
+        onWillUnmount(() => {
+            document.removeEventListener("click", this._onDocClick, true);
+            document.removeEventListener("keydown", this._onDocKey);
+            this._stopTestPoll();
+        });
     }
 
     async load() {
@@ -85,14 +114,34 @@ export class VdStringeeAssignmentBoard extends Component {
     }
 
     // ---- Hover popover: bảng chi tiết số (NV / dùng từ / phút gọi / cuộc) ----
-    onChipEnter(ev, number) {
-        const r = ev.currentTarget.getBoundingClientRect();
-        // position:fixed theo viewport → không bị cắt bởi vùng cuộn của kho số.
-        this.state.hover = { number, top: Math.round(r.bottom + 6), left: Math.round(r.left) };
+    // BẤM (không phải rê chuột) mới mở bảng báo cáo — user spec 2026-08-07: rê
+    // chuột thì popup nhảy loạn khi đi ngang danh sách. Popup mở ĐÚNG chỗ con
+    // trỏ đang đứng, kẹp lại để không tràn ra ngoài màn hình.
+    openReport(ev, number) {
+        ev.stopPropagation();
+        const cur = this.state.hover;
+        if (cur && cur.number.id === number.id) {
+            this.state.hover = null;   // bấm lại chính nó = đóng
+            return;
+        }
+        this.state.hover = { number, ...this._popPos(ev, 420, 620) };
         this._loadDaily(number);
     }
-    onChipLeave() {
+
+    closeReport() {
         this.state.hover = null;
+    }
+
+    // Toạ độ popup theo con trỏ, kẹp trong viewport (w/h = kích thước popup).
+    _popPos(ev, w, h) {
+        const x = (ev && ev.clientX) || 0;
+        const y = (ev && ev.clientY) || 0;
+        const maxLeft = Math.max(8, window.innerWidth - w - 12);
+        const maxTop = Math.max(8, window.innerHeight - h - 12);
+        return {
+            top: Math.round(Math.max(8, Math.min(y + 12, maxTop))),
+            left: Math.round(Math.max(8, Math.min(x + 12, maxLeft))),
+        };
     }
 
     // Báo cáo 15 ngày (neo vào lần đổ chuông cuối) — nạp LƯỜI lúc hover, cache
@@ -118,14 +167,12 @@ export class VdStringeeAssignmentBoard extends Component {
     }
     get popStyle() {
         const h = this.state.hover;
-        if (!h) {
-            return "";
-        }
-        // Popover nay cao hơn (thêm bảng 15 ngày) → kẹp lại để không tràn đáy
-        // màn hình khi hover chip nằm cuối danh sách.
-        const maxTop = Math.max(8, window.innerHeight - 620);
-        const top = Math.max(8, Math.min(h.top, maxTop));
-        return `top:${top}px; left:${h.left}px;`;
+        return h ? `top:${h.top}px; left:${h.left}px;` : "";
+    }
+
+    get testStyle() {
+        const t = this.state.test;
+        return t && t.top ? `top:${t.top}px; left:${t.left}px;` : "";
     }
 
     // ============ POPUP CHIA SỐ (chọn số → chọn NV → CHIA SỐ) ============
@@ -221,6 +268,8 @@ export class VdStringeeAssignmentBoard extends Component {
         this.state.test = {
             open: true, hotline, phone: "",
             phase: "idle", msg: "", lastId: 0, secs: 0,
+            // Popup gọi thử cũng mở ngay chỗ con trỏ (không nhảy ra giữa màn hình).
+            ...this._popPos(ev, 520, 620),
             // Gợi ý số KH CÙNG MẠNG — test nội mạng mới đúng cái NV gặp phải.
             cands: [], candLabel: "", candLoading: true, candSearch: "",
         };

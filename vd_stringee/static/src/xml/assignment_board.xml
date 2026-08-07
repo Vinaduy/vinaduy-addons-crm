@@ -44,11 +44,9 @@
                                           t-att-class="'o_vd_health_' + (n.health || 'unused')"
                                           draggable="true"
                                           t-on-dragstart="(ev) => this.onDragStart(ev, n, c.code)"
-                                          t-on-mouseenter="(ev) => this.onChipEnter(ev, n)"
-                                          t-on-mouseleave="() => this.onChipLeave()">
+                                          t-on-click="(ev) => this.openReport(ev, n)">
                                         <span class="o_vd_health_dot"/>
-                                        <span class="o_vd_chip_num o_vd_chip_copy" title="Bấm để copy số"
-                                              t-on-click="(ev) => this.copyNumber(ev, n.number)"
+                                        <span class="o_vd_chip_num" title="Bấm để xem báo cáo cuộc gọi"
                                               t-esc="n.number"/>
                                         <span class="o_vd_chip_net"/>
                                         <span class="o_vd_chip_count" t-esc="n.user_count"/>
@@ -121,7 +119,7 @@
 
             </div>
 
-            <!-- Popover chi tiết số (hiện khi hover chip kho số) -->
+            <!-- Bảng báo cáo cuộc gọi của 1 số — mở khi BẤM vào chip, ngay chỗ con trỏ -->
             <div t-if="state.hover" class="o_vd_pop" t-att-style="popStyle">
                 <div class="o_vd_pop_h">
                     <span class="o_vd_health_dot" t-att-class="'o_vd_health_' + (state.hover.number.health || 'unused')"/>
@@ -131,6 +129,16 @@
                         <t t-elif="state.hover.number.health === 'dead'">SỐ CHẾT</t>
                         <t t-else="">CHƯA DÙNG</t>
                     </span>
+                    <span class="o_vd_pop_act ms-auto" title="Copy số"
+                          t-on-click="(ev) => this.copyNumber(ev, state.hover.number.number)">
+                        <i class="fa fa-clipboard"/>
+                    </span>
+                    <span class="o_vd_pop_act" title="Gọi thử số này"
+                          t-on-click="(ev) => this.openTest(ev, state.hover.number)">
+                        <i class="fa fa-phone"/>
+                    </span>
+                    <span class="o_vd_pop_act o_vd_pop_close" title="Đóng"
+                          t-on-click="() => this.closeReport()">×</span>
                 </div>
 
                 <!-- Thống kê tổng của SỐ -->
@@ -224,7 +232,8 @@
             <!-- ===== POPUP GỌI THỬ 1 SỐ: nhập số khách → gọi → chốt sống/chết ===== -->
             <div t-if="state.test.open" class="o_vd_dist_overlay"
                  t-on-click="() => this.closeTest()">
-                <div class="o_vd_test_modal" t-on-click.stop="() => {}">
+                <div class="o_vd_test_modal" t-att-style="testStyle"
+                     t-on-click.stop="() => {}">
                     <div class="o_vd_dist_head">
                         <span><i class="fa fa-phone me-2"/>Gọi thử số
                               <b t-esc="state.test.hotline.number"/></span>

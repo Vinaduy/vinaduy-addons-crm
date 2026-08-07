@@ -229,10 +229,13 @@
     .o_vd_health_dot.o_vd_health_alive  { background: #17b26a; }
     .o_vd_health_dot.o_vd_health_dead   { background: #f04438; }
     .o_vd_health_dot.o_vd_health_unused { background: #cbd5e1; }
-    /* Số chết: gạch mờ con số để nhìn phát biết */
+    /* Số chết: VIỀN ĐEN + mờ đi (bỏ gạch ngang — user spec 2026-08-07: gạch
+       ngang rối mắt, khó đọc con số). Kèm việc dồn xuống cuối danh sách. */
     .o_vd_chip.o_vd_health_dead {
-        border-color: #fda29b;
-        .o_vd_chip_num { text-decoration: line-through; opacity: .7; }
+        border-color: #1d2939;
+        opacity: .45;
+        .o_vd_chip_num { text-decoration: none; }
+        &:hover { opacity: .8; }
     }
     .o_vd_chip.o_vd_health_alive { border-color: #75e0a7; }
 
@@ -1047,3 +1050,19 @@
         font-weight: 600;
     }
 }
+
+/* Popup mở bằng CLICK (không còn hover) → cho bấm được vào trong: copy / gọi
+   thử / đóng. Trước đây pointer-events:none để không chặn kéo-thả. */
+.o_vd_pop {
+    pointer-events: auto;
+    .o_vd_pop_act {
+        cursor: pointer;
+        padding: 0 5px;
+        color: #98a2b3;
+        font-size: 13px;
+        &:hover { color: #1570ef; }
+        &.o_vd_pop_close { font-size: 20px; line-height: 1; &:hover { color: #b42318; } }
+    }
+}
+/* Popup gọi thử: bám vị trí con trỏ thay vì căn giữa màn hình */
+.o_vd_test_modal { position: fixed; margin: 0; }

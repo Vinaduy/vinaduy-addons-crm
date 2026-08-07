@@ -476,7 +476,10 @@ class VdStringeeHotline(models.Model):
                 carriers.append({
                     'code': code,
                     'label': label,
-                    'numbers': sorted(nums, key=lambda x: x['number']),
+                    # SỐ CHẾT dồn xuống CUỐI danh sách (user spec 2026-08-07) —
+                    # admin nhìn từ trên xuống toàn số dùng được, khỏi phải nhặt.
+                    'numbers': sorted(
+                        nums, key=lambda x: (x['health'] == 'dead', x['number'])),
                 })
 
         def _eff_health(h):
