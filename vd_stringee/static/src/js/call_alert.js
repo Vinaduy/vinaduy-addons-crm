@@ -30,9 +30,11 @@ export class VdCallAlert extends Component {
     setup() {
         this.stringee = useService("stringee");
         this.notification = useService("notification");
+        this.orm = useService("orm");
         this.s = useState(this.stringee.state);
         this.ui = useState({ elapsed: 0 });
         this.tf = useState({ open: false, busy: false, targets: [] });
+        this.cb = useState({ busy: false });
         onMounted(() => {
             this._tick();
             this._timer = setInterval(() => this._tick(), 500);
@@ -124,6 +126,49 @@ export class VdCallAlert extends Component {
     onClose() {
         this.stringee.hideCallAlert();
     }
+
+    // ----- HẸN GỌI LẠI (sau khi cúp máy cuộc gọi ĐI) -----
+    get callbackShow() { return !!this.s.callbackPrompt && !this.s.inCall; }
+    get callbackName() {
+        const p = this.s.callbackPrompt;
+        return p ? (p.name || p.phone || "") : "";
+    }
+    // 16 mốc theo yêu cầu user 2026-08-06.
+    get callbackOptions() {
+        return [
+            { k: "4h", l: "4 Tiếng" }, { k: "eod", l: "Cuối ngày" },
+            { k: "tomorrow", l: "Ngày mai" }, { k: "2d", l: "2 Ngày" },
+            { k: "3d", l: "3 Ngày" }, { k: "5d", l: "5 Ngày" },
+            { k: "weekend", l: "Cuối tuần" }, { k: "1w", l: "1 Tuần" },
+            { k: "2w", l: "2 Tuần" }, { k: "3w", l: "3 Tuần" },
+            { k: "1mo", l: "1 Tháng" }, { k: "2mo", l: "2 Tháng" },
+            { k: "3mo", l: "3 Tháng" }, { k: "4mo", l: "4 Tháng" },
+            { k: "6mo", l: "6 Tháng" }, { k: "1y", l: "1 Năm" },
+        ];
+    }
+    async pickCallback(key) {
+        const p = this.s.callbackPrompt;
+        if (!p || this.cb.busy) return;
+        this.cb.busy = true;
+        try {
+            const res = await this.orm.call("crm.lead", "vd_set_callback_by_phone", [p.phone, key]);
+            if (res && res.ok) {
+                this.notification.add(
+                    key === "none" ? "Đã bỏ hẹn gọi lại." : `Đã hẹn gọi lại lúc ${res.when}.`,
+                    { type: "success", title: "Hẹn gọi lại" });
+            } else {
+                this.notification.add(
+                    "Không đặt được hẹn (không tìm thấy khách theo số này).",
+                    { type: "warning" });
+            }
+        } catch (_e) {
+            this.notification.add("Lỗi khi đặt hẹn gọi lại.", { type: "danger" });
+        } finally {
+            this.cb.busy = false;
+            this.s.callbackPrompt = null;
+        }
+    }
+    dismissCallback() { this.s.callbackPrompt = null; }
 }
 
 registry.category("main_components").add("vd_stringee.CallAlert", {

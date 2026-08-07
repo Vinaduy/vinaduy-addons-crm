@@ -533,6 +533,43 @@
    POPUP CUỘC GỌI HỢP NHẤT — căn giữa trên cùng, tinh tế (dark glass)
    Một bảng cho cả vòng đời: đến/đi · đổ chuông · đàm thoại · kết quả.
    ============================================================ */
+/* Bảng HẸN GỌI LẠI (sau khi cúp máy cuộc gọi ĐI) — cột dọc, lưới 16 mốc. */
+.o_vd_callpop_cb {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    max-width: #{"min(94vw, 450px)"};
+    padding: 13px 15px;
+}
+.o_vd_cb_head {
+    display: flex; align-items: center; gap: 8px;
+    .o_vd_cb_title { font-weight: 800; font-size: 14px; color: #ffd43b; white-space: nowrap; }
+    .o_vd_cb_name { flex: 1 1 auto; font-weight: 700; color: #fff; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+.o_vd_cb_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.o_vd_cb_opt {
+    padding: 8px 4px;
+    font-size: 12.5px; font-weight: 700; line-height: 1.15;
+    color: #f3f4f6; background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 8px;
+    cursor: pointer; transition: all 0.12s ease;
+    &:hover { background: #4553b8; border-color: #6f7ee0; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.o_vd_cb_none {
+    padding: 7px; font-size: 12.5px; font-weight: 700;
+    color: #cbd5e1; background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.28); border-radius: 8px;
+    cursor: pointer;
+    &:hover { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
 .o_vd_callpop {
     position: fixed;
     top: 16px;

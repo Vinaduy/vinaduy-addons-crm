@@ -1720,16 +1720,35 @@ export class VdCrmDashboard extends Component {
         const i = opts.indexOf(n);
         return (i >= 0 && i < opts.length - 1) ? opts[i + 1] : Infinity;
     }
-    // Lọc list theo KHOẢNG ngày [n, upper) — mỗi KH chỉ 1 khoảng (loại trừ).
+    // Trạng thái hẹn gọi lại: 'due' (đến/quá hẹn) · 'scheduled' (hẹn tương lai) ·
+    // 'none' (chưa hẹn). KH có hẹn tương lai KHÔNG rơi vào khoảng "chưa gọi X ngày"
+    // (đã có kế hoạch, không phải bị bỏ bê); KH đến hẹn có chip "⏰ Đến hẹn" riêng.
+    _leadCbState(l) {
+        if (!l || !l.callback_date) return "none";
+        const t = new Date(String(l.callback_date).replace(" ", "T") + "Z").getTime();
+        if (isNaN(t)) return "none";
+        return t <= Date.now() ? "due" : "scheduled";
+    }
+    // Lọc list. n=0 → tất cả; n='due' → KH đến hẹn; n số → khoảng ngày (chỉ KH CHƯA hẹn).
     _dayBucketFilter(list, n) {
         if (!n) return list || [];
+        if (n === "due") return (list || []).filter((l) => this._leadCbState(l) === "due");
         const upper = this._dayUpper(n);
-        return (list || []).filter((l) => { const d = l.days_since_call || 0; return d >= n && d < upper; });
+        return (list || []).filter((l) => {
+            if (this._leadCbState(l) !== "none") return false;
+            const d = l.days_since_call || 0; return d >= n && d < upper;
+        });
     }
-    _dayBucketCount(list, d) {
-        const upper = this._dayUpper(d);
+    _dayBucketCount(list, n) {
+        if (n === "due") {
+            let c = 0; for (const l of (list || [])) if (this._leadCbState(l) === "due") c++; return c;
+        }
+        const upper = this._dayUpper(n);
         let c = 0;
-        for (const l of (list || [])) { const dd = l.days_since_call || 0; if (dd >= d && dd < upper) c++; }
+        for (const l of (list || [])) {
+            if (this._leadCbState(l) !== "none") continue;
+            const dd = l.days_since_call || 0; if (dd >= n && dd < upper) c++;
+        }
         return c;
     }
     dayRangeTitle(d) {

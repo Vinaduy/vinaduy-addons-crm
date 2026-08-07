@@ -6454,6 +6454,11 @@
         }
     }
     .o_vd_daybtn_all.o_vd_daybtn_on { background: #495057; border-color: #495057; }
+    /* Chip "Đến hẹn" — nhấn cam (khẩn theo lịch hẹn). */
+    .o_vd_daybtn_due { border-color: #ffd8a8; background: #fff4e6;
+        .o_vd_daybtn_main { color: #b35309; } }
+    .o_vd_daybtn_due.o_vd_daybtn_on { background: #e8590c; border-color: #e8590c;
+        .o_vd_daybtn_main { color: #fff; } }
     /* ===== Nút 🆘 SOS — gọn (bằng nút Gọi lại), "SOS" to; đỏ tĩnh / đỏ nháy / xanh ===== */
     .o_vd_sos {
         position: relative;

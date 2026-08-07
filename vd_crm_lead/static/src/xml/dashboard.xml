@@ -2331,6 +2331,13 @@
                                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
                                 <span class="o_vd_daybtn_cnt"><t t-esc="newDayFilterAllCount"/></span>
                             </span>
+                            <span class="o_vd_daybtn o_vd_daybtn_due"
+                                  t-att-class="state.newDayFilter === 'due' ? 'o_vd_daybtn_on' : ''"
+                                  t-on-click="() => this.setNewDayFilter('due')"
+                                  title="Khách ĐẾN HẸN / quá hẹn gọi lại">
+                                <span class="o_vd_daybtn_main">⏰ Đến hẹn</span>
+                                <span t-if="newDayFilterCount('due')" class="o_vd_daybtn_cnt"><t t-esc="newDayFilterCount('due')"/></span>
+                            </span>
                             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
                                   class="o_vd_daybtn"
                                   t-att-class="state.newDayFilter === d ? 'o_vd_daybtn_on' : ''"
@@ -2574,6 +2581,13 @@
                                   title="Xem tất cả (mặc định)">
                                 <span class="o_vd_daybtn_main">↺ Tất cả</span>
                                 <span class="o_vd_daybtn_cnt"><t t-esc="dayFilterAllCount"/></span>
+                            </span>
+                            <span class="o_vd_daybtn o_vd_daybtn_due"
+                                  t-att-class="state.dayFilter === 'due' ? 'o_vd_daybtn_on' : ''"
+                                  t-on-click="() => this.setDayFilter('due')"
+                                  title="Khách ĐẾN HẸN / quá hẹn gọi lại">
+                                <span class="o_vd_daybtn_main">⏰ Đến hẹn</span>
+                                <span t-if="dayFilterCount('due')" class="o_vd_daybtn_cnt"><t t-esc="dayFilterCount('due')"/></span>
                             </span>
                             <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
                                   class="o_vd_daybtn"

@@ -196,6 +196,9 @@ export const stringeeService = {
             alertTitle: "",
             alertMessage: "",
             alertSeq: 0,          // tăng mỗi lần show → component re-trigger animation
+            // HẸN GỌI LẠI (user 2026-08-06): sau khi cúp máy cuộc gọi ĐI → hiện bảng
+            // chọn ngày gọi lại. {phone, name} hoặc null.
+            callbackPrompt: null,
         });
 
         // Popup thông báo cuộc gọi — thay cho toast, hiện NỔI BẬT giữa-trên màn hình.
@@ -481,6 +484,11 @@ export const stringeeService = {
 
             const cleanupState = (reason) => {
                 logToServer("cleanupState", { reason: reason || 'unknown' }, callId);
+                // HẸN GỌI LẠI: cuộc gọi ĐI cho 1 SĐ → mở bảng chọn ngày gọi lại
+                // (BẮT trước khi xoá callNumber/callName bên dưới).
+                if (state.callDirection === "out" && state.callNumber) {
+                    state.callbackPrompt = { phone: state.callNumber, name: state.callName || "" };
+                }
                 clearTimeout(failsafe);
                 stopRingback();
                 state.currentCall = null;

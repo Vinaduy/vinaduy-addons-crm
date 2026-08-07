@@ -49,6 +49,26 @@
             </div>
         </div>
 
+        <!-- HẸN GỌI LẠI: sau khi cúp máy cuộc gọi ĐI → chọn ngày gọi lại. -->
+        <div t-elif="callbackShow" class="o_vd_callpop o_vd_callpop_cb">
+            <div class="o_vd_cb_head">
+                <span class="o_vd_cb_title">⏰ Hẹn gọi lại</span>
+                <span t-if="callbackName" class="o_vd_cb_name"><t t-esc="callbackName"/></span>
+                <button type="button" class="o_vd_co_close" t-on-click="dismissCallback" title="Bỏ qua">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+            <div class="o_vd_cb_grid">
+                <button t-foreach="callbackOptions" t-as="o" t-key="o.k" type="button"
+                        class="o_vd_cb_opt" t-att-disabled="cb.busy"
+                        t-on-click="() => this.pickCallback(o.k)">
+                    <t t-esc="o.l"/>
+                </button>
+            </div>
+            <button type="button" class="o_vd_cb_none" t-att-disabled="cb.busy"
+                    t-on-click="dismissCallback">Không hẹn</button>
+        </div>
+
         <!-- OUTCOME: kết quả cuộc gọi -->
         <div t-elif="s.alertShow"
              t-att-key="s.alertSeq"

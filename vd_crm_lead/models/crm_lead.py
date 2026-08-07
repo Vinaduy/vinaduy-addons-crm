@@ -6506,6 +6506,61 @@ class CrmLead(models.Model):
         return leads.ids
 
     @api.model
+    def vd_set_callback_by_phone(self, phone, offset_key):
+        """Đặt/xoá HẸN GỌI LẠI cho KH theo SĐT — gọi từ widget cuộc gọi sau khi cúp
+        máy. Tìm lead ACTIVE của CHÍNH NV đang đăng nhập trùng SĐT (9 số cuối), tính
+        mốc theo múi giờ VN từ offset_key, ghi callback_date. 'none' → xoá hẹn.
+        Trả {ok, when, count}."""
+        import pytz
+        from datetime import timedelta
+        from dateutil.relativedelta import relativedelta
+        digits = ''.join(ch for ch in (phone or '') if ch.isdigit())
+        if len(digits) < 8:
+            return {'ok': False, 'reason': 'phone'}
+        tail = digits[-9:]
+        leads = self.sudo().search([
+            ('user_id', '=', self.env.user.id),
+            ('active', '=', True),
+            '|', ('phone', 'like', '%' + tail), ('mobile', 'like', '%' + tail),
+        ])
+        if not leads:
+            return {'ok': False, 'reason': 'lead'}
+        key = (offset_key or '').strip()
+        if key == 'none':
+            leads.write({'callback_date': False})
+            return {'ok': True, 'when': '', 'count': len(leads), 'cleared': True}
+        tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(tz)
+
+        def at(dt, h=9, m=0):
+            return dt.replace(hour=h, minute=m, second=0, microsecond=0)
+
+        if key == '4h':
+            target = now_vn + timedelta(hours=4)
+        elif key == 'eod':
+            target = at(now_vn, 16, 0)          # cuối ngày = 16:00
+        elif key == 'tomorrow':
+            target = at(now_vn + timedelta(days=1))
+        elif key in ('2d', '3d', '5d'):
+            target = at(now_vn + timedelta(days=int(key[:-1])))
+        elif key == 'weekend':                  # chủ nhật (weekday 6)
+            days = (6 - now_vn.weekday()) % 7
+            target = at(now_vn + timedelta(days=days))
+            if target <= now_vn:
+                target = target + timedelta(days=7)
+        elif key in ('1w', '2w', '3w'):
+            target = at(now_vn + timedelta(weeks=int(key[:-1])))
+        elif key in ('1mo', '2mo', '3mo', '4mo', '6mo'):
+            target = at(now_vn + relativedelta(months=int(key[:-2])))
+        elif key == '1y':
+            target = at(now_vn + relativedelta(years=1))
+        else:
+            return {'ok': False, 'reason': 'key'}
+        target_utc = target.astimezone(pytz.utc).replace(tzinfo=None)
+        leads.write({'callback_date': fields.Datetime.to_string(target_utc)})
+        return {'ok': True, 'when': target.strftime('%H:%M %d/%m'), 'count': len(leads)}
+
+    @api.model
     def dashboard_export_leads_xlsx(self, lead_ids):
         """Xuất danh sách KH đã chọn ra file Excel (.xlsx). Trả về URL để tải.
 
@@ -9225,6 +9280,10 @@ class CrmLead(models.Model):
                 (fields.Datetime.now() - (l.last_call_date or l.create_date)).days
                 if (l.last_call_date or l.create_date) else 0
             ),
+            # HẸN GỌI LẠI (user 2026-08-06): NV đặt sau cuộc gọi. Chuỗi UTC hoặc ''.
+            # Dashboard tự tính đến-hẹn / hẹn-tương-lai từ mốc này.
+            'callback_date': (fields.Datetime.to_string(l.callback_date)
+                              if l.callback_date else ''),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'answered_long': 0,
