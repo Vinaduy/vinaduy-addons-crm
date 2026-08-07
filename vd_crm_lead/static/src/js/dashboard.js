@@ -1704,14 +1704,28 @@ export class VdCrmDashboard extends Component {
     get leadsUrgentConstruction() {
         return this._applyDayFilter(this.state.leadsUrgentConstructionAll || []);
     }
-    // LỌC theo số ngày chưa gọi (dayFilter = ngưỡng N; hiện KH có days_since_call ≥ N).
+    // LỌC theo số ngày chưa gọi — MỖI khách chỉ thuộc 1 KHOẢNG (loại trừ nhau):
+    // 3=[3,5) · 5=[5,8) · 8=[8,15) · 15=[15,25) · 25=[25,40) · 40=[40,∞). KH gọi
+    // trong 3 ngày gần đây KHÔNG thuộc khoảng nào (đã gọi gần đây).
     _applyDayFilter(list) {
         const n = this.state.dayFilter || 0;
         if (!n) return list;
-        return (list || []).filter((l) => (l.days_since_call || 0) >= n);
+        const opts = this.dayFilterOptions;
+        const idx = opts.indexOf(n);
+        const upper = (idx >= 0 && idx < opts.length - 1) ? opts[idx + 1] : Infinity;
+        return (list || []).filter((l) => {
+            const d = l.days_since_call || 0;
+            return d >= n && d < upper;
+        });
     }
     setDayFilter(n) { this.state.dayFilter = this.state.dayFilter === n ? 0 : n; }
     get dayFilterOptions() { return [3, 5, 8, 15, 25, 40]; }
+    dayRangeTitle(d) {
+        const opts = this.dayFilterOptions;
+        const i = opts.indexOf(d);
+        const up = (i >= 0 && i < opts.length - 1) ? opts[i + 1] : null;
+        return up ? `KH chưa gọi ${d}–${up} ngày` : `KH chưa gọi từ ${d} ngày trở lên`;
+    }
 
     // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
     // 2026-05-31). null = giữ thứ tự gốc.

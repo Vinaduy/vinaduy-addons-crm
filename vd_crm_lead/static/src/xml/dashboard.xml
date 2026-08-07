@@ -2555,7 +2555,7 @@
                                   class="o_vd_pfilter_chip o_vd_pf_day"
                                   t-att-class="state.dayFilter === d ? 'o_vd_pfilter_on' : ''"
                                   t-on-click="() => this.setDayFilter(d)"
-                                  t-att-title="'Chỉ KH chưa gọi từ ' + d + ' ngày trở lên'">
+                                  t-att-title="dayRangeTitle(d)">
                                 <t t-esc="d"/> Ngày chưa gọi
                             </span>
                         </div>
