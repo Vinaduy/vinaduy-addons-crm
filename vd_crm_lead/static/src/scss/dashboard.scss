@@ -5273,10 +5273,11 @@
 
     /* Variant: bảng KHÁCH MỚI — header xanh */
     .o_vd_filter_table_new {
+        /* Màu GHI slate tươi (glassy "giọt nước", sang trọng) — user 2026-08-08 */
         .o_vd_filter_table_left {
-            background: linear-gradient(135deg, #4c6ef5 0%, #5c7cfa 100%);
+            background: linear-gradient(135deg, #7c8a9c 0%, #5f6d80 55%, #515e70 100%);
         }
-        .o_vd_filter_table_count { color: #4c6ef5; }
+        .o_vd_filter_table_count { color: #5f6d80; }
     }
     /* Variant: bảng ĐANG XỬ LÝ VẤN ĐỀ — header cam */
     .o_vd_filter_table_warn {
@@ -10970,12 +10971,11 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-radius: 14px 14px 0 0;
     cursor: pointer; color: #fff; font-weight: 900;
     letter-spacing: 0.6px; text-transform: uppercase;
-    background: linear-gradient(135deg, #2bd4a4 0%, #0ca678 55%, #0b8a64 100%);
-    border: 2px solid #c3fae8; border-bottom: none;
+    background: linear-gradient(135deg, #7c8a9c 0%, #5f6d80 55%, #515e70 100%);
+    border: 2px solid #dbe1ea; border-bottom: none;
     font-family: inherit; appearance: none;
     -webkit-user-select: none; user-select: none;
     transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
-    animation: vdLearnPulse 2.6s ease-in-out infinite;
     /* dải sáng quét ngang */
     &::before {
         content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 42%;
@@ -10991,8 +10991,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover {
         filter: brightness(1.06);
         transform: translateY(-2px);
-        box-shadow: 0 13px 28px rgba(12, 166, 120, 0.42);
-        animation-play-state: paused;
+        box-shadow: 0 13px 28px rgba(71, 85, 105, 0.38);
         .o_vd_learn_arrow { transform: translateX(5px); }
     }
     &:active { transform: translateY(0); }
@@ -11109,8 +11108,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     font-weight: 900;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    background: linear-gradient(135deg, #f03e3e, #c92a2a 55%, #a51111);
-    border: 2px solid #ffe3e3;
+    background: linear-gradient(135deg, #7c8a9c 0%, #5f6d80 55%, #515e70 100%);
+    border: 2px solid #dbe1ea;
     user-select: none;
 
     .o_vd_refrec_ico { font-size: 1.5rem; flex: 0 0 auto; }
@@ -11708,24 +11707,20 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     display: inline-flex; align-items: center; gap: 10px; cursor: pointer; border: 0;
     color: #fff; font-weight: 900; letter-spacing: .03em; white-space: nowrap;
     padding: 0.85rem 2.4rem; border-radius: 16px; position: relative;
-    background: linear-gradient(135deg, #ff922b 0%, #f76707 50%, #e8590c 100%);
-    box-shadow: 0 10px 26px rgba(232, 89, 12, 0.5);
+    background: linear-gradient(135deg, #7c8a9c 0%, #5f6d80 55%, #515e70 100%);
+    box-shadow: 0 8px 20px rgba(71, 85, 105, 0.30);
     transition: all .16s ease;
     .o_vd_omi_bigbtn_ico { font-size: 1.5rem; }
     .o_vd_omi_bigbtn_txt { font-size: 1.5rem; }
     .o_vd_omi_bigbtn_sub { font-size: .95rem; font-weight: 700; opacity: .95; }
     .o_vd_omi_btn_arrow { font-size: 1.4rem; transition: transform .16s ease; }
     &:hover {
-        background: linear-gradient(135deg, #ffa94d, #ff922b);
-        box-shadow: 0 16px 34px rgba(232, 89, 12, 0.62);
+        background: linear-gradient(135deg, #8a99ac, #6b7a8f);
+        box-shadow: 0 12px 26px rgba(71, 85, 105, 0.40);
         transform: translateY(-2px) scale(1.02);
         .o_vd_omi_btn_arrow { transform: translateX(4px); }
     }
-    &::after {
-        content: ""; position: absolute; inset: 0; border-radius: 16px;
-        box-shadow: 0 0 0 0 rgba(232, 89, 12, 0.55);
-        animation: vdOmiPulse 2s ease-out infinite;
-    }
+    /* bỏ vòng pulse chói (user muốn sang trọng, dịu) */
 }
 /* biến thể inline: TO như cũ, đứng SÁT ô tìm kiếm (gap nhỏ) */
 .o_vd_omi_inline { flex: 0 0 auto; margin-right: 2px; align-self: center; }
@@ -11816,7 +11811,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_khs {
     position: fixed;
     z-index: 100000;
-    width: 720px;
+    width: 840px;               /* rộng thêm ~15% (user 2026-08-08) */
     max-width: 132vw;
     max-height: 94vh;
     overflow-y: auto;
@@ -11832,38 +11827,29 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     transform: scale(0.7);
     transform-origin: top left;
 }
+/* TIÊU ĐỀ: tên KH bên trái + badge chênh lệch tài chính bên phải (đưa lên đây). */
 .o_vd_khs_head {
-    padding: 0.6rem 0.85rem;
+    padding: 0.5rem 0.8rem;
     background: linear-gradient(135deg, #1971c2 0%, #4dabf7 100%);
     color: #fff; font-weight: 800; font-size: 0.95rem;
     border-radius: 10px 10px 0 0; position: sticky; top: 0;
-}
-.o_vd_khs_meta {
-    padding: 0.6rem 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;
-    border-bottom: 1px solid #f1f3f5;
-}
-.o_vd_khs_row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
-.o_vd_khs_lbl { font-weight: 700; color: #495057; font-size: 0.92rem; }
-.o_vd_khs_val { font-weight: 800; color: #1f2a44; font-size: 1.05rem; }
-.o_vd_khs_quote { color: #1971c2; }
-.o_vd_khs_diff {
-    margin: 0.55rem 0.85rem; padding: 0.55rem 0.75rem; border-radius: 8px;
     display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
-    font-weight: 800; font-size: 1rem;
 }
-.o_vd_khs_over { background: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a; }
-.o_vd_khs_under { background: #ebfbee; border: 1px solid #b2f2bb; color: #2b8a3e; }
-.o_vd_khs_subhead {
-    padding: 0.5rem 0.85rem 0.2rem; font-weight: 800; font-size: 0.85rem;
-    color: #1864ab; text-transform: uppercase; letter-spacing: 0.3px;
+.o_vd_khs_head_ttl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.o_vd_khs_hdiff {
+    flex: 0 0 auto; padding: 0.22rem 0.6rem; border-radius: 999px;
+    font-weight: 800; font-size: 0.9rem; white-space: nowrap;
 }
+.o_vd_khs_hover  { background: #fff0f0; color: #c92a2a; }
+.o_vd_khs_hunder { background: #eafff0; color: #1f8a43; }
 .o_vd_khs_breakdown {
-    padding: 0 0.7rem 0.65rem; overflow-x: auto;
+    padding: 0.55rem 0.7rem 0.5rem; overflow-x: auto;
     table { width: 100%;
         td, th { white-space: nowrap !important; } }
 }
+.o_vd_khs_nobd { padding: 0.9rem; color: #868e96; font-style: italic; }
 .o_vd_khs_foot {
-    padding: 0.45rem 0.85rem; font-size: 0.8rem; color: #868e96;
+    padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #868e96;
     border-top: 1px solid #f1f3f5;
 }
 

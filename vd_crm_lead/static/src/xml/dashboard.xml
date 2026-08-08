@@ -3921,12 +3921,8 @@
                 <img t-elif="lead.zalo_not_found" src="/vd_crm_lead/static/src/img/zalo.webp"
                      class="o_vd_pill_zalo o_vd_pill_zalo_gray" title="Không tìm thấy Zalo của khách này"/>
 
-                <!-- Badge ⏰ CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B):
-                     đã gọi rồi + chưa đủ 3 ngày gọi + hôm nay chưa gọi. Thay cho
-                     viền glow cũ — chỉ chip nhỏ, không nhấp nháy. -->
-                <span t-if="needsCallToday(lead)"
-                      class="o_vd_pill_recall"
-                      title="Cần gọi lại HÔM NAY — chưa đủ 3 ngày gọi, hôm nay chưa gọi cuộc nào"><i class="fa fa-clock-o"/></span>
+                <!-- Chuông rung "CẦN GỌI LẠI HÔM NAY" (o_vd_pill_recall) ĐÃ BỎ theo
+                     yêu cầu user 2026-08-08 (gỡ icon chuông cuối thẻ KH). -->
 
                 <!-- Badge 💰: đã điền đủ báo giá nhưng CHƯA bấm CHỐT (user spec
                      2026-06-11). Nằm yên trong vùng của nó — nhắc NV bấm CHỐT để

@@ -2196,27 +2196,22 @@ export class VdCrmDashboard extends Component {
     }
     _khInfoHtml(lead) {
         const e = (s) => this._escHtml(s);
-        const budget = lead.budget_label ? e(lead.budget_label)
-            : (lead.budget_amount_fmt ? (e(lead.budget_amount_fmt) + " đ") : "—");
-        let h = "";
-        h += `<div class="o_vd_khs_head">👤 THÔNG TIN KHÁCH HÀNG — ${e(lead.name)}</div>`;
-        h += `<div class="o_vd_khs_meta">`;
-        h += `<div class="o_vd_khs_row"><span class="o_vd_khs_lbl">💰 Tầm tài chính</span><span class="o_vd_khs_val">${budget}</span></div>`;
-        if (lead.quote_price_fmt) {
-            h += `<div class="o_vd_khs_row"><span class="o_vd_khs_lbl">🧾 Giá báo KH</span><span class="o_vd_khs_val o_vd_khs_quote">${e(lead.quote_price_fmt)} đ</span></div>`;
-        }
-        h += `</div>`;
+        // Chênh lệch báo giá vs tài chính → ĐƯA LÊN TIÊU ĐỀ (user 2026-08-08).
+        let diffBadge = "";
         if (lead.quote_vs_budget_diff_fmt) {
             const over = lead.quote_over_budget;
-            h += `<div class="o_vd_khs_diff ${over ? "o_vd_khs_over" : "o_vd_khs_under"}">`;
-            h += `<span class="o_vd_khs_diff_lbl">${over ? "⚠️ VƯỢT tài chính dự kiến" : "✅ CÒN DƯ so với tài chính"}</span>`;
-            h += `<span class="o_vd_khs_diff_val">${over ? "+ " : "− "}${e(lead.quote_vs_budget_diff_fmt)} đ</span>`;
-            h += `</div>`;
+            diffBadge = `<span class="o_vd_khs_hdiff ${over ? "o_vd_khs_hover" : "o_vd_khs_hunder"}">`
+                + `${over ? "⚠️ VƯỢT tài chính " : "✅ CÒN DƯ "}`
+                + `${over ? "+" : "−"}${e(lead.quote_vs_budget_diff_fmt)} đ</span>`;
         }
+        let h = "";
+        h += `<div class="o_vd_khs_head">`
+            + `<span class="o_vd_khs_head_ttl">👤 ${e(lead.name)}</span>${diffBadge}</div>`;
         const bd = String(lead.quote_breakdown_html || "");
         if (bd) {
-            h += `<div class="o_vd_khs_subhead">📋 Bảng báo giá chi tiết</div>`;
             h += `<div class="o_vd_khs_breakdown">${bd}</div>`;
+        } else {
+            h += `<div class="o_vd_khs_nobd">Khách chưa có bảng báo giá chi tiết.</div>`;
         }
         h += `<div class="o_vd_khs_foot">📋 Click vào tên để copy</div>`;
         return h;
