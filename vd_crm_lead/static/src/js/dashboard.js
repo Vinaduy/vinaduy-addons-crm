@@ -500,6 +500,9 @@ export class VdCrmDashboard extends Component {
             window.removeEventListener('keydown', this._onKeydown);
             if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
             if (this._pillTipEl) { try { this._pillTipEl.remove(); } catch (_e) {} this._pillTipEl = null; }
+            if (this._khShowTimer) { clearTimeout(this._khShowTimer); this._khShowTimer = null; }
+            if (this._khHideTimer) { clearTimeout(this._khHideTimer); this._khHideTimer = null; }
+            if (this._khInfoEl) { try { this._khInfoEl.remove(); } catch (_e) {} this._khInfoEl = null; }
             if (this._tileShowTimer) { clearTimeout(this._tileShowTimer); this._tileShowTimer = null; }
             if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
             if (this._tilePopEl) { try { this._tilePopEl.remove(); } catch (_e) {} this._tilePopEl = null; }
@@ -2166,6 +2169,76 @@ export class VdCrmDashboard extends Component {
     }
     _hidePillTip() {
         if (this._pillTipEl) this._pillTipEl.style.display = "none";
+    }
+    // ===== BẢNG THÔNG TIN KHÁCH HÀNG dùng CHUNG (append body — hover KHÔNG vẽ lại
+    // trang). Thay panel inline o_vd_kh_info_panel ở mỗi dòng THI CÔNG GẤP / XLVĐ. =====
+    onNameEnter(lead, ev) {
+        const el = ev && ev.currentTarget;
+        if (this._khHideTimer) { clearTimeout(this._khHideTimer); this._khHideTimer = null; }
+        if (this._khShowTimer) clearTimeout(this._khShowTimer);
+        this._khShowTimer = setTimeout(() => { this._khShowTimer = null; this._showKhInfo(lead, el); }, 90);
+    }
+    onNameLeave() {
+        if (this._khShowTimer) { clearTimeout(this._khShowTimer); this._khShowTimer = null; }
+        this._khHideTimer = setTimeout(() => { this._khHideTimer = null; this._hideKhInfo(); }, 140);
+    }
+    _ensureKhInfo() {
+        if (this._khInfoEl && document.body.contains(this._khInfoEl)) return this._khInfoEl;
+        const d = document.createElement("div");
+        d.className = "o_vd_khs";
+        d.style.display = "none";
+        // Vào bảng → giữ mở (đọc/kéo bảng báo giá); rời bảng → ẩn.
+        d.addEventListener("mouseenter", () => { if (this._khHideTimer) { clearTimeout(this._khHideTimer); this._khHideTimer = null; } });
+        d.addEventListener("mouseleave", () => this._hideKhInfo());
+        document.body.appendChild(d);
+        this._khInfoEl = d;
+        return d;
+    }
+    _khInfoHtml(lead) {
+        const e = (s) => this._escHtml(s);
+        const budget = lead.budget_label ? e(lead.budget_label)
+            : (lead.budget_amount_fmt ? (e(lead.budget_amount_fmt) + " đ") : "—");
+        let h = "";
+        h += `<div class="o_vd_khs_head">👤 THÔNG TIN KHÁCH HÀNG — ${e(lead.name)}</div>`;
+        h += `<div class="o_vd_khs_meta">`;
+        h += `<div class="o_vd_khs_row"><span class="o_vd_khs_lbl">💰 Tầm tài chính</span><span class="o_vd_khs_val">${budget}</span></div>`;
+        if (lead.quote_price_fmt) {
+            h += `<div class="o_vd_khs_row"><span class="o_vd_khs_lbl">🧾 Giá báo KH</span><span class="o_vd_khs_val o_vd_khs_quote">${e(lead.quote_price_fmt)} đ</span></div>`;
+        }
+        h += `</div>`;
+        if (lead.quote_vs_budget_diff_fmt) {
+            const over = lead.quote_over_budget;
+            h += `<div class="o_vd_khs_diff ${over ? "o_vd_khs_over" : "o_vd_khs_under"}">`;
+            h += `<span class="o_vd_khs_diff_lbl">${over ? "⚠️ VƯỢT tài chính dự kiến" : "✅ CÒN DƯ so với tài chính"}</span>`;
+            h += `<span class="o_vd_khs_diff_val">${over ? "+ " : "− "}${e(lead.quote_vs_budget_diff_fmt)} đ</span>`;
+            h += `</div>`;
+        }
+        const bd = String(lead.quote_breakdown_html || "");
+        if (bd) {
+            h += `<div class="o_vd_khs_subhead">📋 Bảng báo giá chi tiết</div>`;
+            h += `<div class="o_vd_khs_breakdown">${bd}</div>`;
+        }
+        h += `<div class="o_vd_khs_foot">📋 Click vào tên để copy</div>`;
+        return h;
+    }
+    _showKhInfo(lead, el) {
+        if (!lead || !el || !document.body.contains(el)) return;
+        const d = this._ensureKhInfo();
+        d.innerHTML = this._khInfoHtml(lead);
+        d.style.display = "block";
+        const r = el.getBoundingClientRect();
+        const tw = d.offsetWidth, th = d.offsetHeight;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let left = r.left;
+        if (left + tw > vw - 8) left = vw - 8 - tw;
+        if (left < 8) left = 8;
+        let top = r.bottom + 6;
+        if (top + th > vh - 8) top = r.top - th - 6;   // không đủ chỗ dưới → lật lên
+        d.style.left = Math.max(8, left) + "px";
+        d.style.top = Math.max(8, top) + "px";
+    }
+    _hideKhInfo() {
+        if (this._khInfoEl) this._khInfoEl.style.display = "none";
     }
     // Hover ô icon phải → sau 70ms mới dựng bảng trong ô (lazy). Rời ô → gỡ ngay.
     // Danh sách ô ĐÃ chuyển sang "ô dùng chung + hover" (không vẽ lại trang). Ô nào

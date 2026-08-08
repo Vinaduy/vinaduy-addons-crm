@@ -11810,6 +11810,59 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_ptip_warn { font-size: 1rem; font-weight: 800; color: #e8590c; margin-bottom: 0.4rem; }
 .o_vd_ptip_row { padding: 0.14rem 0; b { font-weight: 800; margin-right: 0.35rem; } }
 
+/* BẢNG THÔNG TIN KHÁCH HÀNG dùng CHUNG (append body — hover KHÔNG vẽ lại trang).
+   Thay panel inline o_vd_kh_info_panel ở mỗi dòng THI CÔNG GẤP / XLVĐ. Cấp body →
+   không dính zoom:0.7; style tự chứa (ngoài scope .o_vd_crm_dashboard). */
+.o_vd_khs {
+    position: fixed;
+    z-index: 100000;
+    width: 720px;
+    max-width: 92vw;
+    max-height: 66vh;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-shadow: 0 16px 44px rgba(15, 23, 42, 0.30);
+    color: #1f2a44;
+    text-align: left;
+    font-weight: 400;
+}
+.o_vd_khs_head {
+    padding: 0.6rem 0.85rem;
+    background: linear-gradient(135deg, #1971c2 0%, #4dabf7 100%);
+    color: #fff; font-weight: 800; font-size: 0.95rem;
+    border-radius: 10px 10px 0 0; position: sticky; top: 0;
+}
+.o_vd_khs_meta {
+    padding: 0.6rem 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;
+    border-bottom: 1px solid #f1f3f5;
+}
+.o_vd_khs_row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.o_vd_khs_lbl { font-weight: 700; color: #495057; font-size: 0.92rem; }
+.o_vd_khs_val { font-weight: 800; color: #1f2a44; font-size: 1.05rem; }
+.o_vd_khs_quote { color: #1971c2; }
+.o_vd_khs_diff {
+    margin: 0.55rem 0.85rem; padding: 0.55rem 0.75rem; border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+    font-weight: 800; font-size: 1rem;
+}
+.o_vd_khs_over { background: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a; }
+.o_vd_khs_under { background: #ebfbee; border: 1px solid #b2f2bb; color: #2b8a3e; }
+.o_vd_khs_subhead {
+    padding: 0.5rem 0.85rem 0.2rem; font-weight: 800; font-size: 0.85rem;
+    color: #1864ab; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.o_vd_khs_breakdown {
+    padding: 0 0.7rem 0.65rem; overflow-x: auto;
+    table { width: 100%;
+        td, th { white-space: nowrap !important; } }
+}
+.o_vd_khs_foot {
+    padding: 0.45rem 0.85rem; font-size: 0.8rem; color: #868e96;
+    border-top: 1px solid #f1f3f5;
+}
+
 /* Popover ô icon DÙNG CHUNG (append body) — hover KHÔNG vẽ lại trang; nút bên
    trong bấm được qua event-delegation. Cấp body → không dính zoom:0.7. */
 .o_vd_tilepop {

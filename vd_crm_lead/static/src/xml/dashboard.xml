@@ -2599,38 +2599,10 @@
                                             </span>
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
+                                                  t-on-mouseenter="(ev) => this.onNameEnter(lead, ev)"
+                                                  t-on-mouseleave="() => this.onNameLeave()"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
-                                                <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
-                                                <div class="o_vd_kh_info_panel" t-on-click.stop="">
-                                                    <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>
-                                                    <div class="o_vd_kh_info_meta">
-                                                        <div class="o_vd_kh_info_row">
-                                                            <span class="o_vd_kh_info_lbl">💰 Tầm tài chính</span>
-                                                            <span class="o_vd_kh_info_val">
-                                                                <t t-if="lead.budget_label"><t t-esc="lead.budget_label"/></t>
-                                                                <t t-elif="lead.budget_amount_fmt"><t t-esc="lead.budget_amount_fmt"/> đ</t>
-                                                                <t t-else="">—</t>
-                                                            </span>
-                                                        </div>
-                                                        <div class="o_vd_kh_info_row" t-if="lead.quote_price_fmt">
-                                                            <span class="o_vd_kh_info_lbl">🧾 Giá báo KH</span>
-                                                            <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
-                                                        </div>
-                                                    </div>
-                                                    <!-- Chênh lệch BÁO GIÁ vs TÀI CHÍNH DỰ KIẾN — nổi bật -->
-                                                    <div t-if="lead.quote_vs_budget_diff_fmt"
-                                                         t-att-class="'o_vd_kh_info_diff ' + (lead.quote_over_budget ? 'o_vd_diff_over' : 'o_vd_diff_under')">
-                                                        <span class="o_vd_kh_info_diff_lbl">
-                                                            <t t-if="lead.quote_over_budget">⚠️ VƯỢT tài chính dự kiến</t>
-                                                            <t t-else="">✅ CÒN DƯ so với tài chính</t>
-                                                        </span>
-                                                        <span class="o_vd_kh_info_diff_val"><t t-if="lead.quote_over_budget">+ </t><t t-else="">− </t><t t-esc="lead.quote_vs_budget_diff_fmt"/> đ</span>
-                                                    </div>
-                                                    <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
-                                                    <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>
-                                                    <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
-                                                </div>
                                             </span>
                                             <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
                                             <t t-call="vd_crm_lead.BudgetFitCell"/>
@@ -2733,38 +2705,10 @@
                                             </span>
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
                                                   t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
+                                                  t-on-mouseenter="(ev) => this.onNameEnter(lead, ev)"
+                                                  t-on-mouseleave="() => this.onNameLeave()"
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
-                                                <!-- Hover → panel THÔNG TIN KHÁCH HÀNG (tầm tài chính + báo giá chi tiết) -->
-                                                <div class="o_vd_kh_info_panel" t-on-click.stop="">
-                                                    <div class="o_vd_kh_info_head">👤 THÔNG TIN KHÁCH HÀNG — <t t-esc="lead.name"/></div>
-                                                    <div class="o_vd_kh_info_meta">
-                                                        <div class="o_vd_kh_info_row">
-                                                            <span class="o_vd_kh_info_lbl">💰 Tầm tài chính</span>
-                                                            <span class="o_vd_kh_info_val">
-                                                                <t t-if="lead.budget_label"><t t-esc="lead.budget_label"/></t>
-                                                                <t t-elif="lead.budget_amount_fmt"><t t-esc="lead.budget_amount_fmt"/> đ</t>
-                                                                <t t-else="">—</t>
-                                                            </span>
-                                                        </div>
-                                                        <div class="o_vd_kh_info_row" t-if="lead.quote_price_fmt">
-                                                            <span class="o_vd_kh_info_lbl">🧾 Giá báo KH</span>
-                                                            <span class="o_vd_kh_info_val o_vd_kh_info_quote"><t t-esc="lead.quote_price_fmt"/> đ</span>
-                                                        </div>
-                                                    </div>
-                                                    <!-- Chênh lệch BÁO GIÁ vs TÀI CHÍNH DỰ KIẾN — nổi bật -->
-                                                    <div t-if="lead.quote_vs_budget_diff_fmt"
-                                                         t-att-class="'o_vd_kh_info_diff ' + (lead.quote_over_budget ? 'o_vd_diff_over' : 'o_vd_diff_under')">
-                                                        <span class="o_vd_kh_info_diff_lbl">
-                                                            <t t-if="lead.quote_over_budget">⚠️ VƯỢT tài chính dự kiến</t>
-                                                            <t t-else="">✅ CÒN DƯ so với tài chính</t>
-                                                        </span>
-                                                        <span class="o_vd_kh_info_diff_val"><t t-if="lead.quote_over_budget">+ </t><t t-else="">− </t><t t-esc="lead.quote_vs_budget_diff_fmt"/> đ</span>
-                                                    </div>
-                                                    <div class="o_vd_kh_info_subhead">📋 Bảng báo giá chi tiết</div>
-                                                    <div class="o_vd_kh_info_breakdown" t-out="lead.quote_breakdown_html or ''"/>
-                                                    <div class="o_vd_kh_info_foot">📋 Click vào tên để copy</div>
-                                                </div>
                                             </span>
                                             <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
                                             <t t-call="vd_crm_lead.BudgetFitCell"/>
@@ -3868,41 +3812,6 @@
                     <i class="fa fa-calendar"/>
                     <strong t-esc="days"/>
                 </span>
-                <!-- Popup hover — báo cáo chi tiết -->
-                <div class="o_vd_prb_req2_popover">
-                    <div class="o_vd_prb_req2_pop_head">
-                        📞 Báo cáo cuộc gọi · <t t-esc="lead.name"/>
-                        <div class="o_vd_prb_req2_pop_subnote">Tính từ khi báo giá thành công</div>
-                    </div>
-                    <!-- VERDICT — nhìn 2 giây biết ngay tình hình nghe máy -->
-                    <div t-att-class="'o_vd_callrep_verdict ' + (ans &gt; 0 ? 'o_vd_cv_ok' : (cs.total &gt; 0 ? 'o_vd_cv_bad' : 'o_vd_cv_none'))">
-                        <t t-if="ans &gt; 0">✅ CÓ NGHE MÁY · <b><t t-esc="ans"/></b> lần</t>
-                        <t t-elif="cs.total &gt; 0">📵 THƯỜNG XUYÊN KHÔNG NGHE · <b><t t-esc="cs.total"/></b> cuộc không bắt</t>
-                        <t t-else="">— Chưa gọi cuộc nào</t>
-                    </div>
-                    <!-- Chỉ số phụ — CHỈ hiện cái nào &gt; 0 -->
-                    <div class="o_vd_callrep_chips" t-if="cs.total &gt; 0">
-                        <span t-if="ans &gt; 0" class="o_vd_callrep_chip o_vd_ccp_ok">📞 Nghe máy <b><t t-esc="ans"/></b></span>
-                        <span t-if="refuse &gt; 0" class="o_vd_callrep_chip o_vd_ccp_bad">🔕 Cố tình không nghe <b><t t-esc="refuse"/></b></span>
-                        <span t-if="sub &gt; 0" class="o_vd_callrep_chip o_vd_ccp_sub">📵 Thuê bao <b><t t-esc="sub"/></b></span>
-                        <span t-if="days &gt; 0" class="o_vd_callrep_chip o_vd_ccp_day">📅 <b><t t-esc="days"/></b> ngày gọi</span>
-                    </div>
-                    <!-- Ghi âm: CHỈ cuộc kết nối > 1 phút (lọc sẵn ở JS → recent_calls_long) -->
-                    <div class="o_vd_prb_req2_pop_recordings" t-if="(cs.recent_calls_long || []).length">
-                        <div class="o_vd_prb_req2_pop_subhead">🎙️ Ghi âm (kết nối &gt; 1 phút):</div>
-                        <div t-foreach="cs.recent_calls_long" t-as="rc" t-key="rc_index" class="o_vd_prb_req2_rec_row">
-                            <span class="o_vd_prb_req2_rec_state o_vd_prb_req2_rec_ok">✅</span>
-                            <span class="o_vd_prb_req2_rec_time"><t t-esc="rc.time"/></span>
-                            <span class="o_vd_prb_req2_rec_dur"><t t-esc="rc.duration"/>s</span>
-                            <a t-att-href="rc.recording_url" target="_blank"
-                               class="o_vd_prb_req2_rec_link"
-                               t-on-click.stop=""
-                               title="Nghe / tải ghi âm">
-                                <i class="fa fa-play-circle"/> <span>Nghe</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </span>
     </t>
 

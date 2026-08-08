@@ -246,6 +246,10 @@ export class VdM2oDropdown extends Component {
     // ---------- commit ----------
     async selectRecord(rec, ev) {
         if (ev) { try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {} }
+        // CHẶN bấm CHỒNG: đang xử lý 1 lựa chọn (await onchange server) mà bấm tiếp
+        // → xếp chồng RPC = ĐƠ. Bỏ qua click mới cho tới khi xong.
+        if (this._selecting) return;
+        this._selecting = true;
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         const fname = this.props.name;
         const disp = rec.display_name || rec.name || "";
@@ -257,41 +261,47 @@ export class VdM2oDropdown extends Component {
             const sname = Array.isArray(rec.state_id) ? rec.state_id[1] : "";
             if (sid) vals["vd_intake_province_id"] = { id: sid, display_name: sname };
         }
-        let updated = false;
-        try {
-            await this.props.record.update(vals);
-            updated = true;
-        } catch (e) {
-            console.warn("[vd_m2o_dropdown] record.update failed:", e);
-        }
-        // VERIFY giá trị đã vào record; chưa vào → ORM write thẳng (đảm bảo LƯU
-        // đúng — fix 'bấm chọn tỉnh không lưu').
-        // TUYỆT ĐỐI KHÔNG record.load() ở đây: load() VỨT SẠCH mọi thay đổi chưa
-        // lưu của CẢ BẢNG (chip, ô số vừa gõ) — đây chính là 1 trong các đường
-        // làm "chọn Tỉnh/Phường xong là mất hết trường đã điền trước đó".
-        const curId = this._extractId(this.props.record.data[fname]);
-        if (!updated || curId !== rec.id) {
-            try {
-                const resId = this.props.record.resId;
-                if (resId) {
-                    const wvals = { [fname]: rec.id };
-                    if (vals["vd_intake_province_id"]) {
-                        wvals["vd_intake_province_id"] = this._extractId(vals["vd_intake_province_id"]);
-                    }
-                    await this.orm.write(this.props.record.resModel, [resId], wvals);
-                    updated = true;
-                } else {
-                    console.warn("[vd_m2o_dropdown] no resId — can't ORM write");
-                }
-            } catch (e) {
-                console.error("[vd_m2o_dropdown] ORM write fallback failed:", e);
-            }
-        }
+        // ĐÓNG NGAY (trước await) → bấm là thấy dropdown đóng tức thì, hết cảm giác
+        // "bấm không ăn". Giá trị vẫn set ở record.update phía dưới.
         this._close();
-        // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập). Strategy ORM-write ở trên
-        // đã đảm bảo lưu DB khi cần; ở đây chỉ lên lịch lưu form lúc user nghỉ tay.
-        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-dropdown"); } catch (_) {}
-        try { this.render(true); } catch (_) {}
+        try {
+            let updated = false;
+            try {
+                await this.props.record.update(vals);
+                updated = true;
+            } catch (e) {
+                console.warn("[vd_m2o_dropdown] record.update failed:", e);
+            }
+            // VERIFY giá trị đã vào record; chưa vào → ORM write thẳng (đảm bảo LƯU
+            // đúng — fix 'bấm chọn tỉnh không lưu').
+            // TUYỆT ĐỐI KHÔNG record.load() ở đây: load() VỨT SẠCH mọi thay đổi chưa
+            // lưu của CẢ BẢNG (chip, ô số vừa gõ) — đây chính là 1 trong các đường
+            // làm "chọn Tỉnh/Phường xong là mất hết trường đã điền trước đó".
+            const curId = this._extractId(this.props.record.data[fname]);
+            if (!updated || curId !== rec.id) {
+                try {
+                    const resId = this.props.record.resId;
+                    if (resId) {
+                        const wvals = { [fname]: rec.id };
+                        if (vals["vd_intake_province_id"]) {
+                            wvals["vd_intake_province_id"] = this._extractId(vals["vd_intake_province_id"]);
+                        }
+                        await this.orm.write(this.props.record.resModel, [resId], wvals);
+                        updated = true;
+                    } else {
+                        console.warn("[vd_m2o_dropdown] no resId — can't ORM write");
+                    }
+                } catch (e) {
+                    console.error("[vd_m2o_dropdown] ORM write fallback failed:", e);
+                }
+            }
+            // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập). Strategy ORM-write ở trên
+            // đã đảm bảo lưu DB khi cần; ở đây chỉ lên lịch lưu form lúc user nghỉ tay.
+            try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "m2o-dropdown"); } catch (_) {}
+        } finally {
+            this._selecting = false;
+            try { this.render(true); } catch (_) {}
+        }
     }
 
     async clearValue(ev) {
