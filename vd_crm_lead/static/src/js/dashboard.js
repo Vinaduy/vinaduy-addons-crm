@@ -2227,7 +2227,9 @@ export class VdCrmDashboard extends Component {
         d.innerHTML = this._khInfoHtml(lead);
         d.style.display = "block";
         const r = el.getBoundingClientRect();
-        const tw = d.offsetWidth, th = d.offsetHeight;
+        // Bảng scale(0.7) → kích thước THẬT (nhìn thấy) = offset × 0.7. Dùng cỡ này
+        // để canh viewport cho đúng.
+        const tw = d.offsetWidth * 0.7, th = d.offsetHeight * 0.7;
         const vw = window.innerWidth, vh = window.innerHeight;
         let left = r.left;
         if (left + tw > vw - 8) left = vw - 8 - tw;

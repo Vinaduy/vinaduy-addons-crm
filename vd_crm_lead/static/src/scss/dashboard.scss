@@ -11817,8 +11817,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     position: fixed;
     z-index: 100000;
     width: 720px;
-    max-width: 92vw;
-    max-height: 66vh;
+    max-width: 132vw;
+    max-height: 94vh;
     overflow-y: auto;
     background: #fff;
     border: 1px solid #cbd5e1;
@@ -11827,6 +11827,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     color: #1f2a44;
     text-align: left;
     font-weight: 400;
+    /* Thu về ĐÚNG cỡ popup CŨ (dashboard có zoom:0.7; bảng này ở body nên phải tự
+       thu). transform thay vì zoom → không lệch toạ độ left/top đã set. */
+    transform: scale(0.7);
+    transform-origin: top left;
 }
 .o_vd_khs_head {
     padding: 0.6rem 0.85rem;
