@@ -3176,7 +3176,9 @@ export class VdCrmDashboard extends Component {
     // ADMIN cũng THẤY ổ khoá + chịu khoá; KHÔNG có nút gỡ — chỉ CHỐT BÁO GIÁ
     // để bớt khách xuống <= 3 mới tự gỡ). Màn "Tất cả NV" (selected=0) không khoá.
     get quoteChotLockActive() {
+        // Admin có thể MIỄN khoá riêng 1 NV (vd_quote_chot_lock_exempt).
         return !!(this.state.selected_user_id
+            && !this.state.quote_chot_lock_exempt
             && this.quoteUnchotLeads.length > 3);
     }
     // Chỉ các KH báo giá chưa chốt mới được phép mở khi đang khoá.

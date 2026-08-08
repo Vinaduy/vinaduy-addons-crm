@@ -8092,6 +8092,9 @@ class CrmLead(models.Model):
             'call_watch': self._vd_callwatch_payload(scope_user),
             # KHOÁ TOÀN BỘ khi tồn quá nhiều KH mới chưa gọi (user spec 2026-06-12)
             'uncalled_new_lock': self._vd_uncalled_new_lock_payload(scope_user),
+            # MIỄN khoá "chốt báo giá" riêng cho NV này (admin cấp — 2026-08-08).
+            'quote_chot_lock_exempt': bool(
+                scope_user and scope_user.vd_quote_chot_lock_exempt),
             # Ngưỡng CHẶN CHIA SỐ (KH mới chưa gọi) — frontend dùng tính sức chứa NV
             'distribute_block_threshold': self._vd_distribute_block_threshold(),
             # Công tắc khoá cứng "chưa nhắn Zalo" (>10) — mặc định TẮT (user spec

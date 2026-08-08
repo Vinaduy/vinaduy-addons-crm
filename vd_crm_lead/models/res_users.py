@@ -207,6 +207,16 @@ class ResUsers(models.Model):
     vd_pf_since_urgent = fields.Datetime(string='Vi phạm THI CÔNG GẤP từ', copy=False)
     vd_pf_since_xlvd = fields.Datetime(string='Vi phạm XỬ LÝ VẤN ĐỀ từ', copy=False)
 
+    # ===== MIỄN KHOÁ "CHỐT BÁO GIÁ" (admin cấp riêng cho 1 NV) =====
+    # Khoá "chốt báo giá" (>3 KH báo giá chưa chốt) vốn KHÔNG có nút gỡ. Cờ này
+    # cho admin mở khoá RIÊNG 1 NV mà KHÔNG đụng dữ liệu KH, không ảnh hưởng NV
+    # khác (user spec 2026-08-08). Bỏ tick = khoá lại như thường.
+    vd_quote_chot_lock_exempt = fields.Boolean(
+        string='Miễn khoá chốt báo giá', default=False, copy=False,
+        help='True = NV này KHÔNG bị khoá bảng Khách mới dù có >3 KH báo giá '
+             'chưa chốt. Admin cấp riêng, không ảnh hưởng NV khác.',
+    )
+
     # ===== NHẮC NHỞ NHÂN VIÊN — admin tick Lần 1..5 (user spec 2026-06-01) =====
     # Mỗi lần admin nhắc 1 NV thì tick lên 1 mức. Hiển thị ✓ cho mức 1..N + câu
     # nhắc tương ứng (admin chụp màn hình gửi NV). 0 = chưa nhắc lần nào.
