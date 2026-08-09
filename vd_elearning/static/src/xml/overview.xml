@@ -653,9 +653,13 @@
                          t-on-mouseenter="(ev) => this.onCertEnter(ev, node.course)"
                          t-on-mouseleave="() => this.onCertLeave()"
                          t-on-click="() => this.clickNode(node)">
+                        <!-- Khóa RỖNG: xóa thẳng. Khóa CÓ nội dung: đưa vào LƯU TRỮ. -->
                         <button t-if="draggable &amp;&amp; !node.course.has_content" class="o_vd_node_del"
                                 title="Xóa khóa học rỗng"
                                 t-on-click.stop="() => this.deleteCourse(node.course)"><i class="fa fa-trash"/></button>
+                        <button t-if="draggable &amp;&amp; node.course.has_content" class="o_vd_node_arch"
+                                title="Đưa vào LƯU TRỮ (gỡ khỏi lộ trình, giữ nguyên nội dung)"
+                                t-on-click.stop="() => this.archiveCourse(node.course)"><i class="fa fa-archive"/></button>
                         <div t-if="node.riders.length" class="o_vd_riders">
                             <div t-if="node.moreRiders" class="o_vd_rider_more">+<t t-esc="node.moreRiders"/> người</div>
                             <t t-foreach="node.riders" t-as="rider" t-key="rider.id">
@@ -791,6 +795,14 @@
                     title="THƯ VIỆN - Câu hỏi khó">
                 <span class="o_vd_lib_ico"><i class="fa fa-life-ring"/></span>
                 <span class="o_vd_lib_txt">THƯ VIỆN - Câu hỏi khó</span>
+            </button>
+
+            <!-- LƯU TRỮ khóa học (chỉ admin): kho khóa đã gỡ khỏi lộ trình. -->
+            <button t-if="!state.loading &amp;&amp; state.isAdmin" class="o_vd_lib_filter o_vd_arch_filter"
+                    t-on-click="openArchive"
+                    title="LƯU TRỮ khóa học">
+                <span class="o_vd_lib_ico"><i class="fa fa-archive"/></span>
+                <span class="o_vd_lib_txt">LƯU TRỮ khóa học</span>
             </button>
 
             <div t-if="state.loading" class="o_vd_loading">
@@ -1171,6 +1183,101 @@
                     </div>
                 </div>
             </div>
+        </Dialog>
+    </t>
+
+    <!-- ===== KHO LƯU TRỮ KHÓA HỌC (admin) ===== -->
+    <t t-name="vd_elearning.ArchiveDialog">
+        <Dialog title="'LƯU TRỮ khóa học'" size="'xl'" contentClass="'o_vd_arch_dialog'">
+            <div class="o_vd_arch">
+                <div t-if="state.loading" class="o_vd_arch_loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>Đang tải kho lưu trữ...
+                </div>
+                <t t-else="">
+                    <div class="o_vd_arch_intro">
+                        <i class="fa fa-info-circle me-2"/>
+                        Khóa học ở đây đã được gỡ khỏi lộ trình nhưng
+                        <b>vẫn giữ nguyên nội dung và bài thi</b>. Khôi phục để đưa
+                        khóa trở lại lộ trình bất kỳ, hoặc xóa vĩnh viễn khỏi hệ thống.
+                    </div>
+
+                    <div class="o_vd_arch_toolbar">
+                        <div class="o_vd_arch_searchbox">
+                            <i class="fa fa-search"/>
+                            <input type="text" placeholder="Tìm khóa học đã lưu trữ..."
+                                   t-model="state.search"/>
+                            <i t-if="state.search" class="fa fa-times o_vd_arch_clear"
+                               t-on-click="() => state.search = ''"/>
+                        </div>
+                        <div class="o_vd_arch_chips">
+                            <button t-attf-class="o_vd_arch_chip {{!state.zone ? 'active' : ''}}"
+                                    t-on-click="() => state.zone = ''">Tất cả</button>
+                            <button t-attf-class="o_vd_arch_chip {{state.zone === 'sales' ? 'active' : ''}}"
+                                    t-on-click="() => state.zone = 'sales'">Nhân viên kinh doanh</button>
+                            <button t-attf-class="o_vd_arch_chip {{state.zone === 'leader' ? 'active' : ''}}"
+                                    t-on-click="() => state.zone = 'leader'">Trưởng nhóm</button>
+                        </div>
+                    </div>
+
+                    <div class="o_vd_arch_count">
+                        Có <b t-esc="filtered.length"/> khóa học trong kho lưu trữ
+                    </div>
+
+                    <div class="o_vd_arch_list">
+                        <t t-foreach="filtered" t-as="it" t-key="it.id">
+                            <div class="o_vd_arch_item">
+                                <div class="o_vd_arch_thumb">
+                                    <img t-if="it.has_image"
+                                         t-attf-src="/web/image/slide.channel/{{it.id}}/image_128"/>
+                                    <i t-else="" class="fa fa-graduation-cap"/>
+                                </div>
+                                <div class="o_vd_arch_main">
+                                    <div class="o_vd_arch_name" t-esc="it.name"/>
+                                    <div class="o_vd_arch_meta">
+                                        <span class="o_vd_arch_tag" t-esc="it.zone_label"/>
+                                        <span t-if="it.path_name" class="o_vd_arch_tag o_vd_arch_tag_path">
+                                            <i class="fa fa-flag-checkered me-1"/><t t-esc="it.path_name"/>
+                                        </span>
+                                        <span class="o_vd_arch_dot">·</span>
+                                        <span><i class="fa fa-file-text-o me-1"/><t t-esc="it.n_slides"/> bài</span>
+                                        <span><i class="fa fa-list-ol me-1"/><t t-esc="it.n_questions"/> câu thi</span>
+                                        <span t-if="it.has_pdf"><i class="fa fa-file-pdf-o me-1"/>PDF</span>
+                                        <span class="o_vd_arch_dot">·</span>
+                                        <span><i class="fa fa-clock-o me-1"/>Lưu trữ: <t t-esc="when(it.archived_on)"/></span>
+                                    </div>
+                                </div>
+                                <div class="o_vd_arch_actions">
+                                    <select class="o_vd_arch_sel" t-on-change="(ev) => this.onPickPath(it, ev)">
+                                        <t t-foreach="pathsOf(it.zone)" t-as="p" t-key="p.id">
+                                            <option t-att-value="p.id"
+                                                    t-att-selected="p.id === chosenPath(it)"
+                                                    t-esc="p.name"/>
+                                        </t>
+                                        <option t-if="!pathsOf(it.zone).length" value="">Chưa có lộ trình</option>
+                                    </select>
+                                    <button class="o_vd_arch_btn o_vd_arch_restore"
+                                            t-att-disabled="state.busyId === it.id"
+                                            t-on-click="() => this.restore(it)">
+                                        <i class="fa fa-undo me-1"/>Khôi phục
+                                    </button>
+                                    <button class="o_vd_arch_btn o_vd_arch_purge"
+                                            t-att-disabled="state.busyId === it.id"
+                                            title="Xóa vĩnh viễn khỏi hệ thống"
+                                            t-on-click="() => this.purge(it)">
+                                        <i class="fa fa-trash"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                        <div t-if="!filtered.length" class="o_vd_arch_empty">
+                            <i class="fa fa-archive me-2"/>Kho lưu trữ đang trống.
+                        </div>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-light" t-on-click="() => props.close()">Đóng</button>
+            </t>
         </Dialog>
     </t>
 

@@ -32,6 +32,14 @@ class SlideChannel(models.Model):
     vd_pdf = fields.Binary(string='PDF noi dung', attachment=True)
     vd_pdf_name = fields.Char(string='Ten file PDF')
 
+    # LUU TRU KHOA HOC (user spec 2026-08-09): xoa khoa BAT KY khoi lo trinh ->
+    # dua vao kho LUU TRU (active=False) thay vi xoa mat du lieu. Kho co menu
+    # rieng tren trang tong quan: khoi phuc lai lo trinh hoac xoa vinh vien.
+    vd_archived_on = fields.Datetime(string='Ngay luu tru', readonly=True)
+    # Trang thai xuat ban TRUOC khi luu tru (toggle_active tu unpublish) -> khoi
+    # phuc dung nhu cu.
+    vd_arch_published = fields.Boolean(string='Da xuat ban truoc khi luu tru')
+
     @api.model
     def _vd_apply_course_defaults(self):
         """Ap mac dinh cho TAT CA khoa (moi + dang co): dat 100%, thi lai 3,
@@ -957,16 +965,117 @@ class SlideChannel(models.Model):
         if self._vd_course_has_content(ch):
             raise ValidationError(
                 'Chi xoa duoc khoa hoc CHUA co noi dung va CHUA co bai thi.')
+        self._vd_block_xmlid(ch)
+        ch.unlink()
+        return True
+
+    def _vd_block_xmlid(self, ch):
+        """Ghi xmlid cua khoa (neu do courses.xml seed ra) vao blocklist + go
+        ir.model.data -> moi lan -u sau nay _vd_purge_deleted_courses xoa lai,
+        khoa KHONG bi tai tao."""
         IMD = self.env['ir.model.data'].sudo()
         imd = IMD.search([('model', '=', 'slide.channel'),
                           ('res_id', '=', ch.id)], limit=1)
-        if imd:
-            ICP = self.env['ir.config_parameter'].sudo()
-            blocked = set(filter(None, (ICP.get_param(self._VD_DELETED_KEY) or '').split(',')))
-            blocked.add('%s.%s' % (imd.module, imd.name))
-            ICP.set_param(self._VD_DELETED_KEY, ','.join(sorted(blocked)))
-            imd.unlink()
-        ch.unlink()
+        if not imd:
+            return False
+        ICP = self.env['ir.config_parameter'].sudo()
+        blocked = set(filter(None, (ICP.get_param(self._VD_DELETED_KEY) or '').split(',')))
+        blocked.add('%s.%s' % (imd.module, imd.name))
+        ICP.set_param(self._VD_DELETED_KEY, ','.join(sorted(blocked)))
+        imd.unlink()
+        return True
+
+    # ==================================================================
+    #  KHO LUU TRU KHOA HOC (user spec 2026-08-09)
+    #  Xoa khoa BAT KY khoi lo trinh = dua vao LUU TRU (active=False), giu
+    #  nguyen noi dung + bai thi. Menu LUU TRU cho khoi phuc hoac xoa han.
+    # ==================================================================
+    @api.model
+    def vd_course_archive(self, channel_id):
+        """Dua khoa hoc vao LUU TRU. Chi admin. Khoa bien khoi lo trinh/track
+        (moi truy van dung active_test mac dinh) nhung du lieu con nguyen."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc luu tru khoa hoc.')
+        ch = self.sudo().browse(channel_id)
+        if not ch.exists() or not ch.active:
+            return True
+        ch.write({'vd_arch_published': bool(ch.is_published),
+                  'vd_archived_on': fields.Datetime.now()})
+        ch.toggle_active()   # archive khoa + toan bo slide con, tu unpublish
+        return True
+
+    @api.model
+    def vd_archived_courses(self):
+        """Danh sach khoa dang nam trong LUU TRU + danh sach lo trinh de chon
+        khi khoi phuc. Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc xem kho luu tru khoa hoc.')
+        recs = self.sudo().with_context(active_test=False).search(
+            [('active', '=', False)], order='vd_archived_on desc, id desc')
+        zone_label = {'sales': 'Nhân viên kinh doanh', 'leader': 'Trưởng nhóm'}
+        items = []
+        for c in recs:
+            slides = c.slide_ids.filtered(lambda s: not s.is_category)
+            quiz = slides.filtered(lambda s: s.slide_category == 'quiz')[:1]
+            items.append({
+                'id': c.id,
+                'name': c.name or '',
+                'zone': c.vd_role_zone or 'sales',
+                'zone_label': zone_label.get(c.vd_role_zone or 'sales', ''),
+                'path_id': c.vd_path_id.id if c.vd_path_id else False,
+                'path_name': c.vd_path_id.name if c.vd_path_id else '',
+                'has_image': bool(c.image_512),
+                'n_slides': len(slides.filtered(lambda s: s.slide_category != 'quiz')),
+                'n_questions': len(quiz.question_ids) if quiz else 0,
+                'has_pdf': bool(c.vd_pdf),
+                'archived_on': c.vd_archived_on or False,
+            })
+        Path = self.env['vd.learning.path'].sudo()
+        paths = [{'id': p.id, 'name': p.name or '', 'zone': p.zone}
+                 for p in Path.search([], order='zone, sequence, id')]
+        return {'is_admin': True, 'items': items, 'paths': paths}
+
+    @api.model
+    def vd_course_restore(self, channel_id, path_id=False):
+        """Khoi phuc khoa tu LUU TRU ve lo trinh (mac dinh: lo trinh cu; neu lo
+        trinh cu da bi xoa -> lo trinh dau tien cua khu). Chi admin."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc khoi phuc khoa hoc.')
+        ch = self.sudo().with_context(active_test=False).browse(channel_id)
+        if not ch.exists():
+            return True
+        Path = self.env['vd.learning.path'].sudo()
+        path = Path.browse(path_id) if path_id else ch.vd_path_id
+        if not (path and path.exists()):
+            path = Path.search([('zone', '=', ch.vd_role_zone or 'sales')],
+                               order='sequence, id', limit=1)
+        if not path:
+            raise ValidationError(
+                'Khu dao tao chua co lo trinh nao — hay tao lo trinh truoc khi '
+                'khoi phuc khoa hoc.')
+        if not ch.active:
+            ch.toggle_active()   # bat lai khoa + slide con
+        vals = {'vd_path_id': path.id, 'vd_role_zone': path.zone,
+                'vd_archived_on': False}
+        if ch.vd_arch_published:
+            vals['is_published'] = True
+        ch.write(vals)
+        return True
+
+    @api.model
+    def vd_course_purge(self, channel_id):
+        """Xoa VINH VIEN khoa hoc dang nam trong LUU TRU (ke ca da co noi dung
+        va bai thi). Chi admin — buoc 2 bat buoc di qua kho luu tru."""
+        if not self._vd_is_admin():
+            raise AccessError('Chi admin duoc xoa khoa hoc.')
+        ch = self.sudo().with_context(active_test=False).browse(channel_id)
+        if not ch.exists():
+            return True
+        if ch.active:
+            raise ValidationError(
+                'Chi xoa vinh vien duoc khoa hoc DA nam trong kho LUU TRU.')
+        self._vd_block_xmlid(ch)
+        ch.unlink()   # context active_test=False -> xoa ca slide da archive
         return True
 
     @api.model

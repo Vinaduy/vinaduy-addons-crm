@@ -1426,6 +1426,105 @@ export class VdExamHistoryDialog extends Component {
     }
 }
 
+// ---- KHO LƯU TRỮ khóa học: khóa đã gỡ khỏi lộ trình (active=False). Admin
+// khôi phục về lộ trình bất kỳ, hoặc xóa vĩnh viễn khỏi hệ thống.
+export class VdArchiveDialog extends Component {
+    static template = "vd_elearning.ArchiveDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        onChanged: { type: Function, optional: true },
+    };
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            loading: true,
+            busyId: null,      // khóa đang xử lý (chặn bấm 2 lần)
+            items: [],
+            paths: [],
+            search: "",
+            zone: "",          // '' = cả 2 khu
+            targetPath: {},    // course_id -> path_id admin chọn để khôi phục
+        });
+        onWillStart(() => this.load());
+    }
+    async load() {
+        const d = await this.orm.call("slide.channel", "vd_archived_courses", []);
+        this.state.items = d.items || [];
+        this.state.paths = d.paths || [];
+        this.state.loading = false;
+    }
+    get filtered() {
+        const q = this.state.search.trim().toLowerCase();
+        return this.state.items.filter((it) => {
+            if (this.state.zone && it.zone !== this.state.zone) return false;
+            if (q && !(it.name || "").toLowerCase().includes(q)) return false;
+            return true;
+        });
+    }
+    pathsOf(zone) {
+        return this.state.paths.filter((p) => p.zone === zone);
+    }
+    // Lộ trình sẽ khôi phục về: admin chọn > lộ trình cũ > lộ trình đầu của khu.
+    chosenPath(it) {
+        const picked = this.state.targetPath[it.id];
+        if (picked) return picked;
+        if (it.path_id) return it.path_id;
+        const ps = this.pathsOf(it.zone);
+        return ps.length ? ps[0].id : false;
+    }
+    onPickPath(it, ev) {
+        this.state.targetPath[it.id] = parseInt(ev.target.value, 10) || false;
+    }
+    when(dt) {
+        if (!dt) return "-";
+        // Odoo trả "YYYY-MM-DD HH:MM:SS" (UTC) -> hiện ngày giờ VN.
+        const d = new Date((dt + "Z").replace(" ", "T"));
+        if (isNaN(d.getTime())) return dt;
+        return d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit",
+            year: "numeric", hour: "2-digit", minute: "2-digit" });
+    }
+    async restore(it) {
+        if (this.state.busyId) return;
+        const pid = this.chosenPath(it);
+        if (!pid) {
+            this.notification.add(
+                "Khu đào tạo này chưa có lộ trình nào để khôi phục khóa về.",
+                { type: "warning" });
+            return;
+        }
+        this.state.busyId = it.id;
+        try {
+            await this.orm.call("slide.channel", "vd_course_restore", [it.id, pid]);
+            this.state.items = this.state.items.filter((x) => x.id !== it.id);
+            this.notification.add('Đã khôi phục khóa "' + (it.name || "") + '".',
+                { type: "success" });
+            if (this.props.onChanged) await this.props.onChanged();
+        } finally {
+            this.state.busyId = null;
+        }
+    }
+    async purge(it) {
+        if (this.state.busyId) return;
+        if (!window.confirm(
+            'XÓA VĨNH VIỄN khóa "' + (it.name || "") + '"?\n' +
+            "Toàn bộ nội dung và bài thi của khóa sẽ mất, KHÔNG khôi phục lại được."
+        )) {
+            return;
+        }
+        this.state.busyId = it.id;
+        try {
+            await this.orm.call("slide.channel", "vd_course_purge", [it.id]);
+            this.state.items = this.state.items.filter((x) => x.id !== it.id);
+            this.notification.add("Đã xóa vĩnh viễn khóa học.", { type: "success" });
+            if (this.props.onChanged) await this.props.onChanged();
+        } finally {
+            this.state.busyId = null;
+        }
+    }
+}
+
 export class VdElearningOverview extends Component {
     static template = "vd_elearning.Overview";
     static props = ["*"];
@@ -1831,6 +1930,30 @@ export class VdElearningOverview extends Component {
         }
         await this.orm.call("slide.channel", "vd_course_delete", [course.id]);
         await this.reload();
+    }
+
+    // Gỡ khóa học BẤT KỲ khỏi lộ trình -> đưa vào kho LƯU TRỮ (không mất dữ liệu).
+    async archiveCourse(course) {
+        if (!this.state.isAdmin) return;
+        if (!window.confirm(
+            'Đưa khóa "' + (course.name || "") + '" vào LƯU TRỮ?\n' +
+            "Khóa sẽ biến khỏi lộ trình nhưng vẫn giữ nguyên nội dung và bài thi.\n" +
+            "Vào menu LƯU TRỮ để khôi phục lại bất cứ lúc nào."
+        )) {
+            return;
+        }
+        await this.orm.call("slide.channel", "vd_course_archive", [course.id]);
+        this.notification.add("Đã đưa khóa học vào LƯU TRỮ.", { type: "success" });
+        await this.reload();
+    }
+
+    // Menu LƯU TRỮ: xem/khôi phục/xóa hẳn các khóa đã lưu trữ.
+    openArchive() {
+        this.dialog.add(VdArchiveDialog, {
+            onChanged: async () => {
+                await this.reload();
+            },
+        });
     }
 
     // Nút THÊM NHÂN VIÊN chung (FAB) — gán vào lộ trình ĐẦU của khu; NV hoàn thành
