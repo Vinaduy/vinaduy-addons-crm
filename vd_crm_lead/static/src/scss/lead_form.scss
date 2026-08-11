@@ -11832,7 +11832,12 @@ $vd-panel-head-radius: 10px;
 .o_vd_cancel_calls_btn,
 .o_vd_cr_history_btn,
 .o_vd_hero_head_actions,
-.o_vd_hero_head {
+.o_vd_hero_head,
+/* FIX 2026-08-09: nút "Mở khoá" (o_vd_act_unlock) + cả cụm hành động
+   (o_vd_intake_actions) phải nổi trên overlay. Trước đây whitelist chỉ có
+   o_vd_btn_unlock (class KHÔNG khớp view) → overlay z-100 nuốt click Mở khoá. */
+.o_vd_intake_actions,
+.o_vd_act_unlock {
     position: relative !important;
     z-index: 101 !important;
 }
@@ -11854,7 +11859,9 @@ $vd-panel-head-radius: 10px;
 .o_vd_steps_panel.vd-intake-locked .o_vd_cancel_calls_btn,
 .o_vd_steps_panel.vd-intake-locked .o_vd_cancel_calls_btn *,
 .o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn,
-.o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn * {
+.o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_act_unlock,
+.o_vd_steps_panel.vd-intake-locked .o_vd_act_unlock * {
     pointer-events: auto !important;
     user-select: auto !important;
 }
