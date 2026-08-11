@@ -253,14 +253,16 @@ export class VdM2oDropdown extends Component {
         if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
         const fname = this.props.name;
         const disp = rec.display_name || rec.name || "";
-        // Chọn Huyện → set luôn Tỉnh = huyện.state_id (client-side, không chờ
-        // onchange server) → không bao giờ "mất Tỉnh".
+        // CHỈ set field đang chọn. KHÔNG tự nhét Tỉnh (field anh em) vào record.update:
+        // trước đây nhét {id,display_name} cho Tỉnh → onchange server thấy Tỉnh "đã
+        // đúng" nên không trả lại → record giữ object tự-nhét SAI định dạng → ô Tỉnh
+        // render TRỐNG TRẮNG ("chọn Phường mất Tỉnh"). Nay để onchange server
+        // (_onchange_intake_district_sync_province) tự set Tỉnh đúng định dạng native.
+        // Bug fix 2026-08-09.
+        const rawStateId = (this.isDistrict && rec.state_id)
+            ? (Array.isArray(rec.state_id) ? rec.state_id[0] : this._extractId(rec.state_id))
+            : false;
         const vals = { [fname]: { id: rec.id, display_name: disp } };
-        if (this.isDistrict && rec.state_id) {
-            const sid = Array.isArray(rec.state_id) ? rec.state_id[0] : this._extractId(rec.state_id);
-            const sname = Array.isArray(rec.state_id) ? rec.state_id[1] : "";
-            if (sid) vals["vd_intake_province_id"] = { id: sid, display_name: sname };
-        }
         // ĐÓNG NGAY (trước await) → bấm là thấy dropdown đóng tức thì, hết cảm giác
         // "bấm không ăn". Giá trị vẫn set ở record.update phía dưới.
         this._close();
@@ -283,8 +285,9 @@ export class VdM2oDropdown extends Component {
                     const resId = this.props.record.resId;
                     if (resId) {
                         const wvals = { [fname]: rec.id };
-                        if (vals["vd_intake_province_id"]) {
-                            wvals["vd_intake_province_id"] = this._extractId(vals["vd_intake_province_id"]);
+                        // Chỉ ở fallback (record.update lỗi) mới ghi thẳng Tỉnh theo id.
+                        if (rawStateId) {
+                            wvals["vd_intake_province_id"] = rawStateId;
                         }
                         await this.orm.write(this.props.record.resModel, [resId], wvals);
                         updated = true;
