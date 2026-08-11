@@ -757,6 +757,14 @@
                                                 class="o_vd_act_btn o_vd_act_redo"
                                                 invisible="not vd_quote_cancelled"
                                                 title="Khôi phục / làm lại báo giá sau khi đã sửa thông tin tư vấn."/>
+                                        <!-- NV tự dời ngày gọi lại với KH ĐÃ BÁO GIÁ (đã chốt) —
+                                             tối đa 3 lần (server chặn), admin/leader/GĐ không giới hạn.
+                                             User spec 2026-08-09. -->
+                                        <button string="📅 Dời ngày gọi lại"
+                                                name="action_open_callback_wizard" type="object"
+                                                class="o_vd_act_btn o_vd_act_callback"
+                                                invisible="not vd_intake_locked"
+                                                title="Dời ngày hẹn gọi lại khách (KH đã báo giá — NV được dời tối đa 3 lần)"/>
                                         <button string="🔓 Mở khoá"
                                                 name="action_unlock_intake" type="object"
                                                 class="o_vd_act_btn o_vd_act_unlock"

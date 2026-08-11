@@ -5636,6 +5636,7 @@ div.o_vd_layout_right {
 .o_vd_act_cancelq { background: linear-gradient(135deg, #ff8787 0%, #e03131 100%); }
 .o_vd_act_redo { background: linear-gradient(135deg, #748ffc 0%, #4263eb 100%); }
 .o_vd_act_unlock { background: linear-gradient(135deg, #ffd43b 0%, #f59f00 100%); color: #5c3d00; }
+.o_vd_act_callback { background: linear-gradient(135deg, #3bc9db 0%, #1098ad 100%); }
 
 /* LỊCH SỬ ZALO — nút cạnh "Lịch sử cuộc gọi" + log items (user spec 2026-06-07) */
 .o_vd_zalohist_ico {
@@ -11861,7 +11862,9 @@ $vd-panel-head-radius: 10px;
 .o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn,
 .o_vd_steps_panel.vd-intake-locked .o_vd_cr_history_btn *,
 .o_vd_steps_panel.vd-intake-locked .o_vd_act_unlock,
-.o_vd_steps_panel.vd-intake-locked .o_vd_act_unlock * {
+.o_vd_steps_panel.vd-intake-locked .o_vd_act_unlock *,
+.o_vd_steps_panel.vd-intake-locked .o_vd_act_callback,
+.o_vd_steps_panel.vd-intake-locked .o_vd_act_callback * {
     pointer-events: auto !important;
     user-select: auto !important;
 }

@@ -79,10 +79,15 @@ class VdLeadCallbackWizard(models.TransientModel):
         if self.callback_date <= fields.Datetime.now():
             raise UserError(_('Ngày hẹn phải ở tương lai.'))
 
+        # KH đã báo giá + NV thường: giới hạn số lần tự dời (mặc định 3 lần).
+        self.lead_id.vd_callback_reschedule_guard()
+
         old = self.lead_id.callback_date
         self.lead_id.with_context(mail_notrack=True).write({
             'callback_date': self.callback_date,
         })
+        # Dời thành công → tăng bộ đếm (chỉ tính với KH đã báo giá + NV thường).
+        self.lead_id.vd_callback_reschedule_bump()
 
         local_str = fields.Datetime.context_timestamp(
             self.env.user, self.callback_date,

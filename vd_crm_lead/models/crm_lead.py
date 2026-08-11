@@ -23,6 +23,10 @@ _logger = logging.getLogger(__name__)
 # Nâng 20 → 50 (user spec 2026-07-31).
 _VD_PENDING_CANCEL_BLOCK = 50
 
+# Số lần NV được TỰ dời "ngày gọi lại" với KH ĐÃ BÁO GIÁ (đã chốt thông tin).
+# Quá số này phải nhờ Trưởng nhóm/Giám đốc/Admin (không giới hạn). User spec 2026-08-09.
+_VD_CALLBACK_RESCHEDULE_MAX = 3
+
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
@@ -111,6 +115,10 @@ class CrmLead(models.Model):
 
     # Custom fields not in standard
     callback_date = fields.Datetime(string='Hẹn gọi lại lúc', tracking=True)
+    # Đếm số lần NV TỰ dời ngày gọi lại KH đã báo giá (giới hạn _VD_CALLBACK_RESCHEDULE_MAX).
+    # Admin/Trưởng nhóm/Giám đốc dời không tính vào đây. User spec 2026-08-09.
+    vd_callback_reschedule_count = fields.Integer(
+        string='Số lần NV đã dời ngày gọi lại', default=0, copy=False, readonly=True)
 
     # ============ PANCAKE INTEGRATION ============
     # 3 field này dùng để dedup + truy ngược về conversation Pancake.
@@ -4868,9 +4876,39 @@ class CrmLead(models.Model):
             'context': {'dialog_size': 'medium'},
         }
 
+    def _vd_callback_user_privileged(self):
+        """NV thường bị giới hạn số lần dời ngày gọi lại; Admin/Trưởng nhóm/Giám
+        đốc thì KHÔNG (dời bao nhiêu lần cũng được)."""
+        u = self.env.user
+        return bool(
+            u._is_superuser()
+            or u.has_group('vd_crm_lead.vd_crm_group_admin')
+            or u.vd_crm_role in ('director', 'team_leader'))
+
+    def vd_callback_reschedule_guard(self):
+        """Chặn TRƯỚC khi dời ngày gọi lại: chỉ áp cho KH ĐÃ BÁO GIÁ (locked) +
+        NV thường. Vượt _VD_CALLBACK_RESCHEDULE_MAX lần → raise. KH chưa báo giá
+        hoặc user quyền cao → không giới hạn."""
+        self.ensure_one()
+        if not self.vd_intake_locked or self._vd_callback_user_privileged():
+            return
+        if self.vd_callback_reschedule_count >= _VD_CALLBACK_RESCHEDULE_MAX:
+            raise UserError(_(
+                'Bạn đã tự dời ngày gọi lại %d lần cho khách đã báo giá này — '
+                'hết lượt. Nhờ Trưởng nhóm / Giám đốc / Admin dời tiếp.'
+            ) % _VD_CALLBACK_RESCHEDULE_MAX)
+
+    def vd_callback_reschedule_bump(self):
+        """Tăng bộ đếm sau khi dời THÀNH CÔNG (chỉ KH đã báo giá + NV thường)."""
+        self.ensure_one()
+        if self.vd_intake_locked and not self._vd_callback_user_privileged():
+            self.sudo().vd_callback_reschedule_count += 1
+
     def action_open_callback_wizard(self):
         """Mở wizard hẹn ngày gọi lại — preset nhanh + custom datetime + note."""
         self.ensure_one()
+        # KH đã báo giá + NV thường: chặn mở wizard nếu đã hết lượt dời (3 lần).
+        self.vd_callback_reschedule_guard()
         return {
             'type': 'ir.actions.act_window',
             'name': _('📅 Hẹn ngày gọi lại'),
