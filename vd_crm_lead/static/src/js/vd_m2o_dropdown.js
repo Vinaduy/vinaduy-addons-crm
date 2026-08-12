@@ -54,6 +54,17 @@ const FALLBACK_REL = {
     vd_intake_district: "vd.district",
 };
 
+// ===== CACHE TÊN m2o (id -> display_name), DÙNG CHUNG mọi widget =====
+// Fix "chọn Phường mất Tỉnh": sau khi chọn Phường, giá trị Tỉnh trong record đôi
+// khi mất display_name (chỉ còn id) → widget không có tên để hiện → ô trống.
+// Cache này giữ tên đã biết (từ options đã tải + từ state_id của Phường) để ô
+// Tỉnh luôn tra được tên mà hiển thị, bất kể record.data thiếu tên.
+const VD_M2OD_LABELS = window.__vdM2odLabels || (window.__vdM2odLabels = {});
+function vdRememberLabel(id, label) {
+    const nid = Array.isArray(id) ? id[0] : id;
+    if (nid != null && nid !== false && label) VD_M2OD_LABELS[nid] = label;
+}
+
 // Tỉnh/TP lớn lên đầu cho NV chọn nhanh.
 const PROVINCE_PRIORITY = [
     "Hà Nội", "Hồ Chí Minh", "TP Hồ Chí Minh", "Thành phố Hồ Chí Minh",
@@ -169,6 +180,14 @@ export class VdM2oDropdown extends Component {
             if (this.isProvince) recs = this._sortProvinces(recs);
             this.state.options = recs;
             this.state.loadedKey = key;
+            // Ghi nhớ tên vào cache toàn cục: option này + (nếu là Phường) TÊN TỈNH
+            // qua state_id → ô Tỉnh luôn tra được tên dù record.data mất display_name.
+            for (const o of recs) {
+                vdRememberLabel(o.id, o.display_name || o.name);
+                if (this.isDistrict && o.state_id) {
+                    vdRememberLabel(o.state_id, Array.isArray(o.state_id) ? o.state_id[1] : "");
+                }
+            }
         } catch (e) {
             // Mạng rớt khi tải: GIỮ options cache cũ (nếu có) để vẫn chọn được.
             console.warn("[vd_m2o_dropdown] fetch failed, keep cache:", e);
@@ -182,16 +201,34 @@ export class VdM2oDropdown extends Component {
             .replace(/đ/g, "d").replace(/Đ/g, "D");
     }
 
+    // Tách {id, label} từ MỌI định dạng m2o có thể gặp trong record.data:
+    // object {id, display_name}, array [id, name], hoặc id trần (number).
+    _valueParts(v) {
+        if (!v && v !== 0) return { id: null, label: "" };
+        if (Array.isArray(v)) return { id: v[0] ?? null, label: v[1] || "" };
+        if (typeof v === "object") {
+            return { id: v.id ?? v.resId ?? null,
+                     label: v.display_name || v.displayName || v.name || "" };
+        }
+        if (typeof v === "number") return { id: v, label: "" };
+        return { id: null, label: "" };
+    }
+
     get currentDisplay() {
-        const v = this.props.record.data[this.props.name];
-        if (!v) return "";
-        if (Array.isArray(v)) return v[1] || "";
-        if (typeof v === "object") return v.display_name || v.displayName || v.name || "";
+        const { id, label } = this._valueParts(this.props.record.data[this.props.name]);
+        if (label) { vdRememberLabel(id, label); return label; }
+        if (id != null && id !== false) {
+            // Thiếu tên trong record → tra options đã tải, rồi cache tên toàn cục.
+            const opt = (this.state.options || []).find((o) => o.id === id);
+            if (opt) return opt.display_name || opt.name || "";
+            if (VD_M2OD_LABELS[id]) return VD_M2OD_LABELS[id];
+        }
         return "";
     }
 
     get hasValue() {
-        return Boolean(this.props.record.data[this.props.name]);
+        const { id } = this._valueParts(this.props.record.data[this.props.name]);
+        return id != null && id !== false;
     }
 
     get filteredOptions() {
@@ -262,6 +299,11 @@ export class VdM2oDropdown extends Component {
         const rawStateId = (this.isDistrict && rec.state_id)
             ? (Array.isArray(rec.state_id) ? rec.state_id[0] : this._extractId(rec.state_id))
             : false;
+        // Nhớ tên vào cache: field vừa chọn + (nếu Phường) tên Tỉnh qua state_id.
+        vdRememberLabel(rec.id, disp);
+        if (this.isDistrict && rec.state_id) {
+            vdRememberLabel(rec.state_id, Array.isArray(rec.state_id) ? rec.state_id[1] : "");
+        }
         const vals = { [fname]: { id: rec.id, display_name: disp } };
         // ĐÓNG NGAY (trước await) → bấm là thấy dropdown đóng tức thì, hết cảm giác
         // "bấm không ăn". Giá trị vẫn set ở record.update phía dưới.
