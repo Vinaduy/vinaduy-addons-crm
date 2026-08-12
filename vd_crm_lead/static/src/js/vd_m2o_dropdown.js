@@ -30,7 +30,9 @@ import { useService } from "@web/core/utils/hooks";
 // document (capture phase), đọc data-rec-id, tìm component qua __vdM2od.
 if (!window.__vdM2odClickHandlerInstalled) {
     window.__vdM2odClickHandlerInstalled = true;
-    document.addEventListener("click", (ev) => {
+    // Bắt trên MOUSEDOWN (fire SỚM — trước blur/close/mouseup) → chọn option luôn
+    // ăn, không bị "menu đóng trước khi click". Fix 2026-08-12.
+    const onChipPick = (ev) => {
         const target = ev.target;
         if (!(target instanceof Element)) return;
         // Chip chọn (nút × clear vẫn dùng t-on-click ở bar — không động vào đây)
@@ -46,7 +48,10 @@ if (!window.__vdM2odClickHandlerInstalled) {
         ev.preventDefault();
         ev.stopPropagation();
         comp.selectRecord(rec, ev);
-    }, true);
+    };
+    document.addEventListener("mousedown", onChipPick, true);
+    // Giữ thêm click (phòng thiết bị chỉ phát click, vd. 1 số trình duyệt cảm ứng).
+    document.addEventListener("click", onChipPick, true);
 }
 
 const FALLBACK_REL = {

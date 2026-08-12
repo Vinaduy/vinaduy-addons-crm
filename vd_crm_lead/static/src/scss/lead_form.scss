@@ -12823,7 +12823,11 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
 }
 .o_vd_m2od_menu {
     position: absolute;
-    top: calc(100% + 4px);
+    /* DÍNH SÁT ô (top:100%, KHÔNG +4px): trước đây khe 4px là "vùng chết" — rê
+       chuột từ ô xuống option đi qua khe → dropdown tưởng rời chuột → tự đóng
+       trước khi kịp click ("bị mất, click không ăn"). Dính sát → hết vùng chết.
+       Fix 2026-08-12. */
+    top: 100%;
     left: 0;
     right: 0;
     z-index: 9999;
