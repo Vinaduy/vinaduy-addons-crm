@@ -4247,6 +4247,12 @@ export class VdCrmDashboard extends Component {
                     resModel: "crm.lead",
                     resId,
                     mode: "edit",
+                    // FORM RÚT GỌN (2026-08-14): ẩn panel VẤN ĐỀ, nhờ đó mỗi lần
+                    // đổi khách không phải dựng lại nguyên một kanban con lồng
+                    // trong form. Mở khách theo đường thường vẫn là form đầy đủ.
+                    // 0/undefined -> bỏ qua, dùng form mặc định như trước.
+                    ...(this.state.preview_view_id
+                        ? { viewId: this.state.preview_view_id } : {}),
                     // BẬT control panel để có nút Lưu/Huỷ — TRƯỚC đây controlPanel:false
                     // khiến form KHÔNG có nút Save => intake (Tỉnh/Huyện...) KHÔNG bao giờ
                     // lưu xuống DB (log: 0 web_save cả ngày). Đó là gốc của "nó không lưu".

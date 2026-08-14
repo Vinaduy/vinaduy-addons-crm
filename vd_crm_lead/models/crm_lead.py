@@ -7841,8 +7841,14 @@ class CrmLead(models.Model):
         rồi mới load 'self' (tiết kiệm ~750ms cho Giám đốc). User spec 2026-06-20 r3.
         """
         u = self.env.user
+        _pv = self.env.ref('vd_crm_lead.crm_lead_view_form_vd_popup',
+                           raise_if_not_found=False)
         return {
             'current_user_id': u.id,
+            # Form RÚT GỌN cho popup xem nhanh (ẩn panel VẤN ĐỀ -> bớt dựng cả
+            # một kanban con mỗi lần đổi khách). 0 = không tìm thấy -> client tự
+            # quay về form mặc định, không vỡ.
+            'preview_view_id': _pv.id if _pv else 0,
             'is_manager': self._dashboard_is_manager(),
             'is_director': bool(
                 u.has_group('vd_crm_lead.vd_crm_group_deputy_director')
@@ -8126,6 +8132,11 @@ class CrmLead(models.Model):
             # người chia số / giám đốc). Client dùng để hiện nút "Chọn KH".
             'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
             'current_user_id': self.env.user.id,
+            # Form rút gọn cho popup xem nhanh — xem crm_lead_view_form_vd_popup.
+            'preview_view_id': (
+                lambda v: v.id if v else 0)(self.env.ref(
+                    'vd_crm_lead.crm_lead_view_form_vd_popup',
+                    raise_if_not_found=False)),
             'selected_user_id': scope_user.id if scope_user else 0,
             # Hướng dẫn nút SOS (coachmark) — theo user ĐANG đăng nhập.
             'sos_guide': {

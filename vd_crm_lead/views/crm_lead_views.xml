@@ -1980,4 +1980,30 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
         </field>
     </record>
 
+    <!-- ================================================================
+         FORM RÚT GỌN CHO POPUP XEM NHANH trên dashboard (2026-08-14).
+         Mở/đóng 1 khách chậm KHÔNG phải vì server (đo: read cả 173 field
+         hết 0,123s) mà vì client phải dựng lại 173 component mỗi lần đổi
+         khách. Nặng nhất là panel VẤN ĐỀ: nó nhúng nguyên một kanban con
+         (vd_lead_problem_ids) tức thêm một sub-view đầy đủ với template
+         riêng.
+         Dùng invisible="1" chứ KHÔNG xoá node: node ẩn tĩnh thì Odoo không
+         dựng component cho nó (được đúng phần tiết kiệm cần), trong khi xoá
+         hẳn có rủi ro một modifier ở chỗ khác còn tham chiếu field bên trong
+         -> view vỡ -> sập trang.
+         Form ĐẦY ĐỦ giữ nguyên: mở khách theo đường thường vẫn có panel VẤN ĐỀ.
+         ================================================================ -->
+    <record id="crm_lead_view_form_vd_popup" model="ir.ui.view">
+        <field name="name">crm.lead.form.vd.popup</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
