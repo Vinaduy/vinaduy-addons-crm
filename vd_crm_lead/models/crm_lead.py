@@ -155,22 +155,39 @@ class CrmLead(models.Model):
 
     @api.depends('phone', 'mobile')
     def _compute_vd_duplicates(self):
-        """Tìm lead khác có CÙNG SĐT (normalize digits-only). Skip won/lost."""
+        """Tìm lead khác có CÙNG SĐT (normalize digits-only). Skip won/lost.
+
+        PERF 2026-08-14: TRƯỚC ĐÂY search KHÔNG điều kiện SĐT -> nạp TOÀN BỘ
+        ~4.000 lead active vào ORM rồi filter bằng Python, CHO MỖI LẦN đọc 1
+        lead. Đo trên production: 0,53s — chiếm 66% tổng thời gian của cả 54
+        field compute, và `vd_duplicate_count` nằm trong form view (banner cảnh
+        báo trùng) nên MỌI lần mở khách đều trả giá. web_read chạy 146.588
+        lần/24 ngày => riêng chỗ này ~21 giờ CPU.
+        GIỜ: lọc sẵn ở SQL bằng 9 số cuối (giống _vd_dedup_on_touch) nên chỉ
+        nạp đúng vài ứng viên, rồi mới đối chiếu chuẩn hoá cho chắc.
+        """
         for rec in self:
             phones = self._vd_normalize_phones_set(rec.phone, rec.mobile)
             if not phones:
                 rec.vd_duplicate_count = 0
                 rec.vd_duplicate_lead_ids = False
                 continue
-            # Search bằng OR multiple normalized variants
-            all_leads = self.sudo().search([
+            base = [
                 ('id', '!=', rec.id or 0),
                 ('active', '=', True),
-                '|', ('phone', '!=', False), ('mobile', '!=', False),
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
-            ])
-            dupes = all_leads.filtered(
+            ]
+            cand = self.sudo().browse()
+            for ph in phones:
+                last9 = ph[-9:] if len(ph) >= 9 else ph
+                if not last9:
+                    continue
+                cand |= self.sudo().search(
+                    base + ['|', ('phone', 'like', last9),
+                            ('mobile', 'like', last9)])
+            # 'like' khớp lỏng (số dài hơn vẫn trúng) -> chốt lại bằng chuẩn hoá.
+            dupes = cand.filtered(
                 lambda l: self._vd_normalize_phones_set(l.phone, l.mobile) & phones
             )
             rec.vd_duplicate_count = len(dupes)
@@ -7711,8 +7728,11 @@ class CrmLead(models.Model):
         today_end = today_start + timedelta(days=1)
         month_start = fields.Datetime.to_datetime(today.replace(day=1)) - timedelta(hours=7)
         Call = self.env['stringee.call'].sudo()
-        ANSWERED = ['|', ('answer_time', '!=', False),
-                    ('raw_events', 'ilike', 'answered')]
+        # PERF 2026-08-14: trước là ['|', answer_time != False, raw_events ilike
+        # 'answered'] → ILIKE leading-wildcard = SEQ-SCAN cả bảng, 2 lần mỗi lượt
+        # mở dashboard. Nay lọc bằng cột stringee.call.vd_answered (stored +
+        # index) vật hoá đúng biểu thức đó — xem vd_stringee/models/stringee_call.py.
+        ANSWERED = [('vd_answered', '=', True)]
         uids = list(user_ids)
         out = {uid: {'calls_today_total': 0, 'calls_today_success': 0,
                      'calls_month_total': 0, 'calls_month_success': 0} for uid in uids}
@@ -8267,6 +8287,52 @@ class CrmLead(models.Model):
         return dict(cnt)
 
     @api.model
+    def dashboard_page(self, stage_id, user_id=None, with_tables=True):
+        """GỘP 9 RPC của màn "Khách mới" thành MỘT lượt gọi.
+
+        PERF 2026-08-14: client trước đây bắn 9 RPC song song (Promise.all ở
+        dashboard.js). Server chỉ có 4 worker → MỘT người vào dashboard là
+        chiếm hết, hai người vào cùng lúc là người thứ ba phải xếp hàng ->
+        cảm giác "đơ/lác" đúng giờ cao điểm. Gộp lại còn 1 request thì:
+          - chỉ tốn 1 worker thay vì 9;
+          - 9 hàm dùng CHUNG ORM cache trong cùng transaction, nên tập lead
+            chồng nhau giữa các bảng chỉ đọc DB một lần thay vì 9 lần.
+        Giữ nguyên 9 hàm cũ (chỗ khác còn gọi) — đây chỉ là lớp gộp.
+        """
+        stage = self.env['crm.stage'].browse(stage_id)
+        u = [user_id] if user_id else []
+        # Bật memo cho _dashboard_unreachable_ids trong đúng lượt gọi này (nhiều
+        # bảng bên dưới hỏi lại cùng một tập lead). Chỉ đọc, không ghi -> an toàn.
+        self.env._vd_unreach_memo = {}
+        try:
+            return self._dashboard_page_inner(stage, u, with_tables)
+        finally:
+            self.env._vd_unreach_memo = None
+
+    def _dashboard_page_inner(self, stage, u, with_tables=True):
+        out = {'leads': self.dashboard_leads(stage.id, *u)}
+        if not (with_tables and stage.code == 'new'):
+            return out
+        # Mỗi bảng bọc try riêng: 1 bảng lỗi KHÔNG được kéo sập cả trang
+        # (giữ đúng hành vi .catch(() => []) của client cũ).
+        for key, method in (
+            ('withProblems', 'dashboard_leads_with_problems'),
+            ('urgent', 'dashboard_leads_urgent_construction'),
+            ('lost', 'dashboard_leads_lost'),
+            ('notCalled', 'dashboard_leads_not_called'),
+            ('reference', 'dashboard_leads_reference'),
+            ('quotedLost', 'dashboard_leads_quoted_lost'),
+            ('plannedSign', 'dashboard_leads_planned_sign'),
+            ('cancelReport', 'dashboard_cancel_report'),
+        ):
+            try:
+                out[key] = getattr(self, method)(*u)
+            except Exception:
+                _logger.exception('dashboard_page: bảng %s lỗi', key)
+                out[key] = []
+        return out
+
+    @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=500):
         # User spec 2026-06-01: cap 80 cũ cắt cụt danh sách (NV >80 KH mới hiện
         # thiếu → lệch số với bảng admin). Nâng 500 để hiện đủ + khớp số đếm.
@@ -8716,6 +8782,18 @@ class CrmLead(models.Model):
         today = _date.today()
         if not candidates:
             return []
+        # MEMO 2026-08-14: hàm này bị gọi lặp trong CÙNG một lượt tải dashboard —
+        # bảng "CHƯA GỌI ĐƯỢC", "BÁO GIÁ XONG MẤT TÍCH" và _vd_callwatch_new_bucket
+        # đều dùng, trên những tập lead chồng nhau. Từ khi 9 bảng gộp về một
+        # request (dashboard_page) chúng chạy chung transaction nên nhớ lại kết
+        # quả là an toàn.
+        # CHỈ BẬT trong phạm vi dashboard_page (nơi khởi tạo sẵn dict rỗng): cron
+        # và các luồng có GHI dữ liệu giữa chừng vẫn tính lại như cũ, không bao
+        # giờ đọc phải kết quả cũ. Không có dict = không cache.
+        _memo = getattr(self.env, '_vd_unreach_memo', None)
+        _memo_key = (frozenset(candidates.ids), limit, min_days, min_rang)
+        if _memo is not None and _memo_key in _memo:
+            return _memo[_memo_key]
         Call = self.env['stringee.call']
         # User spec 2026-06-09: bỏ qua cuộc gọi từ SỐ CHẾT (không đổ chuông) →
         # khách chỉ-bị-gọi-bằng-số-chết KHÔNG bị coi là "chưa gọi được" (oan).
@@ -8775,6 +8853,8 @@ class CrmLead(models.Model):
                 matched_ids.append(lead.id)
                 if len(matched_ids) >= limit:
                     break
+        if _memo is not None:
+            _memo[_memo_key] = matched_ids
         return matched_ids
 
     @api.model

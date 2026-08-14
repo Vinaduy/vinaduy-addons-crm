@@ -382,6 +382,7 @@ export class VdCrmDashboard extends Component {
             // Tối ưu tải cho nhiều NV (2026-06-03): 5s -> 8s, và bỏ poll khi
             // tab ẩn (_refreshActiveCalls tự skip nếu document.hidden) → 20+ NV
             // mở tab nền không còn spam request.
+            this._callPollEvery = 8000;
             this._callPollInterval = setInterval(() => this._refreshActiveCalls(), 8000);
             // LỊCH HỌC BẮT BUỘC: nạp banner + ticker đếm ngược 1s. Cứ 60s nạp lại
             // danh sách (lịch mới / đã hoàn thành rớt ra). Bỏ qua khi tab ẩn.
@@ -1187,6 +1188,20 @@ export class VdCrmDashboard extends Component {
                 this._activeCallsSig = sig;
                 this.state.activeCalls = data;
             }
+            // GIÃN NHỊP THÍCH ỨNG (2026-08-14): đo trên log 24 ngày, cái này chạy
+            // 176.416 lượt — NHIỀU HƠN cả số lần mở khách — trong khi tuyệt đại đa
+            // số lượt trả về RỖNG (không ai đang gọi). Mỗi lượt vẫn chiếm 1 worker
+            // trong 4 worker. Nay: đang có cuộc gọi -> 5s (nhạy như cũ, thậm chí
+            // hơn); rỗng liên tiếp -> nới dần tới 30s. Có cuộc gọi mới là về 5s
+            // ngay ở lượt kế. Giảm ~70% request mà NV không thấy khác biệt.
+            const busy = Object.keys(data).length > 0;
+            this._callPollIdle = busy ? 0 : (this._callPollIdle || 0) + 1;
+            const next = busy ? 5000 : Math.min(30000, 8000 + this._callPollIdle * 4000);
+            if (next !== this._callPollEvery) {
+                this._callPollEvery = next;
+                clearInterval(this._callPollInterval);
+                this._callPollInterval = setInterval(() => this._refreshActiveCalls(), next);
+            }
         } catch (err) {
             // Silent fail — không spam console khi WS đứt / restart server
         }
@@ -1439,39 +1454,29 @@ export class VdCrmDashboard extends Component {
             args.push(this.state.selected_user_id);
         }
         const stage = this.state.stages.find(s => s.id === stageId);
-        const probArgs = this.state.selected_user_id ? [this.state.selected_user_id] : [];
 
-        // User spec 2026-05-31 (tốc độ): TRƯỚC ĐÂY 7 lệnh RPC await TUẦN TỰ
-        // (mỗi cái chờ cái trước xong) → vào màn hình NV mất vài giây + xoay tròn.
-        // GIỜ bắn SONG SONG bằng Promise.all → chỉ còn ~1 round-trip. Mỗi call có
-        // .catch riêng nên 1 cái lỗi không kéo sập các cái khác.
+        // PERF 2026-08-14: TRƯỚC ĐÂY 9 RPC bắn SONG SONG bằng Promise.all. Song
+        // song ở client nhưng server chỉ có 4 worker → 1 người vào dashboard là
+        // chiếm sạch, người thứ hai/ba phải xếp hàng => "đơ/lác" giờ cao điểm.
+        // GIỜ gọi 1 endpoint dashboard_page gộp cả 9 (xem crm_lead.py) → 1 worker,
+        // 1 round-trip, và 9 bảng dùng chung ORM cache thay vì đọc DB 9 lượt.
         const call = (method, a) => this.orm.call("crm.lead", method, a).catch(() => []);
 
         if (stage?.code === 'new') {
             // Khi vào stage "Khách mới" → render thêm các bảng THI CÔNG GẤP /
             // XỬ LÝ VẤN ĐỀ / tham khảo / mất tích... → gộp tất cả query 1 lần.
-            const [
-                leads, withProblems, urgent, lost, notCalled, reference, quotedLost, plannedSign, cancelReport,
-            ] = await Promise.all([
-                call("dashboard_leads", args),
-                call("dashboard_leads_with_problems", probArgs),
-                call("dashboard_leads_urgent_construction", probArgs),
-                call("dashboard_leads_lost", probArgs),
-                call("dashboard_leads_not_called", probArgs),
-                call("dashboard_leads_reference", probArgs),
-                call("dashboard_leads_quoted_lost", probArgs),
-                call("dashboard_leads_planned_sign", probArgs),
-                call("dashboard_cancel_report", probArgs),
-            ]);
-            this.state.leads = leads;
-            this.state.leadsWithProblemsAll = this._markupBreakdown(withProblems);
-            this.state.leadsUrgentConstructionAll = this._markupBreakdown(urgent);
-            this.state.leadsLostAll = lost;
-            this.state.cancelReport = Array.isArray(cancelReport) ? cancelReport : [];
-            this.state.leadsNotCalledAll = notCalled;
-            this.state.leadsReferenceAll = reference;
-            this.state.leadsQuotedLostAll = quotedLost;
-            this.state.leadsPlannedSignAll = plannedSign;
+            const p = await this.orm
+                .call("crm.lead", "dashboard_page", args)
+                .catch(() => ({}));
+            this.state.leads = p.leads || [];
+            this.state.leadsWithProblemsAll = this._markupBreakdown(p.withProblems || []);
+            this.state.leadsUrgentConstructionAll = this._markupBreakdown(p.urgent || []);
+            this.state.leadsLostAll = p.lost || [];
+            this.state.cancelReport = Array.isArray(p.cancelReport) ? p.cancelReport : [];
+            this.state.leadsNotCalledAll = p.notCalled || [];
+            this.state.leadsReferenceAll = p.reference || [];
+            this.state.leadsQuotedLostAll = p.quotedLost || [];
+            this.state.leadsPlannedSignAll = p.plannedSign || [];
         } else {
             this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];

@@ -167,6 +167,26 @@ class StringeeCall(models.Model):
 
     raw_events = fields.Text(string='Raw event log', help='JSON list of all webhook payloads received.')
 
+    # PERF 2026-08-14: báo cáo "cuộc gọi NGHE MÁY" trước đây lọc bằng
+    # `raw_events ILIKE '%answered%'`. Leading-wildcard ILIKE vô hiệu mọi index
+    # => SEQ-SCAN cả bảng stringee_call mỗi lần, và _vd_call_report gọi nó 2
+    # lần/lượt (hôm nay + tháng này) trên MỖI lần mở dashboard.
+    # Không bỏ ILIKE đi được: đo trên production 29.842 cuộc thì answer_time chỉ
+    # có ở 132 cuộc, còn 4.953 cuộc CHỈ nhận ra được qua raw_events. Nên vật
+    # hoá kết quả vào 1 cột boolean có index và lọc bằng cột đó.
+    vd_answered = fields.Boolean(
+        string='Có nghe máy', compute='_compute_vd_answered',
+        store=True, index=True, default=False,
+        help='Cuộc gọi thực sự được nhấc máy — vật hoá từ answer_time/raw_events '
+             'để báo cáo không phải quét ILIKE toàn bảng.',
+    )
+
+    @api.depends('answer_time', 'raw_events')
+    def _compute_vd_answered(self):
+        for rec in self:
+            rec.vd_answered = bool(rec.answer_time) or (
+                'answered' in (rec.raw_events or '').lower())
+
     # ---------- Computed ----------
 
     @api.depends('name', 'caller_number', 'callee_number', 'state')
