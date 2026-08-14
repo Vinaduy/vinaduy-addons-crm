@@ -16,10 +16,14 @@ def migrate(cr, version):
         ALTER TABLE stringee_call
         ADD COLUMN IF NOT EXISTS vd_answered boolean
     """)
+    # COALESCE bắt buộc: SQL ba trạng thái làm `false OR NULL` ra NULL, nên bản
+    # ghi có raw_events rỗng sẽ đọng NULL thay vì false (đã dính 1.861 bản ghi ở
+    # lần chạy đầu). Kết quả lọc vẫn đúng vì NULL không khớp `= true`, nhưng để
+    # cột sạch thì ép về false ngay.
     cr.execute("""
         UPDATE stringee_call
-           SET vd_answered = (answer_time IS NOT NULL
-                              OR raw_events ILIKE '%answered%')
+           SET vd_answered = COALESCE(answer_time IS NOT NULL
+                                      OR raw_events ILIKE '%answered%', false)
          WHERE vd_answered IS NULL
     """)
     _logger.info('vd_answered: backfill %s cuộc gọi', cr.rowcount)
