@@ -8794,65 +8794,56 @@ class CrmLead(models.Model):
         _memo_key = (frozenset(candidates.ids), limit, min_days, min_rang)
         if _memo is not None and _memo_key in _memo:
             return _memo[_memo_key]
-        Call = self.env['stringee.call']
         # User spec 2026-06-09: bỏ qua cuộc gọi từ SỐ CHẾT (không đổ chuông) →
         # khách chỉ-bị-gọi-bằng-số-chết KHÔNG bị coi là "chưa gọi được" (oan).
-        dead_numbers = self._vd_dead_caller_numbers()
-        calls = Call.search_read(
-            [('lead_id', 'in', candidates.ids)],
-            ['lead_id', 'state', 'duration', 'answer_time', 'start_time',
-             'caller_number'],
-        )
-        from collections import defaultdict
-        by_lead = defaultdict(list)
-        for c in calls:
-            lid = c['lead_id'][0] if c['lead_id'] else False
-            if lid:
-                by_lead[lid].append(c)
-
-        matched_ids = []
-        now_dt = fields.Datetime.now()
-        for lead in candidates:
-            lcalls = by_lead.get(lead.id) or []
-            # Loại cuộc VÔ GIÁ TRỊ từ số chết (không answer_time, không nghe máy).
-            if dead_numbers and lcalls:
-                lcalls = [
-                    c for c in lcalls
-                    if not (
-                        c.get('caller_number') in dead_numbers
-                        and not c.get('answer_time')
-                        and not ((c.get('state') in ('answered', 'ended'))
-                                 and (c.get('duration') or 0) > 0)
-                    )
-                ]
-            if not lcalls:
-                continue
-            # User spec 2026-05-28 (round 2): answered = state ∈ {answered, ended}
-            # AND dur > 0 (declined dur=1s không count là answered).
-            had_success = any(
-                (c.get('state') in ('answered', 'ended'))
-                and (c.get('duration') or 0) > 0
-                for c in lcalls
-            )
-            if had_success:
-                continue
-            # User spec 2026-06-13: CHƯA GỌI ĐƯỢC = KH đã ĐỔ CHUÔNG (số ĐÚNG, máy
-            # reo) nhưng KHÔNG NGHE máy, trên ≥3 NGÀY khác nhau. Thuê bao/sai số
-            # THUẦN (chưa từng reo) → HỦY tự động (_vd_auto_trash_no_answer_leads),
-            # KHÔNG nằm ở đây. (Đảo lại logic 2026-06-09.)
-            all_days = set()
-            rang = 0          # cuộc ĐỔ CHUÔNG: no_answer / busy / declined
-            for c in lcalls:
-                s = c.get('start_time')
-                day = s.date() if s and hasattr(s, 'date') else None
-                if day:
-                    all_days.add(day)
-                if c.get('state') in ('no_answer', 'busy', 'declined'):
-                    rang += 1
-            if rang >= min_rang and len(all_days) >= min_days:
-                matched_ids.append(lead.id)
-                if len(matched_ids) >= limit:
-                    break
+        dead_numbers = list(self._vd_dead_caller_numbers() or [])
+        # PERF 2026-08-14: TRƯỚC ĐÂY search_read TOÀN BỘ cuộc gọi của candidates
+        # rồi gom nhóm + duyệt bằng Python. Ở màn "Tất cả nhân viên"
+        # (dashboard_users) candidates là bucket KHÁCH MỚI của CẢ CÔNG TY nên đây
+        # là hàng nghìn lead × hàng chục nghìn cuộc gọi -> chiếm ~72% thời gian
+        # của cả màn hình (1,47s). Cả 3 điều kiện đều là phép gộp theo lead nên
+        # PostgreSQL làm được trong 1 câu, không cần kéo dữ liệu về Python.
+        # Giữ NGUYÊN ngữ nghĩa cũ:
+        #   - loại cuộc vô giá trị từ số chết (WHERE NOT ...);
+        #   - lead không còn cuộc nào -> rớt luôn (GROUP BY);
+        #   - had_success = state ∈ {answered, ended} AND duration > 0 -> loại;
+        #   - đếm cuộc ĐỔ CHUÔNG (no_answer/busy/declined) >= min_rang;
+        #   - số NGÀY khác nhau (theo start_time) >= min_days.
+        _sql = """
+            SELECT lead_id
+              FROM stringee_call
+             WHERE lead_id IN %s
+               {dead_filter}
+             GROUP BY lead_id
+            HAVING bool_or(state IN ('answered', 'ended')
+                           AND COALESCE(duration, 0) > 0) IS NOT TRUE
+               AND COUNT(*) FILTER (
+                       WHERE state IN ('no_answer', 'busy', 'declined')) >= %s
+               AND COUNT(DISTINCT start_time::date) >= %s
+        """
+        _params = [tuple(candidates.ids)]
+        if dead_numbers:
+            # caller_number IS NOT NULL là BẮT BUỘC: `NULL = ANY(...)` ra NULL,
+            # nên `NOT (NULL AND ...)` cũng NULL và WHERE sẽ VỨT hàng đó — trong
+            # khi Python `None in dead_numbers` là False tức GIỮ hàng. Thiếu vế
+            # này thì lệch 175/1276 lead so với logic cũ (đã đo).
+            _dead_filter = """
+               AND NOT (caller_number IS NOT NULL
+                        AND caller_number = ANY(%s)
+                        AND answer_time IS NULL
+                        AND NOT (state IN ('answered', 'ended')
+                                 AND COALESCE(duration, 0) > 0))
+            """
+            _params.append(dead_numbers)
+        else:
+            _dead_filter = ''
+        _params += [min_rang, min_days]
+        # Raw SQL không thấy thay đổi còn nằm trong ORM cache -> flush trước.
+        self.env['stringee.call'].flush_model()
+        self.env.cr.execute(_sql.format(dead_filter=_dead_filter), _params)
+        _hit = {r[0] for r in self.env.cr.fetchall()}
+        # Giữ đúng THỨ TỰ candidates như vòng lặp cũ (limit cắt cùng một tập).
+        matched_ids = [i for i in candidates.ids if i in _hit][:limit]
         if _memo is not None:
             _memo[_memo_key] = matched_ids
         return matched_ids
