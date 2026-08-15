@@ -1998,8 +1998,12 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
         <field name="mode">primary</field>
         <field name="priority">99</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="attributes">
-                <attribute name="invisible">1</attribute>
+            <!-- User spec 2026-08-15: ĐƯA panel VẤN ĐỀ vào cột BÁO GIÁ (ngay dưới
+                 bảng báo giá) thay vì ẩn — NV ghi nhận vấn đề (chọn loại + diễn
+                 giải) ngay trong popup xem nhanh. Giữ điều kiện hiển thị gốc
+                 (stage quote/negotiate/won). -->
+            <xpath expr="//div[hasclass('o_vd_quote_panel')]" position="after">
+                <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="move"/>
             </xpath>
         </field>
     </record>

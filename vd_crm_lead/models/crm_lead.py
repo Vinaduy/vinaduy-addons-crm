@@ -4232,24 +4232,11 @@ class CrmLead(models.Model):
         # ============ SĐT KH → đầu số 0 (nhập 84 → tự về 0) ============
         self._vd_normalize_phones_in_vals(vals)
 
-        # ============ Chặn NV/Leader sửa intake khi đã khoá — chỉ admin bypass ============
-        # ALSO bypass khi write đến từ section 'Cân đối ngân sách' trong popup
-        # vấn đề (context vd_skip_intake_lock=True từ vd.lead.problem.write).
-        locked_keys = self._INTAKE_LOCKED_FIELDS & vals.keys()
-        if locked_keys and not self.env.context.get('vd_skip_intake_lock'):
-            current_user = self.env.user
-            is_admin = (
-                current_user._is_superuser()
-                or current_user.has_group('vd_crm_lead.vd_crm_group_admin')
-            )
-            if not is_admin:
-                for rec in self:
-                    if rec.vd_intake_locked:
-                        raise UserError(_(
-                            'Thông tin tư vấn đã được chốt. Liên hệ Admin '
-                            'để mở khoá nếu cần chỉnh sửa, hoặc tạo vấn đề '
-                            '"Cân đối ngân sách" mới để sửa qua popup vấn đề.'
-                        ))
+        # ============ KHOÁ sửa intake sau CHỐT ĐÃ BỎ (user spec 2026-08-15) ============
+        # Trước đây: KH đã CHỐT (vd_intake_locked) thì chỉ Admin sửa được intake.
+        # Nay: NHÂN VIÊN được sửa mọi thông tin tư vấn kể cả KH đã chốt → không
+        # chặn nữa. (Giữ nguyên gate chuyển stage bên dưới — chưa CHỐT vẫn không
+        # kéo sang Báo giá được.)
 
         # ============ Phân quyền: chặn user không được phép chuyển KH ============
         # Nếu vals['user_id'] khác user_id hiện tại → user đang cố CHUYỂN KH cho
