@@ -9611,8 +9611,18 @@ body.o_vd_preview_active .o_vd_preview_body_form {
             padding: 0.32rem 0.5rem;
             &:hover { transform: none; }
         }
-        .o_vd_filter_table_right_rows .o_vd_budget_fit_cell { min-width: 0; }
-        .o_vd_filter_table_right_rows .o_vd_problem_row_name { min-width: 0; }
+        /* Budget (Chênh / Khớp tài chính) = cột auto, KHÔNG co, luôn hiện đủ chữ */
+        .o_vd_filter_table_right_rows .o_vd_budget_fit_cell {
+            min-width: 0;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        /* Tên KH: pill co theo ô (bỏ width 300px cố định) → dài thì cắt "…" */
+        .o_vd_filter_table_right_rows .o_vd_problem_row_name.o_vd_name_pill {
+            width: auto;
+            min-width: 0;
+            max-width: 100%;
+        }
         .o_vd_filter_table_right_rows .o_vd_problem_row_name .o_vd_name_pill_txt {
             overflow: hidden;
             text-overflow: ellipsis;
