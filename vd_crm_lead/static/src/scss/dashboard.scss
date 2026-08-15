@@ -7526,11 +7526,10 @@
     position: fixed;
     inset: 0;
     z-index: 1900;
-    /* Nền mờ tối — thấy dashboard phía sau (user spec 2026-08-15: KHÔNG tràn
-       toàn màn hình nữa, popup vừa phải ở GIỮA). */
+    /* Nền mờ tối — thấy dashboard phía sau. */
     background: rgba(15, 23, 42, 0.55);
     overflow-y: auto;
-    padding: 3vh 2vw;          /* chừa viền quanh popup */
+    padding: 2vh 1.5vw;        /* viền mỏng — popup RỘNG gần full (user spec 2026-08-15) */
     display: flex;
     align-items: flex-start;
     justify-content: center;   /* canh GIỮA theo chiều ngang */
@@ -7545,9 +7544,9 @@
     border-radius: 14px;       /* bo góc — như cửa sổ nổi */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     width: 100%;
-    max-width: 1600px;         /* 2 cột BẰNG NHAU (Tư vấn | Báo giá), rộng thêm chút
-                                  (user spec 2026-08-15) — vẫn có viền quanh nên
-                                  "vừa phải ở giữa", không tràn full màn hình. */
+    max-width: 96vw;           /* RỘNG gần full màn hình (user spec 2026-08-15) — để
+                                  các ô có đủ chỗ, KHÔNG cắt/biến dạng chữ. Vẫn có
+                                  viền mỏng quanh nên canh giữa. */
     min-height: 0;
     max-height: 94vh;          /* cao vừa phải, phần dư cuộn trong body */
     margin: 0 auto;
@@ -7682,6 +7681,10 @@
         width: 100% !important;
         max-width: 100% !important;
     }
+    /* Móng nằm trong span hẹp cạnh nút → cho tối thiểu đủ rộng hiện hết chữ. */
+    .o_vd_floor_mong_pair { flex: 1 1 auto !important; min-width: 200px !important; }
+    .o_vd_floor_mong_pair .o_vd_intake_dropdown,
+    .o_vd_floor_mong_pair select { min-width: 160px !important; }
 }
 /* Màn hình nhỏ (điện thoại/tablet): vẫn full cho dễ thao tác */
 @media (max-width: 991px) {
