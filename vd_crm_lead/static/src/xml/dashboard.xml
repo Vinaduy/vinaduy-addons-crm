@@ -3113,10 +3113,14 @@
                         </div>
                     </div>
 
-                    <!-- Body: render form view crm.lead INLINE (không wrap Dialog) -->
+                    <!-- Body: render form view crm.lead INLINE (không wrap Dialog).
+                         .o_vd_preview_fit = wrapper CỐ ĐỊNH của tôi (View render lại
+                         không đụng tới) → auto-fit zoom ĐÚNG div này, không mất. -->
                     <div class="o_vd_preview_body o_vd_preview_body_form">
-                        <View t-props="previewViewProps"
-                              t-key="state.previewLead.ids[state.previewLead.index]"/>
+                        <div class="o_vd_preview_fit">
+                            <View t-props="previewViewProps"
+                                  t-key="state.previewLead.ids[state.previewLead.index]"/>
+                        </div>
                     </div>
 
                     <!-- Footer hint -->

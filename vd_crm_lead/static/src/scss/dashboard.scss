@@ -7578,18 +7578,26 @@
    - Lưới nội bộ intake (form + sidebar) về 1 cột → ô nhập không bị bóp.
    Form mở theo ĐƯỜNG THƯỜNG (không qua popup) GIỮ NGUYÊN bố cục cũ. */
 .o_vd_preview_body_form {
+    /* Wrapper auto-fit của tôi — zoom áp vào đây (JS). Cao TỰ NHIÊN theo nội dung. */
+    .o_vd_preview_fit {
+        width: 100%;
+        display: block;
+        transform-origin: top left;
+    }
     /* VÔ HIỆU scroll NỘI BỘ của form Odoo nhúng — ĐÂY mới là thanh cuộn thật sự
-       (không phải body). Cho các lớp form cao TỰ NHIÊN (height auto, overflow
-       visible) → body + auto-fit (JS) mới thu vừa 1 màn hình, HẾT thanh cuộn.
+       (không phải body). Cho MỌI lớp form cao TỰ NHIÊN (height auto, overflow
+       visible) → auto-fit (JS) mới thu vừa 1 màn hình, HẾT cuộn (kể cả lăn chuột).
        User spec 2026-08-15 (lỗi cuộn dai dẳng). */
-    > *,
-    .o_view_controller,
-    .o_action_manager,
-    .o_content,
-    .o_form_view,
-    .o_form_renderer,
-    .o_form_sheet_bg,
-    .o_form_sheet {
+    .o_vd_preview_fit,
+    .o_vd_preview_fit .o_view_controller,
+    .o_vd_preview_fit .o_action_manager,
+    .o_vd_preview_fit .o_content,
+    .o_vd_preview_fit .o_form_view,
+    .o_vd_preview_fit .o_form_view_container,
+    .o_vd_preview_fit .o_form_renderer,
+    .o_vd_preview_fit .o_form_sheet_bg,
+    .o_vd_preview_fit .o_form_sheet,
+    .o_vd_preview_fit .o_form_nosheet {
         overflow: visible !important;
         max-height: none !important;
         height: auto !important;

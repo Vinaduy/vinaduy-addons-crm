@@ -4219,7 +4219,7 @@ export class VdCrmDashboard extends Component {
         const modal = document.querySelector('.o_vd_preview_modal');
         if (!modal) return;
         const body = modal.querySelector('.o_vd_preview_body_form');
-        const inner = body && body.firstElementChild;
+        const inner = body && body.querySelector(".o_vd_preview_fit");
         if (!inner) return;
         // Ngừng observe trong lúc thao tác zoom → thao tác của chính fit KHÔNG tự
         // kích hoạt ResizeObserver (chống vòng lặp).
@@ -4246,7 +4246,7 @@ export class VdCrmDashboard extends Component {
         this._teardownPreviewAutoFit();
         const attach = () => {
             const body = document.querySelector('.o_vd_preview_modal .o_vd_preview_body_form');
-            const inner = body && body.firstElementChild;
+            const inner = body && body.querySelector(".o_vd_preview_fit");
             if (!inner) { this._previewFitRaf = requestAnimationFrame(attach); return; }
             this._fitPreviewToViewport();
             try {
