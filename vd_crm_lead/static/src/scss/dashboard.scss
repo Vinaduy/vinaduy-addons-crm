@@ -7809,6 +7809,27 @@
     &:active { transform: translateY(1px); }
     i { font-size: 0.85rem; }
 }
+/* Nút GỌI LẠI trong popup chi tiết KH (user spec 2026-08-15) — xanh lá nổi bật */
+.o_vd_preview_callback {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+    padding: 0.32rem 0.85rem;
+    background: linear-gradient(135deg, #40c057 0%, #2f9e44 100%);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(47, 158, 68, 0.5);
+    transition: filter 0.15s ease, transform 0.05s ease;
+    &:hover { filter: brightness(1.08); }
+    &:active { transform: translateY(1px); }
+    i { font-size: 0.85rem; }
+}
 /* Copy chip (tên + phone) — sang trọng: viền gold mảnh, nền trong suốt, hover bừng sáng */
 .o_vd_preview_copy_btn {
     display: inline-flex;

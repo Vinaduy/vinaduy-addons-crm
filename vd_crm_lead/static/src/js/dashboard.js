@@ -326,6 +326,8 @@ export class VdCrmDashboard extends Component {
             // (giống bảng Khách mới) — user spec 2026-07-07.
             urgentExpanded: false,
             xlvdExpanded: false,
+            // Bảng gộp "ĐÃ BÁO GIÁ" (TCG + XLVD) — thu gọn 15 dòng (user 2026-08-15)
+            quotedExpanded: false,
             // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
             pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
@@ -1693,6 +1695,17 @@ export class VdCrmDashboard extends Component {
     get leadsUrgentConstruction() {
         return this._applyDayFilter(this.state.leadsUrgentConstructionAll || []);
     }
+    // GỘP "ĐÃ BÁO GIÁ" (user spec 2026-08-15): TCG + XLVD thành 1 danh sách.
+    // 2 nguồn vốn loại trừ nhau (TCG exclude khỏi XLVD) nhưng vẫn dedupe theo id
+    // cho chắc. Thứ tự: thi công gấp lên trước, rồi tới xử lý vấn đề.
+    get leadsQuoted() {
+        const seen = new Set();
+        const out = [];
+        for (const l of [...this.leadsUrgentConstruction, ...this.leadsWithProblems]) {
+            if (l && !seen.has(l.id)) { seen.add(l.id); out.push(l); }
+        }
+        return out;
+    }
     // LỌC theo số ngày chưa gọi — MỖI khách chỉ thuộc 1 KHOẢNG (loại trừ nhau):
     // 3=[3,5) · 5=[5,8) · 8=[8,15) · 15=[15,25) · 25=[25,40) · 40=[40,∞). KH gọi
     // trong 3 ngày gần đây KHÔNG thuộc khoảng nào (đã gọi gần đây).
@@ -2485,6 +2498,9 @@ export class VdCrmDashboard extends Component {
     }
     toggleXlvdTable() {
         this.state.xlvdExpanded = !this.state.xlvdExpanded;
+    }
+    toggleQuotedTable() {
+        this.state.quotedExpanded = !this.state.quotedExpanded;
     }
 
     // ===== BÁO GIÁ XONG MẤT TÍCH — chuyển KH thủ công (nút + kéo-thả) =====
@@ -3335,10 +3351,9 @@ export class VdCrmDashboard extends Component {
         if (this.isNewStageSplit) {
             if (this.leadsNoProblems.some(l => l.id === leadId)) {
                 ids = this.leadsNoProblems.map(l => l.id);
-            } else if (this.leadsUrgentConstruction.some(l => l.id === leadId)) {
-                ids = this.leadsUrgentConstruction.map(l => l.id);
-            } else if (this.leadsWithProblems.some(l => l.id === leadId)) {
-                ids = this.leadsWithProblems.map(l => l.id);
+            } else if (this.leadsQuoted.some(l => l.id === leadId)) {
+                // GỘP TCG + XLVD → duyệt ← → trên cả danh sách "ĐÃ BÁO GIÁ"
+                ids = this.leadsQuoted.map(l => l.id);
             } else if ((this.state.leadsReferenceAll || []).some(l => l.id === leadId)) {
                 ids = this.state.leadsReferenceAll.map(l => l.id);
             } else {
@@ -3410,6 +3425,8 @@ export class VdCrmDashboard extends Component {
         if (which === 'new') return !!this.state.call_watch?.locked;
         if (which === 'urgent') return !!this.state.problem_find?.urgent?.locked;
         if (which === 'xlvd') return !!this.state.problem_find?.xlvd?.locked;
+        // Bảng gộp "ĐÃ BÁO GIÁ": khoá nếu 1 trong 2 bảng con bị khoá.
+        if (which === 'quoted') return this.isTableLocked('urgent') || this.isTableLocked('xlvd');
         return false;
     }
     isTableLockedForSelf(which) {
@@ -3449,6 +3466,12 @@ export class VdCrmDashboard extends Component {
 
     // Mô tả NGUYÊN NHÂN khoá (coachmark cạnh ổ khoá). which: new|urgent|xlvd.
     lockReason(which) {
+        if (which === 'quoted') {
+            // Bảng gộp: ưu tiên lý do của bảng đang bị khoá.
+            if (this.isTableLocked('urgent')) return this.lockReason('urgent');
+            if (this.isTableLocked('xlvd')) return this.lockReason('xlvd');
+            return "";
+        }
         if (which === 'new') {
             return this.state.call_watch?.reason
                 || "Chưa gọi đủ số ngày yêu cầu cho khách mới.";
@@ -3467,6 +3490,12 @@ export class VdCrmDashboard extends Component {
     async adminClearTableLock(which) {
         const uid = this.state.selected_user_id;
         if (!uid) return;
+        // Bảng gộp "ĐÃ BÁO GIÁ" → gỡ khoá cả 2 bảng con.
+        if (which === 'quoted') {
+            await this.adminClearTableLock('urgent');
+            await this.adminClearTableLock('xlvd');
+            return;
+        }
         try {
             if (which === 'new') {
                 await this.orm.call("crm.lead", "vd_admin_clear_call_lock", [uid]);

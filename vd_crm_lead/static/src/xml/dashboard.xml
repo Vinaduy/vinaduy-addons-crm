@@ -2558,39 +2558,34 @@
 
                         <!-- BẢNG "KHÁCH ĐÃ LÀM HỢP ĐỒNG" đã BỎ theo yêu cầu user 2026-08-06. -->
 
-                        <!-- ===== SECTION 1b: THI CÔNG GẤP — KH cần khởi công ≤ 3 tháng / càng sớm.
-                             EXCLUDE khỏi 'XỬ LÝ VẤN ĐỀ' bên dưới để tránh trùng lặp.
-                             Round 17.1: stacked vertical, mỗi section tách 2 col
-                             (list left + side panel right với icon Im lặng). -->
+                        <!-- ===== SECTION GỘP: ĐÃ BÁO GIÁ (user spec 2026-08-15) —
+                             gộp THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ thành 1 danh sách. Bấm 1 KH
+                             → mở popup chi tiết (có nút Gọi lại trong đó). Bỏ chip vấn đề,
+                             nút Gọi lại inline và menu ⚙ (Mất tích / Huỷ khách) khỏi hàng. -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
-                            <t t-set="pf" t-value="state.problem_find and state.problem_find.urgent"/>
-                            <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng: nằm trên
-                                 cùng danh sách KH, dài từ mép trái tên KH đến hết ô BÁO GIÁ
-                                 XONG MẤT TÍCH. Giữ nguyên thiết kế banner, chỉ đổi vị trí. -->
-                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_urgent o_vd_lockable">
-                                <t t-set="lockWhich" t-value="'urgent'"/>
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_filter_table_urgent o_vd_lockable">
+                                <t t-set="lockWhich" t-value="'quoted'"/>
                                 <t t-call="vd_crm_lead.TableLockShield"/>
                                 <div class="o_vd_filter_table_left">
-                                    <i class="fa fa-bolt o_vd_filter_funnel_urgent"/>
+                                    <i class="fa fa-usd o_vd_filter_funnel_urgent"/>
                                     <div class="o_vd_filter_table_lbl">
-                                        <span>THI CÔNG</span>
-                                        <span>GẤP</span>
+                                        <span>ĐÃ</span>
+                                        <span>BÁO GIÁ</span>
                                     </div>
-                                    <div class="o_vd_filter_table_count"><t t-esc="leadsUrgentConstruction.length"/></div>
-                                    <button t-if="state.selectMode and leadsUrgentConstruction.length"
+                                    <div class="o_vd_filter_table_count"><t t-esc="leadsQuoted.length"/></div>
+                                    <button t-if="state.selectMode and leadsQuoted.length"
                                             class="o_vd_select_all_btn"
-                                            t-on-click.stop="() => this.toggleSelectAll(leadsUrgentConstruction.map(l => l.id))"
+                                            t-on-click.stop="() => this.toggleSelectAll(leadsQuoted.map(l => l.id))"
                                             title="Chọn / bỏ chọn tất cả KH bảng này">
                                         ☑ Tất cả
                                     </button>
                                 </div>
-                                <t t-call="vd_crm_lead.ProblemFindBanner"/>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
-                                    <t t-if="leadsUrgentConstruction.length">
-                                        <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
-                                        <t t-set="urgentShown" t-value="state.urgentExpanded ? leadsUrgentConstruction : leadsUrgentConstruction.slice(0, 15)"/>
-                                        <div t-foreach="urgentShown" t-as="lead" t-key="lead.id"
+                                    <t t-if="leadsQuoted.length">
+                                        <!-- Thu gọn 15 dòng, nút mở rộng -->
+                                        <t t-set="quotedShown" t-value="state.quotedExpanded ? leadsQuoted : leadsQuoted.slice(0, 15)"/>
+                                        <div t-foreach="quotedShown" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
@@ -2604,55 +2599,21 @@
                                                   t-att-title="lead.name">
                                                 <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
                                             </span>
-                                            <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
+                                            <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH -->
                                             <t t-call="vd_crm_lead.BudgetFitCell"/>
-                                            <!-- User spec round 6.1: BỎ urgent_label_cell + days_cell,
-                                                 chỉ còn name | YÊU CẦU TÌM badge (right-align).
-                                                 problems_non_urgent → exclude 'Thi công gấp'. -->
-                                            <span class="o_vd_problem_row_problems">
-                                                <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
-                                                <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
-                                                      t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
-                                                    <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                </span>
-                                                <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <!-- Gọi lại -->
-                                                <button t-if="lead.phone" class="o_vd_callback_btn"
-                                                        t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
-                                                        title="Gọi lại KH ngay">
-                                                    <i class="fa fa-phone"/> <span>Gọi lại</span>
-                                                </button>
-                                                <!-- ⚙️ MENU thao tác — Mất tích sau báo giá / Huỷ khách -->
-                                                <div class="o_vd_rowgear">
-                                                    <button class="o_vd_rowgear_btn"
-                                                            t-on-click.stop="(ev) => this.toggleRowGear(ev, lead.id)"
-                                                            title="Thao tác khác">
-                                                        <i class="fa fa-cog"/>
-                                                    </button>
-                                                    <div t-if="state.rowGearOpen === lead.id" class="o_vd_rowgear_menu" t-on-click.stop="">
-                                                        <button class="o_vd_rowgear_item"
-                                                                t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)">
-                                                            <i class="fa fa-ban"/> <span>Mất tích sau báo giá</span>
-                                                        </button>
-                                                        <button class="o_vd_rowgear_item o_vd_rowgear_item_danger"
-                                                                t-on-click.stop="(ev) => this.cancelLead(ev, lead.id)">
-                                                            <i class="fa fa-trash"/> <span>Huỷ khách</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </span>
+                                            <!-- Bấm vào hàng → mở popup chi tiết (có nút Gọi lại trong đó).
+                                                 Chip vấn đề / Gọi lại inline / menu ⚙ ĐÃ BỎ (user 2026-08-15). -->
                                         </div>
-                                        <button t-if="leadsUrgentConstruction.length > 15"
-                                                t-att-class="'o_vd_new_pills_toggle' + (state.urgentExpanded ? '' : ' o_vd_new_pills_toggle_big')"
-                                                t-on-click="() => this.toggleUrgentTable()">
-                                            <t t-if="state.urgentExpanded">
+                                        <button t-if="leadsQuoted.length > 15"
+                                                t-att-class="'o_vd_new_pills_toggle' + (state.quotedExpanded ? '' : ' o_vd_new_pills_toggle_big')"
+                                                t-on-click="() => this.toggleQuotedTable()">
+                                            <t t-if="state.quotedExpanded">
                                                 <i class="fa fa-chevron-up me-1"/> Thu gọn bảng
                                             </t>
                                             <t t-else="">
                                                 <span class="o_vd_expand_main">
                                                     <i class="fa fa-chevron-down o_vd_expand_chevron"/>
-                                                    XEM TẤT CẢ <t t-esc="leadsUrgentConstruction.length"/> KHÁCH
+                                                    XEM TẤT CẢ <t t-esc="leadsQuoted.length"/> KHÁCH
                                                     <i class="fa fa-chevron-down o_vd_expand_chevron"/>
                                                 </span>
                                                 <span class="o_vd_expand_sub">Bấm vào đây để mở rộng bảng</span>
@@ -2661,116 +2622,13 @@
                                     </t>
                                     <div t-else="" class="o_vd_filter_table_empty">
                                         <i class="fa fa-check-circle me-2"/>
-                                        Không có KH thi công gấp.
+                                        Chưa có KH đã báo giá.
                                     </div>
                                 </div>
                             
                             </div><!-- /.o_vd_split_table_single -->
                         </section>
 
-                        <!-- ===== SECTION 2: XỬ LÝ VẤN ĐỀ (mọi stage) ===== -->
-                        <section t-if="isNewStageSplit"
-                                 class="o_vd_lead_section o_vd_problem_section">
-                            <t t-set="pf" t-value="state.problem_find and state.problem_find.xlvd"/>
-                            <!-- Banner YÊU CẦU TÌM VẤN ĐỀ chuyển VÀO TRONG bảng (xem ghi chú
-                                 ở section THI CÔNG GẤP). Giữ nguyên thiết kế, chỉ đổi vị trí. -->
-                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_with_banner o_vd_filter_table_warn o_vd_lockable">
-                                <t t-set="lockWhich" t-value="'xlvd'"/>
-                                <t t-call="vd_crm_lead.TableLockShield"/>
-                                <div class="o_vd_filter_table_left">
-                                    <i class="fa fa-filter o_vd_filter_funnel_warn"/>
-                                    <div class="o_vd_filter_table_lbl">
-                                        <span>XỬ LÝ</span>
-                                        <span>VẤN ĐỀ</span>
-                                    </div>
-                                    <div class="o_vd_filter_table_count"><t t-esc="leadsWithProblems.length"/></div>
-                                    <button t-if="state.selectMode and leadsWithProblems.length"
-                                            class="o_vd_select_all_btn"
-                                            t-on-click.stop="() => this.toggleSelectAll(leadsWithProblems.map(l => l.id))"
-                                            title="Chọn / bỏ chọn tất cả KH bảng này">
-                                        ☑ Tất cả
-                                    </button>
-                                </div>
-                                <t t-call="vd_crm_lead.ProblemFindBanner"/>
-                                <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
-                                    <t t-if="leadsWithProblems.length">
-                                        <!-- Thu gọn 15 dòng, nút mở rộng (giống Khách mới) -->
-                                        <t t-set="xlvdShown" t-value="state.xlvdExpanded ? leadsWithProblems : leadsWithProblems.slice(0, 15)"/>
-                                        <div t-foreach="xlvdShown" t-as="lead" t-key="lead.id"
-                                             t-on-click="() => this.onPillClick(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_xlvd_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
-                                            <span t-if="state.selectMode" class="o_vd_row_check">
-                                                <t t-if="isLeadSelected(lead.id)">☑</t>
-                                                <t t-else="">☐</t>
-                                            </span>
-                                            <span class="o_vd_problem_row_name o_vd_name_pill"
-                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
-                                                  t-on-mouseenter="(ev) => this.onNameEnter(lead, ev)"
-                                                  t-on-mouseleave="() => this.onNameLeave()"
-                                                  t-att-title="lead.name">
-                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
-                                            </span>
-                                            <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH (user spec 2026-05-31) -->
-                                            <t t-call="vd_crm_lead.BudgetFitCell"/>
-                                            <!-- Round 6.1: bỏ urgent_label_cell + days_cell — name | badge -->
-                                            <span class="o_vd_problem_row_problems">
-                                                <!-- Thứ tự: THẺ A (Tìm vấn đề) → thẻ vấn đề → 📞/📅 CUỐI -->
-                                                <t t-call="vd_crm_lead.ProblemRequiredBadge"/>
-                                                <span t-foreach="lead.problems or []" t-as="p" t-key="p_index"
-                                                      t-att-class="'o_vd_problem_row_badge o_vd_prb_' + p.status">
-                                                    <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                </span>
-                                                <t t-call="vd_crm_lead.CallStatsBadge"/>
-                                                <!-- Gọi lại -->
-                                                <button t-if="lead.phone" class="o_vd_callback_btn"
-                                                        t-on-click.stop="(ev) => this.callLeadDirect(ev, lead.id)"
-                                                        title="Gọi lại KH ngay">
-                                                    <i class="fa fa-phone"/> <span>Gọi lại</span>
-                                                </button>
-                                                <!-- ⚙️ MENU thao tác — Mất tích sau báo giá / Huỷ khách -->
-                                                <div class="o_vd_rowgear">
-                                                    <button class="o_vd_rowgear_btn"
-                                                            t-on-click.stop="(ev) => this.toggleRowGear(ev, lead.id)"
-                                                            title="Thao tác khác">
-                                                        <i class="fa fa-cog"/>
-                                                    </button>
-                                                    <div t-if="state.rowGearOpen === lead.id" class="o_vd_rowgear_menu" t-on-click.stop="">
-                                                        <button class="o_vd_rowgear_item"
-                                                                t-on-click.stop="(ev) => this.confirmMoveToQuotedLost(ev, lead.id)">
-                                                            <i class="fa fa-ban"/> <span>Mất tích sau báo giá</span>
-                                                        </button>
-                                                        <button class="o_vd_rowgear_item o_vd_rowgear_item_danger"
-                                                                t-on-click.stop="(ev) => this.cancelLead(ev, lead.id)">
-                                                            <i class="fa fa-trash"/> <span>Huỷ khách</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </span>
-                                        </div>
-                                        <button t-if="leadsWithProblems.length > 15"
-                                                t-att-class="'o_vd_new_pills_toggle' + (state.xlvdExpanded ? '' : ' o_vd_new_pills_toggle_big')"
-                                                t-on-click="() => this.toggleXlvdTable()">
-                                            <t t-if="state.xlvdExpanded">
-                                                <i class="fa fa-chevron-up me-1"/> Thu gọn bảng
-                                            </t>
-                                            <t t-else="">
-                                                <span class="o_vd_expand_main">
-                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
-                                                    XEM TẤT CẢ <t t-esc="leadsWithProblems.length"/> KHÁCH
-                                                    <i class="fa fa-chevron-down o_vd_expand_chevron"/>
-                                                </span>
-                                                <span class="o_vd_expand_sub">Bấm vào đây để mở rộng bảng</span>
-                                            </t>
-                                        </button>
-                                    </t>
-                                    <div t-else="" class="o_vd_filter_table_empty">
-                                        <i class="fa fa-inbox me-2"/>
-                                        Chưa có KH nào đang xử lý vấn đề.
-                                    </div>
-                                </div>
-                            
-                            </div><!-- /.o_vd_split_table_single -->
-                        </section>
                                                 </div><!-- /.o_vd_boards_col -->
                         <div class="o_vd_icon_panel">
                         <!-- BANG ICON RIENG (user spec 2026-06-12): gom Tham khao / Chua goi
@@ -3077,6 +2935,14 @@
                                     title="Bấm để copy số điện thoại">
                                 <i class="fa fa-phone"/>
                                 <span><t t-esc="L.phone"/></span>
+                            </button>
+                            <!-- Nút GỌI LẠI ngay trong popup (user spec 2026-08-15) -->
+                            <button class="o_vd_preview_callback"
+                                    t-if="L.phone"
+                                    t-on-click.stop="(ev) => this.callLeadDirect(ev, L.id)"
+                                    title="Gọi lại khách hàng này ngay">
+                                <i class="fa fa-phone"/>
+                                <span>Gọi lại</span>
                             </button>
                             <span class="o_vd_preview_user" t-if="L.user_name">
                                 <i class="fa fa-user-circle"/>
