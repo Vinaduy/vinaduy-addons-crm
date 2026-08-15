@@ -1,0 +1,7 @@
+# Chuyển 50 "Khách mới" (stage 20) từ Ma Thị Đào (uid 84) -> Nguyễn Hà Ly (uid 83)
+# Ngày 2026-07-06. DB vinaduy_crm.
+# MOVED_IDS (đã đổi user_id 84 -> 83):
+MOVED_IDS = [7260, 7283, 7306, 7328, 7357, 7379, 7401, 7423, 7445, 7467, 7489, 7511, 7533, 7555, 7577, 7599, 7621, 7643, 7665, 7687, 7709, 7731, 7753, 7775, 7797, 7819, 7841, 7863, 7885, 7907, 7929, 7951, 7973, 7995, 8017, 8039, 8061, 8083, 8105, 8127, 8149, 8171, 8193, 8215, 8237, 8259, 8281, 8303, 8331, 8352]
+
+# HOÀN TÁC (chạy trong odoo shell) — trả lại cho Đào:
+# env["crm.lead"].sudo().browse(MOVED_IDS).with_context(vd_skip_reassign_check=True).write({"user_id": 84}); env.cr.commit()

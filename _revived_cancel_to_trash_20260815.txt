@@ -1,0 +1,8 @@
+# 2026-08-15: Đưa 43 "khách hủy" bị Pancake đẩy nhầm về "Khách mới" TRỞ LẠI thùng rác.
+# (set vd_cancel_state='approved', stage=lost, user_id=False, active=False)
+# Đã sửa code _vd_revive_pancake_lead thành no-op nên không tái diễn.
+# 1 lead GIỮ LẠI (đã tiến triển tới "Khách báo giá", chờ user quyết): 10500
+MOVED_IDS = [2240, 6507, 9771, 10322, 10347, 10457, 10458, 10472, 10488, 10489, 10497, 10501, 10593, 10595, 10599, 10600, 10782, 10790, 10791, 10793, 10980, 11035, 11036, 11038, 11039, 11104, 11256, 11258, 11276, 11280, 11283, 11287, 11288, 11293, 11296, 11386, 11392, 11399, 11408, 11434, 11435, 11437, 11438]
+
+# HOÀN TÁC (nếu cần) trong odoo shell — đưa lại active + Khách mới:
+# ns = env.ref("vd_crm_lead.stage_new"); env["crm.lead"].sudo().with_context(active_test=False).browse(MOVED_IDS).write({"active": True, "stage_id": ns.id, "vd_cancel_state": False})

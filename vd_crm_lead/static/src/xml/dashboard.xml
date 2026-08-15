@@ -3910,13 +3910,9 @@
                 <!-- Icon túi tiền 💰 đã BỎ (user spec 2026-06-07) — màu pill xanh lá đậm
                      đã thể hiện "đã có báo giá" rồi. -->
 
-                <!-- Badge cuộc gọi: 📞 <total> 📅 <distinct_days>. Chỉ stage 'new'. -->
-                <span t-if="selectedStage and selectedStage.code === 'new' and lead.call_stats and lead.call_stats.total > 0"
-                      class="o_vd_pill_call_badge"
-                      t-att-title="'Đã gọi ' + lead.call_stats.total + ' cuộc trong ' + lead.call_stats.distinct_days + ' ngày khác nhau'">
-                    📞 <t t-esc="lead.call_stats.total"/>
-                    <span class="o_vd_pill_call_days">📅 <t t-esc="lead.call_stats.distinct_days"/></span>
-                </span>
+                <!-- Badge cuộc gọi 📞/📅 ĐÃ BỎ theo yêu cầu user 2026-08-15
+                     (gỡ hết icon đếm cuộc gọi + số ngày trên thẻ KH). -->
+
 
                 <!-- Logo Zalo nhỏ — GOM cạnh badge cuộc gọi 📞📅 (user spec 2026-06-12).
                      Xanh = đã kết bạn/nhắn Zalo; Xám = không tìm thấy Zalo. -->
