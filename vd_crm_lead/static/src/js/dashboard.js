@@ -1448,7 +1448,10 @@ export class VdCrmDashboard extends Component {
 
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
-        this.state.leadsLoading = true;
+        // _silentStageLoad: refresh NGẦM sau khi đóng popup → KHÔNG bật loading
+        // (tránh cảm giác "load trang" khi trở về). Dashboard vẫn hiện từ cache,
+        // pill cập nhật im lặng khi data về.
+        if (!this._silentStageLoad) this.state.leadsLoading = true;
         const args = [stageId];
         if (this.state.selected_user_id) {
             args.push(this.state.selected_user_id);
@@ -4295,9 +4298,15 @@ export class VdCrmDashboard extends Component {
 
     async refreshAfterPreview() {
         if (this.state.selectedStageId) {
+            // Refresh NGẦM (không bật loading) → đóng popup về dashboard tức thì,
+            // pill tự cập nhật khi data về, không thấy "load trang".
+            this._silentStageLoad = true;
             try {
                 await this.selectStage(this.state.selectedStageId);
-            } catch (_e) {}
+            } catch (_e) {
+            } finally {
+                this._silentStageLoad = false;
+            }
         }
     }
 
