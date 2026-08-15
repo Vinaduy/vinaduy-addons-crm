@@ -430,7 +430,7 @@
                                     <span class="o_vd_floor_pair o_vd_floor_mong_pair">
                                         <span class="o_vd_dim_lbl">Móng</span>
                                         <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_inline"/>
+                                               widget="selection" class="o_vd_intake_dropdown"/>
                                     </span>
 
                                     <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->
@@ -593,7 +593,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
-                                           widget="vd_selection_inline"/>
+                                           widget="selection" class="o_vd_intake_dropdown"/>
                                 </div>
                             </div>
 
@@ -668,7 +668,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
-                                           widget="vd_selection_inline"/>
+                                           widget="selection" class="o_vd_intake_dropdown"/>
                                 </div>
                             </div>
 

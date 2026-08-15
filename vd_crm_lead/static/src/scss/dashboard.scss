@@ -7612,24 +7612,75 @@
         width: 100% !important;
         max-width: none !important;
     }
-    /* HÀNG DIỆN TÍCH: cột popup hẹp → grid cố định 772px bị CẮT ô "Dài". Ép
-       flex-wrap + ô co lại (như bản mobile) → xuống dòng gọn, KHÔNG mất chữ/ô. */
+    /* HÀNG DIỆN TÍCH: MỘT DÒNG (user spec 2026-08-15) — flex nowrap + ô nhỏ gọn
+       để nhãn + toggle + Ngang × Dài nằm CÙNG 1 dòng, không xuống dòng linh tinh. */
     .o_vd_intake_inline .o_vd_area_row.o_vd_area_row_grid {
         display: flex !important;
-        flex-wrap: wrap !important;
-        column-gap: 0.4rem !important;
-        row-gap: 0.35rem !important;
+        flex-wrap: nowrap !important;
+        column-gap: 0.3rem !important;
         align-items: center !important;
     }
     .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_lbl,
-    .o_vd_intake_inline .o_vd_area_row_grid .o_vd_dim_lbl { flex: 0 0 auto !important; }
-    .o_vd_intake_inline .o_vd_subtoggle_cell { grid-column: auto !important; padding-left: 0 !important; }
+    .o_vd_intake_inline .o_vd_area_row_grid .o_vd_dim_lbl,
+    .o_vd_intake_inline .o_vd_subtoggle_cell {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        grid-column: auto !important;
+        padding-left: 0 !important;
+    }
     .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_dim,
     .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_dim > input {
-        width: 100px !important;
-        min-width: 72px !important;
-        max-width: 120px !important;
-        flex: 0 1 100px !important;
+        width: 72px !important;
+        min-width: 54px !important;
+        max-width: 84px !important;
+        flex: 0 1 72px !important;
+    }
+
+    /* MẪU NHÀ (và các chip selection còn lại): 1 DÒNG — nowrap + chip nhỏ gọn. */
+    .o_vd_selinline {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 0.3rem !important;
+        overflow-x: auto !important;      /* nếu quá hẹp thì trượt ngang, KHÔNG xuống dòng */
+    }
+    .o_vd_selinline .o_vd_selinline_chip {
+        white-space: nowrap !important;
+        flex: 0 0 auto !important;
+    }
+
+    /* GHI CHÚ: nhãn "Ghi chú" ngang (không dựng đứng bị cắt) + ô nhập rộng full. */
+    .o_vd_floor_function_notes_row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+    }
+    .o_vd_floor_function_notes_row .o_vd_tag_notes {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        writing-mode: horizontal-tb !important;
+    }
+    .o_vd_floor_function_notes_row .o_field_widget,
+    .o_vd_floor_function_notes_row input {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* HÌNH 5 — thanh Nghe máy/Ngày gọi lại + nút: cho XUỐNG 2 DÒNG (wrap), không cắt chữ. */
+    .o_vd_call_stats_box .o_vd_call_stats_row,
+    .o_vd_call_stats_chip {
+        flex-wrap: wrap !important;
+    }
+    .o_vd_intake_actions {
+        flex-wrap: wrap !important;
+        row-gap: 0.35rem !important;
+    }
+
+    /* Dropdown native (Móng/Chỗ để đất/Sổ đỏ + Thời gian): full rộng, không cắt chữ. */
+    .o_vd_intake_dropdown, .o_vd_intake_dropdown select, .o_vd_tl_select {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 }
 /* Màn hình nhỏ (điện thoại/tablet): vẫn full cho dễ thao tác */
