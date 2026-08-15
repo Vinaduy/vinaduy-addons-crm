@@ -4219,7 +4219,7 @@ div.o_vd_layout_right {
     .o_vd_total_left { flex: 0 0 auto; align-self: center; }
     .o_vd_floor_function_grid { flex: 1 1 auto; min-width: 0; }
 }
-/* Step 6: Móng dropdown TRƯỚC, nút +Tầng/+Tum/+Lửng BÊN PHẢI — 1 hàng gọn */
+/* Step 6: Móng dropdown TRƯỚC, nút +Tầng/+Tum/+Lửng BÊN PHẢI — 1 hàng THẲNG */
 .o_vd_floors_oneline {
     display: flex;
     align-items: center;
@@ -4227,6 +4227,76 @@ div.o_vd_layout_right {
     gap: 0.5rem;
     .o_vd_floor_mong_pair { order: 0; }
     .o_vd_floor_btn_group { order: 1; }
+}
+/* ===== Tinh chỉnh intake (user spec 2026-08-15) ===== */
+/* Móng: nhãn + dropdown NẰM NGANG (không rớt dòng), dropdown đủ rộng đọc chữ */
+.o_vd_intake_inline .o_vd_floor_mong_pair {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 0.4rem !important;
+    min-width: 260px !important;
+}
+.o_vd_intake_inline .o_vd_floor_mong_pair .o_vd_dim_lbl { white-space: nowrap !important; flex: 0 0 auto !important; }
+.o_vd_intake_inline .o_vd_floor_mong_pair select,
+.o_vd_intake_inline .o_vd_floor_mong_pair .o_vd_intake_dropdown {
+    flex: 1 1 auto !important;
+    min-width: 190px !important;
+    width: 100% !important;
+}
+/* TỔNG diện tích: BỎ margin-left:auto để nằm HẲN BÊN TRÁI */
+.o_vd_intake_inline .o_vd_floors_total_inline.o_vd_total_left {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+/* Ô "Thời gian" TO hơn chút để đọc rõ chữ */
+.o_vd_tl_select {
+    font-size: 1.06rem !important;
+    min-height: 2.5rem !important;
+    padding: 0.55rem 0.85rem !important;
+    line-height: 1.45 !important;
+}
+/* Popup "KHÁC" (tùy chọn thêm): rộng hơn + giá KHÔNG đè lên tên (đưa về inline phải) */
+.o_vd_hextra_pop { width: 320px !important; min-width: 320px !important; max-width: 320px !important; }
+.o_vd_hextra_opt_lbl { flex: 1 1 auto !important; white-space: nowrap !important; }
+.o_vd_hextra_opt_note {
+    position: static !important;
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+}
+/* Ô × giữa Ngang/Dài: có khoảng cách 2 bên, không dính vào ô nhập */
+.o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_sep {
+    margin: 0 0.35rem !important;
+    flex: 0 0 auto !important;
+}
+/* CÔNG NĂNG: chip xếp GỌN từ trái, chỉ xuống dòng khi ĐẦY (không chừa khoảng trống) */
+.o_vd_floor_func_chips .o_vd_tlc_bar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    align-content: flex-start !important;
+    gap: 0.3rem !important;
+}
+.o_vd_floor_func_chips .o_vd_tlc_bar .o_vd_tlc_pill { flex: 0 0 auto !important; margin: 0 !important; }
+/* GHI CHÚ: nhãn ngang + ô nhập RỘNG full, không tràn */
+.o_vd_intake_inline .o_vd_floor_function_notes_row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+}
+.o_vd_intake_inline .o_vd_floor_function_notes_row .o_vd_tag_notes {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    writing-mode: horizontal-tb !important;
+}
+.o_vd_intake_inline .o_vd_floor_function_notes_row .o_field_widget,
+.o_vd_intake_inline .o_vd_floor_function_notes_row input {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
 }
 /* Ô "Thời gian" — dropdown NATIVE chọn 1 (widget vd_timeline_select) */
 .o_vd_tl_select {
