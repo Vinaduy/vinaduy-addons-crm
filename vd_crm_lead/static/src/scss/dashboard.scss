@@ -8084,6 +8084,24 @@ body.o_vd_preview_active {
     .dropdown-item {
         white-space: nowrap !important;
     }
+
+    /* Popup mở → ẨN cột icon phải (THAM KHẢO/CHƯA GỌI/KH HỦY…) + nút THƯ VIỆN
+       nổi (đang lòi ra cạnh popup) — user spec 2026-08-15. */
+    .o_vd_icon_panel,
+    .o_vd_lib_filter {
+        display: none !important;
+    }
+    /* Thu NHỎ FAB gọi + Zalo (đang 116px, che chữ) → gọn, không cắt chữ. */
+    .o_vd_call_btn {
+        width: 68px !important;
+        height: 68px !important;
+        i { font-size: 40px !important; }
+    }
+    .o_vd_call_fab {
+        gap: 0.4rem !important;
+        bottom: 5rem !important;
+    }
+    .o_vd_fab_hist { bottom: 1.3rem !important; }
 }
 
 /* ============================================================
