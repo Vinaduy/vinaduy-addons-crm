@@ -2108,8 +2108,9 @@
         max-width: var(--vd-pill-w, 172px);
         white-space: nowrap;
 
-        /* Chỉ phần tên co giãn + cắt "…"; icon/ngày/badge giữ nguyên */
-        > *:not(.o_vd_won_pill_name) { flex-shrink: 0; }
+        /* Tên KH nằm trong .o_vd_won_pill_date → CHỈ nó co + cắt "…";
+           mọi icon (nguồn, Zalo, 💰, checkbox) LUÔN hiện đủ, không bị đẩy mất */
+        > *:not(.o_vd_won_pill_date) { flex-shrink: 0; }
 
         &:hover {
             transform: translateY(-2px);
@@ -2605,7 +2606,11 @@
     .o_vd_won_pill_date {
         font-weight: 700;
         color: #1f2a44;
-        flex-shrink: 0;
+        /* Giữ tên KH: co được + cắt "…" để nhường chỗ cho các icon */
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .o_vd_won_pill_name {
         color: #495057;
