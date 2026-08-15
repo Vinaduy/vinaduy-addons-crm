@@ -2592,8 +2592,9 @@
                                                 <t t-if="isLeadSelected(lead.id)">☑</t>
                                                 <t t-else="">☐</t>
                                             </span>
+                                            <!-- KHÔNG .stop ở tên → click nổi lên hàng để MỞ POPUP chi tiết
+                                                 (user 2026-08-15: bấm KH phải vào chi tiết, không phải copy tên). -->
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
-                                                  t-on-click.stop="(ev) => this.copyLeadName(ev, lead.name, lead.id)"
                                                   t-on-mouseenter="(ev) => this.onNameEnter(lead, ev)"
                                                   t-on-mouseleave="() => this.onNameLeave()"
                                                   t-att-title="lead.name">
@@ -2601,8 +2602,6 @@
                                             </span>
                                             <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH -->
                                             <t t-call="vd_crm_lead.BudgetFitCell"/>
-                                            <!-- Bấm vào hàng → mở popup chi tiết (có nút Gọi lại trong đó).
-                                                 Chip vấn đề / Gọi lại inline / menu ⚙ ĐÃ BỎ (user 2026-08-15). -->
                                         </div>
                                         <button t-if="leadsQuoted.length > 15"
                                                 t-att-class="'o_vd_new_pills_toggle' + (state.quotedExpanded ? '' : ' o_vd_new_pills_toggle_big')"
