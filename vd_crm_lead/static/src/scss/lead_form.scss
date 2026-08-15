@@ -4337,6 +4337,34 @@ div.o_vd_layout_right {
 /* Móng đủ rộng để hiện hết tên loại móng */
 .o_vd_intake_inline .o_vd_floor_mong_pair { min-width: 320px !important; }
 .o_vd_intake_inline .o_vd_floor_mong_pair select { min-width: 220px !important; }
+
+/* DIỆN TÍCH: ép 1 dòng vừa cột — hàng "Diện tích đất" KHÔNG tràn/cắt ô "Dài".
+   Specificity CAO (div.o_vd_layout_grid... + .o_vd_area_row) để ĐÈ rule cũ ép
+   ô nhập 108px làm hàng quá rộng. User spec 2026-08-15. */
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    column-gap: 0.35rem !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+}
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim,
+div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim > input,
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim,
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid div.o_vd_area_dim > input {
+    width: 80px !important;
+    min-width: 56px !important;
+    max-width: 92px !important;
+    flex: 0 1 80px !important;
+}
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_area_lbl,
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_dim_lbl,
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_area_sep,
+div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_subtoggle_cell {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+}
 /* Ô "Thời gian" — dropdown NATIVE chọn 1 (widget vd_timeline_select) */
 .o_vd_tl_select {
     width: 100%;
