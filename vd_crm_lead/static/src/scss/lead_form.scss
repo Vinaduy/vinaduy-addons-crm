@@ -4211,6 +4211,23 @@ div.o_vd_layout_right {
     position: relative;
     width: 100%;
 }
+/* Step 7 Công năng: TỔNG diện tích BÊN TRÁI + lưới công năng bên phải (2026-08-15) */
+.o_vd_func_body_with_total {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    .o_vd_total_left { flex: 0 0 auto; align-self: center; }
+    .o_vd_floor_function_grid { flex: 1 1 auto; min-width: 0; }
+}
+/* Step 6: Móng dropdown TRƯỚC, nút +Tầng/+Tum/+Lửng BÊN PHẢI — 1 hàng gọn */
+.o_vd_floors_oneline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    .o_vd_floor_mong_pair { order: 0; }
+    .o_vd_floor_btn_group { order: 1; }
+}
 /* Ô "Thời gian" — dropdown NATIVE chọn 1 (widget vd_timeline_select) */
 .o_vd_tl_select {
     width: 100%;

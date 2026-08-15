@@ -404,7 +404,14 @@
                                          tự-điền phải bỏ qua, khỏi "tắt xong lại hiện lại" -->
                                     <field name="vd_intake_manual_off" invisible="1"/>
 
-                                    <!-- ===== 4 BUTTON GROUP — luôn đứng đầu, không bao giờ ẩn ===== -->
+                                    <!-- MÓNG dropdown ĐỨNG TRƯỚC (user spec 2026-08-15) -->
+                                    <span class="o_vd_floor_pair o_vd_floor_mong_pair">
+                                        <span class="o_vd_dim_lbl">Móng</span>
+                                        <field name="vd_intake_foundation_type" nolabel="1"
+                                               widget="selection" class="o_vd_intake_dropdown"/>
+                                    </span>
+
+                                    <!-- 4 BUTTON GROUP — BÊN PHẢI dropdown Móng (user spec 2026-08-15) -->
                                     <span class="o_vd_floor_btn_group">
                                         <button name="action_add_floor" type="object"
                                                 class="btn o_vd_floor_chip_btn"
@@ -421,24 +428,6 @@
                                                 title="Toggle Lửng">
                                             <i class="fa fa-plus"/> Lửng
                                         </button>
-                                        <!-- Bỏ button (-) — user spec 2026-05-27:
-                                             dùng X trên từng row công năng thay thế. -->
-                                    </span>
-
-                                    <!-- MÓNG — thế vào đúng vị trí các ô diện tích cũ (đã chuyển sang
-                                         hàng Công năng). Loại đất ở Step 5. -->
-                                    <span class="o_vd_floor_pair o_vd_floor_mong_pair">
-                                        <span class="o_vd_dim_lbl">Móng</span>
-                                        <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="selection" class="o_vd_intake_dropdown"/>
-                                    </span>
-
-                                    <!-- Tổng diện tích sàn — rút gọn: 'TỔNG: 60 M²' -->
-                                    <span class="o_vd_floors_total_inline" invisible="not vd_intake_total_m2">
-                                        <span class="o_vd_floors_total_lbl">TỔNG:</span>
-                                        <field name="vd_intake_total_m2" nolabel="1"
-                                               class="o_vd_floors_total_val" readonly="1"/>
-                                        <span class="o_vd_floors_total_unit">M²</span>
                                     </span>
                                 </div>
                             </div>
@@ -449,7 +438,15 @@
                                     <span class="o_vd_step_num">7</span>
                                     <span class="o_vd_step_text">Công năng</span>
                                 </div>
-                                <div class="o_vd_step_body">
+                                <div class="o_vd_step_body o_vd_func_body_with_total">
+                                    <!-- TỔNG diện tích sàn — chuyển sang đây, BÊN TRÁI hàng nhập
+                                         diện tích tầng (user spec 2026-08-15). -->
+                                    <span class="o_vd_floors_total_inline o_vd_total_left" invisible="not vd_intake_total_m2">
+                                        <span class="o_vd_floors_total_lbl">TỔNG:</span>
+                                        <field name="vd_intake_total_m2" nolabel="1"
+                                               class="o_vd_floors_total_val" readonly="1"/>
+                                        <span class="o_vd_floors_total_unit">M²</span>
+                                    </span>
                                     <div class="o_vd_floor_function_grid">
                                         <!-- T1 ALWAYS visible — KHÔNG có nút X (không xoá được T1) -->
                                         <div class="o_vd_floor_function_row">
