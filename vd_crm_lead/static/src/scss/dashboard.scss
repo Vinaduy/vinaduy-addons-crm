@@ -7546,7 +7546,7 @@
     width: 100%;
     /* VỪA PHẢI: đủ rộng cho 2 cột không cắt chữ, KHÔNG to quá (user spec 2026-08-15).
        min(1820px, 92vw): màn lớn ~1820px (có viền, canh giữa); màn nhỏ tối đa 92vw. */
-    max-width: min(1820px, 92vw);
+    max-width: unquote("min(1820px, 92vw)");
     min-height: 0;
     max-height: 94vh;          /* cao vừa phải, phần dư cuộn trong body */
     margin: 0 auto;
