@@ -3778,26 +3778,8 @@
          Màu icon 📞 theo tỷ lệ nghe máy (answered/total):
          xám = chưa gọi · đỏ <5% · xanh dương 5-10% · xanh lá 10-20% · xanh lá đậm ≥20%. -->
     <t t-name="vd_crm_lead.CallStatsBadge">
-        <t t-set="cs" t-value="lead.call_stats or {}"/>
-        <t t-set="ansRate" t-value="(cs.total &gt; 0) ? ((cs.answered || 0) * 100 / cs.total) : -1"/>
-        <t t-set="rateClass" t-value="ansRate &lt; 0 ? 'o_vd_call_rate_none' : (ansRate &gt;= 20 ? 'o_vd_call_rate_high' : (ansRate &gt;= 10 ? 'o_vd_call_rate_mid' : (ansRate &gt;= 5 ? 'o_vd_call_rate_low' : 'o_vd_call_rate_poor')))"/>
-        <t t-set="ans" t-value="cs.answered || 0"/>
-        <t t-set="noans" t-value="(cs.total || 0) - ans"/>
-        <!-- Phân loại: cố tình không nghe (chuông kêu/bận/từ chối) vs thuê bao (failed) -->
-        <t t-set="refuse" t-value="(cs.no_answer || 0) + (cs.busy_like || 0)"/>
-        <t t-set="sub" t-value="cs.subscriber || 0"/>
-        <t t-set="days" t-value="cs.distinct_days || 0"/>
-        <span class="o_vd_prb_req2 o_vd_prb_req2_stats">
-                <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_phone" t-att-class="rateClass"
-                      t-att-title="'Nghe máy: ' + ans + ' · Không nghe: ' + noans + ' (từ khi báo giá)'">
-                    <i class="fa fa-phone"/>
-                    <strong t-esc="cs.total || 0"/>
-                </span>
-                <span class="o_vd_prb_req2_stat_item o_vd_prb_req2_cal" title="Số ngày đã gọi (từ khi báo giá)">
-                    <i class="fa fa-calendar"/>
-                    <strong t-esc="days"/>
-                </span>
-            </span>
+        <!-- Badge 📞/📅 (thống kê cuộc gọi) ĐÃ BỎ theo yêu cầu user 2026-08-15
+             (gỡ hết ở bảng TCG/XLVD). Render RỖNG để giữ nguyên 2 chỗ t-call. -->
     </t>
 
     <!-- ============================================================
