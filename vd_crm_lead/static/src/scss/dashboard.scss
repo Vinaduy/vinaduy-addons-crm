@@ -7557,12 +7557,13 @@
     flex-direction: column;
     overflow: hidden;          /* để bo góc ăn + body cuộn riêng */
 }
-/* Body cuộn riêng bên trong modal (không kéo cả trang) */
+/* Body KHÔNG cuộn — auto-fit (JS) đã thu nội dung vừa 1 màn hình. User: tuyệt
+   đối không thanh cuộn, hiện hết trong 1 trang. */
 .o_vd_preview_body_form {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
-    padding-bottom: 1.2rem;    /* đệm đáy — nội dung không dính sát mép, đỡ chật */
+    overflow: hidden;
+    padding-bottom: 0.4rem;
 }
 
 /* ===== BỐ CỤC POPUP XEM NHANH — 2 CỘT (user spec 2026-08-15) =====

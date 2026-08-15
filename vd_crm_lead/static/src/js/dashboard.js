@@ -4229,12 +4229,13 @@ export class VdCrmDashboard extends Component {
         const naturalH = inner.scrollHeight;
         const topbar = modal.querySelector('.o_vd_preview_topbar');
         const topH = topbar ? topbar.offsetHeight : 0;
-        // Chỗ còn lại cho body trong viewport (chừa topbar + đệm nhỏ).
-        const availH = window.innerHeight * 0.98 - topH - 22;
+        // Chỗ còn lại cho body trong viewport (chừa topbar + buffer để KHÔNG lòi ra
+        // gây thanh cuộn). User: TUYỆT ĐỐI không có thanh cuộn, hiện hết 1 màn hình.
+        const availH = window.innerHeight * 0.955 - topH - 24;
         if (naturalH > 0 && availH > 0) {
             let z = availH / naturalH;
             if (z > 1) z = 1;        // nội dung ngắn → giữ nguyên (không phóng to)
-            if (z < 0.5) z = 0.5;    // sàn: quá dài thì cuộn nội bộ thay vì bé xíu
+            if (z < 0.28) z = 0.28;  // sàn rất thấp → luôn nhét vừa 1 màn hình
             inner.style.zoom = z >= 0.999 ? '' : String(z);
         }
         // Observe lại sau 1 frame (bỏ qua các thay đổi do chính fit vừa gây ra).
@@ -4260,6 +4261,7 @@ export class VdCrmDashboard extends Component {
             // Gọi lại vài lần cho chắc (form nhúng + bảng báo giá render bất đồng bộ).
             this._previewFitT1 = setTimeout(() => this._fitPreviewToViewport(), 250);
             this._previewFitT2 = setTimeout(() => this._fitPreviewToViewport(), 700);
+            this._previewFitT3 = setTimeout(() => this._fitPreviewToViewport(), 1400);
         };
         this._previewFitRaf = requestAnimationFrame(attach);
     }
@@ -4269,6 +4271,7 @@ export class VdCrmDashboard extends Component {
         if (this._previewFitOnResize) { window.removeEventListener('resize', this._previewFitOnResize); this._previewFitOnResize = null; }
         if (this._previewFitT1) { clearTimeout(this._previewFitT1); this._previewFitT1 = null; }
         if (this._previewFitT2) { clearTimeout(this._previewFitT2); this._previewFitT2 = null; }
+        if (this._previewFitT3) { clearTimeout(this._previewFitT3); this._previewFitT3 = null; }
     }
 
     async prevPreview() {
