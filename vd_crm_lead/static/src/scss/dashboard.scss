@@ -7529,7 +7529,7 @@
     /* Nền mờ tối — thấy dashboard phía sau. */
     background: rgba(15, 23, 42, 0.55);
     overflow-y: auto;
-    padding: 1vh 0.5vw;        /* gần như hết viền — popup GẦN FULL màn hình */
+    padding: 0.6vh 0.35vw;     /* gần sát mép — popup gần như FULL màn hình */
     display: flex;
     align-items: flex-start;
     justify-content: center;   /* canh GIỮA theo chiều ngang */
@@ -7546,7 +7546,7 @@
     width: 100%;
     /* VỪA PHẢI: đủ rộng cho 2 cột không cắt chữ, KHÔNG to quá (user spec 2026-08-15).
        min(1820px, 92vw): màn lớn ~1820px (có viền, canh giữa); màn nhỏ tối đa 92vw. */
-    max-width: 99vw;           /* gần bằng màn hình (user spec 2026-08-15) */
+    max-width: 100vw;          /* full bề ngang màn hình (user spec 2026-08-15) */
     min-height: 0;
     max-height: 94vh;          /* cao vừa phải, phần dư cuộn trong body */
     margin: 0 auto;
