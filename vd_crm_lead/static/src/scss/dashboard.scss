@@ -7545,8 +7545,8 @@
     border-radius: 14px;       /* bo góc — như cửa sổ nổi */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     width: 100%;
-    max-width: 1440px;         /* rộng thêm chút (user spec 2026-08-15) để nội dung
-                                  đầy đủ, không cắt chữ; vẫn có viền quanh nên
+    max-width: 1500px;         /* 2 cột (Tư vấn | Báo giá): cột trái đủ rộng để
+                                  intake không cắt mép, vẫn có viền quanh nên
                                   "vừa phải ở giữa", không tràn full màn hình. */
     min-height: 0;
     max-height: 94vh;          /* cao vừa phải, phần dư cuộn trong body */
@@ -7562,24 +7562,37 @@
     overflow-y: auto;
 }
 
-/* ===== BỐ CỤC POPUP XEM NHANH — XẾP DỌC (user spec 2026-08-15) =====
-   User chốt: THÔNG TIN TƯ VẤN ở TRÊN, BÁO GIÁ CHI TIẾT ở DƯỚI (xếp dọc), popup
-   rộng hơn để KHÔNG mất/cắt chữ. Trước đó thử chia 2 cột → intake bị ép nửa cột
-   hẹp → tràn & CẮT MẤT mép trái. Nay CHỈ trong popup:
-   - Lưới ngoài về 1 cột → mọi panel full bề ngang modal, xếp dọc: THÔNG TIN →
-     BÁO GIÁ → Đàm phán/Hợp đồng.
-   - Lưới nội bộ intake (form + sidebar) về 1 cột → ô nhập không bị bóp/cắt chữ.
+/* ===== BỐ CỤC POPUP XEM NHANH — 2 CỘT (user spec 2026-08-15) =====
+   User chốt: THÔNG TIN TƯ VẤN bên TRÁI, BÁO GIÁ CHI TIẾT bên PHẢI (thấp hơn →
+   dễ vừa 1 trang). Lần trước 2 cột bị CẮT MÉP vì cột trái quá hẹp + summary card
+   có overflow:hidden. Nay:
+   - Cột trái ĐỦ RỘNG (~ như bản xếp dọc chạy tốt) để intake không tràn.
+   - summary card overflow:VISIBLE + max-width:100% → KHÔNG cắt nội dung.
+   - Lưới nội bộ intake (form + sidebar) về 1 cột → ô nhập không bị bóp.
    Form mở theo ĐƯỜNG THƯỜNG (không qua popup) GIỮ NGUYÊN bố cục cũ. */
 .o_vd_preview_body_form {
     .o_vd_layout_grid { grid-template-columns: 1fr !important; }
     .o_vd_main_panel {
-        display: block !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) !important;
+        gap: 1rem !important;
+        align-items: start !important;
         width: 100% !important;
         max-width: 100% !important;
     }
-    .o_vd_summary_card,
-    .o_vd_quote_panel { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
-    .o_vd_quote_panel { margin-top: 1rem !important; }   /* BÁO GIÁ nằm DƯỚI intake */
+    .o_vd_summary_card {
+        grid-column: 1 !important;
+        margin: 0 !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: visible !important;   /* KHÔNG cắt nội dung tràn (fix cắt mép) */
+    }
+    .o_vd_quote_panel {
+        grid-column: 2 !important;
+        margin-top: 0 !important;       /* kéo lên NGANG intake (bên phải) */
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
     .o_vd_layout_right { margin-top: 1rem !important; }
     /* Lưới NỘI BỘ của intake (form + sidebar tư vấn) về 1 cột → không bị bóp/cắt. */
     .o_vd_intake_full .o_vd_intake_layout {
