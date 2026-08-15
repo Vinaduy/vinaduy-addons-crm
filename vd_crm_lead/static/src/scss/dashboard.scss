@@ -2083,10 +2083,12 @@
 /* ===== Khách chốt — pill view gọn 1 dòng ===== */
 .o_vd_crm_dashboard {
     .o_vd_won_pills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
+        /* Lưới cột đều — mọi thẻ KH bằng kích thước nhau (user spec 2026-08-15) */
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.5rem;
         padding: 0.5rem 0;
+        align-items: stretch;
     }
     .o_vd_won_pill {
         position: relative;
@@ -2101,8 +2103,13 @@
         font-size: 0.84rem;
         transition: transform 0.12s ease, box-shadow 0.12s ease;
         overflow: visible;
-        max-width: 360px;
+        /* Lấp đầy ô lưới → mọi thẻ rộng bằng nhau */
+        width: 100%;
+        max-width: none;
         white-space: nowrap;
+
+        /* Chỉ phần tên co giãn + cắt "…"; icon/ngày/badge giữ nguyên */
+        > *:not(.o_vd_won_pill_name) { flex-shrink: 0; }
 
         &:hover {
             transform: translateY(-2px);
@@ -2605,6 +2612,8 @@
         font-weight: 500;
         overflow: hidden;
         text-overflow: ellipsis;
+        min-width: 0;      /* cho phép cắt "…" trong flex */
+        flex: 1 1 auto;    /* tên chiếm phần còn lại của thẻ */
 
         &::before {
             content: '·';
@@ -2758,14 +2767,14 @@
         }
     }
     .o_vd_pill_col_body {
-        /* Flex wrap — pill co vừa nội dung, không stretch full width */
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
+        /* Lưới cột đều — thẻ KH trong cột NV cũng bằng kích thước nhau */
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
 
         .o_vd_won_pill {
-            width: auto;
-            max-width: 320px;
+            width: 100%;
+            max-width: none;
         }
     }
     .o_vd_pill_col_empty {
