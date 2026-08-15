@@ -4298,6 +4298,45 @@ div.o_vd_layout_right {
     min-width: 0 !important;
     width: 100% !important;
 }
+
+/* ============================================================
+   TẤT CẢ dropdown trong THÔNG TIN TƯ VẤN — MỘT KIỂU DUY NHẤT
+   (đồng bộ với ô Địa chỉ nhìn đẹp): hộp viền, ĐỦ CAO không cắt
+   chữ, full rộng. Áp cho: native <select> (Móng/Chỗ để đất/Sổ đỏ),
+   dropdown Thời gian, và cả ô m2o (Địa chỉ) để CHẮC CHẮN giống nhau.
+   User spec 2026-08-15 — "các ô giống cấu trúc phải 1 kiểu".
+   ============================================================ */
+.o_vd_intake_inline .o_vd_intake_dropdown select,
+.o_vd_intake_inline .o_vd_tl_select,
+.o_vd_intake_inline .o_vd_floor_mong_pair select {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 2.6rem !important;                 /* CAO đủ → KHÔNG cắt chữ */
+    padding: 0.5rem 2rem 0.5rem 0.8rem !important; /* chừa chỗ mũi tên bên phải */
+    line-height: 1.5 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #2b3350 !important;
+    border: 1.5px solid #ced4da !important;
+    border-radius: 10px !important;
+    background-color: #fff !important;
+    text-overflow: ellipsis !important;
+    cursor: pointer !important;
+    -webkit-appearance: menulist !important;       /* giữ mũi tên native, hiện đủ chữ */
+    appearance: menulist !important;
+}
+.o_vd_intake_inline .o_vd_intake_dropdown select:focus,
+.o_vd_intake_inline .o_vd_tl_select:focus,
+.o_vd_intake_inline .o_vd_floor_mong_pair select:focus {
+    border-color: #7c3aed !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+    outline: none !important;
+}
+/* Móng đủ rộng để hiện hết tên loại móng */
+.o_vd_intake_inline .o_vd_floor_mong_pair { min-width: 320px !important; }
+.o_vd_intake_inline .o_vd_floor_mong_pair select { min-width: 220px !important; }
 /* Ô "Thời gian" — dropdown NATIVE chọn 1 (widget vd_timeline_select) */
 .o_vd_tl_select {
     width: 100%;
