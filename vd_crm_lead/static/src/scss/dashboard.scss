@@ -7584,6 +7584,7 @@
         grid-column: 1 !important;
         margin: 0 !important;
         min-width: 0 !important;
+        width: 100% !important;
         max-width: 100% !important;
         overflow: visible !important;   /* KHÔNG cắt nội dung tràn (fix cắt mép) */
     }
@@ -7591,6 +7592,13 @@
         grid-column: 2 !important;
         margin-top: 0 !important;       /* kéo lên NGANG intake (bên phải) */
         min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    /* Panel intake bị ép width:min(95vw,1200px) -> tràn rộng hơn cột -> 2 bảng
+       lệch. Ép LẤP ĐÚNG cột như báo giá (cùng zoom 0.85 -> BẰNG NHAU). */
+    .o_vd_intake_popup_panel {
+        width: 100% !important;
         max-width: 100% !important;
     }
     .o_vd_layout_right { margin-top: 1rem !important; }
