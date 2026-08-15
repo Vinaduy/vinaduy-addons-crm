@@ -7541,6 +7541,10 @@
     position: fixed;
     inset: 0;
     z-index: 1900;
+    /* KHỬ zoom:0.7 của .o_vd_crm_dashboard (popup là con của dashboard nên bị co
+       còn ~70% màn hình + chữ nhỏ). 0.7 × 1.4286 = 1.0 → popup + chữ VỀ CỠ THẬT,
+       to hơn ~43%, phủ đầy màn hình (user spec 2026-08-15). */
+    zoom: 1.4286;
     /* Nền mờ tối — thấy dashboard phía sau. */
     background: rgba(15, 23, 42, 0.55);
     overflow-y: auto;
