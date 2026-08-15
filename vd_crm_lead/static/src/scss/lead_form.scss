@@ -4365,6 +4365,24 @@ div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_subtoggle_cell
     flex: 0 0 auto !important;
     white-space: nowrap !important;
 }
+/* ===== Tinh chỉnh thêm (user spec 2026-08-15) ===== */
+/* Cụm Chốt/Hủy báo giá: DỒN VỀ BÊN TRÁI (thay vì phải) */
+.o_vd_intake_inline .o_vd_intake_actions {
+    justify-content: flex-start !important;
+}
+/* Ghi chú: nhãn "Ghi chú" CÁCH ô nhập ra, không dính sát */
+.o_vd_intake_inline .o_vd_floor_function_notes_row {
+    gap: 0.9rem !important;
+}
+.o_vd_intake_inline .o_vd_floor_function_notes_row .o_vd_tag_notes {
+    margin-right: 0.4rem !important;
+}
+/* TỔNG diện tích: cùng hàng Số tầng/Móng, ĐỨNG SAU cùng + đẩy SÁT PHẢI */
+.o_vd_intake_inline .o_vd_floors_oneline .o_vd_floors_total_inline.o_vd_total_right {
+    margin-left: auto !important;
+    order: 3 !important;
+}
+.o_vd_intake_inline .o_vd_floors_oneline .o_vd_floor_mong_pair { flex: 0 1 auto !important; }
 /* Ô "Thời gian" — dropdown NATIVE chọn 1 (widget vd_timeline_select) */
 .o_vd_tl_select {
     width: 100%;

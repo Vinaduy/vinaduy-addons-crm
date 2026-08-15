@@ -7529,7 +7529,7 @@
     /* Nền mờ tối — thấy dashboard phía sau. */
     background: rgba(15, 23, 42, 0.55);
     overflow-y: auto;
-    padding: 0.6vh 0.35vw;     /* gần sát mép — popup gần như FULL màn hình */
+    padding: 0.3vh 0.3vw;      /* viền cực mỏng — popup xuống sát lề dưới, gần FULL */
     /* BLOCK (không flex) để modal width:100% LẤP ĐỦ bề ngang — flex+justify-center
        làm modal co về bề rộng nội dung (không full). User spec 2026-08-15. */
     display: block;
@@ -7556,9 +7556,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;          /* để bo góc ăn + body cuộn riêng */
-    /* CHIỀU CAO CỐ ĐỊNH = gần full viewport → body có chiều cao xác định để auto-fit
-       tính chính xác. Nội dung dài → thu vừa; ngắn → dư ở dưới (không cuộn/cắt). */
-    height: 96vh !important;
+    /* CHIỀU CAO CỐ ĐỊNH = gần full viewport (99vh, xuống sát lề dưới) → nhiều chỗ
+       hơn → auto-fit thu ít hơn → CHỮ TO HƠN. */
+    height: 99vh !important;
 }
 /* Body KHÔNG cuộn — auto-fit (JS) đã thu nội dung vừa 1 màn hình. User: tuyệt
    đối không thanh cuộn, hiện hết trong 1 trang. */

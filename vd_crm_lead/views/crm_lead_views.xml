@@ -429,6 +429,15 @@
                                             <i class="fa fa-plus"/> Lửng
                                         </button>
                                     </span>
+
+                                    <!-- TỔNG diện tích sàn — cùng hàng Số tầng/Móng, sát PHẢI
+                                         (user spec 2026-08-15: đổi vị trí cho hợp lý). -->
+                                    <span class="o_vd_floors_total_inline o_vd_total_right" invisible="not vd_intake_total_m2">
+                                        <span class="o_vd_floors_total_lbl">TỔNG:</span>
+                                        <field name="vd_intake_total_m2" nolabel="1"
+                                               class="o_vd_floors_total_val" readonly="1"/>
+                                        <span class="o_vd_floors_total_unit">M²</span>
+                                    </span>
                                 </div>
                             </div>
 
@@ -438,15 +447,7 @@
                                     <span class="o_vd_step_num">7</span>
                                     <span class="o_vd_step_text">Công năng</span>
                                 </div>
-                                <div class="o_vd_step_body o_vd_func_body_with_total">
-                                    <!-- TỔNG diện tích sàn — chuyển sang đây, BÊN TRÁI hàng nhập
-                                         diện tích tầng (user spec 2026-08-15). -->
-                                    <span class="o_vd_floors_total_inline o_vd_total_left" invisible="not vd_intake_total_m2">
-                                        <span class="o_vd_floors_total_lbl">TỔNG:</span>
-                                        <field name="vd_intake_total_m2" nolabel="1"
-                                               class="o_vd_floors_total_val" readonly="1"/>
-                                        <span class="o_vd_floors_total_unit">M²</span>
-                                    </span>
+                                <div class="o_vd_step_body">
                                     <div class="o_vd_floor_function_grid">
                                         <!-- T1 ALWAYS visible — KHÔNG có nút X (không xoá được T1) -->
                                         <div class="o_vd_floor_function_row">
