@@ -2005,6 +2005,12 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
             <xpath expr="//div[hasclass('o_vd_quote_panel')]" position="after">
                 <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="move"/>
             </xpath>
+            <!-- KH "đã báo giá" trên dashboard vẫn ở stage 'new' → điều kiện gốc
+                 (stage quote/negotiate/won) làm panel ẩn. Cho hiện với MỌI KH đã
+                 CHỐT (vd_intake_locked) — đúng nhóm được tạo vấn đề. -->
+            <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="attributes">
+                <attribute name="invisible">not vd_intake_locked and stage_code not in ['quote', 'negotiate', 'won']</attribute>
+            </xpath>
         </field>
     </record>
 
