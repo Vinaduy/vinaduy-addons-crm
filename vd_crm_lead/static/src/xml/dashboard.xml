@@ -2564,7 +2564,7 @@
                              nút Gọi lại inline và menu ⚙ (Mất tích / Huỷ khách) khỏi hàng. -->
                         <section t-if="isNewStageSplit"
                                  class="o_vd_lead_section o_vd_urgent_section">
-                            <div class="o_vd_split_table o_vd_split_table_single o_vd_filter_table_urgent o_vd_lockable">
+                            <div class="o_vd_split_table o_vd_split_table_single o_vd_split_quoted o_vd_filter_table_urgent o_vd_lockable">
                                 <t t-set="lockWhich" t-value="'quoted'"/>
                                 <t t-call="vd_crm_lead.TableLockShield"/>
                                 <div class="o_vd_filter_table_left">

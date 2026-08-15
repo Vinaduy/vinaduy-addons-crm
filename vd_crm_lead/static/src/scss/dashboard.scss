@@ -9571,6 +9571,70 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
 }
 
+/* ====================================================================
+   BẢNG GỘP "ĐÃ BÁO GIÁ" (user spec 2026-08-15): nhãn dọc BÊN TRÁI
+   (như bảng Khách mới), KHÔNG banner; danh sách KH xếp 3 KH / 1 dòng.
+   ==================================================================== */
+.o_vd_crm_dashboard {
+    .o_vd_split_table.o_vd_split_table_single.o_vd_split_quoted {
+        display: grid;
+        grid-template-columns: 150px 1fr;   /* nhãn | danh sách */
+        column-gap: 0;
+        align-items: stretch;
+
+        > .o_vd_filter_table_left {
+            border-radius: 10px 0 0 10px;
+        }
+        > .o_vd_filter_table_right {
+            margin-right: 0;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
+                        0 4px 14px -4px rgba(15, 23, 42, 0.05);
+        }
+
+        /* Danh sách: LƯỚI 3 khách / 1 dòng */
+        .o_vd_filter_table_right_rows {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.4rem;
+            align-content: start;
+            padding: 0.4rem;
+        }
+        /* Mỗi khách = 1 ô gọn: tên | khớp tài chính */
+        .o_vd_filter_table_right_rows .o_vd_problem_row {
+            width: 100%;
+            grid-template-columns: 1fr auto;   /* tên | khớp tài chính */
+            border: 1px solid #ffe3c2;
+            border-left: 4px solid #fd7e14;
+            border-radius: 8px;
+            gap: 0.4rem;
+            padding: 0.32rem 0.5rem;
+            &:hover { transform: none; }
+        }
+        .o_vd_filter_table_right_rows .o_vd_problem_row_name { min-width: 0; }
+        .o_vd_filter_table_right_rows .o_vd_problem_row_name .o_vd_name_pill_txt {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Nút mở rộng + ô rỗng trải hết 3 cột */
+        .o_vd_filter_table_right_rows > .o_vd_new_pills_toggle,
+        .o_vd_filter_table_right_rows > .o_vd_filter_table_empty {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 900px) {
+            .o_vd_filter_table_right_rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 620px) {
+            grid-template-columns: 1fr;
+            > .o_vd_filter_table_left { border-radius: 10px 10px 0 0; }
+            > .o_vd_filter_table_right { border-radius: 0 0 10px 10px; }
+            .o_vd_filter_table_right_rows { grid-template-columns: 1fr; }
+        }
+    }
+}
+
 /* Chọn KH ở 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ (dạng row, không phải pill).
    Row là grid 3 cột (name|khớp tài chính|problems) → khi bật chọn thêm 1 cột
    đầu cho ô tick, nếu không item tick sẽ tràn xuống dòng mới làm vỡ layout.
