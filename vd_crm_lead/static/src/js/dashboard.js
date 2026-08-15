@@ -4224,18 +4224,15 @@ export class VdCrmDashboard extends Component {
         // Ngừng observe trong lúc thao tác zoom → thao tác của chính fit KHÔNG tự
         // kích hoạt ResizeObserver (chống vòng lặp).
         if (this._previewFitRO) { try { this._previewFitRO.disconnect(); } catch (_e) {} }
-        // Đo chiều cao THẬT: bỏ zoom rồi đọc scrollHeight (buộc reflow đồng bộ).
+        // Đo TRỰC TIẾP: chiều cao khả dụng của body (cố định vì modal height cố định)
+        // và chiều cao THẬT của nội dung (bỏ zoom trước khi đo → buộc reflow).
         inner.style.zoom = '';
-        const naturalH = inner.scrollHeight;
-        const topbar = modal.querySelector('.o_vd_preview_topbar');
-        const topH = topbar ? topbar.offsetHeight : 0;
-        // Chỗ còn lại cho body trong viewport (chừa topbar + buffer để KHÔNG lòi ra
-        // gây thanh cuộn). User: TUYỆT ĐỐI không có thanh cuộn, hiện hết 1 màn hình.
-        const availH = window.innerHeight * 0.955 - topH - 24;
-        if (naturalH > 0 && availH > 0) {
-            let z = availH / naturalH;
+        const availH = body.clientHeight - 6;   // trừ đệm nhỏ để không lòi
+        const contentH = inner.scrollHeight;     // chiều cao thật của nội dung
+        if (availH > 20 && contentH > 20) {
+            let z = availH / contentH;
             if (z > 1) z = 1;        // nội dung ngắn → giữ nguyên (không phóng to)
-            if (z < 0.28) z = 0.28;  // sàn rất thấp → luôn nhét vừa 1 màn hình
+            if (z < 0.25) z = 0.25;  // sàn rất thấp → luôn nhét vừa 1 màn hình
             inner.style.zoom = z >= 0.999 ? '' : String(z);
         }
         // Observe lại sau 1 frame (bỏ qua các thay đổi do chính fit vừa gây ra).

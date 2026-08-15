@@ -7556,6 +7556,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;          /* để bo góc ăn + body cuộn riêng */
+    /* CHIỀU CAO CỐ ĐỊNH = gần full viewport → body có chiều cao xác định để auto-fit
+       tính chính xác. Nội dung dài → thu vừa; ngắn → dư ở dưới (không cuộn/cắt). */
+    height: 96vh !important;
 }
 /* Body KHÔNG cuộn — auto-fit (JS) đã thu nội dung vừa 1 màn hình. User: tuyệt
    đối không thanh cuộn, hiện hết trong 1 trang. */
