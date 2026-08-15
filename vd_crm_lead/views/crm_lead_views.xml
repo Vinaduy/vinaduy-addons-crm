@@ -1998,18 +1998,33 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
         <field name="mode">primary</field>
         <field name="priority">99</field>
         <field name="arch" type="xml">
-            <!-- User spec 2026-08-15: ĐƯA panel VẤN ĐỀ vào cột BÁO GIÁ (ngay dưới
-                 bảng báo giá) thay vì ẩn — NV ghi nhận vấn đề (chọn loại + diễn
-                 giải) ngay trong popup xem nhanh. Giữ điều kiện hiển thị gốc
-                 (stage quote/negotiate/won). -->
-            <xpath expr="//div[hasclass('o_vd_quote_panel')]" position="after">
-                <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="move"/>
-            </xpath>
-            <!-- KH "đã báo giá" trên dashboard vẫn ở stage 'new' → điều kiện gốc
-                 (stage quote/negotiate/won) làm panel ẩn. Cho hiện với MỌI KH đã
-                 CHỐT (vd_intake_locked) — đúng nhóm được tạo vấn đề. -->
+            <!-- User spec 2026-08-15: panel VẤN ĐỀ cũ QUÁ NẶNG kiểm soát (status,
+                 deadline, gia hạn, khai thác sâu) — user KHÔNG dùng để khoá/kiểm
+                 soát nữa. ẨN panel gốc (giữ node để không vỡ tham chiếu field). -->
             <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="attributes">
-                <attribute name="invisible">not vd_intake_locked and stage_code not in ['quote', 'negotiate', 'won']</attribute>
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- THÊM khối VẤN ĐỀ ĐƠN GIẢN ngay dưới bảng báo giá (cột phải):
+                 NV gõ vấn đề tự do + dropdown gợi ý loại + ô ghi chú chi tiết.
+                 Không status, không deadline, không kiểm soát. -->
+            <xpath expr="//div[hasclass('o_vd_quote_panel')]" position="after">
+                <div class="o_vd_negotiate_panel o_vd_problem_simple"
+                     invisible="not vd_intake_locked and stage_code not in ['quote', 'negotiate', 'won']">
+                    <div class="o_vd_nego_head">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <span>Vấn đề</span>
+                    </div>
+                    <field name="vd_lead_problem_ids" nolabel="1" mode="list">
+                        <list editable="bottom">
+                            <field name="tag_id" string="Gợi ý"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   placeholder="Chọn loại gợi ý..."/>
+                            <field name="name" string="Vấn đề" placeholder="Gõ vấn đề..."/>
+                            <field name="nv_handling" string="Ghi chú chi tiết"
+                                   placeholder="Diễn giải chi tiết vấn đề..."/>
+                        </list>
+                    </field>
+                </div>
             </xpath>
         </field>
     </record>
