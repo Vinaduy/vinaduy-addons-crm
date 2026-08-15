@@ -3272,6 +3272,9 @@ class CrmLead(models.Model):
         User spec 2026-06-01: KH CHƯA xác định tài chính (NS = 0) thì KHÔNG
         sinh vấn đề 'Cân đối ngân sách' — chưa biết NS thì không có gì để cân
         đối. Chỉ tạo khi biết CẢ NS KH lẫn giá báo VÀ chênh > 15%."""
+        # User spec 2026-08-15: BỎ auto-sinh vấn đề — NV tự gõ vấn đề trong popup.
+        # Không tự tạo "Cân đối ngân sách" mặc định nữa.
+        return
         Problem = self.env['vd.lead.problem']
         THRESHOLD = 0.15  # > 15% so với GIÁ BÁO
         for rec in self:
@@ -8449,6 +8452,9 @@ class CrmLead(models.Model):
 
     def _vd_ensure_urgent_construction_problem(self):
         """Idempotent: tạo 'Thi công gấp' problem nếu chưa có cho leads này."""
+        # User spec 2026-08-15: BỎ auto-sinh "Thi công gấp" — NV tự gõ vấn đề.
+        # Danh sách "đã báo giá" vẫn dựa trên timeline (không cần problem này).
+        return
         tag = self.env.ref(
             'vd_crm_lead.nego_problem_urgent_construction',
             raise_if_not_found=False,
