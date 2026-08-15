@@ -4203,11 +4203,72 @@ export class VdCrmDashboard extends Component {
         document.body.classList.add('o_vd_preview_active');
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
+        this._setupPreviewAutoFit();
     }
     _unlockScroll() {
         document.body.classList.remove('o_vd_preview_active');
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
+        this._teardownPreviewAutoFit();
+    }
+
+    // ===== AUTO-FIT popup: tự SCALE nội dung để VỪA KHÍT chiều cao viewport ở MỌI
+    // mức zoom trình duyệt (mặc định 100%) → KHÔNG phải cuộn, KHÔNG cắt. Thêm/bớt
+    // trường (tầng, công năng...) → tự tính lại. User spec 2026-08-15. =====
+    _fitPreviewToViewport() {
+        const modal = document.querySelector('.o_vd_preview_modal');
+        if (!modal) return;
+        const body = modal.querySelector('.o_vd_preview_body_form');
+        const inner = body && body.firstElementChild;
+        if (!inner) return;
+        // Ngừng observe trong lúc thao tác zoom → thao tác của chính fit KHÔNG tự
+        // kích hoạt ResizeObserver (chống vòng lặp).
+        if (this._previewFitRO) { try { this._previewFitRO.disconnect(); } catch (_e) {} }
+        // Đo chiều cao THẬT: bỏ zoom rồi đọc scrollHeight (buộc reflow đồng bộ).
+        inner.style.zoom = '';
+        const naturalH = inner.scrollHeight;
+        const topbar = modal.querySelector('.o_vd_preview_topbar');
+        const topH = topbar ? topbar.offsetHeight : 0;
+        // Chỗ còn lại cho body trong viewport (chừa topbar + đệm nhỏ).
+        const availH = window.innerHeight * 0.98 - topH - 22;
+        if (naturalH > 0 && availH > 0) {
+            let z = availH / naturalH;
+            if (z > 1) z = 1;        // nội dung ngắn → giữ nguyên (không phóng to)
+            if (z < 0.5) z = 0.5;    // sàn: quá dài thì cuộn nội bộ thay vì bé xíu
+            inner.style.zoom = z >= 0.999 ? '' : String(z);
+        }
+        // Observe lại sau 1 frame (bỏ qua các thay đổi do chính fit vừa gây ra).
+        if (this._previewFitRO) {
+            requestAnimationFrame(() => {
+                try { this._previewFitRO && this._previewFitRO.observe(inner); } catch (_e) {}
+            });
+        }
+    }
+    _setupPreviewAutoFit() {
+        this._teardownPreviewAutoFit();
+        const attach = () => {
+            const body = document.querySelector('.o_vd_preview_modal .o_vd_preview_body_form');
+            const inner = body && body.firstElementChild;
+            if (!inner) { this._previewFitRaf = requestAnimationFrame(attach); return; }
+            this._fitPreviewToViewport();
+            try {
+                this._previewFitRO = new ResizeObserver(() => this._fitPreviewToViewport());
+                this._previewFitRO.observe(inner);
+            } catch (_e) { /* noop */ }
+            this._previewFitOnResize = () => this._fitPreviewToViewport();
+            window.addEventListener('resize', this._previewFitOnResize);
+            // Gọi lại vài lần cho chắc (form nhúng + bảng báo giá render bất đồng bộ).
+            this._previewFitT1 = setTimeout(() => this._fitPreviewToViewport(), 250);
+            this._previewFitT2 = setTimeout(() => this._fitPreviewToViewport(), 700);
+        };
+        this._previewFitRaf = requestAnimationFrame(attach);
+    }
+    _teardownPreviewAutoFit() {
+        if (this._previewFitRaf) { cancelAnimationFrame(this._previewFitRaf); this._previewFitRaf = null; }
+        if (this._previewFitRO) { try { this._previewFitRO.disconnect(); } catch (_e) {} this._previewFitRO = null; }
+        if (this._previewFitOnResize) { window.removeEventListener('resize', this._previewFitOnResize); this._previewFitOnResize = null; }
+        if (this._previewFitT1) { clearTimeout(this._previewFitT1); this._previewFitT1 = null; }
+        if (this._previewFitT2) { clearTimeout(this._previewFitT2); this._previewFitT2 = null; }
     }
 
     async prevPreview() {
@@ -4216,6 +4277,7 @@ export class VdCrmDashboard extends Component {
         // Chuyển sang KH khác = gỡ form nhúng hiện tại → lưu thao tác cuối trước.
         await this._saveIntakeBeforeLeave();
         this.state.previewLead.index = p.index - 1;
+        this._setupPreviewAutoFit();   // form remount → tính lại auto-fit cho KH mới
     }
 
     async nextPreview() {
@@ -4223,6 +4285,7 @@ export class VdCrmDashboard extends Component {
         if (!p.open || p.index >= p.ids.length - 1) return;
         await this._saveIntakeBeforeLeave();
         this.state.previewLead.index = p.index + 1;
+        this._setupPreviewAutoFit();
     }
 
     // Props cho component <View/> embedded trong popup — render full form view
