@@ -3769,28 +3769,9 @@
     </t>
 
     <t t-name="vd_crm_lead.ProblemRequiredBadge">
-        <!-- Round 16: tách 2 thẻ riêng (cùng width fixed):
-             A) ⚠️ Tìm vấn đề + Còn N ngày — đỏ NHẠT (không quá chói)
-             B) 📞 N · 📅 M — hover hiện popup chi tiết + recording
-             - problems_non_urgent: exclude 'Thi công gấp' (round 6.1) -->
-        <t t-set="cs" t-value="lead.call_stats or {}"/>
-        <!-- THẺ A: yêu cầu + countdown — CHỈ khi KH CHƯA có vấn đề nào CHƯA giải
-             quyết. Dùng problem_open_count (open+in_progress, GỒM cả Thi công gấp)
-             thay vì problems_non_urgent — user spec 2026-06-06: KH đang có bất kỳ
-             vấn đề chưa xong (kể cả Thi công gấp / Cân đối ngân sách) thì KHÔNG
-             nhắc TÌM VẤN ĐỀ nữa; chỉ nhắc khi không có vấn đề hoặc đã giải quyết hết. -->
-        <t t-if="!lead.problem_open_count">
-            <t t-set="qd" t-value="(lead.quote_days != null and lead.quote_days !== undefined) ? lead.quote_days : 0"/>
-            <t t-set="dleft" t-value="15 - qd"/>
-            <span class="o_vd_prb_req2 o_vd_prb_req2_main"
-                  t-att-class="dleft &lt;= 0 ? 'o_vd_prb_req2_overdue' : (dleft &lt;= 2 ? 'o_vd_prb_req2_urgent' : '')"
-                  t-att-title="dleft &gt; 0 ? ('Còn ' + dleft + ' ngày để khai thác vấn đề') : ('Đã quá hạn ' + (-dleft) + ' ngày')">
-                <i class="fa fa-exclamation-triangle"/>
-                <span class="o_vd_prb_req2_lbl">Tìm vấn đề</span>
-                <span t-if="dleft &gt; 0" class="o_vd_prb_req2_ctd">Còn <strong><t t-esc="dleft"/></strong> ngày</span>
-                <span t-else="" class="o_vd_prb_req2_ctd o_vd_prb_req2_ctd_over">Quá hạn <strong><t t-esc="-dleft"/></strong> ngày</span>
-            </span>
-        </t>
+        <!-- Chip "⚠️ TÌM VẤN ĐỀ | Còn/Quá hạn N ngày" ĐÃ BỎ theo yêu cầu user
+             2026-08-15 (gỡ hết phần Tìm vấn đề trong bảng TCG/XLVD). Template
+             giữ lại nhưng render RỖNG để không phải sửa 2 chỗ t-call. -->
     </t>
 
     <!-- THẺ B (📞/📅): thống kê cuộc gọi — render SAU thẻ vấn đề (đứng CUỐI hàng).
@@ -3914,12 +3895,7 @@
                      (gỡ hết icon đếm cuộc gọi + số ngày trên thẻ KH). -->
 
 
-                <!-- Logo Zalo nhỏ — GOM cạnh badge cuộc gọi 📞📅 (user spec 2026-06-12).
-                     Xanh = đã kết bạn/nhắn Zalo; Xám = không tìm thấy Zalo. -->
-                <img t-if="lead.zalo_consulted" src="/vd_crm_lead/static/src/img/zalo.webp"
-                     class="o_vd_pill_zalo" title="Đã/đang nhắn Zalo"/>
-                <img t-elif="lead.zalo_not_found" src="/vd_crm_lead/static/src/img/zalo.webp"
-                     class="o_vd_pill_zalo o_vd_pill_zalo_gray" title="Không tìm thấy Zalo của khách này"/>
+                <!-- Logo Zalo ĐÃ BỎ theo yêu cầu user 2026-08-15 (gỡ icon Zalo trên thẻ KH). -->
 
                 <!-- Chuông rung "CẦN GỌI LẠI HÔM NAY" (o_vd_pill_recall) ĐÃ BỎ theo
                      yêu cầu user 2026-08-08 (gỡ icon chuông cuối thẻ KH). -->
