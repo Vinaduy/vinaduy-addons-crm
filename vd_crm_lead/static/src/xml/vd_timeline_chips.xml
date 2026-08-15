@@ -43,4 +43,14 @@
         </div>
     </t>
 
+    <!-- Biến thể DROPDOWN NATIVE (chọn 1) — select gốc trình duyệt, bấm chắc chắn -->
+    <t t-name="vd_crm_lead.VdTimelineSelect">
+        <select class="o_vd_tl_select" t-on-change="(ev) => this.onChange(ev)">
+            <option value="" t-att-selected="!current">— Chọn thời gian khởi công —</option>
+            <t t-foreach="displayOptions" t-as="opt" t-key="opt">
+                <option t-att-value="opt" t-att-selected="opt === current"><t t-esc="opt"/></option>
+            </t>
+        </select>
+    </t>
+
 </templates>

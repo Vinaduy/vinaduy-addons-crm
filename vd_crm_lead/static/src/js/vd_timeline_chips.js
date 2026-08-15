@@ -138,3 +138,38 @@ export const vdTimelineChipsField = {
 };
 
 registry.category("fields").add("vd_timeline_chips", vdTimelineChipsField);
+
+// ===== Biến thể DROPDOWN NATIVE (chọn 1) — dùng <select> gốc trình duyệt =====
+// User spec 2026-08-15: ô "Thời gian" đổi sang dropdown chọn 1 (gọn, bấm chắc
+// chắn, KHÔNG lỗi như widget chip tự chế). Lưu 1 nhãn vào Char (không dấu phẩy).
+export class VdTimelineSelect extends Component {
+    static template = "vd_crm_lead.VdTimelineSelect";
+    static props = { ...standardFieldProps };
+
+    get options() {
+        return buildTimelineOptions();
+    }
+    get current() {
+        // Char có thể còn lưu NHIỀU nhãn (dữ liệu cũ từ widget chip) -> lấy nhãn ĐẦU.
+        const raw = (this.props.record.data[this.props.name] || "").trim();
+        return raw ? raw.split(SEP)[0].trim() : "";
+    }
+    get displayOptions() {
+        // Giữ giá trị cũ nếu không còn trong danh sách động (vd tháng đã qua).
+        const opts = this.options;
+        const cur = this.current;
+        return (cur && !opts.includes(cur)) ? [cur, ...opts] : opts;
+    }
+    onChange(ev) {
+        this.props.record.update({ [this.props.name]: ev.target.value || "" });
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "timeline select"); } catch (_) {}
+    }
+}
+
+export const vdTimelineSelectField = {
+    component: VdTimelineSelect,
+    displayName: "Thời gian khởi công (dropdown chọn 1)",
+    supportedTypes: ["char"],
+};
+
+registry.category("fields").add("vd_timeline_select", vdTimelineSelectField);
