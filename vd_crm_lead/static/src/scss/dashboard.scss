@@ -7545,8 +7545,9 @@
     border-radius: 14px;       /* bo góc — như cửa sổ nổi */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     width: 100%;
-    max-width: 1360px;         /* đủ rộng cho 2 cột (Tư vấn | Báo giá) không méo,
-                                  vẫn có viền quanh nên "vừa phải ở giữa". */
+    max-width: 1440px;         /* rộng thêm chút (user spec 2026-08-15) để nội dung
+                                  đầy đủ, không cắt chữ; vẫn có viền quanh nên
+                                  "vừa phải ở giữa", không tràn full màn hình. */
     min-height: 0;
     max-height: 94vh;          /* cao vừa phải, phần dư cuộn trong body */
     margin: 0 auto;
@@ -7561,36 +7562,26 @@
     overflow-y: auto;
 }
 
-/* ===== BỐ CỤC 2 CỘT TRONG POPUP XEM NHANH (user spec 2026-08-15) =====
-   Sửa méo: trước đây intake (THÔNG TIN TƯ VẤN) bị ép vào NỬA cột trái của lưới
-   2-cột → cắt chữ/biến dạng, còn báo giá nằm DƯỚI. Nay CHỈ trong popup:
-   - Lưới ngoài về 1 cột → main panel chiếm full bề ngang modal (đủ rộng).
-   - Trong main panel: THÔNG TIN TƯ VẤN bên TRÁI, BÁO GIÁ CHI TIẾT bên PHẢI.
-   - Đàm phán/Hợp đồng xuống dưới, full bề ngang.
+/* ===== BỐ CỤC POPUP XEM NHANH — XẾP DỌC (user spec 2026-08-15) =====
+   User chốt: THÔNG TIN TƯ VẤN ở TRÊN, BÁO GIÁ CHI TIẾT ở DƯỚI (xếp dọc), popup
+   rộng hơn để KHÔNG mất/cắt chữ. Trước đó thử chia 2 cột → intake bị ép nửa cột
+   hẹp → tràn & CẮT MẤT mép trái. Nay CHỈ trong popup:
+   - Lưới ngoài về 1 cột → mọi panel full bề ngang modal, xếp dọc: THÔNG TIN →
+     BÁO GIÁ → Đàm phán/Hợp đồng.
+   - Lưới nội bộ intake (form + sidebar) về 1 cột → ô nhập không bị bóp/cắt chữ.
    Form mở theo ĐƯỜNG THƯỜNG (không qua popup) GIỮ NGUYÊN bố cục cũ. */
 .o_vd_preview_body_form {
     .o_vd_layout_grid { grid-template-columns: 1fr !important; }
     .o_vd_main_panel {
-        display: grid !important;
-        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important;
-        gap: 1rem !important;
-        align-items: start !important;
+        display: block !important;
         width: 100% !important;
         max-width: 100% !important;
     }
-    .o_vd_summary_card {
-        grid-column: 1 !important;
-        margin: 0 !important;
-        min-width: 0 !important;
-    }
-    .o_vd_quote_panel {
-        grid-column: 2 !important;
-        margin-top: 0 !important;      /* bỏ "nằm dưới" — kéo lên ngang intake */
-        min-width: 0 !important;
-    }
+    .o_vd_summary_card,
+    .o_vd_quote_panel { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+    .o_vd_quote_panel { margin-top: 1rem !important; }   /* BÁO GIÁ nằm DƯỚI intake */
     .o_vd_layout_right { margin-top: 1rem !important; }
-    /* Lưới NỘI BỘ của intake (form + sidebar tư vấn) về 1 cột: cột trái đã hẹp,
-       không để nó chia đôi tiếp làm ô nhập bị bóp/cắt chữ. */
+    /* Lưới NỘI BỘ của intake (form + sidebar tư vấn) về 1 cột → không bị bóp/cắt. */
     .o_vd_intake_full .o_vd_intake_layout {
         grid-template-columns: 1fr !important;
     }
