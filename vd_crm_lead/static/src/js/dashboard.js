@@ -4177,16 +4177,14 @@ export class VdCrmDashboard extends Component {
     async closePreview() {
         // Lưu thao tác intake cuối cùng trước khi gỡ form nhúng (nếu không sẽ mất).
         await this._saveIntakeBeforeLeave();
-        // Ở view KHÁCH MỚI (có pill xanh "đã báo giá"): NV có thể vừa bấm CHỐT /
-        // HUỶ BÁO GIÁ trong preview → tải lại để pill cập nhật màu ngay (mất/ra
-        // xanh) + gỡ khoá CHỐT nếu còn ≤ 3.
-        const needReload = this.quoteChotLockActive || this.zaloFriendLockActive || this.isNewStageSplit;
+        // ĐÓNG NGAY → về dashboard tức thì (user spec 2026-08-15: đóng popup KHÔNG
+        // được "load trang"). KHÔNG gọi loadDashboard() nặng nữa. Chỉ khi CÓ lưu
+        // trong lúc popup mở (chốt/huỷ báo giá... → _vdNeedRefreshAfterPreview) mới
+        // refresh NHẸ ĐÚNG 1 stage (selectStage) để pill cập nhật màu — chạy nền,
+        // dashboard đã hiện lại ngay từ cache nên không thấy "load".
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
-        if (needReload) {
-            this.loadDashboard();
-        } else if (this._vdNeedRefreshAfterPreview) {
-            // Đã có lưu ngầm trong lúc popup mở → giờ mới nạp lại danh sách.
+        if (this._vdNeedRefreshAfterPreview) {
             this._vdNeedRefreshAfterPreview = false;
             this.refreshAfterPreview();
         }
