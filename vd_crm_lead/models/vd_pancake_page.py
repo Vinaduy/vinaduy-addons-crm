@@ -297,28 +297,14 @@ class VdPancakePage(models.Model):
         }
 
     def _vd_revive_pancake_lead(self, lead):
-        """KH (Pancake) nhắn LẠI mà lead đã bị HỦY/archive → cho SỐNG LẠI về 'Khách
-        mới' thay vì đẻ lead trùng. Giữ NV chủ (khôi phục vd_cancel_prev_user_id nếu
-        user_id trống). Lead đang active → không đụng. User spec 2026-07-29."""
-        lead = lead.with_context(active_test=False)[:1]
-        if not lead or lead.active:
-            return
-        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
-        vals = {'active': True, 'vd_cancel_state': False,
-                'vd_lost_reason': False, 'vd_lost_date': False,
-                'vd_lost_is_auto': False}
-        if new_stage:
-            vals['stage_id'] = new_stage.id
-        if not lead.user_id and lead.vd_cancel_prev_user_id:
-            vals['user_id'] = lead.vd_cancel_prev_user_id.id
-        try:
-            lead.with_context(vd_skip_intake_lock=True, mail_notrack=True,
-                              vd_skip_dedup=True).write(vals)
-            lead.message_post(
-                subtype_xmlid='mail.mt_note',
-                body='🔁 Khách nhắn lại qua Pancake → khôi phục lead (không tạo lead trùng).')
-        except Exception:
-            pass
+        """KH (Pancake) nhắn LẠI mà lead đã bị HỦY/archive.
+
+        User spec 2026-08-15: KHÔNG hồi sinh khách đã hủy về 'Khách mới' nữa —
+        khách đã hủy PHẢI NẰM YÊN trong thùng rác, KHÔNG được đẩy ra bắt gọi lại.
+        Việc dedup ở hàm gọi (tìm cả lead archive) đã tránh đẻ lead trùng, nên ở
+        đây chỉ cần KHÔNG làm gì với lead đã archive. Lead đang active thì cũng
+        không đụng. (Trước đây revive về 'Khách mới' — đã BỎ.)"""
+        return
 
     def _sync_one_conversation(self, conv, Lead, ResUsers, record_conv=False):
         """Process 1 conversation dict từ Pancake API → tạo lead nếu có SĐT.
