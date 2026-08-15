@@ -4228,12 +4228,16 @@ export class VdCrmDashboard extends Component {
         // và chiều cao THẬT của nội dung (bỏ zoom trước khi đo → buộc reflow).
         inner.style.zoom = '';
         const availH = body.clientHeight - 6;   // trừ đệm nhỏ để không lòi
-        const contentH = inner.scrollHeight;     // chiều cao thật của nội dung
+        // Đo ĐÚNG vùng nội dung hiển thị (lưới 2 cột THÔNG TIN + BÁO GIÁ), KHÔNG đo
+        // cả form (có panel ẩn bị bung ra làm cao giả → thu nhỏ quá mức). Fallback
+        // scrollHeight nếu chưa có lưới.
+        const grid = inner.querySelector('.o_vd_layout_grid');
+        const contentH = (grid ? grid.scrollHeight : inner.scrollHeight);
         if (availH > 20 && contentH > 20) {
             let z = availH / contentH;
-            if (z > 1) z = 1;        // nội dung ngắn → giữ nguyên (không phóng to)
-            if (z < 0.25) z = 0.25;  // sàn rất thấp → luôn nhét vừa 1 màn hình
-            inner.style.zoom = z >= 0.999 ? '' : String(z);
+            if (z > 1) z = 1;        // KHÔNG phóng quá cỡ thật (zoom>1 tràn ngang)
+            if (z < 0.3) z = 0.3;    // sàn: quá dài thì thu nhỏ vừa 1 màn hình
+            inner.style.zoom = z >= 0.99 ? '' : String(z);
         }
         // Observe lại sau 1 frame (bỏ qua các thay đổi do chính fit vừa gây ra).
         if (this._previewFitRO) {
