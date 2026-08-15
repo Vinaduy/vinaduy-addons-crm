@@ -2598,7 +2598,7 @@
                                                   t-on-mouseenter="(ev) => this.onNameEnter(lead, ev)"
                                                   t-on-mouseleave="() => this.onNameLeave()"
                                                   t-att-title="lead.name">
-                                                <span class="o_vd_name_pill_txt"><t t-esc="lead.name"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
+                                                <span class="o_vd_name_pill_txt"><t t-esc="shortLeadName(lead)"/></span><span t-if="lead.is_old_price" class="o_vd_oldprice_tag" title="Bảng giá của KH này vẫn là ĐƠN GIÁ CŨ — cần làm lại báo giá để cập nhật giá mới">giá cũ</span>
                                             </span>
                                             <!-- CỘT KHỚP TÀI CHÍNH — cạnh tên KH -->
                                             <t t-call="vd_crm_lead.BudgetFitCell"/>

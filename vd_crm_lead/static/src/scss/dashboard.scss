@@ -9611,6 +9611,7 @@ body.o_vd_preview_active .o_vd_preview_body_form {
             padding: 0.32rem 0.5rem;
             &:hover { transform: none; }
         }
+        .o_vd_filter_table_right_rows .o_vd_budget_fit_cell { min-width: 0; }
         .o_vd_filter_table_right_rows .o_vd_problem_row_name { min-width: 0; }
         .o_vd_filter_table_right_rows .o_vd_problem_row_name .o_vd_name_pill_txt {
             overflow: hidden;
