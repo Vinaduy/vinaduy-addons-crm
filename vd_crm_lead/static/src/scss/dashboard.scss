@@ -7660,22 +7660,47 @@
         max-width: 100% !important;
         overflow: visible !important;
     }
-    /* Bảng nhập VẤN ĐỀ: 2 cột chia đôi, chữ + ô nhập TO, thoáng. */
+    /* Bảng nhập VẤN ĐỀ: 2 cột chia đôi, chữ + ô nhập TO HẲN, thoáng, dễ đọc. */
     .o_vd_problem_simple {
         .o_list_renderer, table.o_list_table { width: 100% !important; }
         table.o_list_table th, table.o_list_table td {
-            font-size: 1rem !important;
-            padding: 0.5rem 0.7rem !important;
+            font-size: 1.35rem !important;   /* chữ TO cho dễ đọc */
+            padding: 0.7rem 0.9rem !important;
             vertical-align: middle !important;
+            line-height: 1.35 !important;
         }
+        table.o_list_table th { font-size: 1.2rem !important; }
         /* 2 cột dữ liệu chia đôi (cột cuối là nút xoá gọn) */
         table.o_list_table th:nth-child(1),
         table.o_list_table td:nth-child(1) { width: 42% !important; }
         table.o_list_table th:nth-child(2),
         table.o_list_table td:nth-child(2) { width: 58% !important; }
         .o_field_widget input, .o_field_widget textarea {
-            font-size: 1rem !important;
+            font-size: 1.35rem !important;
             width: 100% !important;
+            min-height: 2.4rem !important;
+        }
+        /* "Thêm một dòng" → thay bằng nút DẤU CỘNG (+) rõ ràng. */
+        .o_field_x2many_list_row_add td { padding: 0.5rem 0.9rem !important; }
+        .o_field_x2many_list_row_add a {
+            font-size: 0 !important;         /* ẩn chữ "Thêm một dòng" */
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.4rem !important;
+            text-decoration: none !important;
+        }
+        .o_field_x2many_list_row_add a::before {
+            content: "＋ Thêm vấn đề" !important;
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: #714B67 !important;
+            background: #f3ecff !important;
+            border: 1.5px solid #d7c6f0 !important;
+            border-radius: 999px !important;
+            padding: 0.35rem 1rem !important;
+        }
+        .o_field_x2many_list_row_add a:hover::before {
+            background: #e9ddff !important;
         }
     }
     /* Panel intake bị ép width:min(95vw,1200px) -> tràn rộng hơn cột -> 2 bảng
