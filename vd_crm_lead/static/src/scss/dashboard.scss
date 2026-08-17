@@ -8109,17 +8109,18 @@ body.o_vd_preview_active {
     .o_vd_lib_filter {
         display: none !important;
     }
-    /* Thu NHỎ FAB gọi + Zalo (đang 116px, che chữ) → gọn, không cắt chữ. */
+    /* FAB gọi + Zalo: vừa phải (từ 116px → 92px) + ĐẨY LÊN CAO hơn để thấy TRỌN,
+       không bị cắt ở đáy màn hình (user spec 2026-08-17). */
     .o_vd_call_btn {
-        width: 68px !important;
-        height: 68px !important;
-        i { font-size: 40px !important; }
+        width: 92px !important;
+        height: 92px !important;
+        i { font-size: 60px !important; }
     }
     .o_vd_call_fab {
-        gap: 0.4rem !important;
-        bottom: 5rem !important;
+        gap: 0.55rem !important;
+        bottom: 9rem !important;      /* đẩy lên cao — thấy hết cả cụm gọi + Zalo */
     }
-    .o_vd_fab_hist { bottom: 1.3rem !important; }
+    .o_vd_fab_hist { bottom: 3rem !important; }
 }
 
 /* ============================================================
