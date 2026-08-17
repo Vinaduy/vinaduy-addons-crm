@@ -8147,10 +8147,10 @@ body.o_vd_preview_active {
         i { font-size: 60px !important; }
     }
     .o_vd_call_fab {
-        gap: 0.55rem !important;
-        bottom: 9rem !important;      /* đẩy lên cao — thấy hết cả cụm gọi + Zalo */
+        gap: 0.3rem !important;        /* phone ↔ Zalo sát nhau hơn */
+        bottom: 6rem !important;       /* hạ xuống gần cụm Lịch sử — 3 nút gần nhau */
     }
-    .o_vd_fab_hist { bottom: 3rem !important; }
+    .o_vd_fab_hist { bottom: 3.2rem !important; }
 }
 
 /* ============================================================
