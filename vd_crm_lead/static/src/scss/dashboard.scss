@@ -7690,14 +7690,19 @@
             text-decoration: none !important;
         }
         .o_field_x2many_list_row_add a::before {
-            content: "＋ Thêm vấn đề" !important;
-            font-size: 1.2rem !important;
+            content: "＋" !important;         /* CHỈ dấu cộng, KHÔNG chữ */
+            font-size: 1.4rem !important;
             font-weight: 800 !important;
+            line-height: 1 !important;
             color: #714B67 !important;
             background: #f3ecff !important;
             border: 1.5px solid #d7c6f0 !important;
-            border-radius: 999px !important;
-            padding: 0.35rem 1rem !important;
+            border-radius: 50% !important;
+            width: 2.4rem !important;
+            height: 2.4rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .o_field_x2many_list_row_add a:hover::before {
             background: #e9ddff !important;
