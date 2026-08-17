@@ -4257,13 +4257,20 @@ div.o_vd_layout_right {
     line-height: 1.45 !important;
 }
 /* Popup "KHÁC" (tùy chọn thêm): rộng hơn + giá KHÔNG đè lên tên (đưa về inline phải) */
-.o_vd_hextra_pop { width: 320px !important; min-width: 320px !important; max-width: 320px !important; }
-.o_vd_hextra_opt_lbl { flex: 1 1 auto !important; white-space: nowrap !important; }
+.o_vd_hextra_pop { width: 340px !important; min-width: 340px !important; max-width: 340px !important; }
+.o_vd_hextra_opt_lbl {
+    flex: 1 1 auto !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
 .o_vd_hextra_opt_note {
     position: static !important;
-    margin-left: auto !important;
+    margin-left: 0.7rem !important;   /* TÁCH khỏi nhãn, không dính chữ */
     flex: 0 0 auto !important;
     white-space: nowrap !important;
+    font-weight: 700 !important;
 }
 /* Ô × giữa Ngang/Dài: có khoảng cách 2 bên, không dính vào ô nhập */
 .o_vd_intake_inline .o_vd_area_row_grid .o_vd_area_sep {
@@ -13293,10 +13300,12 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     left: auto;
     z-index: 60;
     /* width TƯỜNG MINH: containing block (.o_vd_hextra_khac) chỉ rộng bằng nút
-       KHÁC (~46px) nên shrink-to-fit làm popup co lại 1 ký tự -> ép cứng width. */
-    width: 264px !important;
-    min-width: 264px !important;
-    max-width: 264px !important;
+       KHÁC (~46px) nên shrink-to-fit làm popup co lại 1 ký tự -> ép cứng width.
+       Nới 264 → 340px để nhãn dài "Tân cổ điển nặng" + giá "+500k" KHÔNG mất chữ
+       (user 2026-08-17). */
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
     box-sizing: border-box;
     background: #fff;
     border: 1px solid #e3ddf7;
