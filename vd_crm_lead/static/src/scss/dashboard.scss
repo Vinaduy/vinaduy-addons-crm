@@ -7668,8 +7668,13 @@
             padding: 0.7rem 0.9rem !important;
             vertical-align: middle !important;
             line-height: 1.35 !important;
+            /* Đường kẻ cột dọc + kẻ ngang → phân cột rõ ràng (user 2026-08-17) */
+            border-right: 1px solid #e6ddf2 !important;
+            border-bottom: 1px solid #efeaf6 !important;
         }
-        table.o_list_table th { font-size: 1.2rem !important; }
+        table.o_list_table th:last-child,
+        table.o_list_table td:last-child { border-right: none !important; }
+        table.o_list_table th { font-size: 1.2rem !important; border-bottom: 2px solid #d9cdec !important; }
         /* 2 cột dữ liệu chia đôi (cột cuối là nút xoá gọn) */
         table.o_list_table th:nth-child(1),
         table.o_list_table td:nth-child(1) { width: 42% !important; }
