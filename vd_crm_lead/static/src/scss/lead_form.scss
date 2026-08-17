@@ -4368,7 +4368,12 @@ div.o_vd_intake_inline div.o_vd_area_row.o_vd_area_row_grid .o_vd_subtoggle_cell
 /* ===== Tinh chỉnh thêm (user spec 2026-08-15) ===== */
 /* Cụm Chốt/Hủy báo giá: DỒN VỀ BÊN TRÁI (thay vì phải) */
 .o_vd_intake_inline .o_vd_intake_actions {
+    /* 2 dòng (thống kê gọi | hành động) CĂN TRÁI ĐỀU: bỏ margin-left:auto (đẩy
+       phải), cho actions xuống DÒNG RIÊNG full ngang, sát trái (user 2026-08-17). */
     justify-content: flex-start !important;
+    margin-left: 0 !important;
+    flex-basis: 100% !important;
+    width: 100% !important;
 }
 /* Ghi chú: nhãn "Ghi chú" CÁCH ô nhập ra, không dính sát */
 .o_vd_intake_inline .o_vd_floor_function_notes_row {

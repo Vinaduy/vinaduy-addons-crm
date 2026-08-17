@@ -761,11 +761,11 @@
                                         <!-- NV tự dời ngày gọi lại với KH ĐÃ BÁO GIÁ (đã chốt) —
                                              tối đa 3 lần (server chặn), admin/leader/GĐ không giới hạn.
                                              User spec 2026-08-09. -->
-                                        <button string="📅 Dời ngày gọi lại"
+                                        <button string="📅 Hẹn ngày gọi lại"
                                                 name="action_open_callback_wizard" type="object"
                                                 class="o_vd_act_btn o_vd_act_callback"
-                                                invisible="not vd_intake_locked"
-                                                title="Dời ngày hẹn gọi lại khách (KH đã báo giá — NV được dời tối đa 3 lần)"/>
+                                                invisible="not vd_intake_locked and not vd_callback_badge"
+                                                title="Hẹn / dời ngày gọi lại khách (NV được dời tối đa 3 lần)"/>
                                         <button string="🔓 Mở khoá"
                                                 name="action_unlock_intake" type="object"
                                                 class="o_vd_act_btn o_vd_act_unlock"
