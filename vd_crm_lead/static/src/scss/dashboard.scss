@@ -7626,7 +7626,7 @@
     .o_vd_main_panel {
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;  /* 2 bảng BẰNG NHAU */
-        grid-template-rows: auto auto !important;   /* r1: intake | báo giá · r2: VẤN ĐỀ full ngang */
+        grid-template-rows: auto 1fr !important;   /* r1: intake | báo giá · r2: VẤN ĐỀ dưới báo giá */
         gap: 1rem !important;
         align-items: start !important;
         width: 100% !important;
@@ -7634,7 +7634,7 @@
     }
     .o_vd_summary_card {
         grid-column: 1 !important;
-        grid-row: 1 !important;
+        grid-row: 1 / 3 !important;      /* intake (cao) trải suốt 2 hàng bên trái */
         margin: 0 !important;
         min-width: 0 !important;
         width: 100% !important;
@@ -7649,12 +7649,12 @@
         width: 100% !important;
         max-width: 100% !important;
     }
-    /* Panel VẤN ĐỀ — TRẢI FULL chiều ngang, DƯỚI cả 2 bảng → 2 cột (Vấn đề /
-       Diễn giải) TO, cân đối, dễ đọc (user spec 2026-08-15). */
+    /* Panel VẤN ĐỀ — nằm CỘT PHẢI, ngay DƯỚI bảng BÁO GIÁ CHI TIẾT, lấp chỗ
+       trống cạnh intake (user spec 2026-08-17). */
     .o_vd_negotiate_panel {
-        grid-column: 1 / -1 !important;
+        grid-column: 2 !important;
         grid-row: 2 !important;
-        margin: 0.4rem 0 0 !important;
+        margin: 0.6rem 0 0 !important;
         min-width: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
