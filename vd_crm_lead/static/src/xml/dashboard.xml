@@ -2935,14 +2935,8 @@
                                 <i class="fa fa-phone"/>
                                 <span><t t-esc="L.phone"/></span>
                             </button>
-                            <!-- Nút GỌI LẠI ngay trong popup (user spec 2026-08-15) -->
-                            <button class="o_vd_preview_callback"
-                                    t-if="L.phone"
-                                    t-on-click.stop="(ev) => this.callLeadDirect(ev, L.id)"
-                                    title="Gọi lại khách hàng này ngay">
-                                <i class="fa fa-phone"/>
-                                <span>Gọi lại</span>
-                            </button>
+                            <!-- Nút GỌI LẠI trên topbar ĐÃ BỎ (user spec 2026-08-17) —
+                                 đã có FAB gọi bên phải + nút Gọi lại ngoài danh sách. -->
                             <span class="o_vd_preview_user" t-if="L.user_name">
                                 <i class="fa fa-user-circle"/>
                                 <t t-esc="L.user_name"/>
