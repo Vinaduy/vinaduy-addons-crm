@@ -183,6 +183,9 @@ class ResUsersSecurity(models.Model):
     # ---- CRON: ép đổi mật khẩu sau 30 ngày ----
     @api.model
     def _vd_cron_password_expiry(self):
+        # ĐÃ TẮT (user spec 2026-08-20): bỏ ép đổi mật khẩu định kỳ 1 tháng/lần.
+        # Cron cũng đã active=False; no-op này phòng hờ nếu bị bật lại nhầm.
+        return 0
         from datetime import timedelta
         threshold = fields.Datetime.now() - timedelta(days=_PWD_MAX_AGE_DAYS)
         users = self.sudo().search([
