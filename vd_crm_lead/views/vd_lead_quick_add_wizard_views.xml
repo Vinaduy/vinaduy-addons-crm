@@ -11,6 +11,8 @@
                 <field name="can_chia_so" invisible="1"/>
                 <field name="vd_all_assigned" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
+                <!-- Pool NV (đã loại admin) — dùng làm domain dropdown chọn NV. -->
+                <field name="vd_receiving_candidate_ids" invisible="1"/>
                 <!-- Banner tóm tắt sau khi nạp file/dán danh sách -->
                 <div class="alert alert-success o_vd_import_summary" role="status"
                      invisible="not vd_import_summary">
@@ -21,25 +23,23 @@
                           decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
                         <field name="vd_selected" widget="boolean" string="☑ Chọn"/>
-                        <field name="vd_stt" string="#" readonly="1" class="o_vd_qa_stt"/>
+                        <field name="vd_stt" string="#" column_invisible="1"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..."/>
-                        <field name="source" widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                        <field name="source" string="Nguồn" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
                         <field name="status" column_invisible="1"/>
-                        <field name="user_id" class="o_vd_qa_nowrap"
+                        <field name="user_id" string="Nhân viên" class="o_vd_qa_nowrap"
+                               domain="[('id', 'in', parent.vd_receiving_candidate_ids)]"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Chưa chia)"/>
-                        <!-- Chỉ số tải NV — hiện cạnh tên NV sau khi chia số -->
+                        <!-- Cột "Tải NV" ĐÃ ẨN (user spec 2026-08-24: bảng gọn). -->
                         <field name="assignee_overloaded" column_invisible="1"/>
-                        <field name="assignee_stat_label" string="Tải NV" readonly="1"
-                               class="o_vd_qa_nowrap"
-                               decoration-danger="assignee_overloaded"
-                               decoration-bf="assignee_overloaded"/>
+                        <field name="assignee_stat_label" column_invisible="1"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
                         <field name="i_house_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_foundation_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
@@ -94,17 +94,10 @@
                             string="📥 Xuất Excel" class="btn-secondary"/>
                 </div>
 
-                <!-- ===== DÁN DANH SÁCH SỐ — thay cho đẩy file Excel (leader) =====
-                     Copy nhiều dòng "Tên  SĐT" → dán vào ô → bấm ĐẨY SỐ + CHIA ĐỀU. -->
-                <div class="o_vd_distribute_bar o_vd_paste_bar"
-                     groups="vd_crm_lead.vd_crm_group_team_leader">
-                    <span class="o_vd_distribute_lbl">📋 Dán danh sách số:</span>
-                    <field name="vd_import_paste" nolabel="1"
-                           class="o_vd_paste_area"
-                           placeholder="Mỗi dòng 1 khách, ví dụ:&#10;Nguyễn Ánh 0977261290&#10;Hà Nam 0988777666&#10;Nguyệt Sơn 0966777888"/>
-                    <button name="action_import_paste" type="object"
-                            string="⬆️ TẢI DANH SÁCH ĐÃ DÁN" class="btn-primary"
-                            invisible="not vd_import_paste"/>
+                <!-- Ô "Dán danh sách số" ĐÃ BỎ (user spec 2026-08-24) — chỉ dùng
+                     Tải file. Giữ Chọn / Xoá / Gán NV cho khách đã tích. -->
+                <div class="o_vd_distribute_bar">
+                    <field name="vd_import_paste" invisible="1"/>
                     <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
                     <button name="action_select_all" type="object"
                             string="Chọn / bỏ TẤT CẢ" class="btn-secondary"/>
@@ -115,6 +108,7 @@
                           groups="vd_crm_lead.vd_crm_group_team_leader">·  Gán NV:</span>
                     <field name="vd_bulk_user_id" nolabel="1"
                            groups="vd_crm_lead.vd_crm_group_team_leader"
+                           domain="[('id', 'in', vd_receiving_candidate_ids)]"
                            options="{'no_create': True, 'no_open': True}"
                            placeholder="Chọn nhân viên..."
                            class="o_vd_distribute_group"/>
@@ -134,6 +128,7 @@
                            nolabel="1" class="o_vd_distribute_radio"/>
                     <field name="group_user_ids" widget="many2many_tags" nolabel="1"
                            invisible="distribute_mode != 'group'"
+                           domain="[('id', 'in', vd_receiving_candidate_ids)]"
                            options="{'no_create': True, 'no_open': True}"
                            placeholder="👥 Chọn 2+ nhân viên để chia đều trong nhóm..."
                            class="o_vd_distribute_group"/>
@@ -186,6 +181,7 @@
         <!-- User spec 2026-05-29: pre-create 12 dong, full screen -->
         <!-- Không tạo dòng trống mặc định (user spec 2026-07-26): đã có Tải file
              + Dán danh sách để nạp KH → mở wizard là bảng RỖNG, không 12 dòng thừa. -->
-        <field name="context">{'dialog_size': 'fullscreen'}</field>
+        <!-- User spec 2026-08-24: bỏ fullscreen — dialog vừa phải, gọn hơn. -->
+        <field name="context">{'dialog_size': 'large'}</field>
     </record>
 </odoo>
