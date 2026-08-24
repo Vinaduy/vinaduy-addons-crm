@@ -2018,9 +2018,9 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     <field name="vd_lead_problem_ids" nolabel="1" mode="list">
                         <list editable="bottom">
                             <field name="name" string="Vấn đề"
-                                   placeholder="Gõ vấn đề khách hàng gặp phải..."/>
-                            <field name="nv_handling" string="Diễn giải chi tiết"
-                                   placeholder="Diễn giải chi tiết vấn đề, hướng xử lý..."/>
+                                   placeholder="Gõ vấn đề..."/>
+                            <field name="nv_handling" string="Ghi chú"
+                                   placeholder="Ghi chú..."/>
                         </list>
                     </field>
                 </div>
