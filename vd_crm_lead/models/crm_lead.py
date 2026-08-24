@@ -115,6 +115,9 @@ class CrmLead(models.Model):
 
     # Custom fields not in standard
     callback_date = fields.Datetime(string='Hẹn gọi lại lúc', tracking=True)
+    # Ghi chú NV nhập khi hẹn ngày gọi lại — lưu để HIỆN LẠI khi xem KH
+    # (user spec 2026-08-24: ghi chú hẹn gọi lại phải lưu + xem được).
+    vd_callback_note = fields.Text(string='Ghi chú hẹn gọi lại', copy=False)
     # Đếm số lần NV TỰ dời ngày gọi lại KH đã báo giá (giới hạn _VD_CALLBACK_RESCHEDULE_MAX).
     # Admin/Trưởng nhóm/Giám đốc dời không tính vào đây. User spec 2026-08-09.
     vd_callback_reschedule_count = fields.Integer(
@@ -9419,11 +9422,13 @@ class CrmLead(models.Model):
                 if (l.vd_quote_created_date or (l.vd_intake_locked and l.create_date))
                 else None
             ),
-            # SỐ NGÀY CHƯA GỌI = số ngày kể từ lần gọi gần nhất (chưa gọi lần nào →
-            # tính từ ngày tạo). Cho bộ lọc nhanh 3/5/8/15/25/40 ngày (user 2026-08-06).
+            # SỐ NGÀY CHƯA GỌI = số ngày kể từ lần gọi gần nhất. Chưa gọi lần nào →
+            # tính từ NGÀY NV NHẬN LEAD (date_open), KHÔNG phải ngày tạo — để khách
+            # mới đẩy về / vừa được chia cho NV KHÔNG bị báo "X ngày chưa gọi" oan
+            # (user 2026-08-24). Fallback create_date cho lead cũ chưa có date_open.
             'days_since_call': (
-                (fields.Datetime.now() - (l.last_call_date or l.create_date)).days
-                if (l.last_call_date or l.create_date) else 0
+                (fields.Datetime.now() - (l.last_call_date or l.date_open or l.create_date)).days
+                if (l.last_call_date or l.date_open or l.create_date) else 0
             ),
             # HẸN GỌI LẠI (user 2026-08-06): NV đặt sau cuộc gọi. Chuỗi UTC hoặc ''.
             # Dashboard tự tính đến-hẹn / hẹn-tương-lai từ mốc này.

@@ -29,22 +29,14 @@ class VdLeadCallbackWizard(models.TransientModel):
         string='Lịch hẹn hiện tại',
     )
 
-    quick_preset = fields.Selection([
-        ('tomorrow', '☀️ Mai 9h sáng'),
-        ('3d', '📅 3 ngày sau'),
-        ('1w', '📅 1 tuần sau'),
-        ('2w', '📅 2 tuần sau'),
-        ('1m', '🗓️ 1 tháng sau'),
-        ('custom', '🎯 Tự chọn ngày giờ'),
-    ], string='Preset nhanh', required=True, default='tomorrow')
-
+    # Đơn giản hoá (user spec 2026-08-24): BỎ preset nhanh — chỉ cuốn lịch + ghi chú.
     callback_date = fields.Datetime(
         string='Ngày giờ gọi lại', required=True,
-        help='Tự fill theo preset hoặc chọn tay khi preset = Tự chọn.',
+        help='Chọn ngày giờ hẹn gọi lại khách.',
     )
     note = fields.Text(
-        string='Ghi chú (optional)',
-        help='Lý do hẹn gọi lại / nội dung cần chốt với KH khi gọi.',
+        string='Ghi chú',
+        help='Nội dung cần chốt / lý do hẹn gọi lại — sẽ lưu và hiện lại khi xem KH.',
     )
 
     @api.model
@@ -52,25 +44,14 @@ class VdLeadCallbackWizard(models.TransientModel):
         vals = super().default_get(fields_list)
         if 'callback_date' in fields_list and not vals.get('callback_date'):
             vals['callback_date'] = _tomorrow_9am(self.env)
+        # Nạp sẵn ghi chú cũ để NV sửa tiếp (không mất khi mở lại).
+        if 'note' in fields_list and not vals.get('note'):
+            lead_id = vals.get('lead_id') or self.env.context.get('default_lead_id')
+            if lead_id:
+                lead = self.env['crm.lead'].browse(lead_id)
+                if lead.exists() and lead.vd_callback_note:
+                    vals['note'] = lead.vd_callback_note
         return vals
-
-    @api.onchange('quick_preset')
-    def _onchange_quick_preset(self):
-        if not self.quick_preset or self.quick_preset == 'custom':
-            return
-        now = fields.Datetime.now()
-        now_user = fields.Datetime.context_timestamp(self.env.user, now)
-        mapping = {
-            'tomorrow': relativedelta(days=1),
-            '3d': relativedelta(days=3),
-            '1w': relativedelta(weeks=1),
-            '2w': relativedelta(weeks=2),
-            '1m': relativedelta(months=1),
-        }
-        target_user = (now_user + mapping[self.quick_preset]).replace(
-            hour=9, minute=0, second=0, microsecond=0,
-        )
-        self.callback_date = target_user.astimezone(tz=None).replace(tzinfo=None)
 
     def action_confirm_callback(self):
         self.ensure_one()
@@ -85,6 +66,8 @@ class VdLeadCallbackWizard(models.TransientModel):
         old = self.lead_id.callback_date
         self.lead_id.with_context(mail_notrack=True).write({
             'callback_date': self.callback_date,
+            # LƯU ghi chú vào lead để hiện lại khi xem (user 2026-08-24).
+            'vd_callback_note': (self.note or '').strip() or False,
         })
         # Dời thành công → tăng bộ đếm (chỉ tính với KH đã báo giá + NV thường).
         self.lead_id.vd_callback_reschedule_bump()

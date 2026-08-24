@@ -705,6 +705,12 @@
                                                 📅 Ngày gọi lại: <field name="vd_callback_badge" readonly="1" nolabel="1"/>
                                             </span>
                                         </span>
+                                        <!-- Ghi chú hẹn gọi lại — hiện lại khi xem KH (user 2026-08-24) -->
+                                        <field name="vd_callback_note" invisible="1"/>
+                                        <span class="o_vd_cs_part o_vd_cs_cbnote" invisible="not vd_callback_note"
+                                              style="width:100%;flex-basis:100%;color:#5c7299;margin-top:0.2rem;">
+                                            📝 <b>Ghi chú gọi lại:</b> <field name="vd_callback_note" readonly="1" nolabel="1"/>
+                                        </span>
                                     </div>
                                     <!-- Lịch sử cuộc gọi + Lịch sử Zalo đã CHUYỂN xuống FAB (dưới nút Zalo) -->
                                     <field name="stage_is_lost" invisible="1"/>
