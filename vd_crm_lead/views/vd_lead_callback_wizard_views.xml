@@ -5,7 +5,7 @@
         <field name="name">vd.lead.callback.wizard.form</field>
         <field name="model">vd.lead.callback.wizard</field>
         <field name="arch" type="xml">
-            <form string="Hẹn ngày gọi lại">
+            <form string="Hẹn ngày gọi lại" class="o_vd_callback_wizard">
                 <field name="lead_id" invisible="1"/>
 
                 <div class="alert alert-info" role="alert" style="margin-bottom: 0.85rem;">

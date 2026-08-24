@@ -698,13 +698,8 @@
                                         </span>
                                         <!-- NGÀY GỌI LẠI — hiện ngày + số ngày còn lại/quá hạn.
                                              KH chưa thiết lập ngày gọi lại -> để TRỐNG. -->
+                                        <!-- Badge "📅 Ngày gọi lại: X (quá hạn Y)" ĐÃ BỎ (user 2026-08-24). -->
                                         <field name="vd_callback_badge" invisible="1"/>
-                                        <span class="o_vd_cs_sep" invisible="not vd_callback_badge">|</span>
-                                        <span class="o_vd_cs_part o_vd_cs_cb" invisible="not vd_callback_badge">
-                                            <span class="o_vd_cr_badge o_vd_cr_cb">
-                                                📅 Ngày gọi lại: <field name="vd_callback_badge" readonly="1" nolabel="1"/>
-                                            </span>
-                                        </span>
                                         <!-- Ghi chú hẹn gọi lại — hiện lại khi xem KH (user 2026-08-24) -->
                                         <field name="vd_callback_note" invisible="1"/>
                                         <span class="o_vd_cs_part o_vd_cs_cbnote" invisible="not vd_callback_note"
