@@ -79,17 +79,13 @@
 
                 <!-- ===== THAO TÁC HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
                 <div class="o_vd_distribute_bar">
-                    <!-- ===== NHẬP TỪ FILE EXCEL/CSV — tự lấy Tên+SĐT + tự chia đều
-                         cho tất cả NV (leader). Số nhập file = thẻ FB xám đậm. ===== -->
+                    <!-- ===== NHẬP TỪ FILE — chọn file là TỰ ĐỘNG nạp bảng ngay
+                         (onchange), không cần bấm nút (user spec 2026-08-25). ===== -->
                     <span class="o_vd_distribute_lbl"
-                          groups="vd_crm_lead.vd_crm_group_team_leader">📤 Nhập file:</span>
+                          groups="vd_crm_lead.vd_crm_group_team_leader">📤 Nhập file (tự nạp):</span>
                     <field name="vd_import_filename" invisible="1"/>
                     <field name="vd_import_file" filename="vd_import_filename" nolabel="1"
                            groups="vd_crm_lead.vd_crm_group_team_leader"/>
-                    <button name="action_import_excel" type="object"
-                            string="⬆️ TẢI DANH SÁCH TỪ FILE" class="btn-primary"
-                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                            invisible="not vd_import_file"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
                 </div>
@@ -119,54 +115,37 @@
                             invisible="not vd_bulk_user_id"/>
                 </div>
 
-                <!-- ===== BỘ CHỌN CÁCH CHIA — leader, hiện sau khi bấm CHỌN NHÂN VIÊN ===== -->
+                <!-- ===== KHỐI CHIA SỐ — hiện sau khi bấm CHIA SỐ (leader). Chỉ 1
+                     dropdown chọn NV + 2 nút chia (user spec 2026-08-25). ===== -->
                 <div groups="vd_crm_lead.vd_crm_group_team_leader"
                      invisible="not show_distribute"
-                     class="o_vd_distribute_bar">
-                    <span class="o_vd_distribute_lbl">🎯 Cách chia số:</span>
-                    <field name="distribute_mode" widget="radio" options="{'horizontal': true}"
-                           nolabel="1" class="o_vd_distribute_radio"/>
+                     class="o_vd_distribute_bar o_vd_split_bar">
+                    <field name="distribute_mode" invisible="1"/>
+                    <field name="vd_receiving_user_ids" invisible="1"/>
+                    <span class="o_vd_distribute_lbl">👥 Chọn nhân viên:</span>
                     <field name="group_user_ids" widget="many2many_tags" nolabel="1"
-                           invisible="distribute_mode != 'group'"
                            domain="[('id', 'in', vd_receiving_candidate_ids)]"
                            options="{'no_create': True, 'no_open': True}"
-                           placeholder="👥 Chọn 2+ nhân viên để chia đều trong nhóm..."
+                           placeholder="Chọn nhân viên (chỉ dùng cho 'Chia cho NV đã chọn')..."
                            class="o_vd_distribute_group"/>
-                    <div class="o_vd_distribute_hint" invisible="distribute_mode">
-                        Chọn 1 cách chia ở trên — cột Nhân viên sẽ tự điền. Bấm CHIA SỐ để tạo khách.
-                    </div>
-                </div>
-
-                <!-- ===== BẢNG BẬT/TẮT NV NHẬN SỐ (chuyển từ dashboard vào đây) =====
-                     Bỏ tick + LƯU = tắt CẢ chia tự động lẫn thủ công (đồng bộ). -->
-                <div groups="vd_crm_lead.vd_crm_group_team_leader"
-                     class="o_vd_distribute_bar o_vd_recv_bar">
-                    <span class="o_vd_distribute_lbl">🔘 NV đang nhận số — gỡ (✕) để TẮT chia số, bấm ➕ để thêm NV:</span>
-                    <field name="vd_receiving_candidate_ids" invisible="1"/>
-                    <field name="vd_receiving_user_ids" widget="many2many_tags"
-                           nolabel="1" class="o_vd_recv_tags"
-                           options="{'no_create': True, 'no_open': True}"
-                           placeholder="➕ Thêm NV nhận số..."
-                           domain="[('id', 'in', vd_receiving_candidate_ids)]"/>
+                    <button name="action_distribute_even_all" type="object"
+                            string="⚖️ Chia đều cho NV" class="btn-primary"/>
+                    <button name="action_distribute_group" type="object"
+                            string="👥 Chia cho NV đã chọn" class="btn-primary"
+                            invisible="not group_user_ids"/>
                 </div>
 
                 <footer>
                     <button name="action_show_distribute" type="object"
-                            string="👥 CHỌN NHÂN VIÊN"
+                            string="💰 CHIA SỐ"
                             class="btn-primary"
                             groups="vd_crm_lead.vd_crm_group_team_leader"
                             invisible="show_distribute or vd_all_assigned"/>
-                    <button name="action_redistribute" type="object"
-                            string="🔄 Chia lại"
-                            class="btn-secondary"
-                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                            invisible="not show_distribute or not distribute_mode"/>
-                    <!-- CHIA SỐ chỉ hiện khi TẤT CẢ khách đã có nhân viên
-                         (leader); NV thường tự gán mình -> luôn hiện. -->
+                    <!-- Tạo ngay khi TẤT CẢ khách đã có NV (leader gán tay / NV tự gán). -->
                     <button name="action_create_leads" type="object"
-                            string="💾 CHIA SỐ"
+                            string="💾 TẠO KHÁCH"
                             class="btn-primary"
-                            invisible="not can_chia_so"/>
+                            invisible="not can_chia_so or show_distribute"/>
                     <button special="cancel" string="Huỷ" class="btn-secondary"/>
                 </footer>
             </form>

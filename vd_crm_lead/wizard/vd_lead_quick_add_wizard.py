@@ -375,10 +375,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
         self.vd_import_paste = False
         return self._vd_finish_import(pairs, source_word=_('danh sách dán'))
 
-    def _vd_finish_import(self, pairs, source_word=''):
-        """Xử lý CHUNG cho nhập-file & dán-text: lọc trùng/sai → NẠP bảng + HIỆN
-        danh sách. KHÔNG tự chia — leader xem danh sách rồi bấm CHỌN NHÂN VIÊN /
-        CHIA SỐ mới chia (user spec 2026-07-24). `pairs` = list[(tên, sđt-thô)]."""
+    def _vd_prepare_import(self, pairs):
+        """Lọc trùng/sai từ `pairs` = list[(tên, sđt-thô)] → trả
+        (clean=list[(tên_chuẩn, '0xxx')], skipped_dup, skipped_bad).
+        KHÔNG động vào line_ids. Raise UserError nếu không còn số mới."""
         Lead = self.env['crm.lead'].sudo()
 
         def _core(p):
@@ -392,7 +392,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 seen.add(c)
 
         skipped_bad = skipped_dup = 0
-        clean = []  # list[(name, '0xxxxxxxxx')]
+        clean = []
         for name, phone in pairs:
             core = _core(phone)
             cphone = '0' + core if core else ''
@@ -403,7 +403,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 skipped_dup += 1
                 continue
             seen.add(core)
-            clean.append((name, cphone))
+            nm = self.env['crm.lead']._vd_normalize_kh_name(name) if name else ''
+            if not self._vd_name_is_valid(nm):
+                nm = 'Khách ' + cphone[-4:]
+            clean.append((nm, cphone))
 
         # Loại số ĐÃ CÓ trong hệ thống (1 truy vấn gộp, kể cả lead đã archive).
         if clean:
@@ -427,33 +430,73 @@ class VdLeadQuickAddWizard(models.TransientModel):
 
         if not clean:
             raise UserError(_(
-                'Tất cả %d số trong %s đều TRÙNG (đã có trong hệ thống) hoặc '
-                'SAI định dạng — không có số mới để nhập.'
-            ) % (len(pairs), source_word or _('danh sách')))
+                'Tất cả %d số đều TRÙNG (đã có trong hệ thống) hoặc SAI định dạng '
+                '— không có số mới để nhập.'
+            ) % len(pairs))
+        return clean, skipped_dup, skipped_bad
 
-        # Nạp vào bảng: xoá các dòng trống, thêm dòng mới.
-        self.line_ids.filtered(lambda l: not l.name and not l.phone).unlink()
-        cmds = []
-        for name, cp in clean:
-            nm = self.env['crm.lead']._vd_normalize_kh_name(name) if name else ''
-            if not self._vd_name_is_valid(nm):
-                nm = 'Khách ' + cp[-4:]
-            cmds.append((0, 0, {
-                'name': nm, 'phone': cp, 'source': 'facebook',
-                'vd_is_excel': True, 'status': 'new',
-            }))
-        self.write({'line_ids': cmds})
-
-        # CHỈ nạp + hiện danh sách. KHÔNG tự chia số — leader xem xong rồi bấm
-        # CHỌN NHÂN VIÊN → chọn cách chia → CHIA SỐ. Tóm tắt hiện ở banner.
-        parts = [_('✅ Đã nạp %d số vào danh sách') % len(clean)]
+    def _vd_import_summary_text(self, n_clean, skipped_dup, skipped_bad, tail=''):
+        parts = [_('✅ Đã nạp %d số') % n_clean]
         if skipped_dup:
             parts.append(_('bỏ %d trùng') % skipped_dup)
         if skipped_bad:
             parts.append(_('bỏ %d sai định dạng') % skipped_bad)
-        self.vd_import_summary = (
-            ' · '.join(parts)
-            + _('. Kiểm tra danh sách rồi bấm CHỌN NHÂN VIÊN để chia số.'))
+        return ' · '.join(parts) + (tail or '')
+
+    @api.onchange('vd_import_file')
+    def _onchange_vd_import_file(self):
+        """TỰ ĐỘNG nạp bảng NGAY khi chọn file (user spec 2026-08-25) — không cần
+        bấm nút import, không mở popup mới."""
+        if not self.vd_import_file:
+            return
+        if not self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+            self.vd_import_file = False
+            return {'warning': {'title': _('Không có quyền'),
+                                'message': _('Chỉ Trưởng nhóm / Admin được nhập file.')}}
+        import base64
+        try:
+            data = base64.b64decode(self.vd_import_file)
+            pairs = self._vd_extract_name_phone(
+                self._vd_parse_import_rows(data, self.vd_import_filename))
+        except Exception as e:  # noqa: BLE001
+            self.vd_import_file = False
+            return {'warning': {'title': _('Lỗi đọc file'),
+                                'message': str(e)[:200]}}
+        self.vd_import_file = False
+        self.vd_import_filename = False
+        if not pairs:
+            return {'warning': {'title': _('File rỗng'),
+                                'message': _('Không đọc được SĐT nào từ file. '
+                                             'Cần cột SĐT/Điện thoại/Phone.')}}
+        try:
+            clean, sd, sb = self._vd_prepare_import(pairs)
+        except UserError as e:
+            return {'warning': {'title': _('Không nhập được'),
+                                'message': e.args[0] if e.args else str(e)}}
+        # Thêm dòng mới vào bảng (giữ dòng cũ có dữ liệu, bỏ dòng trống) — cách
+        # onchange-safe: dựng recordset in-memory bằng .new() rồi gán lại.
+        lines = self.line_ids.filtered(lambda l: l.name or l.phone)
+        for nm, cp in clean:
+            lines += self.line_ids.new({
+                'name': nm, 'phone': cp, 'source': 'facebook',
+                'vd_is_excel': True, 'status': 'new',
+            })
+        self.line_ids = lines
+        self.vd_import_summary = self._vd_import_summary_text(
+            len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
+
+    def _vd_finish_import(self, pairs, source_word=''):
+        """Nạp bảng qua nút (paste/legacy) — persist rồi reopen. Dùng lại
+        _vd_prepare_import để không lặp code."""
+        clean, sd, sb = self._vd_prepare_import(pairs)
+        self.line_ids.filtered(lambda l: not l.name and not l.phone).unlink()
+        cmds = [(0, 0, {
+            'name': nm, 'phone': cp, 'source': 'facebook',
+            'vd_is_excel': True, 'status': 'new',
+        }) for nm, cp in clean]
+        self.write({'line_ids': cmds})
+        self.vd_import_summary = self._vd_import_summary_text(
+            len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
         return self._vd_reopen()
 
     def action_select_all(self):
@@ -633,14 +676,28 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'Vui lòng chọn NGUỒN cho các khách:\n%s'
             ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
         self.show_distribute = True
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': dict(self.env.context, dialog_size='fullscreen'),
-        }
+        # KHÔNG mở popup mới — chỉ set cờ, dialog tự vẽ lại tại chỗ (user 2026-08-25).
+        return
+
+    def action_distribute_even_all(self):
+        """⚖️ Chia đều cho TẤT CẢ NV đang nhận số → tạo lead luôn (1 bấm)."""
+        self.ensure_one()
+        self._vd_check_leader()
+        self._vd_sync_receiving()
+        self.distribute_mode = 'even_all'
+        self._vd_apply_distribution()
+        return self.action_create_leads()
+
+    def action_distribute_group(self):
+        """👥 Chia đều cho NV ĐÃ CHỌN trong dropdown → tạo lead luôn (1 bấm)."""
+        self.ensure_one()
+        self._vd_check_leader()
+        if len(self.group_user_ids) < 1:
+            raise UserError(_('Hãy chọn ít nhất 1 nhân viên ở ô "Chọn nhân viên" '
+                              'trước khi chia cho NV đã chọn.'))
+        self.distribute_mode = 'group'
+        self._vd_apply_distribution()
+        return self.action_create_leads()
 
     @api.onchange('distribute_mode', 'group_user_ids')
     def _onchange_distribute_mode(self):
