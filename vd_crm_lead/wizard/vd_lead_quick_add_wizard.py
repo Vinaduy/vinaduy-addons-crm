@@ -50,6 +50,20 @@ STATUS_TO_STAGE_CODE = {
 }
 
 
+def _vd_nv_user_domain(env):
+    """Domain server-side cho các dropdown chọn NV: NV Sale, còn hoạt động,
+    LOẠI admin kỹ thuật (user spec 2026-08-25). Dùng lambda ở field → ổn định,
+    không phụ thuộc field computed phía client (tránh dropdown rỗng)."""
+    dom = [('share', '=', False), ('active', '=', True)]
+    sales = env.ref('sales_team.group_sale_salesman', raise_if_not_found=False)
+    if sales:
+        dom.append(('groups_id', 'in', sales.ids))
+    sysg = env.ref('base.group_system', raise_if_not_found=False)
+    if sysg:
+        dom.append(('groups_id', 'not in', sysg.ids))
+    return dom
+
+
 class VdLeadQuickAddWizard(models.TransientModel):
     _name = 'vd.lead.quick.add.wizard'
     _description = 'Thêm KH nhanh (bảng tính nhiều dòng)'
@@ -173,7 +187,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
     # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
     vd_bulk_user_id = fields.Many2one(
         'res.users', string='Gán NV cho khách đã chọn',
-        domain="[('share', '=', False)]",
+        domain=lambda self: _vd_nv_user_domain(self.env),
     )
 
     def _vd_reopen(self):
@@ -539,7 +553,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
     )
     group_user_ids = fields.Many2many(
         'res.users', string='Nhóm NV nhận',
-        domain="[('share', '=', False)]",
+        domain=lambda self: _vd_nv_user_domain(self.env),
         help='Chọn 2+ nhân viên — khách sẽ được chia đều trong nhóm này.',
     )
     # Quick-create field: admin gõ tên → tạo vd.intake.custom.field → cột
@@ -1092,7 +1106,7 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
     user_id = fields.Many2one(
         'res.users',
         string='Nhân viên',
-        domain="[('share', '=', False)]",
+        domain=lambda self: _vd_nv_user_domain(self.env),
         help='Chọn NV phụ trách. Để trống = round-robin (leader) hoặc gán cho chính mình (NV).',
     )
 

@@ -34,7 +34,6 @@
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
                         <field name="status" column_invisible="1"/>
                         <field name="user_id" string="Nhân viên" class="o_vd_qa_nowrap"
-                               domain="[('id', 'in', parent.vd_receiving_candidate_ids)]"
                                options="{'no_create': True, 'no_open': True}"
                                placeholder="(Chưa chia)"/>
                         <!-- Cột "Tải NV" ĐÃ ẨN (user spec 2026-08-24: bảng gọn). -->
@@ -78,9 +77,10 @@
                 </field>
 
                 <!-- ===== THAO TÁC HÀNG LOẠT cho khách ĐÃ TÍCH CHỌN (cột ☑ Chọn) ===== -->
+                <!-- ===== 1 DÒNG: Nhập file + Xuất Excel + Gán NV (user 2026-08-25).
+                     Chọn file là TỰ nạp bảng (onchange). Bỏ "Chọn/bỏ TẤT CẢ" + "Xoá". -->
                 <div class="o_vd_distribute_bar">
-                    <!-- ===== NHẬP TỪ FILE — chọn file là TỰ ĐỘNG nạp bảng ngay
-                         (onchange), không cần bấm nút (user spec 2026-08-25). ===== -->
+                    <field name="vd_import_paste" invisible="1"/>
                     <span class="o_vd_distribute_lbl"
                           groups="vd_crm_lead.vd_crm_group_team_leader">📤 Nhập file (tự nạp):</span>
                     <field name="vd_import_filename" invisible="1"/>
@@ -88,29 +88,15 @@
                            groups="vd_crm_lead.vd_crm_group_team_leader"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
-                </div>
-
-                <!-- Ô "Dán danh sách số" ĐÃ BỎ (user spec 2026-08-24) — chỉ dùng
-                     Tải file. Giữ Chọn / Xoá / Gán NV cho khách đã tích. -->
-                <div class="o_vd_distribute_bar">
-                    <field name="vd_import_paste" invisible="1"/>
-                    <span class="o_vd_distribute_lbl">☑ Khách đã chọn:</span>
-                    <button name="action_select_all" type="object"
-                            string="Chọn / bỏ TẤT CẢ" class="btn-secondary"/>
-                    <button name="action_delete_selected" type="object"
-                            string="🗑 Xoá khách đã chọn" class="btn-danger"
-                            confirm="Xoá các khách đã tích chọn khỏi danh sách? (chưa lưu vào hệ thống nên xoá an toàn)"/>
                     <span class="o_vd_distribute_lbl"
-                          groups="vd_crm_lead.vd_crm_group_team_leader">·  Gán NV:</span>
+                          groups="vd_crm_lead.vd_crm_group_team_leader">·  Gán NV cho khách đã tích:</span>
                     <field name="vd_bulk_user_id" nolabel="1"
                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                           domain="[('id', 'in', vd_receiving_candidate_ids)]"
                            options="{'no_create': True, 'no_open': True}"
                            placeholder="Chọn nhân viên..."
                            class="o_vd_distribute_group"/>
                     <button name="action_assign_selected" type="object"
-                            string="Gán NV cho khách đã tích"
-                            class="btn-primary"
+                            string="Gán" class="btn-primary"
                             groups="vd_crm_lead.vd_crm_group_team_leader"
                             invisible="not vd_bulk_user_id"/>
                 </div>
@@ -124,7 +110,6 @@
                     <field name="vd_receiving_user_ids" invisible="1"/>
                     <span class="o_vd_distribute_lbl">👥 Chọn nhân viên:</span>
                     <field name="group_user_ids" widget="many2many_tags" nolabel="1"
-                           domain="[('id', 'in', vd_receiving_candidate_ids)]"
                            options="{'no_create': True, 'no_open': True}"
                            placeholder="Chọn nhân viên (chỉ dùng cho 'Chia cho NV đã chọn')..."
                            class="o_vd_distribute_group"/>
