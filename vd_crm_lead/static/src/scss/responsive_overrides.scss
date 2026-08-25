@@ -1088,3 +1088,9 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     font-style: italic;
     color: #7048e8;
 }
+
+/* Ẩn "Thêm một dòng" trong wizard Thêm KH mới (user 2026-08-25) — đã có sẵn 1
+   dòng trống, gõ xong Enter là Odoo tự thêm dòng mới. */
+.o_vd_quick_add_form .o_field_x2many_list_row_add {
+    display: none !important;
+}

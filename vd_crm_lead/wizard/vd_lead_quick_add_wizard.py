@@ -149,6 +149,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
             pool = self._vd_receiving_candidates()
             on = pool.filtered('vd_can_receive_pancake')
             res['vd_receiving_user_ids'] = [(6, 0, on.ids)]
+        # Có sẵn 1 DÒNG TRỐNG để gõ ngay (user 2026-08-25) — không cần nút
+        # "Thêm một dòng"; gõ xong Enter là Odoo tự thêm dòng mới.
+        if 'line_ids' in fields_list and not res.get('line_ids'):
+            res['line_ids'] = [(0, 0, {'source': 'facebook', 'status': 'new'})]
         return res
 
     def _vd_sync_receiving(self):

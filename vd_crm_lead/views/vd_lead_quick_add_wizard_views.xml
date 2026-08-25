@@ -88,17 +88,7 @@
                            groups="vd_crm_lead.vd_crm_group_team_leader"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
-                    <span class="o_vd_distribute_lbl"
-                          groups="vd_crm_lead.vd_crm_group_team_leader">·  Gán NV cho khách đã tích:</span>
-                    <field name="vd_bulk_user_id" nolabel="1"
-                           groups="vd_crm_lead.vd_crm_group_team_leader"
-                           options="{'no_create': True, 'no_open': True}"
-                           placeholder="Chọn nhân viên..."
-                           class="o_vd_distribute_group"/>
-                    <button name="action_assign_selected" type="object"
-                            string="Gán" class="btn-primary"
-                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                            invisible="not vd_bulk_user_id"/>
+                    <field name="vd_bulk_user_id" invisible="1"/>
                 </div>
 
                 <!-- ===== KHỐI CHIA SỐ — hiện sau khi bấm CHIA SỐ (leader). Chỉ 1
@@ -114,9 +104,9 @@
                            placeholder="Chọn nhân viên (chỉ dùng cho 'Chia cho NV đã chọn')..."
                            class="o_vd_distribute_group"/>
                     <button name="action_distribute_even_all" type="object"
-                            string="⚖️ Chia đều cho NV" class="btn-primary"/>
+                            string="⚖️ Chia số cho TẤT CẢ nhân viên" class="btn-primary"/>
                     <button name="action_distribute_group" type="object"
-                            string="👥 Chia cho NV đã chọn" class="btn-primary"
+                            string="👥 Chia số cho nhân viên đã chọn" class="btn-primary"
                             invisible="not group_user_ids"/>
                 </div>
 
