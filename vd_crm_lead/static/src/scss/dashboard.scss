@@ -12539,3 +12539,49 @@ $vd-rose:      #b06a6a;
     &:hover { background: #ffedd5; }
     &.o_active { background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; border-color: #ea580c; }
 }
+
+/* ============================================================
+   BÁO CÁO CHIA SỐ (tab) — bảng GRID chuẩn hàng/cột, ít hiệu ứng, GỌN để
+   vừa 1 trang không cuộn (user 2026-08-28). Scope .o_vd_kh_dist_col để
+   KHÔNG đụng bản popover hover.
+   ============================================================ */
+.o_vd_kh_dist_col {
+    /* Bảng: colhead + rows CÙNG 1 grid → thẳng cột tuyệt đối. */
+    .o_vd_pk_colhead,
+    .o_vd_pancake_row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 5rem 5rem 5rem 4.4rem 3.6rem !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .o_vd_pk_colhead { border-bottom: 2px solid #ffe3a3 !important; }
+    .o_vd_pk_col, .o_vd_pk_col_sw, .o_vd_pancake_row_nv, .o_vd_pancake_row_cnt {
+        flex: none !important; min-width: 0 !important;
+    }
+    .o_vd_pk_col_sw { justify-self: center !important; }
+    .o_vd_pancake_row_nv { justify-self: start !important; }
+
+    /* GỌN: dòng thấp, ít padding → nhiều dòng vẫn vừa 1 trang. */
+    .o_vd_pancake_row { padding: 0.2rem 0.55rem !important; font-size: 0.82rem !important; }
+    .o_vd_pancake_rows { gap: 0.12rem !important; }
+    .o_vd_pancake_sec { padding: 0.35rem 0.6rem !important; border-bottom: none !important; }
+    .o_vd_pancake_sec_head { font-size: 0.8rem !important; margin-bottom: 0.25rem !important; }
+
+    /* BỎ HIỆU ỨNG: không transition/hover/animation. */
+    .o_vd_pancake_row, .o_vd_pk_toggle, .o_vd_pk_knob,
+    .o_vd_pk_bar, .o_vd_pk_barwrap { transition: none !important; animation: none !important; }
+    .o_vd_pancake_row:hover { transform: none !important; }
+
+    /* Biểu đồ thấp lại → dành chỗ cho bảng. */
+    .o_vd_pk_trend_bars, .o_vd_pk_line_svg { height: 8rem !important; }
+
+    /* TOGGLE to hơn + tức thời → dễ bấm, không bị "kẹt". */
+    .o_vd_pk_toggle {
+        width: 3rem !important; height: 1.7rem !important; cursor: pointer;
+        .o_vd_pk_knob {
+            width: 1.35rem !important; height: 1.35rem !important; top: 0.15rem !important; left: 0.15rem !important;
+        }
+        &.o_on  { background: #2f9e44 !important; .o_vd_pk_knob { transform: translateX(1.3rem) !important; } }
+        &.o_off { background: #e03131 !important; .o_vd_pk_knob { transform: translateX(0) !important; } }
+    }
+}

@@ -3362,7 +3362,7 @@
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                                 <span class="o_vd_pk_col_sw">
                                     <button t-att-class="'o_vd_pk_toggle ' + (r.can_receive ? 'o_on' : 'o_off')"
-                                            t-on-click="() => this.onTogglePancakeNV(r.uid)"
+                                            t-on-click.stop.prevent="() => this.onTogglePancakeNV(r.uid)"
                                             t-att-title="r.can_receive ? 'Đang nhận số — bấm để TẮT' : 'Đang tắt — bấm để BẬT nhận số'">
                                         <span class="o_vd_pk_knob"/>
                                     </button>
