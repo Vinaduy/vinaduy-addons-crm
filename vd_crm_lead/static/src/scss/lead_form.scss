@@ -13607,61 +13607,55 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
 }
 
 /* =====================================================================
-   DIỆN TÍCH — BẢNG 3 CỘT KẺ Ô (user spec 2026-08-28)
-   [Diện tích nhà/đất] | [Chiều rộng] | [Chiều dài]. Dùng 1 GRID CHUNG
-   (rows display:contents) → 3 dòng canh cột THẲNG HÀNG. Bỏ nút × trong ô.
+   DIỆN TÍCH — BẢNG THẬT KẺ Ô 3 CỘT y như BÁO GIÁ (user spec 2026-08-28)
+   <table> border-collapse → khung viền + kẻ từng ô chắc chắn. BỎ toggle.
+   Prefix .o_vd_steps_panel.o_vd_steps_table để thắng specificity CSS cũ.
    ===================================================================== */
-.o_vd_steps_table .o_vd_areas_grid3 {
-    display: grid !important;
-    grid-template-columns: minmax(150px, max-content) 1fr 1fr !important;
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table {
     width: 100% !important;
-    border: 1px solid #d7dfea !important;
-    border-radius: 6px !important;
-    overflow: hidden !important;
+    border-collapse: collapse !important;
     background: #fff !important;
+    margin: 0 !important;
+    table-layout: fixed !important;
 }
-/* Mỗi dòng trải con vào grid chung để cột thẳng hàng */
-.o_vd_steps_table .o_vd_area_row3 { display: contents !important; }
-/* Ô chung — kẻ dòng + kẻ cột */
-.o_vd_steps_table .o_vd_area_row3 > .o_vd_area_c1,
-.o_vd_steps_table .o_vd_area_row3 > .o_vd_area_c2,
-.o_vd_steps_table .o_vd_area_row3 > .o_vd_area_c3 {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.3rem !important;
-    padding: 0.4rem 0.55rem !important;
-    border-top: 1px solid #eaeff6 !important;
-    border-left: 1px solid #eaeff6 !important;
-    min-width: 0 !important;
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table th,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td {
+    border: 1px solid #c7d2e2 !important;
+    padding: 0.45rem 0.6rem !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    font-size: 0.9rem !important;
 }
-.o_vd_steps_table .o_vd_area_row3 > .o_vd_area_c1 {
-    border-left: none !important;
-    flex-wrap: wrap !important;
-}
-/* Hàng header — không kẻ trên, nền nhạt, đậm */
-.o_vd_steps_table .o_vd_area_hrow > .o_vd_area_c1,
-.o_vd_steps_table .o_vd_area_hrow > .o_vd_area_c2,
-.o_vd_steps_table .o_vd_area_hrow > .o_vd_area_c3 {
-    border-top: none !important;
-    background: #eef2f8 !important;
-    font-weight: 700 !important;
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table th {
+    background: #e8eef7 !important;
     color: #1f3a63 !important;
+    font-weight: 700 !important;
     font-size: 0.82rem !important;
 }
-.o_vd_steps_table .o_vd_area_hrow > .o_vd_area_hcell { justify-content: center !important; }
-/* Ô nhập số căn giữa */
-.o_vd_steps_table .o_vd_area_dim,
-.o_vd_steps_table .o_vd_area_dim input {
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td.o_vd_area_tlbl {
+    text-align: left !important;
+    font-weight: 600 !important;
+    color: #1f3a63 !important;
+    background: #f5f8fc !important;
+    white-space: nowrap !important;
+}
+/* Ô nhập BỎ VIỀN RIÊNG → dùng viền của cell (giống báo giá) */
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_field_widget,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_vd_area_dim,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_vd_area_dim input,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td input {
     width: 100% !important;
     min-width: 0 !important;
     text-align: center !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    font-weight: 700 !important;
 }
-/* BỎ HẾT nút × / clear trong ô diện tích */
-.o_vd_steps_table .o_vd_areas_grid3 button,
-.o_vd_steps_table .o_vd_areas_grid3 .o_vd_num_clear,
-.o_vd_steps_table .o_vd_areas_grid3 [class*="clear"] { display: none !important; }
-.o_vd_steps_table .o_vd_area_subtoggle {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.25rem !important;
-}
+/* Bỏ mọi nút × / clear còn sót trong ô */
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td button,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td [class*="clear"] { display: none !important; }

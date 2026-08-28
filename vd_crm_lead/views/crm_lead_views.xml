@@ -314,62 +314,33 @@
                                     <span class="o_vd_step_text">Diện tích</span>
                                 </div>
                                 <div class="o_vd_step_body">
-                                    <!-- BẢNG 3 CỘT: [Diện tích nhà/đất] | [Chiều rộng] | [Chiều dài]
-                                         2 dòng (nhà, đất) canh cột thẳng hàng (user spec 2026-08-28). -->
-                                    <div class="o_vd_areas_grid o_vd_areas_grid3">
-                                        <!-- HÀNG TIÊU ĐỀ 3 cột -->
-                                        <div class="o_vd_area_row3 o_vd_area_hrow">
-                                            <span class="o_vd_area_c1">Diện tích nhà/đất</span>
-                                            <span class="o_vd_area_c2 o_vd_area_hcell">Chiều rộng</span>
-                                            <span class="o_vd_area_c3 o_vd_area_hcell">Chiều dài</span>
-                                        </div>
-                                        <!-- ===== Diện tích NHÀ ===== -->
-                                        <div class="o_vd_area_row3">
-                                            <span class="o_vd_area_c1">
-                                                <span class="o_vd_area_lbl">Diện tích nhà:</span>
-                                                <field name="vd_intake_show_house_area"
-                                                       widget="boolean_toggle" nolabel="1"
-                                                       class="o_vd_area_toggle"/>
-                                            </span>
-                                            <span class="o_vd_area_c2">
-                                                <field name="vd_intake_house_width_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
-                                                       invisible="not vd_intake_show_house_area"/>
-                                            </span>
-                                            <span class="o_vd_area_c3">
-                                                <field name="vd_intake_house_length_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
-                                                       invisible="not vd_intake_show_house_area"/>
-                                            </span>
-                                        </div>
-                                        <!-- ===== Diện tích ĐẤT ===== -->
-                                        <div class="o_vd_area_row3">
-                                            <span class="o_vd_area_c1">
-                                                <span class="o_vd_area_lbl"
-                                                      invisible="vd_intake_land_unlimited">Diện tích đất:</span>
-                                                <field name="vd_intake_show_land_area"
-                                                       widget="boolean_toggle" nolabel="1"
-                                                       class="o_vd_area_toggle"
-                                                       invisible="vd_intake_land_unlimited"/>
-                                                <span class="o_vd_area_subtoggle">
-                                                    <span class="o_vd_area_subtoggle_lbl">Đất rộng:</span>
-                                                    <field name="vd_intake_land_unlimited"
-                                                           widget="boolean_toggle" nolabel="1"
-                                                           class="o_vd_area_toggle o_vd_area_toggle_sub"/>
-                                                </span>
-                                            </span>
-                                            <span class="o_vd_area_c2">
-                                                <field name="vd_intake_width_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
-                                                       invisible="vd_intake_land_unlimited or not vd_intake_show_land_area"/>
-                                            </span>
-                                            <span class="o_vd_area_c3">
-                                                <field name="vd_intake_length_m" nolabel="1"
-                                                       class="o_vd_area_dim" placeholder="m" widget="vd_num_input"
-                                                       invisible="vd_intake_land_unlimited or not vd_intake_show_land_area"/>
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <!-- BẢNG KẺ Ô 3 CỘT y như Báo giá chi tiết (user spec 2026-08-28):
+                                         Diện tích | Chiều rộng | Chiều dài. BỎ toggle, luôn hiện ô nhập. -->
+                                    <table class="o_vd_area_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Diện tích</th>
+                                                <th>Chiều rộng</th>
+                                                <th>Chiều dài</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="o_vd_area_tlbl">Diện tích nhà</td>
+                                                <td><field name="vd_intake_house_width_m" nolabel="1"
+                                                           class="o_vd_area_dim" placeholder="Ngang (m)" widget="vd_num_input"/></td>
+                                                <td><field name="vd_intake_house_length_m" nolabel="1"
+                                                           class="o_vd_area_dim" placeholder="Dài (m)" widget="vd_num_input"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="o_vd_area_tlbl">Diện tích đất</td>
+                                                <td><field name="vd_intake_width_m" nolabel="1"
+                                                           class="o_vd_area_dim" placeholder="Ngang (m)" widget="vd_num_input"/></td>
+                                                <td><field name="vd_intake_length_m" nolabel="1"
+                                                           class="o_vd_area_dim" placeholder="Dài (m)" widget="vd_num_input"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
