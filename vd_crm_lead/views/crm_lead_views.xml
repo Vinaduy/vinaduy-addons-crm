@@ -198,7 +198,7 @@
                              5.Loại đất/Móng 6.Số tầng 7.Công năng
                              8.Chỗ để đất móng 9.Ô tô vào
                              10.Tầm tài chính 11.Sổ đỏ -->
-                        <div class="o_vd_hero_card o_vd_hero_area o_vd_steps_panel">
+                        <div class="o_vd_hero_card o_vd_hero_area o_vd_steps_panel o_vd_steps_table">
                             <field name="vd_intake_timeline_status" invisible="1"/>
                             <field name="vd_intake_has_tum" invisible="1"/>
                             <field name="vd_intake_car_access" invisible="1"/>
@@ -408,7 +408,7 @@
                                     <span class="o_vd_floor_pair o_vd_floor_mong_pair">
                                         <span class="o_vd_dim_lbl">Móng</span>
                                         <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_hover_picker"/>
+                                               widget="vd_selection_dropdown" options="{'extensible': True}"/>
                                     </span>
 
                                     <!-- 4 BUTTON GROUP — BÊN PHẢI dropdown Móng (user spec 2026-08-15) -->
@@ -591,7 +591,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
-                                           widget="vd_selection_hover_picker"/>
+                                           widget="vd_selection_dropdown"/>
                                 </div>
                             </div>
 
@@ -618,7 +618,7 @@
                                          Pick range → onchange set budget_amount để compare. -->
                                     <div class="o_vd_budget_row o_vd_budget_manual">
                                         <field name="vd_intake_budget_range" nolabel="1"
-                                               widget="vd_selection_hover_picker"
+                                               widget="vd_selection_dropdown"
                                                placeholder="Chọn tầm tài chính KH..."/>
                                     </div>
                                     <!-- Phần mềm tính SAU (readonly hiển thị) -->
@@ -666,7 +666,7 @@
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
-                                           widget="vd_selection_hover_picker"/>
+                                           widget="vd_selection_dropdown" options="{'extensible': True}"/>
                                 </div>
                             </div>
 
