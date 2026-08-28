@@ -13563,3 +13563,45 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     border-color: #a970c0 !important;
     box-shadow: 0 0 0 2px rgba(169, 112, 192, 0.15) !important;
 }
+
+/* =====================================================================
+   THÔNG TIN TƯ VẤN — BẢNG 2 CỘT "Tiêu chí | Nội dung" (user 2026-08-28)
+   Có hàng tiêu đề cột + hàng cuối Phần mềm tính nổi bật (như Tổng tiền
+   báo giá). Bỏ số thứ tự tròn — dùng tên tiêu chí.
+   ===================================================================== */
+/* Bỏ badge số tròn — chỉ hiện tên tiêu chí */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_num { display: none !important; }
+/* HÀNG TIÊU ĐỀ CỘT */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_thead { border-top: none !important; }
+.o_vd_steps_panel.o_vd_steps_table .o_vd_thead_lbl,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_thead_body {
+    display: flex !important;
+    align-items: center !important;
+    background: #e8eef7 !important;
+    font-weight: 700 !important;
+    color: #1f3a63 !important;
+    font-size: 0.9rem !important;
+    padding: 0.5rem 0.7rem !important;
+}
+.o_vd_steps_panel.o_vd_steps_table .o_vd_thead_lbl {
+    border-right: 1px solid #d7e0ee !important;
+}
+/* HÀNG CUỐI: PHẦN MỀM TÍNH — nổi bật */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_estimate .o_vd_step_lbl,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_estimate .o_vd_step_body {
+    background: #e9f3ea !important;
+}
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_estimate .o_vd_step_lbl {
+    font-weight: 700 !important;
+    color: #14532d !important;
+}
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_estimate .o_vd_step_body {
+    justify-content: flex-end !important;
+}
+.o_vd_steps_panel.o_vd_steps_table .o_vd_estimate_val,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_estimate .o_field_widget {
+    font-weight: 800 !important;
+    font-size: 1.08rem !important;
+    color: #157347 !important;
+    text-align: right !important;
+}

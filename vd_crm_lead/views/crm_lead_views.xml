@@ -254,6 +254,12 @@
                                 </div>
                             </div>
 
+                            <!-- ===== HÀNG TIÊU ĐỀ CỘT: Tiêu chí | Nội dung (giống Báo giá chi tiết) ===== -->
+                            <div class="o_vd_step o_vd_step_thead">
+                                <div class="o_vd_step_lbl o_vd_thead_lbl">Tiêu chí</div>
+                                <div class="o_vd_step_body o_vd_thead_body">Nội dung</div>
+                            </div>
+
                             <!-- ===== STEP 1: ĐỊA CHỈ ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
@@ -394,7 +400,7 @@
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">6</span>
-                                    <span class="o_vd_step_text">Số tầng / Móng</span>
+                                    <span class="o_vd_step_text">Số tầng</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_floors_oneline">
                                     <field name="vd_intake_floors_count" invisible="1"/>
@@ -404,14 +410,7 @@
                                          tự-điền phải bỏ qua, khỏi "tắt xong lại hiện lại" -->
                                     <field name="vd_intake_manual_off" invisible="1"/>
 
-                                    <!-- MÓNG dropdown ĐỨNG TRƯỚC (user spec 2026-08-15) -->
-                                    <span class="o_vd_floor_pair o_vd_floor_mong_pair">
-                                        <span class="o_vd_dim_lbl">Móng</span>
-                                        <field name="vd_intake_foundation_type" nolabel="1"
-                                               widget="vd_selection_dropdown" options="{'extensible': True}"/>
-                                    </span>
-
-                                    <!-- 4 BUTTON GROUP — BÊN PHẢI dropdown Móng (user spec 2026-08-15) -->
+                                    <!-- BUTTON GROUP: +Tầng / +Tum / +Lửng — +Tum, +Lửng sát PHẢI cùng dòng -->
                                     <span class="o_vd_floor_btn_group">
                                         <button name="action_add_floor" type="object"
                                                 class="btn o_vd_floor_chip_btn"
@@ -441,10 +440,22 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 7: CÔNG NĂNG TỪNG TẦNG — LUÔN HIỆN (Tầng 1 default) ===== -->
+                            <!-- ===== STEP 6b: LOẠI MÓNG (tách riêng thành 1 hàng — user spec 2026-08-28) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">7</span>
+                                    <span class="o_vd_step_text">Loại móng</span>
+                                </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_foundation_type" nolabel="1"
+                                           widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                                </div>
+                            </div>
+
+                            <!-- ===== STEP 7: CÔNG NĂNG TỪNG TẦNG — LUÔN HIỆN (Tầng 1 default) ===== -->
+                            <div class="o_vd_step">
+                                <div class="o_vd_step_lbl">
+                                    <span class="o_vd_step_num">8</span>
                                     <span class="o_vd_step_text">Công năng</span>
                                 </div>
                                 <div class="o_vd_step_body">
@@ -621,16 +632,7 @@
                                                widget="vd_selection_dropdown"
                                                placeholder="Chọn tầm tài chính KH..."/>
                                     </div>
-                                    <!-- Phần mềm tính SAU (readonly hiển thị) -->
-                                    <div class="o_vd_budget_row o_vd_budget_auto">
-                                        <span class="o_vd_budget_lbl">Phần mềm tính:</span>
-                                        <span class="o_vd_budget_val">
-                                            <field name="vd_intake_estimate"
-                                                   widget="monetary"
-                                                   options="{'currency_field': 'vd_currency_vnd_id'}"
-                                                   readonly="1" nolabel="1"/>
-                                        </span>
-                                    </div>
+                                    <!-- Phần mềm tính đã CHUYỂN xuống HÀNG CUỐI bảng (user spec 2026-08-28) -->
                                     <div class="o_vd_budget_compare"
                                          invisible="not vd_intake_budget_amount or not vd_intake_estimate">
                                         <div class="o_vd_budget_diff o_vd_budget_diff_fit"
@@ -667,6 +669,20 @@
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_dimensions" nolabel="1"
                                            widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                                </div>
+                            </div>
+
+                            <!-- ===== HÀNG CUỐI: TỔNG PHẦN MỀM TÍNH (nổi bật như Tổng tiền báo giá) ===== -->
+                            <div class="o_vd_step o_vd_step_estimate">
+                                <div class="o_vd_step_lbl">
+                                    <span class="o_vd_step_text">Phần mềm tính</span>
+                                </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_estimate"
+                                           widget="monetary"
+                                           options="{'currency_field': 'vd_currency_vnd_id'}"
+                                           readonly="1" nolabel="1"
+                                           class="o_vd_estimate_val"/>
                                 </div>
                             </div>
 
