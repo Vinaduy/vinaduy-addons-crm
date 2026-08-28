@@ -208,42 +208,8 @@
                 </div>
             </div>
 
-            <!-- 🔔 BẢNG NHẮC NHỞ (fixed, render 1 lần ở gốc → không bị khung nào cắt).
-                 Mở khi hover tên NV; tự định vị bằng reminderPopStyle. -->
-            <div t-if="state.reminderHover" class="o_vd_kh_reminder_popover o_vd_rem_fixed"
-                 t-attf-style="{{ reminderPopStyle }}"
-                 t-on-mouseenter="() => this.onReminderPopEnter()"
-                 t-on-mouseleave="() => this.onReminderLeave()"
-                 t-on-click.stop="() => {}">
-                <t t-set="rnv" t-value="state.reminderHover.nv"/>
-                <t t-set="overItems" t-value="reminderOverItems(rnv)"/>
-                <div class="o_vd_kh_rem_head">
-                    <i class="fa fa-bullhorn o_vd_kh_rem_head_ico"/>
-                    YÊU CẦU <t t-esc="reminderName(rnv)"/> PHẢI XỬ LÝ GẤP CÁC KHÁCH HÀNG SAU
-                </div>
-                <div class="o_vd_kh_rem_body">
-                    <div t-foreach="overItems" t-as="it" t-key="it_index"
-                         class="o_vd_kh_rem_line o_vd_kh_rem_hot">
-                        <span class="o_vd_kh_rem_ico"><t t-esc="it.icon"/></span>
-                        <b><t t-esc="it.count"/></b> KHÁCH <t t-esc="it.label"/>
-                    </div>
-                </div>
-                <div class="o_vd_kh_rem_warn">
-                    <i class="fa fa-exclamation-triangle o_vd_kh_rem_warn_ico"/>
-                    <span>Trong ngày hôm nay em phải xử lý hết những yêu cầu này</span>
-                </div>
-                <div class="o_vd_kh_rem_ticks">
-                    <span class="o_vd_kh_rem_ticks_lbl">Nhắc:</span>
-                    <button t-foreach="[1,2,3,4,5]" t-as="lvl" t-key="lvl"
-                            type="button"
-                            t-att-class="'o_vd_kh_rem_tick' + ((rnv.reminder_level or 0) >= lvl ? ' o_vd_kh_rem_tick_on' : '')"
-                            t-on-click.stop="() => this.setReminderLevel(rnv, lvl)">
-                        <t t-if="(rnv.reminder_level or 0) >= lvl">✓ </t>Lần <t t-esc="lvl"/>
-                    </button>
-                    <button type="button" class="o_vd_kh_rem_reset"
-                            t-on-click.stop="() => this.setReminderLevel(rnv, 0)">Gỡ</button>
-                </div>
-            </div>
+            <!-- BẢNG NHẮC NHỞ "YÊU CẦU ... PHẢI XỬ LÝ GẤP" (hover tên NV) ĐÃ BỎ
+                 (user spec 2026-08-28). -->
 
             <!-- 🎧 BẢNG GHI ÂM (hover tên NV) — fixed, hiện bên trái; nghe + tải ngay -->
             <div t-if="state.recHover" class="o_vd_rec_pop o_vd_rem_fixed"
