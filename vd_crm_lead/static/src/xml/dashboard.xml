@@ -1989,10 +1989,6 @@
                                  XUỐNG hiện hết NV (đẩy nội dung trang xuống); rời chuột → trượt
                                  lên (user spec 2026-06-20 r8). -->
                             <t t-call="vd_crm_lead.VdDirFilters"/>
-                            <button t-if="viewingTeamMember" class="o_vd_tl_back"
-                                    t-on-click="() => this.backToMyDashboard()">
-                                <i class="fa fa-arrow-left me-1"/> Về dashboard của tôi
-                            </button>
                             <div t-if="state.analytics and state.analytics.kh_by_team and state.analytics.kh_by_team.length"
                                  class="o_vd_analytics o_vd_tl_team_box"
                                  t-att-class="(showDirFilters ? 'o_vd_emp_capped ' : '') + (state.empExpanded ? 'o_vd_emp_expanded' : '')">
