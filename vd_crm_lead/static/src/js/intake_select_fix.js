@@ -95,6 +95,7 @@ const CLEAR_SKIP_SELECTORS = [
     ".o_vd_estimate_panel",  // panel estimate — readonly
     ".o_vd_floors_oneline",  // hàng số tầng — input diện tích Tầng 1/2/3... bỏ X (user request)
     ".o_vd_area_row",        // Dài / Rộng đất + nhà — bỏ X cho UX gọn
+    ".o_vd_area_table",      // BẢNG diện tích mới (user 2026-08-28) — KHÔNG chèn nút × + không box
 ];
 
 function shouldSkipClear(input) {
