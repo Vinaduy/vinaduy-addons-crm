@@ -2802,7 +2802,8 @@
     /* Inherit page bg/text → đồng bộ với phần còn lại của Odoo */
     background: transparent;
     color: inherit;
-    padding: 1rem 0.2rem 1.5rem !important;
+    /* Chừa lề PHẢI ~4.5rem để nút FAB nổi bên phải KHÔNG đè lên chữ (user 2026-08-28). */
+    padding: 1rem 4.5rem 1.5rem 0.4rem !important;
     width: 100%;
     min-height: 100%;
     display: flex;
@@ -11042,6 +11043,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #fff3e0; }
     &.o_active { background: #e8590c; color: #fff; border-color: #e8590c; }
 }
+/* "Tỷ lệ xin số —" + Ngày/Tuần/Tháng CÙNG 1 HÀNG (user 2026-08-28). */
+.o_vd_pk_trend_title {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: nowrap; gap: 0.5rem; margin-bottom: 0.4rem;
+}
+.o_vd_pk_trend_title > .o_vd_pk_trend_tabs { flex: 0 0 auto; margin-left: auto; }
 /* 2 Ô GRID: [biểu đồ cột] | [biểu đồ đường] (user 2026-08-28). */
 .o_vd_pk_trend_grid {
     display: grid;
