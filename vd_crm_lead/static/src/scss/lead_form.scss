@@ -13662,3 +13662,19 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
 /* Bỏ mọi nút × / clear còn sót trong ô */
 .o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td button,
 .o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td [class*="clear"] { display: none !important; }
+/* NUKE hoàn toàn khung ô nhỏ bên trong ô nhập → gõ thẳng vào cell */
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_field_widget,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_field_vd_num_input,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_vd_area_dim,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_vd_num_input,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td .o_input,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td input,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td input:focus,
+.o_vd_steps_panel.o_vd_steps_table table.o_vd_area_table td input:hover {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+}
