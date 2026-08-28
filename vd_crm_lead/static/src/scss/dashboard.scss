@@ -3679,25 +3679,46 @@
            7 super-cột: Gọi | (Khách mới + chưa gọi) | Thi công gấp | (Xử lý vấn đề
            + cần xử lý) | Cần hỗ trợ | 🗑 Thùng rác | Trạng thái. Các thẻ CO VỪA CHỮ.
            User spec 2026-06-21: thêm cột Thùng rác → hàng DÀI ra (không cao thêm).
-           User spec 2026-08-28: bỏ Thi công gấp + Xử lý vấn đề + Thùng rác +
-           Trạng thái gọi → CÒN 2 CỘT: [HÔM NAY box] | [Khách mới]. Cột CỐ ĐỊNH
-           để thẳng hàng giữa các dòng, KHÔNG tràn chữ. */
-        grid-template-columns: 340px 300px;
-        justify-content: start;
-        column-gap: 1rem;
+           User spec 2026-08-28: BẢNG 5 CỘT ĐỀU, giãn full ngang (không lệch trái):
+           HÔM NAY | GỌI HÔM NAY | THÁNG NÀY | KHÁCH MỚI | CHƯA GỌI. Tĩnh, ít hiệu
+           ứng cho đỡ lag. */
+        grid-template-columns: repeat(5, 1fr);
+        column-gap: 0.5rem;
         background: transparent;
-        align-items: stretch;
-        grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
+        align-items: center;
+        grid-auto-rows: 40px;
     }
-    /* Khách mới: lấp đúng cột 300px, chip không rớt dòng / không tràn. */
-    .o_vd_kh_row_group_kh .o_vd_kh_metric_newcust_solo {
-        width: 100% !important;
-        justify-self: stretch !important;
+    /* Ô bảng: nhãn nhỏ trên, số dưới, căn giữa — thẳng hàng giữa các dòng. */
+    .o_vd_kh_tcell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        text-align: center;
+        min-width: 0;
+        border-right: 1px solid #eef2f7;
+        &:last-child { border-right: none; }
     }
-    .o_vd_kh_row_group_kh .o_vd_kh_newcust_row {
-        justify-content: flex-start !important;
-        white-space: nowrap !important;
+    .o_vd_kh_tcell_lbl {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #94a3b8;
+        white-space: nowrap;
     }
+    .o_vd_kh_tcell_val {
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #334155;
+        white-space: nowrap;
+        i { font-size: 0.72rem; color: #94a3b8; margin-right: 1px; }
+    }
+    .o_vd_kh_tcell_new { color: #2563eb; }
+    .o_vd_kh_tcell_uncalled { color: #64748b; }
+    .o_vd_kh_tcell_uncalled.o_vd_over { color: #c92a2a; }
+    .o_vd_kh_tcell_weak .o_vd_kh_tcell_val { color: #c92a2a; }
     /* Khung chung 3 cột Khách mới | Thi công gấp | Xử lý vấn đề — 1 nền dùng chung */
     .o_vd_kh_trio {
         display: grid;

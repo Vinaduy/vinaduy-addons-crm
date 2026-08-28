@@ -3775,100 +3775,28 @@
                                                 <!-- ===== NHÓM 2: Khách hàng (khung trắng) ===== -->
                                                 <div class="o_vd_kh_row_group o_vd_kh_row_group_kh">
 
-                                                <!-- r14: ô HÔM NAY = 2 NÚT riêng (KH mới | Cuộc gọi),
-                                                     mỗi nút tự mang nhãn "Hôm nay". Popover render ở
-                                                     gốc, định vị theo con trỏ. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_today_box">
-                                                    <!-- THẺ 1: KHÁCH MỚI HÔM NAY (thu nhỏ) — tag dán mép trên -->
-                                                    <div class="o_vd_today_btn o_vd_today_btn_new o_vd_today_btn_sm"
-                                                         t-on-mouseenter="(ev) => this.onNewTodayEnter(ev, nv)"
-                                                         t-on-mouseleave="() => this.onNewTodayLeave()"
-                                                         t-att-title="'KH mới được giao hôm nay: ' + (nv.new_today_count or 0)">
-                                                        <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                        <span class="o_vd_today_line">
-                                                            <i class="fa fa-user-plus o_vd_today_ico"/>
-                                                            <span class="o_vd_today_num"><t t-esc="nv.new_today_count or 0"/></span>
-                                                        </span>
-                                                    </div>
-                                                    <!-- THẺ 2 (GỘP HÔM NAY + THÁNG, user spec 2026-06-14):
-                                                         1 thẻ trung tính chia đôi — nửa trái HÔM NAY (☀), nửa phải
-                                                         THÁNG (lịch). Icon thay chữ cho gọn. GIỮ 2 popover riêng
-                                                         (hover từng nửa). Khung = ĐÚNG tổng 2 thẻ cũ (grid 1fr 1fr
-                                                         -> 1fr), cao KHÔNG đổi. -->
-                                                    <!-- GỘP 1 THẺ kiểu giao diện gốc: 2 nửa màu (Hôm nay xanh |
-                                                         Tháng lá) nối liền trong 1 khung, vạch ngăn giữa. Giữ ngắn. -->
-                                                    <div class="o_vd_today_callpair">
-                                                        <div t-att-class="'o_vd_today_btn o_vd_today_btn_call o_vd_cp_half' + (isCallTodayWeak(nv) ? ' o_vd_today_weak' : '')"
-                                                             t-on-mouseenter="(ev) => this.onTodayCallsEnter(ev, nv)"
-                                                             t-on-mouseleave="() => this.onTodayCallsLeave()"
-                                                             t-att-title="'Cuộc gọi HÔM NAY: ' + (nv.calls_today_total or 0) + ' — nghe máy ' + (nv.calls_today_success or 0) + '. Đưa chuột xem chi tiết.'">
-                                                            <span class="o_vd_today_tag"><i class="fa fa-calendar-check-o"/> HÔM NAY</span>
-                                                            <span class="o_vd_today_line">
-                                                                <i class="fa fa-phone o_vd_today_ico"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_today_total or 0"/></span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</b></span>
-                                                            </span>
-                                                        </div>
-                                                        <div class="o_vd_today_btn o_vd_today_btn_month o_vd_cp_half"
-                                                             t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                             t-on-mouseleave="() => this.onRecLeave()"
-                                                             t-att-title="'Cuộc gọi TRONG THÁNG: ' + (nv.calls_month_total or 0) + ' — nghe máy ' + (nv.calls_month_success or 0) + '. Đưa chuột xem thống kê + ghi âm.'">
-                                                            <span class="o_vd_today_tag"><i class="fa fa-calendar"/> THÁNG NÀY</span>
-                                                            <span class="o_vd_today_line">
-                                                                <i class="fa fa-phone o_vd_today_ico"/>
-                                                                <span class="o_vd_today_num"><t t-esc="nv.calls_month_total or 0"/></span>
-                                                                <span class="o_vd_today_ok"><b><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</b></span>
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                <!-- BẢNG 5 CỘT ĐỀU (user spec 2026-08-28): TĨNH — KHÔNG hover
+                                                     popover, KHÔNG event listener → đỡ lag. Nhãn nhỏ + số. -->
+                                                <div class="o_vd_kh_tcell">
+                                                    <span class="o_vd_kh_tcell_lbl">HÔM NAY</span>
+                                                    <span class="o_vd_kh_tcell_val"><i class="fa fa-user-plus"/> <t t-esc="nv.new_today_count or 0"/></span>
                                                 </div>
-
-                                                <!-- 🆕 KHÁCH MỚI — TÁCH RIÊNG thành 1 thẻ độc lập (user spec
-                                                     2026-06-15), KHÔNG còn chung khung với Thi công gấp. -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_newcust o_vd_kh_metric_newcust_solo">
-                                                    <!-- User spec 2026-06-15: GỘP 1 KHỐI — "28 khách mới, trong đó
-                                                         20 chưa gọi". Chip cảnh báo nằm NGAY TRONG thẻ Khách mới. -->
-                                                    <div class="o_vd_kh_newcust_row">
-                                                        <span class="o_vd_kh_metric_chip">
-                                                            <span class="o_vd_kh_metric_ico">🆕</span>
-                                                            <span class="o_vd_kh_metric_num o_vd_kh_metric_num_lg"><t t-esc="nv.new_count or 0"/></span>
-                                                            <span class="o_vd_kh_metric_lbl">Khách mới</span>
-                                                        </span>
-                                                        <span t-if="(nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15)"
-                                                              class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
-                                                              t-att-title="'Trong số khách mới, NV còn ' + (nv.rem_new_not_called or 0) + ' khách CHƯA gọi cuộc nào — vượt ngưỡng ' + (state.analytics.uncalled_new_threshold or 15) + '. Cần đôn đốc gọi cho bớt.'">
-                                                            <span class="o_vd_kh_metric_ico">⚠️</span>
-                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_new_not_called or 0"/></span>
-                                                            <span class="o_vd_kh_metric_lbl">chưa gọi</span>
-                                                        </span>
-                                                    </div>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'new'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_new"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.new_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🆕 KHÁCH MỚI HÔM NAY - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.new_today_count or 0"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-if="!nv.new_today_count" class="o_vd_kh_popover_empty">
-                                                                Hôm nay chưa có khách mới
-                                                            </div>
-                                                            <div t-foreach="nv.new_today_leads or []" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <div t-att-class="'o_vd_kh_tcell' + (isCallTodayWeak(nv) ? ' o_vd_kh_tcell_weak' : '')">
+                                                    <span class="o_vd_kh_tcell_lbl">GỌI HÔM NAY</span>
+                                                    <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_today_total or 0"/> · <t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
                                                 </div>
-
-                                                <!-- Cột THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (+ cần xử lý) ĐÃ BỎ
-                                                     (user spec 2026-08-28). -->
+                                                <div class="o_vd_kh_tcell">
+                                                    <span class="o_vd_kh_tcell_lbl">THÁNG NÀY</span>
+                                                    <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_month_total or 0"/> · <t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
+                                                </div>
+                                                <div class="o_vd_kh_tcell">
+                                                    <span class="o_vd_kh_tcell_lbl">KHÁCH MỚI</span>
+                                                    <span class="o_vd_kh_tcell_val o_vd_kh_tcell_new"><t t-esc="nv.new_count or 0"/></span>
+                                                </div>
+                                                <div class="o_vd_kh_tcell">
+                                                    <span class="o_vd_kh_tcell_lbl">CHƯA GỌI</span>
+                                                    <span t-att-class="'o_vd_kh_tcell_val o_vd_kh_tcell_uncalled' + ((nv.rem_new_not_called or 0) > (state.analytics.uncalled_new_threshold or 15) ? ' o_vd_over' : '')"><t t-esc="nv.rem_new_not_called or 0"/></span>
+                                                </div>
 
                                                 <!-- Cột 🗑️ Thùng rác + Trạng thái gọi (Không gọi/Đang gọi)
                                                      ĐÃ BỎ (user spec 2026-08-28) — gọn, hết tràn chữ, đỡ lag. -->
