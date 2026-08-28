@@ -118,6 +118,9 @@ class CrmLead(models.Model):
     # Ghi chú NV nhập khi hẹn ngày gọi lại — lưu để HIỆN LẠI khi xem KH
     # (user spec 2026-08-24: ghi chú hẹn gọi lại phải lưu + xem được).
     vd_callback_note = fields.Text(string='Ghi chú hẹn gọi lại', copy=False)
+    # Ô lưu ý / ghi chú vấn đề — 1 ô text đơn giản (user spec 2026-08-28:
+    # bỏ bảng vấn đề rườm rà, chỉ cần 1 ô ghi chú gọn gàng).
+    vd_problem_note = fields.Text(string='Lưu ý / Ghi chú vấn đề', copy=False)
     # Đếm số lần NV TỰ dời ngày gọi lại KH đã báo giá (giới hạn _VD_CALLBACK_RESCHEDULE_MAX).
     # Admin/Trưởng nhóm/Giám đốc dời không tính vào đây. User spec 2026-08-09.
     vd_callback_reschedule_count = fields.Integer(

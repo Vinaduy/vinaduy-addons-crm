@@ -2005,24 +2005,17 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
             <xpath expr="//div[hasclass('o_vd_negotiate_panel')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <!-- THÊM khối VẤN ĐỀ ĐƠN GIẢN ngay dưới bảng báo giá (cột phải):
-                 NV gõ vấn đề tự do + dropdown gợi ý loại + ô ghi chú chi tiết.
-                 Không status, không deadline, không kiểm soát. -->
+            <!-- KHỐI VẤN ĐỀ — user spec 2026-08-28: bỏ bảng rườm rà, CHỈ 1 ô text
+                 để nhập lưu ý / ghi chú. Đơn giản, gọn gàng. -->
             <xpath expr="//div[hasclass('o_vd_quote_panel')]" position="after">
-                <div class="o_vd_negotiate_panel o_vd_problem_simple"
+                <div class="o_vd_negotiate_panel o_vd_problem_note_only"
                      invisible="not vd_intake_locked and stage_code not in ['quote', 'negotiate', 'won']">
                     <div class="o_vd_nego_head">
                         <i class="fa fa-exclamation-triangle"/>
-                        <span>Vấn đề</span>
+                        <span>Lưu ý / Ghi chú</span>
                     </div>
-                    <field name="vd_lead_problem_ids" nolabel="1" mode="list">
-                        <list editable="bottom">
-                            <field name="name" string="Vấn đề"
-                                   placeholder="Gõ vấn đề..."/>
-                            <field name="nv_handling" string="Ghi chú"
-                                   placeholder="Ghi chú..."/>
-                        </list>
-                    </field>
+                    <field name="vd_problem_note" nolabel="1"
+                           placeholder="Nhập lưu ý / ghi chú cho khách hàng này..."/>
                 </div>
             </xpath>
         </field>

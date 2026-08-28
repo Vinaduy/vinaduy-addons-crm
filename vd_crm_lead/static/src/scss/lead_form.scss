@@ -13535,3 +13535,31 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     align-content: center !important;
     background: #fff !important;
 }
+
+/* =====================================================================
+   KHỐI VẤN ĐỀ — CHỈ 1 Ô GHI CHÚ (user spec 2026-08-28)
+   Bỏ bảng vấn đề rườm rà → 1 textarea gọn gàng, đẹp.
+   ===================================================================== */
+.o_vd_problem_note_only .o_vd_nego_head { border-radius: 8px 8px 0 0; }
+.o_vd_problem_note_only > .o_field_widget,
+.o_vd_problem_note_only .o_field_text {
+    display: block !important;
+    width: 100% !important;
+}
+.o_vd_problem_note_only textarea {
+    width: 100% !important;
+    min-height: 4.5rem !important;
+    border: 1px solid #e0d3e6 !important;
+    border-radius: 0 0 8px 8px !important;
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.92rem !important;
+    line-height: 1.45 !important;
+    resize: vertical !important;
+    background: #fffdff !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+.o_vd_problem_note_only textarea:focus {
+    border-color: #a970c0 !important;
+    box-shadow: 0 0 0 2px rgba(169, 112, 192, 0.15) !important;
+}
