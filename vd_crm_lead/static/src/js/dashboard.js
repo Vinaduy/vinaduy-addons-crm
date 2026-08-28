@@ -824,8 +824,8 @@ export class VdCrmDashboard extends Component {
         const n = data.length;
         if (!n) return "";
         return data.map((d, i) => {
-            // x = TÂM cột i (cột flex đều) → đường khớp đỉnh cột bên dưới.
-            const x = ((i + 0.5) / n) * 100;
+            // Ô ĐƯỜNG đứng riêng → điểm trải mép-đến-mép (i/(n-1)).
+            const x = n === 1 ? 50 : (i / (n - 1)) * 100;
             const pct = Math.max(0, Math.min(100, d.pct || 0));
             return `${x.toFixed(2)},${(100 - pct).toFixed(2)}`;
         }).join(" ");

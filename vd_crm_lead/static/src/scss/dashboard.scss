@@ -11042,16 +11042,37 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #fff3e0; }
     &.o_active { background: #e8590c; color: #fff; border-color: #e8590c; }
 }
-/* BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số — trên các cột, cùng trục x (user 2026-08-28). */
-.o_vd_pk_trend_line_wrap {
-    position: relative;
-    height: 3.4rem;
-    margin: 0.2rem 0 -0.2rem;
-    padding: 0 0.06rem;
+/* 2 Ô GRID: [biểu đồ cột] | [biểu đồ đường] (user 2026-08-28). */
+.o_vd_pk_trend_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    align-items: stretch;
 }
-.o_vd_pk_trend_linechart {
-    width: 100%; height: 100%; display: block; overflow: visible;
+.o_vd_pk_trend_cell {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid #ffe3b3;
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem 0.4rem;
+    min-width: 0;
+}
+.o_vd_pk_trend_cell_ttl {
+    font-size: 0.72rem; font-weight: 800; color: #b35309;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.35rem;
+}
+/* Ô ĐƯỜNG: SVG đường + hàng nhãn %/ngày dưới. */
+.o_vd_pk_linechart { display: flex; flex-direction: column; height: 12rem; }
+.o_vd_pk_line_svg {
+    flex: 1 1 auto; width: 100%; display: block; overflow: visible;
     filter: drop-shadow(0 1px 1px rgba(232, 89, 12, 0.25));
+}
+.o_vd_pk_line_lbls { display: flex; justify-content: space-between; margin-top: 0.3rem; }
+.o_vd_pk_line_lbl {
+    display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0;
+    .o_vd_pk_line_pct { font-size: 0.8rem; font-weight: 800; color: #b35309; }
+    .o_vd_pk_line_day { font-size: 0.66rem; color: #adb5bd; white-space: nowrap; }
+    &.o_vd_pk_line_today .o_vd_pk_line_pct { color: #e8590c; }
+    &.o_vd_pk_line_today .o_vd_pk_line_day { color: #e8590c; font-weight: 800; }
 }
 /* Cột gần lại nhau (user 2026-08-28): gap 0.55rem → 0.12rem. */
 .o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.12rem; height: 12rem; }

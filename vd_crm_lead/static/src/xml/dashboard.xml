@@ -3254,34 +3254,50 @@
                                         t-on-click.stop="() => this.setPancakeTrend('month')">Tháng</button>
                             </span>
                         </div>
-                        <!-- BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số — cùng trục x với cột, thấy
-                             xu hướng thay đổi liên tục (user spec 2026-08-28). -->
-                        <div t-if="pancakeTrendData(distRep).length > 1" class="o_vd_pk_trend_line_wrap">
-                            <svg class="o_vd_pk_trend_linechart" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                <polyline t-att-points="pancakeTrendLinePoints(distRep)"
-                                          fill="none" stroke="#e8590c" stroke-width="2.5"
-                                          stroke-linejoin="round" stroke-linecap="round"
-                                          vector-effect="non-scaling-stroke"/>
-                            </svg>
-                        </div>
-                        <div class="o_vd_pk_trend_bars">
-                            <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
-                                 t-att-class="'o_vd_pk_barcol' + (d.is_today ? ' o_vd_pk_bartoday' : '') + (d.edited ? ' o_vd_pk_baredited' : '')"
-                                 t-att-title="d.day + ': ' + d.pct + '% (' + d.with_phone + '/' + d.total + ')' + (d.edited ? ' [da sua tay]' : '')">
-                                <div class="o_vd_pk_barpct"><t t-esc="d.pct"/>%</div>
-                                <div class="o_vd_pk_barwrap">
-                                    <div class="o_vd_pk_bar" t-att-style="`height:${d.total ? Math.max(d.pct, 4) : 0}%`"/>
+                        <!-- 2 Ô GRID: [biểu đồ CỘT] | [biểu đồ ĐƯỜNG] (user spec 2026-08-28). -->
+                        <div class="o_vd_pk_trend_grid">
+                            <!-- Ô 1: BIỂU ĐỒ CỘT -->
+                            <div class="o_vd_pk_trend_cell">
+                                <div class="o_vd_pk_trend_cell_ttl">📊 Biểu đồ cột</div>
+                                <div class="o_vd_pk_trend_bars">
+                                    <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
+                                         t-att-class="'o_vd_pk_barcol' + (d.is_today ? ' o_vd_pk_bartoday' : '') + (d.edited ? ' o_vd_pk_baredited' : '')"
+                                         t-att-title="d.day + ': ' + d.pct + '% (' + d.with_phone + '/' + d.total + ')' + (d.edited ? ' [da sua tay]' : '')">
+                                        <div class="o_vd_pk_barpct"><t t-esc="d.pct"/>%</div>
+                                        <div class="o_vd_pk_barwrap">
+                                            <div class="o_vd_pk_bar" t-att-style="`height:${d.total ? Math.max(d.pct, 4) : 0}%`"/>
+                                        </div>
+                                        <div class="o_vd_pk_barstat">
+                                            <span class="o_vd_pk_stat_ph" title="Số điện thoại xin được">📞 <t t-esc="d.with_phone"/></span>
+                                            <span class="o_vd_pk_stat_msg" title="Số khách nhắn">💬 <t t-esc="d.total"/></span>
+                                        </div>
+                                        <div class="o_vd_pk_barlbl"><t t-esc="d.label"/></div>
+                                        <div class="o_vd_pk_barday"><t t-esc="d.day"/></div>
+                                        <button t-if="distRep.can_edit_rate and d.iso"
+                                                class="o_vd_pk_baredit"
+                                                t-on-click.stop="() => this.onEditRate(d)"
+                                                title="Sửa số liệu ngày này">✏️</button>
+                                    </div>
                                 </div>
-                                <div class="o_vd_pk_barstat">
-                                    <span class="o_vd_pk_stat_ph" title="Số điện thoại xin được">📞 <t t-esc="d.with_phone"/></span>
-                                    <span class="o_vd_pk_stat_msg" title="Số khách nhắn">💬 <t t-esc="d.total"/></span>
+                            </div>
+                            <!-- Ô 2: BIỂU ĐỒ ĐƯỜNG -->
+                            <div class="o_vd_pk_trend_cell">
+                                <div class="o_vd_pk_trend_cell_ttl">📈 Biểu đồ đường</div>
+                                <div class="o_vd_pk_linechart">
+                                    <svg class="o_vd_pk_line_svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                        <polyline t-att-points="pancakeTrendLinePoints(distRep)"
+                                                  fill="none" stroke="#e8590c" stroke-width="2.5"
+                                                  stroke-linejoin="round" stroke-linecap="round"
+                                                  vector-effect="non-scaling-stroke"/>
+                                    </svg>
+                                    <div class="o_vd_pk_line_lbls">
+                                        <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
+                                             t-att-class="'o_vd_pk_line_lbl' + (d.is_today ? ' o_vd_pk_line_today' : '')">
+                                            <b class="o_vd_pk_line_pct"><t t-esc="d.pct"/>%</b>
+                                            <span class="o_vd_pk_line_day"><t t-esc="d.label"/></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="o_vd_pk_barlbl"><t t-esc="d.label"/></div>
-                                <div class="o_vd_pk_barday"><t t-esc="d.day"/></div>
-                                <button t-if="distRep.can_edit_rate and d.iso"
-                                        class="o_vd_pk_baredit"
-                                        t-on-click.stop="() => this.onEditRate(d)"
-                                        title="Sửa số liệu ngày này">✏️</button>
                             </div>
                         </div>
                         <!-- HỘP SỬA TAY số liệu 1 ngày (admin/quản lý bấm icon bút) -->
