@@ -744,12 +744,18 @@ export class VdCrmDashboard extends Component {
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====
     onTogglePancakeNV(uid) {
         if (!uid) return;
-        // OPTIMISTIC (user 2026-08-28): lật trạng thái NGAY trong state → toggle
-        // đổi TỨC THÌ, KHÔNG đợi RPC / KHÔNG tải lại báo cáo. Ghi server ở nền.
-        for (const key of ["today", "yesterday", "month"]) {
-            const day = this.state[key];
-            const row = day && day.rows && day.rows.find((r) => r.uid === uid);
-            if (row) row.can_receive = !row.can_receive;
+        // OPTIMISTIC (user 2026-08-28): lật trạng thái NGAY → toggle đổi TỨC THÌ,
+        // KHÔNG đợi RPC / KHÔNG tải lại. Rows nằm trong state.pancake_report[key].
+        // Gán lại mảng rows để chắc chắn OWL re-render.
+        const rep = this.state.pancake_report;
+        if (rep) {
+            for (const key of ["today", "yesterday", "month"]) {
+                const day = rep[key];
+                if (day && Array.isArray(day.rows)) {
+                    day.rows = day.rows.map((r) =>
+                        r.uid === uid ? { ...r, can_receive: !r.can_receive } : r);
+                }
+            }
         }
         this.orm.call("res.users", "vd_toggle_pancake_receive", [uid]).catch((e) => {
             console.warn("Toggle Pancake NV lỗi:", e);
