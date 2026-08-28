@@ -264,6 +264,7 @@ export class VdCrmDashboard extends Component {
             allTeamGroups: [],
             allTeamLoading: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
+            distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month
             adminTab: "overview",
             nvDetail: null,
             nvDetailLoading: false,
@@ -806,6 +807,15 @@ export class VdCrmDashboard extends Component {
         if (p === "week") return (rep && rep.rate_weeks) || [];
         if (p === "month") return (rep && rep.rate_months) || [];
         return (rep && rep.rate7) || [];
+    }
+    // BỘ LỌC KỲ cho bảng chia số (Hôm nay | Hôm qua | Tháng này) — 1 bảng thay
+    // vì nhiều bảng (user 2026-08-28).
+    setDistPeriod(p) {
+        if (this.state.distPeriodSel !== p) this.state.distPeriodSel = p;
+    }
+    distPeriodReport(rep) {
+        const sel = this.state.distPeriodSel || 'today';
+        return (rep && rep[sel]) || null;
     }
     // Điểm cho BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số (viewBox 0..100 x 0..100, y=100-pct).
     // Cùng trục x với cột (i/(n-1)*100) → khớp cột bên dưới. (user 2026-08-28)

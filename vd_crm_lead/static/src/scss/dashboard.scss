@@ -12499,3 +12499,15 @@ $vd-rose:      #b06a6a;
         border-color: $vd-gold-ln !important;
     }
 }
+
+/* Bộ lọc kỳ bảng chia số (Hôm nay | Hôm qua | Tháng này) — user 2026-08-28. */
+.o_vd_pk_periodtabs {
+    display: flex; gap: 0.4rem; margin: 0.3rem 0 0.6rem;
+}
+.o_vd_pk_periodtab {
+    border: 1px solid #ffd8a8; background: #fff7ed; color: #9a3412;
+    border-radius: 999px; padding: 0.25rem 0.9rem; font-size: 0.82rem;
+    font-weight: 700; cursor: pointer; transition: all 0.12s ease;
+    &:hover { background: #ffedd5; }
+    &.o_active { background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; border-color: #ea580c; }
+}
