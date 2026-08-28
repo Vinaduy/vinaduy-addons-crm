@@ -807,6 +807,19 @@ export class VdCrmDashboard extends Component {
         if (p === "month") return (rep && rep.rate_months) || [];
         return (rep && rep.rate7) || [];
     }
+    // Điểm cho BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số (viewBox 0..100 x 0..100, y=100-pct).
+    // Cùng trục x với cột (i/(n-1)*100) → khớp cột bên dưới. (user 2026-08-28)
+    pancakeTrendLinePoints(rep) {
+        const data = this.pancakeTrendData(rep) || [];
+        const n = data.length;
+        if (!n) return "";
+        return data.map((d, i) => {
+            // x = TÂM cột i (cột flex đều) → đường khớp đỉnh cột bên dưới.
+            const x = ((i + 0.5) / n) * 100;
+            const pct = Math.max(0, Math.min(100, d.pct || 0));
+            return `${x.toFixed(2)},${(100 - pct).toFixed(2)}`;
+        }).join(" ");
+    }
 
     async openPancakeExcluded(scope) {
         this.state.pkExcluded = {

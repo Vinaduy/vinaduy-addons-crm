@@ -11042,7 +11042,19 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { background: #fff3e0; }
     &.o_active { background: #e8590c; color: #fff; border-color: #e8590c; }
 }
-.o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.55rem; height: 12rem; }
+/* BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số — trên các cột, cùng trục x (user 2026-08-28). */
+.o_vd_pk_trend_line_wrap {
+    position: relative;
+    height: 3.4rem;
+    margin: 0.2rem 0 -0.2rem;
+    padding: 0 0.06rem;
+}
+.o_vd_pk_trend_linechart {
+    width: 100%; height: 100%; display: block; overflow: visible;
+    filter: drop-shadow(0 1px 1px rgba(232, 89, 12, 0.25));
+}
+/* Cột gần lại nhau (user 2026-08-28): gap 0.55rem → 0.12rem. */
+.o_vd_pk_trend_bars { display: flex; align-items: flex-end; gap: 0.12rem; height: 12rem; }
 .o_vd_pk_barcol {
     flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
     height: 100%; justify-content: flex-end; cursor: default;
