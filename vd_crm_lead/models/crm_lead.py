@@ -1703,6 +1703,22 @@ class CrmLead(models.Model):
                     and not self._vd_is_manual_off('vd_intake_floor_tum_m2')):
                 self.vd_intake_floor_tum_m2 = area
 
+    @api.onchange('vd_intake_floors_count')
+    def _onchange_floors_count_sync(self):
+        """NV gõ thẳng SỐ TẦNG vào ô → sync floors_select để Công năng nhảy
+        ra đủ số dòng tầng (user spec 2026-08-28). Clamp 0..7."""
+        for rec in self:
+            n = rec.vd_intake_floors_count or 0
+            if n < 0:
+                n = 0
+            if n > 7:
+                n = 7
+            if n != (rec.vd_intake_floors_count or 0):
+                rec.vd_intake_floors_count = n
+            rec.vd_intake_floors_select = str(n) if n > 0 else False
+            # >=2 tầng → auto móng băng (trừ đất yếu → cọc), giống nút +Tầng
+            rec._vd_auto_foundation()
+
     # ===== NV CHỦ ĐỘNG TẮT 1 TRƯỜNG → onchange KHÔNG được điền lại =====
     # Bệnh (user 2026-08-05): "bấm tắt 1 lựa chọn, vài giây sau bấm trường khác
     # thì nó HIỆN LẠI". Vì các onchange auto (móng theo số tầng/loại đất, m² tầng

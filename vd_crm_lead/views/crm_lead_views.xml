@@ -364,27 +364,39 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 6: SỐ TẦNG (1 dòng: + Tầng → inputs → + Tum → + Lửng → Tổng) ===== -->
+                            <!-- ===== LOẠI MÓNG (đưa LÊN TRÊN Số tầng — user spec 2026-08-28) ===== -->
                             <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
                                     <span class="o_vd_step_num">6</span>
+                                    <span class="o_vd_step_text">Loại móng</span>
+                                </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_foundation_type" nolabel="1"
+                                           widget="vd_selection_dropdown" options="{'extensible': True}"/>
+                                </div>
+                            </div>
+
+                            <!-- ===== SỐ TẦNG: NHẬP thẳng số tầng + (+Tum +Lửng bên phải) + Tổng
+                                 (user spec 2026-08-28). Gõ số → Công năng nhảy đủ tầng. ===== -->
+                            <div class="o_vd_step">
+                                <div class="o_vd_step_lbl">
+                                    <span class="o_vd_step_num">7</span>
                                     <span class="o_vd_step_text">Số tầng</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_floors_oneline">
-                                    <field name="vd_intake_floors_count" invisible="1"/>
                                     <field name="vd_intake_floors_select" invisible="1"/>
                                     <field name="vd_intake_has_lung" invisible="1"/>
                                     <!-- CSV các trường NV chủ động XOÁ → onchange
                                          tự-điền phải bỏ qua, khỏi "tắt xong lại hiện lại" -->
                                     <field name="vd_intake_manual_off" invisible="1"/>
 
-                                    <!-- BUTTON GROUP: +Tầng / +Tum / +Lửng — +Tum, +Lửng sát PHẢI cùng dòng -->
+                                    <!-- Ô NHẬP SỐ TẦNG (gõ thẳng số) -->
+                                    <field name="vd_intake_floors_count" nolabel="1"
+                                           class="o_vd_floors_count_input" widget="vd_num_input"
+                                           placeholder="Số tầng"/>
+
+                                    <!-- +Tum / +Lửng ngay BÊN PHẢI ô nhập số tầng -->
                                     <span class="o_vd_floor_btn_group">
-                                        <button name="action_add_floor" type="object"
-                                                class="btn o_vd_floor_chip_btn"
-                                                title="Thêm tầng">
-                                            <i class="fa fa-plus"/> Tầng
-                                        </button>
                                         <button name="action_toggle_tum" type="object"
                                                 class="btn o_vd_floor_chip_btn"
                                                 title="Toggle Tum">
@@ -397,26 +409,13 @@
                                         </button>
                                     </span>
 
-                                    <!-- TỔNG diện tích sàn — cùng hàng Số tầng/Móng, sát PHẢI
-                                         (user spec 2026-08-15: đổi vị trí cho hợp lý). -->
+                                    <!-- TỔNG diện tích sàn — sát PHẢI -->
                                     <span class="o_vd_floors_total_inline o_vd_total_right" invisible="not vd_intake_total_m2">
                                         <span class="o_vd_floors_total_lbl">TỔNG:</span>
                                         <field name="vd_intake_total_m2" nolabel="1"
                                                class="o_vd_floors_total_val" readonly="1"/>
                                         <span class="o_vd_floors_total_unit">M²</span>
                                     </span>
-                                </div>
-                            </div>
-
-                            <!-- ===== STEP 6b: LOẠI MÓNG (tách riêng thành 1 hàng — user spec 2026-08-28) ===== -->
-                            <div class="o_vd_step">
-                                <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">7</span>
-                                    <span class="o_vd_step_text">Loại móng</span>
-                                </div>
-                                <div class="o_vd_step_body">
-                                    <field name="vd_intake_foundation_type" nolabel="1"
-                                           widget="vd_selection_dropdown" options="{'extensible': True}"/>
                                 </div>
                             </div>
 
@@ -549,18 +548,21 @@
                                                 <i class="fa fa-times"/>
                                             </button>
                                         </div>
-                                        <!-- GHI CHÚ — text area dưới cùng Step 6 -->
-                                        <div class="o_vd_floor_function_row o_vd_floor_function_notes_row">
-                                            <span class="o_vd_floor_function_tag o_vd_tag_notes">Ghi chú</span>
-                                            <field name="vd_intake_function_notes"
-                                                   nolabel="1"
-                                                   placeholder="Yêu cầu đặc biệt: phong thủy / ánh sáng / spa / phòng thờ..."/>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Step 7 (Loại đất) đã GỘP vào Step 5 với Móng -->
+                            <!-- ===== GHI CHÚ — thành TIÊU CHÍ riêng (user spec 2026-08-28) ===== -->
+                            <div class="o_vd_step">
+                                <div class="o_vd_step_lbl">
+                                    <span class="o_vd_step_num">8b</span>
+                                    <span class="o_vd_step_text">Ghi chú</span>
+                                </div>
+                                <div class="o_vd_step_body">
+                                    <field name="vd_intake_function_notes" nolabel="1"
+                                           placeholder="Yêu cầu đặc biệt: phong thủy / ánh sáng / spa / phòng thờ..."/>
+                                </div>
+                            </div>
 
                             <!-- ===== STEP 8: CHỖ ĐỂ ĐẤT MÓNG ===== -->
                             <div class="o_vd_step">
