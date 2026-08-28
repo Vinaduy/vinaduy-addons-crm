@@ -317,27 +317,20 @@
                                     <!-- BẢNG KẺ Ô 3 CỘT y như Báo giá chi tiết (user spec 2026-08-28):
                                          Diện tích | Chiều rộng | Chiều dài. BỎ toggle, luôn hiện ô nhập. -->
                                     <table class="o_vd_area_table">
-                                        <thead>
-                                            <tr>
-                                                <th></th>
-                                                <th>Chiều rộng</th>
-                                                <th>Chiều dài</th>
-                                            </tr>
-                                        </thead>
                                         <tbody>
                                             <tr>
                                                 <td class="o_vd_area_tlbl">Diện tích nhà</td>
                                                 <td><field name="vd_intake_house_width_m" nolabel="1"
-                                                           class="o_vd_area_dim" widget="vd_num_input"/></td>
+                                                           class="o_vd_area_dim" widget="vd_num_input" placeholder="Chiều rộng"/></td>
                                                 <td><field name="vd_intake_house_length_m" nolabel="1"
-                                                           class="o_vd_area_dim" widget="vd_num_input"/></td>
+                                                           class="o_vd_area_dim" widget="vd_num_input" placeholder="Chiều dài"/></td>
                                             </tr>
                                             <tr>
                                                 <td class="o_vd_area_tlbl">Diện tích đất</td>
                                                 <td><field name="vd_intake_width_m" nolabel="1"
-                                                           class="o_vd_area_dim" widget="vd_num_input"/></td>
+                                                           class="o_vd_area_dim" widget="vd_num_input" placeholder="Chiều rộng"/></td>
                                                 <td><field name="vd_intake_length_m" nolabel="1"
-                                                           class="o_vd_area_dim" widget="vd_num_input"/></td>
+                                                           class="o_vd_area_dim" widget="vd_num_input" placeholder="Chiều dài"/></td>
                                             </tr>
                                         </tbody>
                                     </table>
