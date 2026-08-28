@@ -3679,12 +3679,24 @@
            7 super-cột: Gọi | (Khách mới + chưa gọi) | Thi công gấp | (Xử lý vấn đề
            + cần xử lý) | Cần hỗ trợ | 🗑 Thùng rác | Trạng thái. Các thẻ CO VỪA CHỮ.
            User spec 2026-06-21: thêm cột Thùng rác → hàng DÀI ra (không cao thêm).
-           User spec 2026-08-08: GỠ cột "Cần hỗ trợ" (bỏ SOS) → còn 6 cột.
-           KHÔNG được để bất kỳ thẻ nào rớt dòng → số cột PHẢI khớp số item (6). */
-        grid-template-columns: 1.4fr 1.4fr 1fr 1.4fr 0.5fr 1fr;
+           User spec 2026-08-28: bỏ Thi công gấp + Xử lý vấn đề + Thùng rác +
+           Trạng thái gọi → CÒN 2 CỘT: [HÔM NAY box] | [Khách mới]. Cột CỐ ĐỊNH
+           để thẳng hàng giữa các dòng, KHÔNG tràn chữ. */
+        grid-template-columns: 340px 300px;
+        justify-content: start;
+        column-gap: 1rem;
         background: transparent;
         align-items: stretch;
         grid-auto-rows: 38px;     /* chiều cao hàng CỐ ĐỊNH — không tăng */
+    }
+    /* Khách mới: lấp đúng cột 300px, chip không rớt dòng / không tràn. */
+    .o_vd_kh_row_group_kh .o_vd_kh_metric_newcust_solo {
+        width: 100% !important;
+        justify-self: stretch !important;
+    }
+    .o_vd_kh_row_group_kh .o_vd_kh_newcust_row {
+        justify-content: flex-start !important;
+        white-space: nowrap !important;
     }
     /* Khung chung 3 cột Khách mới | Thi công gấp | Xử lý vấn đề — 1 nền dùng chung */
     .o_vd_kh_trio {

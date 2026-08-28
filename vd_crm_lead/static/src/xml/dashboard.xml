@@ -3870,33 +3870,8 @@
                                                 <!-- Cột THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (+ cần xử lý) ĐÃ BỎ
                                                      (user spec 2026-08-28). -->
 
-                                                <!-- 🗑️ THÙNG RÁC — KH hủy CHỜ DUYỆT (user spec 2026-06-21).
-                                                     Đặt cuối, ngay trước thẻ "Không gọi". Hover → bảng KH cần
-                                                     hủy chờ duyệt (DÙNG CHUNG sub-template với màn NV). -->
-                                                <div class="o_vd_kh_col_metric o_vd_kh_metric_cancel"
-                                                     t-on-mouseenter="(ev) => this.onCancelEnter(ev, nv)"
-                                                     t-on-mouseleave="() => this.onCancelLeave()">
-                                                    <div t-att-class="'o_vd_cancel_trash_btn' + ((nv.cancel_count or 0) ? ' o_vd_cancel_trash_has' : '')"
-                                                         t-att-title="'KH hủy chờ duyệt: ' + (nv.cancel_count or 0) + '. Đưa chuột để xem danh sách.'">
-                                                        <i class="fa fa-trash"/>
-                                                    </div>
-                                                </div><!-- /.o_vd_kh_metric_cancel -->
-
-                                                <!-- 📞 TRẠNG THÁI cuộc gọi LIVE (cột riêng) -->
-                                                <t t-set="ci" t-value="state.activeCalls[nv.user_id]"/>
-                                                <div class="o_vd_kh_col_metric o_vd_kh_col_call_status">
-                                                    <span t-if="ci" class="o_vd_call_status o_vd_call_status_on"
-                                                          t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Đang gọi</span>
-                                                        <span class="o_vd_call_status_time"><t t-esc="ci.since_min"/>'</span>
-                                                    </span>
-                                                    <span t-else="" class="o_vd_call_status o_vd_call_status_off"
-                                                          title="NV không có cuộc gọi đang diễn ra">
-                                                        <span class="o_vd_call_status_dot"/>
-                                                        <span class="o_vd_call_status_lbl">Không gọi</span>
-                                                    </span>
-                                                </div>
+                                                <!-- Cột 🗑️ Thùng rác + Trạng thái gọi (Không gọi/Đang gọi)
+                                                     ĐÃ BỎ (user spec 2026-08-28) — gọn, hết tràn chữ, đỡ lag. -->
                                                 </div><!-- /.o_vd_kh_row_group_kh -->
                                             </div>
                                         </div>
