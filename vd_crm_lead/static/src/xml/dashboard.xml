@@ -3187,13 +3187,7 @@
             <div t-att-class="'o_vd_pancake_pop' + (distShowTarget ? ' o_vd_pancake_pop_wide' : '') + (distPanel ? ' o_vd_pancake_pop_static' : '')">
                 <div class="o_vd_pancake_pop_head">⚡ BÁO CÁO CHIA SỐ — <t t-esc="distTitle"/></div>
 
-                <!-- Nút mở BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày, ô = TikTok | Facebook) -->
-                <div t-if="distShowTarget" class="o_vd_pk_matrix_bar">
-                    <button type="button" class="o_vd_pk_matrix_btn"
-                            t-on-click.stop="() => this.openPancakeMatrix()">
-                        📊 Bảng chi tiết 30 ngày <span>(🎵 TikTok | 📘 Facebook)</span>
-                    </button>
-                </div>
+                <!-- Thanh "Bảng chi tiết 30 ngày" ĐÃ BỎ (user spec 2026-08-28). -->
 
                 <!-- ⛔ BANNER DỪNG CHIA SỐ PANCAKE: webhook còn nhận hội thoại nhưng
                      lâu rồi không bắt được số nào → pipeline xin số hỏng. -->
