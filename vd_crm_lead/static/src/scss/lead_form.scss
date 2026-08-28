@@ -13738,3 +13738,15 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
     font-style: normal !important;
     font-family: inherit !important;
 }
+
+/* =====================================================================
+   4 TIÊU CHÍ CHIA 2 CỘT (user spec 2026-08-28)
+   Mỗi hàng = 2 tiêu chí: [nhãn|nội dung] [nhãn|nội dung]. 4 cột grid.
+   ===================================================================== */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair {
+    grid-template-columns: 150px 1fr 150px 1fr !important;
+}
+/* Vạch ngăn dọc giữa 2 cột (nhãn thứ 2 có border trái) */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair > .o_vd_step_lbl:nth-child(3) {
+    border-left: 1px solid #e3e9f2 !important;
+}

@@ -564,45 +564,36 @@
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 8: CHỖ ĐỂ ĐẤT MÓNG ===== -->
-                            <div class="o_vd_step">
+                            <!-- ===== 4 TIÊU CHÍ CHIA 2 CỘT (user spec 2026-08-28) — tất cả dropdown:
+                                 Hàng A: Chỗ để đất móng | Ô tô vào
+                                 Hàng B: Tầm tài chính   | Sổ đỏ / cấp phép ===== -->
+                            <div class="o_vd_step o_vd_step_pair">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">8</span>
                                     <span class="o_vd_step_text">Chỗ để đất móng</span>
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_soil_dump" nolabel="1"
                                            widget="vd_selection_dropdown"/>
                                 </div>
-                            </div>
-
-                            <!-- ===== STEP 9: Ô TÔ VÀO ===== -->
-                            <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">9</span>
                                     <span class="o_vd_step_text">Ô tô vào</span>
                                 </div>
                                 <div class="o_vd_step_body">
                                     <field name="vd_intake_car_access_select" nolabel="1"
-                                           widget="vd_selection_inline"/>
+                                           widget="vd_selection_dropdown"/>
                                 </div>
                             </div>
 
-                            <!-- ===== STEP 10: NGÂN SÁCH DỰ KIẾN (PM tính + NS dự kiến + chênh lệch) ===== -->
-                            <div class="o_vd_step">
+                            <div class="o_vd_step o_vd_step_pair">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">10</span>
                                     <span class="o_vd_step_text">Tầm tài chính</span>
                                 </div>
                                 <div class="o_vd_step_body o_vd_step_body_budget">
-                                    <!-- Tầm tài chính: dropdown 1 cột (giống Loại đất).
-                                         Pick range → onchange set budget_amount để compare. -->
                                     <div class="o_vd_budget_row o_vd_budget_manual">
                                         <field name="vd_intake_budget_range" nolabel="1"
                                                widget="vd_selection_dropdown"
                                                placeholder="Chọn tầm tài chính KH..."/>
                                     </div>
-                                    <!-- Phần mềm tính đã CHUYỂN xuống HÀNG CUỐI bảng (user spec 2026-08-28) -->
                                     <div class="o_vd_budget_compare"
                                          invisible="not vd_intake_budget_amount or not vd_intake_estimate">
                                         <div class="o_vd_budget_diff o_vd_budget_diff_fit"
@@ -628,12 +619,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- ===== STEP 11: SỔ ĐỎ / CẤP PHÉP ===== -->
-                            <div class="o_vd_step">
                                 <div class="o_vd_step_lbl">
-                                    <span class="o_vd_step_num">11</span>
                                     <span class="o_vd_step_text">Sổ đỏ / cấp phép</span>
                                 </div>
                                 <div class="o_vd_step_body">
