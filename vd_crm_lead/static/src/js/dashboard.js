@@ -710,6 +710,11 @@ export class VdCrmDashboard extends Component {
         const args = [this.state.selected_user_id || 0, !!this.state.dirTeamMode];
         const data = await this.orm.call("crm.lead", "dashboard_data", args);
         Object.assign(this.state, data);
+        // HIỆN KHUNG + SỐ NGAY (user spec 2026-08-28): thả full-page spinner ngay
+        // sau dashboard_data → trang ra liền; danh sách KH nạp NỀN (spinner nhỏ
+        // leadsLoading) thay vì chặn cả màn hình chờ tải hết leads (chậm với NV
+        // nhiều KH). Bấm vào NV / về dashboard đều ra trang tức thì.
+        this.state.loading = false;
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
             || data.stages.find((s) => !s.is_lost)
             || data.stages[0];
@@ -719,7 +724,6 @@ export class VdCrmDashboard extends Component {
             this.state.leads = [];
             this.state.selectedStageId = null;
         }
-        this.state.loading = false;
     }
 
     // Tải báo cáo chia số Pancake (nặng ~1.5s) TÁCH khỏi tải chính. Gọi 1 LẦN lúc
