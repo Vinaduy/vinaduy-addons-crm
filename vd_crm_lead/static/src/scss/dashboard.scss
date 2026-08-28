@@ -11055,16 +11055,16 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     border-radius: 10px;
     padding: 0.5rem 0.6rem 0.4rem;
     min-width: 0;
+    overflow: hidden;   /* CHỨA GỌN — không cho biểu đồ tràn ra ngoài (fix lỗi) */
 }
 .o_vd_pk_trend_cell_ttl {
     font-size: 0.72rem; font-weight: 800; color: #b35309;
     text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.35rem;
 }
-/* Ô ĐƯỜNG: SVG đường + hàng nhãn %/ngày dưới. */
-.o_vd_pk_linechart { display: flex; flex-direction: column; height: 12rem; }
+/* Ô ĐƯỜNG: SVG chiều cao CỐ ĐỊNH, không tràn, KHÔNG filter (nhẹ, đỡ lag). */
+.o_vd_pk_linechart { display: block; }
 .o_vd_pk_line_svg {
-    flex: 1 1 auto; width: 100%; display: block; overflow: visible;
-    filter: drop-shadow(0 1px 1px rgba(232, 89, 12, 0.25));
+    display: block; width: 100%; height: 8.5rem; overflow: hidden;
 }
 .o_vd_pk_line_lbls { display: flex; justify-content: space-between; margin-top: 0.3rem; }
 .o_vd_pk_line_lbl {
