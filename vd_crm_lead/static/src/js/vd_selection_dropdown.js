@@ -53,14 +53,24 @@ export class VdSelectionDropdown extends Component {
      *  thoát mọi overflow:hidden của parent (table cell / modal body). */
     get menuStyle() {
         if (!this.state.open || !this.rootRef.el) return "";
-        const rect = this.rootRef.el.getBoundingClientRect();
+        const el = this.rootRef.el;
+        const rect = el.getBoundingClientRect();
+        // ZOOM FIX: menu là position:fixon TRONG container có CSS zoom (popup
+        // intake). getBoundingClientRect() trả toạ độ VISUAL (đã nhân zoom),
+        // nhưng top/left của fixed lại được diễn giải trong hệ toạ độ ĐÃ zoom
+        // → menu nhảy sai chỗ. Chia toạ độ cho zoom (đo bằng rect.width/offsetWidth)
+        // để sau khi zoom nhân lại đúng vị trí. Context không zoom → z=1, không đổi.
+        const z = el.offsetWidth ? rect.width / el.offsetWidth : 1;
+        const zoom = z > 0.1 && z < 10 ? z : 1;
         const spaceBelow = window.innerHeight - rect.bottom;
         const menuMaxH = 320;
         // Nếu không đủ chỗ phía dưới → flip lên trên
         const flipUp = spaceBelow < 200 && rect.top > spaceBelow;
-        const top = flipUp ? `${rect.top - Math.min(menuMaxH, rect.top - 8)}px` : `${rect.bottom + 2}px`;
-        const minWidth = Math.max(rect.width, 200);
-        return `position: fixed; top: ${top}; left: ${rect.left}px; min-width: ${minWidth}px; max-width: calc(100vw - 32px); max-height: ${menuMaxH}px; z-index: 10000;`;
+        const topPx = flipUp ? rect.top - Math.min(menuMaxH, rect.top - 8) : rect.bottom + 2;
+        const top = `${topPx / zoom}px`;
+        const left = `${rect.left / zoom}px`;
+        const minWidth = Math.max(rect.width, 200) / zoom;
+        return `position: fixed; top: ${top}; left: ${left}; min-width: ${minWidth}px; max-width: calc(${100 / zoom}vw - 32px); max-height: ${menuMaxH / zoom}px; z-index: 10000;`;
     }
 
     get options() {
