@@ -707,13 +707,22 @@ export class VdCrmDashboard extends Component {
         this.state.quoteGuideDismissed = false;
         // arg2 team_scope: GĐ chế độ CÁ NHÂN → backend giữ is_team_leader (bảng NV
         // phòng mình) kể cả khi drill vào 1 NV trong phòng.
-        const args = [this.state.selected_user_id || 0, !!this.state.dirTeamMode];
+        const scope = this.state.selected_user_id || 0;
+        const args = [scope, !!this.state.dirTeamMode];
+        // CACHE theo scope (user spec 2026-08-28): về dashboard / vào lại 1 NV đã
+        // xem → hiện NGAY từ cache (khung + số), KHÔNG chờ RPC; refresh chạy nền.
+        this._dashCache = this._dashCache || {};
+        const cacheKey = scope + "|" + (this.state.dirTeamMode ? "t" : "");
+        const cached = this._dashCache[cacheKey];
+        if (cached) {
+            Object.assign(this.state, cached);
+            this.state.loading = false;   // ra trang tức thì từ cache
+        }
         const data = await this.orm.call("crm.lead", "dashboard_data", args);
+        this._dashCache[cacheKey] = data;
         Object.assign(this.state, data);
-        // HIỆN KHUNG + SỐ NGAY (user spec 2026-08-28): thả full-page spinner ngay
-        // sau dashboard_data → trang ra liền; danh sách KH nạp NỀN (spinner nhỏ
-        // leadsLoading) thay vì chặn cả màn hình chờ tải hết leads (chậm với NV
-        // nhiều KH). Bấm vào NV / về dashboard đều ra trang tức thì.
+        // HIỆN KHUNG + SỐ NGAY: thả full-page spinner ngay sau dashboard_data →
+        // trang ra liền; danh sách KH nạp NỀN (spinner nhỏ leadsLoading).
         this.state.loading = false;
         const firstActive = data.stages.find((s) => !s.is_lost && s.count > 0)
             || data.stages.find((s) => !s.is_lost)
@@ -1485,10 +1494,18 @@ export class VdCrmDashboard extends Component {
 
     async selectStage(stageId) {
         this.state.selectedStageId = stageId;
-        // _silentStageLoad: refresh NGẦM sau khi đóng popup → KHÔNG bật loading
-        // (tránh cảm giác "load trang" khi trở về). Dashboard vẫn hiện từ cache,
-        // pill cập nhật im lặng khi data về.
-        if (!this._silentStageLoad) this.state.leadsLoading = true;
+        // CACHE leads theo scope+stage (user spec 2026-08-28): về/vào lại → hiện
+        // leads NGAY từ cache (không spinner), refresh chạy nền.
+        const _scope = this.state.selected_user_id || 0;
+        const _leadKey = _scope + "|" + stageId;
+        this._leadCache = this._leadCache || {};
+        const _lc = this._leadCache[_leadKey];
+        if (_lc && !this._silentStageLoad) {
+            for (const k in _lc) this.state[k] = _lc[k];
+            this.state.leadsLoading = false;
+        } else if (!this._silentStageLoad) {
+            this.state.leadsLoading = true;
+        }
         const args = [stageId];
         if (this.state.selected_user_id) {
             args.push(this.state.selected_user_id);
@@ -1529,6 +1546,18 @@ export class VdCrmDashboard extends Component {
             this.state.cancelReport = [];
         }
         this.state.leadsLoading = false;
+        // Lưu cache lead-state (đã markup) cho scope+stage này → lần sau ra tức thì.
+        this._leadCache[_leadKey] = {
+            leads: this.state.leads,
+            leadsWithProblemsAll: this.state.leadsWithProblemsAll,
+            leadsUrgentConstructionAll: this.state.leadsUrgentConstructionAll,
+            leadsLostAll: this.state.leadsLostAll,
+            cancelReport: this.state.cancelReport,
+            leadsNotCalledAll: this.state.leadsNotCalledAll,
+            leadsReferenceAll: this.state.leadsReferenceAll,
+            leadsQuotedLostAll: this.state.leadsQuotedLostAll,
+            leadsPlannedSignAll: this.state.leadsPlannedSignAll,
+        };
     }
 
     get selectedStage() {
