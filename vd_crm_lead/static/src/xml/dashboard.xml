@@ -879,19 +879,8 @@
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
 
-                        <!-- ===== FOCUS TOGGLE: KH / NV — stack dọc 1 dòng/cái ===== -->
-                        <div class="o_vd_admin_focus_toggle">
-                            <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_kh ' + (isCustomerFocus ? 'o_active' : '')"
-                                    t-on-click="() => this.setFocus('customers')">
-                                <span class="o_vd_focus_icon">👥</span>
-                                <span class="o_vd_focus_lbl">Kiểm soát khách hàng</span>
-                            </button>
-                            <button t-att-class="'o_vd_admin_focus_btn o_vd_focus_nv ' + (isEmployeeFocus ? 'o_active' : '')"
-                                    t-on-click="() => this.setFocus('employees')">
-                                <span class="o_vd_focus_icon">👤</span>
-                                <span class="o_vd_focus_lbl">Kiểm soát nhân viên</span>
-                            </button>
-                        </div>
+                        <!-- FOCUS TOGGLE (Kiểm soát KH / NV) ĐÃ BỎ (user spec 2026-08-28)
+                             — vào CRM hiện thẳng view Nhân viên (focus 'customers' mặc định). -->
 
                         <nav class="o_vd_admin_nav_list">
                             <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'today' ? 'o_active' : '')"
@@ -965,23 +954,7 @@
                                             <span class="o_vd_dash_subview_sub">Hiệu suất từng NV</span>
                                         </span>
                                     </button>
-                                    <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'kh' ? 'o_active' : '')"
-                                            t-on-click="() => this.setDashSubView('kh')">
-                                        <i class="fa fa-id-card-o o_vd_dash_subview_icon"/>
-                                        <span class="o_vd_dash_subview_lbl">
-                                            <span class="o_vd_dash_subview_title">Khách hàng</span>
-                                            <span class="o_vd_dash_subview_sub">Đang chốt &amp; có vấn đề</span>
-                                        </span>
-                                    </button>
-                                    <!-- User spec 2026-05-29: ALL khách hàng toàn cty -->
-                                    <button t-att-class="'o_vd_dash_subview_chip ' + (state.dashSubView === 'all' ? 'o_active' : '')"
-                                            t-on-click="() => this.setDashSubView('all')">
-                                        <i class="fa fa-list-ul o_vd_dash_subview_icon"/>
-                                        <span class="o_vd_dash_subview_lbl">
-                                            <span class="o_vd_dash_subview_title">ALL khách hàng</span>
-                                            <span class="o_vd_dash_subview_sub">Toàn bộ công ty</span>
-                                        </span>
-                                    </button>
+                                    <!-- Tab "Khách hàng" + "ALL khách hàng" ĐÃ BỎ (user 2026-08-28). -->
                                     <!-- Tab CHIA SỐ (chỉ quản lý có báo cáo) — bấm ra bảng đầy đủ -->
                                     <button t-if="state.pancake_report and state.pancake_report.today"
                                             t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_dist ' + (state.dashSubView === 'dist' ? 'o_active' : '')"
@@ -3894,77 +3867,8 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- ⚡ THI CÔNG GẤP — thẻ RIÊNG (user spec 2026-06-15) -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_urgent o_vd_kh_metric_solo' + (nv.lock_urgent ? ' o_vd_kh_locked' : '')">
-                                                    <span class="o_vd_kh_metric_chip">
-                                                        <span class="o_vd_kh_metric_ico">⚡</span>
-                                                        <span class="o_vd_kh_metric_num"><t t-esc="nv.urgent_count or 0"/></span>
-                                                        <span class="o_vd_kh_metric_lbl">Thi công gấp</span>
-                                                    </span>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'urgent'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_urgent"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.urgent_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            ⚡ THI CÔNG GẤP - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.urgent_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.urgent_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <span t-if="ld.phone" class="o_vd_kh_lead_phone">📞 <t t-esc="ld.phone"/></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- 🛠️ XỬ LÝ VẤN ĐỀ — thẻ RIÊNG + cảnh báo "cần xử lý" (giống Khách mới) -->
-                                                <div t-att-class="'o_vd_kh_col_metric o_vd_kh_metric_xlvd o_vd_kh_metric_solo' + (nv.lock_xlvd ? ' o_vd_kh_locked' : '')">
-                                                    <div class="o_vd_kh_newcust_row">
-                                                        <span class="o_vd_kh_metric_chip">
-                                                            <span class="o_vd_kh_metric_ico">🛠️</span>
-                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.xlvd_count or 0"/></span>
-                                                            <span class="o_vd_kh_metric_lbl">Xử lý vấn đề</span>
-                                                        </span>
-                                                        <span t-if="(nv.rem_xlvd_open_problem or 0) > 0"
-                                                              class="o_vd_kh_metric_chip o_vd_kh_uncalled_chip"
-                                                              t-att-title="'Trong số KH xử lý vấn đề, còn ' + (nv.rem_xlvd_open_problem or 0) + ' khách có vấn đề ĐANG MỞ cần xử lý — đôn đốc giải quyết.'">
-                                                            <span class="o_vd_kh_metric_ico">⚠️</span>
-                                                            <span class="o_vd_kh_metric_num"><t t-esc="nv.rem_xlvd_open_problem or 0"/></span>
-                                                            <span class="o_vd_kh_metric_lbl">cần xử lý</span>
-                                                        </span>
-                                                    </div>
-                                                    <t t-set="cellNv" t-value="nv"/>
-                                                    <t t-set="cellWhich" t-value="'xlvd'"/>
-                                                    <t t-set="cellLocked" t-value="nv.lock_xlvd"/>
-                                                    <t t-call="vd_crm_lead.OverviewLockMini"/>
-                                                    <div t-if="nv.xlvd_count" class="o_vd_kh_nv_popover">
-                                                        <div class="o_vd_kh_popover_head">
-                                                            🛠️ XỬ LÝ VẤN ĐỀ - <t t-esc="nv.full_name"/>
-                                                            (<t t-esc="nv.xlvd_count"/>)
-                                                        </div>
-                                                        <div class="o_vd_kh_popover_body">
-                                                            <div t-foreach="nv.xlvd_leads" t-as="ld" t-key="ld.lead_id"
-                                                                 class="o_vd_kh_lead_item"
-                                                                 t-on-click="() => this.openLead(ld.lead_id)">
-                                                                <div class="o_vd_kh_lead_main">
-                                                                    <span class="o_vd_kh_lead_name"><t t-esc="ld.name"/></span>
-                                                                </div>
-                                                                <div t-if="ld.problems and ld.problems.length" class="o_vd_kh_lead_problems">
-                                                                    <span t-foreach="ld.problems" t-as="p" t-key="p_index"
-                                                                          t-att-class="'o_vd_kh_prob_tag o_vd_kh_prob_' + p.status">
-                                                                        <t t-esc="p.icon"/> <t t-esc="p.name"/>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <!-- Cột THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (+ cần xử lý) ĐÃ BỎ
+                                                     (user spec 2026-08-28). -->
 
                                                 <!-- 🗑️ THÙNG RÁC — KH hủy CHỜ DUYỆT (user spec 2026-06-21).
                                                      Đặt cuối, ngay trước thẻ "Không gọi". Hover → bảng KH cần

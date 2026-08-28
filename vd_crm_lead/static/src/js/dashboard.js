@@ -3267,8 +3267,9 @@ export class VdCrmDashboard extends Component {
     // khoá MỌI bảng, chỉ cho mở chính các KH mới chưa gọi (vùng CHƯA GỌI) để ép
     // gọi. Admin xem NV đó cũng thấy khoá. Gọi cho ≤ ngưỡng → tự mở.
     get uncalledNewLockActive() {
-        const u = this.state.uncalled_new_lock;
-        return !!(u && u.locked && this.state.selected_user_id);
+        // KHOÁ "KHÁCH MỚI CHƯA GỌI QUÁ NHIỀU" ĐÃ BỎ (user spec 2026-08-28) —
+        // không khoá + không hiện banner + không chặn mở KH nữa.
+        return false;
     }
     // KH "mới chưa gọi" = đang ở bảng KHÁCH MỚI và chưa có cuộc gọi nào (total=0).
     _isUncalledNewLead(leadId) {
