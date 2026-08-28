@@ -8178,6 +8178,121 @@ class CrmLead(models.Model):
             'must_change_password': bool(self.env.user.vd_pwd_must_change),
         }
 
+    def dashboard_nv_detail(self, user_id):
+        """NHẸ (user spec 2026-08-28): CHỈ tính {user, block_status, performance}
+        cho panel chi tiết NV khi bấm vào 1 NV — KHÔNG build cả dashboard (leads,
+        analytics, problem_find, call_watch...) như dashboard_data → mở NHANH hơn
+        nhiều. Frontend openNvDetail gọi method này thay dashboard_data."""
+        from datetime import date
+        scope_user, scope_label, domain_user, _cud = self._dashboard_resolve_scope(user_id)
+        is_manager = self._dashboard_is_manager()
+
+        block_status = {'is_blocked': False, 'overdue_count': 0, 'threshold': 15}
+        if scope_user:
+            block_status = {
+                'is_blocked': not scope_user.vd_can_receive_new_leads,
+                'overdue_count': scope_user.vd_overdue_lead_count,
+                'threshold': scope_user.vd_overdue_threshold,
+            }
+
+        # ===== PERFORMANCE (copy nhẹ từ dashboard_data) =====
+        ResUsers = self.env['res.users']
+        month_start = date.today().replace(day=1)
+        year_start = date.today().replace(month=1, day=1)
+        won_month_count = self.search_count(domain_user + [
+            ('vd_contract_signed', '=', True),
+            ('vd_contract_sign_date', '>=', month_start),
+        ])
+        won_year_count = self.search_count(domain_user + [
+            ('vd_contract_signed', '=', True),
+            ('vd_contract_sign_date', '>=', year_start),
+        ])
+        my_bonus = ResUsers._vd_calc_nv_bonus(won_month_count) if scope_user else 0
+        total_revenue_month = sum(self.search(domain_user + [
+            ('vd_contract_signed', '=', True),
+            ('vd_contract_sign_date', '>=', month_start),
+        ]).mapped('vd_quote_price') or [0])
+
+        closed_contracts = []
+        if scope_user:
+            for ld in self.search(domain_user + [
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', month_start),
+            ], order='vd_contract_sign_date desc, id desc', limit=20):
+                closed_contracts.append({
+                    'id': ld.id,
+                    'name': ld.name or ld.partner_name or 'KH',
+                    'date': ld.vd_contract_sign_date.strftime('%d/%m/%Y') if ld.vd_contract_sign_date else '',
+                    'price': ld.vd_quote_price or 0,
+                    'deposit': ld.vd_contract_deposit or 0,
+                })
+
+        leaderboard = []
+        if is_manager:
+            sales_users = ResUsers.search([
+                ('share', '=', False), ('active', '=', True),
+                ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
+            ])
+            _lb_ids = sales_users.ids
+
+            def _lb_count(_dom):
+                _r = {}
+                for _g in self.read_group(
+                        _dom + [('user_id', 'in', _lb_ids)], ['user_id'], ['user_id']):
+                    _u = _g.get('user_id')
+                    if _u:
+                        _r[_u[0]] = _g.get('user_id_count', 0)
+                return _r
+
+            _lb_month = _lb_count([
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', month_start),
+            ])
+            _lb_year = _lb_count([
+                ('vd_contract_signed', '=', True),
+                ('vd_contract_sign_date', '>=', year_start),
+            ])
+            _lb_active = _lb_count([
+                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
+            ])
+            for u in sales_users:
+                u_month_count = _lb_month.get(u.id, 0)
+                leaderboard.append({
+                    'user_id': u.id,
+                    'name': u.name,
+                    'contracts_month': u_month_count,
+                    'contracts_year': _lb_year.get(u.id, 0),
+                    'active_leads': _lb_active.get(u.id, 0),
+                    'bonus_month': ResUsers._vd_calc_nv_bonus(u_month_count),
+                    'target_month': 2,
+                    'perf_pct': (u_month_count / 2.0 * 100) if u_month_count else 0,
+                })
+            leaderboard.sort(key=lambda x: (-x['contracts_month'], -x['bonus_month'], -x['active_leads']))
+
+        performance = {
+            'contracts_month': won_month_count,
+            'contracts_year': won_year_count,
+            'target_month': 2,
+            'target_year': 20,
+            'perf_pct_month': (won_month_count / 2.0 * 100) if won_month_count else 0,
+            'perf_pct_year': (won_year_count / 20.0 * 100) if won_year_count else 0,
+            'bonus_month': my_bonus,
+            'next_tier_at': won_month_count + 1,
+            'next_tier_bonus': ResUsers._vd_calc_nv_bonus(won_month_count + 1) - my_bonus,
+            'revenue_month': total_revenue_month,
+            'leaderboard': leaderboard,
+            'closed_contracts': closed_contracts,
+        }
+        return {
+            'user': {
+                'id': scope_user.id if scope_user else 0,
+                'name': scope_label,
+                'is_all': scope_user is None,
+            },
+            'block_status': block_status,
+            'performance': performance,
+        }
+
     def _dashboard_new_bucket_domain(self, user_domain):
         """Domain bucket KHÁCH MỚI — dùng CHUNG cho màn NV (dashboard_leads) và
         grid admin (newcust_by_user) để 2 chỗ luôn khớp số.

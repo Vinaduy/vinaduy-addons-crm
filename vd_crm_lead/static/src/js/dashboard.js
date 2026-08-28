@@ -1460,9 +1460,13 @@ export class VdCrmDashboard extends Component {
         this.state.nvDetailLoading = true;
         this.state.nvDetail = { loading: true };
         try {
-            const data = await this.orm.call("crm.lead", "dashboard_data", [userId]);
-            // Kèm danh sách KH active của NV này (limit 30) để admin nắm tổng quan
-            const leads = await this.orm.call("crm.lead", "dashboard_nv_active_leads", [userId]);
+            // NHANH (2026-08-28): method NHẸ dashboard_nv_detail (chỉ user/performance/
+            // block_status) thay dashboard_data (build cả dashboard) + tải SONG SONG
+            // với active_leads → mở chi tiết NV nhanh hơn nhiều.
+            const [data, leads] = await Promise.all([
+                this.orm.call("crm.lead", "dashboard_nv_detail", [userId]),
+                this.orm.call("crm.lead", "dashboard_nv_active_leads", [userId]),
+            ]);
             this.state.nvDetail = { ...data, active_leads: leads };
         } catch (e) {
             this.notification.add(e.message || "Lỗi tải chi tiết NV", { type: "danger" });
