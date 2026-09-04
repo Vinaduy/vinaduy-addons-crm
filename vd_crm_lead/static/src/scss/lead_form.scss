@@ -13750,3 +13750,21 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
 .o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair > .o_vd_step_lbl:nth-child(3) {
     border-left: 1px solid #e3e9f2 !important;
 }
+
+/* =====================================================================
+   FIX LỆCH: nội dung 2 cột (Tầm tài chính / dropdown) tràn đè nhãn cột kế
+   (user 2026-09-04). Ép cell + widget co đúng trong cột, không tràn.
+   ===================================================================== */
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair > .o_vd_step_body {
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair > .o_vd_step_body > *,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair .o_field_widget,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair .o_vd_select_dd,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair .o_vd_budget_row,
+.o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair input {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
