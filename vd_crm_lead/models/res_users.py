@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Extension res.users — track số KH quá hạn + cờ block nhận lead mới."""
-from datetime import date
+from datetime import date, timedelta
 
 from odoo import models, fields, api
 
@@ -292,10 +292,13 @@ class ResUsers(models.Model):
         """
         Call = self.env['stringee.call'].sudo()
         uid = int(user_id)
+        # CHỈ 30 NGÀY GẦN NHẤT (user spec 2026-09-05).
+        cutoff_30d = fields.Datetime.now() - timedelta(days=30)
         rec_dom = [
             ('user_id', '=', uid),
             ('duration', '>=', int(min_seconds)),
             ('recording_attachment_id', '!=', False),
+            ('create_date', '>=', cutoff_30d),
         ]
         total_rec = Call.search_count(rec_dom)
         calls = Call.search(rec_dom, order='create_date desc',

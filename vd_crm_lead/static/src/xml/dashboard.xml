@@ -260,7 +260,7 @@
                     </div>
                     <!-- BẢNG 2: ghi âm > 3 phút — mỗi dòng 1 file (tên KH + trạng thái) -->
                     <div class="o_vd_rec_sub_head">
-                        <i class="fa fa-headphones me-1"/>Ghi âm &gt; 3 phút
+                        <i class="fa fa-headphones me-1"/>Ghi âm &gt; 3 phút · 30 ngày gần nhất
                         <span class="o_vd_rec_sub_count">(<t t-esc="state.recHover.total or 0"/> file)</span>
                     </div>
                     <div t-if="!state.recHover.recordings.length" class="o_vd_rec_empty">
@@ -3475,10 +3475,12 @@
                                                     <div t-att-class="'o_vd_kh_col_name o_vd_kh_col_name_link' + (canDrillNv ? '' : ' o_vd_kh_name_noclick') + (nv.is_team_leader ? ' o_vd_kh_col_name_leader' : '')"
                                                          t-att-title="nv.full_name + (nv.is_team_leader ? ' — TRƯỞNG NHÓM' : '') + ' — Tổng KH quản lý: ' + (nv.total_leads or 0) + (canDrillNv ? ' — Click để xem dashboard' : '')"
                                                          t-on-click="() => this.selectNvFromDashboard(nv.user_id)">
-                                                        <!-- User spec 2026-06-22: BỎ hover ghi âm ở TÊN NV (trùng với
-                                                             thẻ "Tháng này"). Chỉ còn click vào tên = mở dashboard NV. -->
+                                                        <!-- Hover TÊN NV → popover ghi âm > 3 phút (30 ngày gần nhất)
+                                                             để nghe lại; CLICK tên = mở dashboard NV (user 2026-09-05). -->
                                                         <span class="o_vd_kh_nv_avatar"><i t-att-class="nv.is_team_leader ? 'fa fa-shield' : 'fa fa-user-circle'"/></span>
-                                                        <span class="o_vd_kh_nv_link_name">
+                                                        <span class="o_vd_kh_nv_link_name o_vd_kh_nv_rec_hover"
+                                                              t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                              t-on-mouseleave="() => this.onRecLeave()">
                                                             <t t-esc="nv.name"/>
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
@@ -3507,12 +3509,8 @@
                                                     <span class="o_vd_kh_tcell_lbl">GỌI HÔM NAY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_today_total or 0"/> · <t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
                                                 </div>
-                                                <!-- THÁNG NÀY: hover → popover ghi âm > 3 phút (nghe lại) + thống kê.
-                                                     Khôi phục theo yêu cầu user 2026-09-05. -->
-                                                <div class="o_vd_kh_tcell o_vd_kh_tcell_rec"
-                                                     title="Đưa chuột vào để xem cuộc gọi > 3 phút của NV (nghe lại)"
-                                                     t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
-                                                     t-on-mouseleave="() => this.onRecLeave()">
+                                                <!-- THÁNG NÀY: hover ghi âm đã CHUYỂN sang TÊN NV (user 2026-09-05). -->
+                                                <div class="o_vd_kh_tcell">
                                                     <span class="o_vd_kh_tcell_lbl">THÁNG NÀY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_month_total or 0"/> · <t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
                                                 </div>
