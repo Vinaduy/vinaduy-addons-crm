@@ -15,6 +15,20 @@
                 <span class="o_vd_lib_ico"><i class="fa fa-home"/></span>
                 <span class="o_vd_lib_txt">THƯ VIỆN - Mẫu nhà</span>
             </button>
+            <!-- GHI ÂM THAM KHẢO + HỌC CÙNG VINADUY — chuyển từ sidebar trái thành
+                 ICON BÊN PHẢI (user spec 2026-09-05). -->
+            <button t-if="!state.must_change_password" class="o_vd_lib_filter o_vd_refrec_libfilter"
+                    t-on-click="(ev) => this.toggleRefRec(ev)"
+                    title="GHI ÂM THAM KHẢO — cuộc gọi mẫu > 5 phút để nghe học">
+                <span class="o_vd_lib_ico"><i class="fa fa-headphones"/></span>
+                <span class="o_vd_lib_txt">GHI ÂM THAM KHẢO</span>
+            </button>
+            <button t-if="!state.must_change_password" class="o_vd_lib_filter o_vd_learn_libfilter"
+                    t-on-click="() => this.openElearning()"
+                    title="HỌC CÙNG VINADUY — mở trang khóa học">
+                <span class="o_vd_lib_ico"><i class="fa fa-graduation-cap"/></span>
+                <span class="o_vd_lib_txt">HỌC CÙNG VINADUY</span>
+            </button>
             <!-- 3 nút THƯ VIỆN tài liệu Drive (Video nghiệm thu / Công năng 3D / Hợp đồng) -->
             <t t-if="!state.must_change_password">
                 <t t-foreach="driveLibs" t-as="lib" t-key="lib.key">
@@ -1801,178 +1815,7 @@
                      ============================================================ -->
                 <div t-else="" class="o_vd_dash_grid">
 
-                    <!-- ===== SIDEBAR ===== -->
-                    <aside class="o_vd_sidebar_v2">
-
-                        <!-- Logo công ty — góc trên trái, card trắng đồng nhất -->
-                        <div class="o_vd_side_card o_vd_brand o_vd_brand_card">
-                            <img class="o_vd_brand_img"
-                                 src="/vd_crm_lead/static/src/img/vinaduy_logo_header.png"
-                                 alt="Vinaduy"/>
-                        </div>
-
-                        <!-- 1. NV Info card -->
-                        <div class="o_vd_side_card o_vd_side_user">
-                            <div class="o_vd_side_user_top">
-                                <div class="o_vd_side_user_avatar">
-                                    <i t-if="state.user.is_all" class="fa fa-users"/>
-                                    <i t-else="" class="fa fa-user-circle"/>
-                                </div>
-                                <div class="o_vd_side_user_meta">
-                                    <div class="o_vd_side_user_name"><t t-esc="state.user.name"/></div>
-                                    <div t-if="state.is_manager" class="o_vd_side_user_role">
-                                        <i class="fa fa-shield"/> Manager
-                                    </div>
-                                    <!-- Round 15: trạng thái LIVE call của NV đang xem.
-                                         Skip khi 'Tất cả NV' (no specific user). -->
-                                    <t t-if="!state.user.is_all and state.user.id">
-                                        <t t-set="ci" t-value="state.activeCalls[state.user.id]"/>
-                                        <span t-if="ci" class="o_vd_call_status o_vd_call_status_on o_vd_side_call_status"
-                                              t-att-title="'Đang gọi ' + ci.since_min + ' phút (state: ' + ci.state + ')'">
-                                            <span class="o_vd_call_status_dot"/>
-                                            <span class="o_vd_call_status_lbl">Đang gọi</span>
-                                            <span class="o_vd_call_status_time">
-                                                <t t-esc="ci.since_min"/>'
-                                            </span>
-                                        </span>
-                                        <span t-else="" class="o_vd_call_status o_vd_call_status_off o_vd_side_call_status"
-                                              title="NV không có cuộc gọi đang diễn ra">
-                                            <span class="o_vd_call_status_dot"/>
-                                            <span class="o_vd_call_status_lbl">Không gọi</span>
-                                        </span>
-                                    </t>
-                                </div>
-                            </div>
-                            <div t-if="state.is_manager" class="o_vd_side_user_picker">
-                                <select class="o_vd_user_picker"
-                                        t-on-change="(ev) => this.onChangeUser(ev)">
-                                    <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
-                                    <option t-foreach="state.users" t-as="u" t-key="u.id"
-                                            t-att-value="u.id"
-                                            t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
-                                        <t t-esc="u.name"/>
-                                    </option>
-                                </select>
-                            </div>
-                            <!-- Nút thêm KH thủ công cho NV view -->
-                            <button class="o_vd_add_lead_btn mt-2"
-                                    t-on-click="() => this.createNewLead()">
-                                <i class="fa fa-plus me-1"/> Thêm mới
-                            </button>
-                        </div>
-
-                        <!-- 2. Performance card (Thành tích + Thưởng) -->
-                        <div class="o_vd_side_card o_vd_side_perf" t-if="state.performance">
-                            <!-- Bonus với hover tooltip danh sách HĐ -->
-                            <div class="o_vd_side_perf_bonus o_vd_has_tooltip">
-                                <div class="o_vd_side_perf_bonus_lbl">💰 THƯỞNG THÁNG <t t-esc="currentMonth"/></div>
-                                <div class="o_vd_bonus_tooltip"
-                                     t-if="state.performance.closed_contracts and state.performance.closed_contracts.length">
-                                    <div class="o_vd_bonus_tooltip_title">
-                                        <span>💰 Tổng thưởng tháng này</span>
-                                        <span class="o_vd_bonus_tooltip_total">
-                                            <t t-esc="formatVnd(state.performance.bonus_month)"/>đ
-                                        </span>
-                                    </div>
-                                    <table class="o_vd_bonus_tooltip_tbl">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>KH</th>
-                                                <th>Ngày</th>
-                                                <th class="text-end">Giá HĐ</th>
-                                                <th class="text-end o_vd_tt_bonus_col">Cộng</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr t-foreach="state.performance.closed_contracts" t-as="c" t-key="c.id">
-                                                <td><t t-esc="c_index + 1"/></td>
-                                                <td class="o_vd_tt_name"><t t-esc="c.name"/></td>
-                                                <td><t t-esc="c.date"/></td>
-                                                <td class="text-end"><t t-esc="formatVnd(c.price)"/>đ</td>
-                                                <td class="text-end o_vd_tt_bonus_cell">
-                                                    +<t t-esc="formatVnd(bonusTier(c_index + 1))"/>đ
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div t-if="!state.user.is_all and state.performance.next_tier_bonus"
-                                 class="o_vd_side_perf_hint">
-                                🎯 Chốt HĐ #<t t-esc="state.performance.next_tier_at"/>
-                                → +<t t-esc="formatVnd(state.performance.next_tier_bonus)"/>đ
-                            </div>
-
-                            <!-- TREO THƯỞNG CÁ NHÂN (admin cấu hình - mọi NV đều thấy) -->
-                            <div t-if="state.bonusBoard.personal.length" class="o_vd_bonusbox o_vd_bonusbox_personal">
-                                <div class="o_vd_bonusbox_head">🎁 THƯỞNG CÁ NHÂN</div>
-                                <div t-foreach="state.bonusBoard.personal" t-as="b" t-key="b_index"
-                                     class="o_vd_bonusbox_row">
-                                    <span class="o_vd_bonusbox_lbl"><t t-esc="b.name"/></span>
-                                    <span class="o_vd_bonusbox_amt"><t t-esc="formatVnd(b.amount)"/>đ</span>
-                                </div>
-                            </div>
-
-                            <!-- TREO THƯỞNG PHÒNG (chỉ hiện mốc của PHÒNG mình) -->
-                            <div t-if="state.bonusBoard.team.length" class="o_vd_bonusbox o_vd_bonusbox_team">
-                                <div class="o_vd_bonusbox_head">🏢 THƯỞNG PHÒNG
-                                    <t t-if="state.bonusBoard.team_label"> — <t t-esc="state.bonusBoard.team_label"/></t>
-                                </div>
-                                <div t-foreach="state.bonusBoard.team" t-as="tm" t-key="tm_index"
-                                     class="o_vd_bonusbox_teamrow">
-                                    <span class="o_vd_bonusbox_amt_big"><t t-esc="formatVnd(tm.amount)"/>đ</span>
-                                    <span class="o_vd_bonusbox_cond">
-                                        <t t-esc="tm.contract_count"/> Hợp đồng · <t t-esc="tm.people_count"/> Người
-                                    </span>
-                                    <span t-if="tm.name" class="o_vd_bonusbox_name"><t t-esc="tm.name"/></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. BÁO CÁO CUỘC GỌI: ĐÃ XOÁ theo user spec 2026-07-01 -->
-
-                        <!-- 3b. GHI ÂM THAM KHẢO — filter to, nhấp nháy như thông báo.
-                             Hover → bảng ghi âm >5' của 3 NV mẫu (toàn công ty xem). -->
-                        <div class="o_vd_refrec_filter"
-                             t-on-click="(ev) => this.toggleRefRec(ev)">
-                            <i class="fa fa-headphones o_vd_refrec_ico"/>
-                            <span class="o_vd_refrec_txt">GHI ÂM THAM KHẢO</span>
-                            <i class="fa fa-bullhorn o_vd_refrec_bell"/>
-                        </div>
-
-                        <!-- 3c. KHÓA HỌC — nút HỌC CÙNG VINADUY + báo cáo tổng/đã/chưa học
-                             (user spec 2026-06-24: thay nút CUỘC GỌI ĐẾN). -->
-                        <div class="o_vd_learn_box">
-                            <button class="o_vd_learn_btn" t-on-click="() => this.openElearning()"
-                                    title="Mở trang khóa học của VINADUY">
-                                <i class="fa fa-graduation-cap o_vd_learn_ico"/>
-                                <span class="o_vd_learn_txt">HỌC CÙNG VINADUY</span>
-                                <i class="fa fa-arrow-right o_vd_learn_arrow"/>
-                            </button>
-                            <div class="o_vd_learn_report" t-if="state.courseStats">
-                                <div class="o_vd_learn_stat o_vd_learn_total">
-                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.total"/></span>
-                                    <span class="o_vd_learn_lbl">Tổng khóa</span>
-                                </div>
-                                <div class="o_vd_learn_stat o_vd_learn_done">
-                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.done"/></span>
-                                    <span class="o_vd_learn_lbl">Đã học</span>
-                                </div>
-                                <div class="o_vd_learn_stat o_vd_learn_todo">
-                                    <span class="o_vd_learn_num"><t t-esc="state.courseStats.todo"/></span>
-                                    <span class="o_vd_learn_lbl">Chưa học</span>
-                                </div>
-                            </div>
-                            <div class="o_vd_learn_bar" t-if="state.courseStats and state.courseStats.total">
-                                <div class="o_vd_learn_bar_fill"
-                                     t-att-style="`width:${Math.round(state.courseStats.done * 100 / state.courseStats.total)}%`"/>
-                            </div>
-                        </div>
-
-                        <!-- 4. Cảnh báo: ĐÃ XOÁ theo user spec 2026-05-29
-                             (KH quá hạn gọi lại / KH mới chưa gọi không còn hiển thị sidebar) -->
-                    </aside>
+                    <!-- SIDEBAR trái ĐÃ BỎ (user spec 2026-09-05): NV picker + Thêm mới lên top bar; Ghi âm/Học cùng thành icon phải; Thưởng bỏ hẳn. -->
 
                     <!-- ===== MAIN CONTENT (NV VIEW) ===== -->
                     <main class="o_vd_main_v2">
@@ -2028,6 +1871,24 @@
                         <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
                              (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
                         <div class="o_vd_topbar_row">
+                        <!-- Manager: CHỌN NV + THÊM MỚI — chuyển từ sidebar trái lên
+                             top bar (user spec 2026-09-05). -->
+                        <div t-if="state.is_manager" class="o_vd_top_userpick">
+                            <i class="fa fa-user-circle o_vd_top_userpick_ico"/>
+                            <select class="o_vd_user_picker o_vd_user_picker_top"
+                                    t-on-change="(ev) => this.onChangeUser(ev)">
+                                <option value="all" t-att-selected="state.user.is_all">🌐 Tất cả NV</option>
+                                <option t-foreach="state.users" t-as="u" t-key="u.id"
+                                        t-att-value="u.id"
+                                        t-att-selected="!state.user.is_all and state.selected_user_id === u.id">
+                                    <t t-esc="u.name"/>
+                                </option>
+                            </select>
+                        </div>
+                        <button t-if="!isAdminView" class="o_vd_add_lead_btn o_vd_add_lead_top"
+                                t-on-click="() => this.createNewLead()" title="Thêm khách hàng mới">
+                            <i class="fa fa-plus me-1"/> Thêm mới
+                        </button>
                         <!-- SỐ OMI: cùng dòng, ĐỨNG TRƯỚC ô tìm kiếm (user 2026-07-21) → hover mở popup 90% -->
                         <button t-if="!isAdminView" class="o_vd_omi_bigbtn o_vd_omi_inline"
                                 t-on-click="() => this.openOmi()"

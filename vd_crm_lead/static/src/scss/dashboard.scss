@@ -41,19 +41,12 @@
         gap: 0.85rem;
     }
 
-    /* ===== 2-COL GRID: SIDEBAR + MAIN ===== */
+    /* ===== 1 CỘT (user spec 2026-09-05): bỏ sidebar trái → MAIN full width ===== */
     .o_vd_dash_grid {
         display: grid;
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: 1fr;
         gap: 1rem;
         align-items: start;
-
-        @media (max-width: 1100px) {
-            grid-template-columns: 320px 1fr;
-        }
-        @media (max-width: 900px) {
-            grid-template-columns: 1fr;
-        }
     }
 
     /* ===== SIDEBAR V2 — stacked cards ===== */
@@ -12607,4 +12600,41 @@ $vd-rose:      #b06a6a;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     min-height: 0 !important;
+}
+
+/* =====================================================================
+   REFACTOR DASHBOARD 2026-09-05: bỏ sidebar trái → main full width.
+   NV picker + Thêm mới lên top bar; Ghi âm/Học cùng thành icon phải.
+   ===================================================================== */
+.o_vd_crm_dashboard .o_vd_topbar_row .o_vd_top_userpick {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+}
+.o_vd_crm_dashboard .o_vd_topbar_row .o_vd_top_userpick_ico {
+    color: #714B67;
+    font-size: 1.15rem;
+}
+.o_vd_crm_dashboard .o_vd_topbar_row .o_vd_user_picker_top {
+    min-width: 160px;
+    max-width: 230px;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #d0d7e2;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #fff;
+    cursor: pointer;
+}
+.o_vd_crm_dashboard .o_vd_topbar_row .o_vd_add_lead_top {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    margin: 0;
+}
+/* Icon phải mới — màu riêng để phân biệt */
+.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_refrec_libfilter .o_vd_lib_ico {
+    background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+}
+.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_learn_libfilter .o_vd_lib_ico {
+    background: linear-gradient(135deg, #12b886 0%, #099268 100%);
 }
