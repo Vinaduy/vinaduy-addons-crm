@@ -9709,10 +9709,10 @@ body.o_vd_preview_active .o_vd_preview_body_form {
                         0 4px 14px -4px rgba(15, 23, 42, 0.05);
         }
 
-        /* Danh sách: LƯỚI 3 khách / 1 dòng */
+        /* Danh sách: LƯỚI 4 khách / 1 dòng (user spec 2026-09-05, full width) */
         .o_vd_filter_table_right_rows {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 0.4rem;
             align-content: start;
             padding: 0.4rem;
@@ -12638,3 +12638,34 @@ $vd-rose:      #b06a6a;
 .o_vd_crm_dashboard .o_vd_lib_filter.o_vd_learn_libfilter .o_vd_lib_ico {
     background: linear-gradient(135deg, #12b886 0%, #099268 100%);
 }
+
+/* =====================================================================
+   KHÁCH MỚI: pills dàn 13 CỘT (user spec 2026-09-05, main full width).
+   Zone head chiếm trọn hàng; pill co + cắt chữ (hover title xem đủ tên).
+   ===================================================================== */
+.o_vd_crm_dashboard .o_vd_new_pills {
+    display: grid !important;
+    grid-template-columns: repeat(13, minmax(0, 1fr)) !important;
+    gap: 0.25rem 0.35rem !important;
+    align-content: flex-start !important;
+}
+.o_vd_crm_dashboard .o_vd_new_pills > .o_vd_pill_zone_head {
+    grid-column: 1 / -1 !important;
+}
+.o_vd_crm_dashboard .o_vd_new_pills > .o_vd_won_pill {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+.o_vd_crm_dashboard .o_vd_new_pills > .o_vd_won_pill > span,
+.o_vd_crm_dashboard .o_vd_new_pills > .o_vd_won_pill .o_vd_won_pill_txt {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* Vị trí 2 icon mới — xếp TIẾP dưới cụm THƯ VIỆN (mỗi nút cách 68px).
+   Trước đây thiếu 'top' → chồng lên nút Câu hỏi khó (ghi âm "biến mất"). */
+.o_vd_crm_dashboard .o_vd_refrec_libfilter.o_vd_lib_filter { top: calc(34% + 408px) !important; }
+.o_vd_crm_dashboard .o_vd_learn_libfilter.o_vd_lib_filter { top: calc(34% + 476px) !important; }

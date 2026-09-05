@@ -2345,12 +2345,10 @@
                             </t>
                         </section>
 
-                        <!-- ===== FILTER hover cho 2 bảng TCG + XLVD (user spec 2026-05-31).
-                             Đưa chuột vào chip = tự lọc/sắp xếp. ===== -->
-                        <t t-if="isNewStageSplit">
-                            <t t-set="scope" t-value="'prob'"/>
-                            <t t-call="vd_crm_lead.DayFilterBar"/>
-                        </t>
+                        <!-- BỘ LỌC DƯỚI (scope 'prob') ĐÃ BỎ (user spec 2026-09-05):
+                             dùng CHUNG 1 bộ lọc ở trên KHÁCH MỚI cho cả 2 mục.
+                             setNewDayFilter đồng bộ state.dayFilter → mục ĐÃ BÁO GIÁ
+                             lọc theo cùng lựa chọn. -->
 
                         <!-- BẢNG "KHÁCH ĐÃ LÀM HỢP ĐỒNG" đã BỎ theo yêu cầu user 2026-08-06. -->
 

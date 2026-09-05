@@ -1958,8 +1958,13 @@ export class VdCrmDashboard extends Component {
     }
     dayFilterCount(d) { return this._dayBucketCount(this._dayFilterPool, d); }
     get dayFilterAllCount() { return this._dayFilterPool.length; }
-    // ===== BỘ LỌC bảng KHÁCH MỚI (độc lập) =====
-    setNewDayFilter(n) { this.state.newDayFilter = this.state.newDayFilter === n ? 0 : n; }
+    // ===== BỘ LỌC bảng KHÁCH MỚI — DÙNG CHUNG cho cả mục ĐÃ BÁO GIÁ =====
+    // (user spec 2026-09-05): bỏ bộ lọc dưới → đồng bộ state.dayFilter theo
+    // newDayFilter để 1 bộ lọc điều khiển cả 2 mục.
+    setNewDayFilter(n) {
+        this.state.newDayFilter = this.state.newDayFilter === n ? 0 : n;
+        this.state.dayFilter = this.state.newDayFilter;
+    }
     newDayFilterCount(d) { return this._dayBucketCount(this._leadsNoProblemsRaw, d); }
     get newDayFilterAllCount() { return this._leadsNoProblemsRaw.length; }
 
