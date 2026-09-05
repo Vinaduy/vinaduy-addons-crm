@@ -12645,7 +12645,7 @@ $vd-rose:      #b06a6a;
    ===================================================================== */
 .o_vd_crm_dashboard .o_vd_new_pills {
     display: grid !important;
-    grid-template-columns: repeat(13, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
     gap: 0.25rem 0.35rem !important;
     align-content: flex-start !important;
 }
@@ -12669,3 +12669,12 @@ $vd-rose:      #b06a6a;
    Trước đây thiếu 'top' → chồng lên nút Câu hỏi khó (ghi âm "biến mất"). */
 .o_vd_crm_dashboard .o_vd_refrec_libfilter.o_vd_lib_filter { top: calc(34% + 408px) !important; }
 .o_vd_crm_dashboard .o_vd_learn_libfilter.o_vd_lib_filter { top: calc(34% + 476px) !important; }
+
+/* Ẩn badge "giá cũ" (user spec 2026-09-05) */
+.o_vd_crm_dashboard .o_vd_oldprice_tag { display: none !important; }
+
+/* Cột counter (Tham khảo/Chưa gọi được/Hủy...) chừa lề phải để cụm icon
+   THƯ VIỆN nổi (Câu hỏi khó, Mẫu nhà...) KHÔNG đè lên (user spec 2026-09-05). */
+.o_vd_crm_dashboard .o_vd_icon_panel {
+    margin-right: 96px !important;
+}
