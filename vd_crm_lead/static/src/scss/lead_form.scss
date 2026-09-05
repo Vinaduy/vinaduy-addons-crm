@@ -13750,8 +13750,9 @@ div.o_vd_layout_grid div.o_vd_intake_inline div.o_vd_area_row_grid div.o_vd_area
    Mỗi hàng = 2 tiêu chí: [nhãn|nội dung] [nhãn|nội dung]. 4 cột grid.
    ===================================================================== */
 .o_vd_steps_panel.o_vd_steps_table .o_vd_step_pair {
-    /* minmax(0,1fr): cột giá trị co được, KHÔNG bị content đẩy lệch cột */
-    grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr) !important;
+    /* Cột nhãn 170px = ĐÚNG cột nhãn hàng thường → vạch chia thẳng hàng.
+       minmax(0,1fr): cột giá trị co được, không bị content đẩy lệch. */
+    grid-template-columns: 170px minmax(0, 1fr) 170px minmax(0, 1fr) !important;
 }
 /* KHÔI PHỤC FontAwesome cho icon (rule đồng bộ font ở trên ép inherit làm
    vỡ glyph → caret dropdown thành "≡" 3 gạch). Trả lại đúng font icon. */
