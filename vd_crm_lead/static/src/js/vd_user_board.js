@@ -1,11 +1,9 @@
 /** @odoo-module **/
 /**
- * Bảng quản lý nhân viên — 2 cột kéo thả:
- *   - Đang hoạt động (active)
- *   - Nghỉ việc / Tạm dừng (archived)
- * Kéo thẻ giữa 2 cột → archive/unarchive NV (RPC vd_set_user_active).
- * Mỗi NV = 1 thẻ gọn: mã icon (chữ cái đầu), tên, phòng ban, vai trò.
- * Trưởng nhóm = viền vàng. Màu thẻ theo phòng ban (giống danh sách NV).
+ * Bảng quản lý nhân viên — CHIA TAB (user spec 2026-09-05):
+ *   - Tab "Đang hoạt động" | Tab "Nghỉ việc / Tạm dừng"
+ * Bấm 1 NV → POPUP sửa: tên, đăng nhập, email, chức vụ, phòng ban, mật khẩu
+ * + nút cho nghỉ / kích hoạt lại (thay drag-drop cũ). KHÔNG nhảy trang mới.
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -24,9 +22,9 @@ export class VdUserBoard extends Component {
             off: [],
             loading: true,
             search: "",
-            dragUid: null,
-            dragFrom: null,
-            overCol: null,
+            tab: "working",       // tab đang xem: 'working' | 'off'
+            edit: null,           // dữ liệu NV đang sửa (popup)
+            saving: false,
         });
         onWillStart(() => this.load());
     }
@@ -41,6 +39,8 @@ export class VdUserBoard extends Component {
             this.state.loading = false;
         }
     }
+
+    setTab(t) { this.state.tab = t; }
 
     _filter(list) {
         const q = (this.state.search || "").trim().toLowerCase();
@@ -74,88 +74,85 @@ export class VdUserBoard extends Component {
     }
     get workingGroups() { return this._groupByTeam(this.workingList); }
     get offGroups() { return this._groupByTeam(this.offList); }
+    get activeGroups() { return this.state.tab === "working" ? this.workingGroups : this.offGroups; }
 
-    _sortCards(arr) {
-        arr.sort((a, b) => {
-            const ka = (a.team + a.name).toLowerCase();
-            const kb = (b.team + b.name).toLowerCase();
-            return ka < kb ? -1 : ka > kb ? 1 : 0;
-        });
-    }
-
-    onDragStart(ev, card, from) {
-        this.state.dragUid = card.id;
-        this.state.dragFrom = from;
-        ev.dataTransfer.effectAllowed = "move";
-        try { ev.dataTransfer.setData("text/plain", String(card.id)); } catch (e) { /* noop */ }
-    }
-    onDragOver(ev, col) {
-        ev.preventDefault();
-        ev.dataTransfer.dropEffect = "move";
-        this.state.overCol = col;
-    }
-    onDragLeave(col) {
-        if (this.state.overCol === col) this.state.overCol = null;
-    }
-
-    async onDrop(ev, toCol) {
-        ev.preventDefault();
-        const uid = this.state.dragUid;
-        const from = this.state.dragFrom;
-        this.state.overCol = null;
-        this.state.dragUid = null;
-        this.state.dragFrom = null;
-        if (!uid || !from || from === toCol) return;
-
-        const working = toCol === "working";
-        // Chặn cho nghỉ việc khi NV còn khách trong tài khoản.
-        if (!working) {
-            const src = this.state.working.find((c) => c.id === uid);
-            if (src && src.lead_count > 0) {
-                this.notification.add(
-                    `Không thể cho nghỉ việc: ${src.name} còn ${src.lead_count} khách trong tài khoản. ` +
-                    `Hãy chuyển hết khách sang NV khác trước.`,
-                    { type: "danger" }
-                );
+    // ===== POPUP SỬA NV =====
+    async openUser(card) {
+        try {
+            const data = await this.orm.call("res.users", "vd_board_load_user", [card.id]);
+            if (!data || !data.id) {
+                this.notification.add("Không mở được nhân viên.", { type: "danger" });
                 return;
             }
-        }
-        const srcArr = from === "working" ? this.state.working : this.state.off;
-        const dstArr = working ? this.state.working : this.state.off;
-        const idx = srcArr.findIndex((c) => c.id === uid);
-        if (idx < 0) return;
-        // Di chuyển ngay trên UI (optimistic), rollback nếu RPC lỗi.
-        const [card] = srcArr.splice(idx, 1);
-        card.active = working;
-        dstArr.push(card);
-        this._sortCards(dstArr);
-        try {
-            await this.orm.call("res.users", "vd_set_user_active", [uid, working]);
+            this.state.edit = {
+                id: data.id,
+                name: data.name || "",
+                login: data.login || "",
+                email: data.email || "",
+                role: data.role || "employee",
+                team: data.team || "",
+                active: !!data.active,
+                new_password: "",
+                role_options: data.role_options || [],
+                team_options: data.team_options || [],
+            };
         } catch (e) {
-            const j = dstArr.findIndex((c) => c.id === uid);
-            if (j >= 0) {
-                const [back] = dstArr.splice(j, 1);
-                back.active = !working;
-                srcArr.push(back);
-                this._sortCards(srcArr);
-            }
-            const msg = (e && e.data && e.data.message) || "Không đổi được trạng thái nhân viên.";
+            const msg = (e && e.data && e.data.message) || "Không mở được nhân viên.";
             this.notification.add(msg, { type: "danger" });
         }
     }
+    closeEdit() { this.state.edit = null; }
 
-    openUser(card) {
-        // Mở form res.users để SỬA thông tin — kể cả tài khoản đã dừng (archived)
-        // → tận dụng lại: đổi tên/login rồi kéo về ĐANG HOẠT ĐỘNG (user 2026-09-05).
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "res.users",
-            res_id: card.id,
-            views: [[false, "form"]],
-            target: "current",
-            context: { active_test: false },
-        });
+    async saveUser() {
+        const e = this.state.edit;
+        if (!e) return;
+        if (!(e.name || "").trim()) {
+            this.notification.add("Nhập tên nhân viên.", { type: "warning" });
+            return;
+        }
+        if (!(e.login || "").trim()) {
+            this.notification.add("Nhập tên đăng nhập.", { type: "warning" });
+            return;
+        }
+        this.state.saving = true;
+        try {
+            await this.orm.call("res.users", "vd_board_save_user", [e.id, {
+                name: e.name, login: e.login, email: e.email,
+                role: e.role, team: e.team, new_password: e.new_password,
+            }]);
+            this.notification.add("Đã lưu thông tin nhân viên.", { type: "success" });
+            this.state.edit = null;
+            await this.load();
+        } catch (err) {
+            const msg = (err && err.data && err.data.message) || "Lưu thất bại.";
+            this.notification.add(msg, { type: "danger" });
+        } finally {
+            this.state.saving = false;
+        }
     }
+
+    // Bật/tắt trạng thái làm việc TỪ TRONG popup (thay drag-drop cũ).
+    async toggleActive() {
+        const e = this.state.edit;
+        if (!e) return;
+        const want = !e.active;
+        this.state.saving = true;
+        try {
+            await this.orm.call("res.users", "vd_set_user_active", [e.id, want]);
+            e.active = want;
+            this.notification.add(
+                want ? "Đã kích hoạt lại nhân viên." : "Đã cho nhân viên nghỉ việc.",
+                { type: "success" });
+            this.state.edit = null;
+            await this.load();
+        } catch (err) {
+            const msg = (err && err.data && err.data.message) || "Không đổi được trạng thái.";
+            this.notification.add(msg, { type: "danger" });
+        } finally {
+            this.state.saving = false;
+        }
+    }
+
     openNew() {
         this.action.doAction({
             type: "ir.actions.act_window",

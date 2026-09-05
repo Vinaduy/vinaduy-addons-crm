@@ -701,6 +701,76 @@ class ResUsers(models.Model):
         target.write({'active': want})
         return want
 
+    def _vd_board_check_manager(self):
+        """Chỉ admin / quản lý được sửa NV."""
+        caller = self.env.user
+        allowed = (
+            caller._is_admin()
+            or caller.has_group('sales_team.group_sale_manager')
+            or caller.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not allowed:
+            from odoo.exceptions import AccessError
+            raise AccessError('Chỉ admin / quản lý mới được sửa nhân viên.')
+
+    @api.model
+    def vd_board_load_user(self, user_id):
+        """Nạp thông tin 1 NV để SỬA trong popup (user spec 2026-09-05):
+        tên, đăng nhập, email, chức vụ, phòng ban + danh sách lựa chọn."""
+        self._vd_board_check_manager()
+        u = self.sudo().with_context(active_test=False).browse(int(user_id))
+        if not u.exists():
+            return {}
+        role_opts = [{'value': k, 'label': v}
+                     for k, v in self._fields['vd_crm_role'].selection]
+        team_sel = self._fields['vd_team'].selection
+        if callable(team_sel):
+            team_sel = team_sel(self)
+        team_opts = [{'value': k, 'label': v} for k, v in team_sel]
+        return {
+            'id': u.id,
+            'name': u.name or '',
+            'login': u.login or '',
+            'email': u.email or '',
+            'role': u.vd_crm_role or 'employee',
+            'team': u.vd_team or '',
+            'active': bool(u.active),
+            'role_options': role_opts,
+            'team_options': team_opts,
+        }
+
+    @api.model
+    def vd_board_save_user(self, user_id, vals):
+        """Lưu thông tin NV từ popup + đổi mật khẩu (nếu có). vals:
+        {name, login, email, role, team, new_password}. (user 2026-09-05)"""
+        self._vd_board_check_manager()
+        u = self.sudo().with_context(active_test=False).browse(int(user_id))
+        if not u.exists():
+            from odoo.exceptions import UserError
+            raise UserError('Không tìm thấy nhân viên.')
+        write_vals = {}
+        if 'name' in vals:
+            write_vals['name'] = (vals.get('name') or '').strip()
+        if 'login' in vals and (vals.get('login') or '').strip():
+            write_vals['login'] = vals['login'].strip()
+        if 'email' in vals:
+            write_vals['email'] = (vals.get('email') or '').strip() or False
+        if vals.get('role'):
+            write_vals['vd_crm_role'] = vals['role']
+        if 'team' in vals:
+            write_vals['vd_team'] = vals.get('team') or False
+        if write_vals:
+            u.write(write_vals)
+        pw = (vals.get('new_password') or '').strip()
+        if pw:
+            if len(pw) < 6:
+                from odoo.exceptions import UserError
+                raise UserError('Mật khẩu mới tối thiểu 6 ký tự.')
+            u.write({'password': pw})
+        return u._vd_board_card(
+            lead_count=self.env['crm.lead'].sudo().search_count(
+                [('user_id', '=', u.id)]))
+
     @api.model
     def vd_toggle_pancake_receive(self, user_id):
         """BẬT/TẮT nhận KH Pancake cho 1 NV (gọi từ nút trên báo cáo chia số).
