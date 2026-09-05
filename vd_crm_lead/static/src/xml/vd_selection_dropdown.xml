@@ -18,9 +18,9 @@
 
             <button t-if="hasValue and !props.readonly" type="button"
                     class="o_vd_select_dd_clear"
-                    title="Xoá"
+                    title="Xoá lựa chọn"
                     t-on-click="(ev) => this.clearValue(ev)">
-                ×
+                <i class="fa fa-trash"/>
             </button>
 
             <i class="fa fa-caret-down o_vd_select_dd_arrow"
