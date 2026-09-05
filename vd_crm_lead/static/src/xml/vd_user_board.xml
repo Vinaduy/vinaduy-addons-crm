@@ -91,8 +91,17 @@
                                 </select>
                             </label>
                         </div>
+                        <div class="o_vd_ub_pwbox">
+                            <span class="o_vd_ub_fld_lbl"><i class="fa fa-key me-1"/>Mật khẩu admin đã cấp</span>
+                            <div t-if="state.edit.admin_password" class="o_vd_ub_pwshow">
+                                <span class="o_vd_ub_pwval"><t t-esc="state.edit.admin_password"/></span>
+                            </div>
+                            <div t-else="" class="o_vd_ub_pwnone">
+                                Chưa có mật khẩu admin cấp (hoặc NV đã tự đổi — không xem được).
+                            </div>
+                        </div>
                         <label class="o_vd_ub_fld">
-                            <span class="o_vd_ub_fld_lbl">Mật khẩu mới <span class="o_vd_ub_fld_hint">(để trống nếu không đổi)</span></span>
+                            <span class="o_vd_ub_fld_lbl">Đặt mật khẩu mới <span class="o_vd_ub_fld_hint">(để trống nếu không đổi)</span></span>
                             <input type="text" class="o_vd_ub_inp" t-model="state.edit.new_password"
                                    placeholder="Tối thiểu 6 ký tự"/>
                         </label>

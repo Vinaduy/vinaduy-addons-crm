@@ -55,6 +55,13 @@ class ResUsers(models.Model):
         _VD_TEAM_SELECTION, string='Phòng ban',
         help='Phòng ban của nhân viên. Đổi thẻ để chuyển NV sang phòng ban khác '
              '(KH + dashboard nhóm theo trường này). Bỏ trống = tự suy từ tiền tố TÊN.')
+    # Mật khẩu GẦN NHẤT do admin/quản lý ĐẶT qua bảng Quản lý nhân viên
+    # (user spec 2026-09-05). CHỈ admin/quản lý xem (groups). LƯU Ý: NV tự đổi
+    # mật khẩu thì trường này KHÔNG cập nhật (không đọc được MK NV tự đổi).
+    vd_admin_set_password = fields.Char(
+        string='Mật khẩu admin cấp', copy=False,
+        groups='sales_team.group_sale_manager,vd_crm_lead.vd_crm_group_team_leader,base.group_system',
+        help='Mật khẩu gần nhất do admin/quản lý đặt cho NV. Chỉ admin/quản lý xem.')
     vd_team_label = fields.Char(
         string='Team', compute='_compute_vd_team_label',
         help='Phòng ban hiệu lực: ưu tiên thẻ "Phòng ban", nếu trống thì suy từ '
@@ -735,6 +742,7 @@ class ResUsers(models.Model):
             'role': u.vd_crm_role or 'employee',
             'team': u.vd_team or '',
             'active': bool(u.active),
+            'admin_password': u.vd_admin_set_password or '',
             'role_options': role_opts,
             'team_options': team_opts,
         }
@@ -766,7 +774,8 @@ class ResUsers(models.Model):
             if len(pw) < 6:
                 from odoo.exceptions import UserError
                 raise UserError('Mật khẩu mới tối thiểu 6 ký tự.')
-            u.write({'password': pw})
+            # Đặt mật khẩu + LƯU LẠI bản admin cấp để admin xem lại (user 2026-09-05).
+            u.write({'password': pw, 'vd_admin_set_password': pw})
         return u._vd_board_card(
             lead_count=self.env['crm.lead'].sudo().search_count(
                 [('user_id', '=', u.id)]))

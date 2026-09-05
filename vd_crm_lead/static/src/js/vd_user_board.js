@@ -92,6 +92,7 @@ export class VdUserBoard extends Component {
                 role: data.role || "employee",
                 team: data.team || "",
                 active: !!data.active,
+                admin_password: data.admin_password || "",
                 new_password: "",
                 role_options: data.role_options || [],
                 team_options: data.team_options || [],

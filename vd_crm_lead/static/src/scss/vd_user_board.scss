@@ -217,3 +217,15 @@
 .o_vd_ub_mbtn_cancel { background: #f1f3f5; color: #495057; border-color: #dee2e6; }
 .o_vd_ub_mbtn_off { background: #fff4e6; color: #e8590c; border-color: #ffd8a8; }
 .o_vd_ub_mbtn_on { background: #ebfbee; color: #2b8a3e; border-color: #b2f2bb; }
+
+/* Ô hiện mật khẩu admin đã cấp (user spec 2026-09-05) */
+.o_vd_ub_pwbox {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    padding: 0.6rem 0.7rem; background: #fff9db; border: 1px solid #ffe066; border-radius: 8px;
+}
+.o_vd_ub_pwshow { display: flex; align-items: center; }
+.o_vd_ub_pwval {
+    font-family: 'SF Mono', Monaco, monospace; font-size: 1.05rem; font-weight: 800;
+    color: #5f3dc4; letter-spacing: 0.5px; -webkit-user-select: all; user-select: all;
+}
+.o_vd_ub_pwnone { font-size: 0.82rem; color: #ad5a00; font-style: italic; }
