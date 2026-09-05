@@ -3648,7 +3648,12 @@
                                                     <span class="o_vd_kh_tcell_lbl">GỌI HÔM NAY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_today_total or 0"/> · <t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
                                                 </div>
-                                                <div class="o_vd_kh_tcell">
+                                                <!-- THÁNG NÀY: hover → popover ghi âm > 3 phút (nghe lại) + thống kê.
+                                                     Khôi phục theo yêu cầu user 2026-09-05. -->
+                                                <div class="o_vd_kh_tcell o_vd_kh_tcell_rec"
+                                                     title="Đưa chuột vào để xem cuộc gọi > 3 phút của NV (nghe lại)"
+                                                     t-on-mouseenter="(ev) => this.onRecEnter(ev, nv)"
+                                                     t-on-mouseleave="() => this.onRecLeave()">
                                                     <span class="o_vd_kh_tcell_lbl">THÁNG NÀY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_month_total or 0"/> · <t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
                                                 </div>

@@ -12585,3 +12585,13 @@ $vd-rose:      #b06a6a;
         &.o_off { background: #e03131 !important; .o_vd_pk_knob { transform: translateX(0) !important; } }
     }
 }
+
+/* Ô "THÁNG NÀY" hover ra ghi âm >3' — gợi ý bấm được (user 2026-09-05) */
+.o_vd_kh_tcell.o_vd_kh_tcell_rec {
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.12s ease;
+}
+.o_vd_kh_tcell.o_vd_kh_tcell_rec:hover {
+    background: rgba(91, 143, 184, 0.12);
+}
