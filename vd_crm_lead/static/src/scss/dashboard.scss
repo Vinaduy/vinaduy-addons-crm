@@ -12495,7 +12495,7 @@ $vd-rose:      #b06a6a;
        dịu (indigo · teal · champagne), phân biệt bằng ICON. base .o_vd_lib_filter
        nằm ở module vd_elearning nên override tại đây (đều nằm trong dashboard). */
     // Câu hỏi khó (life-ring — chỉ .o_vd_lib_filter, không variant) -> indigo
-    .o_vd_lib_filter:not(.o_vd_house_lib_filter):not(.o_vd_3d_lib_filter):not(.o_vd_nt_lib_filter):not(.o_vd_cn3d_lib_filter):not(.o_vd_hd_lib_filter):not(.o_vd_bg_lib_filter) {
+    .o_vd_lib_filter:not(.o_vd_house_lib_filter):not(.o_vd_3d_lib_filter):not(.o_vd_nt_lib_filter):not(.o_vd_cn3d_lib_filter):not(.o_vd_hd_lib_filter):not(.o_vd_bg_lib_filter):not(.o_vd_refrec_libfilter):not(.o_vd_learn_libfilter) {
         background: linear-gradient(135deg, #6f7ee0, $vd-indigo-d) !important;
         border-color: #d6dbf7 !important;
     }
@@ -12644,7 +12644,8 @@ $vd-rose:      #b06a6a;
 }
 .o_vd_crm_dashboard .o_vd_lib_filter.o_vd_refrec_libfilter .o_vd_lib_ico,
 .o_vd_crm_dashboard .o_vd_lib_filter.o_vd_learn_libfilter .o_vd_lib_ico {
-    background: rgba(255, 255, 255, 0.22) !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 /* ===== MÀU TỈ LỆ NGHE MÁY (user spec 2026-09-05): <30 đỏ / 30-60 vàng / >60 xanh.
