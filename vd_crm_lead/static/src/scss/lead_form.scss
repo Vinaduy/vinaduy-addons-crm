@@ -2187,7 +2187,9 @@
 /* 2. Grid 2-col CHIA ĐỀU 50/50 — LEFT (KH + Báo giá) | RIGHT (Đàm phán + HĐ) */
 div.o_vd_layout_grid {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    /* 1 CỘT (user 2026-09-05): bảng THÔNG TIN TƯ VẤN + báo giá + đàm phán
+       xếp DỌC, mỗi bảng RỘNG TRỌN popup. Bỏ layout 2 cột (nửa phải hay trống). */
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 1rem !important;
     align-items: start !important;
     width: 100% !important;
