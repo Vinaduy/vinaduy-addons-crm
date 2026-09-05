@@ -145,12 +145,15 @@ export class VdUserBoard extends Component {
     }
 
     openUser(card) {
+        // Mở form res.users để SỬA thông tin — kể cả tài khoản đã dừng (archived)
+        // → tận dụng lại: đổi tên/login rồi kéo về ĐANG HOẠT ĐỘNG (user 2026-09-05).
         this.action.doAction({
             type: "ir.actions.act_window",
             res_model: "res.users",
             res_id: card.id,
             views: [[false, "form"]],
             target: "current",
+            context: { active_test: false },
         });
     }
     openNew() {

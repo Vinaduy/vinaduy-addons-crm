@@ -79,8 +79,8 @@
              t-att-style="`--team-color:${c.team_color}`"
              draggable="true"
              t-on-dragstart="ev => this.onDragStart(ev, c, c.active ? 'working' : 'off')"
-             t-on-dblclick="() => this.openUser(c)"
-             t-att-title="c.login + ' — nhấp đúp để mở'">
+             t-on-click="() => this.openUser(c)"
+             t-att-title="c.login + ' — bấm để sửa thông tin / tận dụng lại tài khoản'">
             <div class="o_vd_ub_code"><t t-esc="c.code"/></div>
             <div class="o_vd_ub_info">
                 <div class="o_vd_ub_name"><t t-esc="c.name"/></div>
