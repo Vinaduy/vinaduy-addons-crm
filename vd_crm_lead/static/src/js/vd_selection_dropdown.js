@@ -39,14 +39,21 @@ export class VdSelectionDropdown extends Component {
                 this.state.open = false;
             }
         };
+        // Menu là position:fixed neo theo rect input → khi popup CUỘN, input trôi
+        // mà menu đứng yên → lệch. Cuộn thì ĐÓNG menu (user 2026-09-05).
+        this._onScrollClose = () => { if (this.state.open) this.state.open = false; };
         onMounted(() => {
             document.addEventListener("click", this._onDocClick, true);
+            document.addEventListener("scroll", this._onScrollClose, true);
             // KHÔNG auto-open trên mount — sẽ trigger cho TẤT CẢ widgets cùng row
             // khi user add line / chọn row, gây menu stack chồng chéo.
             // Mở dropdown chỉ qua interaction explicit: onWrapperClick (user click)
             // hoặc quick_add_hover_open.js (hover cell trong wizard).
         });
-        onWillUnmount(() => document.removeEventListener("click", this._onDocClick, true));
+        onWillUnmount(() => {
+            document.removeEventListener("click", this._onDocClick, true);
+            document.removeEventListener("scroll", this._onScrollClose, true);
+        });
     }
 
     /** Inline style cho menu — position:fixed neo theo bounding rect của root,

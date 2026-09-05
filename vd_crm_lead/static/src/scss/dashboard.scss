@@ -12595,3 +12595,16 @@ $vd-rose:      #b06a6a;
 .o_vd_kh_tcell.o_vd_kh_tcell_rec:hover {
     background: rgba(91, 143, 184, 0.12);
 }
+
+/* =====================================================================
+   FIX MẤT VIỀN ĐÁY: popup có max-height 98.5vh + overflow hidden, nhưng
+   body KHÔNG cuộn → bảng cao (đủ thông tin + báo giá) bị cắt đáy, mất viền.
+   Cho .o_vd_preview_body CUỘN NỘI BỘ → luôn thấy trọn bảng + viền dưới.
+   Dropdown đóng khi cuộn (JS) nên menu không lệch. (user 2026-09-05)
+   ===================================================================== */
+.o_vd_preview_modal > .o_vd_preview_body,
+.o_vd_preview_body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 0 !important;
+}
