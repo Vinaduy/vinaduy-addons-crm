@@ -3505,12 +3505,12 @@
                                                     <span class="o_vd_kh_tcell_lbl">HÔM NAY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-user-plus"/> <t t-esc="nv.new_today_count or 0"/></span>
                                                 </div>
-                                                <div t-att-class="'o_vd_kh_tcell' + (isCallTodayWeak(nv) ? ' o_vd_kh_tcell_weak' : '')">
+                                                <div t-att-class="'o_vd_kh_tcell ' + pctClass(nv.calls_today_total, nv.calls_today_success)">
                                                     <span class="o_vd_kh_tcell_lbl">GỌI HÔM NAY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_today_total or 0"/> · <t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
                                                 </div>
                                                 <!-- THÁNG NÀY: hover ghi âm đã CHUYỂN sang TÊN NV (user 2026-09-05). -->
-                                                <div class="o_vd_kh_tcell">
+                                                <div t-att-class="'o_vd_kh_tcell ' + pctClass(nv.calls_month_total, nv.calls_month_success)">
                                                     <span class="o_vd_kh_tcell_lbl">THÁNG NÀY</span>
                                                     <span class="o_vd_kh_tcell_val"><i class="fa fa-phone"/> <t t-esc="nv.calls_month_total or 0"/> · <t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>%</span>
                                                 </div>

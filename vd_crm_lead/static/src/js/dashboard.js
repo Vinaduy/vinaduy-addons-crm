@@ -3534,6 +3534,17 @@ export class VdCrmDashboard extends Component {
         return mx > 0 && c < mx * 0.5;
     }
 
+    // Màu theo TỈ LỆ nghe máy (user spec 2026-09-05):
+    //   < 30% → đỏ | 30-60% → vàng | > 60% → xanh. 0 cuộc = đỏ.
+    pctClass(total, success) {
+        const t = total || 0;
+        if (t === 0) return "o_vd_pct_low";
+        const p = this.answeredPct(t, success);
+        if (p < 30) return "o_vd_pct_low";
+        if (p <= 60) return "o_vd_pct_mid";
+        return "o_vd_pct_high";
+    }
+
     // Mô tả NGUYÊN NHÂN khoá (coachmark cạnh ổ khoá). which: new|urgent|xlvd.
     lockReason(which) {
         if (which === 'quoted') {

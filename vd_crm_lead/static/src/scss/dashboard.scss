@@ -12632,12 +12632,29 @@ $vd-rose:      #b06a6a;
     margin: 0;
 }
 /* Icon phải mới — màu riêng để phân biệt */
-.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_refrec_libfilter .o_vd_lib_ico {
-    background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+/* 2 icon mới: NGUYÊN 1 MÀU cho cả thanh (bar + ico) — user spec 2026-09-05.
+   Ico trong suốt để ăn theo màu nền thanh (hết cảnh nửa cam nửa xanh). */
+.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_refrec_libfilter {
+    background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%) !important;
+    border-color: #ffe0c2 !important;
 }
+.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_learn_libfilter {
+    background: linear-gradient(135deg, #12b886 0%, #099268 100%) !important;
+    border-color: #c3fae8 !important;
+}
+.o_vd_crm_dashboard .o_vd_lib_filter.o_vd_refrec_libfilter .o_vd_lib_ico,
 .o_vd_crm_dashboard .o_vd_lib_filter.o_vd_learn_libfilter .o_vd_lib_ico {
-    background: linear-gradient(135deg, #12b886 0%, #099268 100%);
+    background: rgba(255, 255, 255, 0.22) !important;
 }
+
+/* ===== MÀU TỈ LỆ NGHE MÁY (user spec 2026-09-05): <30 đỏ / 30-60 vàng / >60 xanh.
+   Đổi cả nền ô nhẹ nhẹ để phân biệt. ===== */
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_low  { background: #fff5f5 !important; }
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_mid  { background: #fff9db !important; }
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_high { background: #ebfbee !important; }
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_low  .o_vd_kh_tcell_val { color: #e03131 !important; }
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_mid  .o_vd_kh_tcell_val { color: #e8930c !important; }
+.o_vd_crm_dashboard .o_vd_kh_tcell.o_vd_pct_high .o_vd_kh_tcell_val { color: #2b8a3e !important; }
 
 /* =====================================================================
    KHÁCH MỚI: pills dàn 13 CỘT (user spec 2026-09-05, main full width).
