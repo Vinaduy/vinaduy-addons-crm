@@ -135,6 +135,11 @@ class ResUsers(models.Model):
         # menu_overrides.xml → NV/TN/GĐ chỉ còn CRM.
         dash = self.env.ref('vd_crm_lead.action_vd_crm_dashboard',
                             raise_if_not_found=False)
+        # Nhóm QUẢN LÝ chuẩn Odoo (group_sale_manager) = "thấy tất cả KH". CHỈ
+        # Admin + Giám đốc mới có; Trưởng nhóm/NV/CTV KHÔNG (trưởng nhóm dùng
+        # record rule theo phòng ban). Trước đây đổi GĐ→NV không gỡ nhóm này →
+        # NV vẫn thấy tất cả + bị loại khỏi bảng hiệu suất (user 2026-09-07).
+        mgr_g = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
         for u in self:
             if not u.vd_crm_role:
                 continue
@@ -142,6 +147,11 @@ class ResUsers(models.Model):
             cmds = [(3, g.id) for g in all_groups]  # gỡ cả 5 vai trò trước
             if target:
                 cmds.append((4, target.id))  # gán vai trò mới (tự kéo theo cấp dưới)
+            if mgr_g:
+                if u.vd_crm_role in ('admin', 'director'):
+                    cmds.append((4, mgr_g.id))
+                else:
+                    cmds.append((3, mgr_g.id))  # gỡ manager cho TN/NV/CTV
             vals = {'groups_id': cmds}
             if dash:
                 vals['action_id'] = False if u.vd_crm_role == 'admin' else dash.id
