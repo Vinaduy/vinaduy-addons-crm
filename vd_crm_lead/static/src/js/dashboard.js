@@ -1424,7 +1424,9 @@ export class VdCrmDashboard extends Component {
     // Chỉ MANAGER/ADMIN được mở dashboard cá nhân của NV. Trưởng nhóm CHỈ xem
     // bảng tổng, KHÔNG bao giờ vào trang cá nhân NV (user spec 2026-06-14).
     get canDrillNv() {
-        return !!this.state.is_manager;
+        // Manager: mọi NV. Trưởng nhóm: NV trong nhóm mình (backend
+        // _dashboard_resolve_scope đã giới hạn theo team_ids). User 2026-09-07.
+        return !!(this.state.is_manager || this.state.is_team_leader);
     }
 
     // Click tên NV trong bảng → switch dashboard sang NV cụ thể đó
