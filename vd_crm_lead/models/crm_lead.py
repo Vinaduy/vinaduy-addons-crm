@@ -7869,6 +7869,111 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def dashboard_overview(self):
+        """KPI TỔNG QUAN per-NV cho tab "Tổng quan" (user spec 2026-09-08):
+        tổng KH, đã báo giá, chốt (tháng/tổng), TỈ LỆ CHUYỂN ĐỔI, gọi + % nghe.
+        Manager: mọi NV. Trưởng nhóm: NV trong nhóm. NV thường: không có tab này."""
+        is_manager = self._dashboard_is_manager()
+        is_tl = self._dashboard_is_team_leader()
+        if not (is_manager or is_tl):
+            return {'rows': [], 'totals': {}}
+        ResUsers = self.env['res.users']
+        salesman = self.env.ref('sales_team.group_sale_salesman').id
+        mgr_g = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
+        sys_g = self.env.ref('base.group_system', raise_if_not_found=False)
+        dom = [('share', '=', False), ('active', '=', True),
+               ('groups_id', 'in', salesman)]
+        if mgr_g:
+            dom.append(('groups_id', 'not in', mgr_g.id))
+        if sys_g:
+            dom.append(('groups_id', 'not in', sys_g.id))
+        if not is_manager and is_tl:
+            dom.append(('id', 'in', self._dashboard_team_member_ids()))
+        users = ResUsers.search(dom, order='name')
+        uids = users.ids
+        if not uids:
+            return {'rows': [], 'totals': {}}
+        now_vn = fields.Datetime.now() + timedelta(hours=7)
+        month_start = now_vn.replace(day=1, hour=0, minute=0, second=0,
+                                     microsecond=0) - timedelta(hours=7)
+        Lead = self.env['crm.lead']
+
+        def _rg(extra):
+            r = {}
+            for g in Lead.read_group(extra + [('user_id', 'in', uids)],
+                                     ['user_id'], ['user_id']):
+                if g.get('user_id'):
+                    r[g['user_id'][0]] = g['user_id_count']
+            return r
+        total_map = _rg([('active', '=', True)])
+        quoted_map = _rg([('stage_id.code', 'in', ['quote', 'negotiate', 'won'])])
+        won_all_map = _rg([('vd_contract_signed', '=', True)])
+        won_month_map = _rg([('vd_contract_signed', '=', True),
+                             ('vd_contract_sign_date', '>=', month_start.date())])
+        lost_map = _rg([('stage_is_lost', '=', True)])
+        Call = self.env['stringee.call']
+        calls_map, ans_map = {}, {}
+        for g in Call.read_group([('user_id', 'in', uids),
+                                  ('create_date', '>=', month_start)],
+                                 ['user_id'], ['user_id']):
+            if g.get('user_id'):
+                calls_map[g['user_id'][0]] = g['user_id_count']
+        for g in Call.read_group([('user_id', 'in', uids),
+                                  ('create_date', '>=', month_start),
+                                  ('duration', '>', 0)], ['user_id'], ['user_id']):
+            if g.get('user_id'):
+                ans_map[g['user_id'][0]] = g['user_id_count']
+
+        def _pct(a, b):
+            return round(a / b * 100) if b else 0
+        rows = []
+        tt = {'total': 0, 'quoted': 0, 'won_month': 0, 'won_all': 0,
+              'lost': 0, 'calls': 0, 'ans': 0}
+        for u in users:
+            total = total_map.get(u.id, 0)
+            quoted = quoted_map.get(u.id, 0)
+            won_all = won_all_map.get(u.id, 0)
+            won_month = won_month_map.get(u.id, 0)
+            lost = lost_map.get(u.id, 0)
+            calls = calls_map.get(u.id, 0)
+            ans = ans_map.get(u.id, 0)
+            tt['total'] += total
+            tt['quoted'] += quoted
+            tt['won_all'] += won_all
+            tt['won_month'] += won_month
+            tt['lost'] += lost
+            tt['calls'] += calls
+            tt['ans'] += ans
+            rows.append({
+                'user_id': u.id,
+                'name': u.name or '',
+                'team': self._vd_team_label_for(u),
+                'total': total,
+                'quoted': quoted,
+                'won_month': won_month,
+                'won_all': won_all,
+                'lost': lost,
+                'calls': calls,
+                'answered_pct': _pct(ans, calls),
+                'conv': _pct(won_all, total),
+                'conv_quoted': _pct(won_all, quoted),
+            })
+        rows.sort(key=lambda r: (r['conv'], r['won_all']), reverse=True)
+        totals = {
+            'nv_count': len(rows),
+            'total': tt['total'],
+            'quoted': tt['quoted'],
+            'won_month': tt['won_month'],
+            'won_all': tt['won_all'],
+            'lost': tt['lost'],
+            'calls': tt['calls'],
+            'answered_pct': _pct(tt['ans'], tt['calls']),
+            'conv': _pct(tt['won_all'], tt['total']),
+            'conv_quoted': _pct(tt['won_all'], tt['quoted']),
+        }
+        return {'rows': rows, 'totals': totals}
+
+    @api.model
     def dashboard_data(self, user_id=None, team_scope=False):
         """Single-payload data for the OWL dashboard.
 

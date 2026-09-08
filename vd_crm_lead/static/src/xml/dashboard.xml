@@ -934,6 +934,16 @@
                                             <span class="o_vd_dash_subview_sub">Hiệu suất từng NV</span>
                                         </span>
                                     </button>
+                                    <!-- Tab TỔNG QUAN (KPI + tỉ lệ chuyển đổi NV) — quản lý/trưởng nhóm -->
+                                    <button t-if="state.is_manager or state.is_team_leader"
+                                            t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_ov ' + (state.dashSubView === 'overview' ? 'o_active' : '')"
+                                            t-on-click="() => this.setDashSubView('overview')">
+                                        <i class="fa fa-line-chart o_vd_dash_subview_icon"/>
+                                        <span class="o_vd_dash_subview_lbl">
+                                            <span class="o_vd_dash_subview_title">Tổng quan</span>
+                                            <span class="o_vd_dash_subview_sub">Chỉ số &amp; chuyển đổi</span>
+                                        </span>
+                                    </button>
                                     <!-- Tab "Khách hàng" + "ALL khách hàng" ĐÃ BỎ (user 2026-08-28). -->
                                     <!-- Tab CHIA SỐ (chỉ quản lý có báo cáo) — bấm ra bảng đầy đủ -->
                                     <button t-if="state.pancake_report and state.pancake_report.today"
@@ -1008,6 +1018,87 @@
                             <div t-if="state.dashSubView === 'nv'" class="o_vd_kh_box">
                                 <!-- Báo cáo CHIA SỐ đã chuyển thành TAB riêng (2026-07-24). -->
                                 <t t-call="vd_crm_lead.VdKhTeamList"/>
+                            </div>
+
+                            <!-- ============ TAB TỔNG QUAN — KPI + tỉ lệ chuyển đổi NV ============ -->
+                            <div t-if="state.dashSubView === 'overview'" class="o_vd_ov_box">
+                                <div t-if="state.overviewLoading" class="o_vd_ov_loading">
+                                    <i class="fa fa-spinner fa-spin me-2"/>Đang tải chỉ số...
+                                </div>
+                                <t t-elif="state.overview">
+                                    <t t-set="ovt" t-value="state.overview.totals or {}"/>
+                                    <!-- THẺ TỔNG CÔNG TY -->
+                                    <div class="o_vd_ov_cards">
+                                        <div class="o_vd_ov_card">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.nv_count or 0"/></div>
+                                            <div class="o_vd_ov_card_lbl">Nhân viên</div>
+                                        </div>
+                                        <div class="o_vd_ov_card">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.total or 0"/></div>
+                                            <div class="o_vd_ov_card_lbl">Tổng khách</div>
+                                        </div>
+                                        <div class="o_vd_ov_card">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.quoted or 0"/></div>
+                                            <div class="o_vd_ov_card_lbl">Đã báo giá</div>
+                                        </div>
+                                        <div class="o_vd_ov_card o_vd_ov_card_won">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.won_month or 0"/></div>
+                                            <div class="o_vd_ov_card_lbl">Chốt tháng này</div>
+                                        </div>
+                                        <div class="o_vd_ov_card o_vd_ov_card_won">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.won_all or 0"/></div>
+                                            <div class="o_vd_ov_card_lbl">Tổng chốt</div>
+                                        </div>
+                                        <div t-att-class="'o_vd_ov_card o_vd_ov_card_conv ' + ovPctClass(ovt.conv)">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.conv or 0"/>%</div>
+                                            <div class="o_vd_ov_card_lbl">Tỉ lệ chuyển đổi<br/>(chốt / tổng KH)</div>
+                                        </div>
+                                        <div t-att-class="'o_vd_ov_card ' + ovPctClass(ovt.answered_pct)">
+                                            <div class="o_vd_ov_card_num"><t t-esc="ovt.answered_pct or 0"/>%</div>
+                                            <div class="o_vd_ov_card_lbl">Nghe máy (tháng)</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- BẢNG CHI TIẾT PER-NV -->
+                                    <div class="o_vd_ov_tablewrap">
+                                        <table class="o_vd_ov_table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="o_vd_ov_th_nv">Nhân viên</th>
+                                                    <th>Phòng</th>
+                                                    <th class="o_vd_ov_num">Tổng KH</th>
+                                                    <th class="o_vd_ov_num">Đã báo giá</th>
+                                                    <th class="o_vd_ov_num">Chốt tháng</th>
+                                                    <th class="o_vd_ov_num">Tổng chốt</th>
+                                                    <th class="o_vd_ov_num">Chuyển đổi<br/>(chốt/tổng)</th>
+                                                    <th class="o_vd_ov_num">Chốt/báo giá</th>
+                                                    <th class="o_vd_ov_num">Gọi tháng</th>
+                                                    <th class="o_vd_ov_num">Nghe máy</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.overview.rows" t-as="r" t-key="r.user_id"
+                                                    class="o_vd_ov_row"
+                                                    t-on-click="() => this.selectNvFromDashboard(r.user_id)">
+                                                    <td class="o_vd_ov_td_nv"><t t-esc="r.name"/></td>
+                                                    <td class="o_vd_ov_td_team"><t t-esc="r.team"/></td>
+                                                    <td class="o_vd_ov_num"><t t-esc="r.total"/></td>
+                                                    <td class="o_vd_ov_num"><t t-esc="r.quoted"/></td>
+                                                    <td class="o_vd_ov_num o_vd_ov_won"><t t-esc="r.won_month"/></td>
+                                                    <td class="o_vd_ov_num o_vd_ov_won"><t t-esc="r.won_all"/></td>
+                                                    <td t-att-class="'o_vd_ov_num o_vd_ov_convcell ' + ovPctClass(r.conv)"><t t-esc="r.conv"/>%</td>
+                                                    <td class="o_vd_ov_num"><t t-esc="r.conv_quoted"/>%</td>
+                                                    <td class="o_vd_ov_num"><t t-esc="r.calls"/></td>
+                                                    <td t-att-class="'o_vd_ov_num ' + ovPctClass(r.answered_pct)"><t t-esc="r.answered_pct"/>%</td>
+                                                </tr>
+                                                <tr t-if="!state.overview.rows.length">
+                                                    <td colspan="10" class="o_vd_ov_empty">Chưa có dữ liệu.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="o_vd_ov_hint">💡 Bấm 1 dòng để mở dashboard chi tiết của NV đó. Sắp xếp theo tỉ lệ chuyển đổi cao → thấp.</div>
+                                </t>
                             </div>
 
                             <!-- ============================================================

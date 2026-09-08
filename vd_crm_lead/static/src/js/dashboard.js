@@ -263,7 +263,9 @@ export class VdCrmDashboard extends Component {
             // KHÔNG nháy khi tải trang (user spec 2026-06-20 r11).
             allTeamGroups: [],
             allTeamLoading: false,
-            dashSubView: "nv",      // 'nv' (bảng NV) | 'kh' (KH có vấn đề) — hover chip để switch
+            dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số) | 'overview' (tổng quan)
+            overview: null,         // KPI tổng quan (lazy load khi mở tab)
+            overviewLoading: false,
             distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month
             adminTab: "overview",
             nvDetail: null,
@@ -1209,6 +1211,31 @@ export class VdCrmDashboard extends Component {
 
     setDashSubView(mode) {
         if (this.state.dashSubView !== mode) this.state.dashSubView = mode;
+        if (mode === "overview") this.loadOverview();
+    }
+
+    // TỔNG QUAN: nạp KPI per-NV (lazy — chỉ khi mở tab). User spec 2026-09-08.
+    async loadOverview(force) {
+        if (this.state.overviewLoading) return;
+        if (this.state.overview && !force) return;   // đã có, khỏi tải lại
+        this.state.overviewLoading = true;
+        try {
+            this.state.overview = await this.orm.call(
+                "crm.lead", "dashboard_overview", []);
+        } catch (e) {
+            this.notification.add(
+                "Không tải được tổng quan. " + ((e && e.message) || ""),
+                { type: "danger" });
+        } finally {
+            this.state.overviewLoading = false;
+        }
+    }
+    // Màu theo tỉ lệ (tái dùng ngưỡng): <30 đỏ / 30-60 vàng / >60 xanh.
+    ovPctClass(p) {
+        const v = p || 0;
+        if (v < 30) return "o_vd_ov_low";
+        if (v <= 60) return "o_vd_ov_mid";
+        return "o_vd_ov_high";
     }
 
     /**

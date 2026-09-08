@@ -12696,3 +12696,54 @@ $vd-rose:      #b06a6a;
 .o_vd_crm_dashboard .o_vd_icon_panel {
     margin-right: 96px !important;
 }
+
+/* =====================================================================
+   TAB TỔNG QUAN — KPI + tỉ lệ chuyển đổi NV (user spec 2026-09-08)
+   ===================================================================== */
+.o_vd_crm_dashboard .o_vd_ov_box { padding: 0.5rem 0.2rem 1.5rem; }
+.o_vd_crm_dashboard .o_vd_ov_loading { padding: 2rem; text-align: center; color: #6b7a90; }
+.o_vd_crm_dashboard .o_vd_ov_cards {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 1.1rem;
+}
+.o_vd_crm_dashboard .o_vd_ov_card {
+    background: #fff; border: 1px solid #e3e9f2; border-radius: 12px;
+    padding: 0.8rem 0.6rem; text-align: center;
+    box-shadow: 0 2px 8px -4px rgba(30,58,95,0.15);
+}
+.o_vd_crm_dashboard .o_vd_ov_card_num { font-size: 1.7rem; font-weight: 800; color: #1f3a63; line-height: 1.1; }
+.o_vd_crm_dashboard .o_vd_ov_card_lbl { font-size: 0.72rem; font-weight: 600; color: #6b7a90; margin-top: 0.3rem; text-transform: uppercase; letter-spacing: 0.3px; }
+.o_vd_crm_dashboard .o_vd_ov_card_won .o_vd_ov_card_num { color: #157347; }
+/* thẻ chuyển đổi + màu theo ngưỡng */
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_low  { background: #fff5f5; border-color: #ffc9c9; }
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_mid  { background: #fff9db; border-color: #ffe066; }
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_high { background: #ebfbee; border-color: #b2f2bb; }
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_low  .o_vd_ov_card_num { color: #e03131; }
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_mid  .o_vd_ov_card_num { color: #e8930c; }
+.o_vd_crm_dashboard .o_vd_ov_card.o_vd_ov_high .o_vd_ov_card_num { color: #2b8a3e; }
+
+.o_vd_crm_dashboard .o_vd_ov_tablewrap { overflow-x: auto; border: 1px solid #e3e9f2; border-radius: 12px; background: #fff; }
+.o_vd_crm_dashboard .o_vd_ov_table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.o_vd_crm_dashboard .o_vd_ov_table thead th {
+    background: #5c8fb8; color: #fff; font-weight: 700; font-size: 0.8rem;
+    padding: 0.6rem 0.7rem; text-align: center; border: 1px solid #4a7aa0; white-space: nowrap;
+}
+.o_vd_crm_dashboard .o_vd_ov_table th.o_vd_ov_th_nv { text-align: left; }
+.o_vd_crm_dashboard .o_vd_ov_table td { padding: 0.5rem 0.7rem; border: 1px solid #eef2f7; text-align: center; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_num { text-align: center; font-weight: 600; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_td_nv { text-align: left; font-weight: 700; color: #1f3a63; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_td_team { color: #6b7a90; font-size: 0.82rem; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_won { color: #157347; font-weight: 700; }
+.o_vd_crm_dashboard .o_vd_ov_row { cursor: pointer; transition: background 0.12s ease; }
+.o_vd_crm_dashboard .o_vd_ov_row:hover { background: #f1f6fc; }
+.o_vd_crm_dashboard .o_vd_ov_row:nth-child(even) { background: #fafcff; }
+.o_vd_crm_dashboard .o_vd_ov_row:nth-child(even):hover { background: #f1f6fc; }
+/* ô % theo ngưỡng */
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_low  { color: #e03131; font-weight: 800; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_mid  { color: #e8930c; font-weight: 800; }
+.o_vd_crm_dashboard .o_vd_ov_table td.o_vd_ov_high { color: #2b8a3e; font-weight: 800; }
+.o_vd_crm_dashboard .o_vd_ov_convcell { font-size: 0.98rem; }
+.o_vd_crm_dashboard .o_vd_ov_empty { text-align: center; color: #6b7a90; padding: 1.5rem; }
+.o_vd_crm_dashboard .o_vd_ov_hint { margin-top: 0.6rem; font-size: 0.8rem; color: #6b7a90; }
