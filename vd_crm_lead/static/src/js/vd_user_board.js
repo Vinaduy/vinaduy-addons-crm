@@ -54,7 +54,7 @@ export class VdUserBoard extends Component {
 
     // Gom theo PHÒNG BAN thành các cột; trưởng nhóm/lãnh đạo đứng đầu mỗi cột.
     _groupByTeam(list) {
-        const ORDER = ["HCM1", "HCM2", "HCM3", "HN", "QN", "CTV", "VINADUY", "KHÁC"];
+        const ORDER = ["HCM1", "HCM2", "HCM3", "HN", "QN", "CTV", "VINADUY", "Lọc số", "KHÁC"];
         const map = {};
         for (const c of list) {
             const t = c.team || "KHÁC";

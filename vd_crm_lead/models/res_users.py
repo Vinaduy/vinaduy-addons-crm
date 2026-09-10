@@ -12,6 +12,7 @@ _DEFAULT_OVERDUE_THRESHOLD = 15
 _VD_TEAM_SELECTION = [
     ('HCM1', 'HCM1'), ('HCM2', 'HCM2'), ('HN', 'HN'), ('HN2', 'HN2'),
     ('CTV', 'CTV'), ('VINADUY', 'VINADUY'),
+    ('Lọc số', 'Lọc số'),   # bộ phận up số / quét số / gọi OMI (user 2026-09-10)
 ]
 
 # 5 vai trò CRM — XML id nhóm, xếp từ CAO xuống THẤP (admin → CTV).
@@ -629,7 +630,7 @@ class ResUsers(models.Model):
     _VD_TEAM_COLOR = {
         'HCM1': '#228be6', 'HCM2': '#15aabf', 'HCM3': '#0ca678',
         'HN': '#fa5252', 'QN': '#f59f00', 'CTV': '#12b886',
-        'VINADUY': '#7048e8', 'KHÁC': '#868e96',
+        'VINADUY': '#7048e8', 'Lọc số': '#e8590c', 'KHÁC': '#868e96',
     }
     _VD_ROLE_LABEL = {
         'admin': 'Admin', 'director': 'Phó GĐ', 'team_leader': 'Trưởng nhóm',
