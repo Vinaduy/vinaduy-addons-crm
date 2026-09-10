@@ -20,8 +20,8 @@ _logger = logging.getLogger(__name__)
 
 # NV tồn >= ngưỡng này KH "chờ duyệt hủy" → phần mềm CHẶN không cho hủy thêm,
 # ép trưởng phòng duyệt/từ chối bớt xuống DƯỚI ngưỡng (user spec 2026-06-21).
-# Nâng 20 → 50 (2026-07-31) → 100 (user spec 2026-09-07). Trưởng nhóm duyệt hủy trước.
-_VD_PENDING_CANCEL_BLOCK = 100
+# Nâng 20 → 50 (2026-07-31) → 100 (2026-09-07) → 300 (user spec 2026-09-10).
+_VD_PENDING_CANCEL_BLOCK = 300
 
 # Số lần NV được TỰ dời "ngày gọi lại" với KH ĐÃ BÁO GIÁ (đã chốt thông tin).
 # Quá số này phải nhờ Trưởng nhóm/Giám đốc/Admin (không giới hạn). User spec 2026-08-09.
