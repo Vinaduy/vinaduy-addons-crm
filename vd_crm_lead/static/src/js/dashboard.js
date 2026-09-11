@@ -4326,10 +4326,12 @@ export class VdCrmDashboard extends Component {
         // dashboard đã hiện lại ngay từ cache nên không thấy "load".
         this.state.previewLead = { ...this.state.previewLead, open: false };
         this._unlockScroll();
-        if (this._vdNeedRefreshAfterPreview) {
-            this._vdNeedRefreshAfterPreview = false;
-            this.refreshAfterPreview();
-        }
+        // LUÔN refresh NHẸ khi đóng popup (user spec 2026-09-11): huỷ khách / chuyển
+        // NV qua WIZARD không kích onRecordSaved nên trước đây phải F5 mới thấy KH
+        // rớt xuống HỦY. refreshAfterPreview chạy ngầm (silent selectStage + cache)
+        // nên không gây "load trang".
+        this._vdNeedRefreshAfterPreview = false;
+        this.refreshAfterPreview();
     }
 
     /**
