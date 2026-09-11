@@ -2894,6 +2894,12 @@
         <!-- DÒNG 1: LỊCH HẸN GỌI -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_cbrow">
             <span class="o_vd_pfilter_lbl">📅 LỊCH HẸN GỌI:</span>
+            <!-- TẤT CẢ: bỏ lọc, xem hết (user spec 2026-09-11) -->
+            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, 0)"
+                  title="Xem TẤT CẢ khách — bỏ mọi bộ lọc">
+                <span class="o_vd_daybtn_main">📋 Tất cả</span>
+            </span>
             <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
                   t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_today' ? ' o_vd_daybtn_overdue' : '') + (filterVal(scope) === cb.k ? ' o_vd_daybtn_on' : '')"
                   t-on-click="() => this.setFilter(scope, cb.k)"
