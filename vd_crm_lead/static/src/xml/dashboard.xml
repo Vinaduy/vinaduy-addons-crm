@@ -2907,31 +2907,23 @@
                 <span class="o_vd_daybtn_main"><t t-esc="cb.l"/></span>
                 <span t-if="filterCount(scope, cb.k)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, cb.k)"/></span>
             </span>
-            <!-- Không hẹn -->
-            <span t-att-class="'o_vd_daybtn o_vd_daybtn_none' + (filterVal(scope) === 'cb_none' ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, 'cb_none')"
-                  title="Khách CHƯA đặt lịch hẹn gọi lại">
-                <span class="o_vd_daybtn_main">Không hẹn</span>
-                <span t-if="filterCount(scope, 'cb_none')" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, 'cb_none')"/></span>
-            </span>
-            <!-- Menu XA HƠN đã BỎ (user spec 2026-09-11). -->
+            <!-- "Không hẹn" + "Xa hơn" đã BỎ (user spec 2026-09-11): chỉ giữ 5 nút. -->
         </div>
-        <!-- DÒNG 2: CHƯA GỌI X NGÀY (chỉ KH chưa đặt hẹn) -->
+        <!-- DÒNG 2: CHƯA GỌI — cùng 5 nút (user spec 2026-09-11):
+             Tất cả / Hôm nay / Ngày mai / Tuần / Tháng. -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
             <span class="o_vd_pfilter_lbl">☎️ CHƯA GỌI:</span>
-            <span t-att-class="'o_vd_daybtn o_vd_daybtn_moigoi' + (filterVal(scope) === 'moigoi' ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, 'moigoi')"
-                  title="Khách VỪA GỌI xong (0–3 ngày)">
-                <span class="o_vd_daybtn_main">🆕 Mới gọi</span>
-                <span t-if="filterCount(scope, 'moigoi')" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, 'moigoi')"/></span>
+            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, 0)"
+                  title="Xem TẤT CẢ — bỏ lọc">
+                <span class="o_vd_daybtn_main">📋 Tất cả</span>
             </span>
-            <span t-foreach="dayFilterOptions" t-as="d" t-key="d"
-                  t-att-class="'o_vd_daybtn' + (filterVal(scope) === d ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, d)"
-                  t-att-title="dayRangeTitle(d)">
-                <span class="o_vd_daybtn_num"><t t-esc="dayNumLabel(d)"/></span>
-                <span class="o_vd_daybtn_lbl">Chưa gọi</span>
-                <span t-if="filterCount(scope, d)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, d)"/></span>
+            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                  t-att-class="'o_vd_daybtn' + (filterVal(scope) === cb.k ? ' o_vd_daybtn_on' : '')"
+                  t-on-click="() => this.setFilter(scope, cb.k)"
+                  t-att-title="cb.l">
+                <span class="o_vd_daybtn_main"><t t-esc="cb.l"/></span>
+                <span t-if="filterCount(scope, cb.k)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, cb.k)"/></span>
             </span>
         </div>
       </div>

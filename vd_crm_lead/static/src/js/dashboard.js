@@ -1888,14 +1888,12 @@ export class VdCrmDashboard extends Component {
     // Nhóm lọc LỊCH HẸN GỌI — CỬA SỔ TRƯỢT theo số ngày tới ngày hẹn (tự xoay mỗi
     // ngày). Hôm nay gồm cả quá hạn (d<=0 = cần gọi hôm nay).
     get cbBucketOptions() {
+        // Gọn còn 4 mốc (user spec 2026-09-11): Hôm nay / Ngày mai / Tuần / Tháng.
         return [
-            { k: "cb_today", l: "Hôm nay gọi" },
-            { k: "cb_tomorrow", l: "Ngày mai gọi" },
-            { k: "cb_2d", l: "2 Ngày nữa gọi" },
-            { k: "cb_3d", l: "3 Ngày nữa gọi" },
-            { k: "cb_week", l: "Tuần này gọi" },
-            { k: "cb_nextweek", l: "Tuần sau gọi" },
-            { k: "cb_month", l: "Tháng này gọi" },
+            { k: "cb_today", l: "Hôm nay" },
+            { k: "cb_tomorrow", l: "Ngày mai" },
+            { k: "cb_week", l: "Tuần này" },
+            { k: "cb_month", l: "Tháng này" },
         ];
     }
     // Các mốc XA — ẩn trong menu xổ xuống.
