@@ -2914,22 +2914,7 @@
                 <span class="o_vd_daybtn_main">Không hẹn</span>
                 <span t-if="filterCount(scope, 'cb_none')" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, 'cb_none')"/></span>
             </span>
-            <!-- Menu XA HƠN (Tháng sau … 1 Năm sau) -->
-            <span class="o_vd_daymore">
-                <span t-att-class="'o_vd_daybtn o_vd_daybtn_more' + (cbMoreActive(scope) ? ' o_vd_daybtn_on' : '')"
-                      t-on-click="() => this.toggleCbMore(scope)"
-                      title="Các mốc xa hơn">
-                    <span class="o_vd_daybtn_main">Xa hơn ▾</span>
-                </span>
-                <div t-if="state.cbMoreOpen === scope" class="o_vd_daymore_menu">
-                    <div t-foreach="cbMoreOptions" t-as="cm" t-key="cm.k"
-                         t-att-class="'o_vd_daymore_item' + (filterVal(scope) === cm.k ? ' o_on' : '')"
-                         t-on-click="() => this.setFilterMore(scope, cm.k)">
-                        <span class="o_vd_daymore_lbl"><t t-esc="cm.l"/></span>
-                        <span class="o_vd_daymore_cnt"><t t-esc="filterCount(scope, cm.k)"/></span>
-                    </div>
-                </div>
-            </span>
+            <!-- Menu XA HƠN đã BỎ (user spec 2026-09-11). -->
         </div>
         <!-- DÒNG 2: CHƯA GỌI X NGÀY (chỉ KH chưa đặt hẹn) -->
         <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
