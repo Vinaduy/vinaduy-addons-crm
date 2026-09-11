@@ -106,6 +106,10 @@ class VdCrmRoleConfig(models.Model):
         user = user or self.env.user
         if user.has_group('vd_crm_lead.vd_crm_group_admin'):
             return True
+        # Bộ phận LỌC SỐ (up số / quét số / gọi OMI): được CHUYỂN KH cho NV bán
+        # hàng — có thông tin xong thì chuyển (user spec 2026-09-11).
+        if getattr(user, 'vd_team', False) == 'Lọc số':
+            return True
         # Tìm config cao nhất user thuộc về
         cfg = self.sudo().search([
             ('group_id', 'in', user.groups_id.ids),
