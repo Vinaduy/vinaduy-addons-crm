@@ -1094,3 +1094,35 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
 .o_vd_quick_add_form .o_field_x2many_list_row_add {
     display: none !important;
 }
+
+/* =====================================================================
+   BẢNG "Thêm KH mới" — viền + header xanh như BÁO GIÁ CHI TIẾT
+   (user spec 2026-09-11). Kẻ ô rõ, dễ nhập.
+   ===================================================================== */
+.o_vd_quick_add_form .o_list_table {
+    border-collapse: collapse !important;
+    border: 1.5px solid #4a7aa0 !important;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.o_vd_quick_add_form .o_list_table > thead > tr > th {
+    background: #5c8fb8 !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    border: 1px solid #1864ab !important;
+    padding: 0.6rem 0.75rem !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+.o_vd_quick_add_form .o_list_table > tbody > tr > td {
+    border: 1px solid #93c5fd !important;
+    padding: 0.45rem 0.6rem !important;
+    background: #fff !important;
+    vertical-align: middle !important;
+}
+.o_vd_quick_add_form .o_list_table > tbody > tr:hover > td { background: #f1f6fc !important; }
+.o_vd_quick_add_form .o_list_table > tbody > tr.o_selected_row > td { background: #eef6ff !important; }
+/* Ô checkbox + nút xoá căn giữa cho gọn */
+.o_vd_quick_add_form .o_list_table td.o_list_record_selector,
+.o_vd_quick_add_form .o_list_table td.o_handle_cell { text-align: center !important; }
