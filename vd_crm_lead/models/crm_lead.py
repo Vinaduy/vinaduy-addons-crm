@@ -3491,6 +3491,11 @@ class CrmLead(models.Model):
 
     vd_contract_signed = fields.Boolean(string='Đã ký HĐ', readonly=True, copy=False)
     vd_contract_sign_date = fields.Date(string='Ngày ký HĐ', readonly=True, copy=False)
+    # KH đồng ý báo giá + đã hẹn lịch đi gặp để chốt (user spec 2026-09-14).
+    vd_has_appointment = fields.Boolean(
+        string='Đã hẹn gặp khách', readonly=True, copy=False, index=True)
+    vd_appointment_date = fields.Date(
+        string='Ngày hẹn gặp', readonly=True, copy=False)
     vd_contract_deposit = fields.Monetary(
         string='Tiền cọc đã nhận', currency_field='vd_currency_vnd_id',
         readonly=True, copy=False,
@@ -6216,6 +6221,37 @@ class CrmLead(models.Model):
                 'type': 'rainbow_man',
             },
         }
+
+    def action_mark_quoted_lost(self):
+        """📵 Nút trong popup KH: chuyển vào box BÁO GIÁ XONG MẤT TÍCH
+        (user spec 2026-09-14)."""
+        self.ensure_one()
+        self.with_context(mail_notrack=True).write({'vd_quoted_lost_manual': True})
+        self.message_post(subtype_xmlid='mail.mt_note', body=_(
+            '📵 <b>BÁO GIÁ XONG MẤT TÍCH</b> — KH không liên lạc lại sau báo giá.'))
+        return True
+
+    def action_mark_appointment(self):
+        """📅 Nút trong popup KH: KH đồng ý báo giá + đã hẹn lịch đi gặp
+        (user spec 2026-09-14)."""
+        self.ensure_one()
+        # Bỏ cờ mất tích nếu có (đã liên lạc + hẹn gặp được).
+        self.with_context(mail_notrack=True).write({
+            'vd_has_appointment': True,
+            'vd_appointment_date': fields.Date.context_today(self),
+            'vd_quoted_lost_manual': False,
+        })
+        self.message_post(subtype_xmlid='mail.mt_note', body=_(
+            '📅 <b>ĐÃ HẸN GẶP KHÁCH</b> ngày %s — chuẩn bị đi gặp chốt hợp đồng.'
+        ) % fields.Date.context_today(self).strftime('%d/%m/%Y'))
+        return True
+
+    def action_unmark_appointment(self):
+        """Bỏ đánh dấu Đã hẹn gặp (bấm lại nút)."""
+        self.ensure_one()
+        self.with_context(mail_notrack=True).write({
+            'vd_has_appointment': False, 'vd_appointment_date': False})
+        return True
 
     def action_hangup_active(self):
         """End the lead's currently active call. Stays on the same form.
