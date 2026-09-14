@@ -2773,7 +2773,47 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
+                            <!-- ĐÃ HẸN GẶP: NV bấm nút "Đã hẹn gặp" sau báo giá
+                                 (vd_has_appointment) — 2026-09-14 -->
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_appointment o_vd_tile_shared"
+                                 t-on-mouseenter="(ev) => this.onTileEnter('appointment', ev)"
+                                 t-on-mouseleave="() => this.onTileLeave('appointment')"
+                                 title="KH đã hẹn gặp sau báo giá.">
+                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">📅</div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">ĐÃ HẸN<br/>GẶP</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsAppointment.length"/></div>
+                                </div>
+                                <div t-att-class="'o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_appointment' + (state.pinnedTile === 'appointment' ? ' o_vd_pop_pinned' : '')"
+                                     t-on-click.stop="() => this.noop()">
+                                    <div class="o_vd_trash_popover_head">
+                                        📅 ĐÃ HẸN GẶP (<t t-esc="leadsAppointment.length"/>)
+                                        <div class="o_vd_trash_popover_hint">
+                                            Đã báo giá · đã hẹn lịch đi gặp khách
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_trash_popover_body" t-if="state.pinnedTile === 'appointment'">
+                                        <div t-if="!leadsAppointment.length" class="o_vd_trash_popover_empty">
+                                            ✓ Không có KH nào trong nhóm này
+                                        </div>
+                                        <div t-foreach="leadsAppointment" t-as="ld" t-key="ld.id"
+                                             class="o_vd_trash_popover_item"
+                                             t-on-click.stop="() => this.openLead(ld.id)">
+                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
+                                            <button t-if="ld.phone"
+                                                    class="btn btn-sm o_vd_notcalled_call_btn"
+                                                    t-on-click="(ev) => this.callLeadDirect(ev, ld.id)"
+                                                    title="Gọi KH ngay">
+                                                <i class="fa fa-phone me-1"/> Gọi
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div><!-- /.o_vd_icon_panel -->
                         </div><!-- /.o_vd_lead_dual_cols -->
 

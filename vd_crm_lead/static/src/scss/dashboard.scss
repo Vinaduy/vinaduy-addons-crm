@@ -5639,6 +5639,26 @@
         min-width: 96px;
     }
 
+    /* Variant ĐÃ HẸN GẶP — xanh ngọc (đã báo giá + hẹn lịch gặp) 2026-09-14 */
+    .o_vd_trash_box.o_vd_split_appointment {
+        cursor: pointer;
+        background: linear-gradient(135deg, #e3fafc 0%, #c5f6fa 100%);
+        border-color: #0c8599;
+        .o_vd_trash_icon { color: #0c8599; }
+        .o_vd_trash_icon_emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 8px rgba(12, 133, 153, 0.35));
+            user-select: none;
+        }
+        .o_vd_trash_label { color: #0b7285; text-align: center; line-height: 1.18; }
+        .o_vd_trash_count { color: #0b7285; text-align: center; }
+    }
+    .o_vd_trash_popover.o_vd_trash_popover_appointment .o_vd_trash_popover_head {
+        background: linear-gradient(135deg, #99e9f2, #66d9e8);
+        border-bottom: 2px solid #0c8599;
+    }
+
     /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
     .o_vd_trash_box.o_vd_split_reference {
         .o_vd_trash_icon { color: #2b8a3e; }
@@ -12488,6 +12508,10 @@ $vd-rose:      #b06a6a;
     .o_vd_trash_box.o_vd_split_planned_sign {
         background: $vd-indigo-bg !important; border-color: #d3d9f2 !important;
         .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: $vd-indigo-d !important; }
+    }
+    .o_vd_trash_box.o_vd_split_appointment {
+        background: #e3fafc !important; border-color: #99e9f2 !important;
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: #0b7285 !important; }
     }
 
     /* ===== 6 NÚT THƯ VIỆN NỔI bên phải (life-ring/home/box/film/grid/doc):

@@ -249,6 +249,9 @@ export class VdCrmDashboard extends Component {
             // KH "GỬI HỢP ĐỒNG": đã đặt lịch ký HĐ (Làm hợp đồng - Hẹn gặp) chưa
             // ký xong — box cuối bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ (2026-06-12)
             leadsPlannedSignAll: [],
+            // KH "ĐÃ HẸN GẶP": NV bấm nút "Đã hẹn gặp" sau báo giá
+            // (vd_has_appointment) — ô đếm panel icon phải (2026-09-14)
+            leadsAppointmentAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -1563,6 +1566,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsReferenceAll = p.reference || [];
             this.state.leadsQuotedLostAll = p.quotedLost || [];
             this.state.leadsPlannedSignAll = p.plannedSign || [];
+            this.state.leadsAppointmentAll = p.appointment || [];
         } else {
             this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];
@@ -1572,6 +1576,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsReferenceAll = [];
             this.state.leadsQuotedLostAll = [];
             this.state.leadsPlannedSignAll = [];
+            this.state.leadsAppointmentAll = [];
             this.state.cancelReport = [];
         }
         this.state.leadsLoading = false;
@@ -1586,6 +1591,7 @@ export class VdCrmDashboard extends Component {
             leadsReferenceAll: this.state.leadsReferenceAll,
             leadsQuotedLostAll: this.state.leadsQuotedLostAll,
             leadsPlannedSignAll: this.state.leadsPlannedSignAll,
+            leadsAppointmentAll: this.state.leadsAppointmentAll,
         };
     }
 
@@ -2029,6 +2035,10 @@ export class VdCrmDashboard extends Component {
     get leadsPlannedSign() {
         return this.state.leadsPlannedSignAll || [];
     }
+    // Ô "ĐÃ HẸN GẶP" — NV đã bấm nút hẹn gặp sau báo giá (vd_has_appointment).
+    get leadsAppointment() {
+        return this.state.leadsAppointmentAll || [];
+    }
     // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
         return this.state.leadsLostAll || [];
@@ -2358,7 +2368,7 @@ export class VdCrmDashboard extends Component {
     // Danh sách ô ĐÃ chuyển sang "ô dùng chung + hover" (không vẽ lại trang). Ô nào
     // ở đây thì hover dựng popover trực tiếp bằng DOM (nút bên trong vẫn bấm được
     // qua event-delegation). Ô KHÁC vẫn dùng OWL lazy (state.hoverTile) như cũ.
-    _tileSharedKeys() { return new Set(["notcalled", "reference", "quoted_lost", "planned_sign"]); }
+    _tileSharedKeys() { return new Set(["notcalled", "reference", "quoted_lost", "planned_sign", "appointment"]); }
     onTileEnter(key, ev) {
         if (this._tileSharedKeys().has(key)) {
             const el = ev && ev.currentTarget;
@@ -2484,6 +2494,9 @@ export class VdCrmDashboard extends Component {
         }
         if (key === "planned_sign") {
             return wrap("📝 KHÁCH GỬI HỢP ĐỒNG", this.leadsPlannedSign || [], (ld) => base(ld, ""));
+        }
+        if (key === "appointment") {
+            return wrap("📅 ĐÃ HẸN GẶP", this.leadsAppointment || [], (ld) => base(ld, ""));
         }
         return "";
     }

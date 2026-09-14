@@ -8602,6 +8602,7 @@ class CrmLead(models.Model):
             ('reference', 'dashboard_leads_reference'),
             ('quotedLost', 'dashboard_leads_quoted_lost'),
             ('plannedSign', 'dashboard_leads_planned_sign'),
+            ('appointment', 'dashboard_leads_appointment'),
             ('cancelReport', 'dashboard_cancel_report'),
         ):
             try:
@@ -9210,6 +9211,26 @@ class CrmLead(models.Model):
                 ('active', '=', True),
             ],
             order='vd_planned_sign_date asc, id desc',
+            limit=limit,
+        )
+        if not leads:
+            return []
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
+    def dashboard_leads_appointment(self, user_id=None, limit=200):
+        """KH "ĐÃ HẸN GẶP" — NV bấm nút "Đã hẹn gặp" sau khi báo giá
+        (vd_has_appointment=True). Dùng cho ô đếm "ĐÃ HẸN GẶP" ở panel icon
+        bên phải (user spec 2026-09-14). Loại KH đã chốt HĐ / đã hủy."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        leads = self.search(
+            domain_user + [
+                ('vd_has_appointment', '=', True),
+                ('vd_contract_signed', '=', False),
+                ('stage_is_lost', '=', False),
+                ('active', '=', True),
+            ],
+            order='vd_appointment_date desc, id desc',
             limit=limit,
         )
         if not leads:
