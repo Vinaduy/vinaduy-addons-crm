@@ -473,8 +473,15 @@ export class VdCrmDashboard extends Component {
                 if (this.state.pinnedTile && !closest('.o_vd_tile_clickable')) {
                     this.state.pinnedTile = "";
                 }
-                // GHI ÂM THAM KHẢO → đóng nếu bấm ngoài filter + popover.
-                if (this.state.refRecHover && !closest('.o_vd_refrec_filter') && !closest('.o_vd_refrec_pop')) {
+                // GHI ÂM THAM KHẢO → đóng nếu bấm ngoài NÚT + popover. Nút đã đổi
+                // class thành .o_vd_refrec_libfilter khi chuyển ra icon phải
+                // (2026-09-05) nhưng guard vẫn dùng tên cũ .o_vd_refrec_filter →
+                // click MỞ rồi bị chính handler này ĐÓNG ngay = không hiện gì. Fix:
+                // nhận cả 2 tên class (user báo "k có file ghi âm nào" 2026-09-16).
+                if (this.state.refRecHover
+                    && !closest('.o_vd_refrec_filter')
+                    && !closest('.o_vd_refrec_libfilter')
+                    && !closest('.o_vd_refrec_pop')) {
                     this.state.refRecHover = null;
                 }
                 // Menu "Xa hơn" của bộ lọc hẹn → đóng nếu bấm ngoài.
