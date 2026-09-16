@@ -3005,6 +3005,12 @@ export class VdCrmDashboard extends Component {
             this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
             return;
         }
+        // LÀM MỚI danh sách NV mỗi lần mở (state.users nạp 1 lần lúc vào trang →
+        // NV mới thêm sau đó sẽ THIẾU nếu không reload trang). user spec 2026-09-16.
+        try {
+            const us = await this.orm.call("crm.lead", "dashboard_users", []);
+            if (Array.isArray(us) && us.length) this.state.users = us;
+        } catch (_e) { /* giữ state.users cũ nếu lỗi */ }
         let recs = [];
         try {
             recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile", "call_count", "user_id"]);
