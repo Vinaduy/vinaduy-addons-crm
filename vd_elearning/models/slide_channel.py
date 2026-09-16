@@ -20,9 +20,10 @@ class SlideChannel(models.Model):
     vd_path_id = fields.Many2one('vd.learning.path', string='Lộ trình',
                                  index=True, ondelete='set null')
 
-    # Cau hinh bai thi. Mac dinh: dat 100%, thi lai 3 lan (user spec 2026-06-18).
+    # Cau hinh bai thi. Mac dinh: dat 100%, thi lai 5 lan (user spec 2026-09-16;
+    # truoc la 3 lan tu 2026-06-18).
     vd_pass_percent = fields.Integer(string='Ty le dat (%)', default=100)
-    vd_max_attempts = fields.Integer(string='So lan thi lai toi da', default=3,
+    vd_max_attempts = fields.Integer(string='So lan thi lai toi da', default=5,
                                      help='0 = khong gioi han')
     # Thoi gian lam bai (phut). 0 = tu dong 1 phut/cau (20 cau = 20 phut).
     vd_exam_minutes = fields.Integer(string='Thoi gian thi (phut)', default=0,
@@ -42,7 +43,7 @@ class SlideChannel(models.Model):
 
     @api.model
     def _vd_apply_course_defaults(self):
-        """Ap mac dinh cho TAT CA khoa (moi + dang co): dat 100%, thi lai 3,
+        """Ap mac dinh cho TAT CA khoa (moi + dang co): dat 100%, thi lai 5,
         thoi gian = so cau (1 phut/cau) - dien luon vao vd_exam_minutes de hien
         ro so phut. Chay 1 lan duy nhat (guard param) -> khong de len cau hinh
         admin chinh sau nay."""
@@ -54,10 +55,23 @@ class SlideChannel(models.Model):
             n_q = len(quiz.question_ids) if quiz else 0
             ch.write({
                 'vd_pass_percent': 100,
-                'vd_max_attempts': 3,
+                'vd_max_attempts': 5,
                 'vd_exam_minutes': n_q,  # 20 cau -> 20 phut (hien ro), 0 neu chua co cau
             })
         ICP.set_param('vd_elearning.course_defaults_v1', '1')
+        return True
+
+    @api.model
+    def _vd_bump_max_attempts_to_5(self):
+        """Nang so lan thi lai 3 -> 5 cho cac khoa dang o mac dinh cu (user spec
+        2026-09-16). GIU nguyen khoa 0 (khong gioi han) va khoa admin da chinh
+        gia tri khac. Chay 1 lan (guard param)."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        if ICP.get_param('vd_elearning.max_attempts_5_v1') == '1':
+            return True
+        courses = self.sudo().search([('vd_max_attempts', '=', 3)])
+        courses.write({'vd_max_attempts': 5})
+        ICP.set_param('vd_elearning.max_attempts_5_v1', '1')
         return True
 
     # ------------------------------------------------------------------

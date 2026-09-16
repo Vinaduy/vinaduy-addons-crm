@@ -209,8 +209,11 @@
     <!-- THƯ VIỆN - Câu hỏi khó: seed kho cau hoi + kich ban tra loi sale. -->
     <function model="vd.hard.question" name="_vd_seed_hard_questions"/>
 
-    <!-- Ap mac dinh 100% / 3 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
+    <!-- Ap mac dinh 100% / 5 lan / thoi gian = so cau cho TAT CA khoa (1 lan). -->
     <function model="slide.channel" name="_vd_apply_course_defaults"/>
+
+    <!-- Nang so lan thi lai 3 -> 5 cho khoa dang o mac dinh cu (1 lan, 2026-09-16). -->
+    <function model="slide.channel" name="_vd_bump_max_attempts_to_5"/>
 
     <!-- Xoa lai cac khoa admin DA xoa vinh vien (du record o tren vua tai tao). -->
     <function model="slide.channel" name="_vd_purge_deleted_courses"/>
