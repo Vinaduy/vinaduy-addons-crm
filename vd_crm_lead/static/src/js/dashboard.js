@@ -605,6 +605,14 @@ export class VdCrmDashboard extends Component {
                 // THANH TỔNG QUAN cá nhân trên cùng — DÙNG CHUNG template VdKhTeamList
                 // với bảng danh sách NV (sửa 1 chỗ tự đồng bộ). Chạy nền.
                 this.loadAnalytics();
+                // LỌC SỐ (up số / chia số): tuy "như NV thường" nhưng có nút CHUYỂN
+                // NV / CHIA SỐ → phải nạp ĐỦ danh sách NV bán hàng cho dropdown giao
+                // KH (dashboard_data KHÔNG trả 'users') — user spec 2026-09-16.
+                if (this.state.can_reassign) {
+                    this.orm.call("crm.lead", "dashboard_users", [])
+                        .then((us) => { this.state.users = us || []; })
+                        .catch(() => {});
+                }
             }
         });
     }
@@ -3286,7 +3294,7 @@ export class VdCrmDashboard extends Component {
             this.state.selectMode = false;
             this.closeDistribute();
             await this.loadDashboard();
-            if (this.state.is_manager) {
+            if (this.state.is_manager || this.state.can_reassign) {
                 this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
             }
         } catch (e) {

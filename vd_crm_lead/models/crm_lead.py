@@ -6525,7 +6525,11 @@ class CrmLead(models.Model):
         """
         is_manager = self._dashboard_is_manager()
         is_team_leader = self._dashboard_is_team_leader()
-        if not is_manager and not is_team_leader:
+        # Bộ phận LỌC SỐ (up số / quét số / gọi OMI): "như NV thường" nên KHÔNG
+        # phải manager/team_leader, nhưng có nút CHUYỂN NV / CHIA SỐ → phải thấy
+        # ĐỦ danh sách NV bán hàng để chọn giao KH (user spec 2026-09-16).
+        is_loc_so = getattr(self.env.user, 'vd_team', False) == 'Lọc số'
+        if not is_manager and not is_team_leader and not is_loc_so:
             u = self.env.user
             return [{'id': u.id, 'name': u.name}]
         from collections import defaultdict
@@ -6544,9 +6548,9 @@ class CrmLead(models.Model):
             g['user_id'][0]: (g.get('user_id_count') or g.get('__count') or 0)
             for g in groups if g['user_id']
         }
-        # Manager: chỉ NV có lead. Trưởng nhóm / GĐ-CÁ NHÂN: LIỆT KÊ ĐỦ NV trong
-        # nhóm (kể cả 0 KH).
-        listing = users if scope_team else users.filtered(
+        # Manager: chỉ NV có lead. Trưởng nhóm / GĐ-CÁ NHÂN / LỌC SỐ: LIỆT KÊ ĐỦ
+        # NV (kể cả 0 KH) — Lọc số cần thấy cả NV mới để giao số đầu tiên.
+        listing = users if (scope_team or is_loc_so) else users.filtered(
             lambda u: u.id in user_ids_with_lead)
         # Toàn bộ bucket KHÁCH MỚI của mọi NV — 1 query.
         all_new = Lead.search(
