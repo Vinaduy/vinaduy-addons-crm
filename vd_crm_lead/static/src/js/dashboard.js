@@ -2573,6 +2573,20 @@ export class VdCrmDashboard extends Component {
         }
         this.state.selectedLeadIds = next;
     }
+    // Chọn NHANH n KH kế tiếp CHƯA chọn trong 1 cột (theo thứ tự hiện) — bấm lại
+    // để cộng dồn 10, 20, 30... Đỡ phải tick tay từng KH (user spec 2026-09-16).
+    selectNextN(leadIds, n) {
+        const ids = (leadIds || []).filter((x) => x != null);
+        if (!ids.length) return;
+        const count = parseInt(n, 10) || 10;
+        const next = Object.assign({}, this.state.selectedLeadIds);
+        let added = 0;
+        for (const id of ids) {
+            if (added >= count) break;
+            if (!next[id]) { next[id] = true; added++; }
+        }
+        this.state.selectedLeadIds = next;
+    }
     clearSelection() {
         this.state.selectedLeadIds = {};
     }

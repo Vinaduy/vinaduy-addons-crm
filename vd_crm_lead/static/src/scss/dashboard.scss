@@ -9637,6 +9637,20 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     white-space: nowrap;
     &:hover { background: #d0ebff; }
 }
+/* Chọn nhanh 10 KH kế tiếp — xanh lá phân biệt với "Tất cả" (2026-09-16) */
+.o_vd_select_n_btn {
+    margin-left: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.12rem 0.5rem;
+    color: #2b8a3e;
+    background: #ebfbee;
+    border: 1px solid #8ce99a;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { background: #d3f9d8; }
+}
 /* Pill ở chế độ chọn */
 .o_vd_won_pill.o_vd_pill_selectable {
     cursor: pointer;

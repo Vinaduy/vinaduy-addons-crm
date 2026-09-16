@@ -2284,6 +2284,12 @@
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
                                             <button t-if="state.selectMode and leadsNoProblems.length"
+                                                    class="o_vd_select_n_btn"
+                                                    t-on-click.stop="() => this.selectNextN(leadsNoProblems.map(l => l.id), 10)"
+                                                    title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
+                                                ➕10
+                                            </button>
+                                            <button t-if="state.selectMode and leadsNoProblems.length"
                                                     class="o_vd_select_all_btn"
                                                     t-on-click.stop="() => this.toggleSelectAll(leadsNoProblems.map(l => l.id))"
                                                     title="Chọn / bỏ chọn tất cả KH trong cột này">
@@ -2459,6 +2465,12 @@
                                         <span>BÁO GIÁ</span>
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsQuoted.length"/></div>
+                                    <button t-if="state.selectMode and leadsQuoted.length"
+                                            class="o_vd_select_n_btn"
+                                            t-on-click.stop="() => this.selectNextN(leadsQuoted.map(l => l.id), 10)"
+                                            title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
+                                        ➕10
+                                    </button>
                                     <button t-if="state.selectMode and leadsQuoted.length"
                                             class="o_vd_select_all_btn"
                                             t-on-click.stop="() => this.toggleSelectAll(leadsQuoted.map(l => l.id))"
@@ -3475,6 +3487,12 @@
                     </span>
                     <span class="o_vd_pill_col_nv_name"><t t-esc="grp.label"/></span>
                     <span class="o_vd_pill_col_count"><t t-esc="grp.leads.length"/></span>
+                    <button t-if="state.selectMode and grp.leads.length"
+                            class="o_vd_select_n_btn"
+                            t-on-click.stop="() => this.selectNextN(grp.leads.map(l => l.id), 10)"
+                            title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
+                        ➕10
+                    </button>
                     <button t-if="state.selectMode and grp.leads.length"
                             class="o_vd_select_all_btn"
                             t-on-click.stop="() => this.toggleSelectAll(grp.leads.map(l => l.id))"
