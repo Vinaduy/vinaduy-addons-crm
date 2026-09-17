@@ -494,6 +494,9 @@ export class VdCrmDashboard extends Component {
                 }
             };
             document.addEventListener('click', this._onDocClickPin, false);
+            // KẾT THÚC kéo-chọn hàng loạt khi thả chuột ở BẤT KỲ đâu (2026-09-17).
+            this._onDocMouseUp = () => { this._dragSel = false; };
+            window.addEventListener('mouseup', this._onDocMouseUp, true);
         });
         // Sau mỗi lần render lại (đổi NV / load data) → đo lại vùng pill KHÁCH MỚI.
         // + ĐO ĐỘ TRỄ THỰC: từ lúc BẤM (capture-phase, trước handler) → tới khi DOM
@@ -523,6 +526,7 @@ export class VdCrmDashboard extends Component {
             if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
             if (this._tilePopEl) { try { this._tilePopEl.remove(); } catch (_e) {} this._tilePopEl = null; }
             if (this._onDocClickPin) { document.removeEventListener('click', this._onDocClickPin, false); this._onDocClickPin = null; }
+            if (this._onDocMouseUp) { window.removeEventListener('mouseup', this._onDocMouseUp, true); this._onDocMouseUp = null; }
             if (window.__vdDashBackHandler) {
                 delete window.__vdDashBackHandler;
             }
@@ -2243,15 +2247,40 @@ export class VdCrmDashboard extends Component {
     // Click 1 pill KH: ở chế độ chọn → tick/bỏ tick; bình thường → mở thẻ.
     onPillClick(leadId) {
         if (this.state.selectMode) {
-            this.toggleLeadSelect(leadId);
+            // Chọn/bỏ đã xử lý ở mousedown + kéo (onLeadSelectDown/Enter) → click
+            // chỉ để mở KH khi KHÔNG ở chế độ chọn. Ở chế độ chọn: bỏ qua.
             return;
         }
         this.openLead(leadId);
+    }
+    // ===== KÉO CHUỘT CHỌN HÀNG LOẠT (user spec 2026-09-17) =====
+    // Bấm giữ 1 KH rồi rê qua các KH khác → chọn (hoặc bỏ chọn) cả loạt. KH đầu
+    // tiên quyết định "sơn" chọn hay bỏ: bấm KH chưa chọn → sơn CHỌN; bấm KH đã
+    // chọn → sơn BỎ. Áp cho cả pill (KHÁCH MỚI/won) lẫn dòng (BÁO GIÁ).
+    onLeadSelectDown(leadId, ev) {
+        if (!this.state.selectMode || leadId == null) return;
+        // Chỉ nút chuột TRÁI mới kéo chọn.
+        if (ev && typeof ev.button === "number" && ev.button !== 0) return;
+        if (ev && ev.preventDefault) ev.preventDefault();  // khỏi bôi đen chữ
+        this._dragSel = true;
+        this._dragSelVal = !this.isLeadSelected(leadId);
+        this._applyDragSel(leadId);
+    }
+    onLeadSelectEnter(leadId) {
+        if (this._dragSel && leadId != null) this._applyDragSel(leadId);
+    }
+    _applyDragSel(leadId) {
+        const next = Object.assign({}, this.state.selectedLeadIds);
+        if (this._dragSelVal) next[leadId] = true;
+        else delete next[leadId];
+        this.state.selectedLeadIds = next;
     }
     // Hover pill: hiện tooltip qua 1 ô DÙNG CHUNG cấp trang, điều khiển TRỰC TIẾP
     // bằng DOM (KHÔNG đổi state OWL) → dashboard KHÔNG vẽ lại → hover cực nhẹ. Delay
     // 90ms để rê chuột lướt qua nhiều pill không bật liên tục.
     onPillEnter(lead, ev) {
+        // Đang KÉO chọn hàng loạt → sơn chọn KH này, KHÔNG hiện tooltip.
+        if (this._dragSel) { this.onLeadSelectEnter(lead.id); return; }
         const el = ev && ev.currentTarget;
         if (this._pillHoverTimer) clearTimeout(this._pillHoverTimer);
         this._pillHoverTimer = setTimeout(() => {
@@ -2338,6 +2367,8 @@ export class VdCrmDashboard extends Component {
     // ===== BẢNG THÔNG TIN KHÁCH HÀNG dùng CHUNG (append body — hover KHÔNG vẽ lại
     // trang). Thay panel inline o_vd_kh_info_panel ở mỗi dòng THI CÔNG GẤP / XLVĐ. =====
     onNameEnter(lead, ev) {
+        // Đang kéo chọn hàng loạt → sơn chọn, không hiện tooltip tên.
+        if (this._dragSel) { this.onLeadSelectEnter(lead.id); return; }
         const el = ev && ev.currentTarget;
         if (this._khHideTimer) { clearTimeout(this._khHideTimer); this._khHideTimer = null; }
         if (this._khShowTimer) clearTimeout(this._khShowTimer);

@@ -9654,8 +9654,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 /* Pill ở chế độ chọn */
 .o_vd_won_pill.o_vd_pill_selectable {
     cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;   /* kéo chọn hàng loạt không bôi đen chữ */
     &:hover { box-shadow: 0 0 0 2px #74c0fc inset; }
 }
+/* Dòng BÁO GIÁ ở chế độ chọn → không bôi đen chữ khi kéo */
+.o_vd_problem_row.o_vd_row_selectable { -webkit-user-select: none; user-select: none; }
 .o_vd_won_pill.o_vd_pill_selected {
     background: #d3f9d8 !important;
     box-shadow: 0 0 0 2px #2f9e44 inset !important;

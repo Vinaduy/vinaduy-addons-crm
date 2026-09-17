@@ -2484,6 +2484,8 @@
                                         <t t-set="quotedShown" t-value="state.quotedExpanded ? leadsQuoted : leadsQuoted.slice(0, 15)"/>
                                         <div t-foreach="quotedShown" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
+                                             t-on-mousedown="(ev) => this.onLeadSelectDown(lead.id, ev)"
+                                             t-on-mouseenter="() => this.onLeadSelectEnter(lead.id)"
                                              t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <span t-if="state.selectMode" class="o_vd_row_check">
                                                 <t t-if="isLeadSelected(lead.id)">☑</t>
@@ -3532,6 +3534,7 @@
     <!-- Sub-template cho 1 pill (dùng chung column + flex view) -->
     <t t-name="vd_crm_lead.LeadPill">
         <div t-on-click="() => this.onPillClick(lead.id)"
+             t-on-mousedown="(ev) => this.onLeadSelectDown(lead.id, ev)"
              t-on-mouseenter="(ev) => this.onPillEnter(lead, ev)"
              t-on-mouseleave="() => this.onPillLeave()"
              t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
