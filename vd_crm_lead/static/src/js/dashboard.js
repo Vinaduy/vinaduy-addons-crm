@@ -501,10 +501,12 @@ export class VdCrmDashboard extends Component {
             // vững kể cả khi OWL vẽ lại thẻ (không dựa mouseenter từng thẻ).
             this._lastBrushId = 0;
             this._onDocBrushMove = (ev) => {
-                if (!this.state.brushSelect) return;
+                // Chỉ cần ĐANG Ở CHẾ ĐỘ CHỌN → di chuột qua KH là chọn luôn
+                // (user spec 2026-09-17: không cần bấm nút riêng).
+                if (!this.state.selectMode) return;
                 const t = ev.target;
                 const el = t && t.closest ? t.closest('[data-vd-lead]') : null;
-                if (!el) return;
+                if (!el) { this._lastBrushId = 0; return; }
                 const id = parseInt(el.getAttribute('data-vd-lead'), 10);
                 if (!id || id === this._lastBrushId) return;
                 this._lastBrushId = id;
@@ -2266,18 +2268,10 @@ export class VdCrmDashboard extends Component {
         }
         this.openLead(leadId);
     }
-    // ===== QUÉT CHỌN: di chuột NHẸ qua KH là chọn, KHÔNG cần giữ nút =====
-    // (user spec 2026-09-17: kéo-giữ "cứng" quá). Bật nút "Quét chọn" → rê chuột
-    // qua các KH nào là CHỌN KH đó. Bắt sự kiện ở KHUNG CHA (event delegation qua
-    // [data-vd-lead]) nên KHÔNG hỏng khi thẻ được vẽ lại. Tắt nút để dừng.
-    toggleBrushSelect() {
-        // Bật quét ⇒ bật luôn chế độ chọn (nếu chưa).
-        if (!this.state.brushSelect && !this.state.selectMode) {
-            this.state.selectMode = true;
-        }
-        this.state.brushSelect = !this.state.brushSelect;
-        this._lastBrushId = 0;
-    }
+    // ===== QUÉT CHỌN: hễ ĐANG Ở CHẾ ĐỘ CHỌN KH thì DI CHUỘT qua KH là chọn =====
+    // (user spec 2026-09-17: không cần bấm nút, không cần giữ chuột). Việc bắt di
+    // chuột nằm ở listener khung cha (event delegation qua [data-vd-lead]) → bền
+    // vững kể cả khi OWL vẽ lại thẻ. Click 1 KH vẫn bật/tắt riêng KH đó để sửa.
     _brushSelectLead(leadId) {
         if (!leadId) return;
         if (this.state.selectedLeadIds[leadId]) return;  // đã chọn → khỏi ghi lại
@@ -2289,8 +2283,9 @@ export class VdCrmDashboard extends Component {
     // bằng DOM (KHÔNG đổi state OWL) → dashboard KHÔNG vẽ lại → hover cực nhẹ. Delay
     // 90ms để rê chuột lướt qua nhiều pill không bật liên tục.
     onPillEnter(lead, ev) {
-        // Đang QUÉT chọn → không hiện tooltip (việc chọn do listener khung cha lo).
-        if (this.state.brushSelect) return;
+        // Đang CHỌN KH → không hiện tooltip (di chuột qua là chọn, listener khung
+        // cha lo việc chọn).
+        if (this.state.selectMode) return;
         const el = ev && ev.currentTarget;
         if (this._pillHoverTimer) clearTimeout(this._pillHoverTimer);
         this._pillHoverTimer = setTimeout(() => {
@@ -2377,8 +2372,8 @@ export class VdCrmDashboard extends Component {
     // ===== BẢNG THÔNG TIN KHÁCH HÀNG dùng CHUNG (append body — hover KHÔNG vẽ lại
     // trang). Thay panel inline o_vd_kh_info_panel ở mỗi dòng THI CÔNG GẤP / XLVĐ. =====
     onNameEnter(lead, ev) {
-        // Đang quét chọn → không hiện tooltip tên.
-        if (this.state.brushSelect) return;
+        // Đang chọn KH → không hiện tooltip tên.
+        if (this.state.selectMode) return;
         const el = ev && ev.currentTarget;
         if (this._khHideTimer) { clearTimeout(this._khHideTimer); this._khHideTimer = null; }
         if (this._khShowTimer) clearTimeout(this._khShowTimer);
