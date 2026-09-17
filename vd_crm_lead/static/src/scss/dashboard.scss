@@ -9660,20 +9660,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 /* Dòng BÁO GIÁ ở chế độ chọn → không bôi đen chữ khi quét */
 .o_vd_problem_row.o_vd_row_selectable { -webkit-user-select: none; user-select: none; }
-/* CHẾ ĐỘ CHỌN: con trỏ chữ thập để biết đang "di chuột là chọn" (2026-09-17) */
-.o_vd_won_pill.o_vd_pill_brush, .o_vd_problem_row.o_vd_row_brush { cursor: crosshair; }
-/* Gợi ý nhỏ trên thanh chọn */
-.o_vd_bulk_hint {
-    font-size: 0.76rem;
-    font-weight: 700;
-    padding: 0.16rem 0.55rem;
-    margin-right: 0.5rem;
-    color: #5f3dc4;
-    background: #f3f0ff;
-    border: 1px solid #d0bfff;
-    border-radius: 7px;
-    white-space: nowrap;
-}
 .o_vd_won_pill.o_vd_pill_selected {
     background: #d3f9d8 !important;
     box-shadow: 0 0 0 2px #2f9e44 inset !important;
