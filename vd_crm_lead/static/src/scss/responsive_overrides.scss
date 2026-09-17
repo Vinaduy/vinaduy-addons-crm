@@ -75,8 +75,9 @@ html, body {
     overflow-x: hidden;
 }
 .o_vd_intake_popup_panel {
-    width: unquote("min(95vw, 1200px)") !important;
-    max-width: 95vw !important;
+    /* User spec 2026-09-17: nới rộng thêm chút cho dễ nhìn (1200 -> 1440px). */
+    width: unquote("min(96vw, 1440px)") !important;
+    max-width: 96vw !important;
     max-height: 92vh !important;
     overflow: hidden;
     /* COMPACT 70% scoped — đồng bộ với dashboard. Zoom CSS giữ click point. */
