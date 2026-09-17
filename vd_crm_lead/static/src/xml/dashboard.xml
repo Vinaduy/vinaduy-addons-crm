@@ -3297,8 +3297,22 @@
                             <div t-foreach="dsel.rows" t-as="r" t-key="r.uid"
                                  t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
                                 <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
-                                <span class="o_vd_pk_col o_vd_pk_col_tt"><t t-esc="r.tiktok"/></span>
-                                <span class="o_vd_pk_col o_vd_pk_col_fb"><t t-esc="r.facebook"/></span>
+                                <span t-att-class="'o_vd_pk_col o_vd_pk_col_tt' + (r.can_receive_tiktok ? '' : ' o_vd_src_off')">
+                                    <t t-esc="r.tiktok"/>
+                                    <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_tiktok ? 'o_on' : 'o_off')"
+                                            t-on-click.stop.prevent="() => this.onToggleTiktokNV(r.uid)"
+                                            t-att-title="r.can_receive_tiktok ? 'Đang nhận số TikTok — bấm để TẮT' : 'Đang TẮT nhận TikTok — bấm để BẬT'">
+                                        <span class="o_vd_src_knob"/>
+                                    </button>
+                                </span>
+                                <span t-att-class="'o_vd_pk_col o_vd_pk_col_fb' + (r.can_receive_facebook ? '' : ' o_vd_src_off')">
+                                    <t t-esc="r.facebook"/>
+                                    <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_facebook ? 'o_on' : 'o_off')"
+                                            t-on-click.stop.prevent="() => this.onToggleFacebookNV(r.uid)"
+                                            t-att-title="r.can_receive_facebook ? 'Đang nhận số Facebook — bấm để TẮT' : 'Đang TẮT nhận Facebook — bấm để BẬT'">
+                                        <span class="o_vd_src_knob"/>
+                                    </button>
+                                </span>
                                 <span class="o_vd_pk_col o_vd_pk_col_quet"><t t-esc="r.quet"/></span>
                                 <span class="o_vd_pk_col o_vd_pk_col_tot o_vd_pancake_row_cnt"><t t-esc="r.count"/></span>
                                 <span class="o_vd_pk_col_sw">

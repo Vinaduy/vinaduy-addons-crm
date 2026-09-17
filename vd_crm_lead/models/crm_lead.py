@@ -7231,6 +7231,9 @@ class CrmLead(models.Model):
         pool = all_nv | boss_nv
         eligible = pool.filtered('vd_can_receive_pancake')
         can_recv = {u.id: bool(u.vd_can_receive_pancake) for u in pool}
+        # Cờ nhận theo NGUỒN (user spec 2026-09-16) — nút bật/tắt riêng TikTok/FB.
+        can_recv_tt = {u.id: bool(u.vd_can_receive_tiktok) for u in pool}
+        can_recv_fb = {u.id: bool(u.vd_can_receive_facebook) for u in pool}
         name_by = {u.id: (u.name or '') for u in (sales | boss_nv)}
         # GỘP kênh QUÉT SỐ (đẩy file Excel / dán danh sách → vd_from_excel) vào
         # báo cáo Pancake (user spec 2026-07-24): 1 view duy nhất, cột riêng "Quét số".
@@ -7324,6 +7327,8 @@ class CrmLead(models.Model):
                              'quet': per_quet.get(u.id, 0),
                              'eval': ev, 'under_target': under,
                              'can_receive': on,
+                             'can_receive_tiktok': can_recv_tt.get(u.id, True),
+                             'can_receive_facebook': can_recv_fb.get(u.id, True),
                              'is_boss': bool(role_by.get(u.id)),
                              'role': role_by.get(u.id, '')})
             # TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.

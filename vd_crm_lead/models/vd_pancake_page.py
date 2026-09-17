@@ -379,7 +379,7 @@ class VdPancakePage(models.Model):
 
         # Round-robin pick NV
         assignee = ResUsers._vd_pick_next_assignee(
-            source='pancake',
+            source='pancake', platform=self.platform,
             preferred_team_id=self.team_id.id if self.team_id else None,
         )
 
@@ -748,7 +748,7 @@ class VdPancakePage(models.Model):
                     pass
                 continue
             assignee = ResUsers._vd_pick_next_assignee(
-                source='pancake',
+                source='pancake', platform=self.platform,
                 preferred_team_id=self.team_id.id if self.team_id else None)
             vals = {
                 'name': '%s %s' % (self.name_prefix, name),

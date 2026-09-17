@@ -381,6 +381,17 @@ class ResUsers(models.Model):
              '(Pancake/TikTok/Facebook) LẪN chia thủ công (đẩy file/dán/round-robin). '
              'Đồng bộ giữa báo cáo dashboard và bảng Thêm KH mới.',
     )
+    # ===== TOGGLE NHẬN SỐ THEO TỪNG NGUỒN (user spec 2026-09-16) =====
+    # Admin bật/tắt riêng từng kênh cho mỗi NV — áp dụng CẢ chia tự động (Pancake)
+    # LẪN chia thủ công. Kết hợp với vd_can_receive_pancake (công tắc tổng):
+    # NV nhận số TikTok  <=> vd_can_receive_pancake AND vd_can_receive_tiktok.
+    # NV nhận số Facebook <=> vd_can_receive_pancake AND vd_can_receive_facebook.
+    vd_can_receive_tiktok = fields.Boolean(
+        string='Nhận số TikTok', default=True,
+        help='Tắt = NV này KHÔNG nhận số nguồn TikTok (cả tự động lẫn thủ công).')
+    vd_can_receive_facebook = fields.Boolean(
+        string='Nhận số Facebook', default=True,
+        help='Tắt = NV này KHÔNG nhận số nguồn Facebook (cả tự động lẫn thủ công).')
 
     # ============ THÔNG TIN LÀM VIỆC — số tháng + năng lực ============
     vd_work_start_date = fields.Date(
@@ -527,7 +538,7 @@ class ResUsers(models.Model):
             user.vd_can_receive_new_leads = cnt <= threshold
 
     @api.model
-    def _vd_pick_next_assignee(self, exclude_user_ids=None, preferred_team_id=None, source=None):
+    def _vd_pick_next_assignee(self, exclude_user_ids=None, preferred_team_id=None, source=None, platform=None):
         """Round-robin: chọn NV tiếp theo được nhận lead mới.
 
         Logic:
@@ -588,6 +599,13 @@ class ResUsers(models.Model):
             # (admin tự tắt NV quá tải/nghỉ ngay trong báo cáo chia số). KHÔNG áp
             # cổng quá hạn / chặn tồn → để MỌI NV đang BẬT đều nhận đều như nhau.
             eligible = candidates.filtered('vd_can_receive_pancake')
+            # LỌC THEO NGUỒN (user spec 2026-09-16): TikTok chỉ chia cho NV bật
+            # 'Nhận TikTok'; Facebook chỉ cho NV bật 'Nhận Facebook'. platform lấy
+            # từ trang Pancake (vd.pancake.page.platform) truyền vào.
+            if platform == 'tiktok':
+                eligible = eligible.filtered('vd_can_receive_tiktok')
+            elif platform == 'facebook':
+                eligible = eligible.filtered('vd_can_receive_facebook')
             if not eligible:
                 return self.env['res.users']  # empty
             # Cân bằng theo SỐ KH PANCAKE đã chia HÔM NAY (giờ VN) → cuối ngày mọi
@@ -812,4 +830,40 @@ class ResUsers(models.Model):
             return False
         new_val = not bool(target.vd_can_receive_pancake)
         target.write({'vd_can_receive_pancake': new_val})
+        return new_val
+
+    def _vd_check_toggle_perm(self):
+        """Chỉ admin / quản lý CRM được bật/tắt nhận số."""
+        caller = self.env.user
+        allowed = (
+            caller._is_admin()
+            or caller.has_group('sales_team.group_sale_manager')
+            or caller.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        )
+        if not allowed:
+            from odoo.exceptions import AccessError
+            raise AccessError('Chỉ admin / quản lý mới được bật/tắt nhận số.')
+
+    @api.model
+    def vd_toggle_tiktok_receive(self, user_id):
+        """BẬT/TẮT nhận số TikTok cho 1 NV (nút trên báo cáo chia số). Trả trạng
+        thái mới (bool). user spec 2026-09-16."""
+        self._vd_check_toggle_perm()
+        target = self.sudo().browse(int(user_id))
+        if not target.exists():
+            return False
+        new_val = not bool(target.vd_can_receive_tiktok)
+        target.write({'vd_can_receive_tiktok': new_val})
+        return new_val
+
+    @api.model
+    def vd_toggle_facebook_receive(self, user_id):
+        """BẬT/TẮT nhận số Facebook cho 1 NV (nút trên báo cáo chia số). Trả trạng
+        thái mới (bool). user spec 2026-09-16."""
+        self._vd_check_toggle_perm()
+        target = self.sudo().browse(int(user_id))
+        if not target.exists():
+            return False
+        new_val = not bool(target.vd_can_receive_facebook)
+        target.write({'vd_can_receive_facebook': new_val})
         return new_val

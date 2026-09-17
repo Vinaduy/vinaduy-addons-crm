@@ -11303,6 +11303,34 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     &:hover { filter: brightness(1.05); }
 }
 
+/* Toggle NHỎ nhận số theo NGUỒN (TikTok / Facebook) trong từng ô cột (2026-09-16) */
+.o_vd_src_toggle {
+    flex: 0 0 auto;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.28rem;
+    width: 1.6rem; height: 0.85rem;
+    border: none; border-radius: 999px; padding: 0; cursor: pointer;
+    background: #ced4da;
+    transition: background 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+    .o_vd_src_knob {
+        position: absolute; top: 1px; left: 1px;
+        width: 0.65rem; height: 0.65rem; border-radius: 50%;
+        background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease;
+    }
+    &.o_on {
+        background: linear-gradient(135deg, #40c057, #2f9e44);
+        .o_vd_src_knob { transform: translateX(0.75rem); }
+    }
+    &.o_off { background: #e03131; .o_vd_src_knob { transform: translateX(0); } }
+    &:hover { filter: brightness(1.05); }
+}
+/* Ô cột nguồn khi TẮT nhận → mờ đi cho dễ nhận biết */
+.o_vd_pk_col.o_vd_src_off { opacity: 0.5; }
+
 /* NV đang TẮT nhận số → xám mờ, gạch nhẹ để phân biệt */
 .o_vd_pancake_row.o_vd_pk_off {
     opacity: 0.55;

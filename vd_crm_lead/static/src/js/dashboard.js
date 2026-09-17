@@ -794,6 +794,29 @@ export class VdCrmDashboard extends Component {
             console.warn("Toggle Pancake NV lỗi:", e);
         });
     }
+    // ===== BẬT/TẮT nhận số theo NGUỒN TikTok / Facebook cho 1 NV (2026-09-16) =====
+    _toggleSourceNV(uid, field, method) {
+        if (!uid) return;
+        const rep = this.state.pancake_report;
+        if (rep) {
+            for (const key of ["today", "yesterday", "month"]) {
+                const day = rep[key];
+                if (day && Array.isArray(day.rows)) {
+                    day.rows = day.rows.map((r) =>
+                        r.uid === uid ? { ...r, [field]: !r[field] } : r);
+                }
+            }
+        }
+        this.orm.call("res.users", method, [uid]).catch((e) => {
+            console.warn("Toggle nguồn NV lỗi:", e);
+        });
+    }
+    onToggleTiktokNV(uid) {
+        this._toggleSourceNV(uid, "can_receive_tiktok", "vd_toggle_tiktok_receive");
+    }
+    onToggleFacebookNV(uid) {
+        this._toggleSourceNV(uid, "can_receive_facebook", "vd_toggle_facebook_receive");
+    }
 
     // ===== SỬA TAY số liệu 1 cột (icon cây bút) — admin/quản lý =====
     onEditRate(d) {

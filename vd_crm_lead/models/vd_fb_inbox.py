@@ -487,7 +487,7 @@ class VdFbPage(models.Model):
             # bật nhận Pancake; nếu không thì lead rớt về Public user, NV không thấy.
             try:
                 assignee = self.env['res.users'].sudo()._vd_pick_next_assignee(
-                    source='pancake',
+                    source='pancake', platform=(self.platform or 'facebook'),
                     preferred_team_id=self.team_id.id if self.team_id else None)
                 if assignee:
                     vals['user_id'] = assignee.id
