@@ -732,32 +732,13 @@
                                                 invisible="not vd_quote_cancelled"
                                                 title="Khôi phục / làm lại báo giá sau khi đã sửa thông tin tư vấn."/>
                                         <!-- ===== 3 NÚT SAU BÁO GIÁ (user spec 2026-09-14):
-                                             Báo giá xong mất tích / Đã hẹn gặp / Đã chốt (ký HĐ) ===== -->
+                                             Báo giá xong mất tích / Đã hẹn gặp / Đã chốt (ký HĐ).
+                                             User spec 2026-09-17: ĐÃ CHUYỂN 3 nút này XUỐNG dưới
+                                             ô LƯU Ý / GHI CHÚ (xem view kế thừa cuối file). Giữ
+                                             field ẩn ở đây để mọi nơi trong form đọc được. ===== -->
                                         <field name="vd_contract_signed" invisible="1"/>
                                         <field name="vd_has_appointment" invisible="1"/>
                                         <field name="vd_quoted_lost_manual" invisible="1"/>
-                                        <button string="📵 Báo giá xong mất tích"
-                                                name="action_mark_quoted_lost" type="object"
-                                                class="o_vd_act_btn o_vd_act_lost"
-                                                invisible="not vd_intake_locked or stage_is_lost or vd_contract_signed or vd_quoted_lost_manual"
-                                                title="KH báo giá xong rồi mất tích (không liên lạc lại) → đưa vào box BÁO GIÁ XONG MẤT TÍCH."/>
-                                        <button string="📅 Đã hẹn gặp"
-                                                name="action_mark_appointment" type="object"
-                                                class="o_vd_act_btn o_vd_act_appt"
-                                                invisible="not vd_intake_locked or stage_is_lost or vd_contract_signed or vd_has_appointment"
-                                                title="KH đồng ý báo giá + đã hẹn lịch đi gặp để chốt hợp đồng."/>
-                                        <button string="✅ ĐÃ HẸN GẶP"
-                                                name="action_unmark_appointment" type="object"
-                                                class="o_vd_act_btn o_vd_act_appt o_vd_act_appt_on"
-                                                invisible="not vd_has_appointment or vd_contract_signed"
-                                                title="Đang ở trạng thái ĐÃ HẸN GẶP. Bấm để bỏ đánh dấu."/>
-                                        <button string="🏆 ĐÃ CHỐT (ký HĐ)"
-                                                name="action_mark_contract_signed" type="object"
-                                                class="o_vd_act_btn o_vd_act_won"
-                                                invisible="not vd_intake_locked or stage_is_lost or vd_contract_signed"
-                                                title="Đã ký được hợp đồng với khách → đánh dấu ĐÃ CHỐT."/>
-                                        <span class="o_vd_act_btn o_vd_act_won_badge"
-                                              invisible="not vd_contract_signed">🏆 ĐÃ CHỐT HĐ</span>
                                         <!-- NV tự dời ngày gọi lại với KH ĐÃ BÁO GIÁ (đã chốt) —
                                              tối đa 3 lần (server chặn), admin/leader/GĐ không giới hạn.
                                              User spec 2026-08-09. -->
@@ -2015,6 +1996,32 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     </div>
                     <field name="vd_problem_note" nolabel="1"
                            placeholder="Nhập lưu ý / ghi chú cho khách hàng này..."/>
+                    <!-- 3 NÚT SAU BÁO GIÁ chuyển xuống đây (user spec 2026-09-17):
+                         khi ĐÃ CHỐT BÁO GIÁ (vd_intake_locked) → hiện dưới ô ghi chú. -->
+                    <div class="o_vd_note_actions" invisible="not vd_intake_locked or stage_is_lost">
+                        <button string="📵 Báo giá xong mất tích"
+                                name="action_mark_quoted_lost" type="object"
+                                class="o_vd_act_btn o_vd_act_lost"
+                                invisible="vd_contract_signed or vd_quoted_lost_manual"
+                                title="KH báo giá xong rồi mất tích (không liên lạc lại) → đưa vào box BÁO GIÁ XONG MẤT TÍCH."/>
+                        <button string="📅 Đã hẹn gặp"
+                                name="action_mark_appointment" type="object"
+                                class="o_vd_act_btn o_vd_act_appt"
+                                invisible="vd_contract_signed or vd_has_appointment"
+                                title="KH đồng ý báo giá + đã hẹn lịch đi gặp để chốt hợp đồng."/>
+                        <button string="✅ ĐÃ HẸN GẶP"
+                                name="action_unmark_appointment" type="object"
+                                class="o_vd_act_btn o_vd_act_appt o_vd_act_appt_on"
+                                invisible="not vd_has_appointment or vd_contract_signed"
+                                title="Đang ở trạng thái ĐÃ HẸN GẶP. Bấm để bỏ đánh dấu."/>
+                        <button string="🏆 ĐÃ CHỐT (ký HĐ)"
+                                name="action_mark_contract_signed" type="object"
+                                class="o_vd_act_btn o_vd_act_won"
+                                invisible="vd_contract_signed"
+                                title="Đã ký được hợp đồng với khách → đánh dấu ĐÃ CHỐT."/>
+                        <span class="o_vd_act_btn o_vd_act_won_badge"
+                              invisible="not vd_contract_signed">🏆 ĐÃ CHỐT HĐ</span>
+                    </div>
                 </div>
             </xpath>
         </field>
