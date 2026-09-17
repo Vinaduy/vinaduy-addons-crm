@@ -9655,11 +9655,38 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_won_pill.o_vd_pill_selectable {
     cursor: pointer;
     -webkit-user-select: none;
-    user-select: none;   /* kéo chọn hàng loạt không bôi đen chữ */
+    user-select: none;   /* quét chọn không bôi đen chữ */
     &:hover { box-shadow: 0 0 0 2px #74c0fc inset; }
 }
-/* Dòng BÁO GIÁ ở chế độ chọn → không bôi đen chữ khi kéo */
+/* Dòng BÁO GIÁ ở chế độ chọn → không bôi đen chữ khi quét */
 .o_vd_problem_row.o_vd_row_selectable { -webkit-user-select: none; user-select: none; }
+/* QUÉT CHỌN: con trỏ hình ô vuông + viền nổi để biết đang quét (2026-09-17) */
+.o_vd_won_pill.o_vd_pill_brush, .o_vd_problem_row.o_vd_row_brush { cursor: crosshair; }
+/* Nút bật/tắt QUÉT CHỌN */
+.o_vd_brush_toggle {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    margin-right: 0.5rem;
+    color: #7048e8;
+    background: #f3f0ff;
+    border: 1px solid #b197fc;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { background: #e5dbff; }
+    &.o_on {
+        color: #fff;
+        background: linear-gradient(135deg, #845ef7, #7048e8);
+        border-color: #5f3dc4;
+        box-shadow: 0 2px 8px rgba(112, 72, 232, 0.35);
+        animation: o_vd_brush_pulse 1.3s ease-in-out infinite;
+    }
+}
+@keyframes o_vd_brush_pulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(112, 72, 232, 0.35); }
+    50% { box-shadow: 0 2px 14px rgba(112, 72, 232, 0.65); }
+}
 .o_vd_won_pill.o_vd_pill_selected {
     background: #d3f9d8 !important;
     box-shadow: 0 0 0 2px #2f9e44 inset !important;
