@@ -63,6 +63,8 @@ export class VdFaceCheckin extends Component {
             distance: null,
             withinRadius: false,
             radius: 50,
+            workStart: "08:00",
+            workEnd: "17:30",
             faceMsg: "",
             faceLive: "none", // none | bad | ok  (trạng thái quét trực tiếp)
             faceHint: "Đưa khuôn mặt vào khung",
@@ -94,6 +96,8 @@ export class VdFaceCheckin extends Component {
             this.state.enrolled = this.cfg.enrolled;
             this.state.userName = this.cfg.user_name;
             this.state.radius = this.cfg.radius;
+            this.state.workStart = this.cfg.work_start_label || "08:00";
+            this.state.workEnd = this.cfg.work_end_label || "17:30";
             this.state.today = this.cfg.today;
             this.state.hasOpen = this.cfg.open;
             this.state.recent = this.cfg.recent || [];

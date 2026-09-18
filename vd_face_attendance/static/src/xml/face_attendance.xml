@@ -79,7 +79,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="o_vd_face_rulehint">Quy định: vào 8:00 · ra 17:30</div>
+                        <div class="o_vd_face_rulehint">Quy định: vào <t t-esc="state.workStart"/> · ra <t t-esc="state.workEnd"/></div>
 
                         <!-- FORM đăng ký (khi CHƯA đăng ký): nhập tên + giới tính -->
                         <div t-if="!state.enrolled" class="o_vd_face_enroll">

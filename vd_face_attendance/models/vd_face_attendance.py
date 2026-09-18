@@ -59,12 +59,31 @@ class VdFaceAttendance(models.Model):
             else:
                 r.worked_hours = 0.0
 
+    @staticmethod
+    def _vd_parse_hm(raw, dh, dm):
+        """Đọc giờ quy định dạng 'HH:MM' (vd '17:30'). Chấp nhận cả số thập phân
+        cũ (17.5=17:30) để không vỡ dữ liệu cũ. Trả (giờ, phút)."""
+        s = (raw or '').strip()
+        if ':' in s:
+            try:
+                p = s.split(':')
+                return max(0, min(23, int(p[0]))), max(0, min(59, int(p[1])))
+            except (ValueError, IndexError):
+                pass
+        if s:
+            try:
+                f = float(s)
+                return int(f), int(round((f % 1) * 60))
+            except ValueError:
+                pass
+        return dh, dm
+
     @api.depends('check_in', 'check_out')
     def _compute_status(self):
-        cfg = self._vd_cfg()
+        P = self.env['ir.config_parameter'].sudo()
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
-        sh, sm = int(cfg['work_start']), int(round((cfg['work_start'] % 1) * 60))
-        eh, em = int(cfg['work_end']), int(round((cfg['work_end'] % 1) * 60))
+        sh, sm = self._vd_parse_hm(P.get_param('vd_face_attendance.work_start'), 8, 0)
+        eh, em = self._vd_parse_hm(P.get_param('vd_face_attendance.work_end'), 17, 30)
         for r in self:
             r.late_minutes = 0
             r.early_leave_minutes = 0
@@ -108,9 +127,6 @@ class VdFaceAttendance(models.Model):
             'lng': _f('vd_face_attendance.office_lng', 105.8065720),
             'radius': _f('vd_face_attendance.radius_m', 50.0),
             'threshold': _f('vd_face_attendance.face_threshold', 0.5),
-            # Giờ quy định: 8h vào, 17h30 ra (số thập phân: 17.5 = 17:30).
-            'work_start': _f('vd_face_attendance.work_start', 8.0),
-            'work_end': _f('vd_face_attendance.work_end', 17.5),
             'model_url': P.get_param(
                 'vd_face_attendance.model_url',
                 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
@@ -178,6 +194,10 @@ class VdFaceAttendance(models.Model):
         enrolled = bool(emp and emp.descriptor)
         cfg.update({
             'user_name': u.name,
+            'work_start_label': '%02d:%02d' % self._vd_parse_hm(
+                self.env['ir.config_parameter'].sudo().get_param('vd_face_attendance.work_start'), 8, 0),
+            'work_end_label': '%02d:%02d' % self._vd_parse_hm(
+                self.env['ir.config_parameter'].sudo().get_param('vd_face_attendance.work_end'), 17, 30),
             'enrolled': enrolled,
             'descriptor': json.loads(emp.descriptor) if enrolled else None,
             'employee': ({

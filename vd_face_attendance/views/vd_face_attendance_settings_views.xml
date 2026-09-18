@@ -23,7 +23,7 @@
                             <field name="work_start"/>
                             <field name="work_end"/>
                             <div colspan="2" class="text-muted">
-                                Nhập dạng số: 8.0 = 8:00, 17.5 = 17:30. Vào sau giờ vào =
+                                Nhập dạng <b>HH:MM</b> (ví dụ <b>08:00</b>, <b>17:30</b>). Vào sau giờ vào =
                                 đi muộn; ra trước giờ ra = về sớm.
                             </div>
                         </group>
