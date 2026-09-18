@@ -46,6 +46,11 @@ class VdFaceAttendance(models.Model):
     in_photo = fields.Binary(string='Ảnh chấm vào', attachment=True)
     out_photo = fields.Binary(string='Ảnh chấm ra', attachment=True)
 
+    late_minutes = fields.Integer(
+        string='Đi muộn (phút)', compute='_compute_status', store=True)
+    early_leave_minutes = fields.Integer(
+        string='Về sớm (phút)', compute='_compute_status', store=True)
+
     @api.depends('check_in', 'check_out')
     def _compute_worked_hours(self):
         for r in self:
@@ -53,6 +58,39 @@ class VdFaceAttendance(models.Model):
                 r.worked_hours = (r.check_out - r.check_in).total_seconds() / 3600.0
             else:
                 r.worked_hours = 0.0
+
+    @api.depends('check_in', 'check_out')
+    def _compute_status(self):
+        cfg = self._vd_cfg()
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        sh, sm = int(cfg['work_start']), int(round((cfg['work_start'] % 1) * 60))
+        eh, em = int(cfg['work_end']), int(round((cfg['work_end'] % 1) * 60))
+        for r in self:
+            r.late_minutes = 0
+            r.early_leave_minutes = 0
+            if r.check_in:
+                loc = pytz.utc.localize(r.check_in).astimezone(vn)
+                exp = loc.replace(hour=sh, minute=sm, second=0, microsecond=0)
+                diff = (loc - exp).total_seconds() / 60.0
+                r.late_minutes = int(diff) if diff > 0 else 0
+            if r.check_out:
+                loco = pytz.utc.localize(r.check_out).astimezone(vn)
+                expo = loco.replace(hour=eh, minute=em, second=0, microsecond=0)
+                diffo = (expo - loco).total_seconds() / 60.0
+                r.early_leave_minutes = int(diffo) if diffo > 0 else 0
+
+    def _vd_local_hm(self, dt):
+        """Datetime UTC -> 'HH:MM' giờ VN."""
+        if not dt:
+            return ''
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        return pytz.utc.localize(dt).astimezone(vn).strftime('%H:%M')
+
+    def _vd_local_dm(self, dt):
+        if not dt:
+            return ''
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        return pytz.utc.localize(dt).astimezone(vn).strftime('%d/%m')
 
     # ================= CẤU HÌNH =================
     @api.model
@@ -70,6 +108,9 @@ class VdFaceAttendance(models.Model):
             'lng': _f('vd_face_attendance.office_lng', 105.8065720),
             'radius': _f('vd_face_attendance.radius_m', 50.0),
             'threshold': _f('vd_face_attendance.face_threshold', 0.5),
+            # Giờ quy định: 8h vào, 17h30 ra (số thập phân: 17.5 = 17:30).
+            'work_start': _f('vd_face_attendance.work_start', 8.0),
+            'work_end': _f('vd_face_attendance.work_end', 17.5),
             'model_url': P.get_param(
                 'vd_face_attendance.model_url',
                 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
@@ -129,7 +170,11 @@ class VdFaceAttendance(models.Model):
         u = self.env.user
         cfg = self._vd_cfg()
         emp = self._vd_emp()
-        rec = self._vd_find_open_today()
+        rec_open = self._vd_find_open_today()
+        rec_today = self.search([
+            ('user_id', '=', self.env.uid),
+            ('check_in', '>=', self._vd_today_start_utc()),
+        ], limit=1)
         enrolled = bool(emp and emp.descriptor)
         cfg.update({
             'user_name': u.name,
@@ -141,12 +186,21 @@ class VdFaceAttendance(models.Model):
                 'gender': dict(self.env['vd.face.employee']._fields['gender'].selection).get(emp.gender, ''),
                 'enrolled_date': fields.Datetime.to_string(emp.enrolled_date) if emp.enrolled_date else '',
             } if enrolled else None),
-            'open_attendance': (
-                {'id': rec.id, 'check_in': fields.Datetime.to_string(rec.check_in)}
-                if rec else None),
+            'open': bool(rec_open),
+            'today': (self._vd_att_dict(rec_today) if rec_today else None),
             'recent': self.vd_my_recent(),
         })
         return cfg
+
+    def _vd_att_dict(self, rec):
+        return {
+            'id': rec.id,
+            'in_time': self._vd_local_hm(rec.check_in),
+            'out_time': self._vd_local_hm(rec.check_out),
+            'late_minutes': rec.late_minutes,
+            'early_leave_minutes': rec.early_leave_minutes,
+            'worked_hours': round(rec.worked_hours, 2),
+        }
 
     @api.model
     def vd_enroll_face(self, name, gender, descriptor, photo=None):
@@ -198,7 +252,8 @@ class VdFaceAttendance(models.Model):
             'in_photo': self._vd_photo_bytes(photo),
         })
         return {'ok': True, 'id': rec.id, 'distance': round(dist),
-                'check_in': fields.Datetime.to_string(rec.check_in)}
+                'in_time': self._vd_local_hm(rec.check_in),
+                'late_minutes': rec.late_minutes}
 
     @api.model
     def vd_check_out(self, lat, lng, face_score=0.0, photo=None):
@@ -213,7 +268,8 @@ class VdFaceAttendance(models.Model):
             'out_photo': self._vd_photo_bytes(photo),
         })
         return {'ok': True, 'id': rec.id, 'distance': round(dist),
-                'check_out': fields.Datetime.to_string(rec.check_out),
+                'out_time': self._vd_local_hm(rec.check_out),
+                'early_leave_minutes': rec.early_leave_minutes,
                 'worked_hours': round(rec.worked_hours, 2)}
 
     @api.model
@@ -222,9 +278,11 @@ class VdFaceAttendance(models.Model):
         out = []
         for r in recs:
             out.append({
-                'check_in': fields.Datetime.to_string(r.check_in) if r.check_in else '',
-                'check_out': fields.Datetime.to_string(r.check_out) if r.check_out else '',
+                'date': self._vd_local_dm(r.check_in),
+                'in_time': self._vd_local_hm(r.check_in),
+                'out_time': self._vd_local_hm(r.check_out),
                 'worked_hours': round(r.worked_hours, 2),
-                'in_distance': round(r.in_distance or 0.0),
+                'late_minutes': r.late_minutes,
+                'early_leave_minutes': r.early_leave_minutes,
             })
         return out

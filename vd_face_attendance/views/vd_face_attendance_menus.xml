@@ -3,7 +3,7 @@
     <menuitem id="menu_face_root" name="Chấm công" sequence="55"/>
 
     <!-- NV: màn hình chấm công (ai cũng vào được) -->
-    <menuitem id="menu_face_checkin" name="Chấm công khuôn mặt"
+    <menuitem id="menu_face_checkin" name="Máy chấm công"
               parent="menu_face_root" sequence="10"
               action="action_face_checkin"/>
 

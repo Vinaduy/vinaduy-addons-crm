@@ -45,14 +45,27 @@
                             <span t-else="" class="o_vd_face_bad">Chưa đăng ký</span>
                         </div>
 
-                        <!-- Trạng thái hôm nay -->
-                        <div class="o_vd_face_row">
-                            <span class="o_vd_face_lbl"><i class="fa fa-clock-o me-1"/> Hôm nay</span>
-                            <span t-if="state.open" class="o_vd_face_ok">
-                                Đã VÀO lúc <t t-esc="state.open.check_in"/>
-                            </span>
-                            <span t-else="" class="o_vd_face_muted">Chưa chấm vào</span>
+                        <!-- Trạng thái hôm nay: giờ vào / giờ ra + đi muộn / về sớm -->
+                        <div class="o_vd_face_today">
+                            <div class="o_vd_face_today_head"><i class="fa fa-clock-o me-1"/> Hôm nay</div>
+                            <div t-if="!state.today" class="o_vd_face_muted">Chưa chấm công</div>
+                            <div t-else="" class="o_vd_face_today_body">
+                                <div class="o_vd_face_time">
+                                    <span class="o_vd_face_time_lbl">Vào</span>
+                                    <span class="o_vd_face_time_val"><t t-esc="state.today.in_time or '—'"/></span>
+                                    <span t-if="state.today.late_minutes" class="o_vd_face_late">muộn <t t-esc="state.today.late_minutes"/>'</span>
+                                </div>
+                                <div class="o_vd_face_time">
+                                    <span class="o_vd_face_time_lbl">Ra</span>
+                                    <span class="o_vd_face_time_val"><t t-esc="state.today.out_time or '—'"/></span>
+                                    <span t-if="state.today.early_leave_minutes" class="o_vd_face_late">sớm <t t-esc="state.today.early_leave_minutes"/>'</span>
+                                </div>
+                                <div t-if="state.today.out_time" class="o_vd_face_worked">
+                                    Tổng: <t t-esc="state.today.worked_hours"/> giờ
+                                </div>
+                            </div>
                         </div>
+                        <div class="o_vd_face_rulehint">Quy định: vào 8:00 · ra 17:30</div>
 
                         <!-- FORM đăng ký (khi CHƯA đăng ký): nhập tên + giới tính -->
                         <div t-if="!state.enrolled" class="o_vd_face_enroll">
@@ -86,19 +99,25 @@
                             </div>
                         </div>
 
-                        <!-- Nút chấm VÀO / RA -->
-                        <button t-if="state.enrolled and !state.open"
+                        <!-- Chưa có bản ghi hôm nay -> CHẤM VÀO -->
+                        <button t-if="state.enrolled and !state.today"
                                 class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
-                                t-att-disabled="state.busy or state.phase !== 'ready' or !state.withinRadius"
+                                t-att-disabled="state.busy or state.phase !== 'ready'"
                                 t-on-click="() => this.checkIn()">
                             <i class="fa fa-sign-in me-1"/> CHẤM VÀO
                         </button>
-                        <button t-if="state.enrolled and state.open"
+                        <!-- Đã vào, chưa ra -> CHẤM RA -->
+                        <button t-if="state.enrolled and state.hasOpen"
                                 class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
-                                t-att-disabled="state.busy or state.phase !== 'ready' or !state.withinRadius"
+                                t-att-disabled="state.busy or state.phase !== 'ready'"
                                 t-on-click="() => this.checkOut()">
                             <i class="fa fa-sign-out me-1"/> CHẤM RA
                         </button>
+                        <!-- Đã vào + đã ra -> hoàn thành -->
+                        <div t-if="state.today and state.today.out_time"
+                             class="o_vd_face_done">
+                            <i class="fa fa-check-circle me-1"/> Đã hoàn thành chấm công hôm nay
+                        </div>
 
                         <button t-if="state.enrolled" class="btn btn-link o_vd_face_reenroll"
                                 t-att-disabled="state.busy or state.phase !== 'ready'"
@@ -113,13 +132,21 @@
                     <div class="o_vd_face_recent_head">Lịch sử gần đây</div>
                     <table class="table table-sm o_vd_face_table">
                         <thead>
-                            <tr><th>Giờ vào</th><th>Giờ ra</th><th class="text-end">Số giờ</th></tr>
+                            <tr>
+                                <th>Ngày</th><th>Vào</th><th>Ra</th>
+                                <th class="text-end">Giờ</th><th>Ghi chú</th>
+                            </tr>
                         </thead>
                         <tbody>
                             <tr t-foreach="state.recent" t-as="r" t-key="r_index">
-                                <td><t t-esc="r.check_in or '—'"/></td>
-                                <td><t t-esc="r.check_out or '—'"/></td>
+                                <td><t t-esc="r.date or '—'"/></td>
+                                <td><t t-esc="r.in_time or '—'"/></td>
+                                <td><t t-esc="r.out_time or '—'"/></td>
                                 <td class="text-end"><t t-esc="r.worked_hours"/></td>
+                                <td>
+                                    <span t-if="r.late_minutes" class="o_vd_face_late">muộn <t t-esc="r.late_minutes"/>'</span>
+                                    <span t-if="r.early_leave_minutes" class="o_vd_face_late">sớm <t t-esc="r.early_leave_minutes"/>'</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

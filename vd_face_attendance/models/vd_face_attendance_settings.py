@@ -13,6 +13,10 @@ class VdFaceAttendanceSettings(models.TransientModel):
         string='Ngưỡng khớp mặt',
         help='Càng NHỎ càng nghiêm ngặt (khoảng cách euclid, mặc định 0.5). '
              'Trên ngưỡng này = KHÔNG khớp.')
+    work_start = fields.Float(
+        string='Giờ vào quy định', help='Ví dụ 8.0 = 8:00. Vào sau giờ này = đi muộn.')
+    work_end = fields.Float(
+        string='Giờ ra quy định', help='Ví dụ 17.5 = 17:30. Ra trước giờ này = về sớm.')
     model_url = fields.Char(string='Đường dẫn model AI')
     lib_url = fields.Char(string='Đường dẫn thư viện face-api')
 
@@ -25,6 +29,8 @@ class VdFaceAttendanceSettings(models.TransientModel):
             'office_lng': cfg['lng'],
             'radius_m': cfg['radius'],
             'face_threshold': cfg['threshold'],
+            'work_start': cfg['work_start'],
+            'work_end': cfg['work_end'],
             'model_url': cfg['model_url'],
             'lib_url': cfg['lib_url'],
         })
@@ -37,6 +43,8 @@ class VdFaceAttendanceSettings(models.TransientModel):
         P.set_param('vd_face_attendance.office_lng', repr(self.office_lng))
         P.set_param('vd_face_attendance.radius_m', repr(self.radius_m))
         P.set_param('vd_face_attendance.face_threshold', repr(self.face_threshold))
+        P.set_param('vd_face_attendance.work_start', repr(self.work_start))
+        P.set_param('vd_face_attendance.work_end', repr(self.work_end))
         if self.model_url:
             P.set_param('vd_face_attendance.model_url', self.model_url)
         if self.lib_url:

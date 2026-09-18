@@ -16,6 +16,8 @@
                 <field name="check_in"/>
                 <field name="check_out"/>
                 <field name="worked_hours" widget="float_time" sum="Tổng giờ"/>
+                <field name="late_minutes" optional="show"/>
+                <field name="early_leave_minutes" optional="show"/>
                 <field name="in_distance" optional="show"/>
                 <field name="out_distance" optional="hide"/>
                 <field name="in_face_score" optional="hide"/>

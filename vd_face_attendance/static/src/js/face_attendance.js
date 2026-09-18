@@ -64,7 +64,8 @@ export class VdFaceCheckin extends Component {
             radius: 50,
             faceMsg: "",
             busy: false,
-            open: null,
+            today: null, // {in_time, out_time, late_minutes, early_leave_minutes, worked_hours}
+            hasOpen: false, // đã vào, chưa ra
             recent: [],
             camOk: false,
             // Đăng ký: nhập tên + giới tính; mã số tự cấp.
@@ -90,7 +91,8 @@ export class VdFaceCheckin extends Component {
             this.state.enrolled = this.cfg.enrolled;
             this.state.userName = this.cfg.user_name;
             this.state.radius = this.cfg.radius;
-            this.state.open = this.cfg.open_attendance;
+            this.state.today = this.cfg.today;
+            this.state.hasOpen = this.cfg.open;
             this.state.recent = this.cfg.recent || [];
             this._descriptor = this.cfg.descriptor;
             this.state.enrollName = (this.cfg.employee && this.cfg.employee.name) || this.cfg.user_name || "";
@@ -139,21 +141,24 @@ export class VdFaceCheckin extends Component {
             this.state.faceMsg = "Thiết bị không hỗ trợ định vị GPS.";
             return;
         }
+        const apply = (pos) => {
+            this._lastPos = pos.coords;
+            const d = haversine(
+                pos.coords.latitude, pos.coords.longitude,
+                this.cfg.lat, this.cfg.lng);
+            this.state.distance = Math.round(d);
+            this.state.gpsOk = true;
+            this.state.withinRadius = d <= this.cfg.radius;
+        };
+        // 1) Lấy NHANH 1 vị trí (wifi/mạng, không cần GPS chính xác) → hiện liền.
+        navigator.geolocation.getCurrentPosition(
+            apply, () => {},
+            { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 });
+        // 2) Theo dõi tiếp bằng độ chính xác cao để tinh chỉnh.
         this._geoWatch = navigator.geolocation.watchPosition(
-            (pos) => {
-                this._lastPos = pos.coords;
-                const d = haversine(
-                    pos.coords.latitude, pos.coords.longitude,
-                    this.cfg.lat, this.cfg.lng);
-                this.state.distance = Math.round(d);
-                this.state.gpsOk = true;
-                this.state.withinRadius = d <= this.cfg.radius;
-            },
-            () => {
-                this.state.gpsOk = false;
-            },
-            { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
-        );
+            apply,
+            () => { if (!this.state.gpsOk) { /* giữ trạng thái, chờ fix nhanh */ } },
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 25000 });
     }
 
     async _captureDescriptor() {
@@ -227,8 +232,16 @@ export class VdFaceCheckin extends Component {
             this.notification.add("Bạn chưa đăng ký khuôn mặt.", { type: "warning" });
             return;
         }
-        if (!this._lastPos) {
-            this.notification.add("Chưa lấy được vị trí GPS — hãy bật định vị.", { type: "warning" });
+        if (!this._lastPos || !this.state.gpsOk) {
+            this.notification.add("Chưa lấy được vị trí GPS — hãy bật định vị rồi thử lại.", { type: "warning" });
+            return;
+        }
+        // THÔNG BÁO khi vị trí quá xa (chặn ngay ở client, server cũng chặn lại).
+        if (!this.state.withinRadius) {
+            this.notification.add(
+                `Không chấm công được: bạn đang cách văn phòng ${this.state.distance} m ` +
+                `(chỉ chấm trong bán kính ${this.cfg.radius} m).`,
+                { type: "danger", title: "Vị trí quá xa" });
             return;
         }
         this.state.busy = true;
@@ -248,17 +261,28 @@ export class VdFaceCheckin extends Component {
             }
             const photo = this._snapshot();
             const method = kind === "in" ? "vd_check_in" : "vd_check_out";
-            await this.orm.call("vd.face.attendance", method, [
+            const res = await this.orm.call("vd.face.attendance", method, [
                 this._lastPos.latitude, this._lastPos.longitude, score, photo,
             ]);
             const cfg = await this.orm.call(
                 "vd.face.attendance", "vd_face_client_config", []);
-            this.state.open = cfg.open_attendance;
+            this.state.today = cfg.today;
+            this.state.hasOpen = cfg.open;
             this.state.recent = cfg.recent || [];
             this.state.faceMsg = "";
-            this.notification.add(
-                kind === "in" ? "✅ Chấm VÀO thành công." : "✅ Chấm RA thành công.",
-                { type: "success" });
+            let msg;
+            if (kind === "in") {
+                msg = "✅ Chấm VÀO lúc " + (res.in_time || "");
+                if (res.late_minutes) {
+                    msg += ` (đi muộn ${res.late_minutes} phút)`;
+                }
+            } else {
+                msg = "✅ Chấm RA lúc " + (res.out_time || "");
+                if (res.early_leave_minutes) {
+                    msg += ` (về sớm ${res.early_leave_minutes} phút)`;
+                }
+            }
+            this.notification.add(msg, { type: "success" });
         } catch (e) {
             const msg = this._errMsg(e);
             this.notification.add(msg, { type: "danger" });
