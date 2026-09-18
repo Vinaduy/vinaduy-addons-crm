@@ -116,18 +116,31 @@ class VdFaceAttendance(models.Model):
             return photo.split(',', 1)[1]
         return photo
 
+    # ================= HỒ SƠ ĐĂNG KÝ =================
+    def _vd_emp(self):
+        """Hồ sơ khuôn mặt (vd.face.employee) của NV đang đăng nhập."""
+        return self.env['vd.face.employee'].sudo().search(
+            [('user_id', '=', self.env.uid)], limit=1)
+
     # ================= API CHO CLIENT =================
     @api.model
     def vd_face_client_config(self):
         """Nạp cấu hình + trạng thái NV hiện tại cho màn hình chấm công."""
         u = self.env.user
         cfg = self._vd_cfg()
-        desc = u.sudo().vd_face_descriptor
+        emp = self._vd_emp()
         rec = self._vd_find_open_today()
+        enrolled = bool(emp and emp.descriptor)
         cfg.update({
             'user_name': u.name,
-            'enrolled': bool(desc),
-            'descriptor': json.loads(desc) if desc else None,
+            'enrolled': enrolled,
+            'descriptor': json.loads(emp.descriptor) if enrolled else None,
+            'employee': ({
+                'code': emp.code,
+                'name': emp.name,
+                'gender': dict(self.env['vd.face.employee']._fields['gender'].selection).get(emp.gender, ''),
+                'enrolled_date': fields.Datetime.to_string(emp.enrolled_date) if emp.enrolled_date else '',
+            } if enrolled else None),
             'open_attendance': (
                 {'id': rec.id, 'check_in': fields.Datetime.to_string(rec.check_in)}
                 if rec else None),
@@ -136,18 +149,43 @@ class VdFaceAttendance(models.Model):
         return cfg
 
     @api.model
-    def vd_enroll_face(self, descriptor):
-        """Lưu vector khuôn mặt cho NV đang đăng nhập (đăng ký / cập nhật)."""
+    def vd_enroll_face(self, name, gender, descriptor, photo=None):
+        """Đăng ký / cập nhật khuôn mặt cho NV đang đăng nhập.
+        Nhập TÊN + GIỚI TÍNH; MÃ SỐ NV tự cấp (ir.sequence). Trả hồ sơ đã lưu."""
+        if not name or not str(name).strip():
+            raise UserError(_('Hãy nhập TÊN nhân viên trước khi đăng ký.'))
+        if gender not in ('male', 'female', 'other'):
+            raise UserError(_('Hãy chọn GIỚI TÍNH.'))
         if not isinstance(descriptor, (list, tuple)) or len(descriptor) < 64:
             raise UserError(_('Dữ liệu khuôn mặt không hợp lệ. Hãy thử chụp lại.'))
-        vec = [float(x) for x in descriptor]
-        self.env.user.sudo().write({'vd_face_descriptor': json.dumps(vec)})
-        return {'ok': True}
+        vec = json.dumps([float(x) for x in descriptor])
+        Emp = self.env['vd.face.employee'].sudo()
+        emp = Emp.search([('user_id', '=', self.env.uid)], limit=1)
+        vals = {
+            'name': str(name).strip(),
+            'gender': gender,
+            'descriptor': vec,
+            'photo': self._vd_photo_bytes(photo),
+            'enrolled_date': fields.Datetime.now(),
+        }
+        if emp:
+            emp.write(vals)
+        else:
+            vals['user_id'] = self.env.uid
+            emp = Emp.create(vals)
+        return {
+            'ok': True,
+            'code': emp.code,
+            'name': emp.name,
+            'gender': dict(Emp._fields['gender'].selection).get(emp.gender, ''),
+            'photo': photo,
+        }
 
     @api.model
     def vd_check_in(self, lat, lng, face_score=0.0, photo=None):
         u = self.env.user
-        if not u.sudo().vd_face_descriptor:
+        emp = self._vd_emp()
+        if not (emp and emp.descriptor):
             raise UserError(_('Bạn chưa đăng ký khuôn mặt. Hãy đăng ký trước khi chấm công.'))
         if self._vd_find_open_today():
             raise UserError(_('Hôm nay bạn đã chấm VÀO rồi — hãy chấm RA khi kết thúc.'))

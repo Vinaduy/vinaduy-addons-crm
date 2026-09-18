@@ -54,12 +54,37 @@
                             <span t-else="" class="o_vd_face_muted">Chưa chấm vào</span>
                         </div>
 
-                        <!-- Nút đăng ký (khi chưa đăng ký) -->
-                        <button t-if="!state.enrolled" class="btn btn-warning o_vd_face_btn"
-                                t-att-disabled="state.busy or state.phase !== 'ready'"
-                                t-on-click="() => this.enroll()">
-                            <i class="fa fa-user-plus me-1"/> Đăng ký khuôn mặt
-                        </button>
+                        <!-- FORM đăng ký (khi CHƯA đăng ký): nhập tên + giới tính -->
+                        <div t-if="!state.enrolled" class="o_vd_face_enroll">
+                            <div class="o_vd_face_enroll_title">
+                                <i class="fa fa-id-card me-1"/> Đăng ký khuôn mặt
+                            </div>
+                            <input type="text" class="form-control o_vd_face_input"
+                                   placeholder="Tên nhân viên"
+                                   t-model="state.enrollName"/>
+                            <select class="form-select o_vd_face_input" t-model="state.enrollGender">
+                                <option value="male">Nam</option>
+                                <option value="female">Nữ</option>
+                                <option value="other">Khác</option>
+                            </select>
+                            <div class="o_vd_face_hint">Mã số nhân viên sẽ được cấp tự động.</div>
+                            <button class="btn btn-warning o_vd_face_btn"
+                                    t-att-disabled="state.busy or state.phase !== 'ready'"
+                                    t-on-click="() => this.enroll()">
+                                <i class="fa fa-user-plus me-1"/> Đăng ký khuôn mặt
+                            </button>
+                        </div>
+
+                        <!-- THẺ đã đăng ký (kèm ảnh + mã số + tên + giới tính) -->
+                        <div t-if="state.reg" class="o_vd_face_regcard">
+                            <img t-if="state.reg.photo" class="o_vd_face_regimg"
+                                 t-att-src="state.reg.photo" alt="Ảnh đăng ký"/>
+                            <div class="o_vd_face_reginfo">
+                                <div class="o_vd_face_regcode"><t t-esc="state.reg.code"/></div>
+                                <div class="o_vd_face_regname"><t t-esc="state.reg.name"/></div>
+                                <div class="o_vd_face_reggender"><t t-esc="state.reg.gender"/></div>
+                            </div>
+                        </div>
 
                         <!-- Nút chấm VÀO / RA -->
                         <button t-if="state.enrolled and !state.open"

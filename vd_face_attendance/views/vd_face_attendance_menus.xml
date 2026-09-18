@@ -12,6 +12,11 @@
               parent="menu_face_root" sequence="20"
               action="action_face_attendance_records"/>
 
+    <!-- Danh sách khuôn mặt đã đăng ký (kèm ảnh + mã số + giới tính) -->
+    <menuitem id="menu_face_employees" name="Khuôn mặt đã đăng ký"
+              parent="menu_face_root" sequence="30"
+              action="action_face_employees"/>
+
     <!-- Cấu hình: chỉ quản lý -->
     <menuitem id="menu_face_settings" name="Cấu hình"
               parent="menu_face_root" sequence="90"

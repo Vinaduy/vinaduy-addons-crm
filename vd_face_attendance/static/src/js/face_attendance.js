@@ -67,6 +67,10 @@ export class VdFaceCheckin extends Component {
             open: null,
             recent: [],
             camOk: false,
+            // Đăng ký: nhập tên + giới tính; mã số tự cấp.
+            enrollName: "",
+            enrollGender: "male",
+            reg: null, // hồ sơ đã đăng ký {code, name, gender, photo}
         });
         this.cfg = null;
         this._descriptor = null;
@@ -89,6 +93,10 @@ export class VdFaceCheckin extends Component {
             this.state.open = this.cfg.open_attendance;
             this.state.recent = this.cfg.recent || [];
             this._descriptor = this.cfg.descriptor;
+            this.state.enrollName = (this.cfg.employee && this.cfg.employee.name) || this.cfg.user_name || "";
+            if (this.cfg.employee) {
+                this.state.reg = { ...this.cfg.employee, photo: null };
+            }
 
             await this._startCamera();
             this._startGps();
@@ -179,6 +187,11 @@ export class VdFaceCheckin extends Component {
         if (this.state.busy || this.state.phase !== "ready") {
             return;
         }
+        const name = (this.state.enrollName || "").trim();
+        if (!name) {
+            this.notification.add("Hãy nhập TÊN nhân viên trước khi đăng ký.", { type: "warning" });
+            return;
+        }
         this.state.busy = true;
         this.state.faceMsg = "Đang lấy mẫu khuôn mặt…";
         try {
@@ -187,11 +200,18 @@ export class VdFaceCheckin extends Component {
                 this.state.faceMsg = "Không thấy khuôn mặt rõ — hãy nhìn thẳng vào camera.";
                 return;
             }
-            await this.orm.call("vd.face.attendance", "vd_enroll_face", [desc]);
+            const photo = this._snapshot();
+            const res = await this.orm.call("vd.face.attendance", "vd_enroll_face", [
+                name, this.state.enrollGender, desc, photo,
+            ]);
             this._descriptor = desc;
             this.state.enrolled = true;
+            this.state.reg = {
+                code: res.code, name: res.name, gender: res.gender, photo: res.photo || photo,
+            };
             this.state.faceMsg = "";
-            this.notification.add("Đăng ký khuôn mặt thành công.", { type: "success" });
+            this.notification.add(
+                "Đăng ký thành công — Mã số: " + res.code, { type: "success" });
         } catch (e) {
             this.notification.add(this._errMsg(e), { type: "danger" });
         } finally {
