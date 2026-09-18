@@ -2942,41 +2942,29 @@
          cho các mốc xa; (2) CHƯA GỌI X NGÀY — chỉ KH chưa đặt hẹn.
          ============================================================ -->
     <t t-name="vd_crm_lead.DayFilterBar">
-      <div class="o_vd_dayfilter_wrap">
-        <!-- DÒNG 1: LỊCH HẸN GỌI -->
-        <div class="o_vd_dayfilter_bar o_vd_dayfilter_cbrow">
-            <span class="o_vd_pfilter_lbl">📅 LỊCH HẸN GỌI:</span>
-            <!-- TẤT CẢ: bỏ lọc, xem hết (user spec 2026-09-11) -->
-            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, 0)"
-                  title="Xem TẤT CẢ khách — bỏ mọi bộ lọc">
-                <span class="o_vd_daybtn_main">📋 Tất cả</span>
-            </span>
-            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                  t-att-class="'o_vd_daybtn o_vd_daybtn_cb' + (cb.k === 'cb_today' ? ' o_vd_daybtn_overdue' : '') + (filterVal(scope) === cb.k ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, cb.k)"
-                  t-att-title="'Khách hẹn gọi lại — ' + cb.l">
-                <span class="o_vd_daybtn_main"><t t-esc="cb.l"/></span>
-                <span t-if="filterCount(scope, cb.k)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, cb.k)"/></span>
-            </span>
-            <!-- "Không hẹn" + "Xa hơn" đã BỎ (user spec 2026-09-11): chỉ giữ 5 nút. -->
+      <!-- 2 bộ lọc DẠNG DROPDOWN, CÙNG 1 HÀNG (user spec 2026-09-18) -->
+      <div class="o_vd_dayfilter_wrap o_vd_dayfilter_oneline">
+        <div class="o_vd_dayfilter_group">
+            <span class="o_vd_pfilter_lbl">📅 Lịch hẹn gọi</span>
+            <select class="o_vd_dayfilter_select"
+                    t-on-change="(ev) => this.setFilterFromSelect(scope, ev)">
+                <option value="0" t-att-selected="!filterVal(scope)">Tất cả</option>
+                <option t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                        t-att-value="cb.k" t-att-selected="filterVal(scope) === cb.k">
+                    <t t-esc="cb.l"/> (<t t-esc="filterCount(scope, cb.k) or 0"/>)
+                </option>
+            </select>
         </div>
-        <!-- DÒNG 2: CHƯA GỌI — cùng 5 nút (user spec 2026-09-11):
-             Tất cả / Hôm nay / Ngày mai / Tuần / Tháng. -->
-        <div class="o_vd_dayfilter_bar o_vd_dayfilter_daysrow">
-            <span class="o_vd_pfilter_lbl">☎️ CHƯA GỌI:</span>
-            <span t-att-class="'o_vd_daybtn o_vd_daybtn_all' + (!filterVal(scope) ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, 0)"
-                  title="Xem TẤT CẢ — bỏ lọc">
-                <span class="o_vd_daybtn_main">📋 Tất cả</span>
-            </span>
-            <span t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                  t-att-class="'o_vd_daybtn' + (filterVal(scope) === cb.k ? ' o_vd_daybtn_on' : '')"
-                  t-on-click="() => this.setFilter(scope, cb.k)"
-                  t-att-title="cb.l">
-                <span class="o_vd_daybtn_main"><t t-esc="cb.l"/></span>
-                <span t-if="filterCount(scope, cb.k)" class="o_vd_daybtn_cnt"><t t-esc="filterCount(scope, cb.k)"/></span>
-            </span>
+        <div class="o_vd_dayfilter_group">
+            <span class="o_vd_pfilter_lbl">☎️ Chưa gọi</span>
+            <select class="o_vd_dayfilter_select"
+                    t-on-change="(ev) => this.setFilterFromSelect(scope, ev)">
+                <option value="0" t-att-selected="!filterVal(scope)">Tất cả</option>
+                <option t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                        t-att-value="cb.k" t-att-selected="filterVal(scope) === cb.k">
+                    <t t-esc="cb.l"/> (<t t-esc="filterCount(scope, cb.k) or 0"/>)
+                </option>
+            </select>
         </div>
       </div>
     </t>

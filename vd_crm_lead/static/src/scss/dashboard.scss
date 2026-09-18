@@ -6564,6 +6564,34 @@
     /* 2 dòng SÁT nhau, KHÔNG kẻ ngăn (user 2026-08-07). */
     .o_vd_dayfilter_cbrow { }
 
+    /* BỘ LỌC DẠNG DROPDOWN — 2 cái CÙNG 1 HÀNG (user spec 2026-09-18) */
+    .o_vd_dayfilter_wrap.o_vd_dayfilter_oneline {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        padding: 0.5rem 0.85rem;
+    }
+    .o_vd_dayfilter_group {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        .o_vd_pfilter_lbl { min-width: 0; white-space: nowrap; }
+    }
+    .o_vd_dayfilter_select {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1c2733;
+        padding: 0.3rem 1.8rem 0.3rem 0.6rem;
+        border: 1px solid #c7cbe0;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        min-width: 140px;
+        &:hover { border-color: #7c5cff; }
+        &:focus { outline: none; border-color: #7c5cff; box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.15); }
+    }
+
     /* Menu "Xa hơn ▾" — dropdown các mốc xa (Tháng sau … 1 Năm sau). */
     .o_vd_daymore { position: relative; display: inline-flex; }
     .o_vd_daybtn_more { border-color: #ffd8a8; background: #fff4e6;

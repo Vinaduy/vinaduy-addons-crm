@@ -2006,6 +2006,11 @@ export class VdCrmDashboard extends Component {
     }
     // ===== Helper dùng CHUNG cho 2 thanh lọc (scope: 'new' = KHÁCH MỚI · 'prob' = TCG/XLVĐ)
     setFilter(scope, n) { scope === "new" ? this.setNewDayFilter(n) : this.setDayFilter(n); }
+    // Dropdown bộ lọc: value "0" = Tất cả, còn lại là mã bucket (cb_today…).
+    setFilterFromSelect(scope, ev) {
+        const v = ev.target.value;
+        this.setFilter(scope, v === "0" ? 0 : v);
+    }
     filterVal(scope) { return scope === "new" ? this.state.newDayFilter : this.state.dayFilter; }
     filterCount(scope, k) {
         const s = this._dayStatsCached(scope);
