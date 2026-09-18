@@ -64,6 +64,8 @@ export class VdFaceCheckin extends Component {
             withinRadius: false,
             radius: 50,
             faceMsg: "",
+            faceLive: "none", // none | bad | ok  (trạng thái quét trực tiếp)
+            faceHint: "Đưa khuôn mặt vào khung",
             busy: false,
             today: null, // {in_time, out_time, late_minutes, early_leave_minutes, worked_hours}
             hasOpen: false, // đã vào, chưa ra
@@ -107,13 +109,27 @@ export class VdFaceCheckin extends Component {
             this.state.msg = "Đang tải mô hình nhận diện…";
             const faceapi = await loadFaceApi(this.cfg.lib_url);
             const url = this.cfg.model_url;
-            await faceapi.nets.tinyFaceDetector.loadFromUri(url);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(url);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(url);
+            // Tải 3 model SONG SONG cho nhanh (thay vì chờ tuần tự).
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(url),
+                faceapi.nets.faceLandmark68Net.loadFromUri(url),
+                faceapi.nets.faceRecognitionNet.loadFromUri(url),
+            ]);
             this._faceapi = faceapi;
+            // WARM-UP: chạy 1 lần trên canvas trắng để khởi tạo WebGL trước → lần
+            // nhận diện thật KHÔNG bị khựng ~1-2s (nguyên nhân "quét lâu").
+            try {
+                const c = document.createElement("canvas");
+                c.width = 224; c.height = 224;
+                await faceapi.detectSingleFace(
+                    c, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }));
+            } catch (e) { /* bỏ qua */ }
 
             this.state.phase = "ready";
             this.state.msg = "";
+            // Quét LIÊN TỤC nhẹ → phản hồi tức thì + đăng ký/chấm dùng lại kết quả
+            // mới nhất (gần như không phải chờ).
+            this._startDetectLoop();
         } catch (e) {
             this.state.phase = "error";
             this.state.msg = e.message || "Lỗi khởi tạo.";
@@ -121,20 +137,83 @@ export class VdFaceCheckin extends Component {
     }
 
     async _startCamera() {
-        try {
-            this._stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" },
-                audio: false,
-            });
+        const attach = async (stream) => {
+            this._stream = stream;
             const v = this.videoRef.el;
             if (v) {
-                v.srcObject = this._stream;
-                await v.play().catch(() => {});
+                v.muted = true;
+                v.setAttribute("playsinline", "");
+                v.srcObject = stream;
+                // Đợi metadata rồi mới play → tránh khung ĐEN do play sớm.
+                await new Promise((res) => {
+                    if (v.readyState >= 1) return res();
+                    v.onloadedmetadata = () => res();
+                    setTimeout(res, 1500);
+                });
+                for (let i = 0; i < 3; i++) {
+                    try { await v.play(); break; } catch (e) { await new Promise(r => setTimeout(r, 250)); }
+                }
             }
             this.state.camOk = true;
-        } catch (e) {
-            throw new Error("Không mở được camera. Hãy cho phép quyền camera rồi tải lại trang.");
+        };
+        try {
+            await attach(await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false,
+            }));
+        } catch (e1) {
+            // Một số máy không nhận facingMode → thử camera bất kỳ.
+            try {
+                await attach(await navigator.mediaDevices.getUserMedia({ video: true, audio: false }));
+            } catch (e2) {
+                throw new Error("Không mở được camera. Hãy cho phép quyền camera rồi tải lại trang.");
+            }
         }
+    }
+
+    // ===== QUÉT LIÊN TỤC (nhẹ) — cập nhật trạng thái + giữ kết quả mới nhất =====
+    _startDetectLoop() {
+        const tick = async () => {
+            if (this._stopped) return;
+            const v = this.videoRef.el;
+            if (this._faceapi && v && v.readyState >= 2 && !this._detecting) {
+                this._detecting = true;
+                try {
+                    const det = await this._detectFace();
+                    this._lastDet = det ? { det, t: Date.now() } : null;
+                    this._updateFaceLive(det);
+                } catch (e) { /* bỏ qua 1 nhịp */ } finally {
+                    this._detecting = false;
+                }
+            }
+            this._loopTimer = setTimeout(tick, 300);
+        };
+        tick();
+    }
+
+    _updateFaceLive(det) {
+        if (this.state.busy) return;
+        if (!det) {
+            this.state.faceLive = "none";
+            this.state.faceHint = "Đưa khuôn mặt vào giữa khung";
+            return;
+        }
+        const issue = this._faceIssue(det);
+        if (issue) {
+            this.state.faceLive = "bad";
+            this.state.faceHint = issue;
+        } else {
+            this.state.faceLive = "ok";
+            this.state.faceHint = "Khuôn mặt tốt ✓";
+        }
+    }
+
+    // Lấy detection: ưu tiên kết quả mới nhất từ vòng quét (tức thì).
+    async _getGoodDet() {
+        if (this._lastDet && Date.now() - this._lastDet.t < 1200) {
+            return this._lastDet.det;
+        }
+        return await this._detectFace();
     }
 
     _gpsError(err) {
@@ -198,7 +277,7 @@ export class VdFaceCheckin extends Component {
         }
         return await this._faceapi
             .detectSingleFace(
-                v, new this._faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
+                v, new this._faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
             .withFaceLandmarks()
             .withFaceDescriptor();
     }
@@ -267,7 +346,7 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang lấy mẫu khuôn mặt…";
         try {
-            const det = await this._detectFace();
+            const det = await this._getGoodDet();
             if (!det) {
                 this.state.faceMsg = "Không thấy khuôn mặt rõ — hãy nhìn thẳng vào camera.";
                 return;
@@ -321,7 +400,7 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang nhận diện…";
         try {
-            const det = await this._detectFace();
+            const det = await this._getGoodDet();
             if (!det) {
                 this.state.faceMsg = "Không thấy khuôn mặt — hãy nhìn thẳng vào camera.";
                 return;
@@ -385,6 +464,11 @@ export class VdFaceCheckin extends Component {
     }
 
     _cleanup() {
+        this._stopped = true;
+        if (this._loopTimer) {
+            clearTimeout(this._loopTimer);
+            this._loopTimer = null;
+        }
         if (this._geoWatch != null && navigator.geolocation) {
             navigator.geolocation.clearWatch(this._geoWatch);
         }

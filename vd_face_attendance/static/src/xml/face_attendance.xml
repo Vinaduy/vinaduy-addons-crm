@@ -17,9 +17,11 @@
                         <video t-ref="video" class="o_vd_face_video" autoplay="autoplay"
                                muted="muted" playsinline="playsinline"/>
                         <canvas t-ref="canvas" class="d-none"/>
-                        <!-- Khung oval hướng dẫn: căn TRỌN khuôn mặt vào trong -->
-                        <div class="o_vd_face_guide"/>
-                        <div class="o_vd_face_guidetxt">Đưa TRỌN khuôn mặt vào vòng</div>
+                        <!-- Khung oval hướng dẫn: xanh khi mặt tốt, cam khi chưa đạt -->
+                        <div t-att-class="'o_vd_face_guide o_vd_face_guide_' + state.faceLive"/>
+                        <div t-att-class="'o_vd_face_guidetxt o_vd_face_guidetxt_' + state.faceLive">
+                            <t t-esc="state.faceHint"/>
+                        </div>
                         <div t-if="state.phase === 'loading'" class="o_vd_face_overlay">
                             <i class="fa fa-spinner fa-spin me-2"/><t t-esc="state.msg"/>
                         </div>

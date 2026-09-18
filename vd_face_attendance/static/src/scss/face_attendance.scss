@@ -67,6 +67,9 @@
     border-radius: 50%;
     box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.18);
     pointer-events: none;
+    transition: border-color 0.2s ease;
+    &.o_vd_face_guide_ok { border-color: #40c057; border-style: solid; }
+    &.o_vd_face_guide_bad { border-color: #ffa94d; }
 }
 .o_vd_face_guidetxt {
     position: absolute;
@@ -75,10 +78,13 @@
     right: 0;
     text-align: center;
     color: #fff;
-    font-weight: 600;
-    font-size: 0.82rem;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     pointer-events: none;
+    padding: 0 0.5rem;
+    &.o_vd_face_guidetxt_ok { color: #b2f2bb; }
+    &.o_vd_face_guidetxt_bad { color: #ffd8a8; }
 }
 .o_vd_face_overlay {
     position: absolute;
