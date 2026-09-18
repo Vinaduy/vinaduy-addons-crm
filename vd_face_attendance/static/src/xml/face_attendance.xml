@@ -32,7 +32,8 @@
                         <!-- Trạng thái GPS -->
                         <div class="o_vd_face_row">
                             <span class="o_vd_face_lbl"><i class="fa fa-map-marker me-1"/> Vị trí</span>
-                            <span t-if="!state.gpsOk" class="o_vd_face_bad">Đang lấy GPS…</span>
+                            <span t-if="!state.gpsOk and !state.gpsErr" class="o_vd_face_bad">Đang lấy GPS…</span>
+                            <span t-elif="!state.gpsOk" class="o_vd_face_bad">Chưa lấy được GPS</span>
                             <span t-elif="state.withinRadius" class="o_vd_face_ok">
                                 Trong văn phòng (<t t-esc="state.distance"/> m)
                             </span>
@@ -40,6 +41,14 @@
                                 Cách VP <t t-esc="state.distance"/> m (cho phép <t t-esc="state.radius"/> m)
                             </span>
                         </div>
+                        <!-- Lý do lỗi GPS + nút thử lại -->
+                        <div t-if="state.gpsErr" class="o_vd_face_gpserr">
+                            <i class="fa fa-exclamation-circle me-1"/><t t-esc="state.gpsErr"/>
+                        </div>
+                        <button t-if="!state.gpsOk" class="btn btn-outline-secondary o_vd_face_gpsbtn"
+                                t-on-click="() => this.retryGps()">
+                            <i class="fa fa-refresh me-1"/> Lấy lại vị trí
+                        </button>
 
                         <!-- Trạng thái đăng ký -->
                         <div class="o_vd_face_row">

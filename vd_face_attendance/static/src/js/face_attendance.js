@@ -59,6 +59,7 @@ export class VdFaceCheckin extends Component {
             enrolled: false,
             userName: "",
             gpsOk: false,
+            gpsErr: "",
             distance: null,
             withinRadius: false,
             radius: 50,
@@ -136,11 +137,30 @@ export class VdFaceCheckin extends Component {
         }
     }
 
+    _gpsError(err) {
+        let m = "Không lấy được vị trí GPS.";
+        if (err && err.code === 1) {
+            m = "Quyền vị trí đang bị CHẶN. Hãy cho phép định vị cho trang này (biểu tượng ổ khoá trên thanh địa chỉ) rồi bấm 'Lấy lại vị trí'.";
+        } else if (err && err.code === 2) {
+            m = "Máy không xác định được vị trí. Hãy BẬT định vị (Location) của thiết bị — hoặc dùng ĐIỆN THOẠI (chính xác hơn máy tính) rồi bấm 'Lấy lại vị trí'.";
+        } else if (err && err.code === 3) {
+            m = "Quá thời gian lấy GPS. Bấm 'Lấy lại vị trí' để thử lại (ra chỗ thoáng, gần cửa sổ nếu ở trong nhà).";
+        }
+        if (!this.state.gpsOk) {
+            this.state.gpsErr = m;
+        }
+    }
+
     _startGps() {
-        if (!navigator.geolocation) {
-            this.state.faceMsg = "Thiết bị không hỗ trợ định vị GPS.";
+        if (typeof window !== "undefined" && window.isSecureContext === false) {
+            this.state.gpsErr = "Trang không chạy HTTPS nên trình duyệt chặn định vị. Hãy mở qua https://…";
             return;
         }
+        if (!navigator.geolocation) {
+            this.state.gpsErr = "Trình duyệt không hỗ trợ định vị GPS.";
+            return;
+        }
+        this.state.gpsErr = "";
         const apply = (pos) => {
             this._lastPos = pos.coords;
             const d = haversine(
@@ -148,17 +168,27 @@ export class VdFaceCheckin extends Component {
                 this.cfg.lat, this.cfg.lng);
             this.state.distance = Math.round(d);
             this.state.gpsOk = true;
+            this.state.gpsErr = "";
             this.state.withinRadius = d <= this.cfg.radius;
         };
-        // 1) Lấy NHANH 1 vị trí (wifi/mạng, không cần GPS chính xác) → hiện liền.
+        // 1) Lấy NHANH 1 vị trí (wifi/mạng) → hiện liền; lỗi thì báo rõ.
         navigator.geolocation.getCurrentPosition(
-            apply, () => {},
-            { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 });
+            apply, (e) => this._gpsError(e),
+            { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 });
         // 2) Theo dõi tiếp bằng độ chính xác cao để tinh chỉnh.
         this._geoWatch = navigator.geolocation.watchPosition(
-            apply,
-            () => { if (!this.state.gpsOk) { /* giữ trạng thái, chờ fix nhanh */ } },
-            { enableHighAccuracy: true, maximumAge: 10000, timeout: 25000 });
+            apply, (e) => this._gpsError(e),
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 });
+    }
+
+    retryGps() {
+        if (this._geoWatch != null && navigator.geolocation) {
+            navigator.geolocation.clearWatch(this._geoWatch);
+            this._geoWatch = null;
+        }
+        this.state.gpsOk = false;
+        this.state.gpsErr = "Đang lấy lại vị trí…";
+        this._startGps();
     }
 
     async _detectFace() {
