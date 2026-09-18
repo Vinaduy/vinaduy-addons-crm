@@ -59,11 +59,4 @@
               sequence="62"
               groups="sales_team.group_sale_manager"/>
 
-    <!-- ⚙️ Cấu hình → Cài đặt khoá (3 bảng: Khách mới / Thi công gấp / Xử lý vấn đề) -->
-    <menuitem id="menu_vd_crm_config_settings"
-              name="Cài đặt khoá"
-              parent="crm.crm_menu_config"
-              action="action_vd_crm_config_settings"
-              sequence="64"
-              groups="sales_team.group_sale_manager"/>
 </odoo>

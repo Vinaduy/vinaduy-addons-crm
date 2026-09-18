@@ -90,7 +90,6 @@
             'vd_crm_lead/static/src/js/vd_copy_user_down.js',
             'vd_crm_lead/static/src/js/quick_add_hover_open.js',
             'vd_crm_lead/static/src/js/intake_hover_panel.js',
-            'vd_crm_lead/static/src/js/vd_back_button.js',
             'vd_crm_lead/static/src/js/fb_chat.js',
             'vd_crm_lead/static/src/js/vd_user_board.js',
             'vd_crm_lead/static/src/js/vd_hard_lib_button.js',

@@ -180,10 +180,4 @@
               sequence="10"
               groups="vd_crm_lead.vd_crm_group_admin"/>
 
-    <menuitem id="menu_vd_pancake_users"
-              name="Đẩy số cho NV"
-              parent="menu_vd_pancake_root"
-              action="action_vd_pancake_users"
-              sequence="20"
-              groups="vd_crm_lead.vd_crm_group_admin"/>
 </odoo>
