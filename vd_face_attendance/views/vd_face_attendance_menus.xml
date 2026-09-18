@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_face_root" name="Chấm công" sequence="55"/>
+
+    <!-- NV: màn hình chấm công (ai cũng vào được) -->
+    <menuitem id="menu_face_checkin" name="Chấm công khuôn mặt"
+              parent="menu_face_root" sequence="10"
+              action="action_face_checkin"/>
+
+    <!-- Bảng chấm công: NV xem của mình, quản lý xem tất cả (record rule lọc) -->
+    <menuitem id="menu_face_records" name="Bảng chấm công"
+              parent="menu_face_root" sequence="20"
+              action="action_face_attendance_records"/>
+
+    <!-- Cấu hình: chỉ quản lý -->
+    <menuitem id="menu_face_settings" name="Cấu hình"
+              parent="menu_face_root" sequence="90"
+              action="action_face_settings"
+              groups="vd_face_attendance.group_face_manager"/>
+</odoo>

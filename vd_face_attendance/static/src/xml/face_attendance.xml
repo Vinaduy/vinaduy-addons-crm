@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="vd_face_attendance.Checkin">
+        <div class="o_vd_face_wrap">
+            <div class="o_vd_face_card">
+                <div class="o_vd_face_head">
+                    <i class="fa fa-camera me-2"/> CHẤM CÔNG KHUÔN MẶT
+                    <span class="o_vd_face_user"><t t-esc="state.userName"/></span>
+                </div>
+
+                <div t-if="state.phase === 'error'" class="o_vd_face_error">
+                    <i class="fa fa-exclamation-triangle me-2"/><t t-esc="state.msg"/>
+                </div>
+
+                <div class="o_vd_face_body">
+                    <div class="o_vd_face_camwrap">
+                        <video t-ref="video" class="o_vd_face_video" autoplay="autoplay"
+                               muted="muted" playsinline="playsinline"/>
+                        <canvas t-ref="canvas" class="d-none"/>
+                        <div t-if="state.phase === 'loading'" class="o_vd_face_overlay">
+                            <i class="fa fa-spinner fa-spin me-2"/><t t-esc="state.msg"/>
+                        </div>
+                        <div t-if="state.faceMsg" class="o_vd_face_facemsg">
+                            <t t-esc="state.faceMsg"/>
+                        </div>
+                    </div>
+
+                    <div class="o_vd_face_side">
+                        <!-- Trạng thái GPS -->
+                        <div class="o_vd_face_row">
+                            <span class="o_vd_face_lbl"><i class="fa fa-map-marker me-1"/> Vị trí</span>
+                            <span t-if="!state.gpsOk" class="o_vd_face_bad">Đang lấy GPS…</span>
+                            <span t-elif="state.withinRadius" class="o_vd_face_ok">
+                                Trong văn phòng (<t t-esc="state.distance"/> m)
+                            </span>
+                            <span t-else="" class="o_vd_face_bad">
+                                Cách VP <t t-esc="state.distance"/> m (cho phép <t t-esc="state.radius"/> m)
+                            </span>
+                        </div>
+
+                        <!-- Trạng thái đăng ký -->
+                        <div class="o_vd_face_row">
+                            <span class="o_vd_face_lbl"><i class="fa fa-user me-1"/> Khuôn mặt</span>
+                            <span t-if="state.enrolled" class="o_vd_face_ok">Đã đăng ký</span>
+                            <span t-else="" class="o_vd_face_bad">Chưa đăng ký</span>
+                        </div>
+
+                        <!-- Trạng thái hôm nay -->
+                        <div class="o_vd_face_row">
+                            <span class="o_vd_face_lbl"><i class="fa fa-clock-o me-1"/> Hôm nay</span>
+                            <span t-if="state.open" class="o_vd_face_ok">
+                                Đã VÀO lúc <t t-esc="state.open.check_in"/>
+                            </span>
+                            <span t-else="" class="o_vd_face_muted">Chưa chấm vào</span>
+                        </div>
+
+                        <!-- Nút đăng ký (khi chưa đăng ký) -->
+                        <button t-if="!state.enrolled" class="btn btn-warning o_vd_face_btn"
+                                t-att-disabled="state.busy or state.phase !== 'ready'"
+                                t-on-click="() => this.enroll()">
+                            <i class="fa fa-user-plus me-1"/> Đăng ký khuôn mặt
+                        </button>
+
+                        <!-- Nút chấm VÀO / RA -->
+                        <button t-if="state.enrolled and !state.open"
+                                class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
+                                t-att-disabled="state.busy or state.phase !== 'ready' or !state.withinRadius"
+                                t-on-click="() => this.checkIn()">
+                            <i class="fa fa-sign-in me-1"/> CHẤM VÀO
+                        </button>
+                        <button t-if="state.enrolled and state.open"
+                                class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
+                                t-att-disabled="state.busy or state.phase !== 'ready' or !state.withinRadius"
+                                t-on-click="() => this.checkOut()">
+                            <i class="fa fa-sign-out me-1"/> CHẤM RA
+                        </button>
+
+                        <button t-if="state.enrolled" class="btn btn-link o_vd_face_reenroll"
+                                t-att-disabled="state.busy or state.phase !== 'ready'"
+                                t-on-click="() => this.enroll()">
+                            <i class="fa fa-refresh me-1"/> Đăng ký lại khuôn mặt
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lịch sử gần đây -->
+                <div t-if="state.recent.length" class="o_vd_face_recent">
+                    <div class="o_vd_face_recent_head">Lịch sử gần đây</div>
+                    <table class="table table-sm o_vd_face_table">
+                        <thead>
+                            <tr><th>Giờ vào</th><th>Giờ ra</th><th class="text-end">Số giờ</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.recent" t-as="r" t-key="r_index">
+                                <td><t t-esc="r.check_in or '—'"/></td>
+                                <td><t t-esc="r.check_out or '—'"/></td>
+                                <td class="text-end"><t t-esc="r.worked_hours"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

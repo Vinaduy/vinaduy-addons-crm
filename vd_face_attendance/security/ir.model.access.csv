@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_face_att_user,vd.face.attendance user,model_vd_face_attendance,base.group_user,1,1,1,0
+access_face_att_manager,vd.face.attendance manager,model_vd_face_attendance,vd_face_attendance.group_face_manager,1,1,1,1
+access_face_settings_manager,vd.face.attendance.settings manager,model_vd_face_attendance_settings,vd_face_attendance.group_face_manager,1,1,1,1
