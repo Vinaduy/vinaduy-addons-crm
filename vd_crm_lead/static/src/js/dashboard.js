@@ -580,10 +580,8 @@ export class VdCrmDashboard extends Component {
             await this.loadDashboard();
             // Nạp báo cáo CHIA SỐ Pancake 1 LẦN (nền) — tab CHIA SỐ + dialog chia số cần.
             this._maybeLoadPancakeReport();
-            // Nạp bảng THƯỞNG treo (admin cấu hình) — chạy nền, không chặn dashboard.
-            this.orm.call("vd.bonus.team", "vd_bonus_board", [this.state.selected_user_id || false])
-                .then((d) => { this.state.bonusBoard = d || { personal: [], team: [] }; })
-                .catch(() => {});
+            // (Đã bỏ tải bảng THƯỞNG treo — menu cấu hình tiền thưởng đã gỡ; bonusTier
+            //  dùng mốc mặc định. Bớt 1 RPC mỗi lần mở dashboard — 2026-09-18.)
             // Nạp SẴN ghi âm tham khảo (global) → hover ra NGAY. Chạy nền.
             this.orm.call("crm.lead", "vd_reference_recordings", []).then((d) => {
                 this.state.refRecData = {
@@ -1713,11 +1711,36 @@ export class VdCrmDashboard extends Component {
     //   3. 🟢 Có cuộc gọi thành công ≥ 120s                       — kế
     //   4. 🔴 Đỏ xẫm: 3 ngày khác nhau không nghe máy (answered=0) — cuối
     // Bản ĐÃ LỌC theo newDayFilter (dùng render pill KHÁCH MỚI). Bản gốc =
+    // MEMO: cache kết quả getter nặng theo tham chiếu deps → mỗi lần render lại
+    // (vd tick chọn khách) KHÔNG lọc/sắp lại hàng trăm KH nữa (user spec 2026-09-18
+    // — chống lag khi chọn khách chia số). deps đổi (data nạp lại / đổi filter) mới
+    // tính lại.
+    _memo(key, deps, fn) {
+        const m = this.__memo || (this.__memo = {});
+        const prev = m[key];
+        if (prev && prev.deps.length === deps.length
+            && prev.deps.every((d, i) => d === deps[i])) {
+            return prev.val;
+        }
+        const val = fn();
+        m[key] = { deps, val };
+        return val;
+    }
+
     // _leadsNoProblemsRaw (để ĐẾM số khách mỗi khoảng, không phụ thuộc lọc).
     get leadsNoProblems() {
-        return this._dayBucketFilter(this._leadsNoProblemsRaw, this.state.newDayFilter || 0);
+        return this._memo(
+            "leadsNoProblems",
+            [this._leadsNoProblemsRaw, this.state.newDayFilter || 0],
+            () => this._dayBucketFilter(this._leadsNoProblemsRaw, this.state.newDayFilter || 0));
     }
     get _leadsNoProblemsRaw() {
+        return this._memo(
+            "npRaw",
+            [this.state.leads, this.state.leadsNotCalledAll],
+            () => this._computeNoProblemsRaw());
+    }
+    _computeNoProblemsRaw() {
         // User spec 2026-05-28 (round 2 — revert): chỉ loại lead trong
         // "CHƯA GỌI ĐƯỢC" bucket. KH có báo giá (complete=True) chưa CHỐT
         // VẪN ở KH MỚI (pill xanh lá + 💰) — KHÔNG loại trừ.
@@ -1744,6 +1767,9 @@ export class VdCrmDashboard extends Component {
     // thấy Zalo → coi như xong bước Zalo). KH điền đủ báo giá nằm YÊN trong
     // vùng của nó (chỉ gắn badge 💰), KHÔNG tách vùng riêng. =====
     get newPillsZones() {
+        return this._memo("npZones", [this.leadsNoProblems], () => this._computeNewPillsZones());
+    }
+    _computeNewPillsZones() {
         const z1 = [], z2 = [], z3 = [];
         for (const l of (this.leadsNoProblems || [])) {
             const total = (l.call_stats || {}).total || 0;
@@ -1826,22 +1852,30 @@ export class VdCrmDashboard extends Component {
     }
     // Section 2 dùng list riêng (mọi stage, không chỉ stage 'new').
     get leadsWithProblems() {
-        return this._applyDayFilter(this.state.leadsWithProblemsAll || []);
+        return this._memo("lwp",
+            [this.state.leadsWithProblemsAll, this.state.dayFilter || 0],
+            () => this._applyDayFilter(this.state.leadsWithProblemsAll || []));
     }
 
     get leadsUrgentConstruction() {
-        return this._applyDayFilter(this.state.leadsUrgentConstructionAll || []);
+        return this._memo("luc",
+            [this.state.leadsUrgentConstructionAll, this.state.dayFilter || 0],
+            () => this._applyDayFilter(this.state.leadsUrgentConstructionAll || []));
     }
     // GỘP "ĐÃ BÁO GIÁ" (user spec 2026-08-15): TCG + XLVD thành 1 danh sách.
     // 2 nguồn vốn loại trừ nhau (TCG exclude khỏi XLVD) nhưng vẫn dedupe theo id
     // cho chắc. Thứ tự: thi công gấp lên trước, rồi tới xử lý vấn đề.
     get leadsQuoted() {
-        const seen = new Set();
-        const out = [];
-        for (const l of [...this.leadsUrgentConstruction, ...this.leadsWithProblems]) {
-            if (l && !seen.has(l.id)) { seen.add(l.id); out.push(l); }
-        }
-        return out;
+        return this._memo("leadsQuoted",
+            [this.leadsUrgentConstruction, this.leadsWithProblems],
+            () => {
+                const seen = new Set();
+                const out = [];
+                for (const l of [...this.leadsUrgentConstruction, ...this.leadsWithProblems]) {
+                    if (l && !seen.has(l.id)) { seen.add(l.id); out.push(l); }
+                }
+                return out;
+            });
     }
     // LỌC theo số ngày chưa gọi — MỖI khách chỉ thuộc 1 KHOẢNG (loại trừ nhau):
     // 3=[3,5) · 5=[5,8) · 8=[8,15) · 15=[15,25) · 25=[25,40) · 40=[40,∞). KH gọi
