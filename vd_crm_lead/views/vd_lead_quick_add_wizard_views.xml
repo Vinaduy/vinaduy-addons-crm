@@ -10,6 +10,7 @@
                 <field name="show_distribute" invisible="1"/>
                 <field name="can_chia_so" invisible="1"/>
                 <field name="vd_all_assigned" invisible="1"/>
+                <field name="vd_can_distribute" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <!-- Pool NV (đã loại admin) — dùng làm domain dropdown chọn NV. -->
                 <field name="vd_receiving_candidate_ids" invisible="1"/>
@@ -93,8 +94,7 @@
 
                 <!-- ===== KHỐI CHIA SỐ — hiện sau khi bấm CHIA SỐ (leader). Chỉ 1
                      dropdown chọn NV + 2 nút chia (user spec 2026-08-25). ===== -->
-                <div groups="vd_crm_lead.vd_crm_group_team_leader"
-                     invisible="not show_distribute"
+                <div invisible="not show_distribute or not vd_can_distribute"
                      class="o_vd_distribute_bar o_vd_split_bar">
                     <field name="distribute_mode" invisible="1"/>
                     <field name="vd_receiving_user_ids" invisible="1"/>
@@ -114,8 +114,7 @@
                     <button name="action_show_distribute" type="object"
                             string="💰 CHIA SỐ"
                             class="btn-primary"
-                            groups="vd_crm_lead.vd_crm_group_team_leader"
-                            invisible="show_distribute or vd_all_assigned"/>
+                            invisible="show_distribute or vd_all_assigned or not vd_can_distribute"/>
                     <!-- Tạo ngay khi TẤT CẢ khách đã có NV (leader gán tay / NV tự gán). -->
                     <button name="action_create_leads" type="object"
                             string="💾 TẠO KHÁCH"

@@ -6573,10 +6573,15 @@
         padding: 0.5rem 0.85rem;
     }
     .o_vd_dayfilter_group {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
-        .o_vd_pfilter_lbl { min-width: 0; white-space: nowrap; }
+        gap: 0.5rem;
+        .o_vd_pfilter_lbl {
+            min-width: auto !important;   /* KHÔNG ép 128px → khỏi đè chữ */
+            white-space: nowrap;
+            flex: 0 0 auto;               /* KHÔNG co lại → khỏi bị cắt chữ */
+            margin-right: 0;
+        }
     }
     .o_vd_dayfilter_select {
         font-size: 0.85rem;
