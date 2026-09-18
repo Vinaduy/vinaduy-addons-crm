@@ -56,6 +56,30 @@
     object-fit: cover;
     transform: scaleX(-1); /* gương cho tự nhiên */
 }
+.o_vd_face_guide {
+    position: absolute;
+    top: 8%;
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    aspect-ratio: 3 / 4;
+    border: 3px dashed rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+}
+.o_vd_face_guidetxt {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
 .o_vd_face_overlay {
     position: absolute;
     inset: 0;

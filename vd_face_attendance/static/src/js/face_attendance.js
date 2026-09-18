@@ -161,17 +161,54 @@ export class VdFaceCheckin extends Component {
             { enableHighAccuracy: true, maximumAge: 10000, timeout: 25000 });
     }
 
-    async _captureDescriptor() {
+    async _detectFace() {
         const v = this.videoRef.el;
         if (!v || !this._faceapi) {
             return null;
         }
-        const det = await this._faceapi
+        return await this._faceapi
             .detectSingleFace(
                 v, new this._faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
             .withFaceLandmarks()
             .withFaceDescriptor();
-        return det ? Array.from(det.descriptor) : null;
+    }
+
+    // Kiểm tra khuôn mặt phải TRỌN VẸN trong khung: không bị cắt ở mép (đủ cả
+    // trán + cằm), không quá nhỏ/xa, không quá sát. Trả null nếu OK, hoặc câu
+    // thông báo lỗi. (user spec 2026-09-18)
+    _faceIssue(det) {
+        const v = this.videoRef.el;
+        const W = v.videoWidth || 640;
+        const H = v.videoHeight || 480;
+        const b = det.detection.box;
+        const m = 0.05; // chừa 5% mép — mặt chạm mép coi như bị cắt
+        if (b.x < W * m || b.y < H * m ||
+            b.x + b.width > W * (1 - m) || b.y + b.height > H * (1 - m)) {
+            return "Khuôn mặt bị cắt ở mép — đưa TRỌN khuôn mặt (cả trán và cằm) vào giữa khung.";
+        }
+        const fw = b.width / W;
+        const fh = b.height / H;
+        if (fw < 0.22 || fh < 0.28) {
+            return "Khuôn mặt quá nhỏ/xa — hãy lại gần camera hơn.";
+        }
+        if (fw > 0.9 || fh > 0.95) {
+            return "Khuôn mặt quá sát — hãy lùi ra một chút.";
+        }
+        // Chốt landmark trán (điểm lông mày) và cằm phải nằm trong khung.
+        try {
+            const pts = det.landmarks.positions;
+            const chin = pts[8];          // cằm
+            const browL = pts[19];        // lông mày (gần trán)
+            const browR = pts[24];
+            for (const p of [chin, browL, browR]) {
+                if (p.x < W * 0.02 || p.x > W * 0.98 || p.y < H * 0.02 || p.y > H * 0.98) {
+                    return "Chưa thấy đủ trán/cằm — đưa trọn khuôn mặt vào khung.";
+                }
+            }
+        } catch (e) {
+            /* landmark thiếu -> bỏ qua chốt phụ này */
+        }
+        return null;
     }
 
     _snapshot() {
@@ -200,11 +237,18 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang lấy mẫu khuôn mặt…";
         try {
-            const desc = await this._captureDescriptor();
-            if (!desc) {
+            const det = await this._detectFace();
+            if (!det) {
                 this.state.faceMsg = "Không thấy khuôn mặt rõ — hãy nhìn thẳng vào camera.";
                 return;
             }
+            const issue = this._faceIssue(det);
+            if (issue) {
+                this.state.faceMsg = issue;
+                this.notification.add(issue, { type: "warning" });
+                return;
+            }
+            const desc = Array.from(det.descriptor);
             const photo = this._snapshot();
             const res = await this.orm.call("vd.face.attendance", "vd_enroll_face", [
                 name, this.state.enrollGender, desc, photo,
@@ -247,11 +291,18 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang nhận diện…";
         try {
-            const desc = await this._captureDescriptor();
-            if (!desc) {
+            const det = await this._detectFace();
+            if (!det) {
                 this.state.faceMsg = "Không thấy khuôn mặt — hãy nhìn thẳng vào camera.";
                 return;
             }
+            const issue = this._faceIssue(det);
+            if (issue) {
+                this.state.faceMsg = issue;
+                this.notification.add(issue, { type: "warning" });
+                return;
+            }
+            const desc = Array.from(det.descriptor);
             const dist = euclid(desc, this._descriptor);
             const score = Math.max(0, 1 - dist);
             if (dist > this.cfg.threshold) {
