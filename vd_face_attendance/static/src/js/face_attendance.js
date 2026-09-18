@@ -204,16 +204,26 @@ export class VdFaceCheckin extends Component {
             this.state.faceHint = issue;
         } else {
             this.state.faceLive = "ok";
-            this.state.faceHint = "Khuôn mặt tốt ✓";
+            this.state.faceHint = "Khuôn mặt tốt ✓ — bấm nút bên phải";
+            // GHI NHẬN khung TỐT gần nhất → khi bấm đăng ký/chấm dùng luôn khung
+            // này, KHÔNG kiểm lại (tránh 'báo tốt mà không cho'). 2026-09-18.
+            this._lastGoodDet = { det, t: Date.now() };
         }
     }
 
-    // Lấy detection: ưu tiên kết quả mới nhất từ vòng quét (tức thì).
+    // Lấy detection để đăng ký/chấm:
+    // - Nếu vừa có khung ĐÃ XÁC NHẬN TỐT (< 2.5s) → dùng luôn, ok=true.
+    // - Nếu không → chụp 1 khung mới rồi kiểm tra.
     async _getGoodDet() {
-        if (this._lastDet && Date.now() - this._lastDet.t < 1200) {
-            return this._lastDet.det;
+        if (this._lastGoodDet && Date.now() - this._lastGoodDet.t < 2500) {
+            return { det: this._lastGoodDet.det, ok: true, issue: null };
         }
-        return await this._detectFace();
+        const det = await this._detectFace();
+        if (!det) {
+            return { det: null, ok: false, issue: null };
+        }
+        const issue = this._faceIssue(det);
+        return { det, ok: !issue, issue };
     }
 
     _gpsError(err) {
@@ -346,18 +356,17 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang lấy mẫu khuôn mặt…";
         try {
-            const det = await this._getGoodDet();
-            if (!det) {
+            const g = await this._getGoodDet();
+            if (!g.det) {
                 this.state.faceMsg = "Không thấy khuôn mặt rõ — hãy nhìn thẳng vào camera.";
                 return;
             }
-            const issue = this._faceIssue(det);
-            if (issue) {
-                this.state.faceMsg = issue;
-                this.notification.add(issue, { type: "warning" });
+            if (!g.ok) {
+                this.state.faceMsg = g.issue;
+                this.notification.add(g.issue, { type: "warning" });
                 return;
             }
-            const desc = Array.from(det.descriptor);
+            const desc = Array.from(g.det.descriptor);
             const photo = this._snapshot();
             const res = await this.orm.call("vd.face.attendance", "vd_enroll_face", [
                 name, this.state.enrollGender, desc, photo,
@@ -400,18 +409,17 @@ export class VdFaceCheckin extends Component {
         this.state.busy = true;
         this.state.faceMsg = "Đang nhận diện…";
         try {
-            const det = await this._getGoodDet();
-            if (!det) {
+            const g = await this._getGoodDet();
+            if (!g.det) {
                 this.state.faceMsg = "Không thấy khuôn mặt — hãy nhìn thẳng vào camera.";
                 return;
             }
-            const issue = this._faceIssue(det);
-            if (issue) {
-                this.state.faceMsg = issue;
-                this.notification.add(issue, { type: "warning" });
+            if (!g.ok) {
+                this.state.faceMsg = g.issue;
+                this.notification.add(g.issue, { type: "warning" });
                 return;
             }
-            const desc = Array.from(det.descriptor);
+            const desc = Array.from(g.det.descriptor);
             const dist = euclid(desc, this._descriptor);
             const score = Math.max(0, 1 - dist);
             if (dist > this.cfg.threshold) {
