@@ -1937,33 +1937,33 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     </div>
                     <field name="vd_problem_note" nolabel="1"
                            placeholder="Nhập lưu ý / ghi chú cho khách hàng này..."/>
-                </div>
-                <!-- 3 NÚT SAU BÁO GIÁ — TÁCH RIÊNG ra ngoài ô ghi chú (user spec
-                     2026-09-19). Hiện khi ĐÃ CHỐT BÁO GIÁ (vd_intake_locked). -->
-                <div class="o_vd_note_actions"
-                     invisible="not vd_intake_locked or stage_is_lost">
-                    <button string="📵 Báo giá xong mất tích"
-                            name="action_mark_quoted_lost" type="object"
-                            class="o_vd_act_btn o_vd_act_lost"
-                            invisible="vd_contract_signed or vd_quoted_lost_manual"
-                            title="KH báo giá xong rồi mất tích (không liên lạc lại) → đưa vào box BÁO GIÁ XONG MẤT TÍCH."/>
-                    <button string="📅 Đã hẹn gặp"
-                            name="action_mark_appointment" type="object"
-                            class="o_vd_act_btn o_vd_act_appt"
-                            invisible="vd_contract_signed or vd_has_appointment"
-                            title="KH đồng ý báo giá + đã hẹn lịch đi gặp để chốt hợp đồng."/>
-                    <button string="✅ ĐÃ HẸN GẶP"
-                            name="action_unmark_appointment" type="object"
-                            class="o_vd_act_btn o_vd_act_appt o_vd_act_appt_on"
-                            invisible="not vd_has_appointment or vd_contract_signed"
-                            title="Đang ở trạng thái ĐÃ HẸN GẶP. Bấm để bỏ đánh dấu."/>
-                    <button string="🏆 ĐÃ CHỐT (ký HĐ)"
-                            name="action_mark_contract_signed" type="object"
-                            class="o_vd_act_btn o_vd_act_won"
-                            invisible="vd_contract_signed"
-                            title="Đã ký được hợp đồng với khách → đánh dấu ĐÃ CHỐT."/>
-                    <span class="o_vd_act_btn o_vd_act_won_badge"
-                          invisible="not vd_contract_signed">🏆 ĐÃ CHỐT HĐ</span>
+                    <!-- 3 NÚT SAU BÁO GIÁ — nằm ngay dưới ô ghi chú nhưng TÁCH RỜI
+                         bằng đường kẻ + khoảng cách (user spec 2026-09-19). -->
+                    <div class="o_vd_note_actions"
+                         invisible="not vd_intake_locked or stage_is_lost">
+                        <button string="📵 Báo giá xong mất tích"
+                                name="action_mark_quoted_lost" type="object"
+                                class="o_vd_act_btn o_vd_act_lost"
+                                invisible="vd_contract_signed or vd_quoted_lost_manual"
+                                title="KH báo giá xong rồi mất tích (không liên lạc lại) → đưa vào box BÁO GIÁ XONG MẤT TÍCH."/>
+                        <button string="📅 Đã hẹn gặp"
+                                name="action_mark_appointment" type="object"
+                                class="o_vd_act_btn o_vd_act_appt"
+                                invisible="vd_contract_signed or vd_has_appointment"
+                                title="KH đồng ý báo giá + đã hẹn lịch đi gặp để chốt hợp đồng."/>
+                        <button string="✅ ĐÃ HẸN GẶP"
+                                name="action_unmark_appointment" type="object"
+                                class="o_vd_act_btn o_vd_act_appt o_vd_act_appt_on"
+                                invisible="not vd_has_appointment or vd_contract_signed"
+                                title="Đang ở trạng thái ĐÃ HẸN GẶP. Bấm để bỏ đánh dấu."/>
+                        <button string="🏆 ĐÃ CHỐT (ký HĐ)"
+                                name="action_mark_contract_signed" type="object"
+                                class="o_vd_act_btn o_vd_act_won"
+                                invisible="vd_contract_signed"
+                                title="Đã ký được hợp đồng với khách → đánh dấu ĐÃ CHỐT."/>
+                        <span class="o_vd_act_btn o_vd_act_won_badge"
+                              invisible="not vd_contract_signed">🏆 ĐÃ CHỐT HĐ</span>
+                    </div>
                 </div>
             </xpath>
         </field>
