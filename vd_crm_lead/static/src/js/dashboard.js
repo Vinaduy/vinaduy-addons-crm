@@ -1597,14 +1597,18 @@ export class VdCrmDashboard extends Component {
             this.state.leads = p.leads || [];
             this.state.leadsWithProblemsAll = this._markupBreakdown(p.withProblems || []);
             this.state.leadsUrgentConstructionAll = this._markupBreakdown(p.urgent || []);
-            this.state.leadsLostAll = p.lost || [];
-            this.state.cancelReport = Array.isArray(p.cancelReport) ? p.cancelReport : [];
             this.state.leadsNotCalledAll = p.notCalled || [];
-            this.state.leadsReferenceAll = p.reference || [];
-            this.state.leadsQuotedLostAll = p.quotedLost || [];
-            this.state.leadsPlannedSignAll = p.plannedSign || [];
-            this.state.leadsAppointmentAll = p.appointment || [];
-            this.state.leadsContractSignedAll = p.contractSigned || [];
+            // Reset các bảng ĐẾM (nạp nền ngay sau) → không hiện số scope cũ.
+            this.state.leadsLostAll = [];
+            this.state.cancelReport = [];
+            this.state.leadsReferenceAll = [];
+            this.state.leadsQuotedLostAll = [];
+            this.state.leadsPlannedSignAll = [];
+            this.state.leadsAppointmentAll = [];
+            this.state.leadsContractSignedAll = [];
+            // PERF (2026-09-19): các bảng ĐẾM panel icon phải nạp NỀN sau, KHÔNG
+            // chặn hiển thị bảng chính → trang ra nhanh hơn ~0.7s.
+            this._loadCounters(args, _leadKey);
         } else {
             this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];
@@ -1633,6 +1637,34 @@ export class VdCrmDashboard extends Component {
             leadsAppointmentAll: this.state.leadsAppointmentAll,
             leadsContractSignedAll: this.state.leadsContractSignedAll,
         };
+    }
+
+    // Nạp NỀN các bảng ĐẾM panel icon phải (tách khỏi dashboard_page cho nhanh).
+    async _loadCounters(args, leadKey) {
+        try {
+            const c = await this.orm.call("crm.lead", "dashboard_page_counters", args);
+            if (!c || typeof c !== "object") return;
+            this.state.leadsLostAll = c.lost || [];
+            this.state.cancelReport = Array.isArray(c.cancelReport) ? c.cancelReport : [];
+            this.state.leadsReferenceAll = c.reference || [];
+            this.state.leadsQuotedLostAll = c.quotedLost || [];
+            this.state.leadsPlannedSignAll = c.plannedSign || [];
+            this.state.leadsAppointmentAll = c.appointment || [];
+            this.state.leadsContractSignedAll = c.contractSigned || [];
+            // Cập nhật cache để lần sau ra ngay đủ số.
+            const cache = this._leadCache && this._leadCache[leadKey];
+            if (cache) {
+                cache.leadsLostAll = this.state.leadsLostAll;
+                cache.cancelReport = this.state.cancelReport;
+                cache.leadsReferenceAll = this.state.leadsReferenceAll;
+                cache.leadsQuotedLostAll = this.state.leadsQuotedLostAll;
+                cache.leadsPlannedSignAll = this.state.leadsPlannedSignAll;
+                cache.leadsAppointmentAll = this.state.leadsAppointmentAll;
+                cache.leadsContractSignedAll = this.state.leadsContractSignedAll;
+            }
+        } catch (e) {
+            /* lỗi đếm không chặn trang */
+        }
     }
 
     get selectedStage() {

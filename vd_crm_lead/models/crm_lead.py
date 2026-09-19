@@ -8597,30 +8597,53 @@ class CrmLead(models.Model):
         finally:
             self.env._vd_unreach_memo = None
 
-    def _dashboard_page_inner(self, stage, u, with_tables=True):
-        out = {'leads': self.dashboard_leads(stage.id, *u)}
-        if not (with_tables and stage.code == 'new'):
-            return out
-        # Mỗi bảng bọc try riêng: 1 bảng lỗi KHÔNG được kéo sập cả trang
-        # (giữ đúng hành vi .catch(() => []) của client cũ).
-        for key, method in (
-            ('withProblems', 'dashboard_leads_with_problems'),
-            ('urgent', 'dashboard_leads_urgent_construction'),
-            ('lost', 'dashboard_leads_lost'),
-            ('notCalled', 'dashboard_leads_not_called'),
-            ('reference', 'dashboard_leads_reference'),
-            ('quotedLost', 'dashboard_leads_quoted_lost'),
-            ('plannedSign', 'dashboard_leads_planned_sign'),
-            ('appointment', 'dashboard_leads_appointment'),
-            ('contractSigned', 'dashboard_leads_contract_signed'),
-            ('cancelReport', 'dashboard_cancel_report'),
-        ):
+    # PERF (user spec 2026-09-19): tách bảng thành 2 nhóm để trang ra NHANH hơn.
+    # CRITICAL = các bảng chính hiện ngay (KHÁCH MỚI + THI CÔNG GẤP/XLVĐ). DEFERRED
+    # = đếm cho panel icon phải → client nạp NỀN sau khi bảng chính đã hiện.
+    _VD_PAGE_CRITICAL = (
+        ('withProblems', 'dashboard_leads_with_problems'),
+        ('urgent', 'dashboard_leads_urgent_construction'),
+        ('notCalled', 'dashboard_leads_not_called'),
+    )
+    _VD_PAGE_DEFERRED = (
+        ('lost', 'dashboard_leads_lost'),
+        ('reference', 'dashboard_leads_reference'),
+        ('quotedLost', 'dashboard_leads_quoted_lost'),
+        ('plannedSign', 'dashboard_leads_planned_sign'),
+        ('appointment', 'dashboard_leads_appointment'),
+        ('contractSigned', 'dashboard_leads_contract_signed'),
+        ('cancelReport', 'dashboard_cancel_report'),
+    )
+
+    def _dashboard_run_tables(self, out, u, table_map):
+        # Mỗi bảng bọc try riêng: 1 bảng lỗi KHÔNG kéo sập cả trang.
+        for key, method in table_map:
             try:
                 out[key] = getattr(self, method)(*u)
             except Exception:
                 _logger.exception('dashboard_page: bảng %s lỗi', key)
                 out[key] = []
         return out
+
+    def _dashboard_page_inner(self, stage, u, with_tables=True):
+        out = {'leads': self.dashboard_leads(stage.id, *u)}
+        if not (with_tables and stage.code == 'new'):
+            return out
+        return self._dashboard_run_tables(out, u, self._VD_PAGE_CRITICAL)
+
+    @api.model
+    def dashboard_page_counters(self, stage_id, user_id=None):
+        """Các bảng ĐẾM cho panel icon phải + KH hủy — client nạp NỀN sau khi
+        bảng chính đã hiện (tách khỏi dashboard_page để trang ra nhanh)."""
+        stage = self.env['crm.stage'].browse(stage_id)
+        if stage.code != 'new':
+            return {}
+        u = [user_id] if user_id else []
+        self.env._vd_unreach_memo = {}
+        try:
+            return self._dashboard_run_tables({}, u, self._VD_PAGE_DEFERRED)
+        finally:
+            self.env._vd_unreach_memo = None
 
     @api.model
     def dashboard_leads(self, stage_id, user_id=None, limit=500):
