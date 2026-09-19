@@ -17,20 +17,23 @@
     box-shadow: 0 6px 24px rgba(30, 30, 60, 0.12);
     overflow: visible;
 }
-/* THANH NÚT CHẤM CÔNG — dính đáy card, luôn thấy */
+/* THANH NÚT CHẤM CÔNG — DÍNH CỨNG đáy màn hình (fixed) → LUÔN thấy dù cuộn.
+   (sticky không ăn vì vùng cuộn nằm ở container Odoo bên ngoài.) */
 .o_vd_face_actionbar {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
-    z-index: 5;
+    z-index: 1030;
     display: flex;
+    justify-content: center;
     gap: 0.6rem;
-    padding: 0.7rem 1.1rem;
+    padding: 0.7rem 1rem;
     padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
     background: #fff;
     border-top: 1px solid #eef0f6;
-    border-radius: 0 0 14px 14px;
-    box-shadow: 0 -4px 14px rgba(30, 30, 60, 0.08);
-    .o_vd_face_btn { margin: 0; }
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+    .o_vd_face_btn { margin: 0; max-width: 740px; }
 }
 .o_vd_face_head {
     background: linear-gradient(135deg, #4c6ef5, #3b5bdb);
@@ -321,8 +324,11 @@
     .o_vd_face_side { min-width: 0; width: 100%; }
     .o_vd_face_head { font-size: 1rem; padding: 0.75rem 0.9rem; }
     .o_vd_face_btn_big { font-size: 1.2rem; padding: 0.95rem; }
-    /* Chừa mép phải để KHÔNG bị nút gọi (FAB) đè lên nút chấm */
-    .o_vd_face_actionbar { padding-right: 88px; }
+    /* Chừa mép phải tránh nút gọi (FAB) đè lên nút chấm. */
+    .o_vd_face_actionbar {
+        padding-right: 96px;
+        .o_vd_face_btn { max-width: none; flex: 1; }
+    }
 }
 .o_vd_face_recent_head {
     font-weight: 700;
