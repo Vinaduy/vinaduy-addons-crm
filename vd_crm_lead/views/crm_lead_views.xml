@@ -1726,11 +1726,6 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                         <field name="vd_zalo_msg_cap_reached" invisible="1"/>
                         <field name="vd_zalo_day2_available" invisible="1"/>
                         <field name="vd_zalo_day3_available" invisible="1"/>
-                        <button name="action_toggle_contract_panel" type="object"
-                                class="btn btn-sm o_vd_pq_contract_btn"
-                                invisible="vd_contract_open or vd_contract_signed">
-                            <i class="fa fa-file-text-o me-1"/>Làm hợp đồng
-                        </button>
                     </div>
 
                     <!-- ===== ACTION TOOLBOX (chỉ còn "Mở khóa" — ẩn khi không có nút) ===== -->
@@ -1744,61 +1739,7 @@ Em xin gửi anh/chị: hợp đồng mẫu + checklist vật tư + ảnh tiến
                     </div>
                 </div>
 
-                <!-- ============================================================
-                     📄 PANEL LÀM HỢP ĐỒNG - HẸN GẶP (repurpose từ panel Zalo cũ)
-                     ============================================================ -->
-                <div class="o_vd_negotiate_panel o_vd_contract_make_panel" invisible="stage_code not in ['quote', 'negotiate', 'won'] or not vd_contract_open">
-                    <div class="o_vd_nego_head">
-                        <i class="fa fa-file-text-o"/>
-                        <span>Làm hợp đồng - Hẹn gặp</span>
-                        <button name="action_toggle_contract_panel" type="object"
-                                class="btn btn-sm o_vd_contract_collapse_btn">
-                            <i class="fa fa-chevron-up me-1"/>Thu gọn
-                        </button>
-                    </div>
-                    <div class="o_vd_contract_make_body">
-                        <div class="o_vd_contract_doc_row">
-                            <span class="o_vd_contract_doc_lbl">📄 Hợp đồng</span>
-                            <button name="action_view_contract_file" type="object"
-                                    class="btn btn-sm btn-outline-primary">
-                                <i class="fa fa-eye me-1"/>Xem file Hợp đồng
-                            </button>
-                            <button name="action_download_contract_file" type="object"
-                                    class="btn btn-sm btn-primary">
-                                <i class="fa fa-download me-1"/>Tải file hợp đồng
-                            </button>
-                        </div>
-                        <div class="o_vd_contract_doc_row">
-                            <span class="o_vd_contract_doc_lbl">📎 Phụ lục</span>
-                            <button name="action_view_appendix_file" type="object"
-                                    class="btn btn-sm btn-outline-primary">
-                                <i class="fa fa-eye me-1"/>Xem file phụ lục
-                            </button>
-                            <button name="action_download_appendix_file" type="object"
-                                    class="btn btn-sm btn-primary">
-                                <i class="fa fa-download me-1"/>Tải file phụ lục
-                            </button>
-                        </div>
-                        <!-- Tạo lịch gặp + Đặt lịch ký — CUỐI panel làm hợp đồng -->
-                        <div class="o_vd_contract_appt_row" invisible="vd_contract_signed">
-                            <field name="vd_meet_created" invisible="1"/>
-                            <button name="action_open_meeting_wizard" type="object"
-                                    class="btn btn-success o_vd_nego_sign_btn o_vd_contract_appt_btn"
-                                    invisible="vd_meet_created">
-                                <i class="fa fa-calendar-plus-o me-1"/>📅 Tạo lịch gặp
-                            </button>
-                            <button name="action_open_meeting_wizard" type="object"
-                                    class="btn btn-outline-success o_vd_contract_appt_btn"
-                                    invisible="not vd_meet_created">
-                                <i class="fa fa-calendar-check-o me-1"/>📅 Xem / Sửa lịch gặp
-                            </button>
-                            <button name="action_sign_contract" type="object"
-                                    class="btn btn-primary o_vd_contract_appt_btn">
-                                <i class="fa fa-pencil-square-o me-1"/>✍️ Đặt lịch ký HĐ
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- (Đã bỏ PANEL LÀM HỢP ĐỒNG - HẸN GẶP theo yêu cầu — user spec 2026-09-19) -->
 
                 <!-- ============================================================
                      📅 PANEL LỊCH HẸN KÝ HĐ — stage=won nhưng chưa ký xong
