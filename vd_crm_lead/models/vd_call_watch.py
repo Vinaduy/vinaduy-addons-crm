@@ -61,7 +61,7 @@ class CrmLeadCallWatch(models.Model):
                 return default
 
         return {
-            'enabled': (ICP.get_param('vd_crm_lead.callwatch_enabled', '1') or '1') != '0',
+            'enabled': (ICP.get_param('vd_crm_lead.callwatch_enabled', '0') or '0') != '0',
             'window_workdays': _i('vd_crm_lead.callwatch_window_workdays', 7),
             'required_days': _i('vd_crm_lead.callwatch_required_days', 3),
             # lock_all=True: còn SÓT KH chưa gọi -> khoá ("phải gọi hết").

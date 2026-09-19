@@ -6861,7 +6861,7 @@ class CrmLead(models.Model):
         """(enabled, pct_threshold, grace_days) đọc từ ir.config_parameter.
         Cấu hình ở trang Cài đặt (res.config.settings)."""
         ICP = self.env['ir.config_parameter'].sudo()
-        enabled = ICP.get_param('vd_crm_lead.problem_find_enabled', '1') in ('1', 'True', 'true')
+        enabled = ICP.get_param('vd_crm_lead.problem_find_enabled', '0') in ('1', 'True', 'true')
         try:
             pct = int(ICP.get_param('vd_crm_lead.problem_find_pct', 20) or 20)
         except (TypeError, ValueError):
@@ -8509,7 +8509,7 @@ class CrmLead(models.Model):
         tế NV. Chỉ áp khi xem 1 NV; >ngưỡng → khoá; gọi bớt ≤ngưỡng → tự mở. 0=tắt."""
         ICP = self.env['ir.config_parameter'].sudo()
         threshold = int(ICP.get_param(
-            'vd_crm_lead.uncalled_new_lock_threshold', 15) or 15)
+            'vd_crm_lead.uncalled_new_lock_threshold', 0) or 0)
         base = {'enabled': threshold > 0, 'threshold': threshold,
                 'count': 0, 'locked': False}
         if threshold <= 0 or not scope_user:
@@ -8524,7 +8524,7 @@ class CrmLead(models.Model):
     def _vd_distribute_block_threshold(self):
         """Ngưỡng CHẶN CHIA SỐ theo KH mới chưa gọi. 0 = tắt (user spec 2026-06-12)."""
         return int(self.env['ir.config_parameter'].sudo().get_param(
-            'vd_crm_lead.distribute_block_uncalled', 20) or 20)
+            'vd_crm_lead.distribute_block_uncalled', 0) or 0)
 
     @api.model
     def _vd_today_assigned_count_map(self, user_ids, pancake_only=False):

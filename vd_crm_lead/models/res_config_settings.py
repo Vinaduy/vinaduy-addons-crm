@@ -26,7 +26,7 @@ class ResConfigSettings(models.TransientModel):
     vd_callwatch_enabled = fields.Boolean(
         string='Bật khoá "Khách mới chưa gọi"',
         config_parameter='vd_crm_lead.callwatch_enabled',
-        default=True,
+        default=False,
         help='Khi bật: NV không gọi đủ số ngày yêu cầu cho khách mới → khoá bảng '
              'KHÁCH MỚI.',
     )
@@ -46,7 +46,7 @@ class ResConfigSettings(models.TransientModel):
     vd_uncalled_new_lock_threshold = fields.Integer(
         string='Khoá toàn bộ khi KH mới CHƯA GỌI vượt số',
         config_parameter='vd_crm_lead.uncalled_new_lock_threshold',
-        default=15,
+        default=0,
         help='Khi 1 NV tồn HƠN N khách MỚI chưa có cuộc gọi nào → KHOÁ TẤT CẢ '
              'bảng (trừ chính các khách mới đó) ép NV gọi cho đến khi còn ≤ N thì '
              'tự mở. Admin xem NV đó cũng thấy khoá. Đặt 0 = TẮT tính năng.',
@@ -55,7 +55,7 @@ class ResConfigSettings(models.TransientModel):
     vd_distribute_block_uncalled = fields.Integer(
         string='Chặn chia thêm số khi KH mới CHƯA GỌI vượt',
         config_parameter='vd_crm_lead.distribute_block_uncalled',
-        default=20,
+        default=0,
         help='KHÔNG cho chia/up thêm số mới cho 1 NV nếu TỔNG dự kiến (đang tồn + '
              'sắp chia) khách MỚI chưa gọi VƯỢT N. Mỗi NV chỉ nhận tới khi đủ N. '
              'Đặt 0 = TẮT tính năng.',
@@ -65,7 +65,7 @@ class ResConfigSettings(models.TransientModel):
     vd_problem_find_enabled = fields.Boolean(
         string='Bật khoá "Yêu cầu tìm vấn đề"',
         config_parameter='vd_crm_lead.problem_find_enabled',
-        default=True,
+        default=False,
         help='Khi bật: 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ tự khoá nếu quá hạn.',
     )
     vd_pf_urgent_pct = fields.Integer(
