@@ -102,6 +102,12 @@
                             </button>
                         </div>
 
+                        <!-- Đã vào + đã ra -> hoàn thành -->
+                        <div t-if="state.today and state.today.out_time"
+                             class="o_vd_face_done">
+                            <i class="fa fa-check-circle me-1"/> Đã hoàn thành chấm công hôm nay
+                        </div>
+
                         <!-- THẺ đã đăng ký (kèm ảnh + mã số + tên + giới tính) -->
                         <div t-if="state.reg" class="o_vd_face_regcard">
                             <img t-if="state.reg.photo" class="o_vd_face_regimg"
@@ -113,32 +119,29 @@
                             </div>
                         </div>
 
-                        <!-- Chưa có bản ghi hôm nay -> CHẤM VÀO -->
-                        <button t-if="state.enrolled and !state.today"
-                                class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
-                                t-att-disabled="state.busy or state.phase !== 'ready'"
-                                t-on-click="() => this.checkIn()">
-                            <i class="fa fa-sign-in me-1"/> CHẤM VÀO
-                        </button>
-                        <!-- Đã vào, chưa ra -> CHẤM RA -->
-                        <button t-if="state.enrolled and state.hasOpen"
-                                class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
-                                t-att-disabled="state.busy or state.phase !== 'ready'"
-                                t-on-click="() => this.checkOut()">
-                            <i class="fa fa-sign-out me-1"/> CHẤM RA
-                        </button>
-                        <!-- Đã vào + đã ra -> hoàn thành -->
-                        <div t-if="state.today and state.today.out_time"
-                             class="o_vd_face_done">
-                            <i class="fa fa-check-circle me-1"/> Đã hoàn thành chấm công hôm nay
-                        </div>
-
                         <button t-if="state.enrolled" class="btn btn-link o_vd_face_reenroll"
                                 t-att-disabled="state.busy or state.phase !== 'ready'"
                                 t-on-click="() => this.enroll()">
                             <i class="fa fa-refresh me-1"/> Đăng ký lại khuôn mặt
                         </button>
                     </div>
+                </div>
+
+                <!-- THANH NÚT CHẤM CÔNG — dính đáy, luôn thấy trên điện thoại -->
+                <div t-if="state.enrolled and (!state.today or state.hasOpen)"
+                     class="o_vd_face_actionbar">
+                    <button t-if="!state.today"
+                            class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
+                            t-att-disabled="state.busy or state.phase !== 'ready'"
+                            t-on-click="() => this.checkIn()">
+                        <i class="fa fa-sign-in me-1"/> CHẤM VÀO
+                    </button>
+                    <button t-if="state.hasOpen"
+                            class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
+                            t-att-disabled="state.busy or state.phase !== 'ready'"
+                            t-on-click="() => this.checkOut()">
+                        <i class="fa fa-sign-out me-1"/> CHẤM RA
+                    </button>
                 </div>
 
                 <!-- Lịch sử gần đây -->
