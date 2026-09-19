@@ -164,12 +164,13 @@
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_extension_days', '7')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.problem_extension_max', '3')"/>
 
-        <!-- Seed cấu hình CALL-WATCH (admin chỉnh sau qua Tham số hệ thống) -->
-        <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_enabled', '1')"/>
+        <!-- Seed cấu hình CALL-WATCH — MẶC ĐỊNH TẮT khoá (user spec 2026-09-19:
+             bỏ hết khoá chặn NV). Admin muốn bật lại thì đổi param. -->
+        <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_enabled', '0')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_min_seconds', '5')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_window_workdays', '7')"/>
         <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_required_days', '3')"/>
-        <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_lock_all', '1')"/>
+        <function model="ir.config_parameter" name="set_param" eval="('vd_crm_lead.callwatch_lock_all', '0')"/>
         <!-- Ngày lễ VN 2026 (admin tự cập nhật hằng năm). Bỏ khỏi đếm ngày làm việc. -->
         <function model="ir.config_parameter" name="set_param"
                   eval="('vd_crm_lead.holidays', '2026-01-01,2026-02-15,2026-02-16,2026-02-17,2026-02-18,2026-02-19,2026-02-20,2026-02-21,2026-04-26,2026-04-30,2026-05-01,2026-09-02')"/>
