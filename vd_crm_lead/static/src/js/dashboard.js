@@ -252,6 +252,7 @@ export class VdCrmDashboard extends Component {
             // KH "ĐÃ HẸN GẶP": NV bấm nút "Đã hẹn gặp" sau báo giá
             // (vd_has_appointment) — ô đếm panel icon phải (2026-09-14)
             leadsAppointmentAll: [],
+            leadsContractSignedAll: [],
             // ===== ADMIN MODE (Manager + chọn "Tất cả NV") =====
             // Focus điều khiển section visibility — chuyển bằng nút sidebar.
             focus: "customers",
@@ -1603,6 +1604,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsQuotedLostAll = p.quotedLost || [];
             this.state.leadsPlannedSignAll = p.plannedSign || [];
             this.state.leadsAppointmentAll = p.appointment || [];
+            this.state.leadsContractSignedAll = p.contractSigned || [];
         } else {
             this.state.leads = await call("dashboard_leads", args);
             this.state.leadsWithProblemsAll = [];
@@ -1613,6 +1615,7 @@ export class VdCrmDashboard extends Component {
             this.state.leadsQuotedLostAll = [];
             this.state.leadsPlannedSignAll = [];
             this.state.leadsAppointmentAll = [];
+            this.state.leadsContractSignedAll = [];
             this.state.cancelReport = [];
         }
         this.state.leadsLoading = false;
@@ -1628,6 +1631,7 @@ export class VdCrmDashboard extends Component {
             leadsQuotedLostAll: this.state.leadsQuotedLostAll,
             leadsPlannedSignAll: this.state.leadsPlannedSignAll,
             leadsAppointmentAll: this.state.leadsAppointmentAll,
+            leadsContractSignedAll: this.state.leadsContractSignedAll,
         };
     }
 
@@ -2116,6 +2120,10 @@ export class VdCrmDashboard extends Component {
     get leadsAppointment() {
         return this.state.leadsAppointmentAll || [];
     }
+    // Ô "ĐÃ CHỐT" — đã ký hợp đồng (vd_contract_signed).
+    get leadsContractSigned() {
+        return this.state.leadsContractSignedAll || [];
+    }
     // Thùng rác cuối cùng — count KH đã hủy (mọi stage lost). Không hiện chips.
     get leadsLost() {
         return this.state.leadsLostAll || [];
@@ -2445,7 +2453,7 @@ export class VdCrmDashboard extends Component {
     // Danh sách ô ĐÃ chuyển sang "ô dùng chung + hover" (không vẽ lại trang). Ô nào
     // ở đây thì hover dựng popover trực tiếp bằng DOM (nút bên trong vẫn bấm được
     // qua event-delegation). Ô KHÁC vẫn dùng OWL lazy (state.hoverTile) như cũ.
-    _tileSharedKeys() { return new Set(["notcalled", "reference", "quoted_lost", "planned_sign", "appointment"]); }
+    _tileSharedKeys() { return new Set(["notcalled", "reference", "quoted_lost", "planned_sign", "appointment", "contract"]); }
     onTileEnter(key, ev) {
         if (this._tileSharedKeys().has(key)) {
             const el = ev && ev.currentTarget;
@@ -2574,6 +2582,9 @@ export class VdCrmDashboard extends Component {
         }
         if (key === "appointment") {
             return wrap("📅 ĐÃ HẸN GẶP", this.leadsAppointment || [], (ld) => base(ld, ""));
+        }
+        if (key === "contract") {
+            return wrap("🏆 ĐÃ CHỐT (ký HĐ)", this.leadsContractSigned || [], (ld) => base(ld, ""));
         }
         return "";
     }

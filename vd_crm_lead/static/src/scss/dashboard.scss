@@ -5659,6 +5659,26 @@
         border-bottom: 2px solid #0c8599;
     }
 
+    /* Variant ĐÃ CHỐT (ký HĐ) — xanh lá đậm chiến thắng (2026-09-19) */
+    .o_vd_trash_box.o_vd_split_contract {
+        cursor: pointer;
+        background: linear-gradient(135deg, #ebfbee 0%, #b2f2bb 100%);
+        border-color: #2b8a3e;
+        .o_vd_trash_icon { color: #2b8a3e; }
+        .o_vd_trash_icon_emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 8px rgba(43, 138, 62, 0.35));
+            user-select: none;
+        }
+        .o_vd_trash_label { color: #2b8a3e; text-align: center; line-height: 1.18; }
+        .o_vd_trash_count { color: #2b8a3e; text-align: center; }
+    }
+    .o_vd_trash_popover.o_vd_trash_popover_contract .o_vd_trash_popover_head {
+        background: linear-gradient(135deg, #8ce99a, #40c057);
+        border-bottom: 2px solid #2b8a3e;
+    }
+
     /* Variant THAM KHẢO — màu xanh lá đậm (đã liên lạc) */
     .o_vd_trash_box.o_vd_split_reference {
         .o_vd_trash_icon { color: #2b8a3e; }
@@ -12591,6 +12611,10 @@ $vd-rose:      #b06a6a;
     .o_vd_trash_box.o_vd_split_appointment {
         background: #e3fafc !important; border-color: #99e9f2 !important;
         .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: #0b7285 !important; }
+    }
+    .o_vd_trash_box.o_vd_split_contract {
+        background: #ebfbee !important; border-color: #8ce99a !important;
+        .o_vd_trash_icon, .o_vd_trash_label, .o_vd_trash_count { color: #2b8a3e !important; }
     }
 
     /* ===== 6 NÚT THƯ VIỆN NỔI bên phải (life-ring/home/box/film/grid/doc):

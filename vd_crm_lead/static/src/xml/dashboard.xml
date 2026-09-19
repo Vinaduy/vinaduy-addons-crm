@@ -2818,6 +2818,39 @@
                                 </div>
                             </div>
 
+                            <!-- ĐÃ CHỐT (ký HĐ): vd_contract_signed — user spec 2026-09-19 -->
+                            <div class="o_vd_trash_box o_vd_split_trash o_vd_split_contract o_vd_tile_shared"
+                                 t-on-mouseenter="(ev) => this.onTileEnter('contract', ev)"
+                                 t-on-mouseleave="() => this.onTileLeave('contract')"
+                                 title="KH đã chốt — ký hợp đồng.">
+                                <div class="o_vd_trash_icon o_vd_trash_icon_emoji">🏆</div>
+                                <div class="o_vd_trash_meta">
+                                    <div class="o_vd_trash_label">ĐÃ CHỐT<br/>(ký HĐ)</div>
+                                    <div class="o_vd_trash_count"><t t-esc="leadsContractSigned.length"/></div>
+                                </div>
+                                <div t-att-class="'o_vd_trash_popover o_vd_popover_anchor_right o_vd_trash_popover_contract' + (state.pinnedTile === 'contract' ? ' o_vd_pop_pinned' : '')"
+                                     t-on-click.stop="() => this.noop()">
+                                    <div class="o_vd_trash_popover_head">
+                                        🏆 ĐÃ CHỐT (ký HĐ) (<t t-esc="leadsContractSigned.length"/>)
+                                        <div class="o_vd_trash_popover_hint">
+                                            Khách đã ký được hợp đồng
+                                        </div>
+                                    </div>
+                                    <div class="o_vd_trash_popover_body" t-if="state.pinnedTile === 'contract'">
+                                        <div t-if="!leadsContractSigned.length" class="o_vd_trash_popover_empty">
+                                            ✓ Chưa có KH chốt nào trong nhóm này
+                                        </div>
+                                        <div t-foreach="leadsContractSigned" t-as="ld" t-key="ld.id"
+                                             class="o_vd_trash_popover_item"
+                                             t-on-click.stop="() => this.openLead(ld.id)">
+                                            <span class="o_vd_trash_popover_name"><t t-esc="ld.name"/></span>
+                                            <span class="o_vd_trash_popover_phone">📞 <t t-esc="ld.phone or '—'"/></span>
+                                            <span class="o_vd_trash_popover_nv"><t t-esc="ld.user_name or '—'"/></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div><!-- /.o_vd_icon_panel -->
                         </div><!-- /.o_vd_lead_dual_cols -->
 

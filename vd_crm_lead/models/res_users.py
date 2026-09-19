@@ -230,7 +230,7 @@ class ResUsers(models.Model):
     # cho admin mở khoá RIÊNG 1 NV mà KHÔNG đụng dữ liệu KH, không ảnh hưởng NV
     # khác (user spec 2026-08-08). Bỏ tick = khoá lại như thường.
     vd_quote_chot_lock_exempt = fields.Boolean(
-        string='Miễn khoá chốt báo giá', default=False, copy=False,
+        string='Miễn khoá chốt báo giá', default=True, copy=False,
         help='True = NV này KHÔNG bị khoá bảng Khách mới dù có >3 KH báo giá '
              'chưa chốt. Admin cấp riêng, không ảnh hưởng NV khác.',
     )

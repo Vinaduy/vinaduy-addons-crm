@@ -8612,6 +8612,7 @@ class CrmLead(models.Model):
             ('quotedLost', 'dashboard_leads_quoted_lost'),
             ('plannedSign', 'dashboard_leads_planned_sign'),
             ('appointment', 'dashboard_leads_appointment'),
+            ('contractSigned', 'dashboard_leads_contract_signed'),
             ('cancelReport', 'dashboard_cancel_report'),
         ):
             try:
@@ -9240,6 +9241,22 @@ class CrmLead(models.Model):
                 ('active', '=', True),
             ],
             order='vd_appointment_date desc, id desc',
+            limit=limit,
+        )
+        if not leads:
+            return []
+        return self._dashboard_serialize_leads(leads)
+
+    @api.model
+    def dashboard_leads_contract_signed(self, user_id=None, limit=200):
+        """KH "ĐÃ CHỐT" — đã ký hợp đồng (vd_contract_signed=True). Ô đếm ĐÃ CHỐT
+        ở panel icon bên phải (user spec 2026-09-19)."""
+        scope_user, _label, domain_user, _call_dom = self._dashboard_resolve_scope(user_id)
+        leads = self.with_context(active_test=False).search(
+            domain_user + [
+                ('vd_contract_signed', '=', True),
+            ],
+            order='write_date desc, id desc',
             limit=limit,
         )
         if not leads:
