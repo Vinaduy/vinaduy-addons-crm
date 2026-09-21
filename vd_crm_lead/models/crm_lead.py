@@ -2801,7 +2801,8 @@ class CrmLead(models.Model):
         return True
 
     @api.depends(
-        'name', 'phone', 'vd_intake_province_id', 'vd_intake_district',
+        'name', 'partner_name', 'contact_name',  # đổi TÊN KHÁCH -> preview đổi theo
+        'phone', 'vd_intake_province_id', 'vd_intake_district',
         'vd_intake_house_type', 'vd_intake_foundation_type', 'vd_intake_roof_type',
         'vd_house_extra',  # phụ phí Mẫu nhà "KHÁC" -> đổi đơn giá
         'vd_intake_total_m2', 'vd_intake_floors_num', 'vd_intake_estimate',

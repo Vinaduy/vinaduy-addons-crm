@@ -40,6 +40,21 @@ class VdQuoteVersion(models.Model):
     kh_address = fields.Char(string='Địa chỉ KH')
     region_label = fields.Char(string='Vùng (Bắc/Trung/Nam)')
 
+    # TÊN KH HIỂN THỊ = luôn LẤY THEO KH HIỆN TẠI (đổi tên KH thì báo giá/HĐ đổi
+    # theo — user spec 2026-09-21). Fallback snapshot nếu lead mất.
+    kh_name_display = fields.Char(compute='_compute_kh_name_display')
+
+    @api.depends('lead_id.partner_name', 'lead_id.contact_name', 'lead_id.name',
+                 'kh_name')
+    def _compute_kh_name_display(self):
+        for v in self:
+            lead = v.lead_id
+            if lead:
+                v.kh_name_display = (lead.partner_name or lead.contact_name
+                                     or lead.name or v.kh_name or '')
+            else:
+                v.kh_name_display = v.kh_name or ''
+
     # ========== Snapshot kỹ thuật ==========
     length_m = fields.Float(string='Dài (m)', digits=(8, 2))
     width_m = fields.Float(string='Rộng (m)', digits=(8, 2))
