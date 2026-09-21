@@ -706,8 +706,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'Vui lòng chọn NGUỒN cho các khách:\n%s'
             ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
         self.show_distribute = True
-        # KHÔNG mở popup mới — chỉ set cờ, dialog tự vẽ lại tại chỗ (user 2026-08-25).
-        return
+        # MỞ LẠI wizard tường minh (user spec 2026-09-21) → khối CHỌN CÁCH CHIA
+        # (Chia đều tất cả / Chọn NV) CHẮC CHẮN hiện, không phụ thuộc client tự
+        # vẽ lại (trước "return None" có máy không hiện khối → tưởng tự chia).
+        return self._vd_reopen()
 
     def action_distribute_even_all(self):
         """⚖️ Chia đều cho TẤT CẢ NV đang nhận số → tạo lead luôn (1 bấm)."""
