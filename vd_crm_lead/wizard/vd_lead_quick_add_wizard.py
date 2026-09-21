@@ -482,10 +482,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
         bấm nút import, không mở popup mới."""
         if not self.vd_import_file:
             return
-        if not self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
+        if not self._vd_can_distribute():
             self.vd_import_file = False
             return {'warning': {'title': _('Không có quyền'),
-                                'message': _('Chỉ Trưởng nhóm / Admin được nhập file.')}}
+                                'message': _('Chỉ Trưởng nhóm / Admin / bộ phận Lọc số được nhập file.')}}
         import base64
         try:
             data = base64.b64decode(self.vd_import_file)
@@ -873,7 +873,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
                     ) % '\n'.join(over))
 
         user = self.env.user
-        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        # Người CHIA SỐ (leader/admin/Lọc số) → dòng chưa gán NV thì round-robin;
+        # NV thường tự gán mình.
+        is_leader = self._vd_can_distribute()
         Stage = self.env['crm.stage'].sudo()
 
         # Cache stage lookups for 3 status options

@@ -83,10 +83,10 @@
                 <div class="o_vd_distribute_bar">
                     <field name="vd_import_paste" invisible="1"/>
                     <span class="o_vd_distribute_lbl"
-                          groups="vd_crm_lead.vd_crm_group_team_leader">📤 Nhập file (tự nạp):</span>
+                          invisible="not vd_can_distribute">📤 Nhập file (tự nạp):</span>
                     <field name="vd_import_filename" invisible="1"/>
                     <field name="vd_import_file" filename="vd_import_filename" nolabel="1"
-                           groups="vd_crm_lead.vd_crm_group_team_leader"/>
+                           invisible="not vd_can_distribute"/>
                     <button name="action_export_excel" type="object"
                             string="📥 Xuất Excel" class="btn-secondary"/>
                     <field name="vd_bulk_user_id" invisible="1"/>
