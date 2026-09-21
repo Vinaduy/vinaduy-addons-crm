@@ -22,6 +22,8 @@ _VD_ROLE_GROUPS = [
     ('team_leader', 'vd_crm_lead.vd_crm_group_team_leader'),
     ('employee', 'vd_crm_lead.vd_crm_group_employee'),
     ('collaborator', 'vd_crm_lead.vd_crm_group_collaborator'),
+    # THẤP NHẤT: chỉ chấm công (không có quyền CRM) — user spec 2026-09-21.
+    ('attendance', 'vd_crm_lead.vd_crm_group_attendance'),
 ]
 
 
@@ -101,7 +103,8 @@ class ResUsers(models.Model):
 
     # ===== PHÂN QUYỀN CRM — chọn nhanh 1 trong 5 vai trò (đồng bộ nhóm) =====
     vd_crm_role = fields.Selection(
-        [('collaborator', '1. Cộng tác viên'), ('employee', '2. Nhân viên'),
+        [('attendance', '0. Chấm công (chỉ chấm công)'),
+         ('collaborator', '1. Cộng tác viên'), ('employee', '2. Nhân viên'),
          ('team_leader', '3. Trưởng nhóm'), ('director', '4. Giám đốc'),
          ('admin', '5. Admin')],
         string='Phân quyền', compute='_compute_vd_crm_role',
@@ -136,11 +139,15 @@ class ResUsers(models.Model):
         # menu_overrides.xml → NV/TN/GĐ chỉ còn CRM.
         dash = self.env.ref('vd_crm_lead.action_vd_crm_dashboard',
                             raise_if_not_found=False)
+        # Tài khoản CHỈ CHẤM CÔNG → home = màn chấm công (không vào CRM).
+        att_act = self.env.ref('vd_face_attendance.action_face_checkin',
+                               raise_if_not_found=False)
         # Nhóm QUẢN LÝ chuẩn Odoo (group_sale_manager) = "thấy tất cả KH". CHỈ
         # Admin + Giám đốc mới có; Trưởng nhóm/NV/CTV KHÔNG (trưởng nhóm dùng
         # record rule theo phòng ban). Trước đây đổi GĐ→NV không gỡ nhóm này →
         # NV vẫn thấy tất cả + bị loại khỏi bảng hiệu suất (user 2026-09-07).
         mgr_g = self.env.ref('sales_team.group_sale_manager', raise_if_not_found=False)
+        salesman_g = self.env.ref('sales_team.group_sale_salesman', raise_if_not_found=False)
         for u in self:
             if not u.vd_crm_role:
                 continue
@@ -153,9 +160,17 @@ class ResUsers(models.Model):
                     cmds.append((4, mgr_g.id))
                 else:
                     cmds.append((3, mgr_g.id))  # gỡ manager cho TN/NV/CTV
+            # CHẤM CÔNG: gỡ HẲN quyền sales (implied không tự gỡ khi bỏ vai trò)
+            # → chỉ còn app Chấm công, KHÔNG thấy CRM.
+            if salesman_g and u.vd_crm_role == 'attendance':
+                cmds.append((3, salesman_g.id))
             vals = {'groups_id': cmds}
-            if dash:
-                vals['action_id'] = False if u.vd_crm_role == 'admin' else dash.id
+            if u.vd_crm_role == 'admin':
+                vals['action_id'] = False
+            elif u.vd_crm_role == 'attendance':
+                vals['action_id'] = att_act.id if att_act else False
+            elif dash:
+                vals['action_id'] = dash.id
             u.sudo().write(vals)
 
     @api.model_create_multi
@@ -652,7 +667,7 @@ class ResUsers(models.Model):
     }
     _VD_ROLE_LABEL = {
         'admin': 'Admin', 'director': 'Phó GĐ', 'team_leader': 'Trưởng nhóm',
-        'employee': 'Nhân viên', 'collaborator': 'CTV',
+        'employee': 'Nhân viên', 'collaborator': 'CTV', 'attendance': 'Chấm công',
     }
 
     def _vd_board_card(self, lead_count=0):

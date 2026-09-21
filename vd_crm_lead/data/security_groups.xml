@@ -7,6 +7,15 @@
         <field name="sequence">10</field>
     </record>
 
+    <!-- CHẤM CÔNG (chỉ chấm công) — internal user KHÔNG có quyền sales/CRM →
+         CHỈ thấy app Chấm công, KHÔNG thấy CRM (user spec 2026-09-21). -->
+    <record id="vd_crm_group_attendance" model="res.groups">
+        <field name="name">0. Chấm công (chỉ chấm công)</field>
+        <field name="category_id" ref="module_category_vd_crm"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Tài khoản CHỈ dùng để chấm công — không có quyền CRM, không thấy dữ liệu khách hàng.</field>
+    </record>
+
     <!-- ============ 5 SECURITY GROUPS — hierarchy: mỗi cấp implies cấp dưới ============ -->
     <record id="vd_crm_group_collaborator" model="res.groups">
         <field name="name">1. Cộng tác viên</field>
