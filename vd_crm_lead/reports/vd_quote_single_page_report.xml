@@ -57,7 +57,7 @@
                 <meta charset="UTF-8"/>
 
                 <div class="page" lang="vi"
-                     style="font-family:Georgia,'Times New Roman','Liberation Serif','DejaVu Serif',Times,serif;color:#23303d;font-size:10pt;padding:0;margin:0;page-break-inside:avoid;">
+                     style="font-family:'Times New Roman','Liberation Serif','DejaVu Serif',Times,serif;color:#23303d;font-size:11pt;padding:0;margin:0;page-break-inside:avoid;">
 
                     <!-- ============ HEADER theo design mẫu VINADUY chuẩn ============
                          Dùng ảnh logo thật + SVG cho banner & slant -->
@@ -79,11 +79,11 @@
                             <polygon points="1140,6 1200,6 1200,84 1096,84" fill="#ec7a2a"/>
                             <!-- Tiêu đề -->
                             <text x="685" y="46" text-anchor="middle"
-                                  font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="29"
+                                  font-family="'Times New Roman',Georgia,serif" font-weight="700" font-size="29"
                                   letter-spacing="6" fill="#ffffff">BẢNG BÁO GIÁ CHI TIẾT</text>
                             <!-- Tagline -->
                             <text x="685" y="69" text-anchor="middle"
-                                  font-family="Georgia,'Times New Roman',serif" font-weight="400" font-size="12"
+                                  font-family="'Times New Roman',Georgia,serif" font-weight="400" font-size="12"
                                   letter-spacing="5" fill="#eef4fa">XÂY NHÀ TRỌN GÓI · KIẾN TẠO TỔ ẤM</text>
                         </svg>
                         <!-- Logo VINADUY thật (data URI base64) đè lên góc trái -->
@@ -92,25 +92,21 @@
                     </div>
 
                     <!-- ============ INTRO BULLETS ============ -->
-                    <ul style="padding-left:0.2rem;margin:0.55rem 0 0.7rem;line-height:1.62;font-size:10pt;list-style:none;">
+                    <ul style="padding-left:0.2rem;margin:0.55rem 0 0.7rem;line-height:1.62;font-size:11pt;list-style:none;">
                         <li style="margin-bottom:0.12rem;"><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;<b style="color:#1864ab;">VINADUY</b> xin gửi tới Quý Khách hàng bảng báo giá chi tiết xây nhà trọn gói nhà ở dân dụng</li>
                         <li style="margin-bottom:0.12rem;"><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;Bảng báo giá áp dụng với mẫu nhà <b style="color:#c0392b;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="house_lbl"/></b></li>
                         <li><span style="color:#1864ab;font-size:8pt;">&#9670;</span>&#160;&#160;Kết cấu móng sử dụng hệ <b style="color:#c0392b;text-transform:uppercase;letter-spacing:0.6px;"><t t-esc="found_lbl"/></b></li>
                     </ul>
 
                     <!-- ============ KHÁCH HÀNG INFO ============ -->
-                    <table style="width:62%;border-collapse:collapse;margin:0.55rem 0 0.85rem;font-size:10pt;border-left:3px solid #ec7a2a;">
+                    <table style="width:62%;border-collapse:collapse;margin:0.55rem 0 0.85rem;font-size:11pt;border-left:3px solid #ec7a2a;">
                         <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;border-bottom:1px solid #d5e3f1;width:32%;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Khách hàng</td>
-                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #d5e3f1;font-weight:600;color:#23303d;"><t t-esc="kh_name"/></td>
+                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;border-bottom:1px solid #d5e3f1;width:32%;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:11pt;">Khách hàng</td>
+                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #d5e3f1;font-weight:700;color:#23303d;font-size:11pt;"><t t-esc="kh_name"/></td>
                         </tr>
                         <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;border-bottom:1px solid #d5e3f1;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Ngày tạo</td>
-                            <td style="padding:0.44rem 0.9rem;background:#fff;border-bottom:1px solid #d5e3f1;color:#23303d;"><t t-esc="ctx.get('today', '')"/></td>
-                        </tr>
-                        <tr>
-                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:8.5pt;">Địa chỉ</td>
-                            <td style="padding:0.44rem 0.9rem;background:#fff;color:#23303d;"><t t-esc="addr or '—'"/></td>
+                            <td style="padding:0.44rem 0.9rem;background:#eaf1f9;font-weight:700;color:#1864ab;text-transform:uppercase;letter-spacing:0.6px;font-size:11pt;">Địa chỉ</td>
+                            <td style="padding:0.44rem 0.9rem;background:#fff;color:#23303d;font-size:11pt;"><t t-esc="addr or '—'"/></td>
                         </tr>
                     </table>
 
@@ -132,14 +128,14 @@
                          tiền in đậm, ô Tổng Tiền nổi bật. wkhtmltopdf: border-radius
                          chạy trên div bọc overflow:hidden. -->
                     <div style="border:1.5px solid #cddff2;border-radius:12px;overflow:hidden;margin-bottom:0.8rem;">
-                    <table style="width:100%;border-collapse:collapse;font-size:10pt;">
+                    <table style="width:100%;border-collapse:collapse;font-size:11pt;">
                         <thead>
                             <tr style="background:#1864ab;color:#fff;">
-                                <th style="padding:0.64rem 0.85rem;text-align:left;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Nội dung</th>
-                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Diện tích</th>
-                                <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Đơn giá</th>
-                                <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;">Thành Tiền</th>
-                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:9.5pt;background:#12507f;">Tổng Tiền</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:left;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:11pt;">Nội dung</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:11pt;">Diện tích</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:11pt;">Đơn giá</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:right;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:11pt;">Thành Tiền</th>
+                                <th style="padding:0.64rem 0.85rem;text-align:center;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;font-size:11pt;background:#12507f;">Tổng Tiền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,7 +145,7 @@
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:center;color:#33475b;"><t t-esc="ctx.get('found_area', '0')"/> M2 x <t t-esc="ctx.get('found_pct', '0')"/>%</td>
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;color:#55677a;"><t t-esc="ctx.get('unit_price', '0')"/> VNĐ</td>
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;text-align:right;font-weight:700;color:#16324f;"><t t-esc="ctx.get('found_cost', '0')"/> VNĐ</td>
-                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border-left:2px solid #93c5fd;background:#dbeafe;text-align:center;font-weight:800;font-size:14.5pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                                <td t-att-rowspan="num_rows" style="padding:0.55rem 0.7rem;border-left:2px solid #93c5fd;background:#dbeafe;text-align:center;font-weight:800;font-size:13pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
                             </tr>
                             <!-- Per-floor rows (Tầng 1, Tầng 2, ..., Tum) — zebra theo index -->
                             <t t-if="floor_rows">
