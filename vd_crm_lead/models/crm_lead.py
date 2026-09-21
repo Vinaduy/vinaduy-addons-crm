@@ -5927,10 +5927,18 @@ class CrmLead(models.Model):
         - Không có template / format khác → fallback QWeb 4 trang tự sinh
         """
         self.ensure_one()
-        # Báo giá HỆ THỐNG (QWeb) — file mẫu PDF cũ KHÔNG sửa được nội dung nên
-        # bỏ hẳn (user spec 2026-09-21: "đổi lại theo file khác để có thể chỉnh
-        # sửa"). Giờ render 100% bằng code → sửa chữ/font/layout/thông tin cty
-        # thoải mái + LUÔN dùng dữ liệu hiện tại.
+        # GIỮ NGUYÊN TẤT CẢ các trang của file mẫu (giới thiệu, đội thi công,
+        # dấu mộc, điều khoản...) — CHỈ thay trang báo giá bằng bản QWeb live
+        # (user spec 2026-09-21: "phải tất cả các trang khác cũng có chứ").
+        # LUÔN dựng lại từ dữ liệu hiện tại — không tải PDF chốt cũ đóng băng.
+        att = self._render_uploaded_template()
+        if att:
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f'/web/content/{att.id}?download=true',
+                'target': 'self',
+            }
+
         att = self._generate_single_page_quote_pdf()
         return {
             'type': 'ir.actions.act_url',
@@ -5949,11 +5957,19 @@ class CrmLead(models.Model):
         # 2026-09-21: đổi tên/thông tin KH thì báo giá phải đổi theo, KHÔNG dùng
         # PDF chốt cũ đóng băng). Trang báo giá render live, các trang template
         # (logo/mộc/terms) giữ nguyên.
-        # Báo giá HỆ THỐNG (QWeb) render 100% bằng code — bỏ file mẫu PDF cũ
-        # (không sửa được). Sửa chữ/font/layout ở report_vd_quote_single_page.
-        att = self._generate_single_page_quote_pdf()
-        pdf_bytes = base64.b64decode(att.datas)
-        pdf_name = att.name or 'preview_baogia.pdf'
+        # GIỮ NGUYÊN TẤT CẢ các trang của file mẫu — CHỈ thay trang báo giá
+        # bằng bản QWeb live (user spec 2026-09-21). Fallback QWeb 1 trang nếu
+        # không ghép được.
+        pdf_bytes = None
+        pdf_name = 'preview_baogia.pdf'
+        att = self._render_uploaded_template()
+        if att:
+            pdf_bytes = base64.b64decode(att.datas)
+            pdf_name = att.name or pdf_name
+        if not pdf_bytes:
+            att = self._generate_single_page_quote_pdf()
+            pdf_bytes = base64.b64decode(att.datas)
+            pdf_name = att.name or pdf_name
 
         if not pdf_bytes:
             raise UserError(_('Không tạo được file PDF preview.'))
