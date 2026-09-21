@@ -5927,9 +5927,8 @@ class CrmLead(models.Model):
         - Không có template / format khác → fallback QWeb 4 trang tự sinh
         """
         self.ensure_one()
-        if self.vd_quote_locked and self.vd_quote_locked_version_id:
-            return self.vd_quote_locked_version_id.action_view_pdf()
-
+        # LUÔN dựng lại từ dữ liệu hiện tại (user spec 2026-09-21) — không tải PDF
+        # chốt cũ đóng băng, để tên/thông tin KH luôn đúng.
         att = self._render_uploaded_template()
         if att:
             return {
@@ -5952,16 +5951,14 @@ class CrmLead(models.Model):
         self.ensure_one()
         import base64
 
-        # Tìm/generate PDF
+        # Tìm/generate PDF — LUÔN dựng lại từ DỮ LIỆU HIỆN TẠI (user spec
+        # 2026-09-21: đổi tên/thông tin KH thì báo giá phải đổi theo, KHÔNG dùng
+        # PDF chốt cũ đóng băng). Trang báo giá render live, các trang template
+        # (logo/mộc/terms) giữ nguyên.
         pdf_bytes = None
         pdf_name = 'preview_baogia.pdf'
 
-        if self.vd_quote_locked and self.vd_quote_locked_version_id:
-            att = self.vd_quote_locked_version_id.pdf_attachment_id
-            if att:
-                pdf_bytes = base64.b64decode(att.datas)
-                pdf_name = att.name or pdf_name
-        if not pdf_bytes:
+        if True:
             att = self._render_uploaded_template()
             if att:
                 pdf_bytes = base64.b64decode(att.datas)
