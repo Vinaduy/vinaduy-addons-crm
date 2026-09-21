@@ -346,6 +346,14 @@ html, body {
 }
 .o_vd_quick_add_form td[name="user_id"],
 .o_vd_quick_add_form td[name="assignee_stat_label"] { min-width: 12rem !important; }
+/* Cột ☑ Chọn: hẹp lại, căn giữa (trước bị dãn rộng — user 2026-09-21) */
+.o_vd_quick_add_form th[data-name="vd_selected"],
+.o_vd_quick_add_form td[name="vd_selected"] {
+    width: 4.5rem !important;
+    max-width: 4.5rem !important;
+    text-align: center !important;
+    white-space: nowrap;
+}
 /* Cột STT: nhỏ gọn, căn giữa */
 .o_vd_quick_add_form td[name="vd_stt"], .o_vd_quick_add_form .o_vd_qa_stt {
     text-align: center; font-weight: 700; color: #868e96; width: 3rem;

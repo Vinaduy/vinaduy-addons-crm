@@ -83,19 +83,16 @@ class VdLeadQuickAddWizard(models.TransientModel):
     vd_all_assigned = fields.Boolean(compute='_compute_vd_all_assigned')
     # Ai được CHIA SỐ (hiện nút + bộ chọn NV): Trưởng nhóm/GĐ/Admin HOẶC tài khoản
     # có quyền chuyển KH (vd bộ phận LỌC SỐ) — user spec 2026-09-18.
-    vd_can_distribute = fields.Boolean(compute='_compute_vd_can_distribute')
+    # Trường THƯỜNG (không compute) — set trong default_get để LUÔN có sẵn trong
+    # form (trường compute phụ thuộc context hay bị mất giá trị qua onchange →
+    # ẩn nhầm nút). user spec 2026-09-21.
+    vd_can_distribute = fields.Boolean(default=lambda self: self._vd_can_distribute())
 
     def _vd_can_distribute(self):
         u = self.env.user
         if u.has_group('vd_crm_lead.vd_crm_group_team_leader'):
             return True
         return bool(self.env['vd.crm.role.config'].sudo().can_user_reassign(u))
-
-    @api.depends_context('uid')
-    def _compute_vd_can_distribute(self):
-        can = self._vd_can_distribute()
-        for w in self:
-            w.vd_can_distribute = can
 
     @api.depends('line_ids.user_id', 'line_ids.name', 'line_ids.phone')
     def _compute_vd_all_assigned(self):
