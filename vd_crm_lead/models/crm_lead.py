@@ -5927,20 +5927,14 @@ class CrmLead(models.Model):
         - Không có template / format khác → fallback QWeb 4 trang tự sinh
         """
         self.ensure_one()
-        # LUÔN dựng lại từ dữ liệu hiện tại (user spec 2026-09-21) — không tải PDF
-        # chốt cũ đóng băng, để tên/thông tin KH luôn đúng.
-        att = self._render_uploaded_template()
-        if att:
-            return {
-                'type': 'ir.actions.act_url',
-                'url': f'/web/content/{att.id}?download=true',
-                'target': 'self',
-            }
-
-        new_v = self._generate_quote_pdf_now()
+        # Báo giá HỆ THỐNG (QWeb) — file mẫu PDF cũ KHÔNG sửa được nội dung nên
+        # bỏ hẳn (user spec 2026-09-21: "đổi lại theo file khác để có thể chỉnh
+        # sửa"). Giờ render 100% bằng code → sửa chữ/font/layout/thông tin cty
+        # thoải mái + LUÔN dùng dữ liệu hiện tại.
+        att = self._generate_single_page_quote_pdf()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/web/content/{new_v.pdf_attachment_id.id}?download=true',
+            'url': f'/web/content/{att.id}?download=true',
             'target': 'self',
         }
 
@@ -5955,19 +5949,11 @@ class CrmLead(models.Model):
         # 2026-09-21: đổi tên/thông tin KH thì báo giá phải đổi theo, KHÔNG dùng
         # PDF chốt cũ đóng băng). Trang báo giá render live, các trang template
         # (logo/mộc/terms) giữ nguyên.
-        pdf_bytes = None
-        pdf_name = 'preview_baogia.pdf'
-
-        if True:
-            att = self._render_uploaded_template()
-            if att:
-                pdf_bytes = base64.b64decode(att.datas)
-                pdf_name = att.name or pdf_name
-        if not pdf_bytes:
-            new_v = self._generate_quote_pdf_now()
-            if new_v.pdf_attachment_id:
-                pdf_bytes = base64.b64decode(new_v.pdf_attachment_id.datas)
-                pdf_name = new_v.pdf_attachment_id.name or pdf_name
+        # Báo giá HỆ THỐNG (QWeb) render 100% bằng code — bỏ file mẫu PDF cũ
+        # (không sửa được). Sửa chữ/font/layout ở report_vd_quote_single_page.
+        att = self._generate_single_page_quote_pdf()
+        pdf_bytes = base64.b64decode(att.datas)
+        pdf_name = att.name or 'preview_baogia.pdf'
 
         if not pdf_bytes:
             raise UserError(_('Không tạo được file PDF preview.'))
