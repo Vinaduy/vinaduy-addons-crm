@@ -11070,6 +11070,22 @@ class CrmLead(models.Model):
         call_report_map = self._vd_call_report(sales_users.ids, today=today)
         _empty_cr = {'calls_today_total': 0, 'calls_today_success': 0,
                      'calls_month_total': 0, 'calls_month_success': 0}
+        # ===== BÓC TÁCH kho "Khách mới" mỗi NV: gọi được / khó gọi / tham khảo =====
+        # (user spec 2026-09-22): ô tổng "N Khách" gây hiểu nhầm vì đếm CẢ khách đã
+        # đẩy sang nhóm khác (gọi >=3 lần không nghe → "chưa gọi được"; pending →
+        # tham khảo). Hiện tách nhóm ngay trên ô. Batch read_group → không query/loop.
+        def _cnt_by_user(extra_domain):
+            res = {}
+            for g in self.env['crm.lead'].sudo().read_group(
+                    [('user_id', 'in', sales_users.ids),
+                     ('stage_id.code', '=', 'new'), ('active', '=', True)] + extra_domain,
+                    ['user_id'], ['user_id']):
+                if g.get('user_id'):
+                    res[g['user_id'][0]] = g['user_id_count']
+            return res
+        callable_by_user = _cnt_by_user([('vd_no_quote_state', '!=', 'pending'), ('call_count', '<', 3)])
+        hard_by_user = _cnt_by_user([('vd_no_quote_state', '!=', 'pending'), ('call_count', '>=', 3)])
+        reference_by_user = _cnt_by_user([('vd_no_quote_state', '=', 'pending')])
         for u in sales_users:
             # Metric 1: ĐANG CHỐT = lead ở stage 'won' (đang trong giai đoạn ký HĐ /
             # chốt — bao gồm cả đã ký lẫn chưa ký). Không yêu cầu vấn đề đã giải quyết.
@@ -11216,6 +11232,10 @@ class CrmLead(models.Model):
                 'capacity_level': u.vd_capacity_level or 'junior',
                 'capacity_label': cap_labels.get(u.vd_capacity_level or 'junior', ''),
                 'total_leads': total_managed,
+                # Bóc tách kho KH mới (user spec 2026-09-22) — hiện tách nhóm trên ô.
+                'cnt_callable': callable_by_user.get(u.id, 0),
+                'cnt_hard': hard_by_user.get(u.id, 0),
+                'cnt_reference': reference_by_user.get(u.id, 0),
                 'resolved_count': n_resolved,
                 'resolved_leads': [_ld_basic(l) for l in resolved_leads[:50]],
                 'in_progress_count': n_in_prog,

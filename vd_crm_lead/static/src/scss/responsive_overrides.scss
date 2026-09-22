@@ -1162,3 +1162,20 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     }
     .o_time_picker_input { font-size: 1.05rem; }
 }
+
+/* ============================================================
+   Ô TỔNG KH của NV — TÁCH NHÓM (user spec 2026-09-22):
+   gọi được (xanh) · khó gọi ≥3 lần (đỏ) · tham khảo (xanh dương).
+   Thay số tổng trơ "N Khách" (dễ tưởng sai vì đếm cả nhóm đã đẩy đi).
+   ============================================================ */
+.o_vd_kh_nv_total {
+    display: inline-flex; gap: 0.28rem; align-items: center; flex-wrap: wrap;
+    .o_vd_kh_nv_bd {
+        display: inline-flex; align-items: center; gap: 0.15rem;
+        font-weight: 700; font-size: 0.82rem; line-height: 1.1;
+        padding: 0.1rem 0.34rem; border-radius: 6px; white-space: nowrap;
+    }
+    .o_bd_callable { background: #e6f4ea; color: #1e7e34; }
+    .o_bd_hard     { background: #fdecec; color: #c0392b; }
+    .o_bd_ref      { background: #e7f0fb; color: #1864ab; }
+}
