@@ -29,6 +29,8 @@ Chấm công khuôn mặt (face recognition) + geofence GPS.
             'vd_face_attendance/static/src/scss/face_attendance.scss',
             'vd_face_attendance/static/src/js/face_attendance.js',
             'vd_face_attendance/static/src/xml/face_attendance.xml',
+            'vd_face_attendance/static/src/js/face_kiosk.js',
+            'vd_face_attendance/static/src/xml/face_kiosk.xml',
         ],
     },
     'application': True,

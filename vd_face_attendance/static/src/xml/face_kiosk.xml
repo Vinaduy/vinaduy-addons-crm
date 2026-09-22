@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
-    <t t-name="vd_face_attendance.Checkin">
+    <t t-name="vd_face_attendance.Kiosk">
         <div class="o_vd_face_wrap">
             <div class="o_vd_face_card">
                 <div class="o_vd_face_head">
-                    <i class="fa fa-camera me-2"/> CHẤM CÔNG KHUÔN MẶT
-                    <span class="o_vd_face_user"><t t-esc="state.userName"/></span>
+                    <i class="fa fa-camera me-2"/> MÁY CHẤM CÔNG KHUÔN MẶT
+                    <span class="o_vd_face_user"><t t-esc="state.facesCount"/> người đã đăng ký</span>
                 </div>
 
                 <div t-if="state.phase === 'error'" class="o_vd_face_error">
@@ -17,7 +17,6 @@
                         <video t-ref="video" class="o_vd_face_video" autoplay="autoplay"
                                muted="muted" playsinline="playsinline"/>
                         <canvas t-ref="canvas" class="d-none"/>
-                        <!-- Khung oval hướng dẫn: xanh khi mặt tốt, cam khi chưa đạt -->
                         <div t-att-class="'o_vd_face_guide o_vd_face_guide_' + state.faceLive"/>
                         <div t-att-class="'o_vd_face_guidetxt o_vd_face_guidetxt_' + state.faceLive">
                             <t t-esc="state.faceHint"/>
@@ -43,7 +42,6 @@
                                 Cách VP <t t-esc="state.distance"/> m (cho phép <t t-esc="state.radius"/> m)
                             </span>
                         </div>
-                        <!-- Lý do lỗi GPS + nút thử lại -->
                         <div t-if="state.gpsErr" class="o_vd_face_gpserr">
                             <i class="fa fa-exclamation-circle me-1"/><t t-esc="state.gpsErr"/>
                         </div>
@@ -52,42 +50,27 @@
                             <i class="fa fa-refresh me-1"/> Lấy lại vị trí
                         </button>
 
-                        <!-- Trạng thái đăng ký + MÃ/TÊN NV (gọn, ngay trên đầu) -->
-                        <div class="o_vd_face_row">
-                            <span class="o_vd_face_lbl"><i class="fa fa-user me-1"/> Nhân viên</span>
-                            <span t-if="!state.enrolled" class="o_vd_face_bad">Chưa đăng ký</span>
-                            <span t-elif="state.reg" class="o_vd_face_ok o_vd_face_regline">
-                                <t t-esc="state.reg.code"/> · <t t-esc="state.reg.name"/><t t-if="state.reg.gender"> · <t t-esc="state.reg.gender"/></t>
-                            </span>
-                            <span t-else="" class="o_vd_face_ok">Đã đăng ký</span>
+                        <!-- KẾT QUẢ NHẬN DIỆN — hiện TO tên + mã NV -->
+                        <div t-if="state.result" t-att-class="'o_vd_face_result ' + (state.result.ok ? 'o_vd_face_result_ok' : 'o_vd_face_result_bad')">
+                            <div t-if="state.result.name" class="o_vd_face_result_name">
+                                <i class="fa fa-user-circle me-1"/><t t-esc="state.result.name"/>
+                                <span t-if="state.result.code" class="o_vd_face_result_code">(<t t-esc="state.result.code"/>)</span>
+                            </div>
+                            <div class="o_vd_face_result_line"><t t-esc="state.result.line"/></div>
                         </div>
 
-                        <!-- Trạng thái hôm nay: giờ vào / giờ ra + đi muộn / về sớm -->
-                        <div class="o_vd_face_today">
-                            <div class="o_vd_face_today_head"><i class="fa fa-clock-o me-1"/> Hôm nay</div>
-                            <div t-if="!state.today" class="o_vd_face_muted">Chưa chấm công</div>
-                            <div t-else="" class="o_vd_face_today_body">
-                                <div class="o_vd_face_time">
-                                    <span class="o_vd_face_time_lbl">Vào</span>
-                                    <span class="o_vd_face_time_val"><t t-esc="state.today.in_time or '—'"/></span>
-                                    <span t-if="state.today.late_minutes" class="o_vd_face_late">muộn <t t-esc="state.today.late_minutes"/>'</span>
-                                </div>
-                                <div class="o_vd_face_time">
-                                    <span class="o_vd_face_time_lbl">Ra</span>
-                                    <span class="o_vd_face_time_val"><t t-esc="state.today.out_time or '—'"/></span>
-                                    <span t-if="state.today.early_leave_minutes" class="o_vd_face_late">sớm <t t-esc="state.today.early_leave_minutes"/>'</span>
-                                </div>
-                                <div t-if="state.today.out_time" class="o_vd_face_worked">
-                                    Tổng: <t t-esc="state.today.worked_hours"/> giờ
-                                </div>
-                            </div>
-                        </div>
                         <div class="o_vd_face_rulehint">Quy định: vào <t t-esc="state.workStart"/> · ra <t t-esc="state.workEnd"/></div>
 
-                        <!-- FORM đăng ký (khi CHƯA đăng ký): nhập tên + giới tính -->
-                        <div t-if="!state.enrolled" class="o_vd_face_enroll">
+                        <!-- ĐĂNG KÝ khuôn mặt mới (ẩn/hiện) -->
+                        <button class="btn btn-link o_vd_face_reenroll"
+                                t-on-click="() => this.toggleEnroll()">
+                            <i class="fa fa-user-plus me-1"/>
+                            <t t-if="!state.showEnroll">Đăng ký khuôn mặt mới</t>
+                            <t t-else="">Đóng đăng ký</t>
+                        </button>
+                        <div t-if="state.showEnroll" class="o_vd_face_enroll">
                             <div class="o_vd_face_enroll_title">
-                                <i class="fa fa-id-card me-1"/> Đăng ký khuôn mặt
+                                <i class="fa fa-id-card me-1"/> Đăng ký người mới
                             </div>
                             <input type="text" class="form-control o_vd_face_input"
                                    placeholder="Tên nhân viên"
@@ -101,57 +84,41 @@
                             <button class="btn btn-warning o_vd_face_btn"
                                     t-att-disabled="state.busy or state.phase !== 'ready'"
                                     t-on-click="() => this.enroll()">
-                                <i class="fa fa-user-plus me-1"/> Đăng ký khuôn mặt
+                                <i class="fa fa-check me-1"/> Lưu khuôn mặt
                             </button>
                         </div>
-
-                        <!-- Đã vào + đã ra -> hoàn thành -->
-                        <div t-if="state.today and state.today.out_time"
-                             class="o_vd_face_done">
-                            <i class="fa fa-check-circle me-1"/> Đã hoàn thành chấm công hôm nay
-                        </div>
-
-                        <button t-if="state.enrolled" class="btn btn-link o_vd_face_reenroll"
-                                t-att-disabled="state.busy or state.phase !== 'ready'"
-                                t-on-click="() => this.enroll()">
-                            <i class="fa fa-refresh me-1"/> Đăng ký lại khuôn mặt
-                        </button>
                     </div>
                 </div>
 
-                <!-- THANH NÚT CHẤM CÔNG — dính đáy, luôn thấy trên điện thoại -->
-                <div t-if="state.enrolled and (!state.today or state.hasOpen)"
-                     class="o_vd_face_actionbar">
-                    <button t-if="!state.today"
-                            class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
+                <!-- THANH NÚT CHẤM CÔNG — luôn hiện (kiosk cho tất cả) -->
+                <div class="o_vd_face_actionbar">
+                    <button class="btn btn-success o_vd_face_btn o_vd_face_btn_big"
                             t-att-disabled="state.busy or state.phase !== 'ready'"
                             t-on-click="() => this.checkIn()">
                         <i class="fa fa-sign-in me-1"/> CHẤM VÀO
                     </button>
-                    <button t-if="state.hasOpen"
-                            class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
+                    <button class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
                             t-att-disabled="state.busy or state.phase !== 'ready'"
                             t-on-click="() => this.checkOut()">
                         <i class="fa fa-sign-out me-1"/> CHẤM RA
                     </button>
                 </div>
 
-                <!-- Lịch sử gần đây -->
+                <!-- Lịch sử gần đây (mọi người) -->
                 <div t-if="state.recent.length" class="o_vd_face_recent">
-                    <div class="o_vd_face_recent_head">Lịch sử gần đây</div>
+                    <div class="o_vd_face_recent_head">Lượt chấm gần đây</div>
                     <table class="table table-sm o_vd_face_table">
                         <thead>
                             <tr>
-                                <th>Ngày</th><th>Vào</th><th>Ra</th>
-                                <th class="text-end">Giờ</th><th>Ghi chú</th>
+                                <th>Nhân viên</th><th>Ngày</th><th>Vào</th><th>Ra</th><th>Ghi chú</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr t-foreach="state.recent" t-as="r" t-key="r_index">
+                                <td><b><t t-esc="r.name or '—'"/></b> <span class="o_vd_face_muted"><t t-esc="r.code or ''"/></span></td>
                                 <td><t t-esc="r.date or '—'"/></td>
                                 <td><t t-esc="r.in_time or '—'"/></td>
                                 <td><t t-esc="r.out_time or '—'"/></td>
-                                <td class="text-end"><t t-esc="r.worked_hours"/></td>
                                 <td>
                                     <span t-if="r.late_minutes" class="o_vd_face_late">muộn <t t-esc="r.late_minutes"/>'</span>
                                     <span t-if="r.early_leave_minutes" class="o_vd_face_late">sớm <t t-esc="r.early_leave_minutes"/>'</span>

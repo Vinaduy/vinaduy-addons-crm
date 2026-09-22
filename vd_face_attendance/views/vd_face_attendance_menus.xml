@@ -4,6 +4,11 @@
     <menuitem id="menu_face_root" name="Chấm công" sequence="55"
               action="action_face_checkin"/>
 
+    <!-- KIOSK: 1 thiết bị (iPad) chấm cho tất cả — tự nhận diện. -->
+    <menuitem id="menu_face_kiosk" name="Máy chấm công (Kiosk)"
+              parent="menu_face_root" sequence="10"
+              action="action_face_kiosk"/>
+
     <!-- Bảng chấm công: NV xem của mình, quản lý xem tất cả (record rule lọc) -->
     <menuitem id="menu_face_records" name="Bảng chấm công"
               parent="menu_face_root" sequence="20"

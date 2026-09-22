@@ -6,6 +6,12 @@
         <field name="tag">vd_face_attendance_checkin</field>
     </record>
 
+    <!-- KIOSK: 1 thiết bị chấm cho TẤT CẢ (tự nhận diện) — user spec 2026-09-22 -->
+    <record id="action_face_kiosk" model="ir.actions.client">
+        <field name="name">Máy chấm công (Kiosk)</field>
+        <field name="tag">vd_face_attendance_kiosk</field>
+    </record>
+
     <!-- ================= DANH SÁCH BẢN GHI CHẤM CÔNG ================= -->
     <record id="view_face_attendance_list" model="ir.ui.view">
         <field name="name">vd.face.attendance.list</field>
