@@ -572,6 +572,11 @@ class VdLeadQuickAddWizard(models.TransientModel):
         domain=lambda self: _vd_nv_user_domain(self.env),
         help='Chọn 2+ nhân viên — khách sẽ được chia đều trong nhóm này.',
     )
+    # THỐNG KÊ CHIA SỐ (user spec 2026-09-22): hiện rõ mỗi NV nhận bao nhiêu +
+    # cảnh báo NV đang TẮT nhận → biết chính xác số đi đâu, không còn "mất số".
+    vd_distribute_preview = fields.Html(readonly=True, sanitize=False)
+    # Đã bấm chia (đã điền NV + có thống kê) → hiện nút XÁC NHẬN TẠO.
+    vd_distributed = fields.Boolean(default=False)
     # Quick-create field: admin gõ tên → tạo vd.intake.custom.field → cột
     # tương ứng xuất hiện trong bảng (qua fields_get override trên line model).
     quick_add_field_id = fields.Many2one(
@@ -705,23 +710,25 @@ class VdLeadQuickAddWizard(models.TransientModel):
             raise UserError(_(
                 'Vui lòng chọn NGUỒN cho các khách:\n%s'
             ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
+        # GIỮ NGUYÊN 1 TRANG (user spec 2026-09-22): KHÔNG reopen popup/bảng nữa.
+        # Ghi show_distribute=True (persist transient) rồi return None → client
+        # tự nạp lại record TẠI CHỖ, khối "Chọn cách chia" hiện ngay trong trang.
         self.show_distribute = True
-        # MỞ LẠI wizard tường minh (user spec 2026-09-21) → khối CHỌN CÁCH CHIA
-        # (Chia đều tất cả / Chọn NV) CHẮC CHẮN hiện, không phụ thuộc client tự
-        # vẽ lại (trước "return None" có máy không hiện khối → tưởng tự chia).
-        return self._vd_reopen()
+        return None
 
     def action_distribute_even_all(self):
-        """⚖️ Chia đều cho TẤT CẢ NV đang nhận số → tạo lead luôn (1 bấm)."""
+        """⚖️ Chia đều cho TẤT CẢ NV đang nhận số → HIỆN THỐNG KÊ tại chỗ (user
+        spec 2026-09-22: bấm là thấy chia cho ai bao nhiêu, rồi bấm TẠO xác nhận)."""
         self.ensure_one()
         self._vd_check_leader()
         self._vd_sync_receiving()
         self.distribute_mode = 'even_all'
         self._vd_apply_distribution()
-        return self.action_create_leads()
+        self.vd_distributed = True
+        return None
 
     def action_distribute_group(self):
-        """👥 Chia đều cho NV ĐÃ CHỌN trong dropdown → tạo lead luôn (1 bấm)."""
+        """👥 Chia đều cho NV ĐÃ CHỌN → HIỆN THỐNG KÊ tại chỗ rồi bấm TẠO xác nhận."""
         self.ensure_one()
         self._vd_check_leader()
         if len(self.group_user_ids) < 1:
@@ -729,7 +736,8 @@ class VdLeadQuickAddWizard(models.TransientModel):
                               'trước khi chia cho NV đã chọn.'))
         self.distribute_mode = 'group'
         self._vd_apply_distribution()
-        return self.action_create_leads()
+        self.vd_distributed = True
+        return None
 
     @api.onchange('distribute_mode', 'group_user_ids')
     def _onchange_distribute_mode(self):
@@ -799,6 +807,43 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 line.user_id = u.id
                 remain[u.id] -= 1
                 i += 1
+        # THỐNG KÊ: mỗi NV nhận bao nhiêu (user spec 2026-09-22) → biết số đi đâu.
+        self.vd_distribute_preview = self._vd_build_distribute_stats(lines, pool)
+
+    def _vd_build_distribute_stats(self, lines, pool=None):
+        """Dựng bảng HTML: mỗi NV nhận bao nhiêu khách + cảnh báo NV đang TẮT nhận.
+        Dùng cho preview (trước khi tạo) và tổng kết (sau khi tạo)."""
+        from collections import Counter
+        counts = Counter(l.user_id.id for l in lines if l.user_id)
+        n_assigned = sum(counts.values())
+        n_total = len(lines)
+        rows = []
+        Users = self.env['res.users'].sudo()
+        for uid, cnt in counts.most_common():
+            rows.append(
+                '<tr><td style="padding:2px 10px;">👤 %s</td>'
+                '<td style="padding:2px 10px;text-align:right;font-weight:700;color:#1864ab;">%d khách</td></tr>'
+                % (Users.browse(uid).name or '?', cnt))
+        n_unassigned = n_total - n_assigned
+        head = ('<div style="font-weight:700;margin-bottom:4px;">📊 Chia %d khách cho %d nhân viên:</div>'
+                % (n_assigned, len(counts)))
+        table = '<table style="border-collapse:collapse;width:100%%;">%s</table>' % ''.join(rows)
+        tail = ''
+        if n_unassigned:
+            tail += ('<div style="color:#c0392b;margin-top:4px;">⚠️ %d khách CHƯA có NV '
+                     '(sẽ tự chia khi bấm TẠO).</div>' % n_unassigned)
+        # Cảnh báo NV đang TẮT nhận số (không nằm trong đợt chia).
+        if pool is not None:
+            try:
+                all_sales = self._vd_receiving_candidates()
+                off = all_sales.filtered(lambda u: not u.vd_can_receive_pancake)
+                if off:
+                    tail += ('<div style="color:#e8590c;margin-top:4px;font-size:0.9em;">'
+                             '🔕 %d NV đang TẮT nhận số (không được chia): %s</div>'
+                             % (len(off), ', '.join(off.mapped('name'))))
+            except Exception:
+                pass
+        return head + table + tail
 
     def action_redistribute(self):
         """Nút 'Chia lại' — áp dụng lại distribution với cấu hình hiện tại."""
@@ -992,14 +1037,24 @@ class VdLeadQuickAddWizard(models.TransientModel):
         # Không ping chính người đang đẩy (NV tự thêm mình).
         self._vd_notify_pushed(created, exclude_uid=user.id)
 
+        # THỐNG KÊ CUỐI (user spec 2026-09-22): liệt kê rõ mỗi NV nhận bao nhiêu →
+        # biết chính xác số đi đâu, không còn "mất số".
+        from collections import Counter
+        counts = Counter(l.user_id.id for l in created if l.user_id)
+        ResUsers = self.env['res.users'].sudo()
+        detail = '\n'.join(
+            '• %s: %d khách' % (ResUsers.browse(uid).name or '?', cnt)
+            for uid, cnt in counts.most_common())
+        msg = _('Đã chia %d khách cho %d nhân viên:\n%s') % (
+            len(created), len(counts), detail)
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': _('Đã tạo %s KH') % len(created),
-                'message': _('Đã phân bổ cho NV phụ trách.'),
+                'title': _('✅ Đã tạo %s KH') % len(created),
+                'message': msg,
                 'type': 'success',
-                'sticky': False,
+                'sticky': True,
                 'next': {'type': 'ir.actions.client', 'tag': 'reload'},
             },
         }

@@ -11,6 +11,7 @@
                 <field name="can_chia_so" invisible="1"/>
                 <field name="vd_all_assigned" invisible="1"/>
                 <field name="vd_can_distribute" invisible="1"/>
+                <field name="vd_distributed" invisible="1"/>
                 <field name="quick_add_field_id" invisible="1"/>
                 <!-- Pool NV (đã loại admin) — dùng làm domain dropdown chọn NV. -->
                 <field name="vd_receiving_candidate_ids" invisible="1"/>
@@ -102,10 +103,19 @@
                            placeholder="Chọn nhân viên (chỉ dùng cho 'Chia cho NV đã chọn')..."
                            class="o_vd_distribute_group"/>
                     <button name="action_distribute_even_all" type="object"
-                            string="⚖️ Chia số cho TẤT CẢ nhân viên" class="btn-primary"/>
+                            string="⚖️ Xem chia đều cho TẤT CẢ nhân viên" class="btn-secondary"/>
                     <button name="action_distribute_group" type="object"
-                            string="👥 Chia số cho nhân viên đã chọn" class="btn-primary"
+                            string="👥 Xem chia cho nhân viên đã chọn" class="btn-secondary"
                             invisible="not group_user_ids"/>
+                </div>
+                <!-- THỐNG KÊ CHIA SỐ — hiện mỗi NV nhận bao nhiêu (user spec 2026-09-22) -->
+                <div class="o_vd_distribute_stats"
+                     invisible="not show_distribute or not vd_distribute_preview">
+                    <field name="vd_distribute_preview" nolabel="1" readonly="1"/>
+                    <div class="o_vd_distribute_confirm" invisible="not vd_distributed">
+                        <button name="action_create_leads" type="object"
+                                string="✅ XÁC NHẬN — TẠO KHÁCH" class="btn-primary"/>
+                    </div>
                 </div>
 
                 <footer>

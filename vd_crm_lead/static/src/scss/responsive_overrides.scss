@@ -1179,3 +1179,26 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     .o_bd_hard     { background: #fdecec; color: #c0392b; }
     .o_bd_ref      { background: #e7f0fb; color: #1864ab; }
 }
+
+/* ============================================================
+   WIZARD THÊM KH — bảng cuộn TRONG (10 dòng/lần), KHÔNG cuộn cả trang
+   + hộp THỐNG KÊ chia số (user spec 2026-09-22).
+   ============================================================ */
+.o_vd_quick_add_form {
+    /* Bảng danh sách KH: cao cố định ~10 dòng, cuộn trong bảng */
+    .o_field_x2many[name="line_ids"] .o_list_renderer,
+    .o_field_widget[name="line_ids"] .o_list_renderer {
+        max-height: 22rem; overflow-y: auto;
+    }
+    /* Header bảng dính khi cuộn để luôn thấy tên cột */
+    .o_field_x2many[name="line_ids"] .o_list_table thead th,
+    .o_field_widget[name="line_ids"] .o_list_table thead th {
+        position: sticky; top: 0; z-index: 3; background: #eaf1f9;
+    }
+    /* Hộp thống kê chia số */
+    .o_vd_distribute_stats {
+        margin: 0.5rem 0; padding: 0.6rem 0.9rem;
+        background: #f4f8fd; border: 1px solid #cddff2; border-radius: 8px;
+        max-height: 12rem; overflow-y: auto; font-size: 0.92rem;
+    }
+}
