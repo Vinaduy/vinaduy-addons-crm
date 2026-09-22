@@ -17,7 +17,7 @@
         <field name="name">vd.face.attendance.list</field>
         <field name="model">vd.face.attendance</field>
         <field name="arch" type="xml">
-            <list string="Chấm công khuôn mặt" create="0">
+            <list string="Chấm công khuôn mặt" editable="bottom">
                 <field name="employee_id"/>
                 <field name="user_id" optional="hide"/>
                 <field name="check_in"/>
@@ -36,15 +36,21 @@
         <field name="name">vd.face.attendance.form</field>
         <field name="model">vd.face.attendance</field>
         <field name="arch" type="xml">
-            <form string="Chấm công khuôn mặt" create="0" edit="0">
+            <form string="Chấm công khuôn mặt">
                 <sheet>
+                    <div class="alert alert-info" role="status"
+                         groups="vd_face_attendance.group_face_manager">
+                        <i class="fa fa-pencil me-1"/> Quản lý được <b>sửa giờ vào/ra</b> hoặc
+                        <b>tạo mới</b> bản ghi khi app lỗi không chấm được — để đảm bảo công bằng.
+                    </div>
                     <group>
                         <group string="Thông tin">
-                            <field name="employee_id"/>
-                            <field name="user_id"/>
+                            <field name="employee_id"
+                                   options="{'no_create': True}"/>
+                            <field name="user_id" options="{'no_create': True}"/>
                             <field name="check_in"/>
                             <field name="check_out"/>
-                            <field name="worked_hours" widget="float_time"/>
+                            <field name="worked_hours" widget="float_time" readonly="1"/>
                         </group>
                         <group string="Vị trí / Nhận diện">
                             <field name="in_distance"/>

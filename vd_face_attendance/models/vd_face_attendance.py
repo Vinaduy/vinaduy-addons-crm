@@ -269,8 +269,9 @@ class VdFaceAttendance(models.Model):
         if self._vd_find_open_today():
             raise UserError(_('Hôm nay bạn đã chấm VÀO rồi — hãy chấm RA khi kết thúc.'))
         dist, lat, lng = self._vd_check_geo(lat, lng)
-        rec = self.create({
+        rec = self.sudo().create({
             'user_id': u.id,
+            'employee_id': emp.id,
             'check_in': fields.Datetime.now(),
             'in_latitude': lat, 'in_longitude': lng, 'in_distance': dist,
             'in_face_score': float(face_score or 0.0),
@@ -286,7 +287,7 @@ class VdFaceAttendance(models.Model):
         if not rec:
             raise UserError(_('Chưa có lượt chấm VÀO nào hôm nay để chấm RA.'))
         dist, lat, lng = self._vd_check_geo(lat, lng)
-        rec.write({
+        rec.sudo().write({
             'check_out': fields.Datetime.now(),
             'out_latitude': lat, 'out_longitude': lng, 'out_distance': dist,
             'out_face_score': float(face_score or 0.0),
@@ -341,7 +342,9 @@ class VdFaceAttendance(models.Model):
         return best, bestd
 
     def _vd_find_open_today_emp(self, emp):
-        return self.search([
+        # sudo: kiosk chạy bằng 1 tài khoản chung, phải tìm được bản ghi của
+        # MỌI người (record rule 'chỉ của mình' không áp cho kiosk).
+        return self.sudo().search([
             ('employee_id', '=', emp.id),
             ('check_in', '>=', self._vd_today_start_utc()),
             ('check_out', '=', False),
@@ -364,7 +367,7 @@ class VdFaceAttendance(models.Model):
         return cfg
 
     def _vd_kiosk_recent(self, limit=12):
-        recs = self.search([('employee_id', '!=', False)], limit=limit)
+        recs = self.sudo().search([('employee_id', '!=', False)], limit=limit)
         out = []
         for r in recs:
             out.append({
@@ -424,7 +427,7 @@ class VdFaceAttendance(models.Model):
             if self._vd_find_open_today_emp(emp):
                 return {'ok': False, 'employee': emp_info,
                         'error': _('%s đã chấm VÀO hôm nay rồi — hãy chấm RA.') % emp.name}
-            rec = self.create({
+            rec = self.sudo().create({
                 'employee_id': emp.id,
                 'user_id': emp.user_id.id if emp.user_id else False,
                 'check_in': now,
@@ -440,7 +443,7 @@ class VdFaceAttendance(models.Model):
             if not rec:
                 return {'ok': False, 'employee': emp_info,
                         'error': _('%s chưa chấm VÀO hôm nay để chấm RA.') % emp.name}
-            rec.write({
+            rec.sudo().write({
                 'check_out': now,
                 'out_latitude': glat, 'out_longitude': glng, 'out_distance': gdist,
                 'out_face_score': score, 'out_photo': self._vd_photo_bytes(photo),
