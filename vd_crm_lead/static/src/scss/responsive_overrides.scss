@@ -1190,6 +1190,15 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     .o_field_widget[name="line_ids"] .o_list_renderer {
         max-height: 22rem; overflow-y: auto;
     }
+    /* DÒNG NHỎ + CHỮ NHỎ lại (user spec 2026-09-22) — bớt khoảng trắng thừa */
+    .o_list_table {
+        font-size: 0.82rem;
+        td, th { padding-top: 2px !important; padding-bottom: 2px !important;
+                 line-height: 1.25 !important; }
+        .o_data_cell input, .o_data_cell .o_input,
+        .o_data_cell .o_field_widget { font-size: 0.82rem !important; }
+        thead th { font-size: 0.76rem !important; }
+    }
     /* Header bảng dính khi cuộn để luôn thấy tên cột */
     .o_field_x2many[name="line_ids"] .o_list_table thead th,
     .o_field_widget[name="line_ids"] .o_list_table thead th {
@@ -1201,4 +1210,19 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
         background: #f4f8fd; border: 1px solid #cddff2; border-radius: 8px;
         max-height: 12rem; overflow-y: auto; font-size: 0.92rem;
     }
+}
+
+/* ============================================================
+   FIX (user spec 2026-09-22): popup LỖI/CẢNH BÁO bị kéo rộng như wizard.
+   Rule fullscreen của wizard lây sang mọi .modal-dialog trong container.
+   → Dialog KHÔNG phải wizard "Thêm KH" thì về kích thước nhỏ gọn bình thường.
+   ============================================================ */
+.o_dialog_fullscreen .modal-dialog:not(:has(.o_vd_quick_add_form)) {
+    width: auto !important;
+    max-width: 520px !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    margin: 1.75rem auto !important;
+    .modal-content { width: auto !important; height: auto !important;
+                     max-width: 100% !important; border-radius: 10px !important; }
 }

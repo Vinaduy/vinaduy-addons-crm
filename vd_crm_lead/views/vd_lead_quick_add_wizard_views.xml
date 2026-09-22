@@ -24,7 +24,8 @@
                     <list editable="bottom" string="Danh sách KH cần thêm"
                           decoration-danger="vd_warn_bad">
                         <field name="sequence" widget="handle"/>
-                        <field name="vd_selected" widget="boolean" string="☑ Chọn"/>
+                        <!-- Cột "Chọn" ĐÃ ẨN (user spec 2026-09-22): không cần thiết. -->
+                        <field name="vd_selected" column_invisible="1"/>
                         <field name="vd_stt" string="#" column_invisible="1"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
