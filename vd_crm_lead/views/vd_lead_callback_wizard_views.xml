@@ -13,9 +13,12 @@
                     Hẹn ngày gọi lại cho <b><field name="lead_name" readonly="1" nolabel="1"/></b>.
                 </div>
 
-                <group>
-                    <field name="callback_date" string="Ngày gọi lại"/>
-                </group>
+                <div class="o_vd_cb_pickwrap">
+                    <label for="callback_date" string="📅 Chọn ngày &amp; giờ gọi lại"
+                           class="o_vd_cb_picklbl"/>
+                    <field name="callback_date" nolabel="1" widget="datetime"
+                           class="o_vd_cb_datetime" options="{'show_time': true}"/>
+                </div>
                 <group>
                     <field name="note" nolabel="1"
                            placeholder="Ghi chú: VD KH bảo gọi sau khi bàn với vợ / chốt báo giá cuối..."

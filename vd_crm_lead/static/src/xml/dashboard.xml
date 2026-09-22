@@ -2973,7 +2973,10 @@
             <span class="o_vd_pfilter_lbl">📅 Lịch hẹn gọi</span>
             <select class="o_vd_dayfilter_select"
                     t-on-change="(ev) => this.setFilterFromSelect(scope, ev)">
-                <option value="0" t-att-selected="!filterVal(scope)">Tất cả</option>
+                <option value="0" t-att-selected="!filterVal(scope)">
+                    <t t-if="scope === 'new'">📞 Cần gọi hôm nay</t>
+                    <t t-else="">Tất cả</t>
+                </option>
                 <option t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
                         t-att-value="cb.k" t-att-selected="filterVal(scope) === cb.k">
                     <t t-esc="cb.l"/> (<t t-esc="filterCount(scope, cb.k) or 0"/>)

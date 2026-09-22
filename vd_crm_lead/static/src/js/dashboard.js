@@ -1765,10 +1765,19 @@ export class VdCrmDashboard extends Component {
 
     // _leadsNoProblemsRaw (để ĐẾM số khách mỗi khoảng, không phụ thuộc lọc).
     get leadsNoProblems() {
+        const n = this.state.newDayFilter || 0;
         return this._memo(
             "leadsNoProblems",
-            [this._leadsNoProblemsRaw, this.state.newDayFilter || 0],
-            () => this._dayBucketFilter(this._leadsNoProblemsRaw, this.state.newDayFilter || 0));
+            [this._leadsNoProblemsRaw, n],
+            () => {
+                // MẶC ĐỊNH (chưa chọn lọc) = DANH SÁCH GỌI HÔM NAY: ẩn KH đã gọi +
+                // hẹn ngày sau (user spec 2026-09-22). Chọn 1 mốc LỊCH HẸN GỌI (cb_*)
+                // thì hiện đúng KH của ngày đó (kể cả KH đã "gác lại").
+                if (!n) {
+                    return (this._leadsNoProblemsRaw || []).filter(l => !this._isParkedForLater(l));
+                }
+                return this._dayBucketFilter(this._leadsNoProblemsRaw, n);
+            });
     }
     get _leadsNoProblemsRaw() {
         return this._memo(
@@ -1943,6 +1952,17 @@ export class VdCrmDashboard extends Component {
         }
         this.__cbCache.set(l.id, { cd: l.callback_date, v });
         return v;
+    }
+    // KH "gác lại cho ngày sau": ĐÃ gọi ít nhất 1 cuộc VÀ có hẹn gọi lại ở TƯƠNG
+    // LAI (d > 0) → BIẾN MẤT khỏi danh sách gọi HÔM NAY, tự hiện lại đúng ngày hẹn
+    // ở dropdown LỊCH HẸN GỌI (user spec 2026-09-22). KH CHƯA gọi cuộc nào LUÔN
+    // hiện (dù lead mới auto hẹn +2 ngày); KH đến hạn/quá hạn (d <= 0) cũng hiện.
+    _isParkedForLater(l) {
+        if (!l) return false;
+        const d = this._cbDaysFromNow(l);
+        if (d === null || d <= 0) return false;
+        const called = (((l.call_stats || {}).total || 0) > 0) || !!l.last_call_date;
+        return called;
     }
     // Token ổn định theo THAM CHIẾU mảng (WeakMap) — mảng bị gán lại (reload data) →
     // token mới → memo đếm tính lại; bấm lọc (không đụng data) → giữ token → memo trúng.

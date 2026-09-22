@@ -1135,3 +1135,30 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
 /* Ô checkbox + nút xoá căn giữa cho gọn */
 .o_vd_quick_add_form .o_list_table td.o_list_record_selector,
 .o_vd_quick_add_form .o_list_table td.o_handle_cell { text-align: center !important; }
+
+/* ============================================================
+   WIZARD HẸN GỌI LẠI — lịch to + giờ, dễ bấm (user spec 2026-09-22).
+   Ô ngày giờ to rõ; popup lịch phóng lớn để "cuốn lịch" thoải mái.
+   ============================================================ */
+.o_vd_callback_wizard {
+    .o_vd_cb_pickwrap { margin: 0.4rem 0 0.9rem; }
+    .o_vd_cb_picklbl {
+        display: block; font-weight: 700; font-size: 1.05rem;
+        margin-bottom: 0.4rem; color: #1864ab;
+    }
+    .o_vd_cb_datetime input {
+        font-size: 1.25rem !important; font-weight: 600;
+        padding: 0.55rem 0.8rem !important; text-align: center;
+        border: 2px solid #1864ab !important; border-radius: 8px !important;
+        cursor: pointer; background: #f4f8fd;
+    }
+}
+/* Popup lịch của datetime picker — phóng to cho dễ bấm ngày */
+.o_datetime_picker {
+    font-size: 1.05rem;
+    .o_date_picker .o_date_item_cell,
+    .o_datetime_picker_content .o_date_item_cell {
+        min-width: 2.4rem; min-height: 2.4rem; line-height: 2.4rem;
+    }
+    .o_time_picker_input { font-size: 1.05rem; }
+}

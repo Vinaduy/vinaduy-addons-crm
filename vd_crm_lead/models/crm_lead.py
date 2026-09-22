@@ -4952,7 +4952,7 @@ class CrmLead(models.Model):
             'target': 'new',
             'context': {
                 'default_lead_id': self.id,
-                'dialog_size': 'medium',
+                'dialog_size': 'large',
             },
         }
 
