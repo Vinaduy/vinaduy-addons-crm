@@ -356,3 +356,18 @@
         color: #495057;
     }
 }
+
+/* KIOSK — khối KẾT QUẢ nhận diện: hiện TO tên + mã NV (user spec 2026-09-22) */
+.o_vd_face_result {
+    margin: 0.5rem 0; padding: 0.7rem 0.9rem; border-radius: 10px;
+    text-align: center;
+    &.o_vd_face_result_ok { background: #e6f4ea; border: 1px solid #a3d9b1; }
+    &.o_vd_face_result_bad { background: #fdecec; border: 1px solid #f0b4b4; }
+    .o_vd_face_result_name {
+        font-size: 1.35rem; font-weight: 800; color: #14532d; line-height: 1.2;
+    }
+    .o_vd_face_result_bad & .o_vd_face_result_name,
+    &.o_vd_face_result_bad .o_vd_face_result_name { color: #b02a2a; }
+    .o_vd_face_result_code { font-size: 1rem; font-weight: 700; color: #1864ab; margin-left: 0.3rem; }
+    .o_vd_face_result_line { font-size: 1rem; margin-top: 0.25rem; color: #333; }
+}

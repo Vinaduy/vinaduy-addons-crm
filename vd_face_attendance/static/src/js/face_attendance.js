@@ -56,8 +56,6 @@ export class VdFaceCheckin extends Component {
         this.state = useState({
             phase: "loading", // loading | ready | error
             msg: "Đang khởi tạo…",
-            enrolled: false,
-            userName: "",
             gpsOk: false,
             gpsErr: "",
             distance: null,
@@ -69,17 +67,17 @@ export class VdFaceCheckin extends Component {
             faceLive: "none", // none | bad | ok  (trạng thái quét trực tiếp)
             faceHint: "Đưa khuôn mặt vào khung",
             busy: false,
-            today: null, // {in_time, out_time, late_minutes, early_leave_minutes, worked_hours}
-            hasOpen: false, // đã vào, chưa ra
             recent: [],
             camOk: false,
+            facesCount: 0,
+            showEnroll: false, // mở form đăng ký khuôn mặt mới
+            // KIOSK: kết quả nhận diện gần nhất để hiện TO tên + mã.
+            result: null, // {ok, name, code, line, kind}
             // Đăng ký: nhập tên + giới tính; mã số tự cấp.
             enrollName: "",
             enrollGender: "male",
-            reg: null, // hồ sơ đã đăng ký {code, name, gender, photo}
         });
         this.cfg = null;
-        this._descriptor = null;
         this._faceapi = null;
         this._stream = null;
         this._geoWatch = null;
@@ -92,20 +90,12 @@ export class VdFaceCheckin extends Component {
     async _init() {
         try {
             this.cfg = await this.orm.call(
-                "vd.face.attendance", "vd_face_client_config", []);
-            this.state.enrolled = this.cfg.enrolled;
-            this.state.userName = this.cfg.user_name;
+                "vd.face.attendance", "vd_kiosk_config", []);
             this.state.radius = this.cfg.radius;
             this.state.workStart = this.cfg.work_start_label || "08:00";
             this.state.workEnd = this.cfg.work_end_label || "17:30";
-            this.state.today = this.cfg.today;
-            this.state.hasOpen = this.cfg.open;
             this.state.recent = this.cfg.recent || [];
-            this._descriptor = this.cfg.descriptor;
-            this.state.enrollName = (this.cfg.employee && this.cfg.employee.name) || this.cfg.user_name || "";
-            if (this.cfg.employee) {
-                this.state.reg = { ...this.cfg.employee, photo: null };
-            }
+            this.state.facesCount = this.cfg.faces_count || 0;
 
             await this._startCamera();
             this._startGps();
@@ -372,17 +362,17 @@ export class VdFaceCheckin extends Component {
             }
             const desc = Array.from(g.det.descriptor);
             const photo = this._snapshot();
-            const res = await this.orm.call("vd.face.attendance", "vd_enroll_face", [
+            const res = await this.orm.call("vd.face.attendance", "vd_kiosk_enroll", [
                 name, this.state.enrollGender, desc, photo,
             ]);
-            this._descriptor = desc;
-            this.state.enrolled = true;
-            this.state.reg = {
-                code: res.code, name: res.name, gender: res.gender, photo: res.photo || photo,
-            };
             this.state.faceMsg = "";
+            this.state.facesCount += 1;
+            this.state.showEnroll = false;
+            this.state.enrollName = "";
+            this.state.result = { ok: true, name: res.name, code: res.code,
+                line: "Đăng ký thành công" };
             this.notification.add(
-                "Đăng ký thành công — Mã số: " + res.code, { type: "success" });
+                `Đăng ký thành công: ${res.name} — Mã ${res.code}`, { type: "success" });
         } catch (e) {
             this.notification.add(this._errMsg(e), { type: "danger" });
         } finally {
@@ -394,24 +384,13 @@ export class VdFaceCheckin extends Component {
         if (this.state.busy || this.state.phase !== "ready") {
             return;
         }
-        if (!this.state.enrolled) {
-            this.notification.add("Bạn chưa đăng ký khuôn mặt.", { type: "warning" });
-            return;
-        }
         if (!this._lastPos || !this.state.gpsOk) {
             this.notification.add("Chưa lấy được vị trí GPS — hãy bật định vị rồi thử lại.", { type: "warning" });
             return;
         }
-        // THÔNG BÁO khi vị trí quá xa (chặn ngay ở client, server cũng chặn lại).
-        if (!this.state.withinRadius) {
-            this.notification.add(
-                `Không chấm công được: bạn đang cách văn phòng ${this.state.distance} m ` +
-                `(chỉ chấm trong bán kính ${this.cfg.radius} m).`,
-                { type: "danger", title: "Vị trí quá xa" });
-            return;
-        }
         this.state.busy = true;
         this.state.faceMsg = "Đang nhận diện…";
+        this.state.result = null;
         try {
             const g = await this._getGoodDet();
             if (!g.det) {
@@ -424,37 +403,36 @@ export class VdFaceCheckin extends Component {
                 return;
             }
             const desc = Array.from(g.det.descriptor);
-            const dist = euclid(desc, this._descriptor);
-            const score = Math.max(0, 1 - dist);
-            if (dist > this.cfg.threshold) {
-                this.state.faceMsg = "Khuôn mặt KHÔNG khớp với người đã đăng ký.";
-                this.notification.add("Khuôn mặt không khớp — không chấm công được.", { type: "danger" });
+            const photo = this._snapshot();
+            // KIOSK: gửi descriptor → SERVER nhận diện ai + chấm cho đúng người.
+            const res = await this.orm.call("vd.face.attendance", "vd_kiosk_check", [
+                desc, this._lastPos.latitude, this._lastPos.longitude, kind, 0, photo,
+            ]);
+            this.state.faceMsg = "";
+            const emp = res.employee || {};
+            if (!res.ok) {
+                // Sai / không nhận ra / quá xa → hiện tên (nếu nhận ra) + lý do.
+                this.state.result = {
+                    ok: false, name: emp.name || "", code: emp.code || "",
+                    line: res.error || "Không chấm công được.",
+                };
+                this.notification.add(res.error || "Không chấm công được.",
+                    { type: "danger", title: emp.name ? `${emp.name} (${emp.code})` : "Không nhận diện được" });
                 return;
             }
-            const photo = this._snapshot();
-            const method = kind === "in" ? "vd_check_in" : "vd_check_out";
-            const res = await this.orm.call("vd.face.attendance", method, [
-                this._lastPos.latitude, this._lastPos.longitude, score, photo,
-            ]);
-            const cfg = await this.orm.call(
-                "vd.face.attendance", "vd_face_client_config", []);
-            this.state.today = cfg.today;
-            this.state.hasOpen = cfg.open;
-            this.state.recent = cfg.recent || [];
-            this.state.faceMsg = "";
-            let msg;
-            if (kind === "in") {
-                msg = "✅ Chấm VÀO lúc " + (res.in_time || "");
-                if (res.late_minutes) {
-                    msg += ` (đi muộn ${res.late_minutes} phút)`;
-                }
-            } else {
-                msg = "✅ Chấm RA lúc " + (res.out_time || "");
-                if (res.early_leave_minutes) {
-                    msg += ` (về sớm ${res.early_leave_minutes} phút)`;
-                }
+            if (res.recent) {
+                this.state.recent = res.recent;
             }
-            this.notification.add(msg, { type: "success" });
+            let line;
+            if (kind === "in") {
+                line = "✅ Chấm VÀO lúc " + (res.in_time || "");
+                if (res.late_minutes) line += ` (đi muộn ${res.late_minutes} phút)`;
+            } else {
+                line = "✅ Chấm RA lúc " + (res.out_time || "");
+                if (res.early_leave_minutes) line += ` (về sớm ${res.early_leave_minutes} phút)`;
+            }
+            this.state.result = { ok: true, name: emp.name, code: emp.code, line, kind };
+            this.notification.add(`${emp.name} (${emp.code}) — ${line}`, { type: "success" });
         } catch (e) {
             const msg = this._errMsg(e);
             this.notification.add(msg, { type: "danger" });
@@ -462,6 +440,10 @@ export class VdFaceCheckin extends Component {
         } finally {
             this.state.busy = false;
         }
+    }
+
+    toggleEnroll() {
+        this.state.showEnroll = !this.state.showEnroll;
     }
 
     checkIn() {

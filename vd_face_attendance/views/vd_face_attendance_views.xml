@@ -12,7 +12,8 @@
         <field name="model">vd.face.attendance</field>
         <field name="arch" type="xml">
             <list string="Chấm công khuôn mặt" create="0">
-                <field name="user_id"/>
+                <field name="employee_id"/>
+                <field name="user_id" optional="hide"/>
                 <field name="check_in"/>
                 <field name="check_out"/>
                 <field name="worked_hours" widget="float_time" sum="Tổng giờ"/>
@@ -33,6 +34,7 @@
                 <sheet>
                     <group>
                         <group string="Thông tin">
+                            <field name="employee_id"/>
                             <field name="user_id"/>
                             <field name="check_in"/>
                             <field name="check_out"/>
@@ -63,12 +65,14 @@
         <field name="model">vd.face.attendance</field>
         <field name="arch" type="xml">
             <search>
+                <field name="employee_id"/>
                 <field name="user_id"/>
                 <filter name="today" string="Hôm nay"
                         domain="[('check_in','>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
                 <filter name="open" string="Chưa chấm ra" domain="[('check_out','=',False)]"/>
                 <group expand="0" string="Nhóm theo">
-                    <filter name="g_user" string="Nhân viên" context="{'group_by':'user_id'}"/>
+                    <filter name="g_emp" string="Nhân viên" context="{'group_by':'employee_id'}"/>
+                    <filter name="g_user" string="Tài khoản" context="{'group_by':'user_id'}"/>
                     <filter name="g_day" string="Ngày" context="{'group_by':'check_in:day'}"/>
                 </group>
             </search>

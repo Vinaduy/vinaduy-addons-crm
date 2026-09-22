@@ -26,9 +26,14 @@ class VdFaceAttendance(models.Model):
     _order = 'check_in desc, id desc'
     _rec_name = 'user_id'
 
+    # user_id KHÔNG bắt buộc nữa (user spec 2026-09-22): chế độ KIOSK ghi chấm
+    # công theo employee_id (khuôn mặt), không cần tài khoản riêng từng người.
     user_id = fields.Many2one(
-        'res.users', string='Nhân viên', required=True, index=True,
-        default=lambda s: s.env.user, ondelete='cascade')
+        'res.users', string='Tài khoản', required=False, index=True,
+        ondelete='cascade')
+    employee_id = fields.Many2one(
+        'vd.face.employee', string='Nhân viên', index=True, ondelete='cascade',
+        help='Hồ sơ khuôn mặt được nhận diện (chế độ Kiosk).')
     check_in = fields.Datetime(string='Giờ vào', index=True)
     check_out = fields.Datetime(string='Giờ ra')
     worked_hours = fields.Float(
@@ -291,6 +296,160 @@ class VdFaceAttendance(models.Model):
                 'out_time': self._vd_local_hm(rec.check_out),
                 'early_leave_minutes': rec.early_leave_minutes,
                 'worked_hours': round(rec.worked_hours, 2)}
+
+    # ================= CHẾ ĐỘ KIOSK (1 iPad chấm cho TẤT CẢ) =================
+    @staticmethod
+    def _vd_euclid(a, b):
+        if not a or not b or len(a) != len(b):
+            return 1e9
+        s = 0.0
+        for i in range(len(a)):
+            d = a[i] - b[i]
+            s += d * d
+        return s ** 0.5
+
+    def _vd_match_threshold(self):
+        return self._vd_cfg().get('threshold', 0.5)
+
+    def _vd_all_faces(self):
+        """TẤT CẢ hồ sơ khuôn mặt đã đăng ký (có descriptor) — để nhận diện."""
+        emps = self.env['vd.face.employee'].sudo().search([('descriptor', '!=', False)])
+        gsel = dict(self.env['vd.face.employee']._fields['gender'].selection)
+        out = []
+        for e in emps:
+            try:
+                vec = json.loads(e.descriptor)
+            except Exception:
+                continue
+            if isinstance(vec, (list, tuple)) and len(vec) >= 64:
+                out.append({'id': e.id, 'code': e.code, 'name': e.name,
+                            'gender': gsel.get(e.gender, ''), 'descriptor': vec})
+        return out
+
+    def _vd_identify(self, descriptor):
+        """So descriptor với TẤT CẢ khuôn mặt → trả (emp, distance) khớp nhất."""
+        Emp = self.env['vd.face.employee'].sudo()
+        best, bestd = None, 1e9
+        for e in Emp.search([('descriptor', '!=', False)]):
+            try:
+                vec = json.loads(e.descriptor)
+            except Exception:
+                continue
+            d = self._vd_euclid(descriptor, vec)
+            if d < bestd:
+                bestd, best = d, e
+        return best, bestd
+
+    def _vd_find_open_today_emp(self, emp):
+        return self.search([
+            ('employee_id', '=', emp.id),
+            ('check_in', '>=', self._vd_today_start_utc()),
+            ('check_out', '=', False),
+        ], limit=1)
+
+    @api.model
+    def vd_kiosk_config(self):
+        """Nạp cấu hình + TẤT CẢ khuôn mặt đã đăng ký cho màn hình KIOSK."""
+        cfg = self._vd_cfg()
+        P = self.env['ir.config_parameter'].sudo()
+        cfg.update({
+            'work_start_label': '%02d:%02d' % self._vd_parse_hm(
+                P.get_param('vd_face_attendance.work_start'), 8, 0),
+            'work_end_label': '%02d:%02d' % self._vd_parse_hm(
+                P.get_param('vd_face_attendance.work_end'), 17, 30),
+            'faces_count': self.env['vd.face.employee'].sudo().search_count(
+                [('descriptor', '!=', False)]),
+            'recent': self._vd_kiosk_recent(),
+        })
+        return cfg
+
+    def _vd_kiosk_recent(self, limit=12):
+        recs = self.search([('employee_id', '!=', False)], limit=limit)
+        out = []
+        for r in recs:
+            out.append({
+                'name': r.employee_id.name, 'code': r.employee_id.code,
+                'date': self._vd_local_dm(r.check_in),
+                'in_time': self._vd_local_hm(r.check_in),
+                'out_time': self._vd_local_hm(r.check_out),
+                'late_minutes': r.late_minutes,
+                'early_leave_minutes': r.early_leave_minutes,
+            })
+        return out
+
+    @api.model
+    def vd_kiosk_enroll(self, name, gender, descriptor, photo=None):
+        """Đăng ký khuôn mặt MỚI trên kiosk (KHÔNG cần tài khoản). Tự cấp mã.
+        Chặn trùng: nếu khuôn mặt đã đăng ký cho người khác → báo lỗi."""
+        if not name or not str(name).strip():
+            raise UserError(_('Hãy nhập TÊN nhân viên trước khi đăng ký.'))
+        if gender not in ('male', 'female', 'other'):
+            raise UserError(_('Hãy chọn GIỚI TÍNH.'))
+        if not isinstance(descriptor, (list, tuple)) or len(descriptor) < 64:
+            raise UserError(_('Dữ liệu khuôn mặt không hợp lệ. Hãy thử chụp lại.'))
+        desc = [float(x) for x in descriptor]
+        emp_match, dist = self._vd_identify(desc)
+        if emp_match and dist < self._vd_match_threshold():
+            raise UserError(_(
+                'Khuôn mặt này ĐÃ đăng ký cho: %s (mã %s). Không đăng ký trùng.'
+            ) % (emp_match.name, emp_match.code))
+        emp = self.env['vd.face.employee'].sudo().create({
+            'name': str(name).strip(),
+            'gender': gender,
+            'descriptor': json.dumps(desc),
+            'photo': self._vd_photo_bytes(photo),
+            'enrolled_date': fields.Datetime.now(),
+        })
+        return {'ok': True, 'code': emp.code, 'name': emp.name}
+
+    @api.model
+    def vd_kiosk_check(self, descriptor, lat, lng, kind, face_score=0.0, photo=None):
+        """KIOSK: nhận diện descriptor → chấm VÀO/RA cho ĐÚNG người. Trả tên+mã.
+        Sai/không nhận ra → trả {ok:False, error}."""
+        if not isinstance(descriptor, (list, tuple)) or len(descriptor) < 64:
+            return {'ok': False, 'error': _('Chưa thấy rõ khuôn mặt — nhìn thẳng vào camera.')}
+        emp, dist = self._vd_identify([float(x) for x in descriptor])
+        if not emp or dist > self._vd_match_threshold():
+            return {'ok': False, 'error': _(
+                '❌ KHÔNG nhận diện được khuôn mặt — chưa đăng ký hoặc chưa rõ mặt.')}
+        score = max(0.0, 1.0 - float(dist))
+        emp_info = {'code': emp.code, 'name': emp.name}
+        try:
+            gdist, glat, glng = self._vd_check_geo(lat, lng)
+        except UserError as e:
+            return {'ok': False, 'employee': emp_info,
+                    'error': e.args[0] if e.args else _('Vị trí quá xa.')}
+        now = fields.Datetime.now()
+        if kind == 'in':
+            if self._vd_find_open_today_emp(emp):
+                return {'ok': False, 'employee': emp_info,
+                        'error': _('%s đã chấm VÀO hôm nay rồi — hãy chấm RA.') % emp.name}
+            rec = self.create({
+                'employee_id': emp.id,
+                'user_id': emp.user_id.id if emp.user_id else False,
+                'check_in': now,
+                'in_latitude': glat, 'in_longitude': glng, 'in_distance': gdist,
+                'in_face_score': score, 'in_photo': self._vd_photo_bytes(photo),
+            })
+            return {'ok': True, 'kind': 'in', 'employee': emp_info,
+                    'in_time': self._vd_local_hm(rec.check_in),
+                    'late_minutes': rec.late_minutes, 'distance': round(gdist),
+                    'recent': self._vd_kiosk_recent()}
+        else:
+            rec = self._vd_find_open_today_emp(emp)
+            if not rec:
+                return {'ok': False, 'employee': emp_info,
+                        'error': _('%s chưa chấm VÀO hôm nay để chấm RA.') % emp.name}
+            rec.write({
+                'check_out': now,
+                'out_latitude': glat, 'out_longitude': glng, 'out_distance': gdist,
+                'out_face_score': score, 'out_photo': self._vd_photo_bytes(photo),
+            })
+            return {'ok': True, 'kind': 'out', 'employee': emp_info,
+                    'out_time': self._vd_local_hm(rec.check_out),
+                    'early_leave_minutes': rec.early_leave_minutes,
+                    'worked_hours': round(rec.worked_hours, 2), 'distance': round(gdist),
+                    'recent': self._vd_kiosk_recent()}
 
     @api.model
     def vd_my_recent(self, limit=10):
