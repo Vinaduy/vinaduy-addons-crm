@@ -6558,6 +6558,9 @@ class CrmLead(models.Model):
         def _is_sales_nv(u):
             if u._is_admin() or (_sysg and u.has_group('base.group_system')):
                 return False
+            # Loại tài khoản CHẤM CÔNG / KIOSK (không phải NV bán hàng).
+            if getattr(u, 'vd_crm_role', False) == 'attendance':
+                return False
             if _salesman and u.has_group('sales_team.group_sale_salesman'):
                 return True
             return getattr(u, 'vd_crm_role', False) in ('team_leader', 'director')
