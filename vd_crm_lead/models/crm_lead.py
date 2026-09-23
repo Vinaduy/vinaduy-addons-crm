@@ -4705,7 +4705,7 @@ class CrmLead(models.Model):
             missing.append('11. Sổ đỏ / cấp phép')
         if missing:
             raise UserError(_(
-                '❗ Chưa đủ thông tin để CHỐT. Vui lòng điền:\n• %s'
+                '❗ Chưa đủ thông tin để có báo giá. Vui lòng điền:\n• %s'
             ) % '\n• '.join(missing))
 
         filled = sum(1 for f in self._intake_data_fields if self[f])
@@ -4713,11 +4713,12 @@ class CrmLead(models.Model):
         pct = round(filled * 100 / total) if total else 0
         kh = self.partner_name or self.contact_name or self.name or 'khách hàng'
 
-        # KHÔNG KHOÁ nữa (user spec 2026-09-23): thông tin KH LUÔN sửa được →
-        # đổi diện tích/thông tin là báo giá tự cập nhật NGAY, không cần chốt/huỷ.
-        # Nút này giờ chỉ XÁC NHẬN + chuyển sang giai đoạn "Khách báo giá".
+        # vd_intake_locked=True GIỮ LÀM MARKER "đã báo giá" (báo cáo/bucket/đếm số
+        # dùng khắp nơi). NHƯNG KHÔNG chặn sửa nữa (user spec 2026-09-23): đã bỏ
+        # overlay chặn click → thông tin KH VẪN sửa được, đổi diện tích là báo giá
+        # tự cập nhật NGAY. Nút này = XÁC NHẬN + chuyển sang giai đoạn Báo giá.
         write_vals = {
-            'vd_intake_open': False,
+            'vd_intake_open': False, 'vd_intake_locked': True,
             'vd_intake_last_edit': False,  # clear → cron không nhầm
         }
         if not self.vd_quote_created_date:

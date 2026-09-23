@@ -208,12 +208,10 @@
                                  Overlay absolute z-100 phủ TOÀN BỘ panel, block mọi click.
                                  Các button cần dùng được khi lock (Mở khoá, Cúp máy, Copy,
                                  Lịch sử) z-index: 101 nổi lên trên overlay. -->
-                            <div class="o_vd_steps_lock_overlay"
-                                 invisible="not vd_intake_locked"
-                                 title="🔒 Thông tin đã chốt — bấm 'Mở khoá' để chỉnh sửa"/>
-                            <!-- Marker giữ lại để JS legacy code không broken -->
+                            <!-- BỎ KHOÁ (user spec 2026-09-23): thông tin KH luôn sửa được,
+                                 KHÔNG còn overlay chặn click. Marker rỗng giữ cho JS legacy. -->
                             <span class="o_vd_steps_lock_marker"
-                                  invisible="not vd_intake_locked"
+                                  invisible="1"
                                   style="position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;"/>
 
                             <div class="o_vd_hero_head o_vd_hero_head_with_actions">
@@ -817,7 +815,7 @@
                                 ➡️ Sau đó bạn được tự chọn: <b>GỌI TIẾP</b>, hoặc <b>NHẮN ZALO</b> (kết bạn khi khách trả lời) để tư vấn luôn.
                             </div>
                             <div class="o_vd_zguide_rule o_vd_zguide_goal">
-                                🎯 <b>MỤC TIÊU:</b> lấy ĐỦ thông tin để <b>🔒 CHỐT THÔNG TIN + có BÁO GIÁ</b>
+                                🎯 <b>MỤC TIÊU:</b> lấy ĐỦ thông tin để <b>CÓ BÁO GIÁ</b>
                                 — bằng gọi điện hay Zalo <b>đều được</b>, miễn sao đủ thông tin.
                             </div>
                         </div>
