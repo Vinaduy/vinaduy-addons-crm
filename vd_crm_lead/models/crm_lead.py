@@ -5950,48 +5950,22 @@ class CrmLead(models.Model):
         }
 
     def action_preview_quote_now(self):
-        """👁️ XEM TRƯỚC: mở POPUP TO ĐÙNG (fullscreen modal) hiển thị PDF
-        inline qua widget pdf_viewer của Odoo. Scroll xem từng trang ngay
-        trong dialog, không cần mở tab mới."""
+        """👁️ XEM TRƯỚC: mở PDF báo giá THẲNG trong TAB TRÌNH DUYỆT (viewer gốc).
+        Chắc ăn hơn widget pdf_viewer (PDF.js) vốn hay lỗi/trắng với PDF lớn
+        (file mẫu ~4MB). LUÔN dựng live từ dữ liệu hiện tại (user spec 2026-09-21)."""
         self.ensure_one()
-        import base64
-
-        # Tìm/generate PDF — LUÔN dựng lại từ DỮ LIỆU HIỆN TẠI (user spec
-        # 2026-09-21: đổi tên/thông tin KH thì báo giá phải đổi theo, KHÔNG dùng
-        # PDF chốt cũ đóng băng). Trang báo giá render live, các trang template
-        # (logo/mộc/terms) giữ nguyên.
-        # GIỮ NGUYÊN TẤT CẢ các trang của file mẫu — CHỈ thay trang báo giá
-        # bằng bản QWeb live (user spec 2026-09-21). Fallback QWeb 1 trang nếu
-        # không ghép được.
-        pdf_bytes = None
-        pdf_name = 'preview_baogia.pdf'
+        # Dựng lại từ DỮ LIỆU HIỆN TẠI: ghép trang báo giá live vào file mẫu;
+        # không ghép được thì fallback QWeb 1 trang.
         att = self._render_uploaded_template()
-        if att:
-            pdf_bytes = base64.b64decode(att.datas)
-            pdf_name = att.name or pdf_name
-        if not pdf_bytes:
+        if not att:
             att = self._generate_single_page_quote_pdf()
-            pdf_bytes = base64.b64decode(att.datas)
-            pdf_name = att.name or pdf_name
-
-        if not pdf_bytes:
+        if not att:
             raise UserError(_('Không tạo được file PDF preview.'))
-
-        # Tạo wizard chứa file PDF + mở dialog FULLSCREEN
-        wizard = self.env['vd.quote.preview.wizard'].create({
-            'lead_id': self.id,
-            'pdf_data': base64.b64encode(pdf_bytes),
-            'pdf_name': pdf_name,
-        })
-        kh = self.partner_name or self.contact_name or self.name or ''
+        # Mở inline trong tab mới (download=false → trình duyệt tự render PDF).
         return {
-            'type': 'ir.actions.act_window',
-            'name': f'📄 Xem trước báo giá — {kh}',
-            'res_model': 'vd.quote.preview.wizard',
-            'res_id': wizard.id,
-            'view_mode': 'form',
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{att.id}?download=false',
             'target': 'new',
-            'context': {'dialog_size': 'fullscreen'},
         }
 
     def action_lock_quote_to_negotiate(self):
