@@ -6548,10 +6548,21 @@ class CrmLead(models.Model):
             g['user_id'][0]: (g.get('user_id_count') or g.get('__count') or 0)
             for g in groups if g['user_id']
         }
-        # Manager: chỉ NV có lead. Trưởng nhóm / GĐ-CÁ NHÂN / LỌC SỐ: LIỆT KÊ ĐỦ
-        # NV (kể cả 0 KH) — Lọc số cần thấy cả NV mới để giao số đầu tiên.
-        listing = users if (scope_team or is_loc_so) else users.filtered(
-            lambda u: u.id in user_ids_with_lead)
+        # LUÔN liệt kê ĐỦ NV bán hàng (kể cả NV đang 0 KH) để chia số/chuyển KH
+        # không bị THIẾU nhân viên (user spec 2026-09-23). Trước đây Manager chỉ
+        # thấy NV đã có lead → NV mới / NV vừa bị chuyển hết số bị ẩn → không giao
+        # số được. Chỉ loại admin kỹ thuật, không loại theo số KH.
+        _sysg = self.env.ref('base.group_system', raise_if_not_found=False)
+        _salesman = self.env.ref('sales_team.group_sale_salesman', raise_if_not_found=False)
+
+        def _is_sales_nv(u):
+            if u._is_admin() or (_sysg and u.has_group('base.group_system')):
+                return False
+            if _salesman and u.has_group('sales_team.group_sale_salesman'):
+                return True
+            return getattr(u, 'vd_crm_role', False) in ('team_leader', 'director')
+
+        listing = users.filtered(_is_sales_nv)
         # Toàn bộ bucket KHÁCH MỚI của mọi NV — 1 query.
         all_new = Lead.search(
             self._dashboard_new_bucket_domain([('user_id', '!=', False)]))
