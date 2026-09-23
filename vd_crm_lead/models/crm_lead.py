@@ -4713,9 +4713,11 @@ class CrmLead(models.Model):
         pct = round(filled * 100 / total) if total else 0
         kh = self.partner_name or self.contact_name or self.name or 'khách hàng'
 
-        # Đóng phiếu khai thác + khoá để NV không sửa được nữa
+        # KHÔNG KHOÁ nữa (user spec 2026-09-23): thông tin KH LUÔN sửa được →
+        # đổi diện tích/thông tin là báo giá tự cập nhật NGAY, không cần chốt/huỷ.
+        # Nút này giờ chỉ XÁC NHẬN + chuyển sang giai đoạn "Khách báo giá".
         write_vals = {
-            'vd_intake_open': False, 'vd_intake_locked': True,
+            'vd_intake_open': False,
             'vd_intake_last_edit': False,  # clear → cron không nhầm
         }
         if not self.vd_quote_created_date:
