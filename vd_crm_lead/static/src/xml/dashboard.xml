@@ -3647,12 +3647,11 @@
                                                         </span>
                                                         <!-- Hover TỔNG KH → bảng NHẮC NHỞ (ghim sát góc phải) -->
                                                         <span class="o_vd_kh_nv_total"
-                                                              t-att-title="'Tổng KH quản lý: ' + (nv.total_leads or 0) + ' — ' + (nv.cnt_callable or 0) + ' còn gọi được, ' + (nv.cnt_hard or 0) + ' đã gọi ≥3 lần không nghe, ' + (nv.cnt_reference or 0) + ' tham khảo'"
+                                                              t-att-title="'Tổng số KH NV quản lý: ' + (nv.total_leads or 0)"
                                                               t-on-mouseenter="(ev) => this.onReminderEnter(ev, nv)"
                                                               t-on-mouseleave="() => this.onReminderLeave()">
-                                                            <span class="o_vd_kh_nv_bd o_bd_callable" title="Còn gọi được (đã gọi dưới 3 cuộc)">📞 <t t-esc="nv.cnt_callable or 0"/></span>
-                                                            <span class="o_vd_kh_nv_bd o_bd_hard" title="Đã gọi ≥3 lần không ai nghe (khó gọi)">📵 <t t-esc="nv.cnt_hard or 0"/></span>
-                                                            <span class="o_vd_kh_nv_bd o_bd_ref" title="Đã chuyển Tham khảo">📘 <t t-esc="nv.cnt_reference or 0"/></span>
+                                                            <span class="o_vd_kh_nv_total_num"><t t-esc="nv.total_leads or 0"/></span>
+                                                            <span class="o_vd_kh_nv_total_unit">Khách</span>
                                                         </span>
                                                     </div>
                                                     <!-- Popover NHẮC NHỞ render 1 lần ở gốc (.o_vd_crm_dashboard) -->
