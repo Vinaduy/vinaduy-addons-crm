@@ -6678,6 +6678,9 @@ class CrmLead(models.Model):
         key = (offset_key or '').strip()
         if key == 'none':
             leads.write({'callback_date': False})
+            for l in leads:
+                l.message_post(subtype_xmlid='mail.mt_note',
+                               body=_('🗑️ Đã hủy lịch hẹn gọi lại (sau cuộc gọi).'))
             return {'ok': True, 'when': '', 'count': len(leads), 'cleared': True}
         tz = pytz.timezone('Asia/Ho_Chi_Minh')
         now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(tz)
@@ -6708,6 +6711,12 @@ class CrmLead(models.Model):
             return {'ok': False, 'reason': 'key'}
         target_utc = target.astimezone(pytz.utc).replace(tzinfo=None)
         leads.write({'callback_date': fields.Datetime.to_string(target_utc)})
+        # ĐỒNG BỘ với wizard "Hẹn gọi lại" (user spec 2026-09-23): ghi LOG lịch sử
+        # để 2 chỗ nhất quán (wizard cũng message_post khi đặt lịch).
+        when_local = target.strftime('%H:%M %d/%m/%Y')
+        for l in leads:
+            l.message_post(subtype_xmlid='mail.mt_note',
+                           body=_('📅 Đã hẹn gọi lại: %s (sau cuộc gọi).') % when_local)
         return {'ok': True, 'when': target.strftime('%H:%M %d/%m'), 'count': len(leads)}
 
     @api.model

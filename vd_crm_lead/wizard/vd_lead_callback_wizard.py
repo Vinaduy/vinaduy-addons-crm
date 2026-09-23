@@ -43,7 +43,15 @@ class VdLeadCallbackWizard(models.TransientModel):
     def default_get(self, fields_list):
         vals = super().default_get(fields_list)
         if 'callback_date' in fields_list and not vals.get('callback_date'):
-            vals['callback_date'] = _tomorrow_9am(self.env)
+            # ĐỒNG BỘ (user spec 2026-09-23): mở wizard hiện ĐÚNG lịch hẹn HIỆN
+            # TẠI của KH (vd popup sau cuộc gọi vừa đặt) — không mặc định "ngày
+            # mai 9h" nữa để 2 chỗ khớp nhau. Chưa có lịch mới rơi về ngày mai 9h.
+            lead_id = vals.get('lead_id') or self.env.context.get('default_lead_id')
+            lead = self.env['crm.lead'].browse(lead_id) if lead_id else None
+            if lead and lead.exists() and lead.callback_date:
+                vals['callback_date'] = lead.callback_date
+            else:
+                vals['callback_date'] = _tomorrow_9am(self.env)
         # Nạp sẵn ghi chú cũ để NV sửa tiếp (không mất khi mở lại).
         if 'note' in fields_list and not vals.get('note'):
             lead_id = vals.get('lead_id') or self.env.context.get('default_lead_id')
