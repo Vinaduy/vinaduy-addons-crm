@@ -208,10 +208,17 @@
                                  Overlay absolute z-100 phủ TOÀN BỘ panel, block mọi click.
                                  Các button cần dùng được khi lock (Mở khoá, Cúp máy, Copy,
                                  Lịch sử) z-index: 101 nổi lên trên overlay. -->
-                            <!-- BỎ KHOÁ (user spec 2026-09-23): thông tin KH luôn sửa được,
-                                 KHÔNG còn overlay chặn click. Marker rỗng giữ cho JS legacy. -->
+                            <!-- BỎ overlay chặn sửa (user spec 2026-09-23): thông tin KH
+                                 LUÔN sửa được ngay cả khi đã báo giá → đổi diện tích/thông
+                                 tin là báo giá tự cập nhật. GIỮ NGUYÊN mọi thứ khác (nút,
+                                 marker đã-báo-giá, chuyển giai đoạn). invisible=1 = không bao
+                                 giờ chặn. -->
+                            <div class="o_vd_steps_lock_overlay"
+                                 invisible="1"
+                                 title="🔒 Thông tin đã chốt — bấm 'Mở khoá' để chỉnh sửa"/>
+                            <!-- Marker giữ lại để JS legacy code không broken -->
                             <span class="o_vd_steps_lock_marker"
-                                  invisible="1"
+                                  invisible="not vd_intake_locked"
                                   style="position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;"/>
 
                             <div class="o_vd_hero_head o_vd_hero_head_with_actions">
@@ -713,15 +720,22 @@
                                                 class="o_vd_act_btn o_vd_act_ref_active"
                                                 invisible="vd_no_quote_state != 'pending'"
                                                 title="KH đang ở trạng thái THAM KHẢO. Click để cập nhật lý do / ngày gọi lại."/>
-                                        <!-- XÁC NHẬN BÁO GIÁ (user spec 2026-09-23): KHÔNG khoá nữa —
-                                             chỉ chuyển sang giai đoạn Báo giá. Thông tin KH vẫn sửa
-                                             được, đổi diện tích/thông tin là báo giá tự cập nhật NGAY.
-                                             Đã bỏ nút Huỷ báo giá / Làm báo giá (không cần dance nữa). -->
-                                        <button string="✅ XÁC NHẬN BÁO GIÁ"
+                                        <button string="🔒 CHỐT BÁO GIÁ"
                                                 name="action_save_intake_done" type="object"
                                                 class="o_vd_act_btn o_vd_act_lock"
-                                                invisible="not vd_intake_complete or stage_code in ['quote','negotiate','won','lost']"
-                                                title="Xác nhận + chuyển sang giai đoạn BÁO GIÁ. Sau đó vẫn sửa thông tin bình thường, báo giá tự cập nhật theo."/>
+                                                invisible="vd_intake_locked or not vd_intake_complete or vd_quote_cancelled"
+                                                title="Khoá thông tin tư vấn + chuyển sang BÁO GIÁ. Phải điền đủ 11 trường bắt buộc."/>
+                                        <!-- HUỶ BÁO GIÁ ↔ LÀM BÁO GIÁ: chỉ khi đã có báo giá (chưa CHỐT) -->
+                                        <button string="🗑️ HUỶ BÁO GIÁ"
+                                                name="action_cancel_quote" type="object"
+                                                class="o_vd_act_btn o_vd_act_cancelq"
+                                                invisible="not vd_intake_complete or vd_intake_locked or vd_quote_cancelled"
+                                                title="Tạm huỷ báo giá để sửa lại THÔNG TIN TƯ VẤN. KH coi như chưa làm báo giá; data giữ nguyên."/>
+                                        <button string="📝 LÀM BÁO GIÁ"
+                                                name="action_redo_quote" type="object"
+                                                class="o_vd_act_btn o_vd_act_redo"
+                                                invisible="not vd_quote_cancelled"
+                                                title="Khôi phục / làm lại báo giá sau khi đã sửa thông tin tư vấn."/>
                                         <!-- ===== 3 NÚT SAU BÁO GIÁ (user spec 2026-09-14):
                                              Báo giá xong mất tích / Đã hẹn gặp / Đã chốt (ký HĐ).
                                              User spec 2026-09-17: ĐÃ CHUYỂN 3 nút này XUỐNG dưới
@@ -736,8 +750,13 @@
                                         <button string="📅 Hẹn ngày gọi lại"
                                                 name="action_open_callback_wizard" type="object"
                                                 class="o_vd_act_btn o_vd_act_callback"
-                                                invisible="not vd_intake_complete and not vd_callback_badge"
+                                                invisible="not vd_intake_locked and not vd_callback_badge"
                                                 title="Hẹn / dời ngày gọi lại khách (NV được dời tối đa 3 lần)"/>
+                                        <button string="🔓 Mở khoá"
+                                                name="action_unlock_intake" type="object"
+                                                class="o_vd_act_btn o_vd_act_unlock"
+                                                invisible="not vd_intake_locked"
+                                                groups="vd_crm_lead.vd_crm_group_admin"/>
                                     </div>
                                 </div>
                             </div>
@@ -815,7 +834,7 @@
                                 ➡️ Sau đó bạn được tự chọn: <b>GỌI TIẾP</b>, hoặc <b>NHẮN ZALO</b> (kết bạn khi khách trả lời) để tư vấn luôn.
                             </div>
                             <div class="o_vd_zguide_rule o_vd_zguide_goal">
-                                🎯 <b>MỤC TIÊU:</b> lấy ĐỦ thông tin để <b>CÓ BÁO GIÁ</b>
+                                🎯 <b>MỤC TIÊU:</b> lấy ĐỦ thông tin để <b>🔒 CHỐT THÔNG TIN + có BÁO GIÁ</b>
                                 — bằng gọi điện hay Zalo <b>đều được</b>, miễn sao đủ thông tin.
                             </div>
                         </div>
