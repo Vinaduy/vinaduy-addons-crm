@@ -3245,10 +3245,16 @@ export class VdCrmDashboard extends Component {
         for (const r of rows) { if (!r.can_receive) s.add(r.uid); }
         return s;
     }
-    // NV được phép hiện trong các ô chọn chia (đã bỏ NV đang TẮT nhận số).
+    // NV cho CHIA ĐỀU TỰ ĐỘNG (đã bỏ NV đang TẮT nhận số — tôn trọng công tắc).
     get distributeEligibleUsers() {
         const off = this._distributeOffIds();
         return (this.state.users || []).filter((u) => u.id && !off.has(u.id));
+    }
+    // NV cho CHỌN TAY (chọn 1 NV / tự chọn từng KH): hiện ĐỦ TẤT CẢ NV, KỂ CẢ
+    // NV đang tắt nhận số — vì chuyển tay là chỉ định trực tiếp (user spec
+    // 2026-09-23: danh sách chọn tay không được thiếu NV nào).
+    get distributeAllUsers() {
+        return (this.state.users || []).filter((u) => u.id);
     }
     // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
     get distributeTeams() {
