@@ -26,6 +26,17 @@
 
             <!-- Dropdown panel: tất cả options khớp floor, click để toggle -->
             <div class="o_vd_tlc_dropdown" t-if="state.open">
+                <!-- Ô GÕ công năng mới (user spec 2026-09-24): gõ tên + Enter/Thêm
+                     → tạo tag mới + tự chọn luôn. -->
+                <div class="o_vd_tlc_addrow" t-on-click.stop="() => {}">
+                    <input type="text" class="o_vd_tlc_addinput"
+                           placeholder="Gõ công năng mới rồi Enter…"
+                           t-model="state.newName"
+                           t-on-keydown="onAddKeydown"
+                           t-on-click.stop="() => {}"/>
+                    <button type="button" class="o_vd_tlc_addbtn"
+                            t-on-click.prevent.stop="onCreateTag">+ Thêm</button>
+                </div>
                 <t t-foreach="state.allTags" t-as="tag" t-key="tag.id">
                     <button type="button"
                             class="o_vd_tl_chip"

@@ -1226,3 +1226,18 @@ html.vd-intake-pinned .o_vd_intake_popup_overlay .o_vd_popup_title::after {
     .modal-content { width: auto !important; height: auto !important;
                      max-width: 100% !important; border-radius: 10px !important; }
 }
+
+/* Ô GÕ CÔNG NĂNG MỚI trong dropdown chips (user spec 2026-09-24) */
+.o_vd_tlc_addrow {
+    display: flex; gap: 0.3rem; align-items: center;
+    padding: 0.35rem 0.4rem; border-bottom: 1px solid #e4eef9; margin-bottom: 0.3rem;
+    .o_vd_tlc_addinput {
+        flex: 1; min-width: 0; font-size: 0.85rem;
+        padding: 0.28rem 0.5rem; border: 1px solid #cddff2; border-radius: 6px;
+    }
+    .o_vd_tlc_addbtn {
+        white-space: nowrap; font-size: 0.8rem; font-weight: 700;
+        padding: 0.28rem 0.55rem; border: none; border-radius: 6px;
+        background: #1864ab; color: #fff; cursor: pointer;
+    }
+}

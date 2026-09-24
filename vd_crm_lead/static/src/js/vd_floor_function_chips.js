@@ -26,7 +26,7 @@ export class VdFloorFunctionChips extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ open: false, allTags: [] });
+        this.state = useState({ open: false, allTags: [], newName: "" });
         this.rootRef = useRef("root");
 
         const m = this.props.name.match(/floor_(\d+|tum|lung)_function/);
@@ -108,6 +108,39 @@ export class VdFloorFunctionChips extends Component {
     async _persistNow() {
         // Lưu-ngầm CÓ BẢO VỆ (KHÔNG reload khi đang nhập) — thay save() tức thì.
         try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "floor-func"); } catch (_) {}
+    }
+
+    onAddKeydown(ev) {
+        if (ev.key === "Enter") {
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.onCreateTag(ev);
+        }
+    }
+
+    // GÕ CÔNG NĂNG MỚI: tạo vd.floor.function.tag rồi tự chọn (user spec 2026-09-24).
+    async onCreateTag(ev) {
+        if (ev) ev.stopPropagation();
+        const name = (this.state.newName || "").trim();
+        if (!name) return;
+        if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
+        // Trùng tên (không phân biệt hoa thường) → chọn lại cái đã có.
+        const existing = this.state.allTags.find(
+            (t) => (t.name || "").trim().toLowerCase() === name.toLowerCase());
+        let tagId;
+        if (existing) {
+            tagId = existing.id;
+        } else {
+            const ids = await this.orm.create("vd.floor.function.tag",
+                [{ name, fit_floors: "all" }]);
+            tagId = Array.isArray(ids) ? ids[0] : ids;
+            this.state.allTags.push({ id: tagId, name, icon: "", fit_floors: "all", color: 0 });
+        }
+        if (!this.selectedIds.has(tagId)) {
+            await this.saveRecord([tagId]);
+        }
+        this.state.newName = "";
+        try { if (window.__vdCommitIntakeChange) window.__vdCommitIntakeChange(this.props.record, "floor-func new"); } catch (_) {}
     }
 
     async onChipClick(tag, ev) {

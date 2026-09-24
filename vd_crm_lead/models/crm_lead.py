@@ -1958,7 +1958,7 @@ class CrmLead(models.Model):
         '2_8ty':  2_800_000_000,
         '3ty':    3_000_000_000,
     }
-    vd_intake_budget_range = fields.Selection([
+    _VD_BUDGET_RANGE_BASE = [
         ('chua_xd', 'Chưa xác định'),
         ('700tr',   '700 Triệu'),
         ('800tr',   '800 Triệu'),
@@ -1976,19 +1976,56 @@ class CrmLead(models.Model):
         ('2_5ty',   '2,5 Tỷ'),
         ('2_8ty',   '2,8 Tỷ'),
         ('3ty',     '3 Tỷ'),
-    ], string='Tầm tài chính',
-        help='KH chọn từ dropdown. Auto cập nhật vd_intake_budget_amount '
-             'để compute chênh lệch với estimate.')
+    ]
+
+    def _vd_budget_range_selection(self):
+        """Selection ĐỘNG (user spec 2026-09-24): base + tầm tiền user tự GÕ THÊM
+        (lưu ở vd.field.option) → cho phép nhập bất kỳ mức nào (vd 5 Tỷ), value
+        mới vẫn hợp lệ."""
+        base = list(self._VD_BUDGET_RANGE_BASE)
+        try:
+            extras = self.env['vd.field.option'].sudo().get_options(
+                'crm.lead', 'vd_intake_budget_range')
+        except Exception:
+            extras = []
+        keys = {k for k, _l in base}
+        return base + [(k, l) for k, l in (extras or []) if k not in keys]
+
+    vd_intake_budget_range = fields.Selection(
+        selection='_vd_budget_range_selection', string='Tầm tài chính',
+        help='KH chọn từ dropdown hoặc GÕ THÊM mức mới. Auto cập nhật '
+             'vd_intake_budget_amount để compute chênh lệch với estimate.')
+
+    def _vd_budget_amount_for(self, range_key):
+        """Số tiền (đồng) ứng với 1 tầm tài chính. Preset dùng map; mức user GÕ
+        THÊM thì parse từ nhãn ('5 Tỷ' -> 5e9, '800 Triệu' -> 8e8)."""
+        if not range_key:
+            return 0
+        amt = self._VD_BUDGET_RANGE_AMOUNT.get(range_key)
+        if amt is not None:
+            return amt
+        import re
+        label = dict(self._vd_budget_range_selection()).get(range_key, '') or range_key
+        s = label.lower().replace(',', '.')
+        m = re.search(r'([\d.]+)', s)
+        if not m:
+            return 0
+        try:
+            num = float(m.group(1))
+        except ValueError:
+            return 0
+        if 't' in s and ('ỷ' in s or 'ty' in s or 'ỉ' in s or 'tỷ' in s):
+            return int(num * 1_000_000_000)
+        return int(num * 1_000_000)
 
     @api.onchange('vd_intake_budget_range')
     def _onchange_budget_range(self):
-        """UI: user pick range → set amount tương ứng."""
+        """UI: user pick/gõ range → set amount tương ứng."""
         if self._vd_is_manual_off('vd_intake_budget_amount'):
             return
         if self.vd_intake_budget_range:
-            self.vd_intake_budget_amount = self._VD_BUDGET_RANGE_AMOUNT.get(
-                self.vd_intake_budget_range, 0,
-            )
+            self.vd_intake_budget_amount = self._vd_budget_amount_for(
+                self.vd_intake_budget_range)
 
     @classmethod
     def _sync_budget_range_to_amount(cls, vals):

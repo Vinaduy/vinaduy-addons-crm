@@ -597,7 +597,8 @@
                                     <div class="o_vd_budget_row o_vd_budget_manual">
                                         <field name="vd_intake_budget_range" nolabel="1"
                                                widget="vd_selection_dropdown"
-                                               placeholder="Chọn tầm tài chính KH..."/>
+                                               options="{'extensible': True}"
+                                               placeholder="Chọn hoặc gõ tầm tài chính KH..."/>
                                     </div>
                                     <div class="o_vd_budget_compare"
                                          invisible="not vd_intake_budget_amount or not vd_intake_estimate">
