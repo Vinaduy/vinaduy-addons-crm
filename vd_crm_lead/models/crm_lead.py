@@ -6361,10 +6361,17 @@ class CrmLead(models.Model):
         self.ensure_one()
         if self.vd_contract_signed:
             raise UserError(_('Hợp đồng đã được đánh dấu ký rồi.'))
-        self.with_context(mail_notrack=True).write({
+        vals = {
             'vd_contract_signed': True,
             'vd_contract_sign_date': fields.Date.context_today(self),
-        })
+        }
+        # CHUYỂN sang giai đoạn "Khách chốt" (won) → rời KHÁCH MỚI, vào ĐÃ CHỐT
+        # (user spec 2026-09-24: ký HĐ rồi phải sang Đã chốt, không kẹt Khách mới).
+        won_stage = self.env.ref('vd_crm_lead.stage_won', raise_if_not_found=False) \
+                    or self.env['crm.stage'].sudo().search([('code', '=', 'won')], limit=1)
+        if won_stage and self.stage_id.id != won_stage.id:
+            vals['stage_id'] = won_stage.id
+        self.with_context(mail_notrack=True, tracking_disable=True).write(vals)
         self.message_post(subtype_xmlid='mail.mt_note', body=_(
             '🏆 <b>ĐÃ KÝ HỢP ĐỒNG</b> chính thức ngày <b>%s</b>!'
         ) % fields.Date.context_today(self).strftime('%d/%m/%Y'))
