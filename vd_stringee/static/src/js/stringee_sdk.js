@@ -484,11 +484,8 @@ export const stringeeService = {
 
             const cleanupState = (reason) => {
                 logToServer("cleanupState", { reason: reason || 'unknown' }, callId);
-                // HẸN GỌI LẠI: cuộc gọi ĐI cho 1 SĐ → mở bảng chọn ngày gọi lại
-                // (BẮT trước khi xoá callNumber/callName bên dưới).
-                if (state.callDirection === "out" && state.callNumber) {
-                    state.callbackPrompt = { phone: state.callNumber, name: state.callName || "" };
-                }
+                // BỎ popup "Hẹn ngày gọi lại" sau khi kết thúc cuộc gọi (user spec
+                // 2026-09-24). NV đặt hẹn qua nút "📅 Hẹn ngày gọi lại" khi cần.
                 clearTimeout(failsafe);
                 stopRingback();
                 state.currentCall = null;
