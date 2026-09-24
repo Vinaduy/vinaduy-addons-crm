@@ -13888,3 +13888,17 @@ div.o_vd_layout_grid:not(:has(.o_vd_layout_right > *)) .o_vd_layout_right {
     .o_vd_quote_edit_hint { font-size: 0.85rem; color: #a05a00; margin-bottom: 0.4rem; }
     .o_list_renderer { max-height: 16rem; overflow-y: auto; }
 }
+
+/* Bảng SỬA BÁO GIÁ dạng dòng — font BÌNH THƯỜNG, dễ đọc (user spec 2026-09-24) */
+.o_vd_quote_edit_box_lines {
+    .o_list_table,
+    .o_list_table td,
+    .o_list_table th,
+    .o_list_table input,
+    .o_list_table .o_input {
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+    }
+    .o_list_table td, .o_list_table th { padding: 0.35rem 0.5rem !important; }
+    .o_list_renderer { max-height: 22rem; overflow-y: auto; }
+}

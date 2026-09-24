@@ -19,8 +19,16 @@ class VdQuoteLine(models.Model):
     sequence = fields.Integer(default=10)
     name = fields.Char(string='Nội dung', required=True)
     area_label = fields.Char(
-        string='Diện tích', help='Vd "120 M2 x 45%" hoặc "120 M2".')
+        string='Diện tích', help='Chữ hiển thị, vd "120 M2 x 45%" hoặc "120 M2".')
+    # SỐ LƯỢNG/diện tích quy đổi — cơ sở để TỰ TÍNH Thành tiền (user spec 2026-09-24).
+    qty = fields.Float(string='Số lượng', default=1.0, digits=(12, 2))
     unit_price = fields.Float(string='Đơn giá (VNĐ)', digits=(16, 0))
-    # Thành tiền: NV sửa được TRỰC TIẾP (không compute cứng) — để override thoải
-    # mái. Default gợi ý = đơn giá (NV chỉnh lại theo diện tích/%).
-    amount = fields.Float(string='Thành tiền (VNĐ)', digits=(16, 0))
+    # Thành tiền TỰ ĐỘNG = SL × Đơn giá (sửa SL/Đơn giá là tính lại ngay).
+    amount = fields.Float(
+        string='Thành tiền (VNĐ)', digits=(16, 0),
+        compute='_compute_amount', store=True, readonly=True)
+
+    @api.depends('qty', 'unit_price')
+    def _compute_amount(self):
+        for l in self:
+            l.amount = (l.qty or 0.0) * (l.unit_price or 0.0)

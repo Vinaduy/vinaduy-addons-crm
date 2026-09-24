@@ -2363,25 +2363,39 @@ class CrmLead(models.Model):
         rows = []
         seq = [10]
 
-        def add(name, area, amount):
+        def _num(s):
+            try:
+                return float(str(s).replace(',', '.'))
+            except (ValueError, TypeError):
+                return 0.0
+
+        def add(name, area_label, qty, unit_price):
+            # Thành tiền tự tính = qty × unit_price (field compute) → chỉ set qty+unit.
             rows.append((0, 0, {
-                'sequence': seq[0], 'name': name, 'area_label': area,
-                'unit_price': unit, 'amount': amount}))
+                'sequence': seq[0], 'name': name, 'area_label': area_label,
+                'qty': qty, 'unit_price': unit_price}))
             seq[0] += 10
 
+        # Móng: SL = diện tích móng × % ; Tầng: SL = diện tích ; Mái: SL = DT × %.
+        f_area = _num(ctx.get('found_area', '0'))
+        f_pct = _num(ctx.get('found_pct', '0'))
         add(ctx.get('foundation') or 'Móng',
             '%s M2 x %s%%' % (ctx.get('found_area', '0'), ctx.get('found_pct', '0')),
-            self._vd_parse_money(ctx.get('found_cost')))
+            round(f_area * f_pct / 100.0, 2), unit)
         for fr in (ctx.get('floor_breakdown') or []):
             pct = fr.get('pct')
+            fa = _num(fr.get('area', '0'))
+            q = round(fa * _num(pct) / 100.0, 2) if pct else fa
             area = '%s M2%s' % (fr.get('area', '0'), (' x %s%%' % pct) if pct else '')
-            add(fr.get('label') or 'Tầng', area, self._vd_parse_money(fr.get('cost')))
+            add(fr.get('label') or 'Tầng', area, q, unit)
+        r_area = _num(ctx.get('roof_area', '0'))
+        r_pct = _num(ctx.get('roof_pct', '0'))
         add(ctx.get('roof') or 'Mái',
             '%s M2 x %s%%' % (ctx.get('roof_area', '0'), ctx.get('roof_pct', '0')),
-            self._vd_parse_money(ctx.get('roof_cost')))
-        for s in (ctx.get('surcharges') or []):
-            add(s.get('name') or 'Dòng thêm', s.get('qty_label') or '',
-                self._vd_parse_money(s.get('total')))
+            round(r_area * r_pct / 100.0, 2), unit)
+        for s in self.vd_surcharge_ids.sorted(lambda x: (x.sequence, x.id)):
+            add(s.name or 'Dòng thêm', s.quantity_label or '',
+                s.quantity or 1.0, s.unit_price or 0.0)
         self.vd_quote_line_ids = [(5, 0, 0)] + rows
 
     def action_toggle_quote_edit(self):
@@ -2397,6 +2411,12 @@ class CrmLead(models.Model):
         """🔄 Tạo lại bảng báo giá từ THÔNG TIN (bỏ mọi sửa tay)."""
         self.ensure_one()
         self._vd_gen_quote_lines_from_intake()
+        return None
+
+    def action_save_quote_edit(self):
+        """💾 Lưu — đóng chế độ sửa, xem báo giá bình thường (form auto-save)."""
+        self.ensure_one()
+        self.vd_quote_edit_open = False
         return None
 
     def _vd_render_lines_html(self):
