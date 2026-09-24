@@ -2341,6 +2341,15 @@ class CrmLead(models.Model):
         compute='_compute_quote_breakdown_html',
         store=False, sanitize=False,
     )
+    # Bật/tắt chế độ SỬA BÁO GIÁ (user spec 2026-09-24): hiện bảng thêm/sửa dòng
+    # tuỳ chỉnh (vd_surcharge_ids). Tắt lại thì xem báo giá bình thường.
+    vd_quote_edit_open = fields.Boolean(default=False, copy=False)
+
+    def action_toggle_quote_edit(self):
+        """✏️ Sửa báo giá — mở/đóng khối thêm-sửa dòng báo giá tuỳ chỉnh."""
+        self.ensure_one()
+        self.vd_quote_edit_open = not self.vd_quote_edit_open
+        return None
 
     # ===== COPY GỬI ZALO — text format gửi nhóm xác nhận thông tin KH =====
     vd_zalo_copy_text = fields.Text(
@@ -2666,10 +2675,27 @@ class CrmLead(models.Model):
                 lambda p: p.tag_code == 'extra_material' and p.ps_state == 'approved' and (p.ps_amount or 0) > 0
             )
             ps_total = sum(p.ps_amount or 0 for p in ps_problems)
-            total = found_cost + floor_cost + roof_cost + thongtang_cost + ps_total - km_total
-            # rowspan = móng + N tầng + (thông tầng) + mái + N dòng PS + N dòng KM
+            # DÒNG TUỲ CHỈNH (user spec 2026-09-24): NV bấm "Sửa báo giá" thêm dòng
+            # (vd Kiot, Để xe...) qua vd_surcharge_ids → CỘNG vào tổng + hiện trong bảng.
+            surcharge_lines = rec.vd_surcharge_ids.sorted(lambda s: (s.sequence, s.id))
+            surcharge_total = sum(s.total or 0 for s in surcharge_lines)
+            total = (found_cost + floor_cost + roof_cost + thongtang_cost
+                     + ps_total + surcharge_total - km_total)
+            # rowspan = móng + N tầng + (thông tầng) + mái + N surcharge + N PS + N KM
             num_rows = (2 + max(len(per_floor_data), 1) + thongtang_extra_rows
-                        + len(ps_problems) + len(km_problems))
+                        + len(surcharge_lines) + len(ps_problems) + len(km_problems))
+            # Build surcharge rows HTML (xám nhạt — cộng tiền)
+            surcharge_rows_html = ''
+            for s in surcharge_lines:
+                qlbl = s.quantity_label or (f'SL {s.quantity:g}' if s.quantity else '')
+                surcharge_rows_html += (
+                    '<tr>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">{s.name or "Dòng thêm"}</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{qlbl}</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(s.unit_price)} VNĐ</td>'
+                    f'<td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-weight:700;font-size:0.85rem;">{self._fmt_vnd(s.total)} VNĐ</td>'
+                    '</tr>'
+                )
 
             # Build PS rows HTML (xanh — cộng tiền)
             ps_rows_html = ''
@@ -2745,7 +2771,7 @@ class CrmLead(models.Model):
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(roof_cost)} VNĐ</td>
-        </tr>{discount_row_html}
+        </tr>{surcharge_rows_html}{discount_row_html}
     </tbody>
 </table>
 '''.strip()

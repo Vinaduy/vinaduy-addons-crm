@@ -13880,3 +13880,11 @@ div.o_vd_layout_grid:not(:has(.o_vd_layout_right > *)) .o_vd_layout_right {
     background: #ebfbee !important; color: #2b8a3e !important; border: 1.5px solid #b2f2bb !important;
     font-weight: 800 !important; cursor: default !important;
 }
+
+/* KHỐI SỬA BÁO GIÁ — thêm dòng tuỳ chỉnh (user spec 2026-09-24) */
+.o_vd_quote_edit_box {
+    margin: 0.5rem 0; padding: 0.6rem; border: 1px dashed #f59f00;
+    border-radius: 8px; background: #fff9db;
+    .o_vd_quote_edit_hint { font-size: 0.85rem; color: #a05a00; margin-bottom: 0.4rem; }
+    .o_list_renderer { max-height: 16rem; overflow-y: auto; }
+}
