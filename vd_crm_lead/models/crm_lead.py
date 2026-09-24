@@ -2456,10 +2456,20 @@ class CrmLead(models.Model):
         return None
 
     def action_regen_quote_lines(self):
-        """🔄 Tạo lại bảng báo giá từ THÔNG TIN (bỏ mọi sửa tay)."""
+        """🔄 Đặt lại bảng báo giá từ THÔNG TIN (bỏ mọi sửa tay / dòng thêm tay).
+        Dùng khi NV lỡ xoá nhầm dòng hoặc muốn dựng lại từ đầu."""
         self.ensure_one()
         self._vd_gen_quote_lines_from_intake()
-        return None
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': '🔄 Đã đặt lại bảng báo giá',
+                'message': 'Bảng đã dựng lại theo thông tin hiện tại (Móng/Tầng/Mái + dòng thêm).',
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     def action_save_quote_edit(self):
         """💾 Lưu — đóng chế độ sửa, xem báo giá bình thường (form auto-save)."""
@@ -4964,6 +4974,12 @@ class CrmLead(models.Model):
 
         # Vừa tạo báo giá → tự sinh "Cân đối ngân sách" nếu NS KH < giá báo > 15%.
         self._vd_auto_budget_problem()
+
+        # LUÔN dựng sẵn bảng báo giá SỬA TRỰC TIẾP (nếu chưa có dòng) — NV sửa
+        # ngay trong bảng, KHÔNG cần bấm nút "Sửa" mở bảng phụ (user spec
+        # 2026-09-24). Đã có dòng thì giữ nguyên (kể cả dòng sửa tay).
+        if not self.vd_quote_line_ids:
+            self._vd_gen_quote_lines_from_intake()
 
         if auto_quoted:
             old_stage_name, new_stage_name = auto_quoted

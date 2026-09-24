@@ -864,19 +864,19 @@
                              hoặc admin duyệt → tự động thành dòng trong báo giá. -->
                         <field name="vd_currency_vnd_id" invisible="1"/>
 
-                        <!-- Bảng báo giá chi tiết (breakdown) — data từ Thông tin tư vấn -->
+                        <!-- Bảng báo giá chi tiết — SỬA TRỰC TIẾP trong bảng (user spec
+                             2026-09-24). KHÔNG còn bảng phụ / nút "Sửa": trỏ chuột vào
+                             ô là sửa được ngay. HTML readonly CHỈ hiện khi CHƯA có dòng
+                             (bảng trống) làm gợi ý. -->
                         <field name="vd_quote_edit_open" invisible="1"/>
-                        <div class="o_vd_quote_breakdown_wrap">
+                        <div class="o_vd_quote_breakdown_wrap" invisible="vd_quote_line_ids">
                             <field name="vd_quote_breakdown_html" widget="html"
                                    readonly="1" nolabel="1" sanitize="false"/>
                         </div>
 
-                        <!-- ✏️ SỬA BÁO GIÁ — sửa TRỰC TIẾP từng dòng (Móng/Tầng/Mái +
-                             dòng thêm). Có dòng → bảng + PDF dùng dòng này (user spec
-                             2026-09-24). Bấm "Tạo lại" để dựng lại từ thông tin. -->
-                        <div class="o_vd_quote_edit_box o_vd_quote_edit_box_lines" invisible="not vd_quote_edit_open">
+                        <div class="o_vd_quote_edit_box o_vd_quote_edit_box_lines">
                             <div class="o_vd_quote_edit_hint">
-                                ✏️ Sửa trực tiếp: Nội dung / Diện tích (chữ) / Số lượng / Đơn giá — <b>Thành tiền tự tính = Số lượng × Đơn giá</b>. Thêm dòng mới ở cuối (Kiot, Để xe, sân…). Xong bấm <b>💾 Lưu</b>.
+                                ✏️ Sửa TRỰC TIẾP trong bảng: Nội dung / Diện tích (chữ) / Số lượng / Đơn giá — <b>Thành tiền tự tính = Số lượng × Đơn giá</b>. Thêm dòng mới ở cuối (Kiot, Để xe, sân…). Lỡ xoá/sửa sai → bấm <b>🔄 Đặt lại theo thông tin</b>.
                             </div>
                             <field name="vd_quote_line_ids" nolabel="1">
                                 <list editable="bottom">
@@ -892,16 +892,16 @@
                                     class="btn btn-success mt-1">
                                 <i class="fa fa-save me-1"/>💾 Lưu
                             </button>
+                            <button name="action_regen_quote_lines" type="object"
+                                    class="btn btn-outline-danger btn-sm mt-1 ms-1"
+                                    confirm="Đặt lại bảng báo giá theo THÔNG TIN hiện tại? Mọi dòng sửa tay / thêm tay sẽ bị xoá và dựng lại từ đầu."
+                                    title="Dựng lại toàn bộ bảng từ thông tin — dùng khi lỡ xoá nhầm dòng">
+                                <i class="fa fa-refresh me-1"/>🔄 Đặt lại theo thông tin
+                            </button>
                         </div>
 
-                        <!-- Nút: Sửa báo giá / Xem file / Tải PDF -->
+                        <!-- Nút: Xem file / Tải PDF -->
                         <div class="o_vd_quote_actions">
-                            <button name="action_toggle_quote_edit" type="object"
-                                    class="btn btn-warning"
-                                    invisible="vd_quote_edit_open"
-                                    title="Sửa trực tiếp từng dòng báo giá">
-                                <i class="fa fa-pencil me-1"/>✏️ Sửa báo giá
-                            </button>
                             <button name="action_preview_quote_now" type="object"
                                     class="btn btn-primary"
                                     title="Mở PDF trong tab mới (full screen)">
