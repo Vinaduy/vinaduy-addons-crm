@@ -27,8 +27,18 @@ class VdQuoteLine(models.Model):
     amount = fields.Float(
         string='Thành tiền (VNĐ)', digits=(16, 0),
         compute='_compute_amount', store=True, readonly=True)
+    # is_auto=True: dòng TỰ SINH từ thông tin (Móng/Tầng/Mái) → đổi thông tin là
+    # tự nhảy theo. NV sửa dòng nào → dòng đó thành is_auto=False (giữ số tay,
+    # không bị ghi đè khi đổi diện tích). (user spec 2026-09-24)
+    is_auto = fields.Boolean(default=True, copy=False)
 
     @api.depends('qty', 'unit_price')
     def _compute_amount(self):
         for l in self:
             l.amount = (l.qty or 0.0) * (l.unit_price or 0.0)
+
+    @api.onchange('name', 'area_label', 'qty', 'unit_price')
+    def _onchange_mark_manual(self):
+        """NV sửa tay dòng nào → dòng đó KHÔNG bị ghi đè khi đổi thông tin nữa."""
+        for l in self:
+            l.is_auto = False

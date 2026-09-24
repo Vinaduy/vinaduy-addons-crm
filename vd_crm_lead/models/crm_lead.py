@@ -2354,7 +2354,7 @@ class CrmLead(models.Model):
         except (ValueError, TypeError):
             return 0
 
-    def _vd_gen_quote_lines_from_intake(self):
+    def _vd_gen_quote_lines_from_intake(self, replace=True):
         """Dựng danh sách dòng báo giá từ THÔNG TIN hiện tại (Móng/Tầng/Mái +
         dòng thêm) → NV sửa trực tiếp. Ghi đè dòng cũ."""
         self.ensure_one()
@@ -2371,9 +2371,10 @@ class CrmLead(models.Model):
 
         def add(name, area_label, qty, unit_price):
             # Thành tiền tự tính = qty × unit_price (field compute) → chỉ set qty+unit.
-            rows.append((0, 0, {
+            # is_auto=True → đổi thông tin là tự nhảy theo.
+            rows.append({
                 'sequence': seq[0], 'name': name, 'area_label': area_label,
-                'qty': qty, 'unit_price': unit_price}))
+                'qty': qty, 'unit_price': unit_price, 'is_auto': True})
             seq[0] += 10
 
         # Móng: SL = diện tích móng × % ; Tầng: SL = diện tích ; Mái: SL = DT × %.
@@ -2396,7 +2397,33 @@ class CrmLead(models.Model):
         for s in self.vd_surcharge_ids.sorted(lambda x: (x.sequence, x.id)):
             add(s.name or 'Dòng thêm', s.quantity_label or '',
                 s.quantity or 1.0, s.unit_price or 0.0)
-        self.vd_quote_line_ids = [(5, 0, 0)] + rows
+        Line = self.env['vd.quote.line'].sudo()
+        if replace:
+            self.sudo().vd_quote_line_ids.unlink()
+        else:
+            # GIỮ dòng NV đã sửa tay (is_auto=False), chỉ thay dòng tự sinh.
+            self.sudo().vd_quote_line_ids.filtered(lambda l: l.is_auto).unlink()
+        for v in rows:
+            v['lead_id'] = self.id
+            Line.create(v)
+
+    def _vd_sync_auto_quote_lines(self):
+        """Đồng bộ dòng TỰ SINH theo thông tin (giữ dòng sửa tay). Gọi khi đổi
+        diện tích/tầng/móng/mái... → báo giá tự nhảy (user spec 2026-09-24)."""
+        for rec in self:
+            if rec.vd_quote_line_ids:
+                rec._vd_gen_quote_lines_from_intake(replace=False)
+
+    # Các field intake ảnh hưởng công thức báo giá → đổi là re-sync dòng auto.
+    _VD_QUOTE_DRIVER_FIELDS = frozenset({
+        'vd_intake_total_m2', 'vd_intake_area_m2', 'vd_intake_floors_select',
+        'vd_intake_foundation_type', 'vd_intake_roof_type', 'vd_intake_house_type',
+        'vd_intake_has_tum', 'vd_intake_has_lung', 'vd_intake_floor_tum_m2',
+        'vd_intake_floor_lung_m2', 'vd_intake_floor_thongtang_m2', 'vd_intake_region',
+        'vd_intake_floor_1_m2', 'vd_intake_floor_2_m2', 'vd_intake_floor_3_m2',
+        'vd_intake_floor_4_m2', 'vd_intake_floor_5_m2', 'vd_intake_floor_6_m2',
+        'vd_intake_floor_7_m2',
+    })
 
     def action_toggle_quote_edit(self):
         """✏️ Sửa báo giá — mở/đóng danh sách dòng editable. Lần đầu mở mà CHƯA
@@ -4536,6 +4563,12 @@ class CrmLead(models.Model):
             self.filtered(
                 lambda r: r.stage_code in ('quote', 'negotiate', 'won')
             )._vd_auto_budget_problem()
+        # ĐỔI THÔNG TIN (diện tích/tầng/móng/mái...) → dòng báo giá TỰ SINH nhảy
+        # theo, GIỮ dòng NV đã sửa tay (user spec 2026-09-24). Tránh đệ quy: bỏ
+        # qua khi context đang sync.
+        if (self._VD_QUOTE_DRIVER_FIELDS & set(vals.keys())
+                and not self.env.context.get('vd_syncing_quote_lines')):
+            self.with_context(vd_syncing_quote_lines=True)._vd_sync_auto_quote_lines()
         return result
 
     # ============================================================
