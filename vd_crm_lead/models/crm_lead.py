@@ -2341,15 +2341,97 @@ class CrmLead(models.Model):
         compute='_compute_quote_breakdown_html',
         store=False, sanitize=False,
     )
-    # Bật/tắt chế độ SỬA BÁO GIÁ (user spec 2026-09-24): hiện bảng thêm/sửa dòng
-    # tuỳ chỉnh (vd_surcharge_ids). Tắt lại thì xem báo giá bình thường.
+    # Bật/tắt chế độ SỬA BÁO GIÁ (user spec 2026-09-24): hiện danh sách dòng
+    # báo giá EDITABLE (sửa trực tiếp cả Móng/Tầng/Mái). Tắt lại → xem bình thường.
     vd_quote_edit_open = fields.Boolean(default=False, copy=False)
+    # Dòng báo giá sửa tay. CÓ dòng → báo giá (bảng + PDF) DÙNG các dòng này.
+    vd_quote_line_ids = fields.One2many(
+        'vd.quote.line', 'lead_id', string='Dòng báo giá (sửa tay)', copy=False)
+
+    def _vd_parse_money(self, s):
+        try:
+            return int(float(str(s).replace('.', '').replace(',', '').strip() or 0))
+        except (ValueError, TypeError):
+            return 0
+
+    def _vd_gen_quote_lines_from_intake(self):
+        """Dựng danh sách dòng báo giá từ THÔNG TIN hiện tại (Móng/Tầng/Mái +
+        dòng thêm) → NV sửa trực tiếp. Ghi đè dòng cũ."""
+        self.ensure_one()
+        ctx = self._build_quote_context()
+        unit = ctx.get('unit_price_raw') or self._vd_parse_money(ctx.get('unit_price'))
+        rows = []
+        seq = [10]
+
+        def add(name, area, amount):
+            rows.append((0, 0, {
+                'sequence': seq[0], 'name': name, 'area_label': area,
+                'unit_price': unit, 'amount': amount}))
+            seq[0] += 10
+
+        add(ctx.get('foundation') or 'Móng',
+            '%s M2 x %s%%' % (ctx.get('found_area', '0'), ctx.get('found_pct', '0')),
+            self._vd_parse_money(ctx.get('found_cost')))
+        for fr in (ctx.get('floor_breakdown') or []):
+            pct = fr.get('pct')
+            area = '%s M2%s' % (fr.get('area', '0'), (' x %s%%' % pct) if pct else '')
+            add(fr.get('label') or 'Tầng', area, self._vd_parse_money(fr.get('cost')))
+        add(ctx.get('roof') or 'Mái',
+            '%s M2 x %s%%' % (ctx.get('roof_area', '0'), ctx.get('roof_pct', '0')),
+            self._vd_parse_money(ctx.get('roof_cost')))
+        for s in (ctx.get('surcharges') or []):
+            add(s.get('name') or 'Dòng thêm', s.get('qty_label') or '',
+                self._vd_parse_money(s.get('total')))
+        self.vd_quote_line_ids = [(5, 0, 0)] + rows
 
     def action_toggle_quote_edit(self):
-        """✏️ Sửa báo giá — mở/đóng khối thêm-sửa dòng báo giá tuỳ chỉnh."""
+        """✏️ Sửa báo giá — mở/đóng danh sách dòng editable. Lần đầu mở mà CHƯA
+        có dòng → tự dựng từ thông tin để sửa."""
         self.ensure_one()
         self.vd_quote_edit_open = not self.vd_quote_edit_open
+        if self.vd_quote_edit_open and not self.vd_quote_line_ids:
+            self._vd_gen_quote_lines_from_intake()
         return None
+
+    def action_regen_quote_lines(self):
+        """🔄 Tạo lại bảng báo giá từ THÔNG TIN (bỏ mọi sửa tay)."""
+        self.ensure_one()
+        self._vd_gen_quote_lines_from_intake()
+        return None
+
+    def _vd_render_lines_html(self):
+        """Render bảng báo giá HTML TỪ vd_quote_line_ids (khi NV sửa tay)."""
+        self.ensure_one()
+        lines = self.vd_quote_line_ids.sorted(lambda l: (l.sequence, l.id))
+        total = sum(l.amount or 0 for l in lines)
+        n = len(lines) or 1
+        cell = ('padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-size:0.85rem;')
+        body = ''
+        for i, l in enumerate(lines):
+            tcell = ''
+            if i == 0:
+                tcell = ('<td rowspan="%d" style="padding:0.5rem 0.55rem;border:1px solid #1864ab;'
+                         'background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;'
+                         'color:#1864ab;vertical-align:middle;">%s VNĐ</td>'
+                         % (n, self._fmt_vnd(total)))
+            body += (
+                '<tr>'
+                '<td style="%s font-weight:600;">%s</td>'
+                '<td style="%s text-align:center;">%s</td>'
+                '<td style="%s text-align:right;">%s VNĐ</td>'
+                '<td style="%s text-align:right;font-weight:700;">%s VNĐ</td>%s</tr>'
+                % (cell, l.name or '', cell, l.area_label or '',
+                   cell, self._fmt_vnd(l.unit_price), cell, self._fmt_vnd(l.amount), tcell))
+        return (
+            '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.4rem 0;">'
+            '<thead><tr style="background:#5c8fb8;color:#fff;">'
+            '<th style="padding:0.5rem;border:1px solid #1864ab;text-align:left;">Nội dung</th>'
+            '<th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;">Diện tích</th>'
+            '<th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;">Đơn giá</th>'
+            '<th style="padding:0.5rem;border:1px solid #1864ab;text-align:right;">Thành Tiền</th>'
+            '<th style="padding:0.5rem;border:1px solid #1864ab;text-align:center;background:#4a7aa0;">Tổng Tiền</th>'
+            '</tr></thead><tbody>' + body + '</tbody></table>'
+        )
 
     # ===== COPY GỬI ZALO — text format gửi nhóm xác nhận thông tin KH =====
     vd_zalo_copy_text = fields.Text(
@@ -2573,6 +2655,10 @@ class CrmLead(models.Model):
     def _compute_quote_breakdown_html(self):
         Pricing = self.env['vd.pricing.region']
         for rec in self:
+            # CÓ DÒNG SỬA TAY → render TỪ dòng (user spec 2026-09-24), bỏ công thức.
+            if rec.vd_quote_line_ids:
+                rec.vd_quote_breakdown_html = rec._vd_render_lines_html()
+                continue
             total_m2 = rec.vd_intake_total_m2 or 0.0
             floors = rec.vd_intake_floors_num or 1.0
             if not total_m2:
@@ -5290,6 +5376,7 @@ class CrmLead(models.Model):
         ps_total = sum(p.ps_amount or 0 for p in ps_problems)
         components_total = components_total + ps_total - km_total
         total = components_total or self.vd_quote_price or self.vd_intake_estimate or 0
+        _lines_total = sum(self.vd_quote_line_ids.mapped('amount'))
 
         house_lbl = self._vd_selection_dict('vd_intake_house_type').get(
             self.vd_intake_house_type, 'NHÀ DÂN DỤNG'
@@ -5350,8 +5437,15 @@ class CrmLead(models.Model):
             'discount_amount_raw': km_total,
             'discount_amount': fmt(km_total) if km_total else '',
             'discount_label': '',
-            'total_price': fmt(total),
-            'total_price_int': int(total),
+            # DÒNG SỬA TAY (user spec 2026-09-24): có dòng → PDF dùng dòng này +
+            # tổng = tổng dòng. Không có → dùng công thức như cũ.
+            'quote_lines': [{
+                'name': l.name or '', 'area': l.area_label or '',
+                'unit_price': fmt(l.unit_price), 'amount': fmt(l.amount),
+            } for l in self.vd_quote_line_ids.sorted(lambda x: (x.sequence, x.id))],
+            'use_lines': bool(self.vd_quote_line_ids),
+            'total_price': fmt(_lines_total if self.vd_quote_line_ids else total),
+            'total_price_int': int(_lines_total if self.vd_quote_line_ids else total),
             # Tiến độ thanh toán (4 đợt)
             'tt1': fmt(total * 0.30),
             'tt2': fmt(total * 0.30),

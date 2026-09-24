@@ -139,6 +139,23 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- CÓ DÒNG SỬA TAY → render TỪ quote_lines (user spec 2026-09-24) -->
+                            <t t-if="ctx.get('use_lines')">
+                                <t t-set="qlines" t-value="ctx.get('quote_lines') or []"/>
+                                <t t-foreach="qlines" t-as="ql" t-key="ql_index">
+                                    <t t-set="rbg" t-value="'#f4f8fd' if (ql_index % 2 == 0) else '#ffffff'"/>
+                                    <tr>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;font-weight:700;color:#16324f;background:' + rbg"><t t-esc="ql['name']"/></td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:center;color:#33475b;background:' + rbg"><t t-esc="ql['area']"/></td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:right;color:#55677a;background:' + rbg"><t t-esc="ql['unit_price']"/> VNĐ</td>
+                                        <td t-att-style="'padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;text-align:right;font-weight:700;color:#16324f;background:' + rbg"><t t-esc="ql['amount']"/> VNĐ</td>
+                                        <t t-if="ql_index == 0">
+                                            <td t-att-rowspan="len(qlines)" style="padding:0.55rem 0.7rem;border-left:2px solid #93c5fd;background:#dbeafe;text-align:center;font-weight:800;font-size:13pt;color:#1864ab;vertical-align:middle;letter-spacing:0.5px;"><t t-esc="ctx.get('total_price', '0')"/> VNĐ</td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
                             <!-- Móng — diện tích = Tầng 1 (KHÔNG phải total) -->
                             <tr>
                                 <td style="padding:0.5rem 0.85rem;border-bottom:1px solid #e4eef9;background:#fff;font-weight:700;color:#16324f;"><t t-esc="found_lbl"/></td>
@@ -208,6 +225,7 @@
                                         − <t t-esc="km['amount']"/> VNĐ
                                     </td>
                                 </tr>
+                            </t>
                             </t>
                         </tbody>
                     </table>
