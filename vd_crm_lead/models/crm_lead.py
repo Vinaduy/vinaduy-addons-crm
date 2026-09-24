@@ -2354,10 +2354,15 @@ class CrmLead(models.Model):
         except (ValueError, TypeError):
             return 0
 
-    def _vd_gen_quote_lines_from_intake(self, replace=True):
+    def _vd_gen_quote_lines_from_intake(self, replace=True, skip_keys=None):
         """Dựng danh sách dòng báo giá từ THÔNG TIN hiện tại (Móng/Tầng/Mái +
-        dòng thêm) → NV sửa trực tiếp. Ghi đè dòng cũ."""
+        dòng thêm) → NV sửa trực tiếp. Ghi đè dòng cũ.
+
+        skip_keys: tập line_key của các slot đã bị NV sửa tay (is_auto=False).
+        Slot nào nằm trong skip_keys thì KHÔNG sinh lại dòng auto (tránh trùng
+        dòng — vd vừa có 'Tầng 1' sửa tay vừa có 'Tầng 1' auto)."""
         self.ensure_one()
+        skip_keys = skip_keys or set()
         ctx = self._build_quote_context()
         unit = ctx.get('unit_price_raw') or self._vd_parse_money(ctx.get('unit_price'))
         rows = []
@@ -2369,18 +2374,21 @@ class CrmLead(models.Model):
             except (ValueError, TypeError):
                 return 0.0
 
-        def add(name, area_label, qty, unit_price):
+        def add(key, name, area_label, qty, unit_price):
             # Thành tiền tự tính = qty × unit_price (field compute) → chỉ set qty+unit.
-            # is_auto=True → đổi thông tin là tự nhảy theo.
+            # is_auto=True → đổi thông tin là tự nhảy theo. line_key = slot ổn định.
+            if key and key in skip_keys:
+                return  # slot này NV đã sửa tay → giữ dòng tay, không sinh auto
             rows.append({
                 'sequence': seq[0], 'name': name, 'area_label': area_label,
-                'qty': qty, 'unit_price': unit_price, 'is_auto': True})
+                'qty': qty, 'unit_price': unit_price, 'is_auto': True,
+                'line_key': key})
             seq[0] += 10
 
         # Móng: SL = diện tích móng × % ; Tầng: SL = diện tích ; Mái: SL = DT × %.
         f_area = _num(ctx.get('found_area', '0'))
         f_pct = _num(ctx.get('found_pct', '0'))
-        add(ctx.get('foundation') or 'Móng',
+        add('found', ctx.get('foundation') or 'Móng',
             '%s M2 x %s%%' % (ctx.get('found_area', '0'), ctx.get('found_pct', '0')),
             round(f_area * f_pct / 100.0, 2), unit)
         for fr in (ctx.get('floor_breakdown') or []):
@@ -2388,14 +2396,16 @@ class CrmLead(models.Model):
             fa = _num(fr.get('area', '0'))
             q = round(fa * _num(pct) / 100.0, 2) if pct else fa
             area = '%s M2%s' % (fr.get('area', '0'), (' x %s%%' % pct) if pct else '')
-            add(fr.get('label') or 'Tầng', area, q, unit)
+            label = fr.get('label') or 'Tầng'
+            # key ổn định theo tầng (label "Tầng 1"/"Lửng"/"Tum" không đổi khi đổi DT)
+            add('floor:%s' % label, label, area, q, unit)
         r_area = _num(ctx.get('roof_area', '0'))
         r_pct = _num(ctx.get('roof_pct', '0'))
-        add(ctx.get('roof') or 'Mái',
+        add('roof', ctx.get('roof') or 'Mái',
             '%s M2 x %s%%' % (ctx.get('roof_area', '0'), ctx.get('roof_pct', '0')),
             round(r_area * r_pct / 100.0, 2), unit)
         for s in self.vd_surcharge_ids.sorted(lambda x: (x.sequence, x.id)):
-            add(s.name or 'Dòng thêm', s.quantity_label or '',
+            add('sc:%s' % s.id, s.name or 'Dòng thêm', s.quantity_label or '',
                 s.quantity or 1.0, s.unit_price or 0.0)
         Line = self.env['vd.quote.line'].sudo()
         if replace:
@@ -2409,10 +2419,16 @@ class CrmLead(models.Model):
 
     def _vd_sync_auto_quote_lines(self):
         """Đồng bộ dòng TỰ SINH theo thông tin (giữ dòng sửa tay). Gọi khi đổi
-        diện tích/tầng/móng/mái... → báo giá tự nhảy (user spec 2026-09-24)."""
+        diện tích/tầng/móng/mái... → báo giá tự nhảy (user spec 2026-09-24).
+
+        Slot đã bị NV sửa tay (is_auto=False) → không sinh lại dòng auto trùng."""
         for rec in self:
             if rec.vd_quote_line_ids:
-                rec._vd_gen_quote_lines_from_intake(replace=False)
+                manual_keys = set(rec.vd_quote_line_ids
+                                  .filtered(lambda l: not l.is_auto)
+                                  .mapped('line_key')) - {False, ''}
+                rec._vd_gen_quote_lines_from_intake(
+                    replace=False, skip_keys=manual_keys)
 
     # Các field intake ảnh hưởng công thức báo giá → đổi là re-sync dòng auto.
     _VD_QUOTE_DRIVER_FIELDS = frozenset({

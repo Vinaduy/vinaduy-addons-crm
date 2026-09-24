@@ -31,6 +31,9 @@ class VdQuoteLine(models.Model):
     # tự nhảy theo. NV sửa dòng nào → dòng đó thành is_auto=False (giữ số tay,
     # không bị ghi đè khi đổi diện tích). (user spec 2026-09-24)
     is_auto = fields.Boolean(default=True, copy=False)
+    # Khoá slot (found/floor_1/roof...) — để khi đồng bộ, dòng auto trùng slot với
+    # dòng NV đã sửa tay thì BỎ QUA (tránh trùng dòng). copy=False.
+    line_key = fields.Char(copy=False)
 
     @api.depends('qty', 'unit_price')
     def _compute_amount(self):
