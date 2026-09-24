@@ -368,8 +368,14 @@ class ResUsers(models.Model):
             ('create_date', '>=', month_start),
             ('lead_id', '!=', False),
         ]
-        answered_dom = ['|', ('state', '=', 'answered'),
-                        '&', ('state', '=', 'ended'), ('duration', '>', 0)]
+        # NGHE MÁY = tín hiệu KH thực sự bắt máy: state='answered' HOẶC có
+        # answer_time (Stringee tự clear nếu answerDuration=0) HOẶC có file ghi âm
+        # (Stringee chỉ record sau khi bắt máy). KHÔNG dùng duration>0 vì cuộc
+        # KHÔNG nghe máy vẫn có duration = thời gian ĐỔ CHUÔNG → đếm nhầm
+        # (bug user báo 2026-09-24). (over3/over5 vẫn dùng duration = thời lượng.)
+        answered_dom = ['|', '|', ('state', '=', 'answered'),
+                        ('answer_time', '!=', False),
+                        ('recording_attachment_id', '!=', False)]
         total = Call.search_count(base)
         answered = Call.search_count(base + answered_dom)
         over3 = Call.search_count(base + [('duration', '>=', 180)])

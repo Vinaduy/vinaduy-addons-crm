@@ -418,17 +418,23 @@ class CrmLead(models.Model):
                  'call_ids.recording_url', 'call_ids.recording_attachment_id',
                  'call_ids.answer_time', 'call_count')
     def _compute_call_stats(self):
-        """Đánh giá 'nghe máy / không nghe' theo MỌI tín hiệu KH thực sự bắt máy:
+        """Đánh giá 'nghe máy / không nghe' theo tín hiệu KH THỰC SỰ bắt máy:
         1. state == 'answered'                     → chắc chắn nghe
         2. answer_time có giá trị                  → Stringee ghi nhận pickup
-        3. duration > 0                            → có thời gian đàm thoại
-        4. recording_url / recording_attachment_id → có file ghi âm
+                                                     (đã tự CLEAR nếu answerDuration=0)
+        3. recording_url / recording_attachment_id → có file ghi âm
                                                      (Stringee chỉ record sau khi
                                                       KH bắt máy, file = bằng chứng)
-        → chỉ cần 1 trong 4 đúng = COUNT NGHE MÁY.
+        → chỉ cần 1 trong 3 đúng = COUNT NGHE MÁY.
+
+        ⚠️ KHÔNG dùng `duration > 0`: field này = answerDuration NẾU có nói
+        chuyện, NHƯNG khi KH KHÔNG bắt máy thì = thời gian ĐỔ CHUÔNG (ring). Cuộc
+        declined/busy/no_answer vẫn có duration>0 (đổ chuông rồi tắt) → nếu tính
+        là "nghe máy" thì SAI (bug user báo 2026-09-24: cuộc không nghe máy vẫn
+        vào "có nghe máy"). Tín hiệu đúng là answer_time / ghi âm / state.
 
         State 'busy' / 'failed' / 'no_answer' / 'declined' / 'cancelled' không
-        có 1 trong 4 trên = KHÔNG NGHE.
+        có 1 trong 3 trên = KHÔNG NGHE.
         """
         for rec in self:
             answered = 0
@@ -436,10 +442,9 @@ class CrmLead(models.Model):
             unreachable = 0
             for c in rec.call_ids:
                 has_recording = bool(c.recording_url or c.recording_attachment_id)
-                has_duration = (c.duration or 0) > 0
                 has_answer_time = bool(c.answer_time)
                 is_answered_state = c.state == 'answered'
-                if is_answered_state or has_answer_time or has_duration or has_recording:
+                if is_answered_state or has_answer_time or has_recording:
                     answered += 1
                 elif c.state in ('busy', 'failed'):
                     unreachable += 1

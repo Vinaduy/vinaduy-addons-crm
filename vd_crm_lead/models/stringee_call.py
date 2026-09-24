@@ -281,7 +281,12 @@ class StringeeCall(models.Model):
             vals = {}
             if not lead.last_call_date or (call.start_time and call.start_time > lead.last_call_date):
                 vals['last_call_date'] = call.start_time
-            if call.state == 'answered' or (call.state == 'ended' and call.duration > 0):
+            # NGHE MÁY = state='answered' / có answer_time / có ghi âm. KHÔNG dùng
+            # 'ended' + duration>0: cuộc NV tự cúp lúc đang đổ chuông (USER_END_CALL)
+            # state='ended' + duration=thời gian ring>0 nhưng KH CHƯA bắt máy →
+            # tính nghe máy là SAI (bug user báo 2026-09-24).
+            if (call.state == 'answered' or call.answer_time
+                    or call.recording_attachment_id):
                 vals['last_answered_date'] = call.answer_time or call.start_time
                 vals['no_answer_streak'] = 0
             elif call.state in ('no_answer', 'busy', 'declined', 'cancelled', 'failed'):
