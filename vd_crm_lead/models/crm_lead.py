@@ -1992,7 +1992,8 @@ class CrmLead(models.Model):
         return base + [(k, l) for k, l in (extras or []) if k not in keys]
 
     vd_intake_budget_range = fields.Selection(
-        selection='_vd_budget_range_selection', string='Tầm tài chính',
+        selection=lambda self: self._vd_budget_range_selection(),
+        string='Tầm tài chính',
         help='KH chọn từ dropdown hoặc GÕ THÊM mức mới. Auto cập nhật '
              'vd_intake_budget_amount để compute chênh lệch với estimate.')
 
@@ -8895,7 +8896,8 @@ class CrmLead(models.Model):
         là field compute (store=False) — tính hàng loạt sẽ nặng.
         """
         by_id = {l.id: l for l in leads}
-        budget_sel = dict(self._fields['vd_intake_budget_range'].selection)
+        # Selection ĐỘNG (callable) → phải resolve, không dict() thẳng vào field.
+        budget_sel = self._vd_selection_dict('vd_intake_budget_range')
         # User spec 2026-05-30: chỉ số cuộc gọi ở 2 bảng này CHỈ tính từ ngày báo
         # giá thành công (vd_quote_created_date). Recompute + overwrite call_stats.
         since_map = {
