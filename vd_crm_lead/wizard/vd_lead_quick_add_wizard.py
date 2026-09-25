@@ -759,11 +759,11 @@ class VdLeadQuickAddWizard(models.TransientModel):
             raise UserError(_(
                 'Vui lòng chọn NGUỒN cho các khách:\n%s'
             ) % '\n'.join('• %s — %s' % (l.name or '(chưa tên)', l.phone or '') for l in no_src))
-        # GIỮ NGUYÊN 1 TRANG (user spec 2026-09-22): KHÔNG reopen popup/bảng nữa.
-        # Ghi show_distribute=True (persist transient) rồi return None → client
-        # tự nạp lại record TẠI CHỖ, khối "Chọn cách chia" hiện ngay trong trang.
+        # MỞ LẠI wizard tường minh (fix 2026-09-25): return None trong dialog
+        # target=new hay ĐÓNG popup (mất khối chọn NV) — bug tái phát từ commit
+        # 96317c1. Dùng _vd_reopen() để khối "Chọn nhân viên" CHẮC CHẮN hiện.
         self.show_distribute = True
-        return None
+        return self._vd_reopen()
 
     def action_distribute_even_all(self):
         """⚖️ Chia đều cho TẤT CẢ NV đang nhận số → HIỆN THỐNG KÊ tại chỗ (user
@@ -774,7 +774,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
         self.distribute_mode = 'even_all'
         self._vd_apply_distribution()
         self.vd_distributed = True
-        return None
+        return self._vd_reopen()
 
     def action_distribute_group(self):
         """👥 Chia đều cho NV ĐÃ CHỌN → HIỆN THỐNG KÊ tại chỗ rồi bấm TẠO xác nhận."""
@@ -786,7 +786,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
         self.distribute_mode = 'group'
         self._vd_apply_distribution()
         self.vd_distributed = True
-        return None
+        return self._vd_reopen()
 
     @api.onchange('distribute_mode', 'group_user_ids')
     def _onchange_distribute_mode(self):
