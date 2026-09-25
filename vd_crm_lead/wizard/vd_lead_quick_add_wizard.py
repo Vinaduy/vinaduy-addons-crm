@@ -546,7 +546,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'vd_is_excel': True, 'status': 'new'}
         info = info_map.get(cphone[1:]) if cphone else ''
         if info:
-            vals.update(self.env['vd.lead.quick.add.line']._vd_parse_info_vals(info))
+            vals.update(self.env['vd.lead.quick.add.wizard.line']._vd_parse_info_vals(info))
         return vals
 
     def _vd_finish_import(self, rows, source_word=''):
