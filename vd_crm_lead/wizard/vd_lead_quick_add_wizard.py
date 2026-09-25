@@ -527,16 +527,26 @@ class VdLeadQuickAddWizard(models.TransientModel):
         except UserError as e:
             return {'warning': {'title': _('Không nhập được'),
                                 'message': e.args[0] if e.args else str(e)}}
-        # Thêm dòng mới vào bảng (giữ dòng cũ có dữ liệu, bỏ dòng trống) — cách
-        # onchange-safe: dựng recordset in-memory bằng .new() rồi gán lại. Cột
-        # "Thông tin" (nếu có) được parse → điền DT/số tầng/mái/ngân sách + Ghi chú.
-        lines = self.line_ids.filtered(lambda l: l.name or l.phone)
-        for nm, cp in clean:
-            lines += self.line_ids.new(
-                self._vd_line_vals_with_info(nm, cp, info_map))
-        self.line_ids = lines
-        self.vd_import_summary = self._vd_import_summary_text(
-            len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
+        # UPLOAD = TẠO KHÁCH LUÔN + CHIA ĐỀU cho NV đang nhận số (user spec
+        # 2026-09-25). KHÔNG nạp vào bảng nháp, KHÔNG bắt bấm CHIA SỐ nữa: upload
+        # xong là khách vào thẳng "Khách mới" của NV + vào thống kê "Quét số".
+        try:
+            n_created, detail = self._vd_import_create_now(clean, info_map)
+        except UserError as e:
+            return {'warning': {'title': _('Không tạo được khách'),
+                                'message': e.args[0] if e.args else str(e)}}
+        tail = ''
+        if sd:
+            tail += _(' · bỏ %d trùng') % sd
+        if sb:
+            tail += _(' · bỏ %d sai định dạng') % sb
+        self.vd_import_summary = _('✅ Đã tạo %d khách & chia cho NV%s') % (n_created, tail)
+        return {'warning': {
+            'title': _('✅ Đã tạo %d khách & chia cho NV') % n_created,
+            'message': _(
+                'Đã vào "Khách mới" của: %s%s.\n\nTải lại trang (F5) để thấy '
+                'ở dashboard.') % (detail, tail),
+        }}
 
     def _vd_core_phone(self, p):
         """Số ĐT → 'core' (national significant) để làm khoá map, khớp với cách
@@ -562,6 +572,90 @@ class VdLeadQuickAddWizard(models.TransientModel):
         if info:
             vals.update(self.env['vd.lead.quick.add.wizard.line']._vd_parse_info_vals(info))
         return vals
+
+    def _vd_ivals_to_lead(self, ivals):
+        """Đổi dict i_* (từ parser) → vals vd_intake_* cho crm.lead (validate
+        Selection). Dùng khi TẠO KHÁCH trực tiếp lúc upload file."""
+        Lead = self.env['crm.lead']
+        out = {}
+        simple = {
+            'i_area_m2': 'vd_intake_area_m2',
+            'i_house_type': 'vd_intake_house_type',
+            'i_budget_amount': 'vd_intake_budget_amount',
+            'i_note': 'vd_intake_function_notes',
+        }
+        for k, lf in simple.items():
+            v = ivals.get(k)
+            if not v:
+                continue
+            fld = Lead._fields.get(lf)
+            if fld and fld.type == 'selection':
+                sel = fld.selection
+                if callable(sel):
+                    sel = sel(Lead)
+                if v not in {kk for kk, _l in (sel or [])}:
+                    continue
+            out[lf] = v
+        fs = ivals.get('i_floors_select')
+        if fs:
+            if fs.endswith('t'):
+                out['vd_intake_floors_select'] = fs[:-1]
+                out['vd_intake_has_tum'] = True
+            else:
+                out['vd_intake_floors_select'] = fs
+        return out
+
+    def _vd_import_create_now(self, clean, info_map):
+        """TẠO NGAY khách từ danh sách đã lọc + CHIA ĐỀU cho NV đang nhận số
+        (user spec 2026-09-25: upload file = thành khách luôn, vào Khách mới của
+        NV, KHÔNG bắt bấm thêm bước). Trả (số_đã_tạo, chuỗi_chi_tiết).
+        Raise UserError nếu không có NV nào đang nhận số."""
+        from collections import Counter
+        Lead = self.env['crm.lead'].sudo()
+        pool = list(self._vd_eligible_users())
+        if not pool:
+            raise UserError(_(
+                'Không có NV nào đang nhận số để chia. Bật "nhận số" cho NV rồi '
+                'upload lại.'))
+        # Chia đều: bắt đầu từ NV đang ÍT khách mới nhất (cân bằng tải).
+        load = {u.id: self._vd_user_new_total(u.id) for u in pool}
+        order = sorted(pool, key=lambda u: load.get(u.id, 0))
+        npool = len(order)
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
+        prefix = SOURCE_PREFIX.get('facebook', '')
+        Line = self.env['vd.lead.quick.add.wizard.line']
+        counts = Counter()
+        created = Lead.browse()
+        for idx, (nm, cp) in enumerate(clean):
+            u = order[idx % npool]
+            vals = {
+                'name': ('%s%s' % (prefix, nm)).strip(),
+                'partner_name': nm,
+                'phone': cp,
+                'user_id': u.id,
+                'type': 'lead',
+                'vd_from_excel': True,   # → vào thống kê "Quét số"
+            }
+            if new_stage:
+                vals['stage_id'] = new_stage.id
+            info = info_map.get(cp[1:])
+            if info:
+                vals.update(self._vd_ivals_to_lead(Line._vd_parse_info_vals(info)))
+            lead = Lead.with_context(
+                vd_skip_reassign_check=True,
+                vd_skip_assignment_balance=True,
+            ).create(vals)
+            created |= lead
+            counts[u.id] += 1
+        # 🔔 báo NV vừa được đẩy số (chuông + thông báo realtime).
+        try:
+            self._vd_notify_pushed(created, exclude_uid=self.env.user.id)
+        except Exception:
+            pass
+        ResUsers = self.env['res.users'].sudo()
+        detail = ', '.join('%s (%d)' % (ResUsers.browse(uid).name or '?', c)
+                           for uid, c in counts.most_common())
+        return len(created), detail
 
     def _vd_finish_import(self, rows, source_word=''):
         """Nạp bảng qua nút (paste/legacy) — persist rồi reopen. `rows` có thể là
