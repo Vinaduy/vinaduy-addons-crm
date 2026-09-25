@@ -13906,8 +13906,16 @@ div.o_vd_layout_grid:not(:has(.o_vd_layout_right > *)) .o_vd_layout_right {
 table.o_vd_qtbl {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     margin: 0;
+    table-layout: fixed;   /* chia cột theo tỉ lệ cố định, không giãn theo nội dung */
+
+    /* Độ rộng cột cân đối: Nội dung rộng nhất, tiền gọn 1 dòng */
+    .o_vd_qtbl_l  { width: 24%; }   /* Nội dung */
+    .o_vd_qtbl_c:not(.o_vd_qtbl_toth) { width: 21%; }   /* Diện tích */
+    thead th:nth-child(3) { width: 16%; }   /* Đơn giá */
+    thead th:nth-child(4) { width: 18%; }   /* Thành Tiền */
+    thead th:nth-child(5) { width: 21%; }   /* Tổng Tiền */
 
     /* Header xanh y bảng gốc */
     .o_vd_qtbl_h {
@@ -13915,7 +13923,7 @@ table.o_vd_qtbl {
         color: #fff;
         border: 1px solid #1864ab;
         font-weight: 600;
-        padding: 0.5rem;
+        padding: 0.4rem 0.5rem;
         white-space: nowrap;
     }
     .o_vd_qtbl_toth { background: #4a7aa0; }
@@ -13923,35 +13931,45 @@ table.o_vd_qtbl {
     .o_vd_qtbl_c { text-align: center; }
     .o_vd_qtbl_r { text-align: right; }
 
-    /* Ô viền xanh, nền trắng */
+    /* Ô viền xanh, nền trắng — DÒNG GỌN */
     .o_vd_qtbl_td {
         border: 1px solid #93c5fd;
         background: #fff;
-        padding: 0.45rem 0.55rem;
+        padding: 0.3rem 0.5rem;
         vertical-align: middle;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     tbody tr:hover .o_vd_qtbl_td { background: #eff6ff; }
 
-    /* Input sửa trực tiếp: trong suốt, liền mạch với ô — KHÔNG giống form khác */
+    /* Input sửa trực tiếp: trong suốt, liền mạch với ô */
     .o_vd_qtbl_in {
         width: 100%;
         border: 1px solid transparent;
         background: transparent;
-        font-size: 0.85rem;
-        padding: 0.15rem 0.25rem;
+        font-size: 0.82rem;
+        padding: 0.1rem 0.25rem;
         border-radius: 4px;
         outline: none;
     }
     .o_vd_qtbl_in:hover { border-color: #bfdbfe; background: #f8fbff; }
     .o_vd_qtbl_in:focus { border-color: #1864ab; background: #fff; box-shadow: 0 0 0 2px rgba(24,100,171,0.12); }
     .o_vd_qtbl_in_c { text-align: center; }
-    .o_vd_qtbl_in_r { text-align: right; }
+    /* Ô Đơn giá: input + " VNĐ" trên CÙNG 1 dòng (không xuống dòng → dòng thấp) */
+    .o_vd_qtbl_in_r {
+        display: inline-block;
+        width: calc(100% - 2.6rem);
+        text-align: right;
+        vertical-align: middle;
+    }
 
     .o_vd_qtbl_name .o_vd_qtbl_in { font-weight: 600; }
-    .o_vd_qtbl_unit { color: #6b7280; font-size: 0.78rem; }
+    .o_vd_qtbl_unit { color: #6b7280; font-size: 0.75rem; white-space: nowrap; }
 
-    /* Thành tiền (readonly) — đậm, xanh, phải */
+    /* Thành tiền (readonly) — đậm, xanh, phải, 1 dòng */
     .o_vd_qtbl_amt { text-align: right; font-weight: 700; color: #1864ab; white-space: nowrap; }
+    .o_vd_qtbl_r { white-space: nowrap; }
 
     /* Ô TỔNG TIỀN gộp bên phải — y bảng gốc */
     .o_vd_qtbl_total {
@@ -13960,10 +13978,9 @@ table.o_vd_qtbl {
         color: #1864ab;
         text-align: center;
         font-weight: 700;
-        font-size: 1rem;
+        font-size: 0.95rem;
         vertical-align: middle;
         white-space: nowrap;
-        min-width: 8rem;
     }
 
     .o_vd_qtbl_empty {
