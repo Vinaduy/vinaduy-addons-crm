@@ -207,7 +207,11 @@ class CrmLead(models.Model):
         for p in phones:
             if not p:
                 continue
-            digits = re.sub(r'\D', '', str(p))
+            ps = str(p).strip()
+            # SĐT lưu dạng SỐ trong Excel → '975010788.0'; bỏ đuôi '.0' kẻo khi
+            # strip dấu chấm sẽ thừa 1 số 0 → sai định dạng (fix 2026-09-25).
+            ps = re.sub(r'\.0+$', '', ps)
+            digits = re.sub(r'\D', '', ps)
             if not digits:
                 continue
             # Strip country code + leading 0

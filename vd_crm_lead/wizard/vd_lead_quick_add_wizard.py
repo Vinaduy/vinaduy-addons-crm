@@ -267,6 +267,20 @@ class VdLeadQuickAddWizard(models.TransientModel):
         }
 
     # ==================== NHẬP TỪ FILE EXCEL / CSV ====================
+    @staticmethod
+    def _vd_cell_str(c):
+        """Ô Excel → chuỗi. QUAN TRỌNG: SĐT hay được lưu dạng SỐ → openpyxl trả
+        float '975010788.0'; nếu str() thẳng rồi bỏ dấu chấm sẽ ra '9750107880'
+        (thừa số 0 → sai định dạng, báo trùng/sai hàng loạt). Nên float NGUYÊN →
+        int (bỏ .0). (fix 2026-09-25)"""
+        if c is None:
+            return ''
+        if isinstance(c, float) and c.is_integer():
+            return str(int(c))
+        if isinstance(c, int):
+            return str(c)
+        return str(c).strip()
+
     def _vd_parse_import_rows(self, data, filename):
         """Đọc bytes file .xlsx/.csv → list[list[str]] (mỗi hàng 1 list ô)."""
         import io
@@ -301,7 +315,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
         ws = wb.active
         rows = []
         for r in ws.iter_rows(values_only=True):
-            rows.append([('' if c is None else str(c)).strip() for c in r])
+            rows.append([self._vd_cell_str(c) for c in r])
         wb.close()
         return rows
 
