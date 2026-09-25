@@ -29,6 +29,10 @@
                         <field name="vd_stt" string="#" column_invisible="1"/>
                         <field name="phone_is_dup" column_invisible="1"/>
                         <field name="vd_warn_bad" column_invisible="1"/>
+                        <!-- BẮT BUỘC có trong view: onchange nạp file set vd_is_excel=True,
+                             nếu field KHÔNG ở arch thì web client bỏ khi lưu → lead mất cờ
+                             → không vào thống kê "Quét số" (fix 2026-09-25). -->
+                        <field name="vd_is_excel" column_invisible="1"/>
                         <field name="name" placeholder="Tên KH"/>
                         <field name="phone" placeholder="0901..."/>
                         <field name="source" string="Nguồn" widget="vd_selection_dropdown" options="{'extensible': True}"/>
