@@ -308,28 +308,36 @@ class VdLeadQuickAddWizard(models.TransientModel):
     _VD_IMP_PHONE_KEYS = ('sđt', 'sdt', 'điện thoại', 'dien thoai', 'phone',
                           'số điện', 'so dien', 'mobile', 'số đt', 'so dt', 'tel')
     _VD_IMP_NAME_KEYS = ('tên', 'ten', 'name', 'khách', 'khach', 'họ tên', 'ho ten')
+    # Cột mô tả nhu cầu (parse → trường khai thác + Ghi chú). user spec 2026-09-25.
+    _VD_IMP_INFO_KEYS = ('thông tin', 'thong tin', 'thôngtin', 'nội dung', 'noi dung',
+                         'yêu cầu', 'yeu cau', 'nhu cầu', 'nhu cau', 'mô tả', 'mo ta',
+                         'ghi chú', 'ghi chu', 'info', 'note')
 
     def _vd_extract_name_phone(self, rows):
-        """Từ bảng thô → list[(tên, sđt)]. Ưu tiên dò cột theo tiêu đề; không có
-        thì đoán theo nội dung (ô giống SĐT VN = SĐT, ô chữ dài = tên)."""
-        name_col = phone_col = None
+        """Từ bảng thô → list[(tên, sđt, thông_tin)]. Ưu tiên dò cột theo tiêu đề;
+        không có thì đoán theo nội dung (ô giống SĐT VN = SĐT, ô chữ dài = tên).
+        Cột 'Thông tin/Nội dung/Yêu cầu' (nếu có) → chuỗi mô tả nhu cầu."""
+        name_col = phone_col = info_col = None
         header_idx = -1
         for i, row in enumerate(rows[:6]):
             lc = [(c or '').strip().lower() for c in row]
-            pc = nc = None
+            pc = nc = ic = None
             for j, c in enumerate(lc):
                 if pc is None and any(k in c for k in self._VD_IMP_PHONE_KEYS):
                     pc = j
                 if nc is None and any(k in c for k in self._VD_IMP_NAME_KEYS):
                     nc = j
+                if ic is None and any(k in c for k in self._VD_IMP_INFO_KEYS):
+                    ic = j
             if pc is not None:
-                phone_col, name_col, header_idx = pc, nc, i
+                phone_col, name_col, info_col, header_idx = pc, nc, ic, i
                 break
         data_rows = rows[header_idx + 1:] if header_idx >= 0 else rows
         out = []
         for row in data_rows:
             name = row[name_col] if (name_col is not None and name_col < len(row)) else ''
             phone = row[phone_col] if (phone_col is not None and phone_col < len(row)) else ''
+            info = row[info_col] if (info_col is not None and info_col < len(row)) else ''
             if not phone:
                 for c in row:
                     if self._vd_phone_is_valid(c):
@@ -340,7 +348,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 if cands:
                     name = max(cands, key=len)
             if phone:
-                out.append(((name or '').strip(), phone.strip()))
+                out.append(((name or '').strip(), phone.strip(), (info or '').strip()))
         return out
 
     def action_import_excel(self):
@@ -486,7 +494,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
         import base64
         try:
             data = base64.b64decode(self.vd_import_file)
-            pairs = self._vd_extract_name_phone(
+            triples = self._vd_extract_name_phone(
                 self._vd_parse_import_rows(data, self.vd_import_filename))
         except Exception as e:  # noqa: BLE001
             self.vd_import_file = False
@@ -494,36 +502,63 @@ class VdLeadQuickAddWizard(models.TransientModel):
                                 'message': str(e)[:200]}}
         self.vd_import_file = False
         self.vd_import_filename = False
-        if not pairs:
+        if not triples:
             return {'warning': {'title': _('File rỗng'),
                                 'message': _('Không đọc được SĐT nào từ file. '
                                              'Cần cột SĐT/Điện thoại/Phone.')}}
+        info_map = self._vd_build_info_map(triples)
+        pairs = [(r[0], r[1]) for r in triples]
         try:
             clean, sd, sb = self._vd_prepare_import(pairs)
         except UserError as e:
             return {'warning': {'title': _('Không nhập được'),
                                 'message': e.args[0] if e.args else str(e)}}
         # Thêm dòng mới vào bảng (giữ dòng cũ có dữ liệu, bỏ dòng trống) — cách
-        # onchange-safe: dựng recordset in-memory bằng .new() rồi gán lại.
+        # onchange-safe: dựng recordset in-memory bằng .new() rồi gán lại. Cột
+        # "Thông tin" (nếu có) được parse → điền DT/số tầng/mái/ngân sách + Ghi chú.
         lines = self.line_ids.filtered(lambda l: l.name or l.phone)
         for nm, cp in clean:
-            lines += self.line_ids.new({
-                'name': nm, 'phone': cp, 'source': 'facebook',
-                'vd_is_excel': True, 'status': 'new',
-            })
+            lines += self.line_ids.new(
+                self._vd_line_vals_with_info(nm, cp, info_map))
         self.line_ids = lines
         self.vd_import_summary = self._vd_import_summary_text(
             len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
 
-    def _vd_finish_import(self, pairs, source_word=''):
-        """Nạp bảng qua nút (paste/legacy) — persist rồi reopen. Dùng lại
+    def _vd_core_phone(self, p):
+        """Số ĐT → 'core' (national significant) để làm khoá map, khớp với cách
+        _vd_prepare_import chuẩn hoá (cphone = '0' + core)."""
+        s = self.env['crm.lead']._vd_normalize_phones_set(p)
+        return next(iter(s)) if s else ''
+
+    def _vd_build_info_map(self, rows):
+        """rows = list[(tên, sđt[, thông_tin])] → {core_phone: thông_tin}."""
+        m = {}
+        for r in rows:
+            if len(r) > 2 and r[2]:
+                core = self._vd_core_phone(r[1])
+                if core:
+                    m[core] = r[2]
+        return m
+
+    def _vd_line_vals_with_info(self, nm, cphone, info_map):
+        """Dựng vals 1 dòng import + parse cột 'Thông tin' (nếu có) → điền i_*."""
+        vals = {'name': nm, 'phone': cphone, 'source': 'facebook',
+                'vd_is_excel': True, 'status': 'new'}
+        info = info_map.get(cphone[1:]) if cphone else ''
+        if info:
+            vals.update(self.env['vd.lead.quick.add.line']._vd_parse_info_vals(info))
+        return vals
+
+    def _vd_finish_import(self, rows, source_word=''):
+        """Nạp bảng qua nút (paste/legacy) — persist rồi reopen. `rows` có thể là
+        list[(tên, sđt)] hoặc list[(tên, sđt, thông_tin)]. Dùng lại
         _vd_prepare_import để không lặp code."""
+        info_map = self._vd_build_info_map(rows)
+        pairs = [(r[0], r[1]) for r in rows]
         clean, sd, sb = self._vd_prepare_import(pairs)
         self.line_ids.filtered(lambda l: not l.name and not l.phone).unlink()
-        cmds = [(0, 0, {
-            'name': nm, 'phone': cp, 'source': 'facebook',
-            'vd_is_excel': True, 'status': 'new',
-        }) for nm, cp in clean]
+        cmds = [(0, 0, self._vd_line_vals_with_info(nm, cp, info_map))
+                for nm, cp in clean]
         self.write({'line_ids': cmds})
         self.vd_import_summary = self._vd_import_summary_text(
             len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
@@ -978,6 +1013,8 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 'i_land_type': 'vd_intake_land_type',
                 'i_car_access_select': 'vd_intake_car_access_select',
                 'i_budget_amount': 'vd_intake_budget_amount',
+                # Nguyên văn cột "Thông tin" → Ghi chú (không mất dữ liệu).
+                'i_note': 'vd_intake_function_notes',
             }
             for line_fld, lead_fld in mirror_map.items():
                 val = line[line_fld]
@@ -1374,6 +1411,94 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
         ('khong', 'Ô tô KHÔNG vào được'),
     ], string='Ô tô vào')
     i_budget_amount = fields.Float(string='Ngân sách (VNĐ)')
+    # THÔNG TIN thô từ cột "Thông tin" file Excel (user spec 2026-09-25). Nguyên
+    # văn → mirror sang crm.lead.vd_intake_function_notes (Ghi chú) khi tạo lead,
+    # nên KHÔNG mất gì; các trường parse được (DT/số tầng/mái/ngân sách) điền thêm.
+    i_note = fields.Char(string='Thông tin / Ghi chú')
+
+    @api.model
+    def _vd_novn(self, s):
+        """Bỏ dấu tiếng Việt để dò từ khoá (đ→d). Đổi dấu nhân '×'/'✕'→'x' để bắt
+        '5×20'. Giữ bản gốc cho Ghi chú."""
+        import unicodedata
+        s = unicodedata.normalize('NFD', s or '')
+        s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+        return (s.replace('đ', 'd').replace('Đ', 'D')
+                 .replace('×', 'x').replace('✕', 'x').replace('X', 'x'))
+
+    @api.model
+    def _vd_parse_budget_from_text(self, nov):
+        """Chuỗi ĐÃ bỏ dấu → số tiền VNĐ. 'ty/ti'→tỷ, 'tr/trieu'→triệu.
+        Dải '1,5-2 ty' lấy cận DƯỚI (an toàn). 0 nếu không thấy."""
+        import re
+        m = re.search(r'(\d+(?:[.,]\d+)?)\s*(?:-\s*\d+(?:[.,]\d+)?\s*)?(?:ty|ti)\b', nov)
+        if m:
+            try:
+                return float(m.group(1).replace(',', '.')) * 1e9
+            except ValueError:
+                return 0.0
+        m = re.search(r'(\d{2,4})\s*(?:tr|trieu)\b', nov)
+        if m:
+            return float(m.group(1)) * 1e6
+        return 0.0
+
+    @api.model
+    def _vd_parse_info_vals(self, text):
+        """Parse chữ tự do cột 'Thông tin' → dict giá trị i_* (đoán AN TOÀN).
+        LUÔN kèm i_note = nguyên văn (→ Ghi chú) nên phần chưa parse được vẫn còn.
+        Parse: Diện tích (RxD hoặc m2), Số tầng, Kiểu nhà (mái bằng/thái/nhật),
+        Ngân sách. Cái gì không chắc thì BỎ QUA (để nguyên trong Ghi chú)."""
+        import re
+        t = (text or '').strip()
+        if not t:
+            return {}
+        vals = {'i_note': t}
+        nov = self._vd_novn(t).lower()
+
+        # ---- Diện tích: ưu tiên Rộng x Dài ("5x20", "5.6m*26m", "6x35", "5,5x18m")
+        m = re.search(r'(\d+(?:[.,]\d+)?)\s*m?\s*[x*]\s*(\d+(?:[.,]\d+)?)\s*m?', nov)
+        if m:
+            try:
+                w = float(m.group(1).replace(',', '.'))
+                l = float(m.group(2).replace(',', '.'))
+                if 2 <= w <= 100 and 2 <= l <= 300:
+                    vals['i_area_m2'] = round(w * l, 1)
+            except ValueError:
+                pass
+        if 'i_area_m2' not in vals:
+            m = re.search(r'(\d{2,4})\s*m2?\b', nov)  # "120m2", "160m", "90m2"
+            if m:
+                a = float(m.group(1))
+                if 10 <= a <= 5000:
+                    vals['i_area_m2'] = a
+
+        # ---- Số tầng: "2 tang", "1 tang"; "cap 4" -> 1 tầng
+        fm = re.search(r'(\d)\s*tang', nov)
+        if fm and fm.group(1) in '1234567':
+            vals['i_floors_select'] = fm.group(1)
+        elif re.search(r'c[aâ]p\s*4', nov):
+            vals['i_floors_select'] = '1'
+
+        # ---- Kiểu nhà (mái) — chỉ set khi key hợp lệ trong selection
+        ht = None
+        if 'mai thai' in nov:
+            ht = 'mai_thai'
+        elif 'mai nhat' in nov:
+            ht = 'mai_nhat'
+        elif 'mai bang' in nov:
+            ht = 'mai_bang'
+        if ht:
+            sel = self.env['crm.lead']._fields['vd_intake_house_type'].selection
+            if callable(sel):
+                sel = sel(self.env['crm.lead'])
+            if ht in {k for k, _lbl in (sel or [])}:
+                vals['i_house_type'] = ht
+
+        # ---- Ngân sách (tầm tài chính)
+        amt = self._vd_parse_budget_from_text(nov)
+        if amt:
+            vals['i_budget_amount'] = amt
+        return vals
 
     # 10 cột tuỳ chọn — admin tự đặt tên qua "+ Thêm cột" (vd.intake.custom.field).
     # Label hiển thị được override dynamic trong fields_get() dựa trên config.

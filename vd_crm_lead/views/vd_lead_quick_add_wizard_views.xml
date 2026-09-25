@@ -42,6 +42,10 @@
                         <!-- Cột "Tải NV" ĐÃ ẨN (user spec 2026-08-24: bảng gọn). -->
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" column_invisible="1"/>
+                        <!-- Cột "Thông tin" (nạp từ file Excel) — nội dung nhu cầu KH.
+                             Parse được DT/số tầng/mái/ngân sách; nguyên văn vào Ghi chú. -->
+                        <field name="i_note" string="Thông tin" optional="show"
+                               placeholder="Nhu cầu KH (tự nạp từ file)"/>
                         <!-- Intake mirror columns — admin bật/tắt qua ⋮ dropdown -->
                         <field name="i_house_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <field name="i_foundation_type" optional="hide" widget="vd_selection_dropdown" options="{'extensible': True}"/>
