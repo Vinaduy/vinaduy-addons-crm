@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- BẢNG BÁO GIÁ GỐC (xanh) — sửa trực tiếp trong ô. Cột "Tổng Tiền" gộp
+         (rowspan) bên phải đúng như bảng cũ. -->
+    <t t-name="vd_crm_lead.VdQuoteTable">
+        <table class="o_vd_qtbl">
+            <thead>
+                <tr>
+                    <th class="o_vd_qtbl_h o_vd_qtbl_l">Nội dung</th>
+                    <th class="o_vd_qtbl_h o_vd_qtbl_c">Diện tích</th>
+                    <th class="o_vd_qtbl_h o_vd_qtbl_r">Đơn giá</th>
+                    <th class="o_vd_qtbl_h o_vd_qtbl_r">Thành Tiền</th>
+                    <th class="o_vd_qtbl_h o_vd_qtbl_c o_vd_qtbl_toth">Tổng Tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="lines" t-as="line" t-key="line.id">
+                    <tr>
+                        <td class="o_vd_qtbl_td o_vd_qtbl_name">
+                            <input type="text" class="o_vd_qtbl_in"
+                                   t-att-value="line.data.name || ''"
+                                   t-on-change="(ev) => this.onEditText(line, 'name', ev)"/>
+                        </td>
+                        <td class="o_vd_qtbl_td o_vd_qtbl_c">
+                            <input type="text" class="o_vd_qtbl_in o_vd_qtbl_in_c"
+                                   t-att-value="line.data.area_label || ''"
+                                   t-on-change="(ev) => this.onEditText(line, 'area_label', ev)"/>
+                        </td>
+                        <td class="o_vd_qtbl_td o_vd_qtbl_r">
+                            <input type="text" inputmode="numeric"
+                                   class="o_vd_qtbl_in o_vd_qtbl_in_r"
+                                   t-att-value="fmt(line.data.unit_price)"
+                                   t-on-change="(ev) => this.onEditPrice(line, ev)"/>
+                            <span class="o_vd_qtbl_unit"> VNĐ</span>
+                        </td>
+                        <td class="o_vd_qtbl_td o_vd_qtbl_r o_vd_qtbl_amt">
+                            <t t-esc="fmt(lineAmount(line))"/> VNĐ
+                        </td>
+                        <t t-if="line_index === 0">
+                            <td class="o_vd_qtbl_td o_vd_qtbl_total"
+                                t-att-rowspan="lines.length">
+                                <t t-esc="fmt(total)"/> VNĐ
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+                <tr t-if="!lines.length">
+                    <td colspan="5" class="o_vd_qtbl_empty">
+                        Chưa có dòng — bấm <b>🔄 Đặt lại theo thông tin</b> để dựng bảng.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </t>
+
+</templates>

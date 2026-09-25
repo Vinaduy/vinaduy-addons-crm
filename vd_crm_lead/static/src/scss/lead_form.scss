@@ -13889,87 +13889,91 @@ div.o_vd_layout_grid:not(:has(.o_vd_layout_right > *)) .o_vd_layout_right {
     .o_list_renderer { max-height: 16rem; overflow-y: auto; }
 }
 
-/* Bảng SỬA BÁO GIÁ — GIỮ NGUYÊN GIAO DIỆN BẢNG GỐC (xanh) nhưng cho sửa TRỰC
-   TIẾP trong ô (user spec 2026-09-24). Restyle list editable của Odoo trông y
-   hệt bảng báo giá HTML gốc: header xanh #5c8fb8, viền xanh #93c5fd, dòng tổng
-   xanh đậm. */
+/* ===== BẢNG BÁO GIÁ GỐC (xanh) — SỬA TRỰC TIẾP (widget vd_quote_table) =====
+   User spec 2026-09-25: giữ NGUYÊN giao diện bảng cũ (header xanh #5c8fb8, viền
+   xanh #93c5fd, ô "Tổng Tiền" gộp bên phải), chỉ sửa trực tiếp trong ô. KHÔNG
+   dùng list thô của Odoo. */
 .o_vd_quote_edit_box_lines {
-    /* Bỏ khung vàng-nét-đứt của .o_vd_quote_edit_box cho biến thể này → nền
-       trắng gọn như bảng gốc. Giữ 1 dải gợi ý nhỏ ở trên. */
-    background: #fff !important;
-    border: 1px solid #93c5fd !important;
-    border-radius: 8px;
+    background: transparent !important;
+    border: 0 !important;
     padding: 0 !important;
-    overflow: hidden;
+    margin: 0.4rem 0;
 
-    .o_vd_quote_edit_hint {
-        padding: 0.5rem 0.6rem;
-        background: #fff9db;
-        border-bottom: 1px solid #ffe08a;
-        margin-bottom: 0 !important;
+    /* ẩn "record selector"/thao tác thừa nếu widget vô tình sinh */
+    .o_field_x2many_list_row_add { display: none !important; }
+}
+
+table.o_vd_qtbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 0;
+
+    /* Header xanh y bảng gốc */
+    .o_vd_qtbl_h {
+        background: #5c8fb8;
+        color: #fff;
+        border: 1px solid #1864ab;
+        font-weight: 600;
+        padding: 0.5rem;
+        white-space: nowrap;
     }
+    .o_vd_qtbl_toth { background: #4a7aa0; }
+    .o_vd_qtbl_l { text-align: left; }
+    .o_vd_qtbl_c { text-align: center; }
+    .o_vd_qtbl_r { text-align: right; }
 
-    .o_list_renderer { max-height: 26rem; overflow-y: auto; }
-
-    .o_list_table {
-        border-collapse: collapse !important;
-        width: 100%;
-        font-size: 0.85rem !important;
-        margin: 0;
-    }
-
-    /* Header xanh giống bảng gốc */
-    .o_list_table thead th {
-        background: #5c8fb8 !important;
-        color: #fff !important;
-        border: 1px solid #1864ab !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-        padding: 0.5rem !important;
-    }
-    /* cột handle (kéo thả) + cột xoá: header trơn */
-    .o_list_table thead th.o_handle_cell,
-    .o_list_table thead th:last-child { background: #4a7aa0 !important; }
-
-    /* Ô viền xanh, nền trắng — giống <td> bảng gốc */
-    .o_list_table tbody td {
-        border: 1px solid #93c5fd !important;
-        background: #fff !important;
-        padding: 0.45rem 0.55rem !important;
-        font-size: 0.85rem !important;
-        line-height: 1.4 !important;
+    /* Ô viền xanh, nền trắng */
+    .o_vd_qtbl_td {
+        border: 1px solid #93c5fd;
+        background: #fff;
+        padding: 0.45rem 0.55rem;
         vertical-align: middle;
     }
-    .o_list_table tbody tr:hover td { background: #eff6ff !important; }
+    tbody tr:hover .o_vd_qtbl_td { background: #eff6ff; }
 
-    /* Ô đang sửa: input trong suốt, không tạo cảm giác "form khác" */
-    .o_list_table tbody td .o_input,
-    .o_list_table tbody td input,
-    .o_list_table tbody td .o_field_widget {
-        background: transparent !important;
-        font-size: 0.85rem !important;
+    /* Input sửa trực tiếp: trong suốt, liền mạch với ô — KHÔNG giống form khác */
+    .o_vd_qtbl_in {
+        width: 100%;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.85rem;
+        padding: 0.15rem 0.25rem;
+        border-radius: 4px;
+        outline: none;
     }
-    /* Nội dung in đậm nhẹ giống bảng gốc (cột 2 = sau handle) */
-    .o_list_table tbody td[name="name"] { font-weight: 600; }
-    .o_list_table tbody td[name="amount"] { text-align: right; font-weight: 700; color: #1864ab; }
-    .o_list_table tbody td[name="unit_price"] { text-align: right; }
+    .o_vd_qtbl_in:hover { border-color: #bfdbfe; background: #f8fbff; }
+    .o_vd_qtbl_in:focus { border-color: #1864ab; background: #fff; box-shadow: 0 0 0 2px rgba(24,100,171,0.12); }
+    .o_vd_qtbl_in_c { text-align: center; }
+    .o_vd_qtbl_in_r { text-align: right; }
 
-    /* Dòng TỔNG (footer aggregates) = thanh tổng xanh đậm giống ô "Tổng Tiền" gốc */
-    .o_list_table tfoot {
-        background: #dbeafe !important;
-        color: #1864ab !important;
-        font-weight: 700 !important;
-    }
-    .o_list_table tfoot td {
-        border: 1px solid #1864ab !important;
-        font-size: 1rem !important;
-        padding: 0.5rem 0.55rem !important;
-        color: #1864ab !important;
+    .o_vd_qtbl_name .o_vd_qtbl_in { font-weight: 600; }
+    .o_vd_qtbl_unit { color: #6b7280; font-size: 0.78rem; }
+
+    /* Thành tiền (readonly) — đậm, xanh, phải */
+    .o_vd_qtbl_amt { text-align: right; font-weight: 700; color: #1864ab; white-space: nowrap; }
+
+    /* Ô TỔNG TIỀN gộp bên phải — y bảng gốc */
+    .o_vd_qtbl_total {
+        border: 1px solid #1864ab;
+        background: #dbeafe;
+        color: #1864ab;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1rem;
+        vertical-align: middle;
+        white-space: nowrap;
+        min-width: 8rem;
     }
 
-    /* "Thêm một dòng" xanh, rõ */
-    .o_field_x2many_list_row_add a {
-        color: #1864ab !important;
-        font-weight: 600;
+    .o_vd_qtbl_empty {
+        border: 1px dashed #ced4da;
+        background: #f8f9fa;
+        color: #868e96;
+        text-align: center;
+        padding: 0.8rem;
+        font-style: italic;
     }
 }
+
+.o_vd_quote_edit_foot { margin-top: 0.5rem; }
