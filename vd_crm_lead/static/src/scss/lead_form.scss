@@ -13956,10 +13956,10 @@ table.o_vd_qtbl {
     .o_vd_qtbl_in:hover { border-color: #bfdbfe; background: #f8fbff; }
     .o_vd_qtbl_in:focus { border-color: #1864ab; background: #fff; box-shadow: 0 0 0 2px rgba(24,100,171,0.12); }
     .o_vd_qtbl_in_c { text-align: center; }
-    /* Ô Đơn giá: input + " VNĐ" trên CÙNG 1 dòng (không xuống dòng → dòng thấp) */
+    /* Ô Đơn giá: input full-width, canh phải (đơn vị VNĐ đã đưa lên tiêu đề cột) */
     .o_vd_qtbl_in_r {
         display: inline-block;
-        width: calc(100% - 2.6rem);
+        width: 100%;
         text-align: right;
         vertical-align: middle;
     }
