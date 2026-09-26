@@ -2438,6 +2438,11 @@ class CrmLead(models.Model):
                                   .mapped('line_key')) - {False, ''}
                 rec._vd_gen_quote_lines_from_intake(
                     replace=False, skip_keys=manual_keys)
+            elif rec.vd_intake_complete and (rec.vd_intake_total_m2 or 0) > 0:
+                # CHƯA có dòng nào nhưng đã ĐỦ thông tin → dựng bảng LẦN ĐẦU (kể cả
+                # lead điền thông tin qua đường khác, không bấm "CHỐT THÔNG TIN")
+                # → báo giá hiện ngay, không còn bảng trống (user 2026-09-26).
+                rec._vd_gen_quote_lines_from_intake()
 
     # Các field intake ảnh hưởng công thức báo giá → đổi là re-sync dòng auto.
     _VD_QUOTE_DRIVER_FIELDS = frozenset({
