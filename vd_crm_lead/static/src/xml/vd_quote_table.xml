@@ -31,6 +31,7 @@
                             <input type="text" inputmode="numeric"
                                    class="o_vd_qtbl_in o_vd_qtbl_in_r"
                                    t-att-value="fmt(line.data.unit_price)"
+                                   t-on-input="(ev) => this.onInputPrice(line, ev)"
                                    t-on-change="(ev) => this.onEditPrice(line, ev)"/>
                         </td>
                         <td class="o_vd_qtbl_td o_vd_qtbl_r o_vd_qtbl_amt">

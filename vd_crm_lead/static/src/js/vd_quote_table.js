@@ -12,7 +12,7 @@
  *          <list create="0" delete="0"> ...fields... </list>
  *      </field>
  */
-import { Component } from "@odoo/owl";
+import { Component, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
@@ -29,6 +29,12 @@ export class VdQuoteTable extends Component {
     static template = "vd_crm_lead.VdQuoteTable";
     static props = { ...standardFieldProps };
 
+    setup() {
+        // live[line.id] = đơn giá ĐANG GÕ (chưa commit) → Thành tiền + Tổng nhảy
+        // NGAY khi gõ, không phải chờ rời ô (user 2026-09-26 "sửa đơn giá k nhân").
+        this.state = useState({ live: {} });
+    }
+
     get list() {
         return this.props.record.data[this.props.name];
     }
@@ -39,7 +45,10 @@ export class VdQuoteTable extends Component {
     }
 
     lineAmount(line) {
-        return (Number(line.data.qty) || 0) * (Number(line.data.unit_price) || 0);
+        const up = (line.id in this.state.live)
+            ? this.state.live[line.id]
+            : (Number(line.data.unit_price) || 0);
+        return (Number(line.data.qty) || 0) * up;
     }
 
     get total() {
@@ -60,19 +69,24 @@ export class VdQuoteTable extends Component {
         this._save();
     }
 
-    // Sửa Đơn giá (VNĐ, số nguyên) — bỏ mọi ký tự không phải số (kể cả dấu chấm
-    // ngăn cách nghìn kiểu vi-VN "6.500.000").
+    // Đang GÕ đơn giá → cập nhật Thành tiền + Tổng NGAY (live), KHÔNG đụng record
+    // (không re-render lại ô input → con trỏ không nhảy, chữ đang gõ không bị mất).
+    onInputPrice(line, ev) {
+        const digits = (ev.target.value || "").replace(/[^0-9]/g, "");
+        this.state.live[line.id] = parseInt(digits, 10) || 0;
+    }
+
+    // Rời ô (change) → CHỐT đơn giá vào dòng + lưu. Bỏ mọi ký tự không phải số
+    // (kể cả dấu chấm ngăn nghìn kiểu vi-VN "6.500.000").
     async onEditPrice(line, ev) {
         const digits = (ev.target.value || "").replace(/[^0-9]/g, "");
         const val = parseInt(digits, 10) || 0;
-        if (val === (Number(line.data.unit_price) || 0)) {
-            // vẫn re-format lại ô hiển thị cho gọn
-            ev.target.value = this.fmt(val);
-            return;
+        delete this.state.live[line.id];   // hết gõ → dùng lại giá trị đã chốt
+        if (val !== (Number(line.data.unit_price) || 0)) {
+            await line.update({ unit_price: val });
+            this._save();
         }
-        await line.update({ unit_price: val });
         ev.target.value = this.fmt(val);
-        this._save();
     }
 
     // Lưu ngầm KHÔNG reload (đường lưu chung của form — xem vd_num_input.js).
