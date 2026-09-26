@@ -2960,6 +2960,56 @@ export class VdCrmDashboard extends Component {
         // Reset tích chọn NV nhận khi mở "Chuyển" (multi-select, user spec 2026-09-26).
         this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true, xferChecked: {} };
     }
+    // ===== TỰ CHIA NGẪU NHIÊN cho các NV đang nhận số (user spec 2026-09-26) =====
+    // "mày tự chọn cho t, t muốn random mà k nhớ đã chuyển ai" → hệ thống xáo trộn
+    // NV + KH rồi chia đều round-robin → mỗi NV nhận số lượng bằng nhau nhưng ai
+    // nhận KH nào là ngẫu nhiên, admin khỏi phải chọn/nhớ.
+    _shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+    async bulkRandomDistribute() {
+        const leadIds = this.selectedLeadIdList;
+        if (!leadIds.length) {
+            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
+            return;
+        }
+        const pool = (this.state.users || [])
+            .filter((u) => u && u.id && u.can_receive).map((u) => u.id);
+        if (!pool.length) {
+            this.notification.add(
+                "Không có NV nào đang nhận số. Bật nhận số cho NV rồi thử lại.",
+                { type: "warning" });
+            return;
+        }
+        const ok = window.confirm(
+            `Chia NGẪU NHIÊN ${leadIds.length} khách cho ${pool.length} nhân viên đang nhận số?`);
+        if (!ok) return;
+        const nv = this._shuffle(pool);
+        const leadsShuf = this._shuffle(leadIds);
+        const assignments = leadsShuf.map((lid, i) => [lid, nv[i % nv.length]]);
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_distribute", [assignments]);
+            this.notification.add(
+                `Đã chia ngẫu nhiên ${moved} khách cho ${nv.length} nhân viên.`,
+                { type: "success", title: "Chia ngẫu nhiên" });
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            await this.loadDashboard();
+            if (this.state.is_manager) await this._reloadDashUsers();
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chia được" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {}, xferChecked: {} };
+        }
+    }
     // ===== CHUYỂN KH: tích 1 hoặc NHIỀU NV (2+ NV = TỰ CHIA ĐỀU round-robin) =====
     // user spec 2026-09-26: "chuyển từ NV này sang, muốn chia nửa NV A nửa NV B".
     toggleBulkXfer(uid) {

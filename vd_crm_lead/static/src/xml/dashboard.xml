@@ -2093,6 +2093,14 @@
                                             <span class="o_vd_bmi_tx">Chuyển toàn bộ KH đã chọn sang NV khác<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
                                             <span class="o_vd_bmi_ar">›</span>
                                         </button>
+                                        <!-- TỰ CHIA NGẪU NHIÊN — hệ thống tự chọn NV, khỏi phải nhớ
+                                             đã chuyển ai (user spec 2026-09-26). -->
+                                        <button class="o_vd_bulk_menu_it"
+                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
+                                                t-on-click="() => this.bulkRandomDistribute()">
+                                            <span class="o_vd_bmi_ic">🎲</span>
+                                            <span class="o_vd_bmi_tx">Chia NGẪU NHIÊN cho các NV đang nhận số<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
+                                        </button>
                                         <button class="o_vd_bulk_menu_it"
                                                 t-att-disabled="!selectedCount || state.bulkMenu.busy"
                                                 t-on-click="() => this.openBulkSub('teamPick')">
