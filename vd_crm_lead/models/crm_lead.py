@@ -2805,7 +2805,7 @@ class CrmLead(models.Model):
                     floor_rows_html += f'''
         <tr>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">{label}</td>
-            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{fa:.0f} M2</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{round(fa, 2):g} M2</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(cost)} VNĐ</td>
         </tr>'''
@@ -2833,7 +2833,7 @@ class CrmLead(models.Model):
                     floor_rows_html += f'''
         <tr>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">Thông tầng</td>
-            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{tt_base:.0f} M2 x {tt_pct:.0f}%</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{round(tt_base, 2):g} M2 x {tt_pct:.0f}%</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(thongtang_cost)} VNĐ</td>
         </tr>'''
@@ -2934,14 +2934,14 @@ class CrmLead(models.Model):
     <tbody>
         <tr>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">{found_lbl}</td>
-            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{found_area:.0f} M2 x {found_pct:.0f}%</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{round(found_area, 2):g} M2 x {found_pct:.0f}%</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(found_cost)} VNĐ</td>
             <td rowspan="{num_rows}" style="padding:0.5rem 0.55rem;border:1px solid #1864ab;background:#dbeafe;text-align:center;font-weight:700;font-size:1rem;color:#1864ab;vertical-align:middle;">{self._fmt_vnd(total)} VNĐ</td>
         </tr>{floor_rows_html}
         <tr>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;font-weight:600;font-size:0.85rem;">{roof_lbl}</td>
-            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{roof_area:.0f} M2 x {roof_pct:.0f}%</td>
+            <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:center;font-size:0.85rem;">{round(roof_area, 2):g} M2 x {roof_pct:.0f}%</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(san_unit)} VNĐ</td>
             <td style="padding:0.5rem 0.55rem;border:1px solid #93c5fd;background:#fff;text-align:right;font-size:0.85rem;">{self._fmt_vnd(roof_cost)} VNĐ</td>
         </tr>{surcharge_rows_html}{discount_row_html}
@@ -5421,7 +5421,7 @@ class CrmLead(models.Model):
             if fa > 0:
                 floor_breakdown.append({
                     'label': f'Tầng {i}',
-                    'area': f'{fa:.0f}',
+                    'area': f'{round(fa, 2):g}',
                     'cost': f'{fa * san_unit:,.0f}'.replace(',', '.'),
                 })
         # Lửng — tầng phụ giữa 2 tầng (50-70 m² thường)
@@ -5429,7 +5429,7 @@ class CrmLead(models.Model):
             la = self.vd_intake_floor_lung_m2
             floor_breakdown.append({
                 'label': 'Lửng',
-                'area': f'{la:.0f}',
+                'area': f'{round(la, 2):g}',
                 'cost': f'{la * san_unit:,.0f}'.replace(',', '.'),
             })
         # Thông tầng — có Lửng → DT thông tầng (Tầng1−Lửng) × 40% × đơn giá
@@ -5441,7 +5441,7 @@ class CrmLead(models.Model):
                 thongtang_cost = tt_base * (tt_pct / 100.0) * san_unit
                 floor_breakdown.append({
                     'label': 'Thông tầng',
-                    'area': f'{tt_base:.0f}',
+                    'area': f'{round(tt_base, 2):g}',
                     'pct': f'{tt_pct:.0f}',
                     'cost': f'{thongtang_cost:,.0f}'.replace(',', '.'),
                 })
@@ -5450,7 +5450,7 @@ class CrmLead(models.Model):
             ta = self.vd_intake_floor_tum_m2
             floor_breakdown.append({
                 'label': 'Tum',
-                'area': f'{ta:.0f}',
+                'area': f'{round(ta, 2):g}',
                 'cost': f'{ta * san_unit:,.0f}'.replace(',', '.'),
             })
 
@@ -5502,9 +5502,11 @@ class CrmLead(models.Model):
             'house_type': house_lbl,
             'foundation': found_lbl,
             'roof': roof_lbl,
-            # Diện tích MÓNG = Tầng 1, MÁI = tầng trên cùng (KHÔNG dùng total)
-            'found_area': f'{found_area:.0f}',
-            'roof_area': f'{roof_area:.0f}',
+            # Diện tích MÓNG = Tầng 1, MÁI = tầng trên cùng (KHÔNG dùng total).
+            # GIỮ SỐ LẺ (81.6 chứ KHÔNG làm tròn 82) — dùng %g bỏ đuôi .0
+            # (user 2026-09-26: làm tròn diện tích làm SAI thành tiền).
+            'found_area': f'{round(found_area, 2):g}',
+            'roof_area': f'{round(roof_area, 2):g}',
             # 'area' giữ legacy = tổng diện tích sàn (template khác dùng)
             'area': f'{total_floor_area:.0f}',
             'floors': f'{floors:.1f}'.rstrip('0').rstrip('.'),
