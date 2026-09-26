@@ -2957,7 +2957,60 @@ export class VdCrmDashboard extends Component {
     }
     openBulkSub(sub) {
         // Mở bảng cấp 2/3 tương ứng ('selectUser'|'transferUser'|'teamPick'|'teamRoster').
-        this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true };
+        // Reset tích chọn NV nhận khi mở "Chuyển" (multi-select, user spec 2026-09-26).
+        this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true, xferChecked: {} };
+    }
+    // ===== CHUYỂN KH: tích 1 hoặc NHIỀU NV (2+ NV = TỰ CHIA ĐỀU round-robin) =====
+    // user spec 2026-09-26: "chuyển từ NV này sang, muốn chia nửa NV A nửa NV B".
+    toggleBulkXfer(uid) {
+        const ck = { ...(this.state.bulkMenu.xferChecked || {}) };
+        if (ck[uid]) delete ck[uid]; else ck[uid] = true;
+        this.state.bulkMenu = { ...this.state.bulkMenu, xferChecked: ck };
+    }
+    get bulkXferCheckedIds() {
+        const ck = this.state.bulkMenu.xferChecked || {};
+        return this.bulkMenuUsers.filter((u) => ck[u.id]).map((u) => u.id);
+    }
+    async bulkXferGo() {
+        const leadIds = this.selectedLeadIdList;
+        const uids = this.bulkXferCheckedIds;
+        if (!leadIds.length) {
+            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
+            return;
+        }
+        if (!uids.length) {
+            this.notification.add("Chưa tích nhân viên nhận.", { type: "warning" });
+            return;
+        }
+        const names = this.bulkMenuUsers
+            .filter((u) => uids.includes(u.id)).map((u) => u.name);
+        // 1 NV → dồn hết cho NV đó (dùng lại luồng cũ).
+        if (uids.length === 1) {
+            await this.bulkTransferAllTo(uids[0], names[0]);
+            return;
+        }
+        // 2+ NV → CHIA ĐỀU round-robin: KH thứ i → uids[i % N].
+        const ok = window.confirm(
+            `Chia đều ${leadIds.length} khách cho ${uids.length} nhân viên: ${names.join(", ")}?`);
+        if (!ok) return;
+        const assignments = leadIds.map((lid, i) => [lid, uids[i % uids.length]]);
+        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
+        try {
+            const moved = await this.orm.call(
+                "crm.lead", "dashboard_bulk_distribute", [assignments]);
+            this.notification.add(
+                `Đã chia ${moved} khách cho ${uids.length} nhân viên.`,
+                { type: "success", title: "Chia số" });
+            this.state.selectedLeadIds = {};
+            this.state.selectMode = false;
+            await this.loadDashboard();
+            if (this.state.is_manager) await this._reloadDashUsers();
+        } catch (e) {
+            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
+            this.notification.add(msg, { type: "danger", title: "Không chia được" });
+        } finally {
+            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {}, xferChecked: {} };
+        }
     }
     // Danh sách NV để chọn trong menu — kèm tổng KH (state.users từ dashboard_users).
     get bulkMenuUsers() {

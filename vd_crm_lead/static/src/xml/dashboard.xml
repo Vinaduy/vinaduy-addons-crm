@@ -2101,13 +2101,12 @@
                                             <span class="o_vd_bmi_ar">›</span>
                                         </button>
                                     </t>
-                                    <!-- Cấp 2: chọn nhân viên (selectUser / transferUser) -->
-                                    <t t-elif="state.bulkMenu.sub === 'selectUser' || state.bulkMenu.sub === 'transferUser'">
+                                    <!-- Cấp 2: LẤY toàn bộ KH của 1 NV (chọn 1) -->
+                                    <t t-elif="state.bulkMenu.sub === 'selectUser'">
                                         <div class="o_vd_bulk_menu_hd">
                                             <button class="o_vd_bmi_back"
                                                     t-on-click="() => this.openBulkSub('')">‹</button>
-                                            <t t-if="state.bulkMenu.sub === 'selectUser'">Lấy toàn bộ KH của nhân viên</t>
-                                            <t t-else="">Chuyển <b t-esc="selectedCount"/> KH sang nhân viên</t>
+                                            Lấy toàn bộ KH của nhân viên
                                         </div>
                                         <div class="o_vd_bulk_menu_list">
                                             <button t-foreach="bulkMenuUsers" t-as="bu" t-key="bu.id"
@@ -2121,6 +2120,34 @@
                                                 Không có nhân viên nào.
                                             </div>
                                         </div>
+                                    </t>
+                                    <!-- Cấp 2: CHUYỂN KH đã chọn — TÍCH 1 hoặc NHIỀU NV.
+                                         1 NV = dồn hết; 2+ NV = TỰ CHIA ĐỀU (user 2026-09-26). -->
+                                    <t t-elif="state.bulkMenu.sub === 'transferUser'">
+                                        <div class="o_vd_bulk_menu_hd">
+                                            <button class="o_vd_bmi_back"
+                                                    t-on-click="() => this.openBulkSub('')">‹</button>
+                                            Chuyển <b t-esc="selectedCount"/> KH — tích 1 hoặc nhiều NV
+                                        </div>
+                                        <div class="o_vd_bulk_menu_list">
+                                            <button t-foreach="bulkMenuUsers" t-as="bu" t-key="bu.id"
+                                                    t-att-class="'o_vd_bulk_roster_it' + ((state.bulkMenu.xferChecked || {})[bu.id] ? ' o_on' : '')"
+                                                    t-att-disabled="state.bulkMenu.busy"
+                                                    t-on-click="() => this.toggleBulkXfer(bu.id)">
+                                                <span class="o_vd_bulk_roster_ck"><t t-if="(state.bulkMenu.xferChecked || {})[bu.id]">✓</t></span>
+                                                <span class="o_vd_bmu_nm"><t t-esc="bu.name"/></span>
+                                                <span class="o_vd_bmu_ct"><t t-esc="bu.total || 0"/> KH</span>
+                                            </button>
+                                            <div t-if="!bulkMenuUsers.length" class="o_vd_bulk_menu_empty">
+                                                Không có nhân viên nào.
+                                            </div>
+                                        </div>
+                                        <button class="o_vd_bulk_roster_go"
+                                                t-att-disabled="!bulkXferCheckedIds.length || state.bulkMenu.busy"
+                                                t-on-click="() => this.bulkXferGo()">
+                                            <t t-if="bulkXferCheckedIds.length > 1">Chia đều <t t-esc="selectedCount"/> KH cho <b t-esc="bulkXferCheckedIds.length"/> người</t>
+                                            <t t-else="">Chuyển <t t-esc="selectedCount"/> KH cho NV đã tích</t>
+                                        </button>
                                     </t>
                                     <!-- Cấp 2b: chọn PHÒNG -->
                                     <t t-elif="state.bulkMenu.sub === 'teamPick'">
