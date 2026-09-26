@@ -3893,9 +3893,11 @@ class CrmLead(models.Model):
         'Hà Giang', 'Cao Bằng', 'Bắc Kạn', 'Tuyên Quang', 'Lào Cai', 'Điện Biên',
         'Lai Châu', 'Sơn La', 'Yên Bái', 'Hòa Bình', 'Thái Nguyên', 'Lạng Sơn',
         'Quảng Ninh', 'Bắc Giang', 'Phú Thọ',
+        # Bắc Trung Bộ tính là MIỀN BẮC (user spec 2026-09-26) → móng cọc 40%.
+        'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh',
     })
     _TRUNG_PROVINCES = frozenset({
-        'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị', 'Thừa Thiên Huế',
+        'Quảng Bình', 'Quảng Trị', 'Thừa Thiên Huế',
         'Huế',   # tên mới sau sáp nhập 01/07/2025 (trước là Thừa Thiên Huế)
         'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định', 'Phú Yên', 'Khánh Hòa',
         'Ninh Thuận', 'Bình Thuận',
