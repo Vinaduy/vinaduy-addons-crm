@@ -12787,6 +12787,14 @@ $vd-rose:      #b06a6a;
     white-space: nowrap;
     margin: 0;
 }
+/* Nút "Tạo báo giá" — màu tím (khác nút Thêm mới xanh lá) cho khách chưa có SĐT */
+.o_vd_crm_dashboard .o_vd_quote_lead_top {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    margin: 0;
+    background: linear-gradient(135deg, #7048e8 0%, #5f3dc4 100%) !important;
+    box-shadow: 0 1px 3px rgba(112, 72, 232, 0.28) !important;
+}
 /* Icon phải mới — màu riêng để phân biệt */
 /* 2 icon mới: NGUYÊN 1 MÀU cho cả thanh (bar + ico) — user spec 2026-09-05.
    Ico trong suốt để ăn theo màu nền thanh (hết cảnh nửa cam nửa xanh). */

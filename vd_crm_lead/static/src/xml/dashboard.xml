@@ -1980,6 +1980,12 @@
                                 t-on-click="() => this.createNewLead()" title="Thêm khách hàng mới">
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
+                        <!-- TẠO BÁO GIÁ — cho khách CHƯA có SĐT vẫn báo giá được
+                             (user spec 2026-09-27): mở form KH trống để điền thông tin. -->
+                        <button t-if="!isAdminView" class="o_vd_add_lead_btn o_vd_quote_lead_top"
+                                t-on-click="() => this.createQuoteLead()" title="Tạo báo giá cho khách chưa có SĐT">
+                            <i class="fa fa-file-text-o me-1"/> Tạo báo giá
+                        </button>
                         <!-- (Đã bỏ nút SỐ OMI theo yêu cầu — user spec 2026-09-18) -->
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
                         <div class="o_vd_nv_search_wrap" t-if="!isAdminView">

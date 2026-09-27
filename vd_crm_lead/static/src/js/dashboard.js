@@ -4989,6 +4989,23 @@ export class VdCrmDashboard extends Component {
         this.action.doAction("vd_crm_lead.action_vd_lead_quick_add_wizard");
     }
 
+    // Tạo KH TRỐNG để làm BÁO GIÁ ngay (khách chưa có SĐT vẫn báo giá được) —
+    // mở thẳng form KH để điền thông tin (user spec 2026-09-27).
+    async createQuoteLead() {
+        const uid = (this.state.selected_user_id && !(this.state.user && this.state.user.is_all))
+            ? this.state.selected_user_id : false;
+        try {
+            const action = await this.orm.call(
+                "crm.lead", "vd_dashboard_create_quote_lead", [uid]);
+            if (action) {
+                await this.action.doAction(action);
+            }
+        } catch (e) {
+            console.error("[VD] tạo báo giá lỗi", e);
+            this.notification.add("Không tạo được — thử lại.", { type: "danger" });
+        }
+    }
+
     // Mở màn "Cuộc gọi đến" (lịch sử khách gọi vào tổng đài).
     openInboundCalls() {
         this.action.doAction("vd_crm_lead.action_stringee_inbound");
