@@ -298,6 +298,8 @@ export class VdCrmDashboard extends Component {
             selectedLeadIds: {},
             reassignTargetId: 0,
             reassignBusy: false,
+            // Mở/đóng danh sách khách CHƯA có số (báo cáo xin số theo tháng).
+            captureListOpen: false,
             // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
             // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
@@ -771,6 +773,11 @@ export class VdCrmDashboard extends Component {
     // ===== Mở/đóng dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt) =====
     toggleDistAdd() {
         this.state.distAddOpen = !this.state.distAddOpen;
+    }
+
+    // ===== Mở/đóng danh sách khách CHƯA có số (báo cáo xin số) =====
+    toggleCaptureList() {
+        this.state.captureListOpen = !this.state.captureListOpen;
     }
 
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====

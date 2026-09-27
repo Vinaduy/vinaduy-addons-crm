@@ -7743,6 +7743,8 @@ class CrmLead(models.Model):
             # GỘP 1 view (user spec 2026-07-24): chỉ 1 báo cáo, đã bao gồm cột Quét số.
             'pancake_report': self._vd_distribution_report(pancake=True),
             'manual_report': {},
+            # Báo cáo XIN SỐ từ đầu tháng (đã có số / chưa có số + danh sách).
+            'capture_report': self.env['vd.pancake.conversation'].sudo()._vd_capture_report(),
         }
 
     @api.model
