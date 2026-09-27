@@ -326,25 +326,46 @@ class VdLeadQuickAddWizard(models.TransientModel):
     _VD_IMP_INFO_KEYS = ('thông tin', 'thong tin', 'thôngtin', 'nội dung', 'noi dung',
                          'yêu cầu', 'yeu cau', 'nhu cầu', 'nhu cau', 'mô tả', 'mo ta',
                          'ghi chú', 'ghi chu', 'info', 'note')
+    # Cột NGUỒN (Zalo/TikTok/Facebook) — quyết định kênh nguồn của KH. Không ghi
+    # rõ → mặc định "quét số" (user spec 2026-09-27).
+    _VD_IMP_SOURCE_KEYS = ('nguồn', 'nguon', 'kênh', 'kenh', 'source', 'platform')
+
+    @api.model
+    def _vd_source_to_channel(self, text):
+        """Chữ cột 'Nguồn' → mã kênh (zalo/tiktok/facebook). Trống/không khớp →
+        'quet' (số đẩy file tay)."""
+        t = (text or '').strip().lower()
+        if not t:
+            return 'quet'
+        if 'zalo' in t:
+            return 'zalo'
+        if 'tiktok' in t or 'tik tok' in t or t == 'tt':
+            return 'tiktok'
+        if 'face' in t or t == 'fb':
+            return 'facebook'
+        return 'quet'
 
     def _vd_extract_name_phone(self, rows):
-        """Từ bảng thô → list[(tên, sđt, thông_tin)]. Ưu tiên dò cột theo tiêu đề;
-        không có thì đoán theo nội dung (ô giống SĐT VN = SĐT, ô chữ dài = tên).
-        Cột 'Thông tin/Nội dung/Yêu cầu' (nếu có) → chuỗi mô tả nhu cầu."""
-        name_col = phone_col = info_col = None
+        """Từ bảng thô → list[(tên, sđt, thông_tin, nguồn)]. Ưu tiên dò cột theo
+        tiêu đề; không có thì đoán theo nội dung (ô giống SĐT VN = SĐT, ô chữ dài
+        = tên). Cột 'Thông tin' → mô tả nhu cầu; cột 'Nguồn' → kênh (Zalo/TikTok/FB)."""
+        name_col = phone_col = info_col = src_col = None
         header_idx = -1
         for i, row in enumerate(rows[:6]):
             lc = [(c or '').strip().lower() for c in row]
-            pc = nc = ic = None
+            pc = nc = ic = sc = None
             for j, c in enumerate(lc):
                 if pc is None and any(k in c for k in self._VD_IMP_PHONE_KEYS):
                     pc = j
                 if nc is None and any(k in c for k in self._VD_IMP_NAME_KEYS):
                     nc = j
-                if ic is None and any(k in c for k in self._VD_IMP_INFO_KEYS):
+                if sc is None and any(k in c for k in self._VD_IMP_SOURCE_KEYS):
+                    sc = j
+                # info: tránh nhầm với cột nguồn (ưu tiên nhận cột nguồn trước)
+                if ic is None and sc != j and any(k in c for k in self._VD_IMP_INFO_KEYS):
                     ic = j
             if pc is not None:
-                phone_col, name_col, info_col, header_idx = pc, nc, ic, i
+                phone_col, name_col, info_col, src_col, header_idx = pc, nc, ic, sc, i
                 break
         data_rows = rows[header_idx + 1:] if header_idx >= 0 else rows
         out = []
@@ -352,6 +373,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
             name = row[name_col] if (name_col is not None and name_col < len(row)) else ''
             phone = row[phone_col] if (phone_col is not None and phone_col < len(row)) else ''
             info = row[info_col] if (info_col is not None and info_col < len(row)) else ''
+            src = row[src_col] if (src_col is not None and src_col < len(row)) else ''
             if not phone:
                 for c in row:
                     if self._vd_phone_is_valid(c):
@@ -362,7 +384,8 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 if cands:
                     name = max(cands, key=len)
             if phone:
-                out.append(((name or '').strip(), phone.strip(), (info or '').strip()))
+                out.append(((name or '').strip(), phone.strip(),
+                            (info or '').strip(), (src or '').strip()))
         return out
 
     def action_import_excel(self):
@@ -521,6 +544,7 @@ class VdLeadQuickAddWizard(models.TransientModel):
                                 'message': _('Không đọc được SĐT nào từ file. '
                                              'Cần cột SĐT/Điện thoại/Phone.')}}
         info_map = self._vd_build_info_map(triples)
+        source_map = self._vd_build_source_map(triples)
         pairs = [(r[0], r[1]) for r in triples]
         try:
             clean, sd, sb = self._vd_prepare_import(pairs)
@@ -529,9 +553,10 @@ class VdLeadQuickAddWizard(models.TransientModel):
                                 'message': e.args[0] if e.args else str(e)}}
         # UPLOAD = TẠO KHÁCH LUÔN + CHIA ĐỀU cho NV đang nhận số (user spec
         # 2026-09-25). KHÔNG nạp vào bảng nháp, KHÔNG bắt bấm CHIA SỐ nữa: upload
-        # xong là khách vào thẳng "Khách mới" của NV + vào thống kê "Quét số".
+        # xong là khách vào thẳng "Khách mới" của NV. Nguồn: file ghi rõ thì theo
+        # (Zalo/TikTok/FB), không thì "Quét số" (user spec 2026-09-27).
         try:
-            n_created, detail = self._vd_import_create_now(clean, info_map)
+            n_created, detail = self._vd_import_create_now(clean, info_map, source_map)
         except UserError as e:
             return {'warning': {'title': _('Không tạo được khách'),
                                 'message': e.args[0] if e.args else str(e)}}
@@ -555,13 +580,26 @@ class VdLeadQuickAddWizard(models.TransientModel):
         return next(iter(s)) if s else ''
 
     def _vd_build_info_map(self, rows):
-        """rows = list[(tên, sđt[, thông_tin])] → {core_phone: thông_tin}."""
+        """rows = list[(tên, sđt[, thông_tin[, nguồn]])] → {core_phone: thông_tin}."""
         m = {}
         for r in rows:
             if len(r) > 2 and r[2]:
                 core = self._vd_core_phone(r[1])
                 if core:
                     m[core] = r[2]
+        return m
+
+    def _vd_build_source_map(self, rows):
+        """rows có cột nguồn → {core_phone: channel} (zalo/tiktok/facebook).
+        Chỉ ghi khi file có nguồn RÕ (khác 'quet') — để mặc định vẫn là quét số."""
+        m = {}
+        for r in rows:
+            if len(r) > 3 and r[3]:
+                ch = self._vd_source_to_channel(r[3])
+                if ch and ch != 'quet':
+                    core = self._vd_core_phone(r[1])
+                    if core:
+                        m[core] = ch
         return m
 
     def _vd_line_vals_with_info(self, nm, cphone, info_map):
@@ -605,11 +643,13 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 out['vd_intake_floors_select'] = fs
         return out
 
-    def _vd_import_create_now(self, clean, info_map):
+    def _vd_import_create_now(self, clean, info_map, source_map=None):
         """TẠO NGAY khách từ danh sách đã lọc + CHIA ĐỀU cho NV đang nhận số
         (user spec 2026-09-25: upload file = thành khách luôn, vào Khách mới của
         NV, KHÔNG bắt bấm thêm bước). Trả (số_đã_tạo, chuỗi_chi_tiết).
-        Raise UserError nếu không có NV nào đang nhận số."""
+        source_map: {core_phone: channel} — nguồn ghi rõ trong file (zalo/tiktok/
+        facebook); không có → 'quet' (số quét). Raise UserError nếu không có NV nhận."""
+        source_map = source_map or {}
         from collections import Counter
         Lead = self.env['crm.lead'].sudo()
         pool = list(self._vd_eligible_users())
@@ -628,13 +668,16 @@ class VdLeadQuickAddWizard(models.TransientModel):
         created = Lead.browse()
         for idx, (nm, cp) in enumerate(clean):
             u = order[idx % npool]
+            # Kênh nguồn: file ghi rõ (zalo/tiktok/fb) → theo đó; không → 'quet'.
+            channel = source_map.get(cp[1:], 'quet')
             vals = {
                 'name': ('%s%s' % (prefix, nm)).strip(),
                 'partner_name': nm,
                 'phone': cp,
                 'user_id': u.id,
                 'type': 'lead',
-                'vd_from_excel': True,   # → vào thống kê "Quét số"
+                'vd_from_excel': True,   # vẫn đánh dấu là đẩy từ file
+                'vd_lead_channel': channel,   # nhưng báo cáo phân theo kênh này
             }
             if new_stage:
                 vals['stage_id'] = new_stage.id

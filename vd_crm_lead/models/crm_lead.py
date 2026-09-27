@@ -147,6 +147,33 @@ class CrmLead(models.Model):
         help='KH được đẩy lên từ file Excel (không qua webhook). Thẻ hiện icon '
              'Facebook màu xám đậm.',
     )
+    # KÊNH NGUỒN của KH — nguồn SỰ THẬT DUY NHẤT cho báo cáo chia số (user spec
+    # 2026-09-27). Set lúc tạo: đồng bộ Pancake theo conv_id, upload file theo cột
+    # "nguồn" (mặc định 'quet'). Trống → suy ra bằng _vd_lead_channel() cho dữ liệu cũ.
+    vd_lead_channel = fields.Selection([
+        ('zalo', 'Zalo'),
+        ('facebook', 'Facebook'),
+        ('tiktok', 'TikTok'),
+        ('quet', 'Quét số (đẩy file)'),
+        ('other', 'Khác'),
+    ], string='Kênh nguồn', index=True, copy=False)
+
+    def _vd_lead_channel(self):
+        """Kênh nguồn của KH cho báo cáo: ưu tiên field đã set, không thì SUY RA
+        từ conv_id Pancake / cờ excel (tương thích dữ liệu cũ)."""
+        self.ensure_one()
+        if self.vd_lead_channel:
+            return self.vd_lead_channel
+        cid = self.vd_pancake_conversation_id or ''
+        if cid.startswith('pzl_'):
+            return 'zalo'
+        if cid.startswith('ttm_'):
+            return 'tiktok'
+        if self.vd_from_excel:
+            return 'quet'
+        if self.vd_pancake_page_id:
+            return 'facebook'
+        return 'other'
 
     # ============ DUPLICATE PHONE DETECTION + MERGE ============
     vd_duplicate_lead_ids = fields.One2many(
@@ -7548,23 +7575,20 @@ class CrmLead(models.Model):
                 ('user_id', '!=', False),
             ])
             per = {}        # tổng theo NV
+            per_zalo = {}   # Zalo theo NV
             per_tt = {}     # TikTok theo NV
             per_fb = {}     # Facebook theo NV
             per_quet = {}   # QUÉT SỐ (đẩy file/dán) theo NV
+            # Phân loại theo KÊNH NGUỒN (vd_lead_channel, suy ra nếu trống). Zalo,
+            # TikTok, Facebook, Quét số TÁCH RIÊNG (user spec 2026-09-27).
+            _bucket = {'zalo': per_zalo, 'tiktok': per_tt,
+                       'facebook': per_fb, 'quet': per_quet}
             for l in leads:
                 uid = l.user_id.id
                 per[uid] = per.get(uid, 0) + 1
-                # QUÉT SỐ: lead đẩy từ file Excel / dán danh sách (vd_from_excel).
-                if l.vd_from_excel:
-                    per_quet[uid] = per_quet.get(uid, 0) + 1
-                # Phân loại theo TIỀN TỐ conversation_id ('ttm_' = TikTok) — bền
-                # vững: TikTok conv_id luôn bắt đầu 'ttm_'. KHÔNG dùng customer_id
-                # (nay là PSID số) vì sẽ nhét nhầm khách TikTok vào Facebook.
-                # ZALO cá nhân (conv_id 'pzl_') GỘP vào cột TikTok (user spec 2026-07-13).
-                elif (l.vd_pancake_conversation_id or '').startswith(('ttm_', 'pzl_')):
-                    per_tt[uid] = per_tt.get(uid, 0) + 1
-                else:
-                    per_fb[uid] = per_fb.get(uid, 0) + 1
+                b = _bucket.get(l._vd_lead_channel())
+                if b is not None:
+                    b[uid] = b.get(uid, 0) + 1
             total = sum(per.values())
             # TỔNG lead TẠO trong khoảng (kể cả đã GỘP trùng SĐT / chưa gán NV) —
             # để giải thích vì sao "số" (lead active còn lại) ÍT hơn "lượt cho số"
@@ -7590,6 +7614,7 @@ class CrmLead(models.Model):
                 rows.append({'uid': u.id,
                              'name': name_by.get(u.id) or 'NV #%s' % u.id,
                              'count': c,
+                             'zalo': per_zalo.get(u.id, 0),
                              'tiktok': per_tt.get(u.id, 0),
                              'facebook': per_fb.get(u.id, 0),
                              'quet': per_quet.get(u.id, 0),
