@@ -76,6 +76,7 @@ class VdLeadCallbackWizard(models.TransientModel):
             'callback_date': self.callback_date,
             # LƯU ghi chú vào lead để hiện lại khi xem (user 2026-08-24).
             'vd_callback_note': (self.note or '').strip() or False,
+            'vd_callback_manual': True,   # NV đặt tay → chuyển lịch + nhắc
         })
         # Dời thành công → tăng bộ đếm (chỉ tính với KH đã báo giá + NV thường).
         self.lead_id.vd_callback_reschedule_bump()
@@ -110,6 +111,7 @@ class VdLeadCallbackWizard(models.TransientModel):
         ).strftime('%H:%M %d/%m/%Y')
         self.lead_id.with_context(mail_notrack=True).write({
             'callback_date': False,
+            'vd_callback_manual': False,
         })
         self.lead_id.message_post(
             subtype_xmlid='mail.mt_note',

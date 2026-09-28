@@ -115,6 +115,10 @@ class CrmLead(models.Model):
 
     # Custom fields not in standard
     callback_date = fields.Datetime(string='Hẹn gọi lại lúc', tracking=True)
+    # NV ĐẶT HẸN TAY (khác callback_date auto +2 ngày lúc tạo lead). Chỉ hẹn TAY
+    # mới được "chuyển lịch" (ẩn khỏi hôm nay) + nhắc lên màn hình (user 2026-09-28).
+    vd_callback_manual = fields.Boolean(
+        string='Hẹn gọi lại (NV đặt tay)', default=False, copy=False, index=True)
     # Ghi chú NV nhập khi hẹn ngày gọi lại — lưu để HIỆN LẠI khi xem KH
     # (user spec 2026-08-24: ghi chú hẹn gọi lại phải lưu + xem được).
     vd_callback_note = fields.Text(string='Ghi chú hẹn gọi lại', copy=False)
@@ -6977,7 +6981,7 @@ class CrmLead(models.Model):
             return {'ok': False, 'reason': 'lead'}
         key = (offset_key or '').strip()
         if key == 'none':
-            leads.write({'callback_date': False})
+            leads.write({'callback_date': False, 'vd_callback_manual': False})
             for l in leads:
                 l.message_post(subtype_xmlid='mail.mt_note',
                                body=_('🗑️ Đã hủy lịch hẹn gọi lại (sau cuộc gọi).'))
@@ -7010,7 +7014,8 @@ class CrmLead(models.Model):
         else:
             return {'ok': False, 'reason': 'key'}
         target_utc = target.astimezone(pytz.utc).replace(tzinfo=None)
-        leads.write({'callback_date': fields.Datetime.to_string(target_utc)})
+        leads.write({'callback_date': fields.Datetime.to_string(target_utc),
+                     'vd_callback_manual': True})   # NV đặt tay sau cuộc gọi
         # ĐỒNG BỘ với wizard "Hẹn gọi lại" (user spec 2026-09-23): ghi LOG lịch sử
         # để 2 chỗ nhất quán (wizard cũng message_post khi đặt lịch).
         when_local = target.strftime('%H:%M %d/%m/%Y')
@@ -10024,6 +10029,7 @@ class CrmLead(models.Model):
             'user_name': l.user_id.name or '',
             'probability': round(l.probability, 1),
             'callback_date': fields.Datetime.to_string(l.callback_date) if l.callback_date else '',
+            'callback_manual': bool(l.vd_callback_manual),
             'last_call_date': fields.Datetime.to_string(l.last_call_date) if l.last_call_date else '',
             'no_answer_streak': l.no_answer_streak,
             'is_overdue_callback': l.is_overdue_callback,
@@ -10105,6 +10111,7 @@ class CrmLead(models.Model):
             # Dashboard tự tính đến-hẹn / hẹn-tương-lai từ mốc này.
             'callback_date': (fields.Datetime.to_string(l.callback_date)
                               if l.callback_date else ''),
+            'callback_manual': bool(l.vd_callback_manual),
             # Thống kê cuộc gọi → frontend quyết định màu pill (xanh/lá/đỏ)
             'call_stats': call_stats_by_lead.get(l.id, {
                 'total': 0, 'answered': 0, 'answered_long': 0,

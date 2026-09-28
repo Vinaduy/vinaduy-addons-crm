@@ -12919,3 +12919,24 @@ $vd-rose:      #b06a6a;
 .o_vd_crm_dashboard .o_vd_daybtn.o_vd_daybtn_all.o_vd_daybtn_on {
     background: #1f3a63; color: #fff; border-color: #1f3a63;
 }
+
+/* 🔔 Banner NHẮC HẸN GỌI LẠI HÔM NAY (user 2026-09-28) */
+.o_vd_cbremind {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 0 0 0.5rem; padding: 0.55rem 0.85rem;
+    background: linear-gradient(135deg, #fff3bf 0%, #ffec99 100%);
+    border: 1px solid #f59f00; border-left: 5px solid #f08c00;
+    border-radius: 8px; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(240, 140, 0, 0.18);
+    animation: vdCbPulse 2s ease-in-out infinite;
+    &:hover { filter: brightness(1.03); }
+}
+.o_vd_cbremind_ic { font-size: 1.25rem; }
+.o_vd_cbremind_tx { flex: 1 1 auto; font-size: 0.9rem; color: #663c00;
+    b { color: #b35900; } }
+.o_vd_cbremind_go { flex: 0 0 auto; font-weight: 700; color: #b35900; font-size: 0.85rem;
+    background: #fff; border: 1px solid #f59f00; border-radius: 6px; padding: 0.2rem 0.55rem; }
+@keyframes vdCbPulse {
+    0%, 100% { box-shadow: 0 1px 4px rgba(240, 140, 0, 0.18); }
+    50% { box-shadow: 0 2px 12px rgba(240, 140, 0, 0.45); }
+}

@@ -2240,6 +2240,16 @@
                              o_vd_boards_col. dual_cols giờ là flex NGANG. -->
                         <div class="o_vd_lead_dual_cols">
                         <div class="o_vd_boards_col">
+                        <!-- 🔔 NHẮC HẸN GỌI LẠI HÔM NAY — KH có hẹn NV đặt tay đến hạn.
+                             Bấm để lọc về "Lịch hẹn gọi — Hôm nay" (user 2026-09-28). -->
+                        <div t-if="isNewStageSplit and callbackDueCount" class="o_vd_cbremind"
+                             t-on-click="() => this.goCallbackToday()">
+                            <span class="o_vd_cbremind_ic">🔔</span>
+                            <span class="o_vd_cbremind_tx">
+                                Bạn có <b><t t-esc="callbackDueCount"/></b> khách <b>ĐÃ HẸN — cần gọi lại HÔM NAY</b>
+                            </span>
+                            <span class="o_vd_cbremind_go">Xem ngay →</span>
+                        </div>
                         <!-- BỘ LỌC SỐ NGÀY CHƯA GỌI cho bảng KHÁCH MỚI — đặt NGOÀI section
                              (giống bộ lọc bảng THI CÔNG GẤP). Độc lập với bộ lọc TCG/XLVĐ. -->
                         <t t-if="isNewStageSplit and _leadsNoProblemsRaw.length">

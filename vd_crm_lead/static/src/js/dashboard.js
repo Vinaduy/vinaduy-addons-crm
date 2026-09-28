@@ -1971,9 +1971,36 @@ export class VdCrmDashboard extends Component {
         if (!l) return false;
         const d = this._cbDaysFromNow(l);
         if (d === null || d <= 0) return false;
+        // "Gác lại" (ẩn khỏi hôm nay, hiện ở ngày hẹn) khi có hẹn TƯƠNG LAI và:
+        // NV đã ĐẶT HẸN TAY (callback_manual) HOẶC đã gọi ít nhất 1 cuộc. Loại
+        // trừ hẹn auto +2 ngày của KH mới chưa gọi (user 2026-09-28).
         const called = (((l.call_stats || {}).total || 0) > 0) || !!l.last_call_date;
-        return called;
+        return !!l.callback_manual || called;
     }
+
+    // KH CẦN GỌI LẠI HÔM NAY = có hẹn NV ĐẶT TAY, đến hạn (hôm nay/quá hạn).
+    // Dùng để nhắc NV (banner) — KHÔNG tính hẹn auto +2 ngày.
+    get callbackDueList() {
+        return this._memo("cbDue",
+            [this.state.leads, this.state.leadsNotCalledAll],
+            () => {
+                const src = [...(this.state.leads || []),
+                             ...(this.state.leadsNotCalledAll || [])];
+                const seen = new Set();
+                const out = [];
+                for (const l of src) {
+                    if (!l || seen.has(l.id)) continue;
+                    seen.add(l.id);
+                    if (!l.callback_manual) continue;
+                    const d = this._cbDaysFromNow(l);
+                    if (d !== null && d <= 0) out.push(l);
+                }
+                return out;
+            });
+    }
+    get callbackDueCount() { return this.callbackDueList.length; }
+    // Bấm banner nhắc → lọc về "Lịch hẹn gọi — Hôm nay".
+    goCallbackToday() { this.setNewDayFilter("cb_today"); }
     // Token ổn định theo THAM CHIẾU mảng (WeakMap) — mảng bị gán lại (reload data) →
     // token mới → memo đếm tính lại; bấm lọc (không đụng data) → giữ token → memo trúng.
     _refToken(obj) {
@@ -2051,7 +2078,11 @@ export class VdCrmDashboard extends Component {
         ];
     }
     _cbMatch(l, key) {
-        if (key === "cb_none") return !(l && l.callback_date);
+        // CHỈ tính hẹn NV ĐẶT TAY (callback_manual) — bỏ hẹn auto +2 ngày của KH
+        // mới chưa gọi (user 2026-09-28), để "Lịch hẹn gọi" phản ánh đúng lịch NV.
+        const manual = !!(l && l.callback_manual);
+        if (key === "cb_none") return !manual;
+        if (!manual) return false;
         const d = this._cbDaysFromNow(l);
         if (d === null) return false;
         switch (key) {
