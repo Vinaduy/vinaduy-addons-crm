@@ -250,9 +250,14 @@ class PancakeWebhookController(http.Controller):
                          page.name, conv_id)
             return
 
-        # Round-robin pick NV — pass source='pancake' để filter vd_can_receive_pancake
+        # Round-robin pick NV — source='pancake' (lọc vd_can_receive_pancake) VÀ
+        # platform=page.platform để lọc ĐÚNG công tắc theo nguồn: TikTok chỉ chia
+        # cho NV bật 'Nhận TikTok', Facebook chỉ NV bật 'Nhận Facebook'
+        # (fix 2026-09-28: trước đây webhook THIẾU platform → lead TikTok vẫn chia
+        # cho NV đã TẮT TikTok; polling đã lọc đúng, chỉ webhook sót).
         assignee = request.env['res.users'].sudo()._vd_pick_next_assignee(
             source='pancake',
+            platform=page.platform,
             preferred_team_id=page.team_id.id if page.team_id else None,
         )
 
