@@ -3391,7 +3391,14 @@
                             <div t-foreach="dsel.rows" t-as="r" t-key="r.uid"
                                  t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
                                 <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
-                                <span class="o_vd_pk_col o_vd_pk_col_zalo"><t t-esc="r.zalo"/></span>
+                                <span t-att-class="'o_vd_pk_col o_vd_pk_col_zalo' + (r.can_receive_zalo ? '' : ' o_vd_src_off')">
+                                    <t t-esc="r.zalo"/>
+                                    <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_zalo ? 'o_on' : 'o_off')"
+                                            t-on-click.stop.prevent="() => this.onToggleZaloNV(r.uid)"
+                                            t-att-title="r.can_receive_zalo ? 'Đang nhận số Zalo — bấm để TẮT' : 'Đang TẮT nhận Zalo — bấm để BẬT'">
+                                        <span class="o_vd_src_knob"/>
+                                    </button>
+                                </span>
                                 <span t-att-class="'o_vd_pk_col o_vd_pk_col_tt' + (r.can_receive_tiktok ? '' : ' o_vd_src_off')">
                                     <t t-esc="r.tiktok"/>
                                     <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_tiktok ? 'o_on' : 'o_off')"

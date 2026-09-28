@@ -823,6 +823,9 @@ export class VdCrmDashboard extends Component {
     onToggleFacebookNV(uid) {
         this._toggleSourceNV(uid, "can_receive_facebook", "vd_toggle_facebook_receive");
     }
+    onToggleZaloNV(uid) {
+        this._toggleSourceNV(uid, "can_receive_zalo", "vd_toggle_zalo_receive");
+    }
 
     // ===== SỬA TAY số liệu 1 cột (icon cây bút) — admin/quản lý =====
     onEditRate(d) {

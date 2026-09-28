@@ -413,6 +413,9 @@ class ResUsers(models.Model):
     vd_can_receive_facebook = fields.Boolean(
         string='Nhận số Facebook', default=True,
         help='Tắt = NV này KHÔNG nhận số nguồn Facebook (cả tự động lẫn thủ công).')
+    vd_can_receive_zalo = fields.Boolean(
+        string='Nhận số Zalo', default=True,
+        help='Tắt = NV này KHÔNG nhận số nguồn Zalo (cả tự động lẫn thủ công).')
 
     # ============ THÔNG TIN LÀM VIỆC — số tháng + năng lực ============
     vd_work_start_date = fields.Date(
@@ -627,6 +630,8 @@ class ResUsers(models.Model):
                 eligible = eligible.filtered('vd_can_receive_tiktok')
             elif platform == 'facebook':
                 eligible = eligible.filtered('vd_can_receive_facebook')
+            elif platform == 'zalo':
+                eligible = eligible.filtered('vd_can_receive_zalo')
             if not eligible:
                 return self.env['res.users']  # empty
             # Cân bằng theo SỐ KH PANCAKE đã chia HÔM NAY (giờ VN) → cuối ngày mọi
@@ -887,4 +892,16 @@ class ResUsers(models.Model):
             return False
         new_val = not bool(target.vd_can_receive_facebook)
         target.write({'vd_can_receive_facebook': new_val})
+        return new_val
+
+    @api.model
+    def vd_toggle_zalo_receive(self, user_id):
+        """BẬT/TẮT nhận số Zalo cho 1 NV (nút trên báo cáo chia số). Trả trạng
+        thái mới (bool). user spec 2026-09-28."""
+        self._vd_check_toggle_perm()
+        target = self.sudo().browse(int(user_id))
+        if not target.exists():
+            return False
+        new_val = not bool(target.vd_can_receive_zalo)
+        target.write({'vd_can_receive_zalo': new_val})
         return new_val
