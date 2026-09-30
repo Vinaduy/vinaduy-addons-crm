@@ -270,7 +270,9 @@ export class VdCrmDashboard extends Component {
             dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số) | 'overview' (tổng quan)
             overview: null,         // KPI tổng quan (lazy load khi mở tab)
             overviewLoading: false,
-            distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month
+            distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month | d7 | d15 | d30
+            dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
+            dailyLoading: false,
             adminTab: "overview",
             nvDetail: null,
             nvDetailLoading: false,
@@ -881,7 +883,46 @@ export class VdCrmDashboard extends Component {
     // vì nhiều bảng (user 2026-08-28).
     setDistPeriod(p) {
         if (this.state.distPeriodSel !== p) this.state.distPeriodSel = p;
+        // Kỳ NHIỀU NGÀY (7/15/30) dùng bảng khác + phải hỏi server → nạp riêng.
+        if (this.isDailyPeriod(p)) this.loadDailyReport(parseInt(p.slice(1), 10));
     }
+
+    // ===== BÁO CÁO SỐ PANCAKE THEO TỪNG NGÀY (user spec 2026-09-30) =====
+    // 7 / 15 / 30 ngày, mỗi ngày 1 dòng, số chính = Zalo + TikTok + Facebook
+    // (KHÔNG tính Quét số vì đó là số nhập tay, không do Pancake tự đẩy).
+    isDailyPeriod(p) {
+        return p === 'd7' || p === 'd15' || p === 'd30';
+    }
+
+    // Tô nền ô theo MỨC số trong ngày (user spec 2026-10-01):
+    //   0 số      -> đỏ đậm   (cảnh báo: NV không nhận được số nào)
+    //   1-2 số    -> đỏ nhạt  (ít)
+    //   3-4 số    -> xanh nhạt (tạm đủ)
+    //   từ 5 trở lên -> xanh đậm (tốt)
+    // Chỉ áp cho ô NGÀY; cột Tổng và dòng Cộng để trung tính cho dễ đọc.
+    cellTone(n) {
+        const v = n || 0;
+        if (!v) return " o_t0";
+        if (v <= 2) return " o_t12";
+        if (v <= 4) return " o_t34";
+        return " o_t5";
+    }
+
+    async loadDailyReport(days) {
+        // Đã có sẵn đúng kỳ này rồi thì thôi, khỏi gọi lại.
+        if (this.state.dailyRep && this.state.dailyRep.days === days) return;
+        this.state.dailyLoading = true;
+        try {
+            this.state.dailyRep = await this.orm.call(
+                "crm.lead", "vd_pancake_daily_report", [days]);
+        } catch (e) {
+            this.state.dailyRep = null;
+            this.notification.add(e.message || "Lỗi tải báo cáo theo ngày",
+                                  { type: "danger" });
+        }
+        this.state.dailyLoading = false;
+    }
+
     distPeriodReport(rep) {
         const sel = this.state.distPeriodSel || 'today';
         return (rep && rep[sel]) || null;

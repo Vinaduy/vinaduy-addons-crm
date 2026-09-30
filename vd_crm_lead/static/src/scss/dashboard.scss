@@ -12690,6 +12690,118 @@ $vd-rose:      #b06a6a;
 }
 
 /* ============================================================
+   BÁO CÁO SỐ PANCAKE THEO TỪNG NGÀY (7 / 15 / 30 ngày) — user 2026-09-30.
+   Mỗi ngày 1 dòng, cột TỔNG là con số chính; 3 cột nguồn để nhạt. Dùng gam
+   indigo dịu của dashboard, KHÔNG đỏ/chói.
+   ============================================================ */
+.o_vd_pk_tabsep {
+    display: inline-block; width: 1px; height: 18px;
+    background: #e5e7eb; margin: 0 0.35rem; vertical-align: middle;
+}
+.o_vd_pk_tab_days {
+    border-color: #c7d2fe; background: #eef2ff; color: #3730a3;
+    &:hover { background: #e0e7ff; }
+    &.o_active {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff; border-color: #4338ca;
+    }
+}
+.o_vd_pk_daily_loading {
+    padding: 1.4rem; text-align: center; color: #6b7280; font-size: 0.9rem;
+}
+.o_vd_pk_daily_head {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.7rem 0 0.6rem;
+}
+.o_vd_pk_daily_kpi {
+    flex: 1 1 120px; min-width: 110px;
+    background: #f8fafc; border: 1px solid #e8eaf0; border-radius: 10px;
+    padding: 0.5rem 0.7rem; display: flex; flex-direction: column; gap: 0.1rem;
+}
+.o_vd_pk_dk_num {
+    font-size: 1.45rem; font-weight: 800; color: #3730a3; line-height: 1.1;
+    &.o_vd_pk_dk_warn { color: #b45309; }
+}
+.o_vd_pk_dk_lbl { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
+
+/* MA TRẬN NV × NGÀY: cột tên NV ghim trái, phần ngày cuộn ngang (30 ngày
+   không thể vừa màn hình). Ô 0 để dấu chấm mờ cho mắt bám được hàng. */
+.o_vd_pk_mx_wrap {
+    overflow-x: auto; border: 1px solid #e8eaf0; border-radius: 10px;
+    background: #fff;
+}
+.o_vd_pk_mx {
+    border-collapse: separate; border-spacing: 0; width: 100%;
+    font-size: 0.84rem;
+
+    th, td {
+        padding: 0.3rem 0.45rem; text-align: center; white-space: nowrap;
+        border-bottom: 1px solid #f1f2f6;
+    }
+    thead th {
+        position: sticky; top: 0; z-index: 2;
+        background: #f8fafc; color: #6b7280;
+        font-size: 0.74rem; font-weight: 700;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    tbody tr:hover td { background: #fafbff; }
+    tbody tr.o_off { opacity: 0.45; }
+}
+/* Cột tên NV — ghim trái cả khi cuộn ngang. */
+.o_vd_pk_mx_nv {
+    position: sticky; left: 0; z-index: 3;
+    background: #fff; text-align: left !important;
+    font-weight: 700; color: #374151;
+    min-width: 168px; max-width: 220px;
+    overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 1px 0 0 #eceef3;
+}
+.o_vd_pk_mx thead .o_vd_pk_mx_nv { z-index: 4; background: #f8fafc; }
+.o_vd_pk_mx_d { min-width: 42px; }
+.o_vd_pk_mx_c {
+    color: #1f2937; font-variant-numeric: tabular-nums; font-weight: 600;
+}
+/* TÔ NỀN THEO MỨC SỐ/NGÀY (user 2026-10-01). Dùng tông dịu, đủ tương phản để
+   quét mắt cả bảng 30 cột mà không chói. */
+.o_vd_pk_mx_c.o_t0  { background: #f7b0b0; color: #6d1414; font-weight: 800; }
+.o_vd_pk_mx_c.o_t12 { background: #fde0e0; color: #96272c; }
+.o_vd_pk_mx_c.o_t34 { background: #dcf3e0; color: #1f6b38; }
+.o_vd_pk_mx_c.o_t5  { background: #9fdcb0; color: #0f4f27; font-weight: 800; }
+/* Ngày hôm nay: giữ màu mức, chỉ thêm khung để biết đang ở cột nào. */
+.o_vd_pk_mx_c.o_today { box-shadow: inset 0 0 0 2px #4338ca; }
+.o_vd_pk_mx_d.o_weekend { background: #fbfbfd; }
+.o_vd_pk_mx_d.o_today {
+    background: #eef2ff; color: #4338ca; font-weight: 800;
+}
+.o_vd_pk_mx_sum {
+    position: sticky; right: 0; z-index: 3;
+    background: #f8fafc; font-weight: 800; color: #3730a3;
+    min-width: 54px; box-shadow: -1px 0 0 #eceef3;
+}
+.o_vd_pk_mx thead .o_vd_pk_mx_sum { z-index: 4; }
+.o_vd_pk_mx tfoot td {
+    position: sticky; bottom: 0; z-index: 2;
+    background: #f8fafc; font-weight: 800; color: #3730a3;
+    border-top: 2px solid #e5e7eb; border-bottom: 0;
+}
+.o_vd_pk_mx tfoot .o_vd_pk_mx_nv { z-index: 3; }
+.o_vd_pk_mx_legend {
+    display: flex; flex-wrap: wrap; gap: 0.85rem;
+    margin-top: 0.5rem; font-size: 0.76rem; color: #6b7280; font-weight: 600;
+}
+.o_vd_pk_lg { display: inline-flex; align-items: center; gap: 0.3rem; }
+.o_vd_pk_sw {
+    width: 15px; height: 15px; border-radius: 4px; display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    &.o_t0  { background: #f7b0b0; }
+    &.o_t12 { background: #fde0e0; }
+    &.o_t34 { background: #dcf3e0; }
+    &.o_t5  { background: #9fdcb0; }
+}
+.o_vd_pk_daily_note {
+    margin-top: 0.45rem; font-size: 0.76rem; color: #9ca3af; font-style: italic;
+}
+
+/* ============================================================
    BÁO CÁO CHIA SỐ (tab) — bảng GRID chuẩn hàng/cột, ít hiệu ứng, GỌN để
    vừa 1 trang không cuộn (user 2026-08-28). Scope .o_vd_kh_dist_col để
    KHÔNG đụng bản popover hover.

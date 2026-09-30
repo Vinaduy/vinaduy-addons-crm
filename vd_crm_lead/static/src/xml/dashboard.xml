@@ -3356,10 +3356,100 @@
                         <button type="button" t-if="distRep.month"
                                 t-att-class="'o_vd_pk_periodtab' + (state.distPeriodSel === 'month' ? ' o_active' : '')"
                                 t-on-click.stop="() => this.setDistPeriod('month')">Tháng này</button>
+                        <span class="o_vd_pk_tabsep"/>
+                        <button type="button"
+                                t-att-class="'o_vd_pk_periodtab o_vd_pk_tab_days' + (state.distPeriodSel === 'd7' ? ' o_active' : '')"
+                                t-on-click.stop="() => this.setDistPeriod('d7')">7 ngày qua</button>
+                        <button type="button"
+                                t-att-class="'o_vd_pk_periodtab o_vd_pk_tab_days' + (state.distPeriodSel === 'd15' ? ' o_active' : '')"
+                                t-on-click.stop="() => this.setDistPeriod('d15')">15 ngày qua</button>
+                        <button type="button"
+                                t-att-class="'o_vd_pk_periodtab o_vd_pk_tab_days' + (state.distPeriodSel === 'd30' ? ' o_active' : '')"
+                                t-on-click.stop="() => this.setDistPeriod('d30')">30 ngày qua</button>
                     </div>
+
+                    <!-- ===== MA TRẬN SỐ PANCAKE: NV (dòng) × NGÀY (cột) =====
+                         Ô = số Pancake tự đẩy về NV đó trong ngày đó (Zalo +
+                         TikTok + Facebook). Quét số KHÔNG tính (số nhập tay).
+                         Cột tên NV ghim trái, phần ngày cuộn ngang khi 30 ngày.
+                         user 2026-09-30 -->
+                    <t t-if="isDailyPeriod(state.distPeriodSel)">
+                        <div t-if="state.dailyLoading" class="o_vd_pk_daily_loading">
+                            Đang tải báo cáo…
+                        </div>
+                        <t t-elif="state.dailyRep">
+                            <t t-set="dr" t-value="state.dailyRep"/>
+                            <div class="o_vd_pk_daily_head">
+                                <div class="o_vd_pk_daily_kpi">
+                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.total"/></span>
+                                    <span class="o_vd_pk_dk_lbl">Tổng <t t-esc="dr.days"/> ngày</span>
+                                </div>
+                                <div class="o_vd_pk_daily_kpi">
+                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.avg"/></span>
+                                    <span class="o_vd_pk_dk_lbl">TB/ngày có số</span>
+                                </div>
+                                <div class="o_vd_pk_daily_kpi">
+                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.best_total"/></span>
+                                    <span class="o_vd_pk_dk_lbl">Cao nhất — <t t-esc="dr.summary.best_day"/></span>
+                                </div>
+                                <div class="o_vd_pk_daily_kpi" t-if="dr.summary.days_zero">
+                                    <span class="o_vd_pk_dk_num o_vd_pk_dk_warn"><t t-esc="dr.summary.days_zero"/></span>
+                                    <span class="o_vd_pk_dk_lbl">Ngày không có số</span>
+                                </div>
+                            </div>
+                            <div class="o_vd_pk_mx_wrap">
+                                <table class="o_vd_pk_mx">
+                                    <thead>
+                                        <tr>
+                                            <th class="o_vd_pk_mx_nv">Nhân viên</th>
+                                            <th t-foreach="dr.dates" t-as="c" t-key="c.iso"
+                                                t-att-class="'o_vd_pk_mx_d' + (c.is_today ? ' o_today' : '') + (c.is_weekend ? ' o_weekend' : '')">
+                                                <t t-esc="c.day"/>
+                                            </th>
+                                            <th class="o_vd_pk_mx_sum">Tổng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="dr.rows" t-as="r" t-key="r.uid"
+                                            t-att-class="r.can_receive ? '' : 'o_off'">
+                                            <td class="o_vd_pk_mx_nv" t-att-title="r.can_receive ? '' : 'Đang TẮT nhận số'">
+                                                <t t-esc="r.name"/>
+                                            </td>
+                                            <td t-foreach="r.cells" t-as="n" t-key="n_index"
+                                                t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (dr.dates[n_index].is_today ? ' o_today' : '')">
+                                                <t t-esc="n || '·'"/>
+                                            </td>
+                                            <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td class="o_vd_pk_mx_nv">Cộng</td>
+                                            <td t-foreach="dr.col_totals" t-as="n" t-key="n_index"
+                                                t-att-class="'o_vd_pk_mx_c' + (dr.dates[n_index].is_today ? ' o_today' : '') + (dr.dates[n_index].is_weekend ? ' o_weekend' : '')">
+                                                <t t-esc="n"/>
+                                            </td>
+                                            <td class="o_vd_pk_mx_sum"><t t-esc="dr.summary.total"/></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="o_vd_pk_mx_legend">
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>Không có số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2 số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4 số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>Từ 5 số</span>
+                            </div>
+                            <div class="o_vd_pk_daily_note">
+                                Chỉ tính số Pancake tự đẩy về (Zalo + TikTok + Facebook). Không tính Quét số.
+                                Dòng mờ = NV đang tắt nhận số.
+                            </div>
+                        </t>
+                    </t>
+
                     <t t-set="dsel" t-value="distPeriodReport(distRep)"/>
                     <t t-set="isToday" t-value="state.distPeriodSel === 'today'"/>
-                    <t t-if="dsel">
+                    <t t-if="dsel &amp;&amp; !isDailyPeriod(state.distPeriodSel)">
                         <div class="o_vd_pancake_sec_head">
                             📅 <b><t t-esc="dsel.label"/></b> — <b><t t-esc="dsel.total"/></b> số
                             <span t-if="dsel.nv_count != null">, chia cho <b><t t-esc="dsel.nv_count"/></b> NV</span>
