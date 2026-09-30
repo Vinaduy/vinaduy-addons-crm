@@ -3364,6 +3364,61 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 🎯 PHỄU HIỆU SUẤT NV theo PHÒNG + lọc NV + cảnh báo (user 2026-09-30) -->
+                    <div t-if="state.perf_funnel" class="o_vd_pf_box">
+                        <div class="o_vd_pf_hd">
+                            <span class="o_vd_pf_title">🎯 PHỄU HIỆU SUẤT — <t t-esc="state.perf_funnel.label"/></span>
+                            <div class="o_vd_pf_ctrls">
+                                <div class="o_vd_pf_tabs">
+                                    <button t-att-class="'o_vd_pf_tab'+(state.perfPeriod==='day'?' o_active':'')" t-on-click="() => this.setPerfPeriod('day')">Ngày</button>
+                                    <button t-att-class="'o_vd_pf_tab'+(state.perfPeriod==='week'?' o_active':'')" t-on-click="() => this.setPerfPeriod('week')">Tuần</button>
+                                    <button t-att-class="'o_vd_pf_tab'+(state.perfPeriod==='month'?' o_active':'')" t-on-click="() => this.setPerfPeriod('month')">Tháng</button>
+                                </div>
+                                <select class="o_vd_pf_nvsel" t-on-change="(ev) => this.onPerfNvFilter(ev)">
+                                    <option value="0">Tất cả NV</option>
+                                    <option t-foreach="perfNvOptions" t-as="pnv" t-key="pnv.uid" t-att-value="pnv.uid" t-att-selected="state.perfNvFilter===pnv.uid"><t t-esc="pnv.name"/></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="o_vd_pf_total">
+                            Toàn công ty: Nhận <b><t t-esc="state.perf_funnel.total.received"/></b> · Gọi <b><t t-esc="state.perf_funnel.total.called"/></b> · Nghe máy <b><t t-esc="state.perf_funnel.total.answered"/></b> · Chốt <b><t t-esc="state.perf_funnel.total.won"/></b>
+                        </div>
+                        <div t-if="perfAlerts.length" class="o_vd_pf_alertwrap">
+                            <button class="o_vd_pf_alertbtn" t-on-click="() => this.togglePerfAlerts()">
+                                ⚠️ <b><t t-esc="perfAlerts.length"/></b> NV cần chú ý <t t-esc="state.perfAlertsOpen ? '▲' : '▼'"/>
+                            </button>
+                            <div t-if="state.perfAlertsOpen" class="o_vd_pf_alerts">
+                                <div t-foreach="perfAlerts" t-as="al" t-key="al.uid" class="o_vd_pf_alert">
+                                    <div class="o_vd_pf_al_nv">🔴 <t t-esc="al.name"/></div>
+                                    <ul class="o_vd_pf_al_list"><li t-foreach="al.flags" t-as="fl" t-key="fl_index"><t t-esc="fl"/></li></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_vd_pf_depts">
+                            <div t-foreach="perfDepts" t-as="d" t-key="d.dept" class="o_vd_pf_dept">
+                                <div class="o_vd_pf_dhd">
+                                    <span class="o_vd_pf_rank">#<t t-esc="d.rank"/></span>
+                                    <span class="o_vd_pf_dname">🏢 <t t-esc="d.dept"/></span>
+                                    <span class="o_vd_pf_dsum"><t t-esc="d.nv_count"/> NV · Chốt <b><t t-esc="d.won"/></b></span>
+                                </div>
+                                <div class="o_vd_pf_funnel">
+                                    <div class="o_vd_pf_stage"><span class="o_vd_pf_bar o_vd_pf_s1" t-attf-style="width:{{perfBarW(d.received,d.received)}}"/><span class="o_vd_pf_lbl">Nhận <b><t t-esc="d.received"/></b></span></div>
+                                    <div class="o_vd_pf_stage"><span class="o_vd_pf_bar o_vd_pf_s2" t-attf-style="width:{{perfBarW(d.called,d.received)}}"/><span class="o_vd_pf_lbl">Gọi <b><t t-esc="d.called"/></b> <i t-attf-class="o_vd_pf_pc {{perfRateClass(d.pct_called,50,70)}}">(<t t-esc="d.pct_called"/>%)</i></span></div>
+                                    <div class="o_vd_pf_stage"><span class="o_vd_pf_bar o_vd_pf_s3" t-attf-style="width:{{perfBarW(d.answered,d.received)}}"/><span class="o_vd_pf_lbl">Nghe <b><t t-esc="d.answered"/></b> <i t-attf-class="o_vd_pf_pc {{perfRateClass(d.pct_answered,30,50)}}">(<t t-esc="d.pct_answered"/>%)</i></span></div>
+                                    <div class="o_vd_pf_stage"><span class="o_vd_pf_bar o_vd_pf_s4" t-attf-style="width:{{perfBarW(d.won,d.received)}}"/><span class="o_vd_pf_lbl">Chốt <b><t t-esc="d.won"/></b></span></div>
+                                </div>
+                                <div class="o_vd_pf_nvs">
+                                    <div t-foreach="d.nvs" t-as="pv" t-key="pv.uid" t-att-class="'o_vd_pf_nvrow'+(pv.flags.length?' o_vd_pf_warn':'')">
+                                        <span class="o_vd_pf_nvname"><t t-if="pv.flags.length">🔴 </t><t t-esc="pv.name"/></span>
+                                        <span class="o_vd_pf_nvm">Nhận <b><t t-esc="pv.received"/></b></span>
+                                        <span t-attf-class="o_vd_pf_nvm {{perfRateClass(pv.pct_called,50,70)}}">Gọi <b><t t-esc="pv.called"/></b> (<t t-esc="pv.pct_called"/>%)</span>
+                                        <span t-attf-class="o_vd_pf_nvm {{perfRateClass(pv.pct_answered,30,50)}}">Nghe <b><t t-esc="pv.answered"/></b> (<t t-esc="pv.pct_answered"/>%)</span>
+                                        <span class="o_vd_pf_nvm">Chốt <b><t t-esc="pv.won"/></b></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="o_vd_pk_periodtabs">
                         <button type="button"
                                 t-att-class="'o_vd_pk_periodtab' + (state.distPeriodSel === 'today' ? ' o_active' : '')"
