@@ -3262,48 +3262,30 @@
                                         t-on-click.stop="() => this.setPancakeTrend('month')">Tháng</button>
                             </span>
                         </div>
-                        <!-- 2 Ô GRID: [biểu đồ CỘT] | [biểu đồ ĐƯỜNG] (user spec 2026-08-28). -->
-                        <div class="o_vd_pk_trend_grid">
-                            <!-- Ô 1: BIỂU ĐỒ CỘT -->
-                            <div class="o_vd_pk_trend_cell">
-                                <div class="o_vd_pk_trend_cell_ttl">📊 Biểu đồ cột</div>
-                                <div class="o_vd_pk_trend_bars">
-                                    <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
-                                         t-att-class="'o_vd_pk_barcol' + (d.is_today ? ' o_vd_pk_bartoday' : '') + (d.edited ? ' o_vd_pk_baredited' : '')"
-                                         t-att-title="d.day + ': ' + d.pct + '% (' + d.with_phone + '/' + d.total + ')' + (d.edited ? ' [da sua tay]' : '')">
-                                        <div class="o_vd_pk_barpct"><t t-esc="d.pct"/>%</div>
-                                        <div class="o_vd_pk_barwrap">
-                                            <div class="o_vd_pk_bar" t-att-style="`height:${d.total ? Math.max(d.pct, 4) : 0}%`"/>
-                                        </div>
-                                        <div class="o_vd_pk_barstat">
-                                            <span class="o_vd_pk_stat_ph" title="Số điện thoại xin được">📞 <t t-esc="d.with_phone"/></span>
-                                            <span class="o_vd_pk_stat_msg" title="Số khách nhắn">💬 <t t-esc="d.total"/></span>
-                                        </div>
-                                        <div class="o_vd_pk_barlbl"><t t-esc="d.label"/></div>
-                                        <div class="o_vd_pk_barday"><t t-esc="d.day"/></div>
-                                        <!-- Bút chì ✏️ sửa số liệu ĐÃ BỎ (user 2026-08-28). -->
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Ô 2: BIỂU ĐỒ ĐƯỜNG -->
-                            <div class="o_vd_pk_trend_cell">
-                                <div class="o_vd_pk_trend_cell_ttl">📈 Biểu đồ đường</div>
-                                <div class="o_vd_pk_linechart">
-                                    <svg class="o_vd_pk_line_svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                        <polyline t-att-points="pancakeTrendLinePoints(distRep)"
-                                                  fill="none" stroke="#e8590c" stroke-width="2.5"
-                                                  stroke-linejoin="round" stroke-linecap="round"
-                                                  vector-effect="non-scaling-stroke"/>
-                                    </svg>
-                                    <div class="o_vd_pk_line_lbls">
-                                        <div t-foreach="pancakeTrendData(distRep)" t-as="d" t-key="d_index"
-                                             t-att-class="'o_vd_pk_line_lbl' + (d.is_today ? ' o_vd_pk_line_today' : '')">
-                                            <b class="o_vd_pk_line_pct"><t t-esc="d.pct"/>%</b>
-                                            <span class="o_vd_pk_line_day"><t t-esc="d.label"/></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- BIỂU ĐỒ tỷ lệ xin số kiểu HBR/Harvard: 1 biểu đồ area+line
+                             sạch, lưới mờ, đường TRUNG BÌNH benchmark, nhãn trực tiếp,
+                             câu insight (user spec 2026-09-30). -->
+                        <t t-set="pc" t-value="pancakeChart(distRep)"/>
+                        <div t-if="pc.has" class="o_vd_hbr">
+                            <svg class="o_vd_hbr_svg" t-attf-viewBox="0 0 {{pc.W}} {{pc.H}}" preserveAspectRatio="xMidYMid meet">
+                                <t t-foreach="pc.grid" t-as="g" t-key="g.v">
+                                    <line class="o_vd_hbr_grid" t-att-x1="pc.x0" t-att-x2="pc.x1" t-att-y1="g.y" t-att-y2="g.y"/>
+                                    <text class="o_vd_hbr_yl" text-anchor="end" t-att-x="pc.x0 - 6" t-att-y="g.y + 3"><t t-esc="g.v"/></text>
+                                </t>
+                                <line class="o_vd_hbr_avg" t-att-x1="pc.x0" t-att-x2="pc.x1" t-att-y1="pc.avgY" t-att-y2="pc.avgY"/>
+                                <text class="o_vd_hbr_avgl" text-anchor="end" t-att-x="pc.x1" t-att-y="pc.avgY - 4">TB <t t-esc="pc.avg"/>%</text>
+                                <path class="o_vd_hbr_area" t-att-d="pc.area"/>
+                                <path class="o_vd_hbr_line" t-att-d="pc.line"/>
+                                <t t-foreach="pc.pts" t-as="p" t-key="p_index">
+                                    <circle t-att-cx="p.x" t-att-cy="p.y" r="3.6" t-att-class="'o_vd_hbr_dot' + (p.is_today ? ' o_today' : '')">
+                                        <title><t t-esc="p.label"/>: <t t-esc="p.pct"/>% — <t t-esc="p.with_phone"/> số / <t t-esc="p.total"/> khách nhắn</title>
+                                    </circle>
+                                    <text class="o_vd_hbr_pl" text-anchor="middle" t-att-x="p.x" t-att-y="p.y - 9"><t t-esc="p.pct"/>%</text>
+                                    <text class="o_vd_hbr_xl" text-anchor="middle" t-att-x="p.x" t-att-y="pc.y1 + 15"><t t-esc="p.label"/></text>
+                                    <text class="o_vd_hbr_xs" text-anchor="middle" t-att-x="p.x" t-att-y="pc.y1 + 26"><t t-esc="p.with_phone"/>/<t t-esc="p.total"/></text>
+                                </t>
+                            </svg>
+                            <div t-if="pc.insight" class="o_vd_hbr_insight">💡 <t t-esc="pc.insight"/></div>
                         </div>
                         <!-- HỘP SỬA TAY số liệu 1 ngày (admin/quản lý bấm icon bút) -->
                         <div t-if="state.rateEdit" class="o_vd_pk_editbox">

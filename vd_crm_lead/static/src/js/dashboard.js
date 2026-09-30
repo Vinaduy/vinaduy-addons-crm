@@ -900,6 +900,45 @@ export class VdCrmDashboard extends Component {
         }).join(" ");
     }
 
+    // ===== BIỂU ĐỒ TỶ LỆ XIN SỐ kiểu HBR/Harvard (user 2026-09-30) =====
+    // 1 biểu đồ area+line sạch: lưới mờ, đường TRUNG BÌNH benchmark, chấm + nhãn
+    // trực tiếp, câu insight. Toạ độ tính sẵn (viewBox px) → nét/label sắc nét.
+    pancakeChart(rep) {
+        const data = this.pancakeTrendData(rep) || [];
+        const n = data.length;
+        const W = 640, H = 210, padL = 34, padR = 14, padT = 22, padB = 34;
+        const x0 = padL, x1 = W - padR, y0 = padT, y1 = H - padB;
+        const empty = { has: false, W, H, pts: [], grid: [], line: "", area: "",
+                        avg: 0, avgY: y1, insight: "" };
+        if (!n) return empty;
+        const xs = (i) => n === 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * (x1 - x0);
+        const ys = (p) => y1 - (Math.max(0, Math.min(100, p)) / 100) * (y1 - y0);
+        const pts = data.map((d, i) => ({
+            x: +xs(i).toFixed(1), y: +ys(d.pct || 0).toFixed(1),
+            pct: d.pct || 0, label: d.label, day: d.day,
+            with_phone: d.with_phone || 0, total: d.total || 0,
+            is_today: !!d.is_today,
+        }));
+        const line = pts.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
+        const area = `${line} L${pts[pts.length - 1].x},${y1} L${pts[0].x},${y1} Z`;
+        const grid = [0, 25, 50, 75, 100].map((v) => ({ v, y: +ys(v).toFixed(1) }));
+        const withData = data.filter((d) => (d.total || 0) > 0);
+        const avg = withData.length
+            ? Math.round(withData.reduce((s, d) => s + (d.pct || 0), 0) / withData.length) : 0;
+        // Insight: trung bình + kỳ cao nhất + xu hướng (kỳ cuối vs trung bình).
+        let insight = "";
+        if (withData.length) {
+            const best = withData.reduce((a, b) => (b.pct > a.pct ? b : a));
+            const last = data[data.length - 1];
+            const trend = (last.total || 0) === 0 ? ""
+                : last.pct >= avg ? ` · kỳ này ${last.pct}% (trên trung bình)`
+                : ` · kỳ này ${last.pct}% (dưới trung bình — cần chú ý)`;
+            insight = `Trung bình ${avg}% · Cao nhất ${best.label} (${best.pct}%)${trend}`;
+        }
+        return { has: true, W, H, x0, x1, y0, y1, pts, line, area, grid,
+                 avg, avgY: +ys(avg).toFixed(1), insight };
+    }
+
     async openPancakeExcluded(scope) {
         this.state.pkExcluded = {
             open: true, scope, loading: true, items: [], summary: {},
