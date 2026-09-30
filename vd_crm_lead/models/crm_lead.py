@@ -7828,12 +7828,10 @@ class CrmLead(models.Model):
             return {'period': period, 'label': label, 'depts': [], 'alerts': []}
         name_by = {u.id: (u.name or 'NV #%s' % u.id) for u in pool}
 
-        since_s = fields.Datetime.to_string(since)
-        until_s = fields.Datetime.to_string(until)
-        # Cohort NHẬN trong kỳ → GỌI → NGHE (đo hoạt động gần đây, đúng cohort).
+        # Cohort funnel qua 1 truy vấn: số nhận trong kỳ → gọi/nghe/chốt.
         self.env.cr.execute("""
             WITH win AS (
-                SELECT id, user_id FROM crm_lead
+                SELECT id, user_id, stage_is_won FROM crm_lead
                 WHERE create_date >= %s AND create_date < %s AND user_id = ANY(%s)
             ),
             lc AS (
@@ -7845,22 +7843,13 @@ class CrmLead(models.Model):
             SELECT w.user_id,
                    count(*) received,
                    count(*) FILTER (WHERE lc.n > 0) called,
-                   count(*) FILTER (WHERE lc.a > 0) answered
+                   count(*) FILTER (WHERE lc.a > 0) answered,
+                   count(*) FILTER (WHERE w.stage_is_won) won
             FROM win w LEFT JOIN lc ON lc.lead_id = w.id
             GROUP BY w.user_id
-        """, (since_s, until_s, pool.ids))
-        stat = {r[0]: {'received': r[1], 'called': r[2], 'answered': r[3], 'won': 0}
+        """, (fields.Datetime.to_string(since), fields.Datetime.to_string(until), pool.ids))
+        stat = {r[0]: {'received': r[1], 'called': r[2], 'answered': r[3], 'won': r[4]}
                 for r in self.env.cr.fetchall()}
-        # CHỐT = khách CHỐT TRONG KỲ (date_closed trong kỳ) — không giới hạn cohort
-        # (khách chốt trong kỳ có thể nhận từ trước). Đo năng lực chốt thực của kỳ.
-        self.env.cr.execute("""
-            SELECT user_id, count(*) FROM crm_lead
-            WHERE stage_is_won = true AND date_closed >= %s AND date_closed < %s
-              AND user_id = ANY(%s) GROUP BY user_id
-        """, (since_s, until_s, pool.ids))
-        for uid, w in self.env.cr.fetchall():
-            stat.setdefault(uid, {'received': 0, 'called': 0, 'answered': 0, 'won': 0})
-            stat[uid]['won'] = w
 
         def _pct(a, b):
             return int(round(a * 100.0 / b)) if b else 0
@@ -7889,10 +7878,8 @@ class CrmLead(models.Model):
             if cl >= MIN_N and _pct(an, cl) < 30:
                 flags.append('Gọi %d cuộc nhưng chỉ %d nghe máy (%d%%) — số xấu hoặc gọi sai giờ'
                              % (cl, an, _pct(an, cl)))
-            # Nhận NHIỀU (≥20) + gọi/nghe ổn nhưng CHỐT=0 → mới cảnh báo (tránh
-            # nhiễu do khách mới chưa kịp chốt).
-            if rc >= 20 and an >= 10 and wo == 0:
-                flags.append('Nhận %d số, %d khách nghe máy nhưng CHỐT = 0 trong kỳ' % (rc, an))
+            if rc >= MIN_N and wo == 0:
+                flags.append('Nhận %d số nhưng CHỐT = 0' % rc)
             nv['flags'] = flags
             if flags:
                 alerts.append({'uid': u.id, 'name': name_by[u.id],

@@ -300,11 +300,6 @@ export class VdCrmDashboard extends Component {
             reassignBusy: false,
             // Mở/đóng danh sách khách CHƯA có số (báo cáo xin số theo tháng).
             captureListOpen: false,
-            // Phễu hiệu suất NV theo phòng (user 2026-09-30).
-            perfPeriod: "month",
-            perfNvFilter: 0,        // 0 = tất cả NV; >0 = lọc 1 NV
-            perfBusy: false,
-            perfAlertsOpen: false,
             // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
             // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
@@ -783,63 +778,6 @@ export class VdCrmDashboard extends Component {
     // ===== Mở/đóng danh sách khách CHƯA có số (báo cáo xin số) =====
     toggleCaptureList() {
         this.state.captureListOpen = !this.state.captureListOpen;
-    }
-
-    // ===== PHỄU HIỆU SUẤT NV theo PHÒNG (user 2026-09-30) =====
-    async setPerfPeriod(p) {
-        if (this.state.perfPeriod === p || this.state.perfBusy) return;
-        this.state.perfBusy = true;
-        try {
-            const data = await this.orm.call("crm.lead", "vd_perf_funnel", [p]);
-            if (data) { this.state.perf_funnel = data; this.state.perfPeriod = p; }
-        } catch (e) {
-            this.notification.add("Không tải được phễu hiệu suất.", { type: "danger" });
-        } finally {
-            this.state.perfBusy = false;
-        }
-    }
-    onPerfNvFilter(ev) {
-        this.state.perfNvFilter = parseInt(ev.target.value, 10) || 0;
-    }
-    togglePerfAlerts() { this.state.perfAlertsOpen = !this.state.perfAlertsOpen; }
-    // Danh sách NV cho dropdown lọc (gom từ mọi phòng, sort tên).
-    get perfNvOptions() {
-        const rep = this.state.perf_funnel;
-        if (!rep || !rep.depts) return [];
-        const out = [];
-        for (const d of rep.depts) for (const nv of (d.nvs || [])) out.push(nv);
-        out.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        return out;
-    }
-    // Phòng đã lọc theo NV (nếu chọn 1 NV → chỉ phòng chứa NV đó + 1 NV đó).
-    get perfDepts() {
-        const rep = this.state.perf_funnel;
-        if (!rep || !rep.depts) return [];
-        const f = this.state.perfNvFilter;
-        if (!f) return rep.depts;
-        const out = [];
-        for (const d of rep.depts) {
-            const nvs = (d.nvs || []).filter((n) => n.uid === f);
-            if (nvs.length) out.push({ ...d, nvs });
-        }
-        return out;
-    }
-    get perfAlerts() {
-        const rep = this.state.perf_funnel;
-        let a = (rep && rep.alerts) || [];
-        const f = this.state.perfNvFilter;
-        if (f) a = a.filter((x) => x.uid === f);
-        return a;
-    }
-    // % → class màu cảnh báo (đỏ thấp / cam / xanh) cho ô tỷ lệ.
-    perfRateClass(pct, lowRed, lowAmber) {
-        if (pct < lowRed) return "o_vd_pf_red";
-        if (pct < lowAmber) return "o_vd_pf_amber";
-        return "o_vd_pf_green";
-    }
-    perfBarW(part, whole) {
-        const w = whole ? Math.round((part * 100.0) / whole) : 0;
-        return Math.max(2, w) + "%";
     }
 
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====
