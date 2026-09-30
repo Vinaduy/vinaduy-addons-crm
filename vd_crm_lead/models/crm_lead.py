@@ -7780,6 +7780,140 @@ class CrmLead(models.Model):
             'manual_report': {},
             # Báo cáo XIN SỐ từ đầu tháng (đã có số / chưa có số + danh sách).
             'capture_report': self.env['vd.pancake.conversation'].sudo()._vd_capture_report(),
+            # PHỄU HIỆU SUẤT NV theo PHÒNG (user spec 2026-09-30).
+            'perf_funnel': self._vd_performance_funnel('month'),
+        }
+
+    @api.model
+    def vd_perf_funnel(self, period='month'):
+        """PUBLIC cho JS: đổi kỳ (day/week/month) cho phễu hiệu suất."""
+        return self._vd_performance_funnel(period if period in ('day', 'week', 'month') else 'month')
+
+    @api.model
+    def _vd_performance_funnel(self, period='month'):
+        """PHỄU HIỆU SUẤT NV theo PHÒNG (user spec 2026-09-30):
+        Cohort = số NHẬN trong kỳ → GỌI (≥1 cuộc) → NGHE MÁY (≥1 vd_answered) →
+        CHỐT (stage_is_won). Nhóm theo PHÒNG (tiền tố tên NV), có so sánh phòng +
+        CẢNH BÁO tự động NV bất thường. Trả dict cho JS render."""
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _tdd
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+
+        def _utc(d, t=_time(0, 0)):
+            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
+
+        if period == 'day':
+            since = _utc(now_vn.date())
+            label = 'Hôm nay'
+        elif period == 'week':
+            since = _utc(now_vn.date() - _tdd(days=now_vn.weekday()))
+            label = 'Tuần này'
+        else:
+            period = 'month'
+            since = _utc(now_vn.date().replace(day=1))
+            label = 'Tháng này'
+        until = fields.Datetime.now() + _tdd(days=1)
+
+        # POOL NV: sales + trưởng nhóm/giám đốc, loại admin kỹ thuật.
+        Users = self.env['res.users'].sudo()
+        sales = Users.search([
+            ('share', '=', False), ('active', '=', True),
+            ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id)])
+        bosses = Users.search([('share', '=', False), ('active', '=', True)]).filtered(
+            lambda u: u.vd_crm_role in ('team_leader', 'director'))
+        pool = (sales | bosses).filtered(
+            lambda u: not (u._is_admin() or u.has_group('base.group_system')))
+        if not pool:
+            return {'period': period, 'label': label, 'depts': [], 'alerts': []}
+        name_by = {u.id: (u.name or 'NV #%s' % u.id) for u in pool}
+
+        # Cohort funnel qua 1 truy vấn: số nhận trong kỳ → gọi/nghe/chốt.
+        self.env.cr.execute("""
+            WITH win AS (
+                SELECT id, user_id, stage_is_won FROM crm_lead
+                WHERE create_date >= %s AND create_date < %s AND user_id = ANY(%s)
+            ),
+            lc AS (
+                SELECT c.lead_id, count(*) n,
+                       count(*) FILTER (WHERE c.vd_answered) a
+                FROM stringee_call c JOIN win ON win.id = c.lead_id
+                WHERE c.lead_id IS NOT NULL GROUP BY c.lead_id
+            )
+            SELECT w.user_id,
+                   count(*) received,
+                   count(*) FILTER (WHERE lc.n > 0) called,
+                   count(*) FILTER (WHERE lc.a > 0) answered,
+                   count(*) FILTER (WHERE w.stage_is_won) won
+            FROM win w LEFT JOIN lc ON lc.lead_id = w.id
+            GROUP BY w.user_id
+        """, (fields.Datetime.to_string(since), fields.Datetime.to_string(until), pool.ids))
+        stat = {r[0]: {'received': r[1], 'called': r[2], 'answered': r[3], 'won': r[4]}
+                for r in self.env.cr.fetchall()}
+
+        def _pct(a, b):
+            return int(round(a * 100.0 / b)) if b else 0
+
+        def _dept_of(name):
+            return (name.split(' - ')[0].strip() if ' - ' in name else 'KHÁC') or 'KHÁC'
+
+        # Ngưỡng cảnh báo (chỉ xét NV nhận đủ nhiều để có ý nghĩa).
+        MIN_N = 5
+        depts = {}
+        alerts = []
+        for u in pool:
+            s = stat.get(u.id, {'received': 0, 'called': 0, 'answered': 0, 'won': 0})
+            rc, cl, an, wo = s['received'], s['called'], s['answered'], s['won']
+            nv = {
+                'uid': u.id, 'name': name_by[u.id],
+                'received': rc, 'called': cl, 'answered': an, 'won': wo,
+                'pct_called': _pct(cl, rc), 'pct_answered': _pct(an, cl),
+                'pct_won': _pct(wo, rc),
+            }
+            # CẢNH BÁO tự động.
+            flags = []
+            if rc >= MIN_N and _pct(cl, rc) < 50:
+                flags.append('Nhận %d số nhưng mới gọi %d (%d%%) — nhiều số CHƯA GỌI'
+                             % (rc, cl, _pct(cl, rc)))
+            if cl >= MIN_N and _pct(an, cl) < 30:
+                flags.append('Gọi %d cuộc nhưng chỉ %d nghe máy (%d%%) — số xấu hoặc gọi sai giờ'
+                             % (cl, an, _pct(an, cl)))
+            if rc >= MIN_N and wo == 0:
+                flags.append('Nhận %d số nhưng CHỐT = 0' % rc)
+            nv['flags'] = flags
+            if flags:
+                alerts.append({'uid': u.id, 'name': name_by[u.id],
+                               'dept': _dept_of(name_by[u.id]), 'flags': flags})
+            d = _dept_of(name_by[u.id])
+            depts.setdefault(d, []).append(nv)
+
+        # Gộp theo phòng + tổng phòng, xếp hạng theo tỷ lệ CHỐT.
+        dept_rows = []
+        for d, nvs in depts.items():
+            rc = sum(x['received'] for x in nvs)
+            cl = sum(x['called'] for x in nvs)
+            an = sum(x['answered'] for x in nvs)
+            wo = sum(x['won'] for x in nvs)
+            nvs.sort(key=lambda x: (-x['won'], -x['received']))
+            dept_rows.append({
+                'dept': d, 'received': rc, 'called': cl, 'answered': an, 'won': wo,
+                'pct_called': _pct(cl, rc), 'pct_answered': _pct(an, cl),
+                'pct_won': _pct(wo, rc), 'nv_count': len(nvs), 'nvs': nvs,
+            })
+        # Xếp hạng phòng: tỷ lệ chốt cao → thấp (phòng có số mới xếp).
+        dept_rows.sort(key=lambda x: (-x['pct_won'], -x['won'], -x['received']))
+        for i, dr in enumerate(dept_rows):
+            dr['rank'] = i + 1
+
+        return {
+            'period': period, 'label': label,
+            'depts': dept_rows, 'alerts': alerts,
+            'total': {
+                'received': sum(d['received'] for d in dept_rows),
+                'called': sum(d['called'] for d in dept_rows),
+                'answered': sum(d['answered'] for d in dept_rows),
+                'won': sum(d['won'] for d in dept_rows),
+            },
         }
 
     @api.model
