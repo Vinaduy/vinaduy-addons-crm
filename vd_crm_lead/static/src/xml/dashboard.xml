@@ -934,7 +934,6 @@
                                             <span class="o_vd_dash_subview_sub">Hiệu suất từng NV</span>
                                         </span>
                                     </button>
-                                    <!-- Tab TỔNG QUAN ĐÃ BỎ (user spec 2026-10-04). -->
                                     <!-- Tab "Khách hàng" + "ALL khách hàng" ĐÃ BỎ (user 2026-08-28). -->
                                     <!-- Tab CHIA SỐ (chỉ quản lý có báo cáo) — bấm ra bảng đầy đủ -->
                                     <button t-if="state.pancake_report and state.pancake_report.today"
@@ -1012,7 +1011,6 @@
                             </div>
 
                             <!-- ============ TAB TỔNG QUAN — KPI + tỉ lệ chuyển đổi NV ============ -->
-                            <!-- Tab TỔNG QUAN (o_vd_ov_box) ĐÃ BỎ (user spec 2026-10-04). -->
 
                             <!-- ============================================================
                                  RIGHT COLUMN: 2 box stacked (Đang chốt trên, Vấn đề dưới)
@@ -3141,7 +3139,6 @@
                 </div>
 
                 <!-- ===== Ô TRÊN CÙNG: TỶ LỆ XIN ĐƯỢC SỐ + 7 NGÀY GẦN NHẤT ===== -->
-                <!-- Biểu đồ TỶ LỆ XIN SỐ (o_vd_pk_rate + HBR chart) ĐÃ BỎ (user 2026-10-04). -->
 
                 <!-- ===== BẢNG CHIA SỐ GỘP + BỘ LỌC KỲ (user 2026-08-28):
                      1 bảng duy nhất, chọn Hôm nay / Hôm qua / Tháng này. ===== -->
@@ -3318,7 +3315,6 @@
                             </div>
                         </div>
                     </t>
-                    <!-- Panel XIN SỐ chuyển xuống cuối (user 2026-10-04) -->
                     <div t-if="state.capture_report" class="o_vd_capture_box">
                         <div class="o_vd_capture_hd">📊 Xin số từ <t t-esc="state.capture_report.since"/> → nay</div>
                         <div class="o_vd_capture_nums">

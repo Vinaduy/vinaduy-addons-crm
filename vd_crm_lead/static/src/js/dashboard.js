@@ -168,7 +168,6 @@ export class VdCrmDashboard extends Component {
             // Tab CHIA SỐ: mở dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt).
             distAddOpen: false,
             // SỬA TAY số liệu 1 cột biểu đồ tỷ lệ — {iso,label,khach,xin} | null.
-            rateEdit: null,
             // Bảng THƯỞNG treo (admin cấu hình) hiện trên trang cá nhân.
             bonusBoard: { personal: [], team: [], team_label: "" },
             // BẢO MẬT: buộc đổi mật khẩu (hết chu kỳ) — chặn dashboard tới khi đổi.
@@ -339,7 +338,6 @@ export class VdCrmDashboard extends Component {
             // Bảng gộp "ĐÃ BÁO GIÁ" (TCG + XLVD) — thu gọn 15 dòng (user 2026-08-15)
             quotedExpanded: false,
             // Báo cáo tỷ lệ xin số: xem theo Ngày / Tuần / Tháng (user 2026-06-26).
-            pancakeTrendPeriod: "day",
             // ===== LỊCH HỌC BẮT BUỘC (banner + đếm ngược trên đầu danh sách KH) =====
             // Mảng session áp dụng cho NV đang nhập (vd.training.session.vd_my_banner).
             // trainingNow = mốc thời gian hiện tại (ms) cập nhật mỗi giây để đếm ngược.
@@ -828,56 +826,6 @@ export class VdCrmDashboard extends Component {
         this._toggleSourceNV(uid, "can_receive_zalo", "vd_toggle_zalo_receive");
     }
 
-    // ===== SỬA TAY số liệu 1 cột (icon cây bút) — admin/quản lý =====
-    onEditRate(d) {
-        if (!d || !d.iso) return;
-        this.state.rateEdit = {
-            iso: d.iso,
-            label: (d.label || "") + " " + (d.day || ""),
-            khach: d.total || 0,
-            xin: d.with_phone || 0,
-        };
-    }
-    cancelRateEdit() {
-        this.state.rateEdit = null;
-    }
-    async saveRateEdit() {
-        const e = this.state.rateEdit;
-        if (!e) return;
-        try {
-            await this.orm.call("vd.pancake.rate.override", "vd_save_rate_override",
-                [e.iso, Number(e.khach) || 0, Number(e.xin) || 0]);
-            const rep = await this.orm.call("crm.lead", "vd_pancake_dist_reports", []);
-            Object.assign(this.state, rep);
-            this.state.rateEdit = null;
-        } catch (err) {
-            console.warn("Lưu số liệu tay lỗi:", err);
-        }
-    }
-    async clearRateEdit() {
-        const e = this.state.rateEdit;
-        if (!e) return;
-        try {
-            await this.orm.call("vd.pancake.rate.override", "vd_clear_rate_override", [e.iso]);
-            const rep = await this.orm.call("crm.lead", "vd_pancake_dist_reports", []);
-            Object.assign(this.state, rep);
-            this.state.rateEdit = null;
-        } catch (err) {
-            console.warn("Xoá số liệu tay lỗi:", err);
-        }
-    }
-
-    // ===== DANH SÁCH SĐT BỊ LOẠI khỏi chia số (kiểm tra logic gộp) =====
-    setPancakeTrend(period) {
-        this.state.pancakeTrendPeriod = period;
-    }
-    // Trả mảng dữ liệu biểu đồ tỷ lệ theo kỳ đang chọn (day/week/month).
-    pancakeTrendData(rep) {
-        const p = this.state.pancakeTrendPeriod;
-        if (p === "week") return (rep && rep.rate_weeks) || [];
-        if (p === "month") return (rep && rep.rate_months) || [];
-        return (rep && rep.rate7) || [];
-    }
     // BỘ LỌC KỲ cho bảng chia số (Hôm nay | Hôm qua | Tháng này) — 1 bảng thay
     // vì nhiều bảng (user 2026-08-28).
     setDistPeriod(p) {
@@ -926,59 +874,6 @@ export class VdCrmDashboard extends Component {
         const sel = this.state.distPeriodSel || 'today';
         return (rep && rep[sel]) || null;
     }
-    // Điểm cho BIỂU ĐỒ ĐƯỜNG tỷ lệ xin số (viewBox 0..100 x 0..100, y=100-pct).
-    // Cùng trục x với cột (i/(n-1)*100) → khớp cột bên dưới. (user 2026-08-28)
-    pancakeTrendLinePoints(rep) {
-        const data = this.pancakeTrendData(rep) || [];
-        const n = data.length;
-        if (!n) return "";
-        return data.map((d, i) => {
-            // Ô ĐƯỜNG đứng riêng → điểm trải mép-đến-mép (i/(n-1)).
-            const x = n === 1 ? 50 : (i / (n - 1)) * 100;
-            const pct = Math.max(0, Math.min(100, d.pct || 0));
-            return `${x.toFixed(2)},${(100 - pct).toFixed(2)}`;
-        }).join(" ");
-    }
-
-    // ===== BIỂU ĐỒ TỶ LỆ XIN SỐ kiểu HBR/Harvard (user 2026-09-30) =====
-    // 1 biểu đồ area+line sạch: lưới mờ, đường TRUNG BÌNH benchmark, chấm + nhãn
-    // trực tiếp, câu insight. Toạ độ tính sẵn (viewBox px) → nét/label sắc nét.
-    pancakeChart(rep) {
-        const data = this.pancakeTrendData(rep) || [];
-        const n = data.length;
-        const W = 640, H = 210, padL = 34, padR = 14, padT = 22, padB = 34;
-        const x0 = padL, x1 = W - padR, y0 = padT, y1 = H - padB;
-        const empty = { has: false, W, H, pts: [], grid: [], line: "", area: "",
-                        avg: 0, avgY: y1, insight: "" };
-        if (!n) return empty;
-        const xs = (i) => n === 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * (x1 - x0);
-        const ys = (p) => y1 - (Math.max(0, Math.min(100, p)) / 100) * (y1 - y0);
-        const pts = data.map((d, i) => ({
-            x: +xs(i).toFixed(1), y: +ys(d.pct || 0).toFixed(1),
-            pct: d.pct || 0, label: d.label, day: d.day,
-            with_phone: d.with_phone || 0, total: d.total || 0,
-            is_today: !!d.is_today,
-        }));
-        const line = pts.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
-        const area = `${line} L${pts[pts.length - 1].x},${y1} L${pts[0].x},${y1} Z`;
-        const grid = [0, 25, 50, 75, 100].map((v) => ({ v, y: +ys(v).toFixed(1) }));
-        const withData = data.filter((d) => (d.total || 0) > 0);
-        const avg = withData.length
-            ? Math.round(withData.reduce((s, d) => s + (d.pct || 0), 0) / withData.length) : 0;
-        // Insight: trung bình + kỳ cao nhất + xu hướng (kỳ cuối vs trung bình).
-        let insight = "";
-        if (withData.length) {
-            const best = withData.reduce((a, b) => (b.pct > a.pct ? b : a));
-            const last = data[data.length - 1];
-            const trend = (last.total || 0) === 0 ? ""
-                : last.pct >= avg ? ` · kỳ này ${last.pct}% (trên trung bình)`
-                : ` · kỳ này ${last.pct}% (dưới trung bình — cần chú ý)`;
-            insight = `Trung bình ${avg}% · Cao nhất ${best.label} (${best.pct}%)${trend}`;
-        }
-        return { has: true, W, H, x0, x1, y0, y1, pts, line, area, grid,
-                 avg, avgY: +ys(avg).toFixed(1), insight };
-    }
-
     async openPancakeExcluded(scope) {
         this.state.pkExcluded = {
             open: true, scope, loading: true, items: [], summary: {},
@@ -1348,7 +1243,6 @@ export class VdCrmDashboard extends Component {
         this.state.distShowToggles = !this.state.distShowToggles;
     }
 
-    // (Tab TỔNG QUAN + loadOverview ĐÃ BỎ — user spec 2026-10-04.)
     // Màu theo tỉ lệ (tái dùng ngưỡng): <30 đỏ / 30-60 vàng / >60 xanh.
     ovPctClass(p) {
         const v = p || 0;
