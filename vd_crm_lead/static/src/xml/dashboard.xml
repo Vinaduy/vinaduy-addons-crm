@@ -862,14 +862,6 @@
                         <!-- FOCUS TOGGLE (Kiểm soát KH / NV) ĐÃ BỎ (user spec 2026-08-28)
                              — vào CRM hiện thẳng view Nhân viên (focus 'customers' mặc định). -->
 
-                        <nav class="o_vd_admin_nav_list">
-                            <button t-att-class="'o_vd_admin_nav_item ' + (state.adminTab === 'today' ? 'o_active' : '')"
-                                    t-on-click="() => this.selectAdminTab('today')">
-                                <i class="fa fa-calendar-check-o"/>
-                                <span>Hoạt động hôm nay</span>
-                            </button>
-                        </nav>
-
                         <div class="o_vd_admin_nav_footer">
                             <div class="o_vd_admin_nav_kpi">
                                 <span class="o_vd_admin_nav_kpi_lbl">Tổng khách hàng công ty</span>
@@ -1635,57 +1627,6 @@
                         </div>
 
                         <!-- ============== TAB: HOẠT ĐỘNG HÔM NAY ============== -->
-                        <div t-if="state.adminTab === 'today'" class="o_vd_admin_tab">
-                            <div class="o_vd_admin_tab_head">
-                                <h4><i class="fa fa-calendar-check-o me-2"/> Hoạt động hôm nay</h4>
-                                <div class="o_vd_admin_tab_sub">Số liệu cập nhật cho toàn công ty trong ngày.</div>
-                            </div>
-
-                            <div class="o_vd_admin_today_grid">
-                                <div class="o_vd_admin_today_card">
-                                    <div class="o_vd_admin_today_icon"><i class="fa fa-user-plus"/></div>
-                                    <div class="o_vd_admin_today_meta">
-                                        <div class="o_vd_admin_today_lbl">KH mới</div>
-                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.new_today or 0"/></div>
-                                    </div>
-                                </div>
-                                <div class="o_vd_admin_today_card">
-                                    <div class="o_vd_admin_today_icon"><i class="fa fa-phone"/></div>
-                                    <div class="o_vd_admin_today_meta">
-                                        <div class="o_vd_admin_today_lbl">Cuộc gọi đã thực hiện</div>
-                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.calls_today or 0"/></div>
-                                    </div>
-                                </div>
-                                <div class="o_vd_admin_today_card">
-                                    <div class="o_vd_admin_today_icon"><i class="fa fa-check-circle"/></div>
-                                    <div class="o_vd_admin_today_meta">
-                                        <div class="o_vd_admin_today_lbl">KH bắt máy</div>
-                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.calls_answered_today or 0"/></div>
-                                    </div>
-                                </div>
-                                <div class="o_vd_admin_today_card">
-                                    <div class="o_vd_admin_today_icon"><i class="fa fa-music"/></div>
-                                    <div class="o_vd_admin_today_meta">
-                                        <div class="o_vd_admin_today_lbl">Ghi âm</div>
-                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.recordings_today or 0"/></div>
-                                    </div>
-                                </div>
-                                <div class="o_vd_admin_today_card o_vd_admin_today_callback"
-                                     t-att-class="state.kpi.callback_today ? 'o_vd_admin_today_card o_vd_admin_today_callback o_vd_attn' : 'o_vd_admin_today_card o_vd_admin_today_callback'">
-                                    <div class="o_vd_admin_today_icon"><i class="fa fa-clock-o"/></div>
-                                    <div class="o_vd_admin_today_meta">
-                                        <div class="o_vd_admin_today_lbl">Hẹn gọi lại hôm nay</div>
-                                        <div class="o_vd_admin_today_val"><t t-esc="state.kpi.callback_today or 0"/></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="o_vd_admin_today_hint">
-                                <i class="fa fa-info-circle"/>
-                                Để xem hoạt động chi tiết của từng NV, chọn NV trong dropdown bên trái.
-                            </div>
-                        </div>
-
                     </main>
 
                     <!-- ===== NV DETAIL SLIDE-IN PANEL ===== -->
