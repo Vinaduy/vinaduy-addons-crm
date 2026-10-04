@@ -13073,3 +13073,25 @@ $vd-rose:      #b06a6a;
     background: #f1f6fc; border-left: 3px solid #1971c2;
     font-size: 0.82rem; color: #34455c; font-style: italic;
 }
+
+/* ===== DỌN BẢNG CHIA SỐ — gọn kiểu Harvard + nút ⚙️ Cài đặt (user 2026-10-04) ===== */
+.o_vd_pancake_sec_head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+.o_vd_pk_head_info { flex: 1 1 auto; min-width: 0; }
+.o_vd_pk_setbtn {
+    flex: 0 0 auto; border: 1px solid #ced4da; background: #f8f9fa; color: #495057;
+    border-radius: 6px; padding: 0.28rem 0.62rem; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: background .12s;
+    &:hover { background: #eef1f4; }
+    &.o_on { background: #e7f0ff; border-color: #4dabf7; color: #1864ab; }
+}
+/* Hàng NV GỌN + nền eval DỊU (Harvard: nhẹ, viền trái báo mức thay vì nền loè) */
+.o_vd_pancake_rows { gap: 0.12rem; }
+.o_vd_pancake_rows .o_vd_pancake_row {
+    padding: 0.2rem 0.55rem; font-size: 0.82rem; background: #fff;
+    border: 1px solid #f1f3f5; border-left: 3px solid #e9ecef; border-radius: 5px;
+}
+.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_few  { background: #fff; border-left-color: #ffa8a8; }
+.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_ok   { background: #fff; border-left-color: #a5d8ff; }
+.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_many { background: #fff; border-left-color: #b2f2bb; }
+.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_off  { opacity: 0.5; }
+.o_vd_pk_colhead { font-size: 0.72rem; color: #868e96; font-weight: 700; }

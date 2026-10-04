@@ -267,10 +267,9 @@ export class VdCrmDashboard extends Component {
             // KHÔNG nháy khi tải trang (user spec 2026-06-20 r11).
             allTeamGroups: [],
             allTeamLoading: false,
-            dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số) | 'overview' (tổng quan)
-            overview: null,         // KPI tổng quan (lazy load khi mở tab)
-            overviewLoading: false,
+            dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số)
             distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month | d7 | d15 | d30
+            distShowToggles: false, // ẩn/hiện công tắc Bật/Tắt trong bảng chia số (nút ⚙️)
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
             adminTab: "overview",
@@ -1341,25 +1340,15 @@ export class VdCrmDashboard extends Component {
 
     setDashSubView(mode) {
         if (this.state.dashSubView !== mode) this.state.dashSubView = mode;
-        if (mode === "overview") this.loadOverview();
     }
 
-    // TỔNG QUAN: nạp KPI per-NV (lazy — chỉ khi mở tab). User spec 2026-09-08.
-    async loadOverview(force) {
-        if (this.state.overviewLoading) return;
-        if (this.state.overview && !force) return;   // đã có, khỏi tải lại
-        this.state.overviewLoading = true;
-        try {
-            this.state.overview = await this.orm.call(
-                "crm.lead", "dashboard_overview", []);
-        } catch (e) {
-            this.notification.add(
-                "Không tải được tổng quan. " + ((e && e.message) || ""),
-                { type: "danger" });
-        } finally {
-            this.state.overviewLoading = false;
-        }
+    // ⚙️ Hiện/ẩn công tắc Bật/Tắt chia số trong bảng NV (user spec 2026-10-04):
+    // mặc định ẩn cho gọn; bấm Cài đặt mới hiện để chỉnh.
+    togglePancakeToggles() {
+        this.state.distShowToggles = !this.state.distShowToggles;
     }
+
+    // (Tab TỔNG QUAN + loadOverview ĐÃ BỎ — user spec 2026-10-04.)
     // Màu theo tỉ lệ (tái dùng ngưỡng): <30 đỏ / 30-60 vàng / >60 xanh.
     ovPctClass(p) {
         const v = p || 0;
