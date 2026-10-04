@@ -268,7 +268,8 @@ export class VdCrmDashboard extends Component {
             allTeamLoading: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số)
             distPeriodSel: "d7",    // bộ lọc kỳ bảng chia số: d7 | d15 | d30 (7/15/30 ngày)
-            distShowToggles: false, // ẩn/hiện công tắc Bật/Tắt trong bảng chia số (nút ⚙️)
+            distShowToggles: false, // ⚙️ Cài đặt: ẩn ma trận, hiện DANH SÁCH ĐỦ NV + công tắc
+            distSearch: "",         // ô tìm kiếm NV trong bảng chia số
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
             adminTab: "overview",
@@ -786,7 +787,7 @@ export class VdCrmDashboard extends Component {
         // Gán lại mảng rows để chắc chắn OWL re-render.
         const rep = this.state.pancake_report;
         if (rep) {
-            for (const key of ["today", "yesterday", "month"]) {
+            for (const key of ["today", "yesterday", "month", "d7", "d15", "d30"]) {
                 const day = rep[key];
                 if (day && Array.isArray(day.rows)) {
                     day.rows = day.rows.map((r) =>
@@ -803,7 +804,7 @@ export class VdCrmDashboard extends Component {
         if (!uid) return;
         const rep = this.state.pancake_report;
         if (rep) {
-            for (const key of ["today", "yesterday", "month"]) {
+            for (const key of ["today", "yesterday", "month", "d7", "d15", "d30"]) {
                 const day = rep[key];
                 if (day && Array.isArray(day.rows)) {
                     day.rows = day.rows.map((r) =>
@@ -872,6 +873,43 @@ export class VdCrmDashboard extends Component {
     distPeriodReport(rep) {
         const sel = this.state.distPeriodSel || 'today';
         return (rep && rep[sel]) || null;
+    }
+
+    // ===== TÌM KIẾM + LỌC NV trong bảng chia số (user 2026-10-04) =====
+    onDistSearch(ev) {
+        this.state.distSearch = (ev && ev.target && ev.target.value) || "";
+    }
+    _distMatch(r) {
+        const q = (this.state.distSearch || "").trim().toLowerCase();
+        if (!q) return true;
+        return ((r && r.name) || "").toLowerCase().includes(q);
+    }
+    // MA TRẬN: CHỈ NV đang BẬT nhận số + khớp tìm kiếm (NV tắt KHÔNG hiện).
+    distMatrixRows(dsel) {
+        if (!dsel || !Array.isArray(dsel.rows)) return [];
+        return dsel.rows.filter((r) => r.can_receive && this._distMatch(r));
+    }
+    // DANH SÁCH CÀI ĐẶT: ĐỦ NV (bật + tắt) + khớp tìm kiếm → để bật/tắt công tắc.
+    distSettingsRows(dsel) {
+        if (!dsel || !Array.isArray(dsel.rows)) return [];
+        return dsel.rows.filter((r) => this._distMatch(r));
+    }
+    // MA TRẬN NGÀY: cũng chỉ hiện NV đang bật + khớp tìm kiếm.
+    dailyMatrixRows(dr) {
+        if (!dr || !Array.isArray(dr.rows)) return [];
+        return dr.rows.filter((r) => r.can_receive && this._distMatch(r));
+    }
+    // Cộng tổng theo nguồn CHỈ trên các dòng đang hiển thị (khớp lọc).
+    distRowsTotals(rows) {
+        const t = { zalo: 0, tiktok: 0, facebook: 0, quet: 0, total: 0 };
+        for (const r of rows || []) {
+            t.zalo += r.zalo || 0;
+            t.tiktok += r.tiktok || 0;
+            t.facebook += r.facebook || 0;
+            t.quet += r.quet || 0;
+            t.total += r.count || 0;
+        }
+        return t;
     }
     async openPancakeExcluded(scope) {
         this.state.pkExcluded = {

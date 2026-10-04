@@ -12530,9 +12530,57 @@ $vd-rose:      #b06a6a;
 }
 
 /* Bộ lọc kỳ bảng chia số (Hôm nay | Hôm qua | Tháng này) — user 2026-08-28. */
-.o_vd_pk_periodtabs {
-    display: flex; gap: 0.4rem; margin: 0.3rem 0 0.6rem;
+/* Thanh công cụ: tab kỳ (trái) + ô tìm kiếm NV (phải) — user 2026-10-04 */
+.o_vd_pk_toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem; margin: 0.3rem 0 0.6rem;
 }
+.o_vd_pk_periodtabs {
+    display: flex; gap: 0.4rem;
+}
+.o_vd_pk_search {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border: 1px solid #ced4da; background: #fff; border-radius: 999px;
+    padding: 0.22rem 0.7rem; min-width: 220px;
+    .fa-search { color: #adb5bd; font-size: 0.82rem; }
+    input {
+        border: none; outline: none; background: none; flex: 1 1 auto;
+        font-size: 0.86rem; color: #343a40; min-width: 0;
+        &::placeholder { color: #adb5bd; }
+    }
+    &:focus-within { border-color: #4dabf7; box-shadow: 0 0 0 2px rgba(77,171,247,0.18); }
+}
+.o_vd_pk_search_clear {
+    border: none; background: #e9ecef; color: #868e96; cursor: pointer;
+    width: 1.1rem; height: 1.1rem; line-height: 1; border-radius: 50%;
+    font-size: 0.9rem; font-weight: 700; padding: 0;
+    &:hover { background: #dee2e6; color: #495057; }
+}
+
+/* ===== DANH SÁCH CÀI ĐẶT (⚙️): đủ NV + công tắc theo nguồn — user 2026-10-04 ===== */
+.o_vd_pk_setlist {
+    border: 1px solid #e8eaf0; border-radius: 10px; background: #fff; overflow: hidden;
+}
+.o_vd_pk_setrow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 6rem 6rem 6rem 6rem;
+    align-items: center; gap: 0.4rem;
+    padding: 0.32rem 0.7rem; border-bottom: 1px solid #f1f2f6;
+    &:last-child { border-bottom: none; }
+    &.o_off { background: #f8f9fa; .o_vd_pk_setname { color: #adb5bd; text-decoration: line-through; } }
+    &:not(.o_vd_pk_sethead):hover { background: #fafbff; }
+}
+.o_vd_pk_sethead {
+    background: #f8fafc; font-size: 0.74rem; font-weight: 800;
+    color: #6b7280; text-transform: none;
+    .o_vd_pk_setcell { color: #6b7280; }
+    position: sticky; top: 0; z-index: 2;
+}
+.o_vd_pk_setname {
+    font-size: 0.86rem; font-weight: 700; color: #374151;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.o_vd_pk_setcell { text-align: center; display: inline-flex; align-items: center; justify-content: center; }
 .o_vd_pk_periodtab {
     border: 1px solid #ffd8a8; background: #fff7ed; color: #9a3412;
     border-radius: 999px; padding: 0.25rem 0.9rem; font-size: 0.82rem;
@@ -12655,22 +12703,10 @@ $vd-rose:      #b06a6a;
 /* Biến thể MA TRẬN CHIA SỐ THEO NGUỒN (NV × Zalo/TikTok/FB/Quét) — ô vừa tô màu
    theo mức vừa chứa công tắc nhỏ khi bấm ⚙️ (user 2026-10-04). Chỉ 6–7 cột nên
    KHÔNG ghim cột Tổng/Bật-Tắt (tránh đè nhau khi màn hẹp). */
+/* MA TRẬN THEO NGUỒN (chỉ xem): 6 cột nên KHÔNG ghim cột Tổng (tránh đè khi hẹp). */
 .o_vd_pk_mx_src {
     .o_vd_pk_mx_c { min-width: 66px; }
-    .o_vd_mx_n { font-variant-numeric: tabular-nums; }
-    /* Khi hiện công tắc: xếp số trên, công tắc dưới cho gọn trong ô. */
-    &.o_has_sw .o_vd_pk_mx_c {
-        display: flex; flex-direction: column; align-items: center;
-        gap: 0.14rem; padding-top: 0.24rem; padding-bottom: 0.24rem;
-    }
-    /* Ô nguồn khi TẮT nhận → chỉ mờ con số (vẫn giữ màu mức để dễ đọc). */
-    .o_vd_pk_mx_c.o_src_off .o_vd_mx_n { opacity: 0.4; }
     .o_vd_pk_mx_sum { position: static; box-shadow: none; }
-    .o_vd_pk_mx_sw {
-        min-width: 52px; background: #f8fafc;
-    }
-    .o_vd_src_toggle { margin-left: 0; }
-    tbody .o_vd_pk_mx_sw { background: #fff; }
 }
 
 /* ============================================================
