@@ -7474,6 +7474,80 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def vd_pancake_source_daily_report(self, days=7):
+        """MA TRẬN THEO NGUỒN × NGÀY (user 2026-10-04): mỗi NGUỒN một DÒNG
+        (Zalo / TikTok / Facebook / Quét số), mỗi NGÀY một CỘT → theo dõi từng
+        nguồn tụt/tăng theo ngày. Tính cả Quét số (khác ma trận NV×ngày).
+
+        days ∈ 7 | 15 | 30. Đếm lead active đã gán NV, nguồn Pancake hoặc Quét."""
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _td
+        try:
+            days = int(days)
+        except Exception:
+            days = 7
+        if days not in (7, 15, 30):
+            days = 7
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        today_d = now_vn.date()
+        first_d = today_d - _td(days=days - 1)
+
+        def _utc(d):
+            return vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
+                pytz.utc).replace(tzinfo=None)
+
+        self.env['crm.lead'].flush_model()
+        self.env.cr.execute("""
+            SELECT (l.create_date AT TIME ZONE 'UTC'
+                        AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d,
+                   (CASE
+                      WHEN l.vd_lead_channel IS NOT NULL
+                           AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                      WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
+                           THEN 'zalo'
+                      WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
+                           THEN 'tiktok'
+                      WHEN l.vd_from_excel THEN 'quet'
+                      WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
+                      ELSE 'other'
+                    END) AS kenh,
+                   COUNT(*) AS n
+              FROM crm_lead l
+             WHERE l.active
+               AND l.user_id IS NOT NULL
+               AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
+               AND l.create_date >= %s
+               AND l.create_date < %s
+             GROUP BY 1, 2
+        """, (_utc(first_d), _utc(today_d + _td(days=1))))
+        cube = {}                       # {kenh: {date: n}}
+        for d, kenh, n in self.env.cr.fetchall():
+            if kenh in ('zalo', 'tiktok', 'facebook', 'quet'):
+                cube.setdefault(kenh, {})[d] = n
+
+        dates = []
+        for i in range(days):
+            d = first_d + _td(days=i)
+            dates.append({'iso': d.isoformat(), 'day': '%d/%d' % (d.day, d.month),
+                          'is_today': (d == today_d), 'is_weekend': d.weekday() >= 5,
+                          '_d': d})
+        srcs = [('zalo', '💬 Zalo'), ('tiktok', '🎵 TikTok'),
+                ('facebook', '📘 Facebook'), ('quet', '🧲 Quét số')]
+        rows = []
+        for key, label in srcs:
+            per = cube.get(key, {})
+            cells = [per.get(c['_d'], 0) for c in dates]
+            rows.append({'key': key, 'label': label, 'cells': cells,
+                         'total': sum(cells)})
+        col_tot = [sum(r['cells'][i] for r in rows) for i in range(days)]
+        grand = sum(col_tot)
+        for c in dates:
+            c.pop('_d', None)
+        return {'days': days, 'dates': dates, 'rows': rows,
+                'col_totals': col_tot, 'grand': grand}
+
+    @api.model
     def vd_pancake_dist_reports(self):
         """Wrapper PUBLIC cho JS: trả lại 2 báo cáo chia số sau khi bật/tắt NV."""
         return {

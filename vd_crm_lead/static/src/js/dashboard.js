@@ -271,6 +271,7 @@ export class VdCrmDashboard extends Component {
             customLoading: false,
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
+            srcDailyRep: null,      // ma trận NGUỒN × NGÀY (Zalo/TikTok/FB/Quét theo ngày)
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics
@@ -875,7 +876,10 @@ export class VdCrmDashboard extends Component {
 
     async loadDailyReport(days) {
         // Đã có sẵn đúng kỳ này rồi thì thôi, khỏi gọi lại.
-        if (this.state.dailyRep && this.state.dailyRep.days === days) return;
+        if (this.state.dailyRep && this.state.dailyRep.days === days) {
+            this.loadSourceDaily(days);
+            return;
+        }
         this.state.dailyLoading = true;
         try {
             this.state.dailyRep = await this.orm.call(
@@ -886,6 +890,18 @@ export class VdCrmDashboard extends Component {
                                   { type: "danger" });
         }
         this.state.dailyLoading = false;
+        this.loadSourceDaily(days);
+    }
+
+    // MA TRẬN NGUỒN × NGÀY (Zalo/TikTok/FB/Quét theo từng ngày) — user 2026-10-04.
+    async loadSourceDaily(days) {
+        if (this.state.srcDailyRep && this.state.srcDailyRep.days === days) return;
+        try {
+            this.state.srcDailyRep = await this.orm.call(
+                "crm.lead", "vd_pancake_source_daily_report", [days]);
+        } catch (e) {
+            this.state.srcDailyRep = null;
+        }
     }
 
     distPeriodReport(rep) {
@@ -903,20 +919,21 @@ export class VdCrmDashboard extends Component {
         if (!q) return true;
         return ((r && r.name) || "").toLowerCase().includes(q);
     }
-    // MA TRẬN: CHỈ NV đang BẬT nhận số + khớp tìm kiếm (NV tắt KHÔNG hiện).
+    // MA TRẬN: NV đang BẬT, HOẶC NV đã tắt NHƯNG có nhận số trong kỳ (để tổng
+    // khớp header, không bị thiếu). NV tắt + 0 số thì ẩn cho gọn. + khớp tìm kiếm.
     distMatrixRows(dsel) {
         if (!dsel || !Array.isArray(dsel.rows)) return [];
-        return dsel.rows.filter((r) => r.can_receive && this._distMatch(r));
+        return dsel.rows.filter((r) => (r.can_receive || (r.count || 0) > 0) && this._distMatch(r));
     }
     // DANH SÁCH CÀI ĐẶT: ĐỦ NV (bật + tắt) + khớp tìm kiếm → để bật/tắt công tắc.
     distSettingsRows(dsel) {
         if (!dsel || !Array.isArray(dsel.rows)) return [];
         return dsel.rows.filter((r) => this._distMatch(r));
     }
-    // MA TRẬN NGÀY: cũng chỉ hiện NV đang bật + khớp tìm kiếm.
+    // MA TRẬN NGÀY: NV đang bật HOẶC đã tắt nhưng có nhận số trong kỳ + khớp tìm kiếm.
     dailyMatrixRows(dr) {
         if (!dr || !Array.isArray(dr.rows)) return [];
-        return dr.rows.filter((r) => r.can_receive && this._distMatch(r));
+        return dr.rows.filter((r) => (r.can_receive || (r.total || 0) > 0) && this._distMatch(r));
     }
     // Cộng tổng theo nguồn CHỈ trên các dòng đang hiển thị (khớp lọc).
     distRowsTotals(rows) {

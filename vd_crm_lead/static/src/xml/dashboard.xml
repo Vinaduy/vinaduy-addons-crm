@@ -2829,8 +2829,8 @@
                                             <tr t-if="r_index === 0 or r.team !== mdays[r_index - 1].team" class="o_vd_pk_mx_grp">
                                                 <td t-att-colspan="dr.dates.length + 2"><t t-esc="r.team"/></td>
                                             </tr>
-                                            <tr>
-                                                <td class="o_vd_pk_mx_nv">
+                                            <tr t-att-class="r.can_receive ? '' : 'o_off'">
+                                                <td class="o_vd_pk_mx_nv" t-att-title="r.can_receive ? '' : 'Đang TẮT nhận số'">
                                                     <t t-esc="r.name"/>
                                                 </td>
                                                 <td t-foreach="r.cells" t-as="n" t-key="n_index"
@@ -2863,6 +2863,48 @@
                                 Chỉ tính số Pancake tự đẩy về (Zalo + TikTok + Facebook). Không tính Quét số.
                                 Dòng mờ = NV đang tắt nhận số.
                             </div>
+
+                            <!-- ===== MA TRẬN THEO NGUỒN × NGÀY (user 2026-10-04) =====
+                                 Mỗi NGUỒN 1 dòng, mỗi NGÀY 1 cột → theo dõi nguồn nào
+                                 tụt/tăng theo ngày. Có tính cả Quét số. -->
+                            <t t-if="state.srcDailyRep">
+                                <t t-set="sdr" t-value="state.srcDailyRep"/>
+                                <div class="o_vd_pk_srcday_head">📊 Theo nguồn × ngày</div>
+                                <div class="o_vd_pk_mx_wrap">
+                                    <table class="o_vd_pk_mx">
+                                        <thead>
+                                            <tr>
+                                                <th class="o_vd_pk_mx_nv">Nguồn</th>
+                                                <th t-foreach="sdr.dates" t-as="c" t-key="c.iso"
+                                                    t-att-class="'o_vd_pk_mx_d' + (c.is_today ? ' o_today' : '') + (c.is_weekend ? ' o_weekend' : '')">
+                                                    <t t-esc="c.day"/>
+                                                </th>
+                                                <th class="o_vd_pk_mx_sum">Tổng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="sdr.rows" t-as="r" t-key="r.key">
+                                                <td class="o_vd_pk_mx_nv"><t t-esc="r.label"/></td>
+                                                <td t-foreach="r.cells" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (sdr.dates[n_index].is_today ? ' o_today' : '')">
+                                                    <t t-esc="n || '·'"/>
+                                                </td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td class="o_vd_pk_mx_nv">Cộng</td>
+                                                <td t-foreach="sdr.col_totals" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_mx_c' + (sdr.dates[n_index].is_today ? ' o_today' : '') + (sdr.dates[n_index].is_weekend ? ' o_weekend' : '')">
+                                                    <t t-esc="n"/>
+                                                </td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="sdr.grand"/></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </t>
                         </t>
                     </t>
 
@@ -2953,8 +2995,8 @@
                                             <tr t-if="r_index === 0 or r.team !== mrows[r_index - 1].team" class="o_vd_pk_mx_grp">
                                                 <td colspan="6"><t t-esc="r.team"/></td>
                                             </tr>
-                                            <tr>
-                                                <td class="o_vd_pk_mx_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></td>
+                                            <tr t-att-class="r.can_receive ? '' : 'o_off'">
+                                                <td class="o_vd_pk_mx_nv" t-att-title="r.can_receive ? '' : 'Đang TẮT nhận số (vẫn có số trong kỳ)'"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></td>
                                                 <td class="o_vd_pk_mx_c"><t t-esc="r.zalo || '·'"/></td>
                                                 <td class="o_vd_pk_mx_c"><t t-esc="r.tiktok || '·'"/></td>
                                                 <td class="o_vd_pk_mx_c"><t t-esc="r.facebook || '·'"/></td>
