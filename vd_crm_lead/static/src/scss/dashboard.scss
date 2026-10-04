@@ -11247,7 +11247,8 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         background: linear-gradient(135deg, #40c057, #2f9e44);
         .o_vd_pk_knob { transform: translateX(1.15rem); }
     }
-    &.o_off { background: #e03131; .o_vd_pk_knob { transform: translateX(0); } }
+    /* TẮT = XÁM (không đỏ) để không nhầm là cảnh báo — user 2026-10-04. */
+    &.o_off { background: #adb5bd; .o_vd_pk_knob { transform: translateX(0); } }
     &:hover { filter: brightness(1.05); }
 }
 
@@ -11273,8 +11274,12 @@ body.o_vd_preview_active .o_vd_preview_body_form {
         background: linear-gradient(135deg, #40c057, #2f9e44);
         .o_vd_src_knob { transform: translateX(0.75rem); }
     }
-    &.o_off { background: #e03131; .o_vd_src_knob { transform: translateX(0); } }
+    /* TẮT = XÁM (không đỏ) — user 2026-10-04. */
+    &.o_off { background: #adb5bd; .o_vd_src_knob { transform: translateX(0); } }
     &:hover { filter: brightness(1.05); }
+    /* Khi NV TẮT nhận số hẳn → công tắc nguồn bị KHÓA (mờ, không bấm được) để
+       tránh nhầm "tắt tổng mà nguồn vẫn bật". */
+    &:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
 }
 
 /* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) =====
@@ -12581,6 +12586,46 @@ $vd-rose:      #b06a6a;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .o_vd_pk_setcell { text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+/* Tiêu đề NHÓM PHÒNG BAN trong danh sách cài đặt (user 2026-10-04) */
+.o_vd_pk_setgrp {
+    background: #eef2ff; color: #3730a3; font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.3px; text-transform: uppercase;
+    padding: 0.2rem 0.7rem; border-bottom: 1px solid #e0e7ff;
+}
+
+/* Nhóm bên phải toolbar: tìm kiếm + lọc lịch */
+.o_vd_pk_tools_right { display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.o_vd_pk_datefilter {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    border: 1px solid #ced4da; background: #fff; border-radius: 999px;
+    padding: 0.16rem 0.55rem;
+    .fa-calendar { color: #adb5bd; font-size: 0.8rem; }
+    input[type="date"] {
+        border: none; outline: none; background: none; font-size: 0.8rem;
+        color: #343a40; width: 7.6rem; cursor: pointer;
+    }
+    &.o_active { border-color: #4dabf7; background: #eff6ff; box-shadow: 0 0 0 2px rgba(77,171,247,0.18); }
+}
+.o_vd_pk_date_sep { color: #adb5bd; font-size: 0.8rem; }
+.o_vd_pk_date_apply {
+    border: none; background: #4dabf7; color: #fff; cursor: pointer;
+    font-size: 0.78rem; font-weight: 700; padding: 0.18rem 0.6rem; border-radius: 999px;
+    &:hover { background: #339af0; }
+}
+
+/* ===== Tiêu đề NHÓM PHÒNG BAN trong MA TRẬN (dòng gộp, user 2026-10-04) ===== */
+.o_vd_pk_mx_grp td {
+    background: #eef2ff !important; color: #3730a3; font-weight: 800;
+    font-size: 0.72rem; letter-spacing: 0.3px; text-transform: uppercase;
+    text-align: left !important; padding: 0.18rem 0.6rem !important;
+}
+/* MA TRẬN NGUỒN "chỉ kẻ bảng": KHÔNG tô màu ô, chỉ viền ngang + dọc cho rõ cột. */
+.o_vd_pk_mx_plain {
+    th, td { border-right: 1px solid #f1f2f6; }
+    th:last-child, td:last-child { border-right: none; }
+    .o_vd_pk_mx_c { background: #fff; color: #1f2937; font-weight: 600; }
+    tbody tr:hover td { background: #fafbff; }
+}
 .o_vd_pk_periodtab {
     border: 1px solid #ffd8a8; background: #fff7ed; color: #9a3412;
     border-radius: 999px; padding: 0.25rem 0.9rem; font-size: 0.82rem;
@@ -12721,7 +12766,7 @@ $vd-rose:      #b06a6a;
             width: 0.78rem !important; height: 0.78rem !important; top: 0.135rem !important; left: 0.135rem !important;
         }
         &.o_on  { background: #2f9e44 !important; .o_vd_pk_knob { transform: translateX(0.85rem) !important; } }
-        &.o_off { background: #e03131 !important; .o_vd_pk_knob { transform: translateX(0) !important; } }
+        &.o_off { background: #adb5bd !important; .o_vd_pk_knob { transform: translateX(0) !important; } }
     }
 }
 

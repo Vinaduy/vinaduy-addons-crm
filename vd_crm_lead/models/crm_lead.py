@@ -7512,9 +7512,12 @@ class CrmLead(models.Model):
             })
         return out
 
-    def _vd_distribution_report(self, pancake=True):
+    def _vd_distribution_report(self, pancake=True, custom_from=None, custom_to=None):
         """Báo cáo CHIA SỐ (user spec 2026-06-05). pancake=True → KH Pancake tự
         động; False → KH nhập TAY.
+
+        custom_from/custom_to ('YYYY-MM-DD') → thêm key 'custom' cho bộ lọc LỊCH
+        (user 2026-10-04): báo cáo theo nguồn trong khoảng ngày tùy chọn.
 
         Cửa sổ "hôm nay" theo MỐC 15h: tính từ 15h ngày D đến 24h ngày D, hiển
         thị (kèm cảnh báo) tới 15h ngày D+1 thì reset. Trước 15h hôm nay → đang
@@ -7564,6 +7567,9 @@ class CrmLead(models.Model):
         can_recv_fb = {u.id: bool(u.vd_can_receive_facebook) for u in pool}
         can_recv_zalo = {u.id: bool(u.vd_can_receive_zalo) for u in pool}
         name_by = {u.id: (u.name or '') for u in (sales | boss_nv)}
+        # PHÒNG BAN hiệu lực (vd_team_label: thẻ hoặc suy từ tiền tố tên) — để
+        # GOM NHÓM + sắp xếp theo phòng cho dễ quản lý (user 2026-10-04).
+        team_by = {u.id: (u.vd_team_label or 'KHÁC') for u in pool}
         # GỘP kênh QUÉT SỐ (đẩy file Excel / dán danh sách → vd_from_excel) vào
         # báo cáo Pancake (user spec 2026-07-24): 1 view duy nhất, cột riêng "Quét số".
         if pancake:
@@ -7658,9 +7664,14 @@ class CrmLead(models.Model):
                              'can_receive_facebook': can_recv_fb.get(u.id, True),
                              'can_receive_zalo': can_recv_zalo.get(u.id, True),
                              'is_boss': bool(role_by.get(u.id)),
-                             'role': role_by.get(u.id, '')})
-            # TẮT xuống cuối; trong cùng nhóm thì ÍT số nhất lên đầu.
-            rows.sort(key=lambda r: (not r['can_receive'], r['count'], r['name']))
+                             'role': role_by.get(u.id, ''),
+                             'team': team_by.get(u.id, 'KHÁC')})
+            # GOM THEO PHÒNG BAN (thứ tự cố định cho dễ quản lý), trong mỗi phòng
+            # xếp theo TỔNG SỐ tăng dần (ít → nhiều), rồi tên (user 2026-10-04).
+            _team_order = {t: i for i, t in enumerate(
+                ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
+            rows.sort(key=lambda r: (_team_order.get(r['team'], 99),
+                                     r['team'], r['count'], r['name']))
             uneven = False
             if eval_even and total > 0 and n:
                 counts = [per.get(u.id, 0) for u in eligible]
@@ -7714,6 +7725,20 @@ class CrmLead(models.Model):
             'd30': _build(_utc(today_d - _tdd(days=29), _time(0, 0)),
                           today_until, False, '30 ngày qua'),
         }
+        # BỘ LỌC LỊCH (khoảng ngày tùy chọn) — báo cáo theo nguồn cho [từ, đến].
+        if custom_from and custom_to:
+            from datetime import date as _date
+            try:
+                cf = _date.fromisoformat(custom_from)
+                ct = _date.fromisoformat(custom_to)
+                if ct < cf:
+                    cf, ct = ct, cf
+                result['custom'] = _build(
+                    _utc(cf, _time(0, 0)), _utc(ct + _tdd(days=1), _time(0, 0)),
+                    False, '%s → %s' % (cf.strftime('%d/%m/%Y'),
+                                        ct.strftime('%d/%m/%Y')))
+            except Exception:
+                result['custom'] = None
         # ⛔ CẢNH BÁO DỪNG CHIA SỐ PANCAKE (chỉ kênh Pancake).
         if pancake:
             result['alert'] = self._vd_pancake_sync_alert()
@@ -7819,10 +7844,13 @@ class CrmLead(models.Model):
                 'cells': cells,
                 'total': tot,
                 'can_receive': bool(u.vd_can_receive_pancake),
+                'team': u.vd_team_label or 'KHÁC',
             })
-        # Tên có tiền tố phòng ban (HCM1/HCM2/HN…) nên sắp theo tên là tự gom
-        # đúng phòng, dễ dò hơn xếp theo số.
-        rows.sort(key=lambda r: (not r['can_receive'], r['name']))
+        # GOM THEO PHÒNG BAN (thứ tự cố định), trong phòng xếp TỔNG tăng dần → tên.
+        _team_order = {t: i for i, t in enumerate(
+            ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
+        rows.sort(key=lambda r: (_team_order.get(r['team'], 99),
+                                 r['team'], r['total'], r['name']))
 
         col_tot = [sum(r['cells'][i] for r in rows) for i in range(days)]
         grand = sum(col_tot)
@@ -7857,6 +7885,15 @@ class CrmLead(models.Model):
             'pancake_report': self._vd_distribution_report(pancake=True),
             'manual_report': {},
         }
+
+    @api.model
+    def vd_pancake_custom_report(self, date_from, date_to):
+        """PUBLIC cho JS — BỘ LỌC LỊCH: báo cáo CHIA SỐ THEO NGUỒN (Zalo/TikTok/
+        Facebook/Quét) cho khoảng ngày tùy chọn [date_from, date_to] (YYYY-MM-DD).
+        Trả về block cùng cấu trúc với d7/d15/d30 (rows + src_totals + rate…)."""
+        rep = self._vd_distribution_report(
+            pancake=True, custom_from=date_from, custom_to=date_to)
+        return rep.get('custom') or {}
 
     @api.model
     def vd_pancake_excluded_list(self, scope='today'):

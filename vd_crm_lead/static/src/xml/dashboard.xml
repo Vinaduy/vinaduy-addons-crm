@@ -3157,13 +3157,28 @@
                                     t-att-class="'o_vd_pk_periodtab o_vd_pk_tab_days' + (state.distPeriodSel === 'd30' ? ' o_active' : '')"
                                     t-on-click.stop="() => this.setDistPeriod('d30')">30 ngày qua</button>
                         </div>
-                        <div class="o_vd_pk_search">
-                            <i class="fa fa-search"/>
-                            <input type="text" placeholder="Tìm nhân viên…"
-                                   t-att-value="state.distSearch"
-                                   t-on-input="(ev) => this.onDistSearch(ev)"/>
-                            <button t-if="state.distSearch" type="button" class="o_vd_pk_search_clear"
-                                    t-on-click.stop="() => { this.state.distSearch = ''; }" title="Xóa tìm kiếm">×</button>
+                        <div class="o_vd_pk_tools_right">
+                            <div class="o_vd_pk_search">
+                                <i class="fa fa-search"/>
+                                <input type="text" placeholder="Tìm nhân viên…"
+                                       t-att-value="state.distSearch"
+                                       t-on-input="(ev) => this.onDistSearch(ev)"/>
+                                <button t-if="state.distSearch" type="button" class="o_vd_pk_search_clear"
+                                        t-on-click.stop="() => { this.state.distSearch = ''; }" title="Xóa tìm kiếm">×</button>
+                            </div>
+                            <div t-att-class="'o_vd_pk_datefilter' + (state.distPeriodSel === 'custom' ? ' o_active' : '')">
+                                <i class="fa fa-calendar"/>
+                                <input type="date" t-att-value="state.distDateFrom"
+                                       t-on-change="(ev) => { this.state.distDateFrom = ev.target.value; }" title="Từ ngày"/>
+                                <span class="o_vd_pk_date_sep">→</span>
+                                <input type="date" t-att-value="state.distDateTo"
+                                       t-on-change="(ev) => { this.state.distDateTo = ev.target.value; }" title="Đến ngày"/>
+                                <button type="button" class="o_vd_pk_date_apply"
+                                        t-on-click.stop="() => this.onDistDateApply()" title="Xem khoảng ngày đã chọn">Xem</button>
+                                <button t-if="state.distPeriodSel === 'custom' or state.distDateFrom or state.distDateTo"
+                                        type="button" class="o_vd_pk_search_clear"
+                                        t-on-click.stop="() => this.clearDistDate()" title="Bỏ lọc ngày">×</button>
+                            </div>
                         </div>
                     </div>
 
@@ -3209,16 +3224,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr t-foreach="dailyMatrixRows(dr)" t-as="r" t-key="r.uid">
-                                            <td class="o_vd_pk_mx_nv">
-                                                <t t-esc="r.name"/>
-                                            </td>
-                                            <td t-foreach="r.cells" t-as="n" t-key="n_index"
-                                                t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (dr.dates[n_index].is_today ? ' o_today' : '')">
-                                                <t t-esc="n || '·'"/>
-                                            </td>
-                                            <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
-                                        </tr>
+                                        <t t-set="mdays" t-value="dailyMatrixRows(dr)"/>
+                                        <t t-foreach="mdays" t-as="r" t-key="r.uid">
+                                            <tr t-if="r_index === 0 or r.team !== mdays[r_index - 1].team" class="o_vd_pk_mx_grp">
+                                                <td t-att-colspan="dr.dates.length + 2"><t t-esc="r.team"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="o_vd_pk_mx_nv">
+                                                    <t t-esc="r.name"/>
+                                                </td>
+                                                <td t-foreach="r.cells" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (dr.dates[n_index].is_today ? ' o_today' : '')">
+                                                    <t t-esc="n || '·'"/>
+                                                </td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
+                                            </tr>
+                                        </t>
                                     </tbody>
                                     <tfoot>
                                         <tr>
@@ -3245,8 +3266,9 @@
                         </t>
                     </t>
 
+                    <div t-if="state.customLoading" class="o_vd_pk_daily_loading">Đang tải khoảng ngày đã chọn…</div>
                     <t t-set="dsel" t-value="distPeriodReport(distRep)"/>
-                    <t t-if="dsel">
+                    <t t-if="dsel and !state.customLoading">
                         <div class="o_vd_pancake_sec_head">
                             <div class="o_vd_pk_head_info">
                                 📅 <b><t t-esc="dsel.label"/></b> — <b><t t-esc="dsel.total"/></b> số
@@ -3276,27 +3298,32 @@
                                     <span class="o_vd_pk_setcell">📘 Facebook</span>
                                     <span class="o_vd_pk_setcell">Nhận số</span>
                                 </div>
-                                <div t-foreach="srows" t-as="r" t-key="r.uid"
-                                     t-att-class="'o_vd_pk_setrow' + (r.can_receive ? '' : ' o_off')">
-                                    <span class="o_vd_pk_setname"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
-                                    <span class="o_vd_pk_setcell">
-                                        <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_zalo ? 'o_on' : 'o_off')"
-                                                t-on-click.stop.prevent="() => this.onToggleZaloNV(r.uid)" title="Bật/Tắt nhận Zalo"><span class="o_vd_src_knob"/></button>
-                                    </span>
-                                    <span class="o_vd_pk_setcell">
-                                        <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_tiktok ? 'o_on' : 'o_off')"
-                                                t-on-click.stop.prevent="() => this.onToggleTiktokNV(r.uid)" title="Bật/Tắt nhận TikTok"><span class="o_vd_src_knob"/></button>
-                                    </span>
-                                    <span class="o_vd_pk_setcell">
-                                        <button t-att-class="'o_vd_src_toggle ' + (r.can_receive_facebook ? 'o_on' : 'o_off')"
-                                                t-on-click.stop.prevent="() => this.onToggleFacebookNV(r.uid)" title="Bật/Tắt nhận Facebook"><span class="o_vd_src_knob"/></button>
-                                    </span>
-                                    <span class="o_vd_pk_setcell">
-                                        <button t-att-class="'o_vd_pk_toggle ' + (r.can_receive ? 'o_on' : 'o_off')"
-                                                t-on-click.stop.prevent="() => this.onTogglePancakeNV(r.uid)"
-                                                t-att-title="r.can_receive ? 'Đang nhận số — bấm để TẮT' : 'Đang tắt — bấm để BẬT'"><span class="o_vd_pk_knob"/></button>
-                                    </span>
-                                </div>
+                                <t t-foreach="srows" t-as="r" t-key="r.uid">
+                                    <div t-if="r_index === 0 or r.team !== srows[r_index - 1].team" class="o_vd_pk_setgrp"><t t-esc="r.team"/></div>
+                                    <div t-att-class="'o_vd_pk_setrow' + (r.can_receive ? '' : ' o_off')">
+                                        <span class="o_vd_pk_setname"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
+                                        <span class="o_vd_pk_setcell">
+                                            <button t-att-class="'o_vd_src_toggle ' + ((r.can_receive and r.can_receive_zalo) ? 'o_on' : 'o_off')"
+                                                    t-att-disabled="r.can_receive ? false : true"
+                                                    t-on-click.stop.prevent="() => this.onToggleZaloNV(r.uid)" title="Bật/Tắt nhận Zalo"><span class="o_vd_src_knob"/></button>
+                                        </span>
+                                        <span class="o_vd_pk_setcell">
+                                            <button t-att-class="'o_vd_src_toggle ' + ((r.can_receive and r.can_receive_tiktok) ? 'o_on' : 'o_off')"
+                                                    t-att-disabled="r.can_receive ? false : true"
+                                                    t-on-click.stop.prevent="() => this.onToggleTiktokNV(r.uid)" title="Bật/Tắt nhận TikTok"><span class="o_vd_src_knob"/></button>
+                                        </span>
+                                        <span class="o_vd_pk_setcell">
+                                            <button t-att-class="'o_vd_src_toggle ' + ((r.can_receive and r.can_receive_facebook) ? 'o_on' : 'o_off')"
+                                                    t-att-disabled="r.can_receive ? false : true"
+                                                    t-on-click.stop.prevent="() => this.onToggleFacebookNV(r.uid)" title="Bật/Tắt nhận Facebook"><span class="o_vd_src_knob"/></button>
+                                        </span>
+                                        <span class="o_vd_pk_setcell">
+                                            <button t-att-class="'o_vd_pk_toggle ' + (r.can_receive ? 'o_on' : 'o_off')"
+                                                    t-on-click.stop.prevent="() => this.onTogglePancakeNV(r.uid)"
+                                                    t-att-title="r.can_receive ? 'Đang nhận số — bấm để TẮT (tắt hết nguồn)' : 'Đang tắt — bấm để BẬT nhận số'"><span class="o_vd_pk_knob"/></button>
+                                        </span>
+                                    </div>
+                                </t>
                             </div>
                             <div class="o_vd_pk_daily_note">Bật/tắt từng nguồn hoặc tắt hẳn (cột "Nhận số"). NV tắt sẽ KHÔNG hiện trong ma trận.</div>
                         </t>
@@ -3310,7 +3337,7 @@
                                 Không có NV đang bật nhận số<t t-if="state.distSearch"> khớp "<t t-esc="state.distSearch"/>"</t>.
                             </div>
                             <div t-else="" class="o_vd_pk_mx_wrap">
-                                <table class="o_vd_pk_mx o_vd_pk_mx_src">
+                                <table class="o_vd_pk_mx o_vd_pk_mx_src o_vd_pk_mx_plain">
                                     <thead>
                                         <tr>
                                             <th class="o_vd_pk_mx_nv">Nhân viên</th>
@@ -3322,14 +3349,19 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr t-foreach="mrows" t-as="r" t-key="r.uid">
-                                            <td class="o_vd_pk_mx_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></td>
-                                            <td t-att-class="'o_vd_pk_mx_c' + cellTone(r.zalo)"><t t-esc="r.zalo || '·'"/></td>
-                                            <td t-att-class="'o_vd_pk_mx_c' + cellTone(r.tiktok)"><t t-esc="r.tiktok || '·'"/></td>
-                                            <td t-att-class="'o_vd_pk_mx_c' + cellTone(r.facebook)"><t t-esc="r.facebook || '·'"/></td>
-                                            <td t-att-class="'o_vd_pk_mx_c' + cellTone(r.quet)"><t t-esc="r.quet || '·'"/></td>
-                                            <td class="o_vd_pk_mx_sum"><t t-esc="r.count"/></td>
-                                        </tr>
+                                        <t t-foreach="mrows" t-as="r" t-key="r.uid">
+                                            <tr t-if="r_index === 0 or r.team !== mrows[r_index - 1].team" class="o_vd_pk_mx_grp">
+                                                <td colspan="6"><t t-esc="r.team"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="o_vd_pk_mx_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></td>
+                                                <td class="o_vd_pk_mx_c"><t t-esc="r.zalo || '·'"/></td>
+                                                <td class="o_vd_pk_mx_c"><t t-esc="r.tiktok || '·'"/></td>
+                                                <td class="o_vd_pk_mx_c"><t t-esc="r.facebook || '·'"/></td>
+                                                <td class="o_vd_pk_mx_c"><t t-esc="r.quet || '·'"/></td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="r.count"/></td>
+                                            </tr>
+                                        </t>
                                     </tbody>
                                     <tfoot>
                                         <tr>
@@ -3342,12 +3374,6 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-                            </div>
-                            <div class="o_vd_pk_mx_legend">
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>0 số</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>≥5</span>
                             </div>
                         </t>
                     </t>

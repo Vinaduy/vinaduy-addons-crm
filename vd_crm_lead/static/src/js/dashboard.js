@@ -270,6 +270,10 @@ export class VdCrmDashboard extends Component {
             distPeriodSel: "d7",    // bộ lọc kỳ bảng chia số: d7 | d15 | d30 (7/15/30 ngày)
             distShowToggles: false, // ⚙️ Cài đặt: ẩn ma trận, hiện DANH SÁCH ĐỦ NV + công tắc
             distSearch: "",         // ô tìm kiếm NV trong bảng chia số
+            distDateFrom: "",       // bộ lọc LỊCH: từ ngày (YYYY-MM-DD)
+            distDateTo: "",         // bộ lọc LỊCH: đến ngày (YYYY-MM-DD)
+            customRep: null,        // báo cáo theo nguồn cho khoảng ngày tùy chọn
+            customLoading: false,
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
             adminTab: "overview",
@@ -834,6 +838,32 @@ export class VdCrmDashboard extends Component {
         if (this.isDailyPeriod(p)) this.loadDailyReport(parseInt(p.slice(1), 10));
     }
 
+    // ===== BỘ LỌC LỊCH: báo cáo theo nguồn cho khoảng ngày tùy chọn =====
+    async onDistDateApply() {
+        const f = this.state.distDateFrom, t = this.state.distDateTo;
+        if (!f || !t) {
+            this.notification.add("Chọn cả Từ ngày và Đến ngày.", { type: "warning" });
+            return;
+        }
+        this.state.customLoading = true;
+        this.state.distPeriodSel = "custom";
+        try {
+            this.state.customRep = await this.orm.call(
+                "crm.lead", "vd_pancake_custom_report", [f, t]);
+        } catch (e) {
+            this.state.customRep = null;
+            this.notification.add(e.message || "Lỗi tải báo cáo theo ngày",
+                                  { type: "danger" });
+        }
+        this.state.customLoading = false;
+    }
+    clearDistDate() {
+        this.state.distDateFrom = "";
+        this.state.distDateTo = "";
+        this.state.customRep = null;
+        if (this.state.distPeriodSel === "custom") this.setDistPeriod("d7");
+    }
+
     // ===== BÁO CÁO SỐ PANCAKE THEO TỪNG NGÀY (user spec 2026-09-30) =====
     // 7 / 15 / 30 ngày, mỗi ngày 1 dòng, số chính = Zalo + TikTok + Facebook
     // (KHÔNG tính Quét số vì đó là số nhập tay, không do Pancake tự đẩy).
@@ -872,6 +902,7 @@ export class VdCrmDashboard extends Component {
 
     distPeriodReport(rep) {
         const sel = this.state.distPeriodSel || 'today';
+        if (sel === 'custom') return this.state.customRep || null;
         return (rep && rep[sel]) || null;
     }
 
