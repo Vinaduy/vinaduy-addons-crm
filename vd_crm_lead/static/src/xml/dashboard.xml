@@ -3255,7 +3255,7 @@
                                 <i class="fa fa-cog me-1"/><t t-esc="state.distShowToggles ? 'Ẩn cài đặt' : 'Cài đặt'"/>
                             </button>
                         </div>
-                        <div t-if="dsel.rows.length" class="o_vd_pk_colhead">
+                        <div t-if="dsel.rows.length" t-att-class="'o_vd_pk_colhead' + (state.distShowToggles ? ' o_vd_has_sw' : '')">
                             <span class="o_vd_pancake_row_nv">Nhân viên</span>
                             <span class="o_vd_pk_col o_vd_pk_col_zalo">💬 Zalo</span>
                             <span class="o_vd_pk_col o_vd_pk_col_tt">🎵 TikTok</span>
@@ -3267,7 +3267,7 @@
                         <div t-if="!dsel.rows.length" class="o_vd_pancake_empty">Chưa có NV.</div>
                         <div t-else="" class="o_vd_pancake_rows">
                             <div t-foreach="dsel.rows" t-as="r" t-key="r.uid"
-                                 t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '')">
+                                 t-att-class="'o_vd_pancake_row o_vd_pk_' + r.eval + (r.can_receive ? '' : ' o_vd_pk_off') + (r.is_boss ? ' o_vd_pk_bossrow' : '') + (state.distShowToggles ? ' o_vd_has_sw' : '')">
                                 <span class="o_vd_pancake_row_nv"><t t-esc="r.name"/><span t-if="r.is_boss" class="o_vd_pk_role"><t t-esc="r.role"/></span></span>
                                 <span t-att-class="'o_vd_pk_col o_vd_pk_col_zalo' + (r.can_receive_zalo ? '' : ' o_vd_src_off')">
                                     <t t-esc="r.zalo"/>
