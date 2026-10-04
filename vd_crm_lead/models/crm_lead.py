@@ -7668,7 +7668,14 @@ class CrmLead(models.Model):
             block = {'total': total, 'nv_count': len(per), 'eligible': n,
                      'created_all': created_all, 'merged': merged,
                      'rows': rows, 'uneven': uneven, 'label': label,
-                     'target': daily_target, 'under_count': under_count}
+                     'target': daily_target, 'under_count': under_count,
+                     # Tổng theo NGUỒN (cho dòng Cộng của ma trận theo nguồn).
+                     'src_totals': {
+                         'zalo': sum(per_zalo.values()),
+                         'tiktok': sum(per_tt.values()),
+                         'facebook': sum(per_fb.values()),
+                         'quet': sum(per_quet.values()),
+                         'total': total}}
             # TỶ LỆ XIN SỐ (chỉ kênh Pancake): hội thoại có SĐT / tổng hội thoại.
             if pancake:
                 block['rate'] = Conv._vd_rate_block(

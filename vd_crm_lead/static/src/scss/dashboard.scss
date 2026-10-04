@@ -10938,12 +10938,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     width: 700px; max-width: 96vw;
     .o_vd_pancake_pop_head { font-size: 1.02rem; padding: 0.7rem 0.95rem; }
     .o_vd_pancake_sec_head { font-size: 0.95rem; }
-    .o_vd_pancake_row { font-size: 0.92rem; padding: 0.35rem 0.6rem; }
-    .o_vd_pancake_row_eval { font-size: 0.7rem; }
-    .o_vd_pancake_row_cnt { font-size: 0.92rem; min-width: 1.9rem; }
-    .o_vd_pk_col { flex: 0 0 5.6rem; font-size: 0.95rem; }
-    .o_vd_pk_col_tot { flex: 0 0 5.2rem; }
-    .o_vd_pk_colhead { font-size: 0.72rem; white-space: nowrap; letter-spacing: 0; }
 }
 .o_vd_pancake_filter:hover .o_vd_pancake_pop {
     opacity: 1; visibility: visible; transform: translateY(0);
@@ -10960,43 +10954,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_pancake_sec { padding: 0.5rem 0.7rem; border-bottom: 1px solid #f1f3f5; &:last-child { border-bottom: none; } }
 .o_vd_pancake_sec_head { font-size: 0.82rem; font-weight: 700; color: #1f2a44; margin-bottom: 0.35rem; b { color: #1971c2; } }
 .o_vd_pancake_empty { font-size: 0.78rem; color: #adb5bd; font-style: italic; }
-.o_vd_pancake_rows { display: flex; flex-direction: column; gap: 0.2rem; }
-.o_vd_pancake_row {
-    display: flex; align-items: center; gap: 0.6rem;
-    padding: 0.28rem 0.6rem; background: #f8f9fa; border-radius: 6px; font-size: 0.85rem;
-    .o_vd_pancake_row_nv { font-weight: 600; color: #1f2a44; flex: 1 1 auto; min-width: 0;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .o_vd_pancake_row_eval {
-        flex: 0 0 auto; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.2px;
-        padding: 0.05rem 0.4rem; border-radius: 999px; text-transform: uppercase;
-    }
-    .o_vd_pancake_row_cnt {
-        flex: 0 0 auto;
-        min-width: 1.6rem; text-align: center; font-weight: 800; color: #fff;
-        background: #1971c2; border-radius: 999px; padding: 0.05rem 0.45rem;
-    }
-}
-/* Màu đánh giá: QUÁ ÍT (cam) / QUÁ NHIỀU (đỏ) / đủ (xanh) */
-.o_vd_pancake_row.o_vd_pk_few {
-    background: #fff4e6;
-    .o_vd_pancake_row_eval { background: #ffd8a8; color: #d9480f; }
-    .o_vd_pancake_row_cnt { background: #f59f00; }
-}
-.o_vd_pancake_row.o_vd_pk_many {
-    background: #fff0f0;
-    .o_vd_pancake_row_eval { background: #ffc9c9; color: #c92a2a; }
-    .o_vd_pancake_row_cnt { background: #e03131; }
-}
-.o_vd_pancake_row.o_vd_pk_ok {
-    .o_vd_pancake_row_eval { background: #d3f9d8; color: #2b8a3e; }
-    .o_vd_pancake_row_cnt { background: #2f9e44; }
-}
-/* CHƯA ĐỦ mốc khách FB/TikTok/ngày — ưu tiên highlight đỏ rõ (user 2026-06-20) */
-.o_vd_pancake_row.o_vd_pk_under {
-    background: #fff0f0;
-    .o_vd_pancake_row_eval { background: #ffc9c9; color: #c92a2a; font-weight: 800; }
-    .o_vd_pancake_row_cnt { background: #e03131; }
-}
 /* Badge "X/Y NV chưa đủ N khách" trên nút PANCAKE */
 .o_vd_pancake_under {
     font-size: 0.72rem;
@@ -11264,72 +11221,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 .o_vd_bonusbox_cond { font-size: 0.8rem; font-weight: 700; color: #343a40; }
 .o_vd_bonusbox_name { font-size: 0.74rem; color: #868e96; font-style: italic; }
 
-/* ===== Tiêu đề cột + cột số TikTok / Facebook / Tổng ===== */
-.o_vd_pk_colhead {
-    display: flex; align-items: stretch; gap: 0.6rem;
-    padding: 0.2rem 0.6rem 0.35rem;
-    font-size: 0.74rem; font-weight: 800; color: #495057;
-    letter-spacing: 0; white-space: nowrap;
-    border-bottom: 2px solid #ffe3a3; margin-bottom: 0.35rem;
-    .o_vd_pk_col { padding: 0.32rem 0.2rem; font-size: 0.73rem; }
-    /* "Nhân viên" PHẢI giãn như trong dòng dữ liệu để 3 cột số nằm ĐÚNG trên
-       các con số bên dưới (trước đây không giãn -> tiêu đề dồn về trái). */
-    .o_vd_pancake_row_nv { flex: 1 1 auto; min-width: 0; font-weight: 800; }
-}
-.o_vd_pk_col {
-    flex: 0 0 5.6rem; text-align: center; font-weight: 800; font-size: 0.9rem;
-    color: #495057; padding: 0.18rem 0.25rem; border-radius: 7px;
-    display: inline-flex; align-items: center; justify-content: center;
-}
-/* Làn màu riêng cho từng cột (áp cả tiêu đề lẫn ô số) → tách cột rõ ràng */
-.o_vd_pk_col_tt   { color: #6741d9; background: #f3f0ff; }
-.o_vd_pk_col_fb   { color: #1971c2; background: #e7f5ff; }
-.o_vd_pk_col_quet { color: #e8590c; background: #fff4e6; }   /* Quét số (đẩy file/dán) */
-
-/* ===== ➕ THÊM NV nhận số lại (danh sách NV đang tắt) ===== */
-.o_vd_pk_addbar { position: relative; margin: 0.5rem 0.2rem 0.2rem; }
-.o_vd_pk_addbtn {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    border: 1.5px dashed #74c0fc; background: #e7f5ff; color: #1971c2;
-    font-weight: 800; font-size: 0.9rem;
-    padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer;
-    transition: background .15s ease, border-color .15s ease;
-    &:hover { background: #d0ebff; border-color: #4dabf7; }
-    &.o_open { background: #4dabf7; color: #fff; border-color: #1971c2; }
-    .o_vd_pk_addcount {
-        background: #fff3bf; color: #e67700; font-weight: 800;
-        font-size: 0.72rem; padding: 0.05rem 0.5rem; border-radius: 999px;
-    }
-}
-.o_vd_pk_addmenu {
-    display: flex; flex-wrap: wrap; gap: 0.4rem;
-    margin-top: 0.5rem; padding: 0.6rem;
-    background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px;
-}
-.o_vd_pk_additem {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    border: 1px solid #b2f2bb; background: #ebfbee; color: #2b8a3e;
-    font-weight: 700; font-size: 0.86rem;
-    padding: 0.32rem 0.7rem; border-radius: 8px; cursor: pointer;
-    transition: background .15s ease, transform .1s ease;
-    &:hover { background: #d3f9d8; transform: translateY(-1px); }
-    .o_vd_pk_addplus {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 1.1rem; height: 1.1rem; border-radius: 50%;
-        background: #2f9e44; color: #fff; font-weight: 900; font-size: 0.85rem;
-    }
-}
-.o_vd_pk_addempty { color: #2b8a3e; font-weight: 700; font-size: 0.86rem; padding: 0.2rem; }
-.o_vd_pk_col_tot { flex: 0 0 5.2rem; color: #1f2a44; background: #eef1f4; }
-.o_vd_pk_col_sw {
-    flex: 0 0 3rem; text-align: center; background: none;
-    display: inline-flex; align-items: center; justify-content: center;
-}
-/* Dòng TRƯỞNG NHÓM / GIÁM ĐỐC trong bảng (chỉ xem, không vòng chia) */
-.o_vd_pk_bossrow {
-    background: #eef3ff !important; border: 1px dashed #a5c0ff;
-    .o_vd_pancake_row_nv { color: #1c4ed8; font-weight: 800; }
-}
 .o_vd_pk_role {
     margin-left: 0.4rem; padding: 0.02rem 0.4rem; border-radius: 999px;
     background: #1c4ed8; color: #fff; font-size: 0.62rem; font-weight: 800;
@@ -11384,17 +11275,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
     }
     &.o_off { background: #e03131; .o_vd_src_knob { transform: translateX(0); } }
     &:hover { filter: brightness(1.05); }
-}
-/* Ô cột nguồn khi TẮT nhận → mờ đi cho dễ nhận biết */
-.o_vd_pk_col.o_vd_src_off { opacity: 0.5; }
-
-
-/* NV đang TẮT nhận số → xám mờ, gạch nhẹ để phân biệt */
-.o_vd_pancake_row.o_vd_pk_off {
-    opacity: 0.55;
-    background: #f1f3f5 !important;
-    .o_vd_pancake_row_nv { color: #868e96; text-decoration: line-through; }
-    .o_vd_pancake_row_cnt { background: #adb5bd !important; }
 }
 
 /* ===== BẢNG TRƯỞNG NHÓM: NV dưới quyền (user spec 2026-06-14) =====
@@ -12772,46 +12652,33 @@ $vd-rose:      #b06a6a;
 .o_vd_pk_daily_note {
     margin-top: 0.45rem; font-size: 0.76rem; color: #9ca3af; font-style: italic;
 }
+/* Biến thể MA TRẬN CHIA SỐ THEO NGUỒN (NV × Zalo/TikTok/FB/Quét) — ô vừa tô màu
+   theo mức vừa chứa công tắc nhỏ khi bấm ⚙️ (user 2026-10-04). Chỉ 6–7 cột nên
+   KHÔNG ghim cột Tổng/Bật-Tắt (tránh đè nhau khi màn hẹp). */
+.o_vd_pk_mx_src {
+    .o_vd_pk_mx_c { min-width: 66px; }
+    .o_vd_mx_n { font-variant-numeric: tabular-nums; }
+    /* Khi hiện công tắc: xếp số trên, công tắc dưới cho gọn trong ô. */
+    &.o_has_sw .o_vd_pk_mx_c {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 0.14rem; padding-top: 0.24rem; padding-bottom: 0.24rem;
+    }
+    /* Ô nguồn khi TẮT nhận → chỉ mờ con số (vẫn giữ màu mức để dễ đọc). */
+    .o_vd_pk_mx_c.o_src_off .o_vd_mx_n { opacity: 0.4; }
+    .o_vd_pk_mx_sum { position: static; box-shadow: none; }
+    .o_vd_pk_mx_sw {
+        min-width: 52px; background: #f8fafc;
+    }
+    .o_vd_src_toggle { margin-left: 0; }
+    tbody .o_vd_pk_mx_sw { background: #fff; }
+}
 
 /* ============================================================
-   BÁO CÁO CHIA SỐ (tab) — bảng GRID chuẩn hàng/cột, ít hiệu ứng, GỌN để
-   vừa 1 trang không cuộn (user 2026-08-28). Scope .o_vd_kh_dist_col để
-   KHÔNG đụng bản popover hover.
+   BÁO CÁO CHIA SỐ (tab) — scope .o_vd_kh_dist_col: công tắc TỔNG trong ma trận
+   nhỏ gọn bằng công tắc nguồn, bỏ mọi hiệu ứng cho nhẹ (user 2026-10-04).
    ============================================================ */
 .o_vd_kh_dist_col {
-    /* Bảng: colhead + rows CÙNG 1 grid → thẳng cột tuyệt đối. */
-    .o_vd_pk_colhead,
-    .o_vd_pancake_row {
-        display: grid !important;
-        grid-template-columns: minmax(0, 1fr) 5rem 5rem 5rem 4.4rem 3.6rem !important;
-        align-items: center !important;
-        gap: 0.5rem !important;
-    }
-    /* Khi bật ⚙️: thêm 1 cột HẸP cho công tắc tổng (không để tràn xuống dòng). */
-    .o_vd_pk_colhead.o_vd_has_sw,
-    .o_vd_pancake_row.o_vd_has_sw {
-        grid-template-columns: minmax(0, 1fr) 5rem 5rem 5rem 4.4rem 3.6rem 3.6rem !important;
-    }
-    .o_vd_pk_colhead { border-bottom: 2px solid #ffe3a3 !important; }
-    .o_vd_pk_col, .o_vd_pk_col_sw, .o_vd_pancake_row_nv, .o_vd_pancake_row_cnt {
-        flex: none !important; min-width: 0 !important;
-    }
-    .o_vd_pk_col_sw { justify-self: center !important; }
-    .o_vd_pancake_row_nv { justify-self: start !important; }
-
-    /* GỌN: dòng thấp, ít padding → nhiều dòng vẫn vừa 1 trang. */
-    .o_vd_pancake_row { padding: 0.2rem 0.55rem !important; font-size: 0.82rem !important; }
-    .o_vd_pancake_rows { gap: 0.12rem !important; }
-    .o_vd_pancake_sec { padding: 0.35rem 0.6rem !important; border-bottom: none !important; }
-    .o_vd_pancake_sec_head { font-size: 0.8rem !important; margin-bottom: 0.25rem !important; }
-
-    /* BỎ HIỆU ỨNG: không transition/hover/animation. */
-    .o_vd_pancake_row, .o_vd_pk_toggle, .o_vd_pk_knob,
-    .o_vd_pk_bar, .o_vd_pk_barwrap { transition: none !important; animation: none !important; }
-    .o_vd_pancake_row:hover { transform: none !important; }
-
-    /* CÔNG TẮC TỔNG nhỏ gọn (bằng công tắc nguồn) → không tốn diện tích. */
-    .o_vd_pk_col_sw { justify-self: center !important; }
+    .o_vd_pk_toggle, .o_vd_pk_knob { transition: none !important; animation: none !important; }
     .o_vd_pk_toggle {
         width: 1.9rem !important; height: 1.05rem !important; cursor: pointer; margin: 0 !important;
         .o_vd_pk_knob {
@@ -13039,14 +12906,3 @@ $vd-rose:      #b06a6a;
     &:hover { background: #eef1f4; }
     &.o_on { background: #e7f0ff; border-color: #4dabf7; color: #1864ab; }
 }
-/* Hàng NV GỌN + nền eval DỊU (Harvard: nhẹ, viền trái báo mức thay vì nền loè) */
-.o_vd_pancake_rows { gap: 0.12rem; }
-.o_vd_pancake_rows .o_vd_pancake_row {
-    padding: 0.2rem 0.55rem; font-size: 0.82rem; background: #fff;
-    border: 1px solid #f1f3f5; border-left: 3px solid #e9ecef; border-radius: 5px;
-}
-.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_few  { background: #fff; border-left-color: #ffa8a8; }
-.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_ok   { background: #fff; border-left-color: #a5d8ff; }
-.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_many { background: #fff; border-left-color: #b2f2bb; }
-.o_vd_pancake_rows .o_vd_pancake_row.o_vd_pk_off  { opacity: 0.5; }
-.o_vd_pk_colhead { font-size: 0.72rem; color: #868e96; font-weight: 700; }
