@@ -8399,26 +8399,8 @@ class CrmLead(models.Model):
         stale_threshold = now - timedelta(days=14)
         active_only = [('stage_is_won', '=', False), ('stage_is_lost', '=', False)]
 
-        Call = self.env['stringee.call']
-        call_today_domain = call_user_domain + [
-            ('create_date', '>=', today_start),
-            ('create_date', '<', today_end),
-        ]
-
         kpi = {
             'total': self.search_count(domain_user),
-            'new_today': self.search_count(domain_user + [
-                ('create_date', '>=', today_start),
-                ('create_date', '<', today_end),
-            ]),
-            'callback_today': self.search_count(domain_user + active_only + [
-                ('callback_date', '>=', today_start),
-                ('callback_date', '<', today_end),
-            ]),
-            'calls_today': Call.search_count(call_today_domain),
-            'recordings_today': Call.search_count(
-                call_today_domain + [('recording_attachment_id', '!=', False)],
-            ),
         }
         # Báo cáo cuộc gọi HÔM NAY + THÁNG NÀY cho card sidebar trang cá nhân NV.
         # Lấy từ NGUỒN CHUNG _vd_call_report (cùng số với badge trang danh sách NV).

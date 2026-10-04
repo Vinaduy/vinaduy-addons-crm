@@ -1559,25 +1559,6 @@ export class VdCrmDashboard extends Component {
         return m[code] || code;
     }
 
-    async selectAdminTab(tab) {
-        this.state.adminTab = tab;
-        // Đóng NV detail khi đổi tab
-        this.state.nvDetail = null;
-        // Tab overview = insights dashboard — load lazily
-        if (tab === "overview" && !this.state.analytics) {
-            await this.loadAnalytics();
-        }
-        // Tab "alerts" dùng leads list → load default stage nếu chưa có
-        if (tab === "alerts" && !this.state.leads.length && !this.state.selectedStageId) {
-            const firstActive = this.state.stages.find((s) => !s.is_lost && s.count > 0)
-                || this.state.stages.find((s) => !s.is_lost)
-                || this.state.stages[0];
-            if (firstActive) {
-                await this.selectStage(firstActive.id);
-            }
-        }
-    }
-
     async openNvDetail(userId) {
         // Slide-in panel: lấy dashboard_data scoped theo userId này (BACKEND đã có sẵn).
         this.state.nvDetailLoading = true;
