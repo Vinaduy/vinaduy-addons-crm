@@ -7698,6 +7698,14 @@ class CrmLead(models.Model):
             'today': _build(today_since, today_until, True, 'Hôm nay'),
             'yesterday': _build(yest_since, yest_until, True, 'Hôm qua'),
             'month': _build(month_since, month_until, False, 'Tháng này'),
+            # Kỳ NHIỀU NGÀY cho bảng nguồn (Zalo/TikTok/FB/Quét theo NV) — gộp
+            # trong 7/15/30 ngày gần nhất (user spec 2026-10-04).
+            'd7': _build(_utc(today_d - _tdd(days=6), _time(0, 0)),
+                         today_until, False, '7 ngày qua'),
+            'd15': _build(_utc(today_d - _tdd(days=14), _time(0, 0)),
+                          today_until, False, '15 ngày qua'),
+            'd30': _build(_utc(today_d - _tdd(days=29), _time(0, 0)),
+                          today_until, False, '30 ngày qua'),
         }
         # ⛔ CẢNH BÁO DỪNG CHIA SỐ PANCAKE (chỉ kênh Pancake).
         if pancake:
@@ -7705,70 +7713,6 @@ class CrmLead(models.Model):
             result['can_edit_rate'] = Ovr._vd_can_edit()
             _apply_override(result['today'].get('rate'), today_d)
             _apply_override(result['yesterday'].get('rate'), yest_d)
-        # TỶ LỆ XIN SỐ 7 NGÀY GẦN NHẤT (chỉ kênh Pancake) — ô trên cùng báo cáo.
-        if pancake:
-            wd = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']  # weekday() 0..6
-            rate7 = []
-            for i in range(6, -1, -1):           # 6 ngày trước → hôm nay
-                d = now_vn.date() - _tdd(days=i)
-                since = _utc(d, _time(0, 0))
-                until = _utc(d + _tdd(days=1), _time(0, 0))
-                blk = Conv._vd_rate_block(
-                    fields.Datetime.to_string(since),
-                    fields.Datetime.to_string(until))
-                _apply_override(blk, d)   # ưu tiên số sửa tay nếu có
-                rate7.append({
-                    'label': wd[d.weekday()],
-                    'day': '%d/%d' % (d.day, d.month),
-                    'iso': d.isoformat(),
-                    'edited': d.isoformat() in ovr_map,
-                    'is_today': (i == 0),
-                    'pct': blk['all']['pct'],
-                    'with_phone': blk['all']['with_phone'],
-                    'total': blk['all']['total'],
-                    'tiktok': blk['tiktok'],
-                    'facebook': blk['facebook'],
-                })
-            result['rate7'] = rate7
-
-            # TỶ LỆ XIN SỐ THEO TUẦN (8 tuần) + THEO THÁNG (6 tháng) — user 2026-06-26.
-            def _blk(d_since, d_until):
-                return Conv._vd_rate_block(
-                    fields.Datetime.to_string(_utc(d_since, _time(0, 0))),
-                    fields.Datetime.to_string(_utc(d_until, _time(0, 0))))
-            rate_weeks = []
-            monday = now_vn.date() - _tdd(days=now_vn.weekday())  # T2 tuần này
-            for i in range(7, -1, -1):
-                ws = monday - _tdd(weeks=i)
-                we = ws + _tdd(days=7)
-                last = we - _tdd(days=1)
-                blk = _blk(ws, we)
-                rate_weeks.append({
-                    'label': '%d/%d' % (ws.day, ws.month),
-                    'day': '%d/%d–%d/%d' % (ws.day, ws.month, last.day, last.month),
-                    'is_today': (i == 0),
-                    'pct': blk['all']['pct'], 'with_phone': blk['all']['with_phone'],
-                    'total': blk['all']['total'],
-                    'tiktok': blk['tiktok'], 'facebook': blk['facebook'],
-                })
-            result['rate_weeks'] = rate_weeks
-            rate_months = []
-            ym = now_vn.year * 12 + (now_vn.month - 1)
-            for i in range(5, -1, -1):
-                v = ym - i
-                yy, mm = v // 12, (v % 12) + 1
-                v2 = v + 1
-                yy2, mm2 = v2 // 12, (v2 % 12) + 1
-                blk = _blk(_dt(yy, mm, 1).date(), _dt(yy2, mm2, 1).date())
-                rate_months.append({
-                    'label': 'T%d' % mm,
-                    'day': 'T%d/%d' % (mm, yy),
-                    'is_today': (i == 0),
-                    'pct': blk['all']['pct'], 'with_phone': blk['all']['with_phone'],
-                    'total': blk['all']['total'],
-                    'tiktok': blk['tiktok'], 'facebook': blk['facebook'],
-                })
-            result['rate_months'] = rate_months
         return result
 
     @api.model
@@ -7903,11 +7847,8 @@ class CrmLead(models.Model):
     def vd_pancake_dist_reports(self):
         """Wrapper PUBLIC cho JS: trả lại 2 báo cáo chia số sau khi bật/tắt NV."""
         return {
-            # GỘP 1 view (user spec 2026-07-24): chỉ 1 báo cáo, đã bao gồm cột Quét số.
             'pancake_report': self._vd_distribution_report(pancake=True),
             'manual_report': {},
-            # Báo cáo XIN SỐ từ đầu tháng (đã có số / chưa có số + danh sách).
-            'capture_report': self.env['vd.pancake.conversation'].sudo()._vd_capture_report(),
         }
 
     @api.model

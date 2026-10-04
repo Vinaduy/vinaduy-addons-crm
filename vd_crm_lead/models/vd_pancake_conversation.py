@@ -130,52 +130,6 @@ class VdPancakeConversation(models.Model):
                 pass
 
     @api.model
-    def _vd_capture_report(self, limit=300):
-        """Báo cáo XIN SỐ từ ĐẦU THÁNG này → bây giờ (user spec 2026-09-27):
-        tổng hội thoại khách nhắn / đã có SĐT / CHƯA có SĐT, tách theo nền tảng,
-        + danh sách hội thoại CHƯA có số (mới nhất trước) để NV vào check."""
-        import pytz
-        vn = pytz.timezone('Asia/Ho_Chi_Minh')
-        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
-        month_start_vn = now_vn.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        since = month_start_vn.astimezone(pytz.utc).replace(tzinfo=None)
-        Conv = self.sudo()
-        dom = [('first_message_at', '>=', since)]
-        total = Conv.search_count(dom)
-        with_phone = Conv.search_count(dom + [('has_phone', '=', True)])
-        without = max(0, total - with_phone)
-        labels = {'facebook': 'Facebook', 'tiktok': 'TikTok', 'zalo': 'Zalo'}
-        by_platform = []
-        for p, lbl in labels.items():
-            t = Conv.search_count(dom + [('platform', '=', p)])
-            if not t:
-                continue
-            w = Conv.search_count(dom + [('platform', '=', p), ('has_phone', '=', True)])
-            by_platform.append({'platform': p, 'label': lbl, 'total': t,
-                                'with_phone': w, 'without': max(0, t - w)})
-        missing = []
-        for c in Conv.search(dom + [('has_phone', '=', False)],
-                             order='last_message_at desc, id desc', limit=int(limit)):
-            lm = (fields.Datetime.context_timestamp(c, c.last_message_at)
-                  if c.last_message_at else None)
-            missing.append({
-                'id': c.id,
-                'name': c.customer_name or '(không tên)',
-                'platform': labels.get(c.platform, c.platform or '—'),
-                'msg_count': c.msg_count or 0,
-                'last': lm.strftime('%d/%m %H:%M') if lm else '',
-                'page': c.page_id.name or '',
-            })
-        return {
-            'since': month_start_vn.strftime('%d/%m/%Y'),
-            'total': total, 'with_phone': with_phone, 'without_phone': without,
-            'pct': int(round(with_phone * 100.0 / total)) if total else 0,
-            'by_platform': by_platform,
-            'missing': missing,
-            'missing_shown': len(missing), 'missing_total': without,
-        }
-
-    @api.model
     def _vd_rate_block(self, since, until):
         """Tỷ lệ xin số TRONG NGÀY [since, until):
 

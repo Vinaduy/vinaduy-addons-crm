@@ -3147,16 +3147,6 @@
                          khách chưa có số để NV check (user spec 2026-09-27). -->
                     <div class="o_vd_pk_periodtabs">
                         <button type="button"
-                                t-att-class="'o_vd_pk_periodtab' + (state.distPeriodSel === 'today' ? ' o_active' : '')"
-                                t-on-click.stop="() => this.setDistPeriod('today')">Hôm nay</button>
-                        <button type="button" t-if="distRep.yesterday"
-                                t-att-class="'o_vd_pk_periodtab' + (state.distPeriodSel === 'yesterday' ? ' o_active' : '')"
-                                t-on-click.stop="() => this.setDistPeriod('yesterday')">Hôm qua</button>
-                        <button type="button" t-if="distRep.month"
-                                t-att-class="'o_vd_pk_periodtab' + (state.distPeriodSel === 'month' ? ' o_active' : '')"
-                                t-on-click.stop="() => this.setDistPeriod('month')">Tháng này</button>
-                        <span class="o_vd_pk_tabsep"/>
-                        <button type="button"
                                 t-att-class="'o_vd_pk_periodtab o_vd_pk_tab_days' + (state.distPeriodSel === 'd7' ? ' o_active' : '')"
                                 t-on-click.stop="() => this.setDistPeriod('d7')">7 ngày qua</button>
                         <button type="button"
@@ -3248,7 +3238,7 @@
 
                     <t t-set="dsel" t-value="distPeriodReport(distRep)"/>
                     <t t-set="isToday" t-value="state.distPeriodSel === 'today'"/>
-                    <t t-if="dsel &amp;&amp; !isDailyPeriod(state.distPeriodSel)">
+                    <t t-if="dsel">
                         <div class="o_vd_pancake_sec_head">
                             <div class="o_vd_pk_head_info">
                                 📅 <b><t t-esc="dsel.label"/></b> — <b><t t-esc="dsel.total"/></b> số
@@ -3315,40 +3305,6 @@
                             </div>
                         </div>
                     </t>
-                    <div t-if="state.capture_report" class="o_vd_capture_box">
-                        <div class="o_vd_capture_hd">📊 Xin số từ <t t-esc="state.capture_report.since"/> → nay</div>
-                        <div class="o_vd_capture_nums">
-                            <span class="o_vd_cap_pill o_vd_cap_tot">Tổng hội thoại: <b><t t-esc="state.capture_report.total"/></b></span>
-                            <span class="o_vd_cap_pill o_vd_cap_ok">✅ Đã có số: <b><t t-esc="state.capture_report.with_phone"/></b> (<t t-esc="state.capture_report.pct"/>%)</span>
-                            <span class="o_vd_cap_pill o_vd_cap_no">❌ Chưa có số: <b><t t-esc="state.capture_report.without_phone"/></b></span>
-                        </div>
-                        <div class="o_vd_capture_plats">
-                            <span t-foreach="state.capture_report.by_platform" t-as="p" t-key="p.platform" class="o_vd_cap_plat">
-                                <t t-esc="p.label"/>: có số <b><t t-esc="p.with_phone"/></b>/<t t-esc="p.total"/> · chưa <b class="o_vd_cap_red"><t t-esc="p.without"/></b>
-                            </span>
-                        </div>
-                        <button class="o_vd_cap_toggle" t-on-click.stop="() => this.toggleCaptureList()">
-                            <t t-if="state.captureListOpen">▲ Ẩn danh sách chưa có số</t>
-                            <t t-else="">▼ Xem danh sách <t t-esc="state.capture_report.without_phone"/> khách CHƯA có số</t>
-                        </button>
-                        <div t-if="state.captureListOpen" class="o_vd_cap_list">
-                            <div class="o_vd_cap_item o_vd_cap_head">
-                                <span class="o_vd_cap_nm">Tên khách</span>
-                                <span class="o_vd_cap_pl">Kênh</span>
-                                <span class="o_vd_cap_mc">Số tin</span>
-                                <span class="o_vd_cap_dt">Tin gần nhất</span>
-                            </div>
-                            <div t-foreach="state.capture_report.missing" t-as="m" t-key="m.id" class="o_vd_cap_item">
-                                <span class="o_vd_cap_nm"><t t-esc="m.name"/></span>
-                                <span class="o_vd_cap_pl"><t t-esc="m.platform"/></span>
-                                <span class="o_vd_cap_mc"><t t-esc="m.msg_count"/></span>
-                                <span class="o_vd_cap_dt"><t t-esc="m.last"/></span>
-                            </div>
-                            <div t-if="state.capture_report.missing_total > state.capture_report.missing_shown" class="o_vd_cap_more">
-                                … và <t t-esc="state.capture_report.missing_total - state.capture_report.missing_shown"/> khách nữa (hiển thị <t t-esc="state.capture_report.missing_shown"/> mới nhất)
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

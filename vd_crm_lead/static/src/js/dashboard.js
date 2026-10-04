@@ -267,7 +267,7 @@ export class VdCrmDashboard extends Component {
             allTeamGroups: [],
             allTeamLoading: false,
             dashSubView: "nv",      // 'nv' (bảng NV) | 'dist' (chia số)
-            distPeriodSel: "today", // bộ lọc kỳ bảng chia số: today | yesterday | month | d7 | d15 | d30
+            distPeriodSel: "d7",    // bộ lọc kỳ bảng chia số: d7 | d15 | d30 (7/15/30 ngày)
             distShowToggles: false, // ẩn/hiện công tắc Bật/Tắt trong bảng chia số (nút ⚙️)
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
@@ -298,8 +298,6 @@ export class VdCrmDashboard extends Component {
             selectedLeadIds: {},
             reassignTargetId: 0,
             reassignBusy: false,
-            // Mở/đóng danh sách khách CHƯA có số (báo cáo xin số theo tháng).
-            captureListOpen: false,
             // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
             // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
@@ -765,18 +763,19 @@ export class VdCrmDashboard extends Component {
         if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
         this._pkRepAt = now;
         this.orm.call("crm.lead", "vd_pancake_dist_reports", [])
-            .then((rep) => { if (rep) Object.assign(this.state, rep); })
+            .then((rep) => {
+                if (rep) Object.assign(this.state, rep);
+                // Mặc định xem 7 ngày → nạp sẵn ma trận theo ngày để hiện ngay.
+                if (this.isDailyPeriod(this.state.distPeriodSel) && !this.state.dailyRep) {
+                    this.loadDailyReport(parseInt(this.state.distPeriodSel.slice(1), 10));
+                }
+            })
             .catch(() => {});
     }
 
     // ===== Mở/đóng dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt) =====
     toggleDistAdd() {
         this.state.distAddOpen = !this.state.distAddOpen;
-    }
-
-    // ===== Mở/đóng danh sách khách CHƯA có số (báo cáo xin số) =====
-    toggleCaptureList() {
-        this.state.captureListOpen = !this.state.captureListOpen;
     }
 
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====

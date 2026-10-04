@@ -11388,34 +11388,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 /* Ô cột nguồn khi TẮT nhận → mờ đi cho dễ nhận biết */
 .o_vd_pk_col.o_vd_src_off { opacity: 0.5; }
 
-/* ===== 📊 BÁO CÁO XIN SỐ (đã có số / chưa có số + danh sách) — user 2026-09-27 ===== */
-.o_vd_capture_box {
-    margin: 0 0 0.6rem; padding: 0.6rem 0.7rem;
-    background: #fff; border: 1px solid #e0e7ff; border-radius: 10px;
-}
-.o_vd_capture_hd { font-weight: 800; font-size: 0.9rem; color: #1f2a44; margin-bottom: 0.45rem; }
-.o_vd_capture_nums { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
-.o_vd_cap_pill { padding: 0.22rem 0.55rem; border-radius: 999px; font-size: 0.8rem; background: #f1f3f5; color: #1f2a44; }
-.o_vd_cap_pill.o_vd_cap_ok { background: #ebfbee; color: #2b8a3e; }
-.o_vd_cap_pill.o_vd_cap_no { background: #fff0f0; color: #c92a2a; }
-.o_vd_capture_plats { display: flex; flex-wrap: wrap; gap: 0.7rem; font-size: 0.78rem; color: #495057; margin-bottom: 0.45rem; }
-.o_vd_cap_red { color: #c92a2a; }
-.o_vd_cap_toggle {
-    border: 1px solid #cbd5ff; background: #f5f7ff; color: #1971c2; border-radius: 6px;
-    padding: 0.3rem 0.6rem; font-size: 0.82rem; font-weight: 700; cursor: pointer;
-    &:hover { background: #e7ecff; }
-}
-.o_vd_cap_list { margin-top: 0.5rem; max-height: 24rem; overflow-y: auto; border-top: 1px dashed #dee2e6; }
-.o_vd_cap_item {
-    display: flex; gap: 0.5rem; padding: 0.3rem 0.2rem; font-size: 0.8rem;
-    border-bottom: 1px solid #f1f3f5; align-items: center;
-}
-.o_vd_cap_item.o_vd_cap_head { font-weight: 700; color: #868e96; position: sticky; top: 0; background: #fff; z-index: 1; }
-.o_vd_cap_nm { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.o_vd_cap_pl { flex: 0 0 5rem; }
-.o_vd_cap_mc { flex: 0 0 3.2rem; text-align: center; }
-.o_vd_cap_dt { flex: 0 0 6rem; text-align: right; color: #868e96; }
-.o_vd_cap_more { padding: 0.45rem; font-size: 0.78rem; color: #868e96; font-style: italic; text-align: center; }
 
 /* NV đang TẮT nhận số → xám mờ, gạch nhẹ để phân biệt */
 .o_vd_pancake_row.o_vd_pk_off {
@@ -13053,26 +13025,6 @@ $vd-rose:      #b06a6a;
     50% { box-shadow: 0 2px 12px rgba(240, 140, 0, 0.45); }
 }
 
-/* 📊 BIỂU ĐỒ TỶ LỆ XIN SỐ kiểu HBR/Harvard (user 2026-09-30) — 1 accent, lưới mờ,
-   đường trung bình benchmark, nhãn trực tiếp ink, câu insight. */
-.o_vd_hbr { padding: 0.2rem 0.1rem 0; }
-.o_vd_hbr_svg { width: 100%; height: auto; display: block; font-family: inherit; }
-.o_vd_hbr_grid { stroke: #eceef1; stroke-width: 1; }
-.o_vd_hbr_yl   { fill: #b0b6bd; font-size: 9px; }
-.o_vd_hbr_avg  { stroke: #adb5bd; stroke-width: 1.2; stroke-dasharray: 4 3; }
-.o_vd_hbr_avgl { fill: #868e96; font-size: 9px; font-weight: 700; }
-.o_vd_hbr_area { fill: rgba(25,113,194,0.10); stroke: none; }
-.o_vd_hbr_line { fill: none; stroke: #1971c2; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
-.o_vd_hbr_dot  { fill: #1971c2; stroke: #fff; stroke-width: 1.5;
-    &.o_today { fill: #e8590c; } }
-.o_vd_hbr_pl   { fill: #1864ab; font-size: 11px; font-weight: 800; }
-.o_vd_hbr_xl   { fill: #495057; font-size: 10px; font-weight: 700; }
-.o_vd_hbr_xs   { fill: #b0b6bd; font-size: 8.5px; }
-.o_vd_hbr_insight {
-    margin-top: 0.45rem; padding: 0.4rem 0.6rem; border-radius: 7px;
-    background: #f1f6fc; border-left: 3px solid #1971c2;
-    font-size: 0.82rem; color: #34455c; font-style: italic;
-}
 
 /* ===== DỌN BẢNG CHIA SỐ — gọn kiểu Harvard + nút ⚙️ Cài đặt (user 2026-10-04) ===== */
 .o_vd_pancake_sec_head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
