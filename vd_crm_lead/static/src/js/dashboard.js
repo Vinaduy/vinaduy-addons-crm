@@ -162,11 +162,6 @@ export class VdCrmDashboard extends Component {
             loading: true,
             // 📢 Banner đỏ THÔNG BÁO ĐIỀU CHỈNH ĐƠN GIÁ (tự hiện 24h khi admin sửa giá).
             pricingNotice: { active: false },
-            // Panel DANH SÁCH SĐT BỊ LOẠI khỏi chia số (mở từ dòng "đã gộp/loại").
-            // {open, scope, loading, items, summary} | null.
-            pkExcluded: null,
-            // Tab CHIA SỐ: mở dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt).
-            distAddOpen: false,
             // SỬA TAY số liệu 1 cột biểu đồ tỷ lệ — {iso,label,khach,xin} | null.
             // Bảng THƯỞNG treo (admin cấu hình) hiện trên trang cá nhân.
             bonusBoard: { personal: [], team: [], team_label: "" },
@@ -277,8 +272,6 @@ export class VdCrmDashboard extends Component {
             dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
             dailyLoading: false,
             adminTab: "overview",
-            nvDetail: null,
-            nvDetailLoading: false,
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics
             analyticsLoading: false,
@@ -778,11 +771,6 @@ export class VdCrmDashboard extends Component {
             .catch(() => {});
     }
 
-    // ===== Mở/đóng dropdown "➕ Thêm NV nhận số" (bật lại NV đang tắt) =====
-    toggleDistAdd() {
-        this.state.distAddOpen = !this.state.distAddOpen;
-    }
-
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====
     onTogglePancakeNV(uid) {
         if (!uid) return;
@@ -942,50 +930,6 @@ export class VdCrmDashboard extends Component {
         }
         return t;
     }
-    async openPancakeExcluded(scope) {
-        this.state.pkExcluded = {
-            open: true, scope, loading: true, items: [], summary: {},
-        };
-        try {
-            const data = await this.orm.call(
-                "crm.lead", "vd_pancake_excluded_list", [scope]);
-            this.state.pkExcluded = {
-                open: true, scope,
-                loading: false,
-                items: (data && data.items) || [],
-                summary: (data && data.summary) || {},
-            };
-        } catch (e) {
-            console.warn("Tải danh sách SĐT loại lỗi:", e);
-            this.state.pkExcluded = {
-                open: true, scope, loading: false, items: [], summary: {},
-            };
-        }
-    }
-    closePancakeExcluded() {
-        this.state.pkExcluded = null;
-    }
-
-    // ===== 📊 BẢNG CHI TIẾT 30 NGÀY (mỗi cột 1 ngày, mỗi ô = TikTok | Facebook) =====
-    async openPancakeMatrix() {
-        this.state.pkMatrix = { open: true, loading: true, days: [], rows: [], totals: null };
-        try {
-            const data = await this.orm.call("crm.lead", "vd_pancake_30day_matrix", [30]);
-            this.state.pkMatrix = {
-                open: true, loading: false,
-                days: (data && data.days) || [],
-                rows: (data && data.rows) || [],
-                totals: (data && data.totals) || null,
-            };
-        } catch (e) {
-            console.warn("Tải bảng 30 ngày lỗi:", e);
-            this.state.pkMatrix = { open: true, loading: false, days: [], rows: [], totals: null };
-        }
-    }
-    closePancakeMatrix() {
-        this.state.pkMatrix = null;
-    }
-
     // ===== 📢 CHIẾN DỊCH SPAM ZALO (gate khoá dashboard) =====
     // Render HTML thô (nội dung admin soạn) an toàn qua markup.
     mk(s) {
@@ -1246,25 +1190,6 @@ export class VdCrmDashboard extends Component {
             && this.state.selected_user_id !== this.state.current_user_id);
     }
 
-    // Trưởng nhóm bấm 1 NV trong bảng → xem dashboard của NV đó.
-    async viewTeamUser(userId) {
-        this.state.selected_user_id = userId;
-        this._persistSelectedNv();
-        this.state.nvDetail = null;
-        await this.loadDashboard();
-    }
-    // Quay về dashboard của chính trưởng nhóm / Giám đốc.
-    async backToMyDashboard() {
-        // GĐ ở chế độ CÁ NHÂN: "của tôi" = chính GĐ (current_user_id), KHÔNG phải
-        // selected_user_id=0 (vốn là "Tất cả NV" với manager).
-        if (this.state.is_manager && this.state.dirTeamMode) {
-            return this.goPersonal();
-        }
-        this.state.selected_user_id = 0;
-        this._persistSelectedNv();
-        this.state.nvDetail = null;
-        await this.loadDashboard();
-    }
     // True khi MANAGER đang xem "Tất cả NV" → render layout admin (menu dọc +
     // tab overview/team toàn công ty). Trưởng nhóm KHÔNG vào layout này (chỉ
     // xem dashboard từng NV trong nhóm qua picker).
@@ -1311,14 +1236,6 @@ export class VdCrmDashboard extends Component {
         this.state.distShowToggles = !this.state.distShowToggles;
     }
 
-    // Màu theo tỉ lệ (tái dùng ngưỡng): <30 đỏ / 30-60 vàng / >60 xanh.
-    ovPctClass(p) {
-        const v = p || 0;
-        if (v < 30) return "o_vd_ov_low";
-        if (v <= 60) return "o_vd_ov_mid";
-        return "o_vd_ov_high";
-    }
-
     /**
      * User spec 2026-05-29: poll backend mỗi 5s lấy trạng thái call LIVE
      * → update badge "Đang gọi / Không gọi" cuối row NV không cần reload.
@@ -1358,10 +1275,6 @@ export class VdCrmDashboard extends Component {
     }
 
     /** Helper cho XML: lấy info call live của 1 NV. */
-    callInfo(userId) {
-        return this.state.activeCalls[userId] || null;
-    }
-
     /**
      * User spec 2026-05-29: ALL khách hàng = flatten kh_by_team
      * → 1 list duy nhất bao gồm KH mới + chưa có vấn đề + đang xử lý + đang chốt
@@ -1520,15 +1433,6 @@ export class VdCrmDashboard extends Component {
         browser.clearTimeout(this._empCollapseTimer);
     }
 
-    setFocus(focus) {
-        if (this.state.focus === focus) return;
-        this.state.focus = focus;
-        // Reset về tab overview khi đổi focus — tránh kẹt ở tab đã ẩn (vd
-        // đang ở 'performance' rồi switch sang KH focus mà tab performance bị hide)
-        this.state.adminTab = 'overview';
-        this.state.nvDetail = null;
-    }
-
     // Chỉ MANAGER/ADMIN được mở dashboard cá nhân của NV. Trưởng nhóm CHỈ xem
     // bảng tổng, KHÔNG bao giờ vào trang cá nhân NV (user spec 2026-06-14).
     get canDrillNv() {
@@ -1557,30 +1461,6 @@ export class VdCrmDashboard extends Component {
             'KHÁC': 'Khác',
         };
         return m[code] || code;
-    }
-
-    async openNvDetail(userId) {
-        // Slide-in panel: lấy dashboard_data scoped theo userId này (BACKEND đã có sẵn).
-        this.state.nvDetailLoading = true;
-        this.state.nvDetail = { loading: true };
-        try {
-            // NHANH (2026-08-28): method NHẸ dashboard_nv_detail (chỉ user/performance/
-            // block_status) thay dashboard_data (build cả dashboard) + tải SONG SONG
-            // với active_leads → mở chi tiết NV nhanh hơn nhiều.
-            const [data, leads] = await Promise.all([
-                this.orm.call("crm.lead", "dashboard_nv_detail", [userId]),
-                this.orm.call("crm.lead", "dashboard_nv_active_leads", [userId]),
-            ]);
-            this.state.nvDetail = { ...data, active_leads: leads };
-        } catch (e) {
-            this.notification.add(e.message || "Lỗi tải chi tiết NV", { type: "danger" });
-            this.state.nvDetail = null;
-        }
-        this.state.nvDetailLoading = false;
-    }
-
-    closeNvDetail() {
-        this.state.nvDetail = null;
     }
 
     async selectStage(stageId) {
@@ -1740,29 +1620,6 @@ export class VdCrmDashboard extends Component {
         return 'o_vd_pill_call_blue';
     }
 
-    pillIcon(lead) {
-        const code = this.selectedStage?.code;
-        if (code === 'won') {
-            if (lead.contract_signed) return '🏆';
-            const u = lead.planned_sign_urgency;
-            if (u === 'past') return '🚨';
-            if (u === 'today') return '🔥';
-            if (u === 'soon') return '⏰';
-            if (u === 'far') return '📅';
-            return '⚠️';
-        }
-        if (code === 'new') {
-            const p = lead.pancake_platform;
-            if (p === 'facebook') return '📘';   // FB blue
-            // TikTok + Zalo dùng CHUNG icon TikTok (user spec 2026-07-15)
-            if (p === 'tiktok' || p === 'zalo') return '🎵';
-            if (p === 'instagram') return '📷';
-            return '👤';  // manual
-        }
-        // Default chip
-        return '•';
-    }
-
     // Split leads cho UI "Khách mới" — sort priority (user 2026-05-27):
     //   1. ⚪ Chưa gọi (total=0)                                 — đầu
     //   2. 🔵 Có cuộc gọi — sort theo total ASC (ít → nhiều)
@@ -1867,19 +1724,6 @@ export class VdCrmDashboard extends Component {
         return this.newPillsZones.some((z) => z.leads.length > 25);
     }
 
-    // CẦN GỌI LẠI HÔM NAY (user spec 2026-06-12, Logic B) — badge ⏰, thay cho
-    // viền glow cũ. Đơn giản: đã gọi rồi (total>0) + CHƯA đủ 3 ngày gọi khác
-    // nhau + HÔM NAY chưa gọi cuộc nào. Gọi 1 cuộc hôm nay hoặc đủ 3 ngày → tắt.
-    // Vùng 1 (total=0) không bao giờ dính → badge chỉ hiện ở vùng 2 & 3.
-    needsCallToday(lead) {
-        if (this.selectedStage?.code !== 'new') return false;
-        const s = lead.call_stats || {};
-        if ((s.total || 0) === 0) return false;          // chưa gọi → thuộc vùng 1
-        if ((s.distinct_days || 0) >= 3) return false;   // đủ 3 ngày → thôi
-        if (s.has_call_today) return false;              // hôm nay gọi rồi → thôi
-        return true;
-    }
-
     // KH "có thể tư vấn Zalo" (user spec 2026-06-07): trong KHÁCH MỚI, đã tạo
     // ≥2 ngày, đã có ≥1 cuộc gọi THẬT, và CHƯA kết bạn Zalo → nên kết bạn để
     // gọi + tư vấn qua Zalo.
@@ -1897,14 +1741,6 @@ export class VdCrmDashboard extends Component {
         );
     }
 
-    // Trả label trạng thái cuộc gọi cho header tooltip
-    pillCallStatusLabel(lead) {
-        const cls = this.pillCallClass(lead);
-        if (cls === 'o_vd_pill_call_blue')     return { icon: '🔵', text: 'ĐÃ PHÁT SINH CUỘC GỌI' };
-        if (cls === 'o_vd_pill_call_darkred')  return { icon: '🔴', text: '3 NGÀY KHÔNG NGHE MÁY' };
-        if (cls === 'o_vd_pill_call_answered') return { icon: '🟢', text: 'GỌI THÀNH CÔNG (CÓ NGHE MÁY)' };
-        return { icon: '⚪', text: 'CHƯA GỌI LẦN NÀO' };
-    }
     // KH ở bảng Khách mới CHƯA GỌI cuộc nào VÀ đã SANG NGÀY MỚI (tạo từ hôm qua
     // trở về trước) → hover chỉ hiện 1 dòng chữ TO "X NGÀY RỒI CHƯA GỌI".
     isUncalledStale(lead) {
@@ -2128,10 +1964,6 @@ export class VdCrmDashboard extends Component {
         if (typeof k === "string") return s.cb[k] || 0;
         return s.days[k] || 0;
     }
-    filterAllCount(scope) { return this._dayStatsCached(scope).all; }
-    toggleCbMore(scope) { this.state.cbMoreOpen = this.state.cbMoreOpen === scope ? "" : scope; }
-    setFilterMore(scope, k) { this.setFilter(scope, k); this.state.cbMoreOpen = ""; }
-    cbMoreActive(scope) { const v = this.filterVal(scope); return this.cbMoreOptions.some((o) => o.k === v); }
     // Lọc list. n=0 → tất cả; n='cb_*' → nhóm theo ngày hẹn; n số → "chưa gọi X ngày"
     // (CHỈ KH CHƯA đặt hẹn — KH có hẹn nằm ở nhóm cb_* tương ứng).
     _dayBucketFilter(list, n) {
@@ -2155,14 +1987,6 @@ export class VdCrmDashboard extends Component {
         }
         return c;
     }
-    dayNumLabel(d) {
-        const opts = this.dayFilterOptions;
-        return d === opts[opts.length - 1] ? ("TRÊN " + d + " NGÀY") : (d + " NGÀY");
-    }
-    dayRangeTitle(d) {
-        const up = this._dayUpper(d);
-        return up === Infinity ? `KH chưa gọi từ ${d} ngày trở lên` : `KH chưa gọi ${d}–${up} ngày`;
-    }
     // ===== BỘ LỌC 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ =====
     _applyDayFilter(list) { return this._dayBucketFilter(list, this.state.dayFilter || 0); }
     setDayFilter(n) { this.state.dayFilter = this.state.dayFilter === n ? 0 : n; }
@@ -2175,7 +1999,6 @@ export class VdCrmDashboard extends Component {
         }
         return out;
     }
-    dayFilterCount(d) { return this._dayBucketCount(this._dayFilterPool, d); }
     get dayFilterAllCount() { return this._dayFilterPool.length; }
     // ===== BỘ LỌC bảng KHÁCH MỚI — DÙNG CHUNG cho cả mục ĐÃ BÁO GIÁ =====
     // (user spec 2026-09-05): bỏ bộ lọc dưới → đồng bộ state.dayFilter theo
@@ -2184,35 +2007,8 @@ export class VdCrmDashboard extends Component {
         this.state.newDayFilter = this.state.newDayFilter === n ? 0 : n;
         this.state.dayFilter = this.state.newDayFilter;
     }
-    newDayFilterCount(d) { return this._dayBucketCount(this._leadsNoProblemsRaw, d); }
     get newDayFilterAllCount() { return this._leadsNoProblemsRaw.length; }
 
-    // Filter/sort 2 bảng THI CÔNG GẤP + XỬ LÝ VẤN ĐỀ theo chip hover (user spec
-    // 2026-05-31). null = giữ thứ tự gốc.
-    //  - 'newest'  : KH CHƯA có vấn đề, mới báo giá lên trước (quote_days nhỏ trước)
-    //  - 'expiring': KH CHƯA có vấn đề, sắp hết hạn lên trước (quote_days lớn trước)
-    //  - 'problem' : KH ĐÃ có vấn đề
-    _applyProblemFilter(list) {
-        const f = this.state.problemSort;
-        if (!f) return list;
-        const hasProblem = (l) => !!(l.problems_non_urgent && l.problems_non_urgent.length);
-        const qd = (l) => (l.quote_days != null && l.quote_days !== undefined ? l.quote_days : 0);
-        if (f === 'problem') return list.filter(hasProblem);
-        // User spec 2026-06-13: 'Mới nhất'/'Sắp hết hạn' giờ chỉ SẮP XẾP (KH CHƯA
-        // có vấn đề lên TRÊN), KHÔNG ẩn KH đã có vấn đề — tránh KH "biến mất" ngay
-        // sau khi vừa tạo vấn đề (chip bật do lỡ rê chuột).
-        if (f === 'newest' || f === 'expiring') {
-            const dir = f === 'newest' ? 1 : -1;
-            return [...list].sort((a, b) => {
-                const pa = hasProblem(a) ? 1 : 0;
-                const pb = hasProblem(b) ? 1 : 0;
-                if (pa !== pb) return pa - pb;          // chưa có vấn đề lên trước
-                return dir * (qd(a) - qd(b));
-            });
-        }
-        return list;
-    }
-    setProblemSort(f) { this.state.problemSort = f; }
     // Box cuối 2 bảng — KH đã báo giá rồi mất tích (không liên lạc được).
     get leadsQuotedLost() {
         return this.state.leadsQuotedLostAll || [];
@@ -2809,12 +2605,6 @@ export class VdCrmDashboard extends Component {
     toggleNewTable() {
         this.state.newTableExpanded = !this.state.newTableExpanded;
     }
-    toggleUrgentTable() {
-        this.state.urgentExpanded = !this.state.urgentExpanded;
-    }
-    toggleXlvdTable() {
-        this.state.xlvdExpanded = !this.state.xlvdExpanded;
-    }
     toggleQuotedTable() {
         this.state.quotedExpanded = !this.state.quotedExpanded;
     }
@@ -2832,38 +2622,6 @@ export class VdCrmDashboard extends Component {
         } catch (e) {
             this.notification.add("Không chuyển được KH này", { type: "danger" });
         }
-    }
-    // ⚙️ Menu bánh răng trên dòng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ.
-    toggleRowGear(ev, leadId) {
-        if (ev) { ev.stopPropagation(); }
-        this.state.rowGearOpen = this.state.rowGearOpen === leadId ? 0 : leadId;
-    }
-    // "Huỷ khách" → mở wizard nhập lý do (đặt vd_cancel_state='proposed' chờ admin duyệt).
-    async cancelLead(ev, leadId) {
-        if (ev) { ev.stopPropagation(); }
-        this.state.rowGearOpen = 0;
-        try {
-            const action = await this.orm.call("crm.lead", "action_mark_no_demand", [leadId]);
-            await this.action.doAction(action, {
-                onClose: () => { if (this.state.selectedStageId) this.selectStage(this.state.selectedStageId); },
-            });
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Không huỷ được khách này.";
-            this.notification.add(msg, { type: "danger" });
-        }
-    }
-    // Nút trên dòng → popup XÁC NHẬN trước khi chuyển.
-    confirmMoveToQuotedLost(ev, leadId) {
-        if (ev) { ev.stopPropagation(); }
-        this.state.rowGearOpen = 0;
-        const lead = this._leadById(leadId);
-        this.dialog.add(ConfirmationDialog, {
-            title: "BÁO GIÁ XONG MẤT TÍCH",
-            body: `Bạn đồng ý chuyển khách "${lead ? lead.name : ''}" vào bảng BÁO GIÁ XONG MẤT TÍCH?`,
-            confirmLabel: "Đồng ý chuyển",
-            cancelLabel: "Huỷ",
-            confirm: () => this._doMoveToQuotedLost(leadId),
-        });
     }
     // Nút "Đã liên lạc được" trong box → LÔI KH ra khỏi BÁO GIÁ XONG MẤT TÍCH,
     // trả về luồng 2 bảng bình thường.
@@ -2941,60 +2699,12 @@ export class VdCrmDashboard extends Component {
     get selectedCount() {
         return this.selectedLeadIdList.length;
     }
-    onChangeReassignTarget(ev) {
-        this.state.reassignTargetId = parseInt(ev.target.value, 10) || 0;
-    }
     // Tên NV nhận (để hiện trong câu xác nhận).
     get reassignTargetName() {
         const u = (this.state.users || []).find(
             (x) => x.id === this.state.reassignTargetId);
         return u ? u.name : "";
     }
-    async doBulkReassign() {
-        const ids = this.selectedLeadIdList;
-        const targetId = this.state.reassignTargetId;
-        if (!ids.length) {
-            this.notification.add("Chưa chọn khách hàng nào.",
-                { type: "warning" });
-            return;
-        }
-        if (!targetId) {
-            this.notification.add("Chưa chọn nhân viên nhận.",
-                { type: "warning" });
-            return;
-        }
-        const ok = window.confirm(
-            `Chuyển ${ids.length} khách hàng sang nhân viên "${this.reassignTargetName}"?`
-        );
-        if (!ok) return;
-        this.state.reassignBusy = true;
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_reassign", [ids, targetId],
-            );
-            this.notification.add(
-                `Đã chuyển ${moved} khách hàng sang "${this.reassignTargetName}".`,
-                { type: "success", title: "Chuyển KH thành công" },
-            );
-            // Reset chọn + tắt chế độ + tải lại dashboard (KH đã chuyển sẽ
-            // biến mất khỏi màn NV hiện tại).
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            this.state.reassignTargetId = 0;
-            await this.loadDashboard();
-            // Cập nhật lại số liệu (chưa gọi / tổng mới) trên dropdown NV.
-            if (this.state.is_manager) {
-                await this._reloadDashUsers();
-            }
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg,
-                { type: "danger", title: "Không chuyển được KH" });
-        } finally {
-            this.state.reassignBusy = false;
-        }
-    }
-
     // ============ MENU 3 CHẤM (kebab) — thao tác theo NGUYÊN 1 NHÂN VIÊN ========
     // Gom 3 chức năng vào 1 dropdown (không rải nút): (1) chọn 1 phát toàn bộ KH
     // của 1 NV, (2) xuất KH đã chọn ra Excel, (3) chuyển 1 phát toàn bộ KH đã chọn
@@ -3672,10 +3382,6 @@ export class VdCrmDashboard extends Component {
     get callWatchUncalledIds() {
         return new Set((this.state.call_watch?.uncalled_leads || []).map((l) => l.id));
     }
-    isLeadToCall(leadId) {
-        return !!(this.state.call_watch?.enabled
-            && this.callWatchUncalledIds.has(leadId));
-    }
     // True nếu lead đang bị khoá mở (làm mờ pill + chặn click). CẢ 3 khoá Khách
     // mới CHỈ áp cho lead THUỘC bảng Khách mới — KHÔNG lan sang Thi công gấp /
     // Xử lý vấn đề (user spec 2026-06-10). Mỗi khoá chừa loại KH cần xử lý:
@@ -3690,10 +3396,6 @@ export class VdCrmDashboard extends Component {
         if (this.zaloFriendLockActive && !this.zaloFriendAllowedIds.has(leadId)) return true;
         return false;
     }
-    dismissQuoteGuide() {
-        this.state.quoteGuideDismissed = true;
-    }
-
     // KHOÁ TOÀN BỘ (user spec 2026-06-12): NV tồn > ngưỡng KH mới CHƯA GỌI →
     // khoá MỌI bảng, chỉ cho mở chính các KH mới chưa gọi (vùng CHƯA GỌI) để ép
     // gọi. Admin xem NV đó cũng thấy khoá. Gọi cho ≤ ngưỡng → tự mở.
@@ -3808,13 +3510,6 @@ export class VdCrmDashboard extends Component {
      * Mở preview popup với danh sách KH explicit (dùng cho click icon thùng rác /
      * tham khảo / chưa gọi). Cho phép user ← → duyệt qua tất cả KH trong nhóm.
      */
-    openCategoryList(leads) {
-        if (!leads || !leads.length) return;
-        const ids = leads.map(l => l.id);
-        this.state.previewLead = { open: true, ids, index: 0 };
-        this._lockScroll();
-    }
-
     // Popover 3 nút (Tham khảo / Chưa gọi được / Hủy) BÁM theo con trỏ chuột
     // (user spec 2026-06-12) — position:fixed theo clientX/Y, kẹp trong màn hình
     // để KHÔNG bị che mép. Khi chuột vào trong popover thì NGỪNG bám để bấm được.
@@ -3886,14 +3581,6 @@ export class VdCrmDashboard extends Component {
     answeredPct(total, success) {
         const t = total || 0, s = success || 0;
         return t > 0 ? Math.round(s / t * 100) : 0;
-    }
-
-    // Báo đỏ khi: KHÔNG gọi (0 cuộc) HOẶC < 50% so với người gọi cao nhất.
-    isCallTodayWeak(nv) {
-        const c = (nv && nv.calls_today_total) || 0;
-        if (c === 0) return true;
-        const mx = this.maxCallsToday;
-        return mx > 0 && c < mx * 0.5;
     }
 
     // Màu theo TỈ LỆ nghe máy (user spec 2026-09-05):
@@ -3983,20 +3670,6 @@ export class VdCrmDashboard extends Component {
         }
     }
 
-    // ===== NHẮC NHỞ NHÂN VIÊN (user spec 2026-06-01) =====
-    // Admin tick "Lần N" → lưu mức nhắc vào res.users; hiện ✓ + câu nhắc kèm
-    // số liệu tồn đọng để admin chụp gửi NV. "Gỡ" = về 0.
-    async setReminderLevel(nv, level) {
-        try {
-            const newLevel = await this.orm.call(
-                "res.users", "vd_set_reminder_level", [nv.user_id, level],
-            );
-            nv.reminder_level = newLevel;   // mutate reactive analytics → re-render
-        } catch (err) {
-            this.notification.add("Không lưu được mức nhắc nhở.", { type: "danger" });
-        }
-    }
-
     // Chỉ các nhóm VƯỢT NGƯỠNG (backend tính over=True khi pct > ngưỡng, mặc
     // định 20%). Nhóm =0 hoặc dưới ngưỡng bị ẩn → popover chỉ nêu số gấp.
     reminderOverItems(nv) {
@@ -4027,12 +3700,6 @@ export class VdCrmDashboard extends Component {
             this.state.reminderHover = null;
             this._remTimer = null;
         }, 280);
-    }
-    onReminderPopEnter() {
-        if (this._remTimer) {
-            clearTimeout(this._remTimer);
-            this._remTimer = null;
-        }
     }
     // NHẮC NHỞ hiện NGAY VỊ TRÍ CHUỘT (user spec 2026-06-03).
     get reminderPopStyle() {
@@ -4199,42 +3866,6 @@ export class VdCrmDashboard extends Component {
         return `bottom:${Math.round(vh - elTop + 4)}px; left:${Math.round(left)}px; width:${W}px;`;
     }
 
-    // ===== BẢNG CUỘC GỌI HÔM NAY (hover icon 📞 ô HÔM NAY) =====
-    async onTodayCallsEnter(ev, nv) {
-        if (this._todayCallsTimer) {
-            clearTimeout(this._todayCallsTimer);
-            this._todayCallsTimer = null;
-        }
-        // Đã mở đúng NV này rồi → chỉ giữ, KHÔNG dựng lại + nạp lại (tránh nhảy/nháy).
-        if (this.state.todayCallsHover
-                && this.state.todayCallsHover.user_id === nv.user_id) {
-            return;
-        }
-        // Neo theo MÉP THẺ NV (visual); quy đổi sang local theo zoom trong popStyle.
-        this.state.todayCallsHover = {
-            user_id: nv.user_id,
-            name: nv.full_name,
-            rect: this._rowRect(ev),
-            loading: true,
-            summary: {},
-            customers: [],
-        };
-        try {
-            const data = await this.orm.call(
-                "crm.lead", "dashboard_nv_today_calls", [nv.user_id]);
-            if (this.state.todayCallsHover
-                    && this.state.todayCallsHover.user_id === nv.user_id) {
-                this.state.todayCallsHover.summary = (data && data.summary) || {};
-                this.state.todayCallsHover.customers = (data && data.customers) || [];
-                this.state.todayCallsHover.loading = false;
-            }
-        } catch (e) {
-            if (this.state.todayCallsHover
-                    && this.state.todayCallsHover.user_id === nv.user_id) {
-                this.state.todayCallsHover.loading = false;
-            }
-        }
-    }
     onTodayCallsLeave() {
         if (this._todayCallsTimer) {
             clearTimeout(this._todayCallsTimer);
@@ -4256,22 +3887,6 @@ export class VdCrmDashboard extends Component {
         return this._popAtRect(h.rect, 760);
     }
 
-    // ===== 🗑️ THÙNG RÁC KH HỦY CHỜ DUYỆT (hover thùng rác dòng NV) =====
-    // Dữ liệu đã có sẵn trong nv.cancel_leads → không cần RPC. Render ở gốc +
-    // _popAtRect tự lật LÊN khi NV ở cuối bảng → không bị che.
-    onCancelEnter(ev, nv) {
-        if (this._cancelTimer) { clearTimeout(this._cancelTimer); this._cancelTimer = null; }
-        if (this.state.cancelHover && this.state.cancelHover.user_id === nv.user_id) {
-            return;
-        }
-        this.state.cancelHover = {
-            user_id: nv.user_id,
-            name: nv.full_name,
-            leads: nv.cancel_leads || [],
-            report: nv.newcancel_report || null,
-            rect: this._elRect(ev),
-        };
-    }
     onCancelLeave() {
         if (this._cancelTimer) { clearTimeout(this._cancelTimer); }
         this._cancelTimer = setTimeout(() => {
@@ -4288,19 +3903,6 @@ export class VdCrmDashboard extends Component {
         return this._popAtRect(h.rect, 1280);
     }
 
-    // ===== KHÁCH MỚI HÔM NAY (hover nút "KH mới") — popover fixed dính mép thẻ
-    // NV (dữ liệu đã có sẵn trong nv → không cần nạp). =====
-    onNewTodayEnter(ev, nv) {
-        if (this._newTodayTimer) {
-            clearTimeout(this._newTodayTimer);
-            this._newTodayTimer = null;
-        }
-        if (!nv.new_count && !nv.new_today_count) {
-            this.state.newTodayHover = null;
-            return;
-        }
-        this.state.newTodayHover = { nv, rect: this._rowRect(ev) };
-    }
     onNewTodayLeave() {
         if (this._newTodayTimer) {
             clearTimeout(this._newTodayTimer);
@@ -4421,28 +4023,6 @@ export class VdCrmDashboard extends Component {
         const m = Math.floor(s / 60);
         const r = s % 60;
         return `${m}:${r < 10 ? "0" : ""}${r}`;
-    }
-
-    // Tên gọi NGẮN cho tiêu đề (lấy từ cuối tên, viết HOA). Vd "HN - Lâm Văn Hậu" → "HẬU".
-    reminderName(nv) {
-        const f = ((nv && nv.full_name) || "").trim();
-        const last = f.split(/\s+/).filter(Boolean).pop() || f;
-        return last.toUpperCase();
-    }
-
-    // Câu nhắc đầy đủ (admin copy gửi NV nếu cần). Khớp nội dung popover.
-    reminderSentence(nv) {
-        const items = this.reminderOverItems(nv);
-        if (!items.length) return "";
-        const lines = items.map(
-            (it) => `${it.icon} ${it.count}/${it.total} khách (${it.pct}%) ${it.label}`
-        );
-        const lvl = nv.reminder_level || 0;
-        const lvlTxt = lvl ? ` Anh đã nhắc lần ${lvl}.` : "";
-        return (
-            `ANH YÊU CẦU BẠN "${nv.full_name}" PHẢI XỬ LÝ NGAY CÁC KHÁCH HÀNG SAU:\n` +
-            `${lines.join("\n")}\n⏰ Thời hạn: HẾT HÔM NAY.${lvlTxt}`
-        );
     }
 
     /**
@@ -4874,15 +4454,6 @@ export class VdCrmDashboard extends Component {
         return { id, name: '(KH)', phone: '', user_name: '' };
     }
 
-    // Mở form Odoo đầy đủ (navigate trang) — khi user cần edit nâng cao
-    // SỐ OMI: hover nút → popup thẻ khách OMI (90% màn hình). Guard mở 1 lần.
-    openOmi() {
-        if (this._omiOpen) return;
-        this._omiOpen = true;
-        this.dialog.add(VdOmiDialog, {
-            onCall: (phone, name) => this.callOmiNumber(phone, name),
-        }, { onClose: () => { this._omiOpen = false; } });
-    }
     callOmiNumber(phone, name) {
         if (!phone) {
             this.notification.add("Khách chưa có SĐT.", { type: "warning" });
@@ -4890,20 +4461,6 @@ export class VdCrmDashboard extends Component {
         }
         this.stringee.call(phone, name || "").catch(
             (e) => this.notification.add(e.message || "Gọi thất bại", { type: "danger" }));
-    }
-
-    openLeadFullForm() {
-        const p = this.state.previewLead;
-        const id = p.open ? p.ids[p.index] : null;
-        if (!id) return;
-        this.closePreview();
-        this.action.doAction({
-            type: 'ir.actions.act_window',
-            res_model: 'crm.lead',
-            res_id: id,
-            views: [[false, 'form']],
-            target: 'current',
-        });
     }
 
     // Bấm 1 khách trong bảng ghi âm (hover THÁNG NÀY) → mở thẳng form khách đó.
@@ -4999,18 +4556,6 @@ export class VdCrmDashboard extends Component {
         this._copyToClipboard(L.phone, `Đã copy SĐT: ${L.phone}`, "Chưa có số điện thoại.");
     }
 
-    // Click tên KH (pill ở bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ) → copy tên,
-    // KHÔNG mở lead (stopPropagation để không trigger row openLead).
-    copyLeadName(ev, name, leadId) {
-        try { ev.stopPropagation(); ev.preventDefault(); } catch (_) {}
-        // Ở chế độ CHỌN KH: click tên = tick chọn (không copy) để chọn được
-        // KH ngay trên 2 bảng THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ.
-        if (this.state.selectMode && leadId != null) {
-            this.toggleLeadSelect(leadId);
-            return;
-        }
-        this._copyToClipboard(name, `Đã copy tên: ${name}`, "Chưa có tên KH.");
-    }
     // Bọc HTML bảng báo giá chi tiết bằng markup() → t-out render raw (không escape).
     // Panel THÔNG TIN KHÁCH HÀNG (hover tên KH ở THI CÔNG GẤP / XỬ LÝ VẤN ĐỀ).
     _markupBreakdown(rows) {
@@ -5145,52 +4690,6 @@ export class VdCrmDashboard extends Component {
         return TITLES[this.state.alertFilter] || "Danh sách KH";
     }
 
-    async callLead(lead, ev) {
-        ev.stopPropagation();
-        if (!lead.phone) {
-            this.notification.add("KH chưa có SĐT.", { type: "warning" });
-            return;
-        }
-        // ÉP ZALO (user spec 2026-06-09): KH đã ≥2 lần đổ chuông không nghe →
-        // cảnh báo MẠNH nên gửi kết bạn Zalo, nhưng KHÔNG chặn (vẫn cho gọi nếu
-        // NV xác nhận muốn gọi tiếp).
-        if (lead.must_zalo) {
-            const ok = window.confirm(
-                "⚠️ Khách này đã GỌI 2+ LẦN ĐỔ CHUÔNG NHƯNG KHÔNG NGHE MÁY.\n\n"
-                + "Khách kiểu này thường KHÔNG bắt máy số lạ. NÊN NHẮN TIN ZALO "
-                + "(kết bạn khi khách trả lời) thay vì gọi tiếp.\n\n"
-                + "Bạn VẪN muốn gọi điện?"
-            );
-            if (!ok) return;
-        }
-        // Debounce: chặn double-click cùng button trong 2s
-        const btn = ev.currentTarget;
-        if (btn && btn.dataset.vdCalling === "1") {
-            return;
-        }
-        if (btn) {
-            btn.dataset.vdCalling = "1";
-            btn.disabled = true;
-            setTimeout(() => {
-                btn.dataset.vdCalling = "0";
-                btn.disabled = false;
-            }, 2000);
-        }
-        try {
-            await this.stringee.call(lead.phone, lead.name || "");
-            // KHÔNG toast "Đang gọi" — popup cuộc gọi đã hiện đầy đủ trạng thái.
-        } catch (e) {
-            this.notification.add(e.message || "Gọi thất bại", { type: "danger" });
-        }
-    }
-
-    probabilityClass(prob) {
-        if (prob >= 75) return "bg-success";
-        if (prob >= 50) return "bg-info";
-        if (prob >= 25) return "bg-warning";
-        return "bg-secondary";
-    }
-
     funnelStepClass(stage) {
         // Màu funnel theo stage code hoặc % probability.
         if (stage.is_won)  return "o_vd_funnel_won";       // xanh lá
@@ -5275,11 +4774,6 @@ export class VdCrmDashboard extends Component {
         return new Date().getMonth() + 1;
     }
 
-    formatDate(s) {
-        if (!s) return "";
-        return s.replace("T", " ").slice(0, 16);
-    }
-
     // ============================================================
     // 📊 ANALYTICS BI — Date filter + 4 Chart.js charts
     // ============================================================
@@ -5303,14 +4797,6 @@ export class VdCrmDashboard extends Component {
             }
         }
         this.state.analyticsLoading = false;
-    }
-
-    async onApplyAnalyticsFilter() {
-        await this.loadAnalytics();
-    }
-
-    onAnalyticsDateChange(field, ev) {
-        this.state[field] = ev.target.value;
     }
 
     get analyticsNow() {
