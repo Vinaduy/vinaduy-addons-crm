@@ -13,10 +13,10 @@ Tái dùng cơ chế khoá overlay của dashboard (giống Lịch học bắt b
 Admin cấu hình + RESET lịch để nhân viên spam lại (kế hoạch 20-40 chiến dịch,
 xoay vòng ~10 lần/tháng).
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import AccessError, UserError
 
 
 class VdBroadcastCampaign(models.Model):
@@ -82,17 +82,6 @@ class VdBroadcastCampaign(models.Model):
         users = self.env['res.users'].sudo().search(
             [('share', '=', False), ('active', '=', True)])
         return users.filtered(lambda u: not u.has_group('base.group_system'))
-
-    # ---- Nút RESET lịch: bắt NV spam lại (xoá báo cáo cũ + đặt giờ mới) ----
-    def action_reset_schedule(self):
-        """Xoá toàn bộ báo cáo của chiến dịch này -> mọi NV bị khoá lại từ giờ
-        start_datetime hiện tại. Dùng khi muốn cho NV spam lại nội dung này."""
-        if not self._vd_is_admin():
-            raise AccessError('Chỉ admin được reset lịch spam.')
-        for c in self:
-            c.report_ids.unlink()
-            c.active = True
-        return True
 
     # ---- Nút BẮT ĐẦU CHIẾN DỊCH (bật ngay): đặt giờ bắt đầu = bây giờ ----
     def action_start_now(self):

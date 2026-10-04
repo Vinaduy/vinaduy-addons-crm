@@ -717,21 +717,6 @@ class CrmLead(models.Model):
             rec.vd_zalo_care_overdue_days = days
             rec.vd_zalo_care_overdue = overdue
 
-    def action_zalo_log_care(self):
-        """Ghi nhận 'đã chăm khách hôm nay' → cập nhật lần cuối + tăng đếm."""
-        self.ensure_one()
-        self.vd_zalo_last_care = fields.Datetime.now()
-        self.vd_zalo_care_count = (self.vd_zalo_care_count or 0) + 1
-
-    def action_open_zalo_chat(self):
-        """Mở Zalo của KH theo SĐT (zalo.me/<sđt>) → vào profile KH, bấm Nhắn tin.
-        Zalo KHÔNG hỗ trợ deep-link thẳng vào hộp thoại — đây là cách gần nhất."""
-        self.ensure_one()
-        phone = ''.join(ch for ch in (self.phone or self.mobile or '') if ch.isdigit())
-        if not phone:
-            raise UserError(_('KH chưa có số điện thoại để mở Zalo.'))
-        return {'type': 'ir.actions.act_url', 'url': f'https://zalo.me/{phone}', 'target': 'new'}
-
     def action_vd_zalo_confirm_day(self, day):
         """Xác nhận 1 bước chăm Zalo (user spec 2026-06-07).
         - NGÀY 1: Kết bạn + gửi tin chào.  NGÀY 2/3: Gọi + nhắn qua Zalo.
@@ -824,28 +809,6 @@ class CrmLead(models.Model):
         done = self._vd_zalo_friend_today()
         return {'done': done, 'cap': cap, 'warn': warn}
 
-    # ===== LÀM HỢP ĐỒNG - HẸN GẶP — nút Xem/Tải HĐ + Phụ lục.
-    # Auto-gen từ mẫu (.docx) trộn dữ liệu KH + bảng giá + đợt ứng: xử lý sau. =====
-    def action_view_contract_file(self):
-        return self._vd_contract_pending('HỢP ĐỒNG')
-
-    def action_download_contract_file(self):
-        return self._vd_contract_pending('HỢP ĐỒNG')
-
-    def action_view_appendix_file(self):
-        return self._vd_contract_pending('PHỤ LỤC')
-
-    def action_download_appendix_file(self):
-        return self._vd_contract_pending('PHỤ LỤC')
-
-    def _vd_contract_pending(self, doc):
-        self.ensure_one()
-        raise UserError(_(
-            'Chưa cấu hình MẪU %s. Gửi file mẫu (.docx) cho admin để thiết lập '
-            'tự động trộn: tên KH, địa chỉ, thông tin công trình, bảng giá chi '
-            'tiết và các đợt thanh toán.'
-        ) % doc)
-
     # Panel "Làm hợp đồng - Hẹn gặp" chỉ bung khi NV bấm nút (không tự hiện).
     vd_contract_open = fields.Boolean(string='Mở panel làm hợp đồng', default=False, copy=False)
 
@@ -860,11 +823,6 @@ class CrmLead(models.Model):
     vd_quoted_lost_dismissed = fields.Boolean(
         string='Đã liên lạc được (rời Báo giá xong mất tích)',
         default=False, copy=False, index=True)
-
-    def action_toggle_contract_panel(self):
-        self.ensure_one()
-        self.vd_contract_open = not self.vd_contract_open
-        return True
 
     # ===== CẦN CẤP TRÊN HỖ TRỢ — NV bấm 🆘 cuối dòng KH ở dashboard.
     # User spec 2026-05-31: ĐÃ BẤM thì KHÔNG huỷ được; 2 chế độ: trong ngày /
@@ -891,54 +849,6 @@ class CrmLead(models.Model):
         if self.vd_need_help_scope == 'multi':
             return True
         return fields.Datetime.context_timestamp(self, self.vd_need_help_at).date() == today_d
-
-    def vd_request_help(self):
-        """NV gửi yêu cầu hỗ trợ. Scope qua context {'help_scope': 'today'|'multi'}.
-        KHÔNG có chức năng tắt — đã gửi là cấp trên xử lý. Chỉ cho NÂNG today → multi."""
-        self.ensure_one()
-        scope = self.env.context.get('help_scope', 'today')
-        if scope not in ('today', 'multi'):
-            scope = 'today'
-        today_d = fields.Date.context_today(self)
-        if self._vd_need_help_active(today_d):
-            # Đã bật — chỉ cho nâng cấp today → multi (không hạ, không tắt).
-            if scope == 'multi' and self.vd_need_help_scope != 'multi':
-                self.write({'vd_need_help_scope': 'multi'})
-            return True
-        # Chưa active → check giới hạn 3 KH active của NV phụ trách
-        candidates = self.search([
-            ('user_id', '=', self.user_id.id),
-            ('vd_need_help', '=', True),
-            ('stage_is_won', '=', False),
-            ('stage_is_lost', '=', False),
-            ('id', '!=', self.id),
-        ])
-        active_n = sum(1 for c in candidates if c._vd_need_help_active(today_d))
-        if active_n >= 3:
-            raise UserError(_(
-                'NV %s đang cần hỗ trợ tối đa 3 KH. Chờ cấp trên xử lý xong bớt '
-                'rồi mới gửi thêm.'
-            ) % (self.user_id.name or ''))
-        self.write({
-            'vd_need_help': True,
-            'vd_need_help_at': fields.Datetime.now(),
-            'vd_need_help_scope': scope,
-            'vd_help_status': 'waiting',
-        })
-        return True
-
-    def vd_ack_help(self):
-        """Cấp trên bấm 'Đang hỗ trợ' → chuyển đỏ (chờ) sang xanh (đang hỗ trợ)."""
-        self.ensure_one()
-        if self.vd_need_help and self.vd_help_status == 'waiting':
-            self.write({'vd_help_status': 'helping'})
-        return True
-
-    def vd_done_help(self):
-        """Cấp trên bấm 'Hoàn tất' → kết thúc yêu cầu hỗ trợ (xoá cờ)."""
-        self.ensure_one()
-        self.write({'vd_need_help': False, 'vd_help_status': False})
-        return True
 
     @api.depends('call_ids', 'call_ids.state', 'call_ids.duration',
                  'call_ids.start_time', 'call_ids.recording_url',
@@ -1825,18 +1735,6 @@ class CrmLead(models.Model):
             self._vd_auto_foundation()   # >=2 tầng -> móng băng (trừ đất yếu -> cọc)
         return True
 
-    def action_remove_floor(self):
-        """Bấm '- Tầng' → giảm counter (min 0) + clear m² của tầng vừa xoá.
-        (LEGACY — button đã ẩn khỏi view sau 2026-05-27.)"""
-        self.ensure_one()
-        if self.vd_intake_floors_count > 0:
-            last = self.vd_intake_floors_count
-            setattr(self, f'vd_intake_floor_{last}_m2', 0)
-            new_count = last - 1
-            self.vd_intake_floors_count = new_count
-            self.vd_intake_floors_select = str(new_count) if new_count > 0 else False
-        return True
-
     def action_vd_remove_floor_n(self):
         """Xoá tầng N (lấy từ context vd_floor_n). User spec 2026-05-27:
         button X trên từng row công năng — xoá cả m² + function_ids của Tn,
@@ -2486,15 +2384,6 @@ class CrmLead(models.Model):
         'vd_intake_floor_7_m2',
     })
 
-    def action_toggle_quote_edit(self):
-        """✏️ Sửa báo giá — mở/đóng danh sách dòng editable. Lần đầu mở mà CHƯA
-        có dòng → tự dựng từ thông tin để sửa."""
-        self.ensure_one()
-        self.vd_quote_edit_open = not self.vd_quote_edit_open
-        if self.vd_quote_edit_open and not self.vd_quote_line_ids:
-            self._vd_gen_quote_lines_from_intake()
-        return None
-
     def action_regen_quote_lines(self):
         """🔄 Đặt lại bảng báo giá từ THÔNG TIN (bỏ mọi sửa tay / dòng thêm tay).
         Dùng khi NV lỡ xoá nhầm dòng hoặc muốn dựng lại từ đầu."""
@@ -3032,14 +2921,6 @@ class CrmLead(models.Model):
         string='Hiển thị preview PDF',
         default=False, copy=False,
     )
-
-    def action_toggle_quote_preview(self):
-        """Toggle preview inline. Lần đầu bật + chưa có PDF → auto generate."""
-        self.ensure_one()
-        if not self.vd_quote_show_preview and not self.vd_quote_preview_pdf:
-            self.action_refresh_quote_preview()
-        self.vd_quote_show_preview = not self.vd_quote_show_preview
-        return True
 
     def action_refresh_quote_preview(self):
         """🔄 Generate file PDF merged + lưu vào field Binary để widget
@@ -4853,18 +4734,6 @@ class CrmLead(models.Model):
             },
         }
 
-    def action_open_intake_inline(self):
-        """Toggle MỞ phiếu khai thác (chế độ mở rộng) mà không cần gọi điện."""
-        self.ensure_one()
-        self.vd_intake_open = True
-        return True
-
-    def action_close_intake_inline(self):
-        """Đóng phiếu khai thác → quay về chế độ tóm tắt."""
-        self.ensure_one()
-        self.vd_intake_open = False
-        return True
-
     def action_unlock_intake(self):
         """🔓 Mở khoá thông tin tư vấn — CHỈ admin. NV + Trưởng nhóm đều bị reject.
 
@@ -4929,19 +4798,6 @@ class CrmLead(models.Model):
             'vd_quote_cancelled': False,
         })
         return True
-
-    def action_open_intake_popup(self):
-        """LEGACY: redirect về chính lead form (popup đã bị xóa).
-        Giữ lại stub để tương thích nếu có button cũ còn gọi."""
-        self.ensure_one()
-        self.vd_intake_open = True
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'crm.lead',
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'target': 'current',
-        }
 
     def action_save_intake_done(self):
         """🔒 CHỐT THÔNG TIN — khoá phiếu khai thác + chuyển stage sang Báo giá.
@@ -5351,57 +5207,6 @@ class CrmLead(models.Model):
             'material': self.vd_quote_material or '',
             'payment_schedule': self.vd_quote_payment_schedule or '',
             'notes': self.vd_quote_notes or '',
-        }
-
-    def action_save_quote_version(self):
-        """💾 Lưu báo giá hiện tại → tạo version mới (snapshot + diff)."""
-        self.ensure_one()
-        if self.vd_quote_locked:
-            raise UserError(_('Báo giá đã CHỐT, không thể tạo version mới. '
-                              'Mở khoá hoặc tạo lead mới.'))
-        if not self.vd_quote_price and not self.vd_intake_estimate:
-            raise UserError(_('Vui lòng nhập "Giá báo cho KH" hoặc điền '
-                              'thông tin khai thác để tự tính ước tính trước.'))
-
-        prev = self.vd_quote_version_ids[:1]  # Latest version (sorted desc)
-        vals = self._build_quote_snapshot_vals()
-        new_v = self.env['vd.quote.version'].create(vals)
-        new_v.changes_log = new_v._build_diff_log(prev)
-
-        # Generate PDF luôn
-        new_v._generate_pdf()
-
-        # Auto-rename lead khi có báo giá đầu tiên — format: "VINADUY - <KH> - <team>"
-        self._vd_apply_quote_name_pattern()
-
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': f'💾 Đã lưu V{new_v.version_no}',
-                'message': new_v.changes_log or 'Bản nháp báo giá đã được snapshot.',
-                'type': 'success',
-                'sticky': False,
-            },
-        }
-
-    def action_view_quote_history(self):
-        """📜 Mở popup xem lịch sử báo giá (list view của vd.quote.version
-        filter theo lead). target='new' → hiện trong dialog, không rời form lead."""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('📜 Lịch sử báo giá — %s') % (self.name or ''),
-            'res_model': 'vd.quote.version',
-            'view_mode': 'list,form',
-            'target': 'new',
-            'domain': [('lead_id', '=', self.id)],
-            'context': {
-                'default_lead_id': self.id,
-                'create': False,
-                'edit': False,
-                'dialog_size': 'fullscreen',
-            },
         }
 
     @api.model
@@ -6260,70 +6065,6 @@ class CrmLead(models.Model):
             'target': 'new',
         }
 
-    def action_lock_quote_to_negotiate(self):
-        """🔒 Chốt báo giá CUỐI CÙNG → set state='locked' + chuyển sang Đàm phán.
-        Yêu cầu: phải có ít nhất 1 version + có quote_price."""
-        self.ensure_one()
-        if self.vd_quote_locked:
-            raise UserError(_('Báo giá đã chốt rồi.'))
-        if not self.vd_quote_price:
-            raise UserError(_('Vui lòng nhập "Giá báo cho KH" trước khi chốt.'))
-
-        # Lưu version cuối + lock luôn
-        prev = self.vd_quote_version_ids[:1]
-        vals = self._build_quote_snapshot_vals()
-        vals['state'] = 'locked'
-        new_v = self.env['vd.quote.version'].create(vals)
-        new_v.changes_log = (new_v._build_diff_log(prev) + '\n🔒 BẢN CHỐT CUỐI CÙNG').strip()
-        new_v._generate_pdf()
-
-        from datetime import date, timedelta
-        deadline = date.today() + timedelta(days=7)
-
-        # Move stage to negotiate
-        nego = self.env.ref('vd_crm_lead.stage_negotiate', raise_if_not_found=False) or \
-               self.env['crm.stage'].search([('code', '=', 'negotiate')], limit=1)
-        if not nego:
-            raise UserError(_('Không tìm thấy stage "Khách đàm phán".'))
-
-        old_stage = self.stage_id.name or ''
-        self.with_context(mail_notrack=True, tracking_disable=True).write({
-            'vd_quote_locked': True,
-            'vd_quote_locked_version_id': new_v.id,
-            'stage_id': nego.id,
-            'vd_negotiate_deadline': deadline,
-        })
-        # Auto-rename theo format VINADUY (nếu chưa)
-        self._vd_apply_quote_name_pattern()
-        self.message_post(
-            subtype_xmlid='mail.mt_note',
-            body=_(
-                "🔒 <b>Đã CHỐT báo giá V%d</b> với giá <b>%s đ</b>.<br/>"
-                "Chuyển từ <i>%s</i> → <b>%s</b>.<br/>"
-                "Deadline đàm phán: <b>%s</b> (7 ngày)."
-            ) % (
-                new_v.version_no,
-                f'{new_v.quote_price:,.0f}'.replace(',', '.'),
-                old_stage, nego.name, deadline.strftime('%d/%m/%Y'),
-            ),
-        )
-        # Reload form để stage_id mới hiển thị + panel Đàm phán visible
-        # mà không cần F5. Effect = rainbow_man celebration.
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'crm.lead',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'current',
-            'effect': {
-                'fadeout': 'slow',
-                'message': (f'🔒 Đã CHỐT báo giá → Đàm phán\n'
-                            f'Deadline: {deadline.strftime("%d/%m/%Y")} (7 ngày)'),
-                'type': 'rainbow_man',
-            },
-        }
-
     def action_vd_requote_new_price(self):
         """🔄 LÀM LẠI BÁO GIÁ VỚI ĐƠN GIÁ MỚI (user spec 2026-07-02).
         Cập nhật toàn bộ báo giá của KH này sang bảng giá hiện tại (bao gồm cả
@@ -6372,36 +6113,6 @@ class CrmLead(models.Model):
                          'res_model': 'crm.lead', 'res_id': self.id,
                          'view_mode': 'form', 'views': [(False, 'form')],
                          'target': 'current'},
-            },
-        }
-
-    # ============ PHASE C — ĐÀM PHÁN ============
-    def action_create_negotiate_activity(self, days_offset=1):
-        """Tạo activity nhắc NV gọi KH sau X ngày để chốt cọc."""
-        self.ensure_one()
-        from datetime import date, timedelta
-        due = date.today() + timedelta(days=days_offset)
-        self.activity_schedule(
-            'mail.mail_activity_data_call',
-            date_deadline=due,
-            summary=_('📞 Gọi KH chốt cọc 50tr (sau %d ngày)') % days_offset,
-            note=_(
-                'Báo giá đã chốt. Cần gọi để KH cọc tối thiểu 50.000.000đ.<br/>'
-                '<b>Kịch bản gợi ý:</b><br/>'
-                '"Anh/chị ơi, để bên em giữ giá vật liệu + lịch khởi công + huy động '
-                'tổ thợ thì cần KH cọc tối thiểu 50tr trong vòng 7 ngày. Anh/chị '
-                'tiện hôm nào ghé văn phòng ký HĐ + chuyển khoản cọc ạ?"'
-            ),
-            user_id=self.user_id.id or self.env.uid,
-        )
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': '📞 Đã tạo nhắc gọi',
-                'message': f'Activity gọi sau {days_offset} ngày — deadline {due.strftime("%d/%m/%Y")}',
-                'type': 'success',
-                'sticky': False,
             },
         }
 
@@ -6455,19 +6166,6 @@ class CrmLead(models.Model):
                 'default_lead_id': self.id,
                 'dialog_size': 'medium',
             },
-        }
-
-    def action_open_meeting_wizard(self):
-        """📅 Mở popup TẠO LỊCH GẶP — nhập info, lưu xong ra card văn bản chụp gửi KH."""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Thông tin lịch gặp'),
-            'res_model': 'vd.meeting.schedule.wizard',
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'new',
-            'context': {'default_lead_id': self.id, 'dialog_size': 'medium'},
         }
 
     def action_mark_contract_signed(self):
@@ -6565,59 +6263,6 @@ class CrmLead(models.Model):
                 'vd_hide_lead_col': True,
                 'vd_hide_user_col': True,
                 'vd_call_history_popup': True,  # cho CSS target popup này
-            },
-        }
-
-    def action_zalo_mark_step(self):
-        """Toggle 1 bước checklist Zalo (chưa → set giờ hiện tại; đã → bỏ).
-        Bước truyền qua context {'zalo_step': 'group'|'quote'|'model'|'problem'}."""
-        self.ensure_one()
-        fmap = {
-            'group': 'vd_zalo_step_group',
-            'quote': 'vd_zalo_step_quote',
-            'model': 'vd_zalo_step_model',
-            'problem': 'vd_zalo_step_problem',
-        }
-        fname = fmap.get(self.env.context.get('zalo_step'))
-        if fname:
-            self[fname] = False if self[fname] else fields.Datetime.now()
-
-    def action_open_zalo_group(self):
-        """Mở nhóm Zalo trong tab mới (act_url) — NV/leader bấm vào nhóm nhanh."""
-        self.ensure_one()
-        url = (self.vd_zalo_group_url or '').strip()
-        if not url:
-            raise UserError(_('Chưa có link nhóm Zalo. Dán link vào ô bên cạnh trước.'))
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        return {'type': 'ir.actions.act_url', 'url': url, 'target': 'new'}
-
-    def action_view_calls_post_quote(self):
-        """Popup lịch sử cuộc gọi CHỈ tính từ ngày làm báo giá thành công
-        (vd_quote_created_date). Dùng chung view stringee.call (có widget
-        vd_audio_player để nghe ghi âm) y như action_view_calls."""
-        self.ensure_one()
-        domain = [('lead_id', '=', self.id)]
-        if self.vd_quote_created_date:
-            domain.append(('start_time', '>=', self.vd_quote_created_date))
-        since_str = (
-            fields.Datetime.context_timestamp(self, self.vd_quote_created_date).strftime('%d/%m/%Y')
-            if self.vd_quote_created_date else ''
-        )
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Cuộc gọi sau báo giá (từ %s) — %s') % (since_str, self.name or ''),
-            'res_model': 'stringee.call',
-            'view_mode': 'list,form',
-            'domain': domain,
-            'target': 'new',
-            'context': {
-                'default_lead_id': self.id,
-                'create': False,
-                'dialog_size': 'fullscreen',
-                'vd_hide_lead_col': True,
-                'vd_hide_user_col': True,
-                'vd_call_history_popup': True,
             },
         }
 
@@ -6734,56 +6379,6 @@ class CrmLead(models.Model):
                     'since_min': since_min,
                     'state': c.state,
                 }
-        return result
-
-    @api.model
-    def vd_dashboard_help_live(self):
-        """User spec 2026-06-01: trạng thái 🆘 CẦN HỖ TRỢ LIVE của từng NV để
-        admin poll mỗi 5s — NV bấm SOS là hiện ngay, KHÔNG cần F5.
-
-        Returns: {user_id: {'count', 'waiting', 'leads': [{lead_id,name,phone,
-                  scope,status,problems}]}}  (≤3 KH/NV, waiting lên trước).
-        """
-        if not self._dashboard_is_manager():
-            return {}
-        today = fields.Date.context_today(self)
-        from collections import defaultdict as _dd
-        leads = self.search([
-            ('vd_need_help', '=', True),
-            ('active', '=', True),
-            ('stage_is_won', '=', False),
-            ('stage_is_lost', '=', False),
-        ], order='vd_need_help_at asc')
-        result = {}
-        for l in leads:
-            if not l._vd_need_help_active(today):
-                continue
-            uid = l.user_id.id
-            if not uid:
-                continue
-            e = result.setdefault(uid, {'count': 0, 'waiting': 0, 'leads': []})
-            e['count'] += 1
-            status = l.vd_help_status or 'waiting'
-            if status == 'waiting':
-                e['waiting'] += 1
-            if len(e['leads']) < 3:
-                open_probs = l.vd_lead_problem_ids.filtered(
-                    lambda p: p.status in ('open', 'in_progress')
-                )
-                e['leads'].append({
-                    'lead_id': l.id,
-                    'name': l.name or l.partner_name or 'KH',
-                    'phone': l.phone or '',
-                    'scope': l.vd_need_help_scope or 'today',
-                    'status': status,
-                    'problems': [{
-                        'name': (p.tag_id.name if p.tag_id else p.name) or 'Vấn đề',
-                        'icon': p.tag_id.icon if p.tag_id else '🔸',
-                        'status': p.status,
-                    } for p in open_probs[:3]],
-                })
-        for e in result.values():
-            e['leads'].sort(key=lambda x: x['status'] == 'helping')
         return result
 
     @api.model
@@ -7895,242 +7490,6 @@ class CrmLead(models.Model):
             pancake=True, custom_from=date_from, custom_to=date_to)
         return rep.get('custom') or {}
 
-    @api.model
-    def vd_pancake_excluded_list(self, scope='today'):
-        """DANH SÁCH SĐT đã BỊ LOẠI khỏi "số chia về NV" (user spec 2026-06-24).
-
-        Báo cáo chia số hiện "đã gộp/loại N SĐT trùng hoặc chưa gán". N =
-        created_all - total = (mọi lead Pancake tạo trong ngày, KỂ CẢ archived/
-        chưa gán) - (lead active CÓ NV). Hàm này LIỆT KÊ chính xác từng lead bị
-        loại + LÝ DO, để GĐ kiểm tra logic gộp có đúng không.
-
-        scope: 'today' | 'yesterday'. Trả {items, summary}:
-          - items: [{id, name, phone, platform, user_name, reason, reason_label,
-                     keeper_id, keeper_name, keeper_user, created}]
-          - summary: {merged, unassigned, lost, won, archived, total}
-        reason ∈ merged(trùng SĐT, đã gộp vào keeper) / unassigned(chưa gán NV) /
-                 lost(đã loại/hủy) / won(đã chốt) / archived(ẩn - khác).
-        """
-        import pytz
-        from datetime import datetime as _dt, time as _time, timedelta as _tdd
-        vn = pytz.timezone('Asia/Ho_Chi_Minh')
-        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
-        base_d = now_vn.date() - (_tdd(days=1) if scope == 'yesterday' else _tdd())
-
-        def _utc(d, t):
-            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
-
-        since = _utc(base_d, _time(0, 0))
-        until = _utc(base_d + _tdd(days=1), _time(0, 0))
-
-        src_dom = [('vd_pancake_page_id', '!=', False),
-                   ('create_date', '>=', since), ('create_date', '<', until)]
-        # MỌI lead Pancake trong ngày (kể cả archived) — sắp xếp tạo trước lên đầu.
-        all_leads = self.sudo().with_context(active_test=False).search(
-            src_dom, order='create_date')
-        # Bị LOẠI = KHÔNG (active VÀ có NV). Đây chính là phần created_all - total.
-        excluded = all_leads.filtered(
-            lambda l: not (l.active and l.user_id))
-        if not excluded:
-            return {'items': [], 'summary': {
-                'merged': 0, 'unassigned': 0, 'lost': 0, 'won': 0,
-                'archived': 0, 'total': 0}}
-
-        plat_by_page = {}
-        for pg in self.env['vd.pancake.page'].sudo().search([]):
-            plat_by_page[pg.id] = pg.platform or 'other'
-
-        # Bản đồ SĐT -> lead KEEPER (active) để phát hiện "đã gộp trùng". Quét lead
-        # active 120 ngày gần đây (keeper thường là first-touch còn sống gần đó).
-        keeper_since = since - _tdd(days=120)
-        recent_active = self.sudo().search([
-            ('active', '=', True),
-            ('create_date', '>=', keeper_since),
-            '|', ('phone', '!=', False), ('mobile', '!=', False),
-        ], order='create_date')
-        keeper_map = {}
-        for l in recent_active:
-            for ph in self._vd_normalize_phones_set(l.phone, l.mobile):
-                keeper_map.setdefault(ph, l)
-
-        plat_label = {'tiktok': 'TikTok', 'facebook': 'Facebook'}
-        reason_label = {
-            'merged': 'Trùng SĐT (đã gộp)',
-            'unassigned': 'Chưa gán NV',
-            'lost': 'Đã loại / hủy',
-            'won': 'Đã chốt',
-            'archived': 'Đã ẩn (khác)',
-        }
-        items = []
-        summary = {'merged': 0, 'unassigned': 0, 'lost': 0, 'won': 0,
-                   'archived': 0, 'total': 0}
-        for l in excluded:
-            keeper = self.browse()
-            if not l.active:
-                # Tìm keeper: lead active khác trùng SĐT (đã gộp lead này vào).
-                for ph in self._vd_normalize_phones_set(l.phone, l.mobile):
-                    cand = keeper_map.get(ph)
-                    if cand and cand.id != l.id:
-                        keeper = cand
-                        break
-                if keeper:
-                    reason = 'merged'
-                elif l.stage_is_lost:
-                    reason = 'lost'
-                elif l.stage_is_won:
-                    reason = 'won'
-                else:
-                    reason = 'archived'
-            else:
-                # Còn active nhưng chưa có NV.
-                reason = 'unassigned'
-            summary[reason] += 1
-            summary['total'] += 1
-            plat = plat_by_page.get(
-                l.vd_pancake_page_id.id) if l.vd_pancake_page_id else None
-            items.append({
-                'id': l.id,
-                'name': l.partner_name or l.name or 'KH',
-                'phone': l.phone or l.mobile or '',
-                'platform': plat_label.get(plat, '—'),
-                'user_name': l.user_id.name or '(chưa gán)',
-                'reason': reason,
-                'reason_label': reason_label[reason],
-                'keeper_id': keeper.id if keeper else False,
-                'keeper_name': (keeper.partner_name or keeper.name or 'KH')
-                if keeper else '',
-                'keeper_user': keeper.user_id.name if keeper else '',
-                'created': fields.Datetime.context_timestamp(
-                    self, l.create_date).strftime('%d/%m %H:%M')
-                if l.create_date else '',
-            })
-        # Xếp theo lý do (trùng trước) rồi giờ tạo.
-        order = {'merged': 0, 'unassigned': 1, 'lost': 2, 'won': 3, 'archived': 4}
-        items.sort(key=lambda r: (order.get(r['reason'], 9), r['created']))
-        return {'items': items, 'summary': summary}
-
-    @api.model
-    def vd_pancake_30day_matrix(self, days=30):
-        """BẢNG CHI TIẾT 30 NGÀY (user spec 2026-07-14): mỗi CỘT = 1 ngày, mỗi
-        HÀNG = 1 nhân viên, mỗi ô = 2 chỉ số [TikTok | Facebook] số Pancake đã
-        chia cho NV đó trong ngày đó.
-
-        Ngày tính theo giờ VN (0h→24h), cột cũ nhất bên trái → mới nhất bên phải
-        (hôm nay = cột cuối). Đếm lead Pancake active (giống báo cáo chia số).
-        Phân nền tảng theo tiền tố conversation_id ('ttm_'/'pzl_' = TikTok, còn
-        lại = Facebook — xem [_vd_distribution_report]). 1 SQL group-by cho nhanh.
-
-        Trả {days:[{label,dow,is_today}], rows:[{uid,name,is_boss,role,
-             cells:[{tt,fb}],sum_tt,sum_fb,sum}], totals:{cells:[{tt,fb}],tt,fb}}.
-        """
-        import pytz
-        from datetime import datetime as _dt, time as _time, timedelta as _tdd
-        try:
-            days = max(1, min(60, int(days)))
-        except (TypeError, ValueError):
-            days = 30
-        vn = pytz.timezone('Asia/Ho_Chi_Minh')
-        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
-        today_d = now_vn.date()
-        first_d = today_d - _tdd(days=days - 1)
-
-        def _utc(d, t):
-            return vn.localize(_dt.combine(d, t)).astimezone(pytz.utc).replace(tzinfo=None)
-
-        since = _utc(first_d, _time(0, 0))
-        until = _utc(today_d + _tdd(days=1), _time(0, 0))
-
-        # Danh sách ngày (cũ -> mới) + chỉ số cột theo ngày để đổ dữ liệu SQL vào.
-        _dow = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
-        day_list, day_idx = [], {}
-        for i in range(days):
-            d = first_d + _tdd(days=i)
-            day_idx[d.isoformat()] = i
-            day_list.append({
-                'label': d.strftime('%d/%m'),
-                'dow': _dow[d.weekday()],
-                'is_today': d == today_d,
-            })
-
-        # POOL nhân viên (giống báo cáo chia số): NV thật + Trưởng nhóm + Giám đốc.
-        Users = self.env['res.users'].sudo()
-        salesman_gid = self.env.ref('sales_team.group_sale_salesman').id
-        leader_gid = self.env.ref('vd_crm_lead.vd_crm_group_team_leader', raise_if_not_found=False)
-        sales = Users.search([
-            ('share', '=', False), ('active', '=', True),
-            ('groups_id', 'in', salesman_gid),
-        ])
-
-        def _is_real_nv(u):
-            if u._is_admin() or u.has_group('base.group_system'):
-                return False
-            if u.has_group('sales_team.group_sale_manager'):
-                return False
-            if leader_gid and u.has_group('vd_crm_lead.vd_crm_group_team_leader'):
-                return False
-            return True
-
-        all_nv = sales.filtered(_is_real_nv)
-        boss_nv = Users.search([
-            ('share', '=', False), ('active', '=', True),
-        ]).filtered(lambda u: u.vd_crm_role in ('team_leader', 'director'))
-        role_lbl = {'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc'}
-        pool = all_nv | boss_nv
-
-        # Ma trận rỗng: uid -> list ô {tt,fb} theo từng ngày.
-        cells = {u.id: [{'tt': 0, 'fb': 0} for _ in range(days)] for u in pool}
-
-        # 1 SQL: đếm lead Pancake active theo (user_id, ngày VN, nền tảng).
-        self.env.cr.execute(
-            "SELECT user_id, "
-            "  (create_date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d, "
-            "  CASE WHEN vd_pancake_conversation_id LIKE 'ttm\\_%%' "
-            "         OR vd_pancake_conversation_id LIKE 'pzl\\_%%' THEN 'tt' "
-            "       ELSE 'fb' END AS plat, "
-            "  COUNT(*) AS c "
-            "FROM crm_lead "
-            "WHERE vd_pancake_page_id IS NOT NULL AND user_id IS NOT NULL "
-            "  AND active = TRUE "
-            "  AND create_date >= %s AND create_date < %s "
-            "GROUP BY user_id, d, plat",
-            (since, until))
-        for uid, d, plat, c in self.env.cr.fetchall():
-            row = cells.get(uid)
-            if row is None:
-                continue
-            di = day_idx.get(d.isoformat())
-            if di is None:
-                continue
-            row[di]['tt' if plat == 'tt' else 'fb'] += c
-
-        # Dựng hàng NV + tổng theo cột.
-        col_tot = [{'tt': 0, 'fb': 0} for _ in range(days)]
-        rows = []
-        for u in pool:
-            rc = cells[u.id]
-            s_tt = sum(x['tt'] for x in rc)
-            s_fb = sum(x['fb'] for x in rc)
-            for i, x in enumerate(rc):
-                col_tot[i]['tt'] += x['tt']
-                col_tot[i]['fb'] += x['fb']
-            rows.append({
-                'uid': u.id,
-                'name': u.name or 'NV #%s' % u.id,
-                'is_boss': bool(role_lbl.get(u.vd_crm_role)) and u in boss_nv,
-                'role': role_lbl.get(u.vd_crm_role, '') if u in boss_nv else '',
-                'cells': rc,
-                'sum_tt': s_tt, 'sum_fb': s_fb, 'sum': s_tt + s_fb,
-            })
-        # NV nhiều số nhất lên đầu (dễ đọc top NV); boss xếp theo tên sau cùng NV.
-        rows.sort(key=lambda r: (-r['sum'], r['name']))
-        g_tt = sum(c['tt'] for c in col_tot)
-        g_fb = sum(c['fb'] for c in col_tot)
-        return {
-            'days': day_list,
-            'rows': rows,
-            'totals': {'cells': col_tot, 'tt': g_tt, 'fb': g_fb, 'sum': g_tt + g_fb},
-        }
-
     def _vd_inbound_today_chips(self, call_user_domain, limit=400):
         """KHÁCH GỌI ĐẾN của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
         Hiện TẤT CẢ cuộc gọi đến (kể cả quá khứ, user spec 2026-06-24), KHÔNG chỉ
@@ -8665,121 +8024,6 @@ class CrmLead(models.Model):
             # BẢO MẬT (user spec 2026-06-18): buộc NV đổi mật khẩu khi hết chu kỳ
             # 30 ngày — frontend chặn dashboard tới khi đổi xong.
             'must_change_password': bool(self.env.user.vd_pwd_must_change),
-        }
-
-    def dashboard_nv_detail(self, user_id):
-        """NHẸ (user spec 2026-08-28): CHỈ tính {user, block_status, performance}
-        cho panel chi tiết NV khi bấm vào 1 NV — KHÔNG build cả dashboard (leads,
-        analytics, problem_find, call_watch...) như dashboard_data → mở NHANH hơn
-        nhiều. Frontend openNvDetail gọi method này thay dashboard_data."""
-        from datetime import date
-        scope_user, scope_label, domain_user, _cud = self._dashboard_resolve_scope(user_id)
-        is_manager = self._dashboard_is_manager()
-
-        block_status = {'is_blocked': False, 'overdue_count': 0, 'threshold': 15}
-        if scope_user:
-            block_status = {
-                'is_blocked': not scope_user.vd_can_receive_new_leads,
-                'overdue_count': scope_user.vd_overdue_lead_count,
-                'threshold': scope_user.vd_overdue_threshold,
-            }
-
-        # ===== PERFORMANCE (copy nhẹ từ dashboard_data) =====
-        ResUsers = self.env['res.users']
-        month_start = date.today().replace(day=1)
-        year_start = date.today().replace(month=1, day=1)
-        won_month_count = self.search_count(domain_user + [
-            ('vd_contract_signed', '=', True),
-            ('vd_contract_sign_date', '>=', month_start),
-        ])
-        won_year_count = self.search_count(domain_user + [
-            ('vd_contract_signed', '=', True),
-            ('vd_contract_sign_date', '>=', year_start),
-        ])
-        my_bonus = ResUsers._vd_calc_nv_bonus(won_month_count) if scope_user else 0
-        total_revenue_month = sum(self.search(domain_user + [
-            ('vd_contract_signed', '=', True),
-            ('vd_contract_sign_date', '>=', month_start),
-        ]).mapped('vd_quote_price') or [0])
-
-        closed_contracts = []
-        if scope_user:
-            for ld in self.search(domain_user + [
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', month_start),
-            ], order='vd_contract_sign_date desc, id desc', limit=20):
-                closed_contracts.append({
-                    'id': ld.id,
-                    'name': ld.name or ld.partner_name or 'KH',
-                    'date': ld.vd_contract_sign_date.strftime('%d/%m/%Y') if ld.vd_contract_sign_date else '',
-                    'price': ld.vd_quote_price or 0,
-                    'deposit': ld.vd_contract_deposit or 0,
-                })
-
-        leaderboard = []
-        if is_manager:
-            sales_users = ResUsers.search([
-                ('share', '=', False), ('active', '=', True),
-                ('groups_id', 'in', self.env.ref('sales_team.group_sale_salesman').id),
-            ])
-            _lb_ids = sales_users.ids
-
-            def _lb_count(_dom):
-                _r = {}
-                for _g in self.read_group(
-                        _dom + [('user_id', 'in', _lb_ids)], ['user_id'], ['user_id']):
-                    _u = _g.get('user_id')
-                    if _u:
-                        _r[_u[0]] = _g.get('user_id_count', 0)
-                return _r
-
-            _lb_month = _lb_count([
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', month_start),
-            ])
-            _lb_year = _lb_count([
-                ('vd_contract_signed', '=', True),
-                ('vd_contract_sign_date', '>=', year_start),
-            ])
-            _lb_active = _lb_count([
-                ('stage_is_won', '=', False), ('stage_is_lost', '=', False),
-            ])
-            for u in sales_users:
-                u_month_count = _lb_month.get(u.id, 0)
-                leaderboard.append({
-                    'user_id': u.id,
-                    'name': u.name,
-                    'contracts_month': u_month_count,
-                    'contracts_year': _lb_year.get(u.id, 0),
-                    'active_leads': _lb_active.get(u.id, 0),
-                    'bonus_month': ResUsers._vd_calc_nv_bonus(u_month_count),
-                    'target_month': 2,
-                    'perf_pct': (u_month_count / 2.0 * 100) if u_month_count else 0,
-                })
-            leaderboard.sort(key=lambda x: (-x['contracts_month'], -x['bonus_month'], -x['active_leads']))
-
-        performance = {
-            'contracts_month': won_month_count,
-            'contracts_year': won_year_count,
-            'target_month': 2,
-            'target_year': 20,
-            'perf_pct_month': (won_month_count / 2.0 * 100) if won_month_count else 0,
-            'perf_pct_year': (won_year_count / 20.0 * 100) if won_year_count else 0,
-            'bonus_month': my_bonus,
-            'next_tier_at': won_month_count + 1,
-            'next_tier_bonus': ResUsers._vd_calc_nv_bonus(won_month_count + 1) - my_bonus,
-            'revenue_month': total_revenue_month,
-            'leaderboard': leaderboard,
-            'closed_contracts': closed_contracts,
-        }
-        return {
-            'user': {
-                'id': scope_user.id if scope_user else 0,
-                'name': scope_label,
-                'is_all': scope_user is None,
-            },
-            'block_status': block_status,
-            'performance': performance,
         }
 
     def _dashboard_new_bucket_domain(self, user_domain):
@@ -9907,19 +9151,6 @@ class CrmLead(models.Model):
         return {'summary': summary, 'customers': customers}
 
     @api.model
-    def dashboard_nv_active_leads(self, user_id, limit=30):
-        """Danh sách KH đang active của 1 NV — dùng cho NV detail panel
-        khi admin click vào NV trong tab Thành tích."""
-        if not self._dashboard_is_manager():
-            return []
-        leads = self.search([
-            ('user_id', '=', user_id),
-            ('stage_is_won', '=', False),
-            ('stage_is_lost', '=', False),
-        ], order='probability desc, callback_date asc', limit=limit)
-        return self._dashboard_serialize_leads(leads)
-
-    @api.model
     def _dashboard_serialize_leads(self, leads):
         # Tổng hợp thống kê cuộc gọi cho tất cả leads trong batch — 1 query duy nhất
         call_stats_by_lead = self._dashboard_compute_call_stats(leads)
@@ -10559,7 +9790,7 @@ class CrmLead(models.Model):
             (_is_tl and not _is_mgr) or (_is_mgr and scope == 'team')) else None
 
         from datetime import timedelta as _td
-        from collections import defaultdict, Counter
+        from collections import defaultdict
         import re
 
         # === Parse date range — fallback 90 ngày gần nhất ===

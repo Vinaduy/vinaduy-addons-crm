@@ -7,7 +7,6 @@ Auto-assign theo round-robin (leader/admin) hoặc gán cho chính mình (NV).
 """
 import logging
 
-from lxml import etree
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
@@ -186,19 +185,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
                 self._vd_sync_receiving()
             except Exception:
                 pass
-
-    def action_save_receiving(self):
-        """💾 Lưu bảng BẬT/TẮT NV nhận số → ghi vd_can_receive_pancake (đồng bộ
-        dashboard + chia tự động). Chia lại nếu đang ở bước chia."""
-        self.ensure_one()
-        self._vd_check_leader()
-        self._vd_sync_receiving()
-        if self.show_distribute and self.distribute_mode and self.distribute_mode != 'per_line':
-            try:
-                self._vd_apply_distribution()
-            except UserError:
-                pass
-        return self._vd_reopen()
 
     # Gán NV hàng loạt cho các khách ĐÃ TÍCH CHỌN (user spec 2026-06-26).
     vd_bulk_user_id = fields.Many2one(
@@ -388,25 +374,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
                             (info or '').strip(), (src or '').strip()))
         return out
 
-    def action_import_excel(self):
-        """Đẩy file Excel/CSV → tự lấy Tên + SĐT → nạp bảng → tự CHIA ĐỀU cho tất cả
-        NV. Số nhập từ file gắn cờ Excel (thẻ Facebook xám đậm). User 2026-07-24."""
-        self.ensure_one()
-        self._vd_check_leader()
-        if not self.vd_import_file:
-            raise UserError(_('Hãy chọn file Excel/CSV trước khi bấm NHẬP FILE.'))
-        import base64
-        data = base64.b64decode(self.vd_import_file)
-        pairs = self._vd_extract_name_phone(
-            self._vd_parse_import_rows(data, self.vd_import_filename))
-        if not pairs:
-            raise UserError(_(
-                'Không đọc được SĐT nào từ file. Kiểm tra file có cột '
-                '"SĐT"/"Điện thoại"/"Phone" và có dữ liệu.'))
-        self.vd_import_file = False
-        self.vd_import_filename = False
-        return self._vd_finish_import(pairs, source_word=_('file'))
-
     def _vd_parse_pasted_text(self, text):
         """Dán danh sách 'Tên  SĐT' mỗi dòng 1 khách → list[(tên, sđt)].
         Tự tách SĐT ra khỏi tên dù ở đầu/cuối, dù cách nhau bằng tab/dấu phẩy/
@@ -433,22 +400,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
             if phone:
                 out.append((name, phone.strip()))
         return out
-
-    def action_import_paste(self):
-        """Dán danh sách số vào ô → nạp bảng + tự CHIA ĐỀU. Thay cho đẩy file
-        Excel khi chỉ cần copy vài dòng. User spec 2026-07-24."""
-        self.ensure_one()
-        self._vd_check_leader()
-        if not (self.vd_import_paste or '').strip():
-            raise UserError(_(
-                'Hãy dán danh sách khách vào ô (mỗi dòng: Tên rồi SĐT).'))
-        pairs = self._vd_parse_pasted_text(self.vd_import_paste)
-        if not pairs:
-            raise UserError(_(
-                'Không tách được SĐT nào từ danh sách đã dán. Mỗi dòng cần có 1 '
-                'số di động, ví dụ:\nNguyễn Ánh 0977261290'))
-        self.vd_import_paste = False
-        return self._vd_finish_import(pairs, source_word=_('danh sách dán'))
 
     def _vd_prepare_import(self, pairs):
         """Lọc trùng/sai từ `pairs` = list[(tên, sđt-thô)] → trả
@@ -713,35 +664,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
         self.write({'line_ids': cmds})
         self.vd_import_summary = self._vd_import_summary_text(
             len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
-        return self._vd_reopen()
-
-    def action_select_all(self):
-        """Tích / BỎ tích TẤT CẢ khách (toggle)."""
-        self.ensure_one()
-        rows = self.line_ids.filtered(lambda l: l.name or l.phone)
-        all_sel = bool(rows) and all(l.vd_selected for l in rows)
-        rows.write({'vd_selected': not all_sel})
-        return self._vd_reopen()
-
-    def action_delete_selected(self):
-        """XOÁ HÀNG LOẠT các khách đã tích chọn khỏi danh sách."""
-        self.ensure_one()
-        sel = self.line_ids.filtered('vd_selected')
-        if not sel:
-            raise UserError(_('Chưa tích chọn khách nào để xoá (cột ☑).'))
-        sel.unlink()
-        return self._vd_reopen()
-
-    def action_assign_selected(self):
-        """Gán NV (vd_bulk_user_id) cho TẤT CẢ khách đã tích chọn (vd_selected)."""
-        self.ensure_one()
-        if not self.vd_bulk_user_id:
-            raise UserError(_('Hãy chọn nhân viên ở ô "Gán NV cho khách đã chọn" trước.'))
-        sel = self.line_ids.filtered(lambda l: l.vd_selected and l.name and l.phone)
-        if not sel:
-            raise UserError(_('Chưa tích chọn khách nào (cột "Chọn").'))
-        sel.write({'user_id': self.vd_bulk_user_id.id, 'vd_selected': False})
-        self.vd_bulk_user_id = False
         return self._vd_reopen()
 
     distribute_mode = fields.Selection(
@@ -1030,20 +952,6 @@ class VdLeadQuickAddWizard(models.TransientModel):
             except Exception:
                 pass
         return head + table + tail
-
-    def action_redistribute(self):
-        """Nút 'Chia lại' — áp dụng lại distribution với cấu hình hiện tại."""
-        self.ensure_one()
-        self._vd_sync_receiving()
-        self._vd_apply_distribution()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': dict(self.env.context, dialog_size='fullscreen'),
-        }
 
     def action_create_leads(self):
         """Tạo N lead từ self.line_ids — mỗi dòng 1 lead."""

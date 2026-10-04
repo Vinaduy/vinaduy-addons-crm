@@ -53,37 +53,6 @@ class VdBonusTeam(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
 
-    # ============ DỮ LIỆU CHO TRANG CÁ NHÂN ============
-    @api.model
-    def vd_bonus_board(self, user_id=None):
-        """Trả mốc thưởng để hiện trên trang cá nhân.
-        - personal: mốc thưởng cá nhân của PHÒNG người dùng (nếu phòng có cấu
-          hình riêng); nếu không thì lấy mốc CHUNG (team trống).
-        - team: chỉ mốc thưởng của PHÒNG người dùng đang xem.
-        """
-        env = self.env
-        user = env['res.users'].sudo().browse(int(user_id)) if user_id else env.user
-        team_key = user.vd_team_label or user.vd_team or ''
-        Personal = env['vd.bonus.personal'].sudo()
-        # Ưu tiên chế độ RIÊNG của phòng; không có thì dùng chế độ CHUNG (team trống).
-        own = Personal.search([('team', '=', team_key), ('amount', '>', 0)]) if team_key else Personal.browse()
-        recs = own if own else Personal.search([('team', '=', False), ('amount', '>', 0)])
-        personal = [{
-            'name': r.name or ('Hợp đồng thứ %s' % r.contract_no),
-            'contract_no': r.contract_no,
-            'amount': r.amount,
-        } for r in recs]
-        team_ms = []
-        if team_key:
-            for r in self.sudo().search([('team', '=', team_key)]):
-                team_ms.append({
-                    'name': r.name or '',
-                    'amount': r.amount,
-                    'contract_count': r.contract_count,
-                    'people_count': r.people_count,
-                })
-        return {'personal': personal, 'team': team_ms, 'team_label': team_key}
-
     # ============ DỮ LIỆU CHO BOARD CẤU HÌNH (admin) ============
     @api.model
     def vd_bonus_config_data(self):

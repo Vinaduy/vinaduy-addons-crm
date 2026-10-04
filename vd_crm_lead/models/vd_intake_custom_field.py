@@ -5,7 +5,7 @@ Admin định nghĩa trường tuỳ chọn (label + help text). NV nhập giá 
 trên từng lead. Lưu trữ qua model bridge vd.lead.custom.value (One2many
 trên crm.lead) để hiển thị dynamic list trong form.
 """
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class VdIntakeCustomField(models.Model):

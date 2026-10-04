@@ -3,7 +3,7 @@ Logic: chỉ schedule, KHÔNG đổi stage. Khi NV thực sự ký xong + có c�
 mới mark lead = won (việc đó qua action riêng).
 """
 from datetime import timedelta
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 

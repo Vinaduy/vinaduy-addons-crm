@@ -2,7 +2,7 @@
 """Wizard admin xem mật khẩu + lịch sử đổi của 1 nhân viên.
 Bắt buộc admin nhập lại MẬT KHẨU CHÍNH MÌNH (re-auth) mới giải mã hiển thị."""
 import html
-from odoo import api, fields, models, _
+from odoo import fields, models, _
 from odoo.exceptions import AccessDenied, UserError
 
 

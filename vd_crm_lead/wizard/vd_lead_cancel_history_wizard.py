@@ -4,7 +4,7 @@ Mở khi NV bấm nút "🚫 ĐÃ HUỶ" trên lead form (chỉ hiện khi stage
 Hiển thị: ai huỷ, khi nào, lý do, manual/auto cron, message log.
 """
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 
 
 class VdLeadCancelHistoryWizard(models.TransientModel):

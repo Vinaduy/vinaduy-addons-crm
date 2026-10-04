@@ -8,7 +8,6 @@ Enforcement thực tế dùng kết hợp:
 - Override write() trên crm.lead — runtime check quyền chuyển KH
 """
 from odoo import models, fields, api, _
-from odoo.exceptions import AccessError
 
 
 class VdCrmRoleConfig(models.Model):
@@ -84,20 +83,6 @@ class VdCrmRoleConfig(models.Model):
             'target': 'new',
             'context': {'create': False},
         }
-
-    @api.model
-    def get_role_for_user(self, user=None):
-        """Trả role_code (cao nhất) của user. Dùng cho runtime check."""
-        user = user or self.env.user
-        if user.has_group('vd_crm_lead.vd_crm_group_admin'):
-            return 'admin'
-        if user.has_group('vd_crm_lead.vd_crm_group_deputy_director'):
-            return 'deputy'
-        if user.has_group('vd_crm_lead.vd_crm_group_team_leader'):
-            return 'team_leader'
-        if user.has_group('vd_crm_lead.vd_crm_group_employee'):
-            return 'employee'
-        return False
 
     @api.model
     def can_user_reassign(self, user=None):

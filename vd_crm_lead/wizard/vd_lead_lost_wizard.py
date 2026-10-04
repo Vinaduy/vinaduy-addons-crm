@@ -4,7 +4,7 @@ lý do hủy. Submit → KH vào thùng rác (stage=lost), lý do lưu ở vd_lo
 và hiện lại khi xem KH hủy.
 """
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 

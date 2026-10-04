@@ -282,22 +282,6 @@ class ResUsers(models.Model):
         return (user.vd_sos_guide_ack_count or 0) < 3 and user.vd_sos_guide_last_ack != today
 
     @api.model
-    def vd_sos_guide_ack(self):
-        """NV bấm 'Đã đọc'. Chỉ cộng 1 lần/ngày → cần 3 ngày khác nhau mới đủ.
-        Trả {show, count}."""
-        user = self.env.user
-        today = fields.Date.context_today(self)
-        if user.vd_sos_guide_last_ack != today:
-            user.sudo().write({
-                'vd_sos_guide_ack_count': (user.vd_sos_guide_ack_count or 0) + 1,
-                'vd_sos_guide_last_ack': today,
-            })
-        return {
-            'show': self.vd_sos_guide_should_show(user),
-            'count': user.vd_sos_guide_ack_count or 0,
-        }
-
-    @api.model
     def vd_set_reminder_level(self, user_id, level):
         """Admin set mức nhắc nhở cho 1 NV (0..5). Trả mức mới."""
         try:

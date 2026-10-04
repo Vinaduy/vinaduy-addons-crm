@@ -1,7 +1,6 @@
 """Wizard hẹn ngày gọi lại cho NV — chọn preset nhanh hoặc datetime tự do,
 ghi chú optional. Ghi vào crm.lead.callback_date + message_post."""
 
-from datetime import time
 
 from dateutil.relativedelta import relativedelta
 

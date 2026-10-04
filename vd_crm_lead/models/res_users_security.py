@@ -140,27 +140,12 @@ class ResUsersSecurity(models.Model):
         for u in self:
             u.vd_session_salt = uuid.uuid4().hex
 
-    @api.model
-    def _vd_force_logout_all(self):
-        """Ép đăng xuất TẤT CẢ user nội bộ (admin gọi từ nút, hoặc bootstrap)."""
-        internal = self.sudo().search([('share', '=', False)])
-        internal._vd_bump_session()
-        return len(internal)
-
     def action_vd_force_logout(self):
         """Nút trên form user: ép đăng xuất chính user này."""
         if not self.env.user._vd_is_security_admin():
             raise AccessDenied()
         self.sudo()._vd_bump_session()
         return True
-
-    def action_vd_force_logout_all(self):
-        n = self._vd_force_logout_all() if self.env.user._vd_is_security_admin() else 0
-        return {
-            'type': 'ir.actions.client', 'tag': 'display_notification',
-            'params': {'type': 'success', 'sticky': False,
-                       'message': _('Đã ép đăng xuất %s nhân viên.') % n},
-        }
 
     def _vd_is_security_admin(self):
         return bool(self.env.su or self._is_superuser()
