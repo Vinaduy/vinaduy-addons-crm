@@ -7343,19 +7343,11 @@ class CrmLead(models.Model):
         return result
 
     @api.model
-    def vd_pancake_daily_report(self, days=7):
-        """BÁO CÁO SỐ PANCAKE — MA TRẬN: mỗi NV một DÒNG, mỗi NGÀY một CỘT.
-
-        Ô = số KH Pancake tự đẩy về cho NV đó trong ngày đó (Zalo + TikTok +
-        Facebook). KHÔNG tính "Quét số" (đẩy file Excel / dán danh sách) vì đó
-        là số nhập tay, không do Pancake tự đẩy. user spec 2026-09-30.
-
-        days ∈ 7 | 15 | 30. Đếm cùng công thức với bảng chia số (lead active, đã
-        gán NV) nên tổng mỗi cột khớp ô "N số, chia cho M NV" quản lý vẫn xem.
-
-        Một câu SQL group theo (ngày, NV) — 30 ngày × ~15 NV nếu đếm trong
-        Python là vài nghìn bản ghi phải nạp về.
-        """
+    def vd_pancake_combined_report(self, days=7):
+        """MA TRẬN TỔNG HỢP (user 2026-10-04): MỘT bảng duy nhất gồm NHÂN VIÊN ×
+        NGÀY × NGUỒN. Mỗi NV: 1 dòng TỔNG (theo ngày) + 4 dòng nguồn (Zalo /
+        TikTok / Facebook / Quét) theo ngày. Chân bảng: Cộng theo nguồn × ngày.
+        Tính lead active đã gán NV, nguồn Pancake hoặc Quét. days in 7|15|30."""
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td
         try:
@@ -7364,7 +7356,6 @@ class CrmLead(models.Model):
             days = 7
         if days not in (7, 15, 30):
             days = 7
-
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
         now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
         today_d = now_vn.date()
@@ -7374,133 +7365,11 @@ class CrmLead(models.Model):
             return vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
                 pytz.utc).replace(tzinfo=None)
 
-        # Suy kênh y hệt _vd_lead_channel(): ưu tiên field đã set, không thì suy
-        # từ tiền tố conversation_id / cờ excel (tương thích dữ liệu cũ).
-        # Lọc thẳng trong SQL: chỉ giữ zalo/tiktok/facebook, BỎ quet + other.
         self.env['crm.lead'].flush_model()
         self.env.cr.execute("""
             SELECT (l.create_date AT TIME ZONE 'UTC'
                         AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d,
                    l.user_id,
-                   COUNT(*) AS n
-              FROM crm_lead l
-             WHERE l.active
-               AND l.user_id IS NOT NULL
-               AND l.vd_pancake_page_id IS NOT NULL
-               AND l.create_date >= %s
-               AND l.create_date < %s
-               AND (CASE
-                      WHEN l.vd_lead_channel IS NOT NULL
-                           AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
-                      WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
-                           THEN 'zalo'
-                      WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
-                           THEN 'tiktok'
-                      WHEN l.vd_from_excel THEN 'quet'
-                      WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
-                      ELSE 'other'
-                    END) IN ('zalo', 'tiktok', 'facebook')
-             GROUP BY 1, 2
-        """, (_utc(first_d), _utc(today_d + _td(days=1))))
-        cube = {}                       # {uid: {date: n}}
-        for d, uid, n in self.env.cr.fetchall():
-            cube.setdefault(uid, {})[d] = n
-
-        # CỘT = từng ngày trong kỳ.
-        dates = []
-        for i in range(days):
-            d = first_d + _td(days=i)
-            dates.append({
-                'iso': d.isoformat(),
-                'day': '%d/%d' % (d.day, d.month),
-                'is_today': (d == today_d),
-                'is_weekend': d.weekday() >= 5,
-                '_d': d,
-            })
-
-        # DÒNG = NV có số trong kỳ, CỘNG thêm NV đang BẬT nhận mà 0 số (để thấy
-        # ngay ai bật nhưng không được chia).
-        Users = self.env['res.users'].sudo()
-        uids = set(cube.keys())
-        on_ids = set(Users.search([
-            ('share', '=', False), ('active', '=', True),
-            ('vd_can_receive_pancake', '=', True),
-        ]).ids)
-        rows = []
-        for u in Users.browse(sorted(uids | on_ids)).exists():
-            per = cube.get(u.id, {})
-            cells = [per.get(c['_d'], 0) for c in dates]
-            tot = sum(cells)
-            if not tot and u.id not in on_ids:
-                continue                # không số, cũng không bật → bỏ cho gọn
-            rows.append({
-                'uid': u.id,
-                'name': u.name or ('NV #%s' % u.id),
-                'cells': cells,
-                'total': tot,
-                'can_receive': bool(u.vd_can_receive_pancake),
-                'team': u.vd_team_label or 'KHÁC',
-            })
-        # GOM THEO PHÒNG BAN (thứ tự cố định), trong phòng xếp TỔNG tăng dần → tên.
-        _team_order = {t: i for i, t in enumerate(
-            ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
-        rows.sort(key=lambda r: (_team_order.get(r['team'], 99),
-                                 r['team'], r['total'], r['name']))
-
-        col_tot = [sum(r['cells'][i] for r in rows) for i in range(days)]
-        grand = sum(col_tot)
-        nz = [x for x in col_tot if x]
-        mx = max(col_tot or [0])
-        best_i = col_tot.index(mx) if col_tot and mx else -1
-        for c in dates:
-            c.pop('_d', None)
-        return {
-            'days': days,
-            'dates': dates,
-            'rows': rows,
-            'col_totals': col_tot,
-            'max_col': mx,
-            'summary': {
-                'total': grand,
-                'nv_count': len([r for r in rows if r['total']]),
-                # TB tính trên ngày CÓ số: ngày nghỉ / ngừng quảng cáo kéo
-                # trung bình xuống sai lệch.
-                'avg': round(grand / len(nz), 1) if nz else 0,
-                'days_with': len(nz),
-                'days_zero': days - len(nz),
-                'best_day': dates[best_i]['day'] if best_i >= 0 else '',
-                'best_total': mx,
-            },
-        }
-
-    @api.model
-    def vd_pancake_source_daily_report(self, days=7):
-        """MA TRẬN THEO NGUỒN × NGÀY (user 2026-10-04): mỗi NGUỒN một DÒNG
-        (Zalo / TikTok / Facebook / Quét số), mỗi NGÀY một CỘT → theo dõi từng
-        nguồn tụt/tăng theo ngày. Tính cả Quét số (khác ma trận NV×ngày).
-
-        days ∈ 7 | 15 | 30. Đếm lead active đã gán NV, nguồn Pancake hoặc Quét."""
-        import pytz
-        from datetime import datetime as _dt, time as _time, timedelta as _td
-        try:
-            days = int(days)
-        except Exception:
-            days = 7
-        if days not in (7, 15, 30):
-            days = 7
-        vn = pytz.timezone('Asia/Ho_Chi_Minh')
-        now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
-        today_d = now_vn.date()
-        first_d = today_d - _td(days=days - 1)
-
-        def _utc(d):
-            return vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
-                pytz.utc).replace(tzinfo=None)
-
-        self.env['crm.lead'].flush_model()
-        self.env.cr.execute("""
-            SELECT (l.create_date AT TIME ZONE 'UTC'
-                        AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d,
                    (CASE
                       WHEN l.vd_lead_channel IS NOT NULL
                            AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
@@ -7514,17 +7383,15 @@ class CrmLead(models.Model):
                     END) AS kenh,
                    COUNT(*) AS n
               FROM crm_lead l
-             WHERE l.active
-               AND l.user_id IS NOT NULL
+             WHERE l.active AND l.user_id IS NOT NULL
                AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
-               AND l.create_date >= %s
-               AND l.create_date < %s
-             GROUP BY 1, 2
+               AND l.create_date >= %s AND l.create_date < %s
+             GROUP BY 1, 2, 3
         """, (_utc(first_d), _utc(today_d + _td(days=1))))
-        cube = {}                       # {kenh: {date: n}}
-        for d, kenh, n in self.env.cr.fetchall():
+        cube = {}   # cube[uid][kenh][date] = n
+        for d, uid, kenh, n in self.env.cr.fetchall():
             if kenh in ('zalo', 'tiktok', 'facebook', 'quet'):
-                cube.setdefault(kenh, {})[d] = n
+                cube.setdefault(uid, {}).setdefault(kenh, {})[d] = n
 
         dates = []
         for i in range(days):
@@ -7532,20 +7399,61 @@ class CrmLead(models.Model):
             dates.append({'iso': d.isoformat(), 'day': '%d/%d' % (d.day, d.month),
                           'is_today': (d == today_d), 'is_weekend': d.weekday() >= 5,
                           '_d': d})
+        day_keys = [c['_d'] for c in dates]
+
+        Users = self.env['res.users'].sudo()
+        role_lbl = {'team_leader': 'Trưởng nhóm', 'director': 'Giám đốc'}
+        on_ids = set(Users.search([
+            ('share', '=', False), ('active', '=', True),
+            ('vd_can_receive_pancake', '=', True)]).ids)
+        uids = set(cube.keys()) | on_ids
         srcs = [('zalo', '💬 Zalo'), ('tiktok', '🎵 TikTok'),
-                ('facebook', '📘 Facebook'), ('quet', '🧲 Quét số')]
-        rows = []
-        for key, label in srcs:
-            per = cube.get(key, {})
-            cells = [per.get(c['_d'], 0) for c in dates]
-            rows.append({'key': key, 'label': label, 'cells': cells,
-                         'total': sum(cells)})
-        col_tot = [sum(r['cells'][i] for r in rows) for i in range(days)]
+                ('facebook', '📘 Facebook'), ('quet', '🧲 Quét')]
+        nvs = []
+        for u in Users.browse(sorted(uids)).exists():
+            uc = cube.get(u.id, {})
+            sources = []
+            day_tot = [0] * days
+            nv_total = 0
+            for key, label in srcs:
+                per = uc.get(key, {})
+                cells = [per.get(dk, 0) for dk in day_keys]
+                s_tot = sum(cells)
+                for i in range(days):
+                    day_tot[i] += cells[i]
+                nv_total += s_tot
+                sources.append({'key': key, 'label': label,
+                                'cells': cells, 'total': s_tot})
+            if not nv_total and u.id not in on_ids:
+                continue
+            nvs.append({
+                'uid': u.id, 'name': u.name or ('NV #%s' % u.id),
+                'team': u.vd_team_label or 'KHÁC',
+                'is_boss': u.vd_crm_role in ('team_leader', 'director'),
+                'role': role_lbl.get(u.vd_crm_role, ''),
+                'can_receive': bool(u.vd_can_receive_pancake),
+                'day_totals': day_tot, 'total': nv_total, 'sources': sources,
+            })
+        _team_order = {t: i for i, t in enumerate(
+            ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
+        nvs.sort(key=lambda r: (_team_order.get(r['team'], 99),
+                                r['team'], r['total'], r['name']))
+
+        col_tot = [sum(nv['day_totals'][i] for nv in nvs) for i in range(days)]
+        src_day = []
+        for si, (key, label) in enumerate(srcs):
+            cells = [0] * days
+            for nv in nvs:
+                sc = nv['sources'][si]['cells']
+                for i in range(days):
+                    cells[i] += sc[i]
+            src_day.append({'key': key, 'label': label, 'cells': cells,
+                            'total': sum(cells)})
         grand = sum(col_tot)
         for c in dates:
             c.pop('_d', None)
-        return {'days': days, 'dates': dates, 'rows': rows,
-                'col_totals': col_tot, 'grand': grand}
+        return {'days': days, 'dates': dates, 'nvs': nvs,
+                'col_totals': col_tot, 'src_day': src_day, 'grand': grand}
 
     @api.model
     def vd_pancake_dist_reports(self):

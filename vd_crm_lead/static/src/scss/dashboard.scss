@@ -7819,30 +7819,39 @@ $vd-rose:      #b06a6a;
 .o_vd_pk_daily_loading {
     padding: 1.4rem; text-align: center; color: #6b7280; font-size: 0.9rem;
 }
-.o_vd_pk_daily_head {
-    display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.7rem 0 0.6rem;
-}
-.o_vd_pk_daily_kpi {
-    flex: 1 1 120px; min-width: 110px;
-    background: #f8fafc; border: 1px solid #e8eaf0; border-radius: 10px;
-    padding: 0.5rem 0.7rem; display: flex; flex-direction: column; gap: 0.1rem;
-}
-.o_vd_pk_dk_num {
-    font-size: 1.45rem; font-weight: 800; color: #3730a3; line-height: 1.1;
-    &.o_vd_pk_dk_warn { color: #b45309; }
-}
-.o_vd_pk_dk_lbl { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
-
-/* MA TRẬN NV × NGÀY: cột tên NV ghim trái, phần ngày cuộn ngang (30 ngày
-   không thể vừa màn hình). Ô 0 để dấu chấm mờ cho mắt bám được hàng. */
+/* MA TRẬN TỔNG HỢP (NV × ngày × nguồn): cột tên ghim trái, ngày cuộn ngang.
+   Ô 0 để dấu chấm mờ cho mắt bám được hàng. */
 .o_vd_pk_mx_wrap {
     overflow-x: auto; border: 1px solid #e8eaf0; border-radius: 10px;
     background: #fff;
 }
-/* Tiêu đề khối MA TRẬN NGUỒN × NGÀY (user 2026-10-04) */
-.o_vd_pk_srcday_head {
-    margin: 0.7rem 0 0.4rem; font-size: 0.82rem; font-weight: 800; color: #3730a3;
+/* ===== Biến thể MA TRẬN TỔNG HỢP (user 2026-10-04) ===== */
+.o_vd_pk_mx_comb {
+    /* Dòng TỔNG của NV: đậm, có viền trên tách khối từng NV. */
+    .o_vd_pk_nvrow td {
+        font-weight: 800; border-top: 2px solid #e5e7eb;
+    }
+    .o_vd_pk_nvrow .o_vd_pk_mx_nv { color: #1f2a44; }
+    /* 4 dòng NGUỒN: nhỏ, nhạt, nhãn thụt lề; số thường (không tô màu) cho đỡ loạn. */
+    .o_vd_pk_srcrow td {
+        font-size: 0.76rem; color: #6b7280; border-bottom: 1px solid #f6f7fa;
+        background: #fff;
+    }
+    .o_vd_pk_srcname {
+        padding-left: 1.6rem !important; font-weight: 600; color: #495057;
+    }
+    .o_vd_pk_srccell { text-align: center; font-variant-numeric: tabular-nums; }
+    .o_vd_pk_srccell.o_today { background: #eef2ff; }
+    .o_vd_pk_srcsum { color: #495057; font-weight: 700; }
+    /* Chân bảng: Cộng theo nguồn (tô màu) + Cộng tổng (đậm). */
+    .o_vd_pk_srcfoot td { position: static; font-weight: 700; }
+    .o_vd_pk_srcfoot .o_vd_pk_mx_nv { background: #f8fafc; }
+    .o_vd_pk_grandfoot td {
+        font-weight: 800; color: #3730a3; background: #eef2ff !important;
+        border-top: 2px solid #c7d2fe;
+    }
 }
+.o_vd_pk_lg_note { color: #9ca3af; font-style: italic; font-weight: 500; }
 .o_vd_pk_mx {
     border-collapse: separate; border-spacing: 0; width: 100%;
     font-size: 0.84rem;

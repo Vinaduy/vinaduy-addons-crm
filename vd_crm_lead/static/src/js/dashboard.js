@@ -269,9 +269,8 @@ export class VdCrmDashboard extends Component {
             distDateTo: "",         // bộ lọc LỊCH: đến ngày (YYYY-MM-DD)
             customRep: null,        // báo cáo theo nguồn cho khoảng ngày tùy chọn
             customLoading: false,
-            dailyRep: null,         // báo cáo SỐ PANCAKE THEO NGÀY (7/15/30 ngày)
-            dailyLoading: false,
-            srcDailyRep: null,      // ma trận NGUỒN × NGÀY (Zalo/TikTok/FB/Quét theo ngày)
+            combinedRep: null,      // MA TRẬN TỔNG HỢP: NV × ngày × nguồn (7/15/30 ngày)
+            combinedLoading: false,
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics
@@ -764,9 +763,9 @@ export class VdCrmDashboard extends Component {
         this.orm.call("crm.lead", "vd_pancake_dist_reports", [])
             .then((rep) => {
                 if (rep) Object.assign(this.state, rep);
-                // Mặc định xem 7 ngày → nạp sẵn ma trận theo ngày để hiện ngay.
-                if (this.isDailyPeriod(this.state.distPeriodSel) && !this.state.dailyRep) {
-                    this.loadDailyReport(parseInt(this.state.distPeriodSel.slice(1), 10));
+                // Mặc định xem 7 ngày → nạp sẵn ma trận tổng hợp để hiện ngay.
+                if (this.isDailyPeriod(this.state.distPeriodSel) && !this.state.combinedRep) {
+                    this.loadCombined(parseInt(this.state.distPeriodSel.slice(1), 10));
                 }
             })
             .catch(() => {});
@@ -824,7 +823,7 @@ export class VdCrmDashboard extends Component {
     setDistPeriod(p) {
         if (this.state.distPeriodSel !== p) this.state.distPeriodSel = p;
         // Kỳ NHIỀU NGÀY (7/15/30) dùng bảng khác + phải hỏi server → nạp riêng.
-        if (this.isDailyPeriod(p)) this.loadDailyReport(parseInt(p.slice(1), 10));
+        if (this.isDailyPeriod(p)) this.loadCombined(parseInt(p.slice(1), 10));
     }
 
     // ===== BỘ LỌC LỊCH: báo cáo theo nguồn cho khoảng ngày tùy chọn =====
@@ -874,34 +873,24 @@ export class VdCrmDashboard extends Component {
         return " o_t5";
     }
 
-    async loadDailyReport(days) {
-        // Đã có sẵn đúng kỳ này rồi thì thôi, khỏi gọi lại.
-        if (this.state.dailyRep && this.state.dailyRep.days === days) {
-            this.loadSourceDaily(days);
-            return;
-        }
-        this.state.dailyLoading = true;
+    // MA TRẬN TỔNG HỢP: NV × ngày × nguồn (1 bảng duy nhất) — user 2026-10-04.
+    async loadCombined(days) {
+        if (this.state.combinedRep && this.state.combinedRep.days === days) return;
+        this.state.combinedLoading = true;
         try {
-            this.state.dailyRep = await this.orm.call(
-                "crm.lead", "vd_pancake_daily_report", [days]);
+            this.state.combinedRep = await this.orm.call(
+                "crm.lead", "vd_pancake_combined_report", [days]);
         } catch (e) {
-            this.state.dailyRep = null;
-            this.notification.add(e.message || "Lỗi tải báo cáo theo ngày",
+            this.state.combinedRep = null;
+            this.notification.add(e.message || "Lỗi tải ma trận tổng hợp",
                                   { type: "danger" });
         }
-        this.state.dailyLoading = false;
-        this.loadSourceDaily(days);
+        this.state.combinedLoading = false;
     }
-
-    // MA TRẬN NGUỒN × NGÀY (Zalo/TikTok/FB/Quét theo từng ngày) — user 2026-10-04.
-    async loadSourceDaily(days) {
-        if (this.state.srcDailyRep && this.state.srcDailyRep.days === days) return;
-        try {
-            this.state.srcDailyRep = await this.orm.call(
-                "crm.lead", "vd_pancake_source_daily_report", [days]);
-        } catch (e) {
-            this.state.srcDailyRep = null;
-        }
+    // Lọc NV trong ma trận tổng hợp: NV đang bật HOẶC có số trong kỳ + khớp tìm kiếm.
+    combinedNvRows(rep) {
+        if (!rep || !Array.isArray(rep.nvs)) return [];
+        return rep.nvs.filter((nv) => (nv.can_receive || (nv.total || 0) > 0) && this._distMatch(nv));
     }
 
     distPeriodReport(rep) {
@@ -929,11 +918,6 @@ export class VdCrmDashboard extends Component {
     distSettingsRows(dsel) {
         if (!dsel || !Array.isArray(dsel.rows)) return [];
         return dsel.rows.filter((r) => this._distMatch(r));
-    }
-    // MA TRẬN NGÀY: NV đang bật HOẶC đã tắt nhưng có nhận số trong kỳ + khớp tìm kiếm.
-    dailyMatrixRows(dr) {
-        if (!dr || !Array.isArray(dr.rows)) return [];
-        return dr.rows.filter((r) => (r.can_receive || (r.total || 0) > 0) && this._distMatch(r));
     }
     // Cộng tổng theo nguồn CHỈ trên các dòng đang hiển thị (khớp lọc).
     distRowsTotals(rows) {

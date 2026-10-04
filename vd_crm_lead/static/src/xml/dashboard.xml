@@ -2788,35 +2788,18 @@
                          Cột tên NV ghim trái, phần ngày cuộn ngang khi 30 ngày.
                          user 2026-09-30 -->
                     <t t-if="isDailyPeriod(state.distPeriodSel) and !state.distShowToggles">
-                        <div t-if="state.dailyLoading" class="o_vd_pk_daily_loading">
-                            Đang tải báo cáo…
+                        <div t-if="state.combinedLoading" class="o_vd_pk_daily_loading">
+                            Đang tải ma trận…
                         </div>
-                        <t t-elif="state.dailyRep">
-                            <t t-set="dr" t-value="state.dailyRep"/>
-                            <div class="o_vd_pk_daily_head">
-                                <div class="o_vd_pk_daily_kpi">
-                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.total"/></span>
-                                    <span class="o_vd_pk_dk_lbl">Tổng <t t-esc="dr.days"/> ngày</span>
-                                </div>
-                                <div class="o_vd_pk_daily_kpi">
-                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.avg"/></span>
-                                    <span class="o_vd_pk_dk_lbl">TB/ngày có số</span>
-                                </div>
-                                <div class="o_vd_pk_daily_kpi">
-                                    <span class="o_vd_pk_dk_num"><t t-esc="dr.summary.best_total"/></span>
-                                    <span class="o_vd_pk_dk_lbl">Cao nhất — <t t-esc="dr.summary.best_day"/></span>
-                                </div>
-                                <div class="o_vd_pk_daily_kpi" t-if="dr.summary.days_zero">
-                                    <span class="o_vd_pk_dk_num o_vd_pk_dk_warn"><t t-esc="dr.summary.days_zero"/></span>
-                                    <span class="o_vd_pk_dk_lbl">Ngày không có số</span>
-                                </div>
-                            </div>
+                        <t t-elif="state.combinedRep">
+                            <t t-set="cr" t-value="state.combinedRep"/>
+                            <t t-set="cnvs" t-value="combinedNvRows(cr)"/>
                             <div class="o_vd_pk_mx_wrap">
-                                <table class="o_vd_pk_mx">
+                                <table class="o_vd_pk_mx o_vd_pk_mx_comb">
                                     <thead>
                                         <tr>
-                                            <th class="o_vd_pk_mx_nv">Nhân viên</th>
-                                            <th t-foreach="dr.dates" t-as="c" t-key="c.iso"
+                                            <th class="o_vd_pk_mx_nv">Nhân viên / Nguồn</th>
+                                            <th t-foreach="cr.dates" t-as="c" t-key="c.iso"
                                                 t-att-class="'o_vd_pk_mx_d' + (c.is_today ? ' o_today' : '') + (c.is_weekend ? ' o_weekend' : '')">
                                                 <t t-esc="c.day"/>
                                             </th>
@@ -2824,87 +2807,61 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <t t-set="mdays" t-value="dailyMatrixRows(dr)"/>
-                                        <t t-foreach="mdays" t-as="r" t-key="r.uid">
-                                            <tr t-if="r_index === 0 or r.team !== mdays[r_index - 1].team" class="o_vd_pk_mx_grp">
-                                                <td t-att-colspan="dr.dates.length + 2"><t t-esc="r.team"/></td>
+                                        <t t-foreach="cnvs" t-as="nv" t-key="nv.uid">
+                                            <tr t-if="nv_index === 0 or nv.team !== cnvs[nv_index - 1].team" class="o_vd_pk_mx_grp">
+                                                <td t-att-colspan="cr.dates.length + 2"><t t-esc="nv.team"/></td>
                                             </tr>
-                                            <tr t-att-class="r.can_receive ? '' : 'o_off'">
-                                                <td class="o_vd_pk_mx_nv" t-att-title="r.can_receive ? '' : 'Đang TẮT nhận số'">
-                                                    <t t-esc="r.name"/>
+                                            <!-- Dòng TỔNG của NV (theo ngày, tô màu) -->
+                                            <tr t-att-class="'o_vd_pk_nvrow' + (nv.can_receive ? '' : ' o_off')">
+                                                <td class="o_vd_pk_mx_nv" t-att-title="nv.can_receive ? '' : 'Đang TẮT nhận số'">
+                                                    <t t-esc="nv.name"/><span t-if="nv.is_boss" class="o_vd_pk_role"><t t-esc="nv.role"/></span>
                                                 </td>
-                                                <td t-foreach="r.cells" t-as="n" t-key="n_index"
-                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (dr.dates[n_index].is_today ? ' o_today' : '')">
+                                                <td t-foreach="nv.day_totals" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (cr.dates[n_index].is_today ? ' o_today' : '')">
                                                     <t t-esc="n || '·'"/>
                                                 </td>
-                                                <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="nv.total"/></td>
+                                            </tr>
+                                            <!-- 4 dòng NGUỒN của NV (số thường, thụt lề) -->
+                                            <tr t-foreach="nv.sources" t-as="s" t-key="s.key" class="o_vd_pk_srcrow">
+                                                <td class="o_vd_pk_mx_nv o_vd_pk_srcname"><t t-esc="s.label"/></td>
+                                                <td t-foreach="s.cells" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_srccell' + (cr.dates[n_index].is_today ? ' o_today' : '')">
+                                                    <t t-esc="n || '·'"/>
+                                                </td>
+                                                <td class="o_vd_pk_mx_sum o_vd_pk_srcsum"><t t-esc="s.total"/></td>
                                             </tr>
                                         </t>
                                     </tbody>
                                     <tfoot>
-                                        <tr>
+                                        <!-- Cộng theo từng NGUỒN × ngày (tô màu để thấy nguồn nào tụt) -->
+                                        <tr t-foreach="cr.src_day" t-as="s" t-key="s.key" class="o_vd_pk_srcfoot">
+                                            <td class="o_vd_pk_mx_nv"><t t-esc="s.label"/></td>
+                                            <td t-foreach="s.cells" t-as="n" t-key="n_index"
+                                                t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (cr.dates[n_index].is_today ? ' o_today' : '')">
+                                                <t t-esc="n || '·'"/>
+                                            </td>
+                                            <td class="o_vd_pk_mx_sum"><t t-esc="s.total"/></td>
+                                        </tr>
+                                        <!-- Tổng toàn bộ theo ngày -->
+                                        <tr class="o_vd_pk_grandfoot">
                                             <td class="o_vd_pk_mx_nv">Cộng</td>
-                                            <td t-foreach="dr.col_totals" t-as="n" t-key="n_index"
-                                                t-att-class="'o_vd_pk_mx_c' + (dr.dates[n_index].is_today ? ' o_today' : '') + (dr.dates[n_index].is_weekend ? ' o_weekend' : '')">
+                                            <td t-foreach="cr.col_totals" t-as="n" t-key="n_index"
+                                                t-att-class="(cr.dates[n_index].is_today ? 'o_today' : '') + (cr.dates[n_index].is_weekend ? ' o_weekend' : '')">
                                                 <t t-esc="n"/>
                                             </td>
-                                            <td class="o_vd_pk_mx_sum"><t t-esc="dr.summary.total"/></td>
+                                            <td class="o_vd_pk_mx_sum"><t t-esc="cr.grand"/></td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             <div class="o_vd_pk_mx_legend">
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>Không có số</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2 số</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4 số</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>Từ 5 số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>0 số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>≥5</span>
+                                <span class="o_vd_pk_lg o_vd_pk_lg_note">· Dòng đậm = tổng NV theo ngày · 4 dòng dưới mỗi NV = nguồn · Dòng mờ = NV đang tắt</span>
                             </div>
-                            <div class="o_vd_pk_daily_note">
-                                Chỉ tính số Pancake tự đẩy về (Zalo + TikTok + Facebook). Không tính Quét số.
-                                Dòng mờ = NV đang tắt nhận số.
-                            </div>
-
-                            <!-- ===== MA TRẬN THEO NGUỒN × NGÀY (user 2026-10-04) =====
-                                 Mỗi NGUỒN 1 dòng, mỗi NGÀY 1 cột → theo dõi nguồn nào
-                                 tụt/tăng theo ngày. Có tính cả Quét số. -->
-                            <t t-if="state.srcDailyRep">
-                                <t t-set="sdr" t-value="state.srcDailyRep"/>
-                                <div class="o_vd_pk_srcday_head">📊 Theo nguồn × ngày</div>
-                                <div class="o_vd_pk_mx_wrap">
-                                    <table class="o_vd_pk_mx">
-                                        <thead>
-                                            <tr>
-                                                <th class="o_vd_pk_mx_nv">Nguồn</th>
-                                                <th t-foreach="sdr.dates" t-as="c" t-key="c.iso"
-                                                    t-att-class="'o_vd_pk_mx_d' + (c.is_today ? ' o_today' : '') + (c.is_weekend ? ' o_weekend' : '')">
-                                                    <t t-esc="c.day"/>
-                                                </th>
-                                                <th class="o_vd_pk_mx_sum">Tổng</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr t-foreach="sdr.rows" t-as="r" t-key="r.key">
-                                                <td class="o_vd_pk_mx_nv"><t t-esc="r.label"/></td>
-                                                <td t-foreach="r.cells" t-as="n" t-key="n_index"
-                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (sdr.dates[n_index].is_today ? ' o_today' : '')">
-                                                    <t t-esc="n || '·'"/>
-                                                </td>
-                                                <td class="o_vd_pk_mx_sum"><t t-esc="r.total"/></td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <td class="o_vd_pk_mx_nv">Cộng</td>
-                                                <td t-foreach="sdr.col_totals" t-as="n" t-key="n_index"
-                                                    t-att-class="'o_vd_pk_mx_c' + (sdr.dates[n_index].is_today ? ' o_today' : '') + (sdr.dates[n_index].is_weekend ? ' o_weekend' : '')">
-                                                    <t t-esc="n"/>
-                                                </td>
-                                                <td class="o_vd_pk_mx_sum"><t t-esc="sdr.grand"/></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </t>
                         </t>
                     </t>
 
@@ -2970,9 +2927,9 @@
                             <div class="o_vd_pk_daily_note">Bật/tắt từng nguồn hoặc tắt hẳn (cột "Nhận số"). NV tắt sẽ KHÔNG hiện trong ma trận.</div>
                         </t>
 
-                        <!-- ===== CHẾ ĐỘ XEM: MA TRẬN THEO NGUỒN — CHỈ NV đang BẬT,
-                             ô tô màu theo mức, không công tắc (user 2026-10-04). ===== -->
-                        <t t-else="">
+                        <!-- ===== KỲ LỊCH (từ ngày–đến ngày): bảng NV × nguồn gộp.
+                             Kỳ 7/15/30 đã dùng MA TRẬN TỔNG HỢP ở trên. ===== -->
+                        <t t-elif="state.distPeriodSel === 'custom'">
                             <t t-set="mrows" t-value="distMatrixRows(dsel)"/>
                             <t t-set="mtot" t-value="distRowsTotals(mrows)"/>
                             <div t-if="!mrows.length" class="o_vd_pancake_empty">
