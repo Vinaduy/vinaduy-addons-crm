@@ -7413,17 +7413,13 @@ class CrmLead(models.Model):
         for u in Users.browse(sorted(uids)).exists():
             uc = cube.get(u.id, {})
             sources = []
-            day_tot = [0] * days
             nv_total = 0
             for key, label in srcs:
                 per = uc.get(key, {})
                 cells = [per.get(dk, 0) for dk in day_keys]
-                s_tot = sum(cells)
-                for i in range(days):
-                    day_tot[i] += cells[i]
-                nv_total += s_tot
+                nv_total += sum(cells)
                 sources.append({'key': key, 'label': label,
-                                'cells': cells, 'total': s_tot})
+                                'cells': cells, 'total': sum(cells)})
             if not nv_total and u.id not in on_ids:
                 continue
             nvs.append({
@@ -7432,14 +7428,13 @@ class CrmLead(models.Model):
                 'is_boss': u.vd_crm_role in ('team_leader', 'director'),
                 'role': role_lbl.get(u.vd_crm_role, ''),
                 'can_receive': bool(u.vd_can_receive_pancake),
-                'day_totals': day_tot, 'total': nv_total, 'sources': sources,
+                'total': nv_total, 'sources': sources,
             })
         _team_order = {t: i for i, t in enumerate(
             ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
         nvs.sort(key=lambda r: (_team_order.get(r['team'], 99),
                                 r['team'], r['total'], r['name']))
 
-        col_tot = [sum(nv['day_totals'][i] for nv in nvs) for i in range(days)]
         src_day = []
         for si, (key, label) in enumerate(srcs):
             cells = [0] * days
@@ -7449,11 +7444,11 @@ class CrmLead(models.Model):
                     cells[i] += sc[i]
             src_day.append({'key': key, 'label': label, 'cells': cells,
                             'total': sum(cells)})
-        grand = sum(col_tot)
+        grand = sum(s['total'] for s in src_day)
         for c in dates:
             c.pop('_d', None)
         return {'days': days, 'dates': dates, 'nvs': nvs,
-                'col_totals': col_tot, 'src_day': src_day, 'grand': grand}
+                'src_day': src_day, 'grand': grand}
 
     @api.model
     def vd_pancake_dist_reports(self):

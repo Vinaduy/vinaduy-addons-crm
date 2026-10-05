@@ -7825,30 +7825,22 @@ $vd-rose:      #b06a6a;
     overflow-x: auto; border: 1px solid #e8eaf0; border-radius: 10px;
     background: #fff;
 }
-/* ===== Biến thể MA TRẬN TỔNG HỢP (user 2026-10-04) ===== */
+/* ===== MA TRẬN TỔNG HỢP: NV (dòng) × NGÀY (cột, mỗi ngày 4 cột con nguồn) ===== */
 .o_vd_pk_mx_comb {
-    /* Dòng TỔNG của NV: đậm, có viền trên tách khối từng NV. */
-    .o_vd_pk_nvrow td {
-        font-weight: 800; border-top: 2px solid #e5e7eb;
+    th, td { padding: 0.28rem 0.3rem; font-size: 0.78rem; }
+    /* Tiêu đề NHÓM NGÀY (span 4 cột con) + hàng icon nguồn bên dưới. */
+    .o_vd_pk_mx_dgrp {
+        font-weight: 800; color: #374151; border-bottom: 1px solid #e5e7eb;
+        &.o_today { background: #eef2ff; color: #4338ca; }
+        &.o_weekend { background: #fbfbfd; }
     }
-    .o_vd_pk_nvrow .o_vd_pk_mx_nv { color: #1f2a44; }
-    /* 4 dòng NGUỒN: nhỏ, nhạt, nhãn thụt lề; số thường (không tô màu) cho đỡ loạn. */
-    .o_vd_pk_srcrow td {
-        font-size: 0.76rem; color: #6b7280; border-bottom: 1px solid #f6f7fa;
-        background: #fff;
-    }
-    .o_vd_pk_srcname {
-        padding-left: 1.6rem !important; font-weight: 600; color: #495057;
-    }
-    .o_vd_pk_srccell { text-align: center; font-variant-numeric: tabular-nums; }
-    .o_vd_pk_srccell.o_today { background: #eef2ff; }
-    .o_vd_pk_srcsum { color: #495057; font-weight: 700; }
-    /* Chân bảng: Cộng theo nguồn (tô màu) + Cộng tổng (đậm). */
-    .o_vd_pk_srcfoot td { position: static; font-weight: 700; }
-    .o_vd_pk_srcfoot .o_vd_pk_mx_nv { background: #f8fafc; }
+    .o_vd_pk_mx_sub { font-size: 0.8rem; color: #9ca3af; min-width: 26px; }
+    /* Vạch ngăn giữa các NGÀY (cột con đầu của mỗi ngày). */
+    .o_vd_pk_dstart { border-left: 2px solid #e5e7eb; }
+    .o_vd_pk_mx_c { min-width: 26px; }
     .o_vd_pk_grandfoot td {
         font-weight: 800; color: #3730a3; background: #eef2ff !important;
-        border-top: 2px solid #c7d2fe;
+        border-top: 2px solid #c7d2fe; position: static;
     }
 }
 .o_vd_pk_lg_note { color: #9ca3af; font-style: italic; font-weight: 500; }
