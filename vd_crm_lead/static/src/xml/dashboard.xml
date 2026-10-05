@@ -2794,8 +2794,61 @@
                         <t t-elif="state.combinedRep">
                             <t t-set="cr" t-value="state.combinedRep"/>
                             <t t-set="cnvs" t-value="combinedNvRows(cr)"/>
+
+                            <!-- ===== BẢNG 1 (CÓ MÀU): tổng Pancake TỰ ĐẨY theo ngày
+                                 = Zalo + TikTok + Facebook (KHÔNG tính Quét số). ===== -->
+                            <div class="o_vd_pk_srcday_head">📊 Số Pancake tự đẩy theo ngày (Zalo + TikTok + Facebook)</div>
                             <div class="o_vd_pk_mx_wrap">
-                                <table class="o_vd_pk_mx o_vd_pk_mx_comb">
+                                <table class="o_vd_pk_mx">
+                                    <thead>
+                                        <tr>
+                                            <th class="o_vd_pk_mx_nv">Nhân viên</th>
+                                            <th t-foreach="cr.dates" t-as="c" t-key="c.iso"
+                                                t-att-class="'o_vd_pk_mx_d' + (c.is_today ? ' o_today' : '') + (c.is_weekend ? ' o_weekend' : '')">
+                                                <t t-esc="c.day"/>
+                                            </th>
+                                            <th class="o_vd_pk_mx_sum">Tổng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="cnvs" t-as="nv" t-key="nv.uid">
+                                            <tr t-if="nv_index === 0 or nv.team !== cnvs[nv_index - 1].team" class="o_vd_pk_mx_grp">
+                                                <td t-att-colspan="cr.dates.length + 2"><t t-esc="nv.team"/></td>
+                                            </tr>
+                                            <tr t-att-class="nv.can_receive ? '' : 'o_off'">
+                                                <td class="o_vd_pk_mx_nv" t-att-title="nv.can_receive ? '' : 'Đang TẮT nhận số'"><t t-esc="nv.name"/><span t-if="nv.is_boss" class="o_vd_pk_role"><t t-esc="nv.role"/></span></td>
+                                                <td t-foreach="nv.auto_cells" t-as="n" t-key="n_index"
+                                                    t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (cr.dates[n_index].is_today ? ' o_today' : '')">
+                                                    <t t-esc="n || '·'"/>
+                                                </td>
+                                                <td class="o_vd_pk_mx_sum"><t t-esc="nv.auto_total"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="o_vd_pk_grandfoot">
+                                            <td class="o_vd_pk_mx_nv">Cộng</td>
+                                            <td t-foreach="cr.auto_col" t-as="n" t-key="n_index"
+                                                t-att-class="'o_vd_pk_mx_c' + cellTone(n) + (cr.dates[n_index].is_today ? ' o_today' : '')">
+                                                <t t-esc="n || '·'"/>
+                                            </td>
+                                            <td class="o_vd_pk_mx_sum"><t t-esc="cr.auto_grand"/></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="o_vd_pk_mx_legend">
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>0 số</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4</span>
+                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>≥5</span>
+                                <span class="o_vd_pk_lg o_vd_pk_lg_note">· Chỉ Pancake tự đẩy (Zalo+TikTok+FB), không tính Quét · Dòng mờ = NV đang tắt</span>
+                            </div>
+
+                            <!-- ===== BẢNG 2 (KHÔNG MÀU): chia theo NGUỒN, mỗi ngày 4 cột con. ===== -->
+                            <div class="o_vd_pk_srcday_head">📋 Chi tiết theo nguồn — mỗi ngày: 💬 Zalo · 🎵 TikTok · 📘 Facebook · 🧲 Quét</div>
+                            <div class="o_vd_pk_mx_wrap">
+                                <table class="o_vd_pk_mx o_vd_pk_mx_comb o_vd_pk_mx_plain">
                                     <thead>
                                         <tr>
                                             <th class="o_vd_pk_mx_nv" rowspan="2">Nhân viên</th>
@@ -2820,12 +2873,10 @@
                                                 <td t-att-colspan="cr.dates.length * 4 + 2"><t t-esc="nv.team"/></td>
                                             </tr>
                                             <tr t-att-class="nv.can_receive ? '' : 'o_off'">
-                                                <td class="o_vd_pk_mx_nv" t-att-title="nv.can_receive ? '' : 'Đang TẮT nhận số'">
-                                                    <t t-esc="nv.name"/><span t-if="nv.is_boss" class="o_vd_pk_role"><t t-esc="nv.role"/></span>
-                                                </td>
+                                                <td class="o_vd_pk_mx_nv" t-att-title="nv.can_receive ? '' : 'Đang TẮT nhận số'"><t t-esc="nv.name"/><span t-if="nv.is_boss" class="o_vd_pk_role"><t t-esc="nv.role"/></span></td>
                                                 <t t-foreach="cr.dates" t-as="c" t-key="c.iso">
                                                     <td t-foreach="nv.sources" t-as="s" t-key="s.key"
-                                                        t-att-class="'o_vd_pk_mx_c' + cellTone(s.cells[c_index]) + (s_index === 0 ? ' o_vd_pk_dstart' : '') + (c.is_today ? ' o_today' : '')">
+                                                        t-att-class="'o_vd_pk_mx_c' + (s_index === 0 ? ' o_vd_pk_dstart' : '') + (c.is_today ? ' o_today' : '')">
                                                         <t t-esc="s.cells[c_index] || '·'"/>
                                                     </td>
                                                 </t>
@@ -2846,13 +2897,6 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-                            </div>
-                            <div class="o_vd_pk_mx_legend">
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t0"/>0 số</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4</span>
-                                <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>≥5</span>
-                                <span class="o_vd_pk_lg o_vd_pk_lg_note">· Mỗi ngày tách 4 cột: 💬 Zalo · 🎵 TikTok · 📘 Facebook · 🧲 Quét · Dòng mờ = NV đang tắt</span>
                             </div>
                         </t>
                     </t>

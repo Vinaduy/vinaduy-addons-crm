@@ -7825,7 +7825,11 @@ $vd-rose:      #b06a6a;
     overflow-x: auto; border: 1px solid #e8eaf0; border-radius: 10px;
     background: #fff;
 }
-/* ===== MA TRẬN TỔNG HỢP: NV (dòng) × NGÀY (cột, mỗi ngày 4 cột con nguồn) ===== */
+/* Tiêu đề từng bảng ma trận chia số */
+.o_vd_pk_srcday_head {
+    margin: 0.8rem 0 0.4rem; font-size: 0.82rem; font-weight: 800; color: #3730a3;
+}
+/* ===== BẢNG 2 — MA TRẬN THEO NGUỒN: NV (dòng) × NGÀY (mỗi ngày 4 cột con) ===== */
 .o_vd_pk_mx_comb {
     th, td { padding: 0.28rem 0.3rem; font-size: 0.78rem; }
     /* Tiêu đề NHÓM NGÀY (span 4 cột con) + hàng icon nguồn bên dưới. */

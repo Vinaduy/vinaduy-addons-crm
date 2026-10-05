@@ -7422,6 +7422,9 @@ class CrmLead(models.Model):
                                 'cells': cells, 'total': sum(cells)})
             if not nv_total and u.id not in on_ids:
                 continue
+            # TỔNG PANCAKE TỰ ĐẨY theo ngày = Zalo + TikTok + Facebook (bỏ Quét).
+            auto_cells = [sources[0]['cells'][i] + sources[1]['cells'][i]
+                          + sources[2]['cells'][i] for i in range(days)]
             nvs.append({
                 'uid': u.id, 'name': u.name or ('NV #%s' % u.id),
                 'team': u.vd_team_label or 'KHÁC',
@@ -7429,6 +7432,7 @@ class CrmLead(models.Model):
                 'role': role_lbl.get(u.vd_crm_role, ''),
                 'can_receive': bool(u.vd_can_receive_pancake),
                 'total': nv_total, 'sources': sources,
+                'auto_cells': auto_cells, 'auto_total': sum(auto_cells),
             })
         _team_order = {t: i for i, t in enumerate(
             ['HN', 'HN2', 'HCM1', 'HCM2', 'CTV', 'VINADUY', 'Lọc số'])}
@@ -7445,10 +7449,12 @@ class CrmLead(models.Model):
             src_day.append({'key': key, 'label': label, 'cells': cells,
                             'total': sum(cells)})
         grand = sum(s['total'] for s in src_day)
+        # Cộng TỔNG PANCAKE TỰ ĐẨY (Z+T+F) theo ngày + tổng (cho bảng có màu).
+        auto_col = [sum(nv['auto_cells'][i] for nv in nvs) for i in range(days)]
         for c in dates:
             c.pop('_d', None)
-        return {'days': days, 'dates': dates, 'nvs': nvs,
-                'src_day': src_day, 'grand': grand}
+        return {'days': days, 'dates': dates, 'nvs': nvs, 'src_day': src_day,
+                'grand': grand, 'auto_col': auto_col, 'auto_grand': sum(auto_col)}
 
     @api.model
     def vd_pancake_dist_reports(self):
