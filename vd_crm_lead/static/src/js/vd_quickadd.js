@@ -52,12 +52,11 @@ export class VdQuickAddDialog extends Component {
         });
     }
 
-    // ---- Danh sách NV lọc theo ô tìm ----
+    // ---- Chỉ NV đang NHẬN số, lọc thêm theo ô tìm ----
     get nvList() {
         const q = (this.state.nvSearch || "").toLowerCase().trim();
-        if (!q) return this.state.nvs;
         return this.state.nvs.filter(
-            (n) => ((n.name || "") + " " + (n.team || "")).toLowerCase().includes(q));
+            (n) => n.on && (!q || (n.name || "").toLowerCase().includes(q)));
     }
     get selectedCount() {
         return Object.values(this.state.selected).filter(Boolean).length;
@@ -141,18 +140,11 @@ export class VdQuickAddDialog extends Component {
     toggleNv(id) {
         this.state.selected[id] = !this.state.selected[id];
     }
-    selectAllReceiving() {
-        const on = {};
-        for (const n of this.state.nvs) if (n.on) on[n.id] = true;
-        this.state.selected = on;
-    }
-    clearSelection() {
-        this.state.selected = {};
-    }
 
-    async submit() {
+    // forceAll=true → chia đều cho TẤT CẢ NV đang nhận số (bỏ qua ô chọn).
+    async submit(forceAll) {
         if (this.state.busy) return;
-        const ids = Object.keys(this.state.selected)
+        const ids = forceAll ? [] : Object.keys(this.state.selected)
             .filter((k) => this.state.selected[k]).map((k) => parseInt(k, 10));
         this.state.busy = true;
         try {

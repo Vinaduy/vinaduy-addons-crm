@@ -77,25 +77,17 @@
                     <!-- ===== CHỌN NHÂN VIÊN ĐỂ CHIA ===== -->
                     <div t-if="state.picking" class="o_vd_qa_pick">
                         <div class="o_vd_qa_pick_head">
-                            <span>Chia <b t-esc="state.rows.length"/> khách cho nhân viên
-                                (chọn <b t-esc="selectedCount"/>; không chọn = chia đều NV đang nhận số):</span>
+                            <span>Chia <b t-esc="state.rows.length"/> khách — tích chọn nhân viên
+                                (<b t-esc="selectedCount"/> đã chọn):</span>
                             <input class="o_vd_qa_nvsearch" t-model="state.nvSearch"
                                    placeholder="🔍 Tìm nhân viên…"/>
                         </div>
-                        <div class="o_vd_qa_pick_tools">
-                            <button class="btn btn-sm btn-outline-secondary"
-                                    t-on-click="() => this.selectAllReceiving()">Chọn NV đang nhận số</button>
-                            <button class="btn btn-sm btn-outline-secondary"
-                                    t-on-click="() => this.clearSelection()">Bỏ chọn tất cả</button>
-                        </div>
                         <div class="o_vd_qa_nvgrid">
                             <label t-foreach="nvList" t-as="n" t-key="n.id"
-                                   t-attf-class="o_vd_qa_nv {{state.selected[n.id] ? 'o_sel' : ''}} {{n.on ? '' : 'o_off'}}">
+                                   t-attf-class="o_vd_qa_nv {{state.selected[n.id] ? 'o_sel' : ''}}">
                                 <input type="checkbox" t-att-checked="state.selected[n.id]"
                                        t-on-change="() => this.toggleNv(n.id)"/>
                                 <span class="o_vd_qa_nv_name" t-esc="n.name"/>
-                                <span t-if="n.team" class="o_vd_qa_nv_team" t-esc="n.team"/>
-                                <span t-if="!n.on" class="o_vd_qa_nv_off">tắt nhận</span>
                             </label>
                         </div>
                     </div>
@@ -111,9 +103,13 @@
                     <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
                 </t>
                 <t t-else="">
-                    <button class="btn btn-success" t-on-click="() => this.submit()"
+                    <button class="btn btn-primary" t-on-click="() => this.submit(true)"
                             t-att-disabled="state.busy">
-                        <i class="fa fa-check me-1"/>Tạo &amp; chia số
+                        <i class="fa fa-balance-scale me-1"/>Chia đều cho TẤT CẢ nhân viên
+                    </button>
+                    <button class="btn btn-success" t-on-click="() => this.submit(false)"
+                            t-att-disabled="state.busy or !selectedCount">
+                        <i class="fa fa-check me-1"/>Chia cho NV đã chọn
                     </button>
                     <button class="btn btn-secondary" t-on-click="() => this.state.picking = false">
                         <i class="fa fa-arrow-left me-1"/>Quay lại
