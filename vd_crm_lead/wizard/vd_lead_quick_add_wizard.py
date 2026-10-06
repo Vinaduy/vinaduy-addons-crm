@@ -502,27 +502,15 @@ class VdLeadQuickAddWizard(models.TransientModel):
         except UserError as e:
             return {'warning': {'title': _('Không nhập được'),
                                 'message': e.args[0] if e.args else str(e)}}
-        # UPLOAD = TẠO KHÁCH LUÔN + CHIA ĐỀU cho NV đang nhận số (user spec
-        # 2026-09-25). KHÔNG nạp vào bảng nháp, KHÔNG bắt bấm CHIA SỐ nữa: upload
-        # xong là khách vào thẳng "Khách mới" của NV. Nguồn: file ghi rõ thì theo
-        # (Zalo/TikTok/FB), không thì "Quét số" (user spec 2026-09-27).
-        try:
-            n_created, detail = self._vd_import_create_now(clean, info_map, source_map)
-        except UserError as e:
-            return {'warning': {'title': _('Không tạo được khách'),
-                                'message': e.args[0] if e.args else str(e)}}
-        tail = ''
-        if sd:
-            tail += _(' · bỏ %d trùng') % sd
-        if sb:
-            tail += _(' · bỏ %d sai định dạng') % sb
-        self.vd_import_summary = _('✅ Đã tạo %d khách & chia cho NV%s') % (n_created, tail)
-        return {'warning': {
-            'title': _('✅ Đã tạo %d khách & chia cho NV') % n_created,
-            'message': _(
-                'Đã vào "Khách mới" của: %s%s.\n\nTải lại trang (F5) để thấy '
-                'ở dashboard.') % (detail, tail),
-        }}
+        # UPLOAD = NẠP vào BẢNG để REVIEW (user spec 2026-10-06) — chỉ hiện các số
+        # KHÔNG TRÙNG, báo số trùng đã bỏ. KHÔNG tạo ngay; chị xem rồi bấm CHIA SỐ.
+        cmds = [fields.Command.clear()]
+        for nm, cp in clean:
+            cmds.append(fields.Command.create(
+                self._vd_line_vals_with_info(nm, cp, info_map, source_map)))
+        self.line_ids = cmds
+        self.vd_import_summary = self._vd_import_summary_text(
+            len(clean), sd, sb, tail=_('. Bấm CHIA SỐ để chia cho NV.'))
 
     def _vd_core_phone(self, p):
         """Số ĐT → 'core' (national significant) để làm khoá map, khớp với cách
@@ -553,103 +541,19 @@ class VdLeadQuickAddWizard(models.TransientModel):
                         m[core] = ch
         return m
 
-    def _vd_line_vals_with_info(self, nm, cphone, info_map):
-        """Dựng vals 1 dòng import + parse cột 'Thông tin' (nếu có) → điền i_*."""
-        vals = {'name': nm, 'phone': cphone, 'source': 'facebook',
-                'vd_is_excel': True, 'status': 'new'}
-        info = info_map.get(cphone[1:]) if cphone else ''
+    def _vd_line_vals_with_info(self, nm, cphone, info_map, source_map=None):
+        """Dựng vals 1 dòng import + parse cột 'Thông tin' (nếu có) → điền i_*.
+        source_map {core_phone: channel}: file ghi rõ Zalo/TikTok/FB → đặt NGUỒN
+        theo đó; không thì mặc định 'facebook' (vd_is_excel=True → báo cáo 'Quét số')."""
+        source_map = source_map or {}
+        core = cphone[1:] if cphone else ''
+        ch = source_map.get(core)
+        vals = {'name': nm, 'phone': cphone, 'vd_is_excel': True, 'status': 'new',
+                'source': ch if ch in ('zalo', 'tiktok', 'facebook') else 'facebook'}
+        info = info_map.get(core)
         if info:
             vals.update(self.env['vd.lead.quick.add.wizard.line']._vd_parse_info_vals(info))
         return vals
-
-    def _vd_ivals_to_lead(self, ivals):
-        """Đổi dict i_* (từ parser) → vals vd_intake_* cho crm.lead (validate
-        Selection). Dùng khi TẠO KHÁCH trực tiếp lúc upload file."""
-        Lead = self.env['crm.lead']
-        out = {}
-        simple = {
-            'i_area_m2': 'vd_intake_area_m2',
-            'i_house_type': 'vd_intake_house_type',
-            'i_budget_amount': 'vd_intake_budget_amount',
-            'i_note': 'vd_intake_function_notes',
-        }
-        for k, lf in simple.items():
-            v = ivals.get(k)
-            if not v:
-                continue
-            fld = Lead._fields.get(lf)
-            if fld and fld.type == 'selection':
-                sel = fld.selection
-                if callable(sel):
-                    sel = sel(Lead)
-                if v not in {kk for kk, _l in (sel or [])}:
-                    continue
-            out[lf] = v
-        fs = ivals.get('i_floors_select')
-        if fs:
-            if fs.endswith('t'):
-                out['vd_intake_floors_select'] = fs[:-1]
-                out['vd_intake_has_tum'] = True
-            else:
-                out['vd_intake_floors_select'] = fs
-        return out
-
-    def _vd_import_create_now(self, clean, info_map, source_map=None):
-        """TẠO NGAY khách từ danh sách đã lọc + CHIA ĐỀU cho NV đang nhận số
-        (user spec 2026-09-25: upload file = thành khách luôn, vào Khách mới của
-        NV, KHÔNG bắt bấm thêm bước). Trả (số_đã_tạo, chuỗi_chi_tiết).
-        source_map: {core_phone: channel} — nguồn ghi rõ trong file (zalo/tiktok/
-        facebook); không có → 'quet' (số quét). Raise UserError nếu không có NV nhận."""
-        source_map = source_map or {}
-        from collections import Counter
-        Lead = self.env['crm.lead'].sudo()
-        pool = list(self._vd_eligible_users())
-        if not pool:
-            raise UserError(_(
-                'Không có NV nào đang nhận số để chia. Bật "nhận số" cho NV rồi '
-                'upload lại.'))
-        # Chia đều: bắt đầu từ NV đang ÍT khách mới nhất (cân bằng tải).
-        load = {u.id: self._vd_user_new_total(u.id) for u in pool}
-        order = sorted(pool, key=lambda u: load.get(u.id, 0))
-        npool = len(order)
-        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
-        prefix = SOURCE_PREFIX.get('facebook', '')
-        Line = self.env['vd.lead.quick.add.wizard.line']
-        counts = Counter()
-        created = Lead.browse()
-        for idx, (nm, cp) in enumerate(clean):
-            u = order[idx % npool]
-            # Kênh nguồn: file ghi rõ (zalo/tiktok/fb) → theo đó; không → 'quet'.
-            channel = source_map.get(cp[1:], 'quet')
-            vals = {
-                'name': ('%s%s' % (prefix, nm)).strip(),
-                'partner_name': nm,
-                'phone': cp,
-                'user_id': u.id,
-                'type': 'lead',
-                'vd_from_excel': True,   # vẫn đánh dấu là đẩy từ file
-                'vd_lead_channel': channel,   # nhưng báo cáo phân theo kênh này
-            }
-            if new_stage:
-                vals['stage_id'] = new_stage.id
-            info = info_map.get(cp[1:])
-            if info:
-                vals.update(self._vd_ivals_to_lead(Line._vd_parse_info_vals(info)))
-            lead = Lead.with_context(
-                vd_skip_reassign_check=True,
-                vd_skip_assignment_balance=True,
-            ).create(vals)
-            created |= lead
-            counts[u.id] += 1
-        # 🔔 báo NV vừa được đẩy số (chuông + thông báo realtime).
-        try:
-            self._vd_notify_pushed(created, exclude_uid=self.env.user.id)
-        except Exception:
-            pass
-        ResUsers = self.env['res.users'].sudo()
-        detail = ', '.join('%s (%d)' % (ResUsers.browse(uid).name or '?', c)
-                           for uid, c in counts.most_common())
-        return len(created), detail
 
     def _vd_finish_import(self, rows, source_word=''):
         """Nạp bảng qua nút (paste/legacy) — persist rồi reopen. `rows` có thể là
@@ -1045,6 +949,9 @@ class VdLeadQuickAddWizard(models.TransientModel):
             # KH nhập từ file Excel → cờ để thẻ hiện icon Facebook xám đậm.
             if line.vd_is_excel:
                 vals['vd_from_excel'] = True
+                # File ghi rõ Zalo/TikTok → giữ đúng kênh đó; còn lại = 'Quét số'.
+                if line.source in ('zalo', 'tiktok'):
+                    vals['vd_lead_channel'] = line.source
             stage_id = stage_cache.get(line.status)
             if stage_id:
                 vals['stage_id'] = stage_id
@@ -1537,6 +1444,18 @@ class VdLeadQuickAddWizardLine(models.TransientModel):
             vals['i_floors_select'] = fm.group(1)
         elif re.search(r'c[aâ]p\s*4', nov):
             vals['i_floors_select'] = '1'
+
+        # ---- Viết tắt "T1/T2/T3..." = SỐ TẦNG; kèm diện tích từng tầng "T1: 90m2".
+        # Số tầng = T lớn nhất. Mỗi "T<n>: <dt>" → diện tích sàn tầng n.
+        floor_hits = re.findall(r'\bt\s*([1-7])\s*[:=]?\s*(\d{2,4})?\s*m?2?', nov)
+        if floor_hits:
+            if 'i_floors_select' not in vals:
+                vals['i_floors_select'] = str(max(int(f) for f, _a in floor_hits))
+            for fno, area in floor_hits:
+                if area:
+                    a = float(area)
+                    if 10 <= a <= 2000:
+                        vals['i_floor_%s_m2' % fno] = a
 
         # ---- Kiểu nhà (mái) — chỉ set khi key hợp lệ trong selection
         ht = None

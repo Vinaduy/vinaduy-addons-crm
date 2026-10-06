@@ -33,17 +33,17 @@
                              nếu field KHÔNG ở arch thì web client bỏ khi lưu → lead mất cờ
                              → không vào thống kê "Quét số" (fix 2026-09-25). -->
                         <field name="vd_is_excel" column_invisible="1"/>
-                        <field name="name" placeholder="Tên KH"/>
-                        <field name="phone" placeholder="0901..."/>
+                        <!-- Thứ tự theo yêu cầu: SĐT · Tên KH · Nguồn · Thông tin. -->
+                        <field name="phone" string="SĐT" placeholder="0901..."/>
+                        <field name="name" string="Tên KH" placeholder="Tên khách hàng"/>
                         <field name="source" string="Nguồn" widget="vd_selection_dropdown" options="{'extensible': True}"/>
                         <!-- Ngày: ẩn — default = ngày tạo (user spec 2026-05-29) -->
                         <field name="date" column_invisible="1"/>
                         <!-- Trạng thái: ẩn vì default 'Khách mới' (user spec 2026-05-29) -->
                         <field name="status" column_invisible="1"/>
-                        <field name="user_id" string="Nhân viên" class="o_vd_qa_nowrap"
-                               options="{'no_create': True, 'no_open': True}"
-                               placeholder="(Chưa chia)"/>
-                        <!-- Cột "Tải NV" ĐÃ ẨN (user spec 2026-08-24: bảng gọn). -->
+                        <!-- Nhân viên: ẨN khỏi form nhập — gán ở bước CHIA SỐ, xem ở
+                             bảng thống kê chia số (user 2026-10-06). -->
+                        <field name="user_id" column_invisible="1"/>
                         <field name="assignee_overloaded" column_invisible="1"/>
                         <field name="assignee_stat_label" column_invisible="1"/>
                         <!-- Cột "Thông tin" (nạp từ file Excel) — nội dung nhu cầu KH.
