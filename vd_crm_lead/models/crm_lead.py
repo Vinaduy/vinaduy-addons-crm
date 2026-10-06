@@ -6527,34 +6527,6 @@ class CrmLead(models.Model):
         return leads.ids
 
     @api.model
-    def vd_dashboard_create_quote_lead(self, user_id=None):
-        """Tạo 1 KH TRỐNG để làm BÁO GIÁ NGAY — cho trường hợp khách CHƯA có SĐT
-        nhưng vẫn muốn báo giá (user spec 2026-09-27). Trả action mở form KH để NV
-        điền thông tin tư vấn → báo giá tự sinh khi đủ thông tin."""
-        uid = self.env.uid
-        if user_id:
-            u = self.env['res.users'].sudo().browse(int(user_id))
-            if u.exists():
-                uid = u.id
-        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
-        vals = {'name': 'KH báo giá', 'partner_name': 'KH báo giá',
-                'user_id': uid, 'type': 'lead'}
-        if new_stage:
-            vals['stage_id'] = new_stage.id
-        lead = self.with_context(
-            vd_skip_reassign_check=True, vd_skip_assignment_balance=True,
-        ).create(vals)
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Tạo báo giá',
-            'res_model': 'crm.lead',
-            'res_id': lead.id,
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'current',
-        }
-
-    @api.model
     def vd_set_callback_by_phone(self, phone, offset_key):
         """Đặt/xoá HẸN GỌI LẠI cho KH theo SĐT — gọi từ widget cuộc gọi sau khi cúp
         máy. Tìm lead ACTIVE của CHÍNH NV đang đăng nhập trùng SĐT (9 số cuối), tính
