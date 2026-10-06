@@ -14,12 +14,12 @@ from odoo.exceptions import UserError
 
 # Nguồn khách chọn được trong popup.
 VD_QA_SOURCES = [
-    ('quet', '🧲 Quét số'),
-    ('zalo', '💬 Zalo'),
-    ('tiktok', '🎵 TikTok'),
-    ('facebook', '📘 Facebook'),
-    ('referral', '🤝 Giới thiệu'),
-    ('manual', '✍️ Khác'),
+    ('quet', 'Quét số'),
+    ('zalo', 'Zalo'),
+    ('tiktok', 'TikTok'),
+    ('facebook', 'Facebook'),
+    ('referral', 'Giới thiệu'),
+    ('manual', 'Khác'),
 ]
 # Nguồn → kênh báo cáo (vd_lead_channel).
 VD_QA_CHANNEL = {'quet': 'quet', 'zalo': 'zalo', 'tiktok': 'tiktok', 'facebook': 'facebook'}

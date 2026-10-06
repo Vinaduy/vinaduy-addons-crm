@@ -31,6 +31,7 @@ export class VdQuickAddDialog extends Component {
             nvs: [],
             rows: [],                       // {phone,name,source,info,excel}
             form: { phone: "", name: "", source: "quet", info: "" },
+            srcOpen: false,                 // dropdown Nguồn đang mở
             picking: false,                 // đang chọn NV để chia
             selected: {},                   // {nvId: true}
             nvSearch: "",
@@ -64,6 +65,13 @@ export class VdQuickAddDialog extends Component {
     sourceLabel(key) {
         const s = this.state.sources.find((x) => x.key === key);
         return s ? s.label : key;
+    }
+    toggleSrc() {
+        this.state.srcOpen = !this.state.srcOpen;
+    }
+    pickSource(key) {
+        this.state.form.source = key;
+        this.state.srcOpen = false;
     }
 
     // ---- Thêm 1 khách gõ tay vào danh sách ----
