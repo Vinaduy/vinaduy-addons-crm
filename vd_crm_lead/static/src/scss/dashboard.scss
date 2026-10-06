@@ -2931,6 +2931,40 @@
         > .o_vd_bulk_bar { flex: 0 0 auto; margin: 0; }
     }
 
+    /* ===== HEADER 2 CỘT (user 2026-10-06, style Harvard): trái = báo cáo số
+       (card), phải = Thêm KH + các nút. ===== */
+    .o_vd_hdr2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 34%);
+        gap: 1rem; align-items: start; margin-bottom: 0.7rem;
+    }
+    .o_vd_hdr2_cards {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem;
+    }
+    .o_vd_hcard {
+        background: #fff; border: 1px solid #e8eaf0; border-left: 3px solid #cbd5e1;
+        border-radius: 10px; padding: 0.55rem 0.75rem;
+        &.o_vd_pct_low  { border-left-color: #e03131; }
+        &.o_vd_pct_mid  { border-left-color: #f59f00; }
+        &.o_vd_pct_high { border-left-color: #2f9e44; }
+    }
+    .o_vd_hcard_lbl {
+        font-size: 0.68rem; font-weight: 700; color: #6b7280;
+        text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+    }
+    .o_vd_hcard_num {
+        font-size: 1.45rem; font-weight: 800; color: #1f2a44; line-height: 1.15;
+        &.o_vd_hcard_warn { color: #c92a2a; }
+    }
+    .o_vd_hcard_sub { font-size: 0.7rem; color: #9ca3af; font-weight: 600; }
+    .o_vd_hdr2_right {
+        .o_vd_topbar_row { margin-bottom: 0; }
+        .o_vd_nv_search_wrap { flex: 1 1 100% !important; }
+    }
+    @media (max-width: 992px) {
+        .o_vd_hdr2 { grid-template-columns: 1fr; }
+    }
+
     /* D (user spec 2026-06-12): bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG — trên cùng, xanh mừng */
 
     /* Variant BÁO GIÁ XONG MẤT TÍCH — đỏ-cam (đã báo giá nhưng mất liên lạc) */
@@ -5175,20 +5209,6 @@ body.o_vd_preview_active .o_vd_preview_body_form {
 }
 .o_vd_rec_pg_lbl { font-size: 0.8rem; font-weight: 700; color: #475569; }
 
-/* THANH TỔNG QUAN CÁ NHÂN (trên cùng trang NV) — DÙNG CHUNG template + style
-   .o_vd_analytics với bảng danh sách NV, nhưng BỎ min-height trang-đầy (100%/420px)
-   để thanh chỉ cao bằng 1 dòng (không thì thành khối trống cả màn hình). */
-.o_vd_analytics.o_vd_kh_selfbar {
-    min-height: 0 !important;
-    padding: 0 0 0.6rem !important;
-    margin: 0 0 0.6rem;
-    width: 100%;
-}
-.o_vd_kh_selfbar .o_vd_kh_box {
-    min-height: 0 !important;
-    padding: 0.55rem 0.7rem !important;
-}
-/* CẢNH BÁO cuối (bỏ nền đỏ → kiểu alert vàng, icon cảnh cáo) */
 
 /* ====================================================================
    CHỌN NHIỀU KH → CHUYỂN NV (admin / người chia số / giám đốc)

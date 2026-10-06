@@ -1537,16 +1537,41 @@
                              của NV này, DÙNG CHUNG template VdKhTeamList với bảng danh
                              sách NV của quản lý → sửa giao diện 1 chỗ là tự đồng bộ.
                              Chỉ hiện cho NV thường (TN/GĐ đã có bảng phòng ở trên). -->
-                        <div t-if="!isAdminView and !state.is_team_leader and selfTeamGroups.length"
-                             class="o_vd_analytics o_vd_kh_selfbar">
-                            <div class="o_vd_kh_box">
-                                <t t-set="rows" t-value="selfTeamGroups"/>
-                                <t t-call="vd_crm_lead.VdKhTeamList"/>
+                        <!-- ===== HEADER 2 CỘT (user 2026-10-06, style Harvard) =====
+                             Trái: báo cáo số NV đang xem (card). Phải: thêm KH + nút. ===== -->
+                        <div class="o_vd_hdr2">
+                            <div t-if="currentNvRow" class="o_vd_hdr2_left">
+                                <t t-set="nv" t-value="currentNvRow"/>
+                                <div class="o_vd_hdr2_cards">
+                                    <div class="o_vd_hcard">
+                                        <div class="o_vd_hcard_lbl">Tổng khách</div>
+                                        <div class="o_vd_hcard_num"><t t-esc="nv.total_leads or 0"/></div>
+                                    </div>
+                                    <div class="o_vd_hcard">
+                                        <div class="o_vd_hcard_lbl">KH mới hôm nay</div>
+                                        <div class="o_vd_hcard_num"><t t-esc="nv.new_today_count or 0"/></div>
+                                    </div>
+                                    <div t-att-class="'o_vd_hcard ' + pctClass(nv.calls_today_total, nv.calls_today_success)">
+                                        <div class="o_vd_hcard_lbl">Gọi hôm nay</div>
+                                        <div class="o_vd_hcard_num"><t t-esc="nv.calls_today_total or 0"/></div>
+                                        <div class="o_vd_hcard_sub"><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>% bắt máy</div>
+                                    </div>
+                                    <div t-att-class="'o_vd_hcard ' + pctClass(nv.calls_month_total, nv.calls_month_success)">
+                                        <div class="o_vd_hcard_lbl">Gọi tháng này</div>
+                                        <div class="o_vd_hcard_num"><t t-esc="nv.calls_month_total or 0"/></div>
+                                        <div class="o_vd_hcard_sub"><t t-esc="answeredPct(nv.calls_month_total, nv.calls_month_success)"/>% bắt máy</div>
+                                    </div>
+                                    <div class="o_vd_hcard">
+                                        <div class="o_vd_hcard_lbl">Khách mới (kho)</div>
+                                        <div class="o_vd_hcard_num"><t t-esc="nv.new_count or 0"/></div>
+                                    </div>
+                                    <div class="o_vd_hcard">
+                                        <div class="o_vd_hcard_lbl">Chưa gọi</div>
+                                        <div class="o_vd_hcard_num o_vd_hcard_warn"><t t-esc="nv.rem_new_not_called or 0"/></div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- User spec 2026-06-12: ô tìm kiếm KH + nút "Chọn KH" CÙNG 1 DÒNG
-                             (tiết kiệm chiều cao để có chỗ cho bảng KHÁCH ĐÃ LÀM HỢP ĐỒNG). -->
+                            <div class="o_vd_hdr2_right">
                         <div class="o_vd_topbar_row">
                         <!-- Manager: CHỌN NV + THÊM MỚI — chuyển từ sidebar trái lên
                              top bar (user spec 2026-09-05). -->
@@ -1820,6 +1845,8 @@
                             </t>
                         </div>
                         </div><!-- /.o_vd_topbar_row -->
+                            </div><!-- /.o_vd_hdr2_right -->
+                        </div><!-- /.o_vd_hdr2 -->
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
                              riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong
