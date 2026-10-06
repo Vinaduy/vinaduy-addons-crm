@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.QuickAddDialog">
+        <Dialog title="'➕ Thêm khách hàng mới'" size="'lg'">
+            <div class="o_vd_qa">
+                <t t-if="state.loading">
+                    <div class="o_vd_qa_load">Đang tải…</div>
+                </t>
+                <t t-else="">
+                    <!-- ===== FORM NHẬP 1 KHÁCH + nút Excel ===== -->
+                    <div t-if="!state.picking" class="o_vd_qa_form">
+                        <input class="o_vd_qa_in o_vd_qa_phone" t-model="state.form.phone"
+                               placeholder="SĐT *" t-on-keydown="onFormKey"/>
+                        <input class="o_vd_qa_in o_vd_qa_name" t-model="state.form.name"
+                               placeholder="Tên khách hàng" t-on-keydown="onFormKey"/>
+                        <select class="o_vd_qa_in o_vd_qa_src" t-model="state.form.source">
+                            <option t-foreach="state.sources" t-as="s" t-key="s.key"
+                                    t-att-value="s.key" t-esc="s.label"/>
+                        </select>
+                        <input class="o_vd_qa_in o_vd_qa_info" t-model="state.form.info"
+                               placeholder="Thông tin khách (mẫu nhà, DT, số tầng T1/T2…)"
+                               t-on-keydown="onFormKey"/>
+                        <button class="btn btn-primary o_vd_qa_add" t-on-click="() => this.addRow()"
+                                title="Thêm vào danh sách">
+                            <i class="fa fa-plus"/>
+                        </button>
+                        <button class="btn btn-outline-secondary o_vd_qa_xls"
+                                t-on-click="() => this.triggerFile()" t-att-disabled="state.busy">
+                            <i class="fa fa-file-excel-o me-1"/>Upload Excel
+                        </button>
+                        <input type="file" class="d-none" t-ref="fileInput"
+                               accept=".xlsx,.xls,.csv" t-on-change="onFile"/>
+                    </div>
+
+                    <!-- Banner tóm tắt sau khi nạp Excel -->
+                    <div t-if="state.summary and !state.picking" class="o_vd_qa_summary">
+                        <t t-esc="state.summary"/>
+                    </div>
+
+                    <!-- ===== DANH SÁCH KH ĐÃ THÊM ===== -->
+                    <div t-if="!state.picking" class="o_vd_qa_listwrap">
+                        <div t-if="!state.rows.length" class="o_vd_qa_empty">
+                            Chưa có khách nào. Nhập SĐT rồi bấm <b>+</b>, hoặc <b>Upload Excel</b>.
+                        </div>
+                        <table t-else="" class="o_vd_qa_table">
+                            <thead>
+                                <tr>
+                                    <th class="o_vd_qa_c_no">#</th>
+                                    <th class="o_vd_qa_c_phone">SĐT</th>
+                                    <th class="o_vd_qa_c_name">Tên khách hàng</th>
+                                    <th class="o_vd_qa_c_src">Nguồn</th>
+                                    <th class="o_vd_qa_c_info">Thông tin</th>
+                                    <th class="o_vd_qa_c_x"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.rows" t-as="r" t-key="r_index"
+                                    t-att-class="r.excel ? 'o_vd_qa_fromxls' : ''">
+                                    <td class="o_vd_qa_c_no" t-esc="r_index + 1"/>
+                                    <td class="o_vd_qa_c_phone"><b t-esc="r.phone"/></td>
+                                    <td class="o_vd_qa_c_name" t-esc="r.name"/>
+                                    <td class="o_vd_qa_c_src" t-esc="sourceLabel(r.source)"/>
+                                    <td class="o_vd_qa_c_info" t-esc="r.info"/>
+                                    <td class="o_vd_qa_c_x">
+                                        <button class="o_vd_qa_del" t-on-click="() => this.removeRow(r_index)"
+                                                title="Bỏ dòng này"><i class="fa fa-times"/></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div t-if="state.rows.length" class="o_vd_qa_count">
+                            Tổng: <b t-esc="state.rows.length"/> khách
+                        </div>
+                    </div>
+
+                    <!-- ===== CHỌN NHÂN VIÊN ĐỂ CHIA ===== -->
+                    <div t-if="state.picking" class="o_vd_qa_pick">
+                        <div class="o_vd_qa_pick_head">
+                            <span>Chia <b t-esc="state.rows.length"/> khách cho nhân viên
+                                (chọn <b t-esc="selectedCount"/>; không chọn = chia đều NV đang nhận số):</span>
+                            <input class="o_vd_qa_nvsearch" t-model="state.nvSearch"
+                                   placeholder="🔍 Tìm nhân viên…"/>
+                        </div>
+                        <div class="o_vd_qa_pick_tools">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    t-on-click="() => this.selectAllReceiving()">Chọn NV đang nhận số</button>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    t-on-click="() => this.clearSelection()">Bỏ chọn tất cả</button>
+                        </div>
+                        <div class="o_vd_qa_nvgrid">
+                            <label t-foreach="nvList" t-as="n" t-key="n.id"
+                                   t-attf-class="o_vd_qa_nv {{state.selected[n.id] ? 'o_sel' : ''}} {{n.on ? '' : 'o_off'}}">
+                                <input type="checkbox" t-att-checked="state.selected[n.id]"
+                                       t-on-change="() => this.toggleNv(n.id)"/>
+                                <span class="o_vd_qa_nv_name" t-esc="n.name"/>
+                                <span t-if="n.team" class="o_vd_qa_nv_team" t-esc="n.team"/>
+                                <span t-if="!n.on" class="o_vd_qa_nv_off">tắt nhận</span>
+                            </label>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <t t-set-slot="footer">
+                <t t-if="!state.picking">
+                    <button class="btn btn-primary" t-on-click="() => this.openPicker()"
+                            t-att-disabled="!state.rows.length">
+                        <i class="fa fa-random me-1"/>Chia số
+                    </button>
+                    <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+                </t>
+                <t t-else="">
+                    <button class="btn btn-success" t-on-click="() => this.submit()"
+                            t-att-disabled="state.busy">
+                        <i class="fa fa-check me-1"/>Tạo &amp; chia số
+                    </button>
+                    <button class="btn btn-secondary" t-on-click="() => this.state.picking = false">
+                        <i class="fa fa-arrow-left me-1"/>Quay lại
+                    </button>
+                </t>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

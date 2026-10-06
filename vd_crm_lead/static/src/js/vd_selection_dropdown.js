@@ -47,8 +47,7 @@ export class VdSelectionDropdown extends Component {
             document.addEventListener("scroll", this._onScrollClose, true);
             // KHÔNG auto-open trên mount — sẽ trigger cho TẤT CẢ widgets cùng row
             // khi user add line / chọn row, gây menu stack chồng chéo.
-            // Mở dropdown chỉ qua interaction explicit: onWrapperClick (user click)
-            // hoặc quick_add_hover_open.js (hover cell trong wizard).
+            // Mở dropdown chỉ qua interaction explicit: onWrapperClick (user click).
         });
         onWillUnmount(() => {
             document.removeEventListener("click", this._onDocClick, true);

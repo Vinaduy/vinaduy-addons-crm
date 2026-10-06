@@ -17,6 +17,7 @@ import { View } from "@web/views/view";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { VdHouseLibDialog } from "./vd_house_lib";
 import { VdDriveLibDialog } from "./vd_nghiem_thu_lib";
+import { VdQuickAddDialog } from "./vd_quickadd";
 import { Dialog } from "@web/core/dialog/dialog";
 
 // ============ SỐ OMI — popup thẻ khách OMI + nút gọi (user 2026-07-21) ============
@@ -4587,9 +4588,10 @@ export class VdCrmDashboard extends Component {
     }
 
     createNewLead() {
-        // Mở wizard popup nhỏ chỉ điền Tên + SĐT.
-        // Sau khi tạo, wizard sẽ navigate đến form lead đầy đủ để bổ sung intake.
-        this.action.doAction("vd_crm_lead.action_vd_lead_quick_add_wizard");
+        // Popup OWL tự viết: nhập SĐT·Tên·Nguồn·Thông tin → danh sách → chia số.
+        this.dialog.add(VdQuickAddDialog, {
+            onDone: () => this.loadDashboard(),
+        });
     }
 
     // Mở màn "Cuộc gọi đến" (lịch sử khách gọi vào tổng đài).

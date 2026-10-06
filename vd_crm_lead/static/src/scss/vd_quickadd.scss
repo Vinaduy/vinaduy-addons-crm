@@ -1,0 +1,123 @@
+// THÊM KHÁCH HÀNG MỚI — popup OWL (user 2026-10-06)
+.o_vd_qa {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 260px;
+
+    .o_vd_qa_load { padding: 40px; text-align: center; color: #888; }
+
+    // ---- Form nhập 1 khách ----
+    .o_vd_qa_form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+
+        .o_vd_qa_in {
+            height: 36px;
+            border: 1px solid #d4d4d8;
+            border-radius: 8px;
+            padding: 0 10px;
+            font-size: 14px;
+            &:focus { border-color: #714B67; outline: none; box-shadow: 0 0 0 2px rgba(113,75,103,.15); }
+        }
+        .o_vd_qa_phone { width: 130px; }
+        .o_vd_qa_name  { flex: 1 1 160px; }
+        .o_vd_qa_src   { width: 150px; }
+        .o_vd_qa_info  { flex: 2 1 240px; }
+        .o_vd_qa_add   { height: 36px; padding: 0 14px; }
+        .o_vd_qa_xls   { height: 36px; margin-left: auto; }
+    }
+
+    .o_vd_qa_summary {
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        color: #2e7d32;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    // ---- Danh sách KH ----
+    .o_vd_qa_listwrap { flex: 1 1 auto; }
+    .o_vd_qa_empty {
+        padding: 28px;
+        text-align: center;
+        color: #999;
+        border: 1px dashed #ddd;
+        border-radius: 10px;
+    }
+    .o_vd_qa_table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+
+        th {
+            background: #f4f3f6;
+            color: #555;
+            font-weight: 600;
+            text-align: left;
+            padding: 7px 9px;
+            border-bottom: 2px solid #e5e3ea;
+            position: sticky;
+            top: 0;
+        }
+        td { padding: 6px 9px; border-bottom: 1px solid #efeff2; vertical-align: top; }
+        tr:hover td { background: #faf9fb; }
+
+        .o_vd_qa_c_no   { width: 34px; color: #aaa; }
+        .o_vd_qa_c_phone{ width: 116px; white-space: nowrap; }
+        .o_vd_qa_c_name { width: 160px; }
+        .o_vd_qa_c_src  { width: 120px; white-space: nowrap; }
+        .o_vd_qa_c_info { color: #666; }
+        .o_vd_qa_c_x    { width: 32px; text-align: center; }
+
+        tr.o_vd_qa_fromxls .o_vd_qa_c_no::after { content: " 📄"; }
+
+        .o_vd_qa_del {
+            border: none; background: transparent; color: #c62828;
+            cursor: pointer; padding: 2px 6px; border-radius: 6px;
+            &:hover { background: #ffebee; }
+        }
+    }
+    .o_vd_qa_count { margin-top: 6px; font-size: 13px; color: #555; }
+
+    // ---- Chọn nhân viên ----
+    .o_vd_qa_pick_head {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; flex-wrap: wrap; margin-bottom: 8px;
+        .o_vd_qa_nvsearch {
+            height: 34px; border: 1px solid #d4d4d8; border-radius: 8px;
+            padding: 0 10px; width: 220px;
+        }
+    }
+    .o_vd_qa_pick_tools { display: flex; gap: 8px; margin-bottom: 10px; }
+    .o_vd_qa_nvgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 8px;
+        max-height: 340px;
+        overflow-y: auto;
+
+        .o_vd_qa_nv {
+            display: flex; align-items: center; gap: 7px;
+            border: 1px solid #e0e0e4; border-radius: 9px;
+            padding: 8px 10px; cursor: pointer; margin: 0;
+            transition: all .12s;
+            &:hover { border-color: #714B67; }
+            &.o_sel { background: #f3eef1; border-color: #714B67; }
+            &.o_off { opacity: .6; }
+
+            .o_vd_qa_nv_name { font-weight: 600; font-size: 13px; }
+            .o_vd_qa_nv_team {
+                font-size: 11px; color: #777; background: #f0f0f3;
+                border-radius: 5px; padding: 1px 6px;
+            }
+            .o_vd_qa_nv_off {
+                font-size: 11px; color: #e65100; margin-left: auto;
+            }
+        }
+    }
+}

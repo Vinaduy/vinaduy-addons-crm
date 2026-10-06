@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- 5 trường khai thác mặc định — admin sửa/đổi tên hoặc xoá tuỳ ý.
-             Sequence khớp với 5 cột extra_1..5 của vd.lead.quick.add.wizard.line. -->
+        <!-- 5 trường khai thác mặc định — admin sửa/đổi tên hoặc xoá tuỳ ý. -->
         <record id="intake_field_mong_muon" model="vd.intake.custom.field">
             <field name="name">Mong muốn KH</field>
             <field name="help_text">Vd: muốn nhà rộng, có sân, gần trường học...</field>
