@@ -1376,11 +1376,6 @@ export class VdCrmDashboard extends Component {
         }
         return [];
     }
-    // Dòng số của NV ĐANG XEM (cho header báo cáo 2 cột) — user 2026-10-06.
-    get currentNvRow() {
-        const g = this.selfTeamGroups;
-        return (g && g[0] && g[0].nvs && g[0].nvs[0]) || null;
-    }
 
     get khTeamGroups() {
         const a = this.state.analytics;
