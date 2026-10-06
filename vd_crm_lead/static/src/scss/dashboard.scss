@@ -2944,11 +2944,16 @@
         padding: 0.8rem 0.9rem;
     }
     .o_vd_rpt_head {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
         font-size: 0.82rem; font-weight: 800; color: #1f2a44; margin-bottom: 0.55rem;
         b { color: #1c4ed8; }
     }
+    .o_vd_rpt_date {
+        font-size: 0.74rem; font-weight: 700; color: #6b7280;
+        background: #f1f3f9; border-radius: 999px; padding: 0.12rem 0.6rem;
+    }
     .o_vd_rpt_cards {
-        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem;
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem;
     }
     .o_vd_rptcard {
         background: #f8fafc; border: 1px solid #eef1f6; border-radius: 10px;

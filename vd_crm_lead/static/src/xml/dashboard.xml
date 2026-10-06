@@ -1820,7 +1820,10 @@
                             <!-- CỘT PHẢI: BÁO CÁO số NV đang xem (style card như hình) -->
                             <div t-if="currentNvRow" class="o_vd_hdr2_right">
                                 <t t-set="nv" t-value="currentNvRow"/>
-                                <div class="o_vd_rpt_head">📊 Báo cáo — <b><t t-esc="nv.name"/></b></div>
+                                <div class="o_vd_rpt_head">
+                                    <span>📊 Báo cáo — <b><t t-esc="nv.name"/></b></span>
+                                    <span class="o_vd_rpt_date"><i class="fa fa-calendar me-1"/><t t-esc="todayLabel"/></span>
+                                </div>
                                 <div class="o_vd_rpt_cards">
                                     <div class="o_vd_rptcard">
                                         <div class="o_vd_rptcard_lbl">Tổng khách hàng</div>
@@ -1838,6 +1841,14 @@
                                     <div class="o_vd_rptcard">
                                         <div class="o_vd_rptcard_lbl">Chưa gọi</div>
                                         <div class="o_vd_rptcard_num o_vd_rptcard_warn"><t t-esc="nv.rem_new_not_called or 0"/></div>
+                                    </div>
+                                    <div class="o_vd_rptcard">
+                                        <div class="o_vd_rptcard_lbl">Báo giá hôm nay</div>
+                                        <div class="o_vd_rptcard_num"><t t-esc="nv.quote_today_count or 0"/></div>
+                                    </div>
+                                    <div class="o_vd_rptcard">
+                                        <div class="o_vd_rptcard_lbl">Kết bạn Zalo hôm nay</div>
+                                        <div class="o_vd_rptcard_num"><t t-esc="nv.zalo_friend_today_count or 0"/></div>
                                     </div>
                                 </div>
                             </div>

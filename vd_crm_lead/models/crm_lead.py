@@ -10687,6 +10687,17 @@ class CrmLead(models.Model):
                 ('create_date', '<', today_end),
                 ('active', '=', True),
             ], order='create_date desc', limit=100)
+            # KH đã TẠO BÁO GIÁ hôm nay + KH đã KẾT BẠN ZALO hôm nay (user 2026-10-06).
+            quote_today_count = self.search_count([
+                ('user_id', '=', u.id),
+                ('vd_quote_created_date', '>=', today_start),
+                ('vd_quote_created_date', '<', today_end),
+            ])
+            zalo_friend_today_count = self.search_count([
+                ('user_id', '=', u.id),
+                ('vd_zalo_day1_date', '>=', today_start),
+                ('vd_zalo_day1_date', '<', today_end),
+            ])
             # User spec round 13: số KH đã GỌI hôm nay + số KH gọi THÀNH CÔNG.
             # Số cuộc gọi HÔM NAY + THÁNG NÀY lấy từ map nguồn chung (đã tính ở trên).
             _cr = call_report_map.get(u.id, _empty_cr)
@@ -10783,6 +10794,8 @@ class CrmLead(models.Model):
                 'new_leads': [_ld_basic(l) for l in nv_new[:50]],
                 # User spec 2026-05-29: KH mới HÔM NAY
                 'new_today_count': len(new_today_qs),
+                'quote_today_count': quote_today_count,
+                'zalo_friend_today_count': zalo_friend_today_count,
                 'new_today_leads': [_ld_basic(l) for l in new_today_qs[:50]],
                 # Số cuộc gọi HÔM NAY + THÁNG NÀY (nguồn chung _vd_call_report,
                 # đếm theo SỐ CUỘC GỌI — khớp card sidebar trang cá nhân NV).

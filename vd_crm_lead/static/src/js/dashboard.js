@@ -1381,6 +1381,12 @@ export class VdCrmDashboard extends Component {
         const g = this.selfTeamGroups;
         return (g && g[0] && g[0].nvs && g[0].nvs[0]) || null;
     }
+    // Ngày hiện tại (dd/mm/yyyy) hiện trên header báo cáo.
+    get todayLabel() {
+        const d = new Date();
+        const p = (n) => String(n).padStart(2, "0");
+        return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
 
     get khTeamGroups() {
         const a = this.state.analytics;
