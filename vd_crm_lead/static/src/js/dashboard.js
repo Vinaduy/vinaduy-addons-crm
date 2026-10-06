@@ -1376,6 +1376,11 @@ export class VdCrmDashboard extends Component {
         }
         return [];
     }
+    // Số của NV đang xem — cho cột BÁO CÁO bên phải header (user 2026-10-06).
+    get currentNvRow() {
+        const g = this.selfTeamGroups;
+        return (g && g[0] && g[0].nvs && g[0].nvs[0]) || null;
+    }
 
     get khTeamGroups() {
         const a = this.state.analytics;
