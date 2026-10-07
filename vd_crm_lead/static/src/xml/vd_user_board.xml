@@ -26,28 +26,49 @@
             </div>
 
             <div t-if="state.loading" class="o_vdnv_loading">Đang tải danh sách nhân viên…</div>
-            <div t-else="" class="o_vdnv_cols">
-                <div t-foreach="groups" t-as="g" t-key="g.team" class="o_vdnv_col"
-                     t-attf-style="--c:{{g.color}}">
-                    <div class="o_vdnv_colhd">
-                        <span t-esc="g.team"/>
-                        <span class="o_vdnv_coln" t-esc="g.users.length"/>
-                    </div>
-                    <div t-foreach="g.users" t-as="u" t-key="u.id"
-                         t-attf-class="o_vdnv_card {{u.is_leader ? 'o_lead' : ''}} {{u.active ? '' : 'o_off'}}"
-                         t-att-title="u.login + ' — bấm để sửa'"
-                         t-on-click="() => this.openEdit(u)">
-                        <span class="o_vdnv_code" t-esc="u.code"/>
-                        <div class="o_vdnv_mid">
-                            <div class="o_vdnv_name" t-esc="u.name"/>
-                            <div class="o_vdnv_sub">
-                                <span class="o_vdnv_role" t-esc="u.role_label"/>
-                                <span t-if="u.lead_count" class="o_vdnv_cnt">👤 <t t-esc="u.lead_count"/></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div t-if="!groups.length" class="o_vdnv_empty">— Không có nhân viên —</div>
+            <div t-else="" class="o_vdnv_tablewrap">
+                <table class="o_vdnv_table">
+                    <thead>
+                        <tr>
+                            <th class="o_vdnv_c_code">Mã</th>
+                            <th class="o_vdnv_c_name">Tên nhân viên</th>
+                            <th class="o_vdnv_c_role">Chức vụ</th>
+                            <th class="o_vdnv_c_login">Đăng nhập</th>
+                            <th class="o_vdnv_c_cnt">Số khách</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="groups" t-as="g" t-key="g.team">
+                            <tr class="o_vdnv_grouprow" t-attf-style="--c:{{g.color}}">
+                                <td colspan="5">
+                                    <span class="o_vdnv_groupname" t-esc="g.team"/>
+                                    <span class="o_vdnv_groupcnt" t-esc="g.users.length"/>
+                                </td>
+                            </tr>
+                            <tr t-foreach="g.users" t-as="u" t-key="u.id"
+                                t-attf-class="o_vdnv_row {{u.active ? '' : 'o_off'}}"
+                                t-attf-style="--c:{{u.team_color}}"
+                                t-att-title="u.login + ' — bấm để sửa'"
+                                t-on-click="() => this.openEdit(u)">
+                                <td class="o_vdnv_c_code"><span class="o_vdnv_code" t-esc="u.code"/></td>
+                                <td class="o_vdnv_c_name">
+                                    <span class="o_vdnv_name" t-esc="u.name"/>
+                                    <span t-if="u.is_leader" class="o_vdnv_badge">★ Trưởng nhóm</span>
+                                    <span t-if="!u.active" class="o_vdnv_badge o_vdnv_badge_off">nghỉ</span>
+                                </td>
+                                <td class="o_vdnv_c_role" t-esc="u.role_label"/>
+                                <td class="o_vdnv_c_login" t-esc="u.login"/>
+                                <td class="o_vdnv_c_cnt">
+                                    <t t-if="u.lead_count" t-esc="u.lead_count"/>
+                                    <t t-else="">—</t>
+                                </td>
+                            </tr>
+                        </t>
+                        <tr t-if="!groups.length">
+                            <td colspan="5" class="o_vdnv_empty">— Không có nhân viên —</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="o_vdnv_hint">💡 Bấm <b>+ Thêm NV</b> để thêm · bấm 1 nhân viên để sửa / đổi mật khẩu / cho nghỉ / xóa.</div>
