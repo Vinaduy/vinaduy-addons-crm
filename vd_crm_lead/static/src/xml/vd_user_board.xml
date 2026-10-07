@@ -2,157 +2,124 @@
 <templates xml:space="preserve">
 
     <t t-name="vd_crm_lead.VdUserBoard">
-        <div class="o_vd_userboard">
-            <div class="o_vd_ub_head">
-                <h2 class="o_vd_ub_title">👥 Quản lý nhân viên</h2>
-                <input type="text" class="o_vd_ub_search"
-                       placeholder="🔍 Tìm tên / mã / phòng ban..."
+        <div class="o_vdnv">
+            <!-- Thanh trên: tiêu đề + tìm + thêm -->
+            <div class="o_vdnv_bar">
+                <h2 class="o_vdnv_h">👥 Quản lý nhân viên</h2>
+                <input class="o_vdnv_search" placeholder="🔍 Tìm tên / mã / phòng ban…"
                        t-att-value="state.search"
                        t-on-input="ev => state.search = ev.target.value"/>
-                <button class="o_vd_ub_btn o_vd_ub_btn_add" t-on-click="() => this.openNew()">+ Thêm NV</button>
-                <button class="o_vd_ub_btn" t-on-click="() => this.load()" title="Tải lại">↻</button>
+                <button class="o_vdnv_add" t-on-click="() => this.openAdd()">+ Thêm NV</button>
+                <button class="o_vdnv_reload" title="Tải lại" t-on-click="() => this.load()">↻</button>
             </div>
 
-            <!-- ===== TAB: Đang hoạt động | Nghỉ việc ===== -->
-            <div class="o_vd_ub_tabs">
-                <button t-att-class="'o_vd_ub_tab o_vd_ub_tab_on' + (state.tab === 'working' ? ' o_active' : '')"
-                        t-on-click="() => this.setTab('working')">
-                    <span class="o_vd_ub_dot"/> ĐANG HOẠT ĐỘNG
-                    <span class="o_vd_ub_tab_cnt"><t t-esc="workingList.length"/></span>
+            <!-- Tab -->
+            <div class="o_vdnv_tabs">
+                <button t-att-class="'o_vdnv_tab' + (state.tab === 'working' ? ' o_on' : '')"
+                        t-on-click="() => state.tab = 'working'">
+                    Đang hoạt động <span class="o_vdnv_tabn" t-esc="state.working.length"/>
                 </button>
-                <button t-att-class="'o_vd_ub_tab o_vd_ub_tab_off' + (state.tab === 'off' ? ' o_active' : '')"
-                        t-on-click="() => this.setTab('off')">
-                    <span class="o_vd_ub_dot"/> NGHỈ VIỆC / TẠM DỪNG
-                    <span class="o_vd_ub_tab_cnt"><t t-esc="offList.length"/></span>
+                <button t-att-class="'o_vdnv_tab' + (state.tab === 'off' ? ' o_on' : '')"
+                        t-on-click="() => state.tab = 'off'">
+                    Nghỉ việc / Tạm dừng <span class="o_vdnv_tabn" t-esc="state.off.length"/>
                 </button>
             </div>
 
-            <div t-if="state.loading" class="o_vd_ub_loading">Đang tải danh sách nhân viên...</div>
-
-            <div t-else="" class="o_vd_ub_panel">
-                <div class="o_vd_ub_cards o_vd_ub_cards_grid">
-                    <t t-foreach="activeGroups" t-as="g" t-key="g.team">
-                        <div class="o_vd_ub_teamcol" t-att-style="`--team-color:${g.color}`">
-                            <div class="o_vd_ub_teamhd">
-                                <span class="o_vd_ub_teamname"><t t-esc="g.team"/></span>
-                                <span class="o_vd_ub_teamcnt"><t t-esc="g.cards.length"/></span>
+            <div t-if="state.loading" class="o_vdnv_loading">Đang tải danh sách nhân viên…</div>
+            <div t-else="" class="o_vdnv_cols">
+                <div t-foreach="groups" t-as="g" t-key="g.team" class="o_vdnv_col"
+                     t-attf-style="--c:{{g.color}}">
+                    <div class="o_vdnv_colhd">
+                        <span t-esc="g.team"/>
+                        <span class="o_vdnv_coln" t-esc="g.users.length"/>
+                    </div>
+                    <div t-foreach="g.users" t-as="u" t-key="u.id"
+                         t-attf-class="o_vdnv_card {{u.is_leader ? 'o_lead' : ''}} {{u.active ? '' : 'o_off'}}"
+                         t-att-title="u.login + ' — bấm để sửa'"
+                         t-on-click="() => this.openEdit(u)">
+                        <span class="o_vdnv_code" t-esc="u.code"/>
+                        <div class="o_vdnv_mid">
+                            <div class="o_vdnv_name" t-esc="u.name"/>
+                            <div class="o_vdnv_sub">
+                                <span class="o_vdnv_role" t-esc="u.role_label"/>
+                                <span t-if="u.lead_count" class="o_vdnv_cnt">👤 <t t-esc="u.lead_count"/></span>
                             </div>
-                            <t t-foreach="g.cards" t-as="c" t-key="c.id">
-                                <t t-call="vd_crm_lead.VdUserCard"/>
-                            </t>
                         </div>
-                    </t>
-                    <div t-if="!activeGroups.length" class="o_vd_ub_empty">— Không có nhân viên —</div>
+                    </div>
                 </div>
+                <div t-if="!groups.length" class="o_vdnv_empty">— Không có nhân viên —</div>
             </div>
 
-            <div class="o_vd_ub_hint">💡 Bấm <b>+ Thêm NV</b> để thêm mới · bấm 1 nhân viên để sửa thông tin / mật khẩu / cho nghỉ việc / xóa.</div>
+            <div class="o_vdnv_hint">💡 Bấm <b>+ Thêm NV</b> để thêm · bấm 1 nhân viên để sửa / đổi mật khẩu / cho nghỉ / xóa.</div>
 
-            <!-- ===== POPUP SỬA NHÂN VIÊN ===== -->
-            <t t-if="state.edit">
-                <div class="o_vd_ub_modal_backdrop" t-on-click="() => this.closeEdit()"/>
-                <div class="o_vd_ub_modal">
-                    <div class="o_vd_ub_modal_head">
-                        <span t-if="state.edit.id"><i class="fa fa-user-circle me-2"/>Sửa thông tin nhân viên</span>
+            <!-- ===== POPUP THÊM / SỬA ===== -->
+            <t t-if="state.form">
+                <div class="o_vdnv_mask" t-on-click="() => this.closeForm()"/>
+                <div class="o_vdnv_modal">
+                    <div class="o_vdnv_mhd">
+                        <span t-if="state.form.id"><i class="fa fa-user-circle me-2"/>Sửa thông tin nhân viên</span>
                         <span t-else=""><i class="fa fa-user-plus me-2"/>Thêm nhân viên mới</span>
-                        <button class="o_vd_ub_modal_x" t-on-click="() => this.closeEdit()">×</button>
+                        <button class="o_vdnv_x" t-on-click="() => this.closeForm()">×</button>
                     </div>
-                    <div class="o_vd_ub_modal_body">
-                        <label class="o_vd_ub_fld">
-                            <span class="o_vd_ub_fld_lbl">Tên nhân viên</span>
-                            <input type="text" class="o_vd_ub_inp" t-model="state.edit.name"
-                                   placeholder="Họ và tên"/>
+                    <div class="o_vdnv_mbd">
+                        <label class="o_vdnv_f">
+                            <span>Tên nhân viên</span>
+                            <input class="o_vdnv_in" t-model="state.form.name" placeholder="Họ và tên"/>
                         </label>
-                        <label class="o_vd_ub_fld">
-                            <span class="o_vd_ub_fld_lbl">Đăng nhập (login)</span>
-                            <input type="text" class="o_vd_ub_inp" t-model="state.edit.login"
-                                   placeholder="tên đăng nhập"/>
+                        <label class="o_vdnv_f">
+                            <span>Tên đăng nhập</span>
+                            <input class="o_vdnv_in" t-model="state.form.login" placeholder="tên đăng nhập"/>
                         </label>
-                        <label class="o_vd_ub_fld">
-                            <span class="o_vd_ub_fld_lbl">Email</span>
-                            <input type="text" class="o_vd_ub_inp" t-model="state.edit.email"
-                                   placeholder="email@vinaduy..."/>
+                        <label class="o_vdnv_f">
+                            <span>Email <i class="o_vdnv_opt">(không bắt buộc)</i></span>
+                            <input class="o_vdnv_in" t-model="state.form.email" placeholder="email@…"/>
                         </label>
-                        <div class="o_vd_ub_fld_row">
-                            <label class="o_vd_ub_fld">
-                                <span class="o_vd_ub_fld_lbl">Chức vụ</span>
-                                <select class="o_vd_ub_inp" t-model="state.edit.role">
-                                    <option t-foreach="state.edit.role_options" t-as="o" t-key="o.value"
-                                            t-att-value="o.value"><t t-esc="o.label"/></option>
+                        <div class="o_vdnv_f2">
+                            <label class="o_vdnv_f">
+                                <span>Chức vụ</span>
+                                <select class="o_vdnv_in" t-model="state.form.role">
+                                    <option t-foreach="state.form.roles" t-as="o" t-key="o.value"
+                                            t-att-value="o.value" t-esc="o.label"/>
                                 </select>
                             </label>
-                            <label class="o_vd_ub_fld">
-                                <span class="o_vd_ub_fld_lbl">Phòng ban</span>
-                                <select class="o_vd_ub_inp" t-model="state.edit.team">
+                            <label class="o_vdnv_f">
+                                <span>Phòng ban</span>
+                                <select class="o_vdnv_in" t-model="state.form.team">
                                     <option value="">(Tự suy từ tên)</option>
-                                    <option t-foreach="state.edit.team_options" t-as="o" t-key="o.value"
-                                            t-att-value="o.value"><t t-esc="o.label"/></option>
+                                    <option t-foreach="state.form.teams" t-as="o" t-key="o.value"
+                                            t-att-value="o.value" t-esc="o.label"/>
                                 </select>
                             </label>
                         </div>
-                        <div t-if="state.edit.id" class="o_vd_ub_pwbox">
-                            <span class="o_vd_ub_fld_lbl"><i class="fa fa-key me-1"/>Mật khẩu admin đã cấp</span>
-                            <div t-if="state.edit.admin_password" class="o_vd_ub_pwshow">
-                                <span class="o_vd_ub_pwval"><t t-esc="state.edit.admin_password"/></span>
-                            </div>
-                            <div t-else="" class="o_vd_ub_pwnone">
-                                Chưa có mật khẩu admin cấp (hoặc NV đã tự đổi — không xem được).
-                            </div>
+                        <div t-if="state.form.id and state.form.admin_password" class="o_vdnv_pw">
+                            <i class="fa fa-key me-1"/>Mật khẩu đã cấp: <b t-esc="state.form.admin_password"/>
                         </div>
-                        <label class="o_vd_ub_fld">
-                            <span t-if="state.edit.id" class="o_vd_ub_fld_lbl">Đặt mật khẩu mới <span class="o_vd_ub_fld_hint">(để trống nếu không đổi)</span></span>
-                            <span t-else="" class="o_vd_ub_fld_lbl">Mật khẩu đăng nhập <span class="o_vd_ub_fld_hint">(bắt buộc, tối thiểu 6 ký tự)</span></span>
-                            <input type="text" class="o_vd_ub_inp" t-model="state.edit.new_password"
-                                   placeholder="Tối thiểu 6 ký tự"/>
+                        <label class="o_vdnv_f">
+                            <span t-if="state.form.id">Đặt mật khẩu mới <i class="o_vdnv_opt">(để trống nếu không đổi)</i></span>
+                            <span t-else="">Mật khẩu đăng nhập <i class="o_vdnv_opt">(bắt buộc, tối thiểu 6 ký tự)</i></span>
+                            <input class="o_vdnv_in" t-model="state.form.password" placeholder="Tối thiểu 6 ký tự"/>
                         </label>
                     </div>
-                    <div class="o_vd_ub_modal_foot">
-                        <t t-if="state.edit.id">
-                            <button t-if="state.edit.active" class="o_vd_ub_mbtn o_vd_ub_mbtn_off"
-                                    t-att-disabled="state.saving"
-                                    t-on-click="() => this.toggleActive()">⏸ Cho nghỉ việc</button>
-                            <button t-else="" class="o_vd_ub_mbtn o_vd_ub_mbtn_on"
-                                    t-att-disabled="state.saving"
-                                    t-on-click="() => this.toggleActive()">▶ Kích hoạt lại</button>
-                            <button class="o_vd_ub_mbtn o_vd_ub_mbtn_del"
-                                    t-att-disabled="state.saving"
-                                    t-on-click="() => this.deleteUser()">🗑 Xóa</button>
+                    <div class="o_vdnv_mft">
+                        <t t-if="state.form.id">
+                            <button t-if="state.form.active" class="o_vdnv_b o_vdnv_b_off"
+                                    t-att-disabled="state.saving" t-on-click="() => this.toggleActive()">⏸ Cho nghỉ việc</button>
+                            <button t-else="" class="o_vdnv_b o_vdnv_b_on"
+                                    t-att-disabled="state.saving" t-on-click="() => this.toggleActive()">▶ Kích hoạt lại</button>
+                            <button class="o_vdnv_b o_vdnv_b_del"
+                                    t-att-disabled="state.saving" t-on-click="() => this.remove()">🗑 Xóa</button>
                         </t>
-                        <span class="o_vd_ub_foot_spacer"/>
-                        <button class="o_vd_ub_mbtn o_vd_ub_mbtn_cancel"
-                                t-on-click="() => this.closeEdit()">Huỷ</button>
-                        <button class="o_vd_ub_mbtn o_vd_ub_mbtn_save"
-                                t-att-disabled="state.saving"
-                                t-on-click="() => this.saveUser()">
-                            <t t-if="state.saving">Đang lưu...</t>
-                            <t t-elif="state.edit.id">💾 Lưu</t>
-                            <t t-else="">➕ Thêm NV</t>
+                        <span class="o_vdnv_sp"/>
+                        <button class="o_vdnv_b o_vdnv_b_cancel" t-on-click="() => this.closeForm()">Huỷ</button>
+                        <button class="o_vdnv_b o_vdnv_b_save"
+                                t-att-disabled="state.saving" t-on-click="() => this.save()">
+                            <t t-if="state.saving">Đang lưu…</t>
+                            <t t-elif="state.form.id">💾 Lưu</t>
+                            <t t-else="">➕ Thêm</t>
                         </button>
                     </div>
                 </div>
             </t>
-        </div>
-    </t>
-
-    <!-- THẺ NHÂN VIÊN gọn: mã icon + tên + phòng ban + vai trò -->
-    <t t-name="vd_crm_lead.VdUserCard">
-        <div t-att-class="'o_vd_ub_card' + (c.is_leader ? ' o_vd_ub_leader' : '') + (c.active ? '' : ' o_vd_ub_card_off')"
-             t-att-style="`--team-color:${c.team_color}`"
-             t-on-click="() => this.openUser(c)"
-             t-att-title="c.login + ' — bấm để sửa thông tin'">
-            <div class="o_vd_ub_code"><t t-esc="c.code"/></div>
-            <div class="o_vd_ub_info">
-                <div class="o_vd_ub_name"><t t-esc="c.name"/></div>
-                <div class="o_vd_ub_meta">
-                    <span class="o_vd_ub_team"><t t-esc="c.team"/></span>
-                    <span class="o_vd_ub_role"><t t-esc="c.role_label"/></span>
-                    <span t-if="c.lead_count > 0"
-                          t-att-class="'o_vd_ub_leadcnt' + (c.active ? '' : ' o_vd_ub_leadcnt_warn')"
-                          t-att-title="c.lead_count + ' khách đang quản lý'">
-                        👤 <t t-esc="c.lead_count"/> khách
-                    </span>
-                </div>
-            </div>
         </div>
     </t>
 
