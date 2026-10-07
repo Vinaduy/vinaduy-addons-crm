@@ -2149,7 +2149,11 @@ export class VdCrmDashboard extends Component {
     // ========================================================================
     // Quyền hiển thị nút: manager đang xem dashboard + backend cho phép reassign.
     get canBulkReassign() {
-        return !!(this.state.is_manager && this.state.can_reassign);
+        // Quyền CHIA SỐ (kéo chuột phải) = quyền CHUYỂN KH (can_reassign) — giống
+        // nút "Chuyển NV" từng lead. Admin + đội "Lọc số" + vị trí có quyền chuyển
+        // đều chia được, KHÔNG bắt buộc là quản lý (fix 2026-10-07: trưởng nhóm /
+        // Lọc số như Quỳnh Anh có can_reassign nhưng is_manager=False bị chặn nhầm).
+        return !!this.state.can_reassign;
     }
     // Click TRÁI 1 pill KH → mở thẻ. Chọn để chia số dùng KÉO CHUỘT PHẢI (_dragSel).
     onPillClick(leadId) {
