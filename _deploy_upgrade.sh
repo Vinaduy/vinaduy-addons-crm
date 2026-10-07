@@ -20,6 +20,15 @@ echo "LOG_SIZE=$(wc -c < /tmp/up.log) bytes"
 systemctl start odoo18
 sleep 2
 
+echo '====== INVALIDATE ASSET CACHE (assets rebuild ở request kế) ======'
+# BẮT BUỘC: full upgrade KHÔNG tự xoá bundle web.assets_* → browser nạp lại bản
+# CŨ dù code mới đã lên (bug "vẫn thấy cũ" 2026-10-07). Xoá để Odoo regenerate.
+sudo -u postgres psql -d vinaduy_crm -tAc "
+DELETE FROM ir_attachment
+WHERE name LIKE 'web.assets_%'
+   OR url LIKE '/web/assets/%';
+" > /dev/null && echo 'Đã xoá bundle asset cũ → sẽ build lại.'
+
 echo '====== ERRORS trong log ======'
 grep -iE 'error|traceback|critical|denied|cannot|failed|warning' /tmp/up.log | head -30
 
