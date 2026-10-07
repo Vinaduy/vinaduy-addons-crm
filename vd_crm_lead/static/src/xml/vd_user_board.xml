@@ -11,8 +11,6 @@
                        t-on-input="ev => state.search = ev.target.value"/>
                 <button class="o_vd_ub_btn o_vd_ub_btn_add" t-on-click="() => this.openNew()">+ Thêm NV</button>
                 <button class="o_vd_ub_btn" t-on-click="() => this.load()" title="Tải lại">↻</button>
-                <button class="o_vd_ub_btn o_vd_ub_btn_std" t-on-click="() => this.openStandard()"
-                        title="Mở màn Người dùng chuẩn của Odoo">Bảng chuẩn</button>
             </div>
 
             <!-- ===== TAB: Đang hoạt động | Nghỉ việc ===== -->
@@ -48,14 +46,15 @@
                 </div>
             </div>
 
-            <div class="o_vd_ub_hint">💡 Bấm vào 1 nhân viên để sửa thông tin / mật khẩu / cho nghỉ việc.</div>
+            <div class="o_vd_ub_hint">💡 Bấm <b>+ Thêm NV</b> để thêm mới · bấm 1 nhân viên để sửa thông tin / mật khẩu / cho nghỉ việc / xóa.</div>
 
             <!-- ===== POPUP SỬA NHÂN VIÊN ===== -->
             <t t-if="state.edit">
                 <div class="o_vd_ub_modal_backdrop" t-on-click="() => this.closeEdit()"/>
                 <div class="o_vd_ub_modal">
                     <div class="o_vd_ub_modal_head">
-                        <span><i class="fa fa-user-circle me-2"/>Sửa thông tin nhân viên</span>
+                        <span t-if="state.edit.id"><i class="fa fa-user-circle me-2"/>Sửa thông tin nhân viên</span>
+                        <span t-else=""><i class="fa fa-user-plus me-2"/>Thêm nhân viên mới</span>
                         <button class="o_vd_ub_modal_x" t-on-click="() => this.closeEdit()">×</button>
                     </div>
                     <div class="o_vd_ub_modal_body">
@@ -91,7 +90,7 @@
                                 </select>
                             </label>
                         </div>
-                        <div class="o_vd_ub_pwbox">
+                        <div t-if="state.edit.id" class="o_vd_ub_pwbox">
                             <span class="o_vd_ub_fld_lbl"><i class="fa fa-key me-1"/>Mật khẩu admin đã cấp</span>
                             <div t-if="state.edit.admin_password" class="o_vd_ub_pwshow">
                                 <span class="o_vd_ub_pwval"><t t-esc="state.edit.admin_password"/></span>
@@ -101,18 +100,24 @@
                             </div>
                         </div>
                         <label class="o_vd_ub_fld">
-                            <span class="o_vd_ub_fld_lbl">Đặt mật khẩu mới <span class="o_vd_ub_fld_hint">(để trống nếu không đổi)</span></span>
+                            <span t-if="state.edit.id" class="o_vd_ub_fld_lbl">Đặt mật khẩu mới <span class="o_vd_ub_fld_hint">(để trống nếu không đổi)</span></span>
+                            <span t-else="" class="o_vd_ub_fld_lbl">Mật khẩu đăng nhập <span class="o_vd_ub_fld_hint">(bắt buộc, tối thiểu 6 ký tự)</span></span>
                             <input type="text" class="o_vd_ub_inp" t-model="state.edit.new_password"
                                    placeholder="Tối thiểu 6 ký tự"/>
                         </label>
                     </div>
                     <div class="o_vd_ub_modal_foot">
-                        <button t-if="state.edit.active" class="o_vd_ub_mbtn o_vd_ub_mbtn_off"
-                                t-att-disabled="state.saving"
-                                t-on-click="() => this.toggleActive()">⏸ Cho nghỉ việc</button>
-                        <button t-else="" class="o_vd_ub_mbtn o_vd_ub_mbtn_on"
-                                t-att-disabled="state.saving"
-                                t-on-click="() => this.toggleActive()">▶ Kích hoạt lại</button>
+                        <t t-if="state.edit.id">
+                            <button t-if="state.edit.active" class="o_vd_ub_mbtn o_vd_ub_mbtn_off"
+                                    t-att-disabled="state.saving"
+                                    t-on-click="() => this.toggleActive()">⏸ Cho nghỉ việc</button>
+                            <button t-else="" class="o_vd_ub_mbtn o_vd_ub_mbtn_on"
+                                    t-att-disabled="state.saving"
+                                    t-on-click="() => this.toggleActive()">▶ Kích hoạt lại</button>
+                            <button class="o_vd_ub_mbtn o_vd_ub_mbtn_del"
+                                    t-att-disabled="state.saving"
+                                    t-on-click="() => this.deleteUser()">🗑 Xóa</button>
+                        </t>
                         <span class="o_vd_ub_foot_spacer"/>
                         <button class="o_vd_ub_mbtn o_vd_ub_mbtn_cancel"
                                 t-on-click="() => this.closeEdit()">Huỷ</button>
@@ -120,7 +125,8 @@
                                 t-att-disabled="state.saving"
                                 t-on-click="() => this.saveUser()">
                             <t t-if="state.saving">Đang lưu...</t>
-                            <t t-else="">💾 Lưu</t>
+                            <t t-elif="state.edit.id">💾 Lưu</t>
+                            <t t-else="">➕ Thêm NV</t>
                         </button>
                     </div>
                 </div>

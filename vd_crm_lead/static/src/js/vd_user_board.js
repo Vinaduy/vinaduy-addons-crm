@@ -7,6 +7,7 @@
  */
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { Component, useState, onWillStart } from "@odoo/owl";
 
 export class VdUserBoard extends Component {
@@ -15,8 +16,8 @@ export class VdUserBoard extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.action = useService("action");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this.state = useState({
             working: [],
             off: [],
@@ -115,13 +116,25 @@ export class VdUserBoard extends Component {
             this.notification.add("Nhập tên đăng nhập.", { type: "warning" });
             return;
         }
+        const creating = !e.id;
+        if (creating && (e.new_password || "").trim().length < 6) {
+            this.notification.add("Nhập mật khẩu đăng nhập (tối thiểu 6 ký tự).",
+                { type: "warning" });
+            return;
+        }
+        const payload = {
+            name: e.name, login: e.login, email: e.email,
+            role: e.role, team: e.team, new_password: e.new_password,
+        };
         this.state.saving = true;
         try {
-            await this.orm.call("res.users", "vd_board_save_user", [e.id, {
-                name: e.name, login: e.login, email: e.email,
-                role: e.role, team: e.team, new_password: e.new_password,
-            }]);
-            this.notification.add("Đã lưu thông tin nhân viên.", { type: "success" });
+            if (creating) {
+                await this.orm.call("res.users", "vd_board_create_user", [payload]);
+                this.notification.add("Đã thêm nhân viên mới.", { type: "success" });
+            } else {
+                await this.orm.call("res.users", "vd_board_save_user", [e.id, payload]);
+                this.notification.add("Đã lưu thông tin nhân viên.", { type: "success" });
+            }
             this.state.edit = null;
             await this.load();
         } catch (err) {
@@ -130,6 +143,34 @@ export class VdUserBoard extends Component {
         } finally {
             this.state.saving = false;
         }
+    }
+
+    // XÓA HẲN 1 NV (có xác nhận). Còn khách → backend chặn, báo dùng "Cho nghỉ".
+    deleteUser() {
+        const e = this.state.edit;
+        if (!e || !e.id) return;
+        this.dialog.add(ConfirmationDialog, {
+            title: "Xóa nhân viên",
+            body: `Xóa hẳn tài khoản "${e.name}"? Thao tác KHÔNG hoàn tác được. ` +
+                `Nếu NV còn khách thì sẽ không xóa được — hãy dùng "Cho nghỉ việc".`,
+            confirmLabel: "Xóa hẳn",
+            cancelLabel: "Huỷ",
+            confirm: async () => {
+                this.state.saving = true;
+                try {
+                    await this.orm.call("res.users", "vd_board_delete_user", [e.id]);
+                    this.notification.add("Đã xóa nhân viên.", { type: "success" });
+                    this.state.edit = null;
+                    await this.load();
+                } catch (err) {
+                    const msg = (err && err.data && err.data.message) || "Không xóa được.";
+                    this.notification.add(msg, { type: "danger" });
+                } finally {
+                    this.state.saving = false;
+                }
+            },
+            cancel: () => {},
+        });
     }
 
     // Bật/tắt trạng thái làm việc TỪ TRONG popup (thay drag-drop cũ).
@@ -154,16 +195,21 @@ export class VdUserBoard extends Component {
         }
     }
 
-    openNew() {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "res.users",
-            views: [[false, "form"]],
-            target: "current",
-        });
-    }
-    openStandard() {
-        this.action.doAction("base.action_res_users");
+    // THÊM NV mới → mở CÙNG popup (chế độ tạo: id = null).
+    async openNew() {
+        try {
+            const d = await this.orm.call("res.users", "vd_board_new_defaults", []);
+            this.state.edit = {
+                id: null, name: "", login: "", email: "",
+                role: "employee", team: "", active: true,
+                admin_password: "", new_password: "",
+                role_options: d.role_options || [],
+                team_options: d.team_options || [],
+            };
+        } catch (e) {
+            const msg = (e && e.data && e.data.message) || "Không mở được form thêm NV.";
+            this.notification.add(msg, { type: "danger" });
+        }
     }
 }
 

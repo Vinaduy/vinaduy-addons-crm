@@ -770,12 +770,7 @@ class ResUsers(models.Model):
         u = self.sudo().with_context(active_test=False).browse(int(user_id))
         if not u.exists():
             return {}
-        role_opts = [{'value': k, 'label': v}
-                     for k, v in self._fields['vd_crm_role'].selection]
-        team_sel = self._fields['vd_team'].selection
-        if callable(team_sel):
-            team_sel = team_sel(self)
-        team_opts = [{'value': k, 'label': v} for k, v in team_sel]
+        role_opts, team_opts = self._vd_board_role_team_options()
         return {
             'id': u.id,
             'name': u.name or '',
@@ -788,6 +783,81 @@ class ResUsers(models.Model):
             'role_options': role_opts,
             'team_options': team_opts,
         }
+
+    def _vd_board_role_team_options(self):
+        """Danh sách chọn Chức vụ + Phòng ban cho popup (dùng chung sửa/thêm)."""
+        role_opts = [{'value': k, 'label': v}
+                     for k, v in self._fields['vd_crm_role'].selection]
+        team_sel = self._fields['vd_team'].selection
+        if callable(team_sel):
+            team_sel = team_sel(self)
+        team_opts = [{'value': k, 'label': v} for k, v in team_sel]
+        return role_opts, team_opts
+
+    @api.model
+    def vd_board_new_defaults(self):
+        """Lựa chọn Chức vụ + Phòng ban cho popup THÊM NV mới."""
+        self._vd_board_check_manager()
+        role_opts, team_opts = self._vd_board_role_team_options()
+        return {'role_options': role_opts, 'team_options': team_opts}
+
+    @api.model
+    def vd_board_create_user(self, vals):
+        """Tạo NV mới từ popup đơn giản. vals:
+        {name, login, email, role, team, new_password}."""
+        self._vd_board_check_manager()
+        from odoo.exceptions import UserError
+        name = (vals.get('name') or '').strip()
+        login = (vals.get('login') or '').strip()
+        pw = (vals.get('new_password') or '').strip()
+        if not name:
+            raise UserError('Nhập tên nhân viên.')
+        if not login:
+            raise UserError('Nhập tên đăng nhập.')
+        if len(pw) < 6:
+            raise UserError('Mật khẩu đăng nhập tối thiểu 6 ký tự.')
+        if self.sudo().with_context(active_test=False).search_count(
+                [('login', '=', login)]):
+            raise UserError('Tên đăng nhập "%s" đã tồn tại — chọn tên khác.' % login)
+        create_vals = {
+            'name': name,
+            'login': login,
+            'email': (vals.get('email') or '').strip() or False,
+            'password': pw,
+            'vd_admin_set_password': pw,
+            'vd_crm_role': vals.get('role') or 'employee',
+        }
+        if vals.get('team'):
+            create_vals['vd_team'] = vals['team']
+        u = self.sudo().create(create_vals)
+        return u._vd_board_card(lead_count=0)
+
+    @api.model
+    def vd_board_delete_user(self, user_id):
+        """XÓA HẲN 1 NV — chỉ tài khoản CHƯA có dữ liệu. Còn khách / admin gốc /
+        chính mình → chặn, khuyên dùng 'Cho nghỉ việc'."""
+        self._vd_board_check_manager()
+        from odoo.exceptions import UserError
+        from odoo import SUPERUSER_ID
+        u = self.sudo().with_context(active_test=False).browse(int(user_id))
+        if not u.exists():
+            return True
+        if u.id in (SUPERUSER_ID, self.env.uid):
+            raise UserError('Không thể xóa tài khoản admin gốc hoặc chính bạn.')
+        n = self.env['crm.lead'].sudo().with_context(active_test=False).search_count(
+            [('user_id', '=', u.id)])
+        if n:
+            raise UserError(
+                'Không thể XÓA: %s còn %d khách. Hãy chuyển hết khách sang NV khác, '
+                'hoặc dùng "Cho nghỉ việc" để tạm dừng.' % (u.name, n))
+        try:
+            with self.env.cr.savepoint():
+                u.unlink()
+        except Exception:
+            raise UserError(
+                'Tài khoản này đã phát sinh dữ liệu nên không xóa được. '
+                'Hãy dùng "Cho nghỉ việc" để tạm dừng thay vì xóa.')
+        return True
 
     @api.model
     def vd_board_save_user(self, user_id, vals):
