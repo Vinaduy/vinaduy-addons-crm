@@ -25,12 +25,10 @@
     <!-- Menu Nhóm template báo giá đã xoá — quản lý nhóm qua nút trong list
          Template hoặc tạo nhanh từ Many2one dropdown khi thêm template. -->
 
-    <!-- ⚙️ Cấu hình → Cài đặt người dùng.
-         User spec 2026-06-24: trỏ vào BẢNG QUẢN LÝ NHÂN VIÊN (client action OWL,
-         2 cột kéo thả) thay màn list chuẩn. Vẫn mở được form NV (nhấp đúp thẻ) và
-         màn chuẩn Odoo (nút "Bảng chuẩn") để sửa quyền/mật khẩu. -->
+    <!-- ⚙️ Cấu hình → Quản lý nhân viên (client action OWL: thêm/sửa/xóa + mật khẩu
+         + phòng ban + cho nghỉ việc). Đây là màn DUY NHẤT để quản lý NV. -->
     <menuitem id="menu_vd_users_settings"
-              name="Cài đặt người dùng"
+              name="👥 Quản lý nhân viên"
               parent="crm.crm_menu_config"
               action="action_vd_user_board"
               sequence="60"
