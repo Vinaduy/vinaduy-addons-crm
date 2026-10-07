@@ -305,6 +305,51 @@ class VdQuickAddLead(models.Model):
             return 'facebook'
         return 'quet'
 
+    # =========================================================== DISTRIBUTE
+    def _vd_qa_target_order(self, nv_ids):
+        """Recordset NV đích cho chia số, SẮP theo tải khách mới TĂNG dần
+        (ít số nhất nhận trước). nv_ids rỗng → mọi NV đang nhận số."""
+        Users = self.env['res.users'].sudo()
+        if nv_ids:
+            pool = Users.browse(nv_ids).exists()
+        else:
+            pool = Users.browse([d['id'] for d in self._vd_qa_nv_list()]).filtered(
+                lambda u: bool(getattr(u, 'vd_can_receive_pancake', True)))
+        if not pool:
+            raise UserError(_('Chưa chọn nhân viên nào để chia số.'))
+        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
+        Lead = self.env['crm.lead'].sudo()
+        load = {}
+        for u in pool:
+            dom = [('user_id', '=', u.id), ('active', '=', True)]
+            if new_stage:
+                dom.append(('stage_id', '=', new_stage.id))
+            load[u.id] = Lead.search_count(dom)
+        return pool.sorted(lambda u: load.get(u.id, 0))
+
+    @api.model
+    def vd_quickadd_distribute(self, lead_ids, nv_ids=None):
+        """Chia số KH ĐÃ CÓ (chọn bằng kéo chuột) cho NV — chỉ đổi NV phụ trách,
+        GIỮ nguyên dữ liệu. nv_ids rỗng → chia đều NV đang nhận số.
+        Round-robin theo tải. Trả {moved, detail}."""
+        leads = self.env['crm.lead'].sudo().browse(lead_ids or []).exists()
+        if not leads:
+            raise UserError(_('Chưa chọn khách nào để chia.'))
+        order = self._vd_qa_target_order(nv_ids)
+        n = len(order)
+        Users = self.env['res.users'].sudo()
+        from collections import Counter
+        counts = Counter()
+        for i, lead in enumerate(leads):
+            u = order[i % n]
+            lead.with_context(
+                vd_skip_reassign_check=True, vd_skip_assignment_balance=True,
+            ).write({'user_id': u.id})
+            counts[u.id] += 1
+        detail = ', '.join('%s (%d)' % (Users.browse(uid).name or '?', c)
+                           for uid, c in counts.most_common())
+        return {'moved': len(leads), 'detail': detail}
+
     # ============================================================== SUBMIT
     @api.model
     def vd_quickadd_submit(self, rows, nv_ids=None):
@@ -317,26 +362,11 @@ class VdQuickAddLead(models.Model):
         if not clean:
             raise UserError(_('Tất cả %d số đều TRÙNG hoặc SAI — không có số mới.') % len(rows))
 
-        Users = self.env['res.users'].sudo()
-        if nv_ids:
-            pool = Users.browse(nv_ids).exists()
-        else:
-            pool = Users.browse([d['id'] for d in self._vd_qa_nv_list()]).filtered(
-                lambda u: bool(getattr(u, 'vd_can_receive_pancake', True)))
-        if not pool:
-            raise UserError(_('Chưa chọn nhân viên nào để chia số.'))
-
-        # Chia đều theo vòng, bắt đầu từ NV đang ÍT khách mới nhất.
+        order = self._vd_qa_target_order(nv_ids)
+        n = len(order)
         new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
         Lead = self.env['crm.lead'].sudo()
-        load = {}
-        for u in pool:
-            dom = [('user_id', '=', u.id), ('active', '=', True)]
-            if new_stage:
-                dom.append(('stage_id', '=', new_stage.id))
-            load[u.id] = Lead.search_count(dom)
-        order = pool.sorted(lambda u: load.get(u.id, 0))
-        n = len(order)
+        Users = self.env['res.users'].sudo()
 
         from collections import Counter
         counts = Counter()

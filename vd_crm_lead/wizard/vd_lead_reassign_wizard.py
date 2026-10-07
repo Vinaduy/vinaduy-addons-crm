@@ -2,7 +2,7 @@
 
 Admin / người chia số / trưởng nhóm bấm nút "Chuyển" trên header form KH →
 mở hộp thoại chọn NV mới → bấm "Chuyển ngay" là đổi user_id quản lý KH.
-Quyền khớp can_user_reassign (giống write() + dashboard_bulk_reassign)."""
+Quyền khớp can_user_reassign (giống write())."""
 
 from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_crm_lead.NvPickerDialog">
+        <Dialog title="'💰 Chia số cho nhân viên'" size="'lg'">
+            <div class="o_vd_qa">
+                <t t-if="state.loading">
+                    <div class="o_vd_qa_load">Đang tải…</div>
+                </t>
+                <t t-else="">
+                    <div class="o_vd_qa_pick_head">
+                        <span>Chia <b t-esc="props.leadIds.length"/> khách — tích chọn nhân viên
+                            (<b t-esc="selectedCount"/> đã chọn):</span>
+                        <input class="o_vd_qa_nvsearch" t-model="state.nvSearch"
+                               placeholder="🔍 Tìm nhân viên…"/>
+                    </div>
+                    <div class="o_vd_qa_nvgrid">
+                        <label t-foreach="nvList" t-as="n" t-key="n.id"
+                               t-attf-class="o_vd_qa_nv {{state.selected[n.id] ? 'o_sel' : ''}}">
+                            <input type="checkbox" t-att-checked="state.selected[n.id]"
+                                   t-on-change="() => this.toggleNv(n.id)"/>
+                            <span class="o_vd_qa_nv_name" t-esc="n.name"/>
+                        </label>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="() => this.submit(true)"
+                        t-att-disabled="state.busy">
+                    <i class="fa fa-balance-scale me-1"/>Chia đều cho TẤT CẢ nhân viên
+                </button>
+                <button class="btn btn-success" t-on-click="() => this.submit(false)"
+                        t-att-disabled="state.busy or !selectedCount">
+                    <i class="fa fa-check me-1"/>Chia cho NV đã chọn
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Đóng</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

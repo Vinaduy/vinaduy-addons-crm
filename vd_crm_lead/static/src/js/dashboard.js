@@ -18,6 +18,7 @@ import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_d
 import { VdHouseLibDialog } from "./vd_house_lib";
 import { VdDriveLibDialog } from "./vd_nghiem_thu_lib";
 import { VdQuickAddDialog } from "./vd_quickadd";
+import { VdNvPickerDialog } from "./vd_nv_picker";
 import { Dialog } from "@web/core/dialog/dialog";
 
 // ============ SỐ OMI — popup thẻ khách OMI + nút gọi (user 2026-07-21) ============
@@ -288,15 +289,11 @@ export class VdCrmDashboard extends Component {
             // ===== LIVE CALL STATUS — user spec 2026-05-29 =====
             // {user_id: {is_calling, since_min, state}} — poll mỗi 5s
             activeCalls: {},
-            // ===== CHỌN NHIỀU KH + CHUYỂN NV (admin/người chia số/giám đốc) =====
-            // can_reassign: từ payload dashboard_data — quyết định có hiện nút
-            // "Chọn KH" hay không. selectMode: đang bật chế độ tick chọn.
-            // selectedLeadIds: {leadId: true}. reassignTargetId: NV nhận.
+            // ===== CHỌN NHIỀU KH BẰNG KÉO CHUỘT PHẢI → CHIA SỐ (admin/GĐ/người chia số) =====
+            // can_reassign: payload dashboard_data cho phép chia số hay không.
+            // selectedLeadIds: {leadId:true} — KH đang bôi xanh bằng kéo chuột phải.
             can_reassign: false,
-            selectMode: false,
             selectedLeadIds: {},
-            reassignTargetId: 0,
-            reassignBusy: false,
             // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
             // hàng nghìn lời gọi getter mỗi lần render = "đơ". Giờ chỉ 1 tooltip.
@@ -310,11 +307,6 @@ export class VdCrmDashboard extends Component {
             pinnedTile: "",
             cbMoreOpen: "",
             rowGearOpen: 0,
-            // ===== MENU 3 CHẤM (kebab) trên thanh chọn KH =====
-            // open: mở dropdown; sub: '' | 'selectUser' | 'transferUser' | 'teamPick'
-            // | 'teamRoster'; busy: đang chạy. team: phòng đang chọn; teamChecked:
-            // {uid:true} người nhận đã tích trong phòng (chia đều).
-            bulkMenu: { open: false, sub: "", busy: false, team: "", teamChecked: {} },
             // Thùng rác CÔNG TY — tổng KH ĐÃ DUYỆT hủy (chỉ Admin + Giám đốc).
             company_trash_count: 0,
             can_see_company_trash: false,
@@ -384,6 +376,20 @@ export class VdCrmDashboard extends Component {
         };
         onMounted(() => {
             window.addEventListener('keydown', this._onKeydown);
+            // KÉO CHUỘT PHẢI chọn KH để chia số (user 2026-10-07). Bôi qua thẻ KH
+            // → sáng xanh. Chỉ người được chia số (canBulkReassign) mới chọn được.
+            this._onSelMouseDown = (ev) => this._dragSelStart(ev);
+            this._onSelMouseMove = (ev) => this._dragSelMove(ev);
+            this._onSelMouseUp = () => this._dragSelEnd();
+            this._onSelContextMenu = (ev) => {
+                if (this.canBulkReassign && ev.target.closest('[data-vd-lead-id]')) {
+                    ev.preventDefault();
+                }
+            };
+            document.addEventListener('mousedown', this._onSelMouseDown, true);
+            document.addEventListener('mousemove', this._onSelMouseMove, true);
+            document.addEventListener('mouseup', this._onSelMouseUp, true);
+            document.addEventListener('contextmenu', this._onSelContextMenu, true);
             // User spec 2026-05-29: poll trạng thái cuộc gọi LIVE mỗi 5s
             this._refreshActiveCalls();
             // Tối ưu tải cho nhiều NV (2026-06-03): 5s -> 8s, và bỏ poll khi
@@ -513,6 +519,10 @@ export class VdCrmDashboard extends Component {
         });
         onWillUnmount(() => {
             window.removeEventListener('keydown', this._onKeydown);
+            document.removeEventListener('mousedown', this._onSelMouseDown, true);
+            document.removeEventListener('mousemove', this._onSelMouseMove, true);
+            document.removeEventListener('mouseup', this._onSelMouseUp, true);
+            document.removeEventListener('contextmenu', this._onSelContextMenu, true);
             if (this._pillHoverTimer) { clearTimeout(this._pillHoverTimer); this._pillHoverTimer = null; }
             if (this._pillTipEl) { try { this._pillTipEl.remove(); } catch (_e) {} this._pillTipEl = null; }
             if (this._khShowTimer) { clearTimeout(this._khShowTimer); this._khShowTimer = null; }
@@ -2201,12 +2211,8 @@ export class VdCrmDashboard extends Component {
     get canBulkReassign() {
         return !!(this.state.is_manager && this.state.can_reassign);
     }
-    // Click 1 pill KH: ở chế độ chọn → tick/bỏ tick; bình thường → mở thẻ.
+    // Click TRÁI 1 pill KH → mở thẻ. Chọn để chia số dùng KÉO CHUỘT PHẢI (_dragSel).
     onPillClick(leadId) {
-        if (this.state.selectMode) {
-            this.toggleLeadSelect(leadId);
-            return;
-        }
         this.openLead(leadId);
     }
     // Hover pill: hiện tooltip qua 1 ô DÙNG CHUNG cấp trang, điều khiển TRỰC TIẾP
@@ -2527,13 +2533,6 @@ export class VdCrmDashboard extends Component {
         if (this._tileHideTimer) { clearTimeout(this._tileHideTimer); this._tileHideTimer = null; }
         if (this._tilePopEl) this._tilePopEl.style.display = "none";
     }
-    toggleSelectMode() {
-        this.state.selectMode = !this.state.selectMode;
-        if (!this.state.selectMode) {
-            // Thoát chế độ chọn → xoá hết lựa chọn cho sạch.
-            this.state.selectedLeadIds = {};
-        }
-    }
     isLeadSelected(leadId) {
         return !!this.state.selectedLeadIds[leadId];
     }
@@ -2547,35 +2546,45 @@ export class VdCrmDashboard extends Component {
         }
         this.state.selectedLeadIds = next;
     }
-    // Chọn tất cả KH trong 1 cột/lane (truyền mảng id). Nếu đã chọn hết rồi
-    // thì bỏ chọn hết (toggle) → 1 nút làm cả "chọn" lẫn "bỏ" cho gọn.
-    toggleSelectAll(leadIds) {
-        const ids = (leadIds || []).filter((x) => x != null);
-        if (!ids.length) return;
-        const next = Object.assign({}, this.state.selectedLeadIds);
-        const allSelected = ids.every((id) => next[id]);
-        for (const id of ids) {
-            if (allSelected) delete next[id];
-            else next[id] = true;
-        }
-        this.state.selectedLeadIds = next;
-    }
-    // Chọn NHANH n KH kế tiếp CHƯA chọn trong 1 cột (theo thứ tự hiện) — bấm lại
-    // để cộng dồn 10, 20, 30... Đỡ phải tick tay từng KH (user spec 2026-09-16).
-    selectNextN(leadIds, n) {
-        const ids = (leadIds || []).filter((x) => x != null);
-        if (!ids.length) return;
-        const count = parseInt(n, 10) || 10;
-        const next = Object.assign({}, this.state.selectedLeadIds);
-        let added = 0;
-        for (const id of ids) {
-            if (added >= count) break;
-            if (!next[id]) { next[id] = true; added++; }
-        }
-        this.state.selectedLeadIds = next;
-    }
     clearSelection() {
         this.state.selectedLeadIds = {};
+    }
+    // ===== KÉO CHUỘT PHẢI CHỌN KH (bôi xanh) → CHIA SỐ =====
+    _dragSelStart(ev) {
+        if (ev.button !== 2 || !this.canBulkReassign) return;
+        const card = ev.target.closest('[data-vd-lead-id]');
+        if (!card) return;
+        ev.preventDefault();
+        this._dragSelActive = true;
+        document.body.classList.add('o_vd_dragselecting');
+        this._dragSelPaint(card);
+    }
+    _dragSelMove(ev) {
+        if (!this._dragSelActive) return;
+        const el = document.elementFromPoint(ev.clientX, ev.clientY);
+        const card = el && el.closest && el.closest('[data-vd-lead-id]');
+        if (card) this._dragSelPaint(card);
+    }
+    _dragSelEnd() {
+        if (!this._dragSelActive) return;
+        this._dragSelActive = false;
+        document.body.classList.remove('o_vd_dragselecting');
+    }
+    _dragSelPaint(card) {
+        const id = parseInt(card.getAttribute('data-vd-lead-id'), 10);
+        if (!id || this.state.selectedLeadIds[id]) return;
+        const next = Object.assign({}, this.state.selectedLeadIds);
+        next[id] = true;
+        this.state.selectedLeadIds = next;
+    }
+    // Mở dialog chia số đơn giản cho KH đã bôi chọn.
+    openDistributePicker() {
+        const ids = this.selectedLeadIdList;
+        if (!ids.length) return;
+        this.dialog.add(VdNvPickerDialog, {
+            leadIds: ids,
+            onDone: () => { this.clearSelection(); this.loadDashboard(); },
+        });
     }
     // ===== BẢNG KHÁCH MỚI — thu gọn ĐÚNG 10 dòng + nút mở rộng =====
     // Đếm SỐ DÒNG pill thực tế qua offsetTop (pill cùng dòng có cùng top).
@@ -2711,634 +2720,6 @@ export class VdCrmDashboard extends Component {
     }
     get selectedCount() {
         return this.selectedLeadIdList.length;
-    }
-    // Tên NV nhận (để hiện trong câu xác nhận).
-    get reassignTargetName() {
-        const u = (this.state.users || []).find(
-            (x) => x.id === this.state.reassignTargetId);
-        return u ? u.name : "";
-    }
-    // ============ MENU 3 CHẤM (kebab) — thao tác theo NGUYÊN 1 NHÂN VIÊN ========
-    // Gom 3 chức năng vào 1 dropdown (không rải nút): (1) chọn 1 phát toàn bộ KH
-    // của 1 NV, (2) xuất KH đã chọn ra Excel, (3) chuyển 1 phát toàn bộ KH đã chọn
-    // sang 1 NV khác.
-    toggleBulkMenu() {
-        const open = !this.state.bulkMenu.open;
-        this.state.bulkMenu = { open, sub: "", busy: false, team: "", teamChecked: {} };
-    }
-    closeBulkMenu() {
-        if (this.state.bulkMenu.open || this.state.bulkMenu.sub) {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
-        }
-    }
-    openBulkSub(sub) {
-        // Mở bảng cấp 2/3 tương ứng ('selectUser'|'transferUser'|'teamPick'|'teamRoster').
-        // Reset tích chọn NV nhận khi mở "Chuyển" (multi-select, user spec 2026-09-26).
-        this.state.bulkMenu = { ...this.state.bulkMenu, sub, open: true, xferChecked: {} };
-    }
-    // ===== TỰ CHIA NGẪU NHIÊN cho các NV đang nhận số (user spec 2026-09-26) =====
-    // "mày tự chọn cho t, t muốn random mà k nhớ đã chuyển ai" → hệ thống xáo trộn
-    // NV + KH rồi chia đều round-robin → mỗi NV nhận số lượng bằng nhau nhưng ai
-    // nhận KH nào là ngẫu nhiên, admin khỏi phải chọn/nhớ.
-    _shuffle(arr) {
-        const a = arr.slice();
-        for (let i = a.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-    }
-    async bulkRandomDistribute() {
-        const leadIds = this.selectedLeadIdList;
-        if (!leadIds.length) {
-            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
-            return;
-        }
-        const pool = (this.state.users || [])
-            .filter((u) => u && u.id && u.can_receive).map((u) => u.id);
-        if (!pool.length) {
-            this.notification.add(
-                "Không có NV nào đang nhận số. Bật nhận số cho NV rồi thử lại.",
-                { type: "warning" });
-            return;
-        }
-        const ok = window.confirm(
-            `Chia NGẪU NHIÊN ${leadIds.length} khách cho ${pool.length} nhân viên đang nhận số?`);
-        if (!ok) return;
-        const nv = this._shuffle(pool);
-        const leadsShuf = this._shuffle(leadIds);
-        const assignments = leadsShuf.map((lid, i) => [lid, nv[i % nv.length]]);
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_distribute", [assignments]);
-            this.notification.add(
-                `Đã chia ngẫu nhiên ${moved} khách cho ${nv.length} nhân viên.`,
-                { type: "success", title: "Chia ngẫu nhiên" });
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            await this.loadDashboard();
-            if (this.state.is_manager) await this._reloadDashUsers();
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chia được" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {}, xferChecked: {} };
-        }
-    }
-    // ===== CHUYỂN KH: tích 1 hoặc NHIỀU NV (2+ NV = TỰ CHIA ĐỀU round-robin) =====
-    // user spec 2026-09-26: "chuyển từ NV này sang, muốn chia nửa NV A nửa NV B".
-    toggleBulkXfer(uid) {
-        const ck = { ...(this.state.bulkMenu.xferChecked || {}) };
-        if (ck[uid]) delete ck[uid]; else ck[uid] = true;
-        this.state.bulkMenu = { ...this.state.bulkMenu, xferChecked: ck };
-    }
-    get bulkXferCheckedIds() {
-        const ck = this.state.bulkMenu.xferChecked || {};
-        return this.bulkMenuUsers.filter((u) => ck[u.id]).map((u) => u.id);
-    }
-    async bulkXferGo() {
-        const leadIds = this.selectedLeadIdList;
-        const uids = this.bulkXferCheckedIds;
-        if (!leadIds.length) {
-            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
-            return;
-        }
-        if (!uids.length) {
-            this.notification.add("Chưa tích nhân viên nhận.", { type: "warning" });
-            return;
-        }
-        const names = this.bulkMenuUsers
-            .filter((u) => uids.includes(u.id)).map((u) => u.name);
-        // 1 NV → dồn hết cho NV đó (dùng lại luồng cũ).
-        if (uids.length === 1) {
-            await this.bulkTransferAllTo(uids[0], names[0]);
-            return;
-        }
-        // 2+ NV → CHIA ĐỀU round-robin: KH thứ i → uids[i % N].
-        const ok = window.confirm(
-            `Chia đều ${leadIds.length} khách cho ${uids.length} nhân viên: ${names.join(", ")}?`);
-        if (!ok) return;
-        const assignments = leadIds.map((lid, i) => [lid, uids[i % uids.length]]);
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_distribute", [assignments]);
-            this.notification.add(
-                `Đã chia ${moved} khách cho ${uids.length} nhân viên.`,
-                { type: "success", title: "Chia số" });
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            await this.loadDashboard();
-            if (this.state.is_manager) await this._reloadDashUsers();
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chia được" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {}, xferChecked: {} };
-        }
-    }
-    // Danh sách NV để chọn trong menu — kèm tổng KH (state.users từ dashboard_users).
-    get bulkMenuUsers() {
-        return (this.state.users || [])
-            .filter((u) => u && u.id)
-            .slice()
-            .sort((a, b) => (b.total || 0) - (a.total || 0));
-    }
-    // Bấm 1 NV trong bảng cấp 2 → điều hướng theo chức năng đang mở.
-    onBulkUserPick(bu) {
-        if (!bu || !bu.id) return;
-        if (this.state.bulkMenu.sub === "transferUser") {
-            this.bulkTransferAllTo(bu.id, bu.name);
-        } else {
-            this.bulkSelectAllOfUser(bu.id, bu.name);
-        }
-    }
-    // (1) Chọn 1 phát TOÀN BỘ khách của 1 NV → nạp hết id vào vùng đã chọn.
-    async bulkSelectAllOfUser(userId, userName) {
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const ids = await this.orm.call(
-                "crm.lead", "dashboard_user_lead_ids", [userId]);
-            const next = {};
-            for (const id of (ids || [])) next[id] = true;
-            this.state.selectedLeadIds = next;
-            this.state.selectMode = true;
-            this.notification.add(
-                `Đã chọn ${ids.length} khách của "${userName}".`,
-                { type: "success", title: "Chọn toàn bộ KH" });
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chọn được" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
-        }
-    }
-    // (2) Xuất TOÀN BỘ khách đã chọn ra Excel (.xlsx) → tải file về.
-    async bulkExportExcel() {
-        const ids = this.selectedLeadIdList;
-        if (!ids.length) {
-            this.notification.add("Chưa chọn khách hàng nào để xuất.",
-                { type: "warning" });
-            return;
-        }
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const res = await this.orm.call(
-                "crm.lead", "dashboard_export_leads_xlsx", [ids]);
-            if (res && res.url) {
-                const a = document.createElement("a");
-                a.href = res.url;
-                a.download = res.name || "khach_hang.xlsx";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                this.notification.add(
-                    `Đã xuất ${res.count} khách ra Excel.`,
-                    { type: "success", title: "Xuất Excel" });
-            }
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không xuất được" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
-        }
-    }
-    // (3) Chuyển 1 phát TOÀN BỘ khách đã chọn sang 1 NV khác.
-    async bulkTransferAllTo(userId, userName) {
-        const ids = this.selectedLeadIdList;
-        if (!ids.length) {
-            this.notification.add("Chưa chọn khách hàng nào để chuyển.",
-                { type: "warning" });
-            return;
-        }
-        const ok = window.confirm(
-            `Chuyển ${ids.length} khách hàng sang nhân viên "${userName}"?`);
-        if (!ok) return;
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_reassign", [ids, userId]);
-            this.notification.add(
-                `Đã chuyển ${moved} khách hàng sang "${userName}".`,
-                { type: "success", title: "Chuyển KH thành công" });
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            await this.loadDashboard();
-            if (this.state.is_manager) {
-                await this._reloadDashUsers();
-            }
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chuyển được KH" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
-        }
-    }
-
-    // ===== (4) CHIA TOÀN BỘ KH ĐÃ CHỌN CHO 1 PHÒNG — chia đều cho NV được tích ==
-    // Phòng = tiền tố tên NV (dùng _userTeamLabel, khớp báo cáo). Ẩn NV đang TẮT
-    // nhận số (_distributeOffIds). Chia đều = round-robin qua các NV đã tích.
-    get bulkMenuTeams() {
-        // CHỈ NV đang BẬT nhận số — lọc theo CỜ THẬT `can_receive` (vd_can_receive
-        // _pancake) do dashboard_users trả về. KHÔNG dùng _distributeOffIds (đọc báo
-        // cáo Pancake HÔM NAY) vì báo cáo chỉ liệt kê NV có số hôm nay → NV đã tắt mà
-        // hôm nay không có số (vd Sen/Quy) lọt lưới, vẫn hiện. Cờ user thì luôn đúng.
-        const src = (this.state.users || []).filter((u) => u.id && u.can_receive);
-        const m = {};
-        for (const u of src) {
-            const t = this._userTeamLabel(u);
-            (m[t] = m[t] || []).push(u);
-        }
-        return Object.keys(m).sort().map((t) => ({
-            team: t,
-            members: m[t].slice().sort((a, b) => (b.total || 0) - (a.total || 0)),
-            count: m[t].length,
-        }));
-    }
-    get bulkCurrentTeamMembers() {
-        const t = this.state.bulkMenu.team;
-        const found = this.bulkMenuTeams.find((x) => x.team === t);
-        return found ? found.members : [];
-    }
-    get bulkTeamCheckedIds() {
-        const ck = this.state.bulkMenu.teamChecked || {};
-        return this.bulkCurrentTeamMembers.filter((m) => ck[m.id]).map((m) => m.id);
-    }
-    // Chọn 1 phòng ở cấp 2 → mở cấp 3, mặc định TÍCH HẾT người trong phòng.
-    openBulkTeamRoster(tm) {
-        const checked = {};
-        for (const m of (tm.members || [])) checked[m.id] = true;
-        this.state.bulkMenu = {
-            ...this.state.bulkMenu, sub: "teamRoster", team: tm.team,
-            teamChecked: checked, open: true,
-        };
-    }
-    toggleBulkTeamMember(uid) {
-        const ck = { ...(this.state.bulkMenu.teamChecked || {}) };
-        if (ck[uid]) delete ck[uid]; else ck[uid] = true;
-        this.state.bulkMenu = { ...this.state.bulkMenu, teamChecked: ck };
-    }
-    bulkTeamSetAll(on) {
-        const ck = {};
-        if (on) for (const m of this.bulkCurrentTeamMembers) ck[m.id] = true;
-        this.state.bulkMenu = { ...this.state.bulkMenu, teamChecked: ck };
-    }
-    async bulkDistributeToTeam() {
-        const leadIds = this.selectedLeadIdList;
-        const uids = this.bulkTeamCheckedIds;
-        const team = this.state.bulkMenu.team;
-        if (!leadIds.length) {
-            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
-            return;
-        }
-        if (!uids.length) {
-            this.notification.add("Chưa tích người nhận nào.", { type: "warning" });
-            return;
-        }
-        const ok = window.confirm(
-            `Chia đều ${leadIds.length} khách cho ${uids.length} nhân viên phòng "${team}"?`);
-        if (!ok) return;
-        // Round-robin: KH thứ i -> NV uids[i % N] → chia đều tuyệt đối.
-        const assignments = leadIds.map((lid, i) => [lid, uids[i % uids.length]]);
-        this.state.bulkMenu = { ...this.state.bulkMenu, busy: true };
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_distribute", [assignments]);
-            this.notification.add(
-                `Đã chia ${moved} khách cho ${uids.length} nhân viên phòng "${team}".`,
-                { type: "success", title: "Chia số theo phòng" });
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            await this.loadDashboard();
-            if (this.state.is_manager) {
-                await this._reloadDashUsers();
-            }
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chia được" });
-        } finally {
-            this.state.bulkMenu = { open: false, sub: "", busy: false, team: "", teamChecked: {} };
-        }
-    }
-
-    // ====================== CHIA SỐ (user spec 2026-06-08) ===================
-    // Mở bảng giống "Thêm KH mới", đổ sẵn KH đã chọn, chia mỗi KH cho 1 NV.
-    async openDistribute() {
-        const ids = this.selectedLeadIdList;
-        if (!ids.length) {
-            this.notification.add("Chưa chọn khách hàng nào.", { type: "warning" });
-            return;
-        }
-        // LÀM MỚI danh sách NV mỗi lần mở (state.users nạp 1 lần lúc vào trang →
-        // NV mới thêm sau đó sẽ THIẾU nếu không reload trang). user spec 2026-09-16.
-        try {
-            const us = await this.orm.call("crm.lead", "dashboard_users", []);
-            if (Array.isArray(us) && us.length) this.state.users = us;
-        } catch (_e) { /* giữ state.users cũ nếu lỗi */ }
-        let recs = [];
-        try {
-            recs = await this.orm.read("crm.lead", ids, ["name", "phone", "mobile", "call_count", "user_id"]);
-        } catch (e) {
-            recs = ids.map((id) => ({ id, name: "KH #" + id, phone: "" }));
-        }
-        this.state.distribute = {
-            open: true,
-            mode: "",
-            busy: false,
-            oneUserId: 0,
-            oneTeam: "",
-            lines: recs.map((r) => ({
-                lead_id: r.id,
-                name: r.name || ("KH #" + r.id),
-                phone: r.phone || r.mobile || "",
-                user_id: 0,
-                // CHỦ hiện tại của KH — loại khỏi vòng nhận khi chia lại (không gán
-                // ngược cho chính người đang giữ KH đó).
-                owner_id: (r.user_id && r.user_id[0]) || 0,
-                // KH MỚI chưa gọi (call_count=0) — chỉ dòng này ăn "sức chứa" NV.
-                uncalled: (r.call_count || 0) === 0,
-            })),
-        };
-        this._lockScroll();
-    }
-    closeDistribute() {
-        this.state.distribute = { open: false, mode: "", busy: false, lines: [] };
-        this._unlockScroll();
-    }
-    setDistributeLineUser(idx, ev) {
-        const uid = parseInt(ev.target.value, 10) || 0;
-        if (this.state.distribute.lines[idx]) {
-            this.state.distribute.lines[idx].user_id = uid;
-            this.state.distribute.mode = "";  // NV tự chọn → bỏ chế độ tự động
-        }
-    }
-    // CHIA HẾT CHO 1 NV: chọn 1 người → tất cả KH đã chọn dồn về người đó.
-    applyDistributeOne(ev) {
-        const uid = parseInt(ev.target.value, 10) || 0;
-        this.state.distribute.oneUserId = uid;
-        this.state.distribute.oneTeam = "";
-        if (!uid) {
-            this.state.distribute.mode = "";
-            return;
-        }
-        for (const ln of (this.state.distribute.lines || [])) ln.user_id = uid;
-        this.state.distribute.mode = "one_user";
-    }
-    // PHÒNG của 1 NV = tiền tố TÊN trước " - " (khớp đúng tên hiển thị trong
-    // báo cáo, vd "HCM2 - Lê Xuân Hưng" -> "HCM2"). Không dùng thẻ vd_team vì
-    // thẻ này hay sai/cũ (đẻ ra nhóm rác "BÁN HÀ"/"CTV").
-    _userTeamLabel(u) {
-        const name = (u && u.name) || "";
-        const idx = name.indexOf(" - ");
-        if (idx > 0) return name.slice(0, idx).trim().toUpperCase();
-        return (u && u.team) || "KHÁC";
-    }
-    // Roster ĐÚNG = NV đang BẬT nhận số trong báo cáo chia số (khớp đúng bảng
-    // người dùng nhìn thấy). Không dùng state.users vì tập đó rộng hơn (mọi NV
-    // có lead) -> đếm phòng bị phồng lên.
-    // NV bị LOẠI khỏi vòng nhận khi chia lại = CHỦ hiện tại của các KH đang chia
-    // (không gán ngược KH về chính người đang giữ) + chính người đang thao tác.
-    // Nhờ vậy: admin lấy KH của NV A chia cho phòng thì A bị loại; NV tự chia KH
-    // của mình thì chính NV đó bị loại.
-    _distributeExcludeIds() {
-        const s = new Set();
-        for (const ln of (this.state.distribute?.lines || [])) {
-            if (ln.owner_id) s.add(ln.owner_id);
-        }
-        if (this.state.current_user_id) s.add(this.state.current_user_id);
-        return s;
-    }
-    _reportRoster() {
-        const rep = this.state.pancake_report;
-        const rows = (rep && rep.today && rep.today.rows) || [];
-        const excl = this._distributeExcludeIds();
-        return rows.filter((r) => r.can_receive && !excl.has(r.uid));
-    }
-    // uid các NV đang TẮT nhận số (can_receive=false) trong báo cáo chia số.
-    // TẮT nhận số auto -> ẩn khỏi MỌI ô chọn khi chia (yêu cầu user 2026-07-25).
-    _distributeOffIds() {
-        const rep = this.state.pancake_report;
-        const rows = (rep && rep.today && rep.today.rows) || [];
-        const s = new Set();
-        for (const r of rows) { if (!r.can_receive) s.add(r.uid); }
-        return s;
-    }
-    // NV cho CHIA ĐỀU TỰ ĐỘNG (đã bỏ NV đang TẮT nhận số — tôn trọng công tắc).
-    get distributeEligibleUsers() {
-        const off = this._distributeOffIds();
-        return (this.state.users || []).filter((u) => u.id && !off.has(u.id));
-    }
-    // NV cho CHỌN TAY (chọn 1 NV / tự chọn từng KH): hiện ĐỦ TẤT CẢ NV, KỂ CẢ
-    // NV đang tắt nhận số — vì chuyển tay là chỉ định trực tiếp (user spec
-    // 2026-09-23: danh sách chọn tay không được thiếu NV nào).
-    get distributeAllUsers() {
-        return (this.state.users || []).filter((u) => u.id);
-    }
-    // Danh sách PHÒNG (team) + số NV mỗi phòng, để chia đều trong 1 phòng.
-    get distributeTeams() {
-        const excl = this._distributeExcludeIds();
-        const roster = this._reportRoster();
-        const src = roster.length
-            ? roster.map((r) => ({ id: r.uid, name: r.name }))
-            : (this.state.users || []).filter((u) => u.id && !excl.has(u.id));
-        const m = {};
-        for (const u of src) {
-            if (!u.id) continue;
-            const t = this._userTeamLabel(u);
-            m[t] = (m[t] || 0) + 1;
-        }
-        return Object.keys(m).sort().map((t) => ({ team: t, count: m[t] }));
-    }
-    // CHIA ĐỀU trong 1 PHÒNG: chỉ vòng chia cho NV thuộc phòng được chọn.
-    applyDistributeTeam(ev) {
-        const team = ev.target.value || "";
-        this.state.distribute.oneTeam = team;
-        this.state.distribute.oneUserId = 0;
-        if (!team) {
-            this.state.distribute.mode = "";
-            return;
-        }
-        const roster = this._reportRoster();
-        let users;
-        if (roster.length) {
-            // Lấy đúng NV đang bật nhận thuộc phòng; ghép dữ liệu tải từ state.users.
-            const byId = {};
-            for (const u of (this.state.users || [])) byId[u.id] = u;
-            users = roster
-                .filter((r) => this._userTeamLabel(r) === team)
-                .map((r) => byId[r.uid] || { id: r.uid, name: r.name, new_total: 0, new_not_called: 0 });
-        } else {
-            const excl = this._distributeExcludeIds();
-            const off = this._distributeOffIds();
-            users = (this.state.users || []).filter(
-                (u) => u.id && !excl.has(u.id) && !off.has(u.id)
-                    && this._userTeamLabel(u) === team);
-        }
-        if (!users.length) {
-            this.notification.add(
-                "Phòng này không có NV khác đang bật nhận số để chia.", { type: "warning" });
-            return;
-        }
-        this._distributeEvenAmong(users);
-        this.state.distribute.mode = "team";
-    }
-    distributeUserLoad(userId) {
-        const u = (this.state.users || []).find((x) => x.id === userId);
-        if (!u) return "";
-        return `📋 ${u.new_total || 0} mới · 📵 ${u.new_not_called || 0} chưa gọi`;
-    }
-    // ===== CHẶN CHIA SỐ — sức chứa NV theo KH mới chưa gọi (user spec 2026-06-12) =====
-    get distributeThreshold() {
-        return this.state.distribute_block_threshold || 0;
-    }
-    _userUncalled(userId) {
-        const u = (this.state.users || []).find((x) => x.id === userId);
-        return u ? (u.new_not_called || 0) : 0;
-    }
-    // {userId: số dòng CHƯA GỌI đang gán cho NV đó trong popup}
-    get distributeAssignedUncalled() {
-        const m = {};
-        for (const ln of (this.state.distribute?.lines || [])) {
-            if (ln.user_id && ln.uncalled) m[ln.user_id] = (m[ln.user_id] || 0) + 1;
-        }
-        return m;
-    }
-    // {userId: {current, cap}} cho NV bị VƯỢT sức chứa
-    get distributeOverUsers() {
-        const th = this.distributeThreshold;
-        if (!th) return {};
-        const assigned = this.distributeAssignedUncalled;
-        const over = {};
-        for (const k of Object.keys(assigned)) {
-            const id = parseInt(k, 10);
-            const cur = this._userUncalled(id);
-            if (cur + assigned[k] > th) over[id] = { current: cur, cap: Math.max(0, th - cur) };
-        }
-        return over;
-    }
-    isDistributeLineOver(ln) {
-        return !!(ln && ln.user_id && this.distributeOverUsers[ln.user_id]);
-    }
-    get distributeHasOver() {
-        return Object.keys(this.distributeOverUsers).length > 0;
-    }
-    // Nhãn sức chứa cho dropdown NV
-    distributeCapLabel(userId) {
-        const th = this.distributeThreshold;
-        if (!th) return "";
-        const cur = this._userUncalled(userId);
-        return ` — còn ${Math.max(0, th - cur)}/${th}`;
-    }
-    // Vòng chia ĐỀU danh sách KH cho tập NV truyền vào (round-robin theo tải,
-    // tôn trọng sức chứa của dòng CHƯA gọi). Dùng cho "đều TẤT CẢ NV" và "đều 1 phòng".
-    _distributeEvenAmong(users) {
-        const lines = this.state.distribute.lines || [];
-        if (!users.length) return;
-        const th = this.distributeThreshold;
-        const remain = {};
-        users.forEach((u) => {
-            remain[u.id] = th > 0 ? Math.max(0, th - (u.new_not_called || 0)) : Infinity;
-        });
-        const load = {};
-        users.forEach((u) => { load[u.id] = u.new_total || 0; });
-        const order = [...users].sort((a, b) => load[a.id] - load[b.id]);
-        let i = 0;
-        for (const ln of lines) {
-            // dòng CHƯA gọi: bỏ qua NV hết chỗ; dòng đã gọi: gán bình thường
-            if (ln.uncalled && th > 0) {
-                let guard = 0;
-                while (remain[order[i % order.length].id] <= 0 && guard < order.length) { i++; guard++; }
-            }
-            const u = order[i % order.length];
-            ln.user_id = u.id;
-            if (ln.uncalled && th > 0 && remain[u.id] > 0) remain[u.id] -= 1;
-            i++;
-        }
-    }
-    applyDistributeMode(mode) {
-        const lines = this.state.distribute.lines || [];
-        const users = this.distributeEligibleUsers;  // đã bỏ NV tắt nhận số
-        if (!users.length) {
-            this.notification.add("Không có nhân viên đang bật nhận số để chia.", { type: "warning" });
-            return;
-        }
-        this.state.distribute.mode = mode;
-        this.state.distribute.oneUserId = 0;  // rời chế độ "1 NV"
-        this.state.distribute.oneTeam = "";   // rời chế độ "1 phòng"
-        if (mode === "per_line") return;  // để NV tự chọn từng dòng
-        const th = this.distributeThreshold;
-        // sức chứa còn lại (theo KH mới chưa gọi); tắt → vô hạn
-        const remain = {};
-        users.forEach((u) => {
-            remain[u.id] = th > 0 ? Math.max(0, th - (u.new_not_called || 0)) : Infinity;
-        });
-        const load = {};
-        users.forEach((u) => { load[u.id] = u.new_total || 0; });
-        const order = [...users].sort((a, b) => load[a.id] - load[b.id]);
-        if (mode === "even_all") {
-            this._distributeEvenAmong(users);
-        } else if (mode === "least") {
-            for (const ln of lines) {
-                let avail = users;
-                if (ln.uncalled && th > 0) {
-                    const withCap = users.filter((u) => remain[u.id] > 0);
-                    if (withCap.length) avail = withCap;   // hết chỗ hẳn → vẫn gán (đỏ)
-                }
-                let best = avail[0].id, bestv = load[avail[0].id];
-                for (const u of avail) { if (load[u.id] < bestv) { best = u.id; bestv = load[u.id]; } }
-                ln.user_id = best;
-                load[best] += 1;
-                if (ln.uncalled && th > 0 && remain[best] > 0) remain[best] -= 1;
-            }
-        }
-    }
-    get distributeAssignedCount() {
-        return (this.state.distribute?.lines || []).filter((l) => l.user_id).length;
-    }
-    async confirmDistribute() {
-        const lines = this.state.distribute.lines || [];
-        const assignments = lines
-            .filter((l) => l.user_id)
-            .map((l) => [l.lead_id, l.user_id]);
-        if (!assignments.length) {
-            this.notification.add("Chưa chia KH nào cho NV.", { type: "warning" });
-            return;
-        }
-        // CHẶN CHIA SỐ (user spec 2026-06-12): có NV vượt ngưỡng → bắt chọn NV khác.
-        if (this.distributeHasOver) {
-            const names = Object.keys(this.distributeOverUsers).map((id) => {
-                const u = (this.state.users || []).find((x) => x.id === parseInt(id, 10));
-                const o = this.distributeOverUsers[id];
-                return `• ${u ? u.name : "NV"} — đang tồn ${o.current}, chỉ nhận thêm ${o.cap} (ngưỡng ${this.distributeThreshold})`;
-            }).join("\n");
-            this.notification.add(
-                "🚫 Vượt ngưỡng khách mới chưa gọi — hãy CHỌN NV KHÁC cho các dòng ĐỎ:\n" + names,
-                { type: "danger", title: "Không chia được — NV đã đầy" },
-            );
-            return;
-        }
-        this.state.distribute.busy = true;
-        try {
-            const moved = await this.orm.call(
-                "crm.lead", "dashboard_bulk_distribute", [assignments],
-            );
-            this.notification.add(
-                `Đã chia ${moved} khách hàng cho các nhân viên (giữ nguyên dữ liệu).`,
-                { type: "success", title: "Chia số thành công" },
-            );
-            this.state.selectedLeadIds = {};
-            this.state.selectMode = false;
-            this.closeDistribute();
-            await this.loadDashboard();
-            if (this.state.is_manager || this.state.can_reassign) {
-                this.state.users = await this.orm.call("crm.lead", "dashboard_users", []);
-            }
-        } catch (e) {
-            const msg = e?.data?.message || e?.message || "Lỗi không xác định.";
-            this.notification.add(msg, { type: "danger", title: "Không chia được số" });
-            if (this.state.distribute) this.state.distribute.busy = false;
-        }
     }
 
     // ========================================================================

@@ -501,94 +501,6 @@
                 </div>
             </div>
 
-            <!-- 📊 POPUP CHIA SỐ (user spec 2026-06-08) — chia KH đã chọn cho nhiều NV.
-                 GIỮ NGUYÊN dữ liệu KH, chỉ đổi NV phụ trách (user_id). -->
-            <div t-if="state.distribute and state.distribute.open" class="o_vd_trashpop_overlay"
-                 t-on-click="() => this.closeDistribute()">
-                <div class="o_vd_distrib" t-on-click.stop="() => {}">
-                    <div class="o_vd_distrib_head">
-                        <span>📊 CHIA SỐ — <b><t t-esc="state.distribute.lines.length"/></b> khách
-                            <span class="o_vd_distrib_head_note">(chuyển NV phụ trách — KHÔNG đổi dữ liệu bên trong KH)</span>
-                        </span>
-                        <button type="button" class="o_vd_trashpop_close"
-                                t-on-click="() => this.closeDistribute()">×</button>
-                    </div>
-                    <div class="o_vd_distrib_modes">
-                        <span class="o_vd_distrib_modes_lbl">Cách chia nhanh:</span>
-                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'even_all' ? ' o_active' : '')"
-                                t-on-click="() => this.applyDistributeMode('even_all')">⚖️ Chia đều TẤT CẢ NV</button>
-                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'least' ? ' o_active' : '')"
-                                t-on-click="() => this.applyDistributeMode('least')">📉 Dồn NV ÍT SỐ nhất</button>
-                        <button t-att-class="'o_vd_distrib_mode' + (state.distribute.mode === 'per_line' ? ' o_active' : '')"
-                                t-on-click="() => this.applyDistributeMode('per_line')">✍️ Tự chọn từng KH</button>
-                        <div class="o_vd_distrib_selrow">
-                            <select t-if="distributeTeams.length > 1"
-                                    t-att-class="'o_vd_distrib_mode o_vd_distrib_one' + (state.distribute.mode === 'team' ? ' o_active' : '')"
-                                    t-on-change="(ev) => this.applyDistributeTeam(ev)"
-                                    title="Chia đều khách đã chọn cho tất cả NV trong 1 phòng">
-                                <option value="" t-att-selected="!state.distribute.oneTeam">🏢 Chia đều 1 PHÒNG...</option>
-                                <option t-foreach="distributeTeams" t-as="tm" t-key="tm.team"
-                                        t-att-value="tm.team" t-att-selected="tm.team === state.distribute.oneTeam">
-                                    <t t-esc="tm.team"/> (<t t-esc="tm.count"/> NV)
-                                </option>
-                            </select>
-                            <select t-att-class="'o_vd_distrib_mode o_vd_distrib_one' + (state.distribute.mode === 'one_user' ? ' o_active' : '')"
-                                    t-on-change="(ev) => this.applyDistributeOne(ev)"
-                                    title="Dồn tất cả khách đã chọn cho 1 nhân viên">
-                                <option value="0" t-att-selected="!state.distribute.oneUserId">👤 Chia hết cho 1 NV...</option>
-                                <option t-foreach="distributeAllUsers" t-as="u" t-key="u.id"
-                                        t-att-value="u.id" t-att-selected="u.id === state.distribute.oneUserId">
-                                    <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="o_vd_distrib_body">
-                        <table class="o_vd_distrib_table">
-                            <thead>
-                                <tr><th>#</th><th>Tên KH</th><th>SĐT</th><th>Nhân viên nhận</th><th>Tải NV</th></tr>
-                            </thead>
-                            <tbody>
-                                <tr t-foreach="state.distribute.lines" t-as="ln" t-key="ln.lead_id"
-                                    t-att-class="(ln.user_id ? 'o_vd_distrib_row o_assigned' : 'o_vd_distrib_row') + (isDistributeLineOver(ln) ? ' o_vd_distrib_over' : '')">
-                                    <td class="o_vd_distrib_idx"><t t-esc="ln_index + 1"/></td>
-                                    <td class="o_vd_distrib_kh"><t t-esc="ln.name"/></td>
-                                    <td class="o_vd_distrib_phone"><t t-esc="ln.phone"/></td>
-                                    <td>
-                                        <select class="o_vd_distrib_nv"
-                                                t-on-change="(ev) => this.setDistributeLineUser(ln_index, ev)">
-                                            <option value="0" t-att-selected="!ln.user_id">— Chọn NV —</option>
-                                            <option t-foreach="distributeAllUsers" t-as="u" t-key="u.id"
-                                                    t-att-value="u.id" t-att-selected="u.id === ln.user_id">
-                                                <t t-esc="u.name"/><t t-esc="distributeCapLabel(u.id)"/>
-                                            </option>
-                                        </select>
-                                    </td>
-                                    <td class="o_vd_distrib_load">
-                                        <t t-if="ln.user_id"><t t-esc="distributeUserLoad(ln.user_id)"/></t>
-                                        <span t-if="isDistributeLineOver(ln)" class="o_vd_distrib_over_tag">⚠️ VƯỢT — chọn NV khác</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="o_vd_distrib_foot">
-                        <div class="o_vd_distrib_summary">
-                            Đã chia <b><t t-esc="distributeAssignedCount"/></b>/<t t-esc="state.distribute.lines.length"/> KH
-                            <span t-if="distributeHasOver" class="o_vd_distrib_over_warn">
-                                🚫 Có NV VƯỢT ngưỡng khách mới chưa gọi — chọn NV khác cho dòng ĐỎ
-                            </span>
-                        </div>
-                        <button class="o_vd_distrib_confirm"
-                                t-att-disabled="state.distribute.busy or !distributeAssignedCount or distributeHasOver"
-                                t-on-click="() => this.confirmDistribute()">
-                            <t t-if="state.distribute.busy"><i class="fa fa-spinner fa-spin me-1"/>Đang chia...</t>
-                            <t t-else="">✅ Xác nhận chia số</t>
-                        </button>
-                        <button class="o_vd_distrib_cancel" t-on-click="() => this.closeDistribute()">Huỷ</button>
-                    </div>
-                </div>
-            </div>
 
             <!-- 🗑️ POPUP THÙNG RÁC CÔNG TY (full màn hình) — KH đã duyệt hủy -->
             <div t-if="state.companyTrash.open" class="o_vd_trashpop_overlay"
@@ -1620,183 +1532,22 @@
                             </div>
                         </div>
 
-                        <!-- ===== TOOLBAR CHỌN NHIỀU KH → CHUYỂN NV =====
-                             Chỉ admin / người chia số / giám đốc (canBulkReassign). -->
-                        <div t-if="canBulkReassign" class="o_vd_bulk_bar">
-                            <button class="o_vd_bulk_toggle"
-                                    t-att-class="state.selectMode ? 'o_vd_bulk_toggle o_active' : 'o_vd_bulk_toggle'"
-                                    t-on-click="() => this.toggleSelectMode()">
-                                <t t-if="state.selectMode">✖ Thoát chọn</t>
-                                <t t-else="">🖊️ Chọn KH</t>
-                            </button>
-                            <!-- ⋮ MENU 3 CHẤM: gom thao tác theo NGUYÊN 1 NHÂN VIÊN
-                                 (chọn toàn bộ KH / xuất Excel / chuyển sang NV khác)
-                                 — không rải nút ra thanh. -->
-                            <div class="o_vd_bulk_kebab_wrap">
-                                <button class="o_vd_bulk_kebab"
-                                        t-att-class="state.bulkMenu.open ? 'o_vd_bulk_kebab o_open' : 'o_vd_bulk_kebab'"
-                                        title="Thao tác theo nhân viên"
-                                        t-on-click.stop="() => this.toggleBulkMenu()">⋮</button>
-                                <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu_backdrop"
-                                     t-on-click="() => this.closeBulkMenu()"/>
-                                <div t-if="state.bulkMenu.open" class="o_vd_bulk_menu">
-                                    <!-- Cấp 1: 4 chức năng -->
-                                    <t t-if="!state.bulkMenu.sub">
-                                        <div class="o_vd_bulk_menu_hd">Thao tác theo nhân viên</div>
-                                        <button class="o_vd_bulk_menu_it"
-                                                t-att-disabled="state.bulkMenu.busy"
-                                                t-on-click="() => this.openBulkSub('selectUser')">
-                                            <span class="o_vd_bmi_ic">🧑‍💼</span>
-                                            <span class="o_vd_bmi_tx">Chọn toàn bộ KH của 1 nhân viên</span>
-                                            <span class="o_vd_bmi_ar">›</span>
-                                        </button>
-                                        <button class="o_vd_bulk_menu_it"
-                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
-                                                t-on-click="() => this.bulkExportExcel()">
-                                            <span class="o_vd_bmi_ic">📊</span>
-                                            <span class="o_vd_bmi_tx">Xuất Excel KH đã chọn<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
-                                        </button>
-                                        <button class="o_vd_bulk_menu_it"
-                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
-                                                t-on-click="() => this.openBulkSub('transferUser')">
-                                            <span class="o_vd_bmi_ic">🔁</span>
-                                            <span class="o_vd_bmi_tx">Chuyển toàn bộ KH đã chọn sang NV khác<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
-                                            <span class="o_vd_bmi_ar">›</span>
-                                        </button>
-                                        <!-- TỰ CHIA NGẪU NHIÊN — hệ thống tự chọn NV, khỏi phải nhớ
-                                             đã chuyển ai (user spec 2026-09-26). -->
-                                        <button class="o_vd_bulk_menu_it"
-                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
-                                                t-on-click="() => this.bulkRandomDistribute()">
-                                            <span class="o_vd_bmi_ic">🎲</span>
-                                            <span class="o_vd_bmi_tx">Chia NGẪU NHIÊN cho các NV đang nhận số<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
-                                        </button>
-                                        <button class="o_vd_bulk_menu_it"
-                                                t-att-disabled="!selectedCount || state.bulkMenu.busy"
-                                                t-on-click="() => this.openBulkSub('teamPick')">
-                                            <span class="o_vd_bmi_ic">🏢</span>
-                                            <span class="o_vd_bmi_tx">Chia đều toàn bộ KH đã chọn cho 1 phòng<t t-if="selectedCount"> (<t t-esc="selectedCount"/>)</t></span>
-                                            <span class="o_vd_bmi_ar">›</span>
-                                        </button>
-                                    </t>
-                                    <!-- Cấp 2: LẤY toàn bộ KH của 1 NV (chọn 1) -->
-                                    <t t-elif="state.bulkMenu.sub === 'selectUser'">
-                                        <div class="o_vd_bulk_menu_hd">
-                                            <button class="o_vd_bmi_back"
-                                                    t-on-click="() => this.openBulkSub('')">‹</button>
-                                            Lấy toàn bộ KH của nhân viên
-                                        </div>
-                                        <div class="o_vd_bulk_menu_list">
-                                            <button t-foreach="bulkMenuUsers" t-as="bu" t-key="bu.id"
-                                                    class="o_vd_bulk_menu_uit"
-                                                    t-att-disabled="state.bulkMenu.busy"
-                                                    t-on-click="() => this.onBulkUserPick(bu)">
-                                                <span class="o_vd_bmu_nm"><t t-esc="bu.name"/></span>
-                                                <span class="o_vd_bmu_ct"><t t-esc="bu.total || 0"/> KH</span>
-                                            </button>
-                                            <div t-if="!bulkMenuUsers.length" class="o_vd_bulk_menu_empty">
-                                                Không có nhân viên nào.
-                                            </div>
-                                        </div>
-                                    </t>
-                                    <!-- Cấp 2: CHUYỂN KH đã chọn — TÍCH 1 hoặc NHIỀU NV.
-                                         1 NV = dồn hết; 2+ NV = TỰ CHIA ĐỀU (user 2026-09-26). -->
-                                    <t t-elif="state.bulkMenu.sub === 'transferUser'">
-                                        <div class="o_vd_bulk_menu_hd">
-                                            <button class="o_vd_bmi_back"
-                                                    t-on-click="() => this.openBulkSub('')">‹</button>
-                                            Chuyển <b t-esc="selectedCount"/> KH — tích 1 hoặc nhiều NV
-                                        </div>
-                                        <div class="o_vd_bulk_menu_list">
-                                            <button t-foreach="bulkMenuUsers" t-as="bu" t-key="bu.id"
-                                                    t-att-class="'o_vd_bulk_roster_it' + ((state.bulkMenu.xferChecked || {})[bu.id] ? ' o_on' : '')"
-                                                    t-att-disabled="state.bulkMenu.busy"
-                                                    t-on-click="() => this.toggleBulkXfer(bu.id)">
-                                                <span class="o_vd_bulk_roster_ck"><t t-if="(state.bulkMenu.xferChecked || {})[bu.id]">✓</t></span>
-                                                <span class="o_vd_bmu_nm"><t t-esc="bu.name"/></span>
-                                                <span class="o_vd_bmu_ct"><t t-esc="bu.total || 0"/> KH</span>
-                                            </button>
-                                            <div t-if="!bulkMenuUsers.length" class="o_vd_bulk_menu_empty">
-                                                Không có nhân viên nào.
-                                            </div>
-                                        </div>
-                                        <button class="o_vd_bulk_roster_go"
-                                                t-att-disabled="!bulkXferCheckedIds.length || state.bulkMenu.busy"
-                                                t-on-click="() => this.bulkXferGo()">
-                                            <t t-if="bulkXferCheckedIds.length > 1">Chia đều <t t-esc="selectedCount"/> KH cho <b t-esc="bulkXferCheckedIds.length"/> người</t>
-                                            <t t-else="">Chuyển <t t-esc="selectedCount"/> KH cho NV đã tích</t>
-                                        </button>
-                                    </t>
-                                    <!-- Cấp 2b: chọn PHÒNG -->
-                                    <t t-elif="state.bulkMenu.sub === 'teamPick'">
-                                        <div class="o_vd_bulk_menu_hd">
-                                            <button class="o_vd_bmi_back"
-                                                    t-on-click="() => this.openBulkSub('')">‹</button>
-                                            Chia <b t-esc="selectedCount"/> KH cho phòng
-                                        </div>
-                                        <div class="o_vd_bulk_menu_list">
-                                            <button t-foreach="bulkMenuTeams" t-as="tm" t-key="tm.team"
-                                                    class="o_vd_bulk_menu_uit"
-                                                    t-att-disabled="state.bulkMenu.busy"
-                                                    t-on-click="() => this.openBulkTeamRoster(tm)">
-                                                <span class="o_vd_bmu_nm">🏢 <t t-esc="tm.team"/></span>
-                                                <span class="o_vd_bmu_ct"><t t-esc="tm.count"/> NV ›</span>
-                                            </button>
-                                            <div t-if="!bulkMenuTeams.length" class="o_vd_bulk_menu_empty">
-                                                Không có phòng nào.
-                                            </div>
-                                        </div>
-                                    </t>
-                                    <!-- Cấp 3: chốt người nhận trong phòng -->
-                                    <t t-else="">
-                                        <div class="o_vd_bulk_menu_hd">
-                                            <button class="o_vd_bmi_back"
-                                                    t-on-click="() => this.openBulkSub('teamPick')">‹</button>
-                                            Phòng <t t-esc="state.bulkMenu.team"/> — chọn người nhận
-                                        </div>
-                                        <div class="o_vd_bulk_roster_tools">
-                                            <button class="o_vd_bulk_roster_tool"
-                                                    t-on-click="() => this.bulkTeamSetAll(true)">Chọn tất cả</button>
-                                            <button class="o_vd_bulk_roster_tool"
-                                                    t-on-click="() => this.bulkTeamSetAll(false)">Bỏ tất cả</button>
-                                        </div>
-                                        <div class="o_vd_bulk_menu_list">
-                                            <button t-foreach="bulkCurrentTeamMembers" t-as="mb" t-key="mb.id"
-                                                    t-att-class="'o_vd_bulk_roster_it' + (state.bulkMenu.teamChecked[mb.id] ? ' o_on' : '')"
-                                                    t-att-disabled="state.bulkMenu.busy"
-                                                    t-on-click="() => this.toggleBulkTeamMember(mb.id)">
-                                                <span class="o_vd_bulk_roster_ck"><t t-if="state.bulkMenu.teamChecked[mb.id]">✓</t></span>
-                                                <span class="o_vd_bmu_nm"><t t-esc="mb.name"/></span>
-                                                <span class="o_vd_bmu_ct"><t t-esc="mb.total || 0"/> KH</span>
-                                            </button>
-                                            <div t-if="!bulkCurrentTeamMembers.length" class="o_vd_bulk_menu_empty">
-                                                Phòng không có nhân viên.
-                                            </div>
-                                        </div>
-                                        <button class="o_vd_bulk_roster_go"
-                                                t-att-disabled="!bulkTeamCheckedIds.length || state.bulkMenu.busy"
-                                                t-on-click="() => this.bulkDistributeToTeam()">
-                                            Chia đều <t t-esc="selectedCount"/> KH cho <b t-esc="bulkTeamCheckedIds.length"/> người
-                                        </button>
-                                    </t>
-                                </div>
-                            </div>
-                            <t t-if="state.selectMode">
-                                <span class="o_vd_bulk_count">
-                                    Đã chọn <b><t t-esc="selectedCount"/></b> KH
-                                </span>
-                                <span class="o_vd_bulk_arrow">→</span>
-                                <button class="o_vd_bulk_apply o_vd_bulk_distribute"
-                                        t-att-disabled="!selectedCount"
-                                        t-on-click="() => this.openDistribute()">
-                                    📊 CHIA SỐ
+                        <!-- CHỌN KH BẰNG KÉO CHUỘT PHẢI → CHIA SỐ (admin/GĐ/người chia số) -->
+                        <div t-if="canBulkReassign" class="o_vd_dsel_bar">
+                            <t t-if="selectedCount">
+                                <span class="o_vd_dsel_count">Đã chọn <b t-esc="selectedCount"/> KH</span>
+                                <button class="o_vd_dsel_go" t-on-click="() => this.openDistributePicker()">
+                                    💰 Chia số
                                 </button>
-                                <button t-if="selectedCount" class="o_vd_bulk_clear"
-                                        t-on-click="() => this.clearSelection()">
+                                <button class="o_vd_dsel_clear" t-on-click="() => this.clearSelection()">
                                     Bỏ chọn
                                 </button>
                             </t>
+                            <span t-else="" class="o_vd_dsel_hint">
+                                🖱️ Giữ <b>chuột phải</b> và kéo qua các khách để chọn (sáng xanh) → Chia số
+                            </span>
                         </div>
+
                         </div><!-- /.o_vd_topbar_row -->
                             </div><!-- /.o_vd_hdr2_left -->
 
@@ -1928,18 +1679,6 @@
                                             <div class="o_vd_filter_table_count">
                                                 <t t-esc="leadsNoProblems.length"/>
                                             </div>
-                                            <button t-if="state.selectMode and leadsNoProblems.length"
-                                                    class="o_vd_select_n_btn"
-                                                    t-on-click.stop="() => this.selectNextN(leadsNoProblems.map(l => l.id), 10)"
-                                                    title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
-                                                ➕10
-                                            </button>
-                                            <button t-if="state.selectMode and leadsNoProblems.length"
-                                                    class="o_vd_select_all_btn"
-                                                    t-on-click.stop="() => this.toggleSelectAll(leadsNoProblems.map(l => l.id))"
-                                                    title="Chọn / bỏ chọn tất cả KH trong cột này">
-                                                ☑ Tất cả
-                                            </button>
                                         </div>
                                         <div class="o_vd_filter_table_right">
                                             <!-- ☎️ KHÁCH GỌI ĐẾN HÔM NAY (user spec 2026-06-24):
@@ -2110,18 +1849,6 @@
                                         <span>BÁO GIÁ</span>
                                     </div>
                                     <div class="o_vd_filter_table_count"><t t-esc="leadsQuoted.length"/></div>
-                                    <button t-if="state.selectMode and leadsQuoted.length"
-                                            class="o_vd_select_n_btn"
-                                            t-on-click.stop="() => this.selectNextN(leadsQuoted.map(l => l.id), 10)"
-                                            title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
-                                        ➕10
-                                    </button>
-                                    <button t-if="state.selectMode and leadsQuoted.length"
-                                            class="o_vd_select_all_btn"
-                                            t-on-click.stop="() => this.toggleSelectAll(leadsQuoted.map(l => l.id))"
-                                            title="Chọn / bỏ chọn tất cả KH bảng này">
-                                        ☑ Tất cả
-                                    </button>
                                 </div>
                                 <div class="o_vd_filter_table_right o_vd_filter_table_right_rows">
                                     <t t-if="leadsQuoted.length">
@@ -2129,11 +1856,8 @@
                                         <t t-set="quotedShown" t-value="state.quotedExpanded ? leadsQuoted : leadsQuoted.slice(0, 15)"/>
                                         <div t-foreach="quotedShown" t-as="lead" t-key="lead.id"
                                              t-on-click="() => this.onPillClick(lead.id)"
-                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (state.selectMode ? ' o_vd_row_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
-                                            <span t-if="state.selectMode" class="o_vd_row_check">
-                                                <t t-if="isLeadSelected(lead.id)">☑</t>
-                                                <t t-else="">☐</t>
-                                            </span>
+                                             t-att-data-vd-lead-id="lead.id"
+                                             t-att-class="'o_vd_problem_row o_vd_urgent_row' + (lead.need_help ? (lead.help_status === 'helping' ? ' o_vd_row_helping' : ' o_vd_row_waiting') : '') + (isLeadSelected(lead.id) ? ' o_vd_row_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_row_locked' : '')">
                                             <!-- KHÔNG .stop ở tên → click nổi lên hàng để MỞ POPUP chi tiết
                                                  (user 2026-08-15: bấm KH phải vào chi tiết, không phải copy tên). -->
                                             <span class="o_vd_problem_row_name o_vd_name_pill"
@@ -3193,18 +2917,6 @@
                     </span>
                     <span class="o_vd_pill_col_nv_name"><t t-esc="grp.label"/></span>
                     <span class="o_vd_pill_col_count"><t t-esc="grp.leads.length"/></span>
-                    <button t-if="state.selectMode and grp.leads.length"
-                            class="o_vd_select_n_btn"
-                            t-on-click.stop="() => this.selectNextN(grp.leads.map(l => l.id), 10)"
-                            title="Chọn nhanh 10 KH kế tiếp (bấm lại +10 nữa)">
-                        ➕10
-                    </button>
-                    <button t-if="state.selectMode and grp.leads.length"
-                            class="o_vd_select_all_btn"
-                            t-on-click.stop="() => this.toggleSelectAll(grp.leads.map(l => l.id))"
-                            title="Chọn / bỏ chọn tất cả KH của NV này">
-                        ☑ Tất cả
-                    </button>
                 </div>
                 <div class="o_vd_pill_col_body">
                     <t t-foreach="grp.leads" t-as="lead" t-key="lead.id">
@@ -3226,11 +2938,8 @@
         <div t-on-click="() => this.onPillClick(lead.id)"
              t-on-mouseenter="(ev) => this.onPillEnter(lead, ev)"
              t-on-mouseleave="() => this.onPillLeave()"
-             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (state.selectMode ? ' o_vd_pill_selectable' : '') + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
-                <span t-if="state.selectMode" class="o_vd_pill_check">
-                    <t t-if="isLeadSelected(lead.id)">☑</t>
-                    <t t-else="">☐</t>
-                </span>
+             t-att-data-vd-lead-id="lead.id"
+             t-att-class="'o_vd_won_pill ' + pillSourceClass(lead) + (isLeadSelected(lead.id) ? ' o_vd_pill_selected' : '') + (isLeadLocked(lead.id) ? ' o_vd_pill_locked' : '')">
                 <span class="o_vd_won_pill_icon">
                     <!-- Stage WON: urgency icon -->
                     <t t-if="selectedStage and selectedStage.code === 'won'">
