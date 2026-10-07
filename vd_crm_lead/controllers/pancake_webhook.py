@@ -250,6 +250,12 @@ class PancakeWebhookController(http.Controller):
                          page.name, conv_id)
             return
 
+        # === SKIP 3: tin liên quan TUYỂN DỤNG → KHÔNG đẩy số (user 2026-10-07) ===
+        if Lead._vd_is_recruitment(message_text, conv.get('snippet') or ''):
+            _logger.info('Pancake webhook %s: conv %s là TIN TUYỂN DỤNG, bỏ qua tạo lead',
+                         page.name, conv_id)
+            return
+
         # Round-robin pick NV — source='pancake' (lọc vd_can_receive_pancake) VÀ
         # platform=page.platform để lọc ĐÚNG công tắc theo nguồn: TikTok chỉ chia
         # cho NV bật 'Nhận TikTok', Facebook chỉ NV bật 'Nhận Facebook'

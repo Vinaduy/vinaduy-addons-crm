@@ -254,6 +254,40 @@ class CrmLead(models.Model):
                 result.add(digits)
         return result
 
+    # ===== LỌC SỐ TUYỂN DỤNG khi TỰ ĐẨY SỐ (user 2026-10-07) =====
+    _VD_RECRUIT_KW = (
+        'tuyen dung', 'tuyen tho', 'tuyen nhan vien', 'tuyen lao dong',
+        'tuyen cong nhan', 'can tuyen', 'dang tuyen', 'tuyen gap',
+        'xin viec', 'ung tuyen', 'tim viec', 'nop ho so', 'nop cv', 'gui cv',
+        'phong van', 'muc luong', 'luong bao nhieu', 'bao nhieu luong',
+    )
+
+    @staticmethod
+    def _vd_strip_accents_lower(s):
+        import unicodedata
+        s = unicodedata.normalize('NFD', s or '')
+        s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+        return s.replace('đ', 'd').replace('Đ', 'D').lower()
+
+    @api.model
+    def _vd_is_recruitment(self, *texts):
+        """True nếu nội dung tin nhắn LIÊN QUAN TUYỂN DỤNG → KHÔNG tự đẩy số.
+        Khớp theo CỤM từ (đã bỏ dấu + thường) để tránh bỏ nhầm khách thật.
+        Admin bổ sung từ khóa qua ir.config_parameter
+        'vd_crm_lead.recruitment_keywords' (ngăn cách bằng dấu phẩy)."""
+        import re
+        blob = ' '.join(t for t in texts if t)
+        if not blob:
+            return False
+        s = re.sub(r'\s+', ' ', self._vd_strip_accents_lower(blob))
+        kws = list(self._VD_RECRUIT_KW)
+        extra = (self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.recruitment_keywords') or '').strip()
+        if extra:
+            kws += [self._vd_strip_accents_lower(k).strip()
+                    for k in extra.split(',') if k.strip()]
+        return any(kw and kw in s for kw in kws)
+
     def action_vd_merge_duplicates(self):
         """🔀 Gộp lead hiện tại với các lead trùng SĐT.
         Logic: giữ lead này làm KEEPER, archive (active=False) các lead khác,

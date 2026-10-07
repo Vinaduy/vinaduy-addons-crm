@@ -377,6 +377,10 @@ class VdPancakePage(models.Model):
         if not phone:
             return 'no_phone'
 
+        # Bỏ tin liên quan TUYỂN DỤNG — không tự đẩy số (user 2026-10-07).
+        if Lead._vd_is_recruitment(conv.get('snippet') or ''):
+            return 'no_phone'
+
         # Round-robin pick NV
         assignee = ResUsers._vd_pick_next_assignee(
             source='pancake', platform=self.platform,
