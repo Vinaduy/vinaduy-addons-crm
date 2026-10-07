@@ -366,11 +366,21 @@ export class VdCrmDashboard extends Component {
         // thay vì "Tất cả NV". Quyết định sau loadDashboard (mới biết role).
         this._dirDefaultPersonal = !this.state.selected_user_id;
 
-        // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH
+        // Keyboard handler cho preview popup: ESC đóng, ←/→ chuyển KH.
         this._onKeydown = (ev) => {
             if (!this.state.previewLead.open) return;
-            // Bỏ qua nếu user đang gõ trong iframe (Odoo SPA chạy bên trong)
-            if (ev.key === 'Escape')     { ev.preventDefault(); this.closePreview(); }
+            // FIX 2026-10-07 ("đang gọi/ghi chú bị NHẢY sang KH khác"): form KH là
+            // <View> OWL thật (không iframe) nên keydown từ ô nhập liệu NỔI lên
+            // window. NV gõ ghi chú rồi bấm ←/→ để di chuyển con trỏ => trước đây
+            // kích prevPreview/nextPreview => nhảy sang KH kế bên; ESC đóng popup
+            // giữa chừng. CHẶN: bỏ qua khi phím phát từ ô nhập liệu / widget field.
+            const t = ev.target;
+            if (t && t.closest && t.closest(
+                'input, textarea, select, [contenteditable="true"], ' +
+                '.note-editable, .o_field_widget')) {
+                return;
+            }
+            if (ev.key === 'Escape')          { ev.preventDefault(); this.closePreview(); }
             else if (ev.key === 'ArrowLeft')  { ev.preventDefault(); this.prevPreview(); }
             else if (ev.key === 'ArrowRight') { ev.preventDefault(); this.nextPreview(); }
         };
@@ -404,12 +414,6 @@ export class VdCrmDashboard extends Component {
             this._loadBroadcast();
             this._loadCourseStats();
             this._loadPricingNotice();
-            // 🔔 CHUÔNG "CÓ SỐ ĐẨY LÊN": mở khoá âm thanh + lắng nghe bus.
-            this._initPushAudio();
-            this._onLeadsPushed = (payload) => this._handleLeadsPushed(payload);
-            if (this.bus && this.bus.subscribe) {
-                this.bus.subscribe("vd.leads.pushed", this._onLeadsPushed);
-            }
             this._trainingTick = setInterval(() => {
                 // 2026-08-05: Mỗi lần ghi trainingNow là 1 lần re-render TOÀN dashboard
                 // (template RẤT lớn) + kích MutationObserver intake_select_fix →
@@ -546,10 +550,6 @@ export class VdCrmDashboard extends Component {
                 clearInterval(this._trainingTick);
                 this._trainingTick = null;
             }
-            if (this.bus && this.bus.unsubscribe && this._onLeadsPushed) {
-                this.bus.unsubscribe("vd.leads.pushed", this._onLeadsPushed);
-                this._onLeadsPushed = null;
-            }
             if (this._onDocPointerDown) {
                 window.removeEventListener('pointerdown', this._onDocPointerDown, true);
                 this._onDocPointerDown = null;
@@ -663,66 +663,6 @@ export class VdCrmDashboard extends Component {
         } finally {
             this.state.pwSaving = false;
         }
-    }
-
-    // ============ 🔔 CHUÔNG BÁO "CÓ SỐ ĐẨY LÊN" ============
-    _initPushAudio() {
-        try {
-            const Ctx = window.AudioContext || window.webkitAudioContext;
-            if (!Ctx) return;
-            if (!this._audioCtx) this._audioCtx = new Ctx();
-            // Chính sách autoplay: mở khoá AudioContext theo cử chỉ đầu tiên.
-            const unlock = () => {
-                try {
-                    if (this._audioCtx && this._audioCtx.state === "suspended") {
-                        this._audioCtx.resume();
-                    }
-                } catch (e) { /* ignore */ }
-            };
-            window.addEventListener("pointerdown", unlock, { once: true });
-            window.addEventListener("keydown", unlock, { once: true });
-        } catch (e) { /* ignore */ }
-    }
-
-    _playPushChime() {
-        try {
-            const Ctx = window.AudioContext || window.webkitAudioContext;
-            if (!Ctx) return;
-            if (!this._audioCtx) this._audioCtx = new Ctx();
-            const ctx = this._audioCtx;
-            if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
-            const t0 = ctx.currentTime;
-            const beep = (dt, freq) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = "triangle";
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.0001, t0 + dt);
-                gain.gain.exponentialRampToValueAtTime(0.9, t0 + dt + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.45);
-                osc.connect(gain).connect(ctx.destination);
-                osc.start(t0 + dt);
-                osc.stop(t0 + dt + 0.5);
-            };
-            // "ding-ding-ding" cao + to, lặp 2 vòng cho NV dễ nghe.
-            const notes = [880, 1174.7, 880, 1318.5];
-            notes.forEach((f, i) => beep(i * 0.22, f));
-            notes.forEach((f, i) => beep(1.0 + i * 0.22, f));
-        } catch (e) { /* ignore */ }
-    }
-
-    _handleLeadsPushed(payload) {
-        const cnt = (payload && payload.count) || 0;
-        const from = (payload && payload.from) || "";
-        this._playPushChime();
-        this.notification.add(
-            `Bạn vừa được đẩy ${cnt} số khách mới` +
-                (from ? ` (từ ${from})` : "") +
-                ". Kiểm tra bảng KHÁCH MỚI!",
-            { type: "success", sticky: true, title: "🔔 CÓ SỐ MỚI ĐẨY LÊN" }
-        );
-        // Nạp lại dashboard để KH mới hiện ngay.
-        try { this.loadDashboard(); } catch (e) { /* ignore */ }
     }
 
     async loadDashboard() {
