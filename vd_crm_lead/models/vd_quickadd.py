@@ -25,12 +25,6 @@ VD_QA_SOURCES = [
 VD_QA_CHANNEL = {'quet': 'quet', 'zalo': 'zalo', 'tiktok': 'tiktok', 'facebook': 'facebook'}
 
 # Header nhận dạng cột khi nạp Excel.
-_H_PHONE = ('sdt', 'so dien thoai', 'dien thoai', 'phone', 'sđt', 'số điện thoại')
-_H_NAME = ('ten', 'ten kh', 'ten khach', 'khach hang', 'ho ten', 'name', 'tên', 'tên kh')
-_H_SOURCE = ('nguon', 'kenh', 'source', 'nguồn')
-_H_INFO = ('thong tin', 'nhu cau', 'ghi chu', 'noi dung', 'info', 'thông tin', 'ghi chú')
-
-
 def _novn(s):
     """Bỏ dấu tiếng Việt + chuẩn hoá dấu nhân, về lowercase (để dò từ khoá)."""
     s = (s or '')
@@ -252,24 +246,40 @@ class VdQuickAddLead(models.Model):
         return str(c).strip()
 
     def _vd_qa_rows_to_dicts(self, raw):
-        """list[list] → list[{phone,name,source,info}] (dò header, fallback đoán)."""
-        def _idx(header, keys):
-            for i, h in enumerate(header):
-                if _novn(h).strip() in keys:
-                    return i
-            return -1
+        """list[list] → list[{phone,name,source,info}].
+        Tự tìm DÒNG HEADER (có thể KHÔNG phải dòng đầu — vd dòng đầu là ngày),
+        khớp cột theo TỪ KHÓA CHỨA trong tên cột (nên 'Tên khách hàng',
+        'SĐT', 'Thông tin', 'Nguồn' đều nhận ra); không thấy header → đoán."""
+        PH = ('sdt', 'dien thoai', 'phone')
+        NM = ('ten', 'ho ten', 'khach hang')
+        SR = ('nguon', 'kenh', 'source')
+        IF = ('thong tin', 'nhu cau', 'ghi chu', 'noi dung', 'info')
 
-        header = raw[0] if raw else []
-        hn = [_novn(x).strip() for x in header]
-        has_header = any(k in hn for k in _H_PHONE)
-        ip = _idx(header, _H_PHONE) if has_header else -1
-        iname = _idx(header, _H_NAME) if has_header else -1
-        isrc = _idx(header, _H_SOURCE) if has_header else -1
-        iinfo = _idx(header, _H_INFO) if has_header else -1
-        body = raw[1:] if has_header else raw
+        def _match(h, kws):
+            return any(k in h for k in kws)
+
+        # Dòng header = dòng đầu tiên (trong 8 dòng đầu) có cột SĐT bằng CHỮ.
+        hidx = -1
+        header_norm = []
+        for i, row in enumerate(raw[:8]):
+            hn = [_novn(self._vd_qa_cell(c)).strip() for c in row]
+            if any(_match(h, PH) for h in hn):
+                hidx, header_norm = i, hn
+                break
+
+        ip = iname = isrc = iinfo = -1
+        if hidx >= 0:
+            def _first(kws):
+                for j, h in enumerate(header_norm):
+                    if _match(h, kws):
+                        return j
+                return -1
+            ip, iname, isrc, iinfo = _first(PH), _first(NM), _first(SR), _first(IF)
+            body = raw[hidx + 1:]
+        else:
+            body = raw
 
         out = []
-        phone_re = re.compile(r'(?<!\d)(0|84|\+84)?[\s.]?(\d[\s.]?){8,10}')
         for row in body:
             cells = [self._vd_qa_cell(c) for c in row]
             if not any(cells):
