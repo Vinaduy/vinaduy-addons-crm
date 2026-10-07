@@ -7352,7 +7352,9 @@ class CrmLead(models.Model):
         ANSWERED = [('vd_answered', '=', True)]
         uids = list(user_ids)
         out = {uid: {'calls_today_total': 0, 'calls_today_success': 0,
-                     'calls_month_total': 0, 'calls_month_success': 0} for uid in uids}
+                     'calls_month_total': 0, 'calls_month_success': 0,
+                     'calls_today_info': 0, 'calls_month_info': 0,
+                     'calls_today_junk': 0, 'calls_month_junk': 0} for uid in uids}
         if not uids:
             return out
         # PERF 2026-06-24: trước đây vòng `for uid` chạy 4 search_count/NV. Hai trong
@@ -7360,9 +7362,9 @@ class CrmLead(models.Model):
         # index nên MỖI lần là 1 SEQ-SCAN gần như cả bảng stringee_call. Với ~16 NV
         # = 32 lần quét bảng (~10s, thủ phạm chính làm dashboard_analytics 12s).
         # Gom thành 4 read_group (group theo user_id) → ILIKE chỉ quét 1 lần/loại.
-        def _by_user(_dom):
+        def _by_user(_dom, _Call=Call):
             _r = {}
-            for _g in Call.read_group(
+            for _g in _Call.read_group(
                     _dom + [('user_id', 'in', uids)], ['user_id'], ['user_id']):
                 _u = _g.get('user_id')
                 if _u:
@@ -7381,12 +7383,28 @@ class CrmLead(models.Model):
         _ts = _by_user(base_today + ANSWERED)
         _mt = _by_user(base_month)
         _ms = _by_user(base_month + ANSWERED)
+        # NGHE MÁY ĐỦ THÔNG TIN: cuộc nghe máy tới KH đã khai thác đủ (intake_complete).
+        INFO = ANSWERED + [('lead_id.vd_intake_complete', '=', True)]
+        _ti = _by_user(base_today + INFO)
+        _mi = _by_user(base_month + INFO)
+        # SỐ RÁC: cuộc gọi tới KH bị đánh dấu Nhầm số / Sai số (KH đã archive →
+        # active_test=False để subquery lead vẫn tính). Hai nguồn: cancel_category
+        # 'wrong_number' (hủy tay) + lost_reason 'Sai số' (nút đánh dấu từ cuộc gọi).
+        JUNK = ['|', ('lead_id.vd_cancel_category', '=', 'wrong_number'),
+                ('lead_id.vd_lost_reason', 'ilike', 'Sai số')]
+        Call_arch = Call.with_context(active_test=False)
+        _tj = _by_user(base_today + JUNK, Call_arch)
+        _mj = _by_user(base_month + JUNK, Call_arch)
         for uid in uids:
             out[uid] = {
                 'calls_today_total': _tt.get(uid, 0),
                 'calls_today_success': _ts.get(uid, 0),
                 'calls_month_total': _mt.get(uid, 0),
                 'calls_month_success': _ms.get(uid, 0),
+                'calls_today_info': _ti.get(uid, 0),
+                'calls_month_info': _mi.get(uid, 0),
+                'calls_today_junk': _tj.get(uid, 0),
+                'calls_month_junk': _mj.get(uid, 0),
             }
         return out
 
@@ -10381,7 +10399,9 @@ class CrmLead(models.Model):
         # danh sách NV KHỚP 100% với card sidebar trang cá nhân. Đếm theo SỐ CUỘC GỌI.
         call_report_map = self._vd_call_report(sales_users.ids, today=today)
         _empty_cr = {'calls_today_total': 0, 'calls_today_success': 0,
-                     'calls_month_total': 0, 'calls_month_success': 0}
+                     'calls_month_total': 0, 'calls_month_success': 0,
+                     'calls_today_info': 0, 'calls_month_info': 0,
+                     'calls_today_junk': 0, 'calls_month_junk': 0}
         # ===== BÓC TÁCH kho "Khách mới" mỗi NV: gọi được / khó gọi / tham khảo =====
         # (user spec 2026-09-22): ô tổng "N Khách" gây hiểu nhầm vì đếm CẢ khách đã
         # đẩy sang nhóm khác (gọi >=3 lần không nghe → "chưa gọi được"; pending →
@@ -10578,6 +10598,10 @@ class CrmLead(models.Model):
                 'calls_today_success': _cr['calls_today_success'],
                 'calls_month_total': _cr['calls_month_total'],
                 'calls_month_success': _cr['calls_month_success'],
+                'calls_today_info': _cr.get('calls_today_info', 0),
+                'calls_month_info': _cr.get('calls_month_info', 0),
+                'calls_today_junk': _cr.get('calls_today_junk', 0),
+                'calls_month_junk': _cr.get('calls_month_junk', 0),
                 # 🆘 Cần hỗ trợ (user spec 2026-05-31): count + danh sách ≤3 KH
                 'help_count': len(help_active),
                 'help_waiting': n_help_waiting,

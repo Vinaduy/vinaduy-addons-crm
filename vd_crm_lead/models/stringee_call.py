@@ -160,6 +160,8 @@ class StringeeCall(models.Model):
             'vd_lost_date': fields.Datetime.now(),
             'vd_lost_user_id': self.env.user.id,
             'vd_lost_is_auto': False,
+            # Đánh dấu "số rác" (dùng cho thống kê cuộc gọi số rác trên dashboard).
+            'vd_cancel_category': 'wrong_number',
         })
         lead.message_post(
             subtype_xmlid='mail.mt_note',

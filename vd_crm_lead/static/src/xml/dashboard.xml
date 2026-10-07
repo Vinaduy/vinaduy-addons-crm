@@ -1558,31 +1558,42 @@
                                     <span>📊 Báo cáo — <b><t t-esc="nv.name"/></b></span>
                                     <span class="o_vd_rpt_date"><i class="fa fa-calendar me-1"/><t t-esc="todayLabel"/></span>
                                 </div>
-                                <div class="o_vd_rpt_cards">
-                                    <div class="o_vd_rptcard">
-                                        <div class="o_vd_rptcard_lbl">Tổng khách hàng</div>
-                                        <div class="o_vd_rptcard_num"><t t-esc="nv.total_leads or 0"/></div>
+                                <!-- 1 DÒNG NGANG (user 2026-10-07): bỏ khung card, gộp 1 hàng.
+                                     2 ô mới (Nghe máy đủ TT / Số rác) hiện hôm nay · tháng. -->
+                                <div class="o_vd_rpt_row">
+                                    <div class="o_vd_rpt_cell">
+                                        <span class="o_vd_rpt_l">Tổng KH</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.total_leads or 0"/></span>
                                     </div>
-                                    <div class="o_vd_rptcard">
-                                        <div class="o_vd_rptcard_lbl">Hôm nay được chia</div>
-                                        <div class="o_vd_rptcard_num"><t t-esc="nv.new_today_count or 0"/></div>
+                                    <div class="o_vd_rpt_cell">
+                                        <span class="o_vd_rpt_l">Hôm nay chia</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.new_today_count or 0"/></span>
                                     </div>
-                                    <div t-att-class="'o_vd_rptcard ' + pctClass(nv.calls_today_total, nv.calls_today_success)">
-                                        <div class="o_vd_rptcard_lbl">% cuộc gọi</div>
-                                        <div class="o_vd_rptcard_num"><t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</div>
-                                        <div class="o_vd_rptcard_sub"><t t-esc="nv.calls_today_total or 0"/> cuộc hôm nay</div>
+                                    <div t-att-class="'o_vd_rpt_cell ' + pctClass(nv.calls_today_total, nv.calls_today_success)">
+                                        <span class="o_vd_rpt_l">Gọi hôm nay</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.calls_today_total or 0"/> · <t t-esc="answeredPct(nv.calls_today_total, nv.calls_today_success)"/>%</span>
                                     </div>
-                                    <div class="o_vd_rptcard">
-                                        <div class="o_vd_rptcard_lbl">Chưa gọi</div>
-                                        <div class="o_vd_rptcard_num o_vd_rptcard_warn"><t t-esc="nv.rem_new_not_called or 0"/></div>
+                                    <div class="o_vd_rpt_cell o_vd_rpt_good">
+                                        <span class="o_vd_rpt_l">Nghe máy đủ TT</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.calls_today_info or 0"/> · <t t-esc="nv.calls_month_info or 0"/></span>
+                                        <span class="o_vd_rpt_s">hôm nay · tháng</span>
                                     </div>
-                                    <div class="o_vd_rptcard">
-                                        <div class="o_vd_rptcard_lbl">Báo giá hôm nay</div>
-                                        <div class="o_vd_rptcard_num"><t t-esc="nv.quote_today_count or 0"/></div>
+                                    <div class="o_vd_rpt_cell o_vd_rpt_bad">
+                                        <span class="o_vd_rpt_l">Số rác</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.calls_today_junk or 0"/> · <t t-esc="nv.calls_month_junk or 0"/></span>
+                                        <span class="o_vd_rpt_s">hôm nay · tháng</span>
                                     </div>
-                                    <div class="o_vd_rptcard">
-                                        <div class="o_vd_rptcard_lbl">Kết bạn Zalo hôm nay</div>
-                                        <div class="o_vd_rptcard_num"><t t-esc="nv.zalo_friend_today_count or 0"/></div>
+                                    <div class="o_vd_rpt_cell">
+                                        <span class="o_vd_rpt_l">Chưa gọi</span>
+                                        <span class="o_vd_rpt_v o_vd_rpt_warn"><t t-esc="nv.rem_new_not_called or 0"/></span>
+                                    </div>
+                                    <div class="o_vd_rpt_cell">
+                                        <span class="o_vd_rpt_l">Báo giá hôm nay</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.quote_today_count or 0"/></span>
+                                    </div>
+                                    <div class="o_vd_rpt_cell">
+                                        <span class="o_vd_rpt_l">Zalo hôm nay</span>
+                                        <span class="o_vd_rpt_v"><t t-esc="nv.zalo_friend_today_count or 0"/></span>
                                     </div>
                                 </div>
                             </div>
