@@ -10562,9 +10562,11 @@ class CrmLead(models.Model):
                 ('user_id', '=', u.id),
                 ('active', '=', True),
             ])
-            # User spec 2026-06-09: NV cứ có tài khoản (salesman, active) là PHẢI
-            # hiện trên danh sách, kể cả 0 khách / 0 số → bỏ skip NV rỗng (trước
-            # đây ẩn NV total_managed==0 nên NV mới giao tài khoản không thấy).
+            # User spec 2026-10-08: CHỈ hiện NV CÓ khách trên bảng NV (ẩn NV 0 khách
+            # như tài khoản mới chưa giao số / máy chấm công). LUÔN giữ chính người
+            # đang xem (self.env.uid) để họ vẫn thấy báo cáo của mình.
+            if total_managed == 0 and u.id != self.env.uid:
+                continue
 
             # ===== NHẮC NHỞ NHÂN VIÊN — số liệu tồn đọng cần xử lý =====
             _nv_urgent = urgent_by_user.get(u.id, [])
