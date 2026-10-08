@@ -2459,15 +2459,20 @@ export class VdCrmDashboard extends Component {
         const d = this._ensureTilePop();
         d.innerHTML = html;
         d.style.display = "block";
+        // Cho popover cao gần HẾT màn hình → danh sách dài hiện nhiều + body tự
+        // cuộn (o_vd_tilepop_body: overflow-y auto). Đè max-height 78vh của CSS.
+        const vh = window.innerHeight;
+        d.style.maxHeight = (vh - 16) + "px";
         // Neo BÊN TRÁI ô (panel nằm mép phải màn hình).
         const r = tileEl.getBoundingClientRect();
         const tw = d.offsetWidth, th = d.offsetHeight;
         let left = r.left - tw - 10;
         if (left < 6) left = 6;
         let top = r.top;
-        if (top + th > window.innerHeight - 6) top = window.innerHeight - 6 - th;
+        if (top + th > vh - 8) top = vh - 8 - th;   // tràn đáy → đẩy lên
+        if (top < 8) top = 8;
         d.style.left = Math.max(6, left) + "px";
-        d.style.top = Math.max(6, top) + "px";
+        d.style.top = top + "px";
     }
     _hideTilePopSoon() {
         if (this._tileHideTimer) clearTimeout(this._tileHideTimer);
