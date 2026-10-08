@@ -397,9 +397,11 @@ class VdQuickAddLead(models.Model):
                 'name': c['name'], 'partner_name': c['name'], 'phone': c['phone'],
                 'user_id': u.id, 'type': 'lead',
                 'vd_lead_channel': channel,
+                # Mọi số thêm qua popup (gõ tay HOẶC Excel) đều là "QUÉT SỐ" —
+                # vd_from_excel là cờ "quét số" cho báo cáo chia số (không để số
+                # quét lọt vào cột "tự động" của Pancake) (fix 2026-10-08).
+                'vd_from_excel': True,
             }
-            if c['excel']:
-                vals['vd_from_excel'] = True
             if new_stage:
                 vals['stage_id'] = new_stage.id
             if c['info']:

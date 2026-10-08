@@ -163,9 +163,12 @@ class CrmLead(models.Model):
     ], string='Kênh nguồn', index=True, copy=False)
 
     def _vd_lead_channel(self):
-        """Kênh nguồn của KH cho báo cáo: ưu tiên field đã set, không thì SUY RA
-        từ conv_id Pancake / cờ excel (tương thích dữ liệu cũ)."""
+        """Kênh nguồn của KH cho báo cáo. Số QUÉT (đẩy file Excel) LUÔN là 'quét
+        số' — cột Nguồn trong file (facebook/tiktok/zalo) KHÔNG được kéo nó vào
+        'tự động' (fix 2026-10-08). Còn lại: field đã set → suy ra từ conv Pancake."""
         self.ensure_one()
+        if self.vd_from_excel:
+            return 'quet'
         if self.vd_lead_channel:
             return self.vd_lead_channel
         cid = self.vd_pancake_conversation_id or ''
@@ -173,8 +176,6 @@ class CrmLead(models.Model):
             return 'zalo'
         if cid.startswith('ttm_'):
             return 'tiktok'
-        if self.vd_from_excel:
-            return 'quet'
         if self.vd_pancake_page_id:
             return 'facebook'
         return 'other'
@@ -7180,13 +7181,13 @@ class CrmLead(models.Model):
                         AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d,
                    l.user_id,
                    (CASE
+                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_lead_channel IS NOT NULL
                            AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
                       WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
                            THEN 'zalo'
                       WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
                            THEN 'tiktok'
-                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
                       ELSE 'other'
                     END) AS kenh,
