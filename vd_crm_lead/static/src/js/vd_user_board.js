@@ -41,30 +41,20 @@ export class VdUserBoard extends Component {
         }
     }
 
-    get list() {
+    // Danh sách phẳng, sắp theo phòng ban rồi tên (trưởng nhóm lên trước).
+    get rows() {
         const q = this.state.search.trim().toLowerCase();
-        if (!q) return this.state.working;
-        return this.state.working.filter((u) =>
-            (u.name + " " + u.code + " " + u.team + " " + u.login).toLowerCase().includes(q));
-    }
-
-    // Gom theo phòng ban → các cột; trưởng nhóm lên đầu mỗi cột.
-    get groups() {
-        const map = {};
-        for (const u of this.list) {
-            const t = u.team || "KHÁC";
-            (map[t] = map[t] || []).push(u);
+        let list = this.state.working;
+        if (q) {
+            list = list.filter((u) =>
+                (u.name + " " + u.code + " " + u.team + " " + u.login).toLowerCase().includes(q));
         }
-        const teams = Object.keys(map).sort((a, b) => {
-            const ia = TEAM_ORDER.indexOf(a), ib = TEAM_ORDER.indexOf(b);
-            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
-        });
-        return teams.map((t) => ({
-            team: t,
-            color: (map[t][0] && map[t][0].team_color) || "#868e96",
-            users: map[t].slice().sort(
-                (a, b) => (b.is_leader - a.is_leader) || a.name.localeCompare(b.name)),
-        }));
+        const ti = (t) => { const i = TEAM_ORDER.indexOf(t || "KHÁC"); return i < 0 ? 99 : i; };
+        return list.slice().sort((a, b) =>
+            ti(a.team) - ti(b.team) ||
+            (a.team || "").localeCompare(b.team || "") ||
+            (b.is_leader - a.is_leader) ||
+            a.name.localeCompare(b.name));
     }
 
     // ===== POPUP =====

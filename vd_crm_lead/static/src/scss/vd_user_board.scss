@@ -1,138 +1,78 @@
-// QUẢN LÝ NHÂN VIÊN — CSS mới, tối giản (user 2026-10-07)
+// QUẢN LÝ NHÂN VIÊN — bảng thường, tối giản (user 2026-10-08)
 .o_vdnv {
     padding: 16px 20px;
     font-size: 14px;
-    color: #1f2a44;
+    color: #222;
 
-    // ---- Thanh trên ----
+    // Thanh trên
     .o_vdnv_bar {
-        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        margin-bottom: 12px;
+        display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
     }
-    .o_vdnv_h { font-size: 20px; font-weight: 800; margin: 0; }
+    .o_vdnv_h { font-size: 20px; font-weight: 700; margin: 0; white-space: nowrap; }
     .o_vdnv_search {
-        flex: 1 1 280px; min-width: 180px; height: 38px;
-        border: 1px solid #d4d4d8; border-radius: 9px; padding: 0 12px; font-size: 14px;
-        &:focus { outline: none; border-color: #714B67; box-shadow: 0 0 0 2px rgba(113,75,103,.15); }
+        flex: 1 1 auto; height: 38px;
+        border: 1px solid #ccc; border-radius: 6px; padding: 0 12px; font-size: 14px;
+        &:focus { outline: none; border-color: #888; }
     }
     .o_vdnv_add {
-        height: 38px; padding: 0 16px; border: none; border-radius: 9px; cursor: pointer;
-        background: #2f9e44; color: #fff; font-weight: 700;
+        height: 38px; padding: 0 16px; border: none; border-radius: 6px; cursor: pointer;
+        background: #2f9e44; color: #fff; font-weight: 600; white-space: nowrap;
         &:hover { background: #2b8a3e; }
     }
 
-    .o_vdnv_loading, .o_vdnv_empty {
-        padding: 40px; text-align: center; color: #999;
-    }
+    .o_vdnv_loading, .o_vdnv_empty { padding: 32px; text-align: center; color: #999; }
 
-    // ---- Bảng danh sách nhân viên (gom theo phòng ban) ----
-    .o_vdnv_tablewrap {
-        border: 1px solid #ececf0; border-radius: 12px; overflow: hidden;
-    }
+    // Bảng thường
     .o_vdnv_table {
         width: 100%; border-collapse: collapse; font-size: 14px;
 
-        thead th {
-            background: #f4f3f6; color: #6b7280; font-weight: 700;
-            text-align: left; padding: 10px 12px; white-space: nowrap;
-            border-bottom: 2px solid #e5e3ea; font-size: 12.5px;
-            text-transform: uppercase; letter-spacing: .02em;
+        th {
+            text-align: left; padding: 10px 12px; font-weight: 600; color: #444;
+            background: #f5f5f5; border-bottom: 1px solid #ddd; white-space: nowrap;
         }
-        td { padding: 9px 12px; border-bottom: 1px solid #f0f0f3; vertical-align: middle; }
-
-        // Dòng header của 1 phòng ban
-        .o_vdnv_grouprow td {
-            background: #faf9fb; padding: 7px 12px;
-            border-bottom: 1px solid #e9e7ee;
-            border-left: 4px solid var(--c, #868e96);
-        }
-        .o_vdnv_groupname {
-            font-weight: 800; font-size: 12.5px; color: var(--c, #495057);
-            text-transform: uppercase; letter-spacing: .03em;
-        }
-        .o_vdnv_groupcnt {
-            display: inline-block; margin-left: 8px;
-            background: var(--c, #868e96); color: #fff; border-radius: 999px;
-            padding: 0 8px; font-size: 11px; font-weight: 700;
-        }
-
-        // Dòng nhân viên
-        .o_vdnv_row {
-            cursor: pointer; border-left: 4px solid transparent;
-            &:hover td { background: #f6f4f8; }
-            &:hover { border-left-color: var(--c, #868e96); }
-        }
+        td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover td { background: #f4f8ff; }
+        .o_vdnv_num { text-align: right; }
     }
-    .o_vdnv_code {
-        display: inline-flex; align-items: center; justify-content: center;
-        min-width: 38px; height: 26px; padding: 0 7px; border-radius: 7px;
-        background: var(--c, #868e96); color: #fff; font-weight: 800; font-size: 12px;
-    }
-    .o_vdnv_c_name { width: 42%; }
-    .o_vdnv_name { font-weight: 700; }
-    .o_vdnv_badge {
-        display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 700;
-        color: #b7791f; background: #fff7e6; border-radius: 6px; padding: 1px 7px;
-    }
-    .o_vdnv_c_role { color: #555; white-space: nowrap; }
-    .o_vdnv_c_login { color: #868e96; white-space: nowrap; }
-    .o_vdnv_c_cnt { text-align: center; font-weight: 700; color: #1c7ed6; width: 90px; }
-    td.o_vdnv_empty { text-align: center; color: #999; padding: 32px; }
 
-    .o_vdnv_hint { margin-top: 14px; font-size: 13px; color: #9aa0ab; }
-
-    // ---- Popup ----
-    .o_vdnv_mask {
-        position: fixed; inset: 0; background: rgba(15,20,30,.45); z-index: 1000;
-    }
+    // Popup thêm/sửa
+    .o_vdnv_mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
     .o_vdnv_modal {
         position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        z-index: 1001; width: 520px; max-width: 94vw;
-        background: #fff; border-radius: 14px; overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        z-index: 1001; width: 480px; max-width: 94vw;
+        background: #fff; border: 1px solid #ddd; border-radius: 8px;
         display: flex; flex-direction: column; max-height: 90vh;
+        box-shadow: 0 10px 40px rgba(0,0,0,.25);
     }
     .o_vdnv_mhd {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 14px 18px; border-bottom: 1px solid #eee;
-        font-weight: 800; font-size: 16px;
+        padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 700; font-size: 16px;
     }
-    .o_vdnv_x {
-        border: none; background: transparent; font-size: 24px; line-height: 1;
-        cursor: pointer; color: #999; &:hover { color: #333; }
-    }
-    .o_vdnv_mbd {
-        padding: 16px 18px; overflow-y: auto;
-        display: flex; flex-direction: column; gap: 12px;
-    }
-    .o_vdnv_f {
-        display: flex; flex-direction: column; gap: 5px;
-        > span { font-size: 13px; font-weight: 700; color: #555; }
-    }
-    .o_vdnv_opt { font-weight: 400; color: #adb5bd; font-style: normal; }
-    .o_vdnv_f2 { display: flex; gap: 12px; > .o_vdnv_f { flex: 1 1 0; min-width: 0; } }
+    .o_vdnv_x { border: none; background: none; font-size: 22px; cursor: pointer; color: #888; }
+    .o_vdnv_mbd { padding: 14px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; }
+    .o_vdnv_f { display: flex; flex-direction: column; gap: 4px;
+        > span { font-size: 13px; font-weight: 600; color: #555; } }
+    .o_vdnv_opt { font-weight: 400; color: #aaa; font-style: normal; }
+    .o_vdnv_f2 { display: flex; gap: 10px; > .o_vdnv_f { flex: 1 1 0; min-width: 0; } }
     .o_vdnv_in {
-        height: 38px; border: 1px solid #d4d4d8; border-radius: 9px; padding: 0 11px;
-        font-size: 14px; background: #fff;
-        &:focus { outline: none; border-color: #714B67; box-shadow: 0 0 0 2px rgba(113,75,103,.15); }
+        height: 36px; border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; font-size: 14px;
+        &:focus { outline: none; border-color: #888; }
     }
-    .o_vdnv_pw {
-        background: #f1f3f9; border-radius: 9px; padding: 8px 12px; font-size: 13px;
-        color: #495057; b { color: #1c4ed8; letter-spacing: .5px; }
-    }
+    .o_vdnv_pw { background: #f5f5f5; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
     .o_vdnv_mft {
         display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-        padding: 14px 18px; border-top: 1px solid #eee; background: #fafafb;
+        padding: 12px 16px; border-top: 1px solid #eee;
     }
     .o_vdnv_sp { flex: 1 1 auto; }
     .o_vdnv_b {
-        padding: 9px 16px; border-radius: 9px; font-weight: 800; font-size: 14px;
-        cursor: pointer; border: 1.5px solid transparent;
+        padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 14px;
+        cursor: pointer; border: 1px solid #ccc; background: #fff;
         &[disabled] { opacity: .5; cursor: default; }
     }
-    .o_vdnv_b_save { background: #714B67; color: #fff; }
-    .o_vdnv_b_cancel { background: #f1f3f5; color: #495057; border-color: #dee2e6; }
-    .o_vdnv_b_off { background: #fff4e6; color: #e8590c; border-color: #ffd8a8; }
-    .o_vdnv_b_on { background: #ebfbee; color: #2b8a3e; border-color: #b2f2bb; }
-    .o_vdnv_b_del { background: #fff5f5; color: #c92a2a; border-color: #ffc9c9; }
+    .o_vdnv_b_save { background: #2f9e44; color: #fff; border-color: #2f9e44; }
+    .o_vdnv_b_cancel { background: #f1f1f1; color: #444; }
+    .o_vdnv_b_off { background: #fff; color: #e8590c; border-color: #f0b27a; }
+    .o_vdnv_b_on { background: #fff; color: #2b8a3e; border-color: #8ce99a; }
+    .o_vdnv_b_del { background: #fff; color: #c92a2a; border-color: #f1a9a9; }
 }

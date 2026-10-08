@@ -13,51 +13,32 @@
             </div>
 
             <div t-if="state.loading" class="o_vdnv_loading">Đang tải danh sách nhân viên…</div>
-            <div t-else="" class="o_vdnv_tablewrap">
-                <table class="o_vdnv_table">
-                    <thead>
-                        <tr>
-                            <th class="o_vdnv_c_code">Mã</th>
-                            <th class="o_vdnv_c_name">Tên nhân viên</th>
-                            <th class="o_vdnv_c_role">Chức vụ</th>
-                            <th class="o_vdnv_c_login">Đăng nhập</th>
-                            <th class="o_vdnv_c_cnt">Số khách</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="groups" t-as="g" t-key="g.team">
-                            <tr class="o_vdnv_grouprow" t-attf-style="--c:{{g.color}}">
-                                <td colspan="5">
-                                    <span class="o_vdnv_groupname" t-esc="g.team"/>
-                                    <span class="o_vdnv_groupcnt" t-esc="g.users.length"/>
-                                </td>
-                            </tr>
-                            <tr t-foreach="g.users" t-as="u" t-key="u.id"
-                                class="o_vdnv_row"
-                                t-attf-style="--c:{{u.team_color}}"
-                                t-att-title="u.login + ' — bấm để sửa'"
-                                t-on-click="() => this.openEdit(u)">
-                                <td class="o_vdnv_c_code"><span class="o_vdnv_code" t-esc="u.code"/></td>
-                                <td class="o_vdnv_c_name">
-                                    <span class="o_vdnv_name" t-esc="u.name"/>
-                                    <span t-if="u.is_leader" class="o_vdnv_badge">★ Trưởng nhóm</span>
-                                </td>
-                                <td class="o_vdnv_c_role" t-esc="u.role_label"/>
-                                <td class="o_vdnv_c_login" t-esc="u.login"/>
-                                <td class="o_vdnv_c_cnt">
-                                    <t t-if="u.lead_count" t-esc="u.lead_count"/>
-                                    <t t-else="">—</t>
-                                </td>
-                            </tr>
-                        </t>
-                        <tr t-if="!groups.length">
-                            <td colspan="5" class="o_vdnv_empty">— Không có nhân viên —</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="o_vdnv_hint">💡 Bấm <b>+ Thêm NV</b> để thêm · bấm 1 nhân viên để sửa / đổi mật khẩu / cho nghỉ / xóa.</div>
+            <table t-else="" class="o_vdnv_table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên nhân viên</th>
+                        <th>Phòng ban</th>
+                        <th>Chức vụ</th>
+                        <th>Đăng nhập</th>
+                        <th class="o_vdnv_num">Số khách</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="rows" t-as="u" t-key="u.id"
+                        t-on-click="() => this.openEdit(u)">
+                        <td t-esc="u_index + 1"/>
+                        <td t-esc="u.name"/>
+                        <td t-esc="u.team"/>
+                        <td t-esc="u.role_label"/>
+                        <td t-esc="u.login"/>
+                        <td class="o_vdnv_num" t-esc="u.lead_count or 0"/>
+                    </tr>
+                    <tr t-if="!rows.length">
+                        <td colspan="6" class="o_vdnv_empty">— Không có nhân viên —</td>
+                    </tr>
+                </tbody>
+            </table>
 
             <!-- ===== POPUP THÊM / SỬA ===== -->
             <t t-if="state.form">
