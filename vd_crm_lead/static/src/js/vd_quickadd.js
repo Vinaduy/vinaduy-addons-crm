@@ -139,6 +139,7 @@ export class VdQuickAddDialog extends Component {
             for (const row of rows) this.state.rows.push(row);
             const parts = [`✅ Nạp ${rows.length} số mới`];
             if (r.dup) parts.push(`🔁 ${r.dup} số TRÙNG (đã bỏ)`);
+            if (r.enriched) parts.push(`📝 ${r.enriched} khách cũ được bổ sung thông tin`);
             if (r.bad) parts.push(`⚠️ ${r.bad} số sai (đã bỏ)`);
             this.state.summary = parts.join(" · ");
             this.notification.add(this.state.summary, { type: rows.length ? "success" : "warning" });
@@ -182,6 +183,7 @@ export class VdQuickAddDialog extends Component {
                 "crm.lead", "vd_quickadd_submit", [this.state.rows, ids]);
             const msg = `✅ Đã tạo & chia ${r.created} khách` +
                 (r.detail ? ` → ${r.detail}` : "") +
+                (r.enriched ? ` · 📝 ${r.enriched} khách cũ bổ sung TT` : "") +
                 (r.dup ? ` · bỏ ${r.dup} trùng` : "");
             this.notification.add(msg, { type: "success" });
             if (this.props.onDone) this.props.onDone(r);

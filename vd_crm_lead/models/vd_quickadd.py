@@ -99,30 +99,55 @@ class VdQuickAddLead(models.Model):
         Loại SĐT sai, trùng trong lô, và trùng số đã có trong hệ thống."""
         seen = set()
         staged = []
-        dup = bad = 0
+        dups = []
+        bad = 0
         for r in rows:
             core = self._vd_qa_core(r.get('phone'))
             cphone = '0' + core if core else ''
             if not core or not self._vd_qa_phone_ok(cphone):
                 bad += 1
                 continue
+            info = (r.get('info') or '').strip()
             if core in seen:
-                dup += 1
+                dups.append({'core': core, 'info': info})
                 continue
             seen.add(core)
             nm = (r.get('name') or '').strip() or ('Khách ' + cphone[-4:])
             staged.append({'phone': cphone, 'core': core, 'name': nm,
                            'source': r.get('source') or 'quet',
-                           'info': (r.get('info') or '').strip(),
-                           'excel': bool(r.get('excel'))})
+                           'info': info, 'excel': bool(r.get('excel'))})
         existing = self._vd_qa_existing_cores([s['core'] for s in staged])
         clean = []
         for s in staged:
             if s['core'] in existing:
-                dup += 1
+                dups.append(s)
             else:
                 clean.append(s)
-        return clean, dup, bad
+        return clean, dups, bad
+
+    def _vd_qa_find_lead_by_core(self, core):
+        """Lead đang có cho 1 core SĐT — ưu tiên ĐANG CHĂM (active), mới nhất."""
+        variants = ['0' + core, core, '84' + core, '+84' + core]
+        leads = self.with_context(active_test=False).sudo().search(
+            [('phone', 'in', variants)], order='active desc, create_date desc', limit=1)
+        return leads[:1]
+
+    def _vd_qa_enrich_existing(self, core, info):
+        """KH TRÙNG SĐT nhưng khách cũ CÒN THIẾU thông tin → điền nốt từ info file.
+        CHỈ điền trường đang TRỐNG (không ghi đè dữ liệu đã có). True nếu có cập nhật."""
+        if not info:
+            return False
+        vals = self._vd_qa_parse_info(info)
+        if not vals:
+            return False
+        lead = self._vd_qa_find_lead_by_core(core)
+        if not lead:
+            return False
+        write = {f: val for f, val in vals.items() if not lead[f]}
+        if not write:
+            return False
+        lead.write(write)
+        return True
 
     # ========================================================= PARSE INFO
     def _vd_qa_parse_info(self, text):
@@ -212,12 +237,17 @@ class VdQuickAddLead(models.Model):
             raise UserError(_('Không tìm thấy SĐT nào trong file.'))
         for r in rows:
             r['excel'] = True
-        clean, dup, bad = self._vd_qa_dedup(rows)
+        clean, dups, bad = self._vd_qa_dedup(rows)
+        # KH TRÙNG SĐT nhưng khách cũ CÒN THIẾU thông tin → bổ sung nốt từ file.
+        enriched = 0
+        for d in dups:
+            if d.get('info') and self._vd_qa_enrich_existing(d['core'], d['info']):
+                enriched += 1
         return {
             'rows': [{'phone': c['phone'], 'name': c['name'],
                       'source': c['source'], 'info': c['info'], 'excel': True}
                      for c in clean],
-            'dup': dup, 'bad': bad, 'total': len(rows),
+            'dup': len(dups), 'bad': bad, 'enriched': enriched, 'total': len(rows),
         }
 
     def _vd_qa_read_rows(self, data, filename):
@@ -377,8 +407,17 @@ class VdQuickAddLead(models.Model):
         rows = rows or []
         if not rows:
             raise UserError(_('Chưa có khách nào để tạo.'))
-        clean, dup, bad = self._vd_qa_dedup(rows)
+        clean, dups, bad = self._vd_qa_dedup(rows)
+        dup = len(dups)
+        # KH trùng nhưng có info → bổ sung thông tin còn thiếu cho khách cũ.
+        enriched = 0
+        for d in dups:
+            if d.get('info') and self._vd_qa_enrich_existing(d['core'], d['info']):
+                enriched += 1
         if not clean:
+            if enriched:
+                return {'created': 0, 'dup': dup, 'bad': bad, 'enriched': enriched,
+                        'detail': '', 'only_enriched': True}
             raise UserError(_('Tất cả %d số đều TRÙNG hoặc SAI — không có số mới.') % len(rows))
 
         order = self._vd_qa_target_order(nv_ids)
@@ -413,4 +452,5 @@ class VdQuickAddLead(models.Model):
             counts[u.id] += 1
         detail = ', '.join('%s (%d)' % (Users.browse(uid).name or '?', c)
                            for uid, c in counts.most_common())
-        return {'created': len(created), 'dup': dup, 'bad': bad, 'detail': detail}
+        return {'created': len(created), 'dup': dup, 'bad': bad,
+                'enriched': enriched, 'detail': detail}
