@@ -893,6 +893,28 @@ class ResUsers(models.Model):
                 [('user_id', '=', u.id)]))
 
     @api.model
+    def vd_board_purge_resigned(self):
+        """XÓA HẲN mọi NV đã nghỉ việc (archived, share=False). Bỏ qua admin gốc /
+        chính mình / ai còn dữ liệu (unlink fail → giữ lại). Trả {deleted, skipped}."""
+        self._vd_board_check_manager()
+        from odoo import SUPERUSER_ID
+        users = self.sudo().with_context(active_test=False).search([
+            ('share', '=', False), ('active', '=', False),
+        ])
+        deleted = skipped = 0
+        for u in users:
+            if u.id in (SUPERUSER_ID, self.env.uid):
+                skipped += 1
+                continue
+            try:
+                with self.env.cr.savepoint():
+                    u.unlink()
+                deleted += 1
+            except Exception:
+                skipped += 1   # còn khách / dữ liệu → giữ lại (archive)
+        return {'deleted': deleted, 'skipped': skipped}
+
+    @api.model
     def vd_toggle_pancake_receive(self, user_id):
         """BẬT/TẮT nhận KH Pancake cho 1 NV (gọi từ nút trên báo cáo chia số).
         Chỉ admin / quản lý CRM được phép. Trả về trạng thái mới (bool)."""

@@ -20,24 +20,6 @@
         background: #2f9e44; color: #fff; font-weight: 700;
         &:hover { background: #2b8a3e; }
     }
-    .o_vdnv_reload {
-        height: 38px; width: 38px; border: 1px solid #d4d4d8; border-radius: 9px;
-        background: #fff; cursor: pointer; font-size: 16px;
-        &:hover { background: #f4f3f6; }
-    }
-
-    // ---- Tab ----
-    .o_vdnv_tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .o_vdnv_tab {
-        border: 1px solid #e0e0e4; background: #fff; border-radius: 10px;
-        padding: 8px 16px; cursor: pointer; font-weight: 700; color: #666;
-        &:hover { border-color: #b9b9c0; }
-        &.o_on { background: #f3eef1; border-color: #714B67; color: #714B67; }
-    }
-    .o_vdnv_tabn {
-        display: inline-block; margin-left: 6px; min-width: 22px; text-align: center;
-        background: #eceef3; border-radius: 999px; padding: 1px 8px; font-size: 12px;
-    }
 
     .o_vdnv_loading, .o_vdnv_empty {
         padding: 40px; text-align: center; color: #999;
@@ -79,7 +61,6 @@
             cursor: pointer; border-left: 4px solid transparent;
             &:hover td { background: #f6f4f8; }
             &:hover { border-left-color: var(--c, #868e96); }
-            &.o_off { opacity: .55; }
         }
     }
     .o_vdnv_code {
@@ -93,7 +74,6 @@
         display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 700;
         color: #b7791f; background: #fff7e6; border-radius: 6px; padding: 1px 7px;
     }
-    .o_vdnv_badge_off { color: #868e96; background: #f1f3f5; }
     .o_vdnv_c_role { color: #555; white-space: nowrap; }
     .o_vdnv_c_login { color: #868e96; white-space: nowrap; }
     .o_vdnv_c_cnt { text-align: center; font-weight: 700; color: #1c7ed6; width: 90px; }

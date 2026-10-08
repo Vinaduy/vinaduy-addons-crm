@@ -10,19 +10,6 @@
                        t-att-value="state.search"
                        t-on-input="ev => state.search = ev.target.value"/>
                 <button class="o_vdnv_add" t-on-click="() => this.openAdd()">+ Thêm NV</button>
-                <button class="o_vdnv_reload" title="Tải lại" t-on-click="() => this.load()">↻</button>
-            </div>
-
-            <!-- Tab -->
-            <div class="o_vdnv_tabs">
-                <button t-att-class="'o_vdnv_tab' + (state.tab === 'working' ? ' o_on' : '')"
-                        t-on-click="() => state.tab = 'working'">
-                    Đang hoạt động <span class="o_vdnv_tabn" t-esc="state.working.length"/>
-                </button>
-                <button t-att-class="'o_vdnv_tab' + (state.tab === 'off' ? ' o_on' : '')"
-                        t-on-click="() => state.tab = 'off'">
-                    Nghỉ việc / Tạm dừng <span class="o_vdnv_tabn" t-esc="state.off.length"/>
-                </button>
             </div>
 
             <div t-if="state.loading" class="o_vdnv_loading">Đang tải danh sách nhân viên…</div>
@@ -46,7 +33,7 @@
                                 </td>
                             </tr>
                             <tr t-foreach="g.users" t-as="u" t-key="u.id"
-                                t-attf-class="o_vdnv_row {{u.active ? '' : 'o_off'}}"
+                                class="o_vdnv_row"
                                 t-attf-style="--c:{{u.team_color}}"
                                 t-att-title="u.login + ' — bấm để sửa'"
                                 t-on-click="() => this.openEdit(u)">
@@ -54,7 +41,6 @@
                                 <td class="o_vdnv_c_name">
                                     <span class="o_vdnv_name" t-esc="u.name"/>
                                     <span t-if="u.is_leader" class="o_vdnv_badge">★ Trưởng nhóm</span>
-                                    <span t-if="!u.active" class="o_vdnv_badge o_vdnv_badge_off">nghỉ</span>
                                 </td>
                                 <td class="o_vdnv_c_role" t-esc="u.role_label"/>
                                 <td class="o_vdnv_c_login" t-esc="u.login"/>

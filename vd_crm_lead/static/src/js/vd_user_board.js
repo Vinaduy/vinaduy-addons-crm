@@ -23,9 +23,7 @@ export class VdUserBoard extends Component {
         this.dialog = useService("dialog");
         this.state = useState({
             loading: true,
-            working: [],
-            off: [],
-            tab: "working",
+            working: [],      // chỉ NV đang làm việc
             search: "",
             form: null,       // popup thêm/sửa; null = đóng
             saving: false,
@@ -38,17 +36,15 @@ export class VdUserBoard extends Component {
         try {
             const d = await this.orm.call("res.users", "vd_user_board_data", []);
             this.state.working = d.working || [];
-            this.state.off = d.off || [];
         } finally {
             this.state.loading = false;
         }
     }
 
     get list() {
-        const base = this.state.tab === "working" ? this.state.working : this.state.off;
         const q = this.state.search.trim().toLowerCase();
-        if (!q) return base;
-        return base.filter((u) =>
+        if (!q) return this.state.working;
+        return this.state.working.filter((u) =>
             (u.name + " " + u.code + " " + u.team + " " + u.login).toLowerCase().includes(q));
     }
 
