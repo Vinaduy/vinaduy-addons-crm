@@ -74,13 +74,35 @@ export class VdQuickAddDialog extends Component {
         this.state.srcOpen = false;
     }
 
-    // ---- Thêm 1 khách gõ tay vào danh sách ----
-    addRow() {
+    // "Core" SĐT để so trùng trong danh sách (bỏ đầu số 0 / 84).
+    _core(p) {
+        let d = (p || "").replace(/\D/g, "");
+        if (d.startsWith("84")) d = d.slice(2);
+        else if (d.startsWith("0")) d = d.slice(1);
+        return d;
+    }
+
+    // ---- Thêm 1 khách gõ tay vào danh sách (báo TRÙNG ngay như Excel) ----
+    async addRow() {
         const f = this.state.form;
-        const digits = (f.phone || "").replace(/\D/g, "");
-        if (digits.length < 9) {
+        const core = this._core(f.phone);
+        if (core.length < 9) {
             this.notification.add("SĐT chưa hợp lệ.", { type: "warning" });
             return;
+        }
+        if (this.state.rows.some((r) => this._core(r.phone) === core)) {
+            this.notification.add("Số này đã có trong danh sách bên dưới.", { type: "warning" });
+            return;
+        }
+        try {
+            const r = await this.orm.call("crm.lead", "vd_quickadd_check_phone", [f.phone]);
+            if (r.exists) {
+                this.notification.add(
+                    "⚠️ Số này ĐÃ CÓ trong hệ thống (trùng) — không thêm.", { type: "warning" });
+                return;
+            }
+        } catch (e) {
+            // Không check được thì vẫn cho thêm; bước Chia số sẽ tự lọc trùng.
         }
         this.state.rows.push({
             phone: (f.phone || "").trim(),

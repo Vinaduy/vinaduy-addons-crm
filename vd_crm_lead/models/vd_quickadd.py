@@ -61,6 +61,15 @@ class VdQuickAddLead(models.Model):
                  'on': bool(getattr(u, 'vd_can_receive_pancake', True))}
                 for u in nvs.sorted('name')]
 
+    @api.model
+    def vd_quickadd_check_phone(self, phone):
+        """Kiểm tra NGAY 1 SĐT (gõ tay) có TRÙNG trong hệ thống không — để báo
+        trùng ngay khi thêm, nhất quán với lúc nạp Excel."""
+        core = self._vd_qa_core(phone)
+        if not core or not self._vd_qa_phone_ok('0' + core):
+            return {'bad': True, 'exists': False}
+        return {'bad': False, 'exists': bool(self._vd_qa_existing_cores([core]))}
+
     # ============================================================ HELPERS
     def _vd_qa_core(self, phone):
         s = self._vd_normalize_phones_set(phone)
