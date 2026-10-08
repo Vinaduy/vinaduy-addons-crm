@@ -356,8 +356,12 @@ class VdQuickAddLead(models.Model):
 
     # =========================================================== DISTRIBUTE
     def _vd_qa_target_order(self, nv_ids):
-        """Recordset NV đích cho chia số, SẮP theo tải khách mới TĂNG dần
-        (ít số nhất nhận trước). nv_ids rỗng → mọi NV đang nhận số."""
+        """Recordset NV đích cho chia số. CHIA ĐỀU TRONG NGÀY: ưu tiên NV được
+        chia ÍT KHÁCH NHẤT HÔM NAY (mọi nguồn) → nhiều lần upload nhỏ KHÔNG dồn
+        hết vào NV ít tổng khách nhất. Hoà → tải khách mới ít hơn, rồi id nhỏ hơn.
+        nv_ids rỗng → mọi NV đang nhận số."""
+        from datetime import datetime, time as _t, timedelta as _td
+        import pytz
         Users = self.env['res.users'].sudo()
         if nv_ids:
             pool = Users.browse(nv_ids).exists()
@@ -368,13 +372,27 @@ class VdQuickAddLead(models.Model):
             raise UserError(_('Chưa chọn nhân viên nào để chia số.'))
         new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
         Lead = self.env['crm.lead'].sudo()
+        # Số KH đã chia HÔM NAY (giờ VN) cho mỗi NV — mọi nguồn (quét + Pancake).
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        d0 = datetime.now(vn).date()
+        day_s = vn.localize(datetime.combine(d0, _t(0, 0))).astimezone(
+            pytz.utc).replace(tzinfo=None)
+        day_e = day_s + _td(days=1)
+        today = {}
+        for g in Lead.read_group(
+                [('user_id', 'in', pool.ids),
+                 ('create_date', '>=', day_s), ('create_date', '<', day_e)],
+                ['user_id'], ['user_id']):
+            if g.get('user_id'):
+                today[g['user_id'][0]] = g.get('user_id_count', 0)
         load = {}
         for u in pool:
             dom = [('user_id', '=', u.id), ('active', '=', True)]
             if new_stage:
                 dom.append(('stage_id', '=', new_stage.id))
             load[u.id] = Lead.search_count(dom)
-        return pool.sorted(lambda u: load.get(u.id, 0))
+        return pool.sorted(
+            lambda u: (today.get(u.id, 0), load.get(u.id, 0), u.id))
 
     @api.model
     def vd_quickadd_distribute(self, lead_ids, nv_ids=None):
