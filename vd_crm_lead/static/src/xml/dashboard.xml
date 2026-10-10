@@ -913,46 +913,7 @@
 
                             <!-- ===== TAB CHIA SỐ: bảng báo cáo đầy đủ (2026-07-24) ===== -->
                             <div t-if="state.dashSubView === 'dist'" class="o_vd_kh_dist_col">
-                                <!-- ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (user 2026-10-10) ===== -->
-                                <div t-if="state.adspend" class="o_vd_adsp">
-                                    <div class="o_vd_adsp_bar">
-                                        <span class="o_vd_adsp_lbl">📊 Báo cáo data ngày</span>
-                                        <input type="date" class="o_vd_adsp_date"
-                                               t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
-                                        <span class="o_vd_adsp_spacer"/>
-                                        <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
-                                        <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
-                                               placeholder="VD 10000000"/>
-                                        <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
-                                        <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
-                                            Phân bổ hôm nay: <b t-esc="formatVnd(state.adspend.alloc_spend)"/><t t-if="state.adspend.fb_count"> → <b t-esc="formatVnd(state.adspend.cost_per_fb)"/>/data FB</t>
-                                            <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/>, chia <t t-esc="state.adspend.alloc_info.days"/> ngày)</span>
-                                        </span>
-                                    </div>
-                                    <div class="o_vd_adsp_grid">
-                                        <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
-                                        <div class="o_vd_adsp_src">🧲 Quét <b t-esc="state.adspend.src_total.quet"/></div>
-                                        <div class="o_vd_adsp_src">📘 FB <b t-esc="state.adspend.src_total.facebook"/></div>
-                                        <div class="o_vd_adsp_src">🎵 TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
-                                        <div class="o_vd_adsp_src">💬 Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
-                                    </div>
-                                    <div class="o_vd_adsp_copywrap">
-                                        <button class="o_vd_adsp_toggle"
-                                                t-on-click="() => state.adspendOpen = !state.adspendOpen">
-                                            📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
-                                        </button>
-                                        <div t-if="state.adspendOpen" class="o_vd_adsp_drop">
-                                            <pre class="o_vd_adsp_pre" t-esc="state.adspend.summary_text"/>
-                                            <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <t t-set="distRep" t-value="state.pancake_report"/>
-                                <t t-set="distTitle" t-value="'CHIA SỐ'"/>
-                                <t t-set="distIcon" t-value="'fa-bolt'"/>
-                                <t t-set="distShowTarget" t-value="true"/>
-                                <t t-set="distPanel" t-value="true"/>
-                                <t t-call="vd_crm_lead.DistFilter"/>
+                                <t t-call="vd_crm_lead.DistReportFull"/>
                             </div>
                             </div><!-- /.o_vd_kh_grid -->
 
@@ -1632,6 +1593,19 @@
                                 </div>
                             </div>
                         </div><!-- /.o_vd_hdr2 -->
+
+                        <!-- BÁO CÁO CHIA SỐ cho người có quyền chia (đội Lọc số) ở layout
+                             THƯỜNG — admin đã có tab Chia số riêng (user 2026-10-10). -->
+                        <div t-if="state.can_reassign and !isAdminView and state.pancake_report and state.pancake_report.today"
+                             class="o_vd_losorep">
+                            <button class="o_vd_losorep_btn"
+                                    t-on-click="() => state.showDistReport = !state.showDistReport">
+                                📊 Báo cáo chia số <t t-esc="state.showDistReport ? '▲' : '▼'"/>
+                            </button>
+                            <div t-if="state.showDistReport" class="o_vd_losorep_body">
+                                <t t-call="vd_crm_lead.DistReportFull"/>
+                            </div>
+                        </div>
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
                              riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong
@@ -2475,6 +2449,50 @@
          FILTER CHIA SỐ (PANCAKE / THỦ CÔNG) — vars: distRep, distTitle, distIcon.
          Gọn vừa chữ; hover ra báo cáo hôm nay + tháng; chia không đều → đỏ.
          ============================================================ -->
+    <!-- BÁO CÁO CHIA SỐ ĐẦY ĐỦ (dùng chung: tab admin + panel Lọc số) -->
+    <t t-name="vd_crm_lead.DistReportFull">
+        <!-- ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (user 2026-10-10) ===== -->
+        <div t-if="state.adspend" class="o_vd_adsp">
+            <div class="o_vd_adsp_bar">
+                <span class="o_vd_adsp_lbl">📊 Báo cáo data ngày</span>
+                <input type="date" class="o_vd_adsp_date"
+                       t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
+                <span class="o_vd_adsp_spacer"/>
+                <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
+                <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
+                       placeholder="VD 10000000"/>
+                <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
+                <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
+                    Phân bổ hôm nay: <b t-esc="formatVnd(state.adspend.alloc_spend)"/><t t-if="state.adspend.fb_count"> → <b t-esc="formatVnd(state.adspend.cost_per_fb)"/>/data FB</t>
+                    <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/>, chia <t t-esc="state.adspend.alloc_info.days"/> ngày)</span>
+                </span>
+            </div>
+            <div class="o_vd_adsp_grid">
+                <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
+                <div class="o_vd_adsp_src">🧲 Quét <b t-esc="state.adspend.src_total.quet"/></div>
+                <div class="o_vd_adsp_src">📘 FB <b t-esc="state.adspend.src_total.facebook"/></div>
+                <div class="o_vd_adsp_src">🎵 TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
+                <div class="o_vd_adsp_src">💬 Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
+            </div>
+            <div class="o_vd_adsp_copywrap">
+                <button class="o_vd_adsp_toggle"
+                        t-on-click="() => state.adspendOpen = !state.adspendOpen">
+                    📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
+                </button>
+                <div t-if="state.adspendOpen" class="o_vd_adsp_drop">
+                    <pre class="o_vd_adsp_pre" t-esc="state.adspend.summary_text"/>
+                    <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy</button>
+                </div>
+            </div>
+        </div>
+        <t t-set="distRep" t-value="state.pancake_report"/>
+        <t t-set="distTitle" t-value="'CHIA SỐ'"/>
+        <t t-set="distIcon" t-value="'fa-bolt'"/>
+        <t t-set="distShowTarget" t-value="true"/>
+        <t t-set="distPanel" t-value="true"/>
+        <t t-call="vd_crm_lead.DistFilter"/>
+    </t>
+
     <t t-name="vd_crm_lead.DistFilter">
         <div t-if="distRep and distRep.today"
              t-att-class="'o_vd_pancake_filter' + (distRep.today.uneven ? ' o_vd_pancake_uneven' : '') + (distPanel ? ' o_vd_pancake_filter_panel' : '')">

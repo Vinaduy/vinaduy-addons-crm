@@ -12556,3 +12556,17 @@ body.o_vd_dragselecting { user-select: none !important; }
 }
 
 .o_vd_crm_dashboard .o_vd_adsp .o_vd_adsp_from { font-size: 12px; color: #868e96; font-weight: 500; margin-left: 4px; }
+
+/* ===== PANEL BÁO CÁO CHIA SỐ ở layout thường (đội Lọc số) — user 2026-10-10 ===== */
+.o_vd_crm_dashboard .o_vd_losorep {
+    margin: 10px 0 14px;
+    .o_vd_losorep_btn {
+        height: 40px; padding: 0 18px; border: 1px solid #714B67; border-radius: 10px;
+        background: #f3eef1; color: #714B67; font-weight: 800; font-size: 15px; cursor: pointer;
+        &:hover { background: #ebe2e8; }
+    }
+    .o_vd_losorep_body {
+        margin-top: 10px; border: 1px solid #e8eaf0; border-radius: 12px;
+        padding: 12px; background: #fff;
+    }
+}

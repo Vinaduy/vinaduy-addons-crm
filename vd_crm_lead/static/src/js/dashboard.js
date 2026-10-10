@@ -278,6 +278,7 @@ export class VdCrmDashboard extends Component {
             adspendDate: "",        // iso ngày đang xem (mặc định hôm nay)
             adspendInput: "",       // ô nhập tiền QC FB
             adspendOpen: false,     // dropdown báo cáo copy gửi Zalo đang mở
+            showDistReport: false,  // panel báo cáo chia số (layout thường, cho Lọc số)
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics
