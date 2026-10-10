@@ -12533,6 +12533,19 @@ body.o_vd_dragselecting { user-select: none !important; }
         }
         .o_vd_adsp_tot { background: #f3eef1; border-color: #e0cfdb; b { color: #714B67; } }
     }
+    .o_vd_adsp_recon {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+        margin: -4px 0 12px; font-size: 13px;
+        .o_vd_adsp_recon_lbl { color: #868e96; font-weight: 600; }
+        .o_vd_adsp_recon_it {
+            padding: 3px 10px; border-radius: 7px; border: 1px solid #e9ecef;
+            background: #f8f9fa; color: #495057;
+            b { color: #1f2a44; }
+            &.o_vd_pending { background: #fff4e6; border-color: #ffd8a8; color: #d9480f;
+                b { color: #d9480f; } }
+            &.o_vd_ok { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e; }
+        }
+    }
     .o_vd_adsp_copywrap { position: relative; }
     .o_vd_adsp_toggle {
         height: 36px; padding: 0 16px; border: 1px solid #ccc; border-radius: 8px;

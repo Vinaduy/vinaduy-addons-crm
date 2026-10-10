@@ -649,6 +649,91 @@ class VdPancakePage(models.Model):
                        'sticky': False},
         }
 
+    def vd_stat_phone_count(self, d):
+        """phoneNumberCount Pancake (internal statistics) cho NGÀY d (date).
+        Đây là số REALTIME đúng như report Pancake → dùng ĐỐI SOÁT với số CRM đã
+        bắt được. 0 nếu lỗi/không có token/không thấy ngày. timeout ngắn để không
+        chặn dashboard."""
+        self.ensure_one()
+        tok = (self.vd_zalo_session_token or '').strip()
+        if not tok:
+            return 0
+        try:
+            r = requests.get(
+                '%s/pages/%s/statistics' % (_PANCAKE_INTERNAL_BASE, self.page_id),
+                params={'access_token': tok}, timeout=8)
+            data = (r.json() or {}).get('data', {}) or {}
+            bd = data.get('by_date', {}) or {}
+            cats = bd.get('categories', []) or []
+            ser = {s.get('name'): s.get('data') for s in (bd.get('series', []) or [])}
+            vals = ser.get('phoneNumberCount') or []
+            key = '%d.%d' % (d.day, d.month)
+            if key in cats:
+                i = cats.index(key)
+                if 0 <= i < len(vals):
+                    return int(vals[i] or 0)
+        except Exception as e:
+            _logger.warning('Pancake stat %s lỗi: %s', self.name, e)
+        return 0
+
+    @api.model
+    def _cron_vd_eod_reconcile(self):
+        """CHỐT CUỐI NGÀY (user 2026-10-10): trước khi sang ngày mới, QUÉT SIÊU
+        RỘNG vét nốt số Zalo còn sót (cửa sổ list API xoay theo thời gian) rồi
+        ĐỐI SOÁT Pancake(statistics) vs CRM theo page. Còn lệch → CẢNH BÁO Lộc số
+        + admin (inbox) để kiểm tra thủ công. Không ép được API nhả sớm nhưng đảm
+        bảo đã thử hết sức + minh bạch số còn chờ, không để 'kẹt mà không biết'."""
+        import pytz
+        from datetime import datetime as _dt, time as _time
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        d = pytz.utc.localize(fields.Datetime.now()).astimezone(vn).date()
+        Lead = self.env['crm.lead'].sudo()
+        ResUsers = self.env['res.users'].sudo()
+        pages = self.search([
+            ('active', '=', True), ('auto_create_lead', '=', True),
+            ('vd_zalo_session_token', '!=', False)])
+        # 1) QUÉT VÉT 3 lượt — mỗi lượt cửa sổ khung khác nhau.
+        for _n in range(3):
+            for p in pages:
+                try:
+                    p._pull_pancake_internal(Lead, ResUsers)
+                except Exception:
+                    _logger.exception('EOD reconcile pull lỗi %s', p.name)
+        # 2) ĐỐI SOÁT theo page.
+        day_s = vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
+            pytz.utc).replace(tzinfo=None)
+        day_e = day_s + timedelta(days=1)
+        gaps = []
+        for p in pages:
+            pan = p.vd_stat_phone_count(d)
+            if not pan:
+                continue
+            crm = Lead.with_context(active_test=False).search_count([
+                ('vd_pancake_page_id', '=', p.id),
+                ('create_date', '>=', day_s), ('create_date', '<', day_e)])
+            if crm < pan:
+                gaps.append((p.name, pan, crm, pan - crm))
+        if gaps:
+            body = ('⚠️ ĐỐI SOÁT CUỐI NGÀY %s — còn số CHƯA về CRM:<br/>'
+                    % d.strftime('%d/%m')) + '<br/>'.join(
+                '• %s: Pancake %d / CRM %d → thiếu %d' % g for g in gaps)
+            body += ('<br/><i>Pancake nhả hội thoại trễ — kiểm tra lại sáng mai '
+                     'hoặc xem thủ công trên Pancake.</i>')
+            _logger.warning('EOD reconcile GAP: %s', gaps)
+            targets = ResUsers.search([
+                ('vd_team', '=', 'Lọc số'), ('active', '=', True),
+                ('share', '=', False)])
+            admins = self.env.ref('base.group_system').users.filtered(
+                lambda u: u.active and not u.share)
+            pids = (targets | admins).mapped('partner_id').ids
+            if pids:
+                self.env.user.partner_id.message_notify(
+                    partner_ids=pids, body=body,
+                    subject=_('Đối soát số Zalo cuối ngày'))
+        else:
+            _logger.info('EOD reconcile: khớp hết, không lệch.')
+        return True
+
     def _fetch_customer_phone(self, customer_id):
         """Gọi Pancake API lấy SĐT của 1 page_customer."""
         self.ensure_one()

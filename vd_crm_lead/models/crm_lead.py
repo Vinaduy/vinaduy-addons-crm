@@ -7265,12 +7265,30 @@ class CrmLead(models.Model):
                 if ' - ' in nm:
                     nm = nm.split(' - ', 1)[1]
                 lines.append('• %s: %d' % (nm, r['total']))
+        # ĐỐI SOÁT real-time (user 2026-10-10): Pancake statistics (số Pancake đã
+        # nhận diện, realtime) vs CRM đã bắt → thấy ngay còn bao nhiêu số đang chờ
+        # API Zalo nhả. Chỉ cho nguồn có page Pancake (quét từ Excel luôn đủ).
+        recon = []
+        pan_src = {}
+        for pg_ in self.env['vd.pancake.page'].sudo().search([
+                ('active', '=', True), ('vd_zalo_session_token', '!=', False)]):
+            s = pg_.platform if pg_.platform in ('zalo', 'facebook', 'tiktok') else None
+            if not s:
+                continue
+            pan_src[s] = pan_src.get(s, 0) + pg_.vd_stat_phone_count(d)
+        for s in ('zalo', 'facebook', 'tiktok'):
+            if s in pan_src:
+                pan = pan_src[s]
+                crm = src_total.get(s, 0)
+                recon.append({'source': s, 'pancake': pan, 'crm': crm,
+                              'pending': max(0, pan - crm)})
         return {
             'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
             'src_total': src_total, 'total_data': total_data,
             'topup_today': topup_today, 'alloc_spend': alloc_spend, 'alloc_info': alloc_info,
             'fb_count': fb_count, 'cost_per_fb': cost_per_fb,
             'nv_rows': nv_rows, 'summary_text': '\n'.join(lines),
+            'recon': recon,
         }
 
     @api.model
