@@ -27,6 +27,7 @@ from . import res_config_settings
 from . import res_country_state
 from . import crm_lead
 from . import vd_quickadd
+from . import vd_ad_spend
 from . import vd_call_watch
 from . import stringee_call
 from . import vd_imported_customer

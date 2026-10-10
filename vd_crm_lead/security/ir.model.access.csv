@@ -68,3 +68,4 @@ access_vd_imported_customer_user,vd.imported.customer user,model_vd_imported_cus
 access_vd_imported_customer_admin,vd.imported.customer admin,model_vd_imported_customer,vd_crm_group_admin,1,1,1,1
 access_vd_imported_customer_deputy,vd.imported.customer deputy,model_vd_imported_customer,vd_crm_group_deputy_director,1,1,0,0
 access_vd_quote_line_user,vd.quote.line user,model_vd_quote_line,base.group_user,1,1,1,1
+access_vd_ad_spend_user,vd.ad.spend user,model_vd_ad_spend,base.group_user,1,1,1,1

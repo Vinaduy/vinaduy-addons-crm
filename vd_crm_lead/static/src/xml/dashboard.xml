@@ -913,6 +913,33 @@
 
                             <!-- ===== TAB CHIA SỐ: bảng báo cáo đầy đủ (2026-07-24) ===== -->
                             <div t-if="state.dashSubView === 'dist'" class="o_vd_kh_dist_col">
+                                <!-- ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (user 2026-10-10) ===== -->
+                                <div t-if="state.adspend" class="o_vd_adsp">
+                                    <div class="o_vd_adsp_bar">
+                                        <span class="o_vd_adsp_lbl">📊 Báo cáo data ngày</span>
+                                        <input type="date" class="o_vd_adsp_date"
+                                               t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
+                                        <span class="o_vd_adsp_spacer"/>
+                                        <span class="o_vd_adsp_fblbl">💰 Tiền QC FB:</span>
+                                        <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
+                                               placeholder="VD 1200000"/>
+                                        <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
+                                        <span t-if="state.adspend.fb_count and state.adspend.fb_amount"
+                                              class="o_vd_adsp_cost">→ <b t-esc="formatVnd(state.adspend.cost_per_fb)"/> / 1 data FB</span>
+                                    </div>
+                                    <div class="o_vd_adsp_grid">
+                                        <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
+                                        <div class="o_vd_adsp_src">🧲 Quét <b t-esc="state.adspend.src_total.quet"/></div>
+                                        <div class="o_vd_adsp_src">📘 FB <b t-esc="state.adspend.src_total.facebook"/></div>
+                                        <div class="o_vd_adsp_src">🎵 TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
+                                        <div class="o_vd_adsp_src">💬 Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
+                                    </div>
+                                    <div class="o_vd_adsp_copywrap">
+                                        <textarea class="o_vd_adsp_text" readonly="readonly"
+                                                  t-esc="state.adspend.summary_text"/>
+                                        <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy gửi Zalo</button>
+                                    </div>
+                                </div>
                                 <t t-set="distRep" t-value="state.pancake_report"/>
                                 <t t-set="distTitle" t-value="'CHIA SỐ'"/>
                                 <t t-set="distIcon" t-value="'fa-bolt'"/>

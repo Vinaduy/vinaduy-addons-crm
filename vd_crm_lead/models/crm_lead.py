@@ -7153,6 +7153,88 @@ class CrmLead(models.Model):
         return result
 
     @api.model
+    def vd_adspend_daily(self, date_iso=None):
+        """BÁO CÁO DATA 1 NGÀY (tab Chia số, user 2026-10-10): tổng theo nguồn
+        (quét/FB/TikTok/Zalo) + chia mỗi NV + tiền QC FB & chi phí/1 data FB +
+        văn bản copy gửi Zalo."""
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _td
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        if date_iso:
+            d = fields.Date.from_string(date_iso)
+        else:
+            d = pytz.utc.localize(fields.Datetime.now()).astimezone(vn).date()
+        day_s = vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
+            pytz.utc).replace(tzinfo=None)
+        day_e = day_s + _td(days=1)
+        self.env['crm.lead'].flush_model()
+        self.env.cr.execute("""
+            SELECT l.user_id,
+                   (CASE
+                      WHEN l.vd_from_excel THEN 'quet'
+                      WHEN l.vd_lead_channel IS NOT NULL
+                           AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                      WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
+                           THEN 'zalo'
+                      WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
+                           THEN 'tiktok'
+                      WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
+                      ELSE 'other'
+                    END) AS kenh,
+                   COUNT(*) AS n
+              FROM crm_lead l
+             WHERE l.active AND l.user_id IS NOT NULL
+               AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
+               AND l.create_date >= %s AND l.create_date < %s
+             GROUP BY 1, 2
+        """, (day_s, day_e))
+        src_total = {'quet': 0, 'facebook': 0, 'tiktok': 0, 'zalo': 0}
+        per_nv = {}
+        for uid, kenh, n in self.env.cr.fetchall():
+            if kenh not in src_total:
+                continue
+            src_total[kenh] += n
+            pv = per_nv.setdefault(uid, {'total': 0, 'quet': 0, 'facebook': 0,
+                                         'tiktok': 0, 'zalo': 0})
+            pv['total'] += n
+            pv[kenh] += n
+        Users = self.env['res.users'].sudo()
+        nv_rows = []
+        for uid, pv in per_nv.items():
+            u = Users.browse(uid)
+            nv_rows.append({'name': u.name or ('NV #%s' % uid), 'total': pv['total'],
+                            'quet': pv['quet'], 'facebook': pv['facebook'],
+                            'tiktok': pv['tiktok'], 'zalo': pv['zalo']})
+        nv_rows.sort(key=lambda r: -r['total'])
+        total_data = sum(src_total.values())
+        spend = self.env['vd.ad.spend'].sudo().search([('date', '=', d)], limit=1)
+        fb_amount = spend.fb_amount if spend else 0.0
+        fb_count = src_total['facebook']
+        cost_per_fb = (fb_amount / fb_count) if fb_count else 0.0
+
+        def _vnd(x):
+            return '{:,.0f}đ'.format(x or 0).replace(',', '.')
+        lines = ['📊 BÁO CÁO DATA NGÀY %s' % d.strftime('%d/%m/%Y'),
+                 'Tổng: %d data' % total_data,
+                 '🧲 Quét: %d · 📘 FB: %d · 🎵 TikTok: %d · 💬 Zalo: %d' % (
+                     src_total['quet'], src_total['facebook'],
+                     src_total['tiktok'], src_total['zalo'])]
+        if fb_amount:
+            lines.append('💰 Tiền QC FB: %s → %s/1 data FB' % (
+                _vnd(fb_amount), _vnd(cost_per_fb)))
+        if nv_rows:
+            lines.append('')
+            lines.append('Chia cho NV:')
+            for r in nv_rows:
+                lines.append('• %s: %d' % (r['name'], r['total']))
+        return {
+            'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
+            'src_total': src_total, 'total_data': total_data,
+            'fb_amount': fb_amount, 'fb_count': fb_count, 'cost_per_fb': cost_per_fb,
+            'nv_rows': nv_rows, 'summary_text': '\n'.join(lines),
+        }
+
+    @api.model
     def vd_pancake_combined_report(self, days=7):
         """MA TRẬN TỔNG HỢP (user 2026-10-04): MỘT bảng duy nhất gồm NHÂN VIÊN ×
         NGÀY × NGUỒN. Mỗi NV: 1 dòng TỔNG (theo ngày) + 4 dòng nguồn (Zalo /

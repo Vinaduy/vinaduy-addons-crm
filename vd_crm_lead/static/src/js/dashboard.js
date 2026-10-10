@@ -273,6 +273,10 @@ export class VdCrmDashboard extends Component {
             customLoading: false,
             combinedRep: null,      // MA TRẬN TỔNG HỢP: NV × ngày × nguồn (7/15/30 ngày)
             combinedLoading: false,
+            // ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (tab Chia số, user 2026-10-10) =====
+            adspend: null,          // {src_total, nv_rows, fb_amount, cost_per_fb, summary_text...}
+            adspendDate: "",        // iso ngày đang xem (mặc định hôm nay)
+            adspendInput: "",       // ô nhập tiền QC FB
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics
@@ -708,6 +712,7 @@ export class VdCrmDashboard extends Component {
     // số thủ công không đổi tỷ lệ xin số nên không cần nạp lại. Throttle 60s phòng hờ.
     _maybeLoadPancakeReport(force) {
         if (!this.state.is_manager) return;
+        if (!this.state.adspend) this.loadAdspend(this.state.adspendDate || "");
         const now = Date.now();
         if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
         this._pkRepAt = now;
@@ -720,6 +725,44 @@ export class VdCrmDashboard extends Component {
                 }
             })
             .catch(() => {});
+    }
+
+    // ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (tab Chia số) =====
+    async loadAdspend(dateIso) {
+        try {
+            const r = await this.orm.call("crm.lead", "vd_adspend_daily", [dateIso || null]);
+            this.state.adspend = r;
+            this.state.adspendDate = r.date;
+            this.state.adspendInput = r.fb_amount ? String(r.fb_amount) : "";
+        } catch (e) {
+            this.state.adspend = null;
+        }
+    }
+    onAdspendDate(ev) {
+        this.loadAdspend(ev.target.value || "");
+    }
+    async saveAdspend() {
+        const amt = parseFloat((this.state.adspendInput || "0").replace(/[^\d.]/g, "")) || 0;
+        try {
+            await this.orm.call("vd.ad.spend", "vd_adspend_set", [this.state.adspendDate, amt]);
+            await this.loadAdspend(this.state.adspendDate);
+            this.notification.add("Đã lưu tiền quảng cáo FB.", { type: "success" });
+        } catch (e) {
+            this.notification.add("Lưu tiền QC lỗi.", { type: "danger" });
+        }
+    }
+    async copyAdspend() {
+        const txt = (this.state.adspend && this.state.adspend.summary_text) || "";
+        if (!txt) return;
+        try {
+            await browser.navigator.clipboard.writeText(txt);
+            this.notification.add("Đã copy — dán vào Zalo được rồi.", { type: "success" });
+        } catch (e) {
+            this.notification.add("Không copy được, bạn bôi đen chép tay nhé.", { type: "warning" });
+        }
+    }
+    formatVnd(x) {
+        return Math.round(x || 0).toLocaleString("vi-VN") + "đ";
     }
 
     // ===== BẬT/TẮT nhận số Pancake cho 1 NV (nút trên báo cáo chia số) =====
