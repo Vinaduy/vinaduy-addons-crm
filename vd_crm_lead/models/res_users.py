@@ -618,9 +618,11 @@ class ResUsers(models.Model):
                 eligible = eligible.filtered('vd_can_receive_zalo')
             if not eligible:
                 return self.env['res.users']  # empty
-            # Cân bằng theo SỐ KH PANCAKE đã chia HÔM NAY (giờ VN) → cuối ngày mọi
-            # NV bật nhận ~ bằng nhau. Hoà → tải active ít hơn, rồi id nhỏ hơn.
-            today_map = Lead._vd_today_assigned_count_map(eligible.ids, pancake_only=True)
+            # CHIA ĐỀU TẤT CẢ (user 2026-10-10): cân bằng theo TỔNG số KH đã chia
+            # HÔM NAY (mọi nguồn: quét + Pancake) → NV nào hôm nay đã nhận nhiều
+            # (kể cả số quét) thì nhận auto ít hơn → cuối ngày TỔNG ~ bằng nhau,
+            # KHÔNG để người nhiều người ít. Hoà → tải active ít hơn, rồi id nhỏ.
+            today_map = Lead._vd_today_assigned_count_map(eligible.ids)
         else:
             # Kênh KHÁC (nhập tay / auto nội bộ): giữ cổng quá hạn + chặn tồn.
             # ĐỒNG BỘ (user spec 2026-07-24): công tắc vd_can_receive_pancake giờ
