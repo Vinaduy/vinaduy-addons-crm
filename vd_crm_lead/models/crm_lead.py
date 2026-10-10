@@ -7156,7 +7156,10 @@ class CrmLead(models.Model):
     def vd_adspend_daily(self, date_iso=None):
         """BÁO CÁO DATA 1 NGÀY (tab Chia số, user 2026-10-10): tổng theo nguồn
         (quét/FB/TikTok/Zalo) + chia mỗi NV + tiền QC FB & chi phí/1 data FB +
-        văn bản copy gửi Zalo."""
+        văn bản copy gửi Zalo.
+        ĐẾM MỌI SỐ VỀ trong ngày (user 2026-10-10): KHÔNG lọc active → số TRÙNG bị
+        archive ngay khi tạo (SĐT đã có NV khác) VẪN được tính, khớp 'SĐT mới' của
+        Pancake. Trước đây lọc active → Zalo toàn trùng → báo cáo hiện 0 (sai cảm nhận)."""
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -7183,7 +7186,7 @@ class CrmLead(models.Model):
                     END) AS kenh,
                    COUNT(*) AS n
               FROM crm_lead l
-             WHERE l.active AND l.user_id IS NOT NULL
+             WHERE l.user_id IS NOT NULL
                AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
                AND l.create_date >= %s AND l.create_date < %s
              GROUP BY 1, 2
@@ -7275,7 +7278,8 @@ class CrmLead(models.Model):
         """MA TRẬN TỔNG HỢP (user 2026-10-04): MỘT bảng duy nhất gồm NHÂN VIÊN ×
         NGÀY × NGUỒN. Mỗi NV: 1 dòng TỔNG (theo ngày) + 4 dòng nguồn (Zalo /
         TikTok / Facebook / Quét) theo ngày. Chân bảng: Cộng theo nguồn × ngày.
-        Tính lead active đã gán NV, nguồn Pancake hoặc Quét. days in 7|15|30."""
+        ĐẾM MỌI lead tạo trong khung đã gán NV (KHÔNG lọc active — gồm cả số TRÙNG
+        bị archive), nguồn Pancake hoặc Quét, khớp 'SĐT mới' Pancake. days in 7|15|30."""
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td
         try:
@@ -7311,7 +7315,7 @@ class CrmLead(models.Model):
                     END) AS kenh,
                    COUNT(*) AS n
               FROM crm_lead l
-             WHERE l.active AND l.user_id IS NOT NULL
+             WHERE l.user_id IS NOT NULL
                AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
                AND l.create_date >= %s AND l.create_date < %s
              GROUP BY 1, 2, 3
