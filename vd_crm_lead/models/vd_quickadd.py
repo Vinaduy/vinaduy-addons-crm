@@ -7,10 +7,13 @@ JSON từ frontend → chống trùng SĐT → parse cột "Thông tin" vào tr�
 """
 import base64
 import io
+import logging
 import re
 
 from odoo import api, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 # Nguồn khách chọn được trong popup.
 VD_QA_SOURCES = [
@@ -238,6 +241,11 @@ class VdQuickAddLead(models.Model):
         for r in rows:
             r['excel'] = True
         clean, dups, bad = self._vd_qa_dedup(rows)
+        _logger.info(
+            '[QUICKADD-DBG] file=%s | raw_rows=%d | sdt_parse=%d | clean=%d dup=%d bad=%d'
+            ' | phones=%s | dup_cores=%s',
+            filename, len(raw), len(rows), len(clean), len(dups), bad,
+            [r.get('phone') for r in rows], [d.get('core') for d in dups])
         # KH TRÙNG SĐT nhưng khách cũ CÒN THIẾU thông tin → bổ sung nốt từ file.
         enriched = 0
         for d in dups:
