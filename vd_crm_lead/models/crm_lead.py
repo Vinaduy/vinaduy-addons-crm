@@ -7220,8 +7220,11 @@ class CrmLead(models.Model):
                      src_total['quet'], src_total['facebook'],
                      src_total['tiktok'], src_total['zalo'])]
         if fb_amount:
-            lines.append('💰 Tiền QC FB: %s → %s/1 data FB' % (
-                _vnd(fb_amount), _vnd(cost_per_fb)))
+            if fb_count:
+                lines.append('💰 Tiền QC FB: %s → %s/1 data FB' % (
+                    _vnd(fb_amount), _vnd(cost_per_fb)))
+            else:
+                lines.append('💰 Tiền QC FB: %s (chưa có data FB)' % _vnd(fb_amount))
         if nv_rows:
             lines.append('')
             lines.append('Chia cho NV:')
