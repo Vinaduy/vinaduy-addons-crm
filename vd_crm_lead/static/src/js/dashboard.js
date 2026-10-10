@@ -712,7 +712,9 @@ export class VdCrmDashboard extends Component {
     // ~1.5s sau mỗi thao tác lại có 1 cú vẽ-lại-toàn-trang bất ngờ = GIẬT). Chuyển
     // số thủ công không đổi tỷ lệ xin số nên không cần nạp lại. Throttle 60s phòng hờ.
     _maybeLoadPancakeReport(force) {
-        if (!this.state.is_manager) return;
+        // Xem báo cáo chia số: quản lý HOẶC người có quyền chia số (vd đội Lọc số
+        // như Quỳnh Anh — can_reassign) (user 2026-10-10).
+        if (!this.state.is_manager && !this.state.can_reassign) return;
         if (!this.state.adspend) this.loadAdspend(this.state.adspendDate || "");
         const now = Date.now();
         if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
