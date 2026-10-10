@@ -733,7 +733,7 @@ export class VdCrmDashboard extends Component {
             const r = await this.orm.call("crm.lead", "vd_adspend_daily", [dateIso || null]);
             this.state.adspend = r;
             this.state.adspendDate = r.date;
-            this.state.adspendInput = r.fb_amount ? String(r.fb_amount) : "";
+            this.state.adspendInput = r.topup_today ? String(r.topup_today) : "";
         } catch (e) {
             this.state.adspend = null;
         }

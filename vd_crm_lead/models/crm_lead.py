@@ -7207,10 +7207,29 @@ class CrmLead(models.Model):
                             'tiktok': pv['tiktok'], 'zalo': pv['zalo']})
         nv_rows.sort(key=lambda r: -r['total'])
         total_data = sum(src_total.values())
-        spend = self.env['vd.ad.spend'].sudo().search([('date', '=', d)], limit=1)
-        fb_amount = spend.fb_amount if spend else 0.0
+        # TIỀN QC FB: nạp 1 cục vào 1 ngày → RẢI ĐỀU cho các ngày tới lần nạp sau
+        # (lần nạp cuối → rải từ ngày nạp tới HÔM NAY). Phân bổ cho NGÀY đang xem.
+        Spend = self.env['vd.ad.spend'].sudo()
+        topup_rec = Spend.search([('date', '=', d)], limit=1)
+        topup_today = topup_rec.fb_amount if topup_rec else 0.0
+        cover = Spend.search([('date', '<=', d), ('fb_amount', '>', 0)],
+                             order='date desc', limit=1)
+        alloc_spend = 0.0
+        alloc_info = None
+        if cover:
+            nxt = Spend.search([('date', '>', cover.date), ('fb_amount', '>', 0)],
+                               order='date asc', limit=1)
+            if nxt:
+                span = (nxt.date - cover.date).days
+            else:
+                today_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn).date()
+                span = (today_vn - cover.date).days + 1
+            span = max(1, span)
+            alloc_spend = cover.fb_amount / span
+            alloc_info = {'topup': cover.fb_amount,
+                          'date': cover.date.strftime('%d/%m'), 'days': span}
         fb_count = src_total['facebook']
-        cost_per_fb = (fb_amount / fb_count) if fb_count else 0.0
+        cost_per_fb = (alloc_spend / fb_count) if fb_count else 0.0
 
         def _vnd(x):
             return '{:,.0f}đ'.format(x or 0).replace(',', '.')
@@ -7219,12 +7238,12 @@ class CrmLead(models.Model):
                  '🧲 Quét: %d · 📘 FB: %d · 🎵 TikTok: %d · 💬 Zalo: %d' % (
                      src_total['quet'], src_total['facebook'],
                      src_total['tiktok'], src_total['zalo'])]
-        if fb_amount:
+        if alloc_spend:
             if fb_count:
-                lines.append('💰 Tiền QC FB: %s → %s/1 data FB' % (
-                    _vnd(fb_amount), _vnd(cost_per_fb)))
+                lines.append('💰 QC FB (phân bổ hôm nay): %s → %s/1 data FB' % (
+                    _vnd(alloc_spend), _vnd(cost_per_fb)))
             else:
-                lines.append('💰 Tiền QC FB: %s (chưa có data FB)' % _vnd(fb_amount))
+                lines.append('💰 QC FB (phân bổ hôm nay): %s (chưa có data FB)' % _vnd(alloc_spend))
         if nv_rows:
             lines.append('')
             lines.append('Chia cho NV:')
@@ -7233,7 +7252,8 @@ class CrmLead(models.Model):
         return {
             'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
             'src_total': src_total, 'total_data': total_data,
-            'fb_amount': fb_amount, 'fb_count': fb_count, 'cost_per_fb': cost_per_fb,
+            'topup_today': topup_today, 'alloc_spend': alloc_spend, 'alloc_info': alloc_info,
+            'fb_count': fb_count, 'cost_per_fb': cost_per_fb,
             'nv_rows': nv_rows, 'summary_text': '\n'.join(lines),
         }
 

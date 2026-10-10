@@ -920,12 +920,14 @@
                                         <input type="date" class="o_vd_adsp_date"
                                                t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
                                         <span class="o_vd_adsp_spacer"/>
-                                        <span class="o_vd_adsp_fblbl">💰 Tiền QC FB:</span>
+                                        <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
                                         <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
-                                               placeholder="VD 1200000"/>
+                                               placeholder="VD 10000000"/>
                                         <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
-                                        <span t-if="state.adspend.fb_count and state.adspend.fb_amount"
-                                              class="o_vd_adsp_cost">→ <b t-esc="formatVnd(state.adspend.cost_per_fb)"/> / 1 data FB</span>
+                                        <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
+                                            Phân bổ hôm nay: <b t-esc="formatVnd(state.adspend.alloc_spend)"/><t t-if="state.adspend.fb_count"> → <b t-esc="formatVnd(state.adspend.cost_per_fb)"/>/data FB</t>
+                                            <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/>, chia <t t-esc="state.adspend.alloc_info.days"/> ngày)</span>
+                                        </span>
                                     </div>
                                     <div class="o_vd_adsp_grid">
                                         <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
