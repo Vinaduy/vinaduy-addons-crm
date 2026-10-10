@@ -937,9 +937,14 @@
                                         <div class="o_vd_adsp_src">💬 Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
                                     </div>
                                     <div class="o_vd_adsp_copywrap">
-                                        <textarea class="o_vd_adsp_text" readonly="readonly"
-                                                  t-esc="state.adspend.summary_text"/>
-                                        <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy gửi Zalo</button>
+                                        <button class="o_vd_adsp_toggle"
+                                                t-on-click="() => state.adspendOpen = !state.adspendOpen">
+                                            📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
+                                        </button>
+                                        <div t-if="state.adspendOpen" class="o_vd_adsp_drop">
+                                            <pre class="o_vd_adsp_pre" t-esc="state.adspend.summary_text"/>
+                                            <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <t t-set="distRep" t-value="state.pancake_report"/>

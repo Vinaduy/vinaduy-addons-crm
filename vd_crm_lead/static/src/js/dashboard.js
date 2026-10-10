@@ -274,9 +274,10 @@ export class VdCrmDashboard extends Component {
             combinedRep: null,      // MA TRẬN TỔNG HỢP: NV × ngày × nguồn (7/15/30 ngày)
             combinedLoading: false,
             // ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (tab Chia số, user 2026-10-10) =====
-            adspend: null,          // {src_total, nv_rows, fb_amount, cost_per_fb, summary_text...}
+            adspend: null,          // {src_total, nv_rows, alloc_spend, cost_per_fb, summary_text...}
             adspendDate: "",        // iso ngày đang xem (mặc định hôm nay)
             adspendInput: "",       // ô nhập tiền QC FB
+            adspendOpen: false,     // dropdown báo cáo copy gửi Zalo đang mở
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
             analytics: null,           // payload từ dashboard_analytics

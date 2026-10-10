@@ -7199,13 +7199,19 @@ class CrmLead(models.Model):
             pv['total'] += n
             pv[kenh] += n
         Users = self.env['res.users'].sudo()
+        _team_rank = {t: i for i, t in enumerate(
+            ['HN', 'HN2', 'HCM1', 'HCM2', 'HCM3', 'QN', 'CTV', 'VINADUY', 'Lọc số'])}
         nv_rows = []
         for uid, pv in per_nv.items():
             u = Users.browse(uid)
-            nv_rows.append({'name': u.name or ('NV #%s' % uid), 'total': pv['total'],
-                            'quet': pv['quet'], 'facebook': pv['facebook'],
-                            'tiktok': pv['tiktok'], 'zalo': pv['zalo']})
-        nv_rows.sort(key=lambda r: -r['total'])
+            team = self._vd_team_label_for(u) or 'KHÁC'
+            nv_rows.append({'name': u.name or ('NV #%s' % uid), 'team': team,
+                            'total': pv['total'], 'quet': pv['quet'],
+                            'facebook': pv['facebook'], 'tiktok': pv['tiktok'],
+                            'zalo': pv['zalo']})
+        # SẮP THEO PHÒNG BAN (user 2026-10-10), rồi tên trong phòng.
+        nv_rows.sort(key=lambda r: (_team_rank.get(r['team'], 99), r['team'],
+                                    r['name'].lower()))
         total_data = sum(src_total.values())
         # TIỀN QC FB: nạp 1 cục vào 1 ngày → RẢI ĐỀU cho các ngày tới lần nạp sau
         # (lần nạp cuối → rải từ ngày nạp tới HÔM NAY). Phân bổ cho NGÀY đang xem.
@@ -7247,8 +7253,15 @@ class CrmLead(models.Model):
         if nv_rows:
             lines.append('')
             lines.append('Chia cho NV:')
+            cur_team = None
             for r in nv_rows:
-                lines.append('• %s: %d' % (r['name'], r['total']))
+                if r['team'] != cur_team:
+                    cur_team = r['team']
+                    lines.append('— %s —' % cur_team)
+                nm = r['name']
+                if ' - ' in nm:
+                    nm = nm.split(' - ', 1)[1]
+                lines.append('• %s: %d' % (nm, r['total']))
         return {
             'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
             'src_total': src_total, 'total_data': total_data,

@@ -12533,15 +12533,24 @@ body.o_vd_dragselecting { user-select: none !important; }
         }
         .o_vd_adsp_tot { background: #f3eef1; border-color: #e0cfdb; b { color: #714B67; } }
     }
-    .o_vd_adsp_copywrap { display: flex; gap: 10px; align-items: flex-start; }
-    .o_vd_adsp_text {
-        flex: 1 1 auto; min-height: 140px; resize: vertical;
-        border: 1px solid #d4d4d8; border-radius: 8px; padding: 10px;
-        font-size: 13px; font-family: inherit; background: #fff; color: #222; line-height: 1.5;
+    .o_vd_adsp_copywrap { position: relative; }
+    .o_vd_adsp_toggle {
+        height: 36px; padding: 0 16px; border: 1px solid #ccc; border-radius: 8px;
+        background: #fff; cursor: pointer; font-weight: 700; color: #2f9e44;
+        &:hover { background: #f4f8f5; border-color: #2f9e44; }
+    }
+    .o_vd_adsp_drop {
+        margin-top: 8px; border: 1px solid #d4d4d8; border-radius: 10px;
+        background: #fff; padding: 10px; max-width: 520px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.1);
+    }
+    .o_vd_adsp_pre {
+        margin: 0 0 10px; white-space: pre-wrap; word-break: break-word;
+        font-family: inherit; font-size: 13px; color: #222; line-height: 1.5; max-height: 50vh; overflow: auto;
     }
     .o_vd_adsp_copy {
-        flex: 0 0 auto; height: 40px; padding: 0 16px; border: none; border-radius: 8px;
-        cursor: pointer; background: #2f9e44; color: #fff; font-weight: 700; white-space: nowrap;
+        height: 38px; padding: 0 18px; border: none; border-radius: 8px;
+        cursor: pointer; background: #2f9e44; color: #fff; font-weight: 700;
         &:hover { background: #2b8a3e; }
     }
 }
