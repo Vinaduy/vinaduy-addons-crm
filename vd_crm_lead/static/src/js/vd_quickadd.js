@@ -144,8 +144,10 @@ export class VdQuickAddDialog extends Component {
             this.state.summary = parts.join(" · ");
             this.notification.add(this.state.summary, { type: rows.length ? "success" : "warning" });
         } catch (e) {
-            this.notification.add(
-                (e && e.data && e.data.message) || "Đọc file lỗi.", { type: "danger" });
+            const msg = (e && e.data && e.data.message) || "Đọc file lỗi.";
+            // Xoá thông báo cũ (tránh '7 trùng' cũ còn sót gây hiểu nhầm) + hiện lỗi thật.
+            this.state.summary = "⚠️ " + msg;
+            this.notification.add(msg, { type: "danger" });
         } finally {
             this.state.busy = false;
             ev.target.value = "";

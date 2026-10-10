@@ -233,9 +233,14 @@ class VdQuickAddLead(models.Model):
         except Exception:
             raise UserError(_('File không hợp lệ.'))
         raw = self._vd_qa_read_rows(data, filename or '')
+        _logger.info('[QUICKADD-DBG] file=%s | bytes=%d | raw_rows=%d | head=%s',
+                     filename, len(data), len(raw),
+                     [r[:6] for r in raw[:3]])
         if not raw:
             raise UserError(_('Không đọc được dòng nào. File cần có cột SĐT.'))
         rows = self._vd_qa_rows_to_dicts(raw)
+        _logger.info('[QUICKADD-DBG] sdt_parse=%d | phones=%s',
+                     len(rows), [r.get('phone') for r in rows])
         if not rows:
             raise UserError(_('Không tìm thấy SĐT nào trong file.'))
         for r in rows:
