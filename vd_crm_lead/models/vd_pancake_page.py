@@ -565,16 +565,18 @@ class VdPancakePage(models.Model):
         # (gom 100 hội thoại vs 40, kéo thêm 30 lead gồm cả khách hôm qua). Vì API
         # không chính thống nên đây là cách gom rộng nhất; cron 15' phủ phần xoay.
         aborted = False
-        # QUÉT 2 CHIỀU (unread_first false+true × nhiều current_count): cửa sổ list
-        # API XOAY theo thời gian nên 1 khung hay sót cả hội thoại MỚI có SĐT
-        # (đo: "Bích Hồng" 0395859118 có số, mới 08:28, vẫn ngoài khung 60). Quét
-        # rộng nhiều khung/lần + cron dày (5') để giảm tối đa xác suất sót.
-        combos = [(uf, cc) for uf in ('false', 'true')
-                  for cc in (40, 60, 20, 80, 100)]
+        # QUÉT NHẸ (fix 2026-10-11): internal API RATE-LIMIT — quét nặng (10 combo ×
+        # 20 trang = ~200 call/lần) làm Pancake CHẶN (success=False) → sync trả rỗng
+        # → SÓT HÀNG LOẠT (vụ 10/10: 43 SĐT/CRM chỉ 12). Đo thực: hammer → success
+        # False mọi call, ngừng 90s thì hồi. ⇒ Quét NHẸ (4 combo × 3 trang = ~12
+        # call/lần) + cron nhịp vừa → KHÔNG bị chặn → bắt ĐỀU qua các khung xoay theo
+        # thời gian. Càng ít call càng bắt được nhiều (nghịch lý rate-limit).
+        import time
+        combos = [(uf, cc) for uf in ('false', 'true') for cc in (40, 60)]
         for _uf, _cc in combos:
             if aborted:
                 break
-            for _pg in range(1, 21):
+            for _pg in range(1, 4):
                 params = {
                     'access_token': tok,
                     'unread_first': _uf,
@@ -592,6 +594,7 @@ class VdPancakePage(models.Model):
                 except Exception as e:
                     _logger.warning('Zalo internal pull %s: API lỗi — %s', self.name, e)
                     break
+                time.sleep(0.4)  # giãn call tránh rate-limit
                 if isinstance(data, dict) and data.get('success') is False:
                     msg = (data.get('message') or '').lower()
                     # Token phiên hết hạn: Pancake trả HTTP 200 + success=False với
@@ -692,13 +695,12 @@ class VdPancakePage(models.Model):
         pages = self.search([
             ('active', '=', True), ('auto_create_lead', '=', True),
             ('vd_zalo_session_token', '!=', False)])
-        # 1) QUÉT VÉT 3 lượt — mỗi lượt cửa sổ khung khác nhau.
-        for _n in range(3):
-            for p in pages:
-                try:
-                    p._pull_pancake_internal(Lead, ResUsers)
-                except Exception:
-                    _logger.exception('EOD reconcile pull lỗi %s', p.name)
+        # 1) QUÉT VÉT 1 lượt nhẹ (KHÔNG hammer — tránh rate-limit làm sync rỗng).
+        for p in pages:
+            try:
+                p._pull_pancake_internal(Lead, ResUsers)
+            except Exception:
+                _logger.exception('EOD reconcile pull lỗi %s', p.name)
         # 2) ĐỐI SOÁT theo page.
         day_s = vn.localize(_dt.combine(d, _time(0, 0))).astimezone(
             pytz.utc).replace(tzinfo=None)

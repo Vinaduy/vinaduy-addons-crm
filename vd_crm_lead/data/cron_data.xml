@@ -96,13 +96,12 @@
             <field name="state">code</field>
             <field name="code">model._cron_sync_pancake_phones(days=1)</field>
             <field name="active" eval="True"/>
-            <!-- 1' (user spec 2026-10-10: "luôn kiểm tra mỗi phút để không sót data"):
-                 list API Zalo nhả hội thoại hôm nay TRỄ + cửa sổ XOAY theo thời gian
-                 (mỗi lần trả khung khác) → quét MỖI PHÚT tối đa hoá xác suất vớt số
-                 ngay lúc hội thoại lọt vào khung. Gốc trễ nằm ở Pancake (report
-                 realtime nhưng list conversations chậm hơn); cron dày bù phần
-                 xoay-khung, không ép API nhả sớm hơn. -->
-            <field name="interval_number">1</field>
+            <!-- 2' quét NHẸ (fix 2026-10-11): 1' + quét nặng làm Pancake RATE-LIMIT
+                 (success=False) → sync rỗng → SÓT hàng loạt (vụ 10/10: 43 SĐT nhưng
+                 CRM chỉ 12). Nay _pull_pancake_internal nhẹ (~12 call/lần) + nhịp 2'
+                 → KHÔNG bị chặn → bắt ĐỀU qua các khung xoay. Ít call = bắt nhiều
+                 hơn (nghịch lý rate-limit). -->
+            <field name="interval_number">2</field>
             <field name="interval_type">minutes</field>
             <field name="user_id" ref="base.user_root"/>
         </record>
