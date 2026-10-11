@@ -7157,9 +7157,9 @@ class CrmLead(models.Model):
         """BÁO CÁO DATA 1 NGÀY (tab Chia số, user 2026-10-10): tổng theo nguồn
         (quét/FB/TikTok/Zalo) + chia mỗi NV + tiền QC FB & chi phí/1 data FB +
         văn bản copy gửi Zalo.
-        ĐẾM MỌI SỐ VỀ trong ngày (user 2026-10-10): KHÔNG lọc active → số TRÙNG bị
-        archive ngay khi tạo (SĐT đã có NV khác) VẪN được tính, khớp 'SĐT mới' của
-        Pancake. Trước đây lọc active → Zalo toàn trùng → báo cáo hiện 0 (sai cảm nhận)."""
+        TỔNG nguồn = MỌI số về (cả trùng/archive) khớp 'SĐT mới' Pancake; PER-NV =
+        chỉ lead THẬT (active) để chia hiện đúng đều, không bị số trùng dồn lệch
+        (user 2026-10-10/11)."""
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -7184,19 +7184,26 @@ class CrmLead(models.Model):
                       WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
                       ELSE 'other'
                     END) AS kenh,
+                   l.active AS act,
                    COUNT(*) AS n
               FROM crm_lead l
              WHERE l.user_id IS NOT NULL
                AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
                AND l.create_date >= %s AND l.create_date < %s
-             GROUP BY 1, 2
+             GROUP BY 1, 2, 3
         """, (day_s, day_e))
+        # TỔNG theo nguồn: ĐẾM MỌI số về (cả trùng/archive) — khớp "SĐT mới" Pancake.
+        # PER-NV: CHỈ đếm lead THẬT (active) — số TRÙNG bị archive KHÔNG tính vào NV
+        # nhận nó (user 2026-10-11) → bảng chia hiện ĐÚNG đều, không bị số trùng dồn
+        # vào 1 người làm trông thiên vị (vụ 10/10 HCM2 trông gấp đôi là do trùng).
         src_total = {'quet': 0, 'facebook': 0, 'tiktok': 0, 'zalo': 0}
         per_nv = {}
-        for uid, kenh, n in self.env.cr.fetchall():
+        for uid, kenh, act, n in self.env.cr.fetchall():
             if kenh not in src_total:
                 continue
             src_total[kenh] += n
+            if not act:
+                continue
             pv = per_nv.setdefault(uid, {'total': 0, 'quet': 0, 'facebook': 0,
                                          'tiktok': 0, 'zalo': 0})
             pv['total'] += n
@@ -7296,8 +7303,9 @@ class CrmLead(models.Model):
         """MA TRẬN TỔNG HỢP (user 2026-10-04): MỘT bảng duy nhất gồm NHÂN VIÊN ×
         NGÀY × NGUỒN. Mỗi NV: 1 dòng TỔNG (theo ngày) + 4 dòng nguồn (Zalo /
         TikTok / Facebook / Quét) theo ngày. Chân bảng: Cộng theo nguồn × ngày.
-        ĐẾM MỌI lead tạo trong khung đã gán NV (KHÔNG lọc active — gồm cả số TRÙNG
-        bị archive), nguồn Pancake hoặc Quét, khớp 'SĐT mới' Pancake. days in 7|15|30."""
+        Đếm lead THẬT (active) đã gán NV — số TRÙNG bị archive KHÔNG tính (user
+        2026-10-11) để ma trận per-NV hiện ĐÚNG chia đều, không bị trùng dồn lệch.
+        Nguồn Pancake hoặc Quét. days in 7|15|30."""
         import pytz
         from datetime import datetime as _dt, time as _time, timedelta as _td
         try:
@@ -7333,7 +7341,7 @@ class CrmLead(models.Model):
                     END) AS kenh,
                    COUNT(*) AS n
               FROM crm_lead l
-             WHERE l.user_id IS NOT NULL
+             WHERE l.active AND l.user_id IS NOT NULL
                AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
                AND l.create_date >= %s AND l.create_date < %s
              GROUP BY 1, 2, 3
