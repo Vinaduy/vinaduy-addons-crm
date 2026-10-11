@@ -2363,32 +2363,36 @@
          cho các mốc xa; (2) CHƯA GỌI X NGÀY — chỉ KH chưa đặt hẹn.
          ============================================================ -->
     <t t-name="vd_crm_lead.DayFilterBar">
-      <!-- 2 bộ lọc DẠNG DROPDOWN, CÙNG 1 HÀNG (user spec 2026-09-18) -->
+      <!-- 2 bộ lọc DẠNG BUTTON pill, CÙNG 1 HÀNG (user 2026-10-11: đổi từ dropdown
+           sang button bấm chọn — thấy ngay mọi mốc + số lượng, không phải xổ menu).
+           Button đang chọn highlight. Bấm lại button đang chọn = bỏ lọc (toggle). -->
       <div class="o_vd_dayfilter_wrap o_vd_dayfilter_oneline">
         <div class="o_vd_dayfilter_group">
             <span class="o_vd_pfilter_lbl">📅 Lịch hẹn gọi</span>
-            <select class="o_vd_dayfilter_select"
-                    t-on-change="(ev) => this.setFilterFromSelect(scope, ev)">
-                <option value="0" t-att-selected="!filterVal(scope)">
+            <div class="o_vd_dfbtns">
+                <button class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: !filterVal(scope)}"
+                        t-on-click="() => this.setFilter(scope, 0)">
                     <t t-if="scope === 'new'">📞 Cần gọi hôm nay</t>
                     <t t-else="">Tất cả</t>
-                </option>
-                <option t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                        t-att-value="cb.k" t-att-selected="filterVal(scope) === cb.k">
-                    <t t-esc="cb.l"/> (<t t-esc="filterCount(scope, cb.k) or 0"/>)
-                </option>
-            </select>
+                </button>
+                <button t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                        class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: filterVal(scope) === cb.k}"
+                        t-on-click="() => this.setFilter(scope, cb.k)">
+                    <t t-esc="cb.l"/> <span class="o_vd_dfbtn_n">(<t t-esc="filterCount(scope, cb.k) or 0"/>)</span>
+                </button>
+            </div>
         </div>
         <div class="o_vd_dayfilter_group">
             <span class="o_vd_pfilter_lbl">☎️ Chưa gọi</span>
-            <select class="o_vd_dayfilter_select"
-                    t-on-change="(ev) => this.setFilterFromSelect(scope, ev)">
-                <option value="0" t-att-selected="!filterVal(scope)">Tất cả</option>
-                <option t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                        t-att-value="cb.k" t-att-selected="filterVal(scope) === cb.k">
-                    <t t-esc="cb.l"/> (<t t-esc="filterCount(scope, cb.k) or 0"/>)
-                </option>
-            </select>
+            <div class="o_vd_dfbtns">
+                <button class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: !filterVal(scope)}"
+                        t-on-click="() => this.setFilter(scope, 0)">Tất cả</button>
+                <button t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
+                        class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: filterVal(scope) === cb.k}"
+                        t-on-click="() => this.setFilter(scope, cb.k)">
+                    <t t-esc="cb.l"/> <span class="o_vd_dfbtn_n">(<t t-esc="filterCount(scope, cb.k) or 0"/>)</span>
+                </button>
+            </div>
         </div>
       </div>
     </t>

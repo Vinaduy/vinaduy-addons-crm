@@ -6551,6 +6551,24 @@
         &:focus { outline: none; border-color: #7c5cff; box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.15); }
     }
 
+    /* BUTTON bộ lọc (pill) — thay dropdown (user 2026-10-11). */
+    .o_vd_dfbtns {
+        display: inline-flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;
+    }
+    .o_vd_dfbtn {
+        font-size: 0.82rem; font-weight: 600; color: #495057;
+        padding: 0.3rem 0.7rem; border: 1px solid #c7cbe0; border-radius: 999px;
+        background: #fff; cursor: pointer; white-space: nowrap; line-height: 1.2;
+        transition: all 0.12s;
+        .o_vd_dfbtn_n { color: #adb5bd; font-weight: 700; margin-left: 0.1rem; }
+        &:hover { border-color: #7c5cff; color: #4c2fd6; }
+        &.o_vd_dfbtn_on {
+            background: #7c5cff; border-color: #7c5cff; color: #fff;
+            box-shadow: 0 2px 6px rgba(124, 92, 255, 0.3);
+            .o_vd_dfbtn_n { color: rgba(255, 255, 255, 0.8); }
+        }
+    }
+
     /* Menu "Xa hơn ▾" — dropdown các mốc xa (Tháng sau … 1 Năm sau). */
     .o_vd_daymore { position: relative; display: inline-flex; }
     .o_vd_daybtn_more { border-color: #ffd8a8; background: #fff4e6;
