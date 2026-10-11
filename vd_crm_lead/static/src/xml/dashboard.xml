@@ -2450,6 +2450,24 @@
          Gọn vừa chữ; hover ra báo cáo hôm nay + tháng; chia không đều → đỏ.
          ============================================================ -->
     <!-- BÁO CÁO CHIA SỐ ĐẦY ĐỦ (dùng chung: tab admin + panel Lọc số) -->
+    <!-- ICON NGUỒN dùng chung (logo thương hiệu SVG, màu đúng) — user 2026-10-11.
+         Dùng: <t t-set="src" t-value="'zalo'|'tiktok'|'facebook'|'quet'"/>
+               <t t-call="vd_crm_lead.SrcIco"/> -->
+    <t t-name="vd_crm_lead.SrcIco">
+        <t t-if="src === 'facebook'">
+            <svg class="o_vd_srcico" viewBox="0 0 24 24" aria-label="Facebook"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-2.9 1.8-4.6 4.5-4.6 1.3 0 2.6.2 2.6.2v2.9h-1.5c-1.4 0-1.9.9-1.9 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12z"/></svg>
+        </t>
+        <t t-elif="src === 'tiktok'">
+            <svg class="o_vd_srcico" viewBox="0 0 24 24" aria-label="TikTok"><path fill="#25F4EE" d="M16.3 6.1a5 5 0 0 0 1 .7V9a7.2 7.2 0 0 1-3.4-1.1v5.2a5.6 5.6 0 1 1-5.6-5.6v2.8a2.8 2.8 0 1 0 2 2.7V2.5h2.9a4.3 4.3 0 0 0 .1.9"/><path fill="#FE2C55" d="M17.3 6.8a5 5 0 0 0 2.6 1.1v2.8a7.2 7.2 0 0 1-3.6-1.1v5.2a5.6 5.6 0 0 1-8.7 4.7 5.6 5.6 0 0 0 9.7-3.8V10.5a7.2 7.2 0 0 0 3.6 1.1V8.8a5 5 0 0 1-2.6-.7"/><path fill="#000" d="M13.9 2.5a4.3 4.3 0 0 0 3.4 4.3v.7a5 5 0 0 1-2.6-1.1v8.5a5.6 5.6 0 1 1-5.6-5.6c.3 0 .5 0 .8.1v2.8a2.8 2.8 0 1 0 2 2.7V2.5z"/></svg>
+        </t>
+        <t t-elif="src === 'zalo'">
+            <svg class="o_vd_srcico" viewBox="0 0 24 24" aria-label="Zalo"><rect width="24" height="24" rx="6" fill="#0068FF"/><text x="12" y="16.5" font-size="8.5" font-weight="700" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif">Zalo</text></svg>
+        </t>
+        <t t-else="">
+            <svg class="o_vd_srcico" viewBox="0 0 24 24" aria-label="Quét"><path fill="#2f9e44" d="M12 2l5 5h-3.2v6.5h-3.6V7H7l5-5zM4 19h16v3H4z"/></svg>
+        </t>
+    </t>
+
     <t t-name="vd_crm_lead.DistReportFull">
         <!-- ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (user 2026-10-10) ===== -->
         <div t-if="state.adspend" class="o_vd_adsp">
@@ -2469,16 +2487,17 @@
             </div>
             <div class="o_vd_adsp_grid">
                 <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
-                <div class="o_vd_adsp_src">🧲 Quét <b t-esc="state.adspend.src_total.quet"/></div>
-                <div class="o_vd_adsp_src">📘 FB <b t-esc="state.adspend.src_total.facebook"/></div>
-                <div class="o_vd_adsp_src">🎵 TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
-                <div class="o_vd_adsp_src">💬 Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
+                <div class="o_vd_adsp_src"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét <b t-esc="state.adspend.src_total.quet"/></div>
+                <div class="o_vd_adsp_src"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> FB <b t-esc="state.adspend.src_total.facebook"/></div>
+                <div class="o_vd_adsp_src"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
+                <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
             </div>
             <div t-if="state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
                 <span class="o_vd_adsp_recon_lbl">Đối soát Pancake (realtime):</span>
                 <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
                     <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
-                        <t t-esc="rc.source === 'zalo' ? '💬 Zalo' : (rc.source === 'facebook' ? '📘 FB' : '🎵 TikTok')"/>:
+                        <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>
+                        <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>:
                         Pancake <b t-esc="rc.pancake"/> / CRM <b t-esc="rc.crm"/><t t-if="rc.pending"> · chờ <b t-esc="rc.pending"/></t><t t-else=""> ✓</t>
                     </span>
                 </t>
@@ -2658,7 +2677,7 @@
                             </div>
 
                             <!-- ===== BẢNG 2 (KHÔNG MÀU): chia theo NGUỒN, mỗi ngày 4 cột con. ===== -->
-                            <div class="o_vd_pk_srcday_head">📋 Chi tiết theo nguồn — mỗi ngày: 💬 Zalo · 🎵 TikTok · 📘 Facebook · 🧲 Quét</div>
+                            <div class="o_vd_pk_srcday_head">📋 Chi tiết theo nguồn — mỗi ngày: <t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo · <t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok · <t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> Facebook · <t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét</div>
                             <div class="o_vd_pk_mx_wrap">
                                 <table class="o_vd_pk_mx o_vd_pk_mx_comb o_vd_pk_mx_plain">
                                     <thead>
@@ -2672,10 +2691,10 @@
                                         </tr>
                                         <tr>
                                             <t t-foreach="cr.dates" t-as="c" t-key="c.iso">
-                                                <th class="o_vd_pk_mx_sub o_vd_pk_dstart" t-att-title="'Zalo ' + c.day">💬</th>
-                                                <th class="o_vd_pk_mx_sub" t-att-title="'TikTok ' + c.day">🎵</th>
-                                                <th class="o_vd_pk_mx_sub" t-att-title="'Facebook ' + c.day">📘</th>
-                                                <th class="o_vd_pk_mx_sub" t-att-title="'Quét ' + c.day">🧲</th>
+                                                <th class="o_vd_pk_mx_sub o_vd_pk_dstart" t-att-title="'Zalo ' + c.day"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/></th>
+                                                <th class="o_vd_pk_mx_sub" t-att-title="'TikTok ' + c.day"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/></th>
+                                                <th class="o_vd_pk_mx_sub" t-att-title="'Facebook ' + c.day"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/></th>
+                                                <th class="o_vd_pk_mx_sub" t-att-title="'Quét ' + c.day"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/></th>
                                             </t>
                                         </tr>
                                     </thead>
@@ -2740,9 +2759,9 @@
                             <div t-else="" class="o_vd_pk_setlist">
                                 <div class="o_vd_pk_setrow o_vd_pk_sethead">
                                     <span class="o_vd_pk_setname">Nhân viên</span>
-                                    <span class="o_vd_pk_setcell">💬 Zalo</span>
-                                    <span class="o_vd_pk_setcell">🎵 TikTok</span>
-                                    <span class="o_vd_pk_setcell">📘 Facebook</span>
+                                    <span class="o_vd_pk_setcell"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo</span>
+                                    <span class="o_vd_pk_setcell"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok</span>
+                                    <span class="o_vd_pk_setcell"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> Facebook</span>
                                     <span class="o_vd_pk_setcell">Nhận số</span>
                                 </div>
                                 <t t-foreach="srows" t-as="r" t-key="r.uid">
@@ -2788,10 +2807,10 @@
                                     <thead>
                                         <tr>
                                             <th class="o_vd_pk_mx_nv">Nhân viên</th>
-                                            <th>💬 Zalo</th>
-                                            <th>🎵 TikTok</th>
-                                            <th>📘 Facebook</th>
-                                            <th>🧲 Quét</th>
+                                            <th><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo</th>
+                                            <th><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok</th>
+                                            <th><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> Facebook</th>
+                                            <th><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét</th>
                                             <th class="o_vd_pk_mx_sum">Tổng</th>
                                         </tr>
                                     </thead>

@@ -12533,6 +12533,9 @@ body.o_vd_dragselecting { user-select: none !important; }
         }
         .o_vd_adsp_tot { background: #f3eef1; border-color: #e0cfdb; b { color: #714B67; } }
     }
+    .o_vd_srcico {
+        width: 16px; height: 16px; vertical-align: -3px; flex: 0 0 auto;
+    }
     .o_vd_adsp_recon {
         display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
         margin: -4px 0 12px; font-size: 13px;
