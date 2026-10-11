@@ -2485,8 +2485,9 @@
                        placeholder="VD 10000000"/>
                 <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
                 <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
-                    Phân bổ hôm nay: <b t-esc="formatVnd(state.adspend.alloc_spend)"/><t t-if="state.adspend.fb_count"> → <b t-esc="formatVnd(state.adspend.cost_per_fb)"/>/data FB</t>
-                    <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/>, chia <t t-esc="state.adspend.alloc_info.days"/> ngày)</span>
+                    <t t-if="state.adspend.cost_per_fb">Chi phí/1 data FB: <b t-esc="formatVnd(state.adspend.cost_per_fb)"/><t t-if="state.adspend.fb_count"> · Hôm nay <t t-esc="state.adspend.fb_count"/> data = <b t-esc="formatVnd(state.adspend.alloc_spend)"/></t></t>
+                    <t t-else="">Nạp <b t-esc="formatVnd(state.adspend.alloc_info.topup)"/> nhưng kỳ này chưa có data FB</t>
+                    <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/> / <t t-esc="state.adspend.alloc_info.total_fb"/> data FB cả kỳ)</span>
                 </span>
             </div>
             <div class="o_vd_adsp_grid">
