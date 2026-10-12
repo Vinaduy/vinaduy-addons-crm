@@ -7193,18 +7193,18 @@ class CrmLead(models.Model):
                AND l.create_date >= %s AND l.create_date < %s
              GROUP BY 1, 2, 3
         """, (day_s, day_e))
-        # TỔNG theo nguồn: ĐẾM MỌI số về (cả trùng/archive) — khớp "SĐT mới" Pancake.
-        # PER-NV: CHỈ đếm lead THẬT (active) — số TRÙNG bị archive KHÔNG tính vào NV
-        # nhận nó (user 2026-10-11) → bảng chia hiện ĐÚNG đều, không bị số trùng dồn
-        # vào 1 người làm trông thiên vị (vụ 10/10 HCM2 trông gấp đôi là do trùng).
-        src_total = {'quet': 0, 'facebook': 0, 'tiktok': 0, 'zalo': 0}
+        # ĐẾM CHỈ SĐT MỚI (user 2026-10-12): src_total + per_nv CHỈ đếm lead THẬT
+        # (active). Số TRÙNG (đã có khách → bị archive) + số đã HỦY (lost/archive)
+        # KHÔNG đếm lại → "số mới" đúng nghĩa. Đối soát với Pancake dùng query riêng
+        # (đếm cả archive) ở dưới (recon), không đụng src_total.
+        src_total = {'quet': 0, 'facebook': 0, 'tiktok': 0, 'zalo': 0}  # SĐT MỚI (active)
         per_nv = {}
         for uid, kenh, act, n in self.env.cr.fetchall():
             if kenh not in src_total:
                 continue
-            src_total[kenh] += n
             if not act:
                 continue
+            src_total[kenh] += n
             pv = per_nv.setdefault(uid, {'total': 0, 'quet': 0, 'facebook': 0,
                                          'tiktok': 0, 'zalo': 0})
             pv['total'] += n
@@ -7251,7 +7251,8 @@ class CrmLead(models.Model):
             # TỔNG data FB trong kỳ (cùng cách phân loại 'facebook' như báo cáo).
             self.env.cr.execute("""
                 SELECT COUNT(*) FROM crm_lead l
-                 WHERE l.create_date >= %s AND l.create_date < %s
+                 WHERE l.active
+                   AND l.create_date >= %s AND l.create_date < %s
                    AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
                    AND (CASE
                           WHEN l.vd_lead_channel IS NOT NULL
