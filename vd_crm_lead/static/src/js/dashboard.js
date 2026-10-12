@@ -211,6 +211,7 @@ export class VdCrmDashboard extends Component {
             team_label: "",
             current_user_id: 0,
             selected_user_id: 0,   // 0 = "all"
+            viewAsNV: false,       // quản lý bấm "Xem như nhân viên" → ẩn chrome admin, hiện đúng màn hình NV
             users: [],             // [{id, name, login}] — NV để manager chọn
             kpi: {},
             errors: {},
@@ -1154,6 +1155,7 @@ export class VdCrmDashboard extends Component {
     async onChangeUser(ev) {
         const val = ev.target.value;
         this.state.selected_user_id = val === "all" ? 0 : parseInt(val, 10);
+        this.state.viewAsNV = false;   // đổi NV → thoát chế độ xem-như-NV
         this._persistSelectedNv();
         // Đóng NV detail panel nếu đang mở
         this.state.nvDetail = null;
@@ -1176,7 +1178,7 @@ export class VdCrmDashboard extends Component {
     // "Quản lý" theo nghĩa rộng: manager (toàn công ty) HOẶC trưởng nhóm (cùng
     // nhóm) → đều được mở picker chọn NV + xem dashboard từng NV.
     get isTeamManager() {
-        return this.state.is_manager || this.state.is_team_leader;
+        return this.vmIsManager || this.vmTeamLeader;
     }
     // NV dưới quyền trưởng nhóm (loại chính mình ra khỏi bảng "nhân viên dưới quyền").
     get teamMembers() {
@@ -1194,8 +1196,17 @@ export class VdCrmDashboard extends Component {
     // tab overview/team toàn công ty). Trưởng nhóm KHÔNG vào layout này (chỉ
     // xem dashboard từng NV trong nhóm qua picker).
     get isAdminView() {
-        return this.state.is_manager && !this.state.selected_user_id;
+        return this.vmIsManager && !this.state.selected_user_id;
     }
+    // ===== "XEM NHƯ NHÂN VIÊN" (user 2026-10-12): quản lý drill vào 1 NV rồi bấm
+    // nút này → ẩn toàn bộ chrome quản lý, hiện ĐÚNG giao diện NV đó đang thấy.
+    // Các getter vm* = cờ quyền THẬT nhưng bị TẮT khi đang xem-như-NV.
+    get vmIsManager() { return this.state.is_manager && !this.state.viewAsNV; }
+    get vmTeamLeader() { return this.state.is_team_leader && !this.state.viewAsNV; }
+    get vmCanReassign() { return this.state.can_reassign && !this.state.viewAsNV; }
+    get vmIsLocSo() { return this.state.is_loc_so && !this.state.viewAsNV; }
+    get canViewAsNV() { return !!(this.state.is_manager && this.state.selected_user_id); }
+    toggleViewAsNV() { this.state.viewAsNV = !this.state.viewAsNV; }
 
     /**
      * Handler cho nút "Quay lại" navbar (vd_back_button.js gọi qua
@@ -1212,6 +1223,7 @@ export class VdCrmDashboard extends Component {
                 return true;
             }
             this.state.selected_user_id = 0;
+            this.state.viewAsNV = false;
             this._persistSelectedNv();
             this.state.nvDetail = null;
             this.loadDashboard();
@@ -1317,7 +1329,7 @@ export class VdCrmDashboard extends Component {
     // ===== GIÁM ĐỐC: nút NHÂN VIÊN giãn/thu bảng NV (user spec 2026-06-20 r2) =====
     // Hiện nút khi là manager (Giám đốc / Admin). Mặc định bảng = NV PHÒNG GĐ;
     // hover nút → giãn ra TOÀN BỘ NV; rời chuột khỏi bảng / bấm lại → thu về phòng.
-    get showDirFilters() { return !!this.state.is_manager; }
+    get showDirFilters() { return !!this.vmIsManager; }
     // Reload danh sách NV theo scope hiện tại (team_scope khi GĐ ở chế độ CÁ NHÂN).
     async _reloadDashUsers() {
         if (!this.isTeamManager) return;
@@ -1456,6 +1468,7 @@ export class VdCrmDashboard extends Component {
     async selectNvFromDashboard(userId) {
         if (!userId || !this.canDrillNv) return;
         this.state.selected_user_id = userId;
+        this.state.viewAsNV = false;
         this._persistSelectedNv();
         this.state.nvDetail = null;
         await this.loadDashboard();
@@ -2210,7 +2223,7 @@ export class VdCrmDashboard extends Component {
         // nút "Chuyển NV" từng lead. Admin + đội "Lọc số" + vị trí có quyền chuyển
         // đều chia được, KHÔNG bắt buộc là quản lý (fix 2026-10-07: trưởng nhóm /
         // Lọc số như Quỳnh Anh có can_reassign nhưng is_manager=False bị chặn nhầm).
-        return !!this.state.can_reassign;
+        return !!this.vmCanReassign;
     }
     // Click TRÁI 1 pill KH → mở thẻ. Chọn để chia số dùng KÉO CHUỘT PHẢI (_dragSel).
     onPillClick(leadId) {

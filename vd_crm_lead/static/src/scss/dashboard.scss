@@ -12326,6 +12326,18 @@ $vd-rose:      #b06a6a;
     white-space: nowrap;
     margin: 0;
 }
+/* Nút "Xem như nhân viên" (user 2026-10-12) */
+.o_vd_crm_dashboard .o_vd_viewas_btn {
+    flex: 0 0 auto; white-space: nowrap; margin: 0;
+    height: 34px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid #ffd8a8; background: #fff4e6; color: #d9480f; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+    &:hover { border-color: #f59f00; background: #ffe8cc; }
+    &.o_vd_viewas_on {
+        background: #e8590c; border-color: #e8590c; color: #fff;
+        box-shadow: 0 2px 6px rgba(232, 89, 12, .3);
+    }
+}
 /* Nút "Tạo báo giá" — màu tím (khác nút Thêm mới xanh lá) cho khách chưa có SĐT */
 .o_vd_crm_dashboard .o_vd_quote_lead_top {
     flex: 0 0 auto;

@@ -699,7 +699,7 @@
                                          số) dùng panel copy riêng, không xem bảng. Gate theo QUYỀN
                                          CỐ ĐỊNH (không theo pancake_report async → hết nhấp nháy).
                                          NV thường không thấy. (user 2026-10-12) -->
-                                    <button t-if="state.is_manager"
+                                    <button t-if="vmIsManager"
                                             t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_dist ' + (state.dashSubView === 'dist' ? 'o_active' : '')"
                                             t-on-click="() => this.setDashSubView('dist')">
                                         <i class="fa fa-bolt o_vd_dash_subview_icon"/>
@@ -1410,7 +1410,7 @@
                         <!-- ===== BẢNG TRƯỞNG NHÓM (như cũ: trong main, logo giữ góc trái) =====
                              User spec 2026-06-14: KHÔNG span full-width nữa (tránh tràn mép
                              trái + đẩy logo xuống). Dùng CHUNG template VdKhTeamList. -->
-                        <div t-if="state.is_team_leader" class="o_vd_tl_panel" t-ref="tlPanel"
+                        <div t-if="vmTeamLeader" class="o_vd_tl_panel" t-ref="tlPanel"
                              t-on-mouseenter="() => this.cancelCollapse()"
                              t-on-mouseleave="() => this.scheduleCollapse()">
                             <!-- GIÁM ĐỐC: bảng NV PHÒNG mình (vd Hà Nội) LUÔN HIỆN ĐỦ 1 lần
@@ -1455,7 +1455,7 @@
                         <div class="o_vd_topbar_row">
                         <!-- Manager: CHỌN NV + THÊM MỚI — chuyển từ sidebar trái lên
                              top bar (user spec 2026-09-05). -->
-                        <div t-if="state.is_manager" class="o_vd_top_userpick">
+                        <div t-if="vmIsManager" class="o_vd_top_userpick">
                             <i class="fa fa-user-circle o_vd_top_userpick_ico"/>
                             <select class="o_vd_user_picker o_vd_user_picker_top"
                                     t-on-change="(ev) => this.onChangeUser(ev)">
@@ -1467,6 +1467,15 @@
                                 </option>
                             </select>
                         </div>
+                        <!-- XEM NHƯ NHÂN VIÊN (user 2026-10-12): quản lý drill vào 1 NV →
+                             bấm để thấy ĐÚNG màn hình NV đó (ẩn chrome admin). -->
+                        <button t-if="canViewAsNV" class="o_vd_viewas_btn"
+                                t-att-class="{ o_vd_viewas_on: state.viewAsNV }"
+                                t-on-click="() => this.toggleViewAsNV()"
+                                t-att-title="state.viewAsNV ? 'Quay về chế độ quản lý' : 'Xem đúng màn hình nhân viên này đang thấy'">
+                            <i class="fa" t-att-class="state.viewAsNV ? 'fa-user-secret' : 'fa-eye'"/>
+                            <t t-esc="state.viewAsNV ? ' Về chế độ quản lý' : ' Xem như nhân viên'"/>
+                        </button>
                         <button t-if="!isAdminView" class="o_vd_add_lead_btn o_vd_add_lead_top"
                                 t-on-click="() => this.createNewLead()" title="Thêm khách hàng mới">
                             <i class="fa fa-plus me-1"/> Thêm mới
@@ -1599,7 +1608,7 @@
 
                         <!-- COPY GỬI ZALO cho Lọc số (Quỳnh Anh) — CHỈ phần copy, không
                              xem bảng báo cáo (user 2026-10-12). Admin/GĐ có tab Chia số riêng. -->
-                        <div t-if="state.is_loc_so"
+                        <div t-if="vmIsLocSo"
                              class="o_vd_losorep">
                             <button class="o_vd_losorep_btn"
                                     t-on-click="() => state.showDistReport = !state.showDistReport">
@@ -2303,7 +2312,7 @@
                                 <t t-esc="L.user_name"/>
                             </span>
                             <!-- CHUYỂN KH cho NV khác — chỉ admin/người chia số/trưởng nhóm -->
-                            <button t-if="state.can_reassign" class="o_vd_preview_reassign"
+                            <button t-if="vmCanReassign" class="o_vd_preview_reassign"
                                     t-on-click.stop="() => this.openReassignFromPreview()"
                                     title="Chuyển khách hàng này cho nhân viên khác">
                                 <i class="fa fa-exchange"/>
@@ -2484,7 +2493,7 @@
                        t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
                 <span class="o_vd_adsp_spacer"/>
                 <!-- Nạp tiền QC FB + chi phí/data — CHỈ Quản lý/GĐ (user 2026-10-12). -->
-                <t t-if="state.is_manager">
+                <t t-if="vmIsManager">
                     <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
                     <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
                            placeholder="VD 10000000"/>
@@ -2496,14 +2505,14 @@
                     </span>
                 </t>
             </div>
-            <div t-if="state.is_manager" class="o_vd_adsp_grid">
+            <div t-if="vmIsManager" class="o_vd_adsp_grid">
                 <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét <b t-esc="state.adspend.src_total.quet"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> FB <b t-esc="state.adspend.src_total.facebook"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
             </div>
-            <div t-if="state.is_manager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
+            <div t-if="vmIsManager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
                 <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
                 <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
                     <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
@@ -2515,7 +2524,7 @@
                 </t>
             </div>
             <!-- COPY gửi Zalo — Admin/GĐ (is_manager) + Lọc số/Quỳnh Anh (user 2026-10-12). -->
-            <div t-if="state.is_manager or state.is_loc_so" class="o_vd_adsp_copywrap">
+            <div t-if="vmIsManager or vmIsLocSo" class="o_vd_adsp_copywrap">
                 <button class="o_vd_adsp_toggle"
                         t-on-click="() => state.adspendOpen = !state.adspendOpen">
                     📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
@@ -2527,7 +2536,7 @@
             </div>
         </div>
         <!-- Ma trận chia số đầy đủ — CHỈ Quản lý/GĐ (user 2026-10-12). -->
-        <t t-if="state.is_manager">
+        <t t-if="vmIsManager">
             <t t-set="distRep" t-value="state.pancake_report"/>
             <t t-set="distTitle" t-value="'CHIA SỐ'"/>
             <t t-set="distIcon" t-value="'fa-bolt'"/>
@@ -2973,7 +2982,7 @@
                         <t t-elif="ld.cancel_state === 'rejected'">
                             <span class="o_vd_cancel_chip o_vd_cancel_chip_reject">↩ Đã trả về</span>
                         </t>
-                        <t t-elif="state.is_manager or state.is_team_leader">
+                        <t t-elif="vmIsManager or vmTeamLeader">
                             <div class="o_vd_cancel_btns">
                                 <button class="btn btn-sm o_vd_cancel_approve_btn"
                                         t-on-click.stop.prevent="(ev) => this.approveCancel(ev, ld.id)"
