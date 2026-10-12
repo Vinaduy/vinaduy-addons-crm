@@ -25,6 +25,7 @@ export class VdUserBoard extends Component {
             loading: true,
             working: [],      // chỉ NV đang làm việc
             search: "",
+            tab: "HCM",       // 3 tab phòng ban: HCM | HN | Khác
             form: null,       // popup thêm/sửa; null = đóng
             saving: false,
         });
@@ -41,10 +42,18 @@ export class VdUserBoard extends Component {
         }
     }
 
-    // Danh sách phẳng, sắp theo phòng ban rồi tên (trưởng nhóm lên trước).
+    // Đếm NV mỗi tab (HCM/HN/Khác) để hiện số trên nút tab.
+    get tabCounts() {
+        const c = { HCM: 0, HN: 0, "Khác": 0 };
+        for (const u of this.state.working) c[u.group || "Khác"] = (c[u.group || "Khác"] || 0) + 1;
+        return c;
+    }
+    setTab(t) { this.state.tab = t; }
+
+    // Danh sách phẳng, LỌC theo TAB phòng ban đang chọn, rồi sắp theo phòng + tên.
     get rows() {
         const q = this.state.search.trim().toLowerCase();
-        let list = this.state.working;
+        let list = this.state.working.filter((u) => (u.group || "Khác") === this.state.tab);
         if (q) {
             list = list.filter((u) =>
                 (u.name + " " + u.code + " " + u.team + " " + u.login).toLowerCase().includes(q));
@@ -161,6 +170,19 @@ export class VdUserBoard extends Component {
             },
             cancel: () => {},
         });
+    }
+
+    // Bật/tắt HIỂN THỊ NV trên dashboard (ẩn NV không có số...).
+    async toggleDashboard(u) {
+        try {
+            const hidden = await this.orm.call("res.users", "vd_board_toggle_dashboard", [u.id]);
+            u.hidden = hidden;
+            this.notification.add(
+                hidden ? `Đã ẩn "${u.name}" khỏi dashboard.` : `Đã hiện "${u.name}" trên dashboard.`,
+                { type: "success" });
+        } catch (e) {
+            this.notification.add(this._err(e, "Không đổi được."), { type: "danger" });
+        }
     }
 
     // Xóa TRỰC TIẾP từ nút trên dòng (không cần mở popup).

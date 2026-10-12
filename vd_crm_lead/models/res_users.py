@@ -48,6 +48,11 @@ class ResUsers(models.Model):
         compute='_compute_vd_overdue_count',
         help='Lấy từ ir.config_parameter vd_crm_lead.overdue_block_threshold (default 3).',
     )
+    # ẨN NV khỏi DASHBOARD (user 2026-10-12): bật = KHÔNG hiện NV này trong danh
+    # sách NV / báo cáo hiệu suất trên dashboard quản lý (vd NV không có số). NV vẫn
+    # tồn tại + vẫn nhận số bình thường — chỉ ẩn khỏi bảng dashboard cho gọn.
+    vd_hide_from_dashboard = fields.Boolean(
+        string='Ẩn khỏi dashboard', default=False)
 
     # ===== TEAM/PHÒNG BAN suy từ TÊN (user spec 2026-06-13) =====
     # Hệ thống lấy team theo TIỀN TỐ TÊN ("HCM1 - Tên" → HCM1), KHÔNG dùng
@@ -683,11 +688,19 @@ class ResUsers(models.Model):
         # Lọc số (Quỳnh Anh) → chức vụ hiển thị "Tổng hợp" (user 2026-10-12).
         role_label = ('Tổng hợp' if team == 'Lọc số'
                       else self._VD_ROLE_LABEL.get(role, 'Nhân viên'))
+        # NHÓM 3 TAB (user 2026-10-12): HCM (HCM*), HN (HN*), còn lại → Khác.
+        if team.startswith('HCM'):
+            group = 'HCM'
+        elif team.startswith('HN'):
+            group = 'HN'
+        else:
+            group = 'Khác'
         return {
             'id': self.id,
             'name': pure or full,
             'code': code or '?',
             'team': team,
+            'group': group,
             'team_color': self._VD_TEAM_COLOR.get(team, '#868e96'),
             'role': role,
             'role_label': role_label,
@@ -695,6 +708,7 @@ class ResUsers(models.Model):
             'login': self.login or '',
             'active': bool(self.active),
             'lead_count': lead_count,
+            'hidden': bool(self.vd_hide_from_dashboard),
         }
 
     @api.model
@@ -758,6 +772,17 @@ class ResUsers(models.Model):
                     'Hãy chuyển hết khách sang NV khác trước.' % (target.name, n))
         target.write({'active': want})
         return want
+
+    @api.model
+    def vd_board_toggle_dashboard(self, user_id):
+        """Bật/tắt HIỂN THỊ NV trên dashboard (user 2026-10-12). Trả trạng thái
+        hidden mới. Chỉ admin/quản lý."""
+        self._vd_board_check_manager()
+        u = self.sudo().with_context(active_test=False).browse(int(user_id))
+        if not u.exists():
+            return False
+        u.vd_hide_from_dashboard = not u.vd_hide_from_dashboard
+        return bool(u.vd_hide_from_dashboard)
 
     def _vd_board_check_manager(self):
         """Chỉ admin / quản lý được sửa NV."""

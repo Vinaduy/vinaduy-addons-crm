@@ -10750,6 +10750,10 @@ class CrmLead(models.Model):
                 ('user_id', '=', u.id),
                 ('active', '=', True),
             ])
+            # ẨN NV admin đã TẮT hiển thị dashboard (user 2026-10-12). Giữ chính
+            # người đang xem.
+            if u.vd_hide_from_dashboard and u.id != self.env.uid:
+                continue
             # User spec 2026-10-08: CHỈ hiện NV CÓ khách trên bảng NV (ẩn NV 0 khách
             # như tài khoản mới chưa giao số / máy chấm công). LUÔN giữ chính người
             # đang xem (self.env.uid) để họ vẫn thấy báo cáo của mình.

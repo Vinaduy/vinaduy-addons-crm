@@ -46,6 +46,37 @@
     .o_vdnv_redit { color: #1971c2; border-color: #a5d8ff; &:hover { background: #e7f5ff; } }
     .o_vdnv_rdel { color: #c92a2a; border-color: #f1a9a9; &:hover { background: #fff0f0; } }
 
+    // 3 TAB phòng ban (user 2026-10-12)
+    .o_vdnv_tabs {
+        display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+        .o_vdnv_tab {
+            padding: 7px 18px; border: 1px solid #d0d0d0; border-radius: 8px;
+            background: #fff; cursor: pointer; font-weight: 600; font-size: 14px; color: #555;
+            .o_vdnv_tab_n { color: #adb5bd; font-weight: 700; margin-left: 2px; }
+            &:hover { border-color: #888; }
+            &.o_vdnv_tab_on {
+                background: #228be6; border-color: #228be6; color: #fff;
+                .o_vdnv_tab_n { color: rgba(255,255,255,.85); }
+            }
+        }
+    }
+    // Công tắc BẬT/TẮT hiển thị NV trên dashboard
+    .o_vdnv_dash { text-align: center; width: 1%; white-space: nowrap; }
+    .o_vdnv_toggle {
+        width: 42px; height: 22px; border-radius: 999px; border: none; cursor: pointer;
+        background: #2f9e44; position: relative; padding: 0; transition: background .15s;
+        .o_vdnv_toggle_knob {
+            position: absolute; top: 2px; left: 22px; width: 18px; height: 18px;
+            border-radius: 50%; background: #fff; transition: left .15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,.25);
+        }
+        &.o_vdnv_toggle_off {
+            background: #ced4da;
+            .o_vdnv_toggle_knob { left: 2px; }
+        }
+    }
+    tbody tr.o_vdnv_row_hidden td:not(.o_vdnv_dash):not(.o_vdnv_act) { opacity: .45; }
+
     // Popup thêm/sửa
     .o_vdnv_mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
     .o_vdnv_modal {

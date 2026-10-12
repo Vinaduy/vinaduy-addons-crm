@@ -12,6 +12,15 @@
                 <button class="o_vdnv_add" t-on-click="() => this.openAdd()">+ Thêm NV</button>
             </div>
 
+            <!-- 3 TAB phòng ban: HCM / HN / Khác (user 2026-10-12) -->
+            <div class="o_vdnv_tabs">
+                <button t-foreach="['HCM','HN','Khác']" t-as="t" t-key="t"
+                        class="o_vdnv_tab" t-att-class="{ o_vdnv_tab_on: state.tab === t }"
+                        t-on-click="() => this.setTab(t)">
+                    <t t-esc="t"/> <span class="o_vdnv_tab_n">(<t t-esc="tabCounts[t] or 0"/>)</span>
+                </button>
+            </div>
+
             <div t-if="state.loading" class="o_vdnv_loading">Đang tải danh sách nhân viên…</div>
             <table t-else="" class="o_vdnv_table">
                 <thead>
@@ -22,11 +31,13 @@
                         <th>Chức vụ</th>
                         <th>Đăng nhập</th>
                         <th class="o_vdnv_num">Số khách</th>
+                        <th class="o_vdnv_dash">Dashboard</th>
                         <th class="o_vdnv_act">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr t-foreach="rows" t-as="u" t-key="u.id"
+                        t-att-class="{ o_vdnv_row_hidden: u.hidden }"
                         t-on-click="() => this.openEdit(u)">
                         <td t-esc="u_index + 1"/>
                         <td t-esc="u.name"/>
@@ -34,6 +45,13 @@
                         <td t-esc="u.role_label"/>
                         <td t-esc="u.login"/>
                         <td class="o_vdnv_num" t-esc="u.lead_count or 0"/>
+                        <td class="o_vdnv_dash">
+                            <button class="o_vdnv_toggle" t-att-class="{ o_vdnv_toggle_off: u.hidden }"
+                                    t-on-click.stop="() => this.toggleDashboard(u)"
+                                    t-att-title="u.hidden ? 'Đang ẩn — bấm để HIỆN trên dashboard' : 'Đang hiện — bấm để ẨN khỏi dashboard'">
+                                <span class="o_vdnv_toggle_knob"/>
+                            </button>
+                        </td>
                         <td class="o_vdnv_act">
                             <button class="o_vdnv_rbtn o_vdnv_redit"
                                     t-on-click.stop="() => this.openEdit(u)" title="Sửa">✏️ Sửa</button>
@@ -42,7 +60,7 @@
                         </td>
                     </tr>
                     <tr t-if="!rows.length">
-                        <td colspan="7" class="o_vdnv_empty">— Không có nhân viên —</td>
+                        <td colspan="8" class="o_vdnv_empty">— Không có nhân viên trong phòng này —</td>
                     </tr>
                 </tbody>
             </table>
