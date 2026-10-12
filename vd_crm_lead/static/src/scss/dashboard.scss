@@ -12338,6 +12338,41 @@ $vd-rose:      #b06a6a;
         box-shadow: 0 2px 6px rgba(232, 89, 12, .3);
     }
 }
+/* Nút "Báo cáo" header + dropdown copy gửi Zalo (user 2026-10-12) */
+.o_vd_crm_dashboard .o_vd_hdrrep {
+    position: relative; flex: 0 0 auto;
+    .o_vd_hdrrep_btn {
+        height: 34px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+        border: 1px solid #b2f2bb; background: #ebfbee; color: #2b8a3e; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        &:hover { border-color: #2f9e44; background: #d3f9d8; }
+        &.o_vd_hdrrep_on { background: #2f9e44; border-color: #2f9e44; color: #fff; }
+    }
+    .o_vd_hdrrep_mask { position: fixed; inset: 0; z-index: 1000; }
+    .o_vd_hdrrep_menu {
+        position: absolute; top: calc(100% + 6px); right: 0; z-index: 1001;
+        width: 440px; max-width: 92vw; background: #fff; border: 1px solid #d4d4d8;
+        border-radius: 10px; box-shadow: 0 10px 34px rgba(0,0,0,.18); padding: 12px;
+    }
+    .o_vd_hdrrep_head {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        margin-bottom: 8px; font-weight: 700; color: #333; font-size: 14px;
+    }
+    .o_vd_hdrrep_date {
+        height: 32px; border: 1px solid #ccc; border-radius: 6px; padding: 0 8px; font-size: 13px;
+    }
+    .o_vd_hdrrep_pre {
+        margin: 0 0 10px; max-height: 50vh; overflow: auto; white-space: pre-wrap;
+        background: #f8f9fa; border: 1px solid #ededed; border-radius: 8px; padding: 10px;
+        font-size: 13px; line-height: 1.5; font-family: inherit; color: #222;
+    }
+    .o_vd_hdrrep_loading { padding: 20px; text-align: center; color: #999; }
+    .o_vd_hdrrep_copy {
+        width: 100%; height: 38px; border: none; border-radius: 8px; cursor: pointer;
+        background: #2f9e44; color: #fff; font-weight: 700; font-size: 14px;
+        &:hover { background: #2b8a3e; }
+    }
+}
 /* Nút "Tạo báo giá" — màu tím (khác nút Thêm mới xanh lá) cho khách chưa có SĐT */
 .o_vd_crm_dashboard .o_vd_quote_lead_top {
     flex: 0 0 auto;

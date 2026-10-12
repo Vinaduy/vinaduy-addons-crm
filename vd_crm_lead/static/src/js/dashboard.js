@@ -212,6 +212,7 @@ export class VdCrmDashboard extends Component {
             current_user_id: 0,
             selected_user_id: 0,   // 0 = "all"
             viewAsNV: false,       // quản lý bấm "Xem như nhân viên" → ẩn chrome admin, hiện đúng màn hình NV
+            reportMenuOpen: false, // dropdown "Báo cáo" (copy gửi Zalo) trên header
             users: [],             // [{id, name, login}] — NV để manager chọn
             kpi: {},
             errors: {},
@@ -1207,6 +1208,14 @@ export class VdCrmDashboard extends Component {
     get vmIsLocSo() { return this.state.is_loc_so && !this.state.viewAsNV; }
     get canViewAsNV() { return !!(this.state.is_manager && this.state.selected_user_id); }
     toggleViewAsNV() { this.state.viewAsNV = !this.state.viewAsNV; }
+    // Nút "Báo cáo" trên header → dropdown copy gửi Zalo (Lọc số/Quỳnh Anh + QL).
+    get canSeeReportBtn() { return !!(this.state.is_manager || this.state.is_loc_so); }
+    toggleReportMenu() {
+        this.state.reportMenuOpen = !this.state.reportMenuOpen;
+        if (this.state.reportMenuOpen && !this.state.adspend) {
+            this.loadAdspend(this.state.adspendDate || "");
+        }
+    }
 
     /**
      * Handler cho nút "Quay lại" navbar (vd_back_button.js gọi qua

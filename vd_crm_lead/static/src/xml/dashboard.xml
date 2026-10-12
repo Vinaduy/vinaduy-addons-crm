@@ -1480,6 +1480,28 @@
                                 t-on-click="() => this.createNewLead()" title="Thêm khách hàng mới">
                             <i class="fa fa-plus me-1"/> Thêm mới
                         </button>
+                        <!-- NÚT BÁO CÁO trên header → dropdown copy gửi Zalo (user 2026-10-12):
+                             Lọc số (Quỳnh Anh) + Quản lý/GĐ. -->
+                        <div t-if="canSeeReportBtn" class="o_vd_hdrrep">
+                            <button class="o_vd_hdrrep_btn" t-att-class="{ o_vd_hdrrep_on: state.reportMenuOpen }"
+                                    t-on-click="() => this.toggleReportMenu()">
+                                📋 Báo cáo <i class="fa fa-caret-down"/>
+                            </button>
+                            <t t-if="state.reportMenuOpen">
+                                <div class="o_vd_hdrrep_mask" t-on-click="() => state.reportMenuOpen = false"/>
+                                <div class="o_vd_hdrrep_menu">
+                                    <div class="o_vd_hdrrep_head">
+                                        <span>📊 Báo cáo data ngày</span>
+                                        <input type="date" class="o_vd_hdrrep_date"
+                                               t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
+                                    </div>
+                                    <pre t-if="state.adspend" class="o_vd_hdrrep_pre" t-esc="state.adspend.summary_text"/>
+                                    <div t-else="" class="o_vd_hdrrep_loading">Đang tải…</div>
+                                    <button t-if="state.adspend" class="o_vd_hdrrep_copy"
+                                            t-on-click="() => this.copyAdspend()">📋 Copy gửi Zalo</button>
+                                </div>
+                            </t>
+                        </div>
                         <!-- ===== SEARCH KH (NV view) — to + chuyên nghiệp, search theo tên/SĐT không dấu — user spec 2026-05-29 ===== -->
                         <div class="o_vd_nv_search_wrap" t-if="!isAdminView">
                             <div class="o_vd_nv_search">
@@ -1606,18 +1628,8 @@
                             </div>
                         </div><!-- /.o_vd_hdr2 -->
 
-                        <!-- COPY GỬI ZALO cho Lọc số (Quỳnh Anh) — CHỈ phần copy, không
-                             xem bảng báo cáo (user 2026-10-12). Admin/GĐ có tab Chia số riêng. -->
-                        <div t-if="vmIsLocSo"
-                             class="o_vd_losorep">
-                            <button class="o_vd_losorep_btn"
-                                    t-on-click="() => state.showDistReport = !state.showDistReport">
-                                📋 Copy báo cáo gửi Zalo <t t-esc="state.showDistReport ? '▲' : '▼'"/>
-                            </button>
-                            <div t-if="state.showDistReport" class="o_vd_losorep_body">
-                                <t t-call="vd_crm_lead.DistReportFull"/>
-                            </div>
-                        </div>
+                        <!-- Panel Lọc số CŨ đã thay bằng nút "📋 Báo cáo" trên header
+                             (user 2026-10-12) — gọn hơn, hiện cho Lọc số + QL. -->
 
                         <!-- User spec 2026-06-12: tách TOÀN BỘ icon bucket ra 1 BẢNG DỌC
                              riêng bên phải (o_vd_icon_panel), 3 bảng hẹp lại nằm trong
