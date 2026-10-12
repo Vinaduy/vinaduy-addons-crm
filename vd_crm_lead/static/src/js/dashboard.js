@@ -1209,7 +1209,10 @@ export class VdCrmDashboard extends Component {
     get canViewAsNV() { return !!(this.state.is_manager && this.state.selected_user_id); }
     toggleViewAsNV() { this.state.viewAsNV = !this.state.viewAsNV; }
     // Nút "Báo cáo" trên header → dropdown copy gửi Zalo (Lọc số/Quỳnh Anh + QL).
-    get canSeeReportBtn() { return !!(this.state.is_manager || this.state.is_loc_so); }
+    // Nút Báo cáo trên header: CHỈ Lọc số (Quỳnh Anh) — user 2026-10-12.
+    // Admin/GĐ copy qua tab "Chia số" riêng, KHÔNG dùng nút header này (tránh hiện
+    // trên mọi màn hình NV khi admin drill/xem-như-NV → trông như "ai cũng có").
+    get canSeeReportBtn() { return !!this.state.is_loc_so; }
     toggleReportMenu() {
         this.state.reportMenuOpen = !this.state.reportMenuOpen;
         if (this.state.reportMenuOpen && !this.state.adspend) {
