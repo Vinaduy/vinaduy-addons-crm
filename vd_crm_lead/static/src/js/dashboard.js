@@ -280,6 +280,7 @@ export class VdCrmDashboard extends Component {
             adspendDate: "",        // iso ngày đang xem (mặc định hôm nay)
             adspendInput: "",       // ô nhập tiền QC FB
             adspendOpen: false,     // dropdown báo cáo copy gửi Zalo đang mở
+            adspendTab: "report",   // tab đang xem: 'report' | 'cost' (user 2026-10-12)
             periods: null,          // {periods[], total_spend, total_data, avg_cost} - phân bổ chi phí data theo kỳ
             periodsLoading: false,
             showDistReport: false,  // panel báo cáo chia số (layout thường, cho Lọc số)
@@ -722,8 +723,8 @@ export class VdCrmDashboard extends Component {
         // như Quỳnh Anh — can_reassign) (user 2026-10-10).
         if (!this.state.is_manager && !this.state.can_reassign) return;
         if (!this.state.adspend) this.loadAdspend(this.state.adspendDate || "");
-        // Chi phí/data theo kỳ = số liệu chi phí → chỉ quản lý (is_manager).
-        if (this.state.is_manager && !this.state.periods) this.loadPeriods();
+        // Phân bổ chi phí theo kỳ nạp LÀM BIẾNG: chỉ nạp khi mở tab Chi phí
+        // (setAdspendTab) — không tải sẵn (user 2026-10-12).
         const now = Date.now();
         if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
         this._pkRepAt = now;
@@ -744,7 +745,7 @@ export class VdCrmDashboard extends Component {
             const r = await this.orm.call("crm.lead", "vd_adspend_daily", [dateIso || null]);
             this.state.adspend = r;
             this.state.adspendDate = r.date;
-            this.state.adspendInput = r.topup_today ? String(r.topup_today) : "";
+            this.state.adspendInput = r.topup_today ? Number(r.topup_today).toLocaleString("vi-VN") : "";
         } catch (e) {
             this.state.adspend = null;
         }
@@ -752,7 +753,16 @@ export class VdCrmDashboard extends Component {
     onAdspendDate(ev) {
         this.loadAdspend(ev.target.value || "");
     }
+    // Nhập tiền: tự chèn dấu phân cách hàng nghìn cho dễ đọc (10.000.000).
+    onAdspendInput(ev) {
+        const digits = (ev.target.value || "").replace(/\D/g, "");
+        this.state.adspendInput = digits ? parseInt(digits, 10).toLocaleString("vi-VN") : "";
+    }
     // ===== PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP (user 2026-10-12) =====
+    setAdspendTab(tab) {
+        this.state.adspendTab = tab;
+        if (tab === "cost" && this.state.is_manager && !this.state.periods) this.loadPeriods();
+    }
     async loadPeriods() {
         this.state.periodsLoading = true;
         try {
@@ -763,7 +773,7 @@ export class VdCrmDashboard extends Component {
         this.state.periodsLoading = false;
     }
     async saveAdspend() {
-        const amt = parseFloat((this.state.adspendInput || "0").replace(/[^\d.]/g, "")) || 0;
+        const amt = parseInt((this.state.adspendInput || "0").replace(/\D/g, ""), 10) || 0;
         try {
             await this.orm.call("vd.ad.spend", "vd_adspend_set", [this.state.adspendDate, amt]);
             await this.loadAdspend(this.state.adspendDate);

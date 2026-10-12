@@ -12582,18 +12582,20 @@ body.o_vd_dragselecting { user-select: none !important; }
         display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
     .o_vd_adsp_lbl { font-weight: 800; font-size: 15px; color: #1f2a44; }
-    .o_vd_adsp_date, .o_vd_adsp_in {
+    .o_vd_adsp_date {
         height: 34px; border: 1px solid #ccc; border-radius: 7px; padding: 0 10px; font-size: 14px;
     }
-    .o_vd_adsp_in { width: 140px; }
-    .o_vd_adsp_spacer { flex: 1 1 auto; }
-    .o_vd_adsp_fblbl { font-weight: 700; color: #555; }
-    .o_vd_adsp_save {
-        height: 34px; padding: 0 14px; border: none; border-radius: 7px; cursor: pointer;
-        background: #714B67; color: #fff; font-weight: 700;
-        &:hover { background: #5c3d54; }
+    /* Tab bar: Báo cáo | Chi phí quảng cáo (user 2026-10-12) */
+    .o_vd_adsp_tabs {
+        display: flex; gap: 6px; margin-bottom: 12px; border-bottom: 2px solid #eceef3;
     }
-    .o_vd_adsp_cost { font-weight: 800; color: #1c7ed6; white-space: nowrap; }
+    .o_vd_adsp_tab {
+        height: 38px; padding: 0 18px; border: none; background: transparent; cursor: pointer;
+        font-weight: 700; font-size: 14px; color: #868e96; border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        &:hover { color: #1f2a44; }
+        &.o_act { color: #714B67; border-bottom-color: #714B67; }
+    }
     .o_vd_adsp_grid {
         display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0;
         > div {
@@ -12642,18 +12644,38 @@ body.o_vd_dragselecting { user-select: none !important; }
     }
 }
 
-.o_vd_crm_dashboard .o_vd_adsp .o_vd_adsp_from { font-size: 12px; color: #868e96; font-weight: 500; margin-left: 4px; }
-
-/* ===== PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP — user 2026-10-12 ===== */
-.o_vd_crm_dashboard .o_vd_period {
-    border: 1px solid #ffe0b2; border-radius: 12px; padding: 12px 14px;
-    margin-bottom: 14px; background: #fffaf3;
-    .o_vd_period_hd {
-        display: flex; align-items: baseline; justify-content: space-between;
-        flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+/* ===== TAB CHI PHÍ QUẢNG CÁO — 2 cột (user 2026-10-12) ===== */
+.o_vd_crm_dashboard .o_vd_cost {
+    .o_vd_cost_cols { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .o_vd_cost_form {
+        flex: 0 0 300px; max-width: 300px;
+        border: 1px solid #e0cfdb; border-radius: 12px; padding: 14px 16px; background: #faf6f9;
+        display: flex; flex-direction: column;
     }
-    .o_vd_period_ttl { font-weight: 800; font-size: 15px; color: #92400e; }
-    .o_vd_period_sub { font-size: 13px; color: #555; b { color: #1f2a44; } }
+    .o_vd_cost_alloc { flex: 1 1 420px; min-width: 320px; }
+    .o_vd_cost_h { font-weight: 800; font-size: 15px; color: #714B67; margin-bottom: 12px; }
+    .o_vd_cost_alloc .o_vd_cost_h { color: #92400e; }
+    .o_vd_cost_lbl { font-size: 12px; font-weight: 700; color: #868e96; margin: 8px 0 4px; }
+    .o_vd_cost_date, .o_vd_cost_in {
+        height: 40px; border: 1px solid #ccc; border-radius: 8px; padding: 0 12px; font-size: 15px;
+        &:focus { outline: none; border-color: #714B67; }
+    }
+    .o_vd_cost_in { font-weight: 700; letter-spacing: .3px; }
+    .o_vd_cost_save {
+        margin-top: 14px; height: 42px; border: none; border-radius: 8px; cursor: pointer;
+        background: #714B67; color: #fff; font-weight: 800; font-size: 15px;
+        &:hover { background: #5c3d54; }
+    }
+    .o_vd_cost_now {
+        margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: #e7f5ff;
+        color: #1864ab; font-size: 13px; line-height: 1.6; b { color: #1864ab; }
+    }
+    .o_vd_cost_loading { color: #868e96; font-size: 14px; padding: 12px 0; }
+}
+
+/* ===== BẢNG PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP — user 2026-10-12 ===== */
+.o_vd_crm_dashboard .o_vd_cost_alloc {
+    .o_vd_period_sub { display: block; font-size: 13px; color: #555; margin-bottom: 10px; b { color: #1f2a44; } }
     .o_vd_period_tbl {
         width: 100%; border-collapse: collapse; font-size: 14px; background: #fff;
         border-radius: 10px; overflow: hidden;

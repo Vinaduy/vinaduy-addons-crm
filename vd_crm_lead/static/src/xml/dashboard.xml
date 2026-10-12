@@ -2497,97 +2497,114 @@
     </t>
 
     <t t-name="vd_crm_lead.DistReportFull">
-        <!-- ===== BÁO CÁO DATA NGÀY + TIỀN QC FB (user 2026-10-10) ===== -->
+        <!-- ===== BÁO CÁO DATA NGÀY — 2 TAB: Báo cáo | Chi phí QC (user 2026-10-12) ===== -->
         <div t-if="state.adspend" class="o_vd_adsp">
-            <div class="o_vd_adsp_bar">
-                <span class="o_vd_adsp_lbl">📊 Báo cáo data ngày</span>
-                <input type="date" class="o_vd_adsp_date"
-                       t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
-                <span class="o_vd_adsp_spacer"/>
-                <!-- Nạp tiền QC FB + chi phí/data — CHỈ Quản lý/GĐ (user 2026-10-12). -->
-                <t t-if="vmIsManager">
-                    <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
-                    <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
-                           placeholder="VD 10000000"/>
-                    <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
-                    <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
-                        <t t-if="state.adspend.cost_per_fb">Chi phí/1 data FB: <b t-esc="formatVnd(state.adspend.cost_per_fb)"/><t t-if="state.adspend.fb_count"> · Hôm nay <t t-esc="state.adspend.fb_count"/> data = <b t-esc="formatVnd(state.adspend.alloc_spend)"/></t></t>
-                        <t t-else="">Nạp <b t-esc="formatVnd(state.adspend.alloc_info.topup)"/> nhưng kỳ này chưa có data FB</t>
-                        <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/> / <t t-esc="state.adspend.alloc_info.total_fb"/> data FB cả kỳ)</span>
-                    </span>
-                </t>
+            <!-- Tab bar: CHỈ Quản lý mới có 2 tab. Lọc số (Quỳnh Anh) chỉ xem Báo cáo. -->
+            <div t-if="vmIsManager" class="o_vd_adsp_tabs">
+                <button t-att-class="'o_vd_adsp_tab' + (state.adspendTab === 'report' ? ' o_act' : '')"
+                        t-on-click="() => this.setAdspendTab('report')">📊 Báo cáo</button>
+                <button t-att-class="'o_vd_adsp_tab' + (state.adspendTab === 'cost' ? ' o_act' : '')"
+                        t-on-click="() => this.setAdspendTab('cost')">💰 Chi phí quảng cáo</button>
             </div>
-            <div t-if="vmIsManager" class="o_vd_adsp_grid">
-                <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
-                <div class="o_vd_adsp_src"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét <b t-esc="state.adspend.src_total.quet"/></div>
-                <div class="o_vd_adsp_src"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> FB <b t-esc="state.adspend.src_total.facebook"/></div>
-                <div class="o_vd_adsp_src"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
-                <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
-            </div>
-            <div t-if="vmIsManager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
-                <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
-                <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
-                    <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
-                        <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>
-                        <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>
-                        <t t-if="rc.pending"> ⚠️ còn <b t-esc="rc.pending"/> số<t t-if="rc.source === 'zalo'"> <span class="o_vd_adsp_recon_note">(giới hạn API Zalo cá nhân)</span></t></t>
-                        <t t-else=""> ✅ đủ</t>
-                    </span>
-                </t>
-            </div>
-            <!-- COPY gửi Zalo — Admin/GĐ (is_manager) + Lọc số/Quỳnh Anh (user 2026-10-12). -->
-            <div t-if="vmIsManager or vmIsLocSo" class="o_vd_adsp_copywrap">
-                <button class="o_vd_adsp_toggle"
-                        t-on-click="() => state.adspendOpen = !state.adspendOpen">
-                    📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
-                </button>
-                <div t-if="state.adspendOpen" class="o_vd_adsp_drop">
-                    <pre class="o_vd_adsp_pre" t-esc="state.adspend.summary_text"/>
-                    <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy</button>
+
+            <!-- ===== TAB BÁO CÁO ===== -->
+            <div t-if="!vmIsManager or state.adspendTab === 'report'" class="o_vd_adsp_pane">
+                <div class="o_vd_adsp_bar">
+                    <span class="o_vd_adsp_lbl">📊 Báo cáo data ngày</span>
+                    <input type="date" class="o_vd_adsp_date"
+                           t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
+                </div>
+                <div t-if="vmIsManager" class="o_vd_adsp_grid">
+                    <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
+                    <div class="o_vd_adsp_src"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét <b t-esc="state.adspend.src_total.quet"/></div>
+                    <div class="o_vd_adsp_src"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> FB <b t-esc="state.adspend.src_total.facebook"/></div>
+                    <div class="o_vd_adsp_src"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
+                    <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
+                </div>
+                <div t-if="vmIsManager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
+                    <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
+                    <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
+                        <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
+                            <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>
+                            <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>
+                            <t t-if="rc.pending"> ⚠️ còn <b t-esc="rc.pending"/> số<t t-if="rc.source === 'zalo'"> <span class="o_vd_adsp_recon_note">(giới hạn API Zalo cá nhân)</span></t></t>
+                            <t t-else=""> ✅ đủ</t>
+                        </span>
+                    </t>
+                </div>
+                <!-- COPY gửi Zalo — Admin/GĐ + Lọc số/Quỳnh Anh. -->
+                <div t-if="vmIsManager or vmIsLocSo" class="o_vd_adsp_copywrap">
+                    <button class="o_vd_adsp_toggle"
+                            t-on-click="() => state.adspendOpen = !state.adspendOpen">
+                        📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
+                    </button>
+                    <div t-if="state.adspendOpen" class="o_vd_adsp_drop">
+                        <pre class="o_vd_adsp_pre" t-esc="state.adspend.summary_text"/>
+                        <button class="o_vd_adsp_copy" t-on-click="() => this.copyAdspend()">📋 Copy</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- ===== PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP (user 2026-10-12) =====
-             Mỗi lần nạp tiền QC FB mở 1 kỳ, chốt chi phí/1 data ở CUỐI kỳ.
-             Số liệu chi phí → CHỈ Quản lý/GĐ (vmIsManager). -->
-        <div t-if="vmIsManager and state.periods and state.periods.periods.length" class="o_vd_period">
-            <div class="o_vd_period_hd">
-                <span class="o_vd_period_ttl">💸 Phân bổ chi phí data theo kỳ nạp</span>
-                <span class="o_vd_period_sub">Tổng từ 1/10: nạp <b t-esc="formatVnd(state.periods.total_spend)"/>
-                    · <b t-esc="state.periods.total_data"/> data FB
-                    · TB <b t-esc="formatVnd(state.periods.avg_cost)"/>/data</span>
-            </div>
-            <table class="o_vd_period_tbl">
-                <thead>
-                    <tr>
-                        <th>Kỳ nạp</th>
-                        <th class="o_vd_r">Số ngày</th>
-                        <th class="o_vd_r">Tiền nạp</th>
-                        <th class="o_vd_r">Data FB</th>
-                        <th class="o_vd_r">Chi phí / 1 data</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr t-foreach="state.periods.periods" t-as="p" t-key="p.start"
-                        t-att-class="p.current ? 'o_vd_period_cur' : ''">
-                        <td><b t-esc="p.start_short"/> → <t t-esc="p.end_short"/></td>
-                        <td class="o_vd_r" t-esc="p.days"/>
-                        <td class="o_vd_r" t-esc="formatVnd(p.topup)"/>
-                        <td class="o_vd_r"><b t-esc="p.fb_data"/></td>
-                        <td class="o_vd_r">
-                            <b t-if="p.cost_per" t-esc="formatVnd(p.cost_per)"/>
-                            <span t-else="" class="o_vd_period_na">chưa có data</span>
-                        </td>
-                        <td>
-                            <span t-if="p.current" class="o_vd_period_tag o_vd_period_run">⏳ Đang chạy</span>
-                            <span t-else="" class="o_vd_period_tag o_vd_period_done">✅ Đã chốt</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="o_vd_period_note">
-                Chi phí/1 data = tiền nạp kỳ ÷ số data FB mới trong kỳ. Kỳ đang chạy sẽ CHỐT khi nạp lần kế tiếp.
+
+            <!-- ===== TAB CHI PHÍ QUẢNG CÁO (CHỈ Quản lý) — 2 cột ===== -->
+            <div t-if="vmIsManager and state.adspendTab === 'cost'" class="o_vd_cost">
+                <div class="o_vd_cost_cols">
+                    <!-- Cột TRÁI: nhập chi phí QC FB -->
+                    <div class="o_vd_cost_form">
+                        <div class="o_vd_cost_h">💰 Nhập chi phí QC FB</div>
+                        <label class="o_vd_cost_lbl">Ngày nạp</label>
+                        <input type="date" class="o_vd_cost_date"
+                               t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
+                        <label class="o_vd_cost_lbl">Số tiền nạp (VNĐ)</label>
+                        <input type="text" inputmode="numeric" class="o_vd_cost_in"
+                               t-att-value="state.adspendInput" t-on-input="onAdspendInput"
+                               placeholder="VD 10.000.000"/>
+                        <button class="o_vd_cost_save" t-on-click="() => this.saveAdspend()">Lưu chi phí</button>
+                        <div t-if="state.adspend.alloc_info and state.adspend.cost_per_fb" class="o_vd_cost_now">
+                            Chi phí/1 data FB hôm nay: <b t-esc="formatVnd(state.adspend.cost_per_fb)"/>
+                            <t t-if="state.adspend.fb_count"><br/><t t-esc="state.adspend.fb_count"/> data = <b t-esc="formatVnd(state.adspend.alloc_spend)"/></t>
+                        </div>
+                    </div>
+                    <!-- Cột PHẢI: phân bổ chi phí data theo kỳ -->
+                    <div class="o_vd_cost_alloc">
+                        <div class="o_vd_cost_h">💸 Phân bổ theo kỳ nạp</div>
+                        <div t-if="state.periodsLoading" class="o_vd_cost_loading">Đang tính…</div>
+                        <t t-elif="state.periods and state.periods.periods.length">
+                            <div class="o_vd_period_sub">Tổng từ 1/10: nạp <b t-esc="formatVnd(state.periods.total_spend)"/>
+                                · <b t-esc="state.periods.total_data"/> data FB · TB <b t-esc="formatVnd(state.periods.avg_cost)"/>/data</div>
+                            <table class="o_vd_period_tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Kỳ nạp</th>
+                                        <th class="o_vd_r">Ngày</th>
+                                        <th class="o_vd_r">Tiền nạp</th>
+                                        <th class="o_vd_r">Data FB</th>
+                                        <th class="o_vd_r">Chi phí/data</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.periods.periods" t-as="p" t-key="p.start"
+                                        t-att-class="p.current ? 'o_vd_period_cur' : ''">
+                                        <td><b t-esc="p.start_short"/> → <t t-esc="p.end_short"/></td>
+                                        <td class="o_vd_r" t-esc="p.days"/>
+                                        <td class="o_vd_r" t-esc="formatVnd(p.topup)"/>
+                                        <td class="o_vd_r"><b t-esc="p.fb_data"/></td>
+                                        <td class="o_vd_r">
+                                            <b t-if="p.cost_per" t-esc="formatVnd(p.cost_per)"/>
+                                            <span t-else="" class="o_vd_period_na">chưa có data</span>
+                                        </td>
+                                        <td>
+                                            <span t-if="p.current" class="o_vd_period_tag o_vd_period_run">⏳ Đang chạy</span>
+                                            <span t-else="" class="o_vd_period_tag o_vd_period_done">✅ Đã chốt</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="o_vd_period_note">Chi phí/1 data = tiền nạp kỳ ÷ data FB mới trong kỳ. Kỳ đang chạy sẽ CHỐT khi nạp lần kế tiếp.</div>
+                        </t>
+                        <div t-else="" class="o_vd_cost_loading">Chưa có kỳ nạp nào.</div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Ma trận chia số đầy đủ — CHỈ Quản lý/GĐ (user 2026-10-12). -->
