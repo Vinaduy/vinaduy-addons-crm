@@ -7278,13 +7278,8 @@ class CrmLead(models.Model):
                  '🧲 Quét: %d · 📘 FB: %d · 🎵 TikTok: %d · 💬 Zalo: %d' % (
                      src_total['quet'], src_total['facebook'],
                      src_total['tiktok'], src_total['zalo'])]
-        if cover and cost_per_fb:
-            lines.append('💰 Chi phí/1 data FB: %s (nạp %s / %d data FB cả kỳ)' % (
-                _vnd(cost_per_fb), _vnd(cover.fb_amount), total_fb_period))
-            if fb_count:
-                lines.append('   Hôm nay: %d data FB = %s' % (fb_count, _vnd(alloc_spend)))
-        elif cover:
-            lines.append('💰 QC FB: nạp %s nhưng kỳ này CHƯA có data FB nào' % _vnd(cover.fb_amount))
+        # Báo cáo copy gửi Zalo KHÔNG kèm chi phí/data (user 2026-10-12) — chi phí
+        # xem ở tab "Phân bổ chi phí data theo kỳ", không gửi ra ngoài.
         if nv_rows:
             lines.append('')
             lines.append('Chia cho NV:')
