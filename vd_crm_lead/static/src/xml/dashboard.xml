@@ -695,11 +695,11 @@
                                         </span>
                                     </button>
                                     <!-- Tab "Khách hàng" + "ALL khách hàng" ĐÃ BỎ (user 2026-08-28). -->
-                                    <!-- Tab CHIA SỐ — CHỈ Quản lý/GĐ + người chia số (Lọc số/Quỳnh Anh).
-                                         Gate theo QUYỀN CỐ ĐỊNH (is_manager/can_reassign) thay vì
-                                         state.pancake_report (load async → nhấp nháy). NV thường
-                                         không có quyền → không thấy tab. (user 2026-10-12) -->
-                                    <button t-if="state.is_manager or state.can_reassign"
+                                    <!-- Tab CHIA SỐ — CHỈ Quản lý/GĐ (is_manager). Quỳnh Anh (Lọc
+                                         số) dùng panel copy riêng, không xem bảng. Gate theo QUYỀN
+                                         CỐ ĐỊNH (không theo pancake_report async → hết nhấp nháy).
+                                         NV thường không thấy. (user 2026-10-12) -->
+                                    <button t-if="state.is_manager"
                                             t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_dist ' + (state.dashSubView === 'dist' ? 'o_active' : '')"
                                             t-on-click="() => this.setDashSubView('dist')">
                                         <i class="fa fa-bolt o_vd_dash_subview_icon"/>
@@ -1597,13 +1597,13 @@
                             </div>
                         </div><!-- /.o_vd_hdr2 -->
 
-                        <!-- BÁO CÁO CHIA SỐ cho người có quyền chia (đội Lọc số) ở layout
-                             THƯỜNG — admin đã có tab Chia số riêng (user 2026-10-10). -->
-                        <div t-if="state.can_reassign and !isAdminView"
+                        <!-- COPY GỬI ZALO cho Lọc số (Quỳnh Anh) — CHỈ phần copy, không
+                             xem bảng báo cáo (user 2026-10-12). Admin/GĐ có tab Chia số riêng. -->
+                        <div t-if="state.is_loc_so"
                              class="o_vd_losorep">
                             <button class="o_vd_losorep_btn"
                                     t-on-click="() => state.showDistReport = !state.showDistReport">
-                                📊 Báo cáo chia số <t t-esc="state.showDistReport ? '▲' : '▼'"/>
+                                📋 Copy báo cáo gửi Zalo <t t-esc="state.showDistReport ? '▲' : '▼'"/>
                             </button>
                             <div t-if="state.showDistReport" class="o_vd_losorep_body">
                                 <t t-call="vd_crm_lead.DistReportFull"/>
@@ -2483,24 +2483,27 @@
                 <input type="date" class="o_vd_adsp_date"
                        t-att-value="state.adspendDate" t-on-change="onAdspendDate"/>
                 <span class="o_vd_adsp_spacer"/>
-                <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
-                <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
-                       placeholder="VD 10000000"/>
-                <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
-                <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
-                    <t t-if="state.adspend.cost_per_fb">Chi phí/1 data FB: <b t-esc="formatVnd(state.adspend.cost_per_fb)"/><t t-if="state.adspend.fb_count"> · Hôm nay <t t-esc="state.adspend.fb_count"/> data = <b t-esc="formatVnd(state.adspend.alloc_spend)"/></t></t>
-                    <t t-else="">Nạp <b t-esc="formatVnd(state.adspend.alloc_info.topup)"/> nhưng kỳ này chưa có data FB</t>
-                    <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/> / <t t-esc="state.adspend.alloc_info.total_fb"/> data FB cả kỳ)</span>
-                </span>
+                <!-- Nạp tiền QC FB + chi phí/data — CHỈ Quản lý/GĐ (user 2026-10-12). -->
+                <t t-if="state.is_manager">
+                    <span class="o_vd_adsp_fblbl">💰 Nạp tiền QC FB (ngày này):</span>
+                    <input type="text" class="o_vd_adsp_in" t-model="state.adspendInput"
+                           placeholder="VD 10000000"/>
+                    <button class="o_vd_adsp_save" t-on-click="() => this.saveAdspend()">Lưu</button>
+                    <span t-if="state.adspend.alloc_info" class="o_vd_adsp_cost">
+                        <t t-if="state.adspend.cost_per_fb">Chi phí/1 data FB: <b t-esc="formatVnd(state.adspend.cost_per_fb)"/><t t-if="state.adspend.fb_count"> · Hôm nay <t t-esc="state.adspend.fb_count"/> data = <b t-esc="formatVnd(state.adspend.alloc_spend)"/></t></t>
+                        <t t-else="">Nạp <b t-esc="formatVnd(state.adspend.alloc_info.topup)"/> nhưng kỳ này chưa có data FB</t>
+                        <span class="o_vd_adsp_from">(nạp <t t-esc="formatVnd(state.adspend.alloc_info.topup)"/> ngày <t t-esc="state.adspend.alloc_info.date"/> / <t t-esc="state.adspend.alloc_info.total_fb"/> data FB cả kỳ)</span>
+                    </span>
+                </t>
             </div>
-            <div class="o_vd_adsp_grid">
+            <div t-if="state.is_manager" class="o_vd_adsp_grid">
                 <div class="o_vd_adsp_tot">Tổng <b t-esc="state.adspend.total_data"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'quet'"/><t t-call="vd_crm_lead.SrcIco"/> Quét <b t-esc="state.adspend.src_total.quet"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'facebook'"/><t t-call="vd_crm_lead.SrcIco"/> FB <b t-esc="state.adspend.src_total.facebook"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'tiktok'"/><t t-call="vd_crm_lead.SrcIco"/> TikTok <b t-esc="state.adspend.src_total.tiktok"/></div>
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
             </div>
-            <div t-if="state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
+            <div t-if="state.is_manager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
                 <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
                 <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
                     <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
@@ -2511,8 +2514,8 @@
                     </span>
                 </t>
             </div>
-            <!-- COPY gửi Zalo — CHỈ Lọc số (Quỳnh Anh) xem (user 2026-10-12). -->
-            <div t-if="state.is_loc_so" class="o_vd_adsp_copywrap">
+            <!-- COPY gửi Zalo — Admin/GĐ (is_manager) + Lọc số/Quỳnh Anh (user 2026-10-12). -->
+            <div t-if="state.is_manager or state.is_loc_so" class="o_vd_adsp_copywrap">
                 <button class="o_vd_adsp_toggle"
                         t-on-click="() => state.adspendOpen = !state.adspendOpen">
                     📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>
@@ -2523,12 +2526,15 @@
                 </div>
             </div>
         </div>
-        <t t-set="distRep" t-value="state.pancake_report"/>
-        <t t-set="distTitle" t-value="'CHIA SỐ'"/>
-        <t t-set="distIcon" t-value="'fa-bolt'"/>
-        <t t-set="distShowTarget" t-value="true"/>
-        <t t-set="distPanel" t-value="true"/>
-        <t t-call="vd_crm_lead.DistFilter"/>
+        <!-- Ma trận chia số đầy đủ — CHỈ Quản lý/GĐ (user 2026-10-12). -->
+        <t t-if="state.is_manager">
+            <t t-set="distRep" t-value="state.pancake_report"/>
+            <t t-set="distTitle" t-value="'CHIA SỐ'"/>
+            <t t-set="distIcon" t-value="'fa-bolt'"/>
+            <t t-set="distShowTarget" t-value="true"/>
+            <t t-set="distPanel" t-value="true"/>
+            <t t-call="vd_crm_lead.DistFilter"/>
+        </t>
     </t>
 
     <t t-name="vd_crm_lead.DistFilter">
