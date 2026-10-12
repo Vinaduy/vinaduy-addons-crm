@@ -9293,6 +9293,10 @@ class CrmLead(models.Model):
             ),
             # KH đẩy từ file Excel → thẻ hiện icon Facebook XÁM ĐẬM.
             'from_excel': l.vd_from_excel,
+            # NGUỒN CHUẨN cho icon trên thẻ KH (user 2026-10-12): zalo/tiktok/
+            # facebook/quet/other — theo _vd_lead_channel (tôn trọng cột Nguồn khi
+            # upload Excel). Để NV nhìn thẻ biết ngay KH từ đâu, không lộn xộn.
+            'source': l._vd_lead_channel(),
             'stage_code': l.stage_code or '',
             # 🏷️ Cờ "giá cũ": KH đã có báo giá tạo TRƯỚC lần đổi đơn giá gần nhất
             # → bảng giá của KH này vẫn là giá cũ (cần "Làm lại báo giá" để cập nhật).
