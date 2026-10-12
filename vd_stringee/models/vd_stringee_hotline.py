@@ -203,7 +203,14 @@ class VdStringeeHotline(models.Model):
             # phát sinh SAU mốc chấm chết, hoặc admin ép xanh / chốt tay sau khi
             # gọi thử.
             if h.vd_health == 'dead' and health != 'dead' and not h.vd_force_alive:
-                if not Call._vd_has_ring_after(h.number, h.vd_health_at):
+                # GỠ BẪY KẸT CHẾT (user 2026-10-12): chỉ GIỮ chết nếu số VẪN đang
+                # bị gọi mà KHÔNG đổ chuông (bằng chứng còn chết thật). Nếu đã bị
+                # gỡ khỏi NV → KHÔNG còn cuộc gọi nào sau mốc chấm chết → không có
+                # bằng chứng mới → cho SECOND CHANCE (theo live health, thường
+                # 'unused') để chia lại + test lại; nếu vẫn chết sẽ bị chấm lại.
+                has_call = Call._vd_has_call_after(h.number, h.vd_health_at)
+                has_ring = Call._vd_has_ring_after(h.number, h.vd_health_at)
+                if has_call and not has_ring:
                     health = 'dead'
             vals = {'vd_health': health}
             if health != h.vd_health:

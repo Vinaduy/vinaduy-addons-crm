@@ -489,6 +489,23 @@ class StringeeCall(models.Model):
         return bool(cr.fetchone())
 
     @api.model
+    def _vd_has_call_after(self, number, since):
+        """Số này có BẤT KỲ cuộc gọi ra nào sau mốc `since` không (dù đổ chuông
+        hay không)? Dùng gỡ BẪY 'kẹt chết': số chết bị gỡ khỏi NV → không ai gọi
+        → không thể đổ chuông → kẹt chết mãi. Nếu KHÔNG còn cuộc gọi nào sau mốc
+        chấm chết thì KHÔNG đủ bằng chứng giữ chết (user 2026-10-12)."""
+        if not number:
+            return False
+        cr = self.env.cr
+        cr.execute(
+            "SELECT 1 FROM stringee_call "
+            "WHERE direction='outbound' AND caller_number = %s "
+            "  AND create_date > %s LIMIT 1",
+            [number, since or '1970-01-01'],
+        )
+        return bool(cr.fetchone())
+
+    @api.model
     def _vd_no_ring_streaks(self, numbers, window_days=45):
         """Chuỗi cuộc gọi GẦN NHẤT liên tiếp KHÔNG đổ chuông của từng số.
 
