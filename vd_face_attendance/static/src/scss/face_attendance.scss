@@ -371,3 +371,11 @@
     .o_vd_face_result_code { font-size: 1rem; font-weight: 700; color: #1864ab; margin-left: 0.3rem; }
     .o_vd_face_result_line { font-size: 1rem; margin-top: 0.25rem; color: #333; }
 }
+
+/* Chống bấm nhầm: chờ 10' mới cho chấm RA (user 2026-10-12) */
+.o_vd_face_waitout {
+    text-align: center; padding: 12px 16px; border-radius: 10px;
+    background: #fff4e6; border: 1px solid #ffd8a8; color: #d9480f;
+    font-weight: 600; font-size: 15px;
+    .o_vd_face_waitout_sub { font-weight: 400; font-size: 12px; color: #e8822f; margin-top: 2px; }
+}

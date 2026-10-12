@@ -128,12 +128,18 @@
                             t-on-click="() => this.checkIn()">
                         <i class="fa fa-sign-in me-1"/> CHẤM VÀO
                     </button>
-                    <button t-if="state.hasOpen"
+                    <button t-if="canCheckOut"
                             class="btn btn-primary o_vd_face_btn o_vd_face_btn_big"
                             t-att-disabled="state.busy or state.phase !== 'ready'"
                             t-on-click="() => this.checkOut()">
                         <i class="fa fa-sign-out me-1"/> CHẤM RA
                     </button>
+                    <!-- Chống bấm nhầm: 10' đầu sau khi chấm VÀO chưa cho chấm RA -->
+                    <div t-if="state.hasOpen and !canCheckOut" class="o_vd_face_waitout">
+                        <i class="fa fa-clock-o me-1"/>
+                        Đã chấm VÀO — chờ <b t-esc="checkoutWaitLabel"/> nữa mới chấm RA được
+                        <div class="o_vd_face_waitout_sub">(tránh bấm nhầm vào–ra liên tiếp)</div>
+                    </div>
                 </div>
 
                 <!-- Lịch sử gần đây -->

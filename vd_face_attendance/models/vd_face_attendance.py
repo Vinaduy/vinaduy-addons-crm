@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import math
+from datetime import datetime
 
 import pytz
 
@@ -116,6 +117,174 @@ class VdFaceAttendance(models.Model):
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
         return pytz.utc.localize(dt).astimezone(vn).strftime('%d/%m')
 
+    def _vd_local_date(self, dt):
+        """Datetime UTC -> 'dd/mm/YYYY' giờ VN."""
+        if not dt:
+            return ''
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        return pytz.utc.localize(dt).astimezone(vn).strftime('%d/%m/%Y')
+
+    # ================= BẢNG CHẤM CÔNG (UI mới, Admin/Quản lý) =================
+    def _vd_board_check_manager(self):
+        """Chỉ Admin/Quản lý chấm công được dùng bảng + chấm bù (user 2026-10-12)."""
+        u = self.env.user
+        if not (u._is_admin()
+                or u.has_group('vd_face_attendance.group_face_manager')):
+            raise UserError(_('Chỉ Admin/Quản lý chấm công mới được dùng bảng này.'))
+
+    @api.model
+    def _vd_month_range_utc(self, month):
+        """month 'YYYY-MM' (trống = tháng hiện tại) -> (start_utc, end_utc, y, m)
+        theo giờ VN."""
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        if month:
+            y, m = [int(x) for x in str(month).split('-')[:2]]
+        else:
+            now_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+            y, m = now_vn.year, now_vn.month
+        start_vn = vn.localize(datetime(y, m, 1, 0, 0))
+        if m == 12:
+            end_vn = vn.localize(datetime(y + 1, 1, 1, 0, 0))
+        else:
+            end_vn = vn.localize(datetime(y, m + 1, 1, 0, 0))
+        return (start_vn.astimezone(pytz.utc).replace(tzinfo=None),
+                end_vn.astimezone(pytz.utc).replace(tzinfo=None), y, m)
+
+    @api.model
+    def vd_attendance_board(self, month=None):
+        """Dữ liệu bảng chấm công 1 THÁNG (Admin/QL). Mỗi dòng: STT (client tự
+        đánh) + tên + mã NV + giờ vào/ra + ngày + số giờ + đi muộn/về sớm."""
+        self._vd_board_check_manager()
+        s, e, y, m = self._vd_month_range_utc(month)
+        recs = self.sudo().search(
+            [('check_in', '>=', s), ('check_in', '<', e)], order='check_in desc')
+        rows = []
+        total_h = 0.0
+        for r in recs:
+            emp = r.employee_id
+            u = r.user_id or (emp.user_id if emp else self.env['res.users'])
+            name = (u.name if u else '') or (emp.name if emp else '') or '—'
+            rows.append({
+                'id': r.id,
+                'name': name,
+                'code': (emp.code if emp else '') or '',
+                'user_id': u.id if u else 0,
+                'in_time': self._vd_local_hm(r.check_in),
+                'out_time': self._vd_local_hm(r.check_out),
+                'date': self._vd_local_date(r.check_in),
+                'worked_hours': r.worked_hours or 0.0,
+                'late': r.late_minutes or 0,
+                'early': r.early_leave_minutes or 0,
+            })
+            total_h += r.worked_hours or 0.0
+        return {
+            'rows': rows,
+            'month': '%04d-%02d' % (y, m),
+            'month_label': 'Tháng %d/%d' % (m, y),
+            'total_hours': round(total_h, 2),
+            'count': len(rows),
+        }
+
+    @api.model
+    def vd_attendance_users(self):
+        """Danh sách NV (có hồ sơ khuôn mặt) để chọn khi CHẤM BÙ."""
+        self._vd_board_check_manager()
+        emps = self.env['vd.face.employee'].sudo().search(
+            [('user_id', '!=', False)])
+        out = [{'user_id': e.user_id.id,
+                'name': e.user_id.name or e.name,
+                'code': e.code or ''} for e in emps]
+        out.sort(key=lambda x: (x['name'] or '').lower())
+        return out
+
+    @api.model
+    def vd_attendance_manual_save(self, vals):
+        """CHẤM BÙ / sửa tay (NV quên chấm). vals: {id?, user_id, date
+        'YYYY-MM-DD', in_hm 'HH:MM', out_hm 'HH:MM'}. Giờ nhập theo VN -> lưu UTC."""
+        self._vd_board_check_manager()
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        uid = int(vals.get('user_id') or 0)
+        date_s = vals.get('date')
+        if not uid or not date_s:
+            raise UserError(_('Chọn nhân viên và ngày.'))
+        y, mo, d = [int(x) for x in str(date_s).split('-')[:3]]
+
+        def _to_utc(hm):
+            if not hm:
+                return False
+            hh, mm = [int(x) for x in str(hm).split(':')[:2]]
+            return vn.localize(datetime(y, mo, d, hh, mm)).astimezone(
+                pytz.utc).replace(tzinfo=None)
+
+        ci = _to_utc(vals.get('in_hm'))
+        co = _to_utc(vals.get('out_hm'))
+        if not ci:
+            raise UserError(_('Nhập giờ vào.'))
+        if co and co <= ci:
+            raise UserError(_('Giờ ra phải sau giờ vào.'))
+        emp = self.env['vd.face.employee'].sudo().search(
+            [('user_id', '=', uid)], limit=1)
+        body = {'user_id': uid, 'check_in': ci, 'check_out': co or False}
+        if emp:
+            body['employee_id'] = emp.id
+        rid = int(vals.get('id') or 0)
+        if rid:
+            self.sudo().browse(rid).write(body)
+            return rid
+        return self.sudo().create(body).id
+
+    @api.model
+    def vd_attendance_delete(self, rec_id):
+        """Xoá 1 bản ghi chấm công (Admin/QL)."""
+        self._vd_board_check_manager()
+        rec = self.sudo().browse(int(rec_id))
+        if rec.exists():
+            rec.unlink()
+        return True
+
+    @api.model
+    def vd_attendance_export(self, month=None):
+        """Xuất Excel bảng chấm công tháng. Trả {filename, data(base64)}."""
+        self._vd_board_check_manager()
+        import io
+        import base64
+        try:
+            import xlsxwriter
+        except ImportError:
+            raise UserError(_('Server thiếu thư viện xlsxwriter để xuất Excel.'))
+        data = self.vd_attendance_board(month)
+        buf = io.BytesIO()
+        wb = xlsxwriter.Workbook(buf, {'in_memory': True})
+        ws = wb.add_worksheet('Cham cong')
+        f_hd = wb.add_format({'bold': True, 'bg_color': '#DCE6F1',
+                              'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        f_c = wb.add_format({'border': 1})
+        f_ce = wb.add_format({'border': 1, 'align': 'center'})
+        ws.merge_range(0, 0, 0, 8, 'BẢNG CHẤM CÔNG — %s' % data['month_label'],
+                       wb.add_format({'bold': True, 'font_size': 14,
+                                      'align': 'center'}))
+        headers = ['STT', 'Tên nhân viên', 'Mã NV', 'Ngày', 'Giờ vào',
+                   'Giờ ra', 'Số giờ', 'Đi muộn (p)', 'Về sớm (p)']
+        for c, h in enumerate(headers):
+            ws.write(1, c, h, f_hd)
+        for c, w in enumerate([5, 28, 10, 12, 10, 10, 9, 11, 11]):
+            ws.set_column(c, c, w)
+        for i, r in enumerate(data['rows']):
+            wh = r['worked_hours'] or 0.0
+            ws.write(i + 2, 0, i + 1, f_ce)
+            ws.write(i + 2, 1, r['name'], f_c)
+            ws.write(i + 2, 2, r['code'], f_ce)
+            ws.write(i + 2, 3, r['date'], f_ce)
+            ws.write(i + 2, 4, r['in_time'], f_ce)
+            ws.write(i + 2, 5, r['out_time'], f_ce)
+            ws.write(i + 2, 6, '%02d:%02d' % (int(wh), round((wh % 1) * 60)), f_ce)
+            ws.write(i + 2, 7, r['late'], f_ce)
+            ws.write(i + 2, 8, r['early'], f_ce)
+        wb.close()
+        buf.seek(0)
+        return {'filename': 'ChamCong_%s.xlsx' % data['month'],
+                'data': base64.b64encode(buf.read()).decode()}
+
     # ================= CẤU HÌNH =================
     @api.model
     def _vd_cfg(self):
@@ -222,6 +391,10 @@ class VdFaceAttendance(models.Model):
             'id': rec.id,
             'in_time': self._vd_local_hm(rec.check_in),
             'out_time': self._vd_local_hm(rec.check_out),
+            # epoch (giây) của giờ VÀO — client tính "đã bao lâu" để chống bấm nhầm
+            # chấm ra ngay (ẩn nút CHẤM RA trong 10' đầu — user 2026-10-12).
+            'in_ts': (pytz.utc.localize(rec.check_in).timestamp()
+                      if rec.check_in else 0),
             'late_minutes': rec.late_minutes,
             'early_leave_minutes': rec.early_leave_minutes,
             'worked_hours': round(rec.worked_hours, 2),

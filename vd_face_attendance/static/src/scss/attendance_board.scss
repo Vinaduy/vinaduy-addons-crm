@@ -1,0 +1,87 @@
+// BẢNG CHẤM CÔNG — UI mới (user 2026-10-12)
+.o_vdcc {
+    padding: 16px 20px; font-size: 13.5px; color: #222;
+
+    .o_vdcc_bar {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .o_vdcc_h { font-size: 20px; font-weight: 700; margin: 0; white-space: nowrap; }
+    .o_vdcc_monthwrap {
+        display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: #555;
+    }
+    .o_vdcc_month, .o_vdcc_search {
+        height: 36px; border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; font-size: 14px;
+        &:focus { outline: none; border-color: #7c5cff; }
+    }
+    .o_vdcc_search { flex: 1 1 180px; min-width: 150px; }
+    .o_vdcc_btn {
+        height: 36px; padding: 0 14px; border: none; border-radius: 6px; cursor: pointer;
+        font-weight: 600; white-space: nowrap; color: #fff;
+        &[disabled] { opacity: .6; cursor: default; }
+    }
+    .o_vdcc_add { background: #7048e8; &:hover { background: #5f3dc4; } }
+    .o_vdcc_export { background: #2f9e44; &:hover { background: #2b8a3e; } }
+
+    .o_vdcc_loading, .o_vdcc_empty { padding: 32px; text-align: center; color: #999; }
+
+    .o_vdcc_table {
+        width: 100%; border-collapse: collapse; font-size: 13.5px; border: 1px solid #e0e0e0;
+        th {
+            text-align: left; padding: 7px 10px; font-weight: 600; color: #444;
+            background: #f4f6f8; border: 1px solid #e0e0e0; white-space: nowrap;
+        }
+        td { padding: 5px 10px; border: 1px solid #ededed; }
+        tbody tr:nth-child(even) td { background: #fafbfc; }
+        tbody tr:hover td { background: #eef4ff; }
+        .o_vdcc_num { text-align: right; font-variant-numeric: tabular-nums; }
+        .o_vdcc_act { white-space: nowrap; text-align: center; width: 1%; }
+        .o_vdcc_code { font-family: monospace; color: #555; }
+        .o_vdcc_in { font-weight: 600; color: #2b8a3e; }
+        .o_vdcc_noout { color: #e8590c; font-style: italic; }
+        .o_vdcc_late { color: #d9480f; font-weight: 600; }
+        tfoot td { padding: 7px 10px; border: 1px solid #e0e0e0; background: #f4f6f8; font-weight: 600; }
+        .o_vdcc_footlbl { text-align: right; color: #555; }
+        .o_vdcc_foottot { color: #1c2733; }
+    }
+    .o_vdcc_rbtn {
+        border: 1px solid #ccc; background: #fff; border-radius: 5px; cursor: pointer;
+        font-size: 12.5px; padding: 3px 8px; margin: 0 2px; font-weight: 600; color: #444;
+        &:hover { border-color: #888; }
+    }
+    .o_vdcc_redit { color: #1971c2; border-color: #a5d8ff; &:hover { background: #e7f5ff; } }
+    .o_vdcc_rdel { color: #c92a2a; border-color: #f1a9a9; &:hover { background: #fff0f0; } }
+
+    // Popup
+    .o_vdcc_mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
+    .o_vdcc_modal {
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        z-index: 1001; width: 460px; max-width: 94vw; background: #fff;
+        border: 1px solid #ddd; border-radius: 8px; display: flex; flex-direction: column;
+        max-height: 90vh; box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    }
+    .o_vdcc_mhd {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 700; font-size: 16px;
+    }
+    .o_vdcc_x { border: none; background: none; font-size: 22px; cursor: pointer; color: #888; }
+    .o_vdcc_mbd { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+    .o_vdcc_f { display: flex; flex-direction: column; gap: 4px;
+        > span { font-size: 13px; font-weight: 600; color: #555; } }
+    .o_vdcc_opt { font-weight: 400; color: #aaa; font-style: normal; }
+    .o_vdcc_f2 { display: flex; gap: 10px; > .o_vdcc_f { flex: 1 1 0; min-width: 0; } }
+    .o_vdcc_in {
+        height: 36px; border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; font-size: 14px;
+        &:focus { outline: none; border-color: #7c5cff; }
+    }
+    .o_vdcc_mft {
+        display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        padding: 12px 16px; border-top: 1px solid #eee;
+    }
+    .o_vdcc_b {
+        padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px;
+        cursor: pointer; border: 1px solid #ccc; background: #fff;
+        &[disabled] { opacity: .5; cursor: default; }
+    }
+    .o_vdcc_b_save { background: #2f9e44; color: #fff; border-color: #2f9e44; }
+    .o_vdcc_b_cancel { background: #f1f1f1; color: #444; }
+}

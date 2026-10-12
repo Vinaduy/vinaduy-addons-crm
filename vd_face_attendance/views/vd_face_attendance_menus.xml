@@ -9,10 +9,12 @@
               parent="menu_face_root" sequence="10"
               action="action_face_kiosk"/>
 
-    <!-- Bảng chấm công: NV xem của mình, quản lý xem tất cả (record rule lọc) -->
+    <!-- Bảng chấm công — UI mới (user 2026-10-12): CHỈ Admin/Quản lý xem toàn bộ
+         + chấm bù + xuất Excel. Trỏ sang client action OWL thay list Odoo. -->
     <menuitem id="menu_face_records" name="Bảng chấm công"
               parent="menu_face_root" sequence="20"
-              action="action_face_attendance_records"/>
+              action="action_attendance_board"
+              groups="vd_face_attendance.group_face_manager"/>
 
     <!-- Danh sách khuôn mặt đã đăng ký (kèm ảnh + mã số + giới tính) -->
     <menuitem id="menu_face_employees" name="Khuôn mặt đã đăng ký"

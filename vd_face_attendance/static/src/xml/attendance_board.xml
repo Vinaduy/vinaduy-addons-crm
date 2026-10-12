@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vd_face_attendance.Board">
+        <div class="o_vdcc">
+            <!-- Header: tiêu đề + tháng + tìm + chấm bù + xuất excel -->
+            <div class="o_vdcc_bar">
+                <h2 class="o_vdcc_h">🕒 Bảng chấm công</h2>
+                <span class="o_vdcc_monthwrap">
+                    <label>Tháng:</label>
+                    <input type="month" class="o_vdcc_month" t-att-value="state.month"
+                           t-on-change="(ev) => this.onMonthChange(ev)"/>
+                </span>
+                <input class="o_vdcc_search" placeholder="🔍 Tìm tên / mã NV…"
+                       t-att-value="state.search"
+                       t-on-input="ev => state.search = ev.target.value"/>
+                <button class="o_vdcc_btn o_vdcc_add" t-on-click="() => this.openAdd()">
+                    ➕ Chấm bù
+                </button>
+                <button class="o_vdcc_btn o_vdcc_export" t-att-disabled="state.exporting"
+                        t-on-click="() => this.exportExcel()">
+                    <t t-if="state.exporting">Đang xuất…</t>
+                    <t t-else="">📊 Xuất Excel</t>
+                </button>
+            </div>
+
+            <div t-if="state.loading" class="o_vdcc_loading">Đang tải bảng chấm công…</div>
+            <table t-else="" class="o_vdcc_table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên nhân viên</th>
+                        <th>Mã NV</th>
+                        <th>Giờ vào</th>
+                        <th>Giờ ra</th>
+                        <th>Ngày</th>
+                        <th class="o_vdcc_num">Số giờ</th>
+                        <th class="o_vdcc_num">Đi muộn</th>
+                        <th class="o_vdcc_act">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="rows" t-as="r" t-key="r.id">
+                        <td t-esc="r_index + 1"/>
+                        <td t-esc="r.name"/>
+                        <td class="o_vdcc_code" t-esc="r.code or '—'"/>
+                        <td class="o_vdcc_in" t-esc="r.in_time or '—'"/>
+                        <td t-att-class="r.out_time ? '' : 'o_vdcc_noout'"
+                            t-esc="r.out_time or 'Chưa ra'"/>
+                        <td t-esc="r.date"/>
+                        <td class="o_vdcc_num" t-esc="fmtHours(r.worked_hours)"/>
+                        <td t-att-class="'o_vdcc_num' + (r.late ? ' o_vdcc_late' : '')"
+                            t-esc="r.late ? (r.late + ' p') : '—'"/>
+                        <td class="o_vdcc_act">
+                            <button class="o_vdcc_rbtn o_vdcc_redit"
+                                    t-on-click="() => this.openEdit(r)" title="Sửa">✏️ Sửa</button>
+                            <button class="o_vdcc_rbtn o_vdcc_rdel"
+                                    t-on-click="() => this.removeRow(r)" title="Xoá">🗑</button>
+                        </td>
+                    </tr>
+                    <tr t-if="!rows.length">
+                        <td colspan="9" class="o_vdcc_empty">— Không có chấm công tháng này —</td>
+                    </tr>
+                </tbody>
+                <tfoot t-if="rows.length">
+                    <tr>
+                        <td colspan="6" class="o_vdcc_footlbl">Tổng <t t-esc="rows.length"/> lượt chấm</td>
+                        <td class="o_vdcc_num o_vdcc_foottot" t-esc="fmtHours(state.totalHours)"/>
+                        <td colspan="2"/>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- ===== POPUP CHẤM BÙ / SỬA ===== -->
+            <t t-if="state.form">
+                <div class="o_vdcc_mask" t-on-click="() => this.closeForm()"/>
+                <div class="o_vdcc_modal">
+                    <div class="o_vdcc_mhd">
+                        <span t-if="state.form.id">✏️ Sửa chấm công</span>
+                        <span t-else="">➕ Chấm công bù (nhân viên quên chấm)</span>
+                        <button class="o_vdcc_x" t-on-click="() => this.closeForm()">×</button>
+                    </div>
+                    <div class="o_vdcc_mbd">
+                        <label class="o_vdcc_f">
+                            <span>Nhân viên</span>
+                            <select class="o_vdcc_in" t-model="state.form.user_id">
+                                <option value="">— Chọn nhân viên —</option>
+                                <option t-foreach="state.users" t-as="u" t-key="u.user_id"
+                                        t-att-value="u.user_id">
+                                    <t t-esc="u.name"/> <t t-if="u.code">(<t t-esc="u.code"/>)</t>
+                                </option>
+                            </select>
+                        </label>
+                        <label class="o_vdcc_f">
+                            <span>Ngày</span>
+                            <input type="date" class="o_vdcc_in" t-model="state.form.date"/>
+                        </label>
+                        <div class="o_vdcc_f2">
+                            <label class="o_vdcc_f">
+                                <span>Giờ vào</span>
+                                <input type="time" class="o_vdcc_in" t-model="state.form.in_hm"/>
+                            </label>
+                            <label class="o_vdcc_f">
+                                <span>Giờ ra <i class="o_vdcc_opt">(để trống nếu chưa ra)</i></span>
+                                <input type="time" class="o_vdcc_in" t-model="state.form.out_hm"/>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="o_vdcc_mft">
+                        <button class="o_vdcc_b o_vdcc_b_cancel" t-on-click="() => this.closeForm()">Huỷ</button>
+                        <button class="o_vdcc_b o_vdcc_b_save" t-att-disabled="state.saving"
+                                t-on-click="() => this.save()">
+                            <t t-if="state.saving">Đang lưu…</t>
+                            <t t-else="">💾 Lưu</t>
+                        </button>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

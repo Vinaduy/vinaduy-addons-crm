@@ -69,8 +69,9 @@ export class VdFaceCheckin extends Component {
             faceLive: "none", // none | bad | ok  (trạng thái quét trực tiếp)
             faceHint: "Đưa khuôn mặt vào khung",
             busy: false,
-            today: null, // {in_time, out_time, late_minutes, early_leave_minutes, worked_hours}
+            today: null, // {in_time, out_time, in_ts, late_minutes, early_leave_minutes, worked_hours}
             hasOpen: false, // đã vào, chưa ra
+            nowTs: Math.floor(Date.now() / 1000), // đồng hồ (giây) — tick cho grace 10'
             recent: [],
             camOk: false,
             // Đăng ký: nhập tên + giới tính; mã số tự cấp.
@@ -84,9 +85,27 @@ export class VdFaceCheckin extends Component {
         this._stream = null;
         this._geoWatch = null;
         this._lastPos = null;
+        // Tick mỗi 10s để cập nhật đồng hồ grace 10' (ẩn nút CHẤM RA 10' đầu).
+        this._nowTimer = setInterval(() => {
+            this.state.nowTs = Math.floor(Date.now() / 1000);
+        }, 10000);
 
         onMounted(() => this._init());
         onWillUnmount(() => this._cleanup());
+    }
+
+    // ===== Chống bấm nhầm: ẩn nút CHẤM RA 10' sau khi chấm VÀO (user 2026-10-12).
+    get checkoutWaitSec() {
+        const t = this.state.today;
+        if (!t || !t.in_ts || t.out_time) return 0;
+        return Math.max(0, Math.round(t.in_ts + 600 - this.state.nowTs));
+    }
+    get canCheckOut() {
+        return this.state.hasOpen && this.checkoutWaitSec <= 0;
+    }
+    get checkoutWaitLabel() {
+        const s = this.checkoutWaitSec;
+        return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
     }
 
     async _init() {
@@ -477,6 +496,10 @@ export class VdFaceCheckin extends Component {
 
     _cleanup() {
         this._stopped = true;
+        if (this._nowTimer) {
+            clearInterval(this._nowTimer);
+            this._nowTimer = null;
+        }
         if (this._loopTimer) {
             clearTimeout(this._loopTimer);
             this._loopTimer = null;

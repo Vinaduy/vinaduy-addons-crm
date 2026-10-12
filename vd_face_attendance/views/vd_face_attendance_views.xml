@@ -12,6 +12,12 @@
         <field name="tag">vd_face_attendance_kiosk</field>
     </record>
 
+    <!-- BẢNG CHẤM CÔNG — UI mới OWL (user 2026-10-12), thay list Odoo mặc định -->
+    <record id="action_attendance_board" model="ir.actions.client">
+        <field name="name">Bảng chấm công</field>
+        <field name="tag">vd_attendance_board</field>
+    </record>
+
     <!-- ================= DANH SÁCH BẢN GHI CHẤM CÔNG ================= -->
     <record id="view_face_attendance_list" model="ir.ui.view">
         <field name="name">vd.face.attendance.list</field>
