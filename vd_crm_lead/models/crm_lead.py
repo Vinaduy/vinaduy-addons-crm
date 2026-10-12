@@ -7417,9 +7417,9 @@ class CrmLead(models.Model):
                                 'cells': cells, 'total': sum(cells)})
             if not nv_total and u.id not in on_ids:
                 continue
-            # TỔNG PANCAKE TỰ ĐẨY theo ngày = Zalo + TikTok + Facebook (bỏ Quét).
-            auto_cells = [sources[0]['cells'][i] + sources[1]['cells'][i]
-                          + sources[2]['cells'][i] for i in range(days)]
+            # CHỈ FACEBOOK theo ngày (user 2026-10-12): bảng ma trận "tự đẩy" chỉ
+            # đếm số FB để SO SÁNH với kết quả chạy QC Facebook. (sources[2]=facebook)
+            auto_cells = [sources[2]['cells'][i] for i in range(days)]
             nvs.append({
                 'uid': u.id, 'name': u.name or ('NV #%s' % u.id),
                 'team': u.vd_team_label or 'KHÁC',

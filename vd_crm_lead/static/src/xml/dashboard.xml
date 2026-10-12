@@ -2650,9 +2650,9 @@
                         </div>
                     </div>
 
-                    <!-- ===== MA TRẬN SỐ PANCAKE: NV (dòng) × NGÀY (cột) =====
-                         Ô = số Pancake tự đẩy về NV đó trong ngày đó (Zalo +
-                         TikTok + Facebook). Quét số KHÔNG tính (số nhập tay).
+                    <!-- ===== MA TRẬN SỐ FACEBOOK: NV (dòng) × NGÀY (cột) =====
+                         Ô = số FACEBOOK tự đẩy về NV đó trong ngày đó (để so sánh
+                         kết quả chạy QC FB — user 2026-10-12).
                          Cột tên NV ghim trái, phần ngày cuộn ngang khi 30 ngày.
                          user 2026-09-30 -->
                     <t t-if="isDailyPeriod(state.distPeriodSel) and !state.distShowToggles">
@@ -2663,9 +2663,9 @@
                             <t t-set="cr" t-value="state.combinedRep"/>
                             <t t-set="cnvs" t-value="combinedNvRows(cr)"/>
 
-                            <!-- ===== BẢNG 1 (CÓ MÀU): tổng Pancake TỰ ĐẨY theo ngày
-                                 = Zalo + TikTok + Facebook (KHÔNG tính Quét số). ===== -->
-                            <div class="o_vd_pk_srcday_head">📊 Số Pancake tự đẩy theo ngày (Zalo + TikTok + Facebook)</div>
+                            <!-- ===== BẢNG 1 (CÓ MÀU): CHỈ FACEBOOK theo ngày — để so
+                                 sánh với kết quả chạy QC FB (user 2026-10-12). ===== -->
+                            <div class="o_vd_pk_srcday_head">📊 Số Facebook tự đẩy theo ngày <span style="font-weight:400;opacity:.7">(để so sánh kết quả chạy QC)</span></div>
                             <div class="o_vd_pk_mx_wrap">
                                 <table class="o_vd_pk_mx">
                                     <thead>
@@ -2710,7 +2710,7 @@
                                 <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t12"/>1–2</span>
                                 <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t34"/>3–4</span>
                                 <span class="o_vd_pk_lg"><i class="o_vd_pk_sw o_t5"/>≥5</span>
-                                <span class="o_vd_pk_lg o_vd_pk_lg_note">· Chỉ Pancake tự đẩy (Zalo+TikTok+FB), không tính Quét · Dòng mờ = NV đang tắt</span>
+                                <span class="o_vd_pk_lg o_vd_pk_lg_note">· Chỉ số Facebook tự đẩy (so sánh QC FB) · Dòng mờ = NV đang tắt</span>
                             </div>
 
                             <!-- ===== BẢNG 2 (KHÔNG MÀU): chia theo NGUỒN, mỗi ngày 4 cột con. ===== -->
