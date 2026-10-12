@@ -1793,7 +1793,14 @@ export class VdCrmDashboard extends Component {
     // LỌC theo số ngày chưa gọi — MỖI khách chỉ thuộc 1 KHOẢNG (loại trừ nhau):
     // 3=[3,5) · 5=[5,8) · 8=[8,15) · 15=[15,25) · 25=[25,40) · 40=[40,∞). KH gọi
     // trong 3 ngày gần đây KHÔNG thuộc khoảng nào (đã gọi gần đây).
-    get dayFilterOptions() { return [3, 5, 8, 15, 25, 40]; }
+    get dayFilterOptions() { return [3, 5, 8, 15, 25, 40, 45, 60]; }
+    // Nhãn các mốc "CHƯA GỌI X ngày" (days_since_call) — mốc cuối = "trên N ngày".
+    get ncBucketOptions() {
+        return this.dayFilterOptions.map((n) => {
+            const up = this._dayUpper(n);
+            return { k: n, l: up === Infinity ? ("trên " + n + " ngày") : (n + "–" + up + " ngày") };
+        });
+    }
     _dayUpper(n) {
         const opts = this.dayFilterOptions;
         const i = opts.indexOf(n);

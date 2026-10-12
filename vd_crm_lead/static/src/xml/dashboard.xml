@@ -2387,10 +2387,10 @@
             <div class="o_vd_dfbtns">
                 <button class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: !filterVal(scope)}"
                         t-on-click="() => this.setFilter(scope, 0)">Tất cả</button>
-                <button t-foreach="cbBucketOptions" t-as="cb" t-key="cb.k"
-                        class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: filterVal(scope) === cb.k}"
-                        t-on-click="() => this.setFilter(scope, cb.k)">
-                    <t t-esc="cb.l"/> <span class="o_vd_dfbtn_n">(<t t-esc="filterCount(scope, cb.k) or 0"/>)</span>
+                <button t-foreach="ncBucketOptions" t-as="nc" t-key="nc.k"
+                        class="o_vd_dfbtn" t-att-class="{o_vd_dfbtn_on: filterVal(scope) === nc.k}"
+                        t-on-click="() => this.setFilter(scope, nc.k)">
+                    <t t-esc="nc.l"/> <span class="o_vd_dfbtn_n">(<t t-esc="filterCount(scope, nc.k) or 0"/>)</span>
                 </button>
             </div>
         </div>
