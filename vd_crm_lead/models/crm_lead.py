@@ -7968,6 +7968,9 @@ class CrmLead(models.Model):
             # Quyền chuyển KH hàng loạt (admin + role có can_reassign_lead =
             # người chia số / giám đốc). Client dùng để hiện nút "Chọn KH".
             'can_reassign': self.env['vd.crm.role.config'].sudo().can_user_reassign(self.env.user),
+            # Lọc số (Quỳnh Anh) — CHỈ nhóm này xem được phần COPY gửi Zalo trong
+            # báo cáo chia số (user 2026-10-12).
+            'is_loc_so': bool(getattr(self.env.user, 'vd_team', False) == 'Lọc số'),
             'current_user_id': self.env.user.id,
             # Form rút gọn cho popup xem nhanh — xem crm_lead_view_form_vd_popup.
             'preview_view_id': (

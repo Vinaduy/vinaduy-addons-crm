@@ -695,8 +695,11 @@
                                         </span>
                                     </button>
                                     <!-- Tab "Khách hàng" + "ALL khách hàng" ĐÃ BỎ (user 2026-08-28). -->
-                                    <!-- Tab CHIA SỐ (chỉ quản lý có báo cáo) — bấm ra bảng đầy đủ -->
-                                    <button t-if="state.pancake_report and state.pancake_report.today"
+                                    <!-- Tab CHIA SỐ — CHỈ Quản lý/GĐ + người chia số (Lọc số/Quỳnh Anh).
+                                         Gate theo QUYỀN CỐ ĐỊNH (is_manager/can_reassign) thay vì
+                                         state.pancake_report (load async → nhấp nháy). NV thường
+                                         không có quyền → không thấy tab. (user 2026-10-12) -->
+                                    <button t-if="state.is_manager or state.can_reassign"
                                             t-att-class="'o_vd_dash_subview_chip o_vd_dash_subview_chip_dist ' + (state.dashSubView === 'dist' ? 'o_active' : '')"
                                             t-on-click="() => this.setDashSubView('dist')">
                                         <i class="fa fa-bolt o_vd_dash_subview_icon"/>
@@ -1596,7 +1599,7 @@
 
                         <!-- BÁO CÁO CHIA SỐ cho người có quyền chia (đội Lọc số) ở layout
                              THƯỜNG — admin đã có tab Chia số riêng (user 2026-10-10). -->
-                        <div t-if="state.can_reassign and !isAdminView and state.pancake_report and state.pancake_report.today"
+                        <div t-if="state.can_reassign and !isAdminView"
                              class="o_vd_losorep">
                             <button class="o_vd_losorep_btn"
                                     t-on-click="() => state.showDistReport = !state.showDistReport">
@@ -2508,7 +2511,8 @@
                     </span>
                 </t>
             </div>
-            <div class="o_vd_adsp_copywrap">
+            <!-- COPY gửi Zalo — CHỈ Lọc số (Quỳnh Anh) xem (user 2026-10-12). -->
+            <div t-if="state.is_loc_so" class="o_vd_adsp_copywrap">
                 <button class="o_vd_adsp_toggle"
                         t-on-click="() => state.adspendOpen = !state.adspendOpen">
                     📋 Báo cáo gửi Zalo <t t-esc="state.adspendOpen ? '▲' : '▼'"/>

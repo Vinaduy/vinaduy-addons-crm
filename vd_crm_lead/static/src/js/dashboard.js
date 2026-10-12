@@ -299,6 +299,7 @@ export class VdCrmDashboard extends Component {
             // can_reassign: payload dashboard_data cho phép chia số hay không.
             // selectedLeadIds: {leadId:true} — KH đang bôi xanh bằng kéo chuột phải.
             can_reassign: false,
+            is_loc_so: false,   // Lọc số (Quỳnh Anh) — chỉ nhóm này xem phần COPY gửi Zalo
             selectedLeadIds: {},
             // Chỉ DỰNG tooltip của pill đang hover (lazy) — trước đây MỖI pill (có
             // thể ~200) dựng sẵn 1 tooltip nặng trong DOM → ~5000 node vô hình +
