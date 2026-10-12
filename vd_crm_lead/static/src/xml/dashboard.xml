@@ -2498,7 +2498,7 @@
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
             </div>
             <div t-if="state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
-                <span class="o_vd_adsp_recon_lbl">Đối soát Pancake (realtime):</span>
+                <span class="o_vd_adsp_recon_lbl">Đối soát Pancake (lũy kế đến hôm nay):</span>
                 <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
                     <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
                         <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>

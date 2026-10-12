@@ -7292,23 +7292,36 @@ class CrmLead(models.Model):
                 if ' - ' in nm:
                     nm = nm.split(' - ', 1)[1]
                 lines.append('• %s: %d' % (nm, r['total']))
-        # ĐỐI SOÁT real-time (user 2026-10-10): Pancake statistics (số Pancake đã
-        # nhận diện, realtime) vs CRM đã bắt → thấy ngay còn bao nhiêu số đang chờ
-        # API Zalo nhả. Chỉ cho nguồn có page Pancake (quét từ Excel luôn đủ).
+        # ĐỐI SOÁT LŨY KẾ (user 2026-10-12): Pancake vs CRM CỘNG DỒN từ đầu cửa sổ
+        # thống kê tới ngày xem → MIỄN NHIỄM lệch ranh giới nửa đêm (lead 23:xx bị
+        # Pancake vs CRM đếm khác ngày → đối soát từng ngày báo "kẹt" GIẢ, nhất là
+        # FB/TikTok webhook realtime). Chỉ còn "chờ" khi THẬT sự thiếu lũy kế (Zalo).
         recon = []
-        pan_src = {}
+        pan_cum = {}  # platform -> [tổng pancake, ngày bắt đầu cửa sổ]
         for pg_ in self.env['vd.pancake.page'].sudo().search([
                 ('active', '=', True), ('vd_zalo_session_token', '!=', False)]):
             s = pg_.platform if pg_.platform in ('zalo', 'facebook', 'tiktok') else None
             if not s:
                 continue
-            pan_src[s] = pan_src.get(s, 0) + pg_.vd_stat_phone_count(d)
+            cum, start = pg_.vd_stat_cumulative(d)
+            cur = pan_cum.setdefault(s, [0, start, []])
+            cur[0] += cum
+            if start and (not cur[1] or start < cur[1]):
+                cur[1] = start
+            cur[2].append(pg_.id)
         for s in ('zalo', 'facebook', 'tiktok'):
-            if s in pan_src:
-                pan = pan_src[s]
-                crm = src_total.get(s, 0)
-                recon.append({'source': s, 'pancake': pan, 'crm': crm,
-                              'pending': max(0, pan - crm)})
+            if s not in pan_cum:
+                continue
+            pan, start, page_ids = pan_cum[s]
+            if not start:
+                continue
+            start_utc = vn.localize(_dt.combine(start, _time(0, 0))).astimezone(
+                pytz.utc).replace(tzinfo=None)
+            crm = self.env['crm.lead'].with_context(active_test=False).search_count([
+                ('vd_pancake_page_id', 'in', page_ids),
+                ('create_date', '>=', start_utc), ('create_date', '<', day_e)])
+            recon.append({'source': s, 'pancake': pan, 'crm': crm,
+                          'pending': max(0, pan - crm)})
         return {
             'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
             'src_total': src_total, 'total_data': total_data,

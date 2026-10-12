@@ -679,6 +679,42 @@ class VdPancakePage(models.Model):
             _logger.warning('Pancake stat %s lỗi: %s', self.name, e)
         return 0
 
+    def vd_stat_cumulative(self, d):
+        """Trả (TỔNG phoneNumberCount từ đầu cửa sổ thống kê tới NGÀY d, ngày bắt
+        đầu cửa sổ). Dùng ĐỐI SOÁT LŨY KẾ — miễn nhiễm LỆCH RANH GIỚI ngày (lead
+        lúc 23:xx bị Pancake vs CRM đếm khác ngày → đối soát từng ngày báo giả).
+        (0, None) nếu lỗi/không token."""
+        self.ensure_one()
+        tok = (self.vd_zalo_session_token or '').strip()
+        if not tok:
+            return (0, None)
+        try:
+            r = requests.get(
+                '%s/pages/%s/statistics' % (_PANCAKE_INTERNAL_BASE, self.page_id),
+                params={'access_token': tok}, timeout=8)
+            data = (r.json() or {}).get('data', {}) or {}
+            bd = data.get('by_date', {}) or {}
+            cats = bd.get('categories', []) or []
+            ser = {s.get('name'): s.get('data') for s in (bd.get('series', []) or [])}
+            vals = ser.get('phoneNumberCount') or []
+            import datetime as _dtm
+            total = 0
+            start = None
+            for i, cat in enumerate(cats):
+                try:
+                    dd, mm = cat.split('.')
+                    cd = _dtm.date(d.year, int(mm), int(dd))
+                except Exception:
+                    continue
+                if start is None:
+                    start = cd
+                if cd <= d and i < len(vals):
+                    total += int(vals[i] or 0)
+            return (total, start)
+        except Exception as e:
+            _logger.warning('Pancake stat cum %s lỗi: %s', self.name, e)
+            return (0, None)
+
     @api.model
     def _cron_vd_eod_reconcile(self):
         """CHỐT CUỐI NGÀY (user 2026-10-10): trước khi sang ngày mới, QUÉT SIÊU
