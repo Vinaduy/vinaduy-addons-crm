@@ -763,13 +763,17 @@ class ResUsers(models.Model):
             if target.id in (SUPERUSER_ID, caller.id):
                 from odoo.exceptions import UserError
                 raise UserError('Không thể tạm dừng tài khoản admin gốc hoặc chính bạn.')
-            # Chặn nghỉ việc khi NV còn khách trong tài khoản.
-            n = self.env['crm.lead'].sudo().search_count([('user_id', '=', target.id)])
-            if n:
-                from odoo.exceptions import UserError
-                raise UserError(
-                    'Không thể cho nghỉ việc: %s còn %d khách trong tài khoản. '
-                    'Hãy chuyển hết khách sang NV khác trước.' % (target.name, n))
+            # TỰ CHUYỂN khách ĐANG LÀM (active, chưa chốt/chưa hủy) về KHO CÔNG TY
+            # (gỡ NV → user_id=False để quản lý chia lại). KHÔNG chặn nghỉ việc nữa
+            # (user 2026-10-12). Khách đã chốt (won) giữ nguyên để lưu lịch sử;
+            # khách đã hủy/lost đã archive sẵn (không liên quan).
+            working_leads = self.env['crm.lead'].sudo().search([
+                ('user_id', '=', target.id),
+                ('stage_is_won', '=', False),
+                ('stage_is_lost', '=', False),
+            ])
+            if working_leads:
+                working_leads.write({'user_id': False})
         target.write({'active': want})
         return want
 
