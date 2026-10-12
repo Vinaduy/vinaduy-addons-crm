@@ -2498,12 +2498,13 @@
                 <div class="o_vd_adsp_src"><t t-set="src" t-value="'zalo'"/><t t-call="vd_crm_lead.SrcIco"/> Zalo <b t-esc="state.adspend.src_total.zalo"/></div>
             </div>
             <div t-if="state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
-                <span class="o_vd_adsp_recon_lbl">Đối soát Pancake (lũy kế đến hôm nay):</span>
+                <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
                 <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
                     <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
                         <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>
-                        <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>:
-                        Pancake <b t-esc="rc.pancake"/> / CRM <b t-esc="rc.crm"/><t t-if="rc.pending"> · chờ <b t-esc="rc.pending"/></t><t t-else=""> ✓</t>
+                        <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>
+                        <t t-if="rc.pending"> ⚠️ còn <b t-esc="rc.pending"/> số<t t-if="rc.source === 'zalo'"> <span class="o_vd_adsp_recon_note">(giới hạn API Zalo cá nhân)</span></t></t>
+                        <t t-else=""> ✅ đủ</t>
                     </span>
                 </t>
             </div>
