@@ -23,7 +23,8 @@ export class VdUserBoard extends Component {
         this.dialog = useService("dialog");
         this.state = useState({
             loading: true,
-            working: [],      // chỉ NV đang làm việc
+            working: [],      // NV đang làm việc
+            off: [],          // NV đã nghỉ việc (archived) — vẫn hiện trong tab, mờ
             search: "",
             tab: "HCM",       // 3 tab phòng ban: HCM | HN | Khác
             form: null,       // popup thêm/sửa; null = đóng
@@ -37,29 +38,34 @@ export class VdUserBoard extends Component {
         try {
             const d = await this.orm.call("res.users", "vd_user_board_data", []);
             this.state.working = d.working || [];
+            this.state.off = d.off || [];
         } finally {
             this.state.loading = false;
         }
     }
 
-    // Đếm NV mỗi tab (HCM/HN/Khác) để hiện số trên nút tab.
+    // Gộp NV đang làm + đã nghỉ (đã nghỉ vẫn hiện trong tab, đánh dấu mờ).
+    get allUsers() { return [...this.state.working, ...this.state.off]; }
+
+    // Đếm NV mỗi tab (HCM/HN/Khác) — tính cả NV đã nghỉ (vì vẫn hiện trong tab).
     get tabCounts() {
         const c = { HCM: 0, HN: 0, "Khác": 0 };
-        for (const u of this.state.working) c[u.group || "Khác"] = (c[u.group || "Khác"] || 0) + 1;
+        for (const u of this.allUsers) c[u.group || "Khác"] = (c[u.group || "Khác"] || 0) + 1;
         return c;
     }
     setTab(t) { this.state.tab = t; }
 
-    // Danh sách phẳng, LỌC theo TAB phòng ban đang chọn, rồi sắp theo phòng + tên.
+    // Danh sách LỌC theo TAB; NV đang làm lên trước, NV đã nghỉ xuống cuối (mờ).
     get rows() {
         const q = this.state.search.trim().toLowerCase();
-        let list = this.state.working.filter((u) => (u.group || "Khác") === this.state.tab);
+        let list = this.allUsers.filter((u) => (u.group || "Khác") === this.state.tab);
         if (q) {
             list = list.filter((u) =>
                 (u.name + " " + u.code + " " + u.team + " " + u.login).toLowerCase().includes(q));
         }
         const ti = (t) => { const i = TEAM_ORDER.indexOf(t || "KHÁC"); return i < 0 ? 99 : i; };
         return list.slice().sort((a, b) =>
+            (b.active - a.active) ||            // đang làm trước, đã nghỉ sau
             ti(a.team) - ti(b.team) ||
             (a.team || "").localeCompare(b.team || "") ||
             (b.is_leader - a.is_leader) ||
@@ -171,6 +177,17 @@ export class VdUserBoard extends Component {
             },
             cancel: () => {},
         });
+    }
+
+    // Kích hoạt lại NV đã nghỉ việc (trực tiếp trên dòng).
+    async reactivate(u) {
+        try {
+            await this.orm.call("res.users", "vd_set_user_active", [u.id, true]);
+            this.notification.add(`Đã kích hoạt lại "${u.name}".`, { type: "success" });
+            await this.load();
+        } catch (e) {
+            this.notification.add(this._err(e, "Không kích hoạt được."), { type: "danger" });
+        }
     }
 
     // Bật/tắt HIỂN THỊ NV trên dashboard (ẩn NV không có số...).

@@ -77,6 +77,17 @@
     }
     tbody tr.o_vdnv_row_hidden td:not(.o_vdnv_dash):not(.o_vdnv_act) { opacity: .45; }
 
+    // NV đã NGHỈ VIỆC — vẫn hiện trong tab, nền hồng nhạt + badge
+    tbody tr.o_vdnv_row_off td { background: #fcf4f4 !important; color: #9a9a9a; }
+    tbody tr.o_vdnv_row_off:hover td { background: #f7e9e9 !important; }
+    .o_vdnv_badge_off {
+        display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+        font-size: 11px; font-weight: 600; background: #ffe3e3; color: #c92a2a;
+        border: 1px solid #ffc9c9; vertical-align: middle;
+    }
+    .o_vdnv_dash_na { color: #ccc; }
+    .o_vdnv_ron { color: #2b8a3e; border-color: #8ce99a; &:hover { background: #ebfbee; } }
+
     // Popup thêm/sửa
     .o_vdnv_mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
     .o_vdnv_modal {

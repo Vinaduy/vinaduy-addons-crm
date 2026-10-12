@@ -37,23 +37,29 @@
                 </thead>
                 <tbody>
                     <tr t-foreach="rows" t-as="u" t-key="u.id"
-                        t-att-class="{ o_vdnv_row_hidden: u.hidden }"
+                        t-att-class="{ o_vdnv_row_hidden: u.hidden, o_vdnv_row_off: !u.active }"
                         t-on-click="() => this.openEdit(u)">
                         <td t-esc="u_index + 1"/>
-                        <td t-esc="u.name"/>
+                        <td>
+                            <t t-esc="u.name"/>
+                            <span t-if="!u.active" class="o_vdnv_badge_off">Nghỉ việc</span>
+                        </td>
                         <td t-esc="u.team"/>
                         <td t-esc="u.role_label"/>
                         <td t-esc="u.login"/>
                         <td class="o_vdnv_num" t-esc="u.lead_count or 0"/>
                         <td class="o_vdnv_dash">
-                            <button class="o_vdnv_toggle" t-att-class="{ o_vdnv_toggle_off: u.hidden }"
+                            <button t-if="u.active" class="o_vdnv_toggle" t-att-class="{ o_vdnv_toggle_off: u.hidden }"
                                     t-on-click.stop="() => this.toggleDashboard(u)"
                                     t-att-title="u.hidden ? 'Đang ẩn — bấm để HIỆN trên dashboard' : 'Đang hiện — bấm để ẨN khỏi dashboard'">
                                 <span class="o_vdnv_toggle_knob"/>
                             </button>
+                            <span t-else="" class="o_vdnv_dash_na">—</span>
                         </td>
                         <td class="o_vdnv_act">
-                            <button class="o_vdnv_rbtn o_vdnv_redit"
+                            <button t-if="!u.active" class="o_vdnv_rbtn o_vdnv_ron"
+                                    t-on-click.stop="() => this.reactivate(u)" title="Kích hoạt lại">▶ Kích hoạt</button>
+                            <button t-if="u.active" class="o_vdnv_rbtn o_vdnv_redit"
                                     t-on-click.stop="() => this.openEdit(u)" title="Sửa">✏️ Sửa</button>
                             <button class="o_vdnv_rbtn o_vdnv_rdel"
                                     t-on-click.stop="() => this.removeRow(u)" title="Xóa">🗑</button>
