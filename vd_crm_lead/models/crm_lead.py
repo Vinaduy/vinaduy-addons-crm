@@ -163,14 +163,15 @@ class CrmLead(models.Model):
     ], string='Kênh nguồn', index=True, copy=False)
 
     def _vd_lead_channel(self):
-        """Kênh nguồn của KH cho báo cáo. Số QUÉT (đẩy file Excel) LUÔN là 'quét
-        số' — cột Nguồn trong file (facebook/tiktok/zalo) KHÔNG được kéo nó vào
-        'tự động' (fix 2026-10-08). Còn lại: field đã set → suy ra từ conv Pancake."""
+        """Kênh nguồn của KH cho báo cáo. ƯU TIÊN NGUỒN ĐÃ CHỌN (vd_lead_channel) —
+        gồm cột 'Nguồn' khi upload Excel: Zalo→zalo, FB→facebook, TikTok→tiktok,
+        Quét→quet (user 2026-10-12). Excel KHÔNG ghi nguồn → mặc định 'quét'.
+        Còn lại suy ra từ conversation Pancake."""
         self.ensure_one()
-        if self.vd_from_excel:
-            return 'quet'
         if self.vd_lead_channel:
             return self.vd_lead_channel
+        if self.vd_from_excel:
+            return 'quet'
         cid = self.vd_pancake_conversation_id or ''
         if cid.startswith('pzl_'):
             return 'zalo'
@@ -7174,9 +7175,9 @@ class CrmLead(models.Model):
         self.env.cr.execute("""
             SELECT l.user_id,
                    (CASE
-                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_lead_channel IS NOT NULL
                            AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
                            THEN 'zalo'
                       WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
@@ -7251,13 +7252,16 @@ class CrmLead(models.Model):
             self.env.cr.execute("""
                 SELECT COUNT(*) FROM crm_lead l
                  WHERE l.create_date >= %s AND l.create_date < %s
-                   AND NOT COALESCE(l.vd_from_excel, false)
-                   AND l.vd_pancake_page_id IS NOT NULL
-                   AND (l.vd_lead_channel = 'facebook'
-                        OR ((l.vd_lead_channel IS NULL OR l.vd_lead_channel = '')
-                            AND (l.vd_pancake_conversation_id IS NULL
-                                 OR (l.vd_pancake_conversation_id NOT LIKE 'pzl!_%%' ESCAPE '!'
-                                     AND l.vd_pancake_conversation_id NOT LIKE 'ttm!_%%' ESCAPE '!'))))
+                   AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
+                   AND (CASE
+                          WHEN l.vd_lead_channel IS NOT NULL
+                               AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                          WHEN l.vd_from_excel THEN 'quet'
+                          WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!' THEN 'zalo'
+                          WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!' THEN 'tiktok'
+                          WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
+                          ELSE 'other'
+                        END) = 'facebook'
             """, (_utc_d(cover.date), _utc_d(end_d)))
             total_fb_period = self.env.cr.fetchone()[0] or 0
             cost_per_fb = (cover.fb_amount / total_fb_period) if total_fb_period else 0.0
@@ -7362,9 +7366,9 @@ class CrmLead(models.Model):
                         AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS d,
                    l.user_id,
                    (CASE
-                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_lead_channel IS NOT NULL
                            AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                      WHEN l.vd_from_excel THEN 'quet'
                       WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!'
                            THEN 'zalo'
                       WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!'
