@@ -280,6 +280,8 @@ export class VdCrmDashboard extends Component {
             adspendDate: "",        // iso ngày đang xem (mặc định hôm nay)
             adspendInput: "",       // ô nhập tiền QC FB
             adspendOpen: false,     // dropdown báo cáo copy gửi Zalo đang mở
+            periods: null,          // {periods[], total_spend, total_data, avg_cost} - phân bổ chi phí data theo kỳ
+            periodsLoading: false,
             showDistReport: false,  // panel báo cáo chia số (layout thường, cho Lọc số)
             adminTab: "overview",
             // ===== ANALYTICS BI (tab overview) =====
@@ -720,6 +722,8 @@ export class VdCrmDashboard extends Component {
         // như Quỳnh Anh — can_reassign) (user 2026-10-10).
         if (!this.state.is_manager && !this.state.can_reassign) return;
         if (!this.state.adspend) this.loadAdspend(this.state.adspendDate || "");
+        // Chi phí/data theo kỳ = số liệu chi phí → chỉ quản lý (is_manager).
+        if (this.state.is_manager && !this.state.periods) this.loadPeriods();
         const now = Date.now();
         if (!force && this._pkRepAt && now - this._pkRepAt < 60000) return;
         this._pkRepAt = now;
@@ -747,6 +751,16 @@ export class VdCrmDashboard extends Component {
     }
     onAdspendDate(ev) {
         this.loadAdspend(ev.target.value || "");
+    }
+    // ===== PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP (user 2026-10-12) =====
+    async loadPeriods() {
+        this.state.periodsLoading = true;
+        try {
+            this.state.periods = await this.orm.call("crm.lead", "vd_adspend_periods", []);
+        } catch (e) {
+            this.state.periods = null;
+        }
+        this.state.periodsLoading = false;
     }
     async saveAdspend() {
         const amt = parseFloat((this.state.adspendInput || "0").replace(/[^\d.]/g, "")) || 0;

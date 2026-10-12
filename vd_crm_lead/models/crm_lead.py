@@ -7337,6 +7337,70 @@ class CrmLead(models.Model):
         }
 
     @api.model
+    def vd_adspend_periods(self):
+        """PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP (user 2026-10-12). Mỗi lần nạp tiền QC
+        FB mở 1 KỲ, chạy tới lần nạp KẾ (hoặc tới HÔM NAY = kỳ đang chạy). Trả mỗi
+        kỳ: đầu-cuối, tiền nạp, SỐ DATA FB MỚI (active) trong kỳ, chi phí/1 data.
+        Chốt chi phí chuẩn ở CUỐI kỳ (khi đã biết tổng data)."""
+        import pytz
+        from datetime import datetime as _dt, time as _time, timedelta as _td
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        today_vn = pytz.utc.localize(fields.Datetime.now()).astimezone(vn).date()
+        Spend = self.env['vd.ad.spend'].sudo()
+        topups = Spend.search([('fb_amount', '>', 0)], order='date asc')
+
+        def _utc(dd):
+            return vn.localize(_dt.combine(dd, _time(0, 0))).astimezone(
+                pytz.utc).replace(tzinfo=None)
+
+        def _fb_count(s, e):
+            self.env.cr.execute("""
+                SELECT COUNT(*) FROM crm_lead l
+                 WHERE l.active AND l.create_date >= %s AND l.create_date < %s
+                   AND (l.vd_pancake_page_id IS NOT NULL OR l.vd_from_excel)
+                   AND (CASE
+                          WHEN l.vd_lead_channel IS NOT NULL
+                               AND l.vd_lead_channel <> '' THEN l.vd_lead_channel
+                          WHEN l.vd_from_excel THEN 'quet'
+                          WHEN l.vd_pancake_conversation_id LIKE 'pzl!_%%' ESCAPE '!' THEN 'zalo'
+                          WHEN l.vd_pancake_conversation_id LIKE 'ttm!_%%' ESCAPE '!' THEN 'tiktok'
+                          WHEN l.vd_pancake_page_id IS NOT NULL THEN 'facebook'
+                          ELSE 'other' END) = 'facebook'
+            """, (s, e))
+            return self.env.cr.fetchone()[0] or 0
+
+        periods = []
+        tot_spend = tot_data = 0
+        for i, t in enumerate(topups):
+            start_d = t.date
+            if i + 1 < len(topups):
+                end_d = topups[i + 1].date       # tới ngày nạp kế (exclusive)
+                current = False
+                end_label = (end_d - _td(days=1)).strftime('%d/%m')
+            else:
+                end_d = today_vn + _td(days=1)    # kỳ đang chạy → tới hôm nay
+                current = True
+                end_label = today_vn.strftime('%d/%m') + ' (nay)'
+            fb = _fb_count(_utc(start_d), _utc(end_d))
+            cost = round(t.fb_amount / fb) if fb else 0
+            days_n = max(1, (min(end_d, today_vn + _td(days=1)) - start_d).days)
+            periods.append({
+                'start': start_d.strftime('%d/%m/%Y'),
+                'start_short': start_d.strftime('%d/%m'),
+                'end_short': end_label,
+                'topup': t.fb_amount, 'fb_data': fb,
+                'cost_per': cost, 'days': days_n, 'current': current,
+            })
+            tot_spend += t.fb_amount
+            tot_data += fb
+        periods.reverse()   # mới nhất lên đầu
+        return {
+            'periods': periods,
+            'total_spend': tot_spend, 'total_data': tot_data,
+            'avg_cost': round(tot_spend / tot_data) if tot_data else 0,
+        }
+
+    @api.model
     def vd_pancake_combined_report(self, days=7):
         """MA TRẬN TỔNG HỢP (user 2026-10-04): MỘT bảng duy nhất gồm NHÂN VIÊN ×
         NGÀY × NGUỒN. Mỗi NV: 1 dòng TỔNG (theo ngày) + 4 dòng nguồn (Zalo /

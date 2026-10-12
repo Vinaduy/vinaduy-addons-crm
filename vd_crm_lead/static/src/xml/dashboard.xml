@@ -2547,6 +2547,49 @@
                 </div>
             </div>
         </div>
+        <!-- ===== PHÂN BỔ CHI PHÍ DATA THEO KỲ NẠP (user 2026-10-12) =====
+             Mỗi lần nạp tiền QC FB mở 1 kỳ, chốt chi phí/1 data ở CUỐI kỳ.
+             Số liệu chi phí → CHỈ Quản lý/GĐ (vmIsManager). -->
+        <div t-if="vmIsManager and state.periods and state.periods.periods.length" class="o_vd_period">
+            <div class="o_vd_period_hd">
+                <span class="o_vd_period_ttl">💸 Phân bổ chi phí data theo kỳ nạp</span>
+                <span class="o_vd_period_sub">Tổng từ 1/10: nạp <b t-esc="formatVnd(state.periods.total_spend)"/>
+                    · <b t-esc="state.periods.total_data"/> data FB
+                    · TB <b t-esc="formatVnd(state.periods.avg_cost)"/>/data</span>
+            </div>
+            <table class="o_vd_period_tbl">
+                <thead>
+                    <tr>
+                        <th>Kỳ nạp</th>
+                        <th class="o_vd_r">Số ngày</th>
+                        <th class="o_vd_r">Tiền nạp</th>
+                        <th class="o_vd_r">Data FB</th>
+                        <th class="o_vd_r">Chi phí / 1 data</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="state.periods.periods" t-as="p" t-key="p.start"
+                        t-att-class="p.current ? 'o_vd_period_cur' : ''">
+                        <td><b t-esc="p.start_short"/> → <t t-esc="p.end_short"/></td>
+                        <td class="o_vd_r" t-esc="p.days"/>
+                        <td class="o_vd_r" t-esc="formatVnd(p.topup)"/>
+                        <td class="o_vd_r"><b t-esc="p.fb_data"/></td>
+                        <td class="o_vd_r">
+                            <b t-if="p.cost_per" t-esc="formatVnd(p.cost_per)"/>
+                            <span t-else="" class="o_vd_period_na">chưa có data</span>
+                        </td>
+                        <td>
+                            <span t-if="p.current" class="o_vd_period_tag o_vd_period_run">⏳ Đang chạy</span>
+                            <span t-else="" class="o_vd_period_tag o_vd_period_done">✅ Đã chốt</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="o_vd_period_note">
+                Chi phí/1 data = tiền nạp kỳ ÷ số data FB mới trong kỳ. Kỳ đang chạy sẽ CHỐT khi nạp lần kế tiếp.
+            </div>
+        </div>
         <!-- Ma trận chia số đầy đủ — CHỈ Quản lý/GĐ (user 2026-10-12). -->
         <t t-if="vmIsManager">
             <t t-set="distRep" t-value="state.pancake_report"/>
