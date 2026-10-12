@@ -490,15 +490,21 @@ class VdPancakePage(models.Model):
         self.ensure_one()
         if not self.page_access_token:
             return 0
-        since_str = (datetime.utcnow() - timedelta(days=days)).strftime('%Y-%m-%d')
-        until_str = (datetime.utcnow() + timedelta(days=1)).strftime('%Y-%m-%d')
+        # ⚠️ FIX 2026-10-12: API công khai pages.fm YÊU CẦU since/until là UNIX
+        # TIMESTAMP (giây), KHÔNG phải 'YYYY-MM-DD'. Trước đây truyền date string →
+        # API trả 0 hội thoại (success=True, total=0) → FB/TikTok NGỪNG về qua
+        # public API suốt (chỉ còn webhook). Đổi sang unix → kéo được bình thường.
+        import time as _t
+        now_ts = int(_t.time())
+        since_ts = now_ts - days * 86400
+        until_ts = now_ts + 86400
         url = '%s/pages/%s/conversations' % (_PANCAKE_API_BASE, self.page_id)
         created = total_seen = 0
         page_number = 1
         while total_seen < max_conversations:
             params = {
                 'access_token': self.page_access_token,
-                'since': since_str, 'until': until_str,
+                'since': since_ts, 'until': until_ts,
                 'page_number': page_number, 'tags': '-1',
             }
             try:
