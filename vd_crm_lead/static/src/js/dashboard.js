@@ -1889,8 +1889,10 @@ export class VdCrmDashboard extends Component {
             const dd = l.days_since_call || 0;
             if (dd < opts[0]) moigoi++;  // [0,3) = VỪA GỌI
             else { for (let i = 0; i < opts.length; i++) { if (dd >= opts[i] && dd < uppers[i]) { days[opts[i]]++; break; } } }
-            // DÒNG "LỊCH HẸN GỌI" — phân theo ngày hẹn (chỉ khách có hẹn).
-            if (!l.callback_date) { none++; continue; }
+            // DÒNG "LỊCH HẸN GỌI" — CHỈ hẹn NV ĐẶT TAY (callback_manual), KHỚP
+            // _cbMatch/filter (bỏ hẹn auto +2 ngày). Trước đây đếm theo callback_date
+            // (mọi hẹn) → số trên nút NHIỀU HƠN số thực khi bấm (fix 2026-10-12).
+            if (!l.callback_manual) { none++; continue; }
             const d = this._cbDaysFromNow(l);
             if (d === null) continue;
             if (d <= 0) cb.cb_today++;
