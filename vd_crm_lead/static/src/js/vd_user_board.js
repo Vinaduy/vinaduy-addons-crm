@@ -136,7 +136,7 @@ export class VdUserBoard extends Component {
         try {
             await this.orm.call("res.users", "vd_set_user_active", [f.id, !f.active]);
             this.notification.add(
-                f.active ? "Đã cho nhân viên nghỉ việc — khách đang làm (nếu có) đã chuyển về kho công ty để chia lại."
+                f.active ? "Đã cho nhân viên nghỉ việc — khách đang làm (nếu có) đã tự chia lại cho các NV khác."
                          : "Đã kích hoạt lại nhân viên.",
                 { type: "success" });
             this.state.form = null;

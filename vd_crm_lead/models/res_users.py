@@ -763,17 +763,44 @@ class ResUsers(models.Model):
             if target.id in (SUPERUSER_ID, caller.id):
                 from odoo.exceptions import UserError
                 raise UserError('Không thể tạm dừng tài khoản admin gốc hoặc chính bạn.')
-            # TỰ CHUYỂN khách ĐANG LÀM (active, chưa chốt/chưa hủy) về KHO CÔNG TY
-            # (gỡ NV → user_id=False để quản lý chia lại). KHÔNG chặn nghỉ việc nữa
-            # (user 2026-10-12). Khách đã chốt (won) giữ nguyên để lưu lịch sử;
-            # khách đã hủy/lost đã archive sẵn (không liên quan).
-            working_leads = self.env['crm.lead'].sudo().search([
+            # CHO NGHỈ VIỆC → TỰ CHIA LẠI khách ĐANG LÀM cho NV khác (user 2026-10-12).
+            # Khách active, chưa chốt/chưa hủy → rải CÂN BẰNG (theo tải hiện tại) cho
+            # các NV sale khác đang BẬT nhận số. KHÔNG chặn nghỉ việc nữa. Khách đã
+            # chốt (won) giữ lịch sử; khách hủy/lost đã archive sẵn.
+            Lead = self.env['crm.lead'].sudo()
+            working_leads = Lead.search([
                 ('user_id', '=', target.id),
                 ('stage_is_won', '=', False),
                 ('stage_is_lost', '=', False),
             ])
             if working_leads:
-                working_leads.write({'user_id': False})
+                salesman = self.env.ref('sales_team.group_sale_salesman').id
+                eligible = self.sudo().search([
+                    ('share', '=', False), ('active', '=', True),
+                    ('id', '!=', target.id),
+                    ('groups_id', 'in', salesman),
+                ]).filtered(
+                    lambda u: not u.has_group('vd_crm_lead.vd_crm_group_team_leader'))
+                # Ưu tiên NV đang BẬT nhận Pancake; không có ai bật → mọi NV sale.
+                enabled = eligible.filtered('vd_can_receive_pancake')
+                targets = enabled or eligible
+                if targets:
+                    tids = targets.ids
+                    load = {u.id: Lead.search_count([
+                        ('user_id', '=', u.id),
+                        ('stage_is_won', '=', False),
+                        ('stage_is_lost', '=', False)]) for u in targets}
+                    from collections import defaultdict
+                    buckets = defaultdict(list)
+                    for lead in working_leads:
+                        best = min(tids, key=lambda i: (load[i], i))
+                        buckets[best].append(lead.id)
+                        load[best] += 1
+                    for uid, lead_ids in buckets.items():
+                        Lead.browse(lead_ids).write({'user_id': uid})
+                else:
+                    # Không còn NV nào nhận → đành gỡ về trống (hiếm).
+                    working_leads.write({'user_id': False})
         target.write({'active': want})
         return want
 
