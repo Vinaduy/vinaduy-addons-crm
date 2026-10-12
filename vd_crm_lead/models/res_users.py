@@ -680,6 +680,9 @@ class ResUsers(models.Model):
         code = ''.join(w[0] for w in words[-3:]).upper() if words else (self.login or '?')[:3].upper()
         team = self.vd_team_label or 'KHÁC'
         role = self.vd_crm_role or 'employee'
+        # Lọc số (Quỳnh Anh) → chức vụ hiển thị "Tổng hợp" (user 2026-10-12).
+        role_label = ('Tổng hợp' if team == 'Lọc số'
+                      else self._VD_ROLE_LABEL.get(role, 'Nhân viên'))
         return {
             'id': self.id,
             'name': pure or full,
@@ -687,7 +690,7 @@ class ResUsers(models.Model):
             'team': team,
             'team_color': self._VD_TEAM_COLOR.get(team, '#868e96'),
             'role': role,
-            'role_label': self._VD_ROLE_LABEL.get(role, 'Nhân viên'),
+            'role_label': role_label,
             'is_leader': role in ('team_leader', 'director'),
             'login': self.login or '',
             'active': bool(self.active),
@@ -701,10 +704,14 @@ class ResUsers(models.Model):
         users = self.sudo().with_context(active_test=False).search([
             ('share', '=', False),
         ])
-        # Số KH mỗi NV đang quản lý (lead đang mở, gộp 1 query read_group).
+        # Số KH mỗi NV ĐANG QUẢN LÝ = lead CHƯA chốt & CHƯA hủy (bỏ won/lost) —
+        # user 2026-10-12: trước đây đếm MỌI lead (gồm đã chốt/hủy) nên NV không còn
+        # khách active vẫn hiện số. Gộp 1 query read_group.
         counts = {}
         groups = self.env['crm.lead'].sudo().read_group(
-            [('user_id', 'in', users.ids)], ['user_id'], ['user_id'],
+            [('user_id', 'in', users.ids),
+             ('stage_is_won', '=', False), ('stage_is_lost', '=', False)],
+            ['user_id'], ['user_id'],
         )
         for g in groups:
             if g.get('user_id'):

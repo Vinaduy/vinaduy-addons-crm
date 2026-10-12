@@ -22,6 +22,7 @@
                         <th>Chức vụ</th>
                         <th>Đăng nhập</th>
                         <th class="o_vdnv_num">Số khách</th>
+                        <th class="o_vdnv_act">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,9 +34,15 @@
                         <td t-esc="u.role_label"/>
                         <td t-esc="u.login"/>
                         <td class="o_vdnv_num" t-esc="u.lead_count or 0"/>
+                        <td class="o_vdnv_act">
+                            <button class="o_vdnv_rbtn o_vdnv_redit"
+                                    t-on-click.stop="() => this.openEdit(u)" title="Sửa">✏️ Sửa</button>
+                            <button class="o_vdnv_rbtn o_vdnv_rdel"
+                                    t-on-click.stop="() => this.removeRow(u)" title="Xóa">🗑</button>
+                        </td>
                     </tr>
                     <tr t-if="!rows.length">
-                        <td colspan="6" class="o_vdnv_empty">— Không có nhân viên —</td>
+                        <td colspan="7" class="o_vdnv_empty">— Không có nhân viên —</td>
                     </tr>
                 </tbody>
             </table>

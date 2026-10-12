@@ -22,19 +22,29 @@
 
     .o_vdnv_loading, .o_vdnv_empty { padding: 32px; text-align: center; color: #999; }
 
-    // Bảng thường
+    // Bảng gọn, kẻ lưới (user 2026-10-12: trước đây giãn dòng nhiều + rời rạc)
     .o_vdnv_table {
-        width: 100%; border-collapse: collapse; font-size: 14px;
+        width: 100%; border-collapse: collapse; font-size: 13.5px;
+        border: 1px solid #e0e0e0;
 
         th {
-            text-align: left; padding: 10px 12px; font-weight: 600; color: #444;
-            background: #f5f5f5; border-bottom: 1px solid #ddd; white-space: nowrap;
+            text-align: left; padding: 7px 10px; font-weight: 600; color: #444;
+            background: #f4f6f8; border: 1px solid #e0e0e0; white-space: nowrap;
         }
-        td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+        td { padding: 5px 10px; border: 1px solid #ededed; }
         tbody tr { cursor: pointer; }
-        tbody tr:hover td { background: #f4f8ff; }
-        .o_vdnv_num { text-align: right; }
+        tbody tr:nth-child(even) td { background: #fafbfc; }
+        tbody tr:hover td { background: #eef4ff; }
+        .o_vdnv_num { text-align: right; font-variant-numeric: tabular-nums; }
+        .o_vdnv_act { white-space: nowrap; text-align: center; width: 1%; }
     }
+    .o_vdnv_rbtn {
+        border: 1px solid #ccc; background: #fff; border-radius: 5px; cursor: pointer;
+        font-size: 12.5px; padding: 3px 8px; margin: 0 2px; font-weight: 600; color: #444;
+        &:hover { border-color: #888; }
+    }
+    .o_vdnv_redit { color: #1971c2; border-color: #a5d8ff; &:hover { background: #e7f5ff; } }
+    .o_vdnv_rdel { color: #c92a2a; border-color: #f1a9a9; &:hover { background: #fff0f0; } }
 
     // Popup thêm/sửa
     .o_vdnv_mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }

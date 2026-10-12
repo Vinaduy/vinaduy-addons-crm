@@ -163,6 +163,30 @@ export class VdUserBoard extends Component {
         });
     }
 
+    // Xóa TRỰC TIẾP từ nút trên dòng (không cần mở popup).
+    removeRow(u) {
+        this.dialog.add(ConfirmationDialog, {
+            title: "Xóa nhân viên",
+            body: `Xóa hẳn tài khoản "${u.name}"? Thao tác KHÔNG hoàn tác. ` +
+                `Nếu NV còn khách sẽ không xóa được — hãy dùng "Cho nghỉ việc".`,
+            confirmLabel: "Xóa hẳn",
+            cancelLabel: "Huỷ",
+            confirm: async () => {
+                this.state.saving = true;
+                try {
+                    await this.orm.call("res.users", "vd_board_delete_user", [u.id]);
+                    this.notification.add("Đã xóa nhân viên.", { type: "success" });
+                    await this.load();
+                } catch (e) {
+                    this.notification.add(this._err(e, "Không xóa được."), { type: "danger" });
+                } finally {
+                    this.state.saving = false;
+                }
+            },
+            cancel: () => {},
+        });
+    }
+
     _err(e, fallback) {
         return (e && e.data && e.data.message) || fallback;
     }
