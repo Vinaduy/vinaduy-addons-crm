@@ -2524,10 +2524,14 @@
                 <div t-if="vmIsManager and state.adspend.recon and state.adspend.recon.length" class="o_vd_adsp_recon">
                     <span class="o_vd_adsp_recon_lbl">Tình trạng về số:</span>
                     <t t-foreach="state.adspend.recon" t-as="rc" t-key="rc.source">
-                        <span t-att-class="'o_vd_adsp_recon_it' + (rc.pending ? ' o_vd_pending' : ' o_vd_ok')">
+                        <span t-att-class="'o_vd_adsp_recon_it' + ((rc.pending or rc.token_bad) ? ' o_vd_pending' : ' o_vd_ok')">
                             <t t-set="src" t-value="rc.source"/><t t-call="vd_crm_lead.SrcIco"/>
                             <t t-esc="rc.source === 'zalo' ? 'Zalo' : (rc.source === 'facebook' ? 'FB' : 'TikTok')"/>
-                            <t t-if="rc.pending"> ⚠️ còn <b t-esc="rc.pending"/> số<t t-if="rc.source === 'zalo'"> <span class="o_vd_adsp_recon_note">(giới hạn API Zalo cá nhân)</span></t></t>
+                            <t t-if="rc.source === 'zalo'">
+                                <t t-if="rc.token_bad"> ⚠️ token phiên hết hạn — cần cập nhật để kéo số</t>
+                                <t t-else=""> ✅ đang về (webhook + quét) <span class="o_vd_adsp_recon_note">(Pancake đếm <t t-esc="rc.pancake"/> gồm cả SĐT trùng/tuyển dụng)</span></t>
+                            </t>
+                            <t t-elif="rc.pending"> ⚠️ còn <b t-esc="rc.pending"/> số</t>
                             <t t-else=""> ✅ đủ</t>
                         </span>
                     </t>

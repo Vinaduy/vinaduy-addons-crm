@@ -7320,8 +7320,19 @@ class CrmLead(models.Model):
             crm = self.env['crm.lead'].with_context(active_test=False).search_count([
                 ('vd_pancake_page_id', 'in', page_ids),
                 ('create_date', '>=', start_utc), ('create_date', '<', day_e)])
-            recon.append({'source': s, 'pancake': pan, 'crm': crm,
-                          'pending': max(0, pan - crm)})
+            # ZALO (user 2026-10-13): phoneNumberCount Pancake ĐẾM CẢ SĐT TRÙNG (1
+            # khách để lại nhiều lần) + SỐ TUYỂN DỤNG (CRM đã lọc) → (pan - crm) KHÔNG
+            # phải "số thiếu" mà là LỆCH CÁCH ĐẾM. Quét lại internal API = 0 lead mới
+            # → không mất số thật. Chỉ KẸT THẬT khi TOKEN PHIÊN hết hạn → báo đỏ theo
+            # cờ vd_zalo_token_invalid, không theo (pan - crm) gây hoảng giả.
+            if s == 'zalo':
+                token_bad = any(self.env['vd.pancake.page'].sudo()
+                                .browse(page_ids).mapped('vd_zalo_token_invalid'))
+                recon.append({'source': s, 'pancake': pan, 'crm': crm,
+                              'pending': 0, 'token_bad': token_bad})
+            else:
+                recon.append({'source': s, 'pancake': pan, 'crm': crm,
+                              'pending': max(0, pan - crm)})
         return {
             'date': d.isoformat(), 'date_label': d.strftime('%d/%m/%Y'),
             'src_total': src_total, 'total_data': total_data,
