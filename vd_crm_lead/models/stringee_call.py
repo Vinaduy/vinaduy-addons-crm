@@ -58,11 +58,21 @@ class StringeeCall(models.Model):
 
     @api.model
     def _vd_lookup_number_owner(self, number, current_uid=None):
-        """Tra số → KH + NV quản lý (cho keypad gọi tay hiển thị khi nhập số)."""
+        """Tra số → KH + NV quản lý (cho keypad gọi tay hiển thị khi nhập số).
+        Dùng CHUNG quy tắc với ô tìm kiếm (user 2026-10-15): đại diện = lead mới
+        nhất theo create_date; NV tư vấn CUỐI = user_id hoặc vd_cancel_prev_user_id
+        (KH duyệt hủy bị gỡ user_id) → KH đã hủy VẪN ra đúng NV, không ẩn."""
         lead = self._vd_find_lead_by_phone(number)
         if not lead:
             return {'found': False}
-        owner = lead.user_id
+        owner = lead.user_id or lead.vd_cancel_prev_user_id
+        if not owner:
+            digits = re.sub(r'\D', '', number or '')
+            if len(digits) >= 8:
+                last9 = digits[-9:]
+                dups = self.env['crm.lead'].with_context(active_test=False).search(
+                    ['|', ('phone', 'like', last9), ('mobile', 'like', last9)])
+                owner = self.env['crm.lead']._vd_last_consultant(dups)
         return {
             'found': True,
             'lead_id': lead.id,

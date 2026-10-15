@@ -8538,6 +8538,20 @@ class CrmLead(models.Model):
         return data
 
     @api.model
+    @api.model
+    def _vd_last_consultant(self, leads):
+        """NV TƯ VẤN CUỐI của 1 nhóm lead trùng SĐT (user 2026-10-15). Duyệt các
+        lead theo create_date MỚI→CŨ, lấy NV đầu tiên còn giữ được: user_id, hoặc
+        vd_cancel_prev_user_id (KH duyệt hủy bị gỡ user_id → NV cũ lưu ở đây). Nhờ
+        vậy KH đã hủy VẪN ra đúng NV tư vấn cuối, không bị ẩn."""
+        for l in sorted(leads, key=lambda x: x.create_date or fields.Datetime.now(),
+                        reverse=True):
+            u = l.user_id or l.vd_cancel_prev_user_id
+            if u:
+                return u
+        return self.env['res.users']
+
+    @api.model
     def vd_dashboard_search_leads(self, query, user_id=None, limit=30):
         """User spec 2026-05-29 + 2026-06-06: search KH theo SĐT hoặc TÊN không dấu.
 
@@ -8624,10 +8638,13 @@ class CrmLead(models.Model):
         match_gids = []   # [lead_ids] mỗi match → cộng phút tư vấn cả bản trùng
         for key in order:
             leads = groups[key]
-            # Ưu tiên lead ĐANG xử lý (active + chưa vào thùng rác); không có thì
-            # lấy lead mới nhất (đầu list vì cand sort write_date desc).
-            live = [x for x in leads if x.active and x.vd_cancel_state != 'approved']
-            l = live[0] if live else leads[0]
+            # ĐẠI DIỆN = lead MỚI NHẤT theo create_date (KHỚP với popup Gọi điện
+            # _vd_find_lead_by_phone — user 2026-10-15). Trước đây "ưu tiên active"
+            # → lệch kết quả với popup gọi + ẩn KH đã hủy. Giờ luôn lấy bản mới nhất
+            # (kể cả đã hủy) để 2 nơi KHỚP + không ẩn tên/SĐT/NV cuối.
+            leads = sorted(leads, key=lambda x: x.create_date or fields.Datetime.now(),
+                           reverse=True)
+            l = leads[0]
             archived_others = len(leads) - 1
             if l.vd_cancel_state == 'approved':
                 state_label = '🗑️ Thùng rác công ty'
@@ -8647,7 +8664,8 @@ class CrmLead(models.Model):
                 'stage_name': l.stage_id.name or '',
                 'state_label': state_label,
                 'archived': not l.active,
-                'user_name': l.user_id.name or '',
+                # NV tư vấn CUỐI: KH hủy bị gỡ user_id → lấy vd_cancel_prev_user_id.
+                'user_name': self._vd_last_consultant(leads).name or '',
                 'tag_label': tag.get('label') or '',
                 'tag_cls': tag.get('cls') or 'new',
                 'talk_secs': 0,
