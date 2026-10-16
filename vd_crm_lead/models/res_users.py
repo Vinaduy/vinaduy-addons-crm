@@ -651,13 +651,16 @@ class ResUsers(models.Model):
             # CHIA ĐỀU TRONG NGÀY (user spec 2026-06-20): NV ít số nhất hôm nay.
             today_map = Lead._vd_today_assigned_count_map(eligible.ids)
 
-        def active_load(user):
-            return Lead.search_count([
-                ('user_id', '=', user.id),
-                ('stage_is_won', '=', False),
-                ('stage_is_lost', '=', False),
-            ])
-        return min(eligible, key=lambda u: (today_map.get(u.id, 0), active_load(u), u.id))
+        # TIÊU CHÍ: (1) ít số hôm nay nhất → cuối ngày mọi NV ~ bằng nhau. (2) HOÀ →
+        # XOAY VÒNG công bằng: NV LÂU NHẤT chưa được chia (lần cuối nhận cũ nhất /
+        # chưa nhận hôm nay = ưu tiên) → KHÔNG ai bị dồn/hụt. Bỏ 'active_load' cũ
+        # (ưu tiên NV tồn ít → NV tồn ít LUÔN thắng hoà → ngày nào cũng nhận nhiều
+        # nhất, lệch; user 2026-10-16 muốn chia đều TUYỆT ĐỐI, không theo tồn).
+        last_map = Lead._vd_last_assigned_at_map(eligible.ids)
+        import datetime as _dtm
+        far_past = _dtm.datetime(2000, 1, 1)
+        return min(eligible, key=lambda u: (
+            today_map.get(u.id, 0), last_map.get(u.id) or far_past, u.id))
 
     # ============================================================
     # BẢNG QUẢN LÝ NHÂN VIÊN — 2 cột kéo thả (đang hoạt động / nghỉ-tạm dừng)

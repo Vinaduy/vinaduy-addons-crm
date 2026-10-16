@@ -8191,6 +8191,19 @@ class CrmLead(models.Model):
         return dict(cnt)
 
     @api.model
+    def _vd_last_assigned_at_map(self, user_ids):
+        """Map {user_id: create_date lead MỚI NHẤT được chia cho NV đó} — dùng làm
+        TIÊU CHÍ XOAY VÒNG công bằng khi round-robin HOÀ số-hôm-nay (user 2026-10-16).
+        NV chưa có lead nào → thiếu key → xem như LÂU NHẤT → ưu tiên nhận trước."""
+        uids = [int(u) for u in (user_ids or []) if u]
+        if not uids:
+            return {}
+        self.env.cr.execute(
+            "SELECT user_id, MAX(create_date) FROM crm_lead "
+            "WHERE user_id = ANY(%s) GROUP BY user_id", (uids,))
+        return {r[0]: r[1] for r in self.env.cr.fetchall()}
+
+    @api.model
     def _vd_uncalled_new_count_map(self, user_ids):
         """Map {user_id: số KH MỚI CHƯA gọi cuộc nào (call_count=0) trong bucket
         KHÁCH MỚI}. Dùng CHẶN CHIA SỐ (user spec 2026-06-12) — khớp 'new_not_called'
