@@ -1007,36 +1007,47 @@ class StringeeCall(models.Model):
             else:
                 vals['answer_time'] = fields.Datetime.now()
         if bumped in _TERMINAL_STATES and not rec.end_time:
+            from datetime import datetime
             vals['end_time'] = fields.Datetime.now()
-            # ⚡ Ưu tiên answerDuration (TALK time — sau khi KH bắt máy).
-            # Nếu = 0 (KH không bắt máy) → fallback duration (ring time).
-            # Stringee `duration` = ring + talk; `answerDuration` = chỉ talk.
+            # answerDuration = TALK time (sau khi KH bắt máy); duration = ring+talk.
+            # Phân biệt THIẾU field (None) vs = 0: THIẾU → không suy luận gì.
+            ans_raw = payload.get('answerDuration')
+            if ans_raw is None:
+                ans_raw = payload.get('answer_duration')
             try:
-                ans_dur = int(payload.get('answerDuration') or 0)
+                ans_dur = int(ans_raw) if ans_raw is not None else None
             except (TypeError, ValueError):
-                ans_dur = 0
+                ans_dur = None
             try:
                 total_dur = int(payload.get('duration') or 0)
             except (TypeError, ValueError):
                 total_dur = 0
-            vals['duration'] = ans_dur if ans_dur > 0 else total_dur
+            vals['duration'] = ans_dur if (ans_dur and ans_dur > 0) else total_dur
             cause = (payload.get('endCallCause') or payload.get('reason')
                      or payload.get('hangupReason') or payload.get('sipCode'))
             if cause:
                 vals['hangup_cause'] = str(cause)
-            # CRITICAL: nếu terminal + KH KHÔNG bắt máy thật (answerDuration=0)
-            # → CLEAR answer_time để UI không tiếp tục đếm giây "Đang gọi 0:XX".
-            # Đây là case Stringee fire fake 'answered' rồi mới ended với 0s.
-            try:
-                real_ans_dur = int(payload.get('answerDuration') or 0)
-            except (TypeError, ValueError):
-                real_ans_dur = 0
-            if real_ans_dur <= 0 and rec.answer_time:
-                vals['answer_time'] = False
-                _logger.info(
-                    "Clear answer_time on terminal for %s (answerDuration=0 → KH chưa bắt máy thật)",
-                    rec.name,
-                )
+            # answerDuration ở event 'ended' là BẰNG CHỨNG nghe máy (fix 2026-10-16):
+            #  • >0  → KH ĐÃ bắt máy answerDuration giây. 'answered' event hay bị lọc
+            #         false-positive cho REST outbound (leg từ-số ≠ leg KH) nên
+            #         answer_time chưa set → SET LẠI = end − answerDuration (lúc bắt
+            #         đầu nói). Trước đây chỉ dùng để XOÁ, không set → thống kê nghe
+            #         máy ~0 dù cuộc có ghi âm + talk vài phút.
+            #  • =0  → fake 'answered' (KH chưa bắt máy thật) → XOÁ answer_time.
+            #  • thiếu (None) → KHÔNG suy luận, GIỮ nguyên answer_time hiện có (trước
+            #         đây coi thiếu = 0 → xoá nhầm hàng loạt cuộc nghe máy).
+            if ans_dur is not None:
+                if ans_dur > 0 and not rec.answer_time and not vals.get('answer_time'):
+                    ts_ms = payload.get('timestamp_ms')
+                    end_dt = (datetime.utcfromtimestamp(int(ts_ms) / 1000)
+                              if ts_ms else fields.Datetime.now())
+                    vals['answer_time'] = end_dt - timedelta(seconds=ans_dur)
+                elif ans_dur <= 0 and rec.answer_time:
+                    vals['answer_time'] = False
+                    _logger.info(
+                        "Clear answer_time on terminal for %s (answerDuration=0 → KH chưa bắt máy thật)",
+                        rec.name,
+                    )
         # Repair from/to if they were stored as dict-strings
         if from_phone and (not rec.caller_number or rec.caller_number.startswith('{')):
             vals['caller_number'] = from_phone
