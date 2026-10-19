@@ -369,11 +369,14 @@ class VdQuickAddLead(models.Model):
 
     # =========================================================== DISTRIBUTE
     def _vd_qa_target_order(self, nv_ids):
-        """Recordset NV đích cho chia số. CHIA ĐỀU TRONG NGÀY: ưu tiên NV được
-        chia ÍT KHÁCH NHẤT HÔM NAY (mọi nguồn) → nhiều lần upload nhỏ KHÔNG dồn
-        hết vào NV ít tổng khách nhất. Hoà → tải khách mới ít hơn, rồi id nhỏ hơn.
-        nv_ids rỗng → mọi NV đang nhận số."""
+        """Recordset NV đích cho chia số. CHIA ĐỀU TUYỆT ĐỐI (user 2026-10-19):
+        (1) ít KH nhất HÔM NAY (mọi nguồn quét + Pancake) → cuối ngày bằng nhau;
+        (2) HOÀ → XOAY VÒNG: NV lâu nhất chưa được chia. BỎ tiêu chí 'load' (tồn
+        ít) cũ vì nó khiến NV tồn ít LUÔN thắng hoà → nhận nhiều nhất, NV tồn
+        nhiều bị xếp cuối → mẻ quét nhỏ không tới lượt (Hậu 0 số). ĐỒNG BỘ với
+        round-robin Pancake _vd_pick_next_assignee. nv_ids rỗng → mọi NV đang nhận."""
         from datetime import datetime, time as _t, timedelta as _td
+        import datetime as _dtm
         import pytz
         Users = self.env['res.users'].sudo()
         if nv_ids:
@@ -383,7 +386,6 @@ class VdQuickAddLead(models.Model):
                 lambda u: bool(getattr(u, 'vd_can_receive_pancake', True)))
         if not pool:
             raise UserError(_('Chưa chọn nhân viên nào để chia số.'))
-        new_stage = self.env.ref('vd_crm_lead.stage_new', raise_if_not_found=False)
         Lead = self.env['crm.lead'].sudo()
         # Số KH đã chia HÔM NAY (giờ VN) cho mỗi NV — mọi nguồn (quét + Pancake).
         vn = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -398,14 +400,11 @@ class VdQuickAddLead(models.Model):
                 ['user_id'], ['user_id']):
             if g.get('user_id'):
                 today[g['user_id'][0]] = g.get('user_id_count', 0)
-        load = {}
-        for u in pool:
-            dom = [('user_id', '=', u.id), ('active', '=', True)]
-            if new_stage:
-                dom.append(('stage_id', '=', new_stage.id))
-            load[u.id] = Lead.search_count(dom)
+        # Xoay vòng: NV lâu nhất chưa được chia (giống round-robin Pancake).
+        last_map = Lead._vd_last_assigned_at_map(pool.ids)
+        far_past = _dtm.datetime(2000, 1, 1)
         return pool.sorted(
-            lambda u: (today.get(u.id, 0), load.get(u.id, 0), u.id))
+            lambda u: (today.get(u.id, 0), last_map.get(u.id) or far_past, u.id))
 
     @api.model
     def vd_quickadd_distribute(self, lead_ids, nv_ids=None):
