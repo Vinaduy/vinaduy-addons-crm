@@ -386,7 +386,7 @@ class ResUsers(models.Model):
     # Admin tự bật/tắt cho từng NV — độc lập với cờ quá hạn ở trên.
     vd_can_receive_pancake = fields.Boolean(
         string='Nhận số (tự động + thủ công)',
-        default=True,
+        default=True, tracking=True,
         help='Công tắc nhận số DUY NHẤT của NV. Tắt = DỪNG cả chia tự động '
              '(Pancake/TikTok/Facebook) LẪN chia thủ công (đẩy file/dán/round-robin). '
              'Đồng bộ giữa báo cáo dashboard và bảng Thêm KH mới.',
@@ -397,13 +397,13 @@ class ResUsers(models.Model):
     # NV nhận số TikTok  <=> vd_can_receive_pancake AND vd_can_receive_tiktok.
     # NV nhận số Facebook <=> vd_can_receive_pancake AND vd_can_receive_facebook.
     vd_can_receive_tiktok = fields.Boolean(
-        string='Nhận số TikTok', default=True,
+        string='Nhận số TikTok', default=True, tracking=True,
         help='Tắt = NV này KHÔNG nhận số nguồn TikTok (cả tự động lẫn thủ công).')
     vd_can_receive_facebook = fields.Boolean(
-        string='Nhận số Facebook', default=True,
+        string='Nhận số Facebook', default=True, tracking=True,
         help='Tắt = NV này KHÔNG nhận số nguồn Facebook (cả tự động lẫn thủ công).')
     vd_can_receive_zalo = fields.Boolean(
-        string='Nhận số Zalo', default=True,
+        string='Nhận số Zalo', default=True, tracking=True,
         help='Tắt = NV này KHÔNG nhận số nguồn Zalo (cả tự động lẫn thủ công).')
 
     # ============ THÔNG TIN LÀM VIỆC — số tháng + năng lực ============
