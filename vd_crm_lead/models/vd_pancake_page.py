@@ -378,7 +378,12 @@ class VdPancakePage(models.Model):
             return 'no_phone'
 
         # Bỏ tin liên quan TUYỂN DỤNG — không tự đẩy số (user 2026-10-07).
-        if Lead._vd_is_recruitment(conv.get('snippet') or ''):
+        # QUÉT TOÀN HỘI THOẠI (user 2026-10-21): từ khóa 'tuyển dụng/ứng tuyển'
+        # thường nằm ở tin KHÁC, snippet cuối lại là SĐT → chỉ check snippet sẽ lọt.
+        # Check snippet + tên KH trước (rẻ), chưa dính thì kéo TẤT CẢ tin nhắn check.
+        if Lead._vd_is_recruitment(conv.get('snippet') or '', customer_name or ''):
+            return 'no_phone'
+        if Lead._vd_is_recruitment(*self._vd_fetch_conv_message_texts(conv_id)):
             return 'no_phone'
 
         # Round-robin pick NV
@@ -483,6 +488,27 @@ class VdPancakePage(models.Model):
         if grand:
             _logger.info('Cron Pancake phone sync: tạo %s lead mới có SĐT', grand)
         return True
+
+    def _vd_fetch_conv_message_texts(self, conv_id):
+        """TEXT MỌI tin nhắn 1 hội thoại (public API) để quét TUYỂN DỤNG toàn hội
+        thoại — từ khóa hay nằm ở tin KHÁC, không phải snippet cuối (user 2026-10-21).
+        Chỉ FB/TikTok (public API). Rỗng nếu lỗi/không có token → KHÔNG chặn tạo lead
+        (fail-open, tránh mất số thật khi API lỗi)."""
+        self.ensure_one()
+        if not conv_id or not self.page_access_token \
+                or self.platform not in ('facebook', 'tiktok'):
+            return []
+        try:
+            r = requests.get(
+                '%s/pages/%s/conversations/%s/messages' % (
+                    _PANCAKE_API_BASE, self.page_id, conv_id),
+                params={'access_token': self.page_access_token}, timeout=15)
+            data = r.json() or {}
+            return [m.get('message') or '' for m in (data.get('messages') or [])]
+        except Exception as e:
+            _logger.warning('Pancake fetch messages %s conv %s lỗi: %s',
+                            self.name, conv_id, e)
+            return []
 
     def _pull_pancake_phones(self, Lead, ResUsers, days=1, max_conversations=400):
         """Kéo conversations `days` ngày, tạo lead cho recent_phone_numbers chưa
