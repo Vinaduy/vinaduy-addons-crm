@@ -43,6 +43,12 @@ export class VdQuickAddDialog extends Component {
                 const meta = await this.orm.call("crm.lead", "vd_quickadd_meta", []);
                 this.state.sources = meta.sources || [];
                 this.state.nvs = meta.nvs || [];
+                // TÍCH SẴN TẤT CẢ NV đang nhận số (user 2026-10-21) → mặc định CHIA
+                // ĐỀU CHO HẾT, không bỏ sót ai (vd trưởng nhóm Hậu bị quên tích →
+                // 0 số quét). Ai không muốn chia thì tự bỏ tích.
+                for (const n of this.state.nvs) {
+                    if (n.on) this.state.selected[n.id] = true;
+                }
                 if (this.state.sources[0]) {
                     this.state.form.source = this.state.sources[0].key;
                 }
