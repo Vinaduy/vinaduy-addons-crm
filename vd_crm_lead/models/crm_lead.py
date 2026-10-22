@@ -2126,11 +2126,13 @@ class CrmLead(models.Model):
         (NV/CTV chỉ ĐỀ XUẤT). has_group('team_leader') True cho cả 3 vai trò trên
         (admin implies director implies team_leader). Record rule vẫn giới hạn
         trưởng phòng chỉ duyệt được KH trong phòng ban mình (write theo rule)."""
-        can_approve = (
-            self.env.user._is_superuser()
-            or self.env.user.has_group('vd_crm_lead.vd_crm_group_team_leader')
-        )
-        if not can_approve:
+        user = self.env.user
+        # GĐ/Phó GĐ/Admin (deputy_director ⊃ bởi admin) → duyệt MỌI phòng.
+        # Trưởng phòng (team_leader thuần) → CHỈ duyệt KH phòng ban MÌNH.
+        is_boss = (user._is_superuser()
+                   or user.has_group('vd_crm_lead.vd_crm_group_deputy_director'))
+        is_leader = user.has_group('vd_crm_lead.vd_crm_group_team_leader')
+        if not (is_boss or is_leader):
             raise UserError(_(
                 'Chỉ Trưởng phòng / Giám đốc / Admin mới được DUYỆT hủy khách. '
                 'Nhân viên chỉ được ĐỀ XUẤT hủy.'
@@ -2138,6 +2140,16 @@ class CrmLead(models.Model):
         for rec in self:
             if rec.vd_cancel_state == 'approved':
                 continue  # đã duyệt rồi, skip
+            # Trưởng phòng CHỈ duyệt KH trong PHÒNG BAN MÌNH (user 2026-10-22). Phải
+            # chặn TƯỜNG MINH ở đây: tài khoản TP có nhóm Odoo "Sales/All Documents"
+            # → thấy KH mọi phòng, record rule phòng ban của VD CRM bị lấn át.
+            if not is_boss:
+                owner = rec.user_id or rec.vd_cancel_prev_user_id
+                if not (user.vd_team and owner and owner.vd_team == user.vd_team):
+                    raise UserError(_(
+                        'Trưởng phòng chỉ được DUYỆT hủy khách trong phòng ban mình '
+                        '(%s). Khách "%s" thuộc phòng khác — nhờ Giám đốc/Admin duyệt.'
+                    ) % (user.vd_team or '—', rec.name or rec.phone or rec.id))
             vals = {
                 'vd_cancel_state': 'approved',
                 'vd_cancel_approved_by_id': self.env.user.id,
