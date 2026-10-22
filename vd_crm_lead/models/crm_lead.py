@@ -2137,15 +2137,20 @@ class CrmLead(models.Model):
                 'Chỉ Trưởng phòng / Giám đốc / Admin mới được DUYỆT hủy khách. '
                 'Nhân viên chỉ được ĐỀ XUẤT hủy.'
             ))
+        bulk = len(self) > 1
         for rec in self:
             if rec.vd_cancel_state == 'approved':
                 continue  # đã duyệt rồi, skip
             # Trưởng phòng CHỈ duyệt KH trong PHÒNG BAN MÌNH (user 2026-10-22). Phải
             # chặn TƯỜNG MINH ở đây: tài khoản TP có nhóm Odoo "Sales/All Documents"
             # → thấy KH mọi phòng, record rule phòng ban của VD CRM bị lấn át.
+            # DUYỆT HÀNG LOẠT: BỎ QUA KH khác phòng (vẫn duyệt KH cùng phòng) — KHÔNG
+            # raise để cả lô không bị fail; chỉ báo lỗi khi duyệt LẺ 1 KH khác phòng.
             if not is_boss:
                 owner = rec.user_id or rec.vd_cancel_prev_user_id
                 if not (user.vd_team and owner and owner.vd_team == user.vd_team):
+                    if bulk:
+                        continue
                     raise UserError(_(
                         'Trưởng phòng chỉ được DUYỆT hủy khách trong phòng ban mình '
                         '(%s). Khách "%s" thuộc phòng khác — nhờ Giám đốc/Admin duyệt.'
