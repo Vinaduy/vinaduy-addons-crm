@@ -250,16 +250,14 @@ class PancakeWebhookController(http.Controller):
                          page.name, conv_id)
             return
 
-        # === SKIP 3: tin liên quan TUYỂN DỤNG → KHÔNG đẩy số (user 2026-10-07) ===
-        # QUÉT TOÀN HỘI THOẠI (user 2026-10-21): từ khóa thường ở tin KHÁC (vd "em
-        # ứng tuyển") còn tin có SĐT thì không có → chỉ check tin hiện tại sẽ lọt.
-        _recruit = Lead._vd_is_recruitment(
-            message_text, conv.get('snippet') or '', customer_name or '')
-        if not _recruit:
-            _recruit = Lead._vd_is_recruitment(
-                *page._vd_fetch_conv_message_texts(conv_id))
-        if _recruit:
-            _logger.info('Pancake webhook %s: conv %s là TIN TUYỂN DỤNG, bỏ qua tạo lead',
+        # === SKIP 3: TUYỂN DỤNG + SPAM quảng cáo/dịch vụ → KHÔNG đẩy số
+        # (user 2026-10-07 + 2026-10-23). QUÉT TOÀN HỘI THOẠI: từ khóa thường ở tin
+        # KHÁC còn tin có SĐT thì không có → chỉ check tin hiện tại sẽ lọt.
+        _texts = [message_text, conv.get('snippet') or '', customer_name or '']
+        if not Lead._vd_is_blocked_content(*_texts):
+            _texts += page._vd_fetch_conv_message_texts(conv_id)
+        if Lead._vd_is_blocked_content(*_texts):
+            _logger.info('Pancake webhook %s: conv %s là TUYỂN DỤNG/SPAM, bỏ qua tạo lead',
                          page.name, conv_id)
             return
 

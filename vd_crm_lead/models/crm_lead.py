@@ -290,6 +290,52 @@ class CrmLead(models.Model):
                     for k in extra.split(',') if k.strip()]
         return any(kw and kw in s for kw in kws)
 
+    # ===== LỌC SPAM QUẢNG CÁO / DỊCH VỤ / NHÀ CUNG CẤP (user 2026-10-23) =====
+    # CỤM từ RIÊNG của bên rao bán/chào dịch vụ — KHÔNG trùng cách nói của khách
+    # xây nhà thật. TRÁNH từ dễ nhầm: 'báo giá' (khách hỏi báo giá), 'vật liệu',
+    # 'dịch vụ' trơ (quá rộng).
+    _VD_SPAM_KW = (
+        # Rao bán SIM
+        'sim so dep', 'list sim', 'ban sim', 'sim phong thuy', 'sim nguyen kim',
+        'kho sim', 'sim tra gop', 'sim nam sinh',
+        # Vay vốn / tài chính / bảo hiểm
+        'cho vay', 'vay von', 'ho tro vay', 'vay tin chap', 'vay the chap',
+        'giai ngan', 'dao han ngan hang', 'bao hiem nhan tho', 'bao hiem suc khoe',
+        'dau tu tai chinh', 'san forex', 'chung khoan quoc te',
+        # Dịch vụ marketing / web / phần mềm
+        'chay ads', 'chay quang cao', 'dich vu quang cao', 'dich vu marketing',
+        'tang like', 'tang tuong tac', 'tang follow', 'tang sub', 'tang mat',
+        'seeding', 'nuoi nick', 'thiet ke website', 'lam website', 'thiet ke web',
+        'phan mem quan ly', 'dich vu seo', 'ban account', 'ban tai khoan',
+        # Chào hàng / nhà cung cấp / hóa đơn
+        'nha cung cap', 'chao hang', 'ky gui', 'chuyen cung cap', 'ben minh chuyen',
+        'cong ty chung toi chuyen', 'xuat hoa don', 'hoa don do', 'hoa don vat',
+        'hoa don gia',
+    )
+
+    @api.model
+    def _vd_is_vendor_spam(self, *texts):
+        """True nếu nội dung là SPAM quảng cáo/dịch vụ/nhà cung cấp → KHÔNG tự đẩy
+        số. Admin bổ sung từ khóa qua ir.config_parameter 'vd_crm_lead.spam_keywords'
+        (ngăn cách bằng dấu phẩy)."""
+        import re
+        blob = ' '.join(t for t in texts if t)
+        if not blob:
+            return False
+        s = re.sub(r'\s+', ' ', self._vd_strip_accents_lower(blob))
+        kws = list(self._VD_SPAM_KW)
+        extra = (self.env['ir.config_parameter'].sudo().get_param(
+            'vd_crm_lead.spam_keywords') or '').strip()
+        if extra:
+            kws += [self._vd_strip_accents_lower(k).strip()
+                    for k in extra.split(',') if k.strip()]
+        return any(kw and kw in s for kw in kws)
+
+    @api.model
+    def _vd_is_blocked_content(self, *texts):
+        """Gộp: tin TUYỂN DỤNG hoặc SPAM quảng cáo/dịch vụ → chặn không tạo lead."""
+        return self._vd_is_recruitment(*texts) or self._vd_is_vendor_spam(*texts)
+
     def action_vd_merge_duplicates(self):
         """🔀 Gộp lead hiện tại với các lead trùng SĐT.
         Logic: giữ lead này làm KEEPER, archive (active=False) các lead khác,

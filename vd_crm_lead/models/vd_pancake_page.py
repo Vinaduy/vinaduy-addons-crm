@@ -377,13 +377,14 @@ class VdPancakePage(models.Model):
         if not phone:
             return 'no_phone'
 
-        # Bỏ tin liên quan TUYỂN DỤNG — không tự đẩy số (user 2026-10-07).
-        # QUÉT TOÀN HỘI THOẠI (user 2026-10-21): từ khóa 'tuyển dụng/ứng tuyển'
-        # thường nằm ở tin KHÁC, snippet cuối lại là SĐT → chỉ check snippet sẽ lọt.
-        # Check snippet + tên KH trước (rẻ), chưa dính thì kéo TẤT CẢ tin nhắn check.
-        if Lead._vd_is_recruitment(conv.get('snippet') or '', customer_name or ''):
-            return 'no_phone'
-        if Lead._vd_is_recruitment(*self._vd_fetch_conv_message_texts(conv_id)):
+        # Bỏ tin TUYỂN DỤNG + SPAM quảng cáo/dịch vụ/nhà cung cấp — không tự đẩy số
+        # (user 2026-10-07 + 2026-10-23). QUÉT TOÀN HỘI THOẠI: từ khóa thường nằm ở
+        # tin KHÁC, snippet cuối lại là SĐT → chỉ check snippet sẽ lọt. Check snippet
+        # + tên KH trước (rẻ), chưa dính thì kéo TẤT CẢ tin nhắn check (1 lần fetch).
+        _texts = [conv.get('snippet') or '', customer_name or '']
+        if not Lead._vd_is_blocked_content(*_texts):
+            _texts += self._vd_fetch_conv_message_texts(conv_id)
+        if Lead._vd_is_blocked_content(*_texts):
             return 'no_phone'
 
         # Round-robin pick NV
