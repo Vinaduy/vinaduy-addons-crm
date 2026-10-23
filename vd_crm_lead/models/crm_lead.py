@@ -307,10 +307,10 @@ class CrmLead(models.Model):
         'tang like', 'tang tuong tac', 'tang follow', 'tang sub',
         'seeding', 'nuoi nick', 'thiet ke website', 'lam website', 'thiet ke web',
         'phan mem quan ly', 'dich vu seo', 'ban account', 'ban tai khoan',
-        # Chào hàng / nhà cung cấp / hóa đơn
-        'nha cung cap', 'chao hang', 'ky gui', 'chuyen cung cap', 'ben minh chuyen',
-        'cong ty chung toi chuyen', 'xuat hoa don', 'hoa don do', 'hoa don vat',
-        'hoa don gia',
+        # Chào hàng / nhà cung cấp (BỎ 'chao hang' = đụng "Chào Hằng/Hùng"; BỎ
+        # 'hoa don*' = khách thật hay hỏi xuất hóa đơn VAT — user 2026-10-23)
+        'nha cung cap', 'ky gui hang', 'chuyen cung cap', 'ben minh chuyen cung cap',
+        'cong ty chung toi chuyen cung cap',
     )
 
     @api.model
