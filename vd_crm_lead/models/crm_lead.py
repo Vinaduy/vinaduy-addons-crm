@@ -304,7 +304,7 @@ class CrmLead(models.Model):
         'dau tu tai chinh', 'san forex', 'chung khoan quoc te',
         # Dịch vụ marketing / web / phần mềm
         'chay ads', 'chay quang cao', 'dich vu quang cao', 'dich vu marketing',
-        'tang like', 'tang tuong tac', 'tang follow', 'tang sub', 'tang mat',
+        'tang like', 'tang tuong tac', 'tang follow', 'tang sub',
         'seeding', 'nuoi nick', 'thiet ke website', 'lam website', 'thiet ke web',
         'phan mem quan ly', 'dich vu seo', 'ban account', 'ban tai khoan',
         # Chào hàng / nhà cung cấp / hóa đơn
