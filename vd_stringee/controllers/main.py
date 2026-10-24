@@ -127,6 +127,14 @@ class StringeeController(http.Controller):
         import re as _re
         def _digits(s):
             return _re.sub(r'\D', '', s or '')
+        # DEFENSIVE (user 2026-10-24): Stringee đôi khi gửi `to` bị NHÂN ĐÔI mã nước
+        # "8484..." (quan sát trên hotline Vina 84943333128 → MỌI cuộc ra số
+        # 8484xxxxxxxxx = SỐ SAI → KHÔNG đổ chuông; Viettel/Mobi gửi số đúng vẫn
+        # bình thường). code mình format số HOÀN TOÀN đúng (đã verify) → đây là lỗi
+        # phía Stringee. Gỡ 1 cụm "84" thừa ở `to` trước khi bridge connect.
+        _tod = _digits(to_num)
+        if len(_tod) == 13 and _tod.startswith('8484'):
+            to_num = _tod[2:]
         hotline_digits_set = set()
         switchboard_sfx_set = set()   # số CỐ ĐỊNH (carrier 'other') = TỔNG ĐÀI
         global_digits = _digits(from_number)
