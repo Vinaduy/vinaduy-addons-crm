@@ -7602,48 +7602,106 @@ class CrmLead(models.Model):
             pancake=True, custom_from=date_from, custom_to=date_to)
         return rep.get('custom') or {}
 
-    def _vd_inbound_today_chips(self, call_user_domain, limit=400):
-        """KHÁCH GỌI ĐẾN của NV đang xem — gộp theo SĐT (1 KH = 1 chip).
-        Hiện TẤT CẢ cuộc gọi đến (kể cả quá khứ, user spec 2026-06-24), KHÔNG chỉ
-        hôm nay → gọi nhỡ cũ vẫn nhắc gọi lại. answered=True nếu từng nghe máy
-        (answer_time / state='answered'); ngược lại = gọi nhỡ (đỏ).
-        call_user_domain đã scope theo NV (KHÔNG kèm điều kiện ngày)."""
+    def _vd_inbound_today_chips(self, call_user_domain, scope_user=None, limit=400):
+        """KHÁCH GỌI ĐẾN / GỌI NHỠ — gộp theo SĐT (1 KH = 1 chip). Hiện cả gọi nhỡ
+        cũ (không chỉ hôm nay) để nhắc gọi lại. answered=True nếu từng nghe máy.
+
+        User 2026-10-29:
+        - GÁN THEO CHỦ KH: KH của NV nào gọi vào → vào danh sách NV ấy (khớp 9 số
+          cuối → crm.lead.user_id), KHÔNG theo call.user_id (inbound có thể ring NV
+          khác). scope_user=NV → chỉ KH của NV đó; None (quản lý) → tất cả.
+        - BỎ SỐ ĐÃ GỌI LẠI: nếu có cuộc GỌI RA tới số đó SAU cuộc gọi nhỡ mới nhất
+          → coi như NV đã xử lý → ẩn khỏi danh sách."""
         import re as _re
         try:
             Call = self.env['stringee.call'].sudo()
             calls = Call.search(
-                call_user_domain + [('direction', '=', 'inbound')],
+                [('direction', '=', 'inbound')],
                 order='create_date desc', limit=limit)
         except Exception:
             return []
+
+        def _k9(p):
+            d = _re.sub(r'\D', '', p or '')
+            return d[-9:] if len(d) >= 9 else d
+
         by_phone = {}
         for c in calls:
             phone = (c.caller_number or (c.lead_id.phone if c.lead_id else '') or '').strip()
-            digits = _re.sub(r'\D', '', phone)
-            key = digits[-9:] if len(digits) >= 9 else (digits or 'id%s' % c.id)
+            key = _k9(phone) or ('id%s' % c.id)
             answered = bool(c.answer_time) or c.state == 'answered'
             ts = c.create_date and c.create_date.timestamp() or 0
             rec = by_phone.get(key)
             if rec:
                 if answered:
                     rec['answered'] = True
-                rec['ts'] = max(rec['ts'], ts)
+                rec['last_in'] = max(rec['last_in'], ts)
+                if not rec['name'] and c.lead_id:
+                    rec['name'] = c.lead_id.partner_name or c.lead_id.name or ''
                 continue
             nm = ''
             if c.lead_id:
                 nm = c.lead_id.partner_name or c.lead_id.name or ''
-            by_phone[key] = {
-                'name': nm or ('KH ' + phone if phone else 'Khách lạ'),
-                'phone': phone,
-                'lead_id': c.lead_id.id if c.lead_id else False,
-                'answered': answered,
-                'ts': ts,
-            }
-        chips = list(by_phone.values())
-        # Gọi nhỡ (đỏ) LÊN ĐẦU để NV ưu tiên gọi lại; trong nhóm thì gần đây trước.
-        chips.sort(key=lambda r: (r['answered'], -r['ts']))
-        for r in chips:
-            r.pop('ts', None)
+            by_phone[key] = {'name': nm, 'phone': phone,
+                             'lead_id': c.lead_id.id if c.lead_id else False,
+                             'answered': answered, 'last_in': ts, 'key': key}
+        if not by_phone:
+            return []
+        keys = [k for k in by_phone if not k.startswith('id')]
+        # CHỦ KH theo 9 số cuối (lead MỚI NHẤT có user_id) — 1 query.
+        owner_uid = {}
+        owner_name = {}
+        if keys:
+            self.env.cr.execute("""
+                SELECT right(regexp_replace(coalesce(l.phone, l.mobile, ''),
+                             '[^0-9]', '', 'g'), 9) AS k9,
+                       l.user_id, COALESCE(NULLIF(l.partner_name,''), l.name) AS nm
+                FROM crm_lead l
+                WHERE l.user_id IS NOT NULL
+                  AND right(regexp_replace(coalesce(l.phone, l.mobile, ''),
+                            '[^0-9]', '', 'g'), 9) = ANY(%s)
+                ORDER BY l.create_date DESC
+            """, (keys,))
+            for k9v, uid, nm in self.env.cr.fetchall():
+                if k9v and k9v not in owner_uid:   # newest lead wins (ORDER DESC)
+                    owner_uid[k9v] = uid
+                    owner_name[k9v] = nm or ''
+        # ĐÃ GỌI LẠI: cuộc GỌI RA mới nhất tới số đó (so với last_in) — 1 query.
+        out_ts = {}
+        if keys:
+            self.env.cr.execute("""
+                SELECT right(regexp_replace(coalesce(callee_number,''),
+                             '[^0-9]', '', 'g'), 9) AS k9,
+                       EXTRACT(EPOCH FROM MAX(create_date)) AS ts
+                FROM stringee_call
+                WHERE direction = 'outbound'
+                  AND right(regexp_replace(coalesce(callee_number,''),
+                            '[^0-9]', '', 'g'), 9) = ANY(%s)
+                GROUP BY 1
+            """, (keys,))
+            out_ts = {k9v: ts for k9v, ts in self.env.cr.fetchall() if k9v}
+
+        scope_uid = scope_user.id if scope_user else None
+        chips = []
+        for key, r in by_phone.items():
+            ouid = owner_uid.get(key)
+            # Gán theo chủ KH: NV cụ thể → chỉ KH của NV đó.
+            if scope_uid and ouid != scope_uid:
+                continue
+            # Bỏ số đã gọi lại (có outbound SAU cuộc gọi nhỡ mới nhất).
+            ots = out_ts.get(key)
+            if ots and ots > r['last_in']:
+                continue
+            phone = r['phone']
+            nm = r['name'] or owner_name.get(key) or (
+                'KH ' + phone if phone else 'Khách lạ')
+            chips.append({'name': nm, 'phone': phone, 'lead_id': r['lead_id'],
+                          'answered': r['answered'], 'owner_id': ouid or False,
+                          'ts': r['last_in']})
+        # Gọi nhỡ (đỏ) LÊN ĐẦU để NV ưu tiên gọi lại; gần đây trước.
+        chips.sort(key=lambda x: (x['answered'], -x['ts']))
+        for x in chips:
+            x.pop('ts', None)
         return chips
 
     @api.model
@@ -8080,7 +8138,7 @@ class CrmLead(models.Model):
             'is_manager': is_manager,
             # Dòng KHÁCH GỌI ĐẾN HÔM NAY (user spec 2026-06-24): gọi đến nghe máy +
             # gọi nhỡ của NV đang xem, hiện trên cùng bảng KHÁCH MỚI.
-            'inbound_today': self._vd_inbound_today_chips(call_user_domain),
+            'inbound_today': self._vd_inbound_today_chips(call_user_domain, scope_user),
             # Trưởng nhóm: mở "giao diện quản lý NHÓM" (chọn/xem NV cùng phòng ban),
             # KHÔNG có quyền toàn công ty / thùng rác công ty (giữ cho Giám đốc+).
             # User spec 2026-06-20: Giám đốc (manager) ở chế độ "CÁ NHÂN"
