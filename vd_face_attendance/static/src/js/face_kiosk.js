@@ -94,6 +94,7 @@ export class VdFaceKiosk extends Component {
             this.state.radius = this.cfg.radius;
             this.state.workStart = this.cfg.work_start_label || "08:00";
             this.state.workEnd = this.cfg.work_end_label || "17:30";
+            this.state.windows = this.cfg.windows || null;
             this.state.recent = this.cfg.recent || [];
             this.state.facesCount = this.cfg.faces_count || 0;
 

@@ -17,6 +17,13 @@ class VdFaceAttendanceSettings(models.TransientModel):
         string='Giờ vào quy định', help='Nhập dạng HH:MM, ví dụ 08:00. Vào sau giờ này = đi muộn.')
     work_end = fields.Char(
         string='Giờ ra quy định', help='Nhập dạng HH:MM, ví dụ 17:30. Ra trước giờ này = về sớm.')
+    afternoon_in = fields.Char(
+        string='Giờ vào ca chiều',
+        help='Nhập dạng HH:MM, ví dụ 13:30. Dành cho người làm ca chiều.')
+    grace_minutes = fields.Integer(
+        string='Ân hạn chấm (phút)',
+        help='Sau giờ ca bao nhiêu phút thì HẾT hạn chấm. Mỗi khung chấm = '
+             '[giờ ca, giờ ca + ân hạn]. Ngoài khung KHÔNG cho chấm.')
     model_url = fields.Char(string='Đường dẫn model AI')
     lib_url = fields.Char(string='Đường dẫn thư viện face-api')
 
@@ -33,6 +40,8 @@ class VdFaceAttendanceSettings(models.TransientModel):
             'face_threshold': cfg['threshold'],
             'work_start': '%02d:%02d' % Att._vd_parse_hm(P.get_param('vd_face_attendance.work_start'), 8, 0),
             'work_end': '%02d:%02d' % Att._vd_parse_hm(P.get_param('vd_face_attendance.work_end'), 17, 30),
+            'afternoon_in': '%02d:%02d' % Att._vd_parse_hm(P.get_param('vd_face_attendance.afternoon_in'), 13, 30),
+            'grace_minutes': int(float(P.get_param('vd_face_attendance.grace_minutes', 30) or 30)),
             'model_url': cfg['model_url'],
             'lib_url': cfg['lib_url'],
         })
@@ -51,6 +60,10 @@ class VdFaceAttendanceSettings(models.TransientModel):
         eh, em = Att._vd_parse_hm(self.work_end, 17, 30)
         P.set_param('vd_face_attendance.work_start', '%02d:%02d' % (sh, sm))
         P.set_param('vd_face_attendance.work_end', '%02d:%02d' % (eh, em))
+        ah, am = Att._vd_parse_hm(self.afternoon_in, 13, 30)
+        P.set_param('vd_face_attendance.afternoon_in', '%02d:%02d' % (ah, am))
+        P.set_param('vd_face_attendance.grace_minutes',
+                    str(max(0, int(self.grace_minutes or 30))))
         if self.model_url:
             P.set_param('vd_face_attendance.model_url', self.model_url)
         if self.lib_url:

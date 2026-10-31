@@ -104,6 +104,74 @@ class VdFaceAttendance(models.Model):
                 diffo = (expo - loco).total_seconds() / 60.0
                 r.early_leave_minutes = int(diffo) if diffo > 0 else 0
 
+    # ================= KHUNG GIỜ CHẤM (theo ca) =================
+    @staticmethod
+    def _vd_fmt_min(m):
+        return '%02d:%02d' % (m // 60, m % 60)
+
+    def _vd_check_windows(self):
+        """3 khung giờ ĐƯỢC chấm (phút trong ngày, giờ VN). Mỗi khung =
+        [giờ ca, giờ ca + ân hạn]. Ngoài khung → CHẶN chấm (user 2026-10-31):
+          • Sáng : work_start .. +grace   (vd 08:00–08:30)
+          • Chiều: afternoon_in .. +grace (vd 13:30–14:00)
+          • Ra   : work_end .. +grace     (vd 17:30–18:00)
+        """
+        P = self.env['ir.config_parameter'].sudo()
+        sh, sm = self._vd_parse_hm(P.get_param('vd_face_attendance.work_start'), 8, 0)
+        ah, am = self._vd_parse_hm(P.get_param('vd_face_attendance.afternoon_in'), 13, 30)
+        eh, em = self._vd_parse_hm(P.get_param('vd_face_attendance.work_end'), 17, 30)
+        try:
+            grace = int(float(P.get_param('vd_face_attendance.grace_minutes', 30) or 30))
+        except (TypeError, ValueError):
+            grace = 30
+        grace = max(0, grace)
+        return {
+            'morning_in': (sh * 60 + sm, sh * 60 + sm + grace),
+            'afternoon_in': (ah * 60 + am, ah * 60 + am + grace),
+            'out': (eh * 60 + em, eh * 60 + em + grace),
+        }
+
+    def _vd_window_labels(self):
+        """Nhãn khung giờ 'HH:MM–HH:MM' cho client hiển thị."""
+        w = self._vd_check_windows()
+        f = self._vd_fmt_min
+        return {k: '%s–%s' % (f(v[0]), f(v[1])) for k, v in w.items()}
+
+    def _vd_now_minute_vn(self):
+        vn = pytz.timezone('Asia/Ho_Chi_Minh')
+        now = pytz.utc.localize(fields.Datetime.now()).astimezone(vn)
+        return now.hour * 60 + now.minute
+
+    def _vd_assert_window(self, kind):
+        """Chặn chấm NGOÀI khung giờ quy định (giờ VN). kind='in'|'out'.
+        CHẤM BÙ của admin KHÔNG đi qua đây."""
+        w = self._vd_check_windows()
+        cur = self._vd_now_minute_vn()
+        f = self._vd_fmt_min
+        if kind == 'in':
+            ok = (w['morning_in'][0] <= cur <= w['morning_in'][1]
+                  or w['afternoon_in'][0] <= cur <= w['afternoon_in'][1])
+            if not ok:
+                raise UserError(_(
+                    'Ngoài giờ chấm VÀO. Chỉ được chấm vào trong %s–%s (ca sáng) '
+                    'hoặc %s–%s (ca chiều).') % (
+                    f(w['morning_in'][0]), f(w['morning_in'][1]),
+                    f(w['afternoon_in'][0]), f(w['afternoon_in'][1])))
+        else:
+            if not (w['out'][0] <= cur <= w['out'][1]):
+                raise UserError(_(
+                    'Ngoài giờ chấm RA. Chỉ được chấm ra trong %s–%s.') % (
+                    f(w['out'][0]), f(w['out'][1])))
+
+    def _vd_window_error(self, kind):
+        """Như _vd_assert_window nhưng TRẢ chuỗi lỗi (None nếu hợp lệ) — cho
+        kiosk trả {ok:False, error} thay vì ném lỗi RPC."""
+        try:
+            self._vd_assert_window(kind)
+        except UserError as e:
+            return e.args[0] if e.args else _('Ngoài giờ chấm công.')
+        return None
+
     def _vd_local_hm(self, dt):
         """Datetime UTC -> 'HH:MM' giờ VN."""
         if not dt:
@@ -126,11 +194,11 @@ class VdFaceAttendance(models.Model):
 
     # ================= BẢNG CHẤM CÔNG (UI mới, Admin/Quản lý) =================
     def _vd_board_check_manager(self):
-        """Chỉ Admin/Quản lý chấm công được dùng bảng + chấm bù (user 2026-10-12)."""
-        u = self.env.user
-        if not (u._is_admin()
-                or u.has_group('vd_face_attendance.group_face_manager')):
-            raise UserError(_('Chỉ Admin/Quản lý chấm công mới được dùng bảng này.'))
+        """CHỈ ADMIN xem được bảng chấm công của mọi người + chấm bù + xuất Excel
+        (user 2026-10-31). Trước đây cho cả nhóm 'Quản lý chấm công' — nay siết
+        về admin để không ai ngoài admin xem được công của người khác."""
+        if not self.env.user._is_admin():
+            raise UserError(_('Chỉ Admin mới được xem bảng chấm công của mọi người.'))
 
     @api.model
     def _vd_month_range_utc(self, month):
@@ -372,6 +440,7 @@ class VdFaceAttendance(models.Model):
                 self.env['ir.config_parameter'].sudo().get_param('vd_face_attendance.work_start'), 8, 0),
             'work_end_label': '%02d:%02d' % self._vd_parse_hm(
                 self.env['ir.config_parameter'].sudo().get_param('vd_face_attendance.work_end'), 17, 30),
+            'windows': self._vd_window_labels(),
             'enrolled': enrolled,
             'descriptor': json.loads(emp.descriptor) if enrolled else None,
             'employee': ({
@@ -441,6 +510,7 @@ class VdFaceAttendance(models.Model):
             raise UserError(_('Bạn chưa đăng ký khuôn mặt. Hãy đăng ký trước khi chấm công.'))
         if self._vd_find_open_today():
             raise UserError(_('Hôm nay bạn đã chấm VÀO rồi — hãy chấm RA khi kết thúc.'))
+        self._vd_assert_window('in')
         dist, lat, lng = self._vd_check_geo(lat, lng)
         rec = self.sudo().create({
             'user_id': u.id,
@@ -459,6 +529,7 @@ class VdFaceAttendance(models.Model):
         rec = self._vd_find_open_today()
         if not rec:
             raise UserError(_('Chưa có lượt chấm VÀO nào hôm nay để chấm RA.'))
+        self._vd_assert_window('out')
         dist, lat, lng = self._vd_check_geo(lat, lng)
         rec.sudo().write({
             'check_out': fields.Datetime.now(),
@@ -535,6 +606,7 @@ class VdFaceAttendance(models.Model):
                 P.get_param('vd_face_attendance.work_end'), 17, 30),
             'faces_count': self.env['vd.face.employee'].sudo().search_count(
                 [('descriptor', '!=', False)]),
+            'windows': self._vd_window_labels(),
             'recent': self._vd_kiosk_recent(),
         })
         return cfg
@@ -597,6 +669,9 @@ class VdFaceAttendance(models.Model):
                     'error': e.args[0] if e.args else _('Vị trí quá xa.')}
         now = fields.Datetime.now()
         if kind == 'in':
+            werr = self._vd_window_error('in')
+            if werr:
+                return {'ok': False, 'employee': emp_info, 'error': werr}
             if self._vd_find_open_today_emp(emp):
                 return {'ok': False, 'employee': emp_info,
                         'error': _('%s đã chấm VÀO hôm nay rồi — hãy chấm RA.') % emp.name}
@@ -612,6 +687,9 @@ class VdFaceAttendance(models.Model):
                     'late_minutes': rec.late_minutes, 'distance': round(gdist),
                     'recent': self._vd_kiosk_recent()}
         else:
+            werr = self._vd_window_error('out')
+            if werr:
+                return {'ok': False, 'employee': emp_info, 'error': werr}
             rec = self._vd_find_open_today_emp(emp)
             if not rec:
                 return {'ok': False, 'employee': emp_info,

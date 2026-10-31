@@ -59,7 +59,12 @@
                             <div class="o_vd_face_result_line"><t t-esc="state.result.line"/></div>
                         </div>
 
-                        <div class="o_vd_face_rulehint">Quy định: vào <t t-esc="state.workStart"/> · ra <t t-esc="state.workEnd"/></div>
+                        <div class="o_vd_face_rulehint" t-if="state.windows">
+                            Giờ chấm VÀO: <b><t t-esc="state.windows.morning_in"/></b> (sáng)
+                            / <b><t t-esc="state.windows.afternoon_in"/></b> (chiều)
+                            · RA: <b><t t-esc="state.windows.out"/></b>
+                        </div>
+                        <div class="o_vd_face_rulehint" t-else="">Quy định: vào <t t-esc="state.workStart"/> · ra <t t-esc="state.workEnd"/></div>
 
                         <!-- ĐĂNG KÝ khuôn mặt mới (ẩn/hiện) -->
                         <button class="btn btn-link o_vd_face_reenroll"

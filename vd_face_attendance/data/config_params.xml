@@ -28,5 +28,18 @@
             <field name="key">vd_face_attendance.work_end</field>
             <field name="value">17:30</field>
         </record>
+        <!-- Giờ vào ca CHIỀU (cho người làm ca chiều). Khung chấm vào chiều =
+             giờ này .. +ân hạn (vd 13:30–14:00). -->
+        <record id="param_afternoon_in" model="ir.config_parameter">
+            <field name="key">vd_face_attendance.afternoon_in</field>
+            <field name="value">13:30</field>
+        </record>
+        <!-- Ân hạn (phút): sau giờ ca bao nhiêu phút thì HẾT hạn chấm. Mỗi khung
+             chấm = [giờ ca, giờ ca + ân hạn]. Mặc định 30' → 08:00–08:30,
+             13:30–14:00, 17:30–18:00. Ngoài khung KHÔNG cho chấm. -->
+        <record id="param_grace_minutes" model="ir.config_parameter">
+            <field name="key">vd_face_attendance.grace_minutes</field>
+            <field name="value">30</field>
+        </record>
     </data>
 </odoo>

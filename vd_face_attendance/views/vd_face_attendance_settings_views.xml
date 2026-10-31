@@ -19,12 +19,21 @@
                                 copy 2 số (vĩ độ, kinh độ) dán vào đây.
                             </div>
                         </group>
-                        <group string="Giờ làm việc">
+                        <group string="Giờ làm việc &amp; khung chấm">
                             <field name="work_start"/>
+                            <field name="afternoon_in"/>
                             <field name="work_end"/>
+                            <field name="grace_minutes"/>
                             <div colspan="2" class="text-muted">
-                                Nhập dạng <b>HH:MM</b> (ví dụ <b>08:00</b>, <b>17:30</b>). Vào sau giờ vào =
-                                đi muộn; ra trước giờ ra = về sớm.
+                                Nhập giờ dạng <b>HH:MM</b>. Mỗi lần chấm chỉ nhận trong khung
+                                <b>[giờ ca → giờ ca + ân hạn]</b>, ngoài khung bị CHẶN.
+                                Với ân hạn <b>30'</b>:
+                                <ul class="mb-0">
+                                    <li>Chấm VÀO ca sáng: <b>08:00–08:30</b></li>
+                                    <li>Chấm VÀO ca chiều: <b>13:30–14:00</b></li>
+                                    <li>Chấm RA: <b>17:30–18:00</b></li>
+                                </ul>
+                                Vào sau giờ vào = đi muộn; ra trước giờ ra = về sớm.
                             </div>
                         </group>
                         <group string="Nhận diện khuôn mặt">
